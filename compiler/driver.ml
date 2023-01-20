@@ -15,10 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-module Cli = Utils.Cli
-module File = Utils.File
-module Errors = Utils.Errors
-module Pos = Utils.Pos
+open Catala_utils
 
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
 let languages = ["en", Cli.En; "fr", Cli.Fr; "pl", Cli.Pl]
@@ -76,7 +73,15 @@ let driver source_file (options : Cli.options) : int =
         try `Plugin (Plugin.find s)
         with Not_found ->
           Errors.raise_error
-            "The selected backend (%s) is not supported by Catala" backend)
+            "The selected backend (%s) is not supported by Catala, nor was a \
+             plugin by this name found under %a"
+            backend
+            (Format.pp_print_list
+               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or @ ")
+               (fun ppf dir ->
+                 Format.pp_print_string ppf
+                   (try Unix.readlink dir with _ -> dir)))
+            options.plugins_dirs)
     in
     let prgm =
       Surface.Parser_driver.parse_top_level_file source_file language
@@ -143,7 +148,7 @@ let driver source_file (options : Cli.options) : int =
     | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
       | `Scopelang | `Proof | `Plugin _ ) as backend -> (
       Cli.debug_print "Name resolution...";
-      let ctxt = Surface.Name_resolution.form_context prgm in
+      let ctxt = Desugared.Name_resolution.form_context prgm in
       let scope_uid =
         match options.ex_scope, backend with
         | None, `Interpret ->
@@ -151,27 +156,29 @@ let driver source_file (options : Cli.options) : int =
         | None, _ ->
           let _, scope =
             try
-              Desugared.Ast.IdentMap.filter_map
+              Shared_ast.IdentName.Map.filter_map
                 (fun _ -> function
-                  | Surface.Name_resolution.TScope (uid, _) -> Some uid
+                  | Desugared.Name_resolution.TScope (uid, _) -> Some uid
                   | _ -> None)
                 ctxt.typedefs
-              |> Desugared.Ast.IdentMap.choose
+              |> Shared_ast.IdentName.Map.choose
             with Not_found ->
               Errors.raise_error "There isn't any scope inside the program."
           in
           scope
         | Some name, _ -> (
-          match Desugared.Ast.IdentMap.find_opt name ctxt.typedefs with
-          | Some (Surface.Name_resolution.TScope (uid, _)) -> uid
+          match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
+          | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
           | _ ->
             Errors.raise_error "There is no scope \"%s\" inside the program."
               name)
       in
       Cli.debug_print "Desugaring...";
-      let prgm = Surface.Desugaring.desugar_program ctxt prgm in
+      let prgm = Desugared.From_surface.translate_program ctxt prgm in
+      Cli.debug_print "Disambiguating...";
+      let prgm = Desugared.Disambiguate.program prgm in
       Cli.debug_print "Collecting rules...";
-      let prgm = Desugared.Desugared_to_scope.translate_program prgm in
+      let prgm = Scopelang.From_desugared.translate_program prgm in
       match backend with
       | `Scopelang ->
         let _output_file, with_output = get_output_format () in
@@ -180,7 +187,8 @@ let driver source_file (options : Cli.options) : int =
         if Option.is_some options.ex_scope then
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.scope prgm.program_ctx ~debug:options.debug)
-            (scope_uid, Shared_ast.ScopeMap.find scope_uid prgm.program_scopes)
+            ( scope_uid,
+              Shared_ast.ScopeName.Map.find scope_uid prgm.program_scopes )
         else
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.program ~debug:options.debug)
@@ -194,7 +202,7 @@ let driver source_file (options : Cli.options) : int =
         in
         let prgm = Scopelang.Ast.type_program prgm in
         Cli.debug_print "Translating to default calculus...";
-        let prgm = Scopelang.Scope_to_dcalc.translate_program prgm in
+        let prgm = Dcalc.From_scopelang.translate_program prgm in
         let prgm =
           if options.optimize then begin
             Cli.debug_print "Optimizing default calculus...";
@@ -202,8 +210,21 @@ let driver source_file (options : Cli.options) : int =
           end
           else prgm
         in
+        (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
+           (Print.typ prgm.decl_ctx) typ); *)
         match backend with
         | `Typecheck ->
+          Cli.debug_print "Typechecking again...";
+          let _ =
+            try Shared_ast.Typing.program prgm
+            with Errors.StructuredError (msg, details) ->
+              let msg =
+                "Typing error occured during re-typing on the 'default \
+                 calculus'. This is a bug in the Catala compiler.\n"
+                ^ msg
+              in
+              raise (Errors.StructuredError (msg, details))
+          in
           (* That's it! *)
           Cli.result_print "Typechecking successful!"
         | `Dcalc ->
@@ -229,7 +250,7 @@ let driver source_file (options : Cli.options) : int =
               Shared_ast.Expr.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             Format.fprintf fmt "%a\n"
-              (Shared_ast.Expr.format prgm.decl_ctx)
+              (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
               prgrm_dcalc_expr
         | (`Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _)
           as backend -> (
@@ -244,8 +265,6 @@ let driver source_file (options : Cli.options) : int =
               in
               raise (Errors.StructuredError (msg, details))
           in
-          (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
-             (Print.typ prgm.decl_ctx) typ); *)
           match backend with
           | `Proof ->
             let vcs =
@@ -308,24 +327,14 @@ let driver source_file (options : Cli.options) : int =
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
                   (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
-                  ( scope_uid,
-                    Option.get
-                      (Shared_ast.Scope.fold_left ~init:None
-                         ~f:(fun acc scope_def _ ->
-                           if
-                             Shared_ast.ScopeName.compare scope_def.scope_name
-                               scope_uid
-                             = 0
-                           then Some scope_def.scope_body
-                           else acc)
-                         prgm.scopes) )
+                  (scope_uid, Shared_ast.Program.get_scope_body prgm scope_uid)
               else
                 let prgrm_lcalc_expr =
                   Shared_ast.Expr.unbox
                     (Shared_ast.Program.to_expr prgm scope_uid)
                 in
                 Format.fprintf fmt "%a\n"
-                  (Shared_ast.Expr.format prgm.decl_ctx)
+                  (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
                   prgrm_lcalc_expr
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
               match backend with

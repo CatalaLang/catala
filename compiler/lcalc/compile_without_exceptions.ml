@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 module D = Dcalc.Ast
 module A = Ast
 
@@ -170,7 +170,7 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
          created a variable %a to replace it" Print.var v Print.var v'; *)
       Expr.make_var v' mark, Var.Map.singleton v' e
     else (find ~info:"should never happen" v ctx).expr, Var.Map.empty
-  | EApp ((EVar v, p), [(ELit LUnit, _)]) ->
+  | EApp { f = EVar v, p; args = [(ELit LUnit, _)] } ->
     if not (find ~info:"search for a variable" v ctx).is_pure then
       let v' = Var.make (Bindlib.name_of v) in
       (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
@@ -179,7 +179,7 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     else
       Errors.raise_spanned_error (Expr.pos e)
         "Internal error: an pure variable was found in an unpure environment."
-  | EDefault (_exceptions, _just, _cons) ->
+  | EDefault _ ->
     let v' = Var.make "default_term" in
     Expr.make_var v' mark, Var.Map.singleton v' e
   | ELit LEmptyError ->
@@ -187,7 +187,7 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     Expr.make_var v' mark, Var.Map.singleton v' e
   (* This one is a very special case. It transform an unpure expression
      environement to a pure expression. *)
-  | ErrorOnEmpty arg ->
+  | EErrorOnEmpty arg ->
     (* [ match arg with | None -> raise NoValueProvided | Some v -> {{ v }} ] *)
     let silent_var = Var.make "_" in
     let x = Var.make "non_empty_argument" in
@@ -206,22 +206,23 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
       ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
       l) ->
     Expr.elit l mark, Var.Map.empty
-  | EIfThenElse (e1, e2, e3) ->
-    let e1', h1 = translate_and_hoist ctx e1 in
-    let e2', h2 = translate_and_hoist ctx e2 in
-    let e3', h3 = translate_and_hoist ctx e3 in
+  | EIfThenElse { cond; etrue; efalse } ->
+    let cond', h1 = translate_and_hoist ctx cond in
+    let etrue', h2 = translate_and_hoist ctx etrue in
+    let efalse', h3 = translate_and_hoist ctx efalse in
 
-    let e' = Expr.eifthenelse e1' e2' e3' mark in
+    let e' = Expr.eifthenelse cond' etrue' efalse' mark in
 
-    (*(* equivalent code : *) let e' = let+ e1' = e1' and+ e2' = e2' and+ e3' =
-      e3' in (A.EIfThenElse (e1', e2', e3'), pos) in *)
+    (*(* equivalent code : *) let e' = let+ cond' = cond' and+ etrue' = etrue'
+      and+ efalse' = efalse' in (A.EIfThenElse (cond', etrue', efalse'), pos)
+      in *)
     e', disjoint_union_maps (Expr.pos e) [h1; h2; h3]
   | EAssert e1 ->
     (* same behavior as in the ICFP paper: if e1 is empty, then no error is
        raised. *)
     let e1', h1 = translate_and_hoist ctx e1 in
     Expr.eassert e1' mark, h1
-  | EAbs (binder, ts) ->
+  | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let ctx, lc_vars =
       ArrayLabels.fold_right vars ~init:(ctx, []) ~f:(fun var (ctx, lc_vars) ->
@@ -242,8 +243,8 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     let new_body, hoists = translate_and_hoist ctx body in
     let new_binder = Expr.bind lc_vars new_body in
 
-    Expr.eabs new_binder (List.map translate_typ ts) mark, hoists
-  | EApp (e1, args) ->
+    Expr.eabs new_binder (List.map translate_typ tys) mark, hoists
+  | EApp { f = e1; args } ->
     let e1', h1 = translate_and_hoist ctx e1 in
     let args', h_args =
       args |> List.map (translate_and_hoist ctx) |> List.split
@@ -252,35 +253,43 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     let hoists = disjoint_union_maps (Expr.pos e) (h1 :: h_args) in
     let e' = Expr.eapp e1' args' mark in
     e', hoists
-  | ETuple (args, s) ->
-    let args', h_args =
-      args |> List.map (translate_and_hoist ctx) |> List.split
+  | EStruct { name; fields } ->
+    let fields', h_fields =
+      StructField.Map.fold
+        (fun field e (fields, hoists) ->
+          let e, h = translate_and_hoist ctx e in
+          StructField.Map.add field e fields, h :: hoists)
+        fields
+        (StructField.Map.empty, [])
     in
-
-    let hoists = disjoint_union_maps (Expr.pos e) h_args in
-    Expr.etuple args' s mark, hoists
-  | ETupleAccess (e1, i, s, ts) ->
+    let hoists = disjoint_union_maps (Expr.pos e) h_fields in
+    Expr.estruct name fields' mark, hoists
+  | EStructAccess { name; e = e1; field } ->
     let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = Expr.etupleaccess e1' i s ts mark in
+    let e1' = Expr.estructaccess e1' field name mark in
     e1', hoists
-  | EInj (e1, i, en, ts) ->
+  | EInj { name; e = e1; cons } ->
     let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = Expr.einj e1' i en ts mark in
+    let e1' = Expr.einj e1' cons name mark in
     e1', hoists
-  | EMatch (e1, cases, en) ->
+  | EMatch { name; e = e1; cases } ->
     let e1', h1 = translate_and_hoist ctx e1 in
     let cases', h_cases =
-      cases |> List.map (translate_and_hoist ctx) |> List.split
+      EnumConstructor.Map.fold
+        (fun cons e (cases, hoists) ->
+          let e', h = translate_and_hoist ctx e in
+          EnumConstructor.Map.add cons e' cases, h :: hoists)
+        cases
+        (EnumConstructor.Map.empty, [])
     in
-
     let hoists = disjoint_union_maps (Expr.pos e) (h1 :: h_cases) in
-    let e' = Expr.ematch e1' cases' en mark in
+    let e' = Expr.ematch e1' name cases' mark in
     e', hoists
   | EArray es ->
     let es', hoists = es |> List.map (translate_and_hoist ctx) |> List.split in
 
     Expr.earray es' mark, disjoint_union_maps (Expr.pos e) hoists
-  | EOp op -> Expr.eop op mark, Var.Map.empty
+  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys mark, Var.Map.empty
 
 and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
     'm A.expr boxed =
@@ -302,14 +311,14 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
         (* Here we have to handle only the cases appearing in hoists, as defined
            the [translate_and_hoist] function. *)
         | EVar v -> (find ~info:"should never happen" v ctx).expr
-        | EDefault (excep, just, cons) ->
-          let excep' = List.map (translate_expr ctx) excep in
+        | EDefault { excepts; just; cons } ->
+          let excepts' = List.map (translate_expr ctx) excepts in
           let just' = translate_expr ctx just in
           let cons' = translate_expr ctx cons in
           (* calls handle_option. *)
           Expr.make_app
             (Expr.make_var (Var.translate A.handle_default_opt) mark_hoist)
-            [Expr.earray excep' mark_hoist; just'; cons']
+            [Expr.earray excepts' mark_hoist; just'; cons']
             pos
         | ELit LEmptyError -> A.make_none mark_hoist
         | EAssert arg ->
@@ -354,7 +363,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
       {
         scope_let_kind = SubScopeVarDefinition;
         scope_let_typ = typ;
-        scope_let_expr = EAbs (binder, _), emark;
+        scope_let_expr = EAbs { binder; _ }, emark;
         scope_let_next = next;
         scope_let_pos = pos;
       } ->
@@ -385,7 +394,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
       {
         scope_let_kind = SubScopeVarDefinition;
         scope_let_typ = typ;
-        scope_let_expr = (ErrorOnEmpty _, emark) as expr;
+        scope_let_expr = (EErrorOnEmpty _, emark) as expr;
         scope_let_next = next;
         scope_let_pos = pos;
       } ->
@@ -529,7 +538,7 @@ let translate_program (prgm : 'm D.program) : 'm A.program =
       prgm.decl_ctx with
       ctx_enums =
         prgm.decl_ctx.ctx_enums
-        |> EnumMap.add A.option_enum A.option_enum_config;
+        |> EnumName.Map.add A.option_enum A.option_enum_config;
     }
   in
   let decl_ctx =
@@ -537,15 +546,14 @@ let translate_program (prgm : 'm D.program) : 'm A.program =
       decl_ctx with
       ctx_structs =
         prgm.decl_ctx.ctx_structs
-        |> StructMap.mapi (fun n l ->
+        |> StructName.Map.mapi (fun n str ->
                if List.mem n inputs_structs then
-                 ListLabels.map l ~f:(fun (n, tau) ->
-                     (* Cli.debug_print @@ Format.asprintf "Input type: %a"
-                        (Print.typ decl_ctx) tau; Cli.debug_print @@
-                        Format.asprintf "Output type: %a" (Print.typ decl_ctx)
-                        (translate_typ tau); *)
-                     n, translate_typ tau)
-               else l);
+                 StructField.Map.map translate_typ str
+                 (* Cli.debug_print @@ Format.asprintf "Input type: %a"
+                    (Print.typ decl_ctx) tau; Cli.debug_print @@ Format.asprintf
+                    "Output type: %a" (Print.typ decl_ctx) (translate_typ
+                    tau); *)
+               else str);
     }
   in
 

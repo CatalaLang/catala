@@ -7,15 +7,14 @@ declaration scope A:
 
 scope A:
   definition x equals 1.
-  definition y under condition x >. 1./.3. consequence equals true
+  definition y under condition x > 1./3. consequence equals true
 ```
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.y] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/rationals-empty.catala_en:6.10-11
+┌─⯈ tests/test_proof/bad/rationals-empty.catala_en:6.10-11:
 └─┐
-  │
 6 │   context y content boolean
   │           ‾
   └─ Test

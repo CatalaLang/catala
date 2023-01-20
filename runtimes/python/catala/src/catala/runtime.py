@@ -39,8 +39,8 @@ class Integer:
     def __mul__(self, other: 'Integer') -> 'Integer':
         return Integer(self.value * other.value)
 
-    def __truediv__(self, other: 'Integer') -> 'Integer':
-        return Integer(self.value // other.value)
+    def __truediv__(self, other: 'Integer') -> 'Decimal':
+        return Decimal (self.value) / Decimal (other.value)
 
     def __neg__(self: 'Integer') -> 'Integer':
         return Integer(- self.value)
@@ -150,7 +150,12 @@ class Money:
             return Money(Integer(res))
 
     def __truediv__(self, other: 'Money') -> Decimal:
-        return Decimal(mpq(self.value.value / other.value.value))
+        if isinstance(other, Money):
+            return Decimal(mpq(self.value.value / other.value.value))
+        elif isinstance(other, Decimal):
+            return self * (1. / other.value)
+        else:
+          raise Exception("Dividing money and invalid obj")
 
     def __neg__(self: 'Money') -> 'Money':
         return Money(- self.value)
@@ -193,8 +198,13 @@ class Date:
     def __add__(self, other: 'Duration') -> 'Date':
         return Date(self.value + other.value)
 
-    def __sub__(self, other: 'Date') -> 'Duration':
-        return Duration(dateutil.relativedelta.relativedelta(self.value, other.value))
+    def __sub__(self, other: object) -> object:
+        if isinstance(other, Date):
+          return Duration(dateutil.relativedelta.relativedelta(self.value, other.value))
+        elif isinstance(other, Duration):
+          return Date(self.value - other.value)
+        else:
+          raise Exception("Substracting date and invalid obj")
 
     def __lt__(self, other: 'Date') -> bool:
         return self.value < other.value
@@ -560,6 +570,13 @@ def list_filter(f: Callable[[Alpha], bool], l: List[Alpha]) -> List[Alpha]:
 
 def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
     return [f(i) for i in l]
+
+
+def list_reduce(f: Callable[[Alpha, Alpha], Alpha], dft: Alpha, l: List[Alpha]) -> Alpha:
+    if l == []:
+        return dft
+    else:
+        return reduce(f, l)
 
 
 def list_length(l: List[Alpha]) -> Integer:

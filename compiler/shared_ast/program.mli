@@ -25,6 +25,9 @@ val map_exprs :
   'expr1 program ->
   'expr2 program Bindlib.box
 
+val get_scope_body :
+  (([< dcalc | lcalc ], _) gexpr as 'e) program -> ScopeName.t -> 'e scope_body
+
 val untype :
   (([< dcalc | lcalc ] as 'a), 'm mark) gexpr program ->
   ('a, untyped mark) gexpr program

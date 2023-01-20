@@ -14,8 +14,10 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
+
 type 'ast plugin_apply_fun_typ =
-  source_file:Utils.Pos.input_file ->
+  source_file:Pos.input_file ->
   output_file:string option ->
   scope:string option ->
   'ast ->
@@ -51,17 +53,21 @@ let find name = Hashtbl.find backend_plugins (String.lowercase_ascii name)
 let load_file f =
   try
     Dynlink.loadfile f;
-    Utils.Cli.debug_print "Plugin %S loaded" f
+    Cli.debug_print "Plugin %S loaded" f
   with e ->
-    Utils.Errors.format_warning "Could not load plugin %S: %s" f
+    Errors.format_warning "Could not load plugin %S: %s" f
       (Printexc.to_string e)
 
-let load_dir d =
+let rec load_dir d =
   let dynlink_exts =
     if Dynlink.is_native then [".cmxs"] else [".cmo"; ".cma"]
   in
   Array.iter
     (fun f ->
-      if List.exists (Filename.check_suffix f) dynlink_exts then
-        load_file (Filename.concat d f))
+      if f.[0] = '.' then ()
+      else
+        let f = Filename.concat d f in
+        if Sys.is_directory f then load_dir f
+        else if List.exists (Filename.check_suffix f) dynlink_exts then
+          load_file f)
     (Sys.readdir d)

@@ -20,8 +20,7 @@
 let name = "json_schema"
 let extension = "_schema.json"
 
-open Utils
-open String_common
+open Catala_utils
 open Shared_ast
 open Lcalc.Ast
 open Lcalc.To_ocaml
@@ -38,11 +37,11 @@ module To_json = struct
 
   let format_struct_field_name_camel_case
       (fmt : Format.formatter)
-      (v : StructFieldName.t) : unit =
+      (v : StructField.t) : unit =
     let s =
-      Format.asprintf "%a" StructFieldName.format_t v
-      |> to_ascii
-      |> to_snake_case
+      Format.asprintf "%a" StructField.format_t v
+      |> String.to_ascii
+      |> String.to_snake_case
       |> avoid_keywords
       |> to_camel_case
     in
@@ -97,7 +96,7 @@ module To_json = struct
          (fun fmt (field_name, field_type) ->
            Format.fprintf fmt "@[<hov 2>\"%a\": {@\n%a@]@\n}"
              format_struct_field_name_camel_case field_name fmt_type field_type))
-      (find_struct sname ctx)
+      (StructField.Map.bindings (find_struct sname ctx))
 
   let fmt_definitions
       (ctx : decl_ctx)
@@ -118,11 +117,14 @@ module To_json = struct
           (t :: acc) @ collect_required_type_defs_from_scope_input s
         | TEnum e ->
           List.fold_left collect (t :: acc)
-            (List.map snd (EnumMap.find e ctx.ctx_enums))
+            (List.map snd
+               (EnumConstructor.Map.bindings
+                  (EnumName.Map.find e ctx.ctx_enums)))
         | TArray t -> collect acc t
         | _ -> acc
       in
       find_struct input_struct ctx
+      |> StructField.Map.bindings
       |> List.fold_left (fun acc (_, field_typ) -> collect acc field_typ) []
       |> List.sort_uniq (fun t t' -> String.compare (get_name t) (get_name t'))
     in
@@ -146,7 +148,7 @@ module To_json = struct
              Format.fprintf fmt
                "@[<hov 2>{@\n\"type\": \"string\",@\n\"enum\": [\"%a\"]@]@\n}"
                format_enum_cons_name enum_cons))
-        enum_def
+        (EnumConstructor.Map.bindings enum_def)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
            (fun fmt (enum_cons, payload_type) ->
@@ -168,7 +170,7 @@ module To_json = struct
                 }@]@\n\
                 }"
                format_enum_cons_name enum_cons fmt_type payload_type))
-        enum_def
+        (EnumConstructor.Map.bindings enum_def)
     in
 
     Format.fprintf fmt "@\n%a"

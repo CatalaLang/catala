@@ -42,13 +42,13 @@ total dont sont retranchées les charges énumérées à l'article 156.
 ```catala
 champ d'application CalculImpôtSurLeRevenu:
   définition revenu_net_global égal à
-    détail_revenu_net_global.revenus_fonciers +€
-    détail_revenu_net_global.bénéfices_industriels_commerciaux +€
-    détail_revenu_net_global.rémunérations_dirigeants +€
-    détail_revenu_net_global.bénéfices_agricoles +€
-    détail_revenu_net_global.traitements_salaires +€
-    détail_revenu_net_global.bénéfices_non_commerciaux +€
-    détail_revenu_net_global.revenus_capitaux_mobiliers +€
+    détail_revenu_net_global.revenus_fonciers +
+    détail_revenu_net_global.bénéfices_industriels_commerciaux +
+    détail_revenu_net_global.rémunérations_dirigeants +
+    détail_revenu_net_global.bénéfices_agricoles +
+    détail_revenu_net_global.traitements_salaires +
+    détail_revenu_net_global.bénéfices_non_commerciaux +
+    détail_revenu_net_global.revenus_capitaux_mobiliers +
     détail_revenu_net_global.plus_values
 ```
 
@@ -64,7 +64,7 @@ Celles dont le domicile fiscal est situé hors de France sont passibles de cet i
 champ d'application CalculImpôtSurLeRevenu:
   définition revenus égal à
     si domicile_fiscal = France alors
-      montants_sources_revenus.source_française +€
+      montants_sources_revenus.source_française +
         montants_sources_revenus.source_étrangère
     sinon
       montants_sources_revenus.source_française

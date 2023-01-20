@@ -13,50 +13,47 @@
    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
    License for the specific language governing permissions and limitations under
    the License. *)
-open Utils
+open Catala_utils
 open Shared_ast
 open Ast
 module D = Dcalc.Ast
 
-let visitor_map (t : 'a -> 'm expr -> 'm expr boxed) (ctx : 'a) (e : 'm expr) :
-    'm expr boxed =
-  Expr.map ctx ~f:t e
+let visitor_map (t : 'm expr -> 'm expr boxed) (e : 'm expr) : 'm expr boxed =
+  Expr.map ~f:t e
 
-let rec iota_expr (_ : unit) (e : 'm expr) : 'm expr boxed =
+let rec iota_expr (e : 'm expr) : 'm expr boxed =
   let m = Marked.get_mark e in
   match Marked.unmark e with
-  | EMatch ((EInj (e1, i, n', _ts), _), cases, n) when EnumName.compare n n' = 0
-    ->
-    let e1 = visitor_map iota_expr () e1 in
-    let case = visitor_map iota_expr () (List.nth cases i) in
+  | EMatch { e = EInj { e = e'; cons; name = n' }, _; cases; name = n }
+    when EnumName.equal n n' ->
+    let e1 = visitor_map iota_expr e' in
+    let case = visitor_map iota_expr (EnumConstructor.Map.find cons cases) in
     Expr.eapp case [e1] m
-  | EMatch (e', cases, n)
+  | EMatch { e = e'; cases; name = n }
     when cases
-         |> List.mapi (fun i (case, _pos) ->
-                match case with
-                | EInj (_ei, i', n', _ts') ->
-                  i = i' && (* n = n' *) EnumName.compare n n' = 0
+         |> EnumConstructor.Map.mapi (fun i case ->
+                match Marked.unmark case with
+                | EInj { cons = i'; name = n'; _ } ->
+                  EnumConstructor.equal i i' && EnumName.equal n n'
                 | _ -> false)
-         |> List.for_all Fun.id ->
-    visitor_map iota_expr () e'
-  | _ -> visitor_map iota_expr () e
+         |> EnumConstructor.Map.for_all (fun _ b -> b) ->
+    visitor_map iota_expr e'
+  | _ -> visitor_map iota_expr e
 
 let rec beta_expr (e : 'm expr) : 'm expr boxed =
   let m = Marked.get_mark e in
   match Marked.unmark e with
-  | EApp (e1, args) ->
+  | EApp { f = e1; args } ->
     Expr.Box.app1n (beta_expr e1) (List.map beta_expr args)
       (fun e1 args ->
         match Marked.unmark e1 with
-        | EAbs (binder, _) -> Marked.unmark (Expr.subst binder args)
-        | _ -> EApp (e1, args))
+        | EAbs { binder; _ } -> Marked.unmark (Expr.subst binder args)
+        | _ -> EApp { f = e1; args })
       m
-  | _ -> visitor_map (fun () -> beta_expr) () e
+  | _ -> visitor_map beta_expr e
 
 let iota_optimizations (p : 'm program) : 'm program =
-  let new_scopes =
-    Scope.map_exprs ~f:(iota_expr ()) ~varf:(fun v -> v) p.scopes
-  in
+  let new_scopes = Scope.map_exprs ~f:iota_expr ~varf:(fun v -> v) p.scopes in
   { p with scopes = Bindlib.unbox new_scopes }
 
 (* TODO: beta optimizations apply inlining of the program. We left the inclusion
@@ -70,30 +67,32 @@ let _beta_optimizations (p : 'm program) : 'm program =
 let rec peephole_expr (e : 'm expr) : 'm expr boxed =
   let m = Marked.get_mark e in
   match Marked.unmark e with
-  | EIfThenElse (e1, e2, e3) ->
-    Expr.Box.app3 (peephole_expr e1) (peephole_expr e2) (peephole_expr e3)
-      (fun e1 e2 e3 ->
-        match Marked.unmark e1 with
+  | EIfThenElse { cond; etrue; efalse } ->
+    Expr.Box.app3 (peephole_expr cond) (peephole_expr etrue)
+      (peephole_expr efalse)
+      (fun cond etrue efalse ->
+        match Marked.unmark cond with
         | ELit (LBool true)
-        | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool true), _)]) ->
-          Marked.unmark e2
+        | EApp { f = EOp { op = Log _; _ }, _; args = [(ELit (LBool true), _)] }
+          ->
+          Marked.unmark etrue
         | ELit (LBool false)
-        | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool false), _)]) ->
-          Marked.unmark e3
-        | _ -> EIfThenElse (e1, e2, e3))
+        | EApp
+            { f = EOp { op = Log _; _ }, _; args = [(ELit (LBool false), _)] }
+          ->
+          Marked.unmark efalse
+        | _ -> EIfThenElse { cond; etrue; efalse })
       m
-  | ECatch (e1, except, e2) ->
-    Expr.Box.app2 (peephole_expr e1) (peephole_expr e2)
-      (fun e1 e2 ->
-        match Marked.unmark e1, Marked.unmark e2 with
-        | ERaise except', ERaise except''
-          when except' = except && except = except'' ->
-          ERaise except
-        | ERaise except', _ when except' = except -> Marked.unmark e2
-        | _, ERaise except' when except' = except -> Marked.unmark e1
-        | _ -> ECatch (e1, except, e2))
+  | ECatch { body; exn; handler } ->
+    Expr.Box.app2 (peephole_expr body) (peephole_expr handler)
+      (fun body handler ->
+        match Marked.unmark body, Marked.unmark handler with
+        | ERaise exn', ERaise exn'' when exn' = exn && exn = exn'' -> ERaise exn
+        | ERaise exn', _ when exn' = exn -> Marked.unmark handler
+        | _, ERaise exn' when exn' = exn -> Marked.unmark body
+        | _ -> ECatch { body; exn; handler })
       m
-  | _ -> visitor_map (fun () -> peephole_expr) () e
+  | _ -> visitor_map peephole_expr e
 
 let peephole_optimizations (p : 'm program) : 'm program =
   let new_scopes =

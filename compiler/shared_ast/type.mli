@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>
+   Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,6 +14,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Translation from {!module: Desugared.Ast} to {!module: Scopelang.Ast} *)
+type t = Definitions.typ
 
-val translate_program : Ast.program -> Shared_ast.untyped Scopelang.Ast.program
+val equal : t -> t -> bool
+val equal_list : t list -> t list -> bool
+val compare : t -> t -> int
+
+val unifiable : t -> t -> bool
+(** Similar to [equal], but allows TAny holes *)
+
+val arrow_return : t -> t
+(** Returns the last member in nested [TArrow] types *)

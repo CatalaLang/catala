@@ -18,7 +18,7 @@
 (** This modules weaves the source code and the legislative text together into a
     document that law professionals can understand. *)
 
-open Utils
+open Catala_utils
 open Literate_common
 module A = Surface.Ast
 module R = Re.Pcre
@@ -61,7 +61,7 @@ let wrap_latex
 %s
 \usepackage{minted}
 \usepackage{longtable}
-\usepackage{booktabs}
+\usepackage{booktabs,tabularx}
 \usepackage{newunicodechar}
 \usepackage{textcomp}
 \usepackage[hidelinks]{hyperref}
@@ -122,8 +122,8 @@ let wrap_latex
 \newunicodechar{→}{$\rightarrow$}
 \newunicodechar{≠}{$\neq$}
 
-\newcommand*\FancyVerbStartString{```catala}
-\newcommand*\FancyVerbStopString{```}
+\newcommand*\FancyVerbStartString{\PYG{l+s}{```catala}}
+\newcommand*\FancyVerbStopString{\PYG{l+s}{```}}
 
 \fvset{
 numbers=left,
@@ -151,14 +151,15 @@ codes={\catcode`\$=3\catcode`\^=7}
 \tableofcontents
 
 \[\star\star\star\]
-\clearpage|latex}
+\clearpage
+|latex}
     (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
     (match language with Fr -> "\\setmainfont{Marianne}" | _ -> "")
     (* for France, we use the official font of the French state design system
        https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography *)
     (literal_title language)
     (literal_generated_by language)
-    Utils.Cli.version
+    Cli.version
     (pre_latexify (literal_disclaimer_and_link language))
     (literal_source_files language)
     (String.concat
@@ -243,7 +244,7 @@ let rec law_structure_to_latex
       | En -> "Metadata"
       | Pl -> "Metadane"
     in
-    let start_line = Pos.get_start_line (Marked.get_mark c) - 1 in
+    let start_line = Pos.get_start_line (Marked.get_mark c) + 1 in
     let filename = Filename.basename (Pos.get_file (Marked.get_mark c)) in
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
@@ -252,7 +253,7 @@ let rec law_structure_to_latex
       "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
        title=\\textcolor{black}{\\texttt{%s}},title after \
        break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
-       \\begin{minted}[numbersep=9mm, firstnumber=%d, breaklines, \
+       \\begin{minted}[numbersep=9mm, firstnumber=%d, \
        label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
        ```catala\n\
        %s```\n\

@@ -95,12 +95,12 @@ scope Section121TwoPersons:
 
   definition person1 equals match return_type with pattern
     -- SingleReturn of data_person1 : data_person1
-    -- JointReturn of data_couple : data_couple.JointReturn.person1
+    -- JointReturn of data_couple : data_couple.person1
     -- SingleReturnSurvivingSpouse of data_single: data_single.return
 
   definition person2 equals match return_type with pattern
     -- SingleReturn of data_person2 : data_person2
-    -- JointReturn of data_couple : data_couple.JointReturn.person2
+    -- JointReturn of data_couple : data_couple.person2
     -- SingleReturnSurvivingSpouse of data_single: data_single.return
 
   definition section121Person1.property_ownage equals person1.property_ownage
@@ -176,24 +176,25 @@ scope Section121SinglePerson:
   # - either the 5 years mark is inside the period and we only
   #   cound the half after 5 years
   definition aggregate_periods_from_last_five_years of periods equals
-    sum duration for period in periods of (
-      if date_of_sale_or_exchange <=@ period.begin +@ 5 year then
-        period.end -@ period.begin
-      else (if date_of_sale_or_exchange >=@ period.end +@ 5 year then
+    sum duration of (
+      if date_of_sale_or_exchange <= period.begin + 5 year then
+        period.end - period.begin
+      else (if date_of_sale_or_exchange >= period.end + 5 year then
         0 day
-      else ((period.end +@ 5 year) -@ date_of_sale_or_exchange))
+      else ((period.end + 5 year) - date_of_sale_or_exchange))
     )
+    for period among periods
 
   # Regulation 1.121-1(c)(1): 2 years = 730 days
   # Regulation 1.121-1(c)(1): the periods of ownage and usage
   # don't have to overlap
   rule requirements_ownership_met under condition
-    aggregate_periods_from_last_five_years of property_ownage >=^ 730 day
+    aggregate_periods_from_last_five_years of property_ownage >= 730 day
   consequence fulfilled
 
   rule requirements_usage_met under condition
     aggregate_periods_from_last_five_years of
-       property_usage_as_principal_residence >=^ 730 day
+       property_usage_as_principal_residence >= 730 day
   consequence fulfilled
 
   rule requirements_met under condition
@@ -228,7 +229,7 @@ scope Section121SinglePerson:
   # the "_uncapped" version of the variable. But in the current
   # semantics we can't do that because we don't allow for recursion.
   definition income_excluded_from_gross_income equals
-    if income_excluded_from_gross_income_uncapped >=$ gain_cap then
+    if income_excluded_from_gross_income_uncapped >= gain_cap then
       gain_cap
     else
       income_excluded_from_gross_income_uncapped
@@ -237,7 +238,7 @@ scope Section121TwoPersons:
     definition gain_cap equals section121Person1.gain_cap
 
     definition income_excluded_from_gross_income equals
-    if income_excluded_from_gross_income_uncapped >=$ gain_cap then
+    if income_excluded_from_gross_income_uncapped >= gain_cap then
       gain_cap
     else
       income_excluded_from_gross_income_uncapped
@@ -271,7 +272,7 @@ respect to such property by reason of paragraph (3).
 ```catala
 scope Section121TwoPersons:
   rule section_121_b_2_A_condition under condition
-  (return_type with pattern JointReturn of data_couple)
+  (return_type with pattern JointReturn)
   and
   # i)
   (section121Person1.requirements_ownership_met or
@@ -312,29 +313,29 @@ scope Section121TwoPasses under condition
   not (first_pass.section_121_b_2_A_condition):
 
   definition second_pass.gain_cap equals
-    first_pass.gain_cap_person_1 +$
+    first_pass.gain_cap_person_1 +
     first_pass.gain_cap_person_2
 
   definition period_merge.periods1 equals match return_type with pattern
-    -- JointReturn of joint_return: joint_return.JointReturn.person1.property_ownage
+    -- JointReturn of joint_return: joint_return.person1.property_ownage
     -- SingleReturnSurvivingSpouse of dead_spouse_info : [] # does not happen
     -- SingleReturn of return : [] # does not happen
   definition period_merge.periods2 equals match return_type with pattern
-    -- JointReturn of joint_return: joint_return.JointReturn.person2.property_ownage
+    -- JointReturn of joint_return: joint_return.person2.property_ownage
     -- SingleReturnSurvivingSpouse of dead_spouse_info : [] # does not happen
     -- SingleReturn of return : [] # does not happen
 
   definition second_pass.person1 equals PersonalData {
     -- property_ownage: period_merge.output_periods
     -- property_usage_as_principal_residence:
-      first_pass.JointReturn.person1.property_usage_as_principal_residence
-    -- other_section_121a_sale: first_pass.JointReturn.person1.other_section_121a_sale
+      first_pass.person1.property_usage_as_principal_residence
+    -- other_section_121a_sale: first_pass.person1.other_section_121a_sale
   }
   definition second_pass.person2 equals PersonalData {
     -- property_ownage: period_merge.output_periods
     -- property_usage_as_principal_residence:
-      first_pass.JointReturn.person2.property_usage_as_principal_residence
-    -- other_section_121a_sale: first_pass.JointReturn.person2.other_section_121a_sale
+      first_pass.person2.property_usage_as_principal_residence
+    -- other_section_121a_sale: first_pass.person2.other_section_121a_sale
   }
 ```
 
@@ -348,9 +349,9 @@ was any other sale or exchange by the taxpayer to which subsection (a) applied.
 ```catala
 scope Section121SinglePerson:
   rule section_121_b_3_applies under condition
-    (other_section_121a_sale with pattern
-       MostRecentSaleWhereSection121aApplied of other_sale) and
-    date_of_sale_or_exchange -@ other_sale.PreviousSaleWhereSection121aApplied.date_of_sale_or_exchange <=^ 2 year
+    other_section_121a_sale with pattern
+       MostRecentSaleWhereSection121aApplied of other_sale and
+    date_of_sale_or_exchange - other_sale.date_of_sale_or_exchange <= 2 year
   consequence fulfilled
 
   exception
@@ -374,8 +375,8 @@ years after the date of death of such spouse and the requirements of paragraph
 ```catala
 scope Section121TwoPasses under condition
   return_type with pattern SingleReturnSurvivingSpouse of single_data and
-  single_data.date_of_spouse_death <@ date_of_sale_or_exchange and
-  date_of_sale_or_exchange <=@ single_data.date_of_spouse_death +@ 2 year
+  single_data.date_of_spouse_death < date_of_sale_or_exchange and
+  date_of_sale_or_exchange <= single_data.date_of_spouse_death + 2 year
   :
 
   definition first_pass.date_of_sale_or_exchange equals

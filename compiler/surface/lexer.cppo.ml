@@ -14,7 +14,7 @@
 
 open Tokens
 open Sedlexing
-open Utils
+open Catala_utils
 module L = Lexer_common
 module R = Re.Pcre
 
@@ -173,6 +173,9 @@ module R = Re.Pcre
 #ifndef MR_IN
   #define MR_IN MS_IN
 #endif
+#ifndef MR_AMONG
+  #define MR_AMONG MS_AMONG
+#endif
 #ifndef MR_SUCH
   #define MR_SUCH MS_SUCH
 #endif
@@ -197,14 +200,11 @@ module R = Re.Pcre
 #ifndef MR_MINIMUM
   #define MR_MINIMUM MS_MINIMUM
 #endif
-#ifndef MR_FILTER
-  #define MR_FILTER MS_FILTER
+#ifndef MR_IS
+  #define MR_IS MS_IS
 #endif
-#ifndef MR_MAP
-  #define MR_MAP MS_MAP
-#endif
-#ifndef MR_INIT
-  #define MR_INIT MS_INIT
+#ifndef MR_EMPTY
+  #define MR_EMPTY MS_EMPTY
 #endif
 #ifndef MR_CARDINAL
   #define MR_CARDINAL MS_CARDINAL
@@ -224,20 +224,8 @@ module R = Re.Pcre
 #ifndef MR_FALSE
   #define MR_FALSE MS_FALSE
 #endif
-#ifndef MR_IntToDec
-  #define MR_IntToDec MS_IntToDec
-#endif
-#ifndef MR_MoneyToDec
-  #define MR_MoneyToDec MS_MoneyToDec
-#endif
-#ifndef MR_DecToMoney
-  #define MR_DecToMoney MS_DecToMoney
-#endif
-#ifndef MR_RoundMoney
-  #define MR_RoundMoney MS_RoundMoney
-#endif
-#ifndef MR_RoundDecimal
-  #define MR_RoundDecimal MS_RoundDecimal
+#ifndef MR_Round
+  #define MR_Round MS_Round
 #endif
 #ifndef MR_GetDay
   #define MR_GetDay MS_GetDay
@@ -262,6 +250,9 @@ module R = Re.Pcre
 #endif
 #ifndef MR_INTERNAL
   #define MR_INTERNAL MS_INTERNAL
+#endif
+#ifndef MR_MONEY_OP_SUFFIX
+  #define MR_MONEY_OP_SUFFIX MS_MONEY_OP_SUFFIX
 #endif
 
 let token_list : (string * token) list =
@@ -314,6 +305,7 @@ let token_list : (string * token) list =
     (MS_LET, LET);
     (MS_EXISTS, EXISTS);
     (MS_IN, IN);
+    (MS_AMONG, AMONG);
     (MS_SUCH, SUCH);
     (MS_THAT, THAT);
     (MS_AND, AND);
@@ -322,9 +314,8 @@ let token_list : (string * token) list =
     (MS_NOT, NOT);
     (MS_MAXIMUM, MAXIMUM);
     (MS_MINIMUM, MINIMUM);
-    (MS_FILTER, FILTER);
-    (MS_MAP, MAP);
-    (MS_INIT, INIT);
+    (MS_IS, IS);
+    (MS_EMPTY, EMPTY);
     (MS_CARDINAL, CARDINAL);
     (MS_YEAR, YEAR);
     (MS_MONTH, MONTH);
@@ -341,16 +332,12 @@ let token_list : (string * token) list =
 let lex_builtin (s : string) : Ast.builtin_expression option =
   let lexbuf = Utf8.from_string s in
   match%sedlex lexbuf with
-  | MR_IntToDec, eof -> Some IntToDec
-  | MR_DecToMoney, eof -> Some DecToMoney
-  | MR_MoneyToDec, eof -> Some MoneyToDec
+  | MR_Round, eof -> Some Round
   | MR_GetDay, eof -> Some GetDay
   | MR_GetMonth, eof -> Some GetMonth
   | MR_GetYear, eof -> Some GetYear
   | MR_FirstDayOfMonth -> Some FirstDayOfMonth
   | MR_LastDayOfMonth -> Some LastDayOfMonth
-  | MR_RoundMoney, eof -> Some RoundMoney
-  | MR_RoundDecimal, eof -> Some RoundDecimal
   | _ -> None
 
 (** Regexp matching any digit character.
@@ -364,6 +351,18 @@ let space_plus = [%sedlex.regexp? Plus white_space]
 
 (** Regexp matching white space but not newlines *)
 let hspace = [%sedlex.regexp? Sub (white_space, Chars "\n\r")]
+
+(** Operator explicit typing suffix chars *)
+let op_kind_re = [%sedlex.regexp? "" | MR_MONEY_OP_SUFFIX | Chars "!.@^"]
+
+let op_kind = function
+  | "" -> Ast.KPoly
+  | "!" -> Ast.KInt
+  | "." -> Ast.KDec
+  | MS_MONEY_OP_SUFFIX -> Ast.KMoney
+  | "@" -> Ast.KDate
+  | "^" -> Ast.KDuration
+  | _ -> invalid_arg "op_kind"
 
 (** Main lexing function used in code blocks *)
 let rec lex_code (lexbuf : lexbuf) : token =
@@ -535,6 +534,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_IN ->
       L.update_acc lexbuf;
       IN
+  | MR_AMONG ->
+      L.update_acc lexbuf;
+      AMONG
   | MR_SUCH ->
       L.update_acc lexbuf;
       SUCH
@@ -559,15 +561,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_MINIMUM ->
       L.update_acc lexbuf;
       MINIMUM
-  | MR_FILTER ->
+  | MR_IS ->
       L.update_acc lexbuf;
-      FILTER
-  | MR_MAP ->
+      IS
+  | MR_EMPTY ->
       L.update_acc lexbuf;
-      MAP
-  | MR_INIT ->
-      L.update_acc lexbuf;
-      INIT
+      EMPTY
   | MR_CARDINAL ->
       L.update_acc lexbuf;
       CARDINAL
@@ -629,117 +628,38 @@ let rec lex_code (lexbuf : lexbuf) : token =
     L.update_acc lexbuf;
     DECIMAL_LITERAL
       (dec_parts 1, dec_parts 2)
-  | "<=@" ->
+  | "<=", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"<=" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      LESSER_EQUAL_DATE
-  | "<@" ->
+      LESSER_EQUAL k
+  | "<", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"<" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      LESSER_DATE
-  | ">=@" ->
+      LESSER k
+  | ">=", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:">=" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      GREATER_EQUAL_DATE
-  | ">@" ->
+      GREATER_EQUAL k
+  | ">", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:">" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      GREATER_DATE
-  | "-@" ->
+      GREATER k
+  | "-", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"-" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      MINUSDATE
-  | "+@" ->
+      MINUS k
+  | "+", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"+" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      PLUSDATE
-  | "<=^" ->
+      PLUS k
+  | "*", op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"*" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      LESSER_EQUAL_DURATION
-  | "<^" ->
+      MULT k
+  | '/', op_kind_re ->
+      let k = op_kind (String.remove_prefix ~prefix:"/" (Utf8.lexeme lexbuf)) in
       L.update_acc lexbuf;
-      LESSER_DURATION
-  | ">=^" ->
-      L.update_acc lexbuf;
-      GREATER_EQUAL_DURATION
-  | ">^" ->
-      L.update_acc lexbuf;
-      GREATER_DURATION
-  | "+^" ->
-      L.update_acc lexbuf;
-      PLUSDURATION
-  | "-^" ->
-      L.update_acc lexbuf;
-      MINUSDURATION
-  | "*^" ->
-      L.update_acc lexbuf;
-      MULDURATION
-  | "<=", MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      LESSER_EQUAL_MONEY
-  | '<', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      LESSER_MONEY
-  | ">=", MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      GREATER_EQUAL_MONEY
-  | '>', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      GREATER_MONEY
-  | '+', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      PLUSMONEY
-  | '-', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      MINUSMONEY
-  | '*', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      MULTMONEY
-  | '/', MR_MONEY_OP_SUFFIX ->
-      L.update_acc lexbuf;
-      DIVMONEY
-  | "<=." ->
-      L.update_acc lexbuf;
-      LESSER_EQUAL_DEC
-  | "<." ->
-      L.update_acc lexbuf;
-      LESSER_DEC
-  | ">=." ->
-      L.update_acc lexbuf;
-      GREATER_EQUAL_DEC
-  | ">." ->
-      L.update_acc lexbuf;
-      GREATER_DEC
-  | "+." ->
-      L.update_acc lexbuf;
-      PLUSDEC
-  | "-." ->
-      L.update_acc lexbuf;
-      MINUSDEC
-  | "*." ->
-      L.update_acc lexbuf;
-      MULTDEC
-  | "/." ->
-      L.update_acc lexbuf;
-      DIVDEC
-  | "<=" ->
-      L.update_acc lexbuf;
-      LESSER_EQUAL
-  | '<' ->
-      L.update_acc lexbuf;
-      LESSER
-  | ">=" ->
-      L.update_acc lexbuf;
-      GREATER_EQUAL
-  | '>' ->
-      L.update_acc lexbuf;
-      GREATER
-  | '+' ->
-      L.update_acc lexbuf;
-      PLUS
-  | '-' ->
-      L.update_acc lexbuf;
-      MINUS
-  | '*' ->
-      L.update_acc lexbuf;
-      MULT
-  | '/' ->
-      L.update_acc lexbuf;
-      DIV
+      DIV k
   | "!=" ->
       L.update_acc lexbuf;
       NOT_EQUAL
@@ -757,19 +677,19 @@ let rec lex_code (lexbuf : lexbuf) : token =
       RPAREN
   | '{' ->
       L.update_acc lexbuf;
-      LBRACKET
+      LBRACE
   | '}' ->
       L.update_acc lexbuf;
-      RBRACKET
+      RBRACE
   | '[' ->
       L.update_acc lexbuf;
-      LSQUARE
+      LBRACKET
   | ']' ->
       L.update_acc lexbuf;
-      RSQUARE
+      RBRACKET
   | '|' ->
       L.update_acc lexbuf;
-      VERTICAL
+      BAR
   | ':' ->
       L.update_acc lexbuf;
       COLON
@@ -788,11 +708,11 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | uppercase, Star (uppercase | lowercase | digit | '_' | '\'') ->
       (* Name of constructor *)
       L.update_acc lexbuf;
-      CONSTRUCTOR (Utf8.lexeme lexbuf)
+      UIDENT (Utf8.lexeme lexbuf)
   | lowercase, Star (lowercase | uppercase | digit | '_' | '\'') ->
       (* Name of variable *)
       L.update_acc lexbuf;
-      IDENT (Utf8.lexeme lexbuf)
+      LIDENT (Utf8.lexeme lexbuf)
   | Opt '-', Plus digit ->
       (* Integer literal*)
       L.update_acc lexbuf;

@@ -14,39 +14,47 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-let to_ascii : string -> string = Ubase.from_utf8
+include Stdlib.String
 
-let is_uppercase_ascii (c : char) : bool =
-  let c = Char.code c in
-  (* 'A' <= c && c <= 'Z' *)
-  0x41 <= c && c <= 0x5b
+let to_ascii : string -> string = Ubase.from_utf8
+let is_uppercase_ascii = function 'A' .. 'Z' -> true | _ -> false
 
 let begins_with_uppercase (s : string) : bool =
-  if "" = s then false else is_uppercase_ascii (to_ascii s).[0]
+  "" <> s && is_uppercase_ascii (get (to_ascii s) 0)
 
 let to_snake_case (s : string) : string =
   let out = ref "" in
   to_ascii s
-  |> String.iteri (fun i c ->
+  |> iteri (fun i c ->
          out :=
            !out
            ^ (if is_uppercase_ascii c && 0 <> i then "_" else "")
-           ^ String.lowercase_ascii (String.make 1 c));
+           ^ lowercase_ascii (make 1 c));
   !out
 
 let to_camel_case (s : string) : string =
   let last_was_underscore = ref false in
   let out = ref "" in
   to_ascii s
-  |> String.iteri (fun i c ->
+  |> iteri (fun i c ->
          let is_underscore = c = '_' in
-         let c_string = String.make 1 c in
+         let c_string = make 1 c in
          out :=
            !out
            ^
            if is_underscore then ""
-           else if !last_was_underscore || 0 = i then
-             String.uppercase_ascii c_string
+           else if !last_was_underscore || 0 = i then uppercase_ascii c_string
            else c_string;
          last_was_underscore := is_underscore);
   !out
+
+let remove_prefix ~prefix s =
+  if starts_with ~prefix s then
+    let plen = length prefix in
+    sub s plen (length s - plen)
+  else s
+
+let format_t = Format.pp_print_string
+
+module Set = Set.Make (Stdlib.String)
+module Map = Map.Make (Stdlib.String)

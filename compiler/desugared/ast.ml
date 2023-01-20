@@ -16,24 +16,10 @@
 
 (** Abstract syntax tree of the desugared representation *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 (** {1 Names, Maps and Keys} *)
-
-module IdentMap : Map.S with type key = String.t = Map.Make (String)
-
-module RuleName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module RuleMap : Map.S with type key = RuleName.t = Map.Make (RuleName)
-module RuleSet : Set.S with type elt = RuleName.t = Set.Make (RuleName)
-
-module LabelName : Uid.Id with type info = Uid.MarkedString.info =
-  Uid.Make (Uid.MarkedString) ()
-
-module LabelMap : Map.S with type key = LabelName.t = Map.Make (LabelName)
-module LabelSet : Set.S with type elt = LabelName.t = Set.Make (LabelName)
 
 (** Inside a scope, a definition can refer either to a scope def, or a subscope
     def *)
@@ -103,6 +89,9 @@ module ExprMap = Map.Make (struct
   let compare = Expr.compare
 end)
 
+type io_input = NoInput | OnlyInput | Reentrant
+type io = { io_output : bool Marked.pos; io_input : io_input Marked.pos }
+
 type exception_situation =
   | BaseCase
   | ExceptionToLabel of LabelName.t Marked.pos
@@ -136,7 +125,7 @@ module Rule = struct
         Expr.compare c1 c2
       | n -> n)
     | Some (v1, t1), Some (v2, t2) -> (
-      match Shared_ast.Expr.compare_typ t1 t2 with
+      match Type.compare t1 t2 with
       | 0 -> (
         let open Bindlib in
         let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_just)) in
@@ -189,29 +178,32 @@ type meta_assertion =
   | VariesWith of unit * variation_typ Marked.pos option
 
 type scope_def = {
-  scope_def_rules : rule RuleMap.t;
+  scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
   scope_def_is_condition : bool;
-  scope_def_io : Scopelang.Ast.io;
+  scope_def_io : io;
 }
 
 type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
-  scope_vars : var_or_states ScopeVarMap.t;
-  scope_sub_scopes : ScopeName.t SubScopeMap.t;
+  scope_vars : var_or_states ScopeVar.Map.t;
+  scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
   scope_meta_assertions : meta_assertion list;
 }
 
-type program = { program_scopes : scope ScopeMap.t; program_ctx : decl_ctx }
+type program = {
+  program_scopes : scope ScopeName.Map.t;
+  program_ctx : decl_ctx;
+}
 
 let rec locations_used e : LocationSet.t =
   match e with
   | ELocation l, m -> LocationSet.singleton (l, Expr.mark_pos m)
-  | EAbs (binder, _), _ ->
+  | EAbs { binder; _ }, _ ->
     let _, body = Bindlib.unmbind binder in
     locations_used body
   | e ->
@@ -219,7 +211,7 @@ let rec locations_used e : LocationSet.t =
       (fun e -> LocationSet.union (locations_used e))
       e LocationSet.empty
 
-let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
+let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
   let add_locs (acc : Pos.t ScopeDefMap.t) (locs : LocationSet.t) :
       Pos.t ScopeDefMap.t =
     LocationSet.fold
@@ -235,7 +227,7 @@ let free_variables (def : rule RuleMap.t) : Pos.t ScopeDefMap.t =
           loc_pos acc)
       locs acc
   in
-  RuleMap.fold
+  RuleName.Map.fold
     (fun _ rule acc ->
       let locs =
         LocationSet.union

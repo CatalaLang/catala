@@ -97,7 +97,7 @@ champ d'application CalculAllocationLogement:
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
 
   # Colonne 1
   étiquette base définition plafond_loyer_d823_16_2 sous condition
@@ -125,13 +125,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      420,52€ +€ 61,01€ *€ (entier_vers_décimal de
+      420,52€ + 61,01€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      370,32€ +€ 53,90€ *€ (entier_vers_décimal de
+      370,32€ + 53,90€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      342,52€ +€ 49,09€ *€ (entier_vers_décimal de
+      342,52€ + 49,09€ * (décimal de
         (nombre_personnes_à_charge - 1))
 
 ```
@@ -181,7 +181,7 @@ ces dispositions sont applicables pour les prestations dues à compter du 1er ju
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition
-    date_courante >=@ |2022-07-01| et
+    date_courante >= |2022-07-01| et
     logement_est_chambre:
 
   étiquette chambre exception base
@@ -226,9 +226,9 @@ ces dispositions sont applicables pour les prestations dues à compter du
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   étiquette base définition montant_forfaitaire_charges_d823_16 égal à
-    56,12€ +€ 12,72€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    56,12€ + 12,72€ * (décimal de nombre_personnes_à_charge)
 ```
 
 ### Article 10 | LEGIARTI000039160745
@@ -252,15 +252,15 @@ III	 2,5                      3,1
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition plafond_dégressivité_d823_16 égal à
     selon zone sous forme
-    -- Zone1: plafond_loyer_d823_16_2 *€ 3,4
-    -- Zone2: plafond_loyer_d823_16_2 *€ 2,5
-    -- Zone3: plafond_loyer_d823_16_2 *€ 2,5
+    -- Zone1: plafond_loyer_d823_16_2 * 3,4
+    -- Zone2: plafond_loyer_d823_16_2 * 2,5
+    -- Zone3: plafond_loyer_d823_16_2 * 2,5
 
   définition plafond_suppression_d823_16 égal à
     selon zone sous forme
-    -- Zone1: plafond_loyer_d823_16_2 *€ 4,0
-    -- Zone2: plafond_loyer_d823_16_2 *€ 3,1
-    -- Zone3: plafond_loyer_d823_16_2 *€ 3,1
+    -- Zone1: plafond_loyer_d823_16_2 * 4,0
+    -- Zone2: plafond_loyer_d823_16_2 * 3,1
+    -- Zone3: plafond_loyer_d823_16_2 * 3,1
 ```
 
 
@@ -298,13 +298,13 @@ défini au 2° de l'article D. 823-16 du même code et du forfait charge ou 36,6
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   définition participation_minimale égal à
     si
-      (loyer_éligible +€ montant_forfaitaire_charges_d823_16)
-        *€ 8,5% >=€ 36,63 €
+      (loyer_éligible + montant_forfaitaire_charges_d823_16)
+        * 8,5% >= 36,63 €
     alors
-      (loyer_éligible +€ montant_forfaitaire_charges_d823_16) *€ 8,5%
+      (loyer_éligible + montant_forfaitaire_charges_d823_16) * 8,5%
     sinon
       36,63 €
 ```
@@ -344,7 +344,7 @@ Majoration par personne à charge supplémentaire     -0,06 %
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   définition taux_composition_familiale égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
@@ -363,7 +363,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% -. (0,06% *. (entier_vers_décimal de
+      (1,73% - (0,06% * (décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 # TODO informatique: corriger le parseur pour éviter d'avoir à mettre
@@ -377,9 +377,9 @@ RL est exprimé en pourcentage et arrondi à la deuxième décimale.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   définition rapport_loyers égal à
-    arrondi_décimal de ((loyer_éligible /€ loyer_référence) *. 100,0) /. 100,0
+    arrondi de ((loyer_éligible / loyer_référence) * 100,0) / 100,0
 ```
 
 Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés
@@ -400,20 +400,20 @@ $\textrm{TL}=0 \%$    $\textrm{TL}=0,45 \%\times (\textrm{RL}-45\%)$ $\textrm{TL
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   # Ici on choisit de mettre des >= pour inclure le résultat sur la crête
   # dans la case de droite ; nous avons bien vérifié que sur la crête le
   # résultat est le même à gauche et à droite.
   définition taux_loyer_éligible état formule égal à
-    si rapport_loyers <. 45% alors 0% sinon (
-    si rapport_loyers >=. 45% et rapport_loyers <. 75% alors
-      0,45% *. (rapport_loyers -. 0,45%)
-    sinon (si rapport_loyers >=. 75% alors
-      0,45% *. 30% +. 0,68% *. (rapport_loyers -. 75%)
+    si rapport_loyers < 45% alors 0% sinon (
+    si rapport_loyers >= 45% et rapport_loyers < 75% alors
+      0,45% * (rapport_loyers - 0,45%)
+    sinon (si rapport_loyers >= 75% alors
+      0,45% * 30% + 0,68% * (rapport_loyers - 75%)
     sinon 0,0))
-  définition taux_loyer_éligible état arrondi égal à
+  définition taux_loyer_éligible état taux_arrondi égal à
     # La troisième décimale en pourcentage est en fait la cinquième décimale
-    (arrondi_décimal de (taux_loyer_éligible *. 100000,0)) /. 100000,0
+    (arrondi de (taux_loyer_éligible * 100000,0)) / 100000,0
 ```
 
 Le loyer de référence LR est défini selon le tableau suivant (en euros) :
@@ -427,14 +427,14 @@ Majoration par personne à charge	                    53,90
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   définition loyer_référence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 259,78€
       -- Couple: 317,97€
-    sinon (357,80€ +€
-      (52,08€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+    sinon (357,80€ +
+      (52,08€ * (décimal de (nombre_personnes_à_charge - 1))))
 ```
 
 NOTA :
@@ -443,53 +443,55 @@ Conformément à l’article 3 de l’arrêté du 16 août 2022 (TREL2220744A), 
 dispositions sont applicables pour les prestations dues à compter du 1er
 juillet 2022.
 
-### Article 15 | LEGIARTI000046126962
+### Article 15 | LEGIARTI000046834762
 
 Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
 le tableau suivant (en euros) :
 
 Composition du foyer	                     MONTANT  (en euros)
 -----------------------------------------  -------------------
-Personne seule sans personne à charge	     4 870
-Couple sans personne à charge	             6 977
+Personne seule sans personne à charge	     4 949
+Couple sans personne à charge	             7 090
 Personne seule ou couple ayant :
-    -une personne à charge	               8 322
-    -deux personnes à charge	             8 509
-    -trois personnes à charge	             8 834
-    -quatre personnes à charge	           9 163
-    -cinq personnes à charge	             9 488
-    -six personnes à charge                9 816
-    -par personne à charge supplémentaire  323
+    -une personne à charge	               8 456
+    -deux personnes à charge	             8 646
+    -trois personnes à charge	             8 977
+    -quatre personnes à charge	           9 311
+    -cinq personnes à charge	             9 642
+    -six personnes à charge                9 975
+    -par personne à charge supplémentaire  328
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2023-01-01|:
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 4 870 €
-      -- Couple: 6 977 €
+      -- PersonneSeule: 4 949 €
+      -- Couple:  7 090 €
     sinon (si nombre_personnes_à_charge = 1 alors
-      8 322 €
+      8 456 €
     sinon (si nombre_personnes_à_charge = 2 alors
-      8 509 €
+      8 646 €
     sinon (si nombre_personnes_à_charge = 3 alors
-      8 834 €
+      8 977 €
     sinon (si nombre_personnes_à_charge = 4 alors
-      9 163 €
+      9 311 €
     sinon (si nombre_personnes_à_charge = 5 alors
-      9 488 €
+      9 642 €
     sinon (si nombre_personnes_à_charge = 6 alors
-      9 816 €
+      9 975 €
     sinon
-      (9 816€ +€ (323 € *€ (entier_vers_décimal de
+      (9 975€ + (328 € * (décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 ```
 
 NOTA :
-Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
-ces dispositions sont applicables pour les prestations dues à compter du 1 er juillet 2022.
+
+Conformément à l’article 3 de l’arrêté du 26 décembre 2022 (NOR : TREL2226772A),
+ces dispositions sont applicables pour les prestations dues à compter du
+1er janvier 2023.
 
 ### Article 16 | LEGIARTI000046206205
 
@@ -517,7 +519,7 @@ charge supplémentaire               45,76  40,43  36,82
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01| et colocation:
+  sous condition date_courante >= |2022-07-01| et colocation:
 
   # Ici l'exception est rapportée au cas de base puisqu'on suppose
   # qu'on ne peut pas être en colocation dans un logement constitué
@@ -546,13 +548,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      315,39€ +€ 45,76€ *€ (entier_vers_décimal de
+      315,39€ + 45,76€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      277,74€ +€ 40,43€ *€ (entier_vers_décimal de
+      277,74€ + 40,43€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      256,89€ +€ 36,82€ *€ (entier_vers_décimal de
+      256,89€ + 36,82€ * (décimal de
         (nombre_personnes_à_charge - 1))
 ```
 
@@ -566,12 +568,12 @@ Majoration par personne à charge 12,72
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >=@ |2022-07-01| et colocation:
+  sous condition date_courante >= |2022-07-01| et colocation:
   exception base définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 28,05€
-    -- Couple: 56,12€) +€
-    12,72€ *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    -- Couple: 56,12€) +
+    12,72€ * (décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -613,8 +615,8 @@ Par personne supplémentaire à charge	                   430	  379     346
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |1992-06-30| et
-    date_signature_prêt <@ |1994-11-27| et
+    date_signature_prêt >= |1992-06-30| et
+    date_signature_prêt < |1994-11-27| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_32
   conséquence égal à
@@ -624,23 +626,23 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 2085 €
          -- Couple: 2515€)
-      sinon (2945 € +€
-        430€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2945 € +
+        430€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1860 €
          -- Couple: 2239€)
-      sinon (2618 € +€
-        379€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2618 € +
+        379€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1736 €
          -- Couple: 2082€)
-      sinon (2428 € +€
-        356€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
+      sinon (2428 € +
+        356€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou acquis et améliorés (en francs) :
@@ -657,8 +659,8 @@ Par personne supplémentaire à charge	                   347	  305     279
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |1992-06-30| et
-    date_signature_prêt <@ |1994-11-27| et
+    date_signature_prêt >= |1992-06-30| et
+    date_signature_prêt < |1994-11-27| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_32
   conséquence égal à
@@ -668,23 +670,23 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1678 €
          -- Couple: 2025€)
-      sinon (2372 € +€
-        347€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2372 € +
+        347€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1496 €
          -- Couple: 1801€)
-      sinon (2106 € +€
-        305€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2106 € +
+        305€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1397 €
          -- Couple: 1676€)
-      sinon (1955 € +€
-        279€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
+      sinon (1955 € +
+        279€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 ```
 
 2° Lorsque la date de signature du contrat de prêt est intervenue après le 27 novembre 1994 :
@@ -702,7 +704,7 @@ Par personne supplémentaire à charge	                   380	  335     305
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |1994-11-27| et
+    date_signature_prêt >= |1994-11-27| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_32
   conséquence égal à
@@ -712,23 +714,23 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1840 €
          -- Couple: 2200€)
-      sinon (2600 € +€
-        380€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2600 € +
+        380€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1642 €
          -- Couple: 1977€)
-      sinon (2312 € +€
-        335€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2312 € +
+        335€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1532 €
          -- Couple: 1837€)
-      sinon (2142 € +€
-        305€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
+      sinon (2142 € +
+        305€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 ```
 
 b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
@@ -745,7 +747,7 @@ Par personne supplémentaire à charge	                   306	  269     246
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
    sous condition
-    date_signature_prêt >=@ |1994-11-27| et
+    date_signature_prêt >= |1994-11-27| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_32
   conséquence égal à
@@ -755,140 +757,63 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1481 €
          -- Couple: 1787€)
-      sinon (2093 € +€
-        306€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2093 € +
+        306€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1320 €
          -- Couple: 1589€)
-      sinon (1858 € +€
-        269€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (1858 € +
+        269€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1233 €
          -- Couple: 1479€)
-      sinon (1725 € +€
-        246€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
+      sinon (1725 € +
+        246€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 ```
 
-### Article 18 | LEGIARTI000046126970
+##  Article 18 | LEGIARTI000046834759
 
-Pour l'application du 3° de l'article D. 832-10, les mensualités plafonds pour les logements occupés
-par leur propriétaire, et financés par les prêts mentionnés au 2° de l'article R. 832-5, sont fixées
-comme suit compte tenu de la date de signature du contrat de prêt figurant sur le certificat daté
-prévu au 1° du I de l'article D. 832-12 :
+Pour l'application du 3° de l'article D. 832-10, les mensualités plafonds pour
+les logements occupés par leur propriétaire, et financés par les prêts mentionnés
+au 2° de l'article R. 832-5, sont fixées comme suit compte tenu de la date de
+signature du contrat de prêt figurant sur le certificat daté prévu au 1° du I
+de l'article D. 832-12 :
 
-1° Lorsque la date de signature du contrat de prêt est intervenue après le 30 juin 1992 :
+1° Lorsque la date de signature du contrat de prêt est
+intervenue après le 30 juin 1992 :
 
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en francs) :
+Logements améliorés par leur propriétaire
+occupant (en francs) :
 
-DÉSIGNATION	                                             ZONE I ZONE II	ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     2 085  1 860   1 736
-Couple sans personne à charge	                           2 515  2 239   2 082
-Bénéficiaire isolé ou couple ayant une personne à charge 2 945  2 618   2 428
-Par personne supplémentaire à charge	                   430	  379     346
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
-  sous condition
-    date_signature_prêt >=@ |1992-06-30| et
-    date_signature_prêt <@ |1994-11-27| et
-    ancienneté_logement sous forme Neuf et
-    type_prêt sous forme D331_63_64
-  conséquence égal à
-    (selon zone sous forme
-    -- Zone1: (
-      si nombre_personnes_à_charge = 0 alors
-        (selon situation_familiale_calcul_apl sous forme
-         -- PersonneSeule: 2085 €
-         -- Couple: 2515€)
-      sinon (2945 € +€
-        430€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    -- Zone2: (
-      si nombre_personnes_à_charge = 0 alors
-        (selon situation_familiale_calcul_apl sous forme
-         -- PersonneSeule: 1860 €
-         -- Couple: 2239€)
-      sinon (2618 € +€
-        379€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    -- Zone3: (
-      si nombre_personnes_à_charge = 0 alors
-        (selon situation_familiale_calcul_apl sous forme
-         -- PersonneSeule: 1736 €
-         -- Couple: 2082€)
-      sinon (2428 € +€
-        346€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
-```
-
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en francs) :
-
-DÉSIGNATION	                                             ZONE I ZONE II	ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     1 678  1 496   1 397
-Couple sans personne à charge	                           2 025  1 801   1 676
-Bénéficiaire isolé ou couple ayant une personne à charge 2 372  2 106   1 955
-Par personne supplémentaire à charge	                   347	  305     279
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
-  sous condition
-    date_signature_prêt >=@ |1992-06-30| et
-    date_signature_prêt <@ |1994-11-27| et
-    (selon ancienneté_logement sous forme
-     -- Ancien de amélioré_par_occupant:
-        amélioré_par_occupant sous forme AmélioréParOccupant.Non
-     -- Neuf: faux) et
-    type_prêt sous forme D331_63_64
-  conséquence égal à
-    (selon zone sous forme
-    -- Zone1: (
-      si nombre_personnes_à_charge = 0 alors
-        (selon situation_familiale_calcul_apl sous forme
-         -- PersonneSeule: 1678 €
-         -- Couple: 2025€)
-      sinon (2372 € +€
-        347€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    -- Zone2: (
-      si nombre_personnes_à_charge = 0 alors
-        (selon situation_familiale_calcul_apl sous forme
-         -- PersonneSeule: 1496 €
-         -- Couple: 1801€)
-      sinon (2106 € +€
-        305€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    -- Zone3: (
-      si nombre_personnes_à_charge = 0 alors
-        (selon situation_familiale_calcul_apl sous forme
-         -- PersonneSeule: 1397 €
-         -- Couple: 1676 €)
-      sinon (1955 € +€
-        279€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
-```
-
-c) Logements améliorés par leur propriétaire occupant (en francs) :
-
-DÉSIGNATION	                                             TOUTES ZONES
+DÉSIGNATION                                              TOUTES ZONES
 -------------------------------------------------------- ------------
 Bénéficiaire isolé                                       869
-Couple sans personne à charge	                           971
+Couple sans personne à charge                            971
 Bénéficiaire isolé ou couple ayant une personne à charge 1 073
-Par personne supplémentaire à charge	                   102
+Par personne supplémentaire à charge                     102
 
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  exception petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |1992-06-30| et
-    date_signature_prêt <@ |1994-11-27| et
+    date_courante >= |2023-01-01| et
+    date_signature_prêt >= |1992-06-30| et
+    date_signature_prêt <= |1994-11-27| et
+    # La borne supérieure de la date de signature du prêt est implicite dans
+    # la rédaction actuelle mais confirmée par un mail de DGALN/DHUP/FE4 le
+    # 19/01/2023: "sur l'article 18, la nouvelle rédaction reprend l'ancienne :
+    # dans l'ancienne, nous avions un 1° qui prévoyait, à partir du 30/06/1992,
+    # un a), un b) et un c). Le 2° prévoyait à partir du 27/11/1994 un a) et
+    # un b). Le c) n'était plus mentionné, ce qui est également le cas à
+    # présent". Les anciennes et nouvelles version font référence aux
+    # changements introduits par l’arrêté du 26 décembre 2022.
     (selon ancienneté_logement sous forme
      -- Ancien de amélioré_par_occupant:
         amélioré_par_occupant sous forme AmélioréParOccupant.Oui
@@ -899,28 +824,309 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
       (selon situation_familiale_calcul_apl sous forme
        -- PersonneSeule: 869 €
        -- Couple: 971€)
-    sinon (1073 € +€
-      102€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    *€ taux_francs_vers_euros
+    sinon (1073 € +
+      102€ * (décimal de (nombre_personnes_à_charge - 1))))
+    * taux_francs_vers_euros
 ```
 
-2° Lorsque la date de signature du contrat de prêt est intervenue après le 27 novembre 1994 :
+2° Pour, d'une part, les logements neufs construits ou acquis par l'accédant
+à la propriété et, d'autre part, les logements agrandis ou aménagés à
+partir de locaux non destinés à l'habitation ou les logements existants
+acquis et, le cas échéant, améliorés :
 
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en francs) :
+----------- ---- -------------------- ----------- --------------- -------------- ---------------------- ----------- --------------- --------------
+                 logements neufs                                                 logements agrandis
+                 construits ou acquis                                            ou aménagés à partir
+                 par l'accédant à                                                de locaux non destinés
+                 la propriété                                                    à l'habitation ou
+                                                                                 logements existants
+                                                                                 acquis et, le cas
+                                                                                 échéant, améliorés
 
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     1 981  1 768   1 650
-Couple sans personne à charge	                           2 390  2 128   1 979
-Bénéficiaire isolé ou couple ayant une personne à charge 2 799  2 488   2 308
-Par personne supplémentaire à charge	                   409	  360     329
+                                                  isolé                                                             isolé ou
+                                                  ou couple                                                         couple
+
+Date de     Zone isolé                couple sans avec 1 personne par personne   isolé                  couple sans avec 1 personne par personne
+signature                             personne    à charge        à charge                              personne à  à charge        à charge
+du contrat                            à charge                    supplémentaire                        charge                      supplémentaire
+de prêt
+
+entre le    I    2 085                2 515       2 945           430            1 678                  2 025       2 372           347
+01/07/92 et
+le 27/11/94
+(en francs)
+
+            II   1 860                2 239       2 618           379            1 496                  1 801       2 106           305
+
+            III  1 736                2 082       2 428           346            1 397                  1 676       1 955           279
+
+entre le    I    1 981                2 390       2 799           409            1 595                  1 925       2 255           330
+28/11/94
+et le
+30/06/00
+(en
+francs)
+
+            II   1 768                2 128       2 488           360            1 422                  1 712       2 002           290
+
+            III  1 650                1 979       2 308           329            1 328                  1 593       1 858           265
+
+entre le    I    2 001                2 414       2 827           413            1 611                  1 944       2 277           333
+01/07/00
+et le
+30/06/01
+(en francs)
+
+            II   1 786                2 150       2 514           364            1 436                  1 729       2 022           293
+
+            III  1 667                1 999       2 331           332            1341                   1 609       1 877           268
+
+entre le    I    2 025                2 443       2 861           418            1 630                  1 967       2 304           337
+01/07/01
+et le
+31/12/01
+(en francs)
+
+            II   1 807                2 175       2 543           368            1 453                  1 750       2 047           297
+
+            III  1 687                2 023       2 359           336            1 357                  1 628       1 899           271
+
+entre le    I    308,71               372,43      436,15          63,72          248,49                 299,87      351,25          51,38
+01/01/02
+et le
+30/06/02
+(en euros)
+
+            II   275,48               331,58      387,68          56,10          221,51                 266,79      312,07          45,28
+
+            III  257,18               308,40      359,62          51,22          206,87                 248,18      289,49          41,31
+
+entre le    I    312,41               376,89      441,37          64,48          251,47                 303,47      355,47          52,00
+01/07/02
+et le
+30/06/03
+(en euros)
+
+            II   278,79               335,56      392,33          56,77          224,17                 269,99      315,81          45,82
+            III  260,27               312,10      363,93          51,83          209,35                 251,16      292,97          41,81
+
+entre le    I    316,16               381,41      446,66          65,25          254,49                 307,11      359,73          52,62
+01/07/03
+et le
+31/08/05
+(en euros)
+
+            II   282,14               339,59      397,04          57,45          226,86                 273,23      319,60          46,37
+
+            III  263,39               315,84      368,29          52,45          211,86                 254,17      296,48          42,31
+
+entre le    I    321,85               388,27      454,69          66,42          259,07                 312,64      366,21          53,57
+01/09/05
+et le
+31/12/06
+(en euros)
+
+            II   287,22               345,70      404,18          58,48          230,94                 278,14      325,34          47,20
+
+            III  268,13               321,52      374,91          53,39          215,67                 258,74      301,81          43,07
+
+entre le    I    330,86               399,14      467,42          68,28          266,32                 321,39      376,46          55,07
+01/01/07
+et le
+31/12/07
+(en euros)
+
+            II   295,26               355,38      415,50          60,12          237,41                 285,93      334,45          48,52
+
+            III  275,64               330,52      385,41          54,88          221,71                 265,98      310,26          44,28
+
+entre le    I    339,99               410,16      480,32          70,16          273,67                 330,26      386,85          56,59
+01/01/08
+et le
+31/12/08
+(en euros)
+
+            II   303,41               365,19      426,97          61,78          243,96                 293,82      343,68          49,86
+
+            III  283,25               339,64      396,05          56,39          227,83                 273,32      318,82          45,50
+
+entre le    I    350,02               422,26      494,49          72,23          281,74                 340,00      398,26          58,26
+01/01/09
+et le
+31/12/09
+(en euros)
+
+            II   312,36               375,96      439,57          63,60          251,16                 302,49      353,82          51,33
+
+            III  291,61               349,66      407,73          58,05          234,55                 281,38      328,23          46,84
+
+entre le    I    351,14               423,61      496,07          72,46          282,64                 341,09      399,53          58,45
+01/01/10
+et le
+31/12/10
+(en euros)
+
+            II   313,36               377,16      440,98          63,80          251,96                 303,46      354,95          51,49
+
+            III  292,54               350,78      409,03          58,24          235,30                 282,28      329,28          46,99
+
+entre le    I    355,00               428,27      501,53          73,26          285,75                 344,84      403,92          59,09
+01/01/11
+et le
+31/12/11
+(en euros)
+
+            II   316,81               381,31      445,83          64,50          254,73                 306,80      358,85          52,06
+
+            III  295,76               354,64      413,53          58,88          237,89                 285,39      332,90          47,51
+
+entre le    I    358,55               432,55      506,55          73,99          288,61                 348,29      407,96          59,68
+01/01/12
+et le
+31/12/12
+(en euros)
+
+            II   319,98               385,12      450,29          65,15          257,28                 309,87      362,44          52,58
+
+            III  298,72               358,19      417,67          59,47          240,27                 288,24      336,23          47,99
+
+entre le    I    366,26               441,85      517,44          75,58          294,82                 355,78      416,73          60,96
+01/01/13
+et le
+30/09/14
+(en euros)
+
+            II   326,86               393,40      459,97          66,55          262,81                 316,53      370,23          53,71
+
+            III  305,14               365,89      426,65          60,75          245,44                 294,44      343,46          49,02
+
+entre le    I    368,35               444,37      520,39          76,01          296,50                 357,81      419,11          61,31
+01/10/14
+et le
+30/09/15
+(en euros)
+
+            II   328,72               395,64      462,59          66,93          264,31                 318,33      372,34          54,02
+
+            III  306,88               367,98      429,08          61,10          246,84                 296,12      345,42          49,30
+
+entre le    I    368,64               444,73      520,81          76,07          296,74                 358,10      419,45          61,36
+01/10/15
+et le
+30/09/17
+(en euros)
+
+            II   328,98               395,96      462,96          66,98          264,52                 318,58      372,64          54,06
+
+            III  307,13               368,27      429,42          61,15          247,04                 296,36      345,7 4         9,34
+
+entre le    I    371,40               448,07      524,72          76,64          298,97                 360,79      422,60          61,82
+01/10/17
+et le
+30/09/19
+(en euros)
+
+            II   331,45               398,93      466,43          67,48          266,50                 320,97      375,43          54,47
+
+            III  309,43               371,03      432,64          61,61          248,89                 298,58      348,29          49,71
+
+à partir    I    372,52               449,41      526,29          76,87          299,86                 361,87      423,86          62,01
+du
+01/10/19
+(en euros)
+
+            II   332,44               400,13      467,83          67,68          267,30                 321,93      376,56          54,63
+
+            III  310,36               372,15      433,94          61,79          249,64                 299,48      349,34          49,86
+----------- ---- -------------------- ----------- --------------- -------------- ---------------------- ----------- --------------- --------------
+
+NOTA :
+
+Conformément à l’article 3 de l’arrêté du 26 décembre 2022 (NOR : TREL2226772A),
+ces dispositions sont applicables pour les prestations dues à compter du 1er janvier 2023.
+
+```catala
+# Cette version du décret ainsi que la précédente introduite par l'arrêté du 29
+# juillet 2022 ne changent pas les valeurs utilisées pour le calcul du plafond
+# de mensualité en vigueur depuis le 1er octobre 2020. Les tableaux de cet
+# article ont d'abord subit une correction d'erreurs factuelles, puis une
+# réorganisation sans changement des valeurs de calcul.
+```
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |1994-11-27| et
-    date_signature_prêt <@ |2000-06-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |1992-06-30| et
+    date_signature_prêt < |1994-11-27| et
+    ancienneté_logement sous forme Neuf et
+    type_prêt sous forme D331_63_64
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 2085 €
+         -- Couple: 2515€)
+      sinon (2945 € +
+        430€ * (décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1860 €
+         -- Couple: 2239€)
+      sinon (2618 € +
+        379€ * (décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1736 €
+         -- Couple: 2082€)
+      sinon (2428 € +
+        346€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
+
+  étiquette petit_2
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
+  sous condition
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |1992-06-30| et
+    date_signature_prêt < |1994-11-27| et
+    ancienneté_logement sous forme Ancien et
+    type_prêt sous forme D331_63_64
+  conséquence égal à
+    (selon zone sous forme
+    -- Zone1: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1678 €
+         -- Couple: 2025€)
+      sinon (2372 € +
+        347€ * (décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone2: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1496 €
+         -- Couple: 1801€)
+      sinon (2106 € +
+        305€ * (décimal de (nombre_personnes_à_charge - 1))))
+    -- Zone3: (
+      si nombre_personnes_à_charge = 0 alors
+        (selon situation_familiale_calcul_apl sous forme
+         -- PersonneSeule: 1397 €
+         -- Couple: 1676 €)
+      sinon (1955 € +
+        279€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
+
+  étiquette petit_2
+  définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
+  sous condition
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |1994-11-27| et
+    date_signature_prêt < |2000-06-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -930,41 +1136,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1981 €
          -- Couple: 2390€)
-      sinon (2799 € +€
-        409€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2799 € +
+        409€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1768 €
          -- Couple: 2128€)
-      sinon (2488 € +€
-        360€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2488 € +
+        360€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1650 €
          -- Couple: 1979€)
-      sinon (2308 € +€
-        329€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
-```
+      sinon (2308 € +
+        329€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en francs) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     1 595  1 422   1 328
-Couple sans personne à charge	                           1 925  1 712   1 593
-Bénéficiaire isolé ou couple ayant une personne à charge 2 255  2 002   1 858
-Par personne supplémentaire à charge	                   330	  290     265
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |1994-11-27| et
-    date_signature_prêt <@ |2000-06-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |1994-11-27| et
+    date_signature_prêt < |2000-06-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -974,42 +1169,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1595 €
          -- Couple: 1925€)
-      sinon (2255 € +€
-        330€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2255 € +
+        330€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1422 €
          -- Couple: 1712€)
-      sinon (2002 € +€
-        290€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2002 € +
+        290€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1328 €
          -- Couple: 1593€)
-      sinon (1858 € +€
-        265€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
-```
+      sinon (1858 € +
+        265€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 
-3° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 juin 2000 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en francs) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     2 001  1 786   1 667
-Couple sans personne à charge	                           1 414  2 150   1 999
-Bénéficiaire isolé ou couple ayant une personne à charge 1 827  2 514   2 331
-Par personne supplémentaire à charge	                   413	  364     332
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2000-06-30| et
-    date_signature_prêt <=@ |2001-06-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2000-06-30| et
+    date_signature_prêt <= |2001-06-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1019,41 +1202,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 2001 €
          -- Couple: 1414€)
-      sinon (1827 € +€
-        413€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (1827 € +
+        413€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1786 €
          -- Couple: 2150€)
-      sinon (2514 € +€
-        364€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2514 € +
+        364€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1667 €
          -- Couple: 1999€)
-      sinon (2331 € +€
-        332€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
-```
+      sinon (2331 € +
+        332€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en francs) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     1 611  1 436   1 341
-Couple sans personne à charge	                           1 944  1 729   1 609
-Bénéficiaire isolé ou couple ayant une personne à charge 2 277  2 022   1 877
-Par personne supplémentaire à charge	                   333	  293     268
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2000-06-30| et
-    date_signature_prêt <=@ |2001-06-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2000-06-30| et
+    date_signature_prêt <= |2001-06-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1063,44 +1235,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1611 €
          -- Couple: 1944€)
-      sinon (2277 € +€
-        333€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2277 € +
+        333€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1436 €
          -- Couple: 1729€)
-      sinon (2022 € +€
-        293€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2022 € +
+        293€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1341 €
          -- Couple: 1609€)
-      sinon (1877 € +€
-        268€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
-```
+      sinon (1877 € +
+        268€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 
-4° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 juin 2001 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété :
-
-Valeurs en francs du 1er juillet 2001 au 31 décembre 2001
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     2 025  1 807   1 687
-Couple sans personne à charge	                           2 443  2 175   2 023
-Bénéficiaire isolé ou couple ayant une personne à charge 2 861  2 543   2 359
-Par personne supplémentaire à charge	                   418	  368     336
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2001-07-01| et
-    date_signature_prêt <@ |2001-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2001-07-01| et
+    date_signature_prêt < |2001-12-31| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1110,40 +1268,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 2025 €
          -- Couple: 2443€)
-      sinon (2861 € +€
-        418€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2861 € +
+        418€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1807 €
          -- Couple: 2175€)
-      sinon (2543 € +€
-        368€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2543 € +
+        368€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1687 €
          -- Couple: 2023€)
-      sinon (2359 € +€
-        336€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
-```
+      sinon (2359 € +
+        336€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 
-Valeurs en euros à compter du 1er janvier 2002
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     308,71 275,48  257,18
-Couple sans personne à charge	                           372,43 331,58  308,4
-Bénéficiaire isolé ou couple ayant une personne à charge 436,15 387,68  359,62
-Par personne supplémentaire à charge	                   63,72  56,1    51,22
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2002-01-01| et
-    date_signature_prêt <@ |2002-06-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2002-01-01| et
+    date_signature_prêt < |2002-06-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1153,43 +1301,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 308,71€
          -- Couple: 372,43€)
-      sinon (436,15€ +€
-        63,72€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (436,15€ +
+        63,72€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 275,48€
          -- Couple: 331,48€)
-      sinon (387,68€ +€
-        56,1€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (387,68€ +
+        56,1€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 257,18€
          -- Couple: 308,4€)
-      sinon (359,62€ +€
-        51,22€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (359,62€ +
+        51,22€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés :
-
-Valeurs en francs du 1er juillet 2001 au 31 décembre 2001
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     1 630  1 453   1 357
-Couple sans personne à charge	                           1 967  1 750   1 628
-Bénéficiaire isolé ou couple ayant une personne à charge 2 304  2 047   1 899
-Par personne supplémentaire à charge	                   337	  297     271
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2001-07-01| et
-    date_signature_prêt <@ |2001-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2001-07-01| et
+    date_signature_prêt < |2001-12-31| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1199,40 +1334,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1630€
          -- Couple: 1967€)
-      sinon (2304€ +€
-        337€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2304€ +
+        337€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1453€
          -- Couple: 1750€)
-      sinon (2047€ +€
-        297€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (2047€ +
+        297€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1357€
          -- Couple: 1628€)
-      sinon (1899€ +€
-        271€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
-    ) *€ taux_francs_vers_euros
-```
+      sinon (1899€ +
+        271€ * (décimal de (nombre_personnes_à_charge - 1))))
+    ) * taux_francs_vers_euros
 
-Valeurs en euros à compter du 1er janvier 2002
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     248,49 221,51  206,87
-Couple sans personne à charge	                           299,87 266,79  248,18
-Bénéficiaire isolé ou couple ayant une personne à charge 351,25 312,07  289,49
-Par personne supplémentaire à charge	                   51,38  45,28   41,31
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2002-01-01| et
-    date_signature_prêt <@ |2002-06-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2002-01-01| et
+    date_signature_prêt < |2002-06-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1242,42 +1367,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 248,49€
          -- Couple: 299,87€)
-      sinon (351,25€ +€
-        51,38€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (351,25€ +
+        51,38€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 221,51€
          -- Couple: 266,79€)
-      sinon (312,07€ +€
-        45,28€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (312,07€ +
+        45,28€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 206,87€
          -- Couple: 248,18€)
-      sinon (289,49€ +€
-        41,31€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (289,49€ +
+        41,31€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-5° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 juin 2002 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     312,41 278,79  260,27
-Couple sans personne à charge	                           376,89 335,56  312,1
-Bénéficiaire isolé ou couple ayant une personne à charge 441,37 392,33  363,93
-Par personne supplémentaire à charge	                   64,48  56,77   51,83
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2002-06-30| et
-    date_signature_prêt <@ |2003-06-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2002-06-30| et
+    date_signature_prêt < |2003-06-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1287,41 +1400,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 312,41€
          -- Couple: 376,89€)
-      sinon (441,37€ +€
-        64,48€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (441,37€ +
+        64,48€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 278,79€
          -- Couple: 335,56€)
-      sinon (392,33€ +€
-        56,77€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (392,33€ +
+        56,77€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 260,27€
          -- Couple: 312,1€)
-      sinon (363,93€ +€
-        51,83€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (363,93€ +
+        51,83€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     251,47 224,17  209,35
-Couple sans personne à charge	                           303,47 269,99  251,16
-Bénéficiaire isolé ou couple ayant une personne à charge 355,47 315,81  292,97
-Par personne supplémentaire à charge	                   52     45,82   41,81
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2002-06-30| et
-    date_signature_prêt <@ |2003-06-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2002-06-30| et
+    date_signature_prêt < |2003-06-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1331,42 +1433,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 251,47€
          -- Couple: 303,47€)
-      sinon (355,47€ +€
-        52€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (355,47€ +
+        52€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 224,17€
          -- Couple: 269,99€)
-      sinon (315,81€ +€
-        45,82€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (315,81€ +
+        45,82€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 209,35€
          -- Couple: 251,16€)
-      sinon (292,97€ +€
-        41,81€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (292,97€ +
+        41,81€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-6° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 juin 2003 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     316,16 282,14  263,39
-Couple sans personne à charge	                           381,41 339,59  315,84
-Bénéficiaire isolé ou couple ayant une personne à charge 446,66 397,04  368,29
-Par personne supplémentaire à charge	                   65,25  57,45   52,45
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2003-06-30| et
-    date_signature_prêt <@ |2005-08-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2003-06-30| et
+    date_signature_prêt < |2005-08-31| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1376,41 +1466,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 316,16€
          -- Couple: 381,41€)
-      sinon (446,66€ +€
-        65,25€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (446,66€ +
+        65,25€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 282,14€
          -- Couple: 339,59€)
-      sinon (397,04€ +€
-        57,45€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (397,04€ +
+        57,45€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 263,39€
          -- Couple: 315,84€)
-      sinon (368,29€ +€
-        52,45€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (368,29€ +
+        52,45€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     254,49 226,86  211,86
-Couple sans personne à charge	                           307,11 273,23  254,17
-Bénéficiaire isolé ou couple ayant une personne à charge 359,73 319,6   296,48
-Par personne supplémentaire à charge	                   52,62  46,37   42,31
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2003-06-30| et
-    date_signature_prêt <@ |2005-08-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2003-06-30| et
+    date_signature_prêt < |2005-08-31| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1420,42 +1499,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 254,49€
          -- Couple: 307,11€)
-      sinon (359,73€ +€
-        52,62€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (359,73€ +
+        52,62€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 226,86€
          -- Couple: 273,23€)
-      sinon (319,6€ +€
-        46,37€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (319,6€ +
+        46,37€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 211,86€
          -- Couple: 254,17€)
-      sinon (296,48€ +€
-        42,31€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (296,48€ +
+        42,31€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-7° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 août 2005 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     321,85 287,22  268,13
-Couple sans personne à charge	                           388,27 345,7   321,52
-Bénéficiaire isolé ou couple ayant une personne à charge 454,69 404,18  374,91
-Par personne supplémentaire à charge	                    66,42 58,48   53,39
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2005-08-31| et
-    date_signature_prêt <@ |2006-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2005-08-31| et
+    date_signature_prêt < |2006-12-31| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1465,41 +1532,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 321,85€
          -- Couple: 388,27€)
-      sinon (454,69€ +€
-        66,42€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (454,69€ +
+        66,42€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 287,22€
          -- Couple: 345,7€)
-      sinon (404,18€ +€
-        58,48€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (404,18€ +
+        58,48€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 268,13€
          -- Couple: 321,52€)
-      sinon (374,91€ +€
-        53,39€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (374,91€ +
+        53,39€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     259,07 230,94  215,67
-Couple sans personne à charge	                           312,64 278,14  258,74
-Bénéficiaire isolé ou couple ayant une personne à charge 366,21 325,34  301,81
-Par personne supplémentaire à charge	                   53,57  47,2    43,07
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2005-08-31| et
-    date_signature_prêt <@ |2006-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2005-08-31| et
+    date_signature_prêt < |2006-12-31| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1509,42 +1565,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 259,07€
          -- Couple: 312,64€)
-      sinon (366,21€ +€
-        53,57€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (366,21€ +
+        53,57€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 230,94€
          -- Couple: 278,14€)
-      sinon (325,34€ +€
-        47,2€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (325,34€ +
+        47,2€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 215,67€
          -- Couple: 258,74€)
-      sinon (301,81€ +€
-        43,07€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (301,81€ +
+        43,07€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-8° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2006 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     330,86 295,26  275,64
-Couple sans personne à charge	                           399,14 355,38  330,52
-Bénéficiaire isolé ou couple ayant une personne à charge 467,42 415,5   385,41
-Par personne supplémentaire à charge	                   68,28  60,12   54,88
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2006-12-31| et
-    date_signature_prêt <@ |2007-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2006-12-31| et
+    date_signature_prêt < |2007-12-31| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1554,41 +1598,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 330,86€
          -- Couple: 399,14€)
-      sinon (467,42€ +€
-        68,28€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (467,42€ +
+        68,28€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 295,26€
          -- Couple: 355,38€)
-      sinon (415,5€ +€
-        60,12€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (415,5€ +
+        60,12€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 275,64€
          -- Couple: 330,52€)
-      sinon (385,41€ +€
-        54,88€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (385,41€ +
+        54,88€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     266,32 237,41  221,71
-Couple sans personne à charge	                           321,39 285,93  365,98
-Bénéficiaire isolé ou couple ayant une personne à charge 376,46 334,45  310,26
-Par personne supplémentaire à charge	                   55,07  48,52   44,28
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2006-12-31| et
-    date_signature_prêt <@ |2007-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2006-12-31| et
+    date_signature_prêt < |2007-12-31| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1598,42 +1631,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 266,32€
          -- Couple: 321,39€)
-      sinon (376,46€ +€
-        55,07€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (376,46€ +
+        55,07€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 237,41€
          -- Couple: 285,93€)
-      sinon (334,45€ +€
-        48,52€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (334,45€ +
+        48,52€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 221,71€
          -- Couple: 365,98€)
-      sinon (310,26€ +€
-        44,28€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (310,26€ +
+        44,28€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-9° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2007 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     339,99 303,41  283,25
-Couple sans personne à charge	                           410,16 365,19  339,64
-Bénéficiaire isolé ou couple ayant une personne à charge 480,32 426,97  396,05
-Par personne supplémentaire à charge	                   70,16  61,78   56,39
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2007-12-31| et
-    date_signature_prêt <@ |2008-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2007-12-31| et
+    date_signature_prêt < |2008-12-31| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1643,41 +1664,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 339,99€
          -- Couple: 410,16€)
-      sinon (480,32€ +€
-        70,16€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (480,32€ +
+        70,16€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 303,41€
          -- Couple: 365,19€)
-      sinon (426,97€ +€
-        61,78€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (426,97€ +
+        61,78€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 283,25€
          -- Couple: 339,64€)
-      sinon (396,05€ +€
-        56,39€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (396,05€ +
+        56,39€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     273,67 243,96  227,83
-Couple sans personne à charge	                           330,26 293,82  273,32
-Bénéficiaire isolé ou couple ayant une personne à charge 386,85 343,68  318,82
-Par personne supplémentaire à charge	                   56,59  49,86   45,5
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2007-12-31| et
-    date_signature_prêt <@ |2008-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2007-12-31| et
+    date_signature_prêt < |2008-12-31| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1687,42 +1697,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 273,67€
          -- Couple: 330,26€)
-      sinon (386,85€ +€
-        56,59€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (386,85€ +
+        56,59€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 243,96€
          -- Couple: 293,82€)
-      sinon (343,68€ +€
-        49,86€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (343,68€ +
+        49,86€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 227,83€
          -- Couple: 273,32€)
-      sinon (318,82€ +€
-        45,5€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (318,82€ +
+        45,5€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-10° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2008 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     350,02 312,36  291,61
-Couple sans personne à charge	                           422,26 375,96  349,66
-Bénéficiaire isolé ou couple ayant une personne à charge 494,49 439,57  407,73
-Par personne supplémentaire à charge	                   72,23  63,6    58,05
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2008-12-31| et
-    date_signature_prêt <@ |2009-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2008-12-31| et
+    date_signature_prêt < |2009-12-31| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1732,41 +1730,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 350,02€
          -- Couple: 422,26€)
-      sinon (494,49€ +€
-        72,23€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (494,49€ +
+        72,23€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 312,36€
          -- Couple: 375,96€)
-      sinon (439,57€ +€
-        63,6€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (439,57€ +
+        63,6€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 291,61€
          -- Couple: 349,66€)
-      sinon (407,73€ +€
-        58,05€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (407,73€ +
+        58,05€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     281,74 251,16  234,55
-Couple sans personne à charge	                           340    302,49  281,38
-Bénéficiaire isolé ou couple ayant une personne à charge 398,26 353,82  328,23
-Par personne supplémentaire à charge	                   58,26  51,33   46,84
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2008-12-31| et
-    date_signature_prêt <@ |2009-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2008-12-31| et
+    date_signature_prêt < |2009-12-31| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1776,42 +1763,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 281,74€
          -- Couple: 340€)
-      sinon (398,26€ +€
-        58,26€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (398,26€ +
+        58,26€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 251,16€
          -- Couple: 302,49€)
-      sinon (353,82€ +€
-        51,33€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (353,82€ +
+        51,33€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 234,55€
          -- Couple: 281,38€)
-      sinon (328,23€ +€
-        46,84€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (328,23€ +
+        46,84€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-11° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2009 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     351,14 313,36  292,54
-Couple sans personne à charge	                           423,61 377,16  350,78
-Bénéficiaire isolé ou couple ayant une personne à charge 496,07 440,98  409,03
-Par personne supplémentaire à charge	                   72,46  63,8    58,24
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2009-12-31| et
-    date_signature_prêt <@ |2010-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2009-12-31| et
+    date_signature_prêt < |2010-12-31| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1821,41 +1796,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 351,14€
          -- Couple: 423,61€)
-      sinon (496,07€ +€
-        72,46€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (496,07€ +
+        72,46€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 313,36€
          -- Couple: 377,16€)
-      sinon (440,98€ +€
-        63,8€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (440,98€ +
+        63,8€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 292,54€
          -- Couple: 350,78€)
-      sinon (409,03€ +€
-        58,24€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (409,03€ +
+        58,24€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     282,64 251,96  235,3
-Couple sans personne à charge	                           341,09 303,46  282,28
-Bénéficiaire isolé ou couple ayant une personne à charge 399,53 354,95  329,28
-Par personne supplémentaire à charge	                   58,45  51,49   46,99
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2009-12-31| et
-    date_signature_prêt <@ |2010-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2009-12-31| et
+    date_signature_prêt < |2010-12-31| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1865,42 +1829,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 282,64€
          -- Couple: 341,09€)
-      sinon (399,53€ +€
-        58,45€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (399,53€ +
+        58,45€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 251,96€
          -- Couple: 303,46€)
-      sinon (354,95€ +€
-        51,49€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (354,95€ +
+        51,49€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 235,3€
          -- Couple: 282,28€)
-      sinon (329,28€ +€
-        46,99€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (329,28€ +
+        46,99€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-12° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2010 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     355    316,81  295,76
-Couple sans personne à charge	                           428,27 381,31  354,64
-Bénéficiaire isolé ou couple ayant une personne à charge 501,53 445,83  413,53
-Par personne supplémentaire à charge	                   73,26  64,5    58,88
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2010-12-31| et
-    date_signature_prêt <@ |2011-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2010-12-31| et
+    date_signature_prêt < |2011-12-31| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1910,41 +1862,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 355€
          -- Couple: 428,27€)
-      sinon (501,53€ +€
-        73,26€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (501,53€ +
+        73,26€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 316,81€
          -- Couple: 381,31€)
-      sinon (445,83€ +€
-        64,5€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (445,83€ +
+        64,5€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 295,76€
          -- Couple: 354,64€)
-      sinon (413,53€ +€
-        58,88€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (413,53€ +
+        58,88€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     285,75 254,73  237,89
-Couple sans personne à charge	                           344,84 306,8   285,39
-Bénéficiaire isolé ou couple ayant une personne à charge 403,92 358,85  332,9
-Par personne supplémentaire à charge	                   59,09  52,06   47,51
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2010-12-31| et
-    date_signature_prêt <@ |2011-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2010-12-31| et
+    date_signature_prêt < |2011-12-31| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1954,42 +1895,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 285,75€
          -- Couple: 344,84€)
-      sinon (403,92€ +€
-        59,09€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (403,92€ +
+        59,09€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 254,73€
          -- Couple: 306,8€)
-      sinon (358,85€ +€
-        52,06€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (358,85€ +
+        52,06€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 237,89€
          -- Couple: 285,39€)
-      sinon (332,9€ +€
-        47,51€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (332,9€ +
+        47,51€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-13° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2011 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     358,55 319,98  298,72
-Couple sans personne à charge	                           432,55 385,12  358,19
-Bénéficiaire isolé ou couple ayant une personne à charge 506,55 450,29  417,67
-Par personne supplémentaire à charge	                   73,99  65,15   59,47
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2011-12-31| et
-    date_signature_prêt <@ |2012-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2011-12-31| et
+    date_signature_prêt < |2012-12-31| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -1999,42 +1928,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 358,55€
          -- Couple: 432,55€)
-      sinon (506,55€ +€
-        73,99€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (506,55€ +
+        73,99€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 319,98€
          -- Couple: 385,12€)
-      sinon (450,29€ +€
-        65,15€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (450,29€ +
+        65,15€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 298,72€
          -- Couple: 358,19€)
-      sinon (417,67€ +€
-        59,47€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (417,67€ +
+        59,47€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     288,61 257,28  240,27
-Couple sans personne à charge	                           348,29 309,87  288,24
-Bénéficiaire isolé ou couple ayant une personne à charge 407,96 362,44  336,23
-Par personne supplémentaire à charge	                   59,68  52,58   47,99
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2011-12-31| et
-    date_signature_prêt <@ |2012-12-31| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2011-12-31| et
+    date_signature_prêt < |2012-12-31| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2044,42 +1961,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 288,61€
          -- Couple: 348,29€)
-      sinon (407,96€ +€
-        59,68€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (407,96€ +
+        59,68€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 257,28€
          -- Couple: 309,87€)
-      sinon (362,44€ +€
-        52,58€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (362,44€ +
+        52,58€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 240,27€
          -- Couple: 288,24€)
-      sinon (336,23€ +€
-        47,99€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (336,23€ +
+        47,99€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-14° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 31 décembre 2012 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     366,26 326,86  305,14
-Couple sans personne à charge	                           441,85 393,4   365,89
-Bénéficiaire isolé ou couple ayant une personne à charge 517,44 459,97  426,65
-Par personne supplémentaire à charge	                   75,58  66,55   60,75
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2012-12-31| et
-    date_signature_prêt <@ |2014-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2012-12-31| et
+    date_signature_prêt < |2014-09-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2089,41 +1994,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 366,26€
          -- Couple: 441,85€)
-      sinon (517,44€ +€
-        75,58€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (517,44€ +
+        75,58€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 326,86€
          -- Couple: 393,4€)
-      sinon (459,97€ +€
-        66,55€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (459,97€ +
+        66,55€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 305,14€
          -- Couple: 365,89€)
-      sinon (426,65€ +€
-        60,75€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (426,65€ +
+        60,75€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     294,82 262,81  245,44
-Couple sans personne à charge	                           355,78 316,53  294,44
-Bénéficiaire isolé ou couple ayant une personne à charge 416,73 370,23  343,46
-Par personne supplémentaire à charge	                   60,96  53,71   49,02
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2012-12-31| et
-    date_signature_prêt <@ |2014-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2012-12-31| et
+    date_signature_prêt < |2014-09-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2133,42 +2027,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 294,82€
          -- Couple: 355,78€)
-      sinon (416,73€ +€
-        60,96€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (416,73€ +
+        60,96€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 262,81€
          -- Couple: 316,53€)
-      sinon (370,23€ +€
-        53,71€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (370,23€ +
+        53,71€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 245,44€
          -- Couple: 294,44€)
-      sinon (343,46€ +€
-        49,02€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (343,46€ +
+        49,02€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-15° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 septembre 2014 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     368,35 328,72  306,88
-Couple sans personne à charge	                           444,37 395,64  367,98
-Bénéficiaire isolé ou couple ayant une personne à charge 520,39 462,59  429,08
-Par personne supplémentaire à charge	                   76,01  66,93   61,1
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2014-09-30| et
-    date_signature_prêt <@ |2015-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2014-09-30| et
+    date_signature_prêt < |2015-09-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2178,41 +2060,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 368,35€
          -- Couple: 444,37€)
-      sinon (520,39€ +€
-        76,01€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (520,39€ +
+        76,01€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 328,72€
          -- Couple: 395,64€)
-      sinon (462,59€ +€
-        66,93€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (462,59€ +
+        66,93€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 306,88€
          -- Couple: 367,98€)
-      sinon (429,08€ +€
-        61,1€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (429,08€ +
+        61,1€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     296,5  264,31  246,84
-Couple sans personne à charge	                           357,81 318,33  296,12
-Bénéficiaire isolé ou couple ayant une personne à charge 419,11 372,34  345,42
-Par personne supplémentaire à charge	                   61,31  54,02   49,3
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2014-09-30| et
-    date_signature_prêt <@ |2015-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2014-09-30| et
+    date_signature_prêt < |2015-09-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2222,42 +2093,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 296,5€
          -- Couple: 357,81€)
-      sinon (419,11€ +€
-        61,31€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (419,11€ +
+        61,31€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 264,31€
          -- Couple: 318,33€)
-      sinon (372,34€ +€
-        54,02€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (372,34€ +
+        54,02€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 246,84€
          -- Couple: 296,12€)
-      sinon (345,42€ +€
-        49,3€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (345,42€ +
+        49,3€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-16° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 septembre 2015 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     368,64 328,98  307,13
-Couple sans personne à charge	                           444,73 395,96  368,27
-Bénéficiaire isolé ou couple ayant une personne à charge 520,81 462,96  429,42
-Par personne supplémentaire à charge	                   76,07  66,98   61,15
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2015-09-30| et
-    date_signature_prêt <@ |2017-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2015-09-30| et
+    date_signature_prêt < |2017-09-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2267,41 +2126,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 368,64€
          -- Couple: 444,73€)
-      sinon (520,81€ +€
-        76,07€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (520,81€ +
+        76,07€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 328,98€
          -- Couple: 395,96€)
-      sinon (462,96€ +€
-        66,98€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (462,96€ +
+        66,98€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 307,13€
          -- Couple: 368,27€)
-      sinon (429,42€ +€
-        61,15€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (429,42€ +
+        61,15€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-DÉSIGNATION	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     296,74 264,52  247,04
-Couple sans personne à charge	                           358,1  318,58  296,36
-Bénéficiaire isolé ou couple ayant une personne à charge 419,45 372,64  345,7
-Par personne supplémentaire à charge	                   61,36  54,06   49,34
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2015-09-30| et
-    date_signature_prêt <@ |2017-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2015-09-30| et
+    date_signature_prêt < |2017-09-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2311,42 +2159,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 296,74€
          -- Couple: 358,1€)
-      sinon (419,45€ +€
-        61,36€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (419,45€ +
+        61,36€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 264,52€
          -- Couple: 318,58€)
-      sinon (372,64€ +€
-        54,06€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (372,64€ +
+        54,06€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 247,04€
          -- Couple: 296,36€)
-      sinon (345,7€ +€
-        49,34€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (345,7€ +
+        49,34€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-17° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 septembre 2017 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-Désignation	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     371,4  331,45  309,43
-Couple sans personne à charge	                           448,07 398,93  371,03
-Bénéficiaire isolé ou couple ayant une personne à charge 524,72 466,43  432,64
-Par personne supplémentaire à charge	                   76,64  67,48   61,61
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2017-09-30| et
-    date_signature_prêt <@ |2019-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2017-09-30| et
+    date_signature_prêt < |2019-09-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2356,41 +2192,30 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 371,4€
          -- Couple: 448,07€)
-      sinon (524,72€ +€
-        76,64€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (524,72€ +
+        76,64€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 331,45€
          -- Couple: 398,93€)
-      sinon (466,43€ +€
-        67,48€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (466,43€ +
+        67,48€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 309,43€
          -- Couple: 371,03€)
-      sinon (432,64€ +€
-        61,61€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (432,64€ +
+        61,61€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-Désignation	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     298,97 266,5   248,89
-Couple sans personne à charge	                           360,79 320,97  298,58
-Bénéficiaire isolé ou couple ayant une personne à charge 422,6  375,43  348,29
-Par personne supplémentaire à charge	                   61,82  54,47   49,71
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2017-09-30| et
-    date_signature_prêt <@ |2019-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2017-09-30| et
+    date_signature_prêt < |2019-09-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2400,41 +2225,29 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 298,97€
          -- Couple: 360,79€)
-      sinon (422,6€ +€
-        61,82€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (422,6€ +
+        61,82€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 266,5€
          -- Couple: 320,97€)
-      sinon (375,43€ +€
-        54,47€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (375,43€ +
+        54,47€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 248,89€
          -- Couple: 298,58€)
-      sinon (348,29€ +€
-        49,71€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (348,29€ +
+        49,71€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-18° Lorsque la date de signature du contrat de prêt est intervenue postérieurement au 30 septembre 2019 :
-
-a) Logements neufs construits ou acquis par l'accédant à la propriété (en euros) :
-
-Désignation	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     372,52 332,44  310,36
-Couple sans personne à charge	                           449,41 400,13  372,15
-Bénéficiaire isolé ou couple ayant une personne à charge 526,29 467,83  433,94
-Par personne supplémentaire à charge	                   76,87  67,68   61,79
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2019-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2019-09-30| et
     ancienneté_logement sous forme Neuf et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2444,40 +2257,29 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 372,52€
          -- Couple: 449,41€)
-      sinon (526,29€ +€
-        76,87€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (526,29€ +
+        76,87€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 332,44€
          -- Couple: 400,13€)
-      sinon (467,83€ +€
-        67,68€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (467,83€ +
+        67,68€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 310,36€
          -- Couple: 372,15€)
-      sinon (433,94€ +€
-        61,79€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (433,94€ +
+        61,79€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
-```
 
-b) Logements agrandis ou aménagés à partir de locaux non destinés à l'habitation ou logements existants
-acquis et, le cas échéant, améliorés (en euros) :
-
-Désignation	                                             ZONE I ZONE II ZONE III
--------------------------------------------------------- ------ ------- --------
-Bénéficiaire isolé	                                     299,86 267,30  249,64
-Couple sans personne à charge	                           361,87 321,93  299,48
-Bénéficiaire isolé ou couple ayant une personne à charge 423,86 376,56  349,34
-Par personne supplémentaire à charge	                   62,01  54,63   49,86
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+  étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
-    date_signature_prêt >=@ |2019-09-30| et
+    date_courante >= |2020-10-01| et
+    date_signature_prêt >= |2019-09-30| et
     ancienneté_logement sous forme Ancien et
     type_prêt sous forme D331_63_64
   conséquence égal à
@@ -2487,43 +2289,25 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 299,86€
          -- Couple: 361,87€)
-      sinon (423,86€ +€
-        62,01€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (423,86€ +
+        62,01€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 267,30€
          -- Couple: 321,93€)
-      sinon (376,56€ +€
-        54,63€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (376,56€ +
+        54,63€ * (décimal de (nombre_personnes_à_charge - 1))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 249,64€
          -- Couple: 299,48€)
-      sinon (349,34€ +€
-        49,86€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      sinon (349,34€ +
+        49,86€ * (décimal de (nombre_personnes_à_charge - 1))))
     )
 ```
 
-NOTA :
-
-Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
-ces dispositions sont applicables pour les prestations dues à compter du 1 er
-juillet 2022.
-
-```catala
-# Cette NOTA fait référence à l'article 3 de l'arrêté du 29 juillet 2022 qui
-# contient précisément des corrections pointées par les auteurs de ce code
-# source (valeurs aberrantes dans les tableaux). Selon cette NOTA, il faudrait
-# donc garder également l'ancienne version erronnée de ce tableau et basculer
-# entre la version erronnée et la version corrigée selon que l'on soit avant
-# ou après le premier juillet 2022.
-# Ici, nous décidons de ne pas faire cela et de ne
-# garder que la version corrigée pour simplicité et parceque DGALN/DHUP/FE4
-# nous a confirmé que la CAF a toujours utilisé une version "corrigée" de
-# cet article.
-```
 
 ### Article 19 | LEGIARTI000046206220
 
@@ -2544,10 +2328,10 @@ juillet 2022.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
 
   étiquette base définition montant_forfaitaire_charges_d832_10 égal à
-    56,12 € +€ 12,72 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+    56,12 € + 12,72 € * (décimal de nombre_personnes_à_charge)
 ```
 
 ### Article 20 | LEGIARTI000039160765
@@ -2605,10 +2389,10 @@ Dans le cas des copropriétaires prévus à l'article D. 832-16 du même code :
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   définition plafond_mensualité_d832_10_3 état copropriétaires égal à
     si copropriété alors
-      plafond_mensualité_d832_10_3 *€ 75%
+      plafond_mensualité_d832_10_3 * 75%
     sinon
       plafond_mensualité_d832_10_3
 ```
@@ -2623,14 +2407,14 @@ Majoration par personne à charge 12,72
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
     exception base définition montant_forfaitaire_charges_d832_10 sous condition
       copropriété
     conséquence égal à
      (selon situation_familiale_calcul_apl sous forme
        -- PersonneSeule: 28,05€
-       -- Couple: 56,12€) +€
-     12,72 € *€ (entier_vers_décimal de nombre_personnes_à_charge)
+       -- Couple: 56,12€) +
+     12,72 € * (décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -2655,12 +2439,12 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition coefficient_multiplicateur_d832_17_3 égal à
     selon ancienneté_logement sous forme
     -- Neuf:
-      (si date_signature_prêt <=@ |1998-10-01| alors 0,0226 sinon 0,0234)
+      (si date_signature_prêt <= |1998-10-01| alors 0,0226 sinon 0,0234)
     -- Ancien de amélioré_par_occupant:
       (selon amélioré_par_occupant sous forme
       -- AmélioréParOccupant.Oui: 0,0172
       -- AmélioréParOccupant.Non:
-        (si date_signature_prêt <=@ |1998-10-01| alors 0,0226 sinon 0,0234))
+        (si date_signature_prêt <= |1998-10-01| alors 0,0226 sinon 0,0234))
 ```
 
 ### Article 26 | LEGIARTI000039160777
@@ -2698,7 +2482,7 @@ dispositions sont applicables pour les prestations dues à compter du
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
-  date_courante >=@ |2022-07-01|:
+  date_courante >= |2022-07-01|:
   définition plafond_équivalence_loyer_éligible égal à
     (selon zone sous forme
     -- Zone1: (
@@ -2713,8 +2497,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
       sinon (si nombre_personnes_à_charge = 3 alors
         658,62 €
       sinon
-        (710,39 € +€
-        73,68€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        (710,39 € +
+        73,68€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -2727,8 +2511,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
       sinon (si nombre_personnes_à_charge = 3 alors
         599,57 €
       sinon
-        (638,87 € +€
-        66,59€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        (638,87 € +
+        66,59€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -2741,8 +2525,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
       sinon (si nombre_personnes_à_charge = 3 alors
         560,04 €
       sinon
-        (596,75 € +€
-        61,80€ *€ (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        (596,75 € +
+        61,80€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     )
 ```
 
@@ -3122,11 +2906,11 @@ Certificats datés          I       314,76    379,33    407,87   419,27   431,06
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété sous condition
-  date_courante >=@ |2020-01-01|:
+  date_courante >= |2020-01-01|:
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |1992-07-01| et date_calcul <@ |1994-07-01|
+    date_calcul >= |1992-07-01| et date_calcul < |1994-07-01|
   conséquence égal à
     (selon zone sous forme
     -- Zone1: (
@@ -3140,8 +2924,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2171 € sinon
         (si nombre_personnes_à_charge = 4 alors 2229 € sinon
         (si nombre_personnes_à_charge = 5 alors 2280 € sinon
-        (2280€ +€ 198€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2280€ + 198€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3153,8 +2937,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 1977 € sinon
         (si nombre_personnes_à_charge = 4 alors 2042 € sinon
         (si nombre_personnes_à_charge = 5 alors 2187 € sinon
-        (2187€ +€ 191€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2187€ + 191€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3166,13 +2950,13 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 1870 € sinon
         (si nombre_personnes_à_charge = 4 alors 1942 € sinon
         (si nombre_personnes_à_charge = 5 alors 2086 € sinon
-        (2086€ +€ 182€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
-    ) *€ taux_francs_vers_euros
+        (2086€ + 182€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |1994-07-01| et date_calcul <@ |1997-07-01|
+    date_calcul >= |1994-07-01| et date_calcul < |1997-07-01|
   conséquence égal à
     (selon zone sous forme
     -- Zone1: (
@@ -3186,8 +2970,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2196 € sinon
         (si nombre_personnes_à_charge = 4 alors 2255 € sinon
         (si nombre_personnes_à_charge = 5 alors 2305 € sinon
-        (2305€ +€ 200€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2305€ + 200€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3199,8 +2983,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 1999 € sinon
         (si nombre_personnes_à_charge = 4 alors 2065 € sinon
         (si nombre_personnes_à_charge = 5 alors 2211 € sinon
-        (2211 € +€ 193€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2211 € + 193€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3212,13 +2996,13 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 1891 € sinon
         (si nombre_personnes_à_charge = 4 alors 1964 € sinon
         (si nombre_personnes_à_charge = 5 alors 2109 € sinon
-        (2109€ +€ 184€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
-    ) *€ taux_francs_vers_euros
+        (2109€ + 184€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |1997-07-01| et date_calcul <@ |1998-07-01|
+    date_calcul >= |1997-07-01| et date_calcul < |1998-07-01|
   conséquence égal à
     (selon zone sous forme
     -- Zone1: (
@@ -3232,8 +3016,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2236 € sinon
         (si nombre_personnes_à_charge = 4 alors 2296 € sinon
         (si nombre_personnes_à_charge = 5 alors 2346 € sinon
-        (2346€ +€ 204€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2346€ + 204€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3245,8 +3029,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2035 € sinon
         (si nombre_personnes_à_charge = 4 alors 2102 € sinon
         (si nombre_personnes_à_charge = 5 alors 2251 € sinon
-        (2251 € +€ 196€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2251 € + 196€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3258,13 +3042,13 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 1925 € sinon
         (si nombre_personnes_à_charge = 4 alors 1999 € sinon
         (si nombre_personnes_à_charge = 5 alors 2147 € sinon
-        (2147€ +€ 187€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
-    ) *€ taux_francs_vers_euros
+        (2147€ + 187€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |1998-07-01| et date_calcul <@ |1999-07-01|
+    date_calcul >= |1998-07-01| et date_calcul < |1999-07-01|
   conséquence égal à
     (selon zone sous forme
     -- Zone1: (
@@ -3278,8 +3062,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2290 € sinon
         (si nombre_personnes_à_charge = 4 alors 2351 € sinon
         (si nombre_personnes_à_charge = 5 alors 2402 € sinon
-        (2402€ +€ 209€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2402€ + 209€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3291,8 +3075,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2084 € sinon
         (si nombre_personnes_à_charge = 4 alors 2152 € sinon
         (si nombre_personnes_à_charge = 5 alors 2305 € sinon
-        (2305 € +€ 201€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2305 € + 201€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3304,13 +3088,13 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 1971 € sinon
         (si nombre_personnes_à_charge = 4 alors 2047 € sinon
         (si nombre_personnes_à_charge = 5 alors 2199 € sinon
-        (2199€ +€ 191€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
-    ) *€ taux_francs_vers_euros
+        (2199€ + 191€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |1999-07-01| et date_calcul <@ |2000-07-01|
+    date_calcul >= |1999-07-01| et date_calcul < |2000-07-01|
   conséquence égal à
     (selon zone sous forme
     -- Zone1: (
@@ -3324,8 +3108,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2292 € sinon
         (si nombre_personnes_à_charge = 4 alors 2353 € sinon
         (si nombre_personnes_à_charge = 5 alors 2404 € sinon
-        (2404€ +€ 209€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2404€ + 209€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3337,8 +3121,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2086 € sinon
         (si nombre_personnes_à_charge = 4 alors 2154 € sinon
         (si nombre_personnes_à_charge = 5 alors 2307 € sinon
-        (2307 € +€ 201€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2307 € + 201€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3350,13 +3134,13 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 1973 € sinon
         (si nombre_personnes_à_charge = 4 alors 2049 € sinon
         (si nombre_personnes_à_charge = 5 alors 2201 € sinon
-        (2201€ +€ 191€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
-    ) *€ taux_francs_vers_euros
+        (2201€ + 191€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2000-07-01| et date_calcul <@ |2001-07-01|
+    date_calcul >= |2000-07-01| et date_calcul < |2001-07-01|
   conséquence égal à
     (selon zone sous forme
     -- Zone1: (
@@ -3370,8 +3154,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2315 € sinon
         (si nombre_personnes_à_charge = 4 alors 2377 € sinon
         (si nombre_personnes_à_charge = 5 alors 2428 € sinon
-        (2428€ +€ 211€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2428€ + 211€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3383,8 +3167,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2107 € sinon
         (si nombre_personnes_à_charge = 4 alors 2176 € sinon
         (si nombre_personnes_à_charge = 5 alors 2330 € sinon
-        (2330 € +€ 203€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2330 € + 203€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3396,13 +3180,13 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 1993 € sinon
         (si nombre_personnes_à_charge = 4 alors 2069 € sinon
         (si nombre_personnes_à_charge = 5 alors 2223 € sinon
-        (2223€ +€ 193€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
-    ) *€ taux_francs_vers_euros
+        (2223€ + 193€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2001-07-01| et date_calcul <@ |2002-01-01|
+    date_calcul >= |2001-07-01| et date_calcul < |2002-01-01|
   conséquence égal à
     (selon zone sous forme
     -- Zone1: (
@@ -3416,8 +3200,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2343 € sinon
         (si nombre_personnes_à_charge = 4 alors 2406 € sinon
         (si nombre_personnes_à_charge = 5 alors 2457 € sinon
-        (2457€ +€ 214€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2457€ + 214€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3429,8 +3213,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2132 € sinon
         (si nombre_personnes_à_charge = 4 alors 2202 € sinon
         (si nombre_personnes_à_charge = 5 alors 2358 € sinon
-        (2358 € +€ 205€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (2358 € + 205€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3442,13 +3226,13 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 2017 € sinon
         (si nombre_personnes_à_charge = 4 alors 2094 € sinon
         (si nombre_personnes_à_charge = 5 alors 2250 € sinon
-        (2250€ +€ 195€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
-    ) *€ taux_francs_vers_euros
+        (2250€ + 195€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
+    ) * taux_francs_vers_euros
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2002-01-01| et date_calcul <@ |2002-07-01|
+    date_calcul >= |2002-01-01| et date_calcul < |2002-07-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3462,8 +3246,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 357,19 € sinon
         (si nombre_personnes_à_charge = 4 alors 366,79 € sinon
         (si nombre_personnes_à_charge = 5 alors 374,57 € sinon
-        (374,57€ +€ 32,62€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (374,57€ + 32,62€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3475,8 +3259,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 325,02 € sinon
         (si nombre_personnes_à_charge = 4 alors 335,69 € sinon
         (si nombre_personnes_à_charge = 5 alors 359,47 € sinon
-        (359,47 € +€ 31,25€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (359,47 € + 31,25€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3488,12 +3272,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 307,49 € sinon
         (si nombre_personnes_à_charge = 4 alors 319,23 € sinon
         (si nombre_personnes_à_charge = 5 alors 343,01 € sinon
-        (343,01€ +€ 29,73€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (343,01€ + 29,73€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2002-07-01| et date_calcul <@ |2003-07-01|
+    date_calcul >= |2002-07-01| et date_calcul < |2003-07-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3507,8 +3291,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 361,48 € sinon
         (si nombre_personnes_à_charge = 4 alors 371,19 € sinon
         (si nombre_personnes_à_charge = 5 alors 379,06 € sinon
-        (379,06€ +€ 33,01€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (379,06€ + 33,01€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3520,8 +3304,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 328,92 € sinon
         (si nombre_personnes_à_charge = 4 alors 339,72 € sinon
         (si nombre_personnes_à_charge = 5 alors 363,78 € sinon
-        (363,78 € +€ 31,63€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (363,78 € + 31,63€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3533,12 +3317,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 311,18 € sinon
         (si nombre_personnes_à_charge = 4 alors 323,06 € sinon
         (si nombre_personnes_à_charge = 5 alors 347,13 € sinon
-        (347,13€ +€ 30,09€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (347,13€ + 30,09€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2003-07-01| et date_calcul <@ |2005-09-01|
+    date_calcul >= |2003-07-01| et date_calcul < |2005-09-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3552,8 +3336,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 365,82 € sinon
         (si nombre_personnes_à_charge = 4 alors 375,64 € sinon
         (si nombre_personnes_à_charge = 5 alors 383,61 € sinon
-        (383,61€ +€ 33,41€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (383,61€ + 33,41€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3565,8 +3349,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 332,87 € sinon
         (si nombre_personnes_à_charge = 4 alors 343,80 € sinon
         (si nombre_personnes_à_charge = 5 alors 368,15 € sinon
-        (368,15 € +€ 32,01€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (368,15 € + 32,01€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3578,12 +3362,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 314,91 € sinon
         (si nombre_personnes_à_charge = 4 alors 326,94 € sinon
         (si nombre_personnes_à_charge = 5 alors 351,30 € sinon
-        (351,30€ +€ 30,45€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (351,30€ + 30,45€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2005-09-01| et date_calcul <@ |2007-01-01|
+    date_calcul >= |2005-09-01| et date_calcul < |2007-01-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3597,8 +3381,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 372,40 € sinon
         (si nombre_personnes_à_charge = 4 alors 382,40 € sinon
         (si nombre_personnes_à_charge = 5 alors 390,51 € sinon
-        (390,51€ +€ 34,01€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (390,51€ + 34,01€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3610,8 +3394,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 338,86 € sinon
         (si nombre_personnes_à_charge = 4 alors 349,99 € sinon
         (si nombre_personnes_à_charge = 5 alors 374,78 € sinon
-        (374,78 € +€ 32,59€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (374,78 € + 32,59€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3623,12 +3407,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 320,58 € sinon
         (si nombre_personnes_à_charge = 4 alors 332,82 € sinon
         (si nombre_personnes_à_charge = 5 alors 357,62 € sinon
-        (357,62€ +€ 31,00€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (357,62€ + 31,00€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2007-01-01| et date_calcul <@ |2008-01-01|
+    date_calcul >= |2007-01-01| et date_calcul < |2008-01-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3642,8 +3426,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 382,83 € sinon
         (si nombre_personnes_à_charge = 4 alors 393,11 € sinon
         (si nombre_personnes_à_charge = 5 alors 401,44 € sinon
-        (401,44€ +€ 34,96€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (401,44€ + 34,96€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3655,8 +3439,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 348,65 € sinon
         (si nombre_personnes_à_charge = 4 alors 359,79 € sinon
         (si nombre_personnes_à_charge = 5 alors 385,27 € sinon
-        (385,27 € +€ 33,50€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (385,27 € + 33,50€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3668,12 +3452,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 329,56 € sinon
         (si nombre_personnes_à_charge = 4 alors 342,14 € sinon
         (si nombre_personnes_à_charge = 5 alors 367,33 € sinon
-        (367,33€ +€ 31,87€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (367,33€ + 31,87€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2008-01-01| et date_calcul <@ |2009-01-01|
+    date_calcul >= |2008-01-01| et date_calcul < |2009-01-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3687,8 +3471,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 393,40 € sinon
         (si nombre_personnes_à_charge = 4 alors 403,96 € sinon
         (si nombre_personnes_à_charge = 5 alors 412,52 € sinon
-        (412,52€ +€ 35,92€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (412,52€ + 35,92€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3700,8 +3484,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 357,96 € sinon
         (si nombre_personnes_à_charge = 4 alors 369,72 € sinon
         (si nombre_personnes_à_charge = 5 alors 395,90 € sinon
-        (395,90 € +€ 34,42€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (395,90 € + 34,42€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3713,12 +3497,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 338,66 € sinon
         (si nombre_personnes_à_charge = 4 alors 351,58 € sinon
         (si nombre_personnes_à_charge = 5 alors 377,78 € sinon
-        (377,78€ +€ 32,75€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (377,78€ + 32,75€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2009-01-01| et date_calcul <@ |2010-01-01|
+    date_calcul >= |2009-01-01| et date_calcul < |2010-01-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3732,8 +3516,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 405,01 € sinon
         (si nombre_personnes_à_charge = 4 alors 415,88 € sinon
         (si nombre_personnes_à_charge = 5 alors 424,69 € sinon
-        (424,69€ +€ 36,98€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (424,69€ + 36,98€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3745,8 +3529,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 368,52 € sinon
         (si nombre_personnes_à_charge = 4 alors 380,63 € sinon
         (si nombre_personnes_à_charge = 5 alors 407,58 € sinon
-        (407,58 € +€ 35,44€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (407,58 € + 35,44€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3758,12 +3542,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 348,65 € sinon
         (si nombre_personnes_à_charge = 4 alors 361,95 € sinon
         (si nombre_personnes_à_charge = 5 alors 388,92 € sinon
-        (388,92€ +€ 33,72€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (388,92€ + 33,72€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2010-01-01| et date_calcul <@ |2011-01-01|
+    date_calcul >= |2010-01-01| et date_calcul < |2011-01-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3777,8 +3561,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 406,01 € sinon
         (si nombre_personnes_à_charge = 4 alors 417,21 € sinon
         (si nombre_personnes_à_charge = 5 alors 426,05 € sinon
-        (426,05€ +€ 37,10€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (426,05€ + 37,10€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3790,8 +3574,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 369,70 € sinon
         (si nombre_personnes_à_charge = 4 alors 381,85 € sinon
         (si nombre_personnes_à_charge = 5 alors 408,88 € sinon
-        (408,88 € +€ 35,55€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (408,88 € + 35,55€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3803,12 +3587,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 349,77 € sinon
         (si nombre_personnes_à_charge = 4 alors 363,11 € sinon
         (si nombre_personnes_à_charge = 5 alors 390,16 € sinon
-        (390,16€ +€ 33,83€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (390,16€ + 33,83€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2011-01-01| et date_calcul <@ |2012-01-01|
+    date_calcul >= |2011-01-01| et date_calcul < |2012-01-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3822,8 +3606,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 410,78 € sinon
         (si nombre_personnes_à_charge = 4 alors 421,80 € sinon
         (si nombre_personnes_à_charge = 5 alors 430,74 € sinon
-        (430,74€ +€ 37,51€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (430,74€ + 37,51€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3835,8 +3619,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 373,73 € sinon
         (si nombre_personnes_à_charge = 4 alors 386,05 € sinon
         (si nombre_personnes_à_charge = 5 alors 413,38 € sinon
-        (413,38 € +€ 35,94€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (413,38 € + 35,94€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3848,12 +3632,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 353,62 € sinon
         (si nombre_personnes_à_charge = 4 alors 367,10 € sinon
         (si nombre_personnes_à_charge = 5 alors 394,45 € sinon
-        (394,45€ +€ 34,20€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (394,45€ + 34,20€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2012-01-01| et date_calcul <@ |2013-01-01|
+    date_calcul >= |2012-01-01| et date_calcul < |2013-01-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3867,8 +3651,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 414,89 € sinon
         (si nombre_personnes_à_charge = 4 alors 426,02 € sinon
         (si nombre_personnes_à_charge = 5 alors 435,05 € sinon
-        (435,05€ +€ 37,89€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (435,05€ + 37,89€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3880,8 +3664,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 377,51 € sinon
         (si nombre_personnes_à_charge = 4 alors 389,91 € sinon
         (si nombre_personnes_à_charge = 5 alors 417,51 € sinon
-        (417,51 € +€ 36,30€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (417,51 € + 36,30€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3893,12 +3677,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 357,16 € sinon
         (si nombre_personnes_à_charge = 4 alors 370,77 € sinon
         (si nombre_personnes_à_charge = 5 alors 398,39 € sinon
-        (398,39€ +€ 34,54€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (398,39€ + 34,54€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2013-01-01| et date_calcul <@ |2014-10-01|
+    date_calcul >= |2013-01-01| et date_calcul < |2014-10-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3912,8 +3696,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 423,81 € sinon
         (si nombre_personnes_à_charge = 4 alors 435,18 € sinon
         (si nombre_personnes_à_charge = 5 alors 444,40 € sinon
-        (444,40€ +€ 38,70€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (444,40€ + 38,70€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3925,8 +3709,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 385,63 € sinon
         (si nombre_personnes_à_charge = 4 alors 398,29 € sinon
         (si nombre_personnes_à_charge = 5 alors 426,49 € sinon
-        (426,59 € +€ 37,08€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (426,59 € + 37,08€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3938,12 +3722,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 364,84 € sinon
         (si nombre_personnes_à_charge = 4 alors 378,74 € sinon
         (si nombre_personnes_à_charge = 5 alors 406,96 € sinon
-        (406,96€ +€ 35,28€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (406,96€ + 35,28€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2014-10-01| et date_calcul <@ |2015-10-01|
+    date_calcul >= |2014-10-01| et date_calcul < |2015-10-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -3957,8 +3741,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 426,23 € sinon
         (si nombre_personnes_à_charge = 4 alors 437,66 € sinon
         (si nombre_personnes_à_charge = 5 alors 446,93 € sinon
-        (446,93€ +€ 38,92€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (446,93€ + 38,92€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3970,8 +3754,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 387,83 € sinon
         (si nombre_personnes_à_charge = 4 alors 400,56 € sinon
         (si nombre_personnes_à_charge = 5 alors 428,92 € sinon
-        (428,92 € +€ 37,29€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (428,92 € + 37,29€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -3983,12 +3767,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 366,92 € sinon
         (si nombre_personnes_à_charge = 4 alors 380,90 € sinon
         (si nombre_personnes_à_charge = 5 alors 409,28 € sinon
-        (409,28€ +€ 35,48€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (409,28€ + 35,48€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2015-10-01| et date_calcul <@ |2017-10-01|
+    date_calcul >= |2015-10-01| et date_calcul < |2017-10-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -4002,8 +3786,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 426,57 € sinon
         (si nombre_personnes_à_charge = 4 alors 438,01 € sinon
         (si nombre_personnes_à_charge = 5 alors 447,29 € sinon
-        (447,29€ +€ 38,95€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (447,29€ + 38,95€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4015,8 +3799,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 388,14 € sinon
         (si nombre_personnes_à_charge = 4 alors 400,88 € sinon
         (si nombre_personnes_à_charge = 5 alors 429,26 € sinon
-        (429,26 € +€ 37,32€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (429,26 € + 37,32€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4028,12 +3812,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 367,21 € sinon
         (si nombre_personnes_à_charge = 4 alors 381,20 € sinon
         (si nombre_personnes_à_charge = 5 alors 409,61 € sinon
-        (409,61€ +€ 35,51€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (409,61€ + 35,51€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2017-10-01| et date_calcul <@ |2019-10-01|
+    date_calcul >= |2017-10-01| et date_calcul < |2019-10-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -4047,8 +3831,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 429,77 € sinon
         (si nombre_personnes_à_charge = 4 alors 441,30 € sinon
         (si nombre_personnes_à_charge = 5 alors 450,64 € sinon
-        (450,64€ +€ 39,24€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (450,64€ + 39,24€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4060,8 +3844,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 391,05 € sinon
         (si nombre_personnes_à_charge = 4 alors 403,89 € sinon
         (si nombre_personnes_à_charge = 5 alors 432,48 € sinon
-        (432,48 € +€ 37,60€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (432,48 € + 37,60€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4073,12 +3857,12 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 369,96 € sinon
         (si nombre_personnes_à_charge = 4 alors 384,06 € sinon
         (si nombre_personnes_à_charge = 5 alors 412,68 € sinon
-        (412,68€ +€ 35,78€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (412,68€ + 35,78€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   définition calcul_plafond_mensualité_d842_6 de date_calcul état base
   sous condition
-    date_calcul >=@ |2019-10-01|
+    date_calcul >= |2019-10-01|
   conséquence égal à
     selon zone sous forme
     -- Zone1: (
@@ -4092,8 +3876,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 431,06 € sinon
         (si nombre_personnes_à_charge = 4 alors 442,62 € sinon
         (si nombre_personnes_à_charge = 5 alors 452,00 € sinon
-        (452,00€ +€ 39,36€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (452,00€ + 39,36€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4105,8 +3889,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 392,22 € sinon
         (si nombre_personnes_à_charge = 4 alors 405,10 € sinon
         (si nombre_personnes_à_charge = 5 alors 433,78 € sinon
-        (433,78 € +€ 37,71€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (433,78 € + 37,71€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -4118,8 +3902,8 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
         (si nombre_personnes_à_charge = 3 alors 371,07 € sinon
         (si nombre_personnes_à_charge = 4 alors 385,21 € sinon
         (si nombre_personnes_à_charge = 5 alors 413,92 € sinon
-        (413,92€ +€ 35,88€ *€
-          (entier_vers_décimal de (nombre_personnes_à_charge - 5)))))))))
+        (413,92€ + 35,88€ *
+          (décimal de (nombre_personnes_à_charge - 5)))))))))
 
   # Une exception est à venir avec l'article 37
   définition calcul_plafond_mensualité_d842_6 de date_calcul
@@ -4163,11 +3947,11 @@ juillet 2022.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   étiquette récent définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 56,12 €
-   sinon 56,12 € +€ (12,72 € *€ (
-     entier_vers_décimal de nombre_personnes_à_charge))
+   sinon 56,12 € + (12,72 € * (
+     décimal de nombre_personnes_à_charge))
 ```
 
 ### Article 35 | LEGIARTI000039160693
@@ -4197,11 +3981,11 @@ Dans le cas des copropriétaires prévus à l'article D. 842-10 du même code :
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   exception définition calcul_plafond_mensualité_d842_6 de date_calcul
   état avec_copropriété égal à
     si copropriété alors
-      calcul_plafond_mensualité_d842_6 de date_calcul *€ 75%
+      calcul_plafond_mensualité_d842_6 de date_calcul * 75%
     sinon
       calcul_plafond_mensualité_d842_6 de date_calcul
 ```
@@ -4216,14 +4000,14 @@ Majoration par personne à charge                         12,72
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   exception récent définition montant_forfaitaire_charges sous condition
     copropriété
   conséquence égal à
     (selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 28,05 €
-      -- Couple : 56,12€) +€ (12,72 € *€ (
-      entier_vers_décimal de nombre_personnes_à_charge))
+      -- Couple : 56,12€) + (12,72 € * (
+      décimal de nombre_personnes_à_charge))
 ```
 
 NOTA :
@@ -4288,11 +4072,11 @@ juillet 2022.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2022-07-01| :
+  sous condition date_courante >= |2022-07-01| :
   définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 56,12 €
-   sinon 56,12 € +€ (12,72 € *€ (
-     entier_vers_décimal de nombre_personnes_à_charge))
+   sinon 56,12 € + (12,72 € * (
+     décimal de nombre_personnes_à_charge))
 ```
 
 ### Article 41 | LEGIARTI000039160703
@@ -4329,7 +4113,7 @@ b) 135,59 euros euros lorsqu'il s'agit d'un couple ;
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme ÉtudiantLogéEnChambreCROUS
   conséquence égal à
@@ -4346,7 +4130,7 @@ b) 273,65 euros lorsqu'il s'agit d'un couple ;
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme
         ÉtudiantLogéEnChambreCROUSRéhabilitée
@@ -4364,7 +4148,7 @@ b) 331,96 euros lorsqu'il s'agit d'un couple ;
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme
         PersonnesÂgéesSelon3DeD842_16
@@ -4382,7 +4166,7 @@ b) 273,65 euros lorsqu'il s'agit d'un couple.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer
-  sous condition date_courante >=@ |2022-07-01|:
+  sous condition date_courante >= |2022-07-01|:
   définition équivalence_loyer sous condition
      catégorie_équivalence_loyer_d842_16 sous forme
         AutresPersonnes
@@ -4420,13 +4204,13 @@ majoré de 20 % par enfant supplémentaire à charge.
 ```catala
 champ d'application ÉligibilitéPrimeDeDéménagement:
   définition plafond_d823_22 égal à
-   base_mensuelle_allocations_familiales.montant *€ 240% +€
+   base_mensuelle_allocations_familiales.montant * 240% +
    (si
-      (nombre pour personne_à_charge dans ménage.personnes_à_charge de
-        personne_à_charge sous forme EnfantÀCharge) > 3
+      nombre de (personne_à_charge parmi ménage.personnes_à_charge
+        tel que personne_à_charge sous forme EnfantÀCharge) > 3
     alors
-      base_mensuelle_allocations_familiales.montant *€ (entier_vers_décimal de (
-      (nombre pour personne_à_charge dans ménage.personnes_à_charge de
-      personne_à_charge sous forme EnfantÀCharge) - 3) *. 20%)
+      base_mensuelle_allocations_familiales.montant * (décimal de (
+      nombre de (personne_à_charge parmi ménage.personnes_à_charge
+        tel que personne_à_charge sous forme EnfantÀCharge) - 3) * 20%)
     sinon 0€)
 ```

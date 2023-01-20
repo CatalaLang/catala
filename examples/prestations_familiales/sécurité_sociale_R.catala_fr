@@ -29,7 +29,7 @@ articles L. 141-1 à L. 141-9 du code du travail, multiplié par 169.
 ```catala
 champ d'application ÉligibilitéPrestationsFamiliales :
   définition plafond_l512_3_2 égal à
-   (smic.brut_horaire *€ 55 %) *€ 169,0
+   (smic.brut_horaire * 55 %) * 169,0
 ```
 
 Pour ceux des enfants qui bénéficient d'avantages en nature, l'évaluation de ces
@@ -61,5 +61,5 @@ champ d'application ÉligibilitéPrestationsFamiliales :
   définition plafond_l512_3_2
   sous condition régime_outre_mer_l751_1
   conséquence égal à
-    (smic.brut_horaire *€ 55%) *€ 169,0
+    (smic.brut_horaire * 55%) * 169,0
 ```

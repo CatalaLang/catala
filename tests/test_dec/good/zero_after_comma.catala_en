@@ -7,7 +7,7 @@ declaration scope A:
 
 scope A:
   definition x equals 4.0
-  definition y equals 1.0 +. (x /. 100.0)
+  definition y equals 1.0 + (x / 100.0)
   assertion y = 1.04
 ```
 

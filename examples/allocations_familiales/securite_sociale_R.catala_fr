@@ -29,7 +29,7 @@ articles L. 141-1 à L. 141-9 du code du travail, multiplié par 169.
 ```catala
 champ d'application PrestationsFamiliales :
   définition plafond_l512_3_2 égal à
-   (smic.brut_horaire *€ 55 %) *€ 169,0
+   (smic.brut_horaire * 55 %) * 169,0
 ```
 
 Pour ceux des enfants qui bénéficient d'avantages en nature, l'évaluation de ces
@@ -80,7 +80,7 @@ champ d'application AllocationFamilialesAvril2008:
 champ d'application AllocationsFamiliales :
   exception
   définition âge_minimum_alinéa_1_l521_3 de enfant
-  sous condition (enfant.date_de_naissance +@ 11 an <=@ |2008-04-30|)
+  sous condition (enfant.date_de_naissance + 11 an <= |2008-04-30|)
   conséquence égal à
     version_avril_2008.âge_minimum_alinéa_1_l521_3
 ```
@@ -123,11 +123,11 @@ d'enfants et le nombre total d'enfants.
 ```catala
 champ d'application AllocationsFamiliales :
   définition montant_avec_garde_alternée_base égal à
-    montant_initial_base *€ rapport_enfants_total_moyen
+    montant_initial_base * rapport_enfants_total_moyen
 
   définition rapport_enfants_total_moyen égal à
     si nombre_total_enfants = 0,0 alors 0,0 sinon
-      (nombre_moyen_enfants /. nombre_total_enfants)
+      (nombre_moyen_enfants / nombre_total_enfants)
 ```
 
 Le nombre moyen d'enfants, pour chaque foyer, est obtenu en faisant la somme
@@ -140,17 +140,15 @@ du nombre d'enfants à charge dans les conditions suivantes :
 ```catala
 champ d'application AllocationsFamiliales :
   définition nombre_moyen_enfants égal à
-    somme décimal pour enfant dans
-      enfants_à_charge_droit_ouvert_prestation_familiale
-    de (
-      selon (prise_en_compte de enfant) sous forme
-      -- Complète : 1,0
-      -- Partagée : 0,5
-      # Pas directement dans cet article de loi, mais concerne le
-      # cas où l'enfant est pris en charge par les services sociaux et
-      # la part de l'allocation va également au service social
-      -- Zéro: 0,0
-    )
+    somme décimal de
+      ((selon (prise_en_compte de enfant) sous forme
+        -- Complète : 1,0
+        -- Partagée : 0,5
+        # Pas directement dans cet article de loi, mais concerne le
+        # cas où l'enfant est pris en charge par les services sociaux et
+        # la part de l'allocation va également au service social
+        -- Zéro: 0,0)
+       pour enfant parmi enfants_à_charge_droit_ouvert_prestation_familiale)
 ```
 
 Le nombre total d'enfants, pour chaque foyer, est obtenu en faisant la somme du
@@ -160,7 +158,7 @@ enfants à charge.
 ```catala
 champ d'application AllocationsFamiliales :
   définition nombre_total_enfants égal à
-    entier_vers_décimal de (nombre de
+    décimal de (nombre de
       enfants_à_charge_droit_ouvert_prestation_familiale)
 ```
 
@@ -186,7 +184,7 @@ alternée, le montant servi au titre de cette majoration est réduit de moitié.
 champ d'application AllocationsFamiliales :
   définition
     montant_avec_garde_alternée_majoration de enfant
-  égal à montant_initial_majoration de enfant *€ (
+  égal à montant_initial_majoration de enfant * (
     selon (prise_en_compte de enfant) sous forme
     -- Complète : 100%
     -- Partagée : 50%
@@ -216,5 +214,5 @@ champ d'application PrestationsFamiliales :
   définition plafond_l512_3_2
   sous condition régime_outre_mer_l751_1
   conséquence égal à
-    (smic.brut_horaire *€ 55%) *€ 169,0
+    (smic.brut_horaire * 55%) * 169,0
 ```

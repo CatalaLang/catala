@@ -24,9 +24,9 @@ let TestBool :
       in
     let foo1 : bool = error_empty
       ⟨foo () | true ⊢
-        ⟨⟨bar1 >= 0 ⊢ true⟩, ⟨bar1 < 0 ⊢ false⟩ | false ⊢
+        ⟨⟨bar1 >=! 0 ⊢ true⟩, ⟨bar1 <! 0 ⊢ false⟩ | false ⊢
           ∅ ⟩⟩ in
-    TestBool {"foo"= foo1; "bar"= bar1} in
+    TestBool { "foo"= foo1; "bar"= bar1 } in
 TestBool
 ```
 
@@ -47,5 +47,5 @@ struct TestBool = {
 let scope TestBool (foo: bool|context|output) (bar: integer|context|output) =
   let bar : integer = reentrant or by default ⟨true ⊢ 1⟩;
   let foo : bool = reentrant or by default
-    ⟨⟨bar >= 0 ⊢ true⟩, ⟨bar < 0 ⊢ false⟩ | false ⊢ ∅ ⟩
+    ⟨⟨bar >=! 0 ⊢ true⟩, ⟨bar <! 0 ⊢ false⟩ | false ⊢ ∅ ⟩
 ```

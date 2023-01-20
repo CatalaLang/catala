@@ -55,10 +55,10 @@ declaration scope Penalty286_83_135:
 ```catala
 scope Penalty286_83_135:
 
-  rule fine_ok under condition min_fine <=$ fine and fine <=$ max_fine
+  rule fine_ok under condition min_fine <= fine and fine <= max_fine
   consequence fulfilled
 
-  rule days_ok under condition days <=^ max_days
+  rule days_ok under condition days <= max_days
   consequence fulfilled
 
   rule ok under condition fine_ok and days_ok
@@ -120,7 +120,7 @@ scope Penalty286_83_135:
   definition priors_same_offense equals
     number for prior in defendant.priors of (
      prior.violation = offense.violation and
-        prior.date_of +@ 5 year <=@ offense.date_of
+        prior.date_of + 5 year <= offense.date_of
     )
 
   rule paragraph_b_applies under condition

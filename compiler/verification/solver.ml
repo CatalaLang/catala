@@ -14,6 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
+
 (** [solve_vc] is the main entry point of this module. It takes a list of
     expressions [vcs] corresponding to verification conditions that must be
     discharged by Z3, and attempts to solve them **)
@@ -47,4 +49,4 @@ let solve_vc
       true z3_vcs
   in
   if all_proven then
-    Utils.Cli.result_format "No errors found during the proof mode run."
+    Cli.result_format "No errors found during the proof mode run."

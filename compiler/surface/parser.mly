@@ -18,519 +18,516 @@
   *)
 
 %{
-  open Utils
+  open Catala_utils
 %}
 
 %parameter<Localisation: sig
   val lex_builtin: string -> Ast.builtin_expression option
 end>
 
-%type <Ast.source_file> source_file
-
-%start source_file
-
 (* The token is returned for every line of law text, make them right-associative
    so that we concat them efficiently as much as possible. *)
 %right LAW_TEXT
 
+(* Precedence of expression constructions *)
+%right top_expr
+%right ALT
+%right let_expr IS
+%right AND OR XOR (* Desugaring enforces proper parens later on *)
+%nonassoc GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
+%left PLUS MINUS PLUSPLUS
+%left MULT DIV
+%right apply OF CONTAINS FOR SUCH WITH
+%right unop_expr
+%right CONTENT
+%nonassoc UIDENT
+%left DOT
+
+(* Types of all rules, in order. Without this, Menhir type errors are nearly
+   impossible to debug because of inlining *)
+
+%type<Ast.uident Marked.pos> addpos(UIDENT)
+%type<Pos.t> pos(CONDITION)
+%type<Ast.primitive_typ> typ_base
+%type<Ast.base_typ_data> typ
+%type<Ast.uident Marked.pos> uident
+%type<Ast.lident Marked.pos> lident
+%type<Ast.scope_var> scope_var
+%type<Ast.path * Ast.uident Marked.pos> quident
+%type<Ast.path * Ast.lident Marked.pos> qlident
+%type<Ast.expression> expression
+%type<Ast.naked_expression> naked_expression
+%type<Ast.lident Marked.pos * expression> struct_content_field
+%type<Ast.naked_expression> struct_or_enum_inject
+%type<Ast.literal_number> num_literal
+%type<Ast.literal_unit> unit_literal
+%type<Ast.literal> literal
+%type<(Ast.lident Marked.pos * expression) list> scope_call_args
+%type<bool> minmax
+%type<Ast.unop> unop
+%type<Ast.binop> binop
+%type<Ast.match_case_pattern> constructor_binding
+%type<Ast.match_case> match_arm
+%type<Ast.expression> condition_consequence
+%type<Ast.scope_var Marked.pos * Ast.lident Marked.pos option> rule_expr
+%type<bool> rule_consequence
+%type<Ast.rule> rule
+%type<Ast.lident Marked.pos> definition_parameters
+%type<Ast.lident Marked.pos> label
+%type<Ast.lident Marked.pos> state
+%type<Ast.exception_to> exception_to
+%type<Ast.definition> definition
+%type<Ast.variation_typ> variation_type
+%type<Ast.scope_use_item> assertion
+%type<Ast.scope_use_item> scope_item
+%type<Ast.lident Marked.pos * Ast.base_typ Marked.pos> struct_scope_base
+%type<Ast.base_typ_data Marked.pos> struct_scope_func
+%type<Ast.struct_decl_field> struct_scope
+%type<Ast.io_input> scope_decl_item_attribute_input
+%type<bool> scope_decl_item_attribute_output
+%type<Ast.scope_decl_context_io> scope_decl_item_attribute
+%type<Ast.scope_decl_context_item> scope_decl_item
+%type<Ast.enum_decl_case> enum_decl_line
+%type<Ast.code_item> code_item
+%type<Ast.code_block> code
+%type<Ast.code_block * string Marked.pos> metadata_block
+%type<Ast.law_heading> law_heading
+%type<string> law_text
+%type<Ast.law_structure> source_file_item
+%type<Ast.law_structure list> source_file
+
+%start source_file
+
 %%
 
-typ_base:
-| INTEGER { (Integer, Pos.from_lpos $sloc) }
-| BOOLEAN { (Boolean, Pos.from_lpos $sloc) }
-| MONEY { (Money, Pos.from_lpos $sloc) }
-| DURATION { (Duration, Pos.from_lpos $sloc) }
-| TEXT { (Text, Pos.from_lpos $sloc) }
-| DECIMAL { (Decimal, Pos.from_lpos $sloc) }
-| DATE { (Date, Pos.from_lpos $sloc) }
-| c = constructor {
-  let (s, _) = c in
-  (Named s, Pos.from_lpos $sloc)
+let pos(x) ==
+| x ; { Pos.from_lpos $loc }
+
+let addpos(x) ==
+| ~=x ; { x, Pos.from_lpos $loc(x) }
+
+let typ_base :=
+| INTEGER ; { Integer }
+| BOOLEAN ; { Boolean }
+| MONEY ; { Money }
+| DURATION ; { Duration }
+| TEXT ; { Text }
+| DECIMAL ; { Decimal }
+| DATE ; { Date }
+| c = quident ; { let path, uid = c in Named (path, uid) }
+
+let typ :=
+| t = typ_base ; <Primitive>
+| COLLECTION ; t = addpos(typ) ; <Collection>
+
+let uident ==
+| ~ = addpos(UIDENT) ; <>
+
+let lident :=
+| i = LIDENT ; {
+  match Localisation.lex_builtin i with
+  | Some _ ->
+      Errors.raise_spanned_error
+        (Pos.from_lpos $sloc)
+        "Reserved builtin name"
+  | None ->
+      (i, Pos.from_lpos $sloc)
 }
 
-collection_marked:
-| COLLECTION { Pos.from_lpos $sloc }
+let scope_var ==
+| b = separated_nonempty_list(DOT, addpos(LIDENT)) ; <>
 
-typ:
-| t = typ_base {
-  let t, loc = t in
-  (Primitive t, loc)
+let quident :=
+| uid = uident ; DOT ; quid = quident ; {
+  let path, quid = quid in uid :: path, quid
 }
-| collection_marked t = typ {
-  (Collection t, Pos.from_lpos $sloc)
+| id = uident ; { [], id }
+
+let qlident :=
+| uid = uident ; DOT ; qlid = qlident ; {
+  let path, lid = qlid in uid :: path, lid
+}
+| id = lident ; { [], id }
+
+let expression :=
+| e = addpos(naked_expression) ; <>
+
+let naked_expression ==
+| id = addpos(LIDENT) ; {
+  match Localisation.lex_builtin (Marked.unmark id) with
+  | Some b -> Builtin b
+  | None -> Ident ([], id)
+}
+| uid = uident ; DOT ; qlid = qlident ; {
+  let path, lid = qlid in Ident (uid :: path, lid)
+}
+| l = literal ; {
+  Literal l
+}
+| LPAREN ; e = expression ; RPAREN ; <Paren>
+| e = expression ;
+  DOT ; i = addpos(qlident) ; <Dotted>
+| CARDINAL ; {
+  Builtin Cardinal
+}
+| DECIMAL ; {
+  Builtin ToDecimal
+}
+| MONEY ; {
+  Builtin ToMoney
+}
+| LBRACKET ; l = separated_list(SEMICOLON, expression) ; RBRACKET ;
+  <ArrayLit>
+| e = struct_or_enum_inject ; <>
+| e1 = expression ;
+  OF ;
+  e2 = expression ; {
+  FunCall (e1, e2)
+} %prec apply
+| OUTPUT ; OF ;
+  c = addpos(quident) ;
+  fields = option(scope_call_args) ; {
+  let fields = Option.value ~default:[] fields in
+  ScopeCall (c, fields)
+}
+| e = expression ;
+  WITH ; c = constructor_binding ; {
+  TestMatchCase (e, (c, Pos.from_lpos $sloc))
+}
+| e1 = expression ;
+  CONTAINS ;
+  e2 = expression ; {
+  MemCollection (e2, e1)
+} %prec apply
+| SUM ; typ = addpos(typ_base) ;
+  OF ; coll = expression ; {
+  CollectionOp (AggregateSum { typ = Marked.unmark typ }, coll)
+} %prec apply
+| f = expression ;
+  FOR ; i = lident ;
+  AMONG ; coll = expression ; {
+  CollectionOp (Map {f = i, f}, coll)
+} %prec apply
+| max = minmax ;
+  OF ; coll = expression ;
+  OR ; IF ; COLLECTION ; EMPTY ; THEN ;
+  default = expression ; {
+  CollectionOp (AggregateExtremum { max; default }, coll)
+} %prec apply
+| op = addpos(unop) ; e = expression ; {
+  Unop (op, e)
+} %prec unop_expr
+| e1 = expression ;
+  binop = addpos(binop) ;
+  e2 = expression ; {
+  Binop (binop, e1, e2)
+}
+| EXISTS ; i = lident ;
+  AMONG ; coll = expression ;
+  SUCH ; THAT ; predicate = expression ; {
+  CollectionOp (Exists {predicate = i, predicate}, coll)
+} %prec let_expr
+| FOR ; ALL ; i = lident ;
+  AMONG ; coll = expression ;
+  WE_HAVE ; predicate = expression ; {
+  CollectionOp (Forall {predicate = i, predicate}, coll)
+} %prec let_expr
+| MATCH ; e = expression ;
+  WITH ;
+  arms = addpos(nonempty_list(addpos(preceded(ALT, match_arm)))) ; {
+  MatchWith (e, arms)
+}
+| IF ; e1 = expression ;
+  THEN ; e2 = expression ;
+  ELSE ; e3 = expression ; {
+  IfThenElse (e1, e2, e3)
+} %prec let_expr
+| LET ; id = lident ;
+  DEFINED_AS ; e1 = expression ;
+  IN ; e2 = expression ; {
+  LetIn (id, e1, e2)
+} %prec let_expr
+| i = lident ;
+  AMONG ; coll = expression ;
+  SUCH ; THAT ; f = expression ; {
+  CollectionOp (Filter {f = i, f}, coll)
+} %prec top_expr
+| fmap = expression ;
+  FOR ; i = lident ;
+  AMONG ; coll = expression ;
+  SUCH ; THAT ; ffilt = expression ; {
+  CollectionOp (Map {f = i, fmap}, (CollectionOp (Filter {f = i, ffilt}, coll), Pos.from_lpos $loc))
+} %prec top_expr
+| i = lident ;
+  AMONG ; coll = expression ;
+  SUCH ; THAT ; f = expression ;
+  IS ; max = minmax ;
+  OR ; IF ; COLLECTION ; EMPTY ; THEN ; default = expression ; {
+  CollectionOp (AggregateArgExtremum { max; default; f = i, f }, coll)
+} %prec top_expr
+
+
+let struct_content_field :=
+| field = lident ; COLON ; e = expression ; <>
+
+let struct_or_enum_inject ==
+| uid = addpos(quident) ;
+  data = option(preceded(CONTENT,expression)) ; {
+  EnumInject(uid, data)
+}
+| c = addpos(quident) ;
+  LBRACE ;
+  fields = nonempty_list(preceded(ALT, struct_content_field)) ;
+  RBRACE ; {
+  StructLit(c, fields)
 }
 
-qident:
-| b = separated_nonempty_list(DOT, ident) {
-  ( b, Pos.from_lpos $sloc)
+let num_literal ==
+| d = INT_LITERAL ; <Int>
+| d = DECIMAL_LITERAL ; {
+  let (d1, d2) = d in Dec (d1, d2)
 }
 
-atomic_expression:
-| q = IDENT {
-    (match Localisation.lex_builtin q with
-     | Some b -> Builtin b
-     | None -> Ident q),
-    Pos.from_lpos $sloc }
-| l = literal { let (l, l_pos) = l in (Literal l, l_pos) }
-| LPAREN e = expression RPAREN { e }
+let unit_literal ==
+| PERCENT ; { Percent }
+| YEAR ; { Year}
+| MONTH ; { Month }
+| DAY ; { Day }
 
-small_expression:
-| e = atomic_expression { e }
-| e = small_expression DOT c = option(terminated(constructor,DOT)) i = ident {
-  (Dotted (e, c, i), Pos.from_lpos $sloc)
-}
-| CARDINAL {
-  (Builtin Cardinal, Pos.from_lpos $sloc)
-}
-| LSQUARE l = separated_list(SEMICOLON, expression) RSQUARE {
-  (ArrayLit l, Pos.from_lpos $sloc)
-}
-
-struct_content_field:
-| field = ident COLON e = logical_expression {
-  (field, e)
-}
-
-enum_inject_content:
-| CONTENT e = small_expression { e }
-
-struct_inject_content:
-| LBRACKET fields = nonempty_list(preceded(ALT, struct_content_field)) RBRACKET { fields }
-
-struct_or_enum_inject:
-| enum = constructor c = option(preceded(DOT, constructor)) data = option(enum_inject_content) {
-  (* The fully qualified enum is actually the optional part, but it leads to shift/reduce conflicts.
-     We flip it here *)
-  match c with
-  | None -> (EnumInject(None, enum, data), Pos.from_lpos $sloc)
-  | Some c -> (EnumInject(Some enum, c, data), Pos.from_lpos $sloc)
-}
-| c = constructor fields = struct_inject_content { (StructLit(c, fields), Pos.from_lpos $sloc) }
-
-primitive_expression:
-| e = small_expression { e }
-| e = struct_or_enum_inject {
-  e
-}
-
-num_literal:
-| d = INT_LITERAL { (Int d, Pos.from_lpos $sloc) }
-| d = DECIMAL_LITERAL {
-let (d1, d2) = d in
-(Dec (d1, d2), Pos.from_lpos $sloc)
-}
-
-unit_literal:
-| PERCENT { (Percent, Pos.from_lpos $sloc) }
-| YEAR { (Year, Pos.from_lpos $sloc)}
-| MONTH { (Month, Pos.from_lpos $sloc) }
-| DAY { (Day, Pos.from_lpos $sloc) }
-
-literal:
-| l = num_literal u = option(unit_literal) {
-  (LNumber (l, u), Pos.from_lpos $sloc)
-}
-| money = MONEY_AMOUNT {
+let literal :=
+| l = addpos(num_literal); u = option(addpos(unit_literal)) ; <LNumber>
+| money = MONEY_AMOUNT ; {
   let (units, cents) = money in
-  (LMoneyAmount {
+  LMoneyAmount {
     money_amount_units = units;
     money_amount_cents = cents;
-  }, Pos.from_lpos $sloc)
+  }
 }
-| VERTICAL d = DATE_LITERAL VERTICAL {
+| BAR ; d = DATE_LITERAL ; BAR ; {
   let (y,m,d) = d in
-  (LDate {
+  LDate {
     literal_date_year = y;
     literal_date_month = m;
     literal_date_day = d;
-  }, Pos.from_lpos $sloc)
+  }
 }
-| TRUE { (LBool true, Pos.from_lpos $sloc) }
-| FALSE { (LBool false, Pos.from_lpos $sloc) }
+| TRUE ; { LBool true }
+| FALSE ; { LBool false }
 
-compare_op:
-| LESSER { (Lt KInt, Pos.from_lpos $sloc) }
-| LESSER_EQUAL { (Lte KInt, Pos.from_lpos $sloc) }
-| GREATER { (Gt KInt, Pos.from_lpos $sloc) }
-| GREATER_EQUAL { (Gte KInt, Pos.from_lpos $sloc) }
-| LESSER_DEC { (Lt KDec, Pos.from_lpos $sloc) }
-| LESSER_EQUAL_DEC { (Lte KDec, Pos.from_lpos $sloc) }
-| GREATER_DEC { (Gt KDec, Pos.from_lpos $sloc) }
-| GREATER_EQUAL_DEC { (Gte KDec, Pos.from_lpos $sloc) }
-| LESSER_MONEY { (Lt KMoney, Pos.from_lpos $sloc) }
-| LESSER_EQUAL_MONEY { (Lte KMoney, Pos.from_lpos $sloc) }
-| GREATER_MONEY { (Gt KMoney, Pos.from_lpos $sloc) }
-| GREATER_EQUAL_MONEY { (Gte KMoney, Pos.from_lpos $sloc) }
-| LESSER_DATE { (Lt KDate, Pos.from_lpos $sloc) }
-| LESSER_EQUAL_DATE { (Lte KDate, Pos.from_lpos $sloc) }
-| GREATER_DATE { (Gt KDate, Pos.from_lpos $sloc) }
-| GREATER_EQUAL_DATE { (Gte KDate, Pos.from_lpos $sloc) }
-| LESSER_DURATION { (Lt KDuration, Pos.from_lpos $sloc) }
-| LESSER_EQUAL_DURATION { (Lte KDuration, Pos.from_lpos $sloc) }
-| GREATER_DURATION { (Gt KDuration, Pos.from_lpos $sloc) }
-| GREATER_EQUAL_DURATION { (Gte KDuration, Pos.from_lpos $sloc) }
-| EQUAL { (Eq, Pos.from_lpos $sloc) }
-| NOT_EQUAL { (Neq, Pos.from_lpos $sloc) }
-
-aggregate_func:
-| CONTENT MAXIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (true, Marked.unmark t, init)), Pos.from_lpos $sloc)
-}
-| CONTENT MINIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateArgExtremum (false, Marked.unmark t, init)), Pos.from_lpos $sloc)
-}
-| MAXIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (true, Marked.unmark t, init)), Pos.from_lpos $sloc)
-}
-| MINIMUM t = typ_base INIT init = primitive_expression {
-  (Aggregate (AggregateExtremum (false, Marked.unmark t, init)), Pos.from_lpos $sloc)
-}
-| SUM t = typ_base { (Aggregate (AggregateSum (Marked.unmark t)), Pos.from_lpos $sloc) }
-| CARDINAL { (Aggregate AggregateCount, Pos.from_lpos $sloc) }
-| FILTER { (Filter, Pos.from_lpos $sloc ) }
-| MAP { (Map, Pos.from_lpos $sloc) }
-
-aggregate:
-| func = aggregate_func FOR i = ident IN e1 = primitive_expression
-  OF e2 = base_expression {
-  (CollectionOp (func, i, e1, e2), Pos.from_lpos $sloc)
+let scope_call_args ==
+| WITH_V ;
+  LBRACE ;
+  fields = list(preceded (ALT, struct_content_field)) ;
+  RBRACE ; {
+  fields
 }
 
-base_expression:
-| e = primitive_expression { e }
-| ag = aggregate { ag }
-| e1 = small_expression OF e2 = base_expression {
-  (FunCall (e1, e2), Pos.from_lpos $sloc)
+let minmax ==
+| MAXIMUM ; { true }
+| MINIMUM ; { false }
+
+let unop ==
+| NOT ; { Not }
+| k = MINUS ; <Minus>
+
+let binop ==
+| k = MULT ; <Mult>
+| k = DIV ; <Div>
+| k = PLUS ; <Add>
+| k = MINUS ; <Sub>
+| PLUSPLUS ; { Concat }
+| k = LESSER ; <Lt>
+| k = LESSER_EQUAL ; <Lte>
+| k = GREATER ; <Gt>
+| k = GREATER_EQUAL ; <Gte>
+| EQUAL ; { Eq }
+| NOT_EQUAL ; { Neq }
+| AND ; { And }
+| OR ; { Or }
+| XOR ; { Xor }
+
+let constructor_binding :=
+| uid = addpos(quident) ; OF ; lid = lident ; {
+  ([uid], Some lid)
 }
-| c = constructor OF
-  LBRACKET fields = list(preceded (ALT, struct_content_field)) RBRACKET {
-  (* empty list is allowed *)
-  (ScopeCall (c, fields), Pos.from_lpos $sloc)
-}
-| e = primitive_expression WITH c = constructor_binding {
-  (TestMatchCase (e, (c, Pos.from_lpos $sloc)), Pos.from_lpos $sloc)
-}
-| e1 = primitive_expression CONTAINS e2 = base_expression {
-  (MemCollection (e2, e1), Pos.from_lpos $sloc)
-}
+| uid = addpos(quident) ; {
+  ([uid], None)
+} %prec apply
 
-unop:
-| NOT { (Not, Pos.from_lpos $sloc) }
-| MINUS { (Minus KInt, Pos.from_lpos $sloc) }
-| MINUSDEC { (Minus KDec, Pos.from_lpos $sloc) }
-| MINUSMONEY { (Minus KMoney, Pos.from_lpos $sloc) }
-| MINUSDURATION { (Minus KDuration, Pos.from_lpos $sloc) }
-
-unop_expression:
-| e = base_expression { e }
-| op = unop e = unop_expression { (Unop (op, e), Pos.from_lpos $sloc) }
-
-mult_op:
-| MULT { (Mult KInt, Pos.from_lpos $sloc) }
-| DIV { (Div KInt, Pos.from_lpos $sloc) }
-| MULTDEC { (Mult KDec, Pos.from_lpos $sloc) }
-| DIVDEC { (Div KDec, Pos.from_lpos $sloc) }
-| MULTMONEY { (Mult KMoney, Pos.from_lpos $sloc) }
-| DIVMONEY { (Div KMoney, Pos.from_lpos $sloc) }
-| MULDURATION { (Mult KDuration, Pos.from_lpos $sloc) }
-
-mult_expression:
-| e =  unop_expression { e }
-| e1 = mult_expression binop = mult_op e2  = unop_expression {
-  (Binop (binop, e1, e2), Pos.from_lpos $sloc)
-}
-
-sum_op:
-| PLUSDURATION { (Add KDuration, Pos.from_lpos $sloc) }
-| MINUSDURATION { (Sub KDuration, Pos.from_lpos $sloc) }
-| PLUSDATE { (Add KDate, Pos.from_lpos $sloc) }
-| MINUSDATE { (Sub KDate, Pos.from_lpos $sloc) }
-| PLUSMONEY { (Add KMoney, Pos.from_lpos $sloc) }
-| MINUSMONEY { (Sub KMoney, Pos.from_lpos $sloc) }
-| PLUSDEC { (Add KDec, Pos.from_lpos $sloc) }
-| MINUSDEC { (Sub KDec, Pos.from_lpos $sloc) }
-| PLUS { (Add KInt, Pos.from_lpos $sloc) }
-| MINUS { (Sub KInt, Pos.from_lpos $sloc) }
-| PLUSPLUS { (Concat, Pos.from_lpos $sloc) }
-
-sum_expression:
-| e = mult_expression { e }
-| e1 = sum_expression binop = sum_op e2 = mult_expression {
-  (Binop (binop, e1, e2), Pos.from_lpos $sloc)
-}
-
-logical_and_op:
-| AND { (And, Pos.from_lpos $sloc) }
-
-logical_or_op:
-| OR { (Or, Pos.from_lpos $sloc) }
-| XOR { (Xor, Pos.from_lpos $sloc) }
-
-compare_expression:
-| e = sum_expression { e }
-| e1 = sum_expression binop = compare_op e2 = compare_expression {
-  (Binop (binop, e1, e2), Pos.from_lpos $sloc)
-}
-
-logical_atom:
-| e = compare_expression { e }
-
-logical_or_expression:
-| e = logical_atom { e }
-| e1 = logical_atom binop = logical_or_op e2 = logical_or_expression {
-  (Binop (binop, e1, e2), Pos.from_lpos $sloc)
-}
-
-logical_expression:
-| e = logical_or_expression { e }
-| e1 = logical_or_expression binop = logical_and_op e2 = logical_expression {
-  (Binop (binop, e1, e2), Pos.from_lpos $sloc)
-}
-
-maybe_qualified_constructor:
-| c_or_path = constructor c = option(preceded(DOT, constructor)) {
-  match c with
-  | None -> (None, c_or_path)
-  | Some c -> (Some c_or_path, c)
-}
-
-optional_binding:
-| { ([], None)}
-| OF i = ident {([], Some i)}
-| OF c = maybe_qualified_constructor cs_and_i = constructor_binding {
-  let (cs, i) = cs_and_i in
-  (c::cs, i)
-}
-
-constructor_binding:
-| c = maybe_qualified_constructor cs_and_i = optional_binding {
-let (cs, i) = cs_and_i in
-(c::cs, i)
-}
-
-match_arm:
-| WILDCARD COLON e = logical_expression { (WildCard (e), Pos.from_lpos $sloc) }
-| pat = constructor_binding COLON e = logical_expression {
-  (MatchCase ({
-    (* DM 14/04/2020 : I can't have the $sloc in constructor_binding... *)
-    match_case_pattern = (pat, Pos.from_lpos $sloc);
+let match_arm :=
+| WILDCARD ; COLON ; ~ = expression ; <WildCard>
+  %prec ALT
+| pat = addpos(constructor_binding) ;
+  COLON ; e = expression ; {
+  MatchCase {
+    match_case_pattern = pat;
     match_case_expr = e;
-  }), Pos.from_lpos $sloc)
+  }
+} %prec ALT
+
+let condition_consequence :=
+| UNDER_CONDITION ; c = expression ; CONSEQUENCE ; <>
+
+let rule_expr :=
+| i = addpos(scope_var) ; p = option(definition_parameters) ; <>
+
+let rule_consequence :=
+| flag = option(NOT); FILLED ; {
+  None = flag
 }
 
-match_arms:
-| ALT a = match_arm arms = match_arms {
-let (arms, _) = arms in
-(a::arms, Pos.from_lpos $sloc)
-}
-| { ([], Pos.from_lpos $sloc)}
-
-for_all_marked:
-| FOR ALL { Pos.from_lpos $sloc }
-
-exists_marked:
-| EXISTS { Pos.from_lpos $sloc }
-
-forall_prefix:
-| pos = for_all_marked i = ident IN e = primitive_expression WE_HAVE {
-  (pos, i, e)
-}
-
-exists_prefix:
-| pos = exists_marked i = ident IN e = primitive_expression SUCH THAT {
-  (pos, i, e)
-}
-
-expression:
-| i_in_e1 = exists_prefix e2 = expression {
-let (pos, i,e1) = i_in_e1 in
-(CollectionOp ((Exists, pos), i, e1, e2), Pos.from_lpos $sloc)
-}
-| i_in_e1 = forall_prefix e2 = expression {
-let (pos, i,e1) = i_in_e1 in
-(CollectionOp ((Forall, pos), i, e1, e2), Pos.from_lpos $sloc)
-}
-| MATCH e = primitive_expression WITH arms = match_arms {
-  (MatchWith (e, arms), Pos.from_lpos $sloc)
-}
-| IF e1 = expression THEN e2 = expression ELSE e3 = expression {
-  (IfThenElse (e1, e2, e3), Pos.from_lpos $sloc)
-}
-| LET id = ident DEFINED_AS e1 = expression IN e2 = expression {
-  (LetIn (id, e1, e2), Pos.from_lpos $sloc)
-}
-| e = logical_expression { e }
-
-condition:
-| UNDER_CONDITION e = expression { e }
-
-condition_consequence:
-| cond = condition CONSEQUENCE { cond }
-
-rule_expr:
-| i = qident p = option(definition_parameters) { (i, p) }
-
-rule_consequence:
-| flag = option(NOT) FILLED {
-  let b = match flag with Some _ -> false | None -> true in
-  (b, Pos.from_lpos $sloc)
+let rule :=
+| label = option(label) ;
+  except = option(exception_to) ;
+  RULE ;
+  name_and_param = rule_expr ;
+  cond = option(condition_consequence) ;
+  state = option(state) ;
+  consequence = addpos(rule_consequence) ; {
+  let (name, param_applied) = name_and_param in
+  let cons : bool Marked.pos = consequence in
+  let rule_exception = match except with
+    | None -> NotAnException
+    | Some x -> x
+  in
+  {
+    rule_label = label;
+    rule_exception_to = rule_exception;
+    rule_parameter = param_applied;
+    rule_condition = cond;
+    rule_name = name;
+    rule_id = Shared_ast.RuleName.fresh
+      (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
+       Pos.from_lpos $sloc);
+    rule_consequence = cons;
+    rule_state = state;
+  }
 }
 
-rule:
-| label = option(label)
-  except = option(exception_to)
-  RULE
-  name_and_param = rule_expr cond = option(condition_consequence)
-  state = option(state)
-  consequence = rule_consequence {
-    let (name, param_applied) = name_and_param in
-    let cons : bool Marked.pos = consequence in
-    let rule_exception = match except with | None -> NotAnException | Some x -> x in
-    ({
-      rule_label = label;
-      rule_exception_to = rule_exception;
-      rule_parameter = param_applied;
-      rule_condition = cond;
-      rule_name = name;
-      rule_id = Desugared.Ast.RuleName.fresh
+let definition_parameters :=
+| OF ; i = lident ; <>
+
+let label :=
+| LABEL ; i = lident ; <>
+
+let state :=
+| STATE ; s = lident ; <>
+
+let exception_to :=
+| EXCEPTION ; i = option(lident) ; {
+  match i with
+  | None -> UnlabeledException
+  | Some x -> ExceptionToLabel x
+}
+
+let definition :=
+| label = option(label);
+  except = option(exception_to) ;
+  DEFINITION ;
+  name = addpos(scope_var) ;
+  param = option(definition_parameters) ;
+  state = option(state) ;
+  cond = option(condition_consequence) ;
+  DEFINED_AS ;
+  e = expression ; {
+  let def_exception = match except with
+    | None -> NotAnException
+    | Some x -> x
+  in
+  {
+    definition_label = label;
+    definition_exception_to = def_exception;
+    definition_name = name;
+    definition_parameter = param;
+    definition_condition = cond;
+    definition_id =
+      Shared_ast.RuleName.fresh
         (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
           Pos.from_lpos $sloc);
-      rule_consequence = cons;
-      rule_state = state;
-  }, $sloc)
+    definition_expr = e;
+    definition_state = state;
+  }
 }
 
-definition_parameters:
-| OF i = ident { i }
+let variation_type :=
+| INCREASING ; { Increasing }
+| DECREASING ; { Decreasing }
 
-label:
-| LABEL i = ident { i }
-
-state:
-| STATE s = ident { s }
-
-exception_to:
-| EXCEPTION i = option(ident) {
-  match i with | None -> UnlabeledException | Some x -> ExceptionToLabel x
-}
-
-definition:
-| label = option(label)
-  except = option(exception_to)
-  DEFINITION
-  name = qident param = option(definition_parameters)
-  state = option(state)
-  cond = option(condition_consequence) DEFINED_AS e = expression {
-    let def_exception = match except with | None -> NotAnException | Some x -> x in
-    ({
-      definition_label = label;
-      definition_exception_to = def_exception;
-      definition_name = name;
-      definition_parameter = param;
-      definition_condition = cond;
-      definition_id =
-        Desugared.Ast.RuleName.fresh
-          (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
-            Pos.from_lpos $sloc);
-      definition_expr = e;
-      definition_state = state;
-    }, $sloc)
-}
-
-variation_type:
-| INCREASING { (Increasing, Pos.from_lpos $sloc) }
-| DECREASING { (Decreasing, Pos.from_lpos $sloc) }
-
-assertion_base:
-| e = expression { let (e, _) = e in (e, Pos.from_lpos $sloc) }
-
-assertion:
-| cond = option(condition_consequence) base = assertion_base {
+let assertion :=
+| cond = option(condition_consequence) ;
+  base = expression ; {
   (Assertion {
     assertion_condition = cond;
     assertion_content = base;
   })
 }
-| FIXED q = qident BY i = ident { MetaAssertion (FixedBy (q, i)) }
-| VARIES q = qident WITH_V e = base_expression t = option(variation_type) {
+| FIXED ; q = addpos(scope_var) ; BY ; i = lident ; {
+  MetaAssertion (FixedBy (q, i))
+}
+| VARIES ; q = addpos(scope_var) ;
+  WITH_V ; e = expression ;
+  t = option(addpos(variation_type)) ; {
   MetaAssertion (VariesWith (q, e, t))
 }
 
-scope_item:
-| r = rule {
- let (r, _) = r in (Rule r, Pos.from_lpos $sloc)
-}
-| d = definition {
- let (d, _) = d in (Definition d, Pos.from_lpos $sloc)
-}
-| ASSERTION contents = assertion {
-  (contents, Pos.from_lpos $sloc)
-}
+let scope_item :=
+| r = rule ; <Rule>
+| d = definition ; <Definition>
+| ASSERTION ; contents = assertion ; <>
 
-ident:
-| i = IDENT {
- match Localisation.lex_builtin i with
- | Some _ ->
-    Errors.raise_spanned_error
-      (Pos.from_lpos $sloc)
-      "Reserved builtin name"
- | None ->
-    (i, Pos.from_lpos $sloc)
-}
-
-condition_pos:
-| CONDITION { Pos.from_lpos $sloc }
-
-struct_scope_base:
-| DATA i= ident CONTENT t = typ {
+let struct_scope_base :=
+| DATA ; i = lident ;
+  CONTENT ; t = addpos(typ) ; {
   let t, pos = t in
   (i, (Data t, pos))
 }
-| pos = condition_pos i = ident {
+| pos = pos(CONDITION) ; i = lident ; {
   (i, (Condition, pos))
 }
 
-struct_scope_func:
-| DEPENDS t = typ { t }
+let struct_scope_func ==
+| DEPENDS ; t = addpos(typ) ; <>
 
-struct_scope:
-| name_and_typ = struct_scope_base func_typ = option(struct_scope_func) {
+let struct_scope :=
+| name_and_typ = struct_scope_base ;
+  func_typ = option(struct_scope_func) ; {
   let (name, typ) = name_and_typ in
   let (typ, typ_pos) = typ in
-  ({
+  {
     struct_decl_field_name = name;
     struct_decl_field_typ = match func_typ with
     | None -> (Base typ, typ_pos)
-    | Some (arg_typ, arg_pos) -> (Func  {
-      arg_typ = (Data arg_typ, arg_pos);
-      return_typ = (typ, typ_pos);
-    }, Pos.from_lpos $sloc) ;
-  }, Pos.from_lpos $sloc)
+    | Some (arg_typ, arg_pos) ->
+      Func {
+        arg_typ = (Data arg_typ, arg_pos);
+        return_typ = (typ, typ_pos);
+      }, Pos.from_lpos $sloc ;
+  }
 }
 
-scope_decl_item_attribute_input:
-| CONTEXT { Context, Pos.from_lpos $sloc }
-| INPUT { Input, Pos.from_lpos $sloc }
+let scope_decl_item_attribute_input :=
+| CONTEXT ; { Context }
+| INPUT ; { Input }
 
-scope_decl_item_attribute_output:
-| OUTPUT { true, Pos.from_lpos $sloc }
-| { false, Pos.from_lpos $sloc }
+let scope_decl_item_attribute_output :=
+| OUTPUT ; { true }
+| { false }
 
-scope_decl_item_attribute:
-| input = scope_decl_item_attribute_input
-  output = scope_decl_item_attribute_output {
+let scope_decl_item_attribute :=
+| input = addpos(scope_decl_item_attribute_input) ;
+  output = addpos(scope_decl_item_attribute_output) ; {
     {
       scope_decl_context_io_input = input;
       scope_decl_context_io_output = output
     }
   }
-| INTERNAL {
+| INTERNAL ; {
     {
       scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
       scope_decl_context_io_output = (false, Pos.from_lpos $sloc)
     }
   }
-| OUTPUT {
+| OUTPUT ; {
     {
       scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
       scope_decl_context_io_output = (true, Pos.from_lpos $sloc)
@@ -538,110 +535,111 @@ scope_decl_item_attribute:
   }
 
 
-scope_decl_item:
-| attr = scope_decl_item_attribute
-  i = ident
-  CONTENT t = typ func_typ = option(struct_scope_func)
-  states = list(state)
-{ (ContextData ({
+let scope_decl_item :=
+| attr = scope_decl_item_attribute ;
+  i = lident ;
+  CONTENT ; t = addpos(typ) ;
+  func_typ = option(struct_scope_func) ;
+  states = list(state) ; {
+  ContextData {
   scope_decl_context_item_name = i;
   scope_decl_context_item_attribute = attr;
   scope_decl_context_item_typ =
     (let (typ, typ_pos) = t in
     match func_typ with
     | None -> (Base (Data typ), typ_pos)
-    | Some (arg_typ, arg_pos) -> (Func  {
-      arg_typ = (Data arg_typ, arg_pos);
-      return_typ = (Data typ, typ_pos);
-    }, Pos.from_lpos $sloc));
+    | Some (arg_typ, arg_pos) ->
+      Func {
+        arg_typ = (Data arg_typ, arg_pos);
+        return_typ = (Data typ, typ_pos);
+      }, Pos.from_lpos $sloc);
   scope_decl_context_item_states = states;
-  }), Pos.from_lpos $sloc)
+  }
 }
-| i = ident SCOPE c = constructor {
-  (ContextScope({
+| i = lident ; SCOPE ; c = uident ; {
+  ContextScope{
     scope_decl_context_scope_name = i;
     scope_decl_context_scope_sub_scope = c;
     scope_decl_context_scope_attribute = {
       scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
       scope_decl_context_io_output = (false, Pos.from_lpos $sloc);
     };
-  }), Pos.from_lpos $sloc)
+  }
 }
-| attr = scope_decl_item_attribute
-  i = ident _condition = CONDITION func_typ = option(struct_scope_func)
-  states = list(state)
-{
-  (ContextData ({
+| attr = scope_decl_item_attribute ;
+  i = lident ;
+  pos_condition = pos(CONDITION) ;
+  func_typ = option(struct_scope_func) ;
+  states = list(state) ; {
+  ContextData {
     scope_decl_context_item_name = i;
     scope_decl_context_item_attribute = attr;
     scope_decl_context_item_typ =
       (match func_typ with
-      | None -> (Base (Condition), Pos.from_lpos $loc(_condition))
-      | Some (arg_typ, arg_pos) -> (Func  {
-        arg_typ = (Data arg_typ, arg_pos);
-        return_typ = (Condition, Pos.from_lpos $loc(_condition));
-      }, Pos.from_lpos $sloc));
+      | None -> (Base (Condition), pos_condition)
+      | Some (arg_typ, arg_pos) ->
+        Func {
+          arg_typ = (Data arg_typ, arg_pos);
+          return_typ = (Condition, pos_condition);
+        }, Pos.from_lpos $sloc);
     scope_decl_context_item_states = states;
-    }), Pos.from_lpos $sloc
-  )
+  }
 }
 
-enum_decl_line_payload:
-| CONTENT t = typ { let (t, t_pos) = t in (Base (Data t), t_pos) }
-
-enum_decl_line:
-| ALT c = constructor t = option(enum_decl_line_payload) {
-  ({
+let enum_decl_line :=
+| ALT ; c = uident ;
+  t = option(preceded(CONTENT,addpos(typ))) ; {
+  {
     enum_decl_case_name = c;
-    enum_decl_case_typ = t;
-  }, Pos.from_lpos $sloc)
+    enum_decl_case_typ =
+      Option.map (fun (t, t_pos) ->  Base (Data t), t_pos) t;
+  }
 }
 
-constructor:
-| c = CONSTRUCTOR { (c, Pos.from_lpos $sloc) }
-
-scope_use_condition:
-| UNDER_CONDITION e = expression { e }
-
-code_item:
-| SCOPE c = constructor e = option(scope_use_condition) COLON items = nonempty_list(scope_item) {
-  (ScopeUse {
+let code_item :=
+| SCOPE ; c = uident ;
+  e = option(preceded(UNDER_CONDITION,expression)) ;
+  COLON ; items = nonempty_list(addpos(scope_item)) ; {
+  ScopeUse {
     scope_use_name = c;
     scope_use_condition = e;
     scope_use_items = items;
-  }, Pos.from_lpos $sloc)
+  }
 }
-| DECLARATION STRUCT c = constructor COLON scopes = list(struct_scope) {
-  (StructDecl {
+| DECLARATION ; STRUCT ; c = uident ;
+  COLON ; scopes = list(addpos(struct_scope)) ; {
+  StructDecl {
     struct_decl_name = c;
     struct_decl_fields = scopes;
-  }, Pos.from_lpos $sloc)
+  }
 }
-| DECLARATION SCOPE c = constructor COLON context = nonempty_list(scope_decl_item) {
-  (ScopeDecl {
+| DECLARATION ; SCOPE ; c = uident ;
+  COLON ; context = nonempty_list(addpos(scope_decl_item)) ; {
+  ScopeDecl {
     scope_decl_name = c;
     scope_decl_context = context;
-  }, Pos.from_lpos $sloc)
+  }
 }
-| DECLARATION ENUM c = constructor COLON cases = list(enum_decl_line) {
-  (EnumDecl {
+| DECLARATION ; ENUM ; c = uident ;
+  COLON ; cases = list(addpos(enum_decl_line)) ; {
+  EnumDecl {
     enum_decl_name = c;
     enum_decl_cases = cases;
-  }, Pos.from_lpos $sloc)
+  }
 }
 
-code:
-| code = list(code_item) { (code, Pos.from_lpos $sloc) }
+let code :=
+| code = list(addpos(code_item)) ; <>
 
-metadata_block:
-|  BEGIN_METADATA option(law_text) code_and_pos = code text = END_CODE {
-  let (code, _) = code_and_pos in
-   (code, (text, Pos.from_lpos $sloc))
+let metadata_block :=
+| BEGIN_METADATA ; option(law_text) ;
+  ~ = code ;
+  text = END_CODE ; {
+  (code, (text, Pos.from_lpos $sloc))
 }
 
-
-law_heading:
-| title = LAW_HEADING {
+let law_heading :=
+| title = LAW_HEADING ; {
   let (title, id, is_archive, precedence) = title in {
     law_heading_name = (title, Pos.from_lpos $sloc);
     law_heading_id = id;
@@ -650,26 +648,30 @@ law_heading:
   }
 }
 
-law_text:
-| lines = nonempty_list(LAW_TEXT) { String.trim (String.concat "" lines) }
+let law_text :=
+| lines = nonempty_list(LAW_TEXT) ; { String.trim (String.concat "" lines) }
 
-source_file_item:
-| text = law_text { LawText text }
-| BEGIN_CODE code_and_pos = code text = END_CODE  {
-  let (code, _) = code_and_pos in
+let source_file_item :=
+| text = law_text ; { LawText text }
+| BEGIN_CODE ;
+  ~ = code ;
+  text = END_CODE ; {
   CodeBlock (code, (text, Pos.from_lpos $sloc), false)
 }
-| heading = law_heading {
+| heading = law_heading ; {
   LawHeading (heading, [])
 }
-| code = metadata_block {
+| code = metadata_block ; {
   let (code, source_repr) = code in
   CodeBlock (code, source_repr, true)
 }
-| BEGIN_DIRECTIVE LAW_INCLUDE COLON args = nonempty_list(DIRECTIVE_ARG) page = option(AT_PAGE) END_DIRECTIVE {
+| BEGIN_DIRECTIVE ; LAW_INCLUDE ; COLON ;
+  args = nonempty_list(DIRECTIVE_ARG) ;
+  page = option(AT_PAGE) ;
+  END_DIRECTIVE ; {
   let filename = String.trim (String.concat "" args) in
   let pos = Pos.from_lpos $sloc in
-  let jorftext = Re.Pcre.regexp "JORFTEXT\\d{12}" in
+  let jorftext = Re.Pcre.regexp "(JORFARTI\\d{12}|LEGIARTI\\d{12}|CETATEXT\\d{12})" in
   if Re.Pcre.pmatch ~rex:jorftext filename && page = None then
     LawInclude (Ast.LegislativeText (filename, pos))
   else if Filename.extension filename = ".pdf" || page <> None then
@@ -678,7 +680,6 @@ source_file_item:
     LawInclude (Ast.CatalaFile (filename, pos))
 }
 
-
-source_file:
-| hd = source_file_item tl = source_file { hd:: tl }
-| EOF { [] }
+let source_file :=
+| hd = source_file_item ; tl = source_file ; { hd::tl }
+| EOF ; { [] }

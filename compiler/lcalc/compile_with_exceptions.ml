@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 module D = Dcalc.Ast
 module A = Ast
@@ -43,7 +43,7 @@ let rec translate_default
     Expr.make_app
       (Expr.make_var
          (Var.translate A.handle_default)
-         (Expr.with_ty mark_default (Utils.Marked.mark pos TAny)))
+         (Expr.with_ty mark_default (Marked.mark pos TAny)))
       [
         Expr.earray exceptions mark_default;
         thunk_expr (translate_expr ctx just);
@@ -54,39 +54,39 @@ let rec translate_default
   exceptions
 
 and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
+  let m = Marked.get_mark e in
   match Marked.unmark e with
-  | EVar v -> Expr.make_var (Var.Map.find v ctx) (Marked.get_mark e)
-  | ETuple (args, s) ->
-    Expr.etuple (List.map (translate_expr ctx) args) s (Marked.get_mark e)
-  | ETupleAccess (e1, i, s, ts) ->
-    Expr.etupleaccess (translate_expr ctx e1) i s ts (Marked.get_mark e)
-  | EInj (e1, i, en, ts) ->
-    Expr.einj (translate_expr ctx e1) i en ts (Marked.get_mark e)
-  | EMatch (e1, cases, en) ->
-    Expr.ematch (translate_expr ctx e1)
-      (List.map (translate_expr ctx) cases)
-      en (Marked.get_mark e)
-  | EArray es ->
-    Expr.earray (List.map (translate_expr ctx) es) (Marked.get_mark e)
+  | EVar v -> Expr.make_var (Var.Map.find v ctx) m
+  | EStruct { name; fields } ->
+    Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
+  | EStructAccess { name; e; field } ->
+    Expr.estructaccess (translate_expr ctx e) field name m
+  | EInj { name; e; cons } -> Expr.einj (translate_expr ctx e) cons name m
+  | EMatch { name; e; cases } ->
+    Expr.ematch (translate_expr ctx e) name
+      (EnumConstructor.Map.map (translate_expr ctx) cases)
+      m
+  | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
   | ELit
       ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
       l) ->
-    Expr.elit l (Marked.get_mark e)
-  | ELit LEmptyError -> Expr.eraise EmptyError (Marked.get_mark e)
-  | EOp op -> Expr.eop op (Marked.get_mark e)
-  | EIfThenElse (e1, e2, e3) ->
-    Expr.eifthenelse (translate_expr ctx e1) (translate_expr ctx e2)
-      (translate_expr ctx e3) (Marked.get_mark e)
-  | EAssert e1 -> Expr.eassert (translate_expr ctx e1) (Marked.get_mark e)
-  | ErrorOnEmpty arg ->
+    Expr.elit l m
+  | ELit LEmptyError -> Expr.eraise EmptyError m
+  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
+  | EIfThenElse { cond; etrue; efalse } ->
+    Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
+      (translate_expr ctx efalse)
+      m
+  | EAssert e1 -> Expr.eassert (translate_expr ctx e1) m
+  | EErrorOnEmpty arg ->
     Expr.ecatch (translate_expr ctx arg) EmptyError
-      (Expr.eraise NoValueProvided (Marked.get_mark e))
-      (Marked.get_mark e)
-  | EApp (e1, args) ->
-    Expr.eapp (translate_expr ctx e1)
+      (Expr.eraise NoValueProvided m)
+      m
+  | EApp { f; args } ->
+    Expr.eapp (translate_expr ctx f)
       (List.map (translate_expr ctx) args)
       (Marked.get_mark e)
-  | EAbs (binder, ts) ->
+  | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let ctx, lc_vars =
       Array.fold_right
@@ -98,15 +98,16 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
     let lc_vars = Array.of_list lc_vars in
     let new_body = translate_expr ctx body in
     let new_binder = Expr.bind lc_vars new_body in
-    Expr.eabs new_binder ts (Marked.get_mark e)
-  | EDefault ([exn], just, cons) when !Cli.optimize_flag ->
+    Expr.eabs new_binder tys (Marked.get_mark e)
+  | EDefault { excepts = [exn]; just; cons } when !Cli.optimize_flag ->
+    (* FIXME: bad place to rely on a global flag *)
     Expr.ecatch (translate_expr ctx exn) EmptyError
       (Expr.eifthenelse (translate_expr ctx just) (translate_expr ctx cons)
          (Expr.eraise EmptyError (Marked.get_mark e))
          (Marked.get_mark e))
       (Marked.get_mark e)
-  | EDefault (exceptions, just, cons) ->
-    translate_default ctx exceptions just cons (Marked.get_mark e)
+  | EDefault { excepts; just; cons } ->
+    translate_default ctx excepts just cons (Marked.get_mark e)
 
 let rec translate_scope_lets
     (decl_ctx : decl_ctx)

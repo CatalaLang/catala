@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 open Dcalc
 open Ast
@@ -35,13 +35,13 @@ type context = {
   (* A map from strings, corresponding to Z3 symbol names, to the Catala
      variable they represent. Used when to pretty-print Z3 models when a
      counterexample is generated *)
-  ctx_z3datatypes : Sort.sort EnumMap.t;
+  ctx_z3datatypes : Sort.sort EnumName.Map.t;
   (* A map from Catala enumeration names to the corresponding Z3 sort, from
      which we can retrieve constructors and accessors *)
   ctx_z3matchsubsts : (typed expr, Expr.expr) Var.Map.t;
   (* A map from Catala temporary variables, generated when translating a match,
      to the corresponding enum accessor call as a Z3 expression *)
-  ctx_z3structs : Sort.sort StructMap.t;
+  ctx_z3structs : Sort.sort StructName.Map.t;
   (* A map from Catala struct names to the corresponding Z3 sort, from which we
      can retrieve the constructor and the accessors *)
   ctx_z3unit : Sort.sort * Expr.expr;
@@ -80,7 +80,7 @@ let add_z3var (name : string) (v : typed expr Var.t) (ty : typ) (ctx : context)
     corresponding Z3 datatype [sort] to the context **)
 let add_z3enum (enum : EnumName.t) (sort : Sort.sort) (ctx : context) : context
     =
-  { ctx with ctx_z3datatypes = EnumMap.add enum sort ctx.ctx_z3datatypes }
+  { ctx with ctx_z3datatypes = EnumName.Map.add enum sort ctx.ctx_z3datatypes }
 
 (** [add_z3matchsubst] adds the mapping between temporary variable [v] and the
     Z3 expression [e] representing an accessor application to the context **)
@@ -92,7 +92,7 @@ let add_z3matchsubst (v : typed expr Var.t) (e : Expr.expr) (ctx : context) :
     corresponding Z3 datatype [sort] to the context **)
 let add_z3struct (s : StructName.t) (sort : Sort.sort) (ctx : context) : context
     =
-  { ctx with ctx_z3structs = StructMap.add s sort ctx.ctx_z3structs }
+  { ctx with ctx_z3structs = StructName.Map.add s sort ctx.ctx_z3structs }
 
 let add_z3constraint (e : Expr.expr) (ctx : context) : context =
   { ctx with ctx_z3constraints = e :: ctx.ctx_z3constraints }
@@ -111,7 +111,7 @@ let unique_name (v : 'e Var.t) : string =
 let date_to_int (d : Runtime.date) : int =
   (* Alternatively, could expose this from Runtime as a (noop) coercion, but
      would allow to break abstraction more easily elsewhere *)
-  let period = Runtime.( -@ ) d base_day in
+  let period = Runtime.Oper.o_sub_dat_dat d base_day in
   let y, m, d = Runtime.duration_to_years_months_days period in
   assert (y = 0 && m = 0);
   d
@@ -124,7 +124,7 @@ let date_of_year (year : int) = Runtime.date_of_numbers year 1 1
     defined here as Jan 1, 1900 **)
 let nb_days_to_date (nb : int) : string =
   Runtime.date_to_string
-    (Runtime.( +@ ) base_day (Runtime.duration_of_numbers 0 0 nb))
+    (Runtime.Oper.o_add_dat_dur base_day (Runtime.duration_of_numbers 0 0 nb))
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
     according to the Catala type [ty], corresponding to [e] **)
@@ -161,16 +161,17 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
   match Marked.unmark ty with
   | TLit ty -> print_lit ty
   | TStruct name ->
-    let s = StructMap.find name ctx.ctx_decl.ctx_structs in
-    let get_fieldname (fn : StructFieldName.t) : string =
-      Marked.unmark (StructFieldName.get_info fn)
+    let s = StructName.Map.find name ctx.ctx_decl.ctx_structs in
+    let get_fieldname (fn : StructField.t) : string =
+      Marked.unmark (StructField.get_info fn)
     in
     let fields =
       List.map2
         (fun (fn, ty) e ->
           Format.asprintf "-- %s : %s" (get_fieldname fn)
             (print_z3model_expr ctx ty e))
-        s (Expr.get_args e)
+        (StructField.Map.bindings s)
+        (Expr.get_args e)
     in
 
     let fields_str = String.concat " " fields in
@@ -186,12 +187,13 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     let fd = Expr.get_func_decl e in
     let fd_name = Symbol.to_string (FuncDecl.get_name fd) in
 
-    let enum_ctrs = EnumMap.find name ctx.ctx_decl.ctx_enums in
+    let enum_ctrs = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
     let case =
       List.find
         (fun (ctr, _) ->
+          (* FIXME: don't match on strings *)
           String.equal fd_name (Marked.unmark (EnumConstructor.get_info ctr)))
-        enum_ctrs
+        (EnumConstructor.Map.bindings enum_ctrs)
     in
 
     Format.asprintf "%s (%s)" fd_name (print_z3model_expr ctx (snd case) e')
@@ -284,9 +286,8 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
 and find_or_create_enum (ctx : context) (enum : EnumName.t) :
     context * Sort.sort =
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
-  let create_constructor (ctx : context) (c : EnumConstructor.t * typ) :
+  let create_constructor (name : EnumConstructor.t) (ty : typ) (ctx : context) :
       context * Datatype.Constructor.constructor =
-    let name, ty = c in
     let name = Marked.unmark (EnumConstructor.get_info name) in
     let ctx, arg_z3_ty = translate_typ ctx (Marked.unmark ty) in
 
@@ -309,15 +310,21 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
         [Sort.get_id arg_z3_ty] )
   in
 
-  match EnumMap.find_opt enum ctx.ctx_z3datatypes with
+  match EnumName.Map.find_opt enum ctx.ctx_z3datatypes with
   | Some e -> ctx, e
   | None ->
-    let ctrs = EnumMap.find enum ctx.ctx_decl.ctx_enums in
-    let ctx, z3_ctrs = List.fold_left_map create_constructor ctx ctrs in
+    let ctrs = EnumName.Map.find enum ctx.ctx_decl.ctx_enums in
+    let ctx, z3_ctrs =
+      EnumConstructor.Map.fold
+        (fun ctr ty (ctx, ctrs) ->
+          let ctx, ctr = create_constructor ctr ty ctx in
+          ctx, ctr :: ctrs)
+        ctrs (ctx, [])
+    in
     let z3_enum =
       Datatype.mk_sort_s ctx.ctx_z3
         (Marked.unmark (EnumName.get_info enum))
-        z3_ctrs
+        (List.rev z3_ctrs)
     in
     add_z3enum enum z3_enum ctx, z3_enum
 
@@ -327,23 +334,26 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
     context *)
 and find_or_create_struct (ctx : context) (s : StructName.t) :
     context * Sort.sort =
-  match StructMap.find_opt s ctx.ctx_z3structs with
+  match StructName.Map.find_opt s ctx.ctx_z3structs with
   | Some s -> ctx, s
   | None ->
     let s_name = Marked.unmark (StructName.get_info s) in
-    let fields = StructMap.find s ctx.ctx_decl.ctx_structs in
+    let fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
     let z3_fieldnames =
       List.map
         (fun f ->
-          Marked.unmark (StructFieldName.get_info (fst f))
+          Marked.unmark (StructField.get_info (fst f))
           |> Symbol.mk_string ctx.ctx_z3)
-        fields
+        (StructField.Map.bindings fields)
     in
-    let ctx, z3_fieldtypes =
-      List.fold_left_map
-        (fun ctx f -> Marked.unmark (snd f) |> translate_typ ctx)
-        ctx fields
+    let ctx, z3_fieldtypes_rev =
+      StructField.Map.fold
+        (fun _ ty (ctx, ftypes) ->
+          let ctx, ftype = translate_typ ctx (Marked.unmark ty) in
+          ctx, ftype :: ftypes)
+        fields (ctx, [])
     in
+    let z3_fieldtypes = List.rev z3_fieldtypes_rev in
     let z3_sortrefs = List.map Sort.get_id z3_fieldtypes in
     let mk_struct_s = "mk!" ^ s_name in
     let z3_mk_struct =
@@ -416,204 +426,181 @@ let is_leap_year = Runtime.is_leap_year
 
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
-let rec translate_op (ctx : context) (op : operator) (args : 'm expr list) :
-    context * Expr.expr =
-  match op with
-  | Ternop _top ->
-    let _e1, _e2, _e3 =
-      match args with
-      | [e1; e2; e3] -> e1, e2, e3
-      | _ ->
-        Format.kasprintf failwith
-          "[Z3 encoding] Ill-formed ternary operator application: %a"
-          (Shared_ast.Expr.format ctx.ctx_decl)
-          (Shared_ast.Expr.eapp
-             (Shared_ast.Expr.eop op (Untyped { pos = Pos.no_pos }))
-             (List.map Shared_ast.Expr.untype args)
-             (Untyped { pos = Pos.no_pos })
-          |> Shared_ast.Expr.unbox)
-    in
+let rec translate_op :
+    type k.
+    context -> (dcalc, k) operator -> 'm expr list -> context * Expr.expr =
+ fun ctx op args ->
+  let ill_formed () =
+    Format.kasprintf failwith
+      "[Z3 encoding] Ill-formed operator application: %a"
+      (Shared_ast.Expr.format ctx.ctx_decl)
+      (Shared_ast.Expr.eapp
+         (Shared_ast.Expr.eop op [] (Untyped { pos = Pos.no_pos }))
+         (List.map Shared_ast.Expr.untype args)
+         (Untyped { pos = Pos.no_pos })
+      |> Shared_ast.Expr.unbox)
+  in
+  let app f =
+    let ctx, args = List.fold_left_map translate_expr ctx args in
+    ctx, f ctx.ctx_z3 args
+  in
+  let app1 f =
+    app (fun ctx -> function [a] -> f ctx a | _ -> ill_formed ())
+  in
+  let app2 f =
+    app (fun ctx -> function [a; b] -> f ctx a b | _ -> ill_formed ())
+  in
+  match op, args with
+  | Fold, _ ->
     failwith "[Z3 encoding] ternary operator application not supported"
-  | Binop bop -> (
     (* Special case for GetYear comparisons *)
-    match bop, args with
-    | Lt KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
-      ->
-      let n = Runtime.integer_to_int n in
-      let ctx, e1 = translate_expr ctx e1 in
-      let e2 =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n))
-      in
-      (* e2 corresponds to the first day of the year n. GetYear e1 < e2 can thus
-         be directly translated as < in the Z3 encoding using the number of
-         days *)
-      ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
-    | Lte KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
-      ->
-      let ctx, e1 = translate_expr ctx e1 in
-      let nb_days = if is_leap_year n then 365 else 364 in
-      let n = Runtime.integer_to_int n in
-      (* We want that the year corresponding to e1 is smaller or equal to n. We
-         encode this as the day corresponding to e1 is smaller or equal than the
-         last day of the year [n], which is Jan 1st + 365 days if [n] is a leap
-         year, Jan 1st + 364 else *)
-      let e2 =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n) + nb_days)
-      in
-      ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
-    | Gt KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
-      ->
-      let ctx, e1 = translate_expr ctx e1 in
-      let nb_days = if is_leap_year n then 365 else 364 in
-      let n = Runtime.integer_to_int n in
-      (* We want that the year corresponding to e1 is greater to n. We encode
-         this as the day corresponding to e1 is greater than the last day of the
-         year [n], which is Jan 1st + 365 days if [n] is a leap year, Jan 1st +
-         364 else *)
-      let e2 =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n) + nb_days)
-      in
-      ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
-    | Gte KInt, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)]
-      ->
-      let n = Runtime.integer_to_int n in
-      let ctx, e1 = translate_expr ctx e1 in
-      let e2 =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n))
-      in
-      (* e2 corresponds to the first day of the year n. GetYear e1 >= e2 can
-         thus be directly translated as >= in the Z3 encoding using the number
-         of days *)
-      ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
-    | Eq, [(EApp ((EOp (Unop GetYear), _), [e1]), _); (ELit (LInt n), _)] ->
-      let n = Runtime.integer_to_int n in
-      let ctx, e1 = translate_expr ctx e1 in
-      let min_date =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year n))
-      in
-      let max_date =
-        Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
-          (date_to_int (date_of_year (n + 1)))
-      in
-      ( ctx,
-        Boolean.mk_and ctx.ctx_z3
-          [
-            Arithmetic.mk_ge ctx.ctx_z3 e1 min_date;
-            Arithmetic.mk_lt ctx.ctx_z3 e1 max_date;
-          ] )
-    | _ -> (
-      let ctx, e1, e2 =
-        match args with
-        | [e1; e2] ->
-          let ctx, e1 = translate_expr ctx e1 in
-          let ctx, e2 = translate_expr ctx e2 in
-          ctx, e1, e2
-        | _ ->
-          Format.kasprintf failwith
-            "[Z3 encoding] Ill-formed binary operator application: %a"
-            (Shared_ast.Expr.format ctx.ctx_decl)
-            (Shared_ast.Expr.eapp
-               (Shared_ast.Expr.eop op (Untyped { pos = Pos.no_pos }))
-               (List.map Shared_ast.Expr.untype args)
-               (Untyped { pos = Pos.no_pos })
-            |> Shared_ast.Expr.unbox)
-      in
-
-      match bop with
-      | And -> ctx, Boolean.mk_and ctx.ctx_z3 [e1; e2]
-      | Or -> ctx, Boolean.mk_or ctx.ctx_z3 [e1; e2]
-      | Xor -> ctx, Boolean.mk_xor ctx.ctx_z3 e1 e2
-      | Add KInt | Add KRat | Add KMoney | Add KDate | Add KDuration ->
-        ctx, Arithmetic.mk_add ctx.ctx_z3 [e1; e2]
-      | Sub KInt | Sub KRat | Sub KMoney | Sub KDate | Sub KDuration ->
-        ctx, Arithmetic.mk_sub ctx.ctx_z3 [e1; e2]
-      | Mult KInt | Mult KRat | Mult KMoney | Mult KDate | Mult KDuration ->
-        ctx, Arithmetic.mk_mul ctx.ctx_z3 [e1; e2]
-      | Div KInt | Div KRat | Div KMoney ->
-        ctx, Arithmetic.mk_div ctx.ctx_z3 e1 e2
-      | Div _ ->
-        failwith
-          "[Z3 encoding] application of non-integer binary operator Div not \
-           supported"
-      | Lt KInt | Lt KRat | Lt KMoney | Lt KDate | Lt KDuration ->
-        ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
-      | Lte KInt | Lte KRat | Lte KMoney | Lte KDate | Lte KDuration ->
-        ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
-      | Gt KInt | Gt KRat | Gt KMoney | Gt KDate | Gt KDuration ->
-        ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
-      | Gte KInt | Gte KRat | Gte KMoney | Gte KDate | Gte KDuration ->
-        ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
-      | Eq -> ctx, Boolean.mk_eq ctx.ctx_z3 e1 e2
-      | Neq -> ctx, Boolean.mk_not ctx.ctx_z3 (Boolean.mk_eq ctx.ctx_z3 e1 e2)
-      | Map ->
-        failwith
-          "[Z3 encoding] application of binary operator Map not supported"
-      | Concat ->
-        failwith
-          "[Z3 encoding] application of binary operator Concat not supported"
-      | Filter ->
-        failwith
-          "[Z3 encoding] application of binary operator Filter not supported"))
-  | Unop uop -> (
-    let ctx, e1 =
-      match args with
-      | [e1] -> translate_expr ctx e1
-      | _ ->
-        Format.kasprintf failwith
-          "[Z3 encoding] Ill-formed unary operator application: %a"
-          (Shared_ast.Expr.format ctx.ctx_decl)
-          (Shared_ast.Expr.eapp
-             (Shared_ast.Expr.eop op (Untyped { pos = Pos.no_pos }))
-             (List.map Shared_ast.Expr.untype args)
-             (Untyped { pos = Pos.no_pos })
-          |> Shared_ast.Expr.unbox)
+  | ( Lt_int_int,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let n = Runtime.integer_to_int n in
+    let ctx, e1 = translate_expr ctx e1 in
+    let e2 =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
     in
-
-    match uop with
-    | Not -> ctx, Boolean.mk_not ctx.ctx_z3 e1
-    | Minus _ ->
-      failwith "[Z3 encoding] application of unary operator Minus not supported"
-    (* Omitting the log from the VC *)
-    | Log _ -> ctx, e1
-    | Length ->
-      (* For now, an array is only its symbolic length. We simply return it *)
-      ctx, e1
-    | IntToRat ->
-      failwith
-        "[Z3 encoding] application of unary operator IntToRat not supported"
-    | MoneyToRat ->
-      failwith
-        "[Z3 encoding] application of unary operator MoneyToRat not supported"
-    | RatToMoney ->
-      failwith
-        "[Z3 encoding] application of unary operator RatToMoney not supported"
-    | GetDay ->
-      failwith
-        "[Z3 encoding] application of unary operator GetDay not supported"
-    | GetMonth ->
-      failwith
-        "[Z3 encoding] application of unary operator GetMonth not supported"
-    | GetYear ->
-      failwith
-        "[Z3 encoding] GetYear operator only supported in comparisons with \
-         literal"
-    | FirstDayOfMonth ->
-      failwith
-        "[Z3 encoding] FirstDayOfMonth operator only supported in comparisons \
-         with literal"
-    | LastDayOfMonth ->
-      failwith
-        "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
-         with literal"
-    | RoundDecimal ->
-      failwith "[Z3 encoding] RoundDecimal operator  not implemented yet"
-    | RoundMoney ->
-      failwith "[Z3 encoding] RoundMoney operator  not implemented yet")
+    (* e2 corresponds to the first day of the year n. GetYear e1 < e2 can thus
+       be directly translated as < in the Z3 encoding using the number of
+       days *)
+    ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
+  | ( Lte_int_int,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let ctx, e1 = translate_expr ctx e1 in
+    let nb_days = if is_leap_year n then 365 else 364 in
+    let n = Runtime.integer_to_int n in
+    (* We want that the year corresponding to e1 is smaller or equal to n. We
+       encode this as the day corresponding to e1 is smaller or equal than the
+       last day of the year [n], which is Jan 1st + 365 days if [n] is a leap
+       year, Jan 1st + 364 else *)
+    let e2 =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
+        (date_to_int (date_of_year n) + nb_days)
+    in
+    ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
+  | ( Gt_int_int,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let ctx, e1 = translate_expr ctx e1 in
+    let nb_days = if is_leap_year n then 365 else 364 in
+    let n = Runtime.integer_to_int n in
+    (* We want that the year corresponding to e1 is greater to n. We encode this
+       as the day corresponding to e1 is greater than the last day of the year
+       [n], which is Jan 1st + 365 days if [n] is a leap year, Jan 1st + 364
+       else *)
+    let e2 =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
+        (date_to_int (date_of_year n) + nb_days)
+    in
+    ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
+  | ( Gte_int_int,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let n = Runtime.integer_to_int n in
+    let ctx, e1 = translate_expr ctx e1 in
+    let e2 =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
+    in
+    (* e2 corresponds to the first day of the year n. GetYear e1 >= e2 can thus
+       be directly translated as >= in the Z3 encoding using the number of
+       days *)
+    ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
+  | ( Eq,
+      [
+        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
+        (ELit (LInt n), _);
+      ] ) ->
+    let n = Runtime.integer_to_int n in
+    let ctx, e1 = translate_expr ctx e1 in
+    let min_date =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (date_to_int (date_of_year n))
+    in
+    let max_date =
+      Arithmetic.Integer.mk_numeral_i ctx.ctx_z3
+        (date_to_int (date_of_year (n + 1)))
+    in
+    ( ctx,
+      Boolean.mk_and ctx.ctx_z3
+        [
+          Arithmetic.mk_ge ctx.ctx_z3 e1 min_date;
+          Arithmetic.mk_lt ctx.ctx_z3 e1 max_date;
+        ] )
+  | And, _ -> app Boolean.mk_and
+  | Or, _ -> app Boolean.mk_or
+  | Xor, _ -> app2 Boolean.mk_xor
+  | (Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur | Add_dur_dur), _ ->
+    app Arithmetic.mk_add
+  | ( ( Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+      | Sub_dur_dur ),
+      _ ) ->
+    app Arithmetic.mk_sub
+  | (Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int), _ ->
+    app Arithmetic.mk_mul
+  | (Div_int_int | Div_rat_rat | Div_mon_rat | Div_mon_mon), _ ->
+    app2 Arithmetic.mk_div
+  | (Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur), _ ->
+    app2 Arithmetic.mk_lt
+  | (Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur), _ ->
+    app2 Arithmetic.mk_le
+  | (Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur), _ ->
+    app2 Arithmetic.mk_gt
+  | (Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur), _ ->
+    app2 Arithmetic.mk_ge
+  | Eq, _ -> app2 Boolean.mk_eq
+  | Map, _ ->
+    failwith "[Z3 encoding] application of binary operator Map not supported"
+  | Concat, _ ->
+    failwith "[Z3 encoding] application of binary operator Concat not supported"
+  | Filter, _ ->
+    failwith "[Z3 encoding] application of binary operator Filter not supported"
+  | Not, _ -> app1 Boolean.mk_not
+  (* Omitting the log from the VC *)
+  | Log _, [e1] -> translate_expr ctx e1
+  | Length, [e1] ->
+    (* For now, an array is only its symbolic length. We simply return it *)
+    translate_expr ctx e1
+  | ToRat_int, _ ->
+    failwith
+      "[Z3 encoding] application of unary operator ToRat_int not supported"
+  | ToRat_mon, _ ->
+    failwith
+      "[Z3 encoding] application of unary operator ToRat_mon not supported"
+  | ToMoney_rat, _ ->
+    failwith
+      "[Z3 encoding] application of unary operator ToMoney_rat not supported"
+  | GetDay, _ ->
+    failwith "[Z3 encoding] application of unary operator GetDay not supported"
+  | GetMonth, _ ->
+    failwith
+      "[Z3 encoding] application of unary operator GetMonth not supported"
+  | GetYear, _ ->
+    failwith
+      "[Z3 encoding] GetYear operator only supported in comparisons with \
+       literal"
+  | FirstDayOfMonth, _ ->
+    failwith
+      "[Z3 encoding] FirstDayOfMonth operator only supported in comparisons \
+       with literal"
+  | LastDayOfMonth, _ ->
+    failwith
+      "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
+       with literal"
+  | Round_rat, _ ->
+    failwith "[Z3 encoding] Round_rat operator  not implemented yet"
+  | Round_mon, _ ->
+    failwith "[Z3 encoding] Round_mon operator  not implemented yet"
+  | _ -> ill_formed ()
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
     expression **)
@@ -624,7 +611,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
       (e : 'm expr * FuncDecl.func_decl list) : context * Expr.expr =
     let e, accessors = e in
     match Marked.unmark e with
-    | EAbs (e, _) ->
+    | EAbs { binder; _ } ->
       (* Create a fresh Catala variable to substitue and obtain the body *)
       let fresh_v = Var.make "arm!tmp" in
       let fresh_e = EVar fresh_v in
@@ -636,7 +623,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
          in the body, we add this to the context *)
       let ctx = add_z3matchsubst fresh_v proj ctx in
 
-      let body = Bindlib.msubst e [| fresh_e |] in
+      let body = Bindlib.msubst binder [| fresh_e |] in
       translate_expr ctx body
     (* Invariant: Catala match arms are always lambda*)
     | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
@@ -670,32 +657,46 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
          of a match. It actually corresponds to applying an accessor to an enum,
          the corresponding Z3 expression was previously stored in the context *)
       ctx, e)
-  | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
-  | ETupleAccess (s, idx, oname, _tys) ->
-    let name =
-      match oname with
-      | None ->
-        failwith "[Z3 encoding]: ETupleAccess of unnamed struct unsupported"
-      | Some n -> n
-    in
+  | EStruct _ -> failwith "[Z3 encoding] EStruct unsupported"
+  | EStructAccess { e; field; name } ->
     let ctx, z3_struct = find_or_create_struct ctx name in
     (* This datatype should have only one constructor, corresponding to
        mk_struct. The accessors of this constructor correspond to the field
        accesses *)
     let accessors = List.hd (Datatype.get_accessors z3_struct) in
-    let accessor = List.nth accessors idx in
-    let ctx, s = translate_expr ctx s in
+    let idx_mappings =
+      List.combine
+        (List.map fst
+           (StructField.Map.bindings
+              (StructName.Map.find name ctx.ctx_decl.ctx_structs)))
+        accessors
+    in
+    let _, accessor =
+      List.find (fun (field1, _) -> StructField.equal field field1) idx_mappings
+    in
+    let ctx, s = translate_expr ctx e in
     ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
-  | EInj (e, idx, en, _tys) ->
+  | EInj { e; cons; name } ->
     (* This node corresponds to creating a value for the enumeration [en], by
        calling the [idx]-th constructor of enum [en], with argument [e] *)
-    let ctx, z3_enum = find_or_create_enum ctx en in
+    let ctx, z3_enum = find_or_create_enum ctx name in
     let ctx, z3_arg = translate_expr ctx e in
     let ctrs = Datatype.get_constructors z3_enum in
     (* This should always succeed if the expression is well-typed in dcalc *)
-    let ctr = List.nth ctrs idx in
+    let idx_mappings =
+      List.combine
+        (List.map fst
+           (EnumConstructor.Map.bindings
+              (EnumName.Map.find name ctx.ctx_decl.ctx_enums)))
+        ctrs
+    in
+    let _, ctr =
+      List.find
+        (fun (cons1, _) -> EnumConstructor.equal cons cons1)
+        idx_mappings
+    in
     ctx, Expr.mk_app ctx.ctx_z3 ctr [z3_arg]
-  | EMatch (arg, arms, enum) ->
+  | EMatch { e; cases; name = enum } ->
     (* We will encode a match as a new variable, tmp_v, and add to the
        hypotheses that this variable is equal to the conjunction of all `A? arg
        ==> tmp_v == body`, where `A? arg ==> body` is an arm of the match *)
@@ -709,12 +710,14 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let z3_var = Expr.mk_const_s ctx.ctx_z3 name z3_ty in
 
     let ctx, z3_enum = find_or_create_enum ctx enum in
-    let ctx, z3_arg = translate_expr ctx arg in
+    let ctx, z3_arg = translate_expr ctx e in
     let _ctx, z3_arms =
       List.fold_left_map
         (translate_match_arm z3_arg)
         ctx
-        (List.combine arms (Datatype.get_accessors z3_enum))
+        (List.combine
+           (List.map snd (EnumConstructor.Map.bindings cases))
+           (Datatype.get_accessors z3_enum))
     in
     let z3_arms =
       List.map2
@@ -733,9 +736,9 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> ctx, translate_lit ctx l
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
-  | EApp (head, args) -> (
+  | EApp { f = head; args } -> (
     match Marked.unmark head with
-    | EOp op -> translate_op ctx op args
+    | EOp { op; _ } -> translate_op ctx op args
     | EVar v ->
       let (Typed { ty = f_ty; _ }) = Marked.get_mark head in
       let ctx, fd = find_or_create_funcdecl ctx v f_ty in
@@ -756,7 +759,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EAssert e -> translate_expr ctx e
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
-  | EIfThenElse (e_if, e_then, e_else) ->
+  | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
     (* Encode this as (e_if ==> e_then) /\ (not e_if ==> e_else) *)
     let ctx, z3_if = translate_expr ctx e_if in
     let ctx, z3_then = translate_expr ctx e_then in
@@ -769,7 +772,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
             (Boolean.mk_not ctx.ctx_z3 z3_if)
             z3_else;
         ] )
-  | ErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
+  | EErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
 (** [create_z3unit] creates a Z3 sort and expression corresponding to the unit
     type and value respectively. Concretely, we represent unit as a tuple with 0
@@ -806,7 +809,7 @@ module Backend = struct
   let print_model (ctx : backend_context) (m : model) : string =
     print_model ctx m
 
-  let is_model_empty (m : model) : bool = List.length (Z3.Model.get_decls m) = 0
+  let is_model_empty (m : model) : bool = Z3.Model.get_decls m = []
 
   let translate_expr (ctx : backend_context) (e : typed expr) =
     translate_expr ctx e
@@ -830,9 +833,9 @@ module Backend = struct
       ctx_decl = decl_ctx;
       ctx_funcdecl = Var.Map.empty;
       ctx_z3vars = StringMap.empty;
-      ctx_z3datatypes = EnumMap.empty;
+      ctx_z3datatypes = EnumName.Map.empty;
       ctx_z3matchsubsts = Var.Map.empty;
-      ctx_z3structs = StructMap.empty;
+      ctx_z3structs = StructName.Map.empty;
       ctx_z3unit = z3unit;
       ctx_z3constraints = [];
     }

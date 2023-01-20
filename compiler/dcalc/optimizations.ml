@@ -14,7 +14,7 @@
    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
    License for the specific language governing permissions and limitations under
    the License. *)
-open Utils
+open Catala_utils
 open Shared_ast
 open Ast
 
@@ -24,179 +24,206 @@ type partial_evaluation_ctx = {
 }
 
 let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
-    'm expr Bindlib.box =
+    (dcalc, 'm mark) boxed_gexpr =
+  (* We proceed bottom-up, first apply on the subterms *)
+  let e = Expr.map ~f:(partial_evaluation ctx) e in
   let mark = Marked.get_mark e in
-  let rec_helper = partial_evaluation ctx in
-  match Marked.unmark e with
-  | EApp
-      ( (( EOp (Unop Not), _
-         | EApp ((EOp (Unop (Log _)), _), [(EOp (Unop Not), _)]), _ ) as op),
-        [e1] ) ->
-    (* reduction of logical not *)
-    (Bindlib.box_apply (fun e1 ->
-         match e1 with
-         | ELit (LBool false), _ -> ELit (LBool true), mark
-         | ELit (LBool true), _ -> ELit (LBool false), mark
-         | _ -> EApp (op, [e1]), mark))
-      (rec_helper e1)
-  | EApp
-      ( (( EOp (Binop Or), _
-         | EApp ((EOp (Unop (Log _)), _), [(EOp (Binop Or), _)]), _ ) as op),
-        [e1; e2] ) ->
-    (* reduction of logical or *)
-    (Bindlib.box_apply2 (fun e1 e2 ->
-         match e1, e2 with
-         | (ELit (LBool false), _), new_e | new_e, (ELit (LBool false), _) ->
-           new_e
-         | (ELit (LBool true), _), _ | _, (ELit (LBool true), _) ->
-           ELit (LBool true), mark
-         | _ -> EApp (op, [e1; e2]), mark))
-      (rec_helper e1) (rec_helper e2)
-  | EApp
-      ( (( EOp (Binop And), _
-         | EApp ((EOp (Unop (Log _)), _), [(EOp (Binop And), _)]), _ ) as op),
-        [e1; e2] ) ->
-    (* reduction of logical and *)
-    (Bindlib.box_apply2 (fun e1 e2 ->
-         match e1, e2 with
-         | (ELit (LBool true), _), new_e | new_e, (ELit (LBool true), _) ->
-           new_e
-         | (ELit (LBool false), _), _ | _, (ELit (LBool false), _) ->
-           ELit (LBool false), mark
-         | _ -> EApp (op, [e1; e2]), mark))
-      (rec_helper e1) (rec_helper e2)
-  | EVar x -> Bindlib.box_apply (fun x -> x, mark) (Bindlib.box_var x)
-  | ETuple (args, s_name) ->
-    Bindlib.box_apply
-      (fun args -> ETuple (args, s_name), mark)
-      (List.map rec_helper args |> Bindlib.box_list)
-  | ETupleAccess (arg, i, s_name, typs) ->
-    Bindlib.box_apply
-      (fun arg -> ETupleAccess (arg, i, s_name, typs), mark)
-      (rec_helper arg)
-  | EInj (arg, i, e_name, typs) ->
-    Bindlib.box_apply
-      (fun arg -> EInj (arg, i, e_name, typs), mark)
-      (rec_helper arg)
-  | EMatch (arg, arms, e_name) ->
-    Bindlib.box_apply2
-      (fun arg arms ->
-        match arg, arms with
-        | (EInj (e1, i, e_name', _ts), _), _
-          when EnumName.compare e_name e_name' = 0 ->
-          (* iota reduction *)
-          EApp (List.nth arms i, [e1]), mark
-        | _ -> EMatch (arg, arms, e_name), mark)
-      (rec_helper arg)
-      (List.map rec_helper arms |> Bindlib.box_list)
-  | EArray args ->
-    Bindlib.box_apply
-      (fun args -> EArray args, mark)
-      (List.map rec_helper args |> Bindlib.box_list)
-  | ELit l -> Bindlib.box (ELit l, mark)
-  | EAbs (binder, typs) ->
-    let vars, body = Bindlib.unmbind binder in
-    let new_body = rec_helper body in
-    let new_binder = Bindlib.bind_mvar vars new_body in
-    Bindlib.box_apply (fun binder -> EAbs (binder, typs), mark) new_binder
-  | EApp (f, args) ->
-    Bindlib.box_apply2
-      (fun f args ->
-        match Marked.unmark f with
-        | EAbs (binder, _ts) ->
-          (* beta reduction *)
-          Bindlib.msubst binder (List.map fst args |> Array.of_list)
-        | _ -> EApp (f, args), mark)
-      (rec_helper f)
-      (List.map rec_helper args |> Bindlib.box_list)
-  | EAssert e1 -> Bindlib.box_apply (fun e1 -> EAssert e1, mark) (rec_helper e1)
-  | EOp op -> Bindlib.box (EOp op, mark)
-  | EDefault (exceptions, just, cons) ->
-    Bindlib.box_apply3
-      (fun exceptions just cons ->
-        (* TODO: mechanically prove each of these optimizations correct :) *)
-        match
-          ( List.filter
-              (fun except ->
-                match Marked.unmark except with
-                | ELit LEmptyError -> false
-                | _ -> true)
-              exceptions
-            (* we can discard the exceptions that are always empty error *),
-            just,
-            cons )
-        with
-        | exceptions, just, cons
-          when List.fold_left
-                 (fun nb except -> if Expr.is_value except then nb + 1 else nb)
-                 0 exceptions
-               > 1 ->
-          (* at this point we know a conflict error will be triggered so we just
-             feed the expression to the interpreter that will print the
-             beautiful right error message *)
-          Interpreter.evaluate_expr ctx.decl_ctx
-            (EDefault (exceptions, just, cons), mark)
-        | [except], _, _ when Expr.is_value except ->
+  (* Then reduce the parent node *)
+  let reduce e =
+    (* Todo: improve the handling of eapp(log,elit) cases here, it obfuscates
+       the matches and the log calls are not preserved, which would be a good
+       property *)
+    match Marked.unmark e with
+    | EApp
+        {
+          f =
+            ( EOp { op = Not; _ }, _
+            | ( EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(EOp { op = Not; _ }, _)];
+                  },
+                _ ) ) as op;
+          args = [e1];
+        } -> (
+      (* reduction of logical not *)
+      match e1 with
+      | ELit (LBool false), _ -> ELit (LBool true)
+      | ELit (LBool true), _ -> ELit (LBool false)
+      | e1 -> EApp { f = op; args = [e1] })
+    | EApp
+        {
+          f =
+            ( EOp { op = Or; _ }, _
+            | ( EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(EOp { op = Or; _ }, _)];
+                  },
+                _ ) ) as op;
+          args = [e1; e2];
+        } -> (
+      (* reduction of logical or *)
+      match e1, e2 with
+      | (ELit (LBool false), _), new_e | new_e, (ELit (LBool false), _) ->
+        Marked.unmark new_e
+      | (ELit (LBool true), _), _ | _, (ELit (LBool true), _) ->
+        ELit (LBool true)
+      | _ -> EApp { f = op; args = [e1; e2] })
+    | EApp
+        {
+          f =
+            ( EOp { op = And; _ }, _
+            | ( EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(EOp { op = And; _ }, _)];
+                  },
+                _ ) ) as op;
+          args = [e1; e2];
+        } -> (
+      (* reduction of logical and *)
+      match e1, e2 with
+      | (ELit (LBool true), _), new_e | new_e, (ELit (LBool true), _) ->
+        Marked.unmark new_e
+      | (ELit (LBool false), _), _ | _, (ELit (LBool false), _) ->
+        ELit (LBool false)
+      | _ -> EApp { f = op; args = [e1; e2] })
+    | EMatch { e = EInj { e; name = name1; cons }, _; cases; name }
+      when EnumName.equal name name1 ->
+      (* iota reduction *)
+      EApp { f = EnumConstructor.Map.find cons cases; args = [e] }
+    | EApp { f = EAbs { binder; _ }, _; args } ->
+      (* beta reduction *)
+      Marked.unmark (Bindlib.msubst binder (List.map fst args |> Array.of_list))
+    | EDefault { excepts; just; cons } -> (
+      (* TODO: mechanically prove each of these optimizations correct :) *)
+      let excepts =
+        List.filter
+          (fun except -> Marked.unmark except <> ELit LEmptyError)
+          excepts
+        (* we can discard the exceptions that are always empty error *)
+      in
+      let value_except_count =
+        List.fold_left
+          (fun nb except -> if Expr.is_value except then nb + 1 else nb)
+          0 excepts
+      in
+      if value_except_count > 1 then
+        (* at this point we know a conflict error will be triggered so we just
+           feed the expression to the interpreter that will print the beautiful
+           right error message *)
+        Marked.unmark (Interpreter.evaluate_expr ctx.decl_ctx e)
+      else
+        match excepts, just with
+        | [except], _ when Expr.is_value except ->
           (* if there is only one exception and it is a non-empty value it is
              always chosen *)
-          except
+          Marked.unmark except
         | ( [],
             ( ( ELit (LBool true)
-              | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool true), _)]) ),
-              _ ),
-            cons ) ->
-          cons
+              | EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(ELit (LBool true), _)];
+                  } ),
+              _ ) ) ->
+          Marked.unmark cons
         | ( [],
             ( ( ELit (LBool false)
-              | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool false), _)]) ),
-              _ ),
-            _ ) ->
-          ELit LEmptyError, mark
-        | [], just, cons when not !Cli.avoid_exceptions_flag ->
+              | EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(ELit (LBool false), _)];
+                  } ),
+              _ ) ) ->
+          ELit LEmptyError
+        | [], just when not !Cli.avoid_exceptions_flag ->
           (* without exceptions, a default is just an [if then else] raising an
              error in the else case. This exception is only valid in the context
              of compilation_with_exceptions, so we desactivate with a global
              flag to know if we will be compiling using exceptions or the option
-             monad. *)
-          EIfThenElse (just, cons, (ELit LEmptyError, mark)), mark
-        | exceptions, just, cons -> EDefault (exceptions, just, cons), mark)
-      (List.map rec_helper exceptions |> Bindlib.box_list)
-      (rec_helper just) (rec_helper cons)
-  | EIfThenElse (e1, e2, e3) ->
-    Bindlib.box_apply3
-      (fun e1 e2 e3 ->
-        match Marked.unmark e1, Marked.unmark e2, Marked.unmark e3 with
-        | ELit (LBool true), _, _
-        | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool true), _)]), _, _ ->
-          e2
-        | ELit (LBool false), _, _
-        | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool false), _)]), _, _ ->
-          e3
-        | ( _,
-            ( ELit (LBool true)
-            | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool true), _)]) ),
-            ( ELit (LBool false)
-            | EApp ((EOp (Unop (Log _)), _), [(ELit (LBool false), _)]) ) ) ->
-          e1
-        | _ when Expr.equal e2 e3 -> e2
-        | _ -> EIfThenElse (e1, e2, e3), mark)
-      (rec_helper e1) (rec_helper e2) (rec_helper e3)
-  | ErrorOnEmpty e1 ->
-    Bindlib.box_apply (fun e1 -> ErrorOnEmpty e1, mark) (rec_helper e1)
+             monad. FIXME: move this optimisation somewhere else to avoid this
+             check *)
+          EIfThenElse
+            { cond = just; etrue = cons; efalse = ELit LEmptyError, mark }
+        | excepts, just -> EDefault { excepts; just; cons })
+    | EIfThenElse
+        {
+          cond =
+            ( ELit (LBool true), _
+            | ( EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(ELit (LBool true), _)];
+                  },
+                _ ) );
+          etrue;
+          _;
+        } ->
+      Marked.unmark etrue
+    | EIfThenElse
+        {
+          cond =
+            ( ( ELit (LBool false)
+              | EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(ELit (LBool false), _)];
+                  } ),
+              _ );
+          efalse;
+          _;
+        } ->
+      Marked.unmark efalse
+    | EIfThenElse
+        {
+          cond;
+          etrue =
+            ( ( ELit (LBool btrue)
+              | EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(ELit (LBool btrue), _)];
+                  } ),
+              _ );
+          efalse =
+            ( ( ELit (LBool bfalse)
+              | EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(ELit (LBool bfalse), _)];
+                  } ),
+              _ );
+        } ->
+      if btrue && not bfalse then Marked.unmark cond
+      else if (not btrue) && bfalse then
+        EApp
+          {
+            f = EOp { op = Not; tys = [TLit TBool, Expr.mark_pos mark] }, mark;
+            args = [cond];
+          }
+        (* note: this last call eliminates the condition & might skip log calls
+           as well *)
+      else (* btrue = bfalse *) ELit (LBool btrue)
+    | e -> e
+  in
+  Expr.Box.app1 e reduce mark
 
 let optimize_expr (decl_ctx : decl_ctx) (e : 'm expr) =
   partial_evaluation { var_values = Var.Map.empty; decl_ctx } e
 
 let rec scope_lets_map
-    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
+    (t : 'a -> 'm expr -> (dcalc, 'm mark) boxed_gexpr)
     (ctx : 'a)
     (scope_body_expr : 'm expr scope_body_expr) :
     'm expr scope_body_expr Bindlib.box =
   match scope_body_expr with
-  | Result e -> Bindlib.box_apply (fun e' -> Result e') (t ctx e)
+  | Result e ->
+    Bindlib.box_apply (fun e' -> Result e') (Expr.Box.lift (t ctx e))
   | ScopeLet scope_let ->
     let var, next = Bindlib.unbind scope_let.scope_let_next in
-    let new_scope_let_expr = t ctx scope_let.scope_let_expr in
+    let new_scope_let_expr = Expr.Box.lift (t ctx scope_let.scope_let_expr) in
     let new_next = scope_lets_map t ctx next in
     let new_next = Bindlib.bind_var var new_next in
     Bindlib.box_apply2
@@ -210,7 +237,7 @@ let rec scope_lets_map
       new_scope_let_expr new_next
 
 let rec scopes_map
-    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
+    (t : 'a -> 'm expr -> (dcalc, 'm mark) boxed_gexpr)
     (ctx : 'a)
     (scopes : 'm expr scopes) : 'm expr scopes Bindlib.box =
   match scopes with
@@ -241,7 +268,7 @@ let rec scopes_map
       new_scope_body_expr new_scope_next
 
 let program_map
-    (t : 'a -> 'm expr -> 'm expr Bindlib.box)
+    (t : 'a -> 'm expr -> (dcalc, 'm mark) boxed_gexpr)
     (ctx : 'a)
     (p : 'm program) : 'm program Bindlib.box =
   Bindlib.box_apply

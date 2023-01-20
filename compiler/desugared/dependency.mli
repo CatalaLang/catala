@@ -17,7 +17,8 @@
 (** Scope dependencies computations using {{:http://ocamlgraph.lri.fr/}
     OCamlgraph} *)
 
-open Utils
+open Catala_utils
+open Shared_ast
 
 (** {1 Scope variables dependency graph} *)
 
@@ -71,9 +72,9 @@ val build_scope_dependencies : Ast.scope -> ScopeDependencies.t
 module EdgeExceptions : Graph.Sig.ORDERED_TYPE_DFT with type t = Pos.t list
 
 module ExceptionsDependencies :
-  Graph.Sig.P with type V.t = Ast.RuleSet.t and type E.label = EdgeExceptions.t
+  Graph.Sig.P with type V.t = RuleName.Set.t and type E.label = EdgeExceptions.t
 
 val build_exceptions_graph :
-  Ast.rule Ast.RuleMap.t -> Ast.ScopeDef.t -> ExceptionsDependencies.t
+  Ast.rule RuleName.Map.t -> Ast.ScopeDef.t -> ExceptionsDependencies.t
 
 val check_for_exception_cycle : ExceptionsDependencies.t -> unit

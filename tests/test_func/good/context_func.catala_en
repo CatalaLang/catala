@@ -1,0 +1,46 @@
+## Test
+
+```catala
+declaration scope A:
+  context f content integer depends on integer
+
+declaration scope B:
+  input b content boolean
+  a scope A
+
+scope A:
+  definition f of x equals x + 1
+
+scope B:
+  definition a.f of x under condition b and x > 0 consequence equals x - 1
+```
+
+```catala-test-inline
+$ catala Scopelang -s B
+let scope B (b: bool|input) =
+  let a.f : integer → integer =
+    λ (param: integer) → ⟨b && param >! 0 ⊢ param -! 1⟩;
+  call A[a]
+```
+
+```catala-test-inline
+$ catala Dcalc -s A
+let A =
+  λ (A_in: A_in {"f_in": integer → integer}) →
+    let f : integer → integer = A_in."f_in" in
+    let f1 : integer → integer =
+      λ (param: integer) → error_empty
+        ⟨f param | true ⊢ ⟨true ⊢ param +! 1⟩⟩ in
+    A {  }
+```
+
+```catala-test-inline
+$ catala Dcalc -s B
+let B =
+  λ (B_in: B_in {"b_in": bool}) →
+    let b : bool = B_in."b_in" in
+    let a.f : integer → integer =
+      λ (param: integer) → ⟨b && param >! 0 ⊢ param -! 1⟩ in
+    let result : A {} = A (A_in { "f_in"= a.f }) in
+    B {  }
+```

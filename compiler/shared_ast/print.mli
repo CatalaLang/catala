@@ -16,7 +16,7 @@
 
 (** Printing functions for the default calculus AST *)
 
-open Utils
+open Catala_utils
 open Definitions
 
 (** {1 Common syntax highlighting helpers}*)
@@ -24,7 +24,7 @@ open Definitions
 val base_type : Format.formatter -> string -> unit
 val keyword : Format.formatter -> string -> unit
 val punctuation : Format.formatter -> string -> unit
-val operator : Format.formatter -> string -> unit
+val op_style : Format.formatter -> string -> unit
 val lit_style : Format.formatter -> string -> unit
 
 (** {1 Formatters} *)
@@ -35,13 +35,11 @@ val tlit : Format.formatter -> typ_lit -> unit
 val location : Format.formatter -> 'a glocation -> unit
 val typ : decl_ctx -> Format.formatter -> typ -> unit
 val lit : Format.formatter -> 'a glit -> unit
-val op_kind : Format.formatter -> op_kind -> unit
-val binop : Format.formatter -> binop -> unit
-val ternop : Format.formatter -> ternop -> unit
+val operator : Format.formatter -> ('a any, 'k) operator -> unit
 val log_entry : Format.formatter -> log_entry -> unit
-val unop : Format.formatter -> unop -> unit
 val except : Format.formatter -> except -> unit
 val var : Format.formatter -> 'e Var.t -> unit
+val var_debug : Format.formatter -> 'e Var.t -> unit
 
 val expr :
   ?debug:bool (** [true] for debug printing *) ->

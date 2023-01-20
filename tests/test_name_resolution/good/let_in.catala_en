@@ -14,22 +14,22 @@ declaration structure B:
    data z content decimal
 
 scope S:
-   definition b equals let b equals 42 in B { -- y: true -- z: integer_to_decimal of b}
+   definition b equals let b equals 42 in B { -- y: true -- z: decimal of b}
    definition a equals
      let b equals
-       if b.B.y
+       if b.y
        then B { -- y: false -- z: -1. }
        else B { -- y: true  -- z: -2. }
      in
-     let a equals 2. *. b.z in
+     let a equals 2. * b.z in
      A { -- x: a -- y : b }
 ```
 
 ```catala-test-inline
 $ catala Interpret -s S
 [RESULT] Computation successful! Results:
-[RESULT] a = A {"x"= -2.; "y"= B {"y"= false; "z"= -1.}}
-[RESULT] b = B {"y"= true; "z"= 42.}
+[RESULT] a = A { "x"= -2.; "y"= B { "y"= false; "z"= -1. } }
+[RESULT] b = B { "y"= true; "z"= 42. }
 ```
 
 ## Check scope of let-in vs scope variable

@@ -14,6 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
 open Shared_ast
 
 (** Abstract syntax tree for the lambda calculus *)
@@ -32,7 +33,7 @@ type 'm program = 'm expr Shared_ast.program
 val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
-val option_enum_config : (EnumConstructor.t * typ) list
+val option_enum_config : typ EnumConstructor.Map.t
 val make_none : 'm mark -> 'm expr boxed
 val make_some : 'm expr boxed -> 'm expr boxed
 
@@ -40,7 +41,7 @@ val make_matchopt_with_abs_arms :
   'm expr boxed -> 'm expr boxed -> 'm expr boxed -> 'm expr boxed
 
 val make_matchopt :
-  Utils.Pos.t ->
+  Pos.t ->
   'm expr Var.t ->
   typ ->
   'm expr boxed ->

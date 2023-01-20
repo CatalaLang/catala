@@ -7,16 +7,15 @@ declaration scope A:
 
 scope A:
   definition x equals 1.
-  definition y under condition x >=. 1./.3. consequence equals true
-  definition y under condition x <=. 1./.3. consequence equals false
+  definition y under condition x >= 1./3. consequence equals true
+  definition y under condition x <= 1./3. consequence equals false
 ```
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.y] At least two exceptions overlap for this variable:
-┌─⯈ tests/test_proof/bad/rationals-overlap.catala_en:6.10-11
+┌─⯈ tests/test_proof/bad/rationals-overlap.catala_en:6.10-11:
 └─┐
-  │
 6 │   context y content boolean
   │           ‾
   └─ Test

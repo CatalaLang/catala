@@ -17,7 +17,7 @@
 
 open Tokens
 open Sedlexing
-open Utils
+open Catala_utils
 module R = Re.Pcre
 
 (* Calculates the precedence according a {!val: matched_regex} of the form :
@@ -69,22 +69,22 @@ let raise_lexer_error (loc : Pos.t) (token : string) =
 let token_list_language_agnostic : (string * token) list =
   [
     ".", DOT;
-    "<=", LESSER_EQUAL;
-    ">=", GREATER_EQUAL;
-    ">", GREATER;
+    "<=", LESSER_EQUAL KPoly;
+    ">=", GREATER_EQUAL KPoly;
+    ">", GREATER KPoly;
     "!=", NOT_EQUAL;
     "=", EQUAL;
     "(", LPAREN;
     ")", RPAREN;
+    "{", LBRACE;
+    "}", RBRACE;
     "{", LBRACKET;
     "}", RBRACKET;
-    "{", LSQUARE;
-    "}", RSQUARE;
-    "+", PLUS;
-    "-", MINUS;
-    "*", MULT;
-    "/", DIV;
-    "|", VERTICAL;
+    "+", PLUS KPoly;
+    "-", MINUS KPoly;
+    "*", MULT KPoly;
+    "/", DIV KPoly;
+    "|", BAR;
     ":", COLON;
     ";", SEMICOLON;
     "--", ALT;

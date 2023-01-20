@@ -5,7 +5,7 @@
 ```catala
 déclaration champ d'application Exemple1 :
   éligibilité champ d'application ÉligibilitéAidePersonnaliséeLogement
-  sortie éligible contenu booléen
+  résultat éligible contenu booléen
 
 champ d'application Exemple1 :
   définition éligible égal à éligibilité.éligibilité
@@ -83,7 +83,7 @@ champ d'application Exemple1 :
 
 déclaration champ d'application Exemple2 :
   éligibilité champ d'application ÉligibilitéAllocationLogement
-  sortie éligible contenu TypeÉligibilitéAllocationLogement
+  résultat éligible contenu TypeÉligibilitéAllocationLogement
 
 champ d'application Exemple2 :
   définition éligible égal à éligibilité.éligibilité
@@ -154,7 +154,7 @@ champ d'application Exemple2 :
 
 # déclaration champ d'application Exemple2 :
 #   éligibilité champ d'application ÉligibilitéAidesPersonnelleLogement
-#   sortie éligible contenu booléen
+#   résultat éligible contenu booléen
 
 # champ d'application Exemple2 :
 # définition éligible égal à éligibilité.éligibilité
@@ -198,7 +198,7 @@ champ d'application Exemple2 :
 
 # déclaration champ d'application Exemple3 :
 #   éligibilité champ d'application ÉligibilitéAidesPersonnelleLogement
-#   sortie éligible contenu booléen
+#   résultat éligible contenu booléen
 
 # champ d'application Exemple3 :
 # définition éligible égal à éligibilité.éligibilité

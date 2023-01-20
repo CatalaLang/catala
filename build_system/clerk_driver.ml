@@ -16,7 +16,7 @@
    the License. *)
 
 open Cmdliner
-open Utils
+open Catala_utils
 open Ninja_utils
 module Nj = Ninja_utils
 
@@ -524,7 +524,7 @@ let collect_all_ninja_build
     (tested_file : string)
     (reset_test_outputs : bool) : (string * ninja) option =
   let expected_outputs = search_for_expected_outputs tested_file in
-  if List.length expected_outputs = 0 then (
+  if expected_outputs = [] then (
     Cli.debug_print "No expected outputs were found for test file %s"
       tested_file;
     None)
@@ -890,10 +890,18 @@ let driver
     let files_or_folders = List.sort_uniq String.compare files_or_folders
     and catala_exe = Option.fold ~none:"catala" ~some:Fun.id catala_exe
     and catala_opts = Option.fold ~none:"" ~some:Fun.id catala_opts
-    and ninja_output =
-      Option.fold
-        ~none:(Filename.temp_file "clerk_build_" ".ninja")
-        ~some:Fun.id ninja_output
+    and with_ninja_output k =
+      match ninja_output with
+      | Some f -> k f
+      | None -> (
+        let f = Filename.temp_file "clerk_build_" ".ninja" in
+        match k f with
+        | exception e ->
+          if not debug then Sys.remove f;
+          raise e
+        | r ->
+          Sys.remove f;
+          r)
     in
     match String.lowercase_ascii command with
     | "test" -> (
@@ -919,20 +927,22 @@ let driver
       if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then
         return_ok
       else
-        try
-          File.with_formatter_of_file ninja_output (fun fmt ->
-              Cli.debug_print "writing %s..." ninja_output;
+        with_ninja_output
+        @@ fun nin ->
+        match
+          File.with_formatter_of_file nin (fun fmt ->
+              Cli.debug_print "writing %s..." nin;
               Nj.format fmt
                 (add_root_test_build ninja ctx.all_file_names
-                   ctx.all_test_builds));
+                   ctx.all_test_builds))
+        with
+        | () ->
           let ninja_cmd =
-            "ninja -k 0 -f " ^ ninja_output ^ " " ^ ninja_flags ^ " test"
+            "ninja -k 0 -f " ^ nin ^ " " ^ ninja_flags ^ " test"
           in
           Cli.debug_print "executing '%s'..." ninja_cmd;
-          let return = Sys.command ninja_cmd in
-          if not debug then Sys.remove ninja_output;
-          return
-        with Sys_error e ->
+          Sys.command ninja_cmd
+        | exception Sys_error e ->
           Cli.error_print "can not write in %s" e;
           return_err)
     | "run" -> (

@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 
 let fill_pos_with_legislative_info (p : Ast.program) : Ast.program =
   let visitor =

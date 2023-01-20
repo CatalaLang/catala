@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 module A = Ast
 module L = Lcalc.Ast
@@ -35,36 +35,37 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
   | EVar v ->
     let local_var =
       try A.EVar (Var.Map.find v ctxt.var_dict)
-      with Not_found -> A.EFunc (Var.Map.find v ctxt.func_dict)
+      with Not_found -> (
+        try A.EFunc (Var.Map.find v ctxt.func_dict)
+        with Not_found ->
+          Errors.raise_spanned_error (Expr.pos expr)
+            "Var not found in lambda→scalc: %a@\nknown: @[<hov>%a@]@\n"
+            Print.var_debug v
+            (Format.pp_print_list ~pp_sep:Format.pp_print_space
+               (fun ppf (v, _) -> Print.var_debug ppf v))
+            (Var.Map.bindings ctxt.var_dict))
     in
     [], (local_var, Expr.pos expr)
-  | ETuple (args, Some s_name) ->
+  | EStruct { fields; name } ->
     let args_stmts, new_args =
-      List.fold_left
-        (fun (args_stmts, new_args) arg ->
+      StructField.Map.fold
+        (fun _ arg (args_stmts, new_args) ->
           let arg_stmts, new_arg = translate_expr ctxt arg in
           arg_stmts @ args_stmts, new_arg :: new_args)
-        ([], []) args
+        fields ([], [])
     in
     let new_args = List.rev new_args in
     let args_stmts = List.rev args_stmts in
-    args_stmts, (A.EStruct (new_args, s_name), Expr.pos expr)
-  | ETuple (_, None) -> failwith "Non-struct tuples cannot be compiled to scalc"
-  | ETupleAccess (e1, num_field, Some s_name, _) ->
+    args_stmts, (A.EStruct (new_args, name), Expr.pos expr)
+  | ETuple _ -> failwith "Tuples cannot be compiled to scalc"
+  | EStructAccess { e = e1; field; name } ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
-    let field_name =
-      fst (List.nth (StructMap.find s_name ctxt.decl_ctx.ctx_structs) num_field)
-    in
-    e1_stmts, (A.EStructFieldAccess (new_e1, field_name, s_name), Expr.pos expr)
-  | ETupleAccess (_, _, None, _) ->
-    failwith "Non-struct tuples cannot be compiled to scalc"
-  | EInj (e1, num_cons, e_name, _) ->
+    e1_stmts, (A.EStructFieldAccess (new_e1, field, name), Expr.pos expr)
+  | ETupleAccess _ -> failwith "Non-struct tuples cannot be compiled to scalc"
+  | EInj { e = e1; cons; name } ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
-    let cons_name =
-      fst (List.nth (EnumMap.find e_name ctxt.decl_ctx.ctx_enums) num_cons)
-    in
-    e1_stmts, (A.EInj (new_e1, cons_name, e_name), Expr.pos expr)
-  | EApp (f, args) ->
+    e1_stmts, (A.EInj (new_e1, cons, name), Expr.pos expr)
+  | EApp { f; args } ->
     let f_stmts, new_f = translate_expr ctxt f in
     let args_stmts, new_args =
       List.fold_left
@@ -85,7 +86,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     in
     let new_args = List.rev new_args in
     args_stmts, (A.EArray new_args, Expr.pos expr)
-  | EOp op -> [], (A.EOp op, Expr.pos expr)
+  | EOp { op; _ } -> [], (A.EOp op, Expr.pos expr)
   | ELit l -> [], (A.ELit l, Expr.pos expr)
   | _ ->
     let tmp_var =
@@ -120,11 +121,11 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
     e_stmts @ [A.SAssert (Marked.unmark new_e), Expr.pos block_expr]
-  | EApp ((EAbs (binder, taus), binder_mark), args) ->
+  | EApp { f = EAbs { binder; tys }, binder_mark; args } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
     let vars, body = Bindlib.unmbind binder in
-    let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) taus in
+    let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
     let ctxt =
       {
         ctxt with
@@ -167,10 +168,10 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     in
     let rest_of_block = translate_statements ctxt body in
     local_decls @ List.flatten def_blocks @ rest_of_block
-  | EAbs (binder, taus) ->
+  | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let binder_pos = Expr.pos block_expr in
-    let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) taus in
+    let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
     let closure_name =
       match ctxt.inside_definition_of with
       | None -> A.LocalName.fresh (ctxt.context_name, Expr.pos block_expr)
@@ -203,13 +204,13 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             } ),
         binder_pos );
     ]
-  | EMatch (e1, args, e_name) ->
+  | EMatch { e = e1; cases; name } ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
-    let new_args =
-      List.fold_left
-        (fun new_args arg ->
+    let new_cases =
+      EnumConstructor.Map.fold
+        (fun _ arg new_args ->
           match Marked.unmark arg with
-          | EAbs (binder, _) ->
+          | EAbs { binder; _ } ->
             let vars, body = Bindlib.unmbind binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
@@ -223,20 +224,20 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             (new_arg, scalc_var) :: new_args
           | _ -> assert false
           (* should not happen *))
-        [] args
+        cases []
     in
-    let new_args = List.rev new_args in
-    e1_stmts @ [A.SSwitch (new_e1, e_name, new_args), Expr.pos block_expr]
-  | EIfThenElse (cond, e_true, e_false) ->
+    let new_args = List.rev new_cases in
+    e1_stmts @ [A.SSwitch (new_e1, name, new_args), Expr.pos block_expr]
+  | EIfThenElse { cond; etrue; efalse } ->
     let cond_stmts, s_cond = translate_expr ctxt cond in
-    let s_e_true = translate_statements ctxt e_true in
-    let s_e_false = translate_statements ctxt e_false in
+    let s_e_true = translate_statements ctxt etrue in
+    let s_e_false = translate_statements ctxt efalse in
     cond_stmts
     @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), Expr.pos block_expr]
-  | ECatch (e_try, except, e_catch) ->
-    let s_e_try = translate_statements ctxt e_try in
-    let s_e_catch = translate_statements ctxt e_catch in
-    [A.STryExcept (s_e_try, except, s_e_catch), Expr.pos block_expr]
+  | ECatch { body; exn; handler } ->
+    let s_e_try = translate_statements ctxt body in
+    let s_e_catch = translate_statements ctxt handler in
+    [A.STryExcept (s_e_try, exn, s_e_catch), Expr.pos block_expr]
   | ERaise except ->
     (* Before raising the exception, we still give a dummy definition to the
        current variable so that tools like mypy don't complain. *)

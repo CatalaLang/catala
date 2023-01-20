@@ -103,7 +103,7 @@ Two more modules contain additional features for the compiler:
 
 {ul
 {li {{: literate.html} Literate programming}}
-{li {{: utils.html} Compiler utilities}}
+{li {{: catala_utils.html} Compiler utilities}}
 }
 
 The Catala runtimes documentation is available here:

@@ -17,16 +17,16 @@
 (** Typing for the default calculus. Because of the error terms, we perform type
     inference using the classical W algorithm with union-find unification. *)
 
-open Utils
+open Catala_utils
 module A = Definitions
 
 module Any =
-  Utils.Uid.Make
+  Uid.Make
     (struct
       type info = unit
 
       let to_string _ = "any"
-      let format_info fmt () = Format.fprintf fmt "any"
+      let format fmt () = Format.fprintf fmt "any"
       let equal _ _ = true
       let compare _ _ = 0
     end)
@@ -47,7 +47,8 @@ and naked_typ =
   | TArray of unionfind_typ
   | TAny of Any.t
 
-let rec typ_to_ast (ty : unionfind_typ) : A.typ =
+let rec typ_to_ast ?(unsafe = false) (ty : unionfind_typ) : A.typ =
+  let typ_to_ast = typ_to_ast ~unsafe in
   let ty, pos = UnionFind.get (UnionFind.find ty) in
   match ty with
   | TLit l -> A.TLit l, pos
@@ -58,11 +59,22 @@ let rec typ_to_ast (ty : unionfind_typ) : A.typ =
   | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2), pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
   | TAny _ ->
-    (* No polymorphism in Catala: type inference should return full types
-       without wildcards, and this function is used to recover the types after
-       typing. *)
-    Errors.raise_spanned_error pos
-      "Internal error: typing at this point could not be resolved"
+    if unsafe then A.TAny, pos
+    else
+      (* No polymorphism in Catala: type inference should return full types
+         without wildcards, and this function is used to recover the types after
+         typing. *)
+      Errors.raise_spanned_error pos
+        "Internal error: typing at this point could not be resolved"
+
+(* Checks that there are no type variables remaining *)
+let rec all_resolved ty =
+  match Marked.unmark (UnionFind.get (UnionFind.find ty)) with
+  | TAny _ -> false
+  | TLit _ | TStruct _ | TEnum _ -> true
+  | TOption t1 | TArray t1 -> all_resolved t1
+  | TArrow (t1, t2) -> all_resolved t1 && all_resolved t2
+  | TTuple ts -> List.for_all all_resolved ts
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
@@ -97,7 +109,7 @@ let rec format_typ
   match Marked.unmark naked_typ with
   | TLit l -> Format.fprintf fmt "%a" Print.tlit l
   | TTuple ts ->
-    Format.fprintf fmt "@[<hov 2>(%a)]"
+    Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
          (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
@@ -111,9 +123,11 @@ let rec format_typ
       format_typ t2
   | TArray t1 -> (
     match Marked.unmark (UnionFind.get (UnionFind.find t1)) with
-    | TAny _ -> Format.pp_print_string fmt "collection"
+    | TAny _ when not !Cli.debug_flag -> Format.pp_print_string fmt "collection"
     | _ -> Format.fprintf fmt "@[collection@ %a@]" format_typ t1)
-  | TAny _ -> Format.pp_print_string fmt "<any>"
+  | TAny v ->
+    if !Cli.debug_flag then Format.fprintf fmt "<a%d>" (Any.hash v)
+    else Format.pp_print_string fmt "<any>"
 
 exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
@@ -211,105 +225,90 @@ let lit_type (type a) (lit : a A.glit) : naked_typ =
   | LUnit -> TLit TUnit
   | LEmptyError -> TAny (Any.fresh ())
 
-(** Operators have a single type, instead of being polymorphic with constraints.
-    This allows us to have a simpler type system, while we argue the syntactic
-    burden of operator annotations helps the programmer visualize the type flow
-    in the code. *)
-let op_type (op : A.operator Marked.pos) : unionfind_typ =
+(** [op_type] and [resolve_overload] are a bit similar, and work on disjoint
+    sets of operators. However, their assumptions are different so we keep the
+    functions separate. In particular [resolve_overloads] requires its argument
+    types to be known in advance. *)
+
+let polymorphic_op_type (op : ('a, Operator.polymorphic) A.operator Marked.pos)
+    : unionfind_typ =
+  let open Operator in
   let pos = Marked.get_mark op in
-  let bt = UnionFind.make (TLit TBool, pos) in
-  let it = UnionFind.make (TLit TInt, pos) in
-  let rt = UnionFind.make (TLit TRat, pos) in
-  let mt = UnionFind.make (TLit TMoney, pos) in
-  let dut = UnionFind.make (TLit TDuration, pos) in
-  let dat = UnionFind.make (TLit TDate, pos) in
-  let any = UnionFind.make (TAny (Any.fresh ()), pos) in
-  let array_any = UnionFind.make (TArray any, pos) in
-  let any2 = UnionFind.make (TAny (Any.fresh ()), pos) in
-  let array_any2 = UnionFind.make (TArray any2, pos) in
-  let arr x y = UnionFind.make (TArrow (x, y), pos) in
-  match Marked.unmark op with
-  | A.Ternop A.Fold ->
-    arr (arr any2 (arr any any2)) (arr any2 (arr array_any any2))
-  | A.Binop (A.And | A.Or | A.Xor) -> arr bt (arr bt bt)
-  | A.Binop (A.Add KInt | A.Sub KInt | A.Mult KInt | A.Div KInt) ->
-    arr it (arr it it)
-  | A.Binop (A.Add KRat | A.Sub KRat | A.Mult KRat | A.Div KRat) ->
-    arr rt (arr rt rt)
-  | A.Binop (A.Add KMoney | A.Sub KMoney) -> arr mt (arr mt mt)
-  | A.Binop (A.Add KDuration | A.Sub KDuration) -> arr dut (arr dut dut)
-  | A.Binop (A.Sub KDate) -> arr dat (arr dat dut)
-  | A.Binop (A.Add KDate) -> arr dat (arr dut dat)
-  | A.Binop (A.Mult KDuration) -> arr dut (arr it dut)
-  | A.Binop (A.Div KMoney) -> arr mt (arr mt rt)
-  | A.Binop (A.Mult KMoney) -> arr mt (arr rt mt)
-  | A.Binop (A.Lt KInt | A.Lte KInt | A.Gt KInt | A.Gte KInt) ->
-    arr it (arr it bt)
-  | A.Binop (A.Lt KRat | A.Lte KRat | A.Gt KRat | A.Gte KRat) ->
-    arr rt (arr rt bt)
-  | A.Binop (A.Lt KMoney | A.Lte KMoney | A.Gt KMoney | A.Gte KMoney) ->
-    arr mt (arr mt bt)
-  | A.Binop (A.Lt KDate | A.Lte KDate | A.Gt KDate | A.Gte KDate) ->
-    arr dat (arr dat bt)
-  | A.Binop (A.Lt KDuration | A.Lte KDuration | A.Gt KDuration | A.Gte KDuration)
-    ->
-    arr dut (arr dut bt)
-  | A.Binop (A.Eq | A.Neq) -> arr any (arr any bt)
-  | A.Binop A.Map -> arr (arr any any2) (arr array_any array_any2)
-  | A.Binop A.Filter -> arr (arr any bt) (arr array_any array_any)
-  | A.Binop A.Concat -> arr array_any (arr array_any array_any)
-  | A.Unop (A.Minus KInt) -> arr it it
-  | A.Unop (A.Minus KRat) -> arr rt rt
-  | A.Unop (A.Minus KMoney) -> arr mt mt
-  | A.Unop (A.Minus KDuration) -> arr dut dut
-  | A.Unop A.Not -> arr bt bt
-  | A.Unop (A.Log (A.PosRecordIfTrueBool, _)) -> arr bt bt
-  | A.Unop (A.Log _) -> arr any any
-  | A.Unop A.Length -> arr array_any it
-  | A.Unop A.GetDay -> arr dat it
-  | A.Unop A.GetMonth -> arr dat it
-  | A.Unop A.GetYear -> arr dat it
-  | A.Unop A.FirstDayOfMonth -> arr dat dat
-  | A.Unop A.LastDayOfMonth -> arr dat dat
-  | A.Unop A.RoundMoney -> arr mt mt
-  | A.Unop A.RoundDecimal -> arr rt rt
-  | A.Unop A.IntToRat -> arr it rt
-  | A.Unop A.MoneyToRat -> arr mt rt
-  | A.Unop A.RatToMoney -> arr rt mt
-  | Binop (Mult KDate) | Binop (Div (KDate | KDuration)) | Unop (Minus KDate) ->
-    Errors.raise_spanned_error pos "This operator is not available!"
+  let any = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
+  let any2 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
+  let bt = lazy (UnionFind.make (TLit TBool, pos)) in
+  let it = lazy (UnionFind.make (TLit TInt, pos)) in
+  let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
+  let ( @-> ) x y =
+    lazy (UnionFind.make (TArrow (Lazy.force x, Lazy.force y), pos))
+  in
+  let ty =
+    match Marked.unmark op with
+    | Fold -> (any2 @-> any @-> any2) @-> any2 @-> array any @-> any2
+    | Eq -> any @-> any @-> bt
+    | Map -> (any @-> any2) @-> array any @-> array any2
+    | Filter -> (any @-> bt) @-> array any @-> array any
+    | Reduce -> (any @-> any @-> any) @-> any @-> array any @-> any
+    | Concat -> array any @-> array any @-> array any
+    | Log (PosRecordIfTrueBool, _) -> bt @-> bt
+    | Log _ -> any @-> any
+    | Length -> array any @-> it
+  in
+  Lazy.force ty
+
+let resolve_overload_ret_type
+    (ctx : A.decl_ctx)
+    e
+    (op : ('a A.any, Operator.overloaded) A.operator)
+    tys : unionfind_typ =
+  let op_ty =
+    Operator.overload_type ctx
+      (Marked.mark (Expr.pos e) op)
+      (List.map (typ_to_ast ~unsafe:true) tys)
+    (* We use [unsafe] because the error is caught below *)
+  in
+  ast_to_typ (Type.arrow_return op_ty)
 
 (** {1 Double-directed typing} *)
 
 module Env = struct
   type 'e t = {
     vars : ('e, unionfind_typ) Var.Map.t;
-    scope_vars : A.typ A.ScopeVarMap.t;
-    scopes : A.typ A.ScopeVarMap.t A.ScopeMap.t;
+    scope_vars : A.typ A.ScopeVar.Map.t;
+    scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
   }
 
   let empty =
     {
       vars = Var.Map.empty;
-      scope_vars = A.ScopeVarMap.empty;
-      scopes = A.ScopeMap.empty;
+      scope_vars = A.ScopeVar.Map.empty;
+      scopes = A.ScopeName.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
-  let get_scope_var t sv = A.ScopeVarMap.find_opt sv t.scope_vars
+  let get_scope_var t sv = A.ScopeVar.Map.find_opt sv t.scope_vars
 
   let get_subscope_out_var t scope var =
-    Option.bind (A.ScopeMap.find_opt scope t.scopes) (fun vmap ->
-        A.ScopeVarMap.find_opt var vmap)
+    Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
+        A.ScopeVar.Map.find_opt var vmap)
 
   let add v tau t = { t with vars = Var.Map.add v tau t.vars }
   let add_var v typ t = add v (ast_to_typ typ) t
 
   let add_scope_var v typ t =
-    { t with scope_vars = A.ScopeVarMap.add v typ t.scope_vars }
+    { t with scope_vars = A.ScopeVar.Map.add v typ t.scope_vars }
 
   let add_scope scope_name ~vars t =
-    { t with scopes = A.ScopeMap.add scope_name vars t.scopes }
+    { t with scopes = A.ScopeName.Map.add scope_name vars t.scopes }
+
+  let open_scope scope_name t =
+    let scope_vars =
+      A.ScopeVar.Map.union
+        (fun _ _ -> assert false)
+        t.scope_vars
+        (A.ScopeName.Map.find scope_name t.scopes)
+    in
+    { t with scope_vars }
 end
 
 let add_pos e ty = Marked.mark (Expr.pos e) ty
@@ -371,68 +370,165 @@ and typecheck_expr_top_down :
           (Expr.format ctx) e
     in
     Expr.elocation loc (uf_mark (ast_to_typ ty))
-  | A.EStruct (s_name, fmap) ->
-    let mark = ty_mark (TStruct s_name) in
-    let str = A.StructMap.find s_name ctx.A.ctx_structs in
-    let fmap' =
-      (* This assumes that the fields in fmap and the struct type are already
-         ensured to be the same *)
-      A.StructFieldMap.mapi
-        (fun f_name f_e ->
-          let f_ty = List.assoc f_name str in
-          typecheck_expr_top_down ctx env (ast_to_typ f_ty) f_e)
-        fmap
+  | A.EStruct { name; fields } ->
+    let mark = ty_mark (TStruct name) in
+    let str = A.StructName.Map.find name ctx.A.ctx_structs in
+    let _check_fields : unit =
+      let missing_fields, extra_fields =
+        A.StructField.Map.fold
+          (fun fld x (remaining, extra) ->
+            if A.StructField.Map.mem fld remaining then
+              A.StructField.Map.remove fld remaining, extra
+            else remaining, A.StructField.Map.add fld x extra)
+          fields
+          (str, A.StructField.Map.empty)
+      in
+      let errs =
+        List.map
+          (fun (f, ty) ->
+            ( Some (Format.asprintf "Missing field %a" A.StructField.format_t f),
+              Marked.get_mark ty ))
+          (A.StructField.Map.bindings missing_fields)
+        @ List.map
+            (fun (f, ef) ->
+              let dup = A.StructField.Map.mem f str in
+              ( Some
+                  (Format.asprintf "%s field %a"
+                     (if dup then "Duplicate" else "Unknown")
+                     A.StructField.format_t f),
+                Expr.pos ef ))
+            (A.StructField.Map.bindings extra_fields)
+      in
+      if errs <> [] then
+        Errors.raise_multispanned_error errs
+          "Mismatching field definitions for structure %a" A.StructName.format_t
+          name
     in
-    Expr.estruct s_name fmap' mark
-  | A.EStructAccess (e_struct, f_name, s_name) ->
-    let mark =
-      uf_mark
-        (ast_to_typ
-           (List.assoc f_name (A.StructMap.find s_name ctx.A.ctx_structs)))
+    let fields' =
+      A.StructField.Map.mapi
+        (fun f_name f_e ->
+          let f_ty = A.StructField.Map.find f_name str in
+          typecheck_expr_top_down ctx env (ast_to_typ f_ty) f_e)
+        fields
+    in
+    Expr.estruct name fields' mark
+  | A.EDStructAccess { e = e_struct; name_opt; field } ->
+    let t_struct =
+      match name_opt with
+      | Some name -> TStruct name
+      | None -> TAny (Any.fresh ())
     in
     let e_struct' =
-      typecheck_expr_top_down ctx env (unionfind (TStruct s_name)) e_struct
+      typecheck_expr_top_down ctx env (unionfind t_struct) e_struct
     in
-    Expr.estructaccess e_struct' f_name s_name mark
-  | A.EEnumInj (e_enum, c_name, e_name) ->
-    let mark = uf_mark (unionfind (TEnum e_name)) in
+    let name =
+      match UnionFind.get (ty e_struct') with
+      | TStruct name, _ -> name
+      | TAny _, _ ->
+        Printf.ksprintf failwith
+          "Disambiguation failed before reaching field %s" field
+      | _ ->
+        Errors.raise_spanned_error (Expr.pos e)
+          "This is not a structure, cannot access field %s (%a)" field
+          (format_typ ctx) (ty e_struct')
+    in
+    let fld_ty =
+      let str =
+        try A.StructName.Map.find name ctx.A.ctx_structs
+        with Not_found ->
+          Errors.raise_spanned_error pos_e "No structure %a found"
+            A.StructName.format_t name
+      in
+      let field =
+        let candidate_structs =
+          try A.IdentName.Map.find field ctx.ctx_struct_fields
+          with Not_found ->
+            Errors.raise_spanned_error context_mark.pos
+              "Field %s does not belong to structure %a (no structure defines \
+               it)"
+              field A.StructName.format_t name
+        in
+        try A.StructName.Map.find name candidate_structs
+        with Not_found ->
+          Errors.raise_spanned_error context_mark.pos
+            "Field %s does not belong to structure %a, but to %a" field
+            A.StructName.format_t name
+            (Format.pp_print_list
+               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
+               A.StructName.format_t)
+            (List.map fst (A.StructName.Map.bindings candidate_structs))
+      in
+      A.StructField.Map.find field str
+    in
+    let mark = uf_mark (ast_to_typ fld_ty) in
+    Expr.edstructaccess e_struct' field (Some name) mark
+  | A.EStructAccess { e = e_struct; name; field } ->
+    let fld_ty =
+      let str =
+        try A.StructName.Map.find name ctx.A.ctx_structs
+        with Not_found ->
+          Errors.raise_spanned_error pos_e "No structure %a found"
+            A.StructName.format_t name
+      in
+      try A.StructField.Map.find field str
+      with Not_found ->
+        Errors.raise_multispanned_error
+          [
+            None, pos_e;
+            ( Some "Structure %a declared here",
+              Marked.get_mark (A.StructName.get_info name) );
+          ]
+          "Structure %a doesn't define a field %a" A.StructName.format_t name
+          A.StructField.format_t field
+    in
+    let mark = uf_mark (ast_to_typ fld_ty) in
+    let e_struct' =
+      typecheck_expr_top_down ctx env (unionfind (TStruct name)) e_struct
+    in
+    Expr.estructaccess e_struct' field name mark
+  | A.EInj { name; cons; e = e_enum } ->
+    let mark = uf_mark (unionfind (TEnum name)) in
     let e_enum' =
       typecheck_expr_top_down ctx env
-        (ast_to_typ (List.assoc c_name (A.EnumMap.find e_name ctx.A.ctx_enums)))
+        (ast_to_typ
+           (A.EnumConstructor.Map.find cons
+              (A.EnumName.Map.find name ctx.A.ctx_enums)))
         e_enum
     in
-    Expr.eenuminj e_enum' c_name e_name mark
-  | A.EMatchS (e1, e_name, cases) ->
-    let cases_ty = A.EnumMap.find e_name ctx.A.ctx_enums in
+    Expr.einj e_enum' cons name mark
+  | A.EMatch { e = e1; name; cases } ->
+    let cases_ty = A.EnumName.Map.find name ctx.A.ctx_enums in
     let t_ret = unionfind ~pos:e1 (TAny (Any.fresh ())) in
     let mark = uf_mark t_ret in
-    let e1' = typecheck_expr_top_down ctx env (unionfind (TEnum e_name)) e1 in
+    let e1' = typecheck_expr_top_down ctx env (unionfind (TEnum name)) e1 in
     let cases' =
-      A.EnumConstructorMap.mapi
+      A.EnumConstructor.Map.mapi
         (fun c_name e ->
-          let c_ty = List.assoc c_name cases_ty in
+          let c_ty = A.EnumConstructor.Map.find c_name cases_ty in
           let e_ty = unionfind ~pos:e (TArrow (ast_to_typ c_ty, t_ret)) in
           typecheck_expr_top_down ctx env e_ty e)
         cases
     in
-    Expr.ematchs e1' e_name cases' mark
-  | A.EScopeCall (scope_name, fields) ->
-    let scope_out_struct = A.ScopeMap.find scope_name ctx.ctx_scopes in
+    Expr.ematch e1' name cases' mark
+  | A.EScopeCall { scope; args } ->
+    let scope_out_struct =
+      (A.ScopeName.Map.find scope ctx.ctx_scopes).out_struct_name
+    in
     let mark = uf_mark (unionfind (TStruct scope_out_struct)) in
-    let vars = A.ScopeMap.find scope_name env.scopes in
-    let fields' =
-      A.ScopeVarMap.mapi
+    let vars = A.ScopeName.Map.find scope env.scopes in
+    let args' =
+      A.ScopeVar.Map.mapi
         (fun name ->
           typecheck_expr_top_down ctx env
-            (ast_to_typ (A.ScopeVarMap.find name vars)))
-        fields
+            (ast_to_typ (A.ScopeVar.Map.find name vars)))
+        args
     in
-    Expr.escopecall scope_name fields' mark
+    Expr.escopecall scope args' mark
   | A.ERaise ex -> Expr.eraise ex context_mark
-  | A.ECatch (e1, ex, e2) ->
-    let e1' = typecheck_expr_top_down ctx env tau e1 in
-    let e2' = typecheck_expr_top_down ctx env tau e2 in
-    Expr.ecatch e1' ex e2' context_mark
+  | A.ECatch { body; exn; handler } ->
+    let body' = typecheck_expr_top_down ctx env tau body in
+    let handler' = typecheck_expr_top_down ctx env tau handler in
+    Expr.ecatch body' exn handler' context_mark
   | A.EVar v ->
     let tau' =
       match Env.get env v with
@@ -443,62 +539,23 @@ and typecheck_expr_top_down :
     in
     Expr.evar (Var.translate v) (uf_mark tau')
   | A.ELit lit -> Expr.elit lit (ty_mark (lit_type lit))
-  | A.ETuple (es, None) ->
+  | A.ETuple es ->
     let tys = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) es in
     let mark = uf_mark (unionfind (TTuple tys)) in
     let es' = List.map2 (typecheck_expr_top_down ctx env) tys es in
-    Expr.etuple es' None mark
-  | A.ETuple (es, Some s_name) ->
-    let tys =
-      List.map
-        (fun (_, ty) -> ast_to_typ ty)
-        (A.StructMap.find s_name ctx.A.ctx_structs)
+    Expr.etuple es' mark
+  | A.ETupleAccess { e = e1; index; size } ->
+    if index >= size then
+      Errors.raise_spanned_error (Expr.pos e)
+        "Tuple access out of bounds (%d/%d)" index size;
+    let tuple_ty =
+      TTuple
+        (List.init size (fun n ->
+             if n = index then tau else unionfind ~pos:e1 (TAny (Any.fresh ()))))
     in
-    let mark = uf_mark (unionfind (TStruct s_name)) in
-    let es' = List.map2 (typecheck_expr_top_down ctx env) tys es in
-    Expr.etuple es' (Some s_name) mark
-  | A.ETupleAccess (e1, n, s, typs) ->
-    let typs' = List.map ast_to_typ typs in
-    let tuple_ty = match s with None -> TTuple typs' | Some s -> TStruct s in
-    let t1n =
-      try List.nth typs' n
-      with Not_found ->
-        Errors.raise_spanned_error (Expr.pos e1)
-          "Expression should have a tuple type with at least %d elements but \
-           only has %d"
-          n (List.length typs)
-    in
-    let mark = uf_mark t1n in
-    let e1' = typecheck_expr_top_down ctx env (unionfind tuple_ty) e1 in
-    Expr.etupleaccess e1' n s typs mark
-  | A.EInj (e1, n, e_name, ts) ->
-    let ts' = List.map ast_to_typ ts in
-    let ts_n =
-      try List.nth ts' n
-      with Not_found ->
-        Errors.raise_spanned_error (Expr.pos e)
-          "Expression should have a sum type with at least %d cases but only \
-           has %d"
-          n (List.length ts)
-    in
-    let mark = uf_mark (unionfind (TEnum e_name)) in
-    let e1' = typecheck_expr_top_down ctx env ts_n e1 in
-    Expr.einj e1' n e_name ts mark
-  | A.EMatch (e1, es, e_name) ->
-    let es' =
-      List.map2
-        (fun es' (_, c_ty) ->
-          typecheck_expr_top_down ctx env
-            (unionfind ~pos:es' (TArrow (ast_to_typ c_ty, tau)))
-            es')
-        es
-        (A.EnumMap.find e_name ctx.ctx_enums)
-    in
-    let e1' =
-      typecheck_expr_top_down ctx env (unionfind ~pos:e1 (TEnum e_name)) e1
-    in
-    Expr.ematch e1' es' e_name context_mark
-  | A.EAbs (binder, t_args) ->
+    let e1' = typecheck_expr_top_down ctx env (unionfind ~pos:e1 tuple_ty) e1 in
+    Expr.etupleaccess e1' index size context_mark
+  | A.EAbs { binder; tys = t_args } ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Errors.raise_spanned_error (Expr.pos e)
         "function has %d variables but was supplied %d types"
@@ -513,6 +570,7 @@ and typecheck_expr_top_down :
           tau_args t_ret
       in
       let mark = uf_mark t_func in
+      assert (List.for_all all_resolved tau_args);
       let xs, body = Bindlib.unmbind binder in
       let xs' = Array.map Var.translate xs in
       let env =
@@ -522,26 +580,94 @@ and typecheck_expr_top_down :
       in
       let body' = typecheck_expr_top_down ctx env t_ret body in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
-      Expr.eabs binder' t_args mark
-  | A.EApp (e1, args) ->
+      Expr.eabs binder' (List.map typ_to_ast tau_args) mark
+  | A.EApp { f = (EOp { op; tys }, _) as e1; args } ->
+    let t_args = List.map ast_to_typ tys in
+    let t_func =
+      List.fold_right
+        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
+        t_args tau
+    in
+    let e1', args' =
+      Operator.kind_dispatch op
+        ~polymorphic:(fun _ ->
+          (* Type the operator first, then right-to-left: polymorphic operators
+             are required to allow the resolution of all type variables this
+             way *)
+          let e1' = typecheck_expr_top_down ctx env t_func e1 in
+          let args' =
+            List.rev_map2
+              (typecheck_expr_top_down ctx env)
+              (List.rev t_args) (List.rev args)
+          in
+          e1', args')
+        ~overloaded:(fun _ ->
+          (* Typing the arguments first is required to resolve the operator *)
+          let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
+          let e1' = typecheck_expr_top_down ctx env t_func e1 in
+          e1', args')
+        ~monomorphic:(fun _ ->
+          (* Here it doesn't matter but may affect the error messages *)
+          let e1' = typecheck_expr_top_down ctx env t_func e1 in
+          let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
+          e1', args')
+        ~resolved:(fun _ ->
+          (* This case should not fail *)
+          let e1' = typecheck_expr_top_down ctx env t_func e1 in
+          let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
+          e1', args')
+    in
+    Expr.eapp e1' args' context_mark
+  | A.EApp { f = e1; args } ->
+    (* Here we type the arguments first (in order), to ensure we know the types
+       of the arguments if [f] is [EAbs] before disambiguation. This is also the
+       right order for the [let-in] form. *)
     let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
     let t_func =
       List.fold_right
         (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
         t_args tau
     in
-    let e1' = typecheck_expr_top_down ctx env t_func e1 in
     let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
+    let e1' = typecheck_expr_top_down ctx env t_func e1 in
     Expr.eapp e1' args' context_mark
-  | A.EOp op -> Expr.eop op (uf_mark (op_type (Marked.mark pos_e op)))
-  | A.EDefault (excepts, just, cons) ->
+  | A.EOp { op; tys } ->
+    let tys' = List.map ast_to_typ tys in
+    let t_ret = unionfind (TAny (Any.fresh ())) in
+    let t_func =
+      List.fold_right
+        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
+        tys' t_ret
+    in
+    unify ctx e t_func tau;
+    let tys, mark =
+      Operator.kind_dispatch op
+        ~polymorphic:(fun op ->
+          tys, uf_mark (polymorphic_op_type (Marked.mark pos_e op)))
+        ~monomorphic:(fun op ->
+          let mark =
+            uf_mark
+              (ast_to_typ (Operator.monomorphic_type (Marked.mark pos_e op)))
+          in
+          List.map typ_to_ast tys', mark)
+        ~overloaded:(fun op ->
+          unify ctx e t_ret (resolve_overload_ret_type ctx e op tys');
+          List.map typ_to_ast tys', { uf = t_func; pos = pos_e })
+        ~resolved:(fun op ->
+          let mark =
+            uf_mark (ast_to_typ (Operator.resolved_type (Marked.mark pos_e op)))
+          in
+          List.map typ_to_ast tys', mark)
+    in
+    Expr.eop op tys mark
+  | A.EDefault { excepts; just; cons } ->
     let cons' = typecheck_expr_top_down ctx env tau cons in
     let just' =
       typecheck_expr_top_down ctx env (unionfind ~pos:just (TLit TBool)) just
     in
     let excepts' = List.map (typecheck_expr_top_down ctx env tau) excepts in
     Expr.edefault excepts' just' cons' context_mark
-  | A.EIfThenElse (cond, et, ef) ->
+  | A.EIfThenElse { cond; etrue = et; efalse = ef } ->
     let et' = typecheck_expr_top_down ctx env tau et in
     let ef' = typecheck_expr_top_down ctx env tau ef in
     let cond' =
@@ -554,7 +680,7 @@ and typecheck_expr_top_down :
       typecheck_expr_top_down ctx env (unionfind ~pos:e1 (TLit TBool)) e1
     in
     Expr.eassert e1' mark
-  | A.ErrorOnEmpty e1 ->
+  | A.EErrorOnEmpty e1 ->
     let e1' = typecheck_expr_top_down ctx env tau e1 in
     Expr.eerroronempty e1' context_mark
   | A.EArray es ->
@@ -579,19 +705,27 @@ let wrap_expr ctx f e =
 
 let get_ty_mark { uf; pos } = A.Typed { ty = typ_to_ast uf; pos }
 
-(* Infer the type of an expression *)
-let expr
+let expr_raw
     (type a)
     (ctx : A.decl_ctx)
     ?(env = Env.empty)
     ?(typ : A.typ option)
-    (e : (a, 'm) A.gexpr) : (a, A.typed A.mark) A.boxed_gexpr =
+    (e : (a, 'm) A.gexpr) : (a, mark) A.gexpr =
   let fty =
     match typ with
     | None -> typecheck_expr_bottom_up ctx env
     | Some typ -> typecheck_expr_top_down ctx env (ast_to_typ typ)
   in
-  Expr.map_marks ~f:get_ty_mark (wrap_expr ctx fty e)
+  wrap_expr ctx fty e
+
+let check_expr ctx ?env ?typ e =
+  Expr.map_marks
+    ~f:(fun { pos; _ } -> A.Untyped { pos })
+    (expr_raw ctx ?env ?typ e)
+
+(* Infer the type of an expression *)
+let expr ctx ?env ?typ e =
+  Expr.map_marks ~f:get_ty_mark (expr_raw ctx ?env ?typ e)
 
 let rec scope_body_expr ctx env ty_out body_expr =
   match body_expr with

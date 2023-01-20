@@ -28,9 +28,39 @@ le bureau BRS de la 6° sous-direction de la direction du budget le 31/08/2022.
 Pour éviter de refaire les calculs de revalorisation en Catala, nous prendrons
 comme référence les valeurs de la CNAV rappelées dans des circulaires internes.
 
-## Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
+## Circulaire de la CNAV 2023-3 du 09/01/2022 "Revalorisation à compter du 1er janvier 2023"
 
-Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
+[Lien vers le texte](https://www.legislation.cnav.fr/Documents/circulaire_cnav_2023_03_09012023.pdf)
+
+Le montant de l’Aspa s’élève, à compter du 1er janvier 2023, à :
+
+Bénéficiaire   Montant annuel Montant mensuel
+-------------- -------------- ---------------
+Personne seule 11 533,02 €    961,08 €
+Couple marié   17 905,06 €    1 492,08 €
+
+```catala
+# Pas important pour nous
+```
+
+Pour prétendre à cette allocation non contributive, les plafonds de ressources sont fixés à:
+
+Bénéficiaire   Montant annuel Montant mensuel
+-------------- -------------- -----------------
+Personne seule 11 533,02 €    961,08 €
+Couple marié   17 905,06 €    1 492,08 €
+
+```catala
+# Uniquement la valeur du plafond individuel est important pour l'éligibilité
+# aux APL
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  définition plafond_individuel_l815_9_sécu sous condition
+    date_courante >= |2023-01-01| et
+    date_courante < |2024-01-01|
+  conséquence égal à 11 533,02 €
+```
+
+## Circulaire de la CNAV 2022-3 du 11/01/2022 "Revalorisation à compter du 1er janvier 2022"
 
 [Lien vers le texte](https://www.legislation.cnav.fr/Documents/circulaire_cnav_2022_03_11012022.pdf)
 
@@ -57,8 +87,8 @@ Couple marié   17 079,77 €    1 423,31 €
 # aux APL
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition plafond_individuel_l815_9_sécu sous condition
-    date_courante >=@ |2022-01-01| et
-    date_courante <@ |2023-01-01|
+    date_courante >= |2022-01-01| et
+    date_courante < |2023-01-01|
   conséquence égal à 11 001,44€
 ```
 
@@ -90,8 +120,8 @@ Couple marié   16 893,94 €    1 407,82 €
 # aux APL
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition plafond_individuel_l815_9_sécu sous condition
-    date_courante >=@ |2021-01-01| et
-    date_courante <@ |2022-01-01|
+    date_courante >= |2021-01-01| et
+    date_courante < |2022-01-01|
   conséquence égal à 10 881,75€
 ```
 
@@ -120,9 +150,9 @@ code de la construction et de l'habitation ;
 ```catala
 champ d'application ContributionsSocialesAidesPersonnelleLogement:
   définition montant de aide_finale sous condition
-    date_courante >=@ |2018-09-01|
+    date_courante >= |2018-09-01|
   conséquence égal à
-    aide_finale *€ taux_crds
+    aide_finale * taux_crds
 
   assertion exonéré_csg # Voir L136-1-3 code de la sécurité sociale
 ```
@@ -158,7 +188,7 @@ Le taux des contributions instituées par les articles 14 à 17 est fixé à 0,5
 
 ```catala
 champ d'application ContributionsSocialesAidesPersonnelleLogement:
-  définition taux_crds sous condition date_courante >=@ |2020-01-01|
+  définition taux_crds sous condition date_courante >= |2020-01-01|
   conséquence égal à 0,5%
 ```
 
@@ -256,7 +286,7 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
     # Faut-il prendre calculette.traitement_aide_finale ou
     # calculette_sans_garde_alternée.traitement_aide_finale ?
     calculette.traitement_aide_finale de (
-      calculette_sans_garde_alternée.aide_finale_formule +€ (
+      calculette_sans_garde_alternée.aide_finale_formule + (
         si nombre de coefficents_enfants_garde_alternée_pris_en_compte = 0 alors
           0 €
         sinon
@@ -264,13 +294,12 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
           # en garde alternée à hauteur des coefficients prenant en compte la
           # période cumulée pendant laquelle le ménage accueille l'enfant
           # à domicile.
-          (calculette.aide_finale_formule -€
-            calculette_sans_garde_alternée.aide_finale_formule) *€
-              ((somme décimal pour coeff dans
-                coefficents_enfants_garde_alternée_pris_en_compte de coeff) /.
-              (entier_vers_décimal de
-                (nombre de
-                  coefficents_enfants_garde_alternée_pris_en_compte)))))
+          (calculette.aide_finale_formule -
+            calculette_sans_garde_alternée.aide_finale_formule) *
+              ((somme décimal de
+                coefficents_enfants_garde_alternée_pris_en_compte) /
+               (décimal de
+                nombre de coefficents_enfants_garde_alternée_pris_en_compte))))
 ```
 
 5. Considérant qu'il résulte de ce qui précède que le ministre du logement et
@@ -296,8 +325,8 @@ ECLI:FR:CECHR:2017:398563.20170721
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
+  définition taux_francs_vers_euros égal à (1,0 / 6,55957)
 
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition taux_francs_vers_euros égal à (1,0 /. 6,55957)
+  définition taux_francs_vers_euros égal à (1,0 / 6,55957)
 ```

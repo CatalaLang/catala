@@ -66,7 +66,7 @@ let scope_a (scope_a_in: ScopeAIn.t) : ScopeA.t =
 let scope_b (scope_b_in: ScopeBIn.t) : ScopeB.t =
   let a_: unit -> bool = scope_b_in.ScopeBIn.a_in in
   let scope_a_dot_a_: unit -> bool = fun (_: unit) -> (raise EmptyError) in
-  let result_: ScopeA.t = ((scope_a) {ScopeAIn.a_in = scope_a_dot_a_}) in
+  let result_: ScopeA.t = ((scope_a) ({ScopeAIn.a_in = scope_a_dot_a_})) in
   let scope_a_dot_a_: bool = result_.ScopeA.a in
   let a_: bool = (
     try

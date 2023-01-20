@@ -17,9 +17,8 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.y] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/enums_inj-empty.catala_en:10.10-11
+┌─⯈ tests/test_proof/bad/enums_inj-empty.catala_en:10.10-11:
 └──┐
-   │
 10 │   context y content integer
    │           ‾
    └─ Article

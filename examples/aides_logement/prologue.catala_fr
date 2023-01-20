@@ -286,7 +286,7 @@ déclaration énumération ModeOccupationImpayé:
 déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
-  entrée sortie date_courante contenu date
+  entrée résultat date_courante contenu date
 
   # Différentes conditions pour l'éligibilité
   interne condition_prêt condition dépend de Prêt
@@ -317,11 +317,11 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne plafond_individuel_l815_9_sécu contenu argent
 
   ouverture_droits_retraite champ d'application OuvertureDroitsRetraite
-  sortie éligibilité condition
-  sortie nombre_personnes_à_charge_prises_en_compte contenu entier
-  sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
+  résultat éligibilité condition
+  résultat nombre_personnes_à_charge_prises_en_compte contenu entier
+  résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
    collection décimal
-  sortie condition_2_r823_4 condition dépend de PersonneÀCharge
+  résultat condition_2_r823_4 condition dépend de PersonneÀCharge
 
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   # TODO informatique et juridique: trouver une meilleur place pour mettre
@@ -334,22 +334,22 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition nombre_personnes_à_charge_prises_en_compte égal à
     nombre de personnes_à_charge_prises_en_compte
   définition coefficents_enfants_garde_alternée_pris_en_compte égal à
-    application pour personne_à_charge dans (
-      filtre pour personne_à_charge dans personnes_à_charge_prises_en_compte de
-        (selon personne_à_charge sous forme
-        -- AutrePersonneÀCharge: faux
+    ((selon personne_à_charge sous forme
+        -- AutrePersonneÀCharge: 0,0
         -- EnfantÀCharge de enfant: (
-          selon enfant.situation_garde_alternée sous forme
-          -- GardeAlternéeCoefficientPriseEnCharge: vrai
-          -- PasDeGardeAlternée: faux
-        ))
-    ) de (selon personne_à_charge sous forme
-      -- AutrePersonneÀCharge: 0,0
-      -- EnfantÀCharge de enfant: (
-        selon enfant.situation_garde_alternée sous forme
-        -- GardeAlternéeCoefficientPriseEnCharge de coeff: coeff
-        -- PasDeGardeAlternée: 0,0
-    ))
+             selon enfant.situation_garde_alternée sous forme
+             -- GardeAlternéeCoefficientPriseEnCharge de coeff: coeff
+             -- PasDeGardeAlternée: 0,0
+     ))
+     pour personne_à_charge parmi personnes_à_charge_prises_en_compte
+       tel que
+         (selon personne_à_charge sous forme
+          -- AutrePersonneÀCharge: faux
+          -- EnfantÀCharge de enfant: (
+               selon enfant.situation_garde_alternée sous forme
+               -- GardeAlternéeCoefficientPriseEnCharge: vrai
+               -- PasDeGardeAlternée: faux
+    )))
 ```
 
 ### Éligibilité à l'aide personnalisée au logement
@@ -358,7 +358,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
 déclaration champ d'application ÉligibilitéAidePersonnaliséeLogement:
   entrée ménage contenu Ménage
   entrée demandeur contenu Demandeur
-  entrée sortie date_courante contenu date
+  entrée résultat date_courante contenu date
 
   interne condition_logement_bailleur condition
   interne condition_logement_prêt condition
@@ -367,9 +367,9 @@ déclaration champ d'application ÉligibilitéAidePersonnaliséeLogement:
 
   éligibilité_commune champ d'application ÉligibilitéAidesPersonnelleLogement
 
-  sortie éligibilité condition
-  sortie nombre_personnes_à_charge_prises_en_compte contenu entier
-  sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
+  résultat éligibilité condition
+  résultat nombre_personnes_à_charge_prises_en_compte contenu entier
+  résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
    collection décimal
 
 
@@ -407,11 +407,11 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   éligibilité_commune champ d'application ÉligibilitéAidesPersonnelleLogement
 
 
-  sortie éligibilité contenu TypeÉligibilitéAllocationLogement
+  résultat éligibilité contenu TypeÉligibilitéAllocationLogement
     état dispositions_communes
     état l841_2
-  sortie nombre_personnes_à_charge_prises_en_compte contenu entier
-  sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
+  résultat nombre_personnes_à_charge_prises_en_compte contenu entier
+  résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
     collection décimal
 
 champ d'application ÉligibilitéAllocationLogement:
@@ -461,7 +461,7 @@ déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
   base_mensuelle_allocations_familiales champ d'application
     BaseMensuelleAllocationsFamiliales
 
-  sortie montant_prime_déménagement contenu argent
+  résultat montant_prime_déménagement contenu argent
 
 champ d'application ÉligibilitéPrimeDeDéménagement:
   définition éligibilité_apl.ménage égal à ménage
@@ -505,7 +505,7 @@ déclaration champ d'application RessourcesAidesPersonnelleLogement:
   base_mensuelle_allocations_familiales champ d'application
     BaseMensuelleAllocationsFamiliales
 
-  sortie ressources_prises_en_compte contenu argent
+  résultat ressources_prises_en_compte contenu argent
 ```
 
 ### Calcul des contributions sociales s'appliquant aux aides personnelles au logement
@@ -517,7 +517,7 @@ déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
   interne taux_crds contenu décimal
   interne exonéré_csg condition
 
-  sortie montant contenu argent dépend de argent
+  résultat montant contenu argent dépend de argent
 ```
 
 ### Calcul du montant de l'aide personnalisée au logement
@@ -547,7 +547,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   interne loyer_éligible contenu argent
   interne taux_loyer_éligible contenu décimal
     état formule
-    état arrondi
+    état taux_arrondi
   interne rapport_loyers contenu décimal
   interne loyer_référence contenu argent
   interne fraction_l832_3 contenu décimal
@@ -558,18 +558,18 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   interne abattement_forfaitaire_d823_17 contenu argent
   interne taux_prise_compte_ressources contenu décimal
 
-  sortie montant_forfaitaire_charges_d823_16 contenu argent
-  sortie plafond_loyer_d823_16_2 contenu argent
-  sortie participation_minimale contenu argent
-  sortie taux_composition_familiale contenu décimal
-  sortie participation_personnelle contenu argent
+  résultat montant_forfaitaire_charges_d823_16 contenu argent
+  résultat plafond_loyer_d823_16_2 contenu argent
+  résultat participation_minimale contenu argent
+  résultat taux_composition_familiale contenu décimal
+  résultat participation_personnelle contenu argent
 
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
-  sortie aide_finale_formule contenu argent
+  résultat aide_finale_formule contenu argent
 
-  sortie traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent dépend de argent
     état diminué
     état minoration_forfaitaire
     état contributions_sociales_arrondi
@@ -593,14 +593,14 @@ déclaration champ d'application CalculÉquivalenceLoyerMinimale:
     collection TrancheRevenuDécimal
   interne montant_forfaitaire_d832_26 contenu argent
 
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 déclaration champ d'application CalculNombrePartLogementFoyer:
   entrée condition_2_du_832_25 contenu booléen
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
 
-  sortie n_nombre_parts_d832_25 contenu décimal
+  résultat n_nombre_parts_d832_25 contenu décimal
 
 déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
   entrée type_logement_foyer contenu TypeLogementFoyer
@@ -614,18 +614,18 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
 
   contexte condition_2_du_832_25 contenu booléen
 
-  sortie coefficient_multiplicateur_d832_25 contenu argent
-  sortie coefficient_r_d832_25 contenu argent
-  contexte sortie n_nombre_parts_d832_25 contenu décimal
-  sortie équivalence_loyer_éligible contenu argent
-  sortie plafond_équivalence_loyer_éligible contenu argent
+  résultat coefficient_multiplicateur_d832_25 contenu argent
+  résultat coefficient_r_d832_25 contenu argent
+  contexte résultat n_nombre_parts_d832_25 contenu décimal
+  résultat équivalence_loyer_éligible contenu argent
+  résultat plafond_équivalence_loyer_éligible contenu argent
   interne abattement_dépense_nette_minimale_d832_27
     contenu argent dépend de argent
   interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
   interne montant_forfaitaire_d832_24 contenu argent
   interne montant_forfaitaire_d832_27 contenu argent
   interne montant_minimal_aide_d823_24 contenu argent
-  sortie équivalence_loyer_minimale contenu argent
+  résultat équivalence_loyer_minimale contenu argent
 
   calcul_nombre_parts champ d'application CalculNombrePartLogementFoyer
   calcul_équivalence_loyer_minimale champ d'application
@@ -633,13 +633,13 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
-  sortie coefficient_prise_en_charge_d832_25 contenu décimal
+  résultat coefficient_prise_en_charge_d832_25 contenu décimal
     état formule
-    état arrondi
+    état coeff_arrondi
     état seuil
 
-  sortie aide_finale_formule contenu argent
-  sortie traitement_aide_finale contenu argent dépend de argent
+  résultat aide_finale_formule contenu argent
+  résultat traitement_aide_finale contenu argent dépend de argent
     état minoration_forfaitaire
     état abattement
     état contributions_sociales_arrondi
@@ -656,7 +656,7 @@ déclaration champ d'application CalculNombrePartsAccessionPropriété:
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
 
-  sortie n_nombre_parts_d832_11 contenu décimal
+  résultat n_nombre_parts_d832_11 contenu décimal
 
 
 déclaration champ d'application
@@ -676,16 +676,16 @@ déclaration champ d'application
   entrée ancienneté_logement contenu NeufOuAncien
   entrée date_courante contenu date
 
-  sortie mensualité_éligible contenu argent
-  sortie mensualité_minimale contenu argent
+  résultat mensualité_éligible contenu argent
+  résultat mensualité_minimale contenu argent
   interne plafond_mensualité_d832_10_3 contenu argent
     état base
     état copropriétaires
   interne calcul_plafond_mensualité_d832_10_3 contenu argent dépend de date
   interne n_nombre_parts_d832_11 contenu décimal
-  sortie coefficient_prise_en_charge_d832_10 contenu décimal
+  résultat coefficient_prise_en_charge_d832_10 contenu décimal
     état formule
-    état arrondi
+    état coeff_arrondi
     état seuil
   interne dépense_nette_minimale_d832_10 contenu argent dépend de argent
   interne abattement_dépense_nette_minimale_d832_10
@@ -708,8 +708,8 @@ déclaration champ d'application
   contributions_sociales champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
-  sortie aide_finale_formule contenu argent
-  sortie traitement_aide_finale contenu argent dépend de argent
+  résultat aide_finale_formule contenu argent
+  résultat traitement_aide_finale contenu argent dépend de argent
     état minoration_forfaitaire
     état abattement
     état contributions_sociales_arrondi
@@ -742,8 +742,8 @@ déclaration champ d'application CalculAidePersonnaliséeLogement:
 
   interne sous_calcul_traitement contenu Traitement_formule_aide_finale
 
-  sortie aide_finale_formule contenu argent
-  sortie traitement_aide_finale contenu argent dépend de argent
+  résultat aide_finale_formule contenu argent
+  résultat traitement_aide_finale contenu argent dépend de argent
 ```
 
 ## Calcul du montant de l'allocation logement
@@ -783,9 +783,9 @@ déclaration champ d'application CalculAllocationLogementLocatif:
 
   calcul_apl_locatif champ d'application CalculAidePersonnaliséeLogementLocatif
 
-  sortie aide_finale_formule contenu argent
+  résultat aide_finale_formule contenu argent
 
-  sortie traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent dépend de argent
 
 champ d'application CalculAllocationLogementLocatif:
   définition calcul_apl_locatif.loyer_principal égal à
@@ -873,9 +873,9 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   calcul_équivalence_loyer_minimale champ d'application
     CalculÉquivalenceLoyerMinimale
 
-  sortie aide_finale_formule contenu argent
+  résultat aide_finale_formule contenu argent
 
-  sortie traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent dépend de argent
     état minoration_forfaitaire
     état dépense_nette_minimale
     état contributions_sociales_arrondi
@@ -927,10 +927,10 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   interne montant_minimal_aide_d842_15 contenu argent
   interne montant_forfaitaire_d842_15 contenu argent
   interne montant_minimal_dépense_nette_d842_17 contenu argent
-  sortie coefficient_prise_en_charge contenu décimal
-  sortie équivalence_loyer contenu argent
-  sortie montant_forfaitaire_charges contenu argent
-  sortie loyer_minimal contenu argent
+  résultat coefficient_prise_en_charge contenu décimal
+  résultat équivalence_loyer contenu argent
+  résultat montant_forfaitaire_charges contenu argent
+  résultat loyer_minimal contenu argent
 
   calcul_nombre_parts champ d'application CalculNombrePartLogementFoyer
   calcul_apl_logement_foyer champ d'application
@@ -940,8 +940,8 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   calcul_équivalence_loyer_minimale champ d'application
     CalculÉquivalenceLoyerMinimale
 
-  sortie aide_finale_formule contenu argent
-  sortie traitement_aide_finale contenu argent dépend de argent
+  résultat aide_finale_formule contenu argent
+  résultat traitement_aide_finale contenu argent dépend de argent
     état minoration_forfaitaire
     état dépense_nette_minimale
     état redevance
@@ -987,15 +987,15 @@ déclaration champ d'application CalculAllocationLogement:
 
   interne sous_calcul_traitement contenu Traitement_formule_aide_finale
 
-  sortie aide_finale_formule contenu argent
-  sortie traitement_aide_finale contenu argent dépend de argent
+  résultat aide_finale_formule contenu argent
+  résultat traitement_aide_finale contenu argent dépend de argent
 ```
 
 ### Date d'ouverture des droits à la retraite
 
 ```catala-metadata
 déclaration champ d'application OuvertureDroitsRetraite:
-  sortie âge_ouverture_droit contenu durée
+  résultat âge_ouverture_droit contenu durée
   entrée date_naissance_assuré contenu date
 ```
 
@@ -1015,7 +1015,7 @@ déclaration champ d'application ImpayéDépenseLogement:
   interne dépense_logement_brute contenu DépenseLogement
   interne dépense_logement_nette contenu DépenseLogement
 
-  sortie montant_impayé contenu argent
+  résultat montant_impayé contenu argent
 ```
 
 ## Calcul de l'aide au logement effective
@@ -1049,10 +1049,10 @@ déclaration champ d'application CalculetteAidesAuLogement:
   calcul_allocation_logement champ d'application
     CalculAllocationLogement
 
-  sortie éligibilité contenu booléen
-  sortie aide_finale_formule contenu argent
-  sortie traitement_aide_finale contenu argent dépend de argent
-  sortie coefficents_enfants_garde_alternée_pris_en_compte contenu
+  résultat éligibilité contenu booléen
+  résultat aide_finale_formule contenu argent
+  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
    collection décimal
 
 champ d'application CalculetteAidesAuLogement:
@@ -1122,8 +1122,8 @@ déclaration champ d'application CalculetteAidesAuLogementGardeAlternée:
   calculette champ d'application CalculetteAidesAuLogement
   calculette_sans_garde_alternée champ d'application CalculetteAidesAuLogement
 
-  sortie éligibilité contenu booléen
-  sortie aide_finale contenu argent
+  résultat éligibilité contenu booléen
+  résultat aide_finale contenu argent
 
 champ d'application CalculetteAidesAuLogementGardeAlternée:
   définition calculette.ménage égal à
@@ -1155,16 +1155,15 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
       -- logement :
         ménage.logement
       -- personnes_à_charge :
-        filtre pour personne_à_charge dans
-          ménage.personnes_à_charge
-        de
-          (selon personne_à_charge sous forme
-          -- AutrePersonneÀCharge: vrai
-          -- EnfantÀCharge de enfant: (
-            selon enfant.situation_garde_alternée sous forme
-            -- GardeAlternéeCoefficientPriseEnCharge: faux
-            -- PasDeGardeAlternée: vrai
-          ))
+         (personne_à_charge parmi ménage.personnes_à_charge
+          tel que
+            (selon personne_à_charge sous forme
+             -- AutrePersonneÀCharge: vrai
+             -- EnfantÀCharge de enfant: (
+                selon enfant.situation_garde_alternée sous forme
+             -- GardeAlternéeCoefficientPriseEnCharge: faux
+             -- PasDeGardeAlternée: vrai
+         )))
       -- nombre_autres_occupants_logement :
         ménage.nombre_autres_occupants_logement
       -- situation_familiale :

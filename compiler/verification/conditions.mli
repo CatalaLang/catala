@@ -17,7 +17,7 @@
 
 (** Generates verification conditions from scope definitions *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 type verification_condition_kind =

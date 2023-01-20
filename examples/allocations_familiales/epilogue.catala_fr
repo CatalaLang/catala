@@ -9,8 +9,10 @@ la fonction du bloc de code ci-dessous.
 
 ```catala-metadata
 champ d'application EnfantLePlusÂgé:
-  définition le_plus_âgé  égal à
-    contenu minimum date initial Enfant {
+  définition le_plus_âgé égal à
+    potentiel_plus_âgé parmi enfants tel que
+      potentiel_plus_âgé.date_de_naissance est minimum
+    ou si collection vide alors Enfant {
       -- identifiant: -1
       -- obligation_scolaire: Pendant
       -- rémuneration_mensuelle: 0€
@@ -19,7 +21,6 @@ champ d'application EnfantLePlusÂgé:
       -- a_déjà_ouvert_droit_aux_allocations_familiales: faux
       -- bénéficie_titre_personnel_aide_personnelle_logement: faux
     }
-    pour potentiel_plus_âgé dans enfants de potentiel_plus_âgé.date_de_naissance
 
 
 champ d'application AllocationsFamiliales:
@@ -37,16 +38,16 @@ champ d'application AllocationsFamiliales:
     si droit_ouvert_base alors montant_avec_garde_alternée_base sinon 0€
   définition montant_versé_majoration égal à
     si droit_ouvert_base alors
-      somme argent pour enfant dans enfants_à_charge de
-        montant_avec_garde_alternée_majoration de enfant
+      somme argent de (montant_avec_garde_alternée_majoration de enfant)
+                   pour enfant parmi enfants_à_charge
     sinon 0€
 
   définition montant_versé égal à
     si droit_ouvert_base alors
-      montant_versé_base +€
-      montant_versé_majoration +€
-      montant_versé_forfaitaire +€
-      montant_versé_complément_pour_base_et_majoration +€
+      montant_versé_base +
+      montant_versé_majoration +
+      montant_versé_forfaitaire +
+      montant_versé_complément_pour_base_et_majoration +
       montant_versé_complément_pour_forfaitaire
     sinon 0€
 ```
@@ -76,7 +77,7 @@ déclaration champ d'application InterfaceAllocationsFamiliales:
   allocations_familiales champ d'application AllocationsFamiliales
   entrée i_ressources_ménage contenu argent
   entrée i_résidence contenu Collectivité
-  sortie i_montant_versé contenu argent
+  résultat i_montant_versé contenu argent
   entrée i_personne_charge_effective_permanente_est_parent condition
   entrée i_personne_charge_effective_permanente_remplit_titre_I condition
   entrée i_avait_enfant_à_charge_avant_1er_janvier_2012 condition
@@ -113,21 +114,22 @@ particulières imposant une scolarité plus longue.
 
 ```catala
 champ d'application InterfaceAllocationsFamiliales:
-  définition enfants_à_charge égal à application pour enfant dans i_enfants de
-    Enfant {
-      -- identifiant : enfant.d_identifiant
-      -- rémuneration_mensuelle : enfant.d_rémuneration_mensuelle
-      -- date_de_naissance : enfant.d_date_de_naissance
-      -- prise_en_charge : enfant.d_prise_en_charge
-      -- obligation_scolaire :
-        (si enfant.d_date_de_naissance +@ 3 an >=@ i_date_courante alors
-          Avant
-        sinon (si enfant.d_date_de_naissance +@ 16 an >=@ i_date_courante alors
-          Pendant
-        sinon Après))
-      -- a_déjà_ouvert_droit_aux_allocations_familiales:
-        enfant.d_a_déjà_ouvert_droit_aux_allocations_familiales
-      -- bénéficie_titre_personnel_aide_personnelle_logement:
-        enfant.d_bénéficie_titre_personnel_aide_personnelle_logement
-    }
+  définition enfants_à_charge égal à
+    (Enfant {
+       -- identifiant : enfant.d_identifiant
+       -- rémuneration_mensuelle : enfant.d_rémuneration_mensuelle
+       -- date_de_naissance : enfant.d_date_de_naissance
+       -- prise_en_charge : enfant.d_prise_en_charge
+       -- obligation_scolaire :
+         (si enfant.d_date_de_naissance + 3 an >= i_date_courante alors
+           Avant
+         sinon (si enfant.d_date_de_naissance + 16 an >= i_date_courante alors
+           Pendant
+         sinon Après))
+       -- a_déjà_ouvert_droit_aux_allocations_familiales:
+         enfant.d_a_déjà_ouvert_droit_aux_allocations_familiales
+       -- bénéficie_titre_personnel_aide_personnelle_logement:
+         enfant.d_bénéficie_titre_personnel_aide_personnelle_logement
+     }
+     pour enfant parmi i_enfants)
 ```

@@ -3,7 +3,7 @@
  (public_name catala.driver)
  (libraries
   dynlink
-  utils
+  catala_utils
   surface
   desugared
   literate
@@ -50,3 +50,7 @@
 (documentation
  (package catala)
  (mld_files index))
+
+(alias
+ (name catala)
+ (deps catala.exe))

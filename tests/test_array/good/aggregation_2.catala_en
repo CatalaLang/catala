@@ -11,8 +11,8 @@ declaration scope A:
 scope A:
    definition x equals [
       S { -- id: 0 -- income: $0 };
-      S { -- id: 1 -- income: $4 +$ $5 };
-      S { -- id: 2 -- income: $8 *$ 0.65 }
+      S { -- id: 1 -- income: $4 + $5 };
+      S { -- id: 2 -- income: $8 * 0.65 }
    ]
 
 declaration scope B:
@@ -21,21 +21,25 @@ declaration scope B:
    output argmin content S
 
 scope B:
-   definition argmax equals content maximum money initial S { -- id: -1 --income: $0 } for m in a.x of (m.income *$ 2.0)
-   definition argmin equals content minimum money initial  S { -- id: -1 --income: $20 } for m in a.x of (m.income +$ $5)
+   definition argmax equals
+     (m among a.x such that m.income * 2.0 is maximum
+      or if collection empty then S { -- id: -1 --income: $0 })
+   definition argmin equals
+     (m among a.x such that m.income + $5 is minimum
+      or if collection empty then S { -- id: -1 --income: $20 })
 ```
 
 ```catala-test-inline
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
 [RESULT] x =
-           [S {"id"= 0; "income"= $0.00}; S {"id"= 1; "income"= $9.00};
-             S {"id"= 2; "income"= $5.20}]
+           [S { "id"= 0; "income"= $0.00 }; S { "id"= 1; "income"= $9.00 };
+             S { "id"= 2; "income"= $5.20 }]
 ```
 
 ```catala-test-inline
 $ catala Interpret -s B
 [RESULT] Computation successful! Results:
-[RESULT] argmax = S {"id"= 1; "income"= $9.00}
-[RESULT] argmin = S {"id"= 0; "income"= $0.00}
+[RESULT] argmax = S { "id"= 1; "income"= $9.00 }
+[RESULT] argmin = S { "id"= 0; "income"= $0.00 }
 ```

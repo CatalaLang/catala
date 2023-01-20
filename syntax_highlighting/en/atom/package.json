@@ -7,10 +7,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://gitlab.inria.fr/verifisc/catala.git"
+    "url": "https://github.com/CatalaLang/catala.git"
   },
   "bugs": {
-    "url": "https://gitlab.inria.fr/verifisc/catala/issues"
+    "url": "https://github.com/CatalaLang/catala/issues"
   },
   "dependencies": {},
   "license": "Apache"

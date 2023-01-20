@@ -13,31 +13,28 @@ scope S:
 ```catala-test-inline
 $ catala Typecheck
 [ERROR] Error during typechecking, incompatible types:
---> integer
 --> decimal
+--> collection
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_typing/bad/err2.catala_en:10.43-44
+┌─⯈ tests/test_typing/bad/err2.catala_en:10.38-41:
 └──┐
-   │
 10 │   definition a equals number of (z ++ 1.1) / 2
-   │                                            ‾
-
-
-Type integer coming from expression:
-┌─⯈ tests/test_typing/bad/err2.catala_en:10.43-44
-└──┐
-   │
-10 │   definition a equals number of (z ++ 1.1) / 2
-   │                                            ‾
+   │                                       ‾‾‾
 
 
 Type decimal coming from expression:
-┌─⯈ tests/test_typing/bad/common.catala_en:15.19-26
+┌─⯈ tests/test_typing/bad/err2.catala_en:10.38-41:
 └──┐
-   │
-15 │   output a content decimal
-   │                    ‾‾‾‾‾‾‾
+10 │   definition a equals number of (z ++ 1.1) / 2
+   │                                       ‾‾‾
+
+
+Type collection coming from expression:
+┌─⯈ tests/test_typing/bad/err2.catala_en:10.35-37:
+└──┐
+10 │   definition a equals number of (z ++ 1.1) / 2
+   │                                    ‾‾
 
 #return code 255#
 ```

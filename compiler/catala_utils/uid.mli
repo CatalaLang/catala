@@ -21,7 +21,7 @@ module type Info = sig
   type info
 
   val to_string : info -> string
-  val format_info : Format.formatter -> info -> unit
+  val format : Format.formatter -> info -> unit
 
   val equal : info -> info -> bool
   (** Equality disregards position *)
@@ -48,9 +48,15 @@ module type Id = sig
   val equal : t -> t -> bool
   val format_t : Format.formatter -> t -> unit
   val hash : t -> int
+
+  module Set : Set.S with type elt = t
+  module Map : Map.S with type key = t
 end
 
 (** This is the generative functor that ensures that two modules resulting from
     two different calls to [Make] will be viewed as different types [t] by the
     OCaml typechecker. Prevents mixing up different sorts of identifiers. *)
 module Make (X : Info) () : Id with type info = X.info
+
+module Gen () : Id with type info = MarkedString.info
+(** Shortcut for creating a kind of uids over marked strings *)

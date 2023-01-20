@@ -7,15 +7,14 @@ declaration scope A:
 
 scope A:
   definition x equals 94 day
-  definition y under condition (x +^ x) >^ 100 day consequence equals true
+  definition y under condition (x + x) > 100 day consequence equals true
 ```
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.y] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/duration-empty.catala_en:6.10-11
+┌─⯈ tests/test_proof/bad/duration-empty.catala_en:6.10-11:
 └─┐
-  │
 6 │   context y content boolean
   │           ‾
   └─ Test

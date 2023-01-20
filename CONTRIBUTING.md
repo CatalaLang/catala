@@ -104,19 +104,20 @@ need more, here is how one can be added:
 - Choose a name wisely. Be ready to patch any code that already used the name
   for scope parameters, variables or structure fields, since it won't compile
   anymore.
-- Add an element to the `builtin_expression` type in `surface/ast.ml(i)`
+- Add an element to the `builtin_expression` type in `surface/ast.ml`
 - Add your builtin in the `builtins` list in `surface/lexer.cppo.ml`, and with
   proper translations in all of the language-specific modules
   `surface/lexer_en.cppo.ml`, `surface/lexer_fr.cppo.ml`, etc. Don't forget the
   macro at the beginning of `lexer.cppo.ml`.
 - The rest can all be done by following the type errors downstream:
-  - Add a corresponding element to the lower-level AST in `dcalc/ast.ml(i)`, type `unop`
-  - Extend the translation accordingly in `surface/desugaring.ml`
-  - Extend the printer (`dcalc/print.ml`) and the typer with correct type
-    information (`dcalc/typing.ml`)
+  - Add a corresponding element to the lower-level AST in `shared_ast/definitions.ml`, type `Op.t`
+  - Extend the generic operations on operators in `shared_ast/operators.ml` as well as the type information for the operator
+  - Extend the translation accordingly in `desugared/from_surface.ml`
+  - Extend the printer (`shared_ast/print.ml`)
   - Finally, provide the implementations:
-    - in `lcalc/to_ocaml.ml`, function `format_unop`
     - in `dcalc/interpreter.ml`, function `evaluate_operator`
+    - in `../runtimes/ocaml/runtime.ml`
+    - in `../runtimes/python/catala/src/catala/runtime.py`
 - Update the syntax guide in `doc/syntax/syntax.tex` with your new builtin
 
 ### Internationalization of the Catala syntax

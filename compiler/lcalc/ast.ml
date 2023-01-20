@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 include Shared_ast
 
 type lit = lcalc glit
@@ -28,31 +28,32 @@ let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
 let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)
 let some_constr : EnumConstructor.t = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
-let option_enum_config : (EnumConstructor.t * typ) list =
-  [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]
+let option_enum_config : typ EnumConstructor.Map.t =
+  EnumConstructor.Map.empty
+  |> EnumConstructor.Map.add none_constr (TLit TUnit, Pos.no_pos)
+  |> EnumConstructor.Map.add some_constr (TAny, Pos.no_pos)
 
 (* FIXME: proper typing in all the constructors below *)
 
 let make_none m =
   let tunit = TLit TUnit, Expr.mark_pos m in
-  Expr.einj
-    (Expr.elit LUnit (Expr.with_ty m tunit))
-    0 option_enum
-    [TLit TUnit, Pos.no_pos; TAny, Pos.no_pos]
-    m
+  Expr.einj (Expr.elit LUnit (Expr.with_ty m tunit)) none_constr option_enum m
 
 let make_some e =
   let m = Marked.get_mark e in
-  Expr.einj e 1 option_enum
-    [TLit TUnit, Expr.mark_pos m; TAny, Expr.mark_pos m]
-    m
+  Expr.einj e some_constr option_enum m
 
 (** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
     [match arg with |None -> e_none | Some -> e_some] and requires e_some and
     e_none to be in the form [EAbs ...].*)
 let make_matchopt_with_abs_arms arg e_none e_some =
   let m = Marked.get_mark arg in
-  Expr.ematch arg [e_none; e_some] option_enum m
+  let cases =
+    EnumConstructor.Map.empty
+    |> EnumConstructor.Map.add none_constr e_none
+    |> EnumConstructor.Map.add some_constr e_some
+  in
+  Expr.ematch arg option_enum cases m
 
 (** [make_matchopt pos v tau arg e_none e_some] builds an expression
     [match arg with | None () -> e_none | Some v -> e_some]. It binds v to

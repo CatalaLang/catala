@@ -1,0 +1,692 @@
+\documentclass{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{multicol}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage{epsfig}
+%\usepackage{bookman}
+%\usepackage{booktabs}
+\usepackage{upquote} % Uncurly the quotes
+\usepackage{etoolbox} % for backquote fix
+\usepackage[scaled=0.8]{DejaVuSans}
+\usepackage[scaled=0.8]{DejaVuSansMono}
+\usepackage{mdframed} % nice frames
+\usepackage[nobottomtitles]{titlesec} % better titles
+\usepackage{enumitem}
+\usepackage{minted}
+\usepackage[a4paper,landscape,margin=1cm,includehead,headsep=2ex,nofoot]{geometry}
+\usepackage{fancyhdr}\usepackage{hyperref}
+
+\usemintedstyle{tango}
+
+\setlist[itemize]{noitemsep, topsep=0pt}
+
+% backquote dejavu fix
+\makeatletter
+\chardef\straightquote@code=\catcode`'
+\chardef\backquote@code=\catcode``
+\catcode`'=\active \catcode``=\active
+\patchcmd{\@noligs}
+ {\textasciigrave}
+ {\fixedtextasciigrave}
+ {}{}
+\newcommand{\fixedtextasciigrave}{%
+  \makebox[.5em]{\fontencoding{TS1}\fontfamily{fvs}\selectfont\textasciigrave}% Vera Sans
+}
+\catcode\lq\'=\straightquote@code
+\catcode\lq\`=\backquote@code
+\makeatletter
+
+% fancyvrb and mdframed stuff
+\newmdenv[bottomline=false,rightline=false]{topleft}
+\newmdenv[topline=false,leftline=false]{bottomright}
+\DefineVerbatimEnvironment{Verbacorner}{Verbatim}{}
+\surroundwithmdframed[bottomline=false,rightline=false]{Verbacorner}
+\fvset{commandchars=@\{\}}
+
+\ifthenelse{\lengthtest { \paperwidth = 11in}}
+	{ \geometry{top=.5in,left=.5in,right=.5in,bottom=.5in} }
+	{\ifthenelse{ \lengthtest{ \paperwidth = 297mm}}
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
+	}
+\pagestyle{empty}
+
+%% \makeatletter
+%% \renewcommand{\section}{\@startsection{section}{1}{0mm}%
+%%                                 {-1ex plus -.5ex minus -.2ex}%
+%%                                 {0.5ex plus .2ex}%x
+%%                                 {\normalfont\large\bfseries}}
+%% \renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
+%%                                 {-1ex plus -.5ex minus -.2ex}%
+%%                                 {0.5ex plus .2ex}%
+%%                                 {\normalfont\normalsize\bfseries}}
+%% \renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
+%%                                 {-1ex plus -.5ex minus -.2ex}%
+%%                                 {1ex plus .2ex}%
+%%                                 {\normalfont\small\bfseries}}
+%% \makeatother
+
+%% \makeatletter
+%% \let\origsection\section
+%% \renewcommand\section{\vspace{5em}\origsection}
+%% \makeatother
+
+% Don't print section numbers
+\setcounter{secnumdepth}{0}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{1ex}
+
+\pagestyle{fancy}
+\newcommand{\makeheader}[3]{
+  \fancyhead[L]{
+    \begin{minipage}{30pt}
+      \vspace{-3pt}
+     \includegraphics[width=\textwidth]{logo.pdf}
+    \end{minipage}
+  }
+  \fancyhead[C]{
+   \LARGE{#1}
+  }
+  \fancyhead[R]{
+   {\scriptsize
+    #2 $\cdot$ Révision \#1 $\cdot$ \copyright\ \the\year$\quad$
+    %% \begin{minipage}{30pt}
+    %%  \vspace{-3pt}
+    %%  \includegraphics[width=\textwidth]{logo.pdf} %defined at bottom
+    %% \end{minipage}
+   }}
+  \fancyfoot[L]{}
+  \fancyfoot[C]{}
+  \fancyfoot[R]{}
+}
+\renewcommand\headrule{}
+
+\newenvironment{absolutelynopagebreak}
+  {\par\nobreak\vfil\penalty0\vfilneg
+   \vtop\bgroup}
+  {\par\xdef\tpd{\the\prevdepth}\egroup
+    \prevdepth=\tpd}
+
+\newcommand{\vb}{\usefont{T1}{DejaVuSansMono-TLF}{b}{n}}
+
+\newenvironment{libcomments}{\begin{itemize}[topsep=-10000pt]}{\end{itemize}}
+
+\setlength{\headheight}{20.1pt}
+\setlength{\headsep}{10pt}
+
+\renewcommand{\familydefault}{\sfdefault} % everything sans-serif
+
+%Url handling
+\hypersetup{
+  colorlinks=true,
+  urlcolor=black,
+  linkcolor=black,
+  citecolor=black
+}
+
+% font size -> set to equivalent to footnotesize of 10 pt
+% it affect only the \\normalsize command, all are still relative to default's
+% article one (10pt)
+\newcommand\articlenormalsize{\fontsize{10pt}{12pt}\selectfont}
+\renewcommand\normalsize{\footnotesize}
+
+% redefine sections padding
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{0mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {1ex}%
+                                {\normalfont\articlenormalsize\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{4mm}%
+                                {-1ex}%
+                                {0.5ex}%
+                                {\normalfont\articlenormalsize\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{16mm}%
+                                {-1ex plus -.5ex minus -.2ex}%
+                                {1ex plus .2ex}%
+                                {\normalfont\small\bfseries}}
+\makeatother
+
+%\pagestyle{empty}
+% set section counter to 0
+\setcounter{secnumdepth}{0}
+
+% Text at right
+%\raggedright
+
+% Set up the interline space in tables
+\renewcommand{\arraystretch}{0.0}
+
+% https://github.com/gpoore/minted/issues/82
+\makeatletter
+\newenvironment{catala}{%
+  \VerbatimEnvironment
+  \let\FV@ListVSpace\relax
+  \begin{minted}[autogobble]{catala_fr}}%
+ {\end{minted}}
+\makeatother
+
+\begin{document}
+
+\makeheader{\MakeUppercase{La syntaxe de Catala} \hspace{2em}\small version française}{v0.8.0}{1}
+% warning: this is repeated for p.2
+% \begin{center}
+%   2022-12-15
+%   \hfill
+%   {\Huge\bfseries\sffamily
+%     Catala Syntax Cheat Sheet}
+%   \hfill
+%   v.0.8.0
+% \end{center}
+% \hrule
+\null
+\begin{multicols}{3}
+
+\newlength\cola
+\setlength\cola{\dimexpr .4\columnwidth -2\tabcolsep}
+\newlength\colb
+\setlength\colb{\dimexpr .6\columnwidth -2\tabcolsep}
+
+
+
+\section{Programmation littéraire}
+
+\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+  En-têtes & \begin{catala}
+    # Titre
+    ### Sous-sous-titre
+  \end{catala}
+  \\
+  Référence au journal officiel & \begin{catala}
+    # Article 1 | JORFARTI000012345678
+    # Article 2 | LEGIARTI000012345678
+    # Décision 3 | CETATEXT000012345678 
+  \end{catala}
+  \\
+  Bloc de code &
+  \begin{catala}
+    ```catala
+    ```
+  \end{catala}
+  \\
+  Bloc de métadonnées & \begin{catala}
+    ```catala-metadata
+    ```
+  \end{catala}
+  \\
+  Inclusion de fichier & \begin{catala}
+    > Inclusion: foo.catala_en
+  \end{catala}
+  \\
+\end{tabular}
+
+\newcommand*\FancyVerbStartString{\PYG{l+s}{```catala}}
+\newcommand*\FancyVerbStopString{\PYG{l+s}{```}}
+
+\section{Types et littéraux}
+
+\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+  \begin{catala}
+    ```catala
+    booléen
+    ```
+  \end{catala}
+  &
+  \begin{catala}
+    ```catala
+    vrai        faux
+    ```
+  \end{catala}
+  \\
+  \begin{catala}
+    ```catala
+    entier
+    ```
+  \end{catala}
+  &
+  \begin{catala}
+    ```catala
+    65536
+    ```
+  \end{catala}
+  \\
+  \begin{catala}
+    ```catala
+    décimal
+    ```
+  \end{catala}
+  & \begin{catala}
+      ```catala
+      65536,262144        37%
+      ```
+    \end{catala}
+  \\
+  \begin{catala}
+    ```catala
+    argent
+    ```
+  \end{catala}
+  &
+  \begin{catala}
+    ```catala
+    1 234 567,89€
+    ```
+  \end{catala}
+  \\
+  \begin{catala}
+    ```catala
+    date
+    ```
+  \end{catala}
+  &
+  \begin{catala}
+    ```catala
+    |2021-01-31|
+    ```
+  \end{catala}
+  \\
+  \begin{catala}
+    ```catala
+    durée
+    ```
+  \end{catala}
+  &
+  \begin{catala}
+    ```catala
+    254 jour 4 mois 1 an
+    ```
+  \end{catala}
+  \\
+  \begin{catala}
+    ```catala
+    collection entier
+    ```
+  \end{catala}
+  &
+  \begin{catala}
+    ```catala
+    [ 12; 24; 36 ]
+    ```
+  \end{catala}
+  \\
+  \begin{catala}
+    ```catala
+    décimal dépend de argent
+    ```
+  \end{catala}
+  &
+  \begin{catala}
+    ```catala
+    f de x égale à x / 12,0€
+    ```
+  \end{catala}
+  \\
+  \begin{catala}
+    ```catala
+    Struct1
+    ```
+  \end{catala}
+  &
+  \begin{catala}
+    ```catala
+    Struct1 { -- chp1: 9 -- chp2: faux }
+    ```
+  \end{catala}
+  \\
+  \begin{catala}
+    ```catala
+    Énum1
+    ```
+  \end{catala}
+  &
+  \begin{catala}
+    ```catala
+    Cas1 contenu 12        Cas2
+    ```
+  \end{catala}
+  \\
+\end{tabular}
+
+\section{Expressions}
+
+\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+  Définition locale & \begin{catala}
+    ```catala
+    soit x égale à 36 - 5 dans ...
+    ```
+  \end{catala}
+  \\
+  Filtrage par motif & \begin{catala}
+    ```catala
+    selon expr sous forme
+    -- Cas1 de x: ...
+    -- Cas2 : ...
+    ```
+  \end{catala}
+  \\
+  Test de filtrage\newline avec variable optionnelle & \begin{catala}
+    ```catala
+    expr sous forme Cas1
+    expr sous forme Cas1 de x
+              et x >= 2
+    ```
+  \end{catala}
+  \\
+  Champ de structure & \begin{catala}
+    ```catala
+    struc1.chp2
+    ```
+  \end{catala}
+  \\
+  Appel de fonction & \begin{catala}
+    ```catala
+    f de 44,50€
+    ```
+  \end{catala}
+  \\
+  Var. de sous-ch. d'app. & \begin{catala}
+    ```catala
+    ss_ch1.var0
+    ```
+  \end{catala}
+  \\
+  Appel direct\newline du champ d'application & \begin{catala}
+    ```catala
+    résultat de ChApp1
+      avec { -- chp1: 9 -- chp2: vrai }
+    ```
+  \end{catala}
+  \\
+  Branchement conditionnel & \begin{catala}
+    ```catala
+    si ... alors ... sinon ...
+    ```
+  \end{catala}
+  \\
+\end{tabular}
+
+\section{Déclaration des métadonnées}
+
+\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+
+  Déclaration de structure &
+  \begin{catala}
+    ```catala
+    déclaration structure Struct1:
+      donnée chp1 contenu entier
+      donnée chp2 contenu booléen
+  \end{catala}
+  \\
+  Déclaration d'énumération & \begin{catala}
+    ```catala
+    déclaration énumeration Énum1:
+      -- Cas1 contenu entier
+      -- Cas2
+    ```
+  \end{catala}
+  \\
+  Déclaration de champ\newline d'application & \begin{catala}
+    ```catala
+    déclaration champ d'application ChApp1:
+      interne var1 contenu entier
+      interne var2 condition
+      ss_ch1 champ d'application ChApp0
+    ```
+  \end{catala}
+  \\
+  Qualificateurs d'entrée-\newline sortie & \begin{catala}
+    ```catala
+      interne var1 contenu ...
+      résultat var3 contenu ...
+      entrée var4 contenu ...
+      entrée résultat var5 contenu ...
+      contexte var6 contenu ...
+      contexte résultat var7 contenu ...
+    ```
+  \end{catala}
+  \\
+  Transitions d'état & \begin{catala}
+    ```catala
+    interne var1 contenu ...
+      état avant
+      état après
+    ```
+  \end{catala}
+  \\
+\end{tabular}
+
+\section{Opérations}
+
+\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+  Opérateurs logiques & \begin{catala}
+    ```catala
+    non a
+    a et b
+    a ou b        # "ou à défaut"
+    a ou bien b   # ou exclusif
+    ```
+  \end{catala}
+  \\
+  Arithmétique & \begin{catala}
+    ```catala
+    - a
+    a + b        a - b
+    a * b        a / b
+    ```
+  \end{catala}
+  \\
+  Comparaisons &
+  \begin{catala}
+    ```catala
+    a = b        a != b
+    a > b        a < b
+    a >= b       a <= b
+    ```
+  \end{catala}
+  \\
+  Conversions & \begin{catala}
+    ```catala
+    décimal de 44
+    argent de 23,15
+    ```
+  \end{catala}
+  \\
+  Arrondis & \begin{catala}
+    ```catala
+    arrondi de 9,99€
+    ```
+  \end{catala}
+  \\
+  Éléments de dates & \begin{catala}
+    ```catala
+    accès_jour de ...
+    accès_mois de ...
+    accès_année de ...
+    ```
+  \end{catala}
+  \\
+  Opérateurs à types\newline explicites &
+  \begin{catala}
+    ```catala
+    a +! b    # entier
+    a +. b    # décimal
+    a +€ b    # argent
+    a +^ b    # durée
+    ```
+  \end{catala}
+  \\
+\end{tabular}
+
+\columnbreak
+
+\section{Définition de champ d'application}
+
+\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+  Utilisation & \begin{catala}
+    ```catala
+    champ d'application ChApp1: ...
+    ```
+  \end{catala}
+  \\
+  Avec condition générale & \begin{catala}
+    ```catala
+    champ d'application ChApp1
+      sous condition var1 >= 2: ...
+    ```
+  \end{catala}
+  \\
+  Définition inconditionnelle & \begin{catala}
+    ```catala
+    définition var1 égale à ...
+    ```
+  \end{catala}
+  \\
+  Définition conditionnelle& \begin{catala}
+    ```catala
+    définition var1
+      sous condition ...
+      conséquence égale à ...
+    ```
+  \end{catala}
+  \\
+  Règle\newline(définition de condition) & \begin{catala}
+    ```catala
+    règle var2
+      sous condition var1 >= 2
+      conséquence rempli
+    ```
+  \end{catala}
+  \\
+  Règle négative & \begin{catala}
+    ```catala
+      conséquence non rempli
+    ```
+  \end{catala}
+  \\
+  Définition de fonction/règle & \begin{catala}
+    ```catala
+    définition f de x égale à ...
+    ```
+  \end{catala}
+  \\
+  Définition/règle étiquetée & \begin{catala}
+    ```catala
+    étiquette étq1 définition var1 ...
+    ```
+  \end{catala}
+  \\
+  Exc. à définition étiquetée & \begin{catala}
+    ```catala
+    exception étq1 définition var1 ...
+    ```
+  \end{catala}
+  \\
+  Exception à implicite & \begin{catala}
+    ```catala
+    exception définition var1 ...
+    ```
+  \end{catala}
+  \\
+  Définition d'états & \begin{catala}
+    ```catala
+    définition var1
+      état avant
+      égale à ...
+    ```
+  \end{catala}
+  \\
+  Assertion & \begin{catala}
+    ```catala
+    assertion ...
+    ```
+  \end{catala}
+  \\
+\end{tabular}
+
+\section{Opérations sur les collections}
+
+\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+  
+  Test de présence& \begin{catala}
+    ```catala
+    coll contient 3
+    ```
+  \end{catala}
+  \\
+  Cardinal & \begin{catala}
+    ```catala
+    nombre de coll
+    ```
+  \end{catala}
+  \\
+  Test d'existence & \begin{catala}
+    ```catala
+    existe x parmi coll tel que x >= 2
+    ```
+  \end{catala}
+  \\
+  Test pour tous & \begin{catala}
+    ```catala
+    pour tout x parmi coll on a x >= 2
+    ```
+  \end{catala}
+  \\
+  Application un-à-un & \begin{catala}
+    ```catala
+    (x + 2) pour x parmi coll
+    ```
+  \end{catala}
+  \\
+  Filtrage & \begin{catala}
+    ```catala
+    x parmi coll tel que x >= 2
+    ```
+  \end{catala}
+  \\
+  Filtrage + application & \begin{catala}
+    ```catala
+    (x - 2) pour x parmi coll
+            tel que x >= 2
+    ```
+  \end{catala}
+  \\
+  Réunion & \begin{catala}
+    ```catala
+    coll1 ++ coll2
+    ```
+  \end{catala}
+  \\
+  Aggrégation & \begin{catala}
+    ```catala
+    somme entier coll
+    ```
+  \end{catala}
+  \\
+  Comptage & \begin{catala}
+    ```catala
+    nombre de coll
+    ```
+  \end{catala}
+  \\
+  Extremums & \begin{catala}
+    ```catala
+    maximum de coll
+      ou si collection vide alors -1
+    ```
+  \end{catala}
+  \\
+  Élément selon extremum & \begin{catala}
+    ```catala
+    x parmi coll
+      tel que (x * x) est minimum
+      ou si collection vide alors -1
+    ```
+  \end{catala}
+  \\
+\end{tabular}
+
+\end{multicols}
+\end{document}

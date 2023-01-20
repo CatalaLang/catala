@@ -5,7 +5,7 @@
 , bindlib
 , buildDunePackage
 , calendar
-, cmdliner_1_1_0
+, cmdliner
 , cppo
 , dates_calc
 , fetchFromGitHub
@@ -42,7 +42,7 @@ buildDunePackage rec {
     ansiterminal
     benchmark
     bindlib
-    cmdliner_1_1_0
+    cmdliner
     cppo
     dates_calc
     js_of_ocaml

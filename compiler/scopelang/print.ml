@@ -14,7 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 open Ast
 
@@ -22,21 +22,22 @@ let struc
     ctx
     (fmt : Format.formatter)
     (name : StructName.t)
-    (fields : (StructFieldName.t * typ) list) : unit =
+    (fields : typ StructField.Map.t) : unit =
   Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "struct"
     StructName.format_t name Print.punctuation "=" Print.punctuation "{"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        (fun fmt (field_name, typ) ->
-         Format.fprintf fmt "%a%a %a" StructFieldName.format_t field_name
+         Format.fprintf fmt "%a%a %a" StructField.format_t field_name
            Print.punctuation ":" (Print.typ ctx) typ))
-    fields Print.punctuation "}"
+    (StructField.Map.bindings fields)
+    Print.punctuation "}"
 
 let enum
     ctx
     (fmt : Format.formatter)
     (name : EnumName.t)
-    (cases : (EnumConstructor.t * typ) list) : unit =
+    (cases : typ EnumConstructor.Map.t) : unit =
   Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "enum"
     EnumName.format_t name Print.punctuation "="
     (Format.pp_print_list
@@ -45,7 +46,7 @@ let enum
          Format.fprintf fmt "%a %a%a %a" Print.punctuation "|"
            EnumConstructor.format_t field_name Print.punctuation ":"
            (Print.typ ctx) typ))
-    cases
+    (EnumConstructor.Map.bindings cases)
 
 let scope ?(debug = false) ctx fmt (name, decl) =
   Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
@@ -55,16 +56,16 @@ let scope ?(debug = false) ctx fmt (name, decl) =
          Format.fprintf fmt "%a%a%a %a%a%a%a%a" Print.punctuation "("
            ScopeVar.format_t scope_var Print.punctuation ":" (Print.typ ctx) typ
            Print.punctuation "|" Print.keyword
-           (match Marked.unmark vis.io_input with
+           (match Marked.unmark vis.Desugared.Ast.io_input with
            | NoInput -> "internal"
            | OnlyInput -> "input"
            | Reentrant -> "context")
-           (if Marked.unmark vis.io_output then fun fmt () ->
+           (if Marked.unmark vis.Desugared.Ast.io_output then fun fmt () ->
             Format.fprintf fmt "%a@,%a" Print.punctuation "|" Print.keyword
               "output"
            else fun fmt () -> Format.fprintf fmt "@<0>")
            () Print.punctuation ")"))
-    (ScopeVarMap.bindings decl.scope_sig)
+    (ScopeVar.Map.bindings decl.scope_sig)
     Print.punctuation "="
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " Print.punctuation ";")
@@ -80,11 +81,11 @@ let scope ?(debug = false) ctx fmt (name, decl) =
                | ScopelangScopeVar v -> (
                  match
                    Marked.unmark
-                     (snd (ScopeVarMap.find (Marked.unmark v) decl.scope_sig))
+                     (snd (ScopeVar.Map.find (Marked.unmark v) decl.scope_sig))
                        .io_input
                  with
                  | Reentrant ->
-                   Format.fprintf fmt "%a@ %a" Print.operator
+                   Format.fprintf fmt "%a@ %a" Print.op_style
                      "reentrant or by default" (Print.expr ~debug ctx) e
                  | _ -> Format.fprintf fmt "%a" (Print.expr ~debug ctx) e))
              e
@@ -105,16 +106,16 @@ let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
     Format.pp_print_cut fmt ()
   in
   Format.pp_open_vbox fmt 0;
-  StructMap.iter
+  StructName.Map.iter
     (fun n s ->
       struc ctx fmt n s;
       pp_sep fmt ())
     ctx.ctx_structs;
-  EnumMap.iter
+  EnumName.Map.iter
     (fun n e ->
       enum ctx fmt n e;
       pp_sep fmt ())
     ctx.ctx_enums;
   Format.pp_print_list ~pp_sep (scope ~debug ctx) fmt
-    (ScopeMap.bindings p.program_scopes);
+    (ScopeName.Map.bindings p.program_scopes);
   Format.pp_close_box fmt ()

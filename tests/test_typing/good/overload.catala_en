@@ -1,0 +1,69 @@
+```catala
+declaration scope S:
+  internal i1 content integer
+  internal i2 content integer
+  internal x1 content decimal
+  internal x2 content decimal
+  internal m1 content money
+  internal m2 content money
+  internal d1 content duration
+  internal d2 content duration
+  internal t1 content date
+  internal t2 content date
+  output o_i content integer
+  output o_x content decimal
+  output o_m content money
+  output o_d content duration
+  output o_t content date
+  output o_b content boolean
+
+scope S:
+  definition i1 equals 1
+  definition i2 equals 2
+  definition x1 equals 3.
+  definition x2 equals 4.
+  definition m1 equals $5
+  definition m2 equals $6
+  definition d1 equals 7 day
+  definition d2 equals 8 day
+  definition t1 equals |2022-01-09|
+  definition t2 equals |2022-01-10|
+
+  definition o_i equals -i1 + i2 - i1 * i2 * (i1 + i2)
+  definition o_x equals -x1 + x2 - x1 * x2 / (x1 + x2) * (i1 / i2)
+  definition o_m equals -m1 + m2 - m1 * x2 / (x1 * m1 / m2) + m1 / x2
+  definition o_d equals -d1 + d2 - d1 * i2
+  definition o_t equals d1 + t1 + d1 + (t2 - t1)
+  definition o_b equals
+    i1 <  i2 and x1 <  x2 and m1 <  m2 and d1 <  d2 and t1 <  t2 and
+    i1 <= i2 and x1 <= x2 and m1 <= m2 and d1 <= d2 and t1 <= t2 and
+    not (
+    i1 >  i2 or  x1 >  x2 or  m1 >  m2 or  d1 >  d2 or  t1 >  t2 or
+    i1 >= i2 or  x1 >= x2 or  m1 >= m2 or  d1 >= d2 or  t1 >= t2
+    )
+
+  assertion o_i = -i1 +! i2 -! i1 *! i2 *! (i1 +! i2)
+  assertion o_x = -.x1 +. x2 -. x1 *. x2 /. (x1 +. x2) *. (i1 /! i2)
+  assertion o_m = -$m1 +$ m2 -$ m1 *$ x2 / (m1 *$ x1 /$ m2) +$ m1 / x2
+  assertion o_d = -^d1 +^ d2 -^ d1 *^ i2
+  assertion o_t = t1 +@ d1 +@ (t2 -@ t1) +@ d1
+  assertion o_b = (
+    i1 <!  i2 and x1 <.  x2 and m1 <$  m2 and d1 <^  d2 and t1 <@  t2 and
+    i1 <=! i2 and x1 <=. x2 and m1 <=$ m2 and d1 <=^ d2 and t1 <=@ t2 and
+    not (
+    i1 >!  i2 or  x1 >.  x2 or  m1 >$  m2 or  d1 >^  d2 or  t1 >@  t2 or
+    i1 >=! i2 or  x1 >=. x2 or  m1 >=$ m2 or  d1 >=^ d2 or  t1 >=@ t2
+    )
+  )
+```
+
+```catala-test-inline
+$ catala Interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT] o_b = true
+[RESULT] o_d = [0 years, 0 months, -13 days]
+[RESULT] o_i = -5
+[RESULT] o_m = $-5.75
+[RESULT] o_t = 2022-01-24
+[RESULT] o_x = 0.14285714285714285714…
+```

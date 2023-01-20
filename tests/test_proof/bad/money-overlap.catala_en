@@ -9,18 +9,17 @@ declaration scope A:
 
 scope A:
   definition x equals $20,000
-  definition y under condition x <=$ $1,000 consequence equals true
-  definition y under condition x >=$ $1,000 and x <$ $10,000 consequence equals false
-  definition y under condition x >=$ $10,000 and x <$ $100,000 consequence equals true
-  definition y under condition x >=$ $100,000 consequence equals false
+  definition y under condition x <= $1,000 consequence equals true
+  definition y under condition x >= $1,000 and x < $10,000 consequence equals false
+  definition y under condition x >= $10,000 and x < $100,000 consequence equals true
+  definition y under condition x >= $100,000 consequence equals false
 ```
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [ERROR] [A.y] At least two exceptions overlap for this variable:
-┌─⯈ tests/test_proof/bad/money-overlap.catala_en:8.10-11
+┌─⯈ tests/test_proof/bad/money-overlap.catala_en:8.10-11:
 └─┐
-  │
 8 │   context y content boolean
   │           ‾
   └─ Test

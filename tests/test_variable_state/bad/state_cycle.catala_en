@@ -24,65 +24,57 @@ $ catala Typecheck
 [ERROR] Cyclic dependency detected between variables of scope A!
 
 Cycle variable foofoo.bar, declared:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:9.10-13
+┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:9.10-13:
 └─┐
-  │
 9 │     state bar
   │           ‾‾‾
   └─ Test
 
 Used here in the definition of another cycle variable foofoo.baz:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:19.37-43
+┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:19.37-43:
 └──┐
-   │
 19 │   definition foofoo state baz equals foofoo + 1
    │                                      ‾‾‾‾‾‾
    └─ Test
 
 Cycle variable foofoo.baz, declared:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:10.10-13
+┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:10.10-13:
 └──┐
-   │
 10 │     state baz
    │           ‾‾‾
    └─ Test
 
 Used here in the definition of another cycle variable foo.bar:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:13.34-40
+┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:13.34-40:
 └──┐
-   │
 13 │   definition foo state bar equals foofoo
    │                                   ‾‾‾‾‾‾
    └─ Test
 
 Cycle variable foo.bar, declared:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:6.10-13
+┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:6.10-13:
 └─┐
-  │
 6 │     state bar
   │           ‾‾‾
   └─ Test
 
 Used here in the definition of another cycle variable foo.baz:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:15.34-37
+┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:15.34-37:
 └──┐
-   │
 15 │   definition foo state baz equals foo + 1
    │                                   ‾‾‾
    └─ Test
 
 Cycle variable foo.baz, declared:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:7.10-13
+┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:7.10-13:
 └─┐
-  │
 7 │     state baz
   │           ‾‾‾
   └─ Test
 
 Used here in the definition of another cycle variable foofoo.bar:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:17.37-40
+┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:17.37-40:
 └──┐
-   │
 17 │   definition foofoo state bar equals foo
    │                                      ‾‾‾
    └─ Test

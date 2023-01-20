@@ -16,6 +16,8 @@
 
 include Definitions
 module Var = Var
+module Type = Type
+module Operator = Operator
 module Expr = Expr
 module Scope = Scope
 module Program = Program

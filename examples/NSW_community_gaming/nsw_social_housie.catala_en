@@ -50,14 +50,14 @@ scope GamingAuthorized :
  available prizes for 1 session of the gaming activity does not exceed $40,
 ```catala
 scope GamingAuthorized :
-  definition prizePrice equals socialHousie.totalValuePrizePerSession <=$ $40
+  definition prizePrice equals socialHousie.totalValuePrizePerSession <= $40
 ```
 
 (d) if 1 or more individual prizes are not won, the value of any jackpot prize
 does not exceed $200,
 ```catala
 scope GamingAuthorized :
-  definition maxJackpotValue equals socialHousie.jackpotPrizeValue <=$ $200
+  definition maxJackpotValue equals socialHousie.jackpotPrizeValue <= $200
 ```
 
 (e) the total amount invested by participants in a session of the gaming

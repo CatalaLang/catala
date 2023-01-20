@@ -15,6 +15,7 @@
    the License. *)
 
 open Lwt
+open Catala_utils
 
 type access_token = string
 
@@ -54,11 +55,11 @@ let get_token (client_id : string) (client_secret : string) : string =
       |> Yojson.Basic.Util.member "access_token"
       |> Yojson.Basic.Util.to_string
     in
-    Utils.Cli.debug_format "The LegiFrance API access token is %s" token;
+    Cli.debug_format "The LegiFrance API access token is %s" token;
     token
   end
   else begin
-    Utils.Cli.debug_format
+    Cli.debug_format
       "The API access token request went wrong ; status is %s and the body is\n\
        %s"
       resp body;
@@ -109,7 +110,7 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
     if resp = "200 OK" then
       try body |> Yojson.Basic.from_string with
       | Yojson.Basic.Util.Type_error (msg, obj) ->
-        Utils.Cli.error_print
+        Cli.error_print
           "Error while parsing JSON answer from API: %s\n\
            Specific JSON:\n\
            %s\n\
@@ -128,10 +129,10 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
     with Failure _ ->
       if n > 0 then (
         Unix.sleep 2;
-        Utils.Cli.debug_format "Retrying request...";
+        Cli.debug_format "Retrying request...";
         try_n_times (n - 1))
       else (
-        Utils.Cli.error_print
+        Cli.error_print
           "The API request went wrong ; status is %s and the body is\n%s" resp
           body;
         exit (-1))
@@ -153,7 +154,7 @@ let parse_id (id : string) : article_id =
     else if Re.execp ceta_tex id then CETATEXT
     else if Re.execp jorf_rex id then JORFARTI
     else
-      Utils.Errors.raise_error
+      Errors.raise_error
         "LégiFrance ID \"%s\" does not correspond to an ID format recognized \
          by the LégiFrance API"
         id
@@ -161,7 +162,7 @@ let parse_id (id : string) : article_id =
   { id; typ }
 
 let retrieve_article (access_token : string) (obj : article_id) : article =
-  Utils.Cli.debug_format "Accessing article %s" obj.id;
+  Cli.debug_format "Accessing article %s" obj.id;
   {
     content =
       run_request
@@ -179,7 +180,7 @@ let raise_article_parsing_error
     (json : Yojson.Basic.t)
     (msg : string)
     (obj : Yojson.Basic.t) =
-  Utils.Cli.error_print
+  Cli.error_print
     "Error while manipulating JSON answer from API: %s\n\
      Specific JSON:\n\
      %s\n\
@@ -189,13 +190,6 @@ let raise_article_parsing_error
     (Yojson.Basic.to_string obj)
     (Yojson.Basic.to_string json);
   exit 1
-
-type law_excerpt = Yojson.Basic.t
-
-let retrieve_law_excerpt (access_token : string) (text_id : string) :
-    law_excerpt =
-  run_request
-    (make_request access_token "consult/jorfPart" ["textCid", text_id])
 
 let get_article_id (article : article) : string =
   try
@@ -233,6 +227,18 @@ let get_article_text (article : article) : string =
       with Yojson.Basic.Util.Type_error _ -> ""
     in
     text ^ " " ^ if nota <> "" then "NOTA : " ^ nota else ""
+  with Yojson.Basic.Util.Type_error (msg, obj) ->
+    raise_article_parsing_error article.content msg obj
+
+let get_article_title (article : article) : string =
+  try
+    article.content
+    |> Yojson.Basic.Util.member
+         (match article.typ with
+         | CETATEXT -> "text"
+         | LEGIARTI | JORFARTI -> "article")
+    |> Yojson.Basic.Util.member "titre"
+    |> Yojson.Basic.Util.to_string
   with Yojson.Basic.Util.Type_error (msg, obj) ->
     raise_article_parsing_error article.content msg obj
 
@@ -283,50 +289,3 @@ let get_article_new_version (article : article) : string =
       |> Yojson.Basic.Util.to_string
     with Yojson.Basic.Util.Type_error (msg, obj) ->
       raise_article_parsing_error article.content msg obj)
-
-let get_law_excerpt_title (json : law_excerpt) : string =
-  json |> Yojson.Basic.Util.member "title" |> Yojson.Basic.Util.to_string
-
-type law_excerpt_article = { id : string; num : string; content : string }
-
-let clean_html (s : string) : string =
-  let new_line = Re.Pcre.regexp "\\s*\\<br\\s*\\/\\>\\s*" in
-  let s = Re.Pcre.substitute ~rex:new_line ~subst:(fun _ -> "\n") s in
-  let tag = Re.Pcre.regexp "\\<[^\\>]+\\>" in
-  let s = Re.Pcre.substitute ~rex:tag ~subst:(fun _ -> "") s in
-  String.trim s
-
-let get_law_excerpt_articles (json : law_excerpt) : law_excerpt_article list =
-  let articles =
-    json |> Yojson.Basic.Util.member "articles" |> Yojson.Basic.Util.to_list
-  in
-  let articles =
-    List.sort
-      (fun a1 a2 ->
-        let a1_num =
-          int_of_string
-            (a1 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
-        in
-        let a2_num =
-          int_of_string
-            (a2 |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string)
-        in
-        compare a1_num a2_num)
-      articles
-  in
-  List.map
-    (fun article ->
-      let article_id =
-        article |> Yojson.Basic.Util.member "id" |> Yojson.Basic.Util.to_string
-      in
-      let article_num =
-        article |> Yojson.Basic.Util.member "num" |> Yojson.Basic.Util.to_string
-      in
-      let article_content =
-        article
-        |> Yojson.Basic.Util.member "content"
-        |> Yojson.Basic.Util.to_string
-        |> clean_html
-      in
-      { id = article_id; num = article_num; content = article_content })
-    articles

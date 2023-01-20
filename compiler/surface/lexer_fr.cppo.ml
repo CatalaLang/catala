@@ -89,6 +89,7 @@
 #define MS_LET "soit"
 #define MS_EXISTS "existe"
 #define MS_IN "dans"
+#define MS_AMONG "parmi"
 #define MS_SUCH "tel"
 #define MS_THAT "que"
 #define MS_AND "et"
@@ -98,9 +99,8 @@
 #define MS_NOT "non"
 #define MS_MAXIMUM "maximum"
 #define MS_MINIMUM "minimum"
-#define MS_FILTER "filtre"
-#define MS_MAP "application"
-#define MS_INIT "initial"
+#define MS_IS "est"
+#define MS_EMPTY "vide"
 #define MS_CARDINAL "nombre"
 #define MS_YEAR "an"
 #define MS_MONTH "mois"
@@ -109,12 +109,15 @@
 #define MS_FALSE "faux"
 #define MS_INPUT "entrée"
 #define MR_INPUT "entr", 0xE9, "e"
-#define MS_OUTPUT "sortie"
+#define MS_OUTPUT "résultat"
+#define MR_OUTPUT "r", 0xE9,"sultat"
 #define MS_INTERNAL "interne"
 
 (* Specific delimiters *)
 
-#define MR_MONEY_OP_SUFFIX 0x20AC (* The euro sign *)
+#define MS_MONEY_OP_SUFFIX "€"
+#define MR_MONEY_OP_SUFFIX 0x20AC
+                           (* The euro sign *)
 #define MC_DECIMAL_SEPARATOR ','
 #define MR_MONEY_PREFIX ""
 #define MR_MONEY_DELIM ' '
@@ -122,15 +125,7 @@
 
 (* Builtins *)
 
-#define MS_RoundMoney "arrondi_argent"
-#define MS_RoundDecimal "arrondi_décimal"
-#define MR_RoundDecimal "arrondi_d", 0xE9, "cimal"
-#define MS_IntToDec "entier_vers_décimal"
-#define MR_IntToDec "entier_vers_d", 0xE9, "cimal"
-#define MS_MoneyToDec "argent_vers_décimal"
-#define MR_MoneyToDec "argent_vers_d", 0xE9, "cimal"
-#define MS_DecToMoney "décimal_vers_argent"
-#define MR_DecToMoney "d", 0xE9, "cimal_vers_argent"
+#define MS_Round "arrondi"
 #define MS_GetDay "accès_jour"
 #define MR_GetDay "acc", 0xE8, "s_jour"
 #define MS_GetMonth "accès_mois"

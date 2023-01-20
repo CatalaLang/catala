@@ -16,7 +16,7 @@
 
 (** Reference interpreter for the default calculus *)
 
-open Utils
+open Catala_utils
 open Shared_ast
 
 val evaluate_expr : decl_ctx -> 'm Ast.expr -> 'm Ast.expr

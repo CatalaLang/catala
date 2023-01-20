@@ -33,17 +33,15 @@ Message: unexpected token
 Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25:
 └──┐
-   │
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 
 Last good token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19:
 └──┐
-   │
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
@@ -79,17 +77,15 @@ Message: unexpected token
 Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25:
 └──┐
-   │
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 
 Last good token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19:
 └──┐
-   │
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
@@ -125,17 +121,15 @@ Message: unexpected token
 Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25:
 └──┐
-   │
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 
 Last good token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19:
 └──┐
-   │
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
@@ -173,17 +167,15 @@ Message: unexpected token
 Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25:
 └──┐
-   │
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 
 Last good token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19:
 └──┐
-   │
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 

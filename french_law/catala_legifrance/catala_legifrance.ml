@@ -14,6 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
+
 (** Main logic for interacting with LégiFrance when traversing Catala source
     files *)
 
@@ -46,12 +48,12 @@ let check_article_expiration
           Some new_version
         else None
       in
-      Utils.Cli.warning_print
+      Cli.warning_print
         "%s %s has expired! Its expiration date is %s according to \
          LégiFrance.%s"
-        (Utils.Marked.unmark law_heading.Surface.Ast.law_heading_name)
-        (Utils.Pos.to_string
-           (Utils.Marked.get_mark law_heading.Surface.Ast.law_heading_name))
+        (Marked.unmark law_heading.Surface.Ast.law_heading_name)
+        (Pos.to_string
+           (Marked.get_mark law_heading.Surface.Ast.law_heading_name))
         (Date.print_tm legifrance_expiration_date)
         (match new_version with
         | None -> ""
@@ -61,7 +63,7 @@ let check_article_expiration
     else None
 
 type law_article_text = {
-  article_title : string * Utils.Pos.t;
+  article_title : string * Pos.t;
   text : string;
   new_version : Api.article_id option;
   current_version : Api.article_id option;
@@ -110,7 +112,7 @@ let compare_to_versions
     (law_article_text : law_article_text)
     (access_token : Api.access_token) : unit =
   let print_diff msg diff =
-    Utils.Cli.warning_print "%s\n%s" msg
+    Cli.warning_print "%s\n%s" msg
       (String.concat "\n"
          (List.map
             (fun chunk ->
@@ -138,7 +140,7 @@ let compare_to_versions
              "There is a diff between the source code version of %s %s and the \
               text stored on LégiFrance:\n"
              (fst law_article_text.article_title)
-             (Utils.Pos.to_string (snd law_article_text.article_title)))
+             (Pos.to_string (snd law_article_text.article_title)))
           diff)
     | None -> ()
   end;
@@ -154,38 +156,27 @@ let compare_to_versions
            "Here is the diff between the current version of %s %s and what it \
             will become in the future:\n"
            (fst law_article_text.article_title)
-           (Utils.Pos.to_string (snd law_article_text.article_title)))
+           (Pos.to_string (snd law_article_text.article_title)))
         diff)
   | None -> ()
 
 (** Fill an [@@Include ...@@] tag inside the Catala source file with the
     legislative contents retrieved from LégiFrance *)
 let include_legislative_text
-    (id : string * Utils.Pos.t)
+    (id : string * Pos.t)
     (access_token : Api.access_token) : string =
-  let excerpt = Api.retrieve_law_excerpt access_token (fst id) in
-  let title = "#" ^ Api.get_law_excerpt_title excerpt in
-  let excerpts = Api.get_law_excerpt_articles excerpt in
-  let text_to_return =
-    String.concat "\n\n"
-      (List.map (fun article -> article.Api.content) excerpts)
-  in
-  let articles =
-    List.map
-      (fun article ->
-        Printf.sprintf "## Article %s|%s@\n%s" article.Api.num article.Api.id
-          article.Api.content)
-      excerpts
-  in
-  let to_insert = title ^ "\n\n" ^ String.concat "\n\n" articles in
   let pos = snd id in
-  Utils.Cli.debug_format "Position: %s" (Utils.Pos.to_string_short pos);
-  let file = Utils.Pos.get_file pos in
-  let include_line = Utils.Pos.get_end_line pos in
+  let id = Api.parse_id (fst id) in
+  let article = Api.retrieve_article access_token id in
+  let text_to_return = Api.get_article_text article in
+  let to_insert = text_to_return in
+  Cli.debug_format "Position: %s" (Pos.to_string_short pos);
+  let file = Pos.get_file pos in
+  let include_line = Pos.get_start_line pos in
   let ic = open_in file in
   let new_file = file ^ ".new" in
-  Utils.Cli.warning_print
-    "LégiFrance inclusion detected, writing new contents to %s" new_file;
+  Cli.warning_print "LégiFrance inclusion detected, writing new contents to %s"
+    new_file;
   let oc = open_out new_file in
   (* Pos.t lines start at 1 *)
   let counter = ref 1 in
@@ -258,7 +249,11 @@ let driver
     (client_id : string)
     (client_secret : string) =
   try
-    if debug then Utils.Cli.debug_flag := true;
+    if debug then Cli.debug_flag := true;
+    if not (expiration || diff) then
+      Errors.raise_error
+        "You have to check at least something, see the list of options with \
+         --help";
     let access_token = Api.get_token client_id client_secret in
     (* LégiFrance is only supported for French texts *)
     let program =
@@ -276,9 +271,9 @@ let driver
              item))
       program.program_items;
     0
-  with Utils.Errors.StructuredError (msg, pos) ->
+  with Errors.StructuredError (msg, pos) ->
     let bt = Printexc.get_raw_backtrace () in
-    Utils.Cli.error_print "%s" (Utils.Errors.print_structured_error msg pos);
+    Cli.error_print "%s" (Errors.print_structured_error msg pos);
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
 
@@ -286,4 +281,5 @@ let driver
 let _ =
   Stdlib.exit
   @@ Cmdliner.Cmd.eval'
-       (Cmdliner.Cmd.v Cli.info (Cli.catala_legifrance_t driver))
+       (Cmdliner.Cmd.v Legifrance_cli.info
+          (Legifrance_cli.catala_legifrance_t driver))

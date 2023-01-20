@@ -14,6 +14,13 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Scope language to default calculus translator *)
+val translate_program_with_exceptions : 'm Dcalc.Ast.program -> 'm Ast.program
+(** Translation from the default calculus to the lambda calculus. This
+    translation uses exceptions to handle empty default terms. *)
 
-val translate_program : 'm Ast.program -> 'm Dcalc.Ast.program
+val translate_program_without_exceptions :
+  'm Dcalc.Ast.program -> 'm Ast.program
+(** Translation from the default calculus to the lambda calculus. This
+    translation uses an option monad to handle empty defaults terms. This
+    transformation is one piece to permit to compile toward legacy languages
+    that does not contains exceptions. *)

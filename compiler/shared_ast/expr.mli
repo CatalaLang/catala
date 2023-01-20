@@ -17,7 +17,7 @@
 
 (** Functions handling the expressions of [shared_ast] *)
 
-open Utils
+open Catala_utils
 open Definitions
 
 (** {2 Boxed constructors} *)
@@ -43,34 +43,10 @@ val subst :
   ('a, 't) gexpr list ->
   ('a, 't) gexpr
 
-val etuple :
-  (([< dcalc | lcalc ] as 'a), 't) boxed_gexpr list ->
-  StructName.t option ->
-  't ->
-  ('a, 't) boxed_gexpr
+val etuple : (lcalc, 't) boxed_gexpr list -> 't -> (lcalc, 't) boxed_gexpr
 
 val etupleaccess :
-  (([< dcalc | lcalc ] as 'a), 't) boxed_gexpr ->
-  int ->
-  StructName.t option ->
-  typ list ->
-  't ->
-  ('a, 't) boxed_gexpr
-
-val einj :
-  (([< dcalc | lcalc ] as 'a), 't) boxed_gexpr ->
-  int ->
-  EnumName.t ->
-  typ list ->
-  't ->
-  ('a, 't) boxed_gexpr
-
-val ematch :
-  (([< dcalc | lcalc ] as 'a), 't) boxed_gexpr ->
-  ('a, 't) boxed_gexpr list ->
-  EnumName.t ->
-  't ->
-  ('a, 't) boxed_gexpr
+  (lcalc, 't) boxed_gexpr -> int -> int -> 't -> (lcalc, 't) boxed_gexpr
 
 val earray : ('a any, 't) boxed_gexpr list -> 't -> ('a, 't) boxed_gexpr
 val elit : 'a any glit -> 't -> ('a, 't) boxed_gexpr
@@ -90,7 +66,7 @@ val eapp :
 val eassert :
   (([< dcalc | lcalc ] as 'a), 't) boxed_gexpr -> 't -> ('a, 't) boxed_gexpr
 
-val eop : operator -> 't -> (_ any, 't) boxed_gexpr
+val eop : ('a any, 'k) operator -> typ list -> 't -> ('a, 't) boxed_gexpr
 
 val edefault :
   (([< desugared | scopelang | dcalc ] as 'a), 't) boxed_gexpr list ->
@@ -125,34 +101,41 @@ val elocation :
 
 val estruct :
   StructName.t ->
-  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr StructFieldMap.t ->
+  ('a any, 't) boxed_gexpr StructField.Map.t ->
   't ->
   ('a, 't) boxed_gexpr
 
+val edstructaccess :
+  (desugared, 't) boxed_gexpr ->
+  IdentName.t ->
+  StructName.t option ->
+  't ->
+  (desugared, 't) boxed_gexpr
+
 val estructaccess :
-  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ->
-  StructFieldName.t ->
+  (([< scopelang | dcalc | lcalc ] as 'a), 't) boxed_gexpr ->
+  StructField.t ->
   StructName.t ->
   't ->
   ('a, 't) boxed_gexpr
 
-val eenuminj :
-  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ->
+val einj :
+  ('a any, 't) boxed_gexpr ->
   EnumConstructor.t ->
   EnumName.t ->
   't ->
   ('a, 't) boxed_gexpr
 
-val ematchs :
-  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ->
+val ematch :
+  ('a any, 't) boxed_gexpr ->
   EnumName.t ->
-  ('a, 't) boxed_gexpr EnumConstructorMap.t ->
+  ('a, 't) boxed_gexpr EnumConstructor.Map.t ->
   't ->
   ('a, 't) boxed_gexpr
 
 val escopecall :
   ScopeName.t ->
-  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ScopeVarMap.t ->
+  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ScopeVar.Map.t ->
   't ->
   ('a, 't) boxed_gexpr
 
@@ -194,28 +177,25 @@ val untype : ('a, 'm mark) gexpr -> ('a, untyped mark) boxed_gexpr
 (** {2 Traversal functions} *)
 
 val map :
-  'ctx ->
-  f:('ctx -> ('a, 't1) gexpr -> ('a, 't2) boxed_gexpr) ->
+  f:(('a, 't1) gexpr -> ('a, 't2) boxed_gexpr) ->
   (('a, 't1) naked_gexpr, 't2) Marked.t ->
   ('a, 't2) boxed_gexpr
-(** Flat (non-recursive) mapping on expressions.
+(** Shallow mapping on expressions (non recursive): applies the given function
+    to all sub-terms of the given expression, and rebuilds the node.
 
-    If you want to apply a map transform to an expression, you can save up
-    writing a painful match over all the cases of the AST. For instance, if you
-    want to remove all errors on empty, you can write
+    When applying a map transform to an expression, this avoids expliciting all
+    cases that remain unchanged. For instance, if you want to remove all errors
+    on empty, you can write
 
     {[
       let remove_error_empty =
-        let rec f () e =
+        let rec f e =
           match Marked.unmark e with
-          | ErrorOnEmpty e1 -> Expr.map () f e1
-          | _ -> Expr.map () f e
+          | ErrorOnEmpty e1 -> Expr.map f e1
+          | _ -> Expr.map f e
         in
-        f () e
-    ]}
-
-    The first argument of map_expr is an optional context that you can carry
-    around during your map traversal. *)
+        f e
+    ]} *)
 
 val map_top_down :
   f:(('a, 't1) gexpr -> (('a, 't1) naked_gexpr, 't2) Marked.t) ->
@@ -231,7 +211,42 @@ val shallow_fold :
   (('a, 't) gexpr -> 'acc -> 'acc) -> ('a, 't) gexpr -> 'acc -> 'acc
 (** Applies a function on all sub-terms of the given expression. Does not
     recurse, and doesn't open binders. Useful as helper for recursive calls
-    within traversal functions *)
+    within traversal functions. This can be used to compute free variables with
+    e.g.:
+
+    {[
+      let rec free_vars = function
+        | EVar v, _ -> Var.Set.singleton v
+        | EAbs { binder; _ }, _ ->
+          let vs, body = Bindlib.unmbind binder in
+          Array.fold_right Var.Set.remove vs (free_vars body)
+        | e ->
+          shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
+    ]} *)
+
+val map_gather :
+  acc:'acc ->
+  join:('acc -> 'acc -> 'acc) ->
+  f:(('a, 't1) gexpr -> 'acc * ('a, 't2) boxed_gexpr) ->
+  (('a, 't1) naked_gexpr, 't2) Marked.t ->
+  'acc * ('a, 't2) boxed_gexpr
+(** Shallow mapping similar to [map], but additionally allows to gather an
+    accumulator bottom-up. [acc] is the accumulator value returned on terminal
+    nodes, and [join] is used to merge accumulators from the different sub-terms
+    of an expression. [acc] is assumed to be a neutral element for [join].
+    Typically used with a set of variables used in the rewrite:
+
+    {[
+      let rec rewrite e =
+        match Marked.unmark e with
+        | Specific_case ->
+          Var.Set.singleton x, some_rewrite_fun e
+        | _ ->
+          Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:rewrite e
+    }]
+
+
+    See [Lcalc.closure_conversion] for a real-world example. *)
 
 (** {2 Expression building helpers} *)
 
@@ -289,20 +304,9 @@ val make_default :
     - [<ex | false :- _>], when [ex] is a single exception, is rewritten as [ex] *)
 
 val make_tuple :
-  (([< dcalc | lcalc ] as 'a), 'm mark) boxed_gexpr list ->
-  StructName.t option ->
-  'm mark ->
-  ('a, 'm mark) boxed_gexpr
+  (lcalc, 'm mark) boxed_gexpr list -> 'm mark -> (lcalc, 'm mark) boxed_gexpr
 (** Builds a tuple; the mark argument is only used as witness and for position
     when building 0-uples *)
-
-val make_struct :
-  (([< dcalc | lcalc ] as 'a), 'm mark) boxed_gexpr StructFieldMap.t ->
-  StructName.t ->
-  'm mark ->
-  ('a, 'm mark) boxed_gexpr
-(** Builds the tuple of values for the given struct with proper ordering,
-    assuming the structfieldmap contains the fields defined for structname *)
 
 (** {2 Transformations} *)
 
@@ -331,8 +335,6 @@ val compare : ('a, 't) gexpr -> ('a, 't) gexpr -> int
 (** Standard comparison function, suitable for e.g. [Set.Make]. Ignores position
     information *)
 
-val equal_typ : typ -> typ -> bool
-val compare_typ : typ -> typ -> int
 val is_value : ('a any, 't) gexpr -> bool
 val free_vars : ('a any, 't) gexpr -> ('a, 't) gexpr Var.Set.t
 
@@ -363,10 +365,10 @@ module Box : sig
       a separate argument. *)
 
   val app1 :
-    ('a, 't) boxed_gexpr ->
-    (('a, 't) gexpr -> ('a, 't) naked_gexpr) ->
-    't ->
-    ('a, 't) boxed_gexpr
+    ('a, 't1) boxed_gexpr ->
+    (('a, 't1) gexpr -> ('a, 't2) naked_gexpr) ->
+    't2 ->
+    ('a, 't2) boxed_gexpr
 
   val app2 :
     ('a, 't) boxed_gexpr ->

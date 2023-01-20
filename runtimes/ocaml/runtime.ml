@@ -372,7 +372,9 @@ module EventParser = struct
     | VariableDefinition (name, value) ->
       Printf.sprintf "VariableDefinition([ %s ], %s)" (String.concat ", " name)
         (yojson_of_runtime_value value |> Yojson.Safe.to_string)
-    | DecisionTaken _ -> Printf.sprintf "DecisionTaken(_)"
+    | DecisionTaken pos ->
+      Printf.sprintf "DecisionTaken(%s:%d.%d-%d.%d)" pos.filename pos.start_line
+        pos.start_column pos.end_line pos.end_column
 
   let parse_raw_events raw_events =
     let nb_raw_events = List.length raw_events
@@ -386,7 +388,6 @@ module EventParser = struct
     and is_subscope_input_var_def name =
       2 = List.length name && String.contains (List.nth name 1) '.'
     in
-
     let rec parse_events (ctx : context) : context =
       match ctx.rest with
       | [] -> { ctx with events = ctx.events |> List.rev }
@@ -561,80 +562,8 @@ let handle_default_opt
 
 let no_input : unit -> 'a = fun _ -> raise EmptyError
 
-let ( *$ ) (i1 : money) (i2 : decimal) : money =
-  let i1_abs = Z.abs i1 in
-  let i2_abs = Q.abs i2 in
-  let sign_int = Z.sign i1 * Q.sign i2 in
-  let rat_result = Q.mul (Q.of_bigint i1_abs) i2_abs in
-  let res, remainder = Z.div_rem (Q.num rat_result) (Q.den rat_result) in
-  (* we perform nearest rounding when multiplying an amount of money by a
-     decimal !*)
-  if Z.(of_int 2 * remainder >= Q.den rat_result) then
-    Z.(add res (of_int 1) * of_int sign_int)
-  else Z.(res * of_int sign_int)
-
-let ( /$ ) (m1 : money) (m2 : money) : decimal =
-  if Z.zero = m2 then raise Division_by_zero
-  else Q.div (Q.of_bigint m1) (Q.of_bigint m2)
-
-let ( +$ ) (m1 : money) (m2 : money) : money = Z.add m1 m2
-let ( -$ ) (m1 : money) (m2 : money) : money = Z.sub m1 m2
-let ( ~-$ ) (m1 : money) : money = Z.sub Z.zero m1
-let ( +! ) (i1 : integer) (i2 : integer) : integer = Z.add i1 i2
-let ( -! ) (i1 : integer) (i2 : integer) : integer = Z.sub i1 i2
-let ( ~-! ) (i1 : integer) : integer = Z.sub Z.zero i1
-let ( *! ) (i1 : integer) (i2 : integer) : integer = Z.mul i1 i2
-
-let ( /! ) (i1 : integer) (i2 : integer) : integer =
-  if Z.zero = i2 then raise Division_by_zero else Z.div i1 i2
-
-let ( +& ) (i1 : decimal) (i2 : decimal) : decimal = Q.add i1 i2
-let ( -& ) (i1 : decimal) (i2 : decimal) : decimal = Q.sub i1 i2
-let ( ~-& ) (i1 : decimal) : decimal = Q.sub Q.zero i1
-let ( *& ) (i1 : decimal) (i2 : decimal) : decimal = Q.mul i1 i2
-
-let ( /& ) (i1 : decimal) (i2 : decimal) : decimal =
-  if Q.zero = i2 then raise Division_by_zero else Q.div i1 i2
-
-let ( +@ ) : date -> duration -> date = Dates_calc.Dates.add_dates
-let ( -@ ) : date -> date -> duration = Dates_calc.Dates.sub_dates
-let ( +^ ) : duration -> duration -> duration = Dates_calc.Dates.add_periods
-let ( -^ ) : duration -> duration -> duration = Dates_calc.Dates.sub_periods
-
-let ( *^ ) (d : duration) (m : integer) : duration =
-  Dates_calc.Dates.mul_period d (Z.to_int m)
-
-let ( <=$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 <= 0
-let ( >=$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 >= 0
-let ( <$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 < 0
-let ( >$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 > 0
-let ( =$ ) (m1 : money) (m2 : money) : bool = Z.compare m1 m2 = 0
-let ( >=! ) (i1 : integer) (i2 : integer) : bool = Z.compare i1 i2 >= 0
-let ( <=! ) (i1 : integer) (i2 : integer) : bool = Z.compare i1 i2 <= 0
-let ( >! ) (i1 : integer) (i2 : integer) : bool = Z.compare i1 i2 > 0
-let ( <! ) (i1 : integer) (i2 : integer) : bool = Z.compare i1 i2 < 0
-let ( =! ) (i1 : integer) (i2 : integer) : bool = Z.compare i1 i2 = 0
-let ( >=& ) (i1 : decimal) (i2 : decimal) : bool = Q.compare i1 i2 >= 0
-let ( <=& ) (i1 : decimal) (i2 : decimal) : bool = Q.compare i1 i2 <= 0
-let ( >& ) (i1 : decimal) (i2 : decimal) : bool = Q.compare i1 i2 > 0
-let ( <& ) (i1 : decimal) (i2 : decimal) : bool = Q.compare i1 i2 < 0
-let ( =& ) (i1 : decimal) (i2 : decimal) : bool = Q.compare i1 i2 = 0
-
-let ( >=@ ) (d1 : date) (d2 : date) : bool =
-  Dates_calc.Dates.compare_dates d1 d2 >= 0
-
-let ( <=@ ) (d1 : date) (d2 : date) : bool =
-  Dates_calc.Dates.compare_dates d1 d2 <= 0
-
-let ( >@ ) (d1 : date) (d2 : date) : bool =
-  Dates_calc.Dates.compare_dates d1 d2 > 0
-
-let ( <@ ) (d1 : date) (d2 : date) : bool =
-  Dates_calc.Dates.compare_dates d1 d2 < 0
-
-let ( =@ ) (d1 : date) (d2 : date) : bool =
-  Dates_calc.Dates.compare_dates d1 d2 = 0
-
+(* TODO: add a compare built-in to dates_calc. At the moment this fails on e.g.
+   [3 months, 4 months] *)
 let compare_periods (p1 : duration) (p2 : duration) : int =
   try
     let p1_days = Dates_calc.Dates.period_to_days p1 in
@@ -642,14 +571,117 @@ let compare_periods (p1 : duration) (p2 : duration) : int =
     compare p1_days p2_days
   with Dates_calc.Dates.AmbiguousComputation -> raise UncomparableDurations
 
-let ( >=^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 >= 0
-let ( <=^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 <= 0
-let ( >^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 > 0
-let ( <^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 < 0
-let ( =^ ) (d1 : duration) (d2 : duration) : bool = compare_periods d1 d2 = 0
-let ( ~-^ ) : duration -> duration = Dates_calc.Dates.neg_period
+(* TODO: same here, although it was tweaked to never fail on equal dates.
+   Comparing the difference to duration_0 is not a good idea because we still
+   want to fail on [1 month, 30 days] rather than return [false] *)
+let equal_periods (p1 : duration) (p2 : duration) : bool =
+  try Dates_calc.Dates.period_to_days (Dates_calc.Dates.sub_periods p1 p2) = 0
+  with Dates_calc.Dates.AmbiguousComputation -> raise UncomparableDurations
 
-let array_filter (f : 'a -> bool) (a : 'a array) : 'a array =
-  Array.of_list (List.filter f (Array.to_list a))
+module Oper = struct
+  let o_not = Stdlib.not
+  let o_length a = Z.of_int (Array.length a)
+  let o_torat_int = decimal_of_integer
+  let o_torat_mon = decimal_of_money
+  let o_tomoney_rat = money_of_decimal
+  let o_getDay = day_of_month_of_date
+  let o_getMonth = month_number_of_date
+  let o_getYear = year_of_date
+  let o_firstDayOfMonth = first_day_of_month
+  let o_lastDayOfMonth = last_day_of_month
+  let o_round_mon = money_round
+  let o_round_rat = decimal_round
+  let o_minus_int i1 = Z.sub Z.zero i1
+  let o_minus_rat i1 = Q.sub Q.zero i1
+  let o_minus_mon m1 = Z.sub Z.zero m1
+  let o_minus_dur = Dates_calc.Dates.neg_period
+  let o_and = ( && )
+  let o_or = ( || )
+  let o_xor : bool -> bool -> bool = ( <> )
+  let o_eq = ( = )
+  let o_map = Array.map
 
-let array_length (a : 'a array) : integer = Z.of_int (Array.length a)
+  let o_reduce f dft a =
+    let len = Array.length a in
+    if len = 0 then dft
+    else
+      let r = ref a.(0) in
+      for i = 1 to len - 1 do
+        r := f !r a.(i)
+      done;
+      !r
+
+  let o_concat = Array.append
+  let o_filter f a = Array.of_list (List.filter f (Array.to_list a))
+  let o_add_int_int i1 i2 = Z.add i1 i2
+  let o_add_rat_rat i1 i2 = Q.add i1 i2
+  let o_add_mon_mon m1 m2 = Z.add m1 m2
+  let o_add_dat_dur da du = Dates_calc.Dates.add_dates da du
+  let o_add_dur_dur = Dates_calc.Dates.add_periods
+  let o_sub_int_int i1 i2 = Z.sub i1 i2
+  let o_sub_rat_rat i1 i2 = Q.sub i1 i2
+  let o_sub_mon_mon m1 m2 = Z.sub m1 m2
+  let o_sub_dat_dat = Dates_calc.Dates.sub_dates
+  let o_sub_dat_dur dat dur = Dates_calc.Dates.(add_dates dat (neg_period dur))
+  let o_sub_dur_dur = Dates_calc.Dates.sub_periods
+  let o_mult_int_int i1 i2 = Z.mul i1 i2
+  let o_mult_rat_rat i1 i2 = Q.mul i1 i2
+
+  let o_mult_mon_rat i1 i2 =
+    let i1_abs = Z.abs i1 in
+    let i2_abs = Q.abs i2 in
+    let sign_int = Z.sign i1 * Q.sign i2 in
+    let rat_result = Q.mul (Q.of_bigint i1_abs) i2_abs in
+    let res, remainder = Z.div_rem (Q.num rat_result) (Q.den rat_result) in
+    (* we perform nearest rounding when multiplying an amount of money by a
+       decimal !*)
+    if Z.(of_int 2 * remainder >= Q.den rat_result) then
+      Z.(add res (of_int 1) * of_int sign_int)
+    else Z.(res * of_int sign_int)
+
+  let o_mult_dur_int d m = Dates_calc.Dates.mul_period d (Z.to_int m)
+
+  let o_div_int_int i1 i2 =
+    (* It's not on the ocamldoc, but Q.div likely already raises this ? *)
+    if Z.zero = i2 then raise Division_by_zero
+    else Q.div (Q.of_bigint i1) (Q.of_bigint i2)
+
+  let o_div_rat_rat i1 i2 =
+    if Q.zero = i2 then raise Division_by_zero else Q.div i1 i2
+
+  let o_div_mon_mon m1 m2 =
+    if Z.zero = m2 then raise Division_by_zero
+    else Q.div (Q.of_bigint m1) (Q.of_bigint m2)
+
+  let o_div_mon_rat m1 r1 =
+    if Q.zero = r1 then raise Division_by_zero else o_mult_mon_rat m1 (Q.inv r1)
+
+  let o_lt_int_int i1 i2 = Z.compare i1 i2 < 0
+  let o_lt_rat_rat i1 i2 = Q.compare i1 i2 < 0
+  let o_lt_mon_mon m1 m2 = Z.compare m1 m2 < 0
+  let o_lt_dur_dur d1 d2 = compare_periods d1 d2 < 0
+  let o_lt_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 < 0
+  let o_lte_int_int i1 i2 = Z.compare i1 i2 <= 0
+  let o_lte_rat_rat i1 i2 = Q.compare i1 i2 <= 0
+  let o_lte_mon_mon m1 m2 = Z.compare m1 m2 <= 0
+  let o_lte_dur_dur d1 d2 = compare_periods d1 d2 <= 0
+  let o_lte_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 <= 0
+  let o_gt_int_int i1 i2 = Z.compare i1 i2 > 0
+  let o_gt_rat_rat i1 i2 = Q.compare i1 i2 > 0
+  let o_gt_mon_mon m1 m2 = Z.compare m1 m2 > 0
+  let o_gt_dur_dur d1 d2 = compare_periods d1 d2 > 0
+  let o_gt_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 > 0
+  let o_gte_int_int i1 i2 = Z.compare i1 i2 >= 0
+  let o_gte_rat_rat i1 i2 = Q.compare i1 i2 >= 0
+  let o_gte_mon_mon m1 m2 = Z.compare m1 m2 >= 0
+  let o_gte_dur_dur d1 d2 = compare_periods d1 d2 >= 0
+  let o_gte_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 >= 0
+  let o_eq_int_int i1 i2 = Z.equal i1 i2
+  let o_eq_rat_rat i1 i2 = Q.equal i1 i2
+  let o_eq_mon_mon m1 m2 = Z.equal m1 m2
+  let o_eq_dur_dur d1 d2 = equal_periods d1 d2
+  let o_eq_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 = 0
+  let o_fold = Array.fold_left
+end
+
+include Oper

@@ -17,25 +17,22 @@ $ catala Interpret -s Foo
 --> bool
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_bool/bad/bad_assert.catala_en:9.12-13
+┌─⯈ tests/test_bool/bad/bad_assert.catala_en:9.12-13:
 └─┐
-  │
 9 │   assertion x
   │             ‾
   └─ Test
 
 Type integer coming from expression:
-┌─⯈ tests/test_bool/bad/bad_assert.catala_en:5.21-28
+┌─⯈ tests/test_bool/bad/bad_assert.catala_en:5.21-28:
 └─┐
-  │
 5 │   internal x content integer
   │                      ‾‾‾‾‾‾‾
   └─ Test
 
 Type bool coming from expression:
-┌─⯈ tests/test_bool/bad/bad_assert.catala_en:9.12-13
+┌─⯈ tests/test_bool/bad/bad_assert.catala_en:9.12-13:
 └─┐
-  │
 9 │   assertion x
   │             ‾
   └─ Test
