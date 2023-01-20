@@ -1,7 +1,8 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
    Denis Merigoux <denis.merigoux@inria.fr>, Alain Delaët
-   <alain.delaet--tixeuil@inria.fr>
+   <alain.delaet--tixeuil@inria.fr>, Aymeric Fromherz
+   <aymeric.fromherz@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -31,6 +32,24 @@ type ctx = {
   input_vars : typed expr Var.t list;
   scope_variables_typs : (typed expr, typ) Var.Map.t;
 }
+
+let rec conjunction_exprs (exprs : typed expr list) (mark : typed mark) :
+    typed expr =
+  match exprs with
+  | [] -> ELit (LBool true), mark
+  | hd :: tl ->
+    ( EApp
+        {
+          f =
+            ( EOp
+                {
+                  op = And;
+                  tys = [TLit TBool, Expr.pos hd; TLit TBool, Expr.pos hd];
+                },
+              mark );
+          args = [hd; conjunction_exprs tl mark];
+        },
+      mark )
 
 let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
@@ -250,24 +269,44 @@ type verification_condition = {
   vc_guard : typed expr;
   (* should have type bool *)
   vc_kind : verification_condition_kind;
+  (* All assertions defined at the top-level of the scope corresponding to this
+     assertion *)
+  vc_asserts : typed expr;
   vc_scope : ScopeName.t;
   vc_variable : typed expr Var.t Marked.pos;
 }
 
+let trivial_assert e = Marked.same_mark_as (ELit (LBool true)) e
+
 let rec generate_verification_conditions_scope_body_expr
     (ctx : ctx)
     (scope_body_expr : 'm expr scope_body_expr) :
-    ctx * verification_condition list =
+    ctx * verification_condition list * typed expr list =
   match scope_body_expr with
-  | Result _ -> ctx, []
+  | Result _ -> ctx, [], []
   | ScopeLet scope_let ->
     let scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
     in
-    let new_ctx, vc_list =
+    let new_ctx, vc_list, assert_list =
       match scope_let.scope_let_kind with
+      | Assertion -> (
+        let e =
+          Expr.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
+        in
+        match Marked.unmark e with
+        | EAssert e ->
+          let e = match_and_ignore_outer_reentrant_default ctx e in
+          ctx, [], [e]
+        | _ ->
+          Errors.raise_spanned_error (Expr.pos e)
+            "Internal error: this assertion does not have the structure \
+             expected by the VC generator:\n\
+             %a"
+            (Expr.format ~debug:true ctx.decl)
+            e)
       | DestructuringInputStruct ->
-        { ctx with input_vars = scope_let_var :: ctx.input_vars }, []
+        { ctx with input_vars = scope_let_var :: ctx.input_vars }, [], []
       | ScopeVarDefinition | SubScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
            emptyError nor conflictError. But for subscope variable definitions,
@@ -289,6 +328,9 @@ let rec generate_verification_conditions_scope_body_expr
             {
               vc_guard = Marked.same_mark_as (Marked.unmark vc_confl) e;
               vc_kind = NoOverlappingExceptions;
+              (* Placeholder until we add all assertions in scope once
+               * we finished traversing it *)
+              vc_asserts = trivial_assert e;
               vc_scope = ctx.current_scope_name;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             };
@@ -306,16 +348,17 @@ let rec generate_verification_conditions_scope_body_expr
             {
               vc_guard = Marked.same_mark_as (Marked.unmark vc_empty) e;
               vc_kind = NoEmptyError;
+              vc_asserts = trivial_assert e;
               vc_scope = ctx.current_scope_name;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             }
             :: vc_list
           | _ -> vc_list
         in
-        ctx, vc_list
-      | _ -> ctx, []
+        ctx, vc_list, []
+      | _ -> ctx, [], []
     in
-    let new_ctx, new_vcs =
+    let new_ctx, new_vcs, new_asserts =
       generate_verification_conditions_scope_body_expr
         {
           new_ctx with
@@ -325,7 +368,7 @@ let rec generate_verification_conditions_scope_body_expr
         }
         scope_let_next
     in
-    new_ctx, vc_list @ new_vcs
+    new_ctx, vc_list @ new_vcs, assert_list @ new_asserts
 
 let rec generate_verification_conditions_scopes
     (decl_ctx : decl_ctx)
@@ -358,10 +401,15 @@ let rec generate_verification_conditions_scopes
                  destructured with a series of let bindings just after. )*);
           }
         in
-        let _, vcs =
+        let _, vcs, asserts =
           generate_verification_conditions_scope_body_expr ctx scope_body_expr
         in
-        vcs
+        let combined_assert =
+          conjunction_exprs asserts
+            (Typed
+               { pos = Pos.no_pos; ty = Marked.mark Pos.no_pos (TLit TBool) })
+        in
+        List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
       else []
     in
     let _scope_var, next = Bindlib.unbind scope_def.scope_next in
