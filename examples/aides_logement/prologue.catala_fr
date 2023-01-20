@@ -519,6 +519,11 @@ déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
   interne exonéré_csg condition
 
   résultat montant contenu argent dépend de argent
+
+champ d'application ContributionsSocialesAidesPersonnelleLogement:
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2020-01-01|
 ```
 
 ### Calcul du montant de l'aide personnalisée au logement
@@ -580,6 +585,17 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
 
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition contributions_sociales.date_courante égal à date_courante
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2020-10-01|
+  assertion nombre_personnes_à_charge >= 0
+  # Lors d'un entretien le 23/05/2022 avec DGALN/DHUP/FE4, nous avons
+  # demandé quel barème spécial avait priorité entre celui du logement
+  # chambre et de la colocation. Il nous a été répondu que la situation
+  # d'un logement chambre partagé en colocation n'avait pas été considéré.
+  # Aussi, nous supposons que ce cas n'arrive pas via cette assertion ci-
+  # dessous.
+  assertion non (logement_est_chambre et colocation)
 ```
 
 #### Secteur logement-foyer
@@ -649,6 +665,9 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
 
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition contributions_sociales.date_courante égal à date_courante
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2020-10-01|
 ```
 
 #### Secteur accession à la propriété
@@ -719,6 +738,9 @@ déclaration champ d'application
 
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition contributions_sociales.date_courante égal à date_courante
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2020-10-01|
 ```
 
 #### Tous secteurs
@@ -910,6 +932,10 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
   définition contributions_sociales.date_courante égal à date_courante
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2021-10-01|
+  assertion date_signature_prêt >= |1992-09-30|
 ```
 
 ### Secteur logement-foyer
@@ -971,6 +997,9 @@ champ d'application CalculAllocationLogementFoyer:
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
   définition contributions_sociales.date_courante égal à date_courante
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2021-10-01|
 ```
 
 #### Tous secteurs
