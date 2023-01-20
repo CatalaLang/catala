@@ -1030,7 +1030,7 @@ de logement sociale.
 # à l'APL aux ménages éligibiles aux deux prestations, mais dont le montant
 # d'ALF/ALS et supérieur au montant d'APL.
 champ d'application ÉligibilitéAllocationLogement:
-  définition éligibilité état l841_2 égal à
+  étiquette base définition éligibilité état l841_2 égal à
     si éligibilité = PasÉligible ou bénéficie_aide_personnalisée_logement alors
       PasÉligible
     sinon (si éligibilité_allocation_logement_familiale alors
@@ -1120,7 +1120,17 @@ soins de longue durée mentionnés au 3° de l'article L. 162-22 du code de la s
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  exception définition éligibilité état l841_2 sous condition
+  exception accession_propriété
+  # Nous considérons que L841-3 est une exception à L841-4 et non pas à
+  # L841-2 (cas de base) car si L841-3 et L84164 étaient tous deux exceptions
+  # de L841-2, alors il pourrait y avoir conflit entre ces deux exceptions.
+  # Cependant le conflit est impossible puisqu'on ne peut pas à la fois
+  # être dans une unité de soin longue durée et avoir acheté cette unité
+  # de soin longue durée avec un prêt aidé par l'État (quoique...
+  # https://www.mediapart.fr/journal/france/160123/les-folles-economies-de-la-famille-ciotti-au-detriment-de-la-securite-sociale).
+  # Donc ici plutôt que d'écrire un invariant qui exclut ce cas de figure,
+  # on préfère hiérarchiser entre elles les exceptions pour lever le conflit.
+  définition éligibilité état l841_2 sous condition
     demandeur.personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
   conséquence égal à
     TypeÉligibilitéAllocationLogement.AllocationLogementSociale
@@ -1133,7 +1143,8 @@ l'habitation signés après le 31 décembre 2017.
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  exception définition éligibilité état l841_2 sous condition
+  étiquette accession_propriété
+  exception base définition éligibilité état l841_2 sous condition
     selon ménage.logement.mode_occupation sous forme
     -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
       propriétaire.prêt.date_signature > |2017-12-31|
