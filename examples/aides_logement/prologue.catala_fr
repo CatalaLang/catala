@@ -351,6 +351,9 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
                -- GardeAlternéeCoefficientPriseEnCharge: vrai
                -- PasDeGardeAlternée: faux
     )))
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2018-04-01|
 ```
 
 ### Éligibilité à l'aide personnalisée au logement
