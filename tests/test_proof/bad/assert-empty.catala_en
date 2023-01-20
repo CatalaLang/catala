@@ -1,0 +1,34 @@
+```catala
+declaration scope Foo:
+   input current_date content date
+   output x content integer
+
+scope Foo:
+   assertion current_date >=@ |2020-01-01| and current_date <@ |2022-12-31|
+
+   definition x under condition
+      current_date >=@ |2020-01-01| and current_date <@ |2020-12-31|
+   consequence equals
+      1
+
+   definition x under condition
+      current_date >=@ |2021-01-01| and current_date <=@ |2021-12-31|
+   consequence equals
+      2
+
+   definition x under condition
+      current_date >=@ |2022-01-01| and current_date <@ |2022-12-31|
+   consequence equals
+      3
+```
+
+```catala-test-inline
+$ catala Proof --disable_counterexamples
+[ERROR] [Foo.x] This variable might return an empty error:
+┌─⯈ tests/test_proof/bad/assert-empty.catala_en:4.10-11:
+└─┐
+4 │    output x content integer
+  │           ‾
+
+Counterexample generation is disabled so none was generated.
+```
