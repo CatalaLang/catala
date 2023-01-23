@@ -45,6 +45,7 @@ type 'm scope_decl = {
 
 type 'm program = {
   program_scopes : 'm scope_decl ScopeName.Map.t;
+  program_globals : ('m expr * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 

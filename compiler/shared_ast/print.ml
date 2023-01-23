@@ -66,6 +66,7 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   | SubScopeVar (_, subindex, subvar) ->
     Format.fprintf fmt "%a.%a" SubScopeName.format_t (Marked.unmark subindex)
       ScopeVar.format_t (Marked.unmark subvar)
+  | GlobalVar v -> TopdefName.format_t fmt (Marked.unmark v)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
   Cli.format_with_style [ANSITerminal.magenta] fmt

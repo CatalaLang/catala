@@ -24,6 +24,7 @@ module Env : sig
 
   val empty : 'e t
   val add_var : 'e Var.t -> typ -> 'e t -> 'e t
+  val add_global_var : TopdefName.t -> typ -> 'e t -> 'e t
   val add_scope_var : ScopeVar.t -> typ -> 'e t -> 'e t
   val add_scope : ScopeName.t -> vars:typ ScopeVar.Map.t -> 'e t -> 'e t
   val open_scope : ScopeName.t -> 'e t -> 'e t

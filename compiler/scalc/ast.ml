@@ -18,8 +18,8 @@ open Catala_utils
 open Shared_ast
 module D = Dcalc.Ast
 module L = Lcalc.Ast
-module TopLevelName = Uid.Make (Uid.MarkedString) ()
-module LocalName = Uid.Make (Uid.MarkedString) ()
+module TopLevelName = Uid.Gen ()
+module LocalName = Uid.Gen ()
 
 let dead_value = LocalName.fresh ("dead_value", Pos.no_pos)
 let handle_default = TopLevelName.fresh ("handle_default", Pos.no_pos)
@@ -67,4 +67,10 @@ type scope_body = {
   scope_body_func : func;
 }
 
-type program = { decl_ctx : decl_ctx; scopes : scope_body list }
+type global = GlobalVar of block | GlobalFunc of func
+
+type program = {
+  decl_ctx : decl_ctx;
+  globals : (TopLevelName.t * global) list;
+  scopes : scope_body list;
+}

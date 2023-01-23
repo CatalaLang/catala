@@ -237,13 +237,12 @@ let driver source_file (options : Cli.options) : int =
               ( scope_uid,
                 Option.get
                   (Shared_ast.Scope.fold_left ~init:None
-                     ~f:(fun acc scope_def _ ->
-                       if
-                         Shared_ast.ScopeName.compare scope_def.scope_name
-                           scope_uid
-                         = 0
-                       then Some scope_def.scope_body
-                       else acc)
+                     ~f:(fun acc def _ ->
+                       match def with
+                       | ScopeDef (name, body)
+                         when Shared_ast.ScopeName.equal name scope_uid ->
+                         Some body
+                       | _ -> acc)
                      prgm.scopes) )
           else
             let prgrm_dcalc_expr =

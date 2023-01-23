@@ -246,6 +246,7 @@ type 'a glocation =
   | SubScopeVar :
       ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
       -> [< desugared | scopelang ] glocation
+  | GlobalVar : TopdefName.t Marked.pos -> [< desugared | scopelang ] glocation
 
 type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Marked.t
 (** General expressions: groups all expression cases of the different ASTs, and
@@ -410,6 +411,7 @@ type 'e scope_let = {
   scope_let_typ : typ;
   scope_let_expr : 'e;
   scope_let_next : ('e, 'e scope_body_expr) binder;
+  (* todo ? Factorise the code_item _list type below and use it here *)
   scope_let_pos : Pos.t;
 }
   constraint 'e = (_ any, _ mark) gexpr
@@ -435,25 +437,15 @@ type 'e scope_body = {
     a result expression that uses the let-binded variables. The first binder is
     the argument of type [scope_body_input_struct]. *)
 
-type 'e scope_def = {
-  scope_name : ScopeName.t;
-  scope_body : 'e scope_body;
-  scope_next : ('e, 'e scopes) binder;
-}
-  constraint 'e = (_ any, _ mark) gexpr
-(* and 'e topdef = {
- *   topdef_name : TopdefName.t;
- *   topdef_expr : 'e;
- *   topdef_next : ('e, 'e scopes) binder;
- * }
- *   constraint 'e = (_ any, _ mark) gexpr *)
+type 'e code_item =
+  | ScopeDef of ScopeName.t * 'e scope_body
+  | Topdef of TopdefName.t * typ * 'e
 
-(** Finally, we do the same transformation for the whole program for the kinded
-    lets. This permit us to use bindlib variables for scopes names. *)
-and 'e scopes =
+(* A chained list, but with a binder for each element into the next: [x := let a
+   = e1 in e2] is thus [Cons (e1, {a. Cons (e2, {x. Nil})})] *)
+type 'e code_item_list =
   | Nil
-  | ScopeDef of 'e scope_def (* | Topdef of 'e topdef *)
-  constraint 'e = (_ any, _ mark) gexpr
+  | Cons of 'e code_item * ('e, 'e code_item_list) binder
 
 type struct_ctx = typ StructField.Map.t StructName.Map.t
 type enum_ctx = typ EnumConstructor.Map.t EnumName.Map.t
@@ -471,4 +463,4 @@ type decl_ctx = {
   ctx_scopes : scope_out_struct ScopeName.Map.t;
 }
 
-type 'e program = { decl_ctx : decl_ctx; scopes : 'e scopes }
+type 'e program = { decl_ctx : decl_ctx; scopes : 'e code_item_list }

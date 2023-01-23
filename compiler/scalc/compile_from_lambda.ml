@@ -330,54 +330,109 @@ let rec translate_scope_body_expr
         scope_let_next
 
 let translate_program (p : 'm L.program) : A.program =
+  let _, _, rglobals, rscopes =
+    Scope.fold_left
+      ~f:(fun (func_dict, var_dict, globals, scopes) code_item var ->
+        match code_item with
+        | ScopeDef (name, body) ->
+          let scope_input_var, scope_body_expr =
+            Bindlib.unbind body.scope_body_expr
+          in
+          let input_pos = Marked.get_mark (ScopeName.get_info name) in
+          let scope_input_var_id =
+            A.LocalName.fresh (Bindlib.name_of scope_input_var, input_pos)
+          in
+          let var_dict_local =
+            Var.Map.add scope_input_var scope_input_var_id var_dict
+          in
+          let new_scope_body =
+            translate_scope_body_expr name p.decl_ctx var_dict_local func_dict
+              scope_body_expr
+          in
+          let func_id =
+            A.TopLevelName.fresh (Bindlib.name_of var, Pos.no_pos)
+          in
+          ( Var.Map.add var func_id func_dict,
+            var_dict,
+            globals,
+            {
+              Ast.scope_body_name = name;
+              Ast.scope_body_var = func_id;
+              scope_body_func =
+                {
+                  A.func_params =
+                    [
+                      ( (scope_input_var_id, input_pos),
+                        (TStruct body.scope_body_input_struct, input_pos) );
+                    ];
+                  A.func_body = new_scope_body;
+                };
+            }
+            :: scopes )
+        | Topdef _ -> failwith "todo"
+        (* | Topdef (name, _, (EAbs abs, _)) ->
+         *   let func_id =
+         *     A.TopLevelName.fresh (Bindlib.name_of var, Pos.no_pos)
+         *   in
+         *   let args_a, expr = Bindlib.unmbind abs.binder in
+         *   let args = Array.to_list args_a in
+         *   let args_id =
+         *     List.map2 (fun v ty ->
+         *         let pos = Marked.get_mark ty in
+         *         (A.LocalName.fresh (Bindlib.name_of v, pos), pos), ty)
+         *       args abs.tys
+         *   in
+         *   let block, expr =
+         *     let ctxt =
+         *       {
+         *         func_dict;
+         *         decl_ctx = p.decl_ctx;
+         *         var_dict =
+         *           List.fold_left2 (fun map arg ((id, _), _) -> Var.Map.add arg id map)
+         *             var_dict args args_id;
+         *         inside_definition_of = None;
+         *         context_name = Marked.unmark (TopdefName.get_info name);
+         *       }
+         *     in
+         *     translate_expr  ctxt expr
+         *   in
+         *   let body_block = block @ [A.SReturn (Marked.unmark expr), Marked.get_mark expr]
+         *   in
+         *   Var.Map.add var func_id func_dict,
+         *   var_dict,
+         *   A.GlobalFunc {
+         *     A.func_params = args_id;
+         *     A.func_body = body_block;
+         *   } :: globals,
+         *   scopes
+         * | Topdef (name, ty, expr) ->
+         *   let var_id =
+         *     A.TopLevelName.fresh (Bindlib.name_of var, Pos.no_pos)
+         *   in
+         *   let block, expr =
+         *     let ctxt =
+         *       {
+         *         func_dict;
+         *         decl_ctx = p.decl_ctx;
+         *         var_dict;
+         *         inside_definition_of = None;
+         *         context_name = Marked.unmark (TopdefName.get_info name);
+         *       }
+         *     in
+         *     translate_expr ctxt expr
+         *   in
+         *   let block = block @ [A.SLocalDef (var_id, expr), Marked.get_mark expr] in *))
+      ~init:
+        ( (if !Cli.avoid_exceptions_flag then
+           Var.Map.singleton L.handle_default_opt A.handle_default_opt
+          else Var.Map.singleton L.handle_default A.handle_default),
+          Var.Map.empty,
+          [],
+          [] )
+      p.scopes
+  in
   {
     decl_ctx = p.decl_ctx;
-    scopes =
-      (let _, new_scopes =
-         Scope.fold_left
-           ~f:(fun (func_dict, new_scopes) scope_def scope_var ->
-             let scope_input_var, scope_body_expr =
-               Bindlib.unbind scope_def.scope_body.scope_body_expr
-             in
-             let input_pos =
-               Marked.get_mark (ScopeName.get_info scope_def.scope_name)
-             in
-             let scope_input_var_id =
-               A.LocalName.fresh (Bindlib.name_of scope_input_var, input_pos)
-             in
-             let var_dict =
-               Var.Map.singleton scope_input_var scope_input_var_id
-             in
-             let new_scope_body =
-               translate_scope_body_expr scope_def.scope_name p.decl_ctx
-                 var_dict func_dict scope_body_expr
-             in
-             let func_id =
-               A.TopLevelName.fresh (Bindlib.name_of scope_var, Pos.no_pos)
-             in
-             let func_dict = Var.Map.add scope_var func_id func_dict in
-             ( func_dict,
-               {
-                 Ast.scope_body_name = scope_def.scope_name;
-                 Ast.scope_body_var = func_id;
-                 scope_body_func =
-                   {
-                     A.func_params =
-                       [
-                         ( (scope_input_var_id, input_pos),
-                           ( TStruct scope_def.scope_body.scope_body_input_struct,
-                             input_pos ) );
-                       ];
-                     A.func_body = new_scope_body;
-                   };
-               }
-               :: new_scopes ))
-           ~init:
-             ( (if !Cli.avoid_exceptions_flag then
-                Var.Map.singleton L.handle_default_opt A.handle_default_opt
-               else Var.Map.singleton L.handle_default A.handle_default),
-               [] )
-           p.scopes
-       in
-       List.rev new_scopes);
+    globals = List.rev rglobals;
+    scopes = List.rev rscopes;
   }

@@ -329,48 +329,49 @@ module To_jsoo = struct
           Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
       (type_ordering @ scope_structs)
 
-  let fmt_input_struct_name fmt (scope_def : 'a expr scope_def) =
-    format_struct_name fmt scope_def.scope_body.scope_body_input_struct
+  let fmt_input_struct_name fmt (scope_body : 'a expr scope_body) =
+    format_struct_name fmt scope_body.scope_body_input_struct
 
-  let fmt_output_struct_name fmt (scope_def : 'a expr scope_def) =
-    format_struct_name fmt scope_def.scope_body.scope_body_output_struct
+  let fmt_output_struct_name fmt (scope_body : 'a expr scope_body) =
+    format_struct_name fmt scope_body.scope_body_output_struct
 
-  let rec format_scopes_to_fun
+  let format_scopes_to_fun
       (ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scopes : 'e scopes) =
-    match scopes with
-    | Nil -> ()
-    | ScopeDef scope_def ->
-      let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
-      let fmt_fun_call fmt _ =
-        Format.fprintf fmt "@[<hv>%a@ |> %a_of_jsoo@ |> %a@ |> %a_to_jsoo@]"
-          fmt_input_struct_name scope_def fmt_input_struct_name scope_def
-          format_var scope_var fmt_output_struct_name scope_def
-      in
-      Format.fprintf fmt
-        "@\n@\n@[<hov 2>let %a@ (%a : %a Js.t)@ : %a Js.t =@\n%a@]@\n%a"
-        format_var scope_var fmt_input_struct_name scope_def
-        fmt_input_struct_name scope_def fmt_output_struct_name scope_def
-        fmt_fun_call () (format_scopes_to_fun ctx) scope_next
+      (scopes : 'e code_item_list) =
+    Scope.fold_left
+      ~f:(fun () code_item var ->
+        match code_item with
+        | Topdef _ -> ()
+        | ScopeDef (name, body) ->
+          let fmt_fun_call fmt _ =
+            Format.fprintf fmt "@[<hv>%a@ |> %a_of_jsoo@ |> %a@ |> %a_to_jsoo@]"
+              fmt_input_struct_name body fmt_input_struct_name body format_var
+              var fmt_output_struct_name body
+          in
+          Format.fprintf fmt
+            "@\n@\n@[<hov 2>let %a@ (%a : %a Js.t)@ : %a Js.t =@\n%a@]@\n"
+            format_var var fmt_input_struct_name body fmt_input_struct_name body
+            fmt_output_struct_name body fmt_fun_call ())
+      ~init:() scopes
 
-  let rec format_scopes_to_callbacks
+  let format_scopes_to_callbacks
       (ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scopes : 'e scopes) : unit =
-    match scopes with
-    | Nil -> ()
-    | ScopeDef scope_def ->
-      let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
-      let fmt_meth_name fmt _ =
-        Format.fprintf fmt "method %a : (%a Js.t -> %a Js.t) Js.callback"
-          format_var_camel_case scope_var fmt_input_struct_name scope_def
-          fmt_output_struct_name scope_def
-      in
-      Format.fprintf fmt "@,@[<hov 2>%a =@ Js.wrap_callback@ %a@]@,%a"
-        fmt_meth_name () format_var scope_var
-        (format_scopes_to_callbacks ctx)
-        scope_next
+      (scopes : 'e code_item_list) : unit =
+    Scope.fold_left
+      ~f:(fun () code_item var ->
+        match code_item with
+        | Topdef _ -> ()
+        | ScopeDef (name, body) ->
+          let fmt_meth_name fmt _ =
+            Format.fprintf fmt "method %a : (%a Js.t -> %a Js.t) Js.callback"
+              format_var_camel_case var fmt_input_struct_name body
+              fmt_output_struct_name body
+          in
+          Format.fprintf fmt "@,@[<hov 2>%a =@ Js.wrap_callback@ %a@]@,"
+            fmt_meth_name () format_var var)
+      ~init:() scopes
 
   let format_program
       (fmt : Format.formatter)

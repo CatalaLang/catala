@@ -166,53 +166,49 @@ let closure_conversion_expr (type m) (ctx : m ctx) (e : m expr) : m expr boxed =
   e'
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
-  let new_scopes, _ =
-    Scope.fold_left
-      ~f:(fun (acc_new_scopes, global_vars) scope scope_var ->
-        (* [acc_new_scopes] represents what has been translated in the past, it
-           needs a continuation to attach the rest of the translated scopes. *)
-        let scope_input_var, scope_body_expr =
-          Bindlib.unbind scope.scope_body.scope_body_expr
-        in
-        let global_vars = Var.Set.add scope_var global_vars in
-        let ctx =
-          {
-            name_context = Marked.unmark (ScopeName.get_info scope.scope_name);
-            globally_bound_vars = global_vars;
-          }
-        in
-        let new_scope_lets =
-          Scope.map_exprs_in_lets
-            ~f:(closure_conversion_expr ctx)
-            ~varf:(fun v -> v)
-            scope_body_expr
-        in
-        let new_scope_body_expr =
-          Bindlib.bind_var scope_input_var new_scope_lets
-        in
-        ( (fun next ->
-            acc_new_scopes
-              (Bindlib.box_apply2
-                 (fun new_scope_body_expr next ->
-                   ScopeDef
-                     {
-                       scope with
-                       scope_body =
-                         {
-                           scope.scope_body with
-                           scope_body_expr = new_scope_body_expr;
-                         };
-                       scope_next = next;
-                     })
-                 new_scope_body_expr
-                 (Bindlib.bind_var scope_var next))),
-          global_vars ))
-      ~init:
-        ( Fun.id,
-          Var.Set.of_list
-            (List.map Var.translate [handle_default; handle_default_opt]) )
+  let _, new_scopes =
+    Scope.fold_map
+      ~f:(fun global_vars var code_item ->
+        ( Var.Set.add var global_vars,
+          match code_item with
+          | ScopeDef (name, body) ->
+            let scope_input_var, scope_body_expr =
+              Bindlib.unbind body.scope_body_expr
+            in
+            let ctx =
+              {
+                name_context = Marked.unmark (ScopeName.get_info name);
+                globally_bound_vars = global_vars;
+              }
+            in
+            let new_scope_lets =
+              Scope.map_exprs_in_lets
+                ~f:(closure_conversion_expr ctx)
+                ~varf:(fun v -> v)
+                scope_body_expr
+            in
+            let new_scope_body_expr =
+              Bindlib.bind_var scope_input_var new_scope_lets
+            in
+            Bindlib.box_apply
+              (fun scope_body_expr ->
+                ScopeDef (name, { body with scope_body_expr }))
+              new_scope_body_expr
+          | Topdef (name, ty, expr) ->
+            let ctx =
+              {
+                name_context = Marked.unmark (TopdefName.get_info name);
+                globally_bound_vars = global_vars;
+              }
+            in
+            Bindlib.box_apply
+              (fun e -> Topdef (name, ty, e))
+              (Expr.Box.lift (closure_conversion_expr ctx expr)) ))
+      ~varf:(fun v -> v)
+      (Var.Set.of_list
+         (List.map Var.translate [handle_default; handle_default_opt]))
       p.scopes
   in
   Bindlib.box_apply
     (fun new_scopes -> { p with scopes = new_scopes })
-    (new_scopes (Bindlib.box Nil))
+    new_scopes
