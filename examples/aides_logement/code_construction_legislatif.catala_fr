@@ -294,7 +294,7 @@ Les conditions de prise en compte des ressources, notamment les périodes de ré
 retenues, peuvent varier en fonction de la nature des ressources.
 
 ```catala
-# Cet article est une déclaration d'intention qui donne des propriétée sur
+# Cet article est une déclaration d'intention qui donne des propriétés sur
 # la formule de calcul. Dans le futur il serait interessant de vérifier que
 # la formule est bien de cette forme là.
 ```
@@ -653,7 +653,7 @@ bailleurs de respecter les obligations précisées par des conventions régies
 par le chapitre III du titre V du livre III ;
 
 ```catala
-# Cet alinéa apport une précision sur l'origine de la convention pour le
+# Cet alinéa apporte une précision sur l'origine de la convention pour le
 # bailleur social, mais ne nous intéresse pas pour la formalisation puisque
 # tout ce qui nous intéresse c'est de savoir si la convention existe ou pas.
 ```
@@ -664,7 +664,7 @@ obligations précisées par des conventions régies par le chapitre III du titre
 ou par la section 3 du chapitre Ier du titre II du livre III ;
 
 ```catala
-# Cet alinéa apport une précision sur l'origine de la convention pour le
+# Cet alinéa apporte une précision sur l'origine de la convention pour le
 # bailleur social, mais ne nous intéresse pas pour la formalisation puisque
 # tout ce qui nous intéresse c'est de savoir si la convention existe ou pas.
 ```
@@ -768,7 +768,7 @@ Dans des cas fixés par voie réglementaire, elle peut être versée au locatair
 propriétaire du logement.
 
 ```catala
-# Ne touche ni à l'égibilité ni au calcul du montant donc nous ne formaliserons
+# Ne touche ni à l'éligibilité ni au calcul du montant donc nous ne formaliserons
 # pas pour l'instant.
 ```
 
@@ -786,7 +786,7 @@ La part de l'aide qui excède le montant du loyer et des charges récupérables 
 versée à l'allocataire.
 
 ```catala
-# Ne touche ni à l'égibilité ni au calcul du montant donc nous ne formaliserons
+# Ne touche ni à l'éligibilité ni au calcul du montant donc nous ne formaliserons
 # pas pour l'instant.
 ```
 
@@ -818,7 +818,7 @@ Dans le cas prévu à l'article L. 824-3 , le versement reprend dans les conditi
 à l'article L. 832-1 .
 
 ```catala
-# Ne touche ni à l'égibilité ni au calcul du montant donc nous ne formaliserons
+# Ne touche ni à l'éligibilité ni au calcul du montant donc nous ne formaliserons
 # pas pour l'instant.
 ```
 
@@ -1009,7 +1009,7 @@ l'aide personnalisée au logement peuvent prétendre au bénéfice de l'allocati
 de logement sociale.
 
 ```catala
-# Complément d'explications donnés pat DGALN/DHUP/FE4 le 25/05/2022:
+# Complément d'explications données par DGALN/DHUP/FE4 le 25/05/2022:
 # "Il est exact de considérer que cet article détermine une hiérarchie pour
 # l’accession aux aides au logement c'est-à-dire que :
 # - Si un ménage est éligible à l’aide personnalisée au logement,
@@ -1038,7 +1038,7 @@ champ d'application CalculetteAidesAuLogement:
   # formulaire de la CNAF qui va déterminer automatiquement la meilleure
   # aide au logement pour un ménage qui n'en bénéficie pas encore. Donc, dans
   # ce scénario, le ménage ne bénéficie pas encore de l'aide personnalisée
-  # au logement et nous pouvons évaluser l'éligibilité à l'allocation logement
+  # au logement et nous pouvons évaluer l'éligibilité à l'allocation logement
   # indépendamment de ce fait.
   définition
     éligibilité_allocation_logement.bénéficie_aide_personnalisée_logement
@@ -1156,7 +1156,7 @@ Toutefois, lorsque le montant ainsi dû est inférieur à celui de l'allocation 
 laquelle les dispositions du présent livre ouvriraient droit, la différence est versée par l'organisme payeur.
 
 ```catala
-# Par pertinent pour l'égibilité ou le calcul, plutôt un détail d'application
+# Pas pertinent pour l'éligibilité ou le calcul, plutôt un détail d'application
 # d'une règle de non-cumul par la CAF qui dit qu'en cas de conflit entre l'ALS
 # et une autre aide, il faut prendre l'aide de montant maximal.
 ```
