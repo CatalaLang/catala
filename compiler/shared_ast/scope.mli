@@ -68,9 +68,10 @@ val fold_right :
     be examined (which are before in the program order). *)
 
 val map :
-  f:('e scope_def -> 'e scope_def Bindlib.box) ->
-  'e scopes ->
-  'e scopes Bindlib.box
+  f:('e1 code_item -> 'e2 code_item Bindlib.box) ->
+  varf:('e1 Var.t -> 'e2 Var.t) ->  
+  'e1 code_item_list ->
+  'e2 code_item_list Bindlib.box
 
 val map_exprs :
   f:('expr1 -> 'expr2 boxed) ->

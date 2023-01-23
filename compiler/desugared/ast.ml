@@ -224,6 +224,7 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
               ( Marked.unmark sub_index,
                 Marked.unmark sub_var,
                 Marked.get_mark sub_index ))
+                Marked.get_mark sub_index )
           loc_pos acc)
       locs acc
   in
