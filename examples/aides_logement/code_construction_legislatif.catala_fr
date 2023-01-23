@@ -263,7 +263,7 @@ n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  étiquette l822_5_2 exception r822_22_3 définition patrimoine_pris_en_compte
+  exception r822_22_3 définition patrimoine_pris_en_compte
   sous condition existe prestation parmi ménage.prestations_reçues tel que
     (prestation = AllocationSoutienEnfantHandicapé ou
      prestation = AllocationAdulteHandicapé)
@@ -276,13 +276,8 @@ ou dans une résidence autonomie mentionnés à l'article L. 313-12 du code de
 l'action sociale et des familles .
 
 ```catala
-# Cette exception devrait se cumuler normalement avec la précédente puisqu'elle
-# donne le même résultat, on ne devrait pas avoir à les prioriser les unes par
-# rapport aux autres. On pourrait rajouter un sucre syntaxique pour activer
-# ça en vérifiant que les conséquences sont syntaxiquement les mêmes.
-# Voir https://github.com/CatalaLang/catala/issues/208
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  exception l822_5_2 définition patrimoine_pris_en_compte
+  exception r822_22_3 définition patrimoine_pris_en_compte
   sous condition ménage.logement.est_ehpad_ou_maison_autonomie_l313_12_asf
   conséquence égal à 0€
 ```
