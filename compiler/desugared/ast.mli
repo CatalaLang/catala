@@ -119,6 +119,7 @@ type scope = {
 
 type program = {
   program_scopes : scope ScopeName.Map.t;
+  program_globals : (expr * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 

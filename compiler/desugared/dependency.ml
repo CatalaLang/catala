@@ -33,7 +33,9 @@ open Shared_ast
 
     Indeed, during interpretation, subscopes are executed atomically. *)
 module Vertex = struct
-  type t = Var of ScopeVar.t * StateName.t option | SubScope of SubScopeName.t
+  type t =
+    | Var of ScopeVar.t * StateName.t option
+    | SubScope of SubScopeName.t
 
   let hash x =
     match x with
@@ -41,15 +43,22 @@ module Vertex = struct
     | Var (x, Some sx) -> Int.logxor (ScopeVar.hash x) (StateName.hash sx)
     | SubScope x -> SubScopeName.hash x
 
-  let compare = compare
+  let compare x y =
+  match x, y with
+  | Var (x, xst), Var (y, yst) ->
+    (match ScopeVar.compare x y with
+     | 0 ->  Option.compare StateName.compare xst yst
+     | n -> n)
+  | SubScope x, SubScope y -> SubScopeName.compare x y
+  | Var _, _ -> -1 | _, Var _ -> 1
+  | SubScope _, _ -> . | _, SubScope _ -> .
 
   let equal x y =
     match x, y with
-    | Var (x, None), Var (y, None) -> ScopeVar.compare x y = 0
-    | Var (x, Some sx), Var (y, Some sy) ->
-      ScopeVar.compare x y = 0 && StateName.compare sx sy = 0
-    | SubScope x, SubScope y -> SubScopeName.compare x y = 0
-    | _ -> false
+    | Var (x, sx), Var (y, sy) ->
+      ScopeVar.equal x y && Option.equal StateName.equal sx sy
+    | SubScope x, SubScope y -> SubScopeName.equal x y
+    | (Var _ | SubScope _ ), _ -> false
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     match x with
@@ -57,6 +66,11 @@ module Vertex = struct
     | Var (v, Some sv) ->
       Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
     | SubScope v -> SubScopeName.format_t fmt v
+
+  let info = function
+    | Var (v, None) -> ScopeVar.get_info v
+    | Var (_, Some sv) -> StateName.get_info sv
+    | SubScope v -> SubScopeName.get_info v
 end
 
 (** On the edges, the label is the position of the expression responsible for
@@ -97,32 +111,13 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
       List.flatten
         (List.map
            (fun v ->
-             let var_str, var_info =
-               match v with
-               | Vertex.Var (v, None) ->
-                 Format.asprintf "%a" ScopeVar.format_t v, ScopeVar.get_info v
-               | Vertex.Var (v, Some sv) ->
-                 ( Format.asprintf "%a.%a" ScopeVar.format_t v
-                     StateName.format_t sv,
-                   StateName.get_info sv )
-               | Vertex.SubScope v ->
-                 ( Format.asprintf "%a" SubScopeName.format_t v,
-                   SubScopeName.get_info v )
-             in
+             let var_str = Format.asprintf "%a" Vertex.format_t v in
+             let var_info = Vertex.info v in
              let succs = ScopeDependencies.succ_e g v in
              let _, edge_pos, succ =
                List.find (fun (_, _, succ) -> List.mem succ scc) succs
              in
-             let succ_str =
-               match succ with
-               | Vertex.Var (v, None) ->
-                 Format.asprintf "%a" ScopeVar.format_t v
-               | Vertex.Var (v, Some sv) ->
-                 Format.asprintf "%a.%a" ScopeVar.format_t v StateName.format_t
-                   sv
-               | Vertex.SubScope v ->
-                 Format.asprintf "%a" SubScopeName.format_t v
-             in
+             let succ_str = Format.asprintf "%a" Vertex.format_t succ in
              [
                ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
                  Marked.get_mark var_info );
@@ -171,7 +166,8 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
             | ( Ast.ScopeDef.Var (v_defined, s_defined),
                 Ast.ScopeDef.Var (v_used, s_used) ) ->
               (* simple case *)
-              if v_used = v_defined && s_used = s_defined then
+              if ScopeVar.equal v_used v_defined &&
+                 Option.equal StateName.equal s_used s_defined then
                 (* variable definitions cannot be recursive *)
                 Errors.raise_spanned_error fv_def_pos
                   "The variable %a is used in one of its definitions, but \
@@ -199,7 +195,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 Ast.ScopeDef.SubScopeVar (used, _, _) ) ->
               (* here we are defining the input of a scope with the output of
                  another subscope *)
-              if used = defined then
+              if SubScopeName.equal used defined then
                 (* subscopes are not recursive functions *)
                 Errors.raise_spanned_error fv_def_pos
                   "The subscope %a is used when defining one of its inputs, \

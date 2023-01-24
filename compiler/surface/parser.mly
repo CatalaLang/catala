@@ -640,7 +640,7 @@ let code_item :=
   CONTENT ; ty = addpos(typ) ;
   args = depends_stance ;
   DEFINED_AS ; e = expression ; {
-  TopDef {
+  Topdef {
     topdef_name = name;
     topdef_args = args;
     topdef_type = ty;

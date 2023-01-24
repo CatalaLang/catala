@@ -197,6 +197,7 @@ type scope = {
 
 type program = {
   program_scopes : scope ScopeName.Map.t;
+  program_globals : (expr * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 
@@ -216,16 +217,19 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
       Pos.t ScopeDefMap.t =
     LocationSet.fold
       (fun (loc, loc_pos) acc ->
-        ScopeDefMap.add
-          (match loc with
-          | DesugaredScopeVar (v, st) -> ScopeDef.Var (Marked.unmark v, st)
-          | SubScopeVar (_, sub_index, sub_var) ->
-            ScopeDef.SubScopeVar
-              ( Marked.unmark sub_index,
-                Marked.unmark sub_var,
-                Marked.get_mark sub_index ))
-                Marked.get_mark sub_index )
-          loc_pos acc)
+         let usage = match loc with
+           | DesugaredScopeVar (v, st) ->
+             Some (ScopeDef.Var (Marked.unmark v, st))
+           | SubScopeVar (_, sub_index, sub_var) ->
+             Some (ScopeDef.SubScopeVar
+                     ( Marked.unmark sub_index,
+                       Marked.unmark sub_var,
+                       Marked.get_mark sub_index ))
+           | GlobalVar _ -> None
+         in
+         match usage with
+         | Some u -> ScopeDefMap.add u loc_pos acc
+         | None -> acc)
       locs acc
   in
   RuleName.Map.fold

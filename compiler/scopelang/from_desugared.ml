@@ -71,6 +71,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
          | WholeVar _ -> failwith "should not happen"
          | States states -> Marked.same_mark_as (List.assoc state states) s_var))
       m
+  | ELocation (GlobalVar v) -> Expr.elocation (GlobalVar v) m
   | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
   | EStruct { name; fields } ->
     Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m

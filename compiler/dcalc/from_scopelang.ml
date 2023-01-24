@@ -51,6 +51,7 @@ type 'm ctx = {
   enums : enum_ctx;
   scope_name : ScopeName.t;
   scopes_parameters : 'm scope_sigs_ctx;
+  global_vars : ('m Ast.expr Var.t * naked_typ) TopdefName.Map.t;
   scope_vars :
     ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t;
   subscope_vars :
@@ -72,6 +73,7 @@ let empty_ctx
     scope_vars = ScopeVar.Map.empty;
     subscope_vars = SubScopeName.Map.empty;
     local_vars = Var.Map.empty;
+    global_vars = TopdefName.Map.empty;
   }
 
 let mark_tany m pos = Expr.with_ty m (Marked.mark pos TAny) ~pos
@@ -440,17 +442,18 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     (* We insert various log calls to record arguments and outputs of
        user-defined functions belonging to scopes *)
     let e1_func = translate_expr ctx f in
-    let markings l =
-      match l with
-      | ScopelangScopeVar (v, _) ->
+    let markings =
+      match Marked.unmark f with
+      | ELocation (ScopelangScopeVar (v, _)) ->
         [ScopeName.get_info ctx.scope_name; ScopeVar.get_info v]
-      | SubScopeVar (s, _, (v, _)) ->
+      | ELocation (SubScopeVar (s, _, (v, _))) ->
         [ScopeName.get_info s; ScopeVar.get_info v]
+      | _ -> []
     in
     let e1_func =
-      match Marked.unmark f with
-      | ELocation l -> tag_with_log_entry e1_func BeginCall (markings l)
-      | _ -> e1_func
+      match markings with
+      | [] -> e1_func
+      | m -> tag_with_log_entry e1_func BeginCall m
     in
     let new_args = List.map (translate_expr ctx) args in
     let input_typ, output_typ =
@@ -472,26 +475,34 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         ctx.subscope_vars
         |> SubScopeName.Map.find (Marked.unmark sname)
         |> retrieve_in_and_out_typ_or_any var
+      | ELocation (GlobalVar glo) ->
+        let var, typ =
+          TopdefName.Map.find (Marked.unmark glo) ctx.global_vars
+        in
+        (match typ with
+         | TArrow ((tin, _), (tout, _)) -> tin, tout
+         | _ -> Errors.raise_spanned_error (Expr.pos e)
+                  "Application of non function global")
       | _ -> TAny, TAny
     in
     let new_args =
-      match Marked.unmark f, new_args with
-      | ELocation l, [new_arg] ->
+      match markings, new_args with
+      | (_::_ as m), [new_arg] ->
         [
           tag_with_log_entry new_arg (VarDef input_typ)
-            (markings l @ [Marked.mark (Expr.pos e) "input"]);
+            (m @ [Marked.mark (Expr.pos e) "input"]);
         ]
       | _ -> new_args
     in
     let new_e = Expr.eapp e1_func new_args m in
     let new_e =
-      match Marked.unmark f with
-      | ELocation l ->
+      match markings with
+      | [] -> new_e
+      | m ->
         tag_with_log_entry
           (tag_with_log_entry new_e (VarDef output_typ)
-             (markings l @ [Marked.mark (Expr.pos e) "output"]))
-          EndCall (markings l)
-      | _ -> new_e
+             (m @ [Marked.mark (Expr.pos e) "output"]))
+          EndCall m
     in
     new_e
   | EAbs { binder; tys } ->
@@ -539,6 +550,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
          %a's results. Maybe you forgot to qualify it as an output?"
         SubScopeName.format_t (Marked.unmark s) ScopeVar.format_t
         (Marked.unmark a) SubScopeName.format_t (Marked.unmark s))
+  | ELocation (GlobalVar v) ->
+    let v, _ = TopdefName.Map.find (Marked.unmark v) ctx.global_vars in
+    Expr.evar v m
   | EIfThenElse { cond; etrue; efalse } ->
     Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
       (translate_expr ctx efalse)
@@ -1042,7 +1056,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
           scope_sig_in_fields;
           scope_sig_out_fields = scope_return.out_struct_fields;
         })
-      prgm.program_scopes
+      prgm.Scopelang.Ast.program_scopes
   in
   (* the resulting expression is the list of definitions of all the scopes,
      ending with the top-level scope. The decl_ctx is filled in left-to-right

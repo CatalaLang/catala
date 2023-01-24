@@ -764,7 +764,7 @@ type code_item =
   | ScopeDecl of scope_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
-  | TopDef of top_def
+  | Topdef of top_def
 [@@deriving
   visitors
     {

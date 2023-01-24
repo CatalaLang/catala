@@ -49,18 +49,19 @@ val map_exprs_in_lets :
   'expr2 scope_body_expr Bindlib.box
 
 val fold_left :
-  f:('a -> 'expr1 scope_def -> 'expr1 Var.t -> 'a) ->
+  f:('a -> 'expr1 code_item
+     -> 'expr1 Var.t -> 'a) ->
   init:'a ->
-  'expr1 scopes ->
+  'expr1 code_item_list ->
   'a
 (** Usage: [fold_left ~f:(fun acc scope_def scope_var -> ...) ~init scope_def],
     where [scope_var] is the variable bound to the scope in the next scopes to
     be examined. *)
 
 val fold_right :
-  f:('expr1 scope_def -> 'expr1 Var.t -> 'a -> 'a) ->
+  f:('expr1 code_item -> 'expr1 Var.t -> 'a -> 'a) ->
   init:'a ->
-  'expr1 scopes ->
+  'expr1 code_item_list ->
   'a
 (** Usage:
     [fold_right_scope ~f:(fun  scope_def scope_var acc -> ...) ~init scope_def],
@@ -76,8 +77,8 @@ val map :
 val map_exprs :
   f:('expr1 -> 'expr2 boxed) ->
   varf:('expr1 Var.t -> 'expr2 Var.t) ->
-  'expr1 scopes ->
-  'expr2 scopes Bindlib.box
+  'expr1 code_item_list ->
+  'expr2 code_item_list Bindlib.box
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
@@ -104,7 +105,7 @@ type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 
 val unfold :
   decl_ctx ->
-  ((_, 'm mark) gexpr as 'e) scopes ->
+  ((_, 'm mark) gexpr as 'e) code_item_list ->
   'm mark ->
   'e scope_name_or_var ->
   'e boxed
@@ -117,5 +118,5 @@ val build_typ_from_sig :
 (** {2 Analysis and tests} *)
 
 val free_vars_body_expr : 'e scope_body_expr -> 'e Var.Set.t
-val free_vars_body : 'e scope_body -> 'e Var.Set.t
-val free_vars : 'e scopes -> 'e Var.Set.t
+val free_vars_item : 'e code_item -> 'e Var.Set.t
+val free_vars : 'e code_item_list -> 'e Var.Set.t

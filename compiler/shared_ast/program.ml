@@ -25,10 +25,10 @@ let map_exprs ~f ~varf { scopes; decl_ctx } =
 let get_scope_body { scopes; _ } scope =
   match
     Scope.fold_left ~init:None
-      ~f:(fun acc scope_def _ ->
-        if ScopeName.equal scope_def.scope_name scope then
-          Some scope_def.scope_body
-        else acc)
+      ~f:(fun acc item _ ->
+          match item with
+          | ScopeDef (name, body) when ScopeName.equal scope name -> Some body
+          | _ -> acc)
       scopes
   with
   | None -> raise Not_found
@@ -40,10 +40,9 @@ let untype : 'm. ('a, 'm mark) gexpr program -> ('a, untyped mark) gexpr program
 
 let rec find_scope name vars = function
   | Nil -> raise Not_found
-  | ScopeDef { scope_name; scope_body; _ } when scope_name = name ->
-    List.rev vars, scope_body
-  | ScopeDef { scope_next; _ } ->
-    let var, next = Bindlib.unbind scope_next in
+  | Cons (ScopeDef (n, body), _) when ScopeName.equal name n -> List.rev vars, body
+  | Cons (_, next_bind) ->
+    let var, next = Bindlib.unbind next_bind in
     find_scope name (var :: vars) next
 
 let to_expr p main_scope =
