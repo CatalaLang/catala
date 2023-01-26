@@ -16,6 +16,8 @@
 
 open Catala_utils
 
+let ( let* ) = Lwt.bind
+
 (** Main logic for interacting with LégiFrance when traversing Catala source
     files *)
 
@@ -23,12 +25,12 @@ open Catala_utils
 let check_article_expiration
     (current_date : Unix.tm)
     (law_heading : Surface.Ast.law_heading)
-    (access_token : Api.access_token) : string option =
+    (access_token : Api.access_token) : string option Lwt.t =
   match law_heading.Surface.Ast.law_heading_id with
-  | None -> None
+  | None -> Lwt.return None
   | Some heading_id ->
     let article_id = Api.parse_id heading_id in
-    let article = Api.retrieve_article access_token article_id in
+    let* article = Api.retrieve_article access_token article_id in
     let legifrance_expiration_date = Api.get_article_expiration_date article in
     let is_archive = law_heading.Surface.Ast.law_heading_is_archive in
     (* At this point we have two dates. [C] the current date, [L] the expiration
@@ -59,8 +61,8 @@ let check_article_expiration
         | None -> ""
         | Some new_version ->
           Format.asprintf " New version of the article: \"%s\"." new_version);
-      new_version)
-    else None
+      Lwt.return new_version)
+    else Lwt.return None
 
 type law_article_text = {
   article_title : string * Pos.t;
@@ -79,8 +81,8 @@ module Diff = Diff.Make (String)
 let compare_article_to_version
     (access_token : Api.access_token)
     (text : string)
-    (version : Api.article_id) : Diff.t option =
-  let new_article = Api.retrieve_article access_token version in
+    (version : Api.article_id) : Diff.t option Lwt.t =
+  let* new_article = Api.retrieve_article access_token version in
   let new_article_text = Api.get_article_text new_article in
   let text_to_list text =
     List.map String.trim
@@ -103,14 +105,14 @@ let compare_article_to_version
       (fun chunk -> match chunk with Diff.Equal _ -> true | _ -> false)
       diff
   in
-  if not all_equal then Some diff else None
+  Lwt.return (if not all_equal then Some diff else None)
 
 (** Compares [article_text_acc.current_version] and
     [article_text_acc.new_version] by accessing LégiFrance and display
     differences if any *)
 let compare_to_versions
     (law_article_text : law_article_text)
-    (access_token : Api.access_token) : unit =
+    (access_token : Api.access_token) : unit Lwt.t =
   let print_diff msg diff =
     Cli.warning_print "%s\n%s" msg
       (String.concat "\n"
@@ -118,7 +120,7 @@ let compare_to_versions
             (fun chunk ->
               match chunk with
               | Diff.Equal words ->
-                ANSITerminal.sprintf [] "%s" (String.concat " " words)
+                ANSITerminal.sprintf [] "    %s" (String.concat " " words)
               | Diff.Added words ->
                 ANSITerminal.sprintf [ANSITerminal.green] "(+) %s"
                   (String.concat " " words)
@@ -127,13 +129,14 @@ let compare_to_versions
                   (String.concat " " words))
             diff))
   in
-  begin
+  let* _checl =
     match law_article_text.current_version with
     | Some version -> (
-      match
+      let* comparison =
         compare_article_to_version access_token law_article_text.text version
-      with
-      | None -> ()
+      in
+      match comparison with
+      | None -> Lwt.return_unit
       | Some diff ->
         print_diff
           (Printf.sprintf
@@ -141,15 +144,17 @@ let compare_to_versions
               text stored on LégiFrance:\n"
              (fst law_article_text.article_title)
              (Pos.to_string (snd law_article_text.article_title)))
-          diff)
-    | None -> ()
-  end;
+          diff;
+        Lwt.return_unit)
+    | None -> Lwt.return_unit
+  in
   match law_article_text.new_version with
   | Some version -> (
-    match
+    let* comparison =
       compare_article_to_version access_token law_article_text.text version
-    with
-    | None -> ()
+    in
+    match comparison with
+    | None -> Lwt.return_unit
     | Some diff ->
       print_diff
         (Printf.sprintf
@@ -157,17 +162,18 @@ let compare_to_versions
             will become in the future:\n"
            (fst law_article_text.article_title)
            (Pos.to_string (snd law_article_text.article_title)))
-        diff)
-  | None -> ()
+        diff;
+      Lwt.return_unit)
+  | None -> Lwt.return_unit
 
 (** Fill an [@@Include ...@@] tag inside the Catala source file with the
     legislative contents retrieved from LégiFrance *)
 let include_legislative_text
     (id : string * Pos.t)
-    (access_token : Api.access_token) : string =
+    (access_token : Api.access_token) : string Lwt.t =
   let pos = snd id in
   let id = Api.parse_id (fst id) in
-  let article = Api.retrieve_article access_token id in
+  let* article = Api.retrieve_article access_token id in
   let text_to_return = Api.get_article_text article in
   let to_insert = text_to_return in
   Cli.debug_format "Position: %s" (Pos.to_string_short pos);
@@ -190,29 +196,30 @@ let include_legislative_text
    with End_of_file ->
      close_in ic;
      close_out oc);
-  text_to_return
+  Lwt.return text_to_return
 
 let rec traverse_source_code
     ~(current_date : Unix.tm)
     ~(diff : bool)
     ~(expiration : bool)
     (access_token : Api.access_token)
-    (item : Surface.Ast.law_structure) : string =
+    (item : Surface.Ast.law_structure) : string Lwt.t =
   match item with
   | Surface.Ast.LawHeading (law_heading, children) ->
-    let children_text =
-      List.fold_left
+    let* children_text =
+      Lwt_list.fold_left_s
         (fun acc child ->
-          acc
-          ^ "\n\n"
-          ^ traverse_source_code ~current_date ~diff ~expiration access_token
-              child)
+          let* traversal =
+            traverse_source_code ~current_date ~diff ~expiration access_token
+              child
+          in
+          Lwt.return (acc ^ "\n\n" ^ traversal))
         "" children
     in
-    let new_version =
+    let* new_version =
       if expiration then
         check_article_expiration current_date law_heading access_token
-      else None
+      else Lwt.return None
     in
     let law_article_text =
       {
@@ -225,12 +232,15 @@ let rec traverse_source_code
         current_version = Option.map Api.parse_id law_heading.law_heading_id;
       }
     in
-    if diff then compare_to_versions law_article_text access_token;
-    children_text
-  | Surface.Ast.LawText art_text -> art_text
+    let* _cmp =
+      if diff then compare_to_versions law_article_text access_token
+      else Lwt.return_unit
+    in
+    Lwt.return children_text
+  | Surface.Ast.LawText art_text -> Lwt.return art_text
   | Surface.Ast.LawInclude (Surface.Ast.LegislativeText id) ->
     include_legislative_text id access_token
-  | _ -> ""
+  | _ -> Lwt.return ""
 
 (** Parses the Catala master source file and checks each article:
 
@@ -240,7 +250,7 @@ let rec traverse_source_code
       current version of the article and the next one on LégiFrance;
     - fill each [@@Include ...@@] tag with the contents retrieved from
       LégiFrance *)
-let driver
+let driver_lwt
     (file : string)
     (debug : bool)
     (diff : bool)
@@ -254,7 +264,7 @@ let driver
       Errors.raise_error
         "You have to check at least something, see the list of options with \
          --help";
-    let access_token = Api.get_token client_id client_secret in
+    let* access_token = Api.get_token client_id client_secret in
     (* LégiFrance is only supported for French texts *)
     let program =
       Surface.Parser_driver.parse_top_level_file (FileName file) Fr
@@ -264,18 +274,27 @@ let driver
       | Some custom_date -> Date.parse_expiration_date ISO custom_date
       | None -> Unix.localtime (Unix.time ())
     in
-    List.iter
-      (fun item ->
-        ignore
-          (traverse_source_code ~current_date ~diff ~expiration access_token
-             item))
-      program.program_items;
-    0
+    let* () =
+      Lwt_list.iter_s
+        (fun item ->
+          let* _r =
+            traverse_source_code ~current_date ~diff ~expiration access_token
+              item
+          in
+          Lwt.return_unit)
+        program.program_items
+    in
+    prerr_endline "0";
+    Lwt.return 0
   with Errors.StructuredError (msg, pos) ->
     let bt = Printexc.get_raw_backtrace () in
     Cli.error_print "%s" (Errors.print_structured_error msg pos);
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    -1
+    Lwt.return (-1)
+
+let driver file debug diff expiration custom_date client_id client_secret =
+  Lwt_main.run
+    (driver_lwt file debug diff expiration custom_date client_id client_secret)
 
 (** Hook for the executable *)
 let _ =

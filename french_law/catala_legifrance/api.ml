@@ -14,13 +14,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Lwt
 open Catala_utils
 
 type access_token = string
 
+let ( let* ) = Lwt.bind
+
 let get_token_aux (client_id : string) (client_secret : string) :
-    (string * string t) t =
+    (Cohttp.Code.status_code * string) Lwt.t =
   let site = "https://oauth.aife.economie.gouv.fr" in
   let token_url = "/api/oauth/token" in
   let uri = Uri.of_string (site ^ token_url) in
@@ -39,32 +40,44 @@ let get_token_aux (client_id : string) (client_secret : string) :
     |> Printf.sprintf "%s"
   in
   let body = body_string |> Cohttp_lwt.Body.of_string in
-  Cohttp_lwt_unix.Client.post ~headers ~body uri
-  >>= fun (resp, body) ->
-  ( resp |> Cohttp_lwt.Response.status |> Cohttp.Code.string_of_status,
-    body |> Cohttp_lwt.Body.to_string )
-  |> return
+  let* resp, body = Cohttp_lwt_unix.Client.post ~headers ~body uri in
+  let status = resp |> Cohttp_lwt.Response.status in
+  let* body = body |> Cohttp_lwt.Body.to_string in
+  Lwt.return (status, body)
 
-let get_token (client_id : string) (client_secret : string) : string =
-  let resp, body = Lwt_main.run (get_token_aux client_id client_secret) in
-  let body = Lwt_main.run body in
-  if resp = "200 OK" then begin
-    let token =
-      body
-      |> Yojson.Basic.from_string
-      |> Yojson.Basic.Util.member "access_token"
-      |> Yojson.Basic.Util.to_string
-    in
-    Cli.debug_format "The LegiFrance API access token is %s" token;
-    token
-  end
-  else begin
-    Cli.debug_format
-      "The API access token request went wrong ; status is %s and the body is\n\
-       %s"
-      resp body;
-    exit 1
-  end
+let get_token (client_id : string) (client_secret : string) : string Lwt.t =
+  let rec retry count =
+    if count = 0 then (
+      Cli.debug_format "Too many retries, giving up\n";
+      exit 1)
+    else
+      let* resp, body = get_token_aux client_id client_secret in
+      if Cohttp.Code.code_of_status resp = 200 then begin
+        let token =
+          body
+          |> Yojson.Basic.from_string
+          |> Yojson.Basic.Util.member "access_token"
+          |> Yojson.Basic.Util.to_string
+        in
+        Cli.debug_format "The LegiFrance API access token is %s" token;
+        Lwt.return token
+      end
+      else if Cohttp.Code.code_of_status resp = 400 then begin
+        Cli.debug_format "The API access request returned code 400%s\n"
+          (if count > 1 then ", retrying..." else "");
+        retry (count - 1)
+      end
+      else begin
+        Cli.debug_format
+          "The API access token request went wrong ; status is %s and the body \
+           is\n\
+           %s"
+          (Cohttp.Code.string_of_status resp)
+          body;
+        exit 1
+      end
+  in
+  retry 10
 
 let site = "https://api.aife.economie.gouv.fr"
 let base_token_url = "/dila/legifrance-beta/lf-engine-app/"
@@ -75,7 +88,8 @@ let api_timestamp_to_localtime (timestamp : int) : Unix.tm =
 let make_request
     (access_token : string)
     (token_url : string)
-    (body_json : (string * string) list) : (string * string t) t =
+    (body_json : (string * string) list)
+    () : (string * string) Lwt.t =
   let uri = Uri.of_string (site ^ base_token_url ^ token_url) in
   let headers =
     Cohttp.Header.init_with "Authorization"
@@ -90,22 +104,19 @@ let make_request
     |> Printf.sprintf "{%s}"
   in
   let body = body_string |> Cohttp_lwt.Body.of_string in
-  Cohttp_lwt_unix.Client.post ~headers ~body uri
-  >>= fun (resp, body) ->
-  ( resp |> Cohttp_lwt.Response.status |> Cohttp.Code.string_of_status,
-    body |> Cohttp_lwt.Body.to_string )
-  |> return
+  let* resp, body = Cohttp_lwt_unix.Client.post ~headers ~body uri in
+  let resp =
+    resp |> Cohttp_lwt.Response.status |> Cohttp.Code.string_of_status
+  in
+  let* body = body |> Cohttp_lwt.Body.to_string in
+  Lwt.return (resp, body)
 
 type article_type = LEGIARTI | CETATEXT | JORFARTI
 type article_id = { id : string; typ : article_type }
 type article = { content : Yojson.Basic.t; typ : article_type }
 
-let run_request (request : (string * string t) t) : Yojson.Basic.t =
-  let try_once () =
-    let resp, body = Lwt_main.run request in
-    let body = Lwt_main.run body in
-    resp, body
-  in
+let run_request (request : unit -> (string * string) Lwt.t) :
+    Yojson.Basic.t Lwt.t =
   let handle_once resp body =
     if resp = "200 OK" then
       try body |> Yojson.Basic.from_string with
@@ -124,8 +135,8 @@ let run_request (request : (string * string t) t) : Yojson.Basic.t =
     else raise (Failure "")
   in
   let rec try_n_times (n : int) =
-    let resp, body = try_once () in
-    try handle_once resp body
+    let* resp, body = request () in
+    try Lwt.return (handle_once resp body)
     with Failure _ ->
       if n > 0 then (
         Unix.sleep 2;
@@ -161,20 +172,20 @@ let parse_id (id : string) : article_id =
   in
   { id; typ }
 
-let retrieve_article (access_token : string) (obj : article_id) : article =
+let retrieve_article (access_token : string) (obj : article_id) : article Lwt.t
+    =
   Cli.debug_format "Accessing article %s" obj.id;
-  {
-    content =
-      run_request
-        (make_request access_token
-           (match obj.typ with
-           | CETATEXT -> "consult/juri"
-           | LEGIARTI | JORFARTI -> "consult/getArticle")
-           (match obj.typ with
-           | CETATEXT -> ["textId", obj.id]
-           | LEGIARTI | JORFARTI -> ["id", obj.id]));
-    typ = obj.typ;
-  }
+  let* content =
+    run_request
+      (make_request access_token
+         (match obj.typ with
+         | CETATEXT -> "consult/juri"
+         | LEGIARTI | JORFARTI -> "consult/getArticle")
+         (match obj.typ with
+         | CETATEXT -> ["textId", obj.id]
+         | LEGIARTI | JORFARTI -> ["id", obj.id]))
+  in
+  Lwt.return { content; typ = obj.typ }
 
 let raise_article_parsing_error
     (json : Yojson.Basic.t)

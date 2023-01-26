@@ -23,7 +23,7 @@ type access_token
 (** The [access_token] is the OAuth token used in every API request for
     authentication *)
 
-val get_token : string -> string -> access_token
+val get_token : string -> string -> access_token Lwt.t
 (** [get_token cliend_id client_secret] retrieves the access token from the
     LegiFrance API. You have to register on the
     {{:https://developer.aife.economie.gouv.fr/} the official website of the
@@ -38,7 +38,7 @@ val parse_id : string -> article_id
     fetched from the API, checks its validity (for instance
     ["LEGIARTI000006307920"]) and returns an [object_id]*)
 
-val retrieve_article : access_token -> article_id -> article
+val retrieve_article : access_token -> article_id -> article Lwt.t
 (** [retrieve_article token article_id] returns the article from the LegiFrance
     API.*)
 
