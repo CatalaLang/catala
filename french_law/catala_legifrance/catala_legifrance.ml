@@ -293,12 +293,18 @@ let driver_lwt
     Lwt.return (-1)
 
 let driver file debug diff expiration custom_date client_id client_secret =
-  Lwt_main.run
-    (driver_lwt file debug diff expiration custom_date client_id client_secret)
+  try
+    Lwt_main.run
+      (driver_lwt file debug diff expiration custom_date client_id client_secret)
+  with Errors.StructuredError (msg, pos) ->
+    let bt = Printexc.get_raw_backtrace () in
+    Cli.error_print "%s" (Errors.print_structured_error msg pos);
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
+    -1
 
 (** Hook for the executable *)
 let _ =
   Stdlib.exit
-  @@ Cmdliner.Cmd.eval'
+  @@ Cmdliner.Cmd.eval' ~catch:false
        (Cmdliner.Cmd.v Legifrance_cli.info
           (Legifrance_cli.catala_legifrance_t driver))
