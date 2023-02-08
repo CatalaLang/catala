@@ -259,6 +259,7 @@ source_file: BEGIN_CODE DECLARATION YEAR
 ## code_item -> DECLARATION . ENUM UIDENT COLON list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . lident CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . lident CONTENT typ DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION
@@ -973,7 +974,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 368.
+## Ends in an error in state: 370.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -1034,8 +1035,8 @@ source_file: BEGIN_METADATA LAW_TEXT LAW_HEADING
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 1, spurious reduction of production nonempty_list(LAW_TEXT) -> LAW_TEXT
-## In state 357, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
-## In state 358, spurious reduction of production option(law_text) -> law_text
+## In state 359, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
+## In state 360, spurious reduction of production option(law_text) -> law_text
 ##
 
 expected some law text or code block
@@ -3902,6 +3903,7 @@ source_file: BEGIN_CODE DECLARATION LIDENT YEAR
 ##
 ## code_item -> DECLARATION lident . CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION lident . CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident . CONTENT typ DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident
@@ -3915,6 +3917,7 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT YEAR
 ##
 ## code_item -> DECLARATION lident CONTENT . typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION lident CONTENT . typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT . typ DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident CONTENT
@@ -3928,6 +3931,7 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT BOOLEAN YEAR
 ##
 ## code_item -> DECLARATION lident CONTENT typ . DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION lident CONTENT typ . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident CONTENT typ
@@ -4157,7 +4161,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_DIRECTIVE YEAR
 ##
-## Ends in an error in state: 359.
+## Ends in an error in state: 361.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE . LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4169,7 +4173,7 @@ expected a directive, e.g. 'Include: <filename>'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE YEAR
 ##
-## Ends in an error in state: 360.
+## Ends in an error in state: 362.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE . COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4181,7 +4185,7 @@ expected ':', then a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON YEAR
 ##
-## Ends in an error in state: 361.
+## Ends in an error in state: 363.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON . nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4193,7 +4197,7 @@ expected a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG YEAR
 ##
-## Ends in an error in state: 362.
+## Ends in an error in state: 364.
 ##
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . [ END_DIRECTIVE AT_PAGE ]
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . nonempty_list(DIRECTIVE_ARG) [ END_DIRECTIVE AT_PAGE ]
@@ -4206,7 +4210,7 @@ expected a page specification in the form '@p.<number>', or a newline
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG AT_PAGE YEAR
 ##
-## Ends in an error in state: 366.
+## Ends in an error in state: 368.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) . END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4218,7 +4222,7 @@ expected a newline
 
 source_file: LAW_HEADING YEAR
 ##
-## Ends in an error in state: 371.
+## Ends in an error in state: 373.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##

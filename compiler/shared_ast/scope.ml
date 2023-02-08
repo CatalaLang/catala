@@ -211,7 +211,7 @@ let rec unfold
         typ, expr, pos, is_main
       | Topdef (name, typ, expr) ->
         let pos = Marked.get_mark (TopdefName.get_info name) in
-        typ, Expr.box expr, pos, false
+        typ, Expr.rebox expr, pos, false
     in
     let main_scope = if is_main then ScopeVar var else main_scope in
     let next = unfold ctx next mark main_scope in

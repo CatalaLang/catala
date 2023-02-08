@@ -314,7 +314,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
   | EVar _ ->
     Errors.raise_spanned_error (Expr.pos e)
       "free variable found at evaluation (should not happen if term was \
-       well-typed"
+       well-typed)"
   | EApp { f = e1; args } -> (
     let e1 = evaluate_expr ctx e1 in
     let args = List.map (evaluate_expr ctx) args in

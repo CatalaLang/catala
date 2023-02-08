@@ -989,6 +989,8 @@ let translate_scope_decl
          (input_destructurings rules_with_return_expr)),
     new_struct_ctx )
 
+(* TODO: rename "scope" here to avoid confusion, since it now includes toplevel
+   defs and scopes *)
 let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
   let scope_dependencies = Scopelang.Dependency.build_program_dep_graph prgm in
   Scopelang.Dependency.check_for_cycle_in_scope scope_dependencies;

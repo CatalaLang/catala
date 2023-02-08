@@ -98,6 +98,24 @@ let scope ?(debug = false) ctx fmt (name, decl) =
              SubScopeName.format_t subscope_name Print.punctuation "]"))
     decl.scope_decl_rules
 
+let print_topdef ctx ppf name (e, ty) =
+  Format.pp_open_vbox ppf 2;
+  let () =
+    Format.pp_open_hovbox ppf 2;
+    Print.keyword ppf "let";
+    Format.pp_print_space ppf ();
+    TopdefName.format_t ppf name;
+    Print.punctuation ppf ":";
+    Format.pp_print_space ppf ();
+    Print.typ ctx ppf ty;
+    Format.pp_print_space ppf ();
+    Print.punctuation ppf "=";
+    Format.pp_close_box ppf ()
+  in
+  Format.pp_print_cut ppf ();
+  Print.expr ctx ppf e;
+  Format.pp_close_box ppf ()
+
 let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
     unit =
   let ctx = p.program_ctx in
@@ -116,6 +134,11 @@ let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
       enum ctx fmt n e;
       pp_sep fmt ())
     ctx.ctx_enums;
+  TopdefName.Map.iter
+    (fun name def ->
+      print_topdef ctx fmt name def;
+      pp_sep fmt ())
+    p.program_globals;
   Format.pp_print_list ~pp_sep (scope ~debug ctx) fmt
     (ScopeName.Map.bindings p.program_scopes);
   Format.pp_close_box fmt ()

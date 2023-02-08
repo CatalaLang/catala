@@ -1,0 +1,74 @@
+## Test basic toplevel values defs
+
+```catala
+declaration glob1 content decimal equals 44.12
+
+declaration scope S:
+  output a content decimal
+  output b content A
+
+declaration structure A:
+   data y content boolean
+   data z content decimal
+
+declaration glob2 content A equals
+    A { --y: glob1 >= 30. --z: 123. * 17. }
+
+scope S:
+   definition a equals glob1 * glob1
+   definition b equals glob2
+```
+
+```catala-test-inline
+$ catala Interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT] a = 1946.5744
+[RESULT] b = A { "y"= true; "z"= 2091. }
+```
+
+## Test toplevel function defs
+
+```catala
+declaration glob3 content decimal
+    depends on x content money
+    equals decimal of x + 10.
+
+declaration scope S2:
+  output a content decimal
+
+scope S2:
+   definition a equals glob3 of $44 + 100.
+```
+
+```catala-test-inline
+$ catala Interpret -s S2
+[RESULT] Computation successful! Results:
+[RESULT] a = 154.
+```
+
+## Test function def with two args
+
+```catala
+declaration glob4 content decimal
+    depends on x content money, y content decimal
+    equals decimal of x * y + 10.
+
+declaration scope S3:
+  output a content decimal
+
+#scope S3:
+#   definition a equals 50 + glob3 of ($44, 55.)
+# TODO: no syntax yet
+```
+
+```catala-test-inline
+$ catala Interpret -s S3
+[ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
+
+┌─⯈ tests/test_name_resolution/good/toplevel_defs.catala_en:57.9-10:
+└──┐
+57 │   output a content decimal
+   │          ‾
+   └─ Test function def with two args
+#return code 255#
+```

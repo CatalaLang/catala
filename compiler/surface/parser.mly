@@ -604,6 +604,7 @@ let var_content ==
 let depends_stance ==
 | DEPENDS ; args = separated_nonempty_list(COMMA,var_content) ; <>
 | DEPENDS ; LPAREN ; args = separated_nonempty_list(COMMA,var_content) ; RPAREN ; <>
+| { [] }
 
 let code_item :=
 | SCOPE ; c = uident ;
