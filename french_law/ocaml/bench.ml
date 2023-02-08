@@ -191,6 +191,7 @@ let aides_logement_input :
           Law_source.Aides_logement.SituationFamiliale.Concubins ();
         condition_rattache_foyer_fiscal_parent_ifi = false;
         enfant_a_naitre_apres_quatrieme_mois_grossesse = false;
+        residence = Metropole ();
       };
     demandeur_in =
       {

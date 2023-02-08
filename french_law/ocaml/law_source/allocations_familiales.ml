@@ -458,8 +458,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=29; start_column=5;
-                      end_line=38; end_column=6;
+                      start_line=34; start_column=5;
+                      end_line=43; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -502,8 +502,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=47; start_column=5;
-                      end_line=49; end_column=6;
+                      start_line=52; start_column=5;
+                      end_line=54; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -525,8 +525,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=68; start_column=5;
-                      end_line=77; end_column=6;
+                      start_line=73; start_column=5;
+                      end_line=82; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -569,8 +569,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=86; start_column=5;
-                      end_line=88; end_column=6;
+                      start_line=91; start_column=5;
+                      end_line=93; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2019-1387 du 18 décembre 2019 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -592,8 +592,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=107; start_column=5;
-                      end_line=116; end_column=6;
+                      start_line=112; start_column=5;
+                      end_line=121; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -636,8 +636,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=125; start_column=5;
-                      end_line=127; end_column=6;
+                      start_line=130; start_column=5;
+                      end_line=132; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2020-1598 du 16 décembre 2020 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -659,8 +659,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=146; start_column=5;
-                      end_line=155; end_column=6;
+                      start_line=151; start_column=5;
+                      end_line=160; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2021-1741 du 22 décembre 2021 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -703,8 +703,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=165; start_column=5;
-                      end_line=167; end_column=6;
+                      start_line=170; start_column=5;
+                      end_line=172; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2021-1741 du 22 décembre 2021 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -726,8 +726,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=186; start_column=5;
-                      end_line=195; end_column=6;
+                      start_line=191; start_column=5;
+                      end_line=200; end_column=6;
                       law_headings=["Article 2";
                                      "Arrêté du 19 avril 2022 relatif au relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -770,8 +770,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=204; start_column=5;
-                      end_line=206; end_column=6;
+                      start_line=209; start_column=5;
+                      end_line=211; end_column=6;
                       law_headings=["Article 2";
                                      "Arrêté du 19 avril 2022 relatif au relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -793,8 +793,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=225; start_column=5;
-                      end_line=234; end_column=6;
+                      start_line=230; start_column=5;
+                      end_line=239; end_column=6;
                       law_headings=["Article 2";
                                      "Arrêté du 29 juillet 2022 relatif au relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -837,8 +837,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=243; start_column=5;
-                      end_line=245; end_column=6;
+                      start_line=248; start_column=5;
+                      end_line=250; end_column=6;
                       law_headings=["Article 2";
                                      "Arrêté du 29 juillet 2022 relatif au relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
@@ -860,39 +860,33 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=265; start_column=5;
-                      end_line=274; end_column=6;
+                      start_line=270; start_column=5;
+                      end_line=279; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2022-1608 du 22 décembre 2022 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
                     (o_and
                        (o_gte_dat_dat date_courante_
                           (date_of_numbers (2023) (1) (1)))
-                       (o_and
-                          (o_lte_dat_dat date_courante_
-                             (date_of_numbers (2023) (12) (31)))
-                          (o_or (o_eq residence_ (Collectivite.Metropole ()))
-                             (o_or
-                                (o_eq residence_ (Collectivite.Guadeloupe ()))
+                       (o_or (o_eq residence_ (Collectivite.Metropole ()))
+                          (o_or
+                             (o_eq residence_ (Collectivite.Guadeloupe ()))
+                             (o_or (o_eq residence_ (Collectivite.Guyane ()))
                                 (o_or
-                                   (o_eq residence_ (Collectivite.Guyane ()))
+                                   (o_eq residence_
+                                      (Collectivite.Martinique ()))
                                    (o_or
                                       (o_eq residence_
-                                         (Collectivite.Martinique ()))
+                                         (Collectivite.LaReunion ()))
                                       (o_or
                                          (o_eq residence_
-                                            (Collectivite.LaReunion ()))
+                                            (Collectivite.SaintBarthelemy ()))
                                          (o_or
                                             (o_eq residence_
-                                               (Collectivite.SaintBarthelemy
-                                                  ()))
-                                            (o_or
-                                               (o_eq residence_
-                                                  (Collectivite.SaintMartin
-                                                     ()))
-                                               (o_eq residence_
-                                                  (Collectivite.SaintPierreEtMiquelon
-                                                     ())))))))))))))
+                                               (Collectivite.SaintMartin ()))
+                                            (o_eq residence_
+                                               (Collectivite.SaintPierreEtMiquelon
+                                                  ()))))))))))))
                  (fun (_: unit) -> money_of_cents_string "1127"));
             (fun (_: unit) ->
                handle_default
@@ -904,18 +898,15 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=283; start_column=5;
-                      end_line=285; end_column=6;
+                      start_line=288; start_column=5;
+                      end_line=290; end_column=6;
                       law_headings=["Article 1";
                                      "Décret n° 2022-1608 du 22 décembre 2022 portant relèvement du salaire minimum de croissance";
                                      "Montant du salaire minimum de croissance"]}
                     (o_and
                        (o_gte_dat_dat date_courante_
                           (date_of_numbers (2023) (1) (1)))
-                       (o_and
-                          (o_lte_dat_dat date_courante_
-                             (date_of_numbers (2023) (12) (31)))
-                          (o_eq residence_ (Collectivite.Mayotte ()))))))
+                       (o_eq residence_ (Collectivite.Mayotte ())))))
                  (fun (_: unit) -> money_of_cents_string "851"))|])
          (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))
     with
@@ -923,6 +914,23 @@ let smic (smic_in: SmicIn.t) : Smic.t =
       {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
         start_line=11; start_column=12; end_line=11; end_column=24;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
+  let _: unit = if (
+                  try
+                    (o_gte_dat_dat date_courante_
+                       (date_of_numbers (2019) (1) (1)))
+                  with
+                  EmptyError -> (raise (NoValueProvided
+                    {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                      start_line=16; start_column=13;
+                      end_line=16; end_column=42;
+                      law_headings=["Prologue";
+                                     "Montant du salaire minimum de croissance"]})))
+                  then () else
+                  raise (AssertionFailed {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                                           start_line=16; start_column=13;
+                                           end_line=16; end_column=42;
+                                           law_headings=["Prologue";
+                                                          "Montant du salaire minimum de croissance"]}) in
   {Smic.brut_horaire = brut_horaire_}
 
 let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales_in: BaseMensuelleAllocationsFamilialesIn.t) : BaseMensuelleAllocationsFamiliales.t =
@@ -942,8 +950,8 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                      start_line=28; start_column=5;
-                      end_line=29; end_column=33;
+                      start_line=32; start_column=5;
+                      end_line=33; end_column=33;
                       law_headings=["Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 relative à la revalorisation au 1er avril 2019 des prestations familiales servies en métropole";
                                      "Montant de la base mensuelle des allocations familiales"]}
                     (o_and
@@ -960,8 +968,8 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                      start_line=48; start_column=5;
-                      end_line=49; end_column=33;
+                      start_line=52; start_column=5;
+                      end_line=53; end_column=33;
                       law_headings=["Instruction interministérielle no DSS/SD2B/2020/33 du 18 février 2020 relative à la revalorisation au 1er avril 2020 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte";
                                      "Montant de la base mensuelle des allocations familiales"]}
                     (o_and
@@ -978,8 +986,8 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                      start_line=64; start_column=5;
-                      end_line=65; end_column=33;
+                      start_line=68; start_column=5;
+                      end_line=69; end_column=33;
                       law_headings=["Instruction interministérielle n°DSS/2B/2021/65 du 19 mars 2021 relative à la revalorisation au 1er avril 2021 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte";
                                      "Montant de la base mensuelle des allocations familiales"]}
                     (o_and
@@ -996,15 +1004,12 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                  ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                      start_line=82; start_column=5;
-                      end_line=83; end_column=33;
+                      start_line=86; start_column=5;
+                      end_line=86; end_column=34;
                       law_headings=["Instruction interministérielle n°DSS/2B/2022/82 du 28 mars 2022 relative à la revalorisation au 1er avril 2022 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte";
                                      "Montant de la base mensuelle des allocations familiales"]}
-                    (o_and
-                       (o_gte_dat_dat date_courante_
-                          (date_of_numbers (2022) (4) (1)))
-                       (o_lt_dat_dat date_courante_
-                          (date_of_numbers (2023) (4) (1))))))
+                    (o_gte_dat_dat date_courante_
+                       (date_of_numbers (2022) (4) (1)))))
                  (fun (_: unit) -> money_of_cents_string "42228"))|])
          (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))
     with
@@ -1012,6 +1017,21 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
       {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
         start_line=6; start_column=12; end_line=6; end_column=19;
         law_headings=["Montant de la base mensuelle des allocations familiales"]})))) in
+  let _: unit = if (
+                  try
+                    (o_gte_dat_dat date_courante_
+                       (date_of_numbers (2019) (4) (1)))
+                  with
+                  EmptyError -> (raise (NoValueProvided
+                    {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                      start_line=10; start_column=13;
+                      end_line=10; end_column=42;
+                      law_headings=["Montant de la base mensuelle des allocations familiales"]})))
+                  then () else
+                  raise (AssertionFailed {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                                           start_line=10; start_column=13;
+                                           end_line=10; end_column=42;
+                                           law_headings=["Montant de la base mensuelle des allocations familiales"]}) in
   {BaseMensuelleAllocationsFamiliales.montant = montant_}
 
 let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t) : PrestationsFamiliales.t =

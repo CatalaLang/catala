@@ -2,6 +2,7 @@
 
 from datetime import date
 from src.aides_logement import ModeOccupation_Code, Nationalite_Code, PrestationRecue_Code, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TypeBailleur_Code, ZoneDHabitation_Code
+from src.aides_logement import Collectivite_Code as Collectivite_Code_APL
 from src.allocations_familiales import PriseEnCharge_Code, Collectivite_Code, SituationObligationScolaire
 from src.api import EnfantAPL, InfosLocation, aides_logement, allocations_familiales, Enfant
 from catala.runtime import LogEvent, LogEventCode, reset_log, retrieve_log
@@ -36,6 +37,7 @@ def call_allocations_familiales() -> float:
 
 def call_aides_logement() -> float:
     return aides_logement(
+        residence=Collectivite_Code_APL.Metropole,
         date_courante=date(2022, 5, 1),
         ressources_menage_prises_en_compte=11_500,
         date_naissance_demandeur=date(1992, 1, 1),

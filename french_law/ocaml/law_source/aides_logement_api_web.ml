@@ -3117,6 +3117,7 @@ class type menage =
     method conditionRattacheFoyerFiscalParentIfi: bool Js.t Js.readonly_prop
     method enfantANaitreApresQuatriemeMoisGrossesse:
       bool Js.t Js.readonly_prop
+    method residence: collectivite Js.t Js.readonly_prop
   end
   let menage_to_jsoo (menage : Menage.t) : menage Js.t =
     object%js
@@ -3133,6 +3134,7 @@ class type menage =
         Js.bool menage.condition_rattache_foyer_fiscal_parent_ifi
       val enfantANaitreApresQuatriemeMoisGrossesse =
         Js.bool menage.enfant_a_naitre_apres_quatrieme_mois_grossesse
+      val residence = collectivite_to_jsoo menage.residence
       end
   let menage_of_jsoo (menage : menage Js.t) : Menage.t =
     {
@@ -3150,7 +3152,8 @@ class type menage =
       condition_rattache_foyer_fiscal_parent_ifi =
         Js.to_bool menage##.conditionRattacheFoyerFiscalParentIfi;
       enfant_a_naitre_apres_quatrieme_mois_grossesse =
-        Js.to_bool menage##.enfantANaitreApresQuatriemeMoisGrossesse
+        Js.to_bool menage##.enfantANaitreApresQuatriemeMoisGrossesse;
+      residence = collectivite_of_jsoo menage##.residence
     }
 
 class type eligibilite_aides_personnelle_logement_in =
@@ -3468,6 +3471,7 @@ class type calcul_aide_personnalisee_logement_locatif_in =
     method colocationIn: bool Js.t Js.readonly_prop
     method reductionLoyerSolidariteIn: Js.number Js.t Js.readonly_prop
     method logementMeubleD8422In: bool Js.t Js.readonly_prop
+    method residenceIn: collectivite Js.t Js.readonly_prop
   end
   let calcul_aide_personnalisee_logement_locatif_in_to_jsoo
     (calcul_aide_personnalisee_logement_locatif_in
@@ -3500,6 +3504,8 @@ class type calcul_aide_personnalisee_logement_locatif_in =
         Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_locatif_in.reduction_loyer_solidarite_in
       val logementMeubleD8422In =
         Js.bool calcul_aide_personnalisee_logement_locatif_in.logement_meuble_d842_2_in
+      val residenceIn =
+        collectivite_to_jsoo calcul_aide_personnalisee_logement_locatif_in.residence_in
       end
   let calcul_aide_personnalisee_logement_locatif_in_of_jsoo
     (calcul_aide_personnalisee_logement_locatif_in
@@ -3553,7 +3559,10 @@ class type calcul_aide_personnalisee_logement_locatif_in =
       logement_meuble_d842_2_in =
         Js.to_bool
           calcul_aide_personnalisee_logement_locatif_in
-          ##.logementMeubleD8422In
+          ##.logementMeubleD8422In;
+      residence_in =
+        collectivite_of_jsoo
+          calcul_aide_personnalisee_logement_locatif_in##.residenceIn
     }
 
 class type calcul_equivalence_loyer_minimale_in =
@@ -3861,6 +3870,7 @@ class type calcul_aide_personnalisee_logement_in =
     method nombrePersonnesAChargeIn: int Js.readonly_prop
     method zoneIn: zone_d_habitation Js.t Js.readonly_prop
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
+    method residenceIn: collectivite Js.t Js.readonly_prop
   end
   let calcul_aide_personnalisee_logement_in_to_jsoo
     (calcul_aide_personnalisee_logement_in
@@ -3881,6 +3891,8 @@ class type calcul_aide_personnalisee_logement_in =
         zone_d_habitation_to_jsoo calcul_aide_personnalisee_logement_in.zone_in
       val dateCouranteIn =
         date_to_jsoo calcul_aide_personnalisee_logement_in.date_courante_in
+      val residenceIn =
+        collectivite_to_jsoo calcul_aide_personnalisee_logement_in.residence_in
       end
   let calcul_aide_personnalisee_logement_in_of_jsoo
     (calcul_aide_personnalisee_logement_in
@@ -3907,7 +3919,10 @@ class type calcul_aide_personnalisee_logement_in =
         zone_d_habitation_of_jsoo
           calcul_aide_personnalisee_logement_in##.zoneIn;
       date_courante_in =
-        date_of_jsoo calcul_aide_personnalisee_logement_in##.dateCouranteIn
+        date_of_jsoo calcul_aide_personnalisee_logement_in##.dateCouranteIn;
+      residence_in =
+        collectivite_of_jsoo
+          calcul_aide_personnalisee_logement_in##.residenceIn
     }
 
 class type calcul_allocation_logement_locatif_in =
@@ -3928,6 +3943,7 @@ class type calcul_allocation_logement_locatif_in =
     method colocationIn: bool Js.t Js.readonly_prop
     method reductionLoyerSolidariteIn: Js.number Js.t Js.readonly_prop
     method logementMeubleD8422In: bool Js.t Js.readonly_prop
+    method residenceIn: collectivite Js.t Js.readonly_prop
     method changementLogementD8424In:
       changement_logement_d842_4 Js.t Js.readonly_prop
   end
@@ -3962,6 +3978,8 @@ class type calcul_allocation_logement_locatif_in =
         Js.number_of_float @@ money_to_float calcul_allocation_logement_locatif_in.reduction_loyer_solidarite_in
       val logementMeubleD8422In =
         Js.bool calcul_allocation_logement_locatif_in.logement_meuble_d842_2_in
+      val residenceIn =
+        collectivite_to_jsoo calcul_allocation_logement_locatif_in.residence_in
       val changementLogementD8424In =
         changement_logement_d842_4_to_jsoo calcul_allocation_logement_locatif_in.changement_logement_d842_4_in
       end
@@ -4010,6 +4028,9 @@ class type calcul_allocation_logement_locatif_in =
       logement_meuble_d842_2_in =
         Js.to_bool
           calcul_allocation_logement_locatif_in##.logementMeubleD8422In;
+      residence_in =
+        collectivite_of_jsoo
+          calcul_allocation_logement_locatif_in##.residenceIn;
       changement_logement_d842_4_in =
         changement_logement_d842_4_of_jsoo
           calcul_allocation_logement_locatif_in##.changementLogementD8424In
@@ -4201,6 +4222,7 @@ class type calcul_allocation_logement_in =
     method zoneIn: zone_d_habitation Js.t Js.readonly_prop
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
     method typeAideIn: type_aides_personnelle_logement Js.t Js.readonly_prop
+    method residenceIn: collectivite Js.t Js.readonly_prop
   end
   let calcul_allocation_logement_in_to_jsoo (calcul_allocation_logement_in
     : CalculAllocationLogementIn.t) : calcul_allocation_logement_in Js.t =
@@ -4219,6 +4241,8 @@ class type calcul_allocation_logement_in =
         date_to_jsoo calcul_allocation_logement_in.date_courante_in
       val typeAideIn =
         type_aides_personnelle_logement_to_jsoo calcul_allocation_logement_in.type_aide_in
+      val residenceIn =
+        collectivite_to_jsoo calcul_allocation_logement_in.residence_in
       end
   let calcul_allocation_logement_in_of_jsoo
     (calcul_allocation_logement_in : calcul_allocation_logement_in Js.t) :
@@ -4242,7 +4266,9 @@ class type calcul_allocation_logement_in =
         date_of_jsoo calcul_allocation_logement_in##.dateCouranteIn;
       type_aide_in =
         type_aides_personnelle_logement_of_jsoo
-          calcul_allocation_logement_in##.typeAideIn
+          calcul_allocation_logement_in##.typeAideIn;
+      residence_in =
+        collectivite_of_jsoo calcul_allocation_logement_in##.residenceIn
     }
 
 class type ouverture_droits_retraite_in =

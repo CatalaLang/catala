@@ -551,16 +551,68 @@ def smic(smic_in:SmicIn):
         def temp_brut_horaire_1(_:Unit):
             return False
         def temp_brut_horaire_2(_:Unit):
-            if ((date_courante >= date_of_numbers(2022,5,1)) and
+            if ((date_courante >= date_of_numbers(2023,1,1)) and
+                (residence == Collectivite(Collectivite_Code.Mayotte,
+                Unit()))):
+                return money_of_cents_string("851")
+            else:
+                raise EmptyError
+        def temp_brut_horaire_3(_:Unit):
+            if ((date_courante >= date_of_numbers(2023,1,1)) and
+                ((residence == Collectivite(Collectivite_Code.Metropole,
+                Unit())) or ((residence ==
+                Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
+                ((residence == Collectivite(Collectivite_Code.Guyane,
+                Unit())) or ((residence ==
+                Collectivite(Collectivite_Code.Martinique, Unit())) or
+                ((residence == Collectivite(Collectivite_Code.LaReunion,
+                Unit())) or ((residence ==
+                Collectivite(Collectivite_Code.SaintBarthelemy, Unit())) or
+                ((residence == Collectivite(Collectivite_Code.SaintMartin,
+                Unit())) or (residence ==
+                Collectivite(Collectivite_Code.SaintPierreEtMiquelon,
+                Unit())))))))))):
+                return money_of_cents_string("1127")
+            else:
+                raise EmptyError
+        def temp_brut_horaire_4(_:Unit):
+            if ((date_courante >= date_of_numbers(2022,8,1)) and
                 ((date_courante <= date_of_numbers(2022,12,31)) and
+                (residence == Collectivite(Collectivite_Code.Mayotte,
+                Unit())))):
+                return money_of_cents_string("835")
+            else:
+                raise EmptyError
+        def temp_brut_horaire_5(_:Unit):
+            if ((date_courante >= date_of_numbers(2022,8,1)) and
+                ((date_courante <= date_of_numbers(2022,12,31)) and
+                ((residence == Collectivite(Collectivite_Code.Metropole,
+                Unit())) or ((residence ==
+                Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
+                ((residence == Collectivite(Collectivite_Code.Guyane,
+                Unit())) or ((residence ==
+                Collectivite(Collectivite_Code.Martinique, Unit())) or
+                ((residence == Collectivite(Collectivite_Code.LaReunion,
+                Unit())) or ((residence ==
+                Collectivite(Collectivite_Code.SaintBarthelemy, Unit())) or
+                ((residence == Collectivite(Collectivite_Code.SaintMartin,
+                Unit())) or (residence ==
+                Collectivite(Collectivite_Code.SaintPierreEtMiquelon,
+                Unit()))))))))))):
+                return money_of_cents_string("1107")
+            else:
+                raise EmptyError
+        def temp_brut_horaire_6(_:Unit):
+            if ((date_courante >= date_of_numbers(2022,5,1)) and
+                ((date_courante <= date_of_numbers(2022,7,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
                 Unit())))):
                 return money_of_cents_string("819")
             else:
                 raise EmptyError
-        def temp_brut_horaire_3(_:Unit):
+        def temp_brut_horaire_7(_:Unit):
             if ((date_courante >= date_of_numbers(2022,5,1)) and
-                ((date_courante <= date_of_numbers(2022,12,31)) and
+                ((date_courante <= date_of_numbers(2022,7,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
                 Unit())) or ((residence ==
                 Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -577,7 +629,7 @@ def smic(smic_in:SmicIn):
                 return money_of_cents_string("1085")
             else:
                 raise EmptyError
-        def temp_brut_horaire_4(_:Unit):
+        def temp_brut_horaire_8(_:Unit):
             if ((date_courante >= date_of_numbers(2022,1,1)) and
                 ((date_courante <= date_of_numbers(2022,4,30)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
@@ -585,7 +637,7 @@ def smic(smic_in:SmicIn):
                 return money_of_cents_string("798")
             else:
                 raise EmptyError
-        def temp_brut_horaire_5(_:Unit):
+        def temp_brut_horaire_9(_:Unit):
             if ((date_courante >= date_of_numbers(2022,1,1)) and
                 ((date_courante <= date_of_numbers(2022,4,30)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
@@ -604,7 +656,7 @@ def smic(smic_in:SmicIn):
                 return money_of_cents_string("1057")
             else:
                 raise EmptyError
-        def temp_brut_horaire_6(_:Unit):
+        def temp_brut_horaire_10(_:Unit):
             if ((date_courante >= date_of_numbers(2021,1,1)) and
                 ((date_courante <= date_of_numbers(2021,12,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
@@ -612,7 +664,7 @@ def smic(smic_in:SmicIn):
                 return money_of_cents_string("774")
             else:
                 raise EmptyError
-        def temp_brut_horaire_7(_:Unit):
+        def temp_brut_horaire_11(_:Unit):
             if ((date_courante >= date_of_numbers(2021,1,1)) and
                 ((date_courante <= date_of_numbers(2021,12,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
@@ -631,7 +683,7 @@ def smic(smic_in:SmicIn):
                 return money_of_cents_string("1025")
             else:
                 raise EmptyError
-        def temp_brut_horaire_8(_:Unit):
+        def temp_brut_horaire_12(_:Unit):
             if ((date_courante >= date_of_numbers(2020,1,1)) and
                 ((date_courante <= date_of_numbers(2020,12,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
@@ -639,7 +691,7 @@ def smic(smic_in:SmicIn):
                 return money_of_cents_string("766")
             else:
                 raise EmptyError
-        def temp_brut_horaire_9(_:Unit):
+        def temp_brut_horaire_13(_:Unit):
             if ((date_courante >= date_of_numbers(2020,1,1)) and
                 ((date_courante <= date_of_numbers(2020,12,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
@@ -658,7 +710,7 @@ def smic(smic_in:SmicIn):
                 return money_of_cents_string("1015")
             else:
                 raise EmptyError
-        def temp_brut_horaire_10(_:Unit):
+        def temp_brut_horaire_14(_:Unit):
             if ((date_courante >= date_of_numbers(2019,1,1)) and
                 ((date_courante <= date_of_numbers(2019,12,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
@@ -666,7 +718,7 @@ def smic(smic_in:SmicIn):
                 return money_of_cents_string("757")
             else:
                 raise EmptyError
-        def temp_brut_horaire_11(_:Unit):
+        def temp_brut_horaire_15(_:Unit):
             if ((date_courante >= date_of_numbers(2019,1,1)) and
                 ((date_courante <= date_of_numbers(2019,12,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
@@ -685,11 +737,15 @@ def smic(smic_in:SmicIn):
                 return money_of_cents_string("1003")
             else:
                 raise EmptyError
-        temp_brut_horaire_12 = handle_default(SourcePosition(filename="examples/allocations_familiales/../smic/smic.catala_fr",
+        temp_brut_horaire_16 = handle_default(SourcePosition(filename="examples/allocations_familiales/../smic/smic.catala_fr",
                                               start_line=11, start_column=12,
                                               end_line=11, end_column=24,
                                               law_headings=["Prologue",
-                                              "Montant du salaire minimum de croissance"]), [temp_brut_horaire_11,
+                                              "Montant du salaire minimum de croissance"]), [temp_brut_horaire_15,
+                                              temp_brut_horaire_14,
+                                              temp_brut_horaire_13,
+                                              temp_brut_horaire_12,
+                                              temp_brut_horaire_11,
                                               temp_brut_horaire_10,
                                               temp_brut_horaire_9,
                                               temp_brut_horaire_8,
@@ -702,13 +758,28 @@ def smic(smic_in:SmicIn):
                                               temp_brut_horaire_1,
                                               temp_brut_horaire)
     except EmptyError:
-        temp_brut_horaire_12 = dead_value
+        temp_brut_horaire_16 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/../smic/smic.catala_fr",
                                              start_line=11, start_column=12,
                                              end_line=11, end_column=24,
                                              law_headings=["Prologue",
                                              "Montant du salaire minimum de croissance"]))
-    brut_horaire = temp_brut_horaire_12
+    brut_horaire = temp_brut_horaire_16
+    try:
+        temp__ = (date_courante >= date_of_numbers(2019,1,1))
+    except EmptyError:
+        temp__ = dead_value
+        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/../smic/smic.catala_fr",
+                                             start_line=16, start_column=13,
+                                             end_line=16, end_column=42,
+                                             law_headings=["Prologue",
+                                             "Montant du salaire minimum de croissance"]))
+    if not (temp__):
+        raise AssertionFailure(SourcePosition(filename="examples/allocations_familiales/../smic/smic.catala_fr",
+                                              start_line=16, start_column=13,
+                                              end_line=16, end_column=42,
+                                              law_headings=["Prologue",
+                                                           "Montant du salaire minimum de croissance"]))
     return Smic(brut_horaire = brut_horaire)
 
 def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_in:BaseMensuelleAllocationsFamilialesIn):
@@ -719,9 +790,8 @@ def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_
         def temp_montant_1(_:Unit):
             return False
         def temp_montant_2(_:Unit):
-            if ((date_courante_1 >= date_of_numbers(2022,4,1)) and
-                (date_courante_1 <
-                date_of_numbers(2023,4,1))):
+            if (date_courante_1 >=
+                date_of_numbers(2022,4,1)):
                 return money_of_cents_string("42228")
             else:
                 raise EmptyError
@@ -760,6 +830,19 @@ def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_
                                              end_line=6, end_column=19,
                                              law_headings=["Montant de la base mensuelle des allocations familiales"]))
     montant = temp_montant_6
+    try:
+        temp___1 = (date_courante_1 >= date_of_numbers(2019,4,1))
+    except EmptyError:
+        temp___1 = dead_value
+        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr",
+                                             start_line=10, start_column=13,
+                                             end_line=10, end_column=42,
+                                             law_headings=["Montant de la base mensuelle des allocations familiales"]))
+    if not (temp___1):
+        raise AssertionFailure(SourcePosition(filename="examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr",
+                                              start_line=10, start_column=13,
+                                              end_line=10, end_column=42,
+                                              law_headings=["Montant de la base mensuelle des allocations familiales"]))
     return BaseMensuelleAllocationsFamiliales(montant = montant)
 
 def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
@@ -1374,8 +1457,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_enfant_le_plus_age_dot_enfants = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=32, start_column=14,
-                                             end_line=32, end_column=40,
+                                             start_line=33, start_column=14,
+                                             end_line=33, end_column=40,
                                              law_headings=["Règles diverses",
                                              "Épilogue"]))
     enfant_le_plus_age_dot_enfants = temp_enfant_le_plus_age_dot_enfants
@@ -2935,11 +3018,11 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     montant_verse = temp_montant_verse
     try:
-        temp__ = (personne_charge_effective_permanente_est_parent or
+        temp___2 = (personne_charge_effective_permanente_est_parent or
             (not personne_charge_effective_permanente_est_parent and
             personne_charge_effective_permanente_remplit_titre__i))
     except EmptyError:
-        temp__ = dead_value
+        temp___2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/securite_sociale_L.catala_fr",
                                              start_line=231, start_column=5,
                                              end_line=235, end_column=6,
@@ -2949,7 +3032,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Livre 5 : Prestations familiales et prestations assimilées",
                                              "Partie législative",
                                              "Code de la sécurité sociale"]))
-    if not (temp__):
+    if not (temp___2):
         raise AssertionFailure(SourcePosition(filename="examples/allocations_familiales/securite_sociale_L.catala_fr",
                                               start_line=231, start_column=5,
                                               end_line=235, end_column=6,
@@ -2996,8 +3079,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     except EmptyError:
         temp_enfants_a_charge_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=75, start_column=11,
-                                             end_line=75, end_column=27,
+                                             start_line=76, start_column=11,
+                                             end_line=76, end_column=27,
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     enfants_a_charge_1 = temp_enfants_a_charge_2
@@ -3014,8 +3097,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     except EmptyError:
         temp_allocations_familiales_dot_personne_charge_effective_permanente_est_parent_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=91, start_column=5,
-                                             end_line=91, end_column=75,
+                                             start_line=92, start_column=5,
+                                             end_line=92, end_column=75,
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     allocations_familiales_dot_personne_charge_effective_permanente_est_parent = temp_allocations_familiales_dot_personne_charge_effective_permanente_est_parent_1
@@ -3032,8 +3115,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     except EmptyError:
         temp_allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=95, start_column=5,
-                                             end_line=95, end_column=80,
+                                             start_line=96, start_column=5,
+                                             end_line=96, end_column=80,
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i = temp_allocations_familiales_dot_personne_charge_effective_permanente_remplit_titre__i_1
@@ -3042,8 +3125,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     except EmptyError:
         temp_allocations_familiales_dot_ressources_menage = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=87, start_column=14,
-                                             end_line=87, end_column=54,
+                                             start_line=88, start_column=14,
+                                             end_line=88, end_column=54,
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     allocations_familiales_dot_ressources_menage = temp_allocations_familiales_dot_ressources_menage
@@ -3052,8 +3135,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     except EmptyError:
         temp_allocations_familiales_dot_residence = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=88, start_column=14,
-                                             end_line=88, end_column=46,
+                                             start_line=89, start_column=14,
+                                             end_line=89, end_column=46,
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     allocations_familiales_dot_residence = temp_allocations_familiales_dot_residence
@@ -3062,8 +3145,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     except EmptyError:
         temp_allocations_familiales_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=85, start_column=14,
-                                             end_line=85, end_column=50,
+                                             start_line=86, start_column=14,
+                                             end_line=86, end_column=50,
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     allocations_familiales_dot_date_courante = temp_allocations_familiales_dot_date_courante
@@ -3072,8 +3155,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     except EmptyError:
         temp_allocations_familiales_dot_enfants_a_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=86, start_column=14,
-                                             end_line=86, end_column=53,
+                                             start_line=87, start_column=14,
+                                             end_line=87, end_column=53,
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     allocations_familiales_dot_enfants_a_charge = temp_allocations_familiales_dot_enfants_a_charge
@@ -3090,8 +3173,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     except EmptyError:
         temp_allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=99, start_column=5,
-                                             end_line=99, end_column=72,
+                                             start_line=100, start_column=5,
+                                             end_line=100, end_column=72,
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012 = temp_allocations_familiales_dot_avait_enfant_a_charge_avant_1er_janvier_2012_1
@@ -3108,8 +3191,8 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     except EmptyError:
         temp_i_montant_verse = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/epilogue.catala_fr",
-                                             start_line=79, start_column=12,
-                                             end_line=79, end_column=27,
+                                             start_line=80, start_column=12,
+                                             end_line=80, end_column=27,
                                              law_headings=["Interface du programme",
                                              "Épilogue"]))
     i_montant_verse = temp_i_montant_verse
