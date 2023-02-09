@@ -398,7 +398,8 @@ let rec translate_expr
           Errors.raise_spanned_error pos "Qualified paths are not supported yet"
       in
       Expr.edstructaccess e (Marked.unmark x) str emark)
-  | FunCall (f, arg) -> Expr.eapp (rec_helper f) [rec_helper arg] emark
+  | FunCall (f, args) ->
+    Expr.eapp (rec_helper f) (List.map rec_helper args) emark
   | ScopeCall ((([], sc_name), _), fields) ->
     if scope = None then
       Errors.raise_spanned_error pos

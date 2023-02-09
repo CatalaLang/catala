@@ -433,7 +433,7 @@ and naked_expression =
   | CollectionOp of collection_op * expression
   | MemCollection of expression * expression
   | TestMatchCase of expression * match_case_pattern Marked.pos
-  | FunCall of expression * expression
+  | FunCall of expression * expression list
   | ScopeCall of
       (path * uident Marked.pos) Marked.pos
       * (lident Marked.pos * expression) list

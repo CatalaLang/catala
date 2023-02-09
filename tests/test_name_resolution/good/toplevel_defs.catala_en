@@ -56,19 +56,12 @@ declaration glob4 content decimal
 declaration scope S3:
   output a content decimal
 
-#scope S3:
-#   definition a equals 50 + glob3 of ($44, 55.)
-# TODO: no syntax yet
+scope S3:
+   definition a equals 50. + glob4 of $44, 55.
 ```
 
 ```catala-test-inline
 $ catala Interpret -s S3
-[ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
-
-┌─⯈ tests/test_name_resolution/good/toplevel_defs.catala_en:57.9-10:
-└──┐
-57 │   output a content decimal
-   │          ‾
-   └─ Test function def with two args
-#return code 255#
+[RESULT] Computation successful! Results:
+[RESULT] a = 2480.
 ```

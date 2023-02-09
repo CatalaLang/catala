@@ -38,6 +38,7 @@ end>
 %left PLUS MINUS PLUSPLUS
 %left MULT DIV
 %right apply OF CONTAINS FOR SUCH WITH
+%right COMMA
 %right unop_expr
 %right CONTENT
 %nonassoc UIDENT
@@ -181,9 +182,9 @@ let naked_expression ==
 | e = struct_or_enum_inject ; <>
 | e1 = expression ;
   OF ;
-  e2 = expression ; {
-  FunCall (e1, e2)
-} %prec apply
+  args = funcall_args ; {
+  FunCall (e1, args)
+}
 | OUTPUT ; OF ;
   c = addpos(quident) ;
   fields = option(scope_call_args) ; {
@@ -321,6 +322,10 @@ let scope_call_args ==
   RBRACE ; {
   fields
 }
+
+let funcall_args :=
+| e = expression; { [e] } %prec apply
+| e = expression; COMMA; el = funcall_args ; { e :: el }
 
 let minmax ==
 | MAXIMUM ; { true }
