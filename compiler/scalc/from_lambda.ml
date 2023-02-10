@@ -21,10 +21,10 @@ module L = Lcalc.Ast
 module D = Dcalc.Ast
 
 type 'm ctxt = {
-  func_dict : ('m L.expr, A.TopLevelName.t) Var.Map.t;
+  func_dict : ('m L.expr, A.FuncName.t) Var.Map.t;
   decl_ctx : decl_ctx;
-  var_dict : ('m L.expr, A.LocalName.t) Var.Map.t;
-  inside_definition_of : A.LocalName.t option;
+  var_dict : ('m L.expr, A.VarName.t) Var.Map.t;
+  inside_definition_of : A.VarName.t option;
   context_name : string;
 }
 
@@ -90,14 +90,14 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
   | ELit l -> [], (A.ELit l, Expr.pos expr)
   | _ ->
     let tmp_var =
-      A.LocalName.fresh
+      A.VarName.fresh
         ( (*This piece of logic is used to make the code more readable. TODO:
             should be removed when
             https://github.com/CatalaLang/catala/issues/240 is fixed. *)
           (match ctxt.inside_definition_of with
           | None -> ctxt.context_name
           | Some v ->
-            let v = Marked.unmark (A.LocalName.get_info v) in
+            let v = Marked.unmark (A.VarName.get_info v) in
             let tmp_rex = Re.Pcre.regexp "^temp_" in
             if Re.Pcre.pmatch ~rex:tmp_rex v then v else "temp_" ^ v),
           Expr.pos expr )
@@ -106,7 +106,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       {
         ctxt with
         inside_definition_of = Some tmp_var;
-        context_name = Marked.unmark (A.LocalName.get_info tmp_var);
+        context_name = Marked.unmark (A.VarName.get_info tmp_var);
       }
     in
     let tmp_stmts = translate_statements ctxt expr in
@@ -133,7 +133,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           List.fold_left
             (fun var_dict (x, _) ->
               Var.Map.add x
-                (A.LocalName.fresh (Bindlib.name_of x, binder_pos))
+                (A.VarName.fresh (Bindlib.name_of x, binder_pos))
                 var_dict)
             ctxt.var_dict vars_tau;
       }
@@ -159,7 +159,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               ctxt with
               inside_definition_of = Some (Marked.unmark x);
               context_name =
-                Marked.unmark (A.LocalName.get_info (Marked.unmark x));
+                Marked.unmark (A.VarName.get_info (Marked.unmark x));
             }
           in
           let arg_stmts, new_arg = translate_expr ctxt arg in
@@ -174,7 +174,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
     let closure_name =
       match ctxt.inside_definition_of with
-      | None -> A.LocalName.fresh (ctxt.context_name, Expr.pos block_expr)
+      | None -> A.VarName.fresh (ctxt.context_name, Expr.pos block_expr)
       | Some x -> x
     in
     let ctxt =
@@ -184,7 +184,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           List.fold_left
             (fun var_dict (x, _) ->
               Var.Map.add x
-                (A.LocalName.fresh (Bindlib.name_of x, binder_pos))
+                (A.VarName.fresh (Bindlib.name_of x, binder_pos))
                 var_dict)
             ctxt.var_dict vars_tau;
         inside_definition_of = None;
@@ -215,7 +215,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             assert (Array.length vars = 1);
             let var = vars.(0) in
             let scalc_var =
-              A.LocalName.fresh (Bindlib.name_of var, Expr.pos arg)
+              A.VarName.fresh (Bindlib.name_of var, Expr.pos arg)
             in
             let ctxt =
               { ctxt with var_dict = Var.Map.add var scalc_var ctxt.var_dict }
@@ -272,8 +272,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
 let rec translate_scope_body_expr
     (scope_name : ScopeName.t)
     (decl_ctx : decl_ctx)
-    (var_dict : ('m L.expr, A.LocalName.t) Var.Map.t)
-    (func_dict : ('m L.expr, A.TopLevelName.t) Var.Map.t)
+    (var_dict : ('m L.expr, A.VarName.t) Var.Map.t)
+    (func_dict : ('m L.expr, A.FuncName.t) Var.Map.t)
     (scope_expr : 'm L.expr scope_body_expr) : A.block =
   match scope_expr with
   | Result e ->
@@ -292,7 +292,7 @@ let rec translate_scope_body_expr
   | ScopeLet scope_let ->
     let let_var, scope_let_next = Bindlib.unbind scope_let.scope_let_next in
     let let_var_id =
-      A.LocalName.fresh (Bindlib.name_of let_var, scope_let.scope_let_pos)
+      A.VarName.fresh (Bindlib.name_of let_var, scope_let.scope_let_pos)
     in
     let new_var_dict = Var.Map.add let_var let_var_id var_dict in
     (match scope_let.scope_let_kind with
@@ -340,7 +340,7 @@ let translate_program (p : 'm L.program) : A.program =
           in
           let input_pos = Marked.get_mark (ScopeName.get_info name) in
           let scope_input_var_id =
-            A.LocalName.fresh (Bindlib.name_of scope_input_var, input_pos)
+            A.VarName.fresh (Bindlib.name_of scope_input_var, input_pos)
           in
           let var_dict_local =
             Var.Map.add scope_input_var scope_input_var_id var_dict
@@ -349,9 +349,7 @@ let translate_program (p : 'm L.program) : A.program =
             translate_scope_body_expr name p.decl_ctx var_dict_local func_dict
               scope_body_expr
           in
-          let func_id =
-            A.TopLevelName.fresh (Bindlib.name_of var, Pos.no_pos)
-          in
+          let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
           ( Var.Map.add var func_id func_dict,
             var_dict,
             globals,
@@ -369,59 +367,95 @@ let translate_program (p : 'm L.program) : A.program =
                 };
             }
             :: scopes )
-        | Topdef _ -> failwith "todo"
-        (* | Topdef (name, _, (EAbs abs, _)) ->
-         *   let func_id =
-         *     A.TopLevelName.fresh (Bindlib.name_of var, Pos.no_pos)
-         *   in
-         *   let args_a, expr = Bindlib.unmbind abs.binder in
-         *   let args = Array.to_list args_a in
-         *   let args_id =
-         *     List.map2 (fun v ty ->
-         *         let pos = Marked.get_mark ty in
-         *         (A.LocalName.fresh (Bindlib.name_of v, pos), pos), ty)
-         *       args abs.tys
-         *   in
-         *   let block, expr =
-         *     let ctxt =
-         *       {
-         *         func_dict;
-         *         decl_ctx = p.decl_ctx;
-         *         var_dict =
-         *           List.fold_left2 (fun map arg ((id, _), _) -> Var.Map.add arg id map)
-         *             var_dict args args_id;
-         *         inside_definition_of = None;
-         *         context_name = Marked.unmark (TopdefName.get_info name);
-         *       }
-         *     in
-         *     translate_expr  ctxt expr
-         *   in
-         *   let body_block = block @ [A.SReturn (Marked.unmark expr), Marked.get_mark expr]
-         *   in
-         *   Var.Map.add var func_id func_dict,
-         *   var_dict,
-         *   A.GlobalFunc {
-         *     A.func_params = args_id;
-         *     A.func_body = body_block;
-         *   } :: globals,
-         *   scopes
-         * | Topdef (name, ty, expr) ->
-         *   let var_id =
-         *     A.TopLevelName.fresh (Bindlib.name_of var, Pos.no_pos)
-         *   in
-         *   let block, expr =
-         *     let ctxt =
-         *       {
-         *         func_dict;
-         *         decl_ctx = p.decl_ctx;
-         *         var_dict;
-         *         inside_definition_of = None;
-         *         context_name = Marked.unmark (TopdefName.get_info name);
-         *       }
-         *     in
-         *     translate_expr ctxt expr
-         *   in
-         *   let block = block @ [A.SLocalDef (var_id, expr), Marked.get_mark expr] in *))
+        | Topdef (name, _, (EAbs abs, _)) ->
+          (* Toplevel function def *)
+          let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
+          let args_a, expr = Bindlib.unmbind abs.binder in
+          let args = Array.to_list args_a in
+          let args_id =
+            List.map2
+              (fun v ty ->
+                let pos = Marked.get_mark ty in
+                (A.VarName.fresh (Bindlib.name_of v, pos), pos), ty)
+              args abs.tys
+          in
+          let block, expr =
+            let ctxt =
+              {
+                func_dict;
+                decl_ctx = p.decl_ctx;
+                var_dict =
+                  List.fold_left2
+                    (fun map arg ((id, _), _) -> Var.Map.add arg id map)
+                    var_dict args args_id;
+                inside_definition_of = None;
+                context_name = Marked.unmark (TopdefName.get_info name);
+              }
+            in
+            translate_expr ctxt expr
+          in
+          let body_block =
+            block @ [A.SReturn (Marked.unmark expr), Marked.get_mark expr]
+          in
+          ( Var.Map.add var func_id func_dict,
+            var_dict,
+            A.GlobalFunc
+              {
+                var = func_id;
+                func = { A.func_params = args_id; A.func_body = body_block };
+              }
+            :: globals,
+            scopes )
+        | Topdef (name, ty, expr) ->
+          (* Toplevel constant def *)
+          let var_id = A.VarName.fresh (Bindlib.name_of var, Pos.no_pos) in
+          let block, expr =
+            let ctxt =
+              {
+                func_dict;
+                decl_ctx = p.decl_ctx;
+                var_dict;
+                inside_definition_of = None;
+                context_name = Marked.unmark (TopdefName.get_info name);
+              }
+            in
+            translate_expr ctxt expr
+          in
+          (* If the evaluation of the toplevel expr requires preliminary
+             statements, we lift its computation into an auxiliary function *)
+          let globals =
+            match block with
+            | [] -> A.GlobalVar { var = var_id; expr } :: globals
+            | block ->
+              let pos = Marked.get_mark expr in
+              let func_id =
+                A.FuncName.fresh (Bindlib.name_of var ^ "_aux", pos)
+              in
+              (* The list is being built in reverse order *)
+              A.GlobalVar
+                { var = var_id; expr = A.EApp ((EFunc func_id, pos), []), pos }
+              :: A.GlobalFunc
+                   {
+                     var = func_id;
+                     func =
+                       {
+                         A.func_params = [];
+                         A.func_body =
+                           block
+                           @ [
+                               ( A.SReturn (Marked.unmark expr),
+                                 Marked.get_mark expr );
+                             ];
+                       };
+                   }
+              :: globals
+          in
+          ( func_dict,
+            (* No need to add func_id since the function will only be called
+               right here *)
+            Var.Map.add var var_id var_dict,
+            globals,
+            scopes ))
       ~init:
         ( (if !Cli.avoid_exceptions_flag then
            Var.Map.singleton L.handle_default_opt A.handle_default_opt

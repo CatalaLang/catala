@@ -356,7 +356,7 @@ let driver source_file (options : Cli.options) : int =
                 p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
                   prgm type_ordering
               | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
-                let prgm = Scalc.Compile_from_lambda.translate_program prgm in
+                let prgm = Scalc.From_lambda.translate_program prgm in
                 match backend with
                 | `Scalc ->
                   let _output_file, with_output = get_output_format () in
@@ -370,13 +370,7 @@ let driver source_file (options : Cli.options) : int =
                          (fun body ->
                            body.Scalc.Ast.scope_body_name = scope_uid)
                          prgm.scopes)
-                  else
-                    Format.fprintf fmt "%a\n"
-                      (Format.pp_print_list
-                         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-                         (fun fmt scope ->
-                           (Scalc.Print.format_scope prgm.decl_ctx) fmt scope))
-                      prgm.scopes
+                  else Scalc.Print.format_program prgm.decl_ctx fmt prgm
                 | `Python ->
                   let output_file, with_output =
                     get_output_format ~ext:".py" ()

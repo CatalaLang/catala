@@ -2201,7 +2201,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2676; start_column=14; end_line=2676; end_column=41;
+              start_line=2685; start_column=14; end_line=2685; end_column=41;
               law_headings=["Article 31";
                              "Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -2239,8 +2239,8 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                      start_line=2641; start_column=5;
-                      end_line=2641; end_column=26;
+                      start_line=2650; start_column=5;
+                      end_line=2650; end_column=26;
                       law_headings=["Article 31";
                                      "Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer";
                                      "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -2275,7 +2275,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                           TrancheRevenu.taux = (decimal_of_string "0.328")})|]))|])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2592; start_column=14; end_line=2592; end_column=38;
+              start_line=2601; start_column=14; end_line=2601; end_column=38;
               law_headings=["Article 31";
                              "Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7166,7 +7166,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2556; start_column=14; end_line=2556; end_column=35;
+              start_line=2565; start_column=14; end_line=2565; end_column=35;
               law_headings=["Article 30";
                              "Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7192,7 +7192,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2531; start_column=14; end_line=2531; end_column=41;
+              start_line=2540; start_column=14; end_line=2540; end_column=41;
               law_headings=["Article 28";
                              "Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7218,7 +7218,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2542; start_column=14; end_line=2542; end_column=42;
+              start_line=2551; start_column=14; end_line=2551; end_column=42;
               law_headings=["Article 29";
                              "Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7343,8 +7343,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                      start_line=2477; start_column=14;
-                      end_line=2477; end_column=48;
+                      start_line=2486; start_column=14;
+                      end_line=2486; end_column=48;
                       law_headings=["Article 27";
                                      "Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer";
                                      "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7876,7 +7876,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2705; start_column=14; end_line=2705; end_column=41;
+              start_line=2714; start_column=14; end_line=2714; end_column=41;
               law_headings=["Article 32";
                              "Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7905,7 +7905,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2566; start_column=14; end_line=2566; end_column=48;
+              start_line=2575; start_column=14; end_line=2575; end_column=48;
               law_headings=["Article 30";
                              "Chapitre V : Calcul de l'aide personnalisée au logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8791,7 +8791,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2335; start_column=14; end_line=2335; end_column=41;
+              start_line=2344; start_column=14; end_line=2344; end_column=41;
               law_headings=["Article 20"; "Article 18";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             true)) (fun (_: unit) -> money_of_cents_string "500"))
@@ -8816,7 +8816,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2346; start_column=14; end_line=2346; end_column=42;
+              start_line=2355; start_column=14; end_line=2355; end_column=42;
               law_headings=["Article 21"; "Article 18";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             true)) (fun (_: unit) -> money_of_cents_string "1000"))
@@ -8841,7 +8841,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2355; start_column=15; end_line=2355; end_column=49;
+              start_line=2364; start_column=15; end_line=2364; end_column=49;
               law_headings=["Article 22"; "Article 18";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             true)) (fun (_: unit) -> money_of_cents_string "2211133"))
@@ -8866,7 +8866,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2448; start_column=14; end_line=2448; end_column=48;
+              start_line=2457; start_column=14; end_line=2457; end_column=48;
               law_headings=["Article 26"; "Article 18";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             true)) (fun (_: unit) -> decimal_of_string "16.25"))
@@ -8891,7 +8891,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2370; start_column=14; end_line=2370; end_column=47;
+              start_line=2379; start_column=14; end_line=2379; end_column=47;
               law_headings=["Article 23"; "Article 18";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             true)) (fun (_: unit) -> money_of_cents_string "560085"))
@@ -8916,7 +8916,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2371; start_column=14; end_line=2371; end_column=47;
+              start_line=2380; start_column=14; end_line=2380; end_column=47;
               law_headings=["Article 23"; "Article 18";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             true)) (fun (_: unit) -> decimal_of_string "0.208"))
@@ -8941,7 +8941,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2372; start_column=14; end_line=2372; end_column=47;
+              start_line=2381; start_column=14; end_line=2381; end_column=47;
               law_headings=["Article 23"; "Article 18";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             true)) (fun (_: unit) -> decimal_of_string "0.416"))
@@ -9081,7 +9081,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=2430; start_column=14; end_line=2430; end_column=50;
+              start_line=2439; start_column=14; end_line=2439; end_column=50;
               law_headings=["Article 25"; "Article 18";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             true))
@@ -9182,8 +9182,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                              start_line=2403; start_column=7;
-                              end_line=2403; end_column=18;
+                              start_line=2412; start_column=7;
+                              end_line=2412; end_column=18;
                               law_headings=["Article 24"; "Article 18";
                                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                             (o_and
@@ -9291,8 +9291,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=2324; start_column=29;
-                           end_line=2324; end_column=64;
+                           start_line=2333; start_column=29;
+                           end_line=2333; end_column=64;
                            law_headings=["Article 19"; "Article 18";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                          (o_gte_dat_dat date_courante_
@@ -9506,7 +9506,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
                                    start_line=806; start_column=5;
-                                   end_line=812; end_column=36;
+                                   end_line=821; end_column=36;
                                    law_headings=["Article 18";
                                                   "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                  (o_and
@@ -9516,23 +9516,27 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                        (o_gte_dat_dat param_
                                           (date_of_numbers (1992) (6) (30)))
                                        (o_and
-                                          (match anciennete_logement_
-                                           with
-                                           | NeufOuAncien.Neuf _ -> false
-                                           | NeufOuAncien.Ancien ameliore_par_occupant_ ->
-                                               (match ameliore_par_occupant_
-                                                with
-                                                | AmelioreParOccupant.Oui _ ->
-                                                    true
-                                                | AmelioreParOccupant.Non _ ->
-                                                    false))
-                                          (match type_pret_
-                                           with
-                                           | TypePret.D331_32 _ -> false
-                                           | TypePret.D331_63_64 _ -> true
-                                           | TypePret.D331_59_8 _ -> false
-                                           | TypePret.D331_76_1 _ -> false
-                                           | TypePret.Autre _ -> false))))))
+                                          (o_lte_dat_dat param_
+                                             (date_of_numbers (1994) (11) (27)))
+                                          (o_and
+                                             (match anciennete_logement_
+                                              with
+                                              | NeufOuAncien.Neuf _ -> false
+                                              | NeufOuAncien.Ancien ameliore_par_occupant_ ->
+                                                  (match
+                                                     ameliore_par_occupant_
+                                                   with
+                                                   | AmelioreParOccupant.Oui _ ->
+                                                       true
+                                                   | AmelioreParOccupant.Non _ ->
+                                                       false))
+                                             (match type_pret_
+                                              with
+                                              | TypePret.D331_32 _ -> false
+                                              | TypePret.D331_63_64 _ -> true
+                                              | TypePret.D331_59_8 _ -> false
+                                              | TypePret.D331_76_1 _ -> false
+                                              | TypePret.Autre _ -> false)))))))
                               (fun (_: unit) ->
                                  o_mult_mon_rat
                                    ( if
@@ -9576,8 +9580,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1052; start_column=5;
-                                        end_line=1056; end_column=36;
+                                        start_line=1061; start_column=5;
+                                        end_line=1065; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -9703,8 +9707,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1085; start_column=5;
-                                        end_line=1089; end_column=36;
+                                        start_line=1094; start_column=5;
+                                        end_line=1098; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -9830,8 +9834,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1118; start_column=5;
-                                        end_line=1122; end_column=36;
+                                        start_line=1127; start_column=5;
+                                        end_line=1131; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -9957,8 +9961,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1151; start_column=5;
-                                        end_line=1155; end_column=36;
+                                        start_line=1160; start_column=5;
+                                        end_line=1164; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -10084,8 +10088,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1184; start_column=5;
-                                        end_line=1188; end_column=36;
+                                        start_line=1193; start_column=5;
+                                        end_line=1197; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -10211,8 +10215,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1217; start_column=5;
-                                        end_line=1221; end_column=36;
+                                        start_line=1226; start_column=5;
+                                        end_line=1230; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -10338,8 +10342,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1250; start_column=5;
-                                        end_line=1254; end_column=36;
+                                        start_line=1259; start_column=5;
+                                        end_line=1263; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -10465,8 +10469,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1283; start_column=5;
-                                        end_line=1287; end_column=36;
+                                        start_line=1292; start_column=5;
+                                        end_line=1296; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -10584,8 +10588,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1316; start_column=5;
-                                        end_line=1320; end_column=36;
+                                        start_line=1325; start_column=5;
+                                        end_line=1329; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -10711,8 +10715,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1349; start_column=5;
-                                        end_line=1353; end_column=36;
+                                        start_line=1358; start_column=5;
+                                        end_line=1362; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -10830,8 +10834,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1382; start_column=5;
-                                        end_line=1386; end_column=36;
+                                        start_line=1391; start_column=5;
+                                        end_line=1395; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -10949,8 +10953,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1415; start_column=5;
-                                        end_line=1419; end_column=36;
+                                        start_line=1424; start_column=5;
+                                        end_line=1428; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -11068,8 +11072,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1448; start_column=5;
-                                        end_line=1452; end_column=36;
+                                        start_line=1457; start_column=5;
+                                        end_line=1461; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -11187,8 +11191,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1481; start_column=5;
-                                        end_line=1485; end_column=36;
+                                        start_line=1490; start_column=5;
+                                        end_line=1494; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -11306,8 +11310,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1514; start_column=5;
-                                        end_line=1518; end_column=36;
+                                        start_line=1523; start_column=5;
+                                        end_line=1527; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -11425,8 +11429,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1547; start_column=5;
-                                        end_line=1551; end_column=36;
+                                        start_line=1556; start_column=5;
+                                        end_line=1560; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -11544,8 +11548,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1580; start_column=5;
-                                        end_line=1584; end_column=36;
+                                        start_line=1589; start_column=5;
+                                        end_line=1593; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -11663,8 +11667,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1613; start_column=5;
-                                        end_line=1617; end_column=36;
+                                        start_line=1622; start_column=5;
+                                        end_line=1626; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -11782,8 +11786,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1646; start_column=5;
-                                        end_line=1650; end_column=36;
+                                        start_line=1655; start_column=5;
+                                        end_line=1659; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -11901,8 +11905,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1679; start_column=5;
-                                        end_line=1683; end_column=36;
+                                        start_line=1688; start_column=5;
+                                        end_line=1692; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -12020,8 +12024,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1712; start_column=5;
-                                        end_line=1716; end_column=36;
+                                        start_line=1721; start_column=5;
+                                        end_line=1725; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -12139,8 +12143,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1745; start_column=5;
-                                        end_line=1749; end_column=36;
+                                        start_line=1754; start_column=5;
+                                        end_line=1758; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -12258,8 +12262,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1778; start_column=5;
-                                        end_line=1782; end_column=36;
+                                        start_line=1787; start_column=5;
+                                        end_line=1791; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -12377,8 +12381,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1811; start_column=5;
-                                        end_line=1815; end_column=36;
+                                        start_line=1820; start_column=5;
+                                        end_line=1824; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -12496,8 +12500,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1844; start_column=5;
-                                        end_line=1848; end_column=36;
+                                        start_line=1853; start_column=5;
+                                        end_line=1857; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -12615,8 +12619,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1877; start_column=5;
-                                        end_line=1881; end_column=36;
+                                        start_line=1886; start_column=5;
+                                        end_line=1890; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -12734,8 +12738,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1910; start_column=5;
-                                        end_line=1914; end_column=36;
+                                        start_line=1919; start_column=5;
+                                        end_line=1923; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -12853,8 +12857,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1943; start_column=5;
-                                        end_line=1947; end_column=36;
+                                        start_line=1952; start_column=5;
+                                        end_line=1956; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -12972,8 +12976,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=1976; start_column=5;
-                                        end_line=1980; end_column=36;
+                                        start_line=1985; start_column=5;
+                                        end_line=1989; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -13091,8 +13095,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=2009; start_column=5;
-                                        end_line=2013; end_column=36;
+                                        start_line=2018; start_column=5;
+                                        end_line=2022; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -13210,8 +13214,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=2042; start_column=5;
-                                        end_line=2046; end_column=36;
+                                        start_line=2051; start_column=5;
+                                        end_line=2055; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -13329,8 +13333,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=2075; start_column=5;
-                                        end_line=2079; end_column=36;
+                                        start_line=2084; start_column=5;
+                                        end_line=2088; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -13448,8 +13452,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=2108; start_column=5;
-                                        end_line=2112; end_column=36;
+                                        start_line=2117; start_column=5;
+                                        end_line=2121; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -13567,8 +13571,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=2141; start_column=5;
-                                        end_line=2145; end_column=36;
+                                        start_line=2150; start_column=5;
+                                        end_line=2154; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -13686,8 +13690,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=2174; start_column=5;
-                                        end_line=2178; end_column=36;
+                                        start_line=2183; start_column=5;
+                                        end_line=2187; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -13805,8 +13809,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=2207; start_column=5;
-                                        end_line=2211; end_column=36;
+                                        start_line=2216; start_column=5;
+                                        end_line=2220; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -13924,8 +13928,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=2240; start_column=5;
-                                        end_line=2243; end_column=36;
+                                        start_line=2249; start_column=5;
+                                        end_line=2252; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -14037,8 +14041,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    ([||])
                                    (fun (_: unit) -> (log_decision_taken
                                       {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                        start_line=2272; start_column=5;
-                                        end_line=2275; end_column=36;
+                                        start_line=2281; start_column=5;
+                                        end_line=2284; end_column=36;
                                         law_headings=["Article 18";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
@@ -15123,8 +15127,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                               plafond_mensualite_d832_10_3_base_))|])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                      start_line=2384; start_column=14;
-                      end_line=2384; end_column=42;
+                      start_line=2393; start_column=14;
+                      end_line=2393; end_column=42;
                       law_headings=["Article 24"; "Article 18";
                                      "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                     (o_gte_dat_dat date_courante_
@@ -18606,7 +18610,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=4091; start_column=14; end_line=4091; end_column=42;
+              start_line=4100; start_column=14; end_line=4100; end_column=42;
               law_headings=["Article 42";
                              "Chapitre VII : Calcul des allocations de logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -18630,7 +18634,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=4080; start_column=14; end_line=4080; end_column=41;
+              start_line=4089; start_column=14; end_line=4089; end_column=41;
               law_headings=["Article 41";
                              "Chapitre VII : Calcul des allocations de logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -18654,7 +18658,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=4182; start_column=14; end_line=4182; end_column=51;
+              start_line=4191; start_column=14; end_line=4191; end_column=51;
               law_headings=["Article 44";
                              "Chapitre VII : Calcul des allocations de logement en secteur logement-foyer";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -19099,8 +19103,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                      start_line=4067; start_column=14;
-                      end_line=4067; end_column=41;
+                      start_line=4076; start_column=14;
+                      end_line=4076; end_column=41;
                       law_headings=["Article 40";
                                      "Chapitre VII : Calcul des allocations de logement en secteur logement-foyer";
                                      "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -19167,8 +19171,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                      start_line=4109; start_column=6;
-                      end_line=4109; end_column=79;
+                      start_line=4118; start_column=6;
+                      end_line=4118; end_column=79;
                       law_headings=["Article 43";
                                      "Chapitre VII : Calcul des allocations de logement en secteur logement-foyer";
                                      "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -19202,8 +19206,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                      start_line=4144; start_column=6;
-                      end_line=4145; end_column=38;
+                      start_line=4153; start_column=6;
+                      end_line=4154; end_column=38;
                       law_headings=["Article 43";
                                      "Chapitre VII : Calcul des allocations de logement en secteur logement-foyer";
                                      "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -19246,8 +19250,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                              start_line=4162; start_column=6;
-                              end_line=4163; end_column=24;
+                              start_line=4171; start_column=6;
+                              end_line=4172; end_column=24;
                               law_headings=["Article 43";
                                              "Chapitre VII : Calcul des allocations de logement en secteur logement-foyer";
                                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -19273,8 +19277,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                 (money_of_cents_string "27365")))|])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                      start_line=4126; start_column=6;
-                      end_line=4127; end_column=46;
+                      start_line=4135; start_column=6;
+                      end_line=4136; end_column=46;
                       law_headings=["Article 43";
                                      "Chapitre VII : Calcul des allocations de logement en secteur logement-foyer";
                                      "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20124,7 +20128,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=3954; start_column=14; end_line=3954; end_column=40;
+              start_line=3963; start_column=14; end_line=3963; end_column=40;
               law_headings=["Article 35";
                              "Chapitre IV : Calcul des allocations de logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20174,7 +20178,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=3964; start_column=14; end_line=3964; end_column=41;
+              start_line=3973; start_column=14; end_line=3973; end_column=41;
               law_headings=["Article 36";
                              "Chapitre IV : Calcul des allocations de logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20198,7 +20202,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=4018; start_column=14; end_line=4018; end_column=41;
+              start_line=4027; start_column=14; end_line=4027; end_column=41;
               law_headings=["Article 38";
                              "Chapitre IV : Calcul des allocations de logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20222,7 +20226,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=4043; start_column=14; end_line=4043; end_column=41;
+              start_line=4052; start_column=14; end_line=4052; end_column=41;
               law_headings=["Article 39";
                              "Chapitre IV : Calcul des allocations de logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20246,7 +20250,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=4025; start_column=14; end_line=4025; end_column=33;
+              start_line=4034; start_column=14; end_line=4034; end_column=33;
               law_headings=["Article 38";
                              "Chapitre IV : Calcul des allocations de logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20270,7 +20274,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=4036; start_column=14; end_line=4036; end_column=33;
+              start_line=4045; start_column=14; end_line=4045; end_column=33;
               law_headings=["Article 39";
                              "Chapitre IV : Calcul des allocations de logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20492,8 +20496,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                              start_line=3996; start_column=5;
-                              end_line=3996; end_column=16;
+                              start_line=4005; start_column=5;
+                              end_line=4005; end_column=16;
                               law_headings=["Article 37";
                                              "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20513,8 +20517,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                  (o_torat_int nombre_personnes_a_charge_))))|])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                      start_line=3942; start_column=31;
-                      end_line=3942; end_column=58;
+                      start_line=3951; start_column=31;
+                      end_line=3951; end_column=58;
                       law_headings=["Article 34";
                                      "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                      "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20609,8 +20613,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=2904; start_column=5;
-                           end_line=2904; end_column=62;
+                           start_line=2913; start_column=5;
+                           end_line=2913; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20788,8 +20792,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=2950; start_column=5;
-                           end_line=2950; end_column=62;
+                           start_line=2959; start_column=5;
+                           end_line=2959; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -20967,8 +20971,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=2996; start_column=5;
-                           end_line=2996; end_column=62;
+                           start_line=3005; start_column=5;
+                           end_line=3005; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -21146,8 +21150,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3042; start_column=5;
-                           end_line=3042; end_column=62;
+                           start_line=3051; start_column=5;
+                           end_line=3051; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -21325,8 +21329,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3088; start_column=5;
-                           end_line=3088; end_column=62;
+                           start_line=3097; start_column=5;
+                           end_line=3097; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -21504,8 +21508,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3134; start_column=5;
-                           end_line=3134; end_column=62;
+                           start_line=3143; start_column=5;
+                           end_line=3143; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -21683,8 +21687,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3180; start_column=5;
-                           end_line=3180; end_column=62;
+                           start_line=3189; start_column=5;
+                           end_line=3189; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -21862,8 +21866,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3226; start_column=5;
-                           end_line=3226; end_column=62;
+                           start_line=3235; start_column=5;
+                           end_line=3235; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22024,8 +22028,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3271; start_column=5;
-                           end_line=3271; end_column=62;
+                           start_line=3280; start_column=5;
+                           end_line=3280; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22186,8 +22190,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3316; start_column=5;
-                           end_line=3316; end_column=62;
+                           start_line=3325; start_column=5;
+                           end_line=3325; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22348,8 +22352,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3361; start_column=5;
-                           end_line=3361; end_column=62;
+                           start_line=3370; start_column=5;
+                           end_line=3370; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22510,8 +22514,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3406; start_column=5;
-                           end_line=3406; end_column=62;
+                           start_line=3415; start_column=5;
+                           end_line=3415; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22672,8 +22676,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3451; start_column=5;
-                           end_line=3451; end_column=62;
+                           start_line=3460; start_column=5;
+                           end_line=3460; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22834,8 +22838,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3496; start_column=5;
-                           end_line=3496; end_column=62;
+                           start_line=3505; start_column=5;
+                           end_line=3505; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22996,8 +23000,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3541; start_column=5;
-                           end_line=3541; end_column=62;
+                           start_line=3550; start_column=5;
+                           end_line=3550; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -23158,8 +23162,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3586; start_column=5;
-                           end_line=3586; end_column=62;
+                           start_line=3595; start_column=5;
+                           end_line=3595; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -23320,8 +23324,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3631; start_column=5;
-                           end_line=3631; end_column=62;
+                           start_line=3640; start_column=5;
+                           end_line=3640; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -23482,8 +23486,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3676; start_column=5;
-                           end_line=3676; end_column=62;
+                           start_line=3685; start_column=5;
+                           end_line=3685; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -23644,8 +23648,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3721; start_column=5;
-                           end_line=3721; end_column=62;
+                           start_line=3730; start_column=5;
+                           end_line=3730; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -23806,8 +23810,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3766; start_column=5;
-                           end_line=3766; end_column=62;
+                           start_line=3775; start_column=5;
+                           end_line=3775; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -23968,8 +23972,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3811; start_column=5;
-                           end_line=3811; end_column=62;
+                           start_line=3820; start_column=5;
+                           end_line=3820; end_column=62;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -24130,8 +24134,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                           start_line=3856; start_column=5;
-                           end_line=3856; end_column=32;
+                           start_line=3865; start_column=5;
+                           end_line=3865; end_column=32;
                            law_headings=["Article 33";
                                           "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -24536,8 +24540,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                              param_)))))))))|])
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                                   start_line=3976; start_column=24;
-                                   end_line=3976; end_column=56;
+                                   start_line=3985; start_column=24;
+                                   end_line=3985; end_column=56;
                                    law_headings=["Article 37";
                                                   "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                                   "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -24580,8 +24584,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       (fun (_: unit) -> raise EmptyError))|])
               (fun (_: unit) -> (log_decision_taken
                  {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-                   start_line=3900; start_column=14;
-                   end_line=3900; end_column=46;
+                   start_line=3909; start_column=14;
+                   end_line=3909; end_column=46;
                    law_headings=["Article 33";
                                   "Chapitre IV : Calcul des allocations de logement en secteur accession";
                                   "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -26917,7 +26921,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                           "Prologue : aides au logement"]} ([||])
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
-              start_line=4197; start_column=14; end_line=4197; end_column=29;
+              start_line=4206; start_column=14; end_line=4206; end_column=29;
               law_headings=["Article 45";
                              "Chapitre VIII : Prime de déménagement";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}

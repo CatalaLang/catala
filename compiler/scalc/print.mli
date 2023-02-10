@@ -20,3 +20,6 @@ val format_scope :
   Format.formatter ->
   Ast.scope_body ->
   unit
+
+val format_program :
+  Shared_ast.decl_ctx -> ?debug:bool -> Format.formatter -> Ast.program -> unit

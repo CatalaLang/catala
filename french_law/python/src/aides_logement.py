@@ -2651,6 +2651,7 @@ class EligibilitePrestationsFamilialesIn:
 
 
 
+
 def contributions_sociales_aides_personnelle_logement(contributions_sociales_aides_personnelle_logement_in:ContributionsSocialesAidesPersonnelleLogementIn):
     date_courante = contributions_sociales_aides_personnelle_logement_in.date_courante_in
     try:
@@ -7230,9 +7231,10 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                 temp_calcul_plafond_mensualite_d832_10_3_24 = False
                         if ((date_courante_5 >=
                             date_of_numbers(2023,1,1)) and ((param_13 >=
-                            date_of_numbers(1992,6,30)) and
+                            date_of_numbers(1992,6,30)) and ((param_13 <=
+                            date_of_numbers(1994,11,27)) and
                             (temp_calcul_plafond_mensualite_d832_10_3_24 and
-                            temp_calcul_plafond_mensualite_d832_10_3_23))):
+                            temp_calcul_plafond_mensualite_d832_10_3_23)))):
                             if (nombre_personnes_a_charge_4 ==
                                 integer_of_string("0")):
                                 match_arg_124 = situation_familiale_calcul_apl_4
