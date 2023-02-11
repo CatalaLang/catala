@@ -78,8 +78,8 @@ let format_op
     Format.pp_print_string fmt "-"
   | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
     Format.pp_print_string fmt "*"
-  | Div_int_int -> Format.pp_print_string fmt "//"
-  | Div_rat_rat | Div_mon_mon | Div_mon_rat -> Format.pp_print_string fmt "/"
+  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat ->
+    Format.pp_print_string fmt "/"
   | And -> Format.pp_print_string fmt "and"
   | Or -> Format.pp_print_string fmt "or"
   | Eq -> Format.pp_print_string fmt "=="
