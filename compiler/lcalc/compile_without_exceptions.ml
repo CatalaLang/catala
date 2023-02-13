@@ -384,10 +384,10 @@ and translate_hoists ~append_esome ctx hoists kont =
           let new_mark : typed mark =
             match mark_hoist with Typed m -> Typed { m with ty = TAny, pos }
           in
-          Expr.make_app'
+          Expr.make_app ~decl_ctx:(Some ctx.decl_ctx)
             (Expr.make_var (Var.translate A.handle_default_opt) new_mark)
             [Expr.earray excepts' new_mark; just'; cons']
-            pos ctx.decl_ctx
+            pos
         | ELit LEmptyError -> A.make_none mark_hoist
         | EApp { f; args } ->
           let f = translate_expr ctx f in
@@ -400,7 +400,7 @@ and translate_hoists ~append_esome ctx hoists kont =
 
           A.make_bind_cont mark_hoist f (fun f ->
               A.make_bindm_cont mark_hoist args (fun args ->
-                  Expr.make_app' f args pos ctx.decl_ctx
+                  Expr.make_app ~decl_ctx:(Some ctx.decl_ctx) f args pos
                   (* A.make_bind_cont mark_hosit (Expr.make_app f args pos) *)))
           (* assert false *)
         | EAssert arg ->
