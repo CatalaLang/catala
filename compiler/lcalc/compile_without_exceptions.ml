@@ -44,6 +44,84 @@ module A = Ast
 
 open Shared_ast
 
+type analysis_mark = {
+  pos : Pos.t;
+  ty : typ;
+  unpure : bool;
+  unpure_return : bool option;
+}
+
+type analysis_info = { unpure_info : bool; unpure_return : bool option }
+type analysis_ctx = (dcalc, analysis_info) Var.Map.t
+
+let make_new_mark (m : typed mark) ?(unpure_return = None) (unpure : bool) :
+    analysis_mark =
+  match m with
+  | Typed m ->
+    begin
+      match Marked.unmark m.ty, unpure_return with
+      | TArrow _, None ->
+        Errors.raise_error
+          "Internal Error: no pure/unpure return type commentary on a function."
+      | _ -> ()
+    end;
+    { pos = m.pos; ty = m.ty; unpure; unpure_return }
+
+let rec detect_unpure ctx (e : (dcalc, typed mark) gexpr) :
+    (dcalc, analysis_mark) boxed_gexpr =
+  let m = Marked.get_mark e in
+  match Marked.unmark e with
+  | EVar x ->
+    Expr.make_var (Var.translate x)
+      (make_new_mark m (Var.Map.find x ctx).unpure_info)
+  | EApp { f = EOp { op; tys }, opmark; args } ->
+    let args' = List.map (detect_unpure ctx) args in
+    let unpure =
+      args'
+      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
+      |> List.fold_left ( || ) false
+    in
+    Expr.eapp
+      (Expr.eop op tys (make_new_mark opmark true))
+      args' (make_new_mark m unpure)
+  | EApp { f = (EVar x, _) as f; args } ->
+    let args' = List.map (detect_unpure ctx) args in
+    let unpure =
+      args'
+      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
+      |> List.fold_left ( || ) false
+      |> ( || ) (Var.Map.find x ctx).unpure_info
+    in
+    let f' = detect_unpure ctx f in
+    if Option.get (Var.Map.find x ctx).unpure_return then
+      Expr.eapp f' args' (make_new_mark m (true || unpure))
+    else Expr.eapp f' args' (make_new_mark m unpure)
+  | EAbs { binder; tys } ->
+    let vars, body = Bindlib.unmbind binder in
+    let body' = detect_unpure ctx body in
+    let binder' = Expr.bind (Array.map Var.translate vars) body' in
+    (* eabs is a value, hence is always pure. However, it is possible the
+       function returns something that is pure. In this case the information
+       needs to be backpropagated somewhere. *)
+    Expr.eabs binder' tys
+      (make_new_mark m false
+         ~unpure_return:(Some (Marked.get_mark body').unpure))
+  | EDefault { excepts; just; cons } ->
+    let excepts' = List.map (detect_unpure ctx) excepts in
+    let just' = detect_unpure ctx just in
+    let cons' = detect_unpure ctx cons in
+    (* because of the structural invariant, there is no functions inside an
+       default. Hence, there is no need for any verification here. *)
+    Expr.edefault excepts' just' cons' (make_new_mark m true)
+  | ELit l ->
+    Expr.elit l
+      (make_new_mark m (match l with LEmptyError -> true | _ -> false))
+  | EErrorOnEmpty arg ->
+    let arg' = detect_unpure ctx arg in
+    (* the result is always pure *)
+    Expr.eerroronempty arg' (make_new_mark m false)
+  | _ -> assert false
+
 type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
 (** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
 
@@ -82,8 +160,6 @@ let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
     slightly better way. *)
 let find ?(info : string = "none") (n : 'm D.expr Var.t) (ctx : 'm ctx) :
     'm info =
-  (* let _ = Format.asprintf "Searching for variable %a inside context %a"
-     Print.var n pp_ctx ctx |> Cli.debug_print in *)
   try Var.Map.find n ctx.vars
   with Not_found ->
     Errors.raise_spanned_error Pos.no_pos
@@ -103,8 +179,6 @@ let add_var
   let new_var = Var.make (Bindlib.name_of var) in
   let expr = Expr.make_var new_var mark in
 
-  (* Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" Print.var var Print.var
-     new_var; *)
   {
     ctx with
     vars =
