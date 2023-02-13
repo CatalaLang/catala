@@ -71,7 +71,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
          | WholeVar _ -> failwith "should not happen"
          | States states -> Marked.same_mark_as (List.assoc state states) s_var))
       m
-  | ELocation (GlobalVar v) -> Expr.elocation (GlobalVar v) m
+  | ELocation (ToplevelVar v) -> Expr.elocation (ToplevelVar v) m
   | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
   | EStruct { name; fields } ->
     Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
@@ -728,10 +728,10 @@ let translate_program (pgrm : Desugared.Ast.program) : untyped Ast.program =
       pgrm.Desugared.Ast.program_ctx.ctx_scopes
   in
   {
-    Ast.program_globals =
+    Ast.program_topdefs =
       TopdefName.Map.map
         (fun (e, ty) -> Expr.unbox (translate_expr ctx e), ty)
-        pgrm.program_globals;
+        pgrm.program_topdefs;
     Ast.program_scopes =
       ScopeName.Map.map (translate_scope ctx) pgrm.program_scopes;
     program_ctx = { pgrm.program_ctx with ctx_scopes };

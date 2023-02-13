@@ -51,7 +51,7 @@ type 'm ctx = {
   enums : enum_ctx;
   scope_name : ScopeName.t option;
   scopes_parameters : 'm scope_sigs_ctx;
-  global_vars : ('m Ast.expr Var.t * naked_typ) TopdefName.Map.t;
+  toplevel_vars : ('m Ast.expr Var.t * naked_typ) TopdefName.Map.t;
   scope_vars :
     ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t;
   subscope_vars :
@@ -434,7 +434,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
           [ScopeName.get_info sname; ScopeVar.get_info v]
         | SubScopeVar (s, _, (v, _)) ->
           [ScopeName.get_info s; ScopeVar.get_info v]
-        | GlobalVar _ -> [])
+        | ToplevelVar _ -> [])
       | _ -> []
     in
     let e1_func =
@@ -462,15 +462,15 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         ctx.subscope_vars
         |> SubScopeName.Map.find (Marked.unmark sname)
         |> retrieve_in_and_out_typ_or_any var
-      | ELocation (GlobalVar glo) -> (
-        let var, typ =
-          TopdefName.Map.find (Marked.unmark glo) ctx.global_vars
+      | ELocation (ToplevelVar tvar) -> (
+        let _, typ =
+          TopdefName.Map.find (Marked.unmark tvar) ctx.toplevel_vars
         in
         match typ with
         | TArrow ((tin, _), (tout, _)) -> tin, tout
         | _ ->
           Errors.raise_spanned_error (Expr.pos e)
-            "Application of non function global")
+            "Application of non-function toplevel variable")
       | _ -> TAny, TAny
     in
     let new_args =
@@ -538,8 +538,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
          %a's results. Maybe you forgot to qualify it as an output?"
         SubScopeName.format_t (Marked.unmark s) ScopeVar.format_t
         (Marked.unmark a) SubScopeName.format_t (Marked.unmark s))
-  | ELocation (GlobalVar v) ->
-    let v, _ = TopdefName.Map.find (Marked.unmark v) ctx.global_vars in
+  | ELocation (ToplevelVar v) ->
+    let v, _ = TopdefName.Map.find (Marked.unmark v) ctx.toplevel_vars in
     Expr.evar v m
   | EIfThenElse { cond; etrue; efalse } ->
     Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
@@ -663,10 +663,11 @@ let translate_rule
                      (a_var, Marked.unmark tau, a_io)))
             ctx.subscope_vars;
       } )
-  | Definition ((GlobalVar _, _), _, _, _) ->
+  | Definition ((ToplevelVar _, _), _, _, _) ->
     assert false
-    (* TODO: maybe Definition shouldn't include any Location at the type
-       level *)
+    (* A global variable can't be defined locally. The [Definition] constructor
+       could be made more specific to avoid this case, but the added complexity
+       didn't seem worth it *)
   | Call (subname, subindex, m) ->
     let subscope_sig = ScopeName.Map.find subname ctx.scopes_parameters in
     let all_subscope_vars = subscope_sig.scope_sig_local_vars in
@@ -989,13 +990,11 @@ let translate_scope_decl
          (input_destructurings rules_with_return_expr)),
     new_struct_ctx )
 
-(* TODO: rename "scope" here to avoid confusion, since it now includes toplevel
-   defs and scopes *)
 let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
-  let scope_dependencies = Scopelang.Dependency.build_program_dep_graph prgm in
-  Scopelang.Dependency.check_for_cycle_in_scope scope_dependencies;
-  let scope_ordering =
-    Scopelang.Dependency.get_scope_ordering scope_dependencies
+  let defs_dependencies = Scopelang.Dependency.build_program_dep_graph prgm in
+  Scopelang.Dependency.check_for_cycle_in_defs defs_dependencies;
+  let defs_ordering =
+    Scopelang.Dependency.get_defs_ordering defs_dependencies
   in
   let decl_ctx = prgm.program_ctx in
   let sctx : 'm scope_sigs_ctx =
@@ -1053,11 +1052,11 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
       prgm.Scopelang.Ast.program_scopes
   in
   let top_ctx =
-    let global_vars =
+    let toplevel_vars =
       TopdefName.Map.mapi
         (fun name (_, ty) ->
           Var.make (Marked.unmark (TopdefName.get_info name)), Marked.unmark ty)
-        prgm.Scopelang.Ast.program_globals
+        prgm.Scopelang.Ast.program_topdefs
     in
     {
       structs = decl_ctx.ctx_structs;
@@ -1067,7 +1066,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
       scope_vars = ScopeVar.Map.empty;
       subscope_vars = SubScopeName.Map.empty;
       local_vars = Var.Map.empty;
-      global_vars;
+      toplevel_vars;
     }
   in
   (* the resulting expression is the list of definitions of all the scopes,
@@ -1078,11 +1077,11 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
     | def :: next ->
       let ctx, dvar, def =
         match def with
-        | Scopelang.Dependency.Global gname ->
-          let expr, ty = TopdefName.Map.find gname prgm.program_globals in
+        | Scopelang.Dependency.Topdef gname ->
+          let expr, ty = TopdefName.Map.find gname prgm.program_topdefs in
           let expr = translate_expr ctx expr in
           ( ctx,
-            fst (TopdefName.Map.find gname ctx.global_vars),
+            fst (TopdefName.Map.find gname ctx.toplevel_vars),
             Bindlib.box_apply
               (fun e -> Topdef (gname, ty, e))
               (Expr.Box.lift expr) )
@@ -1110,8 +1109,8 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
           def next_bind,
         ctx )
   in
-  let scopes, ctx = translate_defs top_ctx scope_ordering in
+  let items, ctx = translate_defs top_ctx defs_ordering in
   {
-    scopes = Bindlib.unbox scopes;
+    code_items = Bindlib.unbox items;
     decl_ctx = { decl_ctx with ctx_structs = ctx.structs };
   }

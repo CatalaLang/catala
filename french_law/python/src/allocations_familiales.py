@@ -497,7 +497,6 @@ class InterfaceAllocationsFamilialesIn:
 
 
 
-
 def allocation_familiales_avril2008(allocation_familiales_avril2008_in:AllocationFamilialesAvril2008In):
     try:
         temp_age_minimum_alinea_1_l521_3 = duration_of_numbers(16,0,0)

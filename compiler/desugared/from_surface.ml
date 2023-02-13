@@ -358,7 +358,7 @@ let rec translate_expr
         match IdentName.Map.find_opt x ctxt.topdefs with
         | Some v ->
           Expr.elocation
-            (GlobalVar (v, Marked.get_mark (TopdefName.get_info v)))
+            (ToplevelVar (v, Marked.get_mark (TopdefName.get_info v)))
             emark
         | None ->
           Name_resolution.raise_unknown_identifier
@@ -1192,10 +1192,9 @@ let process_topdef ctxt prgm def =
         (ctxt, []) def.S.topdef_args
     in
     let body = translate_expr None None ctxt def.S.topdef_expr in
-    match def.S.topdef_args with
+    match rv_args with
     | [] -> body
-    | args ->
-      (* FIXME: hmm where do we stand on arg tuplification ? *)
+    | rv_args ->
       Expr.make_abs
         (Array.of_list (List.rev rv_args))
         body arg_types
@@ -1208,8 +1207,8 @@ let process_topdef ctxt prgm def =
   in
   {
     prgm with
-    Ast.program_globals =
-      TopdefName.Map.add id (Expr.unbox expr, typ) prgm.Ast.program_globals;
+    Ast.program_topdefs =
+      TopdefName.Map.add id (Expr.unbox expr, typ) prgm.Ast.program_topdefs;
   }
 
 let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
@@ -1361,7 +1360,7 @@ let translate_program
               ctxt.Name_resolution.typedefs ScopeName.Map.empty;
           ctx_struct_fields = ctxt.Name_resolution.field_idmap;
         };
-      Ast.program_globals = TopdefName.Map.empty;
+      Ast.program_topdefs = TopdefName.Map.empty;
       Ast.program_scopes;
     }
   in

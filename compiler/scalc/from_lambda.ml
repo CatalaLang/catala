@@ -330,9 +330,9 @@ let rec translate_scope_body_expr
         scope_let_next
 
 let translate_program (p : 'm L.program) : A.program =
-  let _, _, rglobals, rscopes =
+  let _, _, rev_items =
     Scope.fold_left
-      ~f:(fun (func_dict, var_dict, globals, scopes) code_item var ->
+      ~f:(fun (func_dict, var_dict, rev_items) code_item var ->
         match code_item with
         | ScopeDef (name, body) ->
           let scope_input_var, scope_body_expr =
@@ -352,21 +352,21 @@ let translate_program (p : 'm L.program) : A.program =
           let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
           ( Var.Map.add var func_id func_dict,
             var_dict,
-            globals,
-            {
-              Ast.scope_body_name = name;
-              Ast.scope_body_var = func_id;
-              scope_body_func =
-                {
-                  A.func_params =
-                    [
-                      ( (scope_input_var_id, input_pos),
-                        (TStruct body.scope_body_input_struct, input_pos) );
-                    ];
-                  A.func_body = new_scope_body;
-                };
-            }
-            :: scopes )
+            A.SScope
+              {
+                Ast.scope_body_name = name;
+                Ast.scope_body_var = func_id;
+                scope_body_func =
+                  {
+                    A.func_params =
+                      [
+                        ( (scope_input_var_id, input_pos),
+                          (TStruct body.scope_body_input_struct, input_pos) );
+                      ];
+                    A.func_body = new_scope_body;
+                  };
+              }
+            :: rev_items )
         | Topdef (name, _, (EAbs abs, _)) ->
           (* Toplevel function def *)
           let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
@@ -399,14 +399,13 @@ let translate_program (p : 'm L.program) : A.program =
           in
           ( Var.Map.add var func_id func_dict,
             var_dict,
-            A.GlobalFunc
+            A.SFunc
               {
                 var = func_id;
                 func = { A.func_params = args_id; A.func_body = body_block };
               }
-            :: globals,
-            scopes )
-        | Topdef (name, ty, expr) ->
+            :: rev_items )
+        | Topdef (name, _ty, expr) ->
           (* Toplevel constant def *)
           let var_id = A.VarName.fresh (Bindlib.name_of var, Pos.no_pos) in
           let block, expr =
@@ -423,18 +422,18 @@ let translate_program (p : 'm L.program) : A.program =
           in
           (* If the evaluation of the toplevel expr requires preliminary
              statements, we lift its computation into an auxiliary function *)
-          let globals =
+          let rev_items =
             match block with
-            | [] -> A.GlobalVar { var = var_id; expr } :: globals
+            | [] -> A.SVar { var = var_id; expr } :: rev_items
             | block ->
               let pos = Marked.get_mark expr in
               let func_id =
                 A.FuncName.fresh (Bindlib.name_of var ^ "_aux", pos)
               in
               (* The list is being built in reverse order *)
-              A.GlobalVar
+              A.SVar
                 { var = var_id; expr = A.EApp ((EFunc func_id, pos), []), pos }
-              :: A.GlobalFunc
+              :: A.SFunc
                    {
                      var = func_id;
                      func =
@@ -448,25 +447,19 @@ let translate_program (p : 'm L.program) : A.program =
                              ];
                        };
                    }
-              :: globals
+              :: rev_items
           in
           ( func_dict,
             (* No need to add func_id since the function will only be called
                right here *)
             Var.Map.add var var_id var_dict,
-            globals,
-            scopes ))
+            rev_items ))
       ~init:
         ( (if !Cli.avoid_exceptions_flag then
            Var.Map.singleton L.handle_default_opt A.handle_default_opt
           else Var.Map.singleton L.handle_default A.handle_default),
           Var.Map.empty,
-          [],
           [] )
-      p.scopes
+      p.code_items
   in
-  {
-    decl_ctx = p.decl_ctx;
-    globals = List.rev rglobals;
-    scopes = List.rev rscopes;
-  }
+  { decl_ctx = p.decl_ctx; code_items = List.rev rev_items }

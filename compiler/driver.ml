@@ -243,7 +243,7 @@ let driver source_file (options : Cli.options) : int =
                          when Shared_ast.ScopeName.equal name scope_uid ->
                          Some body
                        | _ -> acc)
-                     prgm.scopes) )
+                     prgm.code_items) )
           else
             let prgrm_dcalc_expr =
               Shared_ast.Expr.unbox (Shared_ast.Program.to_expr prgm scope_uid)
@@ -364,12 +364,14 @@ let driver source_file (options : Cli.options) : int =
                   @@ fun fmt ->
                   if Option.is_some options.ex_scope then
                     Format.fprintf fmt "%a\n"
-                      (Scalc.Print.format_scope ~debug:options.debug
+                      (Scalc.Print.format_item ~debug:options.debug
                          prgm.decl_ctx)
                       (List.find
-                         (fun body ->
-                           body.Scalc.Ast.scope_body_name = scope_uid)
-                         prgm.scopes)
+                         (function
+                           | Scalc.Ast.SScope { scope_body_name; _ } ->
+                             scope_body_name = scope_uid
+                           | _ -> false)
+                         prgm.code_items)
                   else Scalc.Print.format_program prgm.decl_ctx fmt prgm
                 | `Python ->
                   let output_file, with_output =

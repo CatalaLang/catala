@@ -67,12 +67,9 @@ type scope_body = {
   scope_body_func : func;
 }
 
-type global =
-  | GlobalVar of { var : VarName.t; expr : expr }
-  | GlobalFunc of { var : FuncName.t; func : func }
+type code_item =
+  | SVar of { var : VarName.t; expr : expr }
+  | SFunc of { var : FuncName.t; func : func }
+  | SScope of scope_body
 
-type program = {
-  decl_ctx : decl_ctx;
-  globals : global list;
-  scopes : scope_body list;
-}
+type program = { decl_ctx : decl_ctx; code_items : code_item list }

@@ -102,7 +102,7 @@ module To_json = struct
   let fmt_definitions
       (ctx : decl_ctx)
       (fmt : Format.formatter)
-      ((scope_name, scope_body) : ScopeName.t * 'e scope_body) =
+      ((_scope_name, scope_body) : ScopeName.t * 'e scope_body) =
     let get_name t =
       match Marked.unmark t with
       | TStruct sname -> Format.asprintf "%a" format_struct_name sname
@@ -205,7 +205,7 @@ module To_json = struct
       (fmt : Format.formatter)
       (scope : string)
       (prgm : 'm Lcalc.Ast.program) =
-    match find_scope_def scope prgm.scopes with
+    match find_scope_def scope prgm.code_items with
     | None -> Cli.error_print "Internal error: scope '%s' not found." scope
     | Some scope_def ->
       Cli.call_unstyled (fun _ ->

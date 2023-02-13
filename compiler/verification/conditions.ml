@@ -370,12 +370,12 @@ let rec generate_verification_conditions_scope_body_expr
     in
     new_ctx, vc_list @ new_vcs, assert_list @ new_asserts
 
-let rec generate_verification_conditions_scopes
+let generate_verification_conditions_code_items
     (decl_ctx : decl_ctx)
-    (scopes : 'm expr code_item_list)
+    (code_items : 'm expr code_item_list)
     (s : ScopeName.t option) : verification_condition list =
   Scope.fold_left
-    ~f:(fun vcs item var ->
+    ~f:(fun vcs item _ ->
       match item with
       | Topdef _ -> []
       | ScopeDef (name, body) ->
@@ -419,11 +419,13 @@ let rec generate_verification_conditions_scopes
           else []
         in
         new_vcs @ vcs)
-    ~init:[] scopes
+    ~init:[] code_items
 
 let generate_verification_conditions (p : 'm program) (s : ScopeName.t option) :
     verification_condition list =
-  let vcs = generate_verification_conditions_scopes p.decl_ctx p.scopes s in
+  let vcs =
+    generate_verification_conditions_code_items p.decl_ctx p.code_items s
+  in
   (* We sort this list by scope name and then variable name to ensure consistent
      output for testing*)
   List.sort

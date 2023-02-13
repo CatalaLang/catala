@@ -336,14 +336,14 @@ module To_jsoo = struct
     format_struct_name fmt scope_body.scope_body_output_struct
 
   let format_scopes_to_fun
-      (ctx : decl_ctx)
+      (_ctx : decl_ctx)
       (fmt : Format.formatter)
       (scopes : 'e code_item_list) =
     Scope.fold_left
       ~f:(fun () code_item var ->
         match code_item with
         | Topdef _ -> ()
-        | ScopeDef (name, body) ->
+        | ScopeDef (_name, body) ->
           let fmt_fun_call fmt _ =
             Format.fprintf fmt "@[<hv>%a@ |> %a_of_jsoo@ |> %a@ |> %a_to_jsoo@]"
               fmt_input_struct_name body fmt_input_struct_name body format_var
@@ -356,14 +356,14 @@ module To_jsoo = struct
       ~init:() scopes
 
   let format_scopes_to_callbacks
-      (ctx : decl_ctx)
+      (_ctx : decl_ctx)
       (fmt : Format.formatter)
       (scopes : 'e code_item_list) : unit =
     Scope.fold_left
       ~f:(fun () code_item var ->
         match code_item with
         | Topdef _ -> ()
-        | ScopeDef (name, body) ->
+        | ScopeDef (_name, body) ->
           let fmt_meth_name fmt _ =
             Format.fprintf fmt "method %a : (%a Js.t -> %a Js.t) Js.callback"
               format_var_camel_case var fmt_input_struct_name body
@@ -412,9 +412,9 @@ module To_jsoo = struct
           (Option.fold ~none:"" ~some:(fun name -> name) module_name)
           (format_ctx type_ordering) prgm.decl_ctx
           (format_scopes_to_fun prgm.decl_ctx)
-          prgm.scopes fmt_lib_name ()
+          prgm.code_items fmt_lib_name ()
           (format_scopes_to_callbacks prgm.decl_ctx)
-          prgm.scopes)
+          prgm.code_items)
 end
 
 let apply

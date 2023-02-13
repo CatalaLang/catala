@@ -17,19 +17,19 @@
 
 open Definitions
 
-let map_exprs ~f ~varf { scopes; decl_ctx } =
+let map_exprs ~f ~varf { code_items; decl_ctx } =
   Bindlib.box_apply
-    (fun scopes -> { scopes; decl_ctx })
-    (Scope.map_exprs ~f ~varf scopes)
+    (fun code_items -> { code_items; decl_ctx })
+    (Scope.map_exprs ~f ~varf code_items)
 
-let get_scope_body { scopes; _ } scope =
+let get_scope_body { code_items; _ } scope =
   match
     Scope.fold_left ~init:None
       ~f:(fun acc item _ ->
         match item with
         | ScopeDef (name, body) when ScopeName.equal scope name -> Some body
         | _ -> acc)
-      scopes
+      code_items
   with
   | None -> raise Not_found
   | Some body -> body
@@ -47,7 +47,7 @@ let rec find_scope name vars = function
     find_scope name (var :: vars) next
 
 let to_expr p main_scope =
-  let _, main_scope_body = find_scope main_scope [] p.scopes in
-  Scope.unfold p.decl_ctx p.scopes
+  let _, main_scope_body = find_scope main_scope [] p.code_items in
+  Scope.unfold p.decl_ctx p.code_items
     (Scope.get_body_mark main_scope_body)
     (ScopeName main_scope)

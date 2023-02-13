@@ -246,7 +246,9 @@ type 'a glocation =
   | SubScopeVar :
       ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
       -> [< desugared | scopelang ] glocation
-  | GlobalVar : TopdefName.t Marked.pos -> [< desugared | scopelang ] glocation
+  | ToplevelVar :
+      TopdefName.t Marked.pos
+      -> [< desugared | scopelang ] glocation
 
 type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Marked.t
 (** General expressions: groups all expression cases of the different ASTs, and
@@ -463,4 +465,4 @@ type decl_ctx = {
   ctx_scopes : scope_out_struct ScopeName.Map.t;
 }
 
-type 'e program = { decl_ctx : decl_ctx; scopes : 'e code_item_list }
+type 'e program = { decl_ctx : decl_ctx; code_items : 'e code_item_list }

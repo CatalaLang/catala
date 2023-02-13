@@ -92,13 +92,13 @@ $ catala Interpret -s S4
 
 ```catala-test-inline
 $ catala scalc
-let glob1 = 44.12
+let glob1_2 = 44.12
 
-let glob3 (x: money) = return to_rat_mon x_3 +. 10.
+let glob3_3 (x_3: money) = return to_rat_mon x_3 +. 10.
 
-let glob4 (x: money) (y: decimal) = return to_rat_mon x_4 *. y_5 +. 10.
+let glob4_4 (x_4: money) (y_5: decimal) = return to_rat_mon x_4 *. y_5 +. 10.
 
-let glob5_aux =
+let glob5_aux_5 =
   decl glob5_7 : any;
   let glob5_7 (x_8 : decimal) =
     decl y_9 : decimal;
@@ -106,20 +106,20 @@ let glob5_aux =
     return x_8 *. y_9;
   return glob5_7 to_rat_int 2 *. 3.
 
-let glob5 = glob5_aux ()
+let glob5_6 = glob5_aux_5 ()
 
-let glob2 = A {"y": glob1_2 >=. 30., "z": 123. *. 17.}
+let glob2_10 = A {"y": glob1_2 >=. 30., "z": 123. *. 17.}
 
-let S2 (S2_in_11 : S2_in {}) =
+let S2_6 (S2_in_11: S2_in {}) =
   decl temp_a_13 : any;
   try:
     decl temp_a_16 : any;
     let temp_a_16 (__17 : unit) =
-      return glob3 $44.00 +. 100.;
+      return glob3_3 $44.00 +. 100.;
     decl temp_a_14 : any;
     let temp_a_14 (__15 : unit) =
       return true;
-    temp_a_13 = handle_default [] temp_a_14 temp_a_16
+    temp_a_13 = handle_default_1 [] temp_a_14 temp_a_16
   with EmptyError:
     temp_a_13 = dead_value_1;
     raise NoValueProvided;
@@ -127,16 +127,16 @@ let S2 (S2_in_11 : S2_in {}) =
   a_12 = temp_a_13;
   return S2 {"a": a_12}
 
-let S3 (S3_in_18 : S3_in {}) =
+let S3_7 (S3_in_18: S3_in {}) =
   decl temp_a_20 : any;
   try:
     decl temp_a_23 : any;
     let temp_a_23 (__24 : unit) =
-      return 50. +. glob4 $44.00 55.;
+      return 50. +. glob4_4 $44.00 55.;
     decl temp_a_21 : any;
     let temp_a_21 (__22 : unit) =
       return true;
-    temp_a_20 = handle_default [] temp_a_21 temp_a_23
+    temp_a_20 = handle_default_1 [] temp_a_21 temp_a_23
   with EmptyError:
     temp_a_20 = dead_value_1;
     raise NoValueProvided;
@@ -144,7 +144,7 @@ let S3 (S3_in_18 : S3_in {}) =
   a_19 = temp_a_20;
   return S3 {"a": a_19}
 
-let S4 (S4_in_25 : S4_in {}) =
+let S4_8 (S4_in_25: S4_in {}) =
   decl temp_a_27 : any;
   try:
     decl temp_a_30 : any;
@@ -153,7 +153,7 @@ let S4 (S4_in_25 : S4_in {}) =
     decl temp_a_28 : any;
     let temp_a_28 (__29 : unit) =
       return true;
-    temp_a_27 = handle_default [] temp_a_28 temp_a_30
+    temp_a_27 = handle_default_1 [] temp_a_28 temp_a_30
   with EmptyError:
     temp_a_27 = dead_value_1;
     raise NoValueProvided;
@@ -161,7 +161,7 @@ let S4 (S4_in_25 : S4_in {}) =
   a_26 = temp_a_27;
   return S4 {"a": a_26}
 
-let S (S_in_32 : S_in {}) =
+let S_9 (S_in_32: S_in {}) =
   decl temp_a_40 : any;
   try:
     decl temp_a_43 : any;
@@ -170,7 +170,7 @@ let S (S_in_32 : S_in {}) =
     decl temp_a_41 : any;
     let temp_a_41 (__42 : unit) =
       return true;
-    temp_a_40 = handle_default [] temp_a_41 temp_a_43
+    temp_a_40 = handle_default_1 [] temp_a_41 temp_a_43
   with EmptyError:
     temp_a_40 = dead_value_1;
     raise NoValueProvided;
@@ -184,7 +184,7 @@ let S (S_in_32 : S_in {}) =
     decl temp_b_36 : any;
     let temp_b_36 (__37 : unit) =
       return true;
-    temp_b_35 = handle_default [] temp_b_36 temp_b_38
+    temp_b_35 = handle_default_1 [] temp_b_36 temp_b_38
   with EmptyError:
     temp_b_35 = dead_value_1;
     raise NoValueProvided;

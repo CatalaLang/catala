@@ -511,7 +511,7 @@ let translate_scope_body
         })
       (Bindlib.bind_var v' (translate_scope_let ctx' lets))
 
-let rec translate_scopes (ctx : 'm ctx) (scopes : 'm D.expr code_item_list) :
+let translate_code_items (ctx : 'm ctx) (scopes : 'm D.expr code_item_list) :
     'm A.expr code_item_list Bindlib.box =
   let _ctx, scopes =
     Scope.fold_map
@@ -534,9 +534,9 @@ let rec translate_scopes (ctx : 'm ctx) (scopes : 'm D.expr code_item_list) :
 
 let translate_program (prgm : 'm D.program) : 'm A.program =
   let inputs_structs =
-    Scope.fold_left prgm.scopes ~init:[] ~f:(fun acc def _ ->
+    Scope.fold_left prgm.code_items ~init:[] ~f:(fun acc def _ ->
         match def with
-        | ScopeDef (name, body) -> body.scope_body_input_struct :: acc
+        | ScopeDef (_, body) -> body.scope_body_input_struct :: acc
         | Topdef _ -> acc)
   in
   (* Cli.debug_print @@ Format.asprintf "List of structs to modify: [%a]"
@@ -565,9 +565,9 @@ let translate_program (prgm : 'm D.program) : 'm A.program =
     }
   in
 
-  let scopes =
+  let code_items =
     Bindlib.unbox
-      (translate_scopes { decl_ctx; vars = Var.Map.empty } prgm.scopes)
+      (translate_code_items { decl_ctx; vars = Var.Map.empty } prgm.code_items)
   in
 
-  { scopes; decl_ctx }
+  { code_items; decl_ctx }

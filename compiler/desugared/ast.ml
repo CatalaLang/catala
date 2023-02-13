@@ -197,7 +197,7 @@ type scope = {
 
 type program = {
   program_scopes : scope ScopeName.Map.t;
-  program_globals : (expr * typ) TopdefName.Map.t;
+  program_topdefs : (expr * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 
@@ -227,7 +227,7 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
                  ( Marked.unmark sub_index,
                    Marked.unmark sub_var,
                    Marked.get_mark sub_index ))
-          | GlobalVar _ -> None
+          | ToplevelVar _ -> None
         in
         match usage with Some u -> ScopeDefMap.add u loc_pos acc | None -> acc)
       locs acc

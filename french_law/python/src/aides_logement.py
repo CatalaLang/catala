@@ -2651,7 +2651,6 @@ class EligibilitePrestationsFamilialesIn:
 
 
 
-
 def contributions_sociales_aides_personnelle_logement(contributions_sociales_aides_personnelle_logement_in:ContributionsSocialesAidesPersonnelleLogementIn):
     date_courante = contributions_sociales_aides_personnelle_logement_in.date_courante_in
     try:

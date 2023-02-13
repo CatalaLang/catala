@@ -15,7 +15,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Functions handling the scope structures of [shared_ast] *)
+(** Functions handling the code item structures of [shared_ast], in particular
+    the scopes *)
 
 open Catala_utils
 open Definitions
@@ -53,9 +54,9 @@ val fold_left :
   init:'a ->
   'expr1 code_item_list ->
   'a
-(** Usage: [fold_left ~f:(fun acc scope_def scope_var -> ...) ~init scope_def],
-    where [scope_var] is the variable bound to the scope in the next scopes to
-    be examined. *)
+(** Usage: [fold_left ~f:(fun acc code_def code_var -> ...) ~init code_def],
+    where [code_var] is the variable bound to the code item in the next code
+    items to be examined. *)
 
 val fold_right :
   f:('expr1 code_item -> 'expr1 Var.t -> 'a -> 'a) ->

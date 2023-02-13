@@ -60,13 +60,13 @@ let scope ctx env scope =
 let program prg =
   let env =
     TopdefName.Map.fold
-      (fun name (_e, ty) env -> Typing.Env.add_global_var name ty env)
-      prg.program_globals Typing.Env.empty
+      (fun name (_e, ty) env -> Typing.Env.add_toplevel_var name ty env)
+      prg.program_topdefs Typing.Env.empty
   in
-  let program_globals =
+  let program_topdefs =
     TopdefName.Map.map
       (fun (e, ty) -> Expr.unbox (expr prg.program_ctx env (Expr.box e)), ty)
-      prg.program_globals
+      prg.program_topdefs
   in
   let env =
     ScopeName.Map.fold
@@ -85,4 +85,4 @@ let program prg =
   let program_scopes =
     ScopeName.Map.map (scope prg.program_ctx env) prg.program_scopes
   in
-  { prg with program_globals; program_scopes }
+  { prg with program_topdefs; program_scopes }

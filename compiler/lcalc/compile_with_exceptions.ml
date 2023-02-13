@@ -136,7 +136,7 @@ let rec translate_scope_lets
       new_scope_next
       (Expr.Box.lift new_scope_let_expr)
 
-let rec translate_scopes
+let translate_items
     (decl_ctx : decl_ctx)
     (ctx : 'm ctx)
     (scopes : 'm D.expr code_item_list) : 'm A.expr code_item_list Bindlib.box =
@@ -167,6 +167,7 @@ let rec translate_scopes
 
 let translate_program (prgm : 'm D.program) : 'm A.program =
   {
-    scopes = Bindlib.unbox (translate_scopes prgm.decl_ctx () prgm.scopes);
+    code_items =
+      Bindlib.unbox (translate_items prgm.decl_ctx () prgm.code_items);
     decl_ctx = prgm.decl_ctx;
   }

@@ -53,7 +53,7 @@ type 'm scope_decl = {
 
 type 'm program = {
   program_scopes : 'm scope_decl ScopeName.Map.t;
-  program_globals : ('m expr * typ) TopdefName.Map.t;
+  program_topdefs : ('m expr * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 
@@ -72,14 +72,14 @@ let type_rule decl_ctx env = function
 let type_program (prg : 'm program) : typed program =
   let typing_env =
     TopdefName.Map.fold
-      (fun name (_, ty) -> Typing.Env.add_global_var name ty)
-      prg.program_globals Typing.Env.empty
+      (fun name (_, ty) -> Typing.Env.add_toplevel_var name ty)
+      prg.program_topdefs Typing.Env.empty
   in
-  let program_globals =
+  let program_topdefs =
     TopdefName.Map.map
       (fun (expr, typ) ->
         Expr.unbox (Typing.expr prg.program_ctx ~env:typing_env ~typ expr), typ)
-      prg.program_globals
+      prg.program_topdefs
   in
   let typing_env =
     ScopeName.Map.fold
@@ -110,4 +110,4 @@ let type_program (prg : 'm program) : typed program =
         { scope_decl with scope_decl_rules; scope_mark })
       prg.program_scopes
   in
-  { prg with program_globals; program_scopes }
+  { prg with program_topdefs; program_scopes }

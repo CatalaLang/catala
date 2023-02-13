@@ -77,7 +77,7 @@ let scope ?(debug = false) ctx fmt (name, decl) =
              (Print.typ ctx) typ Print.punctuation "="
              (fun fmt e ->
                match Marked.unmark loc with
-               | SubScopeVar _ | GlobalVar _ -> Print.expr ctx fmt e
+               | SubScopeVar _ | ToplevelVar _ -> Print.expr ctx fmt e
                | ScopelangScopeVar v -> (
                  match
                    Marked.unmark
@@ -138,7 +138,7 @@ let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :
     (fun name def ->
       print_topdef ctx fmt name def;
       pp_sep fmt ())
-    p.program_globals;
+    p.program_topdefs;
   Format.pp_print_list ~pp_sep (scope ~debug ctx) fmt
     (ScopeName.Map.bindings p.program_scopes);
   Format.pp_close_box fmt ()
