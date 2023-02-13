@@ -155,6 +155,7 @@ let disjoint_union_maps (pos : Pos.t) (cs : ('e, 'a) Var.Map.t list) :
     hoists, has the non-empty value in e_v. *)
 let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     'm A.expr boxed * 'm hoists =
+  Cli.debug_format "%a" (Print.expr_debug ~debug:false) e;
   let mark = Marked.get_mark e in
   let pos = Expr.mark_pos mark in
   match Marked.unmark e with
@@ -249,6 +250,50 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
     let new_binder = Expr.bind lc_vars new_body in
 
     Expr.eabs new_binder (List.map translate_typ tys) mark, Var.Map.empty
+  | EApp { f = EAbs { binder; tys }, varmark; args }
+    when Bindlib.mbinder_arity binder = 1 && List.length args = 1 ->
+    (* let bindings *)
+    let vars, body = Bindlib.unmbind binder in
+    let var =
+      match vars with
+      | [| var |] -> var
+      | _ ->
+        Errors.raise_error
+          "Internal Error: found a let binding with variable arity different \
+           than one."
+    in
+
+    let var' : (lcalc, 'm mark) naked_gexpr Bindlib.var =
+      Var.make (Bindlib.name_of var)
+    in
+    let arg =
+      match args with
+      | [arg] -> arg
+      | _ ->
+        Errors.raise_error
+          "Internal Error: found a let binding with argument arity different \
+           to one."
+    in
+    let ty =
+      match tys with
+      | [ty] -> ty
+      | _ ->
+        Errors.raise_error
+          "Internal Error: found a let binding with type arity different to \
+           one."
+    in
+
+    (* [let var: ty = arg in body]*)
+
+    (* translation depends on whenever arg can return empty. To not make things
+       more complicated, we just translate it as an expression and match the
+       result. *)
+    let arg' = translate_expr ctx arg in
+    let ctx' = add_var varmark var true ctx in
+    let body' = translate_expr ctx' body in
+
+    (* type is unchanged *)
+    Expr.make_let_in var' ty arg' body' (Expr.mark_pos varmark), Var.Map.empty
   | EApp { f; args } -> begin
     match Marked.unmark f with
     | EOp _ ->
@@ -333,18 +378,29 @@ and translate_hoists ~append_esome ctx hoists kont =
           let just' = translate_expr ctx just in
           let cons' = translate_expr ctx cons in
           (* calls handle_option. *)
-          Expr.make_app
-            (Expr.make_var (Var.translate A.handle_default_opt) mark_hoist)
-            [Expr.earray excepts' mark_hoist; just'; cons']
-            pos
+          Cli.debug_format "building_default %a"
+            (Print.expr_debug ~debug:false)
+            (Marked.mark mark_hoist hoist);
+          let new_mark : typed mark =
+            match mark_hoist with Typed m -> Typed { m with ty = TAny, pos }
+          in
+          Expr.make_app'
+            (Expr.make_var (Var.translate A.handle_default_opt) new_mark)
+            [Expr.earray excepts' new_mark; just'; cons']
+            pos ctx.decl_ctx
         | ELit LEmptyError -> A.make_none mark_hoist
         | EApp { f; args } ->
           let f = translate_expr ctx f in
           let args = List.map (translate_expr ctx) args in
+
           (* let*m args' = args' and* f' = f' in f' args' *)
+          Cli.debug_format "building_app %a"
+            (Print.expr_debug ~debug:false)
+            (Marked.mark mark_hoist hoist);
+
           A.make_bind_cont mark_hoist f (fun f ->
               A.make_bindm_cont mark_hoist args (fun args ->
-                  Expr.make_app f args pos
+                  Expr.make_app' f args pos ctx.decl_ctx
                   (* A.make_bind_cont mark_hosit (Expr.make_app f args pos) *)))
           (* assert false *)
         | EAssert arg ->

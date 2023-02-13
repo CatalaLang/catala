@@ -265,6 +265,13 @@ val make_app :
   Pos.t ->
   ('a, 'm mark) boxed_gexpr
 
+val make_app' :
+  ('a any, 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr list ->
+  Pos.t ->
+  decl_ctx ->
+  ('a, 'm mark) boxed_gexpr
+
 val empty_thunked_term :
   'm mark -> ([< dcalc | desugared | scopelang ], 'm mark) boxed_gexpr
 

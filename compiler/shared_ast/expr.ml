@@ -735,6 +735,31 @@ let make_app e args pos =
   in
   eapp e args mark
 
+let make_app' e u pos decl_ctx =
+  let mark =
+    fold_marks
+      (fun _ -> pos)
+      (function
+        | [] -> assert false
+        | fty :: argtys ->
+          List.fold_left
+            (fun tf tx ->
+              match Marked.unmark tf with
+              | TArrow (tx', tr) ->
+                assert (Type.unifiable tx.ty tx');
+                (* wrong arg type *)
+                tr
+              | TAny -> tf
+              | _ ->
+                Errors.raise_error
+                  "INTERNAL ERROR: wrong type: found %a while expecting either \
+                   an Arrow or Any"
+                  (Print.typ decl_ctx) tf)
+            fty.ty argtys)
+      (List.map Marked.get_mark (e :: u))
+  in
+  eapp e u mark
+
 let empty_thunked_term mark =
   let silent = Var.make "_" in
   let pos = mark_pos mark in
