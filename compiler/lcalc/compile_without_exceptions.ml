@@ -67,15 +67,22 @@ let make_new_mark (m : typed mark) ?(unpure_return = None) (unpure : bool) :
     end;
     { pos = m.pos; ty = m.ty; unpure; unpure_return }
 
-let rec detect_unpure ctx (e : (dcalc, typed mark) gexpr) :
+let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
     (dcalc, analysis_mark) boxed_gexpr =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | EVar x ->
+    (* we suppose we don't need any information on a variable containing a
+       function, because the only place such variable [f] can appear is in a
+       EApp {f; ...} position. Hence it will be matched elsewhere. This is kept
+       by the following invariant: *)
+    Errors.assert_internal_error
+      (match Marked.unmark (Expr.ty e) with TArrow _ -> false | _ -> true)
+      "The variable %a should not be a function in this context." Print.var x;
     Expr.make_var (Var.translate x)
       (make_new_mark m (Var.Map.find x ctx).unpure_info)
   | EApp { f = EOp { op; tys }, opmark; args } ->
-    let args' = List.map (detect_unpure ctx) args in
+    let args' = List.map (detect_unpure_expr ctx) args in
     let unpure =
       args'
       |> List.map (fun arg -> (Marked.get_mark arg).unpure)
@@ -85,20 +92,20 @@ let rec detect_unpure ctx (e : (dcalc, typed mark) gexpr) :
       (Expr.eop op tys (make_new_mark opmark true))
       args' (make_new_mark m unpure)
   | EApp { f = (EVar x, _) as f; args } ->
-    let args' = List.map (detect_unpure ctx) args in
+    let args' = List.map (detect_unpure_expr ctx) args in
     let unpure =
       args'
       |> List.map (fun arg -> (Marked.get_mark arg).unpure)
       |> List.fold_left ( || ) false
       |> ( || ) (Var.Map.find x ctx).unpure_info
     in
-    let f' = detect_unpure ctx f in
+    let f' = detect_unpure_expr ctx f in
     if Option.get (Var.Map.find x ctx).unpure_return then
       Expr.eapp f' args' (make_new_mark m (true || unpure))
     else Expr.eapp f' args' (make_new_mark m unpure)
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
-    let body' = detect_unpure ctx body in
+    let body' = detect_unpure_expr ctx body in
     let binder' = Expr.bind (Array.map Var.translate vars) body' in
     (* eabs is a value, hence is always pure. However, it is possible the
        function returns something that is pure. In this case the information
@@ -107,9 +114,9 @@ let rec detect_unpure ctx (e : (dcalc, typed mark) gexpr) :
       (make_new_mark m false
          ~unpure_return:(Some (Marked.get_mark body').unpure))
   | EDefault { excepts; just; cons } ->
-    let excepts' = List.map (detect_unpure ctx) excepts in
-    let just' = detect_unpure ctx just in
-    let cons' = detect_unpure ctx cons in
+    let excepts' = List.map (detect_unpure_expr ctx) excepts in
+    let just' = detect_unpure_expr ctx just in
+    let cons' = detect_unpure_expr ctx cons in
     (* because of the structural invariant, there is no functions inside an
        default. Hence, there is no need for any verification here. *)
     Expr.edefault excepts' just' cons' (make_new_mark m true)
@@ -117,10 +124,35 @@ let rec detect_unpure ctx (e : (dcalc, typed mark) gexpr) :
     Expr.elit l
       (make_new_mark m (match l with LEmptyError -> true | _ -> false))
   | EErrorOnEmpty arg ->
-    let arg' = detect_unpure ctx arg in
+    let arg' = detect_unpure_expr ctx arg in
     (* the result is always pure *)
     Expr.eerroronempty arg' (make_new_mark m false)
+  | EApp { f = (EAbs _, _) as f; args } ->
+    let f' = detect_unpure_expr ctx f in
+    let args' = List.map (detect_unpure_expr ctx) args in
+    let unpure =
+      args'
+      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
+      |> List.fold_left ( || ) false
+      |> ( || ) (Marked.get_mark f').unpure
+      ||
+      match (Marked.get_mark f').unpure_return with
+      | None ->
+        Errors.raise_internal_error
+          "A function has no information on whenever it is empty or not"
+      | Some unpure_return -> unpure_return
+    in
+    Expr.eapp f' args' (make_new_mark m unpure)
   | _ -> assert false
+
+type struct_ctx_analysis = bool StrictField.Map.t StructNAme.Map.t
+
+let rec detect_unpure_expr = assert false
+let detect_unpure_scope_let = assert false
+let detect_unpure_scope_body = assert false
+let detect_unpure_scopes = assert false
+let detect_unpure_program = assert false
+let detect_unpure_scope_let = assert false
 
 type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
 (** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)

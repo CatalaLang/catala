@@ -55,6 +55,9 @@ let raise_internal_error format =
     ^^ format)
 
 (** {1 Warning printing}*)
+let assert_internal_error condition fmt =
+  if condition then raise_internal_error ("assertion failed: " ^^ fmt)
+  else Format.ifprintf (Format.formatter_of_out_channel stdout) fmt
 
 let format_multispanned_warning (pos : (string option * Pos.t) list) format =
   Format.kasprintf
