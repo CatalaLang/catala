@@ -200,7 +200,7 @@ class Date:
 
     def __sub__(self, other: object) -> object:
         if isinstance(other, Date):
-          return Duration(dateutil.relativedelta.relativedelta(self.value, other.value))
+          return Duration(dateutil.relativedelta.relativedelta(days=(self.value - other.value).days))
         elif isinstance(other, Duration):
           return Date(self.value - other.value)
         else:
