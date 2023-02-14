@@ -36,15 +36,10 @@ let invariant_no_return_a_function e =
   end
   | _ -> None
 
-let remove_error_empty e =
-  let rec f e =
-    match Marked.unmark e with
-    | EErrorOnEmpty e1 -> Expr.map ~f e1
-    | _ -> Expr.map ~f e
-  in
-  f e
-
-let check_invariant (inv : invariant_expr) (p : typed program) =
+let check_invariant
+    ?(name : string option)
+    (inv : invariant_expr)
+    (p : typed program) =
   let result = ref true in
   let p' =
     Program.map_exprs p ~varf:Fun.id ~f:(fun e ->
@@ -54,9 +49,17 @@ let check_invariant (inv : invariant_expr) (p : typed program) =
             | None -> true
             | Some false ->
               Errors.format_spanned_warning (Expr.pos e)
-                "Internal Error: Invalid structural invariant";
+                "Internal Error: Invalid structural invariant %a. The \
+                 expression with type  %a. Full term: %a"
+                Format.(pp_print_option (fun fmt -> Format.fprintf fmt "(%s)"))
+                name (Print.typ p.decl_ctx) (Expr.ty e) (Print.expr p.decl_ctx)
+                e;
               false
-            | Some true -> true
+            | Some true ->
+              (* Cli.result_format "Structural invariant verified %a"
+                 Format.(pp_print_option (fun fmt -> Format.fprintf fmt "(%s)"))
+                 name; *)
+              true
           in
           Expr.map_gather e ~acc:r ~join:( && ) ~f
         in

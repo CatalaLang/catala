@@ -239,12 +239,10 @@ val map_gather :
     {[
       let rec rewrite e =
         match Marked.unmark e with
-        | Specific_case ->
-          Var.Set.singleton x, some_rewrite_fun e
+        | Specific_case -> Var.Set.singleton x, some_rewrite_fun e
         | _ ->
           Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:rewrite e
-    }]
-
+    ]}
 
     See [Lcalc.closure_conversion] for a real-world example. *)
 

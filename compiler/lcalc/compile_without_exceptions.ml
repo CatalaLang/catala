@@ -51,8 +51,10 @@ type analysis_mark = {
   unpure_return : bool option;
 }
 
+(* voir sur papier pour voir si ça marche *)
+
 type analysis_info = { unpure_info : bool; unpure_return : bool option }
-type analysis_ctx = (dcalc, analysis_info) Var.Map.t
+(* type analysis_ctx = (dcalc, analysis_info) Var.Map.t *)
 
 let make_new_mark (m : typed mark) ?(unpure_return = None) (unpure : bool) :
     analysis_mark =
@@ -67,6 +69,16 @@ let make_new_mark (m : typed mark) ?(unpure_return = None) (unpure : bool) :
     end;
     { pos = m.pos; ty = m.ty; unpure; unpure_return }
 
+(** [{
+      type struct_ctx_analysis = bool StructField.Map.t StructName.Map.t
+    }]
+
+    [{ let rec detect_unpure_expr = assert false }]
+    [{ let detect_unpure_scope_let = assert false }]
+    [{ let detect_unpure_scope_body = assert false }]
+    [{ let detect_unpure_scopes = assert false }]
+    [{ let detect_unpure_program = assert false }]
+    [{ let detect_unpure_scope_let = assert false }] *)
 let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
     (dcalc, analysis_mark) boxed_gexpr =
   let m = Marked.get_mark e in
@@ -145,14 +157,7 @@ let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
     Expr.eapp f' args' (make_new_mark m unpure)
   | _ -> assert false
 
-type struct_ctx_analysis = bool StrictField.Map.t StructNAme.Map.t
-
-let rec detect_unpure_expr = assert false
-let detect_unpure_scope_let = assert false
-let detect_unpure_scope_body = assert false
-let detect_unpure_scopes = assert false
-let detect_unpure_program = assert false
-let detect_unpure_scope_let = assert false
+let _ = detect_unpure_expr
 
 type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
 (** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
