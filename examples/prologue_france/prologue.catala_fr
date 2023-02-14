@@ -1,6 +1,9 @@
 ```catala-metadata
-# TODO juridique: trouver un meilleur nom que "Collectivité" pour désigner
-# cette énumération qui ne contient pas que des collectivités.
+# Cette catégorisation des collectivités d'outre-mer est pour l'instant plate
+# mais on pourrait la subdiviser plus finement selon les conseils du guide
+# de légistique du Conseil d'État. En effet les articles 73 et 74 de la
+# Constitution établissent deux régimes différents pour les collectivités
+# d'outre-mer.
 déclaration énumération Collectivité :
   -- Guadeloupe
   -- Guyane
