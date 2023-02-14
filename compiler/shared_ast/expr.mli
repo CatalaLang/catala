@@ -188,11 +188,11 @@ val map :
     on empty, you can write
 
     {[
-      let remove_error_empty =
+      let remove_error_empty e =
         let rec f e =
           match Marked.unmark e with
-          | ErrorOnEmpty e1 -> Expr.map f e1
-          | _ -> Expr.map f e
+          | EErrorOnEmpty e1 -> Expr.map ~f e1
+          | _ -> Expr.map ~f e
         in
         f e
     ]} *)
