@@ -4267,18 +4267,45 @@ Par personne supplémentaire à charge                9,69
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2023-01-01|:
   étiquette outre_mer exception colocation
-  définition montant_forfaitaire_charges_d823_16 égal à
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
     37,67€ + 9,69€ * (décimal de nombre_personnes_à_charge)
 
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2023-01-01|:
   étiquette outre_mer exception copropriété
-  définition montant_forfaitaire_charges égal à
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
     37,67 € + 9,69 € * (décimal de nombre_personnes_à_charge)
 
 champ d'application CalculAllocationLogementFoyer
   sous condition date_courante >= |2023-01-01| :
-  exception base définition montant_forfaitaire_charges égal à
+  exception base définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
     37,67 € + 9,69 € * (décimal de nombre_personnes_à_charge)
 ```
 
@@ -4296,7 +4323,16 @@ Majoration par personne à charge 9,69
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2023-01-01|:
   exception outre_mer
-  définition montant_forfaitaire_charges_d823_16 égal à
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
     (selon situation_familiale_calcul_apl sous forme
      -- PersonneSeule: 19,38€
      -- Couple: 37,67€) +
@@ -4305,7 +4341,16 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2023-01-01|:
   exception outre_mer
-  définition montant_forfaitaire_charges égal à
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
     (selon situation_familiale_calcul_apl sous forme
      -- PersonneSeule: 19,38€
      -- Couple: 37,67€) +
@@ -4338,7 +4383,16 @@ Majoration par personne à charge supplémentaire     -0,06 %
 # de quand cette bizarrerie a été introduite.
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2023-01-01|:
-  exception base définition taux_composition_familiale égal à
+  exception base définition taux_composition_familiale sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 2,81%
@@ -4367,10 +4421,12 @@ D. 823-17 du même code, le forfait “ R0 ” applicable à Mayotte est identiq
 à celui applicable en outre-mer.
 
 ```catala
-# TODO: redondant avec le 1°) ? pas vraiment ça semble plutôt indiquer une
+# TODO informatique et juridique: redondant avec le 1°) ?
+# pas vraiment ça semble plutôt indiquer une
 # rétroactivité. À voir comment coder en regardant la version 2022 de l'arrêté
 # pour éviter d'alourdir le calcul de abattement_forfaitaire_d823_17 avec
-# des valeurs intermédiaires.
+# des valeurs intermédiaires, une fois qu'on prendra en compte les archives
+# de l'article 46.
 ```
 
 NOTA :
@@ -4379,35 +4435,6 @@ Conformément à l’article 3 de
 l’arrêté du 26 décembre 2022 (NOR : TREL2226772A), ces dispositions sont
 applicables pour les prestations dues à compter du 1er janvier 2023.
 
-```catala
-# TODO Justine:
-# 1) Copier-coller dans ce fichier (et les autres selon la provenance)
-# tous les articles relatifs au calcul des APL en outre-mer, les formater
-# au format Markdown et ne pas oublier les identifiants légifrance.
-# Pro tip: écrire genre "> Inclusion: LEGIARTI000046834756" et lancer
-# l'outil de connection à l'API Légifrance avec la commande spéciale.
-# 2) Faire le même travail de collecte juridique pour le calcul des droits
-# simples de l'impôt sur le revenu (IR). Il s'agit de partir de https://www.legifrance.gouv.fr/codes/section_lc/LEGITEXT000006069577/LEGISCTA000006179577/#LEGISCTA000006179577
-# et de déterminer le sous-ensemble des articles qui feraient un bon prototype
-# de calcul des droits simples de l'IR, en s'arrêtant pour demander des entrées
-# qui potentiellement sont définies par d'autres articles mais pour lesquels
-# on ne les code pas pour l'instant. Idéalement on vise un ensemble de textes
-# qui représenteraient 1000 à 2000 lignes de code (pas trop longue).
-# 3) Lire les éléments de calcul des APL et les articles de loi sur lesquels
-# ils se basent et écrire quelques tests de calcul pour aider à valider le
-# logiciel Catala. Se baser sur les tests 'exemples' déjà écrits dans
-# https://www.ecologie.gouv.fr/sites/default/files/aides_personnelles_au_logement_elements_de_calcul_edition_2022.pdf.
-# Écrire les fichiers de test dans le sous-dossier "tests/" et les exécuter
-# avec le genre de commande suivantes :
-# dune exec catala --display=quiet -- Interpret examples/aides_logement/tests/tests_calcul_al_locatif.catala_fr  --scope Exemple1
-# 4) Liste de lecture:
-# - https://hal.inria.fr/hal-03712130
-# - https://hal.inria.fr/hal-03541637/
-# - https://link.springer.com/article/10.1007/s10506-022-09329-4
-# - https://www.researchgate.net/publication/221539372_Some_Arguments_About_Legal_Arguments
-# - https://law.mit.edu/pub/interpretingtherulesofcode
-# - préprint à télécharger ici : https://popl23.sigplan.org/details/prolala-2023-papers/6/The-Structure-and-Legal-Interpretation-of-Computer-Programs
-```
 ### Article 47 | LEGIARTI000046834753
 
 Pour l'application du chapitre VII du présent arrêté à Saint-Pierre-et-Miquelon,
@@ -4436,7 +4463,38 @@ NOTA : Conformément à l’article 3 de l’arrêté du 26 décembre 2022
 (NOR : TREL2226772A), ces dispositions sont applicables pour les prestations
 dues à compter du 1er janvier 2023.
 
-## Chapitre X : Calcul de l'aide personnalisée au logement en secteur logement-foyer pour la Guadeloupe, la Guyane, la Martinique, la Réunion et Mayotte 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2023-01-01|:
+  étiquette métropole
+  définition abattement_forfaitaire_d823_17 sous condition
+    selon résidence sous forme
+    -- SaintPierreEtMiquelon: vrai
+    -- n'importe quel: faux
+  conséquence égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 5 272 €
+      -- Couple:  7 552 €
+    sinon (si nombre_personnes_à_charge = 1 alors
+      9 008 €
+    sinon (si nombre_personnes_à_charge = 2 alors
+      9 211 €
+    sinon (si nombre_personnes_à_charge = 3 alors
+      9 563 €
+    sinon (si nombre_personnes_à_charge = 4 alors
+      9 919 €
+    sinon (si nombre_personnes_à_charge = 5 alors
+      10 271 €
+    sinon (si nombre_personnes_à_charge = 6 alors
+      10 626 €
+    sinon
+      (10 626€ + (350 € * (décimal de
+        (nombre_personnes_à_charge - 6))))
+    ))))))
+```
+
+## Chapitre X : Calcul de l'aide personnalisée au logement en secteur logement-foyer pour la Guadeloupe, la Guyane, la Martinique, la Réunion et Mayotte
 
 ### Article 48 | LEGIARTI000046838288
 
@@ -4449,6 +4507,10 @@ NOTA : Conformément à l’article 3 de l’arrêté du 26 décembre 2022
 (NOR : TREL2226772A), ces dispositions sont applicables pour les prestations
 dues à compter du 1er janvier 2023.
 
+```catala
+# Rien à changer donc.
+```
+
 ## Chapitre XI : Dispositions communes
 
 ### Article 49 | LEGIARTI000046834749
@@ -4456,12 +4518,25 @@ dues à compter du 1er janvier 2023.
 Les zones géographiques prévues au présent arrêté sont celles définies par
 l'arrêté du 17 mars 1978 modifié susvisé. Pour l'application du dernier alinéa
 de l'article L. 831-2 du même code, les communes auxquelles s'applique la
-dérogation sont celles appartenant à la zone III. 
+dérogation sont celles appartenant à la zone III.
+
+```catala
+champ d'application ÉligibilitéAidePersonnaliséeLogement sous condition
+  date_courante >= |2019-01-01|: # Voir article 50
+  règle logement_situé_commune_déséquilibre_l831_2 sous condition
+     ménage.logement.zone sous forme Zone3
+  conséquence rempli
+```
 
 ### Article 50 | LEGIARTI000046834746
 
 Les dispositions du présent arrêté sont applicables pour les prestations dues
-à compter du 1er octobre 2019. 
+à compter du 1er octobre 2019.
+
+```catala
+# TODO informatique : aller modifier tous les articles ci-dessus sans NOTA
+# pour rajouter que les provisions ne sont valables qu'à partir de 2019.
+```
 
 ### Article 51 | LEGIARTI000046834740
 
@@ -4471,60 +4546,64 @@ logistiques, la directrice du budget et le directeur général des outre-mer
 sont chargés, chacun en ce qui le concerne, de l'exécution du présent arrêté,
 qui sera publié au Journal officiel de la République française.
 
+```catala
+# Rien à coder ici.
+```
+
 ### Article 52 | LEGIARTI000046833207
 
-Sont abrogés : 
+Sont abrogés :
 
-1° L'arrêté du 3 juillet 1978 modifié relatif au calcul de l'aide personnalisée 
-au logement ; 
+1° L'arrêté du 3 juillet 1978 modifié relatif au calcul de l'aide personnalisée
+au logement ;
 
-2° L'arrêté du 30 juin 1979 modifié relatif au calcul de l'aide personnalisée au 
-logement attribuée aux personnes résidant dans un logement-foyer ; 
+2° L'arrêté du 30 juin 1979 modifié relatif au calcul de l'aide personnalisée au
+logement attribuée aux personnes résidant dans un logement-foyer ;
 
-3° L'arrêté du 7 octobre 1980 relatif à la couverture des frais exposés pour le 
-recouvrement de la cotisation et le service de l'allocation de logement et de 
-la prime de déménagement instituées par la loi n° 71-582 du 16 juillet 1971 
-modifiée ; 
+3° L'arrêté du 7 octobre 1980 relatif à la couverture des frais exposés pour le
+recouvrement de la cotisation et le service de l'allocation de logement et de
+la prime de déménagement instituées par la loi n° 71-582 du 16 juillet 1971
+modifiée ;
 
-4° L'arrêté du 26 décembre 2000 modifié relatif à l'allocation de logement ; 
+4° L'arrêté du 26 décembre 2000 modifié relatif à l'allocation de logement ;
 
-5° Le premier alinéa et le 1° de l'article 1er de l'arrêté du 14 février 2013 
-relatif au mode de calcul et aux pièces justificatives pour l'examen du droit 
-aux allocations de logement à Mayotte ; 
+5° Le premier alinéa et le 1° de l'article 1er de l'arrêté du 14 février 2013
+relatif au mode de calcul et aux pièces justificatives pour l'examen du droit
+aux allocations de logement à Mayotte ;
 
-6° L'arrêté du 27 février 2018 relatif à la prise en compte de la réduction de 
-loyer de solidarité dans le calcul de l'aide personnalisée au logement ; 
+6° L'arrêté du 27 février 2018 relatif à la prise en compte de la réduction de
+loyer de solidarité dans le calcul de l'aide personnalisée au logement ;
 
-7° L'arrêté du 27 février 2018 relatif au maintien dérogatoire de l'aide 
-personnalisée au logement destinée à l'accession à la propriété pour les logements 
+7° L'arrêté du 27 février 2018 relatif au maintien dérogatoire de l'aide
+personnalisée au logement destinée à l'accession à la propriété pour les logements
 anciens et dans certaines communes.
 
 A abrogé les dispositions suivantes :
 
 - Arrêté du 3 juillet 1978
 
-Sct. I - DISPOSITIONS APPLICABLES AUX RESSOURCES., Art. 1, Art. 1 ter, Art. 1 
-quater, Art. 1 quinquies, Art. 2, Sct. II. - Calcul de l'aide personnalisée au 
-logement des locataires., Art. 2 bis, Art. 2 ter, Art. 2 quater, Art. 2 quinquies, 
-Art. 2 sexies, Art. 2 septies, Sct. III - Calcul de l'aide personnalisée au 
-logement des propriétaires., Art. 3, Art. 3 bis, Art. 5, Art. 6, Art. 8, Art. 10, 
-Art. 10 bis, Art. 10 ter, Art. 10 quater, Sct. IV - Dispositions communes aux 
-locataires et aux propriétaires pour le calcul de l'aide personnalisée au logement., 
-Art. 11, Art. 11 ter, Art. 11 nonies, Sct. V - Prime de déménagement., Art. 12, Art. 
-13 
+Sct. I - DISPOSITIONS APPLICABLES AUX RESSOURCES., Art. 1, Art. 1 ter, Art. 1
+quater, Art. 1 quinquies, Art. 2, Sct. II. - Calcul de l'aide personnalisée au
+logement des locataires., Art. 2 bis, Art. 2 ter, Art. 2 quater, Art. 2 quinquies,
+Art. 2 sexies, Art. 2 septies, Sct. III - Calcul de l'aide personnalisée au
+logement des propriétaires., Art. 3, Art. 3 bis, Art. 5, Art. 6, Art. 8, Art. 10,
+Art. 10 bis, Art. 10 ter, Art. 10 quater, Sct. IV - Dispositions communes aux
+locataires et aux propriétaires pour le calcul de l'aide personnalisée au logement.,
+Art. 11, Art. 11 ter, Art. 11 nonies, Sct. V - Prime de déménagement., Art. 12, Art.
+13
 
 A abrogé les dispositions suivantes :
 
 - Arrêté du 30 juin 1979
 
-Art. 1, Art. 2, Art. 3, Art. 4, Art. 4-1, Art. 5, Art. 6, Art. 7, Art. 8 
+Art. 1, Art. 2, Art. 3, Art. 4, Art. 4-1, Art. 5, Art. 6, Art. 7, Art. 8
 
-A abrogé les dispositions suivantes : 
+A abrogé les dispositions suivantes :
 
 - Arrêté du 26 décembre 2000
 
-Art. 1, Art. 1 bis, Art. 1 ter, Art. 1 quater, Art. 2, Art. 2 bis, Art. 3, Art. 3 
-bis, Art. 3 ter, Art. 4, Art. 5, Art. 6, Art. 6 bis, Art. 9 bis, Art. 9 ter, Art. 10, 
+Art. 1, Art. 1 bis, Art. 1 ter, Art. 1 quater, Art. 2, Art. 2 bis, Art. 3, Art. 3
+bis, Art. 3 ter, Art. 4, Art. 5, Art. 6, Art. 6 bis, Art. 9 bis, Art. 9 ter, Art. 10,
 Art. 11
 
 A abrogé les dispositions suivantes :
@@ -4550,3 +4629,7 @@ A abrogé les dispositions suivantes :
 - Arrêté du 27 février 2018
 
 Art. 2
+
+```catala
+# Rien à coder ici.
+```

@@ -30,6 +30,7 @@ déclaration champ d'application CasTest2 :
   résultat montant contenu argent
 
 champ d'application CasTest2:
+  définition calcul.résidence égal à Métropole
   définition calcul.date_conventionnement égal à |2022-01-01|
   définition calcul.type_logement_foyer égal à TypeLogementFoyer.Autre
   définition calcul.redevance égal à 360 €

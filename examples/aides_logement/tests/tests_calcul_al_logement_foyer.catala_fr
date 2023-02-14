@@ -9,6 +9,7 @@ déclaration champ d'application CasTest1 :
   résultat montant contenu argent
 
 champ d'application CasTest1:
+  définition calcul.résidence égal à Métropole
   définition calcul.date_conventionnement égal à |2020-01-01|
   définition calcul.type_logement_foyer égal à
     TypeLogementFoyer.RésidenceSociale

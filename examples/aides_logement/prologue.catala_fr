@@ -58,7 +58,6 @@ déclaration structure Prêt:
   donnée titulaire_prêt contenu TitulairePrêt
 
 déclaration structure Propriétaire:
-  donnée logement_situé_commune_déséquilibre_l831_2 contenu booléen
   donnée mensualité_principale contenu argent
   donnée charges_mensuelles_prêt contenu argent
   donnée date_entrée_logement contenu date
@@ -364,6 +363,7 @@ déclaration champ d'application ÉligibilitéAidePersonnaliséeLogement:
   entrée demandeur contenu Demandeur
   entrée résultat date_courante contenu date
 
+  interne logement_situé_commune_déséquilibre_l831_2 condition
   interne condition_logement_bailleur condition
   interne condition_logement_prêt condition
   interne caractéristiques_prêt_l831_1_1 condition dépend de Prêt
@@ -865,6 +865,7 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
   entrée zone contenu ZoneDHabitation
+  entrée résidence contenu Collectivité
   entrée date_courante contenu date
   entrée mensualité_principale contenu argent
   entrée situation_r822_11_13_17 contenu booléen
@@ -947,6 +948,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
 déclaration champ d'application CalculAllocationLogementFoyer:
   entrée type_logement_foyer contenu TypeLogementFoyer
   entrée date_conventionnement contenu date
+  entrée résidence contenu Collectivité
   entrée redevance contenu argent
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier

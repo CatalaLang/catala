@@ -1591,6 +1591,7 @@ champ d'application CalculAllocationLogement:
         résultat de CalculAllocationLogementFoyer avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- résidence: résidence
           -- zone: zone
           -- date_courante: date_courante
           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
@@ -1613,6 +1614,7 @@ champ d'application CalculAllocationLogement:
            -- ressources_ménage_arrondies: ressources_ménage
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone
+           -- résidence: résidence
            -- date_courante: date_courante
            -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
            -- mensualité_principale: propriétaire.mensualité_principale
@@ -1640,6 +1642,7 @@ champ d'application CalculAllocationLogement:
            -- ressources_ménage_arrondies: ressources_ménage
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone
+           -- résidence: résidence
            -- date_courante: date_courante
            -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
            -- mensualité_principale: propriétaire.mensualité_principale

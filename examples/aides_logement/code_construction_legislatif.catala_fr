@@ -739,12 +739,12 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement:
         propriété.prêt.date_signature >= |2018-01-01| et
         propriété.prêt.date_signature < |2020-01-01| et
         propriété.ancienneté_logement sous forme Ancien et
-        propriété.logement_situé_commune_déséquilibre_l831_2
+        logement_situé_commune_déséquilibre_l831_2
       -- AccessionPropriétéLocalUsageExclusifHabitation de propriété:
         propriété.prêt.date_signature >= |2018-01-01| et
         propriété.prêt.date_signature < |2020-01-01| et
         propriété.ancienneté_logement sous forme Ancien et
-        propriété.logement_situé_commune_déséquilibre_l831_2
+        logement_situé_commune_déséquilibre_l831_2
       -- n'importe quel: faux
   conséquence rempli
 ```
