@@ -1145,10 +1145,31 @@ l'article L. 823-2 du présent code ;
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
+  étiquette enfants
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant:
-      enfant.date_de_naissance + 21 an > date_courante
+      enfant.date_de_naissance + 21 an > date_courante et
+      # Pour être considéré à charge pour les aides personnelles au logement,
+      # l'enfant doit en plus d'avoir moins de 21 ans mais aussi selon le
+      # 7e alinéa de L823-1 être éligible aux prestations familiales.
+      prestations_familiales.droit_ouvert de
+        EnfantPrestationsFamiliales {
+        -- identifiant: enfant.identifiant
+        -- obligation_scolaire: enfant.obligation_scolaire
+        -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
+        -- date_de_naissance: enfant.date_de_naissance
+        -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
+          -- GardeAlternéeCoefficientPriseEnCharge:
+            PriseEnChargeEnfant.GardeAlternéePartageAllocations
+          -- PasDeGardeAlternée:
+            PriseEnChargeEnfant.EffectiveEtPermanente)
+        -- a_déjà_ouvert_droit_aux_allocations_familiales:
+          enfant.a_déjà_ouvert_droit_aux_allocations_familiales
+        -- bénéficie_titre_personnel_aide_personnelle_logement:
+          enfant.
+            bénéficie_titre_personnel_aide_personnelle_logement
+      }
     -- AutrePersonneÀCharge de parent: faux
   conséquence rempli
 ```

@@ -47,6 +47,25 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   conséquence rempli
 ```
 
+####### Sous-section 2 : Primes de déménagement
+
+######## Article L821-4 | LEGIARTI000038814968
+
+Les primes de déménagement régies par le présent livre ne peuvent se cumuler
+avec d'autres primes, allocations ou indemnités, quelle qu'en soit l'origine
+ou le fondement juridique, également destinées à couvrir des frais de
+déménagement.
+
+Toutefois, lorsque le montant ainsi versé est inférieur à celui de la prime
+de déménagement à laquelle la personne ou le ménage aurait droit en vertu des
+dispositions de l'article L. 823-8, la différence est versée par l'organisme
+payeur.
+
+```catala
+# Nous décidons de ne pas coder les règles de non-cumul pour la prime de
+# déménagement.
+```
+
 ##### Chapitre II : Conditions générales d'attribution
 
 ```catala
@@ -103,12 +122,11 @@ code de la sécurité sociale .
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  règle condition_nationalité sous condition
+  définition condition_nationalité égal à
     selon demandeur.nationalité sous forme
     -- Française: vrai
     -- Étrangère de conditions:
       conditions.satisfait_conditions_l512_2_code_sécurité_sociale
-  conséquence rempli
 ```
 
 II.-Parmi les personnes mentionnées au I, peuvent bénéficier d'une aide
@@ -409,12 +427,15 @@ Pour l'application du 1°, les enfants à charge doivent respecter les condition
 prévues à l'article L. 512-2 du code de la sécurité sociale .
 
 ```catala
+# TODO informatique : coder la disposition sur article L. 512-2 du code de la
+# sécurité sociale à propos des enfants à charge.
+
 # Cet article indique ce qu'on prend en compte mais pas comment on le prend
 # en compte, donc rien à formaliser, le code viendra dans la partie
 # réglementaire et décrétale qui se réferera elle à L823-1. Il sera
 # peut-être utile par la suite de vérifier que les parties réglementaire
 # et décrétale se conforment bien à L823-1 mais nous laissons cela pour
-# le futur.
+# le futur. Pour le 1°, la partie règlementaire est le R823-4.
 ```
 
 ###### Article L823-2 | LEGIARTI000038814918
@@ -1191,3 +1212,159 @@ au troisième alinéa de l'article L. 842-1 ou en cas de refus de ce dernier.
 # Pas pertinent pour le calcul ou l'éligibilité, nous ne formalisons pas pour
 # l'instant.
 ```
+
+#### Titre VI : Dispositions particulières à l'outre-mer
+
+####### Article L860-1 | LEGIARTI000038814799
+
+Les dispositions du présent livre s'appliquent, de plein droit, en Guadeloupe,
+en Guyane, à la Martinique, à La Réunion et à Mayotte, sous les réserves et dans
+les conditions énoncées par les dispositions prévues par le chapitre Ier du
+présent titre.
+
+####### Article L860-2 | LEGIARTI000038814797
+
+Les dispositions du présent livre s'appliquent, de plein droit, à
+Saint-Barthélemy et à Saint-Martin, sous les réserves et dans les conditions
+énoncées au chapitre II du présent titre.
+
+####### Article L860-3 | LEGIARTI000038814795
+
+I. - Les dispositions du titre III du présent livre ne sont pas applicables à
+Saint-Pierre-et-Miquelon.
+
+```catala
+# Les habitants de Saint-Pierre et Miquelon n'ont pas droit à l'APL, seulement
+# à l'allocation logement.
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
+  exception règle éligibilité sous condition
+    date_courante >= |2021-01-01| et
+    ménage.résidence sous forme SaintPierreEtMiquelon
+  conséquence non rempli
+```
+
+II. - Les autres dispositions du présent livre s'appliquent, de plein droit,
+à Saint-Pierre-et-Miquelon, sous les réserves et dans les conditions énoncées
+au chapitre III du présent titre.
+
+```catala
+# Rien à coder pour l'instant, on verra au chapitre III du présent titre.
+```
+
+NOTA:
+
+Aux termes du III de l'article 23 de l'ordonnance n° 2019-770 du 17 juillet
+2019, le II de l’article L. 860-3 du code de la construction et de l’habitation,
+annexé à la présente ordonnance, entre en vigueur le 1er janvier 2021.
+
+##### Chapitre Ier : Guadeloupe, Guyane, Martinique, La Réunion et Mayotte
+
+###### Section 1 : Fonds national d'aide au logement
+
+```catala
+# Rien à coder.
+```
+###### Section 2 : Dispositions communes aux aides personnelles au logement
+
+####### Article L861-4 | LEGIARTI000038814781
+
+Les articles L. 821-4 et L. 823-8, relatifs aux primes de déménagement,
+ne sont pas applicables à Mayotte.
+
+```catala
+champ d'application ÉligibilitéPrimeDeDéménagement:
+  exception règle éligibilité_logement sous condition
+    ménage.résidence sous forme Mayotte
+  conséquence non rempli
+```
+
+####### Article L861-5 | LEGIARTI000044405110
+
+Pour l'application à Mayotte des dispositions du titre II :
+
+1° Au 2° du I de l'article L. 822-2, les mots : " les deux premiers alinéas de
+l'article L. 512-2 du code de la sécurité sociale " sont remplacés par les
+mots : " l'article 4 de l'ordonnance n° 2002-149 du 7 février 2002 relative à
+l'extension et la généralisation des prestations familiales et à la protection
+sociale dans la collectivité départementale de Mayotte " ;
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  # Ici on utilise le mécanisme d'exception pour remplacer la définition
+  # de l'article L822-2 et ainsi adapter le droit pour son application à
+  # Mayotte.
+  exception définition condition_nationalité sous condition
+    ménage.résidence sous forme Mayotte
+  conséquence égal à
+    selon demandeur.nationalité sous forme
+    -- Française: faux
+    -- Étrangère de conditions:
+      conditions.satisfait_art_4_ordonnance_2002_mayotte
+```
+
+2° A l'article L. 822-5, les mots : " prévue à l'article L. 821-1 du code de
+la sécurité sociale " sont remplacés par les mots : " prévue à l'article 35
+de l'ordonnance n° 2002-411 du 27 mars 2002 relative à la protection sanitaire
+et sociale à Mayotte " et les mots : " prévue à l'article L. 541-1 du même
+code " sont remplacés par les mots : " prévu par l'article 10-1 de l'ordonnance
+n° 2002-149 du 7 février 2002 relative à l'extension et la généralisation des
+prestations familiales et à la protection sociale dans la collectivité
+départementale de Mayotte " ;
+
+```catala
+# Le code dans L822-5 fait référence à l'allocation adultes handicapés ainsi
+# qu'à l'allocation d'éducation de l'enfant handicapé qui sont définies pour
+# Mayotte dans d'autres textes d'où le 2° ci-dessus; rien à changer.
+```
+
+3° L'article L. 822-10 est remplacé par les dispositions suivantes :
+
+" Art. L. 822-10.-L'attribution d'une aide personnelle au logement est
+subordonnée au respect de conditions de peuplement des logements. Si un
+logement devient surpeuplé, du fait de l'arrivée au foyer d'un conjoint ou
+d'un ascendant à charge, l'aide est maintenue pendant une durée déterminée."
+Ces conditions de peuplement et la durée du maintien de l'aide sont fixées
+par voie réglementaire. " ;
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  exception règle condition_ouverture_l822_10_peuplement_logement
+  sous condition
+    (non condition_logement_surface) et
+    selon ménage.arrivée_récente_foyer_conjoint_ascendant_à_charge sous forme
+    -- ArrivéeRécenteFoyerConjointAscendantÀCharge.Oui de date_arrivée:
+      date_arrivée + durée_maintien_aide_l861_5_3 <= date_courante
+    -- ArrivéeRécenteFoyerConjointAscendantÀCharge.Non: faux
+  conséquence rempli
+```
+
+4° Le septième alinéa de l'article L. 823-1 n'est pas applicable ;
+
+```catala
+# Ici on reprend le code du 1° de R823-4 qui spécifie les conditions de
+# prise en compte des enfants à charge selon ce qui est prévu par L823-1.
+# TODO informatique: ce n'est pas fini d'implémenter!
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  exception enfants
+  règle prise_en_compte_personne_à_charge de personne_à_charge
+  sous condition
+    selon personne_à_charge sous forme
+    -- EnfantÀCharge de enfant:
+      ménage.résidence sous forme Mayotte et
+      enfant.date_de_naissance + 21 an > date_courante
+    -- n'importe quel: faux
+  conséquence rempli
+```
+
+5° A l'article L. 823-9, les mots : " Les articles L. 161-1-5 et L. 553-2 du
+code de la sécurité sociale " sont remplacés par les mots : " Le deuxième
+alinéa de l'article 20 de l'ordonnance n° 2002-411 du 27 mars 2002 relative à
+la protection sanitaire et sociale à Mayotte et l'article 13 de l'ordonnance
+n° 2002-149 du 7 février 2002 relative à l'extension et la généralisation des
+prestations familiales et à la protection sociale dans la collectivité
+territoriale de Mayotte ".
+
+NOTA :
+
+Conformément à l'article 20 de l'ordonnance n° 2020-1733 du 16 décembre 2020,
+ces dispositions entrent en vigueur le 1er mai 2021.

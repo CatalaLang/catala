@@ -125,6 +125,10 @@ déclaration structure LogementFoyer:
 #### Calcul et éligibilité pour tous les secteurs
 
 ```catala-metadata
+déclaration énumération ArrivéeRécenteFoyerConjointAscendantÀCharge:
+  -- Oui contenu date
+  -- Non
+
 déclaration énumération PrestationReçue:
   -- AllocationsFamiliales
   -- ComplémentFamilial
@@ -171,6 +175,7 @@ déclaration énumération SituationGardeAlternée:
 
 déclaration structure EnfantÀCharge:
   donnée identifiant contenu entier
+  donnée nationalité contenu Nationalité
   donnée bénéficie_titre_personnel_aide_personnelle_logement
     contenu booléen
   donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
@@ -213,6 +218,8 @@ déclaration structure Ménage:
   donnée personnes_à_charge contenu collection PersonneÀCharge
   donnée nombre_autres_occupants_logement contenu entier
   donnée situation_familiale contenu SituationFamiliale
+  donnée arrivée_récente_foyer_conjoint_ascendant_à_charge contenu
+    ArrivéeRécenteFoyerConjointAscendantÀCharge
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
   donnée enfant_à_naître_après_quatrième_mois_grossesse contenu booléen
   donnée résidence contenu Collectivité
@@ -231,6 +238,7 @@ déclaration structure Demandeur:
 déclaration structure ConditionsÉtrangers:
   donnée satisfait_conditions_l512_2_code_sécurité_sociale
     contenu booléen
+  donnée satisfait_art_4_ordonnance_2002_mayotte contenu booléen
 
 déclaration énumération Nationalité:
   -- Française
@@ -290,7 +298,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
 
   # Différentes conditions pour l'éligibilité
   interne condition_prêt condition dépend de Prêt
-  interne condition_nationalité condition
+  interne condition_nationalité contenu booléen
   contexte condition_logement_résidence_principale condition
   interne condition_logement_mode_occupation condition
   interne condition_logement_location_tiers condition
@@ -304,6 +312,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
     dépend de PersonneÀCharge
   interne personnes_à_charge_prises_en_compte
     contenu collection PersonneÀCharge
+  interne durée_maintien_aide_l861_5_3 contenu durée
 
   # Autres variables
   interne patrimoine_total_demandeur contenu argent
@@ -316,7 +325,9 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne âge_l161_17_2_sécu contenu durée
   interne plafond_individuel_l815_9_sécu contenu argent
 
+  prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
   ouverture_droits_retraite champ d'application OuvertureDroitsRetraite
+
   résultat éligibilité condition
   résultat nombre_personnes_à_charge_prises_en_compte contenu entier
   résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
@@ -353,6 +364,11 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
   # pour lesquelles les textes en vigueur n'ont pas été formalisés.
   assertion date_courante >= |2018-04-01|
+
+  définition prestations_familiales.date_courante égal à date_courante
+  définition prestations_familiales.prestation_courante égal à
+    ÉlémentPrestationsFamiliales.AllocationsFamiliales
+  définition prestations_familiales.résidence égal à ménage.résidence
 ```
 
 ### Éligibilité à l'aide personnalisée au logement
@@ -424,9 +440,7 @@ champ d'application ÉligibilitéAllocationLogement:
   définition prestations_familiales.date_courante égal à date_courante
   définition prestations_familiales.prestation_courante égal à
     ÉlémentPrestationsFamiliales.AllocationsFamiliales
-  # TODO juridique et informatique : adapter quand le code gèrera les outre-
-  # mer.
-  définition prestations_familiales.résidence égal à Métropole
+  définition prestations_familiales.résidence égal à ménage.résidence
 
   définition éligibilité_commune.ménage égal à ménage
   définition éligibilité_commune.demandeur égal à demandeur
@@ -1208,6 +1222,8 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
              -- GardeAlternéeCoefficientPriseEnCharge: faux
              -- PasDeGardeAlternée: vrai
          )))
+      -- arrivée_récente_foyer_conjoint_ascendant_à_charge:
+        ménage.arrivée_récente_foyer_conjoint_ascendant_à_charge
       -- résidence: ménage.résidence
       -- nombre_autres_occupants_logement :
         ménage.nombre_autres_occupants_logement
