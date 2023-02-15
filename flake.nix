@@ -31,6 +31,7 @@
               pkgs.groff
               pkgs.obelisk
               pkgs.ninja
+              pkgs.colordiff
             ];
           };
         }
