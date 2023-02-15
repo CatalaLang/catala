@@ -1165,7 +1165,10 @@ let process_scope_use
     (process_scope_use_item precond scope_uid ctxt)
     prgm use.scope_use_items
 
-let process_topdef ctxt prgm def =
+let process_topdef
+    (ctxt : Name_resolution.context)
+    (prgm : Ast.program)
+    (def : S.top_def) : Ast.program =
   let id =
     IdentName.Map.find
       (Marked.unmark def.S.topdef_name)
@@ -1303,8 +1306,7 @@ let init_scope_defs
               scope_def_map)
         sub_scope_def.Name_resolution.var_idmap scope_def_map
   in
-  IdentName.Map.fold add_def scope_idmap
-    Ast.ScopeDefMap.empty (* TODO: add topdefs too *)
+  IdentName.Map.fold add_def scope_idmap Ast.ScopeDefMap.empty
 
 (** Main function of this module *)
 let translate_program

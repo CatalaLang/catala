@@ -601,9 +601,6 @@ let enum_decl_line :=
   }
 }
 
-(* let def_depends ==
- * | DEPENDS ; arg = lident ; CONTENT ; ty_arg = addpos(typ) ; <> *)
-
 let var_content ==
 | ~ = lident ; CONTENT ; ty = addpos(typ) ; <>
 let depends_stance ==

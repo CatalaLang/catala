@@ -20,8 +20,9 @@ module D = Dcalc.Ast
 module A = Ast
 
 type 'm ctx = unit
-(** This environment contains a mapping between the variables in Dcalc and their
-    correspondance in Lcalc. *)
+(** This translation no longer needs a context at the moment, but we keep
+    passing the argument through the functions in case the need arises with
+    further evolutions. *)
 
 let thunk_expr (type m) (e : m A.expr boxed) : m A.expr boxed =
   let dummy_var = Var.make "_" in
