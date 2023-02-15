@@ -29,7 +29,8 @@ type backend_option_builtin =
   | `Lcalc
   | `Dcalc
   | `Scopelang
-  | `Proof ]
+  | `Proof
+  | `DcalcInvariants ]
 
 type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
 
@@ -46,6 +47,7 @@ let backend_option_to_string = function
   | `Typecheck -> "Typecheck"
   | `Scalc -> "Scalc"
   | `Lcalc -> "Lcalc"
+  | `DcalcInvariants -> "invariants"
   | `Plugin s -> s
 
 let backend_option_of_string backend =
@@ -62,6 +64,7 @@ let backend_option_of_string backend =
   | "typecheck" -> `Typecheck
   | "scalc" -> `Scalc
   | "lcalc" -> `Lcalc
+  | "invariants" -> `DcalcInvariants
   | s -> `Plugin s
 
 (** Source files to be compiled *)

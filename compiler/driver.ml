@@ -146,7 +146,7 @@ let driver source_file (options : Cli.options) : int =
                 language fmt (fun fmt -> weave_output fmt prgm)
           else weave_output fmt prgm)
     | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
-      | `Scopelang | `Proof | `Plugin _ ) as backend -> (
+      | `Scopelang | `Proof | `DcalcInvariants | `Plugin _ ) as backend -> (
       Cli.debug_print "Name resolution...";
       let ctxt = Desugared.Name_resolution.form_context prgm in
       let scope_uid =
@@ -194,7 +194,7 @@ let driver source_file (options : Cli.options) : int =
             (Scopelang.Print.program ~debug:options.debug)
             prgm
       | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
-        | `Proof | `Plugin _ ) as backend -> (
+        | `Proof | `DcalcInvariants | `Plugin _ ) as backend -> (
         Cli.debug_print "Typechecking...";
         let type_ordering =
           Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
@@ -251,8 +251,8 @@ let driver source_file (options : Cli.options) : int =
             Format.fprintf fmt "%a\n"
               (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
               prgrm_dcalc_expr
-        | (`Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _)
-          as backend -> (
+        | ( `Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof
+          | `DcalcInvariants | `Plugin _ ) as backend -> (
           Cli.debug_print "Typechecking again...";
           let prgm =
             try Shared_ast.Typing.program prgm
@@ -274,6 +274,16 @@ let driver source_file (options : Cli.options) : int =
             in
 
             Verification.Solver.solve_vc prgm.decl_ctx vcs
+          | `DcalcInvariants ->
+            Cli.debug_format "Checking invariants";
+            let open Dcalc.Invariant in
+            check_invariant ~name:"default_no_arrow" invariant_default_no_arrow
+              prgm;
+            check_invariant ~name:"no_partial_evaluation"
+              invariant_no_partial_evaluation prgm;
+            check_invariant ~name:"no_return_a_function"
+              invariant_no_return_a_function prgm;
+            Cli.debug_format "Finished checking invariants"
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
             let prgrm_dcalc_expr =

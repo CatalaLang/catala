@@ -41,6 +41,7 @@ let check_invariant
     (inv : invariant_expr)
     (p : typed program) =
   let result = ref true in
+  let _ = name in
   let p' =
     Program.map_exprs p ~varf:Fun.id ~f:(fun e ->
         let rec f e =
@@ -48,12 +49,13 @@ let check_invariant
             match inv e with
             | None -> true
             | Some false ->
-              Errors.format_spanned_warning (Expr.pos e)
-                "Internal Error: Invalid structural invariant %a. The \
-                 expression with type  %a. Full term: %a"
-                Format.(pp_print_option (fun fmt -> Format.fprintf fmt "(%s)"))
-                name (Print.typ p.decl_ctx) (Expr.ty e) (Print.expr p.decl_ctx)
-                e;
+              Cli.error_print "%s Invariant failed."
+                (Pos.to_string_short (Expr.pos e));
+              (* Errors.format_spanned_warning (Expr.pos e) "Internal Error:
+                 Invalid structural invariant %a. The \ expression with type %a.
+                 Full term: %a" Format.(pp_print_option (fun fmt ->
+                 Format.fprintf fmt "(%s)")) name (Print.typ p.decl_ctx)
+                 (Expr.ty e) (Print.expr p.decl_ctx) e; *)
               false
             | Some true ->
               (* Cli.result_format "Structural invariant verified %a"
@@ -68,7 +70,4 @@ let check_invariant
         result := res && !result;
         e')
   in
-  assert (Bindlib.free_vars p' = Bindlib.empty_ctxt);
-  if not !result then
-    Errors.raise_internal_error
-      "Structural invariant not valid! See above for more informations."
+  assert (Bindlib.free_vars p' = Bindlib.empty_ctxt)
