@@ -314,7 +314,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
   | EVar _ ->
     Errors.raise_spanned_error (Expr.pos e)
       "free variable found at evaluation (should not happen if term was \
-       well-typed"
+       well-typed)"
   | EApp { f = e1; args } -> (
     let e1 = evaluate_expr ctx e1 in
     let args = List.map (evaluate_expr ctx) args in
@@ -364,6 +364,17 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
          if the term was well-typed)"
         (Expr.format ctx ~debug:true)
         e StructName.format_t s)
+  | ETuple es ->
+    Marked.same_mark_as (ETuple (List.map (evaluate_expr ctx) es)) e
+  | ETupleAccess { e = e1; index; size } -> (
+    match evaluate_expr ctx e1 with
+    | ETuple es, _ when List.length es = size -> List.nth es index
+    | e ->
+      Errors.raise_spanned_error (Expr.pos e)
+        "The expression %a was expected to be a tuple of size %d (should not \
+         happen if the term was well-typed)"
+        (Expr.format ctx ~debug:true)
+        e size)
   | EInj { e = e1; name; cons } ->
     let e1' = evaluate_expr ctx e1 in
     if is_empty_error e then Marked.same_mark_as (ELit LEmptyError) e

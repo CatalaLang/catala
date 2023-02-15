@@ -370,54 +370,62 @@ let rec generate_verification_conditions_scope_body_expr
     in
     new_ctx, vc_list @ new_vcs, assert_list @ new_asserts
 
-let rec generate_verification_conditions_scopes
+let generate_verification_conditions_code_items
     (decl_ctx : decl_ctx)
-    (scopes : 'm expr scopes)
+    (code_items : 'm expr code_item_list)
     (s : ScopeName.t option) : verification_condition list =
-  match scopes with
-  | Nil -> []
-  | ScopeDef scope_def ->
-    let is_selected_scope =
-      match s with
-      | Some s when ScopeName.compare s scope_def.scope_name = 0 -> true
-      | None -> true
-      | _ -> false
-    in
-    let vcs =
-      if is_selected_scope then
-        let _scope_input_var, scope_body_expr =
-          Bindlib.unbind scope_def.scope_body.scope_body_expr
+  Scope.fold_left
+    ~f:(fun vcs item _ ->
+      match item with
+      | Topdef _ -> []
+      | ScopeDef (name, body) ->
+        let is_selected_scope =
+          match s with
+          | Some s when ScopeName.equal s name -> true
+          | None -> true
+          | _ -> false
         in
-        let ctx =
-          {
-            current_scope_name = scope_def.scope_name;
-            decl = decl_ctx;
-            input_vars = [];
-            scope_variables_typs =
-              Var.Map.empty
-              (* We don't need to add the typ of the scope input var here
-                 because it will never appear in an expression for which we
-                 generate a verification conditions (the big struct is
-                 destructured with a series of let bindings just after. )*);
-          }
+        let new_vcs =
+          if is_selected_scope then
+            let _scope_input_var, scope_body_expr =
+              Bindlib.unbind body.scope_body_expr
+            in
+            let ctx =
+              {
+                current_scope_name = name;
+                decl = decl_ctx;
+                input_vars = [];
+                scope_variables_typs =
+                  Var.Map.empty
+                  (* We don't need to add the typ of the scope input var here
+                     because it will never appear in an expression for which we
+                     generate a verification conditions (the big struct is
+                     destructured with a series of let bindings just after. )*);
+              }
+            in
+            let _, vcs, asserts =
+              generate_verification_conditions_scope_body_expr ctx
+                scope_body_expr
+            in
+            let combined_assert =
+              conjunction_exprs asserts
+                (Typed
+                   {
+                     pos = Pos.no_pos;
+                     ty = Marked.mark Pos.no_pos (TLit TBool);
+                   })
+            in
+            List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
+          else []
         in
-        let _, vcs, asserts =
-          generate_verification_conditions_scope_body_expr ctx scope_body_expr
-        in
-        let combined_assert =
-          conjunction_exprs asserts
-            (Typed
-               { pos = Pos.no_pos; ty = Marked.mark Pos.no_pos (TLit TBool) })
-        in
-        List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
-      else []
-    in
-    let _scope_var, next = Bindlib.unbind scope_def.scope_next in
-    generate_verification_conditions_scopes decl_ctx next s @ vcs
+        new_vcs @ vcs)
+    ~init:[] code_items
 
 let generate_verification_conditions (p : 'm program) (s : ScopeName.t option) :
     verification_condition list =
-  let vcs = generate_verification_conditions_scopes p.decl_ctx p.scopes s in
+  let vcs =
+    generate_verification_conditions_code_items p.decl_ctx p.code_items s
+  in
   (* We sort this list by scope name and then variable name to ensure consistent
      output for testing*)
   List.sort

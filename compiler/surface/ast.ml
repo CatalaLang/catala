@@ -433,7 +433,7 @@ and naked_expression =
   | CollectionOp of collection_op * expression
   | MemCollection of expression * expression
   | TestMatchCase of expression * match_case_pattern Marked.pos
-  | FunCall of expression * expression
+  | FunCall of expression * expression list
   | ScopeCall of
       (path * uident Marked.pos) Marked.pos
       * (lident Marked.pos * expression) list
@@ -737,17 +737,46 @@ type scope_decl = {
         name = "scope_decl_iter";
       }]
 
+type top_def = {
+  topdef_name : lident Marked.pos;
+  topdef_args : (lident Marked.pos * base_typ_data Marked.pos) list;
+      (** Empty list if this is not a function *)
+  topdef_type : base_typ_data Marked.pos;
+      (** Output type if this is a function *)
+  topdef_expr : expression;
+}
+[@@deriving
+  visitors
+    {
+      variety = "map";
+      ancestors = ["lident_map"; "typ_map"; "expression_map"];
+      name = "top_def_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = ["lident_iter"; "typ_iter"; "expression_iter"];
+        name = "top_def_iter";
+      }]
+
 type code_item =
   | ScopeUse of scope_use
   | ScopeDecl of scope_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
+  | Topdef of top_def
 [@@deriving
   visitors
     {
       variety = "map";
       ancestors =
-        ["scope_decl_map"; "enum_decl_map"; "struct_decl_map"; "scope_use_map"];
+        [
+          "scope_decl_map";
+          "enum_decl_map";
+          "struct_decl_map";
+          "scope_use_map";
+          "top_def_map";
+        ];
       name = "code_item_map";
     },
     visitors
@@ -759,6 +788,7 @@ type code_item =
             "enum_decl_iter";
             "struct_decl_iter";
             "scope_use_iter";
+            "top_def_iter";
           ];
         name = "code_item_iter";
       }]

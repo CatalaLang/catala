@@ -276,6 +276,7 @@ module Env = struct
     vars : ('e, unionfind_typ) Var.Map.t;
     scope_vars : A.typ A.ScopeVar.Map.t;
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
+    toplevel_vars : A.typ A.TopdefName.Map.t;
   }
 
   let empty =
@@ -283,10 +284,12 @@ module Env = struct
       vars = Var.Map.empty;
       scope_vars = A.ScopeVar.Map.empty;
       scopes = A.ScopeName.Map.empty;
+      toplevel_vars = A.TopdefName.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
   let get_scope_var t sv = A.ScopeVar.Map.find_opt sv t.scope_vars
+  let get_toplevel_var t v = A.TopdefName.Map.find_opt v t.toplevel_vars
 
   let get_subscope_out_var t scope var =
     Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
@@ -300,6 +303,9 @@ module Env = struct
 
   let add_scope scope_name ~vars t =
     { t with scopes = A.ScopeName.Map.add scope_name vars t.scopes }
+
+  let add_toplevel_var v typ t =
+    { t with toplevel_vars = A.TopdefName.Map.add v typ t.toplevel_vars }
 
   let open_scope scope_name t =
     let scope_vars =
@@ -361,6 +367,7 @@ and typecheck_expr_top_down :
         Env.get_scope_var env (Marked.unmark v)
       | SubScopeVar (scope, _, v) ->
         Env.get_subscope_out_var env scope (Marked.unmark v)
+      | ToplevelVar v -> Env.get_toplevel_var env (Marked.unmark v)
     in
     let ty =
       match ty_opt with
@@ -777,7 +784,9 @@ let scope_body ctx env body =
   let var, e = Bindlib.unbind body.A.scope_body_expr in
   let env = Env.add var ty_in env in
   let e' = scope_body_expr ctx env ty_out e in
-  ( Bindlib.bind_var (Var.translate var) e',
+  ( Bindlib.box_apply
+      (fun scope_body_expr -> { body with scope_body_expr })
+      (Bindlib.bind_var (Var.translate var) e'),
     UnionFind.make
       (Marked.mark
          (get_pos body.A.scope_body_output_struct)
@@ -785,24 +794,29 @@ let scope_body ctx env body =
 
 let rec scopes ctx env = function
   | A.Nil -> Bindlib.box A.Nil
-  | A.ScopeDef def ->
-    let body_e, ty_scope = scope_body ctx env def.scope_body in
-    let scope_next =
-      let scope_var, next = Bindlib.unbind def.scope_next in
-      let env = Env.add scope_var ty_scope env in
-      let next' = scopes ctx env next in
-      Bindlib.bind_var (Var.translate scope_var) next'
+  | A.Cons (item, next_bind) ->
+    let var, next = Bindlib.unbind next_bind in
+    let env, def =
+      match item with
+      | A.ScopeDef (name, body) ->
+        let body_e, ty_scope = scope_body ctx env body in
+        ( Env.add var ty_scope env,
+          Bindlib.box_apply (fun body -> A.ScopeDef (name, body)) body_e )
+      | A.Topdef (name, typ, e) ->
+        let e' = expr_raw ctx ~env ~typ e in
+        let uf = (Marked.get_mark e').uf in
+        let e' = Expr.map_marks ~f:get_ty_mark e' in
+        ( Env.add var uf env,
+          Bindlib.box_apply
+            (fun e -> A.Topdef (name, typ, e))
+            (Expr.Box.lift e') )
     in
-    Bindlib.box_apply2
-      (fun scope_body_expr scope_next ->
-        A.ScopeDef
-          {
-            def with
-            scope_body = { def.scope_body with scope_body_expr };
-            scope_next;
-          })
-      body_e scope_next
+    let next' = scopes ctx env next in
+    let next_bind' = Bindlib.bind_var (Var.translate var) next' in
+    Bindlib.box_apply2 (fun item next -> A.Cons (item, next)) def next_bind'
 
 let program prg =
-  let scopes = Bindlib.unbox (scopes prg.A.decl_ctx Env.empty prg.A.scopes) in
-  { prg with scopes }
+  let code_items =
+    Bindlib.unbox (scopes prg.A.decl_ctx Env.empty prg.A.code_items)
+  in
+  { prg with code_items }

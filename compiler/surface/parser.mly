@@ -38,6 +38,7 @@ end>
 %left PLUS MINUS PLUSPLUS
 %left MULT DIV
 %right apply OF CONTAINS FOR SUCH WITH
+%right COMMA
 %right unop_expr
 %right CONTENT
 %nonassoc UIDENT
@@ -181,9 +182,9 @@ let naked_expression ==
 | e = struct_or_enum_inject ; <>
 | e1 = expression ;
   OF ;
-  e2 = expression ; {
-  FunCall (e1, e2)
-} %prec apply
+  args = funcall_args ; {
+  FunCall (e1, args)
+}
 | OUTPUT ; OF ;
   c = addpos(quident) ;
   fields = option(scope_call_args) ; {
@@ -303,7 +304,7 @@ let literal :=
     money_amount_cents = cents;
   }
 }
-| BAR ; d = DATE_LITERAL ; BAR ; {
+| d = DATE_LITERAL ; {
   let (y,m,d) = d in
   LDate {
     literal_date_year = y;
@@ -321,6 +322,10 @@ let scope_call_args ==
   RBRACE ; {
   fields
 }
+
+let funcall_args :=
+| e = expression; { [e] } %prec apply
+| e = expression; COMMA; el = funcall_args ; { e :: el }
 
 let minmax ==
 | MAXIMUM ; { true }
@@ -596,6 +601,13 @@ let enum_decl_line :=
   }
 }
 
+let var_content ==
+| ~ = lident ; CONTENT ; ty = addpos(typ) ; <>
+let depends_stance ==
+| DEPENDS ; args = separated_nonempty_list(COMMA,var_content) ; <>
+| DEPENDS ; LPAREN ; args = separated_nonempty_list(COMMA,var_content) ; RPAREN ; <>
+| { [] }
+
 let code_item :=
 | SCOPE ; c = uident ;
   e = option(preceded(UNDER_CONDITION,expression)) ;
@@ -625,6 +637,17 @@ let code_item :=
   EnumDecl {
     enum_decl_name = c;
     enum_decl_cases = cases;
+  }
+}
+| DECLARATION ; name = lident ;
+  CONTENT ; ty = addpos(typ) ;
+  args = depends_stance ;
+  DEFINED_AS ; e = expression ; {
+  Topdef {
+    topdef_name = name;
+    topdef_args = args;
+    topdef_type = ty;
+    topdef_expr = e;
   }
 }
 

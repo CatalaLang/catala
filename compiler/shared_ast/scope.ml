@@ -50,53 +50,72 @@ let map_exprs_in_lets :
       Bindlib.box_apply (fun res -> Result res) (Expr.Box.lift (f res)))
     scope_body_expr
 
-let rec fold_left ~f ~init scopes =
-  match scopes with
+let rec fold_left ~f ~init = function
   | Nil -> init
-  | ScopeDef scope_def ->
-    let var, next = Bindlib.unbind scope_def.scope_next in
-    fold_left ~f ~init:(f init scope_def var) next
+  | Cons (item, next_bind) ->
+    let var, next = Bindlib.unbind next_bind in
+    fold_left ~f ~init:(f init item var) next
 
-let rec fold_right ~f ~init scopes =
-  match scopes with
+let rec fold_right ~f ~init = function
   | Nil -> init
-  | ScopeDef scope_def ->
-    let var_next, next = Bindlib.unbind scope_def.scope_next in
+  | Cons (item, next_bind) ->
+    let var_next, next = Bindlib.unbind next_bind in
     let result_next = fold_right ~f ~init next in
-    f scope_def var_next result_next
+    f item var_next result_next
 
-let map ~f scopes =
-  fold_right
-    ~f:(fun scope_def var_next acc ->
-      let new_def = f scope_def in
-      let new_next = Bindlib.bind_var var_next acc in
+let rec map ~f ~varf = function
+  | Nil -> Bindlib.box Nil
+  | Cons (item, next_bind) ->
+    let item = f item in
+    let next_bind =
+      let var, next = Bindlib.unbind next_bind in
+      Bindlib.bind_var (varf var) (map ~f ~varf next)
+    in
+    Bindlib.box_apply2
+      (fun item next_bind -> Cons (item, next_bind))
+      item next_bind
+
+let rec map_ctx ~f ~varf ctx = function
+  | Nil -> Bindlib.box Nil
+  | Cons (item, next_bind) ->
+    let ctx, item = f ctx item in
+    let next_bind =
+      let var, next = Bindlib.unbind next_bind in
+      Bindlib.bind_var (varf var) (map_ctx ~f ~varf ctx next)
+    in
+    Bindlib.box_apply2
+      (fun item next_bind -> Cons (item, next_bind))
+      item next_bind
+
+let rec fold_map ~f ~varf ctx = function
+  | Nil -> ctx, Bindlib.box Nil
+  | Cons (item, next_bind) ->
+    let var, next = Bindlib.unbind next_bind in
+    let ctx, item = f ctx var item in
+    let ctx, next = fold_map ~f ~varf ctx next in
+    let next_bind = Bindlib.bind_var (varf var) next in
+    ( ctx,
       Bindlib.box_apply2
-        (fun new_def new_next ->
-          ScopeDef { new_def with scope_next = new_next })
-        new_def new_next)
-    ~init:(Bindlib.box Nil) scopes
+        (fun item next_bind -> Cons (item, next_bind))
+        item next_bind )
 
 let map_exprs ~f ~varf scopes =
-  fold_right
-    ~f:(fun scope_def var_next acc ->
-      let scope_input_var, scope_lets =
-        Bindlib.unbind scope_def.scope_body.scope_body_expr
-      in
+  let f = function
+    | ScopeDef (name, body) ->
+      let scope_input_var, scope_lets = Bindlib.unbind body.scope_body_expr in
       let new_body_expr = map_exprs_in_lets ~f ~varf scope_lets in
       let new_body_expr =
         Bindlib.bind_var (varf scope_input_var) new_body_expr
       in
-      let new_next = Bindlib.bind_var (varf var_next) acc in
-      Bindlib.box_apply2
-        (fun scope_body_expr scope_next ->
-          ScopeDef
-            {
-              scope_def with
-              scope_body = { scope_def.scope_body with scope_body_expr };
-              scope_next;
-            })
-        new_body_expr new_next)
-    ~init:(Bindlib.box Nil) scopes
+      Bindlib.box_apply
+        (fun scope_body_expr -> ScopeDef (name, { body with scope_body_expr }))
+        new_body_expr
+    | Topdef (name, typ, expr) ->
+      Bindlib.box_apply
+        (fun e -> Topdef (name, typ, e))
+        (Expr.Box.lift (f expr))
+  in
+  map ~f ~varf scopes
 
 (* TODO: compute the expected body expr arrow type manually instead of [TAny]
    for double-checking types ? *)
@@ -164,7 +183,7 @@ let format
 
 let rec unfold
     (ctx : decl_ctx)
-    (s : 'e scopes)
+    (s : 'e code_item_list)
     (mark : 'm mark)
     (main_scope : 'expr scope_name_or_var) : 'e boxed =
   match s with
@@ -172,23 +191,31 @@ let rec unfold
     match main_scope with
     | ScopeVar v -> Expr.make_var v mark
     | ScopeName _ -> failwith "should not happen")
-  | ScopeDef { scope_name; scope_body; scope_next } ->
-    let scope_var, scope_next = Bindlib.unbind scope_next in
-    let scope_pos = Marked.get_mark (ScopeName.get_info scope_name) in
-    let scope_body_mark = get_body_mark scope_body in
-    let main_scope =
-      match main_scope with
-      | ScopeVar v -> ScopeVar v
-      | ScopeName n ->
-        if ScopeName.compare n scope_name = 0 then ScopeVar scope_var
-        else ScopeName n
+  | Cons (item, next_bind) ->
+    let var, next = Bindlib.unbind next_bind in
+    let typ, expr, pos, is_main =
+      match item with
+      | ScopeDef (name, body) ->
+        let pos = Marked.get_mark (ScopeName.get_info name) in
+        let body_mark = get_body_mark body in
+        let is_main =
+          match main_scope with
+          | ScopeName n -> ScopeName.equal n name
+          | ScopeVar _ -> false
+        in
+        let typ =
+          build_typ_from_sig ctx body.scope_body_input_struct
+            body.scope_body_output_struct pos
+        in
+        let expr = to_expr ctx body body_mark in
+        typ, expr, pos, is_main
+      | Topdef (name, typ, expr) ->
+        let pos = Marked.get_mark (TopdefName.get_info name) in
+        typ, Expr.rebox expr, pos, false
     in
-    Expr.make_let_in scope_var
-      (build_typ_from_sig ctx scope_body.scope_body_input_struct
-         scope_body.scope_body_output_struct scope_pos)
-      (to_expr ctx scope_body scope_body_mark)
-      (unfold ctx scope_next mark main_scope)
-      scope_pos
+    let main_scope = if is_main then ScopeVar var else main_scope in
+    let next = unfold ctx next mark main_scope in
+    Expr.make_let_in var typ expr next pos
 
 let rec free_vars_body_expr scope_lets =
   match scope_lets with
@@ -198,14 +225,15 @@ let rec free_vars_body_expr scope_lets =
     Var.Set.union (Expr.free_vars e)
       (Var.Set.remove v (free_vars_body_expr body))
 
-let free_vars_body scope_body =
-  let { scope_body_expr = binder; _ } = scope_body in
-  let v, body = Bindlib.unbind binder in
-  Var.Set.remove v (free_vars_body_expr body)
+let free_vars_item = function
+  | ScopeDef (_, { scope_body_expr; _ }) ->
+    let v, body = Bindlib.unbind scope_body_expr in
+    Var.Set.remove v (free_vars_body_expr body)
+  | Topdef (_, _, expr) -> Expr.free_vars expr
 
 let rec free_vars scopes =
   match scopes with
   | Nil -> Var.Set.empty
-  | ScopeDef { scope_body = body; scope_next = next; _ } ->
-    let v, next = Bindlib.unbind next in
-    Var.Set.union (Var.Set.remove v (free_vars next)) (free_vars_body body)
+  | Cons (item, next_bind) ->
+    let v, next = Bindlib.unbind next_bind in
+    Var.Set.union (Var.Set.remove v (free_vars next)) (free_vars_item item)

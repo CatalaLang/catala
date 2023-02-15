@@ -48,14 +48,15 @@ module To_json = struct
     Format.fprintf fmt "%s" s
 
   let rec find_scope_def (target_name : string) :
-      'm expr scopes -> 'm expr scope_def option = function
+      'm expr code_item_list -> (ScopeName.t * 'm expr scope_body) option =
+    function
     | Nil -> None
-    | ScopeDef scope_def ->
-      let name = Format.asprintf "%a" ScopeName.format_t scope_def.scope_name in
-      if name = target_name then Some scope_def
-      else
-        let _, next_scope = Bindlib.unbind scope_def.scope_next in
-        find_scope_def target_name next_scope
+    | Cons (ScopeDef (name, body), _)
+      when String.equal target_name (Marked.unmark (ScopeName.get_info name)) ->
+      Some (name, body)
+    | Cons (_, next_bind) ->
+      let _, next_scope = Bindlib.unbind next_bind in
+      find_scope_def target_name next_scope
 
   let fmt_tlit fmt (tlit : typ_lit) =
     match tlit with
@@ -101,7 +102,7 @@ module To_json = struct
   let fmt_definitions
       (ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scope_def : 'e scope_def) =
+      ((_scope_name, scope_body) : ScopeName.t * 'e scope_body) =
     let get_name t =
       match Marked.unmark t with
       | TStruct sname -> Format.asprintf "%a" format_struct_name sname
@@ -198,13 +199,13 @@ module To_json = struct
                format_enum_name ename fmt_enum_properties ename
            | _ -> ()))
       (collect_required_type_defs_from_scope_input
-         scope_def.scope_body.scope_body_input_struct)
+         scope_body.scope_body_input_struct)
 
   let format_program
       (fmt : Format.formatter)
       (scope : string)
       (prgm : 'm Lcalc.Ast.program) =
-    match find_scope_def scope prgm.scopes with
+    match find_scope_def scope prgm.code_items with
     | None -> Cli.error_print "Internal error: scope '%s' not found." scope
     | Some scope_def ->
       Cli.call_unstyled (fun _ ->
@@ -220,7 +221,7 @@ module To_json = struct
             (fmt_definitions prgm.decl_ctx)
             scope_def
             (fmt_struct_properties prgm.decl_ctx)
-            scope_def.scope_body.scope_body_input_struct)
+            (snd scope_def).scope_body_input_struct)
 end
 
 let apply

@@ -237,14 +237,13 @@ let driver source_file (options : Cli.options) : int =
               ( scope_uid,
                 Option.get
                   (Shared_ast.Scope.fold_left ~init:None
-                     ~f:(fun acc scope_def _ ->
-                       if
-                         Shared_ast.ScopeName.compare scope_def.scope_name
-                           scope_uid
-                         = 0
-                       then Some scope_def.scope_body
-                       else acc)
-                     prgm.scopes) )
+                     ~f:(fun acc def _ ->
+                       match def with
+                       | ScopeDef (name, body)
+                         when Shared_ast.ScopeName.equal name scope_uid ->
+                         Some body
+                       | _ -> acc)
+                     prgm.code_items) )
           else
             let prgrm_dcalc_expr =
               Shared_ast.Expr.unbox (Shared_ast.Program.to_expr prgm scope_uid)
@@ -357,7 +356,7 @@ let driver source_file (options : Cli.options) : int =
                 p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
                   prgm type_ordering
               | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
-                let prgm = Scalc.Compile_from_lambda.translate_program prgm in
+                let prgm = Scalc.From_lambda.translate_program prgm in
                 match backend with
                 | `Scalc ->
                   let _output_file, with_output = get_output_format () in
@@ -365,19 +364,15 @@ let driver source_file (options : Cli.options) : int =
                   @@ fun fmt ->
                   if Option.is_some options.ex_scope then
                     Format.fprintf fmt "%a\n"
-                      (Scalc.Print.format_scope ~debug:options.debug
+                      (Scalc.Print.format_item ~debug:options.debug
                          prgm.decl_ctx)
                       (List.find
-                         (fun body ->
-                           body.Scalc.Ast.scope_body_name = scope_uid)
-                         prgm.scopes)
-                  else
-                    Format.fprintf fmt "%a\n"
-                      (Format.pp_print_list
-                         ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-                         (fun fmt scope ->
-                           (Scalc.Print.format_scope prgm.decl_ctx) fmt scope))
-                      prgm.scopes
+                         (function
+                           | Scalc.Ast.SScope { scope_body_name; _ } ->
+                             scope_body_name = scope_uid
+                           | _ -> false)
+                         prgm.code_items)
+                  else Scalc.Print.format_program prgm.decl_ctx fmt prgm
                 | `Python ->
                   let output_file, with_output =
                     get_output_format ~ext:".py" ()

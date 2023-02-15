@@ -71,6 +71,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
          | WholeVar _ -> failwith "should not happen"
          | States states -> Marked.same_mark_as (List.assoc state states) s_var))
       m
+  | ELocation (ToplevelVar v) -> Expr.elocation (ToplevelVar v) m
   | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
   | EStruct { name; fields } ->
     Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
@@ -93,6 +94,9 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
           name
     in
     Expr.estructaccess e' field name m
+  | ETuple es -> Expr.etuple (List.map (translate_expr ctx) es) m
+  | ETupleAccess { e; index; size } ->
+    Expr.etupleaccess (translate_expr ctx e) index size m
   | EInj { e; cons; name } -> Expr.einj (translate_expr ctx e) cons name m
   | EMatch { e; name; cases } ->
     Expr.ematch (translate_expr ctx e) name
@@ -724,6 +728,10 @@ let translate_program (pgrm : Desugared.Ast.program) : untyped Ast.program =
       pgrm.Desugared.Ast.program_ctx.ctx_scopes
   in
   {
+    Ast.program_topdefs =
+      TopdefName.Map.map
+        (fun (e, ty) -> Expr.unbox (translate_expr ctx e), ty)
+        pgrm.program_topdefs;
     Ast.program_scopes =
       ScopeName.Map.map (translate_scope ctx) pgrm.program_scopes;
     program_ctx = { pgrm.program_ctx with ctx_scopes };

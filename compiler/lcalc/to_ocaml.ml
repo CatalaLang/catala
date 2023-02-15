@@ -504,24 +504,27 @@ let rec format_scope_body_expr
       (format_scope_body_expr ctx)
       scope_let_next
 
-let rec format_scopes
+let format_code_items
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (scopes : 'm Ast.expr scopes) : unit =
-  match scopes with
-  | Nil -> ()
-  | ScopeDef scope_def ->
-    let scope_input_var, scope_body_expr =
-      Bindlib.unbind scope_def.scope_body.scope_body_expr
-    in
-    let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
-    Format.fprintf fmt "@\n@\n@[<hov 2>let %a (%a: %a.t) : %a.t =@\n%a@]%a"
-      format_var scope_var format_var scope_input_var format_to_module_name
-      (`Sname scope_def.scope_body.scope_body_input_struct)
-      format_to_module_name
-      (`Sname scope_def.scope_body.scope_body_output_struct)
-      (format_scope_body_expr ctx)
-      scope_body_expr (format_scopes ctx) scope_next
+    (code_items : 'm Ast.expr code_item_list) : unit =
+  Scope.fold_left
+    ~f:(fun () item var ->
+      match item with
+      | Topdef (_, typ, e) ->
+        Format.fprintf fmt "@\n@\n@[<hov 2>let %a : %a =@\n%a@]" format_var var
+          format_typ typ (format_expr ctx) e
+      | ScopeDef (_, body) ->
+        let scope_input_var, scope_body_expr =
+          Bindlib.unbind body.scope_body_expr
+        in
+        Format.fprintf fmt "@\n@\n@[<hov 2>let %a (%a: %a.t) : %a.t =@\n%a@]"
+          format_var var format_var scope_input_var format_to_module_name
+          (`Sname body.scope_body_input_struct) format_to_module_name
+          (`Sname body.scope_body_output_struct)
+          (format_scope_body_expr ctx)
+          scope_body_expr)
+    ~init:() code_items
 
 let format_program
     (fmt : Format.formatter)
@@ -538,5 +541,6 @@ let format_program
          @\n\
          %a%a@\n\
          @?"
-        (format_ctx type_ordering) p.decl_ctx (format_scopes p.decl_ctx)
-        p.scopes)
+        (format_ctx type_ordering) p.decl_ctx
+        (format_code_items p.decl_ctx)
+        p.code_items)
