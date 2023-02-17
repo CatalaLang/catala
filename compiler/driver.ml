@@ -356,7 +356,7 @@ let driver source_file (options : Cli.options) : int =
                 p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
                   prgm type_ordering
               | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
-                let prgm = Scalc.From_lambda.translate_program prgm in
+                let prgm = Scalc.From_lcalc.translate_program prgm in
                 match backend with
                 | `Scalc ->
                   let _output_file, with_output = get_output_format () in
