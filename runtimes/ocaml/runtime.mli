@@ -19,11 +19,11 @@
 
 (** {1 Types} *)
 
-type money
-type integer
-type decimal
-type date
-type duration
+type money [@@deriving yojson]
+type integer [@@deriving yojson]
+type decimal [@@deriving yojson]
+type date [@@deriving yojson]
+type duration [@@deriving yojson]
 
 type source_position = {
   filename : string;
