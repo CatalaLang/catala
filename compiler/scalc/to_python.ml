@@ -601,7 +601,7 @@ let format_program
         (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt ->
            function
            | SVar { var; expr } ->
-             Format.fprintf fmt "@[<hv 4>%a = (@,%a@,@])@," format_var_name var
+             Format.fprintf fmt "@[<hv 4>%a = (@,%a@,@])@," format_var var
                (format_expression p.decl_ctx)
                expr
            | SFunc { var; func }
