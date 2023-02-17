@@ -277,12 +277,9 @@ let driver source_file (options : Cli.options) : int =
           | `DcalcInvariants ->
             Cli.debug_format "Checking invariants";
             let open Dcalc.Invariant in
-            check_invariant ~name:"default_no_arrow" invariant_default_no_arrow
-              prgm;
-            check_invariant ~name:"no_partial_evaluation"
-              invariant_no_partial_evaluation prgm;
-            check_invariant ~name:"no_return_a_function"
-              invariant_no_return_a_function prgm;
+            check_invariant (invariant_default_no_arrow ()) prgm;
+            check_invariant (invariant_no_partial_evaluation ()) prgm;
+            check_invariant (invariant_no_return_a_function ()) prgm;
             Cli.debug_format "Finished checking invariants"
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
