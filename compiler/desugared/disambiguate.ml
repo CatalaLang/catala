@@ -29,7 +29,9 @@ let rule ctx env rule =
   let env =
     match rule.rule_parameter with
     | None -> env
-    | Some (v, ty) -> Typing.Env.add_var v ty env
+    | Some l ->
+      let vs, tys = List.split l in
+      ListLabels.fold_right2 vs tys ~init:env ~f:Typing.Env.add_var
   in
   (* Note: we could use the known rule type here to direct typing. We choose not
      to because it shouldn't be needed for disambiguation, and we prefer to

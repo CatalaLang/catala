@@ -103,7 +103,7 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr boxed;
   rule_cons : expr boxed;
-  rule_parameter : (expr Var.t * typ) option;
+  rule_parameter : (expr Var.t * typ) list option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -124,45 +124,46 @@ module Rule = struct
         let c2 = Expr.unbox r2.rule_cons in
         Expr.compare c1 c2
       | n -> n)
-    | Some (v1, t1), Some (v2, t2) -> (
-      match Type.compare t1 t2 with
-      | 0 -> (
-        let open Bindlib in
-        let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_just)) in
-        let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_just)) in
-        let _, j1, j2 = unbind2 b1 b2 in
-        match Expr.compare j1 j2 with
-        | 0 ->
-          let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_cons)) in
-          let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_cons)) in
-          let _, c1, c2 = unbind2 b1 b2 in
-          Expr.compare c1 c2
-        | n -> n)
-      | n -> n)
+    | Some l1, Some l2 ->
+      ListLabels.compare l1 l2 ~cmp:(fun (v1, t1) (v2, t2) ->
+          match Type.compare t1 t2 with
+          | 0 -> (
+            let open Bindlib in
+            let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_just)) in
+            let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_just)) in
+            let _, j1, j2 = unbind2 b1 b2 in
+            match Expr.compare j1 j2 with
+            | 0 ->
+              let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_cons)) in
+              let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_cons)) in
+              let _, c1, c2 = unbind2 b1 b2 in
+              Expr.compare c1 c2
+            | n -> n)
+          | n -> n)
     | None, Some _ -> -1
     | Some _, None -> 1
 end
 
-let empty_rule (pos : Pos.t) (have_parameter : typ option) : rule =
+let empty_rule (pos : Pos.t) (have_parameter : typ list option) : rule =
   {
     rule_just = Expr.box (ELit (LBool false), Untyped { pos });
     rule_cons = Expr.box (ELit LEmptyError, Untyped { pos });
     rule_parameter =
       (match have_parameter with
-      | Some typ -> Some (Var.make "dummy", typ)
+      | Some typs -> Some (List.map (fun typ -> Var.make "dummy", typ) typs)
       | None -> None);
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("empty", pos);
     rule_label = Unlabeled;
   }
 
-let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule =
+let always_false_rule (pos : Pos.t) (have_parameter : typ list option) : rule =
   {
     rule_just = Expr.box (ELit (LBool true), Untyped { pos });
     rule_cons = Expr.box (ELit (LBool false), Untyped { pos });
     rule_parameter =
       (match have_parameter with
-      | Some typ -> Some (Var.make "dummy", typ)
+      | Some typs -> Some (List.map (fun typ -> Var.make "dummy", typ) typs)
       | None -> None);
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("always_false", pos);
