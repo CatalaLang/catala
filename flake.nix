@@ -19,14 +19,17 @@
           };
           defaultPackage = packages.catala;
           devShell = pkgs.mkShell {
-            inputsFrom = [packages.catala];
+            inputsFrom = [ packages.catala ];
             buildInputs = [
               pkgs.inotify-tools
               ocamlPackages.merlin
-              pkgs.ocamlformat
+              pkgs.ocamlformat_0_21_0
               ocamlPackages.ocp-indent
               ocamlPackages.utop
+              ocamlPackages.odoc
               ocamlPackages.ocaml-lsp
+              pkgs.groff
+              pkgs.obelisk
             ];
           };
         }
