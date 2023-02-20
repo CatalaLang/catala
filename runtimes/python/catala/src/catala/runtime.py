@@ -368,22 +368,22 @@ class EmptyError(Exception):
 
 class AssertionFailed(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 class ConflictError(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 class NoValueProvided(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 class AssertionFailure(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 # ============================
