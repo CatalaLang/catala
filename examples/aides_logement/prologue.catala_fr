@@ -619,6 +619,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
 
 ```catala-metadata
 déclaration champ d'application CalculÉquivalenceLoyerMinimale:
+  entrée date_courante contenu date
   entrée ressources_ménage_arrondies contenu argent
   entrée condition_2_du_832_25 contenu booléen
   entrée n_nombre_parts_d832_25 contenu décimal
@@ -682,6 +683,8 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
 
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition contributions_sociales.date_courante égal à date_courante
+  définition calcul_équivalence_loyer_minimale.date_courante égal à
+    date_courante
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
   # pour lesquelles les textes en vigueur n'ont pas été formalisés.
   assertion date_courante >= |2020-10-01|
@@ -755,6 +758,8 @@ déclaration champ d'application
 
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition contributions_sociales.date_courante égal à date_courante
+  définition calcul_équivalence_loyer_minimale.date_courante égal à
+    date_courante
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
   # pour lesquelles les textes en vigueur n'ont pas été formalisés.
   assertion date_courante >= |2020-10-01|
@@ -950,6 +955,8 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
   définition contributions_sociales.date_courante égal à date_courante
+  définition calcul_équivalence_loyer_minimale.date_courante égal à
+    date_courante
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
   # pour lesquelles les textes en vigueur n'ont pas été formalisés.
   assertion date_courante >= |2021-10-01|
@@ -1016,6 +1023,8 @@ champ d'application CalculAllocationLogementFoyer:
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
   définition contributions_sociales.date_courante égal à date_courante
+  définition calcul_équivalence_loyer_minimale.date_courante égal à
+    date_courante
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
   # pour lesquelles les textes en vigueur n'ont pas été formalisés.
   assertion date_courante >= |2021-10-01|

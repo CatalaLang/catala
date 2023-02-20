@@ -2598,7 +2598,8 @@ a) Au premier alinéa :
 6° 48,00 % pour la tranche de ressources supérieure à 6 331,29 euros ;
 
 ```catala
-champ d'application CalculÉquivalenceLoyerMinimale:
+champ d'application CalculÉquivalenceLoyerMinimale
+  sous condition date_courante > |2019-10-01|:
   définition tranches_revenus_d832_26 égal à [
     TrancheRevenu {
       -- haut: LimiteTranche.Revenu contenu 1948,10€
@@ -2646,7 +2647,8 @@ b) Au deuxième alinéa :
 5° 32,80 % pour la tranche de ressources supérieure à 4 095,05 euros.
 
 ```catala
-champ d'application CalculÉquivalenceLoyerMinimale:
+champ d'application CalculÉquivalenceLoyerMinimale
+  sous condition date_courante > |2019-10-01|:
   exception définition tranches_revenus_d832_26 sous condition
     condition_2_du_832_25
   conséquence égal à [
@@ -2682,7 +2684,8 @@ II.-Les montants forfaitaires mentionnés aux premier et deuxième alinéas sont
 fixés respectivement à 45,57 et 76,32.
 
 ```catala
-champ d'application CalculÉquivalenceLoyerMinimale:
+champ d'application CalculÉquivalenceLoyerMinimale
+  sous condition date_courante > |2019-10-01|:
   définition montant_forfaitaire_d832_26 égal à
     si condition_2_du_832_25 alors 76,32 € sinon 45,57 €
 ```
@@ -2702,6 +2705,10 @@ dues à compter du 1 er juillet 2022.
 # garder que la version corrigée pour simplicité et parceque DGALN/DHUP/FE4
 # nous a confirmé que la CAF a toujours utilisé une version "corrigée" de
 # cet article.
+# La précédente version erronnée de cet article était valable pour les
+# prestations à partir du 1er octobre 2019 donc nous retenons cette date de
+# début de validité pour les calculs pour la version corrigée (qui ne change
+# rien des montants).
 ```
 
 ### Article 32 | LEGIARTI000039160687
