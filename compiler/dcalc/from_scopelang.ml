@@ -352,33 +352,40 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
                  field sc_sig.scope_sig_output_struct (Expr.with_ty m typ)
              in
              match Marked.unmark typ with
-             | TArrow (t_in, t_out) ->
+             | TArrow (ts_in, t_out) ->
                (* Here the output scope struct field is a function so we
                   eta-expand it and insert logging instructions. Invariant:
                   works because user-defined functions in scope have only one
                   argument. *)
-               let param_var = Var.make "param" in
+               let params_vars =
+                 ListLabels.mapi ts_in ~f:(fun i _ ->
+                     Var.make ("param" ^ string_of_int i))
+               in
                let f_markings =
                  [ScopeName.get_info scope; StructField.get_info field]
                in
                Expr.make_abs
-                 (Array.of_list [param_var])
+                 (Array.of_list params_vars)
                  (tag_with_log_entry
                     (tag_with_log_entry
                        (Expr.eapp
                           (tag_with_log_entry original_field_expr BeginCall
                              f_markings)
-                          [
-                            tag_with_log_entry
-                              (Expr.make_var param_var (Expr.with_ty m t_in))
-                              (VarDef (Marked.unmark t_in))
-                              (f_markings @ [Marked.mark (Expr.pos e) "input"]);
-                          ]
+                          (ListLabels.mapi (List.combine params_vars ts_in)
+                             ~f:(fun i (param_var, t_in) ->
+                               tag_with_log_entry
+                                 (Expr.make_var param_var (Expr.with_ty m t_in))
+                                 (VarDef (Marked.unmark t_in))
+                                 (f_markings
+                                 @ [
+                                     Marked.mark (Expr.pos e)
+                                       ("input" ^ string_of_int i);
+                                   ])))
                           (Expr.with_ty m t_out))
                        (VarDef (Marked.unmark t_out))
                        (f_markings @ [Marked.mark (Expr.pos e) "output"]))
                     EndCall f_markings)
-                 [t_in] (Expr.pos e)
+                 ts_in (Expr.pos e)
              | _ -> original_field_expr)
            (StructName.Map.find sc_sig.scope_sig_output_struct ctx.structs))
         (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
@@ -443,7 +450,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
       | m -> tag_with_log_entry e1_func BeginCall m
     in
     let new_args = List.map (translate_expr ctx) args in
-    let input_typ, output_typ =
+    let input_typs, output_typ =
       (* NOTE: this is a temporary solution, it works because it's assume that
          all function calls are from scope variable. However, this will change
          -- for more information see
@@ -452,8 +459,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         let _, typ, _ = ScopeVar.Map.find (Marked.unmark var) vars in
         match typ with
         | TArrow (marked_input_typ, marked_output_typ) ->
-          Marked.unmark marked_input_typ, Marked.unmark marked_output_typ
-        | _ -> TAny, TAny
+          ( List.map Marked.unmark marked_input_typ,
+            Marked.unmark marked_output_typ )
+        | _ -> [TAny], TAny
       in
       match Marked.unmark f with
       | ELocation (ScopelangScopeVar var) ->
@@ -467,21 +475,22 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
           TopdefName.Map.find (Marked.unmark tvar) ctx.toplevel_vars
         in
         match typ with
-        | TArrow ((tin, _), (tout, _)) -> tin, tout
+        | TArrow (tin, (tout, _)) -> List.map Marked.unmark tin, tout
         | _ ->
           Errors.raise_spanned_error (Expr.pos e)
             "Application of non-function toplevel variable")
-      | _ -> TAny, TAny
+      | _ -> [TAny], TAny
     in
     let new_args =
-      match markings, new_args with
-      | (_ :: _ as m), [new_arg] ->
-        [
-          tag_with_log_entry new_arg (VarDef input_typ)
-            (m @ [Marked.mark (Expr.pos e) "input"]);
-        ]
-      | _ -> new_args
+      ListLabels.mapi (List.combine new_args input_typs)
+        ~f:(fun i (new_arg, input_typ) ->
+          match markings with
+          | _ :: _ as m ->
+            tag_with_log_entry new_arg (VarDef input_typ)
+              (m @ [Marked.mark (Expr.pos e) ("input" ^ string_of_int i)])
+          | _ -> new_arg)
     in
+
     let new_e = Expr.eapp e1_func new_args m in
     let new_e =
       match markings with
@@ -640,7 +649,7 @@ let translate_rule
                   | OnlyInput -> tau
                   | Reentrant ->
                     if is_func then tau
-                    else TArrow ((TLit TUnit, var_def_pos), tau), var_def_pos);
+                    else TArrow ([TLit TUnit, var_def_pos], tau), var_def_pos);
                 scope_let_expr = thunked_or_nonempty_new_e;
                 scope_let_kind = SubScopeVarDefinition;
               })
@@ -935,7 +944,7 @@ let translate_scope_decl
       match var_ctx.scope_var_typ with
       | TArrow _ -> var_ctx.scope_var_typ, pos_sigma
       | _ ->
-        ( TArrow ((TLit TUnit, pos_sigma), (var_ctx.scope_var_typ, pos_sigma)),
+        ( TArrow ([TLit TUnit, pos_sigma], (var_ctx.scope_var_typ, pos_sigma)),
           pos_sigma ))
     | NoInput -> failwith "should not happen"
   in

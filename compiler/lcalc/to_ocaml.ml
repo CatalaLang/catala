@@ -167,8 +167,11 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
       format_enum_name Ast.option_enum
   | TEnum e -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a ->@ %a@]" format_typ_with_parens t1
-      format_typ_with_parens t2
+    Format.fprintf fmt "@[<hov 2>%a@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt " ->@ ")
+         format_typ_with_parens)
+      (t1 @ [t2])
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "_"
 

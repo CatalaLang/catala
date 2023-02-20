@@ -186,8 +186,11 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
     Format.fprintf fmt "Optional[%a]" format_typ some_typ
   | TEnum e -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "Callable[[%a], %a]" format_typ_with_parens t1
-      format_typ_with_parens t2
+    Format.fprintf fmt "Callable[[%a], %a]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         format_typ_with_parens)
+      t1 format_typ_with_parens t2
   | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "Any"
 

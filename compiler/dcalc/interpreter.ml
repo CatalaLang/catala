@@ -522,9 +522,9 @@ let interpret_program :
           match Marked.unmark ty with
           | TArrow (ty_in, ty_out) ->
             Expr.make_abs
-              [| Var.make "_" |]
+              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
               (Bindlib.box (ELit LEmptyError), Expr.with_ty mark_e ty_out)
-              [ty_in] (Expr.mark_pos mark_e)
+              ty_in (Expr.mark_pos mark_e)
           | _ ->
             Errors.raise_spanned_error (Marked.get_mark ty)
               "This scope needs input arguments to be executed. But the Catala \
