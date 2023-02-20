@@ -22,6 +22,7 @@ champ d'application Exemple1 :
     -- personnes_à_charge: [
       EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+        -- nationalité: Française
         -- identifiant: 0
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2001-01-01|
@@ -30,6 +31,7 @@ champ d'application Exemple1 :
         -- situation_garde_alternée: PasDeGardeAlternée
       }); EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+        -- nationalité: Française
         -- identifiant: 1
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2009-01-01|
@@ -38,6 +40,7 @@ champ d'application Exemple1 :
         -- situation_garde_alternée: PasDeGardeAlternée
       }); EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+        -- nationalité: Française
         -- identifiant: 2
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2012-01-01|
@@ -71,6 +74,8 @@ champ d'application Exemple1 :
     -- nombre_autres_occupants_logement: 1
     -- condition_rattaché_foyer_fiscal_parent_ifi: faux
     -- enfant_à_naître_après_quatrième_mois_grossesse: faux
+    -- arrivée_récente_foyer_conjoint_ascendant_à_charge:
+      ArrivéeRécenteFoyerConjointAscendantÀCharge.Non
   }
   définition éligibilité.demandeur égal à Demandeur {
     -- date_naissance : |1970-05-02|
@@ -100,12 +105,14 @@ champ d'application Exemple2 :
       EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
         -- identifiant: 0
+        -- nationalité: Française
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2016-01-01|
         -- rémuneration_mensuelle: 0€
         -- obligation_scolaire: Pendant
         -- situation_garde_alternée: PasDeGardeAlternée
       }); EnfantÀCharge contenu (EnfantÀCharge {
+        -- nationalité: Française
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
         -- identifiant: 1
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
@@ -140,6 +147,8 @@ champ d'application Exemple2 :
     -- nombre_autres_occupants_logement: 0
     -- condition_rattaché_foyer_fiscal_parent_ifi: faux
     -- enfant_à_naître_après_quatrième_mois_grossesse: faux
+    -- arrivée_récente_foyer_conjoint_ascendant_à_charge:
+      ArrivéeRécenteFoyerConjointAscendantÀCharge.Non
   }
   définition éligibilité.demandeur égal à Demandeur {
     -- date_naissance : |1992-01-01|
