@@ -23,6 +23,9 @@ let invariant_no_partial_evaluation () : string * invariant_expr =
   ( __FUNCTION__,
     fun e ->
       match Marked.unmark e with
+      | EApp { f = EOp { op = Op.Log _; _ }, _; _ } ->
+        (* logs are differents. *)
+        Some true
       | EApp _ -> begin
         match Marked.unmark (Expr.ty e) with
         | TArrow _ -> Some false
@@ -57,9 +60,10 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) =
             match inv e with
             | None -> true
             | Some false ->
-              Cli.error_print "%s Invariant failed %s."
+              Cli.error_format "%s failed in %s.\n\n %a" name
                 (Pos.to_string_short (Expr.pos e))
-                name;
+                (Print.expr ~debug:true p.decl_ctx)
+                e;
               incr total;
               false
             | Some true ->

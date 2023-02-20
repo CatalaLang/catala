@@ -486,8 +486,14 @@ let debug_format (format : ('a, Format.formatter, unit) format) =
 let error_print (format : ('a, out_channel, unit) format) =
   Printf.eprintf ("%s" ^^ format ^^ "\n%!") (error_marker ())
 
+let error_format (format : ('a, Format.formatter, unit) format) =
+  Format.eprintf ("%s" ^^ format ^^ "\n%!") (error_marker ())
+
 let warning_print (format : ('a, out_channel, unit) format) =
   Printf.printf ("%s" ^^ format ^^ "\n%!") (warning_marker ())
+
+let warning_format (format : ('a, Format.formatter, unit) format) =
+  Format.printf ("%s" ^^ format ^^ "\n%!") (warning_marker ())
 
 let result_print (format : ('a, out_channel, unit) format) =
   Printf.printf ("%s" ^^ format ^^ "\n%!") (result_marker ())

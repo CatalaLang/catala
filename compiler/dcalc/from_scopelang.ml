@@ -580,16 +580,16 @@ let translate_rule
     let a_var = Var.make (Marked.unmark a_name) in
     let new_e = translate_expr ctx e in
     let a_expr = Expr.make_var a_var (pos_mark var_def_pos) in
+    let is_func =
+      match Marked.unmark tau with TArrow _ -> true | _ -> false
+    in
     let merged_expr =
       match Marked.unmark a_io.io_input with
       | OnlyInput -> failwith "should not happen"
       (* scopelang should not contain any definitions of input only variables *)
-      | Reentrant ->
-        merge_defaults
-          ~is_func:
-            (match Marked.unmark tau with TArrow _ -> true | _ -> false)
-          a_expr new_e
-      | NoInput -> Expr.eerroronempty new_e (pos_mark_as a_name)
+      | Reentrant -> merge_defaults ~is_func a_expr new_e
+      | NoInput ->
+        if is_func then new_e else Expr.eerroronempty new_e (pos_mark_as a_name)
     in
     let merged_expr =
       tag_with_log_entry merged_expr
