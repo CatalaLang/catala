@@ -151,7 +151,7 @@ class Money:
 
     def __truediv__(self, other: 'Money') -> Decimal:
         if isinstance(other, Money):
-            return Decimal(mpq(self.value.value / other.value.value))
+            return self.value / other.value
         elif isinstance(other, Decimal):
             return self * (1. / other.value)
         else:
