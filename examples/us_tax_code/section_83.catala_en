@@ -73,9 +73,9 @@ scope Transferred_property_83:
     under condition not is_restricted and
                     not transfer.was_disposed_of_before_unrestricted
     consequence equals
-      if transfer.fair_market_value_unrestricted >$ transfer.amount_paid
+      if transfer.fair_market_value_unrestricted > transfer.amount_paid
       then IncludeInGrossIncome content
-          (transfer.fair_market_value_unrestricted -$ transfer.amount_paid)
+          (transfer.fair_market_value_unrestricted - transfer.amount_paid)
       else IncludeInGrossIncome content $0
 ```
 
@@ -100,8 +100,8 @@ scope Transferred_property_83:
     under condition transfer.elects_to_include_in_year_of_transfer
     # todo legal: can this still apply if was_disposed_of_before_unrestricted ?
     consequence equals
-      if transfer.fair_market_value_when_transfered >$ transfer.amount_paid
-      then IncludeInGrossIncome content (transfer.fair_market_value_when_transfered -$ transfer.amount_paid)
+      if transfer.fair_market_value_when_transfered > transfer.amount_paid
+      then IncludeInGrossIncome content (transfer.fair_market_value_when_transfered - transfer.amount_paid)
       else IncludeInGrossIncome content $0
 
 
