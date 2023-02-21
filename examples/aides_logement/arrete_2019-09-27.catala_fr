@@ -133,7 +133,6 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     --Zone3:
       342,52€ + 49,09€ * (décimal de
         (nombre_personnes_à_charge - 1))
-
 ```
 
 ### Article 8 | LEGIARTI000046206214
@@ -428,7 +427,7 @@ Majoration par personne à charge	                    53,90
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2022-07-01|:
-  définition loyer_référence égal à
+  étiquette base définition loyer_référence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 259,78€
@@ -4420,7 +4419,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       1,67%
     sinon (
       (1,67% - (0,06% * (décimal de
-        (nombre_personnes_à_charge - 6))))))))))))
+        (nombre_personnes_à_charge - 7))))))))))))
 ```
 
 4° A compter du 1er janvier 2022, pour l'application du 5° de l'article
@@ -4448,6 +4447,26 @@ Pour l'application du chapitre VII du présent arrêté à Saint-Pierre-et-Mique
 le calcul de l'allocation de logement pour les logements-foyers repose sur les
 valeurs fixées au chapitre III relatif au calcul des aides personnelles au
 logement en secteur locatif.
+
+```catala
+# Article 40 montant forfaitaire des charges : valeurs identiques à partir du
+# 1er janvier 2023 à celles de l'article 9 donc rien à coder. Invariant à
+# vérifier en cas de modifcation des articles 9, 40 et 47!
+
+# Article 41 minoration forfaitaire : valeurs identiques à partir du
+# 1er janvier 2023 à celles de l'article 11 donc rien à coder. Invariant à
+# vérifier en cas de modifcation des articles 11, 41 et 47!
+
+# Article 42 seuil de versement : valeurs identiques à partir du
+# 1er janvier 2023 à celles de l'article 12 donc rien à coder. Invariant à
+# vérifier en cas de modifcation des articles 12, 42 et 47!
+
+# TODO juridique : l'article 43 parle de l'équivalence loyer en secteur
+# logement-foyer mais il n'existe pas de quantité équivalente en secteur
+# locatif! Comment donc appliquer la règle de prendre les valeurs du chapitre
+# III pour l'application du chapitre VII dans ce cas ?
+# Idem pour l'article 44 et et le montant minimal de dépense nette de loyer.
+```
 
 Pour l'application du 5° de l'article D. 823-17 à Saint-Pierre-et-Miquelon,
 le forfait “ R0 ” est fixé selon le tableau suivant :
