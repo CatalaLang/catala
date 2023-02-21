@@ -461,7 +461,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         | TArrow (marked_input_typ, marked_output_typ) ->
           ( List.map Marked.unmark marked_input_typ,
             Marked.unmark marked_output_typ )
-        | _ -> [TAny], TAny
+        | _ -> ListLabels.map new_args ~f:(fun _ -> TAny), TAny
       in
       match Marked.unmark f with
       | ELocation (ScopelangScopeVar var) ->
@@ -479,8 +479,12 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         | _ ->
           Errors.raise_spanned_error (Expr.pos e)
             "Application of non-function toplevel variable")
-      | _ -> [TAny], TAny
+      | _ -> ListLabels.map new_args ~f:(fun _ -> TAny), TAny
     in
+
+    (* Cli.debug_format "new_args %d, input_typs: %d, input_typs %a"
+       (List.length new_args) (List.length input_typs) (Format.pp_print_list
+       Print.typ_debug) (List.map (Marked.mark Pos.no_pos) input_typs); *)
     let new_args =
       ListLabels.mapi (List.combine new_args input_typs)
         ~f:(fun i (new_arg, input_typ) ->
