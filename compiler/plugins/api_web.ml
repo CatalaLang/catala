@@ -163,13 +163,15 @@ module To_jsoo = struct
                  Format.fprintf fmt
                    "@[<hov 2>method %a =@ Js.wrap_meth_callback@ @[<hv 2>(@,\
                     fun _ %a ->@ %a (%a.%a %a))@]@]"
-                   (Format.pp_print_list (fun fmt -> Format.pp_print_string fmt))
-                   args_names format_struct_field_name_camel_case struct_field
+                   format_struct_field_name_camel_case struct_field
+                   (Format.pp_print_list (fun fmt (arg_i, ti) ->
+                        Format.fprintf fmt "(%s: %a)" arg_i format_typ ti))
+                   (List.combine args_names t1)
                    format_typ_to_jsoo t2 fmt_struct_name ()
                    format_struct_field_name (None, struct_field)
                    (Format.pp_print_list (fun fmt (i, ti) ->
                         Format.fprintf fmt "@[<hv 2>(%a@ %a)@]"
-                          Format.pp_print_string i format_typ_to_jsoo ti))
+                          format_typ_of_jsoo ti Format.pp_print_string i))
                    (List.combine args_names t1)
                | _ ->
                  Format.fprintf fmt "@[<hov 2>val %a =@ %a %a.%a@]"
