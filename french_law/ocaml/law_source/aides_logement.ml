@@ -3471,7 +3471,7 @@ let calcul_age_inf_eq (calcul_age_inf_eq_in: CalculAgeInfEqIn.t) : CalculAgeInfE
                              "Montant du salaire minimum de croissance"]}
             true))
          (fun (_: unit) ->
-            o_lte_dat_dat (o_add_dat_dur(u) date_naissance_ annees_)
+            o_lte_dat_dat (o_add_dat_dur RoundUp date_naissance_ annees_)
               date_courante_))
     with
     EmptyError -> (raise (NoValueProvided
@@ -3500,7 +3500,7 @@ let calcul_age_sup_strict (calcul_age_sup_strict_in: CalculAgeSupStrictIn.t) : C
                              "Montant du salaire minimum de croissance"]}
             true))
          (fun (_: unit) ->
-            o_gt_dat_dat (o_add_dat_dur(u) date_naissance_ annees_)
+            o_gt_dat_dat (o_add_dat_dur RoundUp date_naissance_ annees_)
               date_courante_))
     with
     EmptyError -> (raise (NoValueProvided
@@ -17634,7 +17634,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                     (o_or
                                        (o_or
                                           (o_lte_dat_dat
-                                             (o_add_dat_dur(a)
+                                             (o_add_dat_dur AbortOnRound
                                                 (parent_.AutrePersonneACharge.date_naissance)
                                                 age_l351_8_1_secu_)
                                              date_courante_)
@@ -17733,7 +17733,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                 (raise EmptyError)))))))).CalculAgeInfEq.r)))
                                        (o_and
                                           (o_lte_dat_dat
-                                             (o_add_dat_dur(a)
+                                             (o_add_dat_dur AbortOnRound
                                                 (parent_.AutrePersonneACharge.date_naissance)
                                                 age_l161_17_2_secu_)
                                              date_courante_)
@@ -18433,7 +18433,7 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                                                   (enfant_.EnfantPrestationsFamiliales.remuneration_mensuelle)
                                                   plafond_l512_3_2_)
                                                (o_gt_dat_dat
-                                                  (o_add_dat_dur(a)
+                                                  (o_add_dat_dur AbortOnRound
                                                      (enfant_.EnfantPrestationsFamiliales.date_de_naissance)
                                                      age_l512_3_2_)
                                                   date_courante_)))))
@@ -27305,9 +27305,10 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                           with
                           | DateDeNaissanceOuMoisDeGrossesse.DateDeNaissance date_naissance_ ->
                               (o_lte_dat_dat date_courante_
-                                 (o_add_dat_dur(a)
+                                 (o_add_dat_dur AbortOnRound
                                     (o_firstDayOfMonth
-                                       (o_add_dat_dur(a) date_naissance_
+                                       (o_add_dat_dur AbortOnRound
+                                          date_naissance_
                                           (duration_of_numbers (2) (0) (0))))
                                     (duration_of_numbers (0) (0) (-1))))
                           | DateDeNaissanceOuMoisDeGrossesse.AvantPremierJourMoisCivilTroisiemeMoisDeGrossesse _ ->
@@ -29109,7 +29110,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                             false
                                         | SituationFamiliale.Maries date_mariage_ ->
                                             (o_lte_dat_dat date_courante_
-                                               (o_add_dat_dur(a)
+                                               (o_add_dat_dur AbortOnRound
                                                   date_mariage_
                                                   duree_l841_1_3_))
                                         | SituationFamiliale.Pacses _ ->

@@ -503,7 +503,7 @@ let calcul_age_inf_eq (calcul_age_inf_eq_in: CalculAgeInfEqIn.t) : CalculAgeInfE
                              "Montant du salaire minimum de croissance"]}
             true))
          (fun (_: unit) ->
-            o_lte_dat_dat (o_add_dat_dur(u) date_naissance_ annees_)
+            o_lte_dat_dat (o_add_dat_dur RoundUp date_naissance_ annees_)
               date_courante_))
     with
     EmptyError -> (raise (NoValueProvided
@@ -532,7 +532,7 @@ let calcul_age_sup_strict (calcul_age_sup_strict_in: CalculAgeSupStrictIn.t) : C
                              "Montant du salaire minimum de croissance"]}
             true))
          (fun (_: unit) ->
-            o_gt_dat_dat (o_add_dat_dur(u) date_naissance_ annees_)
+            o_gt_dat_dat (o_add_dat_dur RoundUp date_naissance_ annees_)
               date_courante_))
     with
     EmptyError -> (raise (NoValueProvided
@@ -1461,7 +1461,7 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                                        (enfant_.Enfant.remuneration_mensuelle)
                                                        plafond_l512_3_2_)
                                                     (o_gt_dat_dat
-                                                       (o_add_dat_dur(a)
+                                                       (o_add_dat_dur AbortOnRound
                                                           (enfant_.Enfant.date_de_naissance)
                                                           age_l512_3_2_)
                                                        date_courante_)))))
@@ -2112,7 +2112,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           "Partie réglementaire - Décrets en Conseil d'Etat";
                                           "Code de la sécurité sociale"]}
                          (o_lte_dat_dat
-                            (o_add_dat_dur(a)
+                            (o_add_dat_dur AbortOnRound
                                (enfant_.Enfant.date_de_naissance)
                                (duration_of_numbers (11) (0) (0)))
                             (date_of_numbers (2008) (4) (30)))))
@@ -2608,7 +2608,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                             (o_and
                                (o_lt_dur_dur
                                   (o_sub_dat_dat
-                                     (o_add_dat_dur(a)
+                                     (o_add_dat_dur AbortOnRound
                                         (enfant_.Enfant.date_de_naissance)
                                         prestations_familiales_dot_age_l512_3_2_)
                                      date_courante_)
@@ -3709,7 +3709,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                           enfants_a_charge_droit_ouvert_prestation_familiale_)
                                        nombre_enfants_alinea_2_l521_3_)
                                     (o_lte_dat_dat
-                                       (o_add_dat_dur(a)
+                                       (o_add_dat_dur AbortOnRound
                                           (enfant_.Enfant.date_de_naissance)
                                           ((log_end_call
                                           ["AllocationsFamiliales";
@@ -3754,7 +3754,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                  "est_enfant_le_plus_âgé"; "input0"]
                                (embed_enfant) enfant_))))))))
                             (o_lte_dat_dat
-                               (o_add_dat_dur(a)
+                               (o_add_dat_dur AbortOnRound
                                   (enfant_.Enfant.date_de_naissance)
                                   ((log_end_call
                                   ["AllocationsFamiliales";
@@ -4949,12 +4949,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                              (integer_of_string "1"))
                                           (o_and
                                              (o_lte_dat_dat
-                                                (o_add_dat_dur(a)
+                                                (o_add_dat_dur AbortOnRound
                                                    (enfant_.Enfant.date_de_naissance)
                                                    (duration_of_numbers (11) (0) (0)))
                                                 date_courante_)
                                              (o_gt_dat_dat
-                                                (o_add_dat_dur(a)
+                                                (o_add_dat_dur AbortOnRound
                                                    (enfant_.Enfant.date_de_naissance)
                                                    (duration_of_numbers (16) (0) (0)))
                                                 date_courante_)))))))
@@ -5001,7 +5001,7 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                                 enfants_a_charge_droit_ouvert_prestation_familiale_)
                                              (integer_of_string "1"))
                                           (o_lte_dat_dat
-                                             (o_add_dat_dur(a)
+                                             (o_add_dat_dur AbortOnRound
                                                 (enfant_.Enfant.date_de_naissance)
                                                 (duration_of_numbers (16) (0) (0)))
                                              date_courante_))))))
@@ -5444,14 +5444,14 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
                     Enfant.obligation_scolaire =
                       ( if
                          (o_gte_dat_dat
-                            (o_add_dat_dur(a)
+                            (o_add_dat_dur AbortOnRound
                                (enfant_.EnfantEntree.d_date_de_naissance)
                                (duration_of_numbers (3) (0) (0)))
                             i_date_courante_) then
                          (SituationObligationScolaire.Avant ()) else
                          ( if
                             (o_gte_dat_dat
-                               (o_add_dat_dur(a)
+                               (o_add_dat_dur AbortOnRound
                                   (enfant_.EnfantEntree.d_date_de_naissance)
                                   (duration_of_numbers (16) (0) (0)))
                                i_date_courante_) then

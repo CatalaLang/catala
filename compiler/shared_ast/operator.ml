@@ -52,12 +52,12 @@ let name : type a k. (a, k) t -> string = function
   | Add_int_int -> "o_add_int_int"
   | Add_rat_rat -> "o_add_rat_rat"
   | Add_mon_mon -> "o_add_mon_mon"
-  | Add_dat_dur rm ->
-    begin match rm with
+  | Add_dat_dur rm -> begin
+    match rm with
     | RoundUp -> "o_add_dat_dur RoundUp"
     | RoundDown -> "o_add_dat_dur RoundDown"
     | AbortOnRound -> "o_add_dat_dur AbortOnRound"
-    end
+  end
   | Add_dur_dur -> "o_add_dur_dur"
   | Sub -> "o_sub"
   | Sub_int_int -> "o_sub_int_int"
