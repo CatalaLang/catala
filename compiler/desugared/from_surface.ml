@@ -1204,7 +1204,10 @@ let process_topdef
         body arg_types
         (Marked.get_mark def.S.topdef_name)
   in
-  let typ = TArrow (arg_types, body_type), ty_pos in
+  let typ =
+    if List.length arg_types = 0 then body_type
+    else TArrow (arg_types, body_type), ty_pos
+  in
   {
     prgm with
     Ast.program_topdefs =
