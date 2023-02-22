@@ -1,17 +1,53 @@
 > Include: ../section_83.catala_en
 
-```catala
+```catala-test-inline
+$ catala proof
+[ERROR] "Test6": this scope has not been declared anywhere, is it a typo?
+
+┌─⯈ test_section_83.catala_en:180.6-11:
+└───┐
+180 │ scope Test6:
+    │       ‾‾‾‾‾
+    └─ Test6
+#return code 255#
+```
+
+```catala-metadata
 declaration scope Test1:
   s83 scope Transferred_property_83
   output result content TransferredReturn
 
+declaration scope Test2:
+  s83 scope Transferred_property_83
+  output result content TransferredReturn
+
+declaration scope Test3:
+  s83 scope Transferred_property_83
+  output result content TransferredReturn
+
+declaration scope Test4:
+  s83 scope Transferred_property_83
+  output result content TransferredReturn
+
+declaration scope Test5:
+  s83 scope Transferred_property_83
+  output result content TransferredReturn
+
+declaration scope Test6:
+  s83 scope Transferred_property_83
+  output result content TransferredReturn
+```
+
+# Test1
+
+```catala
 scope Test1:
   definition s83.transfer equals PropertyTransfer {
     -- taxpayer_performed_the_service: true
     -- elects_to_include_in_year_of_transfer: true
-    -- fair_market_value_unrestricted: $1000
+    -- fair_market_value_unrestricted: $0
     -- fair_market_value_when_transfered: $1000
-    -- amount_paid: $800
+    -- amount_paid: $900
     -- was_disposed_of_before_unrestricted: false
     -- substantial_risk_of_forfeiture: false
     -- transferable: false
@@ -25,13 +61,186 @@ scope Test1:
 ```
 
 ```catala-test-inline
-$ catala proof
-[RESULT] Computation successful! Results:
-[RESULT] result = IncludeInGrossIncome $200.00
+$ catala Interpret -s Test1
+[ERROR] "Test6": this scope has not been declared anywhere, is it a typo?
+
+┌─⯈ test_section_83.catala_en:180.6-11:
+└───┐
+180 │ scope Test6:
+    │       ‾‾‾‾‾
+    └─ Test6
+#return code 255#
+```
+
+# Test2
+
+```catala
+scope Test2:
+  definition s83.transfer equals PropertyTransfer {
+    -- taxpayer_performed_the_service: true
+    -- elects_to_include_in_year_of_transfer: false
+    -- fair_market_value_unrestricted: $1000
+    -- fair_market_value_when_transfered: $0
+    -- amount_paid: $900
+    -- was_disposed_of_before_unrestricted: false
+    -- substantial_risk_of_forfeiture: false
+    -- transferable: false
+    -- section_421_applies: false
+    -- transfer_401a_or_404a2: false
+    -- option_without_ascertainable_fair_market_value: false
+    -- exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant: false
+    -- group_term_life_insurance_79: false
+  }
+  definition result equals s83.amount_to_include_in_gross_income
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test1
-[RESULT] Computation successful! Results:
-[RESULT] result = IncludeInGrossIncome $200.00
+$ catala Interpret -s Test2
+[ERROR] "Test6": this scope has not been declared anywhere, is it a typo?
+
+┌─⯈ test_section_83.catala_en:180.6-11:
+└───┐
+180 │ scope Test6:
+    │       ‾‾‾‾‾
+    └─ Test6
+#return code 255#
+```
+
+# Test3
+
+```catala
+scope Test3:
+  definition s83.transfer equals PropertyTransfer {
+    -- taxpayer_performed_the_service: true
+    -- elects_to_include_in_year_of_transfer: false
+    -- fair_market_value_unrestricted: $1000
+    -- fair_market_value_when_transfered: $0
+    -- amount_paid: $900
+    -- was_disposed_of_before_unrestricted: false
+    -- substantial_risk_of_forfeiture: false
+    -- transferable: true
+    -- section_421_applies: false
+    -- transfer_401a_or_404a2: false
+    -- option_without_ascertainable_fair_market_value: false
+    -- exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant: false
+    -- group_term_life_insurance_79: false
+  }
+  definition result equals s83.amount_to_include_in_gross_income
+```
+
+```catala-test-inline
+$ catala Interpret -s Test3
+[ERROR] "Test6": this scope has not been declared anywhere, is it a typo?
+
+┌─⯈ test_section_83.catala_en:180.6-11:
+└───┐
+180 │ scope Test6:
+    │       ‾‾‾‾‾
+    └─ Test6
+#return code 255#
+```
+
+
+# Test4
+
+```catala
+scope Test4:
+  definition s83.transfer equals PropertyTransfer {
+    -- taxpayer_performed_the_service: true
+    -- elects_to_include_in_year_of_transfer: false
+    -- fair_market_value_unrestricted: $500
+    -- fair_market_value_when_transfered: $0
+    -- amount_paid: $900
+    -- was_disposed_of_before_unrestricted: false
+    -- substantial_risk_of_forfeiture: false
+    -- transferable: true
+    -- section_421_applies: false
+    -- transfer_401a_or_404a2: false
+    -- option_without_ascertainable_fair_market_value: false
+    -- exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant: false
+    -- group_term_life_insurance_79: false
+  }
+  definition result equals s83.amount_to_include_in_gross_income
+```
+
+```catala-test-inline
+$ catala Interpret -s Test4
+[ERROR] "Test6": this scope has not been declared anywhere, is it a typo?
+
+┌─⯈ test_section_83.catala_en:180.6-11:
+└───┐
+180 │ scope Test6:
+    │       ‾‾‾‾‾
+    └─ Test6
+#return code 255#
+```
+
+
+# Test5
+
+```catala
+scope Test5:
+  definition s83.transfer equals PropertyTransfer {
+    -- taxpayer_performed_the_service: true
+    -- elects_to_include_in_year_of_transfer: false
+    -- fair_market_value_unrestricted: $1000
+    -- fair_market_value_when_transfered: $0
+    -- amount_paid: $900
+    -- was_disposed_of_before_unrestricted: false
+    -- substantial_risk_of_forfeiture: false
+    -- transferable: true
+    -- section_421_applies: false
+    -- transfer_401a_or_404a2: false
+    -- option_without_ascertainable_fair_market_value: false
+    -- exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant: true
+    -- group_term_life_insurance_79: false
+  }
+  definition result equals s83.amount_to_include_in_gross_income
+```
+
+```catala-test-inline
+$ catala Interpret -s Test5
+[ERROR] "Test6": this scope has not been declared anywhere, is it a typo?
+
+┌─⯈ test_section_83.catala_en:180.6-11:
+└───┐
+180 │ scope Test6:
+    │       ‾‾‾‾‾
+    └─ Test6
+#return code 255#
+```
+
+
+# Test6
+
+```catala
+scope Test6:
+  definition s83.transfer equals PropertyTransfer {
+    -- taxpayer_performed_the_service: true
+    -- elects_to_include_in_year_of_transfer: false
+    -- fair_market_value_unrestricted: $1000
+    -- fair_market_value_when_transfered: $0
+    -- amount_paid: $900
+    -- was_disposed_of_before_unrestricted: true
+    -- substantial_risk_of_forfeiture: false
+    -- transferable: true
+    -- section_421_applies: false
+    -- transfer_401a_or_404a2: false
+    -- option_without_ascertainable_fair_market_value: false
+    -- exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant: false
+    -- group_term_life_insurance_79: false
+  }
+  definition result equals s83.amount_to_include_in_gross_income
+```
+
+```catala-test-inline
+$ catala Interpret -s Test6
+[ERROR] "Test6": this scope has not been declared anywhere, is it a typo?
+
+┌─⯈ test_section_83.catala_en:180.6-11:
+└───┐
+180 │ scope Test6:
+    │       ‾‾‾‾‾
+    └─ Test6
+#return code 255#
 ```
