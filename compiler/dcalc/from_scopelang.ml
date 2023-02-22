@@ -355,8 +355,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
              | TArrow (ts_in, t_out) ->
                (* Here the output scope struct field is a function so we
                   eta-expand it and insert logging instructions. Invariant:
-                  works because user-defined functions in scope have only one
-                  argument. *)
+                  works because there is no partial evaluation. *)
                let params_vars =
                  ListLabels.mapi ts_in ~f:(fun i _ ->
                      Var.make ("param" ^ string_of_int i))
