@@ -29,7 +29,9 @@ let rule ctx env rule =
   let env =
     match rule.rule_parameter with
     | None -> env
-    | Some (v, ty) -> Typing.Env.add_var v ty env
+    | Some vars_and_types ->
+      ListLabels.fold_right vars_and_types ~init:env ~f:(fun (v, t) ->
+          Typing.Env.add_var v t)
   in
   (* Note: we could use the known rule type here to direct typing. We choose not
      to because it shouldn't be needed for disambiguation, and we prefer to

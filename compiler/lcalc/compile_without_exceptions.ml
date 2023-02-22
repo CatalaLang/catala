@@ -129,8 +129,8 @@ let rec translate_typ (tau : typ) : typ =
       | TAny -> TAny
       | TArray ts -> TArray (translate_typ ts)
       (* catala is not polymorphic *)
-      | TArrow ((TLit TUnit, _), t2) -> TOption (translate_typ t2)
-      | TArrow (t1, t2) -> TArrow (translate_typ t1, translate_typ t2)
+      | TArrow ([(TLit TUnit, _)], t2) -> TOption (translate_typ t2)
+      | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
     end
 
 (** [c = disjoint_union_maps cs] Compute the disjoint union of multiple maps.
@@ -458,7 +458,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
            thunked, then the variable is context. If it's not thunked, it's a
            regular input. *)
         match Marked.unmark typ with
-        | TArrow ((TLit TUnit, _), _) -> false
+        | TArrow ([(TLit TUnit, _)], _) -> false
         | _ -> true)
       | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
       | DestructuringSubScopeResults | Assertion ->

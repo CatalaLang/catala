@@ -319,7 +319,9 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
   match naked_typ with
   | Surface.Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
   | Surface.Ast.Func { arg_typ; return_typ } ->
-    ( TArrow (process_base_typ ctxt arg_typ, process_base_typ ctxt return_typ),
+    (* TODO Louis: /!\ There is only one argument in the surface syntax for
+       function now. *)
+    ( TArrow ([process_base_typ ctxt arg_typ], process_base_typ ctxt return_typ),
       typ_pos )
 
 (** Process data declaration *)

@@ -212,26 +212,29 @@ let rec rule_tree_to_expr
     ~(is_reentrant_var : bool)
     (ctx : ctx)
     (def_pos : Pos.t)
-    (is_func : Desugared.Ast.expr Var.t option)
+    (is_func : Desugared.Ast.expr Var.t list option)
     (tree : rule_tree) : untyped Ast.expr boxed =
   let emark = Untyped { pos = def_pos } in
   let exceptions, base_rules =
     match tree with Leaf r -> [], r | Node (exceptions, r) -> exceptions, r
   in
-  (* because each rule has its own variable parameter and we want to convert the
-     whole rule tree into a function, we need to perform some alpha-renaming of
-     all the expressions *)
+  (* because each rule has its own variables parameters and we want to convert
+     the whole rule tree into a function, we need to perform some alpha-renaming
+     of all the expressions *)
   let substitute_parameter
       (e : Desugared.Ast.expr boxed)
       (rule : Desugared.Ast.rule) : Desugared.Ast.expr boxed =
     match is_func, rule.Desugared.Ast.rule_parameter with
-    | Some new_param, Some (old_param, _) ->
-      let binder = Bindlib.bind_var old_param (Marked.unmark e) in
+    | Some new_params, Some old_params_with_types ->
+      let old_params, _ = List.split old_params_with_types in
+      let old_params = Array.of_list old_params in
+      let new_params = Array.of_list new_params in
+      let binder = Bindlib.bind_mvar old_params (Marked.unmark e) in
       Marked.mark (Marked.get_mark e)
       @@ Bindlib.box_apply2
-           (fun binder new_param -> Bindlib.subst binder new_param)
+           (fun binder new_param -> Bindlib.msubst binder new_param)
            binder
-           (Bindlib.box_var new_param)
+           (new_params |> Array.map Bindlib.box_var |> Bindlib.box_array)
     | None, None -> e
     | _ -> assert false
     (* should not happen *)
@@ -239,20 +242,22 @@ let rec rule_tree_to_expr
   let ctx =
     match is_func with
     | None -> ctx
-    | Some new_param -> (
-      match Var.Map.find_opt new_param ctx.var_mapping with
-      | None ->
-        let new_param_scope = Var.make (Bindlib.name_of new_param) in
-        {
-          ctx with
-          var_mapping = Var.Map.add new_param new_param_scope ctx.var_mapping;
-        }
-      | Some _ ->
-        (* We only create a mapping if none exists because [rule_tree_to_expr]
-           is called recursively on the exceptions of the tree and we don't want
-           to create a new Scopelang variable for the parameter at each tree
-           level. *)
-        ctx)
+    | Some new_params ->
+      ListLabels.fold_left new_params ~init:ctx ~f:(fun ctx new_param ->
+          match Var.Map.find_opt new_param ctx.var_mapping with
+          | None ->
+            let new_param_scope = Var.make (Bindlib.name_of new_param) in
+            {
+              ctx with
+              var_mapping =
+                Var.Map.add new_param new_param_scope ctx.var_mapping;
+            }
+          | Some _ ->
+            (* We only create a mapping if none exists because
+               [rule_tree_to_expr] is called recursively on the exceptions of
+               the tree and we don't want to create a new Scopelang variable for
+               the parameter at each tree level. *)
+            ctx)
   in
   let base_just_list =
     List.map
@@ -301,7 +306,8 @@ let rec rule_tree_to_expr
   in
   match is_func, (List.hd base_rules).Desugared.Ast.rule_parameter with
   | None, None -> default
-  | Some new_param, Some (_, typ) ->
+  | Some new_params, Some ls ->
+    let _, tys = List.split ls in
     if toplevel then
       (* When we're creating a function from multiple defaults, we must check
          that the result returned by the function is not empty, unless we're
@@ -311,9 +317,12 @@ let rec rule_tree_to_expr
       let default =
         if is_reentrant_var then default else Expr.eerroronempty default emark
       in
+
       Expr.make_abs
-        [| Var.Map.find new_param ctx.var_mapping |]
-        default [typ] def_pos
+        (new_params
+        |> List.map (fun x -> Var.Map.find x ctx.var_mapping)
+        |> Array.of_list)
+        default tys def_pos
     else default
   | _ -> (* should not happen *) assert false
 
@@ -340,7 +349,7 @@ let translate_def
   let all_rules_not_func =
     RuleName.Map.for_all (fun n r -> not (is_rule_func n r)) def
   in
-  let is_def_func_param_typ : typ option =
+  let is_def_func_param_typ : typ list option =
     if is_def_func && all_rules_func then
       match Marked.unmark typ with
       | TArrow (t_param, _) -> Some t_param
@@ -379,7 +388,7 @@ let translate_def
     | Reentrant -> true
     | _ -> false
   in
-  let top_value =
+  let top_value : Desugared.Ast.rule option =
     if is_cond && ((not is_subscope_var) || (is_subscope_var && is_input)) then
       (* We add the bottom [false] value for conditions, only for the scope
          where the condition is declared. Except when the variable is an input,
@@ -419,13 +428,19 @@ let translate_def
     let m = Untyped { pos = Desugared.Ast.ScopeDef.get_position def_info } in
     let empty_error = Expr.elit LEmptyError m in
     match is_def_func_param_typ with
-    | Some ty ->
-      Expr.make_abs [| Var.make "_" |] empty_error [ty] (Expr.mark_pos m)
+    | Some tys ->
+      Expr.make_abs
+        (Array.init (List.length tys) (fun _ -> Var.make "_"))
+        empty_error tys (Expr.mark_pos m)
     | _ -> empty_error
   else
     rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant ctx
       (Desugared.Ast.ScopeDef.get_position def_info)
-      (Option.map (fun _ -> Var.make "param") is_def_func_param_typ)
+      (Option.map
+         (fun l ->
+           ListLabels.mapi l ~f:(fun i _ ->
+               Var.make ("param" ^ string_of_int i)))
+         is_def_func_param_typ)
       (match top_list, top_value with
       | [], None ->
         (* In this case, there are no rules to define the expression and no

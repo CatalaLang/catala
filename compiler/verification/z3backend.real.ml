@@ -405,10 +405,12 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
   | None -> (
     match Marked.unmark ty with
     | TArrow (t1, t2) ->
-      let ctx, z3_t1 = translate_typ ctx (Marked.unmark t1) in
+      let ctx, z3_t1 =
+        List.fold_left_map translate_typ ctx (List.map Marked.unmark t1)
+      in
       let ctx, z3_t2 = translate_typ ctx (Marked.unmark t2) in
       let name = unique_name v in
-      let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [z3_t1] z3_t2 in
+      let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name z3_t1 z3_t2 in
       let ctx = add_funcdecl v fd ctx in
       let ctx = add_z3var name v ty ctx in
       ctx, fd

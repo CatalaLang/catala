@@ -239,7 +239,9 @@ let rec get_structs_or_enums_in_type (t : typ) : TVertexSet.t =
   | TEnum e -> TVertexSet.singleton (TVertex.Enum e)
   | TArrow (t1, t2) ->
     TVertexSet.union
-      (get_structs_or_enums_in_type t1)
+      (t1
+      |> List.map get_structs_or_enums_in_type
+      |> List.fold_left TVertexSet.union TVertexSet.empty)
       (get_structs_or_enums_in_type t2)
   | TLit _ | TAny -> TVertexSet.empty
   | TOption t1 | TArray t1 -> get_structs_or_enums_in_type t1

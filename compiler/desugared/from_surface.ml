@@ -938,7 +938,12 @@ let process_default
          Name_resolution.get_def_typ ctxt (Marked.unmark def_key)
        in
        match Marked.unmark def_key_typ, param_uid with
-       | TArrow (t_in, _), Some param_uid -> Some (Marked.unmark param_uid, t_in)
+       | TArrow ([t_in], _), Some param_uid ->
+         Some [Marked.unmark param_uid, t_in]
+       | TArrow _, Some _ ->
+         Errors.raise_spanned_error (Expr.pos cons)
+           "This definition has a function type but there is multiple \
+            arguments."
        | TArrow _, None ->
          Errors.raise_spanned_error (Expr.pos cons)
            "This definition has a function type but the parameter is missing"
@@ -1204,9 +1209,9 @@ let process_topdef
         (Marked.get_mark def.S.topdef_name)
   in
   let typ =
-    List.fold_right
-      (fun argty retty -> TArrow (argty, retty), ty_pos)
-      arg_types body_type
+    match arg_types with
+    | [] -> body_type
+    | _ -> TArrow (arg_types, body_type), ty_pos
   in
   {
     prgm with

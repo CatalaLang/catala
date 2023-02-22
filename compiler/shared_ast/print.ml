@@ -113,9 +113,15 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
         (EnumConstructor.Map.bindings (EnumName.Map.find e ctx.ctx_enums))
         punctuation "]")
   | TOption t -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ t
-  | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" typ_with_parens t1 op_style "→"
+  | TArrow ([t1], t2) ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" typ_with_parens t1 op_style "→"
       typ t2
+  | TArrow (t1, t2) ->
+    Format.fprintf fmt "@[<hov 2>%a%a%a@ %a@ %a@]" op_style "("
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " op_style ",")
+         typ_with_parens)
+      t1 op_style ")" op_style "→" typ t2
   | TArray t1 ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" typ t1
   | TAny -> base_type fmt "any"

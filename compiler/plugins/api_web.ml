@@ -78,8 +78,11 @@ module To_jsoo = struct
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
     | TAny -> Format.fprintf fmt "Js.Unsafe.any Js.t"
     | TArrow (t1, t2) ->
-      Format.fprintf fmt "(@[<hov 2>%a, @ %a@]) Js.meth_callback"
-        format_typ_with_parens t1 format_typ_with_parens t2
+      Format.fprintf fmt "(@[<hov 2>unit, @ %a -> %a@]) Js.meth_callback"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.pp_print_string fmt " -> ")
+           format_typ_with_parens)
+        t1 format_typ_with_parens t2
 
   let rec format_typ_to_jsoo fmt typ =
     match Marked.unmark typ with
@@ -153,13 +156,23 @@ module To_jsoo = struct
              (fun fmt (struct_field, struct_field_type) ->
                match Marked.unmark struct_field_type with
                | TArrow (t1, t2) ->
+                 let args_names =
+                   ListLabels.mapi t1 ~f:(fun i _ ->
+                       "function_input" ^ string_of_int i)
+                 in
                  Format.fprintf fmt
                    "@[<hov 2>method %a =@ Js.wrap_meth_callback@ @[<hv 2>(@,\
-                    fun input ->@ %a (%a.%a (%a input)))@]@]"
+                    fun _ %a ->@ %a (%a.%a %a))@]@]"
                    format_struct_field_name_camel_case struct_field
+                   (Format.pp_print_list (fun fmt (arg_i, ti) ->
+                        Format.fprintf fmt "(%s: %a)" arg_i format_typ ti))
+                   (List.combine args_names t1)
                    format_typ_to_jsoo t2 fmt_struct_name ()
                    format_struct_field_name (None, struct_field)
-                   format_typ_of_jsoo t1
+                   (Format.pp_print_list (fun fmt (i, ti) ->
+                        Format.fprintf fmt "@[<hv 2>(%a@ %a)@]"
+                          format_typ_of_jsoo ti Format.pp_print_string i))
+                   (List.combine args_names t1)
                | _ ->
                  Format.fprintf fmt "@[<hov 2>val %a =@ %a %a.%a@]"
                    format_struct_field_name_camel_case struct_field

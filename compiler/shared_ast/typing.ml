@@ -39,7 +39,7 @@ type unionfind_typ = naked_typ Marked.pos UnionFind.elem
 
 and naked_typ =
   | TLit of A.typ_lit
-  | TArrow of unionfind_typ * unionfind_typ
+  | TArrow of unionfind_typ list * unionfind_typ
   | TTuple of unionfind_typ list
   | TStruct of A.StructName.t
   | TEnum of A.EnumName.t
@@ -56,7 +56,7 @@ let rec typ_to_ast ?(unsafe = false) (ty : unionfind_typ) : A.typ =
   | TStruct s -> A.TStruct s, pos
   | TEnum e -> A.TEnum e, pos
   | TOption t -> A.TOption (typ_to_ast t), pos
-  | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2), pos
+  | TArrow (t1, t2) -> A.TArrow (List.map typ_to_ast t1, typ_to_ast t2), pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
   | TAny _ ->
     if unsafe then A.TAny, pos
@@ -73,14 +73,14 @@ let rec all_resolved ty =
   | TAny _ -> false
   | TLit _ | TStruct _ | TEnum _ -> true
   | TOption t1 | TArray t1 -> all_resolved t1
-  | TArrow (t1, t2) -> all_resolved t1 && all_resolved t2
+  | TArrow (t1, t2) -> List.for_all all_resolved t1 && all_resolved t2
   | TTuple ts -> List.for_all all_resolved ts
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
     match Marked.unmark ty with
     | A.TLit l -> TLit l
-    | A.TArrow (t1, t2) -> TArrow (ast_to_typ t1, ast_to_typ t2)
+    | A.TArrow (t1, t2) -> TArrow (List.map ast_to_typ t1, ast_to_typ t2)
     | A.TTuple ts -> TTuple (List.map ast_to_typ ts)
     | A.TStruct s -> TStruct s
     | A.TEnum e -> TEnum e
@@ -118,9 +118,15 @@ let rec format_typ
   | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format_t e
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>%a@ %s@]" format_typ_with_parens t "eoption"
-  | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1
+  | TArrow ([t1], t2) ->
+    Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]" format_typ_with_parens t1
       format_typ t2
+  | TArrow (t1, t2) ->
+    Format.fprintf fmt "@[<hov 2>(%a)@ →@ %a@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         format_typ_with_parens)
+      t1 format_typ t2
   | TArray t1 -> (
     match Marked.unmark (UnionFind.get (UnionFind.find t1)) with
     | TAny _ when not !Cli.debug_flag -> Format.pp_print_string fmt "collection"
@@ -149,12 +155,13 @@ let rec unify
   let () =
     match Marked.unmark t1_repr, Marked.unmark t2_repr with
     | TLit tl1, TLit tl2 -> if tl1 <> tl2 then raise_type_error ()
-    | TArrow (t11, t12), TArrow (t21, t22) ->
+    | TArrow (t11, t12), TArrow (t21, t22) -> (
       unify e t12 t22;
-      unify e t11 t21
-    | TTuple ts1, TTuple ts2 ->
-      if List.length ts1 = List.length ts2 then List.iter2 (unify e) ts1 ts2
-      else raise_type_error ()
+      try List.iter2 (unify e) t11 t21
+      with Invalid_argument _ -> raise_type_error ())
+    | TTuple ts1, TTuple ts2 -> (
+      try List.iter2 (unify e) ts1 ts2
+      with Invalid_argument _ -> raise_type_error ())
     | TStruct s1, TStruct s2 ->
       if not (A.StructName.equal s1 s2) then raise_type_error ()
     | TEnum e1, TEnum e2 ->
@@ -240,19 +247,19 @@ let polymorphic_op_type (op : ('a, Operator.polymorphic) A.operator Marked.pos)
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
   let ( @-> ) x y =
-    lazy (UnionFind.make (TArrow (Lazy.force x, Lazy.force y), pos))
+    lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
   in
   let ty =
     match Marked.unmark op with
-    | Fold -> (any2 @-> any @-> any2) @-> any2 @-> array any @-> any2
-    | Eq -> any @-> any @-> bt
-    | Map -> (any @-> any2) @-> array any @-> array any2
-    | Filter -> (any @-> bt) @-> array any @-> array any
-    | Reduce -> (any @-> any @-> any) @-> any @-> array any @-> any
-    | Concat -> array any @-> array any @-> array any
-    | Log (PosRecordIfTrueBool, _) -> bt @-> bt
-    | Log _ -> any @-> any
-    | Length -> array any @-> it
+    | Fold -> [[any2; any] @-> any2; any2; array any] @-> any2
+    | Eq -> [any; any] @-> bt
+    | Map -> [[any] @-> any2; array any] @-> array any2
+    | Filter -> [[any] @-> bt; array any] @-> array any
+    | Reduce -> [[any; any] @-> any; any; array any] @-> any
+    | Concat -> [array any; array any] @-> array any
+    | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
+    | Log _ -> [any] @-> any
+    | Length -> [array any] @-> it
   in
   Lazy.force ty
 
@@ -512,7 +519,10 @@ and typecheck_expr_top_down :
       A.EnumConstructor.Map.mapi
         (fun c_name e ->
           let c_ty = A.EnumConstructor.Map.find c_name cases_ty in
-          let e_ty = unionfind ~pos:e (TArrow (ast_to_typ c_ty, t_ret)) in
+          (* For now our constructors are limited to zero or one argument. If
+             there is a change to allow for multiple arguments, it might be
+             easier to use tuples directly. *)
+          let e_ty = unionfind ~pos:e (TArrow ([ast_to_typ c_ty], t_ret)) in
           typecheck_expr_top_down ctx env e_ty e)
         cases
     in
@@ -571,11 +581,7 @@ and typecheck_expr_top_down :
     else
       let tau_args = List.map ast_to_typ t_args in
       let t_ret = unionfind (TAny (Any.fresh ())) in
-      let t_func =
-        List.fold_right
-          (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
-          tau_args t_ret
-      in
+      let t_func = unionfind (TArrow (tau_args, t_ret)) in
       let mark = uf_mark t_func in
       assert (List.for_all all_resolved tau_args);
       let xs, body = Bindlib.unmbind binder in
@@ -590,11 +596,7 @@ and typecheck_expr_top_down :
       Expr.eabs binder' (List.map typ_to_ast tau_args) mark
   | A.EApp { f = (EOp { op; tys }, _) as e1; args } ->
     let t_args = List.map ast_to_typ tys in
-    let t_func =
-      List.fold_right
-        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
-        t_args tau
-    in
+    let t_func = unionfind (TArrow (t_args, tau)) in
     let e1', args' =
       Operator.kind_dispatch op
         ~polymorphic:(fun _ ->
@@ -630,22 +632,14 @@ and typecheck_expr_top_down :
        of the arguments if [f] is [EAbs] before disambiguation. This is also the
        right order for the [let-in] form. *)
     let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
-    let t_func =
-      List.fold_right
-        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
-        t_args tau
-    in
+    let t_func = unionfind (TArrow (t_args, tau)) in
     let args' = List.map2 (typecheck_expr_top_down ctx env) t_args args in
     let e1' = typecheck_expr_top_down ctx env t_func e1 in
     Expr.eapp e1' args' context_mark
   | A.EOp { op; tys } ->
     let tys' = List.map ast_to_typ tys in
     let t_ret = unionfind (TAny (Any.fresh ())) in
-    let t_func =
-      List.fold_right
-        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
-        tys' t_ret
-    in
+    let t_func = unionfind (TArrow (tys', t_ret)) in
     unify ctx e t_func tau;
     let tys, mark =
       Operator.kind_dispatch op
@@ -790,7 +784,7 @@ let scope_body ctx env body =
     UnionFind.make
       (Marked.mark
          (get_pos body.A.scope_body_output_struct)
-         (TArrow (ty_in, ty_out))) )
+         (TArrow ([ty_in], ty_out))) )
 
 let rec scopes ctx env = function
   | A.Nil -> Bindlib.box A.Nil
