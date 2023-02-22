@@ -118,11 +118,14 @@ let rec format_typ
   | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format_t e
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>%a@ %s@]" format_typ_with_parens t "eoption"
+  | TArrow ([t1], t2) ->
+    Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]" format_typ_with_parens t1
+      format_typ t2
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a →@ %a@]"
+    Format.fprintf fmt "@[<hov 2>(%a)@ →@ %a@]"
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-         (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         format_typ_with_parens)
       t1 format_typ t2
   | TArray t1 -> (
     match Marked.unmark (UnionFind.get (UnionFind.find t1)) with
