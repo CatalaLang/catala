@@ -155,13 +155,13 @@ let rec unify
   let () =
     match Marked.unmark t1_repr, Marked.unmark t2_repr with
     | TLit tl1, TLit tl2 -> if tl1 <> tl2 then raise_type_error ()
-    | TArrow (t11, t12), TArrow (t21, t22) ->
+    | TArrow (t11, t12), TArrow (t21, t22) -> (
       unify e t12 t22;
-      if List.length t11 = List.length t21 then List.iter2 (unify e) t11 t21
-      else raise_type_error ()
-    | TTuple ts1, TTuple ts2 ->
-      if List.length ts1 = List.length ts2 then List.iter2 (unify e) ts1 ts2
-      else raise_type_error ()
+      try List.iter2 (unify e) t11 t21
+      with Invalid_argument _ -> raise_type_error ())
+    | TTuple ts1, TTuple ts2 -> (
+      try List.iter2 (unify e) ts1 ts2
+      with Invalid_argument _ -> raise_type_error ())
     | TStruct s1, TStruct s2 ->
       if not (A.StructName.equal s1 s2) then raise_type_error ()
     | TEnum e1, TEnum e2 ->

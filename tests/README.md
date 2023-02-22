@@ -48,12 +48,12 @@ If a compiler change causes a lot of regressions (error message formatting chang
 for instance), you can mass-reset the expected outputs with
 `make test_suite CLERK_OPTS=--reset`.
 `git diff` will then allow to check all the changes at once.
-**Caution**: It's your responsibility to check all the changes before committing them.
+**Caution**: It's your responsability to check all the changes before committing them.
 
 ## Tips
 
 * Running a single test-file just to check changes when tweaking either the compiler or the test file itself, but without updating or diffing with the reference can be useful when debugging. The following command outputs the result to `stdout` and can be used from within text editors:
 
       clerk runtest test-file.catala_en
-      # Or, to use the current build artifacts, wrap with `dune exec`:
+      # Or, to use the current build artefacts, wrap with `dune exec`:
       dune exec --display=quiet --no-build -- clerk runtest -e dune -c "exec --display=quiet --no-build -- catala" test-file.catala_en

@@ -1205,8 +1205,9 @@ let process_topdef
         (Marked.get_mark def.S.topdef_name)
   in
   let typ =
-    if List.length arg_types = 0 then body_type
-    else TArrow (arg_types, body_type), ty_pos
+    match arg_types with
+    | [] -> body_type
+    | _ -> TArrow (arg_types, body_type), ty_pos
   in
   {
     prgm with

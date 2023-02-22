@@ -727,8 +727,7 @@ let make_app e args pos =
         | fty :: argtys -> (
           match Marked.unmark fty.ty with
           | TArrow (tx', tr) ->
-            assert (
-              argtys |> List.map (fun x -> x.ty) |> Type.unifiable_list tx');
+            assert (Type.unifiable_list tx' (List.map (fun x -> x.ty) argtys));
             tr
           | TAny -> fty.ty
           | _ -> assert false))
