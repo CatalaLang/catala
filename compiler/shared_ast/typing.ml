@@ -516,8 +516,9 @@ and typecheck_expr_top_down :
       A.EnumConstructor.Map.mapi
         (fun c_name e ->
           let c_ty = A.EnumConstructor.Map.find c_name cases_ty in
-          (* todo: usure about this one. Maybe I should modify
-             EnumConstructor.Map too. *)
+          (* For now our constructors are limited to zero or one argument. If
+             there is a change to allow for multiple arguments, it might be
+             easier to use tuples directly. *)
           let e_ty = unionfind ~pos:e (TArrow ([ast_to_typ c_ty], t_ret)) in
           typecheck_expr_top_down ctx env e_ty e)
         cases
