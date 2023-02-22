@@ -63,9 +63,12 @@ scope Transferred_property_83:
 
   label section_83_default
   definition amount_to_include_in_gross_income state computing
-    equals NotThisYear
+    equals
+      if transfer.was_disposed_of_before_unrestricted then DoesNotApply
+      else NotThisYear
   # Default case is not being applicable this year, additional exceptions explicit the cases
-  # where it becomes applicable
+  # where it becomes applicable ; we add a specific case for an already disposed of property
+  # because it's clear it won't apply any other year.
 
   label section_83a
   exception section_83_default
