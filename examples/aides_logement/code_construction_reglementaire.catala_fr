@@ -1148,7 +1148,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant:
-      (résultat de CalculAgeSupStrict avec
+      (résultat de VérificationÂgeSupérieurÀ avec
         { -- date_naissance: enfant.date_de_naissance
           -- date_courante: date_courante
           -- années: 21 an }).r
@@ -1184,7 +1184,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
           (parent.date_naissance +
             âge_l351_8_1_sécu <= date_courante ou
               (parent.titulaire_allocation_personne_âgée et
-               (résultat de CalculAgeInfEq avec
+               (résultat de VérificationÂgeInférieurOuÉgalÀ avec
                 { -- date_naissance: parent.date_naissance
                   -- date_courante: date_courante
                   -- années: 65 an }).r

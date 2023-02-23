@@ -203,7 +203,7 @@ exception cas_base_l822_4 règle condition_logement_location_tiers
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- LouéOuSousLouéÀDesTiers.Non: vrai
     -- LouéOuSousLouéÀDesTiers.Oui de personne:
-      (résultat de CalculAgeSupStrict avec
+      (résultat de VérificationÂgeSupérieurÀ avec
         { -- date_naissance: personne.date_naissance_personne_sous_location
           -- date_courante: date_courante
           -- années: 30 an }).r
