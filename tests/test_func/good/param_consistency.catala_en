@@ -1,0 +1,39 @@
+```catala
+declaration scope S:
+  input cond content boolean
+  internal f1 content decimal depends on integer
+  output out content decimal
+
+scope S:
+  definition f1 of x under condition cond
+    consequence equals decimal of (x * 2)
+  definition f1 of x under condition not cond
+    consequence equals x / 2
+  definition out equals f1 of 10
+```
+
+```catala-test-inline
+$ catala typecheck
+[RESULT] Typechecking successful!
+```
+
+```catala
+declaration scope T1:
+  strue scope S
+  sfalse scope S
+  output o1 content decimal
+  output o2 content decimal
+
+scope T1:
+  definition strue.cond equals true
+  definition sfalse.cond equals false
+  definition o1 equals strue.out
+  definition o2 equals sfalse.out
+```
+
+```catala-test-inline
+$ catala Interpret -s T1
+[RESULT] Computation successful! Results:
+[RESULT] o1 = 20.
+[RESULT] o2 = 5.
+```

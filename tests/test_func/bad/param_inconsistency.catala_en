@@ -1,0 +1,36 @@
+```catala
+declaration scope S:
+  input cond content boolean
+  internal f1 content decimal depends on x content integer
+  output out content decimal
+
+scope S:
+  definition f1 of x under condition cond
+    consequence equals decimal of (x * 2)
+  definition f1 of y under condition not cond
+    consequence equals y / 2
+  definition out equals f1 of 10
+```
+
+```catala-test-inline
+$ catala typecheck
+[ERROR] Inconsistent function definition for f1, the arguments differ
+
+First definition here
+┌─⯈ tests/test_func/bad/param_inconsistency.catala_en:8.2-9.41:
+└─┐
+8 │   definition f1 of x under condition cond
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+9 │     consequence equals decimal of (x * 2)
+  │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+
+┌─⯈ tests/test_func/bad/param_inconsistency.catala_en:10.2-11.28:
+└──┐
+10 │   definition f1 of y under condition not cond
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+11 │     consequence equals y / 2
+   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+#return code 255#
+```
