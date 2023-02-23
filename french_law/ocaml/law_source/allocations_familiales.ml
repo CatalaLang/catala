@@ -144,18 +144,20 @@ let embed_allocations_familiales (x: AllocationsFamiliales.t) : runtime_value =
   [("montant_versé", embed_money x.AllocationsFamiliales.montant_verse)])
 
 
-module CalculAgeInfEq = struct
+module VerificationAgeInferieurOuEgalA = struct
   type t = {r: bool}
 end
-let embed_calcul_age_inf_eq (x: CalculAgeInfEq.t) : runtime_value =
-  Struct(["CalculAgeInfEq"], [("r", embed_bool x.CalculAgeInfEq.r)])
+let embed_verification_age_inferieur_ou_egal_a (x: VerificationAgeInferieurOuEgalA.t) : runtime_value =
+  Struct(["VérificationÂgeInférieurOuÉgalÀ"],
+  [("r", embed_bool x.VerificationAgeInferieurOuEgalA.r)])
 
 
-module CalculAgeSupStrict = struct
+module VerificationAgeSuperieurA = struct
   type t = {r: bool}
 end
-let embed_calcul_age_sup_strict (x: CalculAgeSupStrict.t) : runtime_value =
-  Struct(["CalculAgeSupStrict"], [("r", embed_bool x.CalculAgeSupStrict.r)])
+let embed_verification_age_superieur_a (x: VerificationAgeSuperieurA.t) : runtime_value =
+  Struct(["VérificationÂgeSupérieurÀ"],
+  [("r", embed_bool x.VerificationAgeSuperieurA.r)])
 
 
 module Smic = struct
@@ -324,36 +326,37 @@ let embed_allocations_familiales_in (x: AllocationsFamilialesIn.t) : runtime_val
     x.AllocationsFamilialesIn.avait_enfant_a_charge_avant_1er_janvier_2012_in)])
 
 
-module CalculAgeInfEqIn = struct
+module VerificationAgeInferieurOuEgalAIn = struct
   type t = {
     date_naissance_in: date;
     date_courante_in: date;
     annees_in: duration
   }
 end
-let embed_calcul_age_inf_eq_in (x: CalculAgeInfEqIn.t) : runtime_value =
-  Struct(["CalculAgeInfEq_in"],
+let embed_verification_age_inferieur_ou_egal_a_in (x: VerificationAgeInferieurOuEgalAIn.t) : runtime_value =
+  Struct(["VérificationÂgeInférieurOuÉgalÀ_in"],
   [("date_naissance_in", embed_date
-    x.CalculAgeInfEqIn.date_naissance_in);
+    x.VerificationAgeInferieurOuEgalAIn.date_naissance_in);
     ("date_courante_in", embed_date
-    x.CalculAgeInfEqIn.date_courante_in);
-    ("années_in", embed_duration x.CalculAgeInfEqIn.annees_in)])
+    x.VerificationAgeInferieurOuEgalAIn.date_courante_in);
+    ("années_in", embed_duration
+    x.VerificationAgeInferieurOuEgalAIn.annees_in)])
 
 
-module CalculAgeSupStrictIn = struct
+module VerificationAgeSuperieurAIn = struct
   type t = {
     date_naissance_in: date;
     date_courante_in: date;
     annees_in: duration
   }
 end
-let embed_calcul_age_sup_strict_in (x: CalculAgeSupStrictIn.t) : runtime_value =
-  Struct(["CalculAgeSupStrict_in"],
+let embed_verification_age_superieur_a_in (x: VerificationAgeSuperieurAIn.t) : runtime_value =
+  Struct(["VérificationÂgeSupérieurÀ_in"],
   [("date_naissance_in", embed_date
-    x.CalculAgeSupStrictIn.date_naissance_in);
+    x.VerificationAgeSuperieurAIn.date_naissance_in);
     ("date_courante_in", embed_date
-    x.CalculAgeSupStrictIn.date_courante_in);
-    ("années_in", embed_duration x.CalculAgeSupStrictIn.annees_in)])
+    x.VerificationAgeSuperieurAIn.date_courante_in);
+    ("années_in", embed_duration x.VerificationAgeSuperieurAIn.annees_in)])
 
 
 module SmicIn = struct
@@ -483,12 +486,12 @@ let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePl
                        "Prologue"]})))) in
   {EnfantLePlusAge.le_plus_age = le_plus_age_}
 
-let calcul_age_inf_eq (calcul_age_inf_eq_in: CalculAgeInfEqIn.t) : CalculAgeInfEq.t =
-  let date_naissance_: date = calcul_age_inf_eq_in.CalculAgeInfEqIn.date_naissance_in in
-  let date_courante_: date = calcul_age_inf_eq_in.CalculAgeInfEqIn.date_courante_in in
-  let annees_: duration = calcul_age_inf_eq_in.CalculAgeInfEqIn.annees_in in
-  let r_: bool = (log_variable_definition ["CalculAgeInfEq"; "r"]
-    (embed_bool) (
+let verification_age_inferieur_ou_egal_a (verification_age_inferieur_ou_egal_a_in: VerificationAgeInferieurOuEgalAIn.t) : VerificationAgeInferieurOuEgalA.t =
+  let date_naissance_: date = verification_age_inferieur_ou_egal_a_in.VerificationAgeInferieurOuEgalAIn.date_naissance_in in
+  let date_courante_: date = verification_age_inferieur_ou_egal_a_in.VerificationAgeInferieurOuEgalAIn.date_courante_in in
+  let annees_: duration = verification_age_inferieur_ou_egal_a_in.VerificationAgeInferieurOuEgalAIn.annees_in in
+  let r_: bool = (log_variable_definition
+    ["VérificationÂgeInférieurOuÉgalÀ"; "r"] (embed_bool) (
     try
       (handle_default
          {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
@@ -510,14 +513,14 @@ let calcul_age_inf_eq (calcul_age_inf_eq_in: CalculAgeInfEqIn.t) : CalculAgeInfE
       {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
         start_line=17; start_column=12; end_line=17; end_column=13;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
-  {CalculAgeInfEq.r = r_}
+  {VerificationAgeInferieurOuEgalA.r = r_}
 
-let calcul_age_sup_strict (calcul_age_sup_strict_in: CalculAgeSupStrictIn.t) : CalculAgeSupStrict.t =
-  let date_naissance_: date = calcul_age_sup_strict_in.CalculAgeSupStrictIn.date_naissance_in in
-  let date_courante_: date = calcul_age_sup_strict_in.CalculAgeSupStrictIn.date_courante_in in
-  let annees_: duration = calcul_age_sup_strict_in.CalculAgeSupStrictIn.annees_in in
-  let r_: bool = (log_variable_definition ["CalculAgeSupStrict"; "r"]
-    (embed_bool) (
+let verification_age_superieur_a (verification_age_superieur_a_in: VerificationAgeSuperieurAIn.t) : VerificationAgeSuperieurA.t =
+  let date_naissance_: date = verification_age_superieur_a_in.VerificationAgeSuperieurAIn.date_naissance_in in
+  let date_courante_: date = verification_age_superieur_a_in.VerificationAgeSuperieurAIn.date_courante_in in
+  let annees_: duration = verification_age_superieur_a_in.VerificationAgeSuperieurAIn.annees_in in
+  let r_: bool = (log_variable_definition
+    ["VérificationÂgeSupérieurÀ"; "r"] (embed_bool) (
     try
       (handle_default
          {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
@@ -539,7 +542,7 @@ let calcul_age_sup_strict (calcul_age_sup_strict_in: CalculAgeSupStrictIn.t) : C
       {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
         start_line=27; start_column=12; end_line=27; end_column=13;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
-  {CalculAgeSupStrict.r = r_}
+  {VerificationAgeSuperieurA.r = r_}
 
 let smic (smic_in: SmicIn.t) : Smic.t =
   let date_courante_: date = smic_in.SmicIn.date_courante_in in

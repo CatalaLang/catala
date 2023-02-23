@@ -2145,29 +2145,35 @@ class type base_mensuelle_allocations_familiales =
           base_mensuelle_allocations_familiales##.montant
     }
 
-class type calcul_age_inf_eq =
+class type verification_age_inferieur_ou_egal_a =
   object method r: bool Js.t Js.readonly_prop
   end
-  let calcul_age_inf_eq_to_jsoo (calcul_age_inf_eq : CalculAgeInfEq.t)
-    : calcul_age_inf_eq Js.t = object%js
-                                 val r = Js.bool calcul_age_inf_eq.r
-                                 end
-  let calcul_age_inf_eq_of_jsoo
-    (calcul_age_inf_eq : calcul_age_inf_eq Js.t) : CalculAgeInfEq.t =
-    {r = Js.to_bool calcul_age_inf_eq##.r
+  let verification_age_inferieur_ou_egal_a_to_jsoo
+    (verification_age_inferieur_ou_egal_a
+    : VerificationAgeInferieurOuEgalA.t)
+    : verification_age_inferieur_ou_egal_a Js.t =
+    object%js
+      val r = Js.bool verification_age_inferieur_ou_egal_a.r
+      end
+  let verification_age_inferieur_ou_egal_a_of_jsoo
+    (verification_age_inferieur_ou_egal_a
+      : verification_age_inferieur_ou_egal_a Js.t) :
+    VerificationAgeInferieurOuEgalA.t =
+    {r = Js.to_bool verification_age_inferieur_ou_egal_a##.r
     }
 
-class type calcul_age_sup_strict =
+class type verification_age_superieur_a =
   object method r: bool Js.t Js.readonly_prop
   end
-  let calcul_age_sup_strict_to_jsoo (calcul_age_sup_strict
-    : CalculAgeSupStrict.t) : calcul_age_sup_strict Js.t =
+  let verification_age_superieur_a_to_jsoo (verification_age_superieur_a
+    : VerificationAgeSuperieurA.t) : verification_age_superieur_a Js.t =
     object%js
-      val r = Js.bool calcul_age_sup_strict.r
+      val r = Js.bool verification_age_superieur_a.r
       end
-  let calcul_age_sup_strict_of_jsoo
-    (calcul_age_sup_strict : calcul_age_sup_strict Js.t) :
-    CalculAgeSupStrict.t = {r = Js.to_bool calcul_age_sup_strict##.r
+  let verification_age_superieur_a_of_jsoo
+    (verification_age_superieur_a : verification_age_superieur_a Js.t) :
+    VerificationAgeSuperieurA.t =
+    {r = Js.to_bool verification_age_superieur_a##.r
     }
 
 class type smic =
@@ -4465,52 +4471,64 @@ class type base_mensuelle_allocations_familiales_in =
           base_mensuelle_allocations_familiales_in##.dateCouranteIn
     }
 
-class type calcul_age_inf_eq_in =
+class type verification_age_inferieur_ou_egal_a_in =
   object
     method dateNaissanceIn: Js.js_string Js.t Js.readonly_prop
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
     method anneesIn: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
   end
-  let calcul_age_inf_eq_in_to_jsoo (calcul_age_inf_eq_in
-    : CalculAgeInfEqIn.t) : calcul_age_inf_eq_in Js.t =
+  let verification_age_inferieur_ou_egal_a_in_to_jsoo
+    (verification_age_inferieur_ou_egal_a_in
+    : VerificationAgeInferieurOuEgalAIn.t)
+    : verification_age_inferieur_ou_egal_a_in Js.t =
     object%js
       val dateNaissanceIn =
-        date_to_jsoo calcul_age_inf_eq_in.date_naissance_in
-      val dateCouranteIn = date_to_jsoo calcul_age_inf_eq_in.date_courante_in
-      val anneesIn = duration_to_jsoo calcul_age_inf_eq_in.annees_in
-      end
-  let calcul_age_inf_eq_in_of_jsoo
-    (calcul_age_inf_eq_in : calcul_age_inf_eq_in Js.t) : CalculAgeInfEqIn.t =
-    {
-      date_naissance_in = date_of_jsoo calcul_age_inf_eq_in##.dateNaissanceIn;
-      date_courante_in = date_of_jsoo calcul_age_inf_eq_in##.dateCouranteIn;
-      annees_in = duration_of_jsoo calcul_age_inf_eq_in##.anneesIn
-    }
-
-class type calcul_age_sup_strict_in =
-  object
-    method dateNaissanceIn: Js.js_string Js.t Js.readonly_prop
-    method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
-    method anneesIn: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
-  end
-  let calcul_age_sup_strict_in_to_jsoo (calcul_age_sup_strict_in
-    : CalculAgeSupStrictIn.t) : calcul_age_sup_strict_in Js.t =
-    object%js
-      val dateNaissanceIn =
-        date_to_jsoo calcul_age_sup_strict_in.date_naissance_in
+        date_to_jsoo verification_age_inferieur_ou_egal_a_in.date_naissance_in
       val dateCouranteIn =
-        date_to_jsoo calcul_age_sup_strict_in.date_courante_in
-      val anneesIn = duration_to_jsoo calcul_age_sup_strict_in.annees_in
+        date_to_jsoo verification_age_inferieur_ou_egal_a_in.date_courante_in
+      val anneesIn =
+        duration_to_jsoo verification_age_inferieur_ou_egal_a_in.annees_in
       end
-  let calcul_age_sup_strict_in_of_jsoo
-    (calcul_age_sup_strict_in : calcul_age_sup_strict_in Js.t) :
-    CalculAgeSupStrictIn.t =
+  let verification_age_inferieur_ou_egal_a_in_of_jsoo
+    (verification_age_inferieur_ou_egal_a_in
+      : verification_age_inferieur_ou_egal_a_in Js.t) :
+    VerificationAgeInferieurOuEgalAIn.t =
     {
       date_naissance_in =
-        date_of_jsoo calcul_age_sup_strict_in##.dateNaissanceIn;
+        date_of_jsoo
+          verification_age_inferieur_ou_egal_a_in##.dateNaissanceIn;
       date_courante_in =
-        date_of_jsoo calcul_age_sup_strict_in##.dateCouranteIn;
-      annees_in = duration_of_jsoo calcul_age_sup_strict_in##.anneesIn
+        date_of_jsoo verification_age_inferieur_ou_egal_a_in##.dateCouranteIn;
+      annees_in =
+        duration_of_jsoo verification_age_inferieur_ou_egal_a_in##.anneesIn
+    }
+
+class type verification_age_superieur_a_in =
+  object
+    method dateNaissanceIn: Js.js_string Js.t Js.readonly_prop
+    method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
+    method anneesIn: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
+  end
+  let verification_age_superieur_a_in_to_jsoo
+    (verification_age_superieur_a_in : VerificationAgeSuperieurAIn.t)
+    : verification_age_superieur_a_in Js.t =
+    object%js
+      val dateNaissanceIn =
+        date_to_jsoo verification_age_superieur_a_in.date_naissance_in
+      val dateCouranteIn =
+        date_to_jsoo verification_age_superieur_a_in.date_courante_in
+      val anneesIn =
+        duration_to_jsoo verification_age_superieur_a_in.annees_in
+      end
+  let verification_age_superieur_a_in_of_jsoo
+    (verification_age_superieur_a_in : verification_age_superieur_a_in Js.t) :
+    VerificationAgeSuperieurAIn.t =
+    {
+      date_naissance_in =
+        date_of_jsoo verification_age_superieur_a_in##.dateNaissanceIn;
+      date_courante_in =
+        date_of_jsoo verification_age_superieur_a_in##.dateCouranteIn;
+      annees_in = duration_of_jsoo verification_age_superieur_a_in##.anneesIn
     }
 
 class type smic_in =
@@ -4629,21 +4647,22 @@ let base_mensuelle_allocations_familiales
   |> base_mensuelle_allocations_familiales_to_jsoo
 
 
-let calcul_age_inf_eq (calcul_age_inf_eq_in : calcul_age_inf_eq_in Js.t)
-  : calcul_age_inf_eq Js.t =
-  calcul_age_inf_eq_in
-  |> calcul_age_inf_eq_in_of_jsoo
-  |> calcul_age_inf_eq
-  |> calcul_age_inf_eq_to_jsoo
+let verification_age_inferieur_ou_egal_a
+  (verification_age_inferieur_ou_egal_a_in : verification_age_inferieur_ou_egal_a_in Js.t)
+  : verification_age_inferieur_ou_egal_a Js.t =
+  verification_age_inferieur_ou_egal_a_in
+  |> verification_age_inferieur_ou_egal_a_in_of_jsoo
+  |> verification_age_inferieur_ou_egal_a
+  |> verification_age_inferieur_ou_egal_a_to_jsoo
 
 
-let calcul_age_sup_strict
-  (calcul_age_sup_strict_in : calcul_age_sup_strict_in Js.t)
-  : calcul_age_sup_strict Js.t =
-  calcul_age_sup_strict_in
-  |> calcul_age_sup_strict_in_of_jsoo
-  |> calcul_age_sup_strict
-  |> calcul_age_sup_strict_to_jsoo
+let verification_age_superieur_a
+  (verification_age_superieur_a_in : verification_age_superieur_a_in Js.t)
+  : verification_age_superieur_a Js.t =
+  verification_age_superieur_a_in
+  |> verification_age_superieur_a_in_of_jsoo
+  |> verification_age_superieur_a
+  |> verification_age_superieur_a_to_jsoo
 
 
 let smic (smic_in : smic_in Js.t)
@@ -4820,11 +4839,11 @@ let _ =
       method baseMensuelleAllocationsFamiliales : (base_mensuelle_allocations_familiales_in Js.t -> base_mensuelle_allocations_familiales Js.t) Js.callback =
         Js.wrap_callback base_mensuelle_allocations_familiales
       
-      method calculAgeInfEq : (calcul_age_inf_eq_in Js.t -> calcul_age_inf_eq Js.t) Js.callback =
-        Js.wrap_callback calcul_age_inf_eq
+      method verificationAgeInferieurOuEgalA : (verification_age_inferieur_ou_egal_a_in Js.t -> verification_age_inferieur_ou_egal_a Js.t) Js.callback =
+        Js.wrap_callback verification_age_inferieur_ou_egal_a
       
-      method calculAgeSupStrict : (calcul_age_sup_strict_in Js.t -> calcul_age_sup_strict Js.t) Js.callback =
-        Js.wrap_callback calcul_age_sup_strict
+      method verificationAgeSuperieurA : (verification_age_superieur_a_in Js.t -> verification_age_superieur_a Js.t) Js.callback =
+        Js.wrap_callback verification_age_superieur_a
       
       method smic : (smic_in Js.t -> smic Js.t) Js.callback =
         Js.wrap_callback smic

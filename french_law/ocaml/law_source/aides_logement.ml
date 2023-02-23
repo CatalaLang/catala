@@ -897,18 +897,20 @@ let embed_base_mensuelle_allocations_familiales (x: BaseMensuelleAllocationsFami
   [("montant", embed_money x.BaseMensuelleAllocationsFamiliales.montant)])
 
 
-module CalculAgeInfEq = struct
+module VerificationAgeInferieurOuEgalA = struct
   type t = {r: bool}
 end
-let embed_calcul_age_inf_eq (x: CalculAgeInfEq.t) : runtime_value =
-  Struct(["CalculAgeInfEq"], [("r", embed_bool x.CalculAgeInfEq.r)])
+let embed_verification_age_inferieur_ou_egal_a (x: VerificationAgeInferieurOuEgalA.t) : runtime_value =
+  Struct(["VérificationÂgeInférieurOuÉgalÀ"],
+  [("r", embed_bool x.VerificationAgeInferieurOuEgalA.r)])
 
 
-module CalculAgeSupStrict = struct
+module VerificationAgeSuperieurA = struct
   type t = {r: bool}
 end
-let embed_calcul_age_sup_strict (x: CalculAgeSupStrict.t) : runtime_value =
-  Struct(["CalculAgeSupStrict"], [("r", embed_bool x.CalculAgeSupStrict.r)])
+let embed_verification_age_superieur_a (x: VerificationAgeSuperieurA.t) : runtime_value =
+  Struct(["VérificationÂgeSupérieurÀ"],
+  [("r", embed_bool x.VerificationAgeSuperieurA.r)])
 
 
 module Smic = struct
@@ -2047,36 +2049,37 @@ let embed_base_mensuelle_allocations_familiales_in (x: BaseMensuelleAllocationsF
     x.BaseMensuelleAllocationsFamilialesIn.date_courante_in)])
 
 
-module CalculAgeInfEqIn = struct
+module VerificationAgeInferieurOuEgalAIn = struct
   type t = {
     date_naissance_in: date;
     date_courante_in: date;
     annees_in: duration
   }
 end
-let embed_calcul_age_inf_eq_in (x: CalculAgeInfEqIn.t) : runtime_value =
-  Struct(["CalculAgeInfEq_in"],
+let embed_verification_age_inferieur_ou_egal_a_in (x: VerificationAgeInferieurOuEgalAIn.t) : runtime_value =
+  Struct(["VérificationÂgeInférieurOuÉgalÀ_in"],
   [("date_naissance_in", embed_date
-    x.CalculAgeInfEqIn.date_naissance_in);
+    x.VerificationAgeInferieurOuEgalAIn.date_naissance_in);
     ("date_courante_in", embed_date
-    x.CalculAgeInfEqIn.date_courante_in);
-    ("années_in", embed_duration x.CalculAgeInfEqIn.annees_in)])
+    x.VerificationAgeInferieurOuEgalAIn.date_courante_in);
+    ("années_in", embed_duration
+    x.VerificationAgeInferieurOuEgalAIn.annees_in)])
 
 
-module CalculAgeSupStrictIn = struct
+module VerificationAgeSuperieurAIn = struct
   type t = {
     date_naissance_in: date;
     date_courante_in: date;
     annees_in: duration
   }
 end
-let embed_calcul_age_sup_strict_in (x: CalculAgeSupStrictIn.t) : runtime_value =
-  Struct(["CalculAgeSupStrict_in"],
+let embed_verification_age_superieur_a_in (x: VerificationAgeSuperieurAIn.t) : runtime_value =
+  Struct(["VérificationÂgeSupérieurÀ_in"],
   [("date_naissance_in", embed_date
-    x.CalculAgeSupStrictIn.date_naissance_in);
+    x.VerificationAgeSuperieurAIn.date_naissance_in);
     ("date_courante_in", embed_date
-    x.CalculAgeSupStrictIn.date_courante_in);
-    ("années_in", embed_duration x.CalculAgeSupStrictIn.annees_in)])
+    x.VerificationAgeSuperieurAIn.date_courante_in);
+    ("années_in", embed_duration x.VerificationAgeSuperieurAIn.annees_in)])
 
 
 module SmicIn = struct
@@ -3451,12 +3454,12 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
         law_headings=["Montant de la base mensuelle des allocations familiales"]})))) in
   {BaseMensuelleAllocationsFamiliales.montant = montant_}
 
-let calcul_age_inf_eq (calcul_age_inf_eq_in: CalculAgeInfEqIn.t) : CalculAgeInfEq.t =
-  let date_naissance_: date = calcul_age_inf_eq_in.CalculAgeInfEqIn.date_naissance_in in
-  let date_courante_: date = calcul_age_inf_eq_in.CalculAgeInfEqIn.date_courante_in in
-  let annees_: duration = calcul_age_inf_eq_in.CalculAgeInfEqIn.annees_in in
-  let r_: bool = (log_variable_definition ["CalculAgeInfEq"; "r"]
-    (embed_bool) (
+let verification_age_inferieur_ou_egal_a (verification_age_inferieur_ou_egal_a_in: VerificationAgeInferieurOuEgalAIn.t) : VerificationAgeInferieurOuEgalA.t =
+  let date_naissance_: date = verification_age_inferieur_ou_egal_a_in.VerificationAgeInferieurOuEgalAIn.date_naissance_in in
+  let date_courante_: date = verification_age_inferieur_ou_egal_a_in.VerificationAgeInferieurOuEgalAIn.date_courante_in in
+  let annees_: duration = verification_age_inferieur_ou_egal_a_in.VerificationAgeInferieurOuEgalAIn.annees_in in
+  let r_: bool = (log_variable_definition
+    ["VérificationÂgeInférieurOuÉgalÀ"; "r"] (embed_bool) (
     try
       (handle_default
          {filename = "examples/aides_logement/../prestations_familiales/../smic/../prologue_france/prologue.catala_fr";
@@ -3478,14 +3481,14 @@ let calcul_age_inf_eq (calcul_age_inf_eq_in: CalculAgeInfEqIn.t) : CalculAgeInfE
       {filename = "examples/aides_logement/../prestations_familiales/../smic/../prologue_france/prologue.catala_fr";
         start_line=17; start_column=12; end_line=17; end_column=13;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
-  {CalculAgeInfEq.r = r_}
+  {VerificationAgeInferieurOuEgalA.r = r_}
 
-let calcul_age_sup_strict (calcul_age_sup_strict_in: CalculAgeSupStrictIn.t) : CalculAgeSupStrict.t =
-  let date_naissance_: date = calcul_age_sup_strict_in.CalculAgeSupStrictIn.date_naissance_in in
-  let date_courante_: date = calcul_age_sup_strict_in.CalculAgeSupStrictIn.date_courante_in in
-  let annees_: duration = calcul_age_sup_strict_in.CalculAgeSupStrictIn.annees_in in
-  let r_: bool = (log_variable_definition ["CalculAgeSupStrict"; "r"]
-    (embed_bool) (
+let verification_age_superieur_a (verification_age_superieur_a_in: VerificationAgeSuperieurAIn.t) : VerificationAgeSuperieurA.t =
+  let date_naissance_: date = verification_age_superieur_a_in.VerificationAgeSuperieurAIn.date_naissance_in in
+  let date_courante_: date = verification_age_superieur_a_in.VerificationAgeSuperieurAIn.date_courante_in in
+  let annees_: duration = verification_age_superieur_a_in.VerificationAgeSuperieurAIn.annees_in in
+  let r_: bool = (log_variable_definition
+    ["VérificationÂgeSupérieurÀ"; "r"] (embed_bool) (
     try
       (handle_default
          {filename = "examples/aides_logement/../prestations_familiales/../smic/../prologue_france/prologue.catala_fr";
@@ -3507,7 +3510,7 @@ let calcul_age_sup_strict (calcul_age_sup_strict_in: CalculAgeSupStrictIn.t) : C
       {filename = "examples/aides_logement/../prestations_familiales/../smic/../prologue_france/prologue.catala_fr";
         start_line=27; start_column=12; end_line=27; end_column=13;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
-  {CalculAgeSupStrict.r = r_}
+  {VerificationAgeSuperieurA.r = r_}
 
 let smic (smic_in: SmicIn.t) : Smic.t =
   let date_courante_: date = smic_in.SmicIn.date_courante_in in
@@ -17034,15 +17037,17 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                              | LoueOuSousLoueADesTiers.Non _ -> true
                              | LoueOuSousLoueADesTiers.Oui personne_ ->
                                  (o_or
-                                    ((let result_ : CalculAgeSupStrict.t =
+                                    ((let result_ :
+                                        VerificationAgeSuperieurA.t =
                                         ((log_begin_call
-                                        ["CalculAgeSupStrict"; "direct"]
-                                        calcul_age_sup_strict)
+                                        ["VérificationÂgeSupérieurÀ";
+                                          "direct"]
+                                        verification_age_superieur_a)
                                         ((log_variable_definition
-                                        ["CalculAgeSupStrict"; "direct";
-                                          "input"]
-                                        (embed_calcul_age_sup_strict_in)
-                                        ({CalculAgeSupStrictIn.date_naissance_in =
+                                        ["VérificationÂgeSupérieurÀ";
+                                          "direct"; "input"]
+                                        (embed_verification_age_superieur_a_in)
+                                        ({VerificationAgeSuperieurAIn.date_naissance_in =
                                             (
                                             try
                                               (personne_.PersonneSousLocation.date_naissance_personne_sous_location)
@@ -17059,7 +17064,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                "Livre VIII : Aides personnelles au logement";
                                                                "Partie législative";
                                                                "Code de la construction et de l'habitation"]})));
-                                            CalculAgeSupStrictIn.date_courante_in =
+                                            VerificationAgeSuperieurAIn.date_courante_in =
                                               (try date_courante_ with
                                               EmptyError -> (raise
                                                 (NoValueProvided
@@ -17073,7 +17078,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                  "Livre VIII : Aides personnelles au logement";
                                                                  "Partie législative";
                                                                  "Code de la construction et de l'habitation"]})));
-                                            CalculAgeSupStrictIn.annees_in =
+                                            VerificationAgeSuperieurAIn.annees_in =
                                               (
                                               try
                                                 (duration_of_numbers (30) (0) (0))
@@ -17091,15 +17096,17 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                  "Partie législative";
                                                                  "Code de la construction et de l'habitation"]})))}))))
                                     in
-                                    (let result_ : CalculAgeSupStrict.t =
-                                       ({CalculAgeSupStrict.r =
-                                           (result_.CalculAgeSupStrict.r)})
+                                    (let result_ :
+                                       VerificationAgeSuperieurA.t =
+                                       ({VerificationAgeSuperieurA.r =
+                                           (result_.VerificationAgeSuperieurA.r)})
                                     in
                                     ((log_end_call
-                                    ["CalculAgeSupStrict"; "direct"]
-                                    ((log_variable_definition
-                                    ["CalculAgeSupStrict"; "direct";
-                                      "output"] (embed_calcul_age_sup_strict)
+                                    ["VérificationÂgeSupérieurÀ";
+                                      "direct"] ((log_variable_definition
+                                    ["VérificationÂgeSupérieurÀ";
+                                      "direct"; "output"]
+                                    (embed_verification_age_superieur_a)
                                     ( if
                                        ((log_decision_taken
                                          {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
@@ -17112,7 +17119,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                           "Partie législative";
                                                           "Code de la construction et de l'habitation"]}
                                          true)) then result_ else
-                                       (raise EmptyError)))))))).CalculAgeSupStrict.r)
+                                       (raise EmptyError)))))))).VerificationAgeSuperieurA.r)
                                     (personne_.PersonneSousLocation.conforme_article_l442_1)))))
                          (fun (_: unit) -> true))|])
                  (fun (_: unit) -> (log_decision_taken
@@ -17640,15 +17647,17 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                              date_courante_)
                                           (o_and
                                              (parent_.AutrePersonneACharge.titulaire_allocation_personne_agee)
-                                             ((let result_ : CalculAgeInfEq.t
+                                             ((let result_ :
+                                                 VerificationAgeInferieurOuEgalA.t
                                                  = ((log_begin_call
-                                                 ["CalculAgeInfEq"; "direct"]
-                                                 calcul_age_inf_eq)
+                                                 ["VérificationÂgeInférieurOuÉgalÀ";
+                                                   "direct"]
+                                                 verification_age_inferieur_ou_egal_a)
                                                  ((log_variable_definition
-                                                 ["CalculAgeInfEq"; "direct";
-                                                   "input"]
-                                                 (embed_calcul_age_inf_eq_in)
-                                                 ({CalculAgeInfEqIn.date_naissance_in =
+                                                 ["VérificationÂgeInférieurOuÉgalÀ";
+                                                   "direct"; "input"]
+                                                 (embed_verification_age_inferieur_ou_egal_a_in)
+                                                 ({VerificationAgeInferieurOuEgalAIn.date_naissance_in =
                                                      (
                                                      try
                                                        (parent_.AutrePersonneACharge.date_naissance)
@@ -17667,7 +17676,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                            "Livre VIII : Aides personnelles au logement";
                                                            "Partie réglementaire";
                                                            "Code de la construction et de l'habitation"]})));
-                                                     CalculAgeInfEqIn.date_courante_in =
+                                                     VerificationAgeInferieurOuEgalAIn.date_courante_in =
                                                        (
                                                        try date_courante_
                                                        with
@@ -17685,7 +17694,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                              "Livre VIII : Aides personnelles au logement";
                                                              "Partie réglementaire";
                                                              "Code de la construction et de l'habitation"]})));
-                                                     CalculAgeInfEqIn.annees_in =
+                                                     VerificationAgeInferieurOuEgalAIn.annees_in =
                                                        (
                                                        try
                                                          (duration_of_numbers (65) (0) (0))
@@ -17705,17 +17714,19 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                              "Partie réglementaire";
                                                              "Code de la construction et de l'habitation"]})))}))))
                                              in
-                                             (let result_ : CalculAgeInfEq.t
+                                             (let result_ :
+                                                VerificationAgeInferieurOuEgalA.t
                                                 =
-                                                ({CalculAgeInfEq.r =
-                                                    (result_.CalculAgeInfEq.r)})
+                                                ({VerificationAgeInferieurOuEgalA.r =
+                                                    (result_.VerificationAgeInferieurOuEgalA.r)})
                                              in
                                              ((log_end_call
-                                             ["CalculAgeInfEq"; "direct"]
+                                             ["VérificationÂgeInférieurOuÉgalÀ";
+                                               "direct"]
                                              ((log_variable_definition
-                                             ["CalculAgeInfEq"; "direct";
-                                               "output"]
-                                             (embed_calcul_age_inf_eq)
+                                             ["VérificationÂgeInférieurOuÉgalÀ";
+                                               "direct"; "output"]
+                                             (embed_verification_age_inferieur_ou_egal_a)
                                              ( if
                                                 ((log_decision_taken
                                                   {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
@@ -17730,7 +17741,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                    "Partie réglementaire";
                                                                    "Code de la construction et de l'habitation"]}
                                                   true)) then result_ else
-                                                (raise EmptyError)))))))).CalculAgeInfEq.r)))
+                                                (raise EmptyError)))))))).VerificationAgeInferieurOuEgalA.r)))
                                        (o_and
                                           (o_lte_dat_dat
                                              (o_add_dat_dur AbortOnRound
@@ -17861,14 +17872,15 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                          (match personne_a_charge_
                           with
                           | PersonneACharge.EnfantACharge enfant_ ->
-                              ((let result_ : CalculAgeSupStrict.t =
+                              ((let result_ : VerificationAgeSuperieurA.t =
                                   ((log_begin_call
-                                  ["CalculAgeSupStrict"; "direct"]
-                                  calcul_age_sup_strict)
+                                  ["VérificationÂgeSupérieurÀ"; "direct"]
+                                  verification_age_superieur_a)
                                   ((log_variable_definition
-                                  ["CalculAgeSupStrict"; "direct"; "input"]
-                                  (embed_calcul_age_sup_strict_in)
-                                  ({CalculAgeSupStrictIn.date_naissance_in =
+                                  ["VérificationÂgeSupérieurÀ"; "direct";
+                                    "input"]
+                                  (embed_verification_age_superieur_a_in)
+                                  ({VerificationAgeSuperieurAIn.date_naissance_in =
                                       (
                                       try
                                         (enfant_.EnfantACharge.date_de_naissance)
@@ -17884,7 +17896,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                          "Livre VIII : Aides personnelles au logement";
                                                          "Partie réglementaire";
                                                          "Code de la construction et de l'habitation"]})));
-                                      CalculAgeSupStrictIn.date_courante_in =
+                                      VerificationAgeSuperieurAIn.date_courante_in =
                                         (try date_courante_ with
                                         EmptyError -> (raise (NoValueProvided
                                           {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
@@ -17897,7 +17909,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                            "Livre VIII : Aides personnelles au logement";
                                                            "Partie réglementaire";
                                                            "Code de la construction et de l'habitation"]})));
-                                      CalculAgeSupStrictIn.annees_in = (
+                                      VerificationAgeSuperieurAIn.annees_in =
+                                        (
                                         try
                                           (duration_of_numbers (21) (0) (0))
                                         with
@@ -17913,14 +17926,16 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                            "Partie réglementaire";
                                                            "Code de la construction et de l'habitation"]})))}))))
                               in
-                              (let result_ : CalculAgeSupStrict.t =
-                                 ({CalculAgeSupStrict.r =
-                                     (result_.CalculAgeSupStrict.r)})
+                              (let result_ : VerificationAgeSuperieurA.t =
+                                 ({VerificationAgeSuperieurA.r =
+                                     (result_.VerificationAgeSuperieurA.r)})
                               in
-                              ((log_end_call ["CalculAgeSupStrict"; "direct"]
+                              ((log_end_call
+                              ["VérificationÂgeSupérieurÀ"; "direct"]
                               ((log_variable_definition
-                              ["CalculAgeSupStrict"; "direct"; "output"]
-                              (embed_calcul_age_sup_strict)
+                              ["VérificationÂgeSupérieurÀ"; "direct";
+                                "output"]
+                              (embed_verification_age_superieur_a)
                               ( if
                                  ((log_decision_taken
                                    {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
@@ -17934,7 +17949,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                     "Partie réglementaire";
                                                     "Code de la construction et de l'habitation"]}
                                    true)) then result_ else
-                                 (raise EmptyError)))))))).CalculAgeSupStrict.r)
+                                 (raise EmptyError)))))))).VerificationAgeSuperieurA.r)
                           | PersonneACharge.AutrePersonneACharge parent_ ->
                               false))) (fun (_: unit) -> true))|])
               (fun (_: unit) -> (log_decision_taken
