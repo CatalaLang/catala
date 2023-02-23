@@ -1334,6 +1334,7 @@ a) Les montants visés au 3° de l'article D. 823-16, au 4° des articles D. 842
 dont les valeurs sont fixées aux articles 9, 34 et 40, sont remplacés par les valeurs suivantes (en euros) :
 
 Désignation                                                                    Toutes zones
+-----------------------------------------------------------------------------  ------------
 Bénéficiaire isolé ou couple sans personne à charge                            36,40
 Par personne supplémentaire à charge dans la limite de six personnes à charge  9,36
 
@@ -1341,16 +1342,19 @@ b) Les montants des colocataires et des copropriétaires prévus respectivement 
 D. 842-10 du même code, dont les valeurs sont fixées aux articles 16 et 37, sont remplacés par les valeurs
 suivantes (en euros) :
 
-Composition du ménage Montant
-Bénéficiaire isolé 18,72
-Couple sans personne à charge 36,40
+Composition du ménage                                                     Montant
+------------------------------------------------------------------------  -------
+Bénéficiaire isolé                                                        18,72
+Couple sans personne à charge                                             36,40
 Majoration par personne à charge dans la limite de six personnes à charge 9,36
 
 4° Les valeurs du taux " TF " fixées à l'article 14, taux fonction de la taille de la famille visé au 3° de
 l'article D. 823-17 du même code, sont remplacées par les valeurs suivantes :
 
 VALEURS DE TF
+
 Bénéficiaires                      TF
+---------------------------------  -----
 Isolé                              2,81%
 Couple sans enfant                 2,99%
 1 enfant ou 1 personne             2,38%
@@ -1374,6 +1378,9 @@ personnelles au logement en secteur locatif.
 
 
 ```catala
+# On regarde si les montants fixés pour les APL en secteur locatif (chapitre III, art. 9, 11, 12)  
+# sont les mêmes que ceux des allocations foyers (chapitre VII, art. 40 à 44)
+
 # Article 40 montant forfaitaire des charges : valeurs identiques à partir du
 # 1er janvier 2023 à celles de l'article 9 donc rien à coder.
 
@@ -2349,20 +2356,7 @@ du 1er janvier 2020.
 
 ### Article 33 | LEGIARTI000041489184 [archive]
 
-```catala
-# Est-ce qu'on met les articles qui ont été modifiés mais seulement des "erreurs" ou
-# terminologies différentes ? On retrouve le même cas dans la version de l'arrêté du 29
-# juillet 2022 relatif au calcul des aides personnelles au logement NOR : TREL2220748A
-# pour les articles 14, 18, 31 (version de 2019 de l’art 31 avait une erreur « grave » au I) )
-# 33 de l'arrêté de 2019 (erreurs matérielles).
-
-# D'un point de vue du code informatique, ça peut ne rien changer, mais d'un point de vue
-# juridique, c'est plus correct et peut être plus facile de s'y retrouver, d'avoir le texte
-# sous les yeux.
-# Idée "intermédiaire" : ne pas reproduire l'intégralité du texte mais écrire ce que l'arrêté
-# modificatif a fait comme changement non significatif et important pour le code informatique.
-# ex. ci dessous
-
+```catala 
 # Modifications non subsantielles mais qui peuvent améliorer la compréhension et la précision des
 # dispositions par rapport à la version initiale.
 # TODO juridique et informatique : vérifier par rapport à la version initiale (version 2019)
