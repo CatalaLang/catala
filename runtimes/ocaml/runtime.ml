@@ -223,7 +223,7 @@ and var_def = {
 
 and fun_call = {
   fun_name : information;
-  input : var_def;
+  inputs : var_def list;
   body : event list;
   output : var_def;
 }
@@ -306,7 +306,7 @@ let rec pp_events ?(is_first_call = true) ppf events =
       when Option.is_some var_def_with_fun.fun_calls ->
       Format.fprintf ppf "%a" format_var_def_with_fun_calls var_def_with_fun
     | VarComputation var_def -> Format.fprintf ppf "%a" format_var_def var_def
-    | FunCall { fun_name; input; body; output } ->
+    | FunCall { fun_name; inputs; body; output } ->
       Format.fprintf ppf
         "@[<hov 1><function_call>@ %s :=@ {@[<hv 1>@ input:@ %a,@ output:@ \
          %a,@ body:@ [@,\
@@ -314,7 +314,10 @@ let rec pp_events ?(is_first_call = true) ppf events =
          @]@,\
          }"
         (String.concat "." fun_name)
-        format_var_def input format_var_def_with_fun_calls output
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
+           format_var_def)
+        inputs format_var_def_with_fun_calls output
         (pp_events ~is_first_call:false)
         body
     | SubScopeCall { name; inputs; body } ->
@@ -480,10 +483,16 @@ module EventParser = struct
         | _ -> failwith "unreachable due to the [is_subscope_call] test")
       | EndCall _ :: rest -> { ctx with events = ctx.events |> List.rev; rest }
       | event :: _ -> failwith ("Unexpected event: " ^ raw_event_to_string event)
-    and parse_fun_call events =
+    and parse_input_variables events =
       match events with
-      | VariableDefinition (name, value) :: BeginCall infos :: rest
-        when is_function_call infos && is_input_var_def name ->
+      | VariableDefinition (name, value) :: rest when is_input_var_def name ->
+        let rest, vars = parse_input_variables rest in
+        rest, { pos = None; name; value; fun_calls = None } :: vars
+      | _ -> failwith "Invalid start of function call."
+    and parse_fun_call events =
+      let rest, inputs = parse_input_variables events in
+      match rest with
+      | BeginCall infos :: rest when is_function_call infos ->
         let rest, body, output =
           let body_ctx =
             parse_events { vars = VarDefMap.empty; events = []; rest }
@@ -497,13 +506,7 @@ module EventParser = struct
           | _ -> failwith "Missing function output variable definition."
         in
 
-        ( rest,
-          {
-            fun_name = infos;
-            input = { pos = None; name; value; fun_calls = None };
-            body;
-            output;
-          } )
+        rest, { fun_name = infos; inputs; body; output }
       | _ -> failwith "Invalid start of function call."
     in
 
