@@ -379,6 +379,16 @@ module EventParser = struct
       Printf.sprintf "DecisionTaken(%s:%d.%d-%d.%d)" pos.filename pos.start_line
         pos.start_column pos.end_line pos.end_column
 
+  (** [takewhile p xs] split the list [xs] as the longest prefix of the list
+      [xs] where every element [x] satisfies [p x] and the rest. *)
+  let rec take_while (p : 'a -> bool) (l : 'a list) : 'a list * 'a list =
+    match l with
+    | [] -> [], []
+    | h :: t when p h ->
+      let t, rest = take_while p t in
+      h :: t, rest
+    | _ -> [], l
+
   let parse_raw_events raw_events =
     let nb_raw_events = List.length raw_events
     and is_function_call infos = 2 = List.length infos
@@ -387,7 +397,8 @@ module EventParser = struct
     and is_output_var_def name =
       3 = List.length name && "output" = List.nth name 2
     and is_input_var_def name =
-      3 = List.length name && "input" = List.nth name 2
+      3 = List.length name
+      && String.starts_with ~prefix:"input" (List.nth name 2)
     and is_subscope_input_var_def name =
       2 = List.length name && String.contains (List.nth name 1) '.'
     in
@@ -430,12 +441,15 @@ module EventParser = struct
         when is_function_call infos ->
         (* Variable definition with function calls. *)
         let rec parse_fun_calls fun_calls raw_events =
-          match raw_events with
-          | VariableDefinition _ :: BeginCall infos :: _
-            when is_function_call infos ->
+          match
+            take_while
+              (function VariableDefinition _ -> true | _ -> false)
+              raw_events
+          with
+          | _, BeginCall infos :: _ when is_function_call infos ->
             let rest, fun_call = parse_fun_call raw_events in
             parse_fun_calls (fun_call :: fun_calls) rest
-          | rest -> rest, fun_calls |> List.rev
+          | _ -> raw_events, fun_calls |> List.rev
         in
         let rest, var_comp =
           let rest, fun_calls = parse_fun_calls [] (List.tl ctx.rest) in
@@ -483,16 +497,20 @@ module EventParser = struct
         | _ -> failwith "unreachable due to the [is_subscope_call] test")
       | EndCall _ :: rest -> { ctx with events = ctx.events |> List.rev; rest }
       | event :: _ -> failwith ("Unexpected event: " ^ raw_event_to_string event)
-    and parse_input_variables events =
-      match events with
-      | VariableDefinition (name, value) :: rest when is_input_var_def name ->
-        let rest, vars = parse_input_variables rest in
-        rest, { pos = None; name; value; fun_calls = None } :: vars
-      | _ -> failwith "Invalid start of function call."
     and parse_fun_call events =
-      let rest, inputs = parse_input_variables events in
-      match rest with
-      | BeginCall infos :: rest when is_function_call infos ->
+      match
+        take_while
+          (function
+            | VariableDefinition (name, _) -> is_input_var_def name | _ -> false)
+          events
+      with
+      | inputs, BeginCall infos :: rest when is_function_call infos ->
+        let inputs =
+          ListLabels.map inputs ~f:(function
+            | VariableDefinition (name, value) ->
+              { pos = None; name; value; fun_calls = None }
+            | _ -> assert false)
+        in
         let rest, body, output =
           let body_ctx =
             parse_events { vars = VarDefMap.empty; events = []; rest }
