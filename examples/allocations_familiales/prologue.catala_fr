@@ -54,8 +54,8 @@ déclaration énumération ÉlémentPrestationsFamiliales:
 
 ```catala-metadata
 déclaration champ d'application PrestationsFamiliales:
-  résultat droit_ouvert condition dépend de Enfant
-  résultat conditions_hors_âge condition dépend de Enfant
+  résultat droit_ouvert condition dépend de enfant contenu Enfant
+  résultat conditions_hors_âge condition dépend de enfant contenu Enfant
   interne plafond_l512_3_2 contenu argent
   résultat âge_l512_3_2 contenu durée
   résultat régime_outre_mer_l751_1 condition
@@ -94,8 +94,8 @@ déclaration champ d'application AllocationsFamiliales:
   entrée enfants_à_charge contenu collection Enfant
   interne enfants_à_charge_droit_ouvert_prestation_familiale
     contenu collection Enfant
-  interne prise_en_compte contenu PriseEnCompte dépend de Enfant
-  interne versement contenu VersementAllocations dépend de Enfant
+  interne prise_en_compte contenu PriseEnCompte dépend de enfant contenu Enfant
+  interne versement contenu VersementAllocations dépend de enfant contenu Enfant
 
   résultat montant_versé contenu argent
 
@@ -117,21 +117,22 @@ déclaration champ d'application AllocationsFamiliales:
   interne montant_initial_base_quatrième_enfant_et_plus_mayotte contenu argent
 
   # Variables liées à l'allocation forfaitaire
-  interne droit_ouvert_forfaitaire condition dépend de Enfant
+  interne droit_ouvert_forfaitaire condition dépend de enfant contenu Enfant
   interne montant_versé_forfaitaire_par_enfant contenu argent
   interne montant_versé_forfaitaire contenu argent
 
   # Variables liées aux majorations des allocations familiales
-  interne droit_ouvert_majoration condition dépend de Enfant
-  interne montant_initial_métropole_majoration contenu argent dépend de Enfant
-  interne montant_initial_majoration contenu argent dépend de Enfant
-  interne montant_avec_garde_alternée_majoration contenu argent dépend de Enfant
+  interne droit_ouvert_majoration condition dépend de enfant contenu Enfant
+  interne montant_initial_métropole_majoration contenu argent dépend de enfant contenu Enfant
+  interne montant_initial_majoration contenu argent dépend de enfant contenu Enfant
+  interne montant_avec_garde_alternée_majoration contenu argent dépend de enfant contenu Enfant
   interne montant_versé_majoration contenu argent
 
   # Variables liées au complément dégressif
   interne droit_ouvert_complément condition
   interne montant_base_complément_pour_base_et_majoration contenu argent
-  interne complément_dégressif contenu argent dépend de argent
+  interne complément_dégressif contenu argent
+    dépend de allocation contenu argent
   interne montant_versé_complément_pour_base_et_majoration contenu argent
   interne montant_versé_complément_pour_forfaitaire contenu argent
 
@@ -143,9 +144,9 @@ déclaration champ d'application AllocationsFamiliales:
 
   # Plafonds, âges limites et autres constantes
   interne nombre_enfants_l521_1 contenu entier
-  interne âge_minimum_alinéa_1_l521_3 contenu durée dépend de Enfant
+  interne âge_minimum_alinéa_1_l521_3 contenu durée dépend de enfant contenu Enfant
   interne nombre_enfants_alinéa_2_l521_3 contenu entier
-  interne est_enfant_le_plus_âgé contenu booléen dépend de Enfant
+  interne est_enfant_le_plus_âgé contenu booléen dépend de enfant contenu Enfant
   interne plafond_I_d521_3 contenu argent
   interne plafond_II_d521_3 contenu argent
 

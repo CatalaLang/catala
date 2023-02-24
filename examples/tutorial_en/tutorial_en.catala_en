@@ -292,10 +292,10 @@ declaration scope TwoBracketsTaxComputation :
   input brackets content TwoBrackets
   # This input variable contains the description of the
   # parameters of the tax formula.
-  output tax_formula content money depends on money
+  output tax_formula content money depends on income content money
   # But for declaring the tax_formula variable, we declare it as
-  # a function: "content money depends on money" means a function that
-  # returns money as output (the tax) and takes money as input (the income).
+  # a function: "content money depends on income content money" means a function
+  # that returns money as output (the tax) and takes the income money as input.
 ```
 
 ### Article 4
@@ -468,7 +468,7 @@ fixed version of the NewIncomeTaxComputation scope:
 declaration scope NewIncomeTaxComputationFixed:
   two_brackets scope TwoBracketsTaxComputation
   input individual content Individual
-  output tax_formula content money depends on money
+  output tax_formula content money depends on income content money
   context output income_tax content money
   # This variable is tagged with "context", a new concept which we have not
   # introduced yet. For now, ignore it as we'll come back to it in the section

@@ -220,7 +220,8 @@ déclaration structure DeuxTranches:
 
 déclaration champ d'application CalculImpôtDeuxTranches :
   entrée tranches contenu DeuxTranches
-  résultat formule_imposition contenu argent dépend de argent
+  résultat formule_imposition contenu argent
+    dépend de revenu contenu argent
 ```
 
 Et dans le code :
