@@ -12,7 +12,7 @@
 , js_of_ocaml
 , js_of_ocaml-ppx
 , menhir
-, menhirLib ? null #for nixos-unstable compatibility.
+, menhirLib
 , ocamlgraph
 , pkgs
 , ppx_deriving
@@ -27,7 +27,7 @@
 , zarith_stubs_js
 }:
 
-buildDunePackage rec {
+buildDunePackage {
   pname = "catala";
   version = "0.7.0"; # TODO parse `catala.opam` with opam2json
 
@@ -37,17 +37,17 @@ buildDunePackage rec {
 
   duneVersion = "3";
 
+  nativeBuildInputs = [ cppo menhir ];
+
   propagatedBuildInputs = [
     alcotest
     ansiterminal
     benchmark
     bindlib
     cmdliner
-    cppo
     dates_calc
     js_of_ocaml
     js_of_ocaml-ppx
-    menhir
     menhirLib
     ocamlgraph
     pkgs.z3
@@ -61,8 +61,10 @@ buildDunePackage rec {
     z3
     zarith
     zarith_stubs_js
-  ] ++ (if isNull menhirLib then [ ] else [ menhirLib ]);
-  doCheck = true;
+  ];
+
+  # Currently there is no unit tests in catala and Cram tests are handled by clerk
+  doCheck = false;
 
   meta = with lib; {
     homepage = "https://catala-lang.org";
