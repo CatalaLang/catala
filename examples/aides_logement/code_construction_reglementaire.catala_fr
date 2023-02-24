@@ -1145,7 +1145,7 @@ l'article L. 823-2 du présent code ;
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  étiquette enfants
+  étiquette r823_4_enfants
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant:

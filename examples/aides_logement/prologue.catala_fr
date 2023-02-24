@@ -307,6 +307,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne condition_non_ouverture_l822_9_decence_logement condition
   interne condition_ouverture_l822_10_peuplement_logement condition
   interne condition_peuplement_logement_l822_10 condition
+  interne septième_alinéa_l823_1_applicable condition
   interne éligibilité_logement condition
   interne prise_en_compte_personne_à_charge condition
     dépend de PersonneÀCharge

@@ -427,15 +427,32 @@ Pour l'application du 1°, les enfants à charge doivent respecter les condition
 prévues à l'article L. 512-2 du code de la sécurité sociale .
 
 ```catala
-# TODO informatique : coder la disposition sur article L. 512-2 du code de la
-# sécurité sociale à propos des enfants à charge.
+# Ici nous sommes dans une situation délicate car pour les enfants à charge
+# les règles de prise en compte sont énoncées dans R823-4, sauf que le dernier
+# alinéa nous rajoutent une condition qui n'est pas dans R823-4.
+# Pour prendre en compte cette condition supplémentaire en respectant la
+# structure du texte de droit nous choisissons de l'encoder comme une
+# exception négative qui vient invalide la règle de R823-4 dans le cas où
+# l'enfant étranger ne remplit pas les conditions de l'article
+# L512-2 du code de la sécurité sociale.
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  # Ici nous définissons cette condition d'applicabilité en apparence
+  # toujours vraie mais qui sera peut-être invalidée dans le cas de Mayotte
+  # (articl L861-5).
+  règle septième_alinéa_l823_1_applicable rempli
 
-# Cet article indique ce qu'on prend en compte mais pas comment on le prend
-# en compte, donc rien à formaliser, le code viendra dans la partie
-# réglementaire et décrétale qui se réferera elle à L823-1. Il sera
-# peut-être utile par la suite de vérifier que les parties réglementaire
-# et décrétale se conforment bien à L823-1 mais nous laissons cela pour
-# le futur. Pour le 1°, la partie règlementaire est le R823-4.
+  exception r823_4_enfants
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+    septième_alinéa_l823_1_applicable et
+    selon personne_à_charge sous forme
+    -- EnfantÀCharge de enfant: (
+      selon enfant.nationalité sous forme
+      -- Étrangère de conditions:
+        non conditions.satisfait_conditions_l512_2_code_sécurité_sociale
+      -- n'importe quel: faux
+    )
+    -- n'importe quel: faux
+  conséquence non rempli
 ```
 
 ###### Article L823-2 | LEGIARTI000038814918
@@ -1347,19 +1364,10 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
 4° Le septième alinéa de l'article L. 823-1 n'est pas applicable ;
 
 ```catala
-# Ici on reprend le code du 1° de R823-4 qui spécifie les conditions de
-# prise en compte des enfants à charge selon ce qui est prévu par L823-1.
-# TODO informatique: ce n'est pas fini d'implémenter!
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  exception enfants
-  règle prise_en_compte_personne_à_charge de personne_à_charge
-  sous condition
-    selon personne_à_charge sous forme
-    -- EnfantÀCharge de enfant:
-      ménage.résidence sous forme Mayotte et
-      enfant.date_de_naissance + 21 an > date_courante
-    -- n'importe quel: faux
-  conséquence rempli
+  exception règle septième_alinéa_l823_1_applicable sous condition
+    ménage.résidence sous forme Mayotte
+  conséquence non rempli
 ```
 
 5° A l'article L. 823-9, les mots : " Les articles L. 161-1-5 et L. 553-2 du
@@ -1369,6 +1377,11 @@ la protection sanitaire et sociale à Mayotte et l'article 13 de l'ordonnance
 n° 2002-149 du 7 février 2002 relative à l'extension et la généralisation des
 prestations familiales et à la protection sociale dans la collectivité
 territoriale de Mayotte ".
+
+```catala
+# L'article L823-9 concerne le recouvrement des indus d'aides au logement
+# qui est en dehors du champ de notre calculette.
+```
 
 NOTA :
 
