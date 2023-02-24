@@ -56,6 +56,8 @@ déclaration structure Prêt:
   donnée type_prêt contenu TypePrêt
   donnée date_signature contenu date
   donnée titulaire_prêt contenu TitulairePrêt
+  donnée accord_financement_représentant_État_outre_mer
+    contenu AccordFinancementReprésentantÉtatOutreMer
 
 déclaration structure Propriétaire:
   donnée mensualité_principale contenu argent
@@ -114,6 +116,7 @@ déclaration structure LogementFoyer:
   donnée type contenu TypeLogementFoyer
   donnée remplit_conditions_r832_21 contenu booléen
   donnée conventionné_livre_III_titre_V_chap_III contenu booléen
+  donnée conventionné_selon_règles_mayotte contenu booléen
   donnée date_conventionnement contenu date
   donnée construit_application_loi_1957_12_III contenu booléen
   donnée redevance contenu argent
@@ -233,6 +236,10 @@ déclaration structure Demandeur:
   donnée nationalité contenu Nationalité
   donnée patrimoine contenu Patrimoine
   donnée personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
+    contenu booléen
+  donnée est_non_salarié_agricole_l781_8_l_781_46_code_rural contenu booléen
+  donnée
+    magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte
     contenu booléen
 
 déclaration structure ConditionsÉtrangers:
@@ -413,6 +420,10 @@ déclaration énumération TypeÉligibilitéAllocationLogement:
   -- AllocationLogementFamiliale
   -- AllocationLogementSociale
 
+déclaration énumération AccordFinancementReprésentantÉtatOutreMer:
+  -- Accord contenu date
+  -- PasdAccord
+
 déclaration champ d'application ÉligibilitéAllocationLogement:
   entrée date_courante contenu date
   entrée ménage contenu Ménage
@@ -420,6 +431,9 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   entrée bénéficie_aide_personnalisée_logement contenu booléen
 
   interne condition_accession_propriété condition
+  interne l_841_1_1_applicable condition
+  interne l_841_1_2_applicable condition
+  interne l_841_1_6_applicable condition
 
   interne éligibilité_allocation_logement_familiale condition
   interne durée_l841_1_3 contenu durée
