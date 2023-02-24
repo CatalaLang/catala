@@ -1,7 +1,11 @@
-syntax.pdf: syntax.tex
-	latexmk -pdf -halt-on-error -shell-escape -pvc syntax.tex
+syntax.pdf: syntax_en.pdf syntax_fr.pdf
+	cpdf $^ -o $@
+
+%.pdf: %.tex logo.pdf
+	latexmk -pdf -halt-on-error -shell-escape $<
 
 clean:
-	latexmk -f -C syntax.tex
+	latexmk -f -C *.tex
+	rm -rf _minted*
 
-.PRECIOUS .SECONDARY: syntax.pdf
+.PRECIOUS .SECONDARY: syntax.pdf syntax_en.pdf syntax_fr.pdf

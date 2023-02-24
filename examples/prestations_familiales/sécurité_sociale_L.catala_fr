@@ -74,9 +74,9 @@ champ d'application ÉligibilitéPrestationsFamiliales :
   # On définit les conditions hors âge d'abord car elles
   # sont référencées plus tard dans l'article L521-1
   règle conditions_hors_âge de enfant sous condition
-    enfant.obligation_scolaire sous forme Avant ou
-    enfant.obligation_scolaire sous forme Pendant ou
-    enfant.obligation_scolaire sous forme Après et
+    (enfant.obligation_scolaire sous forme Avant ou
+     enfant.obligation_scolaire sous forme Pendant ou
+     enfant.obligation_scolaire sous forme Après) et
     (enfant.rémuneration_mensuelle <=
       plafond_l512_3_2)
   conséquence rempli

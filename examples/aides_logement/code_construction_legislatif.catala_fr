@@ -264,9 +264,9 @@ n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   étiquette l822_5_2 exception r822_22_3 définition patrimoine_pris_en_compte
-  sous condition existe prestation dans ménage.prestations_reçues tel que
-    (prestation = AllocationSoutienEnfantHandicapé) ou
-    (prestation = AllocationAdulteHandicapé)
+  sous condition existe prestation parmi ménage.prestations_reçues tel que
+    (prestation = AllocationSoutienEnfantHandicapé ou
+     prestation = AllocationAdulteHandicapé)
   conséquence égal à 0€
 ```
 
@@ -867,11 +867,12 @@ d) Soit l'allocation de soutien familial mentionnée au 6° du même article ;
 champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_1 règle éligibilité_allocation_logement_familiale
   sous condition
-    existe prestation dans ménage.prestations_reçues tel que
+    existe prestation parmi ménage.prestations_reçues tel que (
       prestation = PrestationReçue.AllocationsFamiliales ou
       prestation = PrestationReçue.ComplémentFamilial ou
       prestation = PrestationReçue.AllocationSoutienFamilial ou
       prestation = AllocationSoutienEnfantHandicapé
+    )
   conséquence rempli
 ```
 
@@ -886,28 +887,28 @@ champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_2 exception l841_1_1
   règle éligibilité_allocation_logement_familiale
   sous condition
-    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
-      (selon personne_à_charge sous forme
-      -- AutrePersonneÀCharge: faux
-      -- EnfantÀCharge de enfant: (prestations_familiales.droit_ouvert de
-        EnfantPrestationsFamiliales {
-        -- identifiant: enfant.identifiant
-        -- obligation_scolaire: enfant.obligation_scolaire
-        -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
-        -- date_de_naissance: enfant.date_de_naissance
-        -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
-          -- GardeAlternéeCoefficientPriseEnCharge:
-            PriseEnChargeEnfant.GardeAlternéePartageAllocations
-          -- PasDeGardeAlternée:
-            PriseEnChargeEnfant.EffectiveEtPermanente)
-        -- a_déjà_ouvert_droit_aux_allocations_familiales:
-          enfant.a_déjà_ouvert_droit_aux_allocations_familiales
-        -- bénéficie_titre_personnel_aide_personnelle_logement:
-          enfant.
-            bénéficie_titre_personnel_aide_personnelle_logement
-      }
-      )
-    )) = 1
+    nombre de
+      (personne_à_charge parmi ménage.personnes_à_charge tel que
+       (selon personne_à_charge sous forme
+        -- AutrePersonneÀCharge: faux
+        -- EnfantÀCharge de enfant: prestations_familiales.droit_ouvert de
+          EnfantPrestationsFamiliales {
+          -- identifiant: enfant.identifiant
+          -- obligation_scolaire: enfant.obligation_scolaire
+          -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
+          -- date_de_naissance: enfant.date_de_naissance
+          -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
+            -- GardeAlternéeCoefficientPriseEnCharge:
+              PriseEnChargeEnfant.GardeAlternéePartageAllocations
+            -- PasDeGardeAlternée:
+              PriseEnChargeEnfant.EffectiveEtPermanente)
+          -- a_déjà_ouvert_droit_aux_allocations_familiales:
+            enfant.a_déjà_ouvert_droit_aux_allocations_familiales
+          -- bénéficie_titre_personnel_aide_personnelle_logement:
+            enfant.
+              bénéficie_titre_personnel_aide_personnelle_logement
+          }))
+    = 1
   conséquence rempli
 ```
 
@@ -918,28 +919,29 @@ champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_3 exception l841_1_2
   règle éligibilité_allocation_logement_familiale
   sous condition
-    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
-      (selon personne_à_charge sous forme
-      -- AutrePersonneÀCharge: faux
-      -- EnfantÀCharge de enfant: non (prestations_familiales.droit_ouvert de
-        EnfantPrestationsFamiliales {
-        -- identifiant: enfant.identifiant
-        -- obligation_scolaire: enfant.obligation_scolaire
-        -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
-        -- date_de_naissance: enfant.date_de_naissance
-        -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
-          -- GardeAlternéeCoefficientPriseEnCharge:
-            PriseEnChargeEnfant.GardeAlternéePartageAllocations
-          -- PasDeGardeAlternée:
-            PriseEnChargeEnfant.EffectiveEtPermanente)
-        -- a_déjà_ouvert_droit_aux_allocations_familiales:
-          enfant.a_déjà_ouvert_droit_aux_allocations_familiales
-        -- bénéficie_titre_personnel_aide_personnelle_logement:
-          enfant.
-            bénéficie_titre_personnel_aide_personnelle_logement
-      }
-      )
-    )) = 0 et
+    nombre de
+      (personne_à_charge parmi ménage.personnes_à_charge tel que
+       (selon personne_à_charge sous forme
+        -- AutrePersonneÀCharge: faux
+        -- EnfantÀCharge de enfant: non (prestations_familiales.droit_ouvert de
+          EnfantPrestationsFamiliales {
+          -- identifiant: enfant.identifiant
+          -- obligation_scolaire: enfant.obligation_scolaire
+          -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
+          -- date_de_naissance: enfant.date_de_naissance
+          -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
+            -- GardeAlternéeCoefficientPriseEnCharge:
+              PriseEnChargeEnfant.GardeAlternéePartageAllocations
+            -- PasDeGardeAlternée:
+              PriseEnChargeEnfant.EffectiveEtPermanente)
+          -- a_déjà_ouvert_droit_aux_allocations_familiales:
+            enfant.a_déjà_ouvert_droit_aux_allocations_familiales
+          -- bénéficie_titre_personnel_aide_personnelle_logement:
+            enfant.
+              bénéficie_titre_personnel_aide_personnelle_logement
+          })))
+      = 0
+    et
     (selon ménage.situation_familiale sous forme
     -- Mariés de date_mariage : date_courante <= date_mariage + durée_l841_1_3
     -- n'importe quel: faux)
@@ -956,8 +958,9 @@ champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_4 exception l841_1_3
   règle éligibilité_allocation_logement_familiale
   sous condition
-    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
-      éligibilité_commune.condition_2_r823_4 de personne_à_charge) >= 1
+    nombre de (personne_à_charge parmi ménage.personnes_à_charge
+      tel que éligibilité_commune.condition_2_r823_4 de personne_à_charge)
+    >= 1
   conséquence rempli
 ```
 
@@ -973,7 +976,7 @@ champ d'application ÉligibilitéAllocationLogement:
   étiquette l841_1_4 exception l841_1_3
   règle éligibilité_allocation_logement_familiale
   sous condition
-    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
+    (nombre de (personne_à_charge parmi ménage.personnes_à_charge tel que
       (selon personne_à_charge sous forme
       -- AutrePersonneÀCharge de parent:
         # Cela a l'air similaire au 3° du R823-4 code construction mais
@@ -984,7 +987,7 @@ champ d'application ÉligibilitéAllocationLogement:
         parent.ascendant_descendant_collatéral_deuxième_troisième_degré et
         parent.incapacité_80_pourcent_ou_restriction_emploi
       -- EnfantÀCharge de enfant: faux
-    )) >= 1
+    ))) >= 1
   conséquence rempli
 ```
 

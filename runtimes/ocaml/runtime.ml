@@ -372,7 +372,9 @@ module EventParser = struct
     | VariableDefinition (name, value) ->
       Printf.sprintf "VariableDefinition([ %s ], %s)" (String.concat ", " name)
         (yojson_of_runtime_value value |> Yojson.Safe.to_string)
-    | DecisionTaken _ -> Printf.sprintf "DecisionTaken(_)"
+    | DecisionTaken pos ->
+      Printf.sprintf "DecisionTaken(%s:%d.%d-%d.%d)" pos.filename pos.start_line
+        pos.start_column pos.end_line pos.end_column
 
   let parse_raw_events raw_events =
     let nb_raw_events = List.length raw_events
@@ -386,7 +388,6 @@ module EventParser = struct
     and is_subscope_input_var_def name =
       2 = List.length name && String.contains (List.nth name 1) '.'
     in
-
     let rec parse_events (ctx : context) : context =
       match ctx.rest with
       | [] -> { ctx with events = ctx.events |> List.rev }
@@ -580,16 +581,16 @@ let equal_periods (p1 : duration) (p2 : duration) : bool =
 module Oper = struct
   let o_not = Stdlib.not
   let o_length a = Z.of_int (Array.length a)
-  let o_intToRat = decimal_of_integer
-  let o_moneyToRat = decimal_of_money
-  let o_ratToMoney = money_of_decimal
+  let o_torat_int = decimal_of_integer
+  let o_torat_mon = decimal_of_money
+  let o_tomoney_rat = money_of_decimal
   let o_getDay = day_of_month_of_date
   let o_getMonth = month_number_of_date
   let o_getYear = year_of_date
   let o_firstDayOfMonth = first_day_of_month
   let o_lastDayOfMonth = last_day_of_month
-  let o_roundMoney = money_round
-  let o_roundDecimal = decimal_round
+  let o_round_mon = money_round
+  let o_round_rat = decimal_round
   let o_minus_int i1 = Z.sub Z.zero i1
   let o_minus_rat i1 = Q.sub Q.zero i1
   let o_minus_mon m1 = Z.sub Z.zero m1
@@ -599,6 +600,17 @@ module Oper = struct
   let o_xor : bool -> bool -> bool = ( <> )
   let o_eq = ( = )
   let o_map = Array.map
+
+  let o_reduce f dft a =
+    let len = Array.length a in
+    if len = 0 then dft
+    else
+      let r = ref a.(0) in
+      for i = 1 to len - 1 do
+        r := f !r a.(i)
+      done;
+      !r
+
   let o_concat = Array.append
   let o_filter f a = Array.of_list (List.filter f (Array.to_list a))
   let o_add_int_int i1 i2 = Z.add i1 i2
@@ -628,7 +640,11 @@ module Oper = struct
     else Z.(res * of_int sign_int)
 
   let o_mult_dur_int d m = Dates_calc.Dates.mul_period d (Z.to_int m)
-  let o_div_int_int i1 i2 = Z.div i1 i2 (* raises Division_by_zero *)
+
+  let o_div_int_int i1 i2 =
+    (* It's not on the ocamldoc, but Q.div likely already raises this ? *)
+    if Z.zero = i2 then raise Division_by_zero
+    else Q.div (Q.of_bigint i1) (Q.of_bigint i2)
 
   let o_div_rat_rat i1 i2 =
     if Q.zero = i2 then raise Division_by_zero else Q.div i1 i2

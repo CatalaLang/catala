@@ -61,7 +61,7 @@ let wrap_latex
 %s
 \usepackage{minted}
 \usepackage{longtable}
-\usepackage{booktabs}
+\usepackage{booktabs,tabularx}
 \usepackage{newunicodechar}
 \usepackage{textcomp}
 \usepackage[hidelinks]{hyperref}
@@ -122,8 +122,8 @@ let wrap_latex
 \newunicodechar{→}{$\rightarrow$}
 \newunicodechar{≠}{$\neq$}
 
-\newcommand*\FancyVerbStartString{```catala}
-\newcommand*\FancyVerbStopString{```}
+\newcommand*\FancyVerbStartString{\PYG{l+s}{```catala}}
+\newcommand*\FancyVerbStopString{\PYG{l+s}{```}}
 
 \fvset{
 numbers=left,
@@ -151,7 +151,8 @@ codes={\catcode`\$=3\catcode`\^=7}
 \tableofcontents
 
 \[\star\star\star\]
-\clearpage|latex}
+\clearpage
+|latex}
     (match language with Fr -> "french" | En -> "english" | Pl -> "polish")
     (match language with Fr -> "\\setmainfont{Marianne}" | _ -> "")
     (* for France, we use the official font of the French state design system

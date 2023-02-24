@@ -81,6 +81,7 @@ type context = {
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
   scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
+  topdefs : TopdefName.t IdentName.Map.t;  (** Global definitions *)
   structs : struct_context StructName.Map.t;
       (** For each struct, its context *)
   enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
@@ -129,8 +130,8 @@ val add_def_local_var : context -> IdentName.t -> context * Ast.expr Var.t
 (** Adds a binding to the context *)
 
 val get_def_key :
-  Surface.Ast.qident ->
-  Surface.Ast.ident Marked.pos option ->
+  Surface.Ast.scope_var ->
+  Surface.Ast.lident Marked.pos option ->
   ScopeName.t ->
   context ->
   Pos.t ->
@@ -148,6 +149,10 @@ val get_struct : context -> IdentName.t Marked.pos -> StructName.t
 val get_scope : context -> IdentName.t Marked.pos -> ScopeName.t
 (** Find a scope definition from the typedefs, failing if there is none or it
     has a different kind *)
+
+val process_base_typ : context -> Surface.Ast.base_typ Marked.pos -> typ
+(** Convert a surface base type to an AST type *)
+(* Note: should probably be moved to a different module *)
 
 (** {1 API} *)
 

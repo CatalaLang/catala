@@ -37,11 +37,11 @@ déclaration énumération ÉlémentPrestationsFamiliales:
   -- AllocationJournalièrePresenceParentale
 
 déclaration champ d'application ÉligibilitéPrestationsFamiliales:
-  sortie droit_ouvert condition dépend de EnfantPrestationsFamiliales
-  sortie conditions_hors_âge condition dépend de EnfantPrestationsFamiliales
+  résultat droit_ouvert condition dépend de EnfantPrestationsFamiliales
+  résultat conditions_hors_âge condition dépend de EnfantPrestationsFamiliales
   interne plafond_l512_3_2 contenu argent
-  sortie âge_l512_3_2 contenu durée
-  sortie régime_outre_mer_l751_1 condition
+  résultat âge_l512_3_2 contenu durée
+  résultat régime_outre_mer_l751_1 condition
   entrée date_courante contenu date
   entrée prestation_courante contenu ÉlémentPrestationsFamiliales
   entrée résidence contenu Collectivité

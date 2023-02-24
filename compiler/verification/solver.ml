@@ -30,10 +30,12 @@ let solve_vc
       (fun vc ->
         ( vc,
           try
+            let ctx = Z3backend.Io.make_context decl_ctx in
+            let ctx =
+              Z3backend.Io.encode_asserts ctx vc.Conditions.vc_asserts
+            in
             let ctx, z3_vc =
-              Z3backend.Io.translate_expr
-                (Z3backend.Io.make_context decl_ctx)
-                vc.Conditions.vc_guard
+              Z3backend.Io.translate_expr ctx vc.Conditions.vc_guard
             in
             Z3backend.Io.Success (z3_vc, ctx)
           with Failure msg -> Fail msg ))

@@ -14,7 +14,7 @@ declaration structure B:
    data z content decimal
 
 scope S:
-   definition b equals let b equals 42 in B { -- y: true -- z: integer_to_decimal of b}
+   definition b equals let b equals 42 in B { -- y: true -- z: decimal of b}
    definition a equals
      let b equals
        if b.y

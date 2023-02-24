@@ -1,6 +1,59 @@
-# Archives législatives et réglementaires
+# Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
 
-## Articles valables du 1er octobre 2021 au 1er juillet 2022
+## Articles valables du 1er juillet 2022 au 31 décembre 2022
+
+### Article 15 | LEGIARTI000046126962 [archive]
+
+Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
+le tableau suivant (en euros) :
+
+Composition du foyer	                     MONTANT  (en euros)
+-----------------------------------------  -------------------
+Personne seule sans personne à charge	     4 870
+Couple sans personne à charge	             6 977
+Personne seule ou couple ayant :
+    -une personne à charge	               8 322
+    -deux personnes à charge	             8 509
+    -trois personnes à charge	             8 834
+    -quatre personnes à charge	           9 163
+    -cinq personnes à charge	             9 488
+    -six personnes à charge                9 816
+    -par personne à charge supplémentaire  323
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-07-01| et
+    date_courante <= |2022-12-31|:
+  définition abattement_forfaitaire_d823_17 égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 4 870 €
+      -- Couple: 6 977 €
+    sinon (si nombre_personnes_à_charge = 1 alors
+      8 322 €
+    sinon (si nombre_personnes_à_charge = 2 alors
+      8 509 €
+    sinon (si nombre_personnes_à_charge = 3 alors
+      8 834 €
+    sinon (si nombre_personnes_à_charge = 4 alors
+      9 163 €
+    sinon (si nombre_personnes_à_charge = 5 alors
+      9 488 €
+    sinon (si nombre_personnes_à_charge = 6 alors
+      9 816 €
+    sinon
+      (9 816€ + (323 € * (décimal de
+        (nombre_personnes_à_charge - 6))))
+    ))))))
+```
+
+NOTA :
+
+Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er juillet 2022.
+
+
+## Articles valables du 1er octobre 2021 au 30 juin 2022
 
 ### Article 7 | LEGIARTI000044137432 [archive]
 
@@ -55,13 +108,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      406,30€ + 58,95€ * (entier_vers_décimal de
+      406,30€ + 58,95€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      357,80€ + 52,08€ * (entier_vers_décimal de
+      357,80€ + 52,08€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      330,94€ + 47,43€ * (entier_vers_décimal de
+      330,94€ + 47,43€ * (décimal de
         (nombre_personnes_à_charge - 1))
 
 ```
@@ -159,7 +212,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
   étiquette base définition montant_forfaitaire_charges_d823_16 égal à
-    54,22€ + 12,29€ * (entier_vers_décimal de nombre_personnes_à_charge)
+    54,22€ + 12,29€ * (décimal de nombre_personnes_à_charge)
 ```
 
 ### Article 13 | LEGIARTI000044137423 [archive]
@@ -235,7 +288,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% - (0,06% * (entier_vers_décimal de
+      (1,73% - (0,06% * (décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 # TODO informatique: corriger le parseur pour éviter d'avoir à mettre
@@ -252,7 +305,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
   définition rapport_loyers égal à
-    arrondi_décimal de ((loyer_éligible / loyer_référence) * 100,0) / 100,0
+    arrondi de ((loyer_éligible / loyer_référence) * 100,0) / 100,0
 ```
 
 Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés
@@ -285,9 +338,9 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si rapport_loyers >= 75% alors
       0,45% * 30% + 0,68% * (rapport_loyers - 75%)
     sinon 0,0))
-  définition taux_loyer_éligible état arrondi égal à
+  définition taux_loyer_éligible état taux_arrondi égal à
     # La troisième décimale en pourcentage est en fait la cinquième décimale
-    (arrondi_décimal de (taux_loyer_éligible * 100000,0)) / 100000,0
+    (arrondi de (taux_loyer_éligible * 100000,0)) / 100000,0
 ```
 
 Le loyer de référence LR est défini selon le tableau suivant (en euros) :
@@ -309,7 +362,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       -- PersonneSeule: 259,78€
       -- Couple: 317,97€
     sinon (357,80€ +
-      (52,08€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      (52,08€ * (décimal de (nombre_personnes_à_charge - 1))))
 ```
 
 NOTA :
@@ -372,13 +425,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      304,73€ + 44,21€ * (entier_vers_décimal de
+      304,73€ + 44,21€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      268,35€ + 39,06€ * (entier_vers_décimal de
+      268,35€ + 39,06€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      248,21€ + 35,57€ * (entier_vers_décimal de
+      248,21€ + 35,57€ * (décimal de
         (nombre_personnes_à_charge - 1))
 ```
 
@@ -398,7 +451,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 27,10€
     -- Couple: 54,22€) +
-    12,29€ * (entier_vers_décimal de nombre_personnes_à_charge)
+    12,29€ * (décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -428,7 +481,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
     date_courante < |2022-07-01|:
 
   étiquette base définition montant_forfaitaire_charges_d832_10 égal à
-    54,22 € + 12,29 € * (entier_vers_décimal de nombre_personnes_à_charge)
+    54,22 € + 12,29 € * (décimal de nombre_personnes_à_charge)
 ```
 
 ### Article 24 | LEGIARTI000044137409 [archive]
@@ -466,7 +519,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
      (selon situation_familiale_calcul_apl sous forme
        -- PersonneSeule: 27,10€
        -- Couple: 54,22€) +
-     12,29 € * (entier_vers_décimal de nombre_personnes_à_charge)
+     12,29 € * (décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -511,7 +564,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
         636,35 €
       sinon
         (686,37 € +
-        71,19€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        71,19€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -525,7 +578,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
         579,29 €
       sinon
         (617,27 € +
-        64,34€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        64,34€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -539,7 +592,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
         541,10 €
       sinon
         (576,57 € +
-        59,71€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        59,71€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     )
 ```
 
@@ -564,7 +617,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
   étiquette oct_2021_juin_2022 définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 54,22 €
    sinon 54,22 € + (12,29 € * (
-     entier_vers_décimal de nombre_personnes_à_charge))
+     décimal de nombre_personnes_à_charge))
 ```
 
 ### Article 37 | LEGIARTI000044137400 [archive]
@@ -604,7 +657,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
     (selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 27,10 €
       -- Couple : 54,22€) + (12,29 € * (
-      entier_vers_décimal de nombre_personnes_à_charge))
+      décimal de nombre_personnes_à_charge))
 ```
 
 NOTA :
@@ -633,7 +686,7 @@ champ d'application CalculAllocationLogementFoyer
   définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 54,22 €
    sinon 54,22 € + (12,29 € * (
-     entier_vers_décimal de nombre_personnes_à_charge))
+     décimal de nombre_personnes_à_charge))
 ```
 
 
@@ -722,7 +775,79 @@ Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces di
 applicables pour les prestations dues à compter du 1er octobre 2021.
 
 
-## Articles valables du 1er octobre 2020 au 1er octobre 2021
+## Articles valables du 1er janvier 2022 au 30 juin 2022
+
+### Article 6 | LEGIARTI000045011471 [archive]
+
+Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
+égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
+pour la location et à 6 000 euros pour la résidence en logement-foyer.
+
+Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est
+pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros
+pour la location et à 4 900 euros pour la résidence en logement-foyer.
+
+```catala
+# TODO informatique et juridique: traduire cet article qui vient définir
+# ressources_forfaitaires_r822_20
+```
+
+NOTA :
+
+Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
+
+### Article 15 | LEGIARTI000045011468 [archive]
+
+Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
+le tableau suivant (en euros) :
+
+Composition du foyer	                     MONTANT  (en euros)
+-----------------------------------------  -------------------
+Personne seule sans personne à charge	     4 683
+Couple sans personne à charge	             6 709
+Personne seule ou couple ayant :
+    -une personne à charge	               8 002
+    -deux personnes à charge	             8 182
+    -trois personnes à charge	             8 495
+    -quatre personnes à charge	           8 811
+    -cinq personnes à charge	             9 124
+    -six personnes à charge                9 439
+    -par personne à charge supplémentaire  311
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01| et
+    date_courante < |2022-07-01|:
+  définition abattement_forfaitaire_d823_17 égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 4 683 €
+      -- Couple: 6709 €
+    sinon (si nombre_personnes_à_charge = 1 alors
+      8 002 €
+    sinon (si nombre_personnes_à_charge = 2 alors
+      8 192 €
+    sinon (si nombre_personnes_à_charge = 3 alors
+      8 495 €
+    sinon (si nombre_personnes_à_charge = 4 alors
+      8 811 €
+    sinon (si nombre_personnes_à_charge = 5 alors
+      9 124 €
+    sinon (si nombre_personnes_à_charge = 6 alors
+      9 439 €
+    sinon
+      (9 439€ + (311 € * (décimal de
+        (nombre_personnes_à_charge - 6))))
+    ))))))
+```
+
+NOTA :
+Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
+
+
+## Articles valables du 1er octobre 2020 au 31 septembre 2021
 
 ### Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
 
@@ -780,13 +905,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      404,60€ + 58,70€ * (entier_vers_décimal de
+      404,60€ + 58,70€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      356,30€ + 51,86€ * (entier_vers_décimal de
+      356,30€ + 51,86€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      329,56€ + 47,23€ * (entier_vers_décimal de
+      329,56€ + 47,23€ * (décimal de
         (nombre_personnes_à_charge - 1))
 
 ```
@@ -883,7 +1008,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante < |2021-10-01| et
     date_courante >= |2020-10-01|:
   étiquette base définition montant_forfaitaire_charges_d823_16 égal à
-    53,99€ + 12,24€ * (entier_vers_décimal de nombre_personnes_à_charge)
+    53,99€ + 12,24€ * (décimal de nombre_personnes_à_charge)
 ```
 
 #### Article 13 | LEGIARTI000042378442 [archive]
@@ -959,7 +1084,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% - (0,06% * (entier_vers_décimal de
+      (1,73% - (0,06% * (décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 # TODO informatique: corriger le parseur pour éviter d'avoir à mettre
@@ -976,7 +1101,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2020-10-01| et
     date_courante < |2021-10-01|:
   définition rapport_loyers égal à
-    arrondi_décimal de ((loyer_éligible / loyer_référence) * 100,0) / 100,0
+    arrondi de ((loyer_éligible / loyer_référence) * 100,0) / 100,0
 ```
 
 Pour la détermination de TL , les taux progressifs et les tranches successives de RL mentionnés
@@ -1006,9 +1131,9 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si rapport_loyers >= 75% alors
       0,45% * 30% + 0,68% * (rapport_loyers - 75%)
     sinon 0,0))
-  définition taux_loyer_éligible état arrondi égal à
+  définition taux_loyer_éligible état taux_arrondi égal à
     # La troisième décimale en pourcentage est en fait la cinquième décimale
-    (arrondi_décimal de (taux_loyer_éligible * 100000,0)) / 100000,0
+    (arrondi de (taux_loyer_éligible * 100000,0)) / 100000,0
 ```
 
 Le loyer de référence LR est défini selon le tableau suivant (en euros) :
@@ -1030,7 +1155,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       -- PersonneSeule: 258,69€
       -- Couple: 316,64€
     sinon (356,30€ +
-      (51,86€ * (entier_vers_décimal de (nombre_personnes_à_charge - 1))))
+      (51,86€ * (décimal de (nombre_personnes_à_charge - 1))))
 ```
 
 NOTA :
@@ -1091,13 +1216,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      303,45€ + 44,03€ * (entier_vers_décimal de
+      303,45€ + 44,03€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone2:
-      267,23€ + 38,90€ * (entier_vers_décimal de
+      267,23€ + 38,90€ * (décimal de
         (nombre_personnes_à_charge - 1))
     --Zone3:
-      247,17€ + 35,42€ * (entier_vers_décimal de
+      247,17€ + 35,42€ * (décimal de
         (nombre_personnes_à_charge - 1))
 ```
 
@@ -1117,7 +1242,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 26,99€
     -- Couple: 53,99€) +
-    12,24€ * (entier_vers_décimal de nombre_personnes_à_charge)
+    12,24€ * (décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -1149,7 +1274,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
     date_courante >= |2020-10-01|:
 
   étiquette base définition montant_forfaitaire_charges_d832_10 égal à
-    53,99 € + 12,24 € * (entier_vers_décimal de nombre_personnes_à_charge)
+    53,99 € + 12,24 € * (décimal de nombre_personnes_à_charge)
 ```
 
 #### Article 24 | LEGIARTI000042378430 [archive]
@@ -1187,7 +1312,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
       (selon situation_familiale_calcul_apl sous forme
         -- PersonneSeule: 26,99€
         -- Couple: 53,99€) +
-      12,24 € * (entier_vers_décimal de nombre_personnes_à_charge)
+      12,24 € * (décimal de nombre_personnes_à_charge)
 ```
 
 NOTA :
@@ -1234,7 +1359,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
         633,69 €
       sinon
         (683,5 € +
-        70,89€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        70,89€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -1248,7 +1373,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
         576,87 €
       sinon
         (614,69 € +
-        64,07€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        64,07€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
@@ -1262,85 +1387,11 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
         538,84 €
       sinon
         (574,16 € +
-        59,46€ * (entier_vers_décimal de (nombre_personnes_à_charge - 4)))))))
+        59,46€ * (décimal de (nombre_personnes_à_charge - 4)))))))
     )
 ```
 
-## Articles valables du 1er janvier 2022 au 1er juillet 2022
-
-### Article 6 | LEGIARTI000045011471 [archive]
-
-Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
-égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
-pour la location et à 6 000 euros pour la résidence en logement-foyer.
-
-Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est
-pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros
-pour la location et à 4 900 euros pour la résidence en logement-foyer.
-
-```catala
-# TODO informatique et juridique: traduire cet article qui vient définir
-# ressources_forfaitaires_r822_20
-```
-
-NOTA :
-
-Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
-
-### Article 15 | LEGIARTI000045011468 [archive]
-
-Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
-le tableau suivant (en euros) :
-
-Composition du foyer	                     MONTANT  (en euros)
------------------------------------------  -------------------
-Personne seule sans personne à charge	     4 683
-Couple sans personne à charge	             6 709
-Personne seule ou couple ayant :
-    -une personne à charge	               8 002
-    -deux personnes à charge	             8 182
-    -trois personnes à charge	             8 495
-    -quatre personnes à charge	           8 811
-    -cinq personnes à charge	             9 124
-    -six personnes à charge                9 439
-    -par personne à charge supplémentaire  311
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >= |2022-01-01| et
-    date_courante < |2022-07-01|:
-  définition abattement_forfaitaire_d823_17 égal à
-    si nombre_personnes_à_charge = 0 alors
-      selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 4 683 €
-      -- Couple: 6709 €
-    sinon (si nombre_personnes_à_charge = 1 alors
-      8 002 €
-    sinon (si nombre_personnes_à_charge = 2 alors
-      8 192 €
-    sinon (si nombre_personnes_à_charge = 3 alors
-      8 495 €
-    sinon (si nombre_personnes_à_charge = 4 alors
-      8 811 €
-    sinon (si nombre_personnes_à_charge = 5 alors
-      9 124 €
-    sinon (si nombre_personnes_à_charge = 6 alors
-      9 439 €
-    sinon
-      (9 439€ + (311 € * (entier_vers_décimal de
-        (nombre_personnes_à_charge - 6))))
-    ))))))
-```
-
-NOTA :
-Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
-
-
-## Articles valables du 1er janvier 2020 au 1er janvier 2022
-
-### Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
+## Articles valables du 1er janvier 2020 au 31 décembre 2021
 
 #### Article 15 | LEGIARTI000041489192 [archive]
 
@@ -1382,7 +1433,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon (si nombre_personnes_à_charge = 6 alors
       9 246 €
     sinon
-      (9 246€ + (305 € * (entier_vers_décimal de
+      (9 246€ + (305 € * (décimal de
         (nombre_personnes_à_charge - 6))))
     ))))))
 ```

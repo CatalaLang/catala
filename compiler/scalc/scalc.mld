@@ -12,13 +12,13 @@ The module describing the abstract syntax tree is:
 
 {1 Compilation from lambda calculus }
 
-{!module: Scalc.Compile_from_lambda} Performs the classical translation
+{!module: Scalc.From_lambda} Performs the classical translation
 from an expression-based language to a statement-based language. Union types
 are eliminated in favor of tagged unions.
 
 Related modules:
 
-{!modules: Scalc.Compile_from_lambda}
+{!modules: Scalc.From_lambda}
 
 {1 Backends}
 

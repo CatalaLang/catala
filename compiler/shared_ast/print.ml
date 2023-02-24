@@ -66,6 +66,7 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   | SubScopeVar (_, subindex, subvar) ->
     Format.fprintf fmt "%a.%a" SubScopeName.format_t (Marked.unmark subindex)
       ScopeVar.format_t (Marked.unmark subvar)
+  | ToplevelVar v -> TopdefName.format_t fmt (Marked.unmark v)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
   Cli.format_with_style [ANSITerminal.magenta] fmt
@@ -112,9 +113,15 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
         (EnumConstructor.Map.bindings (EnumName.Map.find e ctx.ctx_enums))
         punctuation "]")
   | TOption t -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ t
-  | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" typ_with_parens t1 op_style "→"
+  | TArrow ([t1], t2) ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" typ_with_parens t1 op_style "→"
       typ t2
+  | TArrow (t1, t2) ->
+    Format.fprintf fmt "@[<hov 2>%a%a%a@ %a@ %a@]" op_style "("
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " op_style ",")
+         typ_with_parens)
+      t1 op_style ")" op_style "→" typ t2
   | TArray t1 ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" typ t1
   | TAny -> base_type fmt "any"
@@ -150,16 +157,19 @@ let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
 let operator_to_string : type a k. (a, k) Op.t -> string = function
   | Not -> "~"
   | Length -> "length"
-  | IntToRat -> "int_to_rat"
-  | MoneyToRat -> "money_to_rat"
-  | RatToMoney -> "rat_to_money"
   | GetDay -> "get_day"
   | GetMonth -> "get_month"
   | GetYear -> "get_year"
   | FirstDayOfMonth -> "first_day_of_month"
   | LastDayOfMonth -> "last_day_of_month"
-  | RoundMoney -> "round_money"
-  | RoundDecimal -> "round_decimal"
+  | ToRat -> "to_rat"
+  | ToRat_int -> "to_rat_int"
+  | ToRat_mon -> "to_rat_mon"
+  | ToMoney -> "to_mon"
+  | ToMoney_rat -> "to_mon_rat"
+  | Round -> "round"
+  | Round_rat -> "round_rat"
+  | Round_mon -> "round_mon"
   | Log _ -> "Log"
   | Minus -> "-"
   | Minus_int -> "-!"
@@ -171,6 +181,7 @@ let operator_to_string : type a k. (a, k) Op.t -> string = function
   | Xor -> "xor"
   | Eq -> "="
   | Map -> "map"
+  | Reduce -> "reduce"
   | Concat -> "++"
   | Filter -> "filter"
   | Add -> "+"

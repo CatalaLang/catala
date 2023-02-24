@@ -75,6 +75,8 @@
 #define MS_EXISTS "istnieje"
 (* "in" or "w" ? *)
 #define MS_IN "in"
+#define MS_AMONG "wśród"
+#define MR_AMONG "w", 0x15B,"r", 0xf3,"d"
 #define MS_SUCH "takie ze"
 #define MR_SUCH "takie", space_plus, "ze"
 #define MS_THAT "to"
@@ -84,9 +86,8 @@
 #define MS_NOT "nie"
 #define MS_MAXIMUM "maximum"
 #define MS_MINIMUM "minimum"
-#define MS_FILTER "filtr"
-#define MS_MAP "mapuj"
-#define MS_INIT "poczatkowy"
+#define MS_IS "jest"
+#define MS_EMPTY "pusty"
 #define MS_CARDINAL "liczba"
 #define MS_YEAR "rok"
 #define MS_MONTH "miesiac"
@@ -110,16 +111,8 @@
 
 (* Builtins *)
 
-#define MS_RoundDecimal "zaokrąglony_dziesiętny"
-#define MR_RoundDecimal "zaokr",0x0105,"glony_dziesi", 0x0119, "tny"
-#define MS_RoundMoney "zaokrąglony_pieniądze"
-#define MR_RoundMoney "zaokr",0x0105,"glony_pieni", 0x0105, "dze"
-#define MS_IntToDec "calkowita_wers_dziesiętny"
-#define MR_IntToDec "calkowita_wers_dziesi", 0x0119, "tny"
-#define MS_MoneyToDec "pieniądze_wers_dziesiętny"
-#define MR_MoneyToDec "pieni", 0x0105, "dze_wers_dziesi", 0x0119, "tny"
-#define MS_DecToMoney "dziesiętny_wers_pieniądze"
-#define MR_DecToMoney "dziesi", 0x0119, "tny_wers_pieni", 0x0105, "dze"
+#define MS_Round "zaokrąglony"
+#define MR_Round "zaokr",0x0105,"glony"
 #define MS_GetDay "dostęp_dzień"
 #define MR_GetDay "dost", 0x0119, "p_dzie", 0x144
 #define MS_GetMonth "dostęp_miesiąc"

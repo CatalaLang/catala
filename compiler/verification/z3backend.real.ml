@@ -405,10 +405,12 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
   | None -> (
     match Marked.unmark ty with
     | TArrow (t1, t2) ->
-      let ctx, z3_t1 = translate_typ ctx (Marked.unmark t1) in
+      let ctx, z3_t1 =
+        List.fold_left_map translate_typ ctx (List.map Marked.unmark t1)
+      in
       let ctx, z3_t2 = translate_typ ctx (Marked.unmark t2) in
       let name = unique_name v in
-      let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [z3_t1] z3_t2 in
+      let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name z3_t1 z3_t2 in
       let ctx = add_funcdecl v fd ctx in
       let ctx = add_z3var name v ty ctx in
       ctx, fd
@@ -570,15 +572,15 @@ let rec translate_op :
   | Length, [e1] ->
     (* For now, an array is only its symbolic length. We simply return it *)
     translate_expr ctx e1
-  | IntToRat, _ ->
+  | ToRat_int, _ ->
     failwith
-      "[Z3 encoding] application of unary operator IntToRat not supported"
-  | MoneyToRat, _ ->
+      "[Z3 encoding] application of unary operator ToRat_int not supported"
+  | ToRat_mon, _ ->
     failwith
-      "[Z3 encoding] application of unary operator MoneyToRat not supported"
-  | RatToMoney, _ ->
+      "[Z3 encoding] application of unary operator ToRat_mon not supported"
+  | ToMoney_rat, _ ->
     failwith
-      "[Z3 encoding] application of unary operator RatToMoney not supported"
+      "[Z3 encoding] application of unary operator ToMoney_rat not supported"
   | GetDay, _ ->
     failwith "[Z3 encoding] application of unary operator GetDay not supported"
   | GetMonth, _ ->
@@ -596,10 +598,10 @@ let rec translate_op :
     failwith
       "[Z3 encoding] LastDayOfMonth operator only supported in comparisons \
        with literal"
-  | RoundDecimal, _ ->
-    failwith "[Z3 encoding] RoundDecimal operator  not implemented yet"
-  | RoundMoney, _ ->
-    failwith "[Z3 encoding] RoundMoney operator  not implemented yet"
+  | Round_rat, _ ->
+    failwith "[Z3 encoding] Round_rat operator  not implemented yet"
+  | Round_mon, _ ->
+    failwith "[Z3 encoding] Round_mon operator  not implemented yet"
   | _ -> ill_formed ()
 
 (** [translate_expr] translate the expression [vc] to its corresponding Z3
@@ -676,6 +678,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     in
     let ctx, s = translate_expr ctx e in
     ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
+  | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
+  | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj { e; cons; name } ->
     (* This node corresponds to creating a value for the enumeration [en], by
        calling the [idx]-th constructor of enum [en], with argument [e] *)
@@ -756,7 +760,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
       failwith
         "[Z3 encoding] EApp node: Catala function calls should only include \
          operators or function names")
-  | EAssert _ -> failwith "[Z3 encoding] EAssert unsupported"
+  | EAssert e -> translate_expr ctx e
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
   | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
@@ -813,6 +817,10 @@ module Backend = struct
 
   let translate_expr (ctx : backend_context) (e : typed expr) =
     translate_expr ctx e
+
+  let encode_asserts (ctx : backend_context) (e : typed expr) =
+    let ctx, vc = translate_expr ctx e in
+    add_z3constraint vc ctx
 
   let init_backend () =
     Cli.debug_print "Running Z3 version %s" Version.to_string

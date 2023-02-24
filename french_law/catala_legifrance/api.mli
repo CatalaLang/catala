@@ -42,26 +42,12 @@ val retrieve_article : access_token -> article_id -> article
 (** [retrieve_article token article_id] returns the article from the LegiFrance
     API.*)
 
-type law_excerpt
-
-val retrieve_law_excerpt : access_token -> string -> law_excerpt
-(**[retrieve_law_excerpt token excerpt_id] returns a whole excerpt of a
-   legislative statute from the LegiFrance API. [excerpt_id] should be of the
-   form ["JORFTEXT000033736934"] *)
-
 (**{2 Manipulating API objects}*)
 
 (**{3 Articles}*)
 
 val get_article_id : article -> string
 val get_article_text : article -> string
+val get_article_title : article -> string
 val get_article_expiration_date : article -> Unix.tm
 val get_article_new_version : article -> string
-
-(**{3 Law excerpts}*)
-
-val get_law_excerpt_title : law_excerpt -> string
-
-type law_excerpt_article = { id : string; num : string; content : string }
-
-val get_law_excerpt_articles : law_excerpt -> law_excerpt_article list

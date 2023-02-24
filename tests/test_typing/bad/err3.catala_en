@@ -7,7 +7,7 @@ scope S:
     Structure { -- i: 4 -- e: y };
     Structure { -- i: 5 -- e: Dat content |1970-01-01| }
   ]
-  definition a equals number of (z ++ z) / 2
+  definition a equals number of (z ++ z) * 2
 ```
 
 ```catala-test-inline
@@ -19,14 +19,14 @@ $ catala Typecheck
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.41-42:
 └──┐
-10 │   definition a equals number of (z ++ z) / 2
+10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
 
 Type integer coming from expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.41-42:
 └──┐
-10 │   definition a equals number of (z ++ z) / 2
+10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
 
@@ -50,14 +50,14 @@ $ catala ocaml
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.41-42:
 └──┐
-10 │   definition a equals number of (z ++ z) / 2
+10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
 
 Type integer coming from expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.41-42:
 └──┐
-10 │   definition a equals number of (z ++ z) / 2
+10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
 

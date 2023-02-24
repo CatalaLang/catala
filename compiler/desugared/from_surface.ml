@@ -122,11 +122,11 @@ let translate_unop (op : Surface.Ast.unop) pos : Ast.expr boxed =
 
 let disambiguate_constructor
     (ctxt : Name_resolution.context)
-    (constructor : (string Marked.pos option * string Marked.pos) list)
+    (constructor : (S.path * S.uident Marked.pos) Marked.pos list)
     (pos : Pos.t) : EnumName.t * EnumConstructor.t =
-  let enum, constructor =
+  let path, constructor =
     match constructor with
-    | [c] -> c
+    | [c] -> Marked.unmark c
     | _ ->
       Errors.raise_spanned_error pos
         "The deep pattern matching syntactic sugar is not yet supported"
@@ -139,8 +139,8 @@ let disambiguate_constructor
         "The name of this constructor has not been defined before, maybe it is \
          a typo?"
   in
-  match enum with
-  | None ->
+  match path with
+  | [] ->
     if EnumName.Map.cardinal possible_c_uids > 1 then
       Errors.raise_spanned_error
         (Marked.get_mark constructor)
@@ -152,7 +152,7 @@ let disambiguate_constructor
              Format.fprintf fmt "%a" EnumName.format_t s_name))
         (EnumName.Map.bindings possible_c_uids);
     EnumName.Map.choose possible_c_uids
-  | Some enum -> (
+  | [enum] -> (
     try
       (* The path is fully qualified *)
       let e_uid = Name_resolution.get_enum ctxt enum in
@@ -166,36 +166,49 @@ let disambiguate_constructor
     with Not_found ->
       Errors.raise_spanned_error (Marked.get_mark enum)
         "Enum %s has not been defined before" (Marked.unmark enum))
+  | _ -> Errors.raise_spanned_error pos "Qualified paths are not supported yet"
 
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100
 
-let aggregate_typ pos = function
-  | None -> TAny
-  | Some S.Integer -> TLit TInt
-  | Some S.Decimal -> TLit TRat
-  | Some S.Money -> TLit TMoney
-  | Some S.Duration -> TLit TDuration
-  | Some S.Date -> TLit TDate
-  | Some pred_typ ->
-    Errors.raise_spanned_error pos
-      "It is impossible to compute this aggregation of two values of type %a"
-      SurfacePrint.format_primitive_typ pred_typ
+(** The parser allows any combination of logical operators with right
+    associativity. We actually want to reject anything that mixes operators
+    without parens, so that is handled here. *)
+let rec check_formula (op, pos_op) e =
+  match Marked.unmark e with
+  | S.Binop ((((S.And | S.Or | S.Xor) as op1), pos_op1), e1, e2) ->
+    if op = S.Xor || op <> op1 then
+      (* Xor is mathematically associative, but without a useful semantics ([a
+         xor b xor c] is most likely an error since it's true for [a = b = c =
+         true]) *)
+      Errors.raise_multispanned_error
+        [None, pos_op; None, pos_op1]
+        "Please add parentheses to explicit which of these operators should be \
+         applied first";
+    check_formula (op1, pos_op1) e1;
+    check_formula (op1, pos_op1) e2
+  | _ -> ()
 
 (** Usage: [translate_expr scope ctxt naked_expr]
 
     Translates [expr] into its desugared equivalent. [scope] is used to
-    disambiguate the scope and subscopes variables than occur in the expression *)
+    disambiguate the scope and subscopes variables than occur in the expression,
+    [None] is assumed to mean a toplevel definition *)
 let rec translate_expr
-    (scope : ScopeName.t)
+    (scope : ScopeName.t option)
     (inside_definition_of : Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
-    (expr : Surface.Ast.expression Marked.pos) : Ast.expr boxed =
-  let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
+    (expr : Surface.Ast.expression) : Ast.expr boxed =
+  let scope_vars =
+    match scope with
+    | None -> IdentName.Map.empty
+    | Some s -> (ScopeName.Map.find s ctxt.scopes).var_idmap
+  in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
   let pos = Marked.get_mark expr in
   let emark = Untyped { pos } in
   match Marked.unmark expr with
+  | Paren e -> rec_helper e
   | Binop
       ( (Surface.Ast.And, _pos_op),
         ( TestMatchCase (e1_sub, ((constructors, Some binding), pos_pattern)),
@@ -225,6 +238,11 @@ let rec translate_expr
     Expr.ematch
       (translate_expr scope inside_definition_of ctxt e1_sub)
       enum_uid cases emark
+  | Binop ((((S.And | S.Or | S.Xor), _) as op), e1, e2) ->
+    check_formula op e1;
+    check_formula op e2;
+    let op_term = translate_binop (Marked.unmark op) (Marked.get_mark op) in
+    Expr.eapp op_term [rec_helper e1; rec_helper e2] emark
   | IfThenElse (e_if, e_then, e_else) ->
     Expr.eifthenelse (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
       emark
@@ -284,12 +302,15 @@ let rec translate_expr
                 correct calendar day")
     in
     Expr.elit lit emark
-  | Ident x -> (
+  | Ident ([], (x, pos)) -> (
     (* first we check whether this is a local var, then we resort to scope-wide
-       variables *)
+       variables, then global variables *)
     match IdentName.Map.find_opt x ctxt.local_var_idmap with
+    | Some uid ->
+      Expr.make_var uid emark
+      (* the whole box thing is to accomodate for this case *)
     | None -> (
-      match IdentName.Map.find_opt x scope_ctxt.var_idmap with
+      match IdentName.Map.find_opt x scope_vars with
       | Some (ScopeVar uid) ->
         (* If the referenced variable has states, then here are the rules to
            desambiguate. In general, only the last state can be referenced.
@@ -330,18 +351,28 @@ let rec translate_expr
               Some (List.hd (List.rev states)))
         in
         Expr.elocation (DesugaredScopeVar ((uid, pos), x_state)) emark
-      | Some (SubScope _) | None ->
-        Name_resolution.raise_unknown_identifier
-          "for a local or scope-wide variable" (x, pos))
-    | Some uid ->
-      Expr.make_var uid emark
-      (* the whole box thing is to accomodate for this case *))
-  | Dotted (e, c, x) -> (
-    match Marked.unmark e with
-    | Ident y when Name_resolution.is_subscope_uid scope ctxt y ->
+      | Some (SubScope _)
+      (* Note: allowing access to a global variable with the same name as a
+         subscope is disputable, but I see no good reason to forbid it either *)
+      | None -> (
+        match IdentName.Map.find_opt x ctxt.topdefs with
+        | Some v ->
+          Expr.elocation
+            (ToplevelVar (v, Marked.get_mark (TopdefName.get_info v)))
+            emark
+        | None ->
+          Name_resolution.raise_unknown_identifier
+            "for a local, scope-wide or global variable" (x, pos))))
+  | Ident (_path, _x) ->
+    Errors.raise_spanned_error pos "Qualified paths are not supported yet"
+  | Dotted (e, ((path, x), _ppos)) -> (
+    match path, Marked.unmark e with
+    | [], Ident ([], (y, _))
+      when Option.fold scope ~none:false ~some:(fun s ->
+               Name_resolution.is_subscope_uid s ctxt y) ->
       (* In this case, y.x is a subscope variable *)
       let subscope_uid, subscope_real_uid =
-        match IdentName.Map.find y scope_ctxt.var_idmap with
+        match IdentName.Map.find y scope_vars with
         | SubScope (sub, sc) -> sub, sc
         | ScopeVar _ -> assert false
       in
@@ -356,17 +387,23 @@ let rec translate_expr
       (* In this case e.x is the struct field x access of expression e *)
       let e = translate_expr scope inside_definition_of ctxt e in
       let str =
-        Option.map
-          (fun c ->
-            try Name_resolution.get_struct ctxt c
-            with Not_found ->
-              Errors.raise_spanned_error (Marked.get_mark c)
-                "Structure %s was not declared" (Marked.unmark c))
-          c
+        match path with
+        | [] -> None
+        | [c] -> (
+          try Some (Name_resolution.get_struct ctxt c)
+          with Not_found ->
+            Errors.raise_spanned_error (Marked.get_mark c)
+              "Structure %s was not declared" (Marked.unmark c))
+        | _ ->
+          Errors.raise_spanned_error pos "Qualified paths are not supported yet"
       in
       Expr.edstructaccess e (Marked.unmark x) str emark)
-  | FunCall (f, arg) -> Expr.eapp (rec_helper f) [rec_helper arg] emark
-  | ScopeCall (sc_name, fields) ->
+  | FunCall (f, args) ->
+    Expr.eapp (rec_helper f) (List.map rec_helper args) emark
+  | ScopeCall ((([], sc_name), _), fields) ->
+    if scope = None then
+      Errors.raise_spanned_error pos
+        "Scope calls are not allowed outside of a scope";
     let called_scope = Name_resolution.get_scope ctxt sc_name in
     let scope_def = ScopeName.Map.find called_scope ctxt.scopes in
     let in_struct =
@@ -400,6 +437,8 @@ let rec translate_expr
         ScopeVar.Map.empty fields
     in
     Expr.escopecall called_scope in_struct emark
+  | ScopeCall (((_, _sc_name), _), _fields) ->
+    Errors.raise_spanned_error pos "Qualified paths are not supported yet"
   | LetIn (x, e1, e2) ->
     let ctxt, v = Name_resolution.add_def_local_var ctxt (Marked.unmark x) in
     let tau = TAny, Marked.get_mark x in
@@ -410,7 +449,7 @@ let rec translate_expr
         [tau] pos
     in
     Expr.eapp fn [rec_helper e1] emark
-  | StructLit (s_name, fields) ->
+  | StructLit ((([], s_name), _), fields) ->
     let s_uid =
       match IdentName.Map.find_opt (Marked.unmark s_name) ctxt.typedefs with
       | Some (Name_resolution.TStruct s_uid) -> s_uid
@@ -451,7 +490,9 @@ let rec translate_expr
       expected_s_fields;
 
     Expr.estruct s_uid s_fields emark
-  | EnumInject (enum, (constructor, pos_constructor), payload) -> (
+  | StructLit (((_, _s_name), _), _fields) ->
+    Errors.raise_spanned_error pos "Qualified paths are not supported yet"
+  | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let possible_c_uids =
       try IdentName.Map.find constructor ctxt.constructor_idmap
       with Not_found ->
@@ -461,8 +502,8 @@ let rec translate_expr
     in
     let mark_constructor = Untyped { pos = pos_constructor } in
 
-    match enum with
-    | None ->
+    match path with
+    | [] ->
       if
         (* No constructor name was specified *)
         EnumName.Map.cardinal possible_c_uids > 1
@@ -485,7 +526,7 @@ let rec translate_expr
           | Some e' -> e'
           | None -> Expr.elit LUnit mark_constructor)
           c_uid e_uid emark
-    | Some enum -> (
+    | [enum] -> (
       try
         (* The path has been fully qualified *)
         let e_uid = Name_resolution.get_enum ctxt enum in
@@ -504,7 +545,9 @@ let rec translate_expr
             (Marked.unmark enum) constructor
       with Not_found ->
         Errors.raise_spanned_error (Marked.get_mark enum)
-          "Enum %s has not been defined before" (Marked.unmark enum)))
+          "Enum %s has not been defined before" (Marked.unmark enum))
+    | _ ->
+      Errors.raise_spanned_error pos "Qualified paths are not supported yet")
   | MatchWith (e1, (cases, _cases_pos)) ->
     let e1 = translate_expr scope inside_definition_of ctxt e1 in
     let cases_d, e_uid =
@@ -536,14 +579,11 @@ let rec translate_expr
       (translate_expr scope inside_definition_of ctxt e1)
       enum_uid cases emark
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
-  | CollectionOp
-      ( (((Surface.Ast.Filter | Surface.Ast.Map) as op'), _pos_op'),
-        param',
-        collection,
-        predicate ) ->
+  | CollectionOp (((S.Filter { f } | S.Map { f }) as op), collection) ->
     let collection = rec_helper collection in
+    let param, predicate = f in
     let ctxt, param =
-      Name_resolution.add_def_local_var ctxt (Marked.unmark param')
+      Name_resolution.add_def_local_var ctxt (Marked.unmark param)
     in
     let f_pred =
       Expr.make_abs [| param |]
@@ -553,177 +593,132 @@ let rec translate_expr
     in
     Expr.eapp
       (Expr.eop
-         (match op' with
-         | Surface.Ast.Map -> Map
-         | Surface.Ast.Filter -> Filter
-         | _ -> assert false (* should not happen *))
+         (match op with
+         | S.Map _ -> Map
+         | S.Filter _ -> Filter
+         | _ -> assert false)
          [TAny, pos; TAny, pos]
          emark)
       [f_pred; collection] emark
   | CollectionOp
-      ( ( Surface.Ast.Aggregate
-            (Surface.Ast.AggregateArgExtremum (max_or_min, pred_typ, init)),
-          pos_op' ),
-        param',
-        collection,
-        predicate ) ->
-    let init = rec_helper init in
+      (S.AggregateArgExtremum { max; default; f = param, predicate }, collection)
+    ->
+    let default = rec_helper default in
+    let pos_dft = Expr.pos default in
     let collection = rec_helper collection in
     let ctxt, param =
-      Name_resolution.add_def_local_var ctxt (Marked.unmark param')
+      Name_resolution.add_def_local_var ctxt (Marked.unmark param)
     in
-    let op_ty = aggregate_typ pos pred_typ in
-    let cmp_op = if max_or_min then Op.Gt else Op.Lt in
+    let cmp_op = if max then Op.Gt else Op.Lt in
     let f_pred =
       Expr.make_abs [| param |]
         (translate_expr scope inside_definition_of ctxt predicate)
         [TAny, pos]
         pos
     in
-    let acc_var = Var.make "acc" in
-    let acc_var_e = Expr.make_var acc_var emark in
-    let item_var = Var.make "item" in
-    let item_var_e = Expr.make_var item_var (Marked.get_mark collection) in
-    let fold_body =
-      Expr.eifthenelse
-        (Expr.eapp
-           (Expr.eop cmp_op
-              [op_ty, pos_op'; op_ty, pos_op']
-              (Untyped { pos = pos_op' }))
-           [
-             Expr.eapp f_pred [acc_var_e] emark;
-             Expr.eapp f_pred [item_var_e] emark;
-           ]
-           emark)
-        acc_var_e item_var_e emark
-    in
-    let fold_f =
-      Expr.make_abs [| acc_var; item_var |] fold_body [TAny, pos; TAny, pos] pos
+    let param_name = Bindlib.name_of param in
+    let v1, v2 = Var.make (param_name ^ "_1"), Var.make (param_name ^ "_2") in
+    let x1 = Expr.make_var v1 emark in
+    let x2 = Expr.make_var v2 emark in
+    let reduce_f =
+      (* fun x1 x2 -> cmp_op (pred x1) (pred x2) *)
+      (* Note: this computes f_pred twice on every element, but we'd rather not
+         rely on returning tuples here *)
+      Expr.make_abs [| v1; v2 |]
+        (Expr.eifthenelse
+           (Expr.eapp
+              (Expr.eop cmp_op
+                 [TAny, pos_dft; TAny, pos_dft]
+                 (Untyped { pos = pos_dft }))
+              [Expr.eapp f_pred [x1] emark; Expr.eapp f_pred [x2] emark]
+              emark)
+           x1 x2 emark)
+        [TAny, pos; TAny, pos]
+        pos
     in
     Expr.eapp
-      (Expr.eop Fold [TAny, pos_op'; TAny, pos_op'; TAny, pos_op'] emark)
-      [fold_f; init; collection] emark
-  | CollectionOp (op', param', collection, predicate) ->
-    let ctxt, param =
-      Name_resolution.add_def_local_var ctxt (Marked.unmark param')
-    in
+      (Expr.eop Reduce [TAny, pos; TAny, pos; TAny, pos] emark)
+      [reduce_f; default; collection]
+      emark
+  | CollectionOp
+      (((Exists { predicate } | Forall { predicate }) as op), collection) ->
     let collection = rec_helper collection in
-    let mark = Untyped { pos = Marked.get_mark op' } in
-    let init =
-      match Marked.unmark op' with
-      | Surface.Ast.Map | Surface.Ast.Filter
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
-        assert false (* should not happen *)
-      | Surface.Ast.Exists -> Expr.elit (LBool false) mark
-      | Surface.Ast.Forall -> Expr.elit (LBool true) mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Integer) ->
-        Expr.elit (LInt (Runtime.integer_of_int 0)) mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Decimal) ->
-        Expr.elit (LRat (Runtime.decimal_of_string "0")) mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Money) ->
-        Expr.elit
-          (LMoney (Runtime.money_of_cents_integer (Runtime.integer_of_int 0)))
-          mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Duration) ->
-        Expr.elit (LDuration (Runtime.duration_of_numbers 0 0 0)) mark
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum t) ->
-        Errors.raise_spanned_error pos
-          "It is impossible to sum two values of type %a together"
-          SurfacePrint.format_primitive_typ t
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (_, _, init)) ->
-        rec_helper init
-      | Surface.Ast.Aggregate Surface.Ast.AggregateCount ->
-        Expr.elit (LInt (Runtime.integer_of_int 0)) mark
+    let init, op =
+      match op with
+      | Exists _ -> false, S.Or
+      | Forall _ -> true, S.And
+      | _ -> assert false
     in
-    let acc_var = Var.make "acc" in
-    let acc =
-      Expr.make_var acc_var (Untyped { pos = Marked.get_mark param' })
-    in
-    let f_body =
-      let make_body op =
-        Expr.eapp (translate_binop op pos)
-          [acc; translate_expr scope inside_definition_of ctxt predicate]
-          emark
-      in
-      let make_extr_body cmp_op typ =
-        let tmp_var = Var.make "tmp" in
-        let tmp =
-          Expr.make_var tmp_var (Untyped { pos = Marked.get_mark param' })
-        in
-        Expr.make_let_in tmp_var (TAny, pos)
-          (translate_expr scope inside_definition_of ctxt predicate)
-          (Expr.eifthenelse
-             (Expr.eapp
-                (Expr.eop cmp_op [typ, pos; typ, pos] mark)
-                [acc; tmp] emark)
-             acc tmp emark)
-          pos
-      in
-      match Marked.unmark op' with
-      | Surface.Ast.Map | Surface.Ast.Filter
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
-        assert false (* should not happen *)
-      | Surface.Ast.Exists -> make_body Or
-      | Surface.Ast.Forall -> make_body And
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Integer) ->
-        make_body (Add KInt)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Decimal) ->
-        make_body (Add KDec)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Money) ->
-        make_body (Add KMoney)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum Surface.Ast.Duration) ->
-        make_body (Add KDuration)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum _) ->
-        assert false (* should not happen *)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (max_or_min, t, _))
-        ->
-        let typ = aggregate_typ pos t in
-        let cmp_op = if max_or_min then Op.Gt else Op.Lt in
-        make_extr_body cmp_op typ
-      | Surface.Ast.Aggregate Surface.Ast.AggregateCount ->
-        let predicate =
-          translate_expr scope inside_definition_of ctxt predicate
-        in
-        Expr.eifthenelse predicate
-          (Expr.eapp
-             (Expr.eop Add [TLit TInt, pos; TLit TInt, pos] mark)
-             [
-               acc;
-               Expr.elit
-                 (LInt (Runtime.integer_of_int 1))
-                 (Marked.get_mark predicate);
-             ]
-             emark)
-          acc emark
+    let init = Expr.elit (LBool init) emark in
+    let param0, predicate = predicate in
+    let ctxt, param =
+      Name_resolution.add_def_local_var ctxt (Marked.unmark param0)
     in
     let f =
-      let make_f t =
-        Expr.eabs
-          (Expr.bind [| acc_var; param |] f_body)
-          [
-            t, Marked.get_mark op';
-            TAny, pos
-            (* we put any here because the type of the elements of the arrays is
-               not always the type of the accumulator; for instance in
-               AggregateCount. *);
-          ]
-          emark
+      let acc_var = Var.make "acc" in
+      let acc =
+        Expr.make_var acc_var (Untyped { pos = Marked.get_mark param0 })
       in
-      match Marked.unmark op' with
-      | Surface.Ast.Map | Surface.Ast.Filter
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateArgExtremum _) ->
-        assert false (* should not happen *)
-      | Surface.Ast.Exists -> make_f (TLit TBool)
-      | Surface.Ast.Forall -> make_f (TLit TBool)
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateSum k) ->
-        make_f (aggregate_typ pos (Some k))
-      | Surface.Ast.Aggregate (Surface.Ast.AggregateExtremum (_, k, _)) ->
-        make_f (aggregate_typ pos k)
-      | Surface.Ast.Aggregate Surface.Ast.AggregateCount -> make_f (TLit TInt)
+      Expr.eabs
+        (Expr.bind [| acc_var; param |]
+           (Expr.eapp (translate_binop op pos)
+              [acc; translate_expr scope inside_definition_of ctxt predicate]
+              emark))
+        [TAny, pos; TAny, pos]
+        emark
     in
     Expr.eapp
-      (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] mark)
+      (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] emark)
       [f; init; collection] emark
+  | CollectionOp (AggregateExtremum { max; default }, collection) ->
+    let collection = rec_helper collection in
+    let default = translate_expr scope inside_definition_of ctxt default in
+    let op = translate_binop (if max then S.Gt KPoly else S.Lt KPoly) pos in
+    let op_f =
+      (* fun x1 x2 -> if op x1 x2 then x1 else x2 *)
+      let vname = if max then "max" else "min" in
+      let v1, v2 = Var.make (vname ^ "1"), Var.make (vname ^ "2") in
+      let x1 = Expr.make_var v1 emark in
+      let x2 = Expr.make_var v2 emark in
+      Expr.make_abs [| v1; v2 |]
+        (Expr.eifthenelse (Expr.eapp op [x1; x2] emark) x1 x2 emark)
+        [TAny, pos; TAny, pos]
+        pos
+    in
+    Expr.eapp
+      (Expr.eop Reduce [TAny, pos; TAny, pos; TAny, pos] emark)
+      [op_f; default; collection]
+      emark
+  | CollectionOp (AggregateSum { typ }, collection) ->
+    let collection = rec_helper collection in
+    let default_lit =
+      let i0 = Runtime.integer_of_int 0 in
+      match typ with
+      | S.Integer -> LInt i0
+      | S.Decimal -> LRat (Runtime.decimal_of_integer i0)
+      | S.Money -> LMoney (Runtime.money_of_cents_integer i0)
+      | S.Duration -> LDuration (Runtime.duration_of_numbers 0 0 0)
+      | t ->
+        Errors.raise_spanned_error pos
+          "It is impossible to sum values of type %a together"
+          SurfacePrint.format_primitive_typ t
+    in
+    let op_f =
+      (* fun x1 x2 -> op x1 x2 *)
+      (* we're not allowed pass the operator directly as argument, it must
+         appear inside an [EApp] *)
+      let v1, v2 = Var.make "sum1", Var.make "sum2" in
+      let x1 = Expr.make_var v1 emark in
+      let x2 = Expr.make_var v2 emark in
+      Expr.make_abs [| v1; v2 |]
+        (Expr.eapp (translate_binop (S.Add KPoly) pos) [x1; x2] emark)
+        [TAny, pos; TAny, pos]
+        pos
+    in
+    Expr.eapp
+      (Expr.eop Reduce [TAny, pos; TAny, pos; TAny, pos] emark)
+      [op_f; Expr.elit default_lit emark; collection]
+      emark
   | MemCollection (member, collection) ->
     let param_var = Var.make "collection_member" in
     let param = Expr.make_var param_var emark in
@@ -752,20 +747,18 @@ let rec translate_expr
     Expr.eapp
       (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] emark)
       [f; init; collection] emark
-  | Builtin IntToDec -> Expr.eop IntToRat [TLit TInt, pos] emark
-  | Builtin MoneyToDec -> Expr.eop MoneyToRat [TLit TMoney, pos] emark
-  | Builtin DecToMoney -> Expr.eop RatToMoney [TLit TRat, pos] emark
+  | Builtin ToDecimal -> Expr.eop ToRat [TAny, pos] emark
+  | Builtin ToMoney -> Expr.eop ToMoney [TAny, pos] emark
+  | Builtin Round -> Expr.eop Round [TAny, pos] emark
   | Builtin Cardinal -> Expr.eop Length [TArray (TAny, pos), pos] emark
   | Builtin GetDay -> Expr.eop GetDay [TLit TDate, pos] emark
   | Builtin GetMonth -> Expr.eop GetMonth [TLit TDate, pos] emark
   | Builtin GetYear -> Expr.eop GetYear [TLit TDate, pos] emark
   | Builtin FirstDayOfMonth -> Expr.eop FirstDayOfMonth [TLit TDate, pos] emark
   | Builtin LastDayOfMonth -> Expr.eop LastDayOfMonth [TLit TDate, pos] emark
-  | Builtin RoundMoney -> Expr.eop RoundMoney [TLit TMoney, pos] emark
-  | Builtin RoundDecimal -> Expr.eop RoundDecimal [TLit TRat, pos] emark
 
 and disambiguate_match_and_build_expression
-    (scope : ScopeName.t)
+    (scope : ScopeName.t option)
     (inside_definition_of : Ast.ScopeDef.t Marked.pos option)
     (ctxt : Name_resolution.context)
     (cases : Surface.Ast.match_case Marked.pos list) :
@@ -928,15 +921,15 @@ let process_default
     (precond : Ast.expr boxed option)
     (exception_situation : Ast.exception_situation)
     (label_situation : Ast.label_situation)
-    (just : Surface.Ast.expression Marked.pos option)
-    (cons : Surface.Ast.expression Marked.pos) : Ast.rule =
+    (just : Surface.Ast.expression option)
+    (cons : Surface.Ast.expression) : Ast.rule =
   let just =
     match just with
-    | Some just -> Some (translate_expr scope (Some def_key) ctxt just)
+    | Some just -> Some (translate_expr (Some scope) (Some def_key) ctxt just)
     | None -> None
   in
   let just = merge_conditions precond just (Marked.get_mark def_key) in
-  let cons = translate_expr scope (Some def_key) ctxt cons in
+  let cons = translate_expr (Some scope) (Some def_key) ctxt cons in
   {
     rule_just = just;
     rule_cons = cons;
@@ -945,7 +938,12 @@ let process_default
          Name_resolution.get_def_typ ctxt (Marked.unmark def_key)
        in
        match Marked.unmark def_key_typ, param_uid with
-       | TArrow (t_in, _), Some param_uid -> Some (Marked.unmark param_uid, t_in)
+       | TArrow ([t_in], _), Some param_uid ->
+         Some [Marked.unmark param_uid, t_in]
+       | TArrow _, Some _ ->
+         Errors.raise_spanned_error (Expr.pos cons)
+           "This definition has a function type but there is multiple \
+            arguments."
        | TArrow _, None ->
          Errors.raise_spanned_error (Expr.pos cons)
            "This definition has a function type but the parameter is missing"
@@ -1063,7 +1061,7 @@ let process_assert
     (ass : Surface.Ast.assertion) : Ast.program =
   let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_scopes in
   let ass =
-    translate_expr scope_uid None ctxt
+    translate_expr (Some scope_uid) None ctxt
       (match ass.Surface.Ast.assertion_condition with
       | None -> ass.Surface.Ast.assertion_content
       | Some cond ->
@@ -1092,12 +1090,12 @@ let process_assert
 
 (** Translates a surface definition, rule or assertion *)
 let process_scope_use_item
-    (precond : Surface.Ast.expression Marked.pos option)
+    (precond : Surface.Ast.expression option)
     (scope : ScopeName.t)
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)
     (item : Surface.Ast.scope_use_item Marked.pos) : Ast.program =
-  let precond = Option.map (translate_expr scope None ctxt) precond in
+  let precond = Option.map (translate_expr (Some scope) None ctxt) precond in
   match Marked.unmark item with
   | Surface.Ast.Rule rule -> process_rule precond scope ctxt prgm rule
   | Surface.Ast.Definition def -> process_def precond scope ctxt prgm def
@@ -1171,6 +1169,55 @@ let process_scope_use
   List.fold_left
     (process_scope_use_item precond scope_uid ctxt)
     prgm use.scope_use_items
+
+let process_topdef
+    (ctxt : Name_resolution.context)
+    (prgm : Ast.program)
+    (def : S.top_def) : Ast.program =
+  let id =
+    IdentName.Map.find
+      (Marked.unmark def.S.topdef_name)
+      ctxt.Name_resolution.topdefs
+  in
+  let ty_pos = Marked.get_mark def.S.topdef_type in
+  let translate_typ t =
+    (* Todo: better helper function from a more appropriate place *)
+    Name_resolution.process_base_typ ctxt
+      (S.Data (Marked.unmark t), Marked.get_mark t)
+  in
+  let body_type = translate_typ def.S.topdef_type in
+  let arg_types =
+    List.map (fun (_, ty) -> translate_typ ty) def.S.topdef_args
+  in
+  let expr =
+    let ctxt, rv_args =
+      List.fold_left
+        (fun (ctxt, rv_args) (v, _ty) ->
+          let ctxt, a =
+            Name_resolution.add_def_local_var ctxt (Marked.unmark v)
+          in
+          ctxt, a :: rv_args)
+        (ctxt, []) def.S.topdef_args
+    in
+    let body = translate_expr None None ctxt def.S.topdef_expr in
+    match rv_args with
+    | [] -> body
+    | rv_args ->
+      Expr.make_abs
+        (Array.of_list (List.rev rv_args))
+        body arg_types
+        (Marked.get_mark def.S.topdef_name)
+  in
+  let typ =
+    match arg_types with
+    | [] -> body_type
+    | _ -> TArrow (arg_types, body_type), ty_pos
+  in
+  {
+    prgm with
+    Ast.program_topdefs =
+      TopdefName.Map.add id (Expr.unbox expr, typ) prgm.Ast.program_topdefs;
+  }
 
 let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
   {
@@ -1320,6 +1367,7 @@ let translate_program
               ctxt.Name_resolution.typedefs ScopeName.Map.empty;
           ctx_struct_fields = ctxt.Name_resolution.field_idmap;
         };
+      Ast.program_topdefs = TopdefName.Map.empty;
       Ast.program_scopes;
     }
   in
@@ -1336,7 +1384,10 @@ let translate_program
         (fun prgm item ->
           match Marked.unmark item with
           | Surface.Ast.ScopeUse use -> process_scope_use ctxt prgm use
-          | _ -> prgm)
+          | Surface.Ast.Topdef def -> process_topdef ctxt prgm def
+          | Surface.Ast.ScopeDecl _ | Surface.Ast.StructDecl _
+          | Surface.Ast.EnumDecl _ ->
+            prgm)
         prgm block
     | LawInclude _ | LawText _ -> prgm
   in

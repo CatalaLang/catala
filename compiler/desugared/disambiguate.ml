@@ -29,7 +29,9 @@ let rule ctx env rule =
   let env =
     match rule.rule_parameter with
     | None -> env
-    | Some (v, ty) -> Typing.Env.add_var v ty env
+    | Some vars_and_types ->
+      ListLabels.fold_right vars_and_types ~init:env ~f:(fun (v, t) ->
+          Typing.Env.add_var v t)
   in
   (* Note: we could use the known rule type here to direct typing. We choose not
      to because it shouldn't be needed for disambiguation, and we prefer to
@@ -59,6 +61,16 @@ let scope ctx env scope =
 
 let program prg =
   let env =
+    TopdefName.Map.fold
+      (fun name (_e, ty) env -> Typing.Env.add_toplevel_var name ty env)
+      prg.program_topdefs Typing.Env.empty
+  in
+  let program_topdefs =
+    TopdefName.Map.map
+      (fun (e, ty) -> Expr.unbox (expr prg.program_ctx env (Expr.box e)), ty)
+      prg.program_topdefs
+  in
+  let env =
     ScopeName.Map.fold
       (fun scope_name scope env ->
         let vars =
@@ -70,9 +82,9 @@ let program prg =
             scope.scope_defs ScopeVar.Map.empty
         in
         Typing.Env.add_scope scope_name ~vars env)
-      prg.program_scopes Typing.Env.empty
+      prg.program_scopes env
   in
   let program_scopes =
     ScopeName.Map.map (scope prg.program_ctx env) prg.program_scopes
   in
-  { prg with program_scopes }
+  { prg with program_topdefs; program_scopes }

@@ -1,0 +1,17 @@
+## Test basic toplevel values defs
+
+```catala
+declaration glob1 content decimal equals 44.12
+
+declaration scope S:
+  output a content boolean
+
+scope S:
+   definition a equals glob1 >= 30.
+```
+
+```catala-test-inline
+$ catala Interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT] a = true
+```

@@ -176,13 +176,14 @@ scope Section121SinglePerson:
   # - either the 5 years mark is inside the period and we only
   #   cound the half after 5 years
   definition aggregate_periods_from_last_five_years of periods equals
-    sum duration for period in periods of (
+    sum duration of (
       if date_of_sale_or_exchange <= period.begin + 5 year then
         period.end - period.begin
       else (if date_of_sale_or_exchange >= period.end + 5 year then
         0 day
       else ((period.end + 5 year) - date_of_sale_or_exchange))
     )
+    for period among periods
 
   # Regulation 1.121-1(c)(1): 2 years = 730 days
   # Regulation 1.121-1(c)(1): the periods of ownage and usage
@@ -271,7 +272,7 @@ respect to such property by reason of paragraph (3).
 ```catala
 scope Section121TwoPersons:
   rule section_121_b_2_A_condition under condition
-  (return_type with pattern JointReturn of data_couple)
+  (return_type with pattern JointReturn)
   and
   # i)
   (section121Person1.requirements_ownership_met or
@@ -348,8 +349,8 @@ was any other sale or exchange by the taxpayer to which subsection (a) applied.
 ```catala
 scope Section121SinglePerson:
   rule section_121_b_3_applies under condition
-    (other_section_121a_sale with pattern
-       MostRecentSaleWhereSection121aApplied of other_sale) and
+    other_section_121a_sale with pattern
+       MostRecentSaleWhereSection121aApplied of other_sale and
     date_of_sale_or_exchange - other_sale.date_of_sale_or_exchange <= 2 year
   consequence fulfilled
 

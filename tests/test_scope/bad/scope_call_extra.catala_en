@@ -11,17 +11,17 @@ scope Toto:
 declaration scope Titi:
   output fizz content Toto
 scope Titi:
-  definition fizz equals Toto of {--biz: 1}
+  definition fizz equals output of Toto with {--biz: 1}
 ```
 
 ```catala-test-inline
 $ catala dcalc -s Titi
 [ERROR] Scope Toto has no input variable biz
 
-┌─⯈ tests/test_scope/bad/scope_call_extra.catala_en:14.36-39:
+┌─⯈ tests/test_scope/bad/scope_call_extra.catala_en:14.48-51:
 └──┐
-14 │   definition fizz equals Toto of {--biz: 1}
-   │                                     ‾‾‾
+14 │   definition fizz equals output of Toto with {--biz: 1}
+   │                                                 ‾‾‾
 
 
 Scope Toto declared here

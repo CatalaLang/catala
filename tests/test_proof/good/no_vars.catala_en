@@ -5,7 +5,7 @@ declaration scope A:
   context x content integer
 
 scope A:
-  definition x under condition (6*7 = 42) and (false or (true and 1458 / 27 = 54))
+  definition x under condition (6*7 = 42) and (false or (true and 1458 / 27 = 54.))
   consequence equals 0
 ```
 ```catala-test-inline

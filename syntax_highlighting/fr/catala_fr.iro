@@ -166,24 +166,42 @@ main : context {
    }
 
    : push {
-      regex          \= (```catala)
+      regex          \= (^```catala$)
       styles []       = .code_delimiter;
       context []       = code;
    }
 
    : push {
-      regex          \= (```catala-metadata)
+      regex          \= (^```catala-metadata$)
       styles []       = .code_delimiter;
       context []       = code;
    }
 
+   : push {
+      regex          \= (^```catala-test-inline$)
+      styles []       = .code_delimiter;
+      context []       = test;
+   }
+
 }
 
+test : context {
+
+  : pop {
+    regex       \= (^```$)
+    styles []    = .code_delimiter;
+  }
+
+  : pattern {
+    regex \= (^[$] catala \S*)
+    styles [] = .literal ;
+  }
+}
 
 code : context {
 
   : pop {
-    regex       \= (```)
+    regex       \= (^```$)
     styles []    = .code_delimiter;
   }
 
@@ -193,17 +211,17 @@ code : context {
   }
 
   : pattern {
-    regex \=  (contexte|entrée|sortie|interne)(\s*)(|sortie)(\s+)($${__SC_ID})
+    regex \=  (contexte|entrée|résultat|interne)(\s*)(|résultat)(\s+)($${__SC_ID})
     styles [] = .keyword_rule, .whitespace, .keyword_rule, .whitespace, .sc_id_def;
   }
 
   : pattern {
-    regex \= \b(selon|sous\s+forme|fixé|par|décroissante|croissante|varie|avec|on\s+a|soit|dans|tel\s+que|existe|pour|tout|de|si|alors|sinon|initial)\b
+    regex \= \b(selon|sous\s+forme|fixé|par|décroissante|croissante|varie|avec|on\s+a|soit|dans|champ\s+d'application|dépend\s+de|déclaration|inclusion|contenu|règle|sous\s+condition|condition|donnée|conséquence|rempli|égale\s+à|assertion|définition|état|étiquette|exception)\b
     styles [] = .keyword_expression ;
   }
 
   : pattern {
-    regex \=  \b(champ\s+d'application|si\s+et\s+seulement\s+si|dépend\s+de|déclaration|inclus|collection|contenu|optionnel|structure|énumération|contexte|entrée|sortie|interne|règle|sous\s+condition|condition|donnée|conséquence|rempli|égal\s+à|assertion|définition|état|étiquette|exception)\b
+    regex \=  \b(contient|nombre|somme|tel\s+que|existe|pour|tout|de|si|alors|sinon|est|vide|parmi|maximum|minimum|arrondi)\b
     styles [] = .keyword_rule ;
   }
 
@@ -235,7 +253,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(entier|booléen|date|durée|argent|texte|décimal|décret|loi|nombre|somme)\b
+    regex \= \b(structure|énumération|collection|entier|booléen|date|durée|argent|texte|décimal|décret|loi|nombre|somme)\b
     styles [] = .primitive;
   }
 

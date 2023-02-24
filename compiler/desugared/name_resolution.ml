@@ -81,6 +81,7 @@ type context = {
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
   scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
+  topdefs : TopdefName.t IdentName.Map.t;  (** Global definitions *)
   structs : struct_context StructName.Map.t;
       (** For each struct, its context *)
   enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
@@ -297,7 +298,7 @@ let rec process_base_typ
     | Surface.Ast.Date -> TLit TDate, typ_pos
     | Surface.Ast.Boolean -> TLit TBool, typ_pos
     | Surface.Ast.Text -> raise_unsupported_feature "text type" typ_pos
-    | Surface.Ast.Named ident -> (
+    | Surface.Ast.Named ([], (ident, _pos)) -> (
       match IdentName.Map.find_opt ident ctxt.typedefs with
       | Some (TStruct s_uid) -> TStruct s_uid, typ_pos
       | Some (TEnum e_uid) -> TEnum e_uid, typ_pos
@@ -307,7 +308,10 @@ let rec process_base_typ
         Errors.raise_spanned_error typ_pos
           "Unknown type \"%a\", not a struct or enum previously declared"
           (Cli.format_with_style [ANSITerminal.yellow])
-          ident))
+          ident)
+    | Surface.Ast.Named (_path, (_ident, _pos)) ->
+      Errors.raise_spanned_error typ_pos "Qualified paths are not supported yet"
+    )
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
@@ -315,7 +319,9 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
   match naked_typ with
   | Surface.Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
   | Surface.Ast.Func { arg_typ; return_typ } ->
-    ( TArrow (process_base_typ ctxt arg_typ, process_base_typ ctxt return_typ),
+    (* TODO Louis: /!\ There is only one argument in the surface syntax for
+       function now. *)
+    ( TArrow ([process_base_typ ctxt arg_typ], process_base_typ ctxt return_typ),
       typ_pos )
 
 (** Process data declaration *)
@@ -635,6 +641,15 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
           (TEnum e_uid) ctxt.typedefs;
     }
   | ScopeUse _ -> ctxt
+  | Topdef def ->
+    let name, pos = def.topdef_name in
+    Option.iter
+      (fun use ->
+        raise_already_defined_error (TopdefName.get_info use) name pos
+          "toplevel definition")
+      (IdentName.Map.find_opt name ctxt.topdefs);
+    let uid = TopdefName.fresh def.topdef_name in
+    { ctxt with topdefs = IdentName.Map.add name uid ctxt.topdefs }
 
 (** Process a code item that is a declaration *)
 let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
@@ -644,6 +659,7 @@ let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
   | StructDecl sdecl -> process_struct_decl ctxt sdecl
   | EnumDecl edecl -> process_enum_decl ctxt edecl
   | ScopeUse _ -> ctxt
+  | Topdef _ -> ctxt
 
 (** Process a code block *)
 let process_code_block
@@ -671,8 +687,8 @@ let rec process_law_structure
 (** {1 Scope uses pass} *)
 
 let get_def_key
-    (name : Surface.Ast.qident)
-    (state : Surface.Ast.ident Marked.pos option)
+    (name : Surface.Ast.scope_var)
+    (state : Surface.Ast.lident Marked.pos option)
     (scope_uid : ScopeName.t)
     (ctxt : context)
     (pos : Pos.t) : Ast.ScopeDef.t =
@@ -862,7 +878,7 @@ let process_scope_use (ctxt : context) (suse : Surface.Ast.scope_use) : context
 let process_use_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
     : context =
   match Marked.unmark item with
-  | ScopeDecl _ | StructDecl _ | EnumDecl _ -> ctxt
+  | ScopeDecl _ | StructDecl _ | EnumDecl _ | Topdef _ -> ctxt
   | ScopeUse suse -> process_scope_use ctxt suse
 
 (** {1 API} *)
@@ -874,6 +890,7 @@ let form_context (prgm : Surface.Ast.program) : context =
       local_var_idmap = IdentName.Map.empty;
       typedefs = IdentName.Map.empty;
       scopes = ScopeName.Map.empty;
+      topdefs = IdentName.Map.empty;
       var_typs = ScopeVar.Map.empty;
       structs = StructName.Map.empty;
       field_idmap = IdentName.Map.empty;

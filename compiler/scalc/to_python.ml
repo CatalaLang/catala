@@ -60,16 +60,16 @@ let format_op
   (* Todo: use the names from [Operator.name] *)
   | Not -> Format.pp_print_string fmt "not"
   | Length -> Format.pp_print_string fmt "list_length"
-  | IntToRat -> Format.pp_print_string fmt "decimal_of_integer"
-  | MoneyToRat -> Format.pp_print_string fmt "decimal_of_money"
-  | RatToMoney -> Format.pp_print_string fmt "money_of_decimal"
+  | ToRat_int -> Format.pp_print_string fmt "decimal_of_integer"
+  | ToRat_mon -> Format.pp_print_string fmt "decimal_of_money"
+  | ToMoney_rat -> Format.pp_print_string fmt "money_of_decimal"
   | GetDay -> Format.pp_print_string fmt "day_of_month_of_date"
   | GetMonth -> Format.pp_print_string fmt "month_number_of_date"
   | GetYear -> Format.pp_print_string fmt "year_of_date"
   | FirstDayOfMonth -> Format.pp_print_string fmt "first_day_of_month"
   | LastDayOfMonth -> Format.pp_print_string fmt "last_day_of_month"
-  | RoundMoney -> Format.pp_print_string fmt "money_round"
-  | RoundDecimal -> Format.pp_print_string fmt "decimal_round"
+  | Round_mon -> Format.pp_print_string fmt "money_round"
+  | Round_rat -> Format.pp_print_string fmt "decimal_round"
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur | Add_dur_dur | Concat
     ->
     Format.pp_print_string fmt "+"
@@ -78,8 +78,8 @@ let format_op
     Format.pp_print_string fmt "-"
   | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int ->
     Format.pp_print_string fmt "*"
-  | Div_int_int -> Format.pp_print_string fmt "//"
-  | Div_rat_rat | Div_mon_mon | Div_mon_rat -> Format.pp_print_string fmt "/"
+  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat ->
+    Format.pp_print_string fmt "/"
   | And -> Format.pp_print_string fmt "and"
   | Or -> Format.pp_print_string fmt "or"
   | Eq -> Format.pp_print_string fmt "=="
@@ -95,6 +95,7 @@ let format_op
   | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ->
     Format.pp_print_string fmt "=="
   | Map -> Format.pp_print_string fmt "list_map"
+  | Reduce -> Format.pp_print_string fmt "list_reduce"
   | Filter -> Format.pp_print_string fmt "list_filter"
   | Fold -> Format.pp_print_string fmt "list_fold_left"
 
@@ -185,8 +186,11 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
     Format.fprintf fmt "Optional[%a]" format_typ some_typ
   | TEnum e -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "Callable[[%a], %a]" format_typ_with_parens t1
-      format_typ_with_parens t2
+    Format.fprintf fmt "Callable[[%a], %a]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         format_typ_with_parens)
+      t1 format_typ_with_parens t2
   | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "Any"
 
@@ -202,16 +206,16 @@ let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
 module StringMap = Map.Make (String)
 module IntMap = Map.Make (Int)
 
-(** For each `LocalName.t` defined by its string and then by its hash, we keep
+(** For each `VarName.t` defined by its string and then by its hash, we keep
     track of which local integer id we've given it. This is used to keep
     variable naming with low indices rather than one global counter for all
     variables. TODO: should be removed when
     https://github.com/CatalaLang/catala/issues/240 is fixed. *)
 let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
 
-let format_var (fmt : Format.formatter) (v : LocalName.t) : unit =
-  let v_str = Marked.unmark (LocalName.get_info v) in
-  let hash = LocalName.hash v in
+let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
+  let v_str = Marked.unmark (VarName.get_info v) in
+  let hash = VarName.hash v in
   let local_id =
     match StringMap.find_opt v_str !string_counter_map with
     | Some ids -> (
@@ -240,9 +244,12 @@ let format_var (fmt : Format.formatter) (v : LocalName.t) : unit =
   else if local_id = 0 then format_name_cleaned fmt v_str
   else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
 
-let format_toplevel_name (fmt : Format.formatter) (v : TopLevelName.t) : unit =
-  let v_str = Marked.unmark (TopLevelName.get_info v) in
+let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
+  let v_str = Marked.unmark (FuncName.get_info v) in
   format_name_cleaned fmt v_str
+
+let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
+  Format.fprintf fmt "%a_%s" VarName.format_t v (string_of_int (VarName.hash v))
 
 let needs_parens (e : expr) : bool =
   match Marked.unmark e with
@@ -275,7 +282,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     unit =
   match Marked.unmark e with
   | EVar v -> format_var fmt v
-  | EFunc f -> format_toplevel_name fmt f
+  | EFunc f -> format_func_name fmt f
   | EStruct (es, s) ->
     Format.fprintf fmt "%a(%a)" format_struct_name s
       (Format.pp_print_list
@@ -347,12 +354,12 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
   | EApp ((EFunc x, pos), args)
-    when Ast.TopLevelName.compare x Ast.handle_default = 0
-         || Ast.TopLevelName.compare x Ast.handle_default_opt = 0 ->
+    when Ast.FuncName.compare x Ast.handle_default = 0
+         || Ast.FuncName.compare x Ast.handle_default_opt = 0 ->
     Format.fprintf fmt
       "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
-      format_toplevel_name x (Pos.get_file pos) (Pos.get_start_line pos)
+      format_func_name x (Pos.get_file pos) (Pos.get_start_line pos)
       (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
       format_string_list (Pos.get_law_info pos)
       (Format.pp_print_list
@@ -399,7 +406,7 @@ let rec format_statement
   | SSwitch (e1, e_name, [(case_none, _); (case_some, case_some_var)])
     when EnumName.compare e_name L.option_enum = 0 ->
     (* We translate the option type with an overloading by Python's [None] *)
-    let tmp_var = LocalName.fresh ("perhaps_none_arg", Pos.no_pos) in
+    let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
     Format.fprintf fmt
       "%a = %a@\n\
        @[<hov 4>if %a is None:@\n\
@@ -417,7 +424,7 @@ let rec format_statement
         cases
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
-    let tmp_var = LocalName.fresh ("match_arg", Pos.no_pos) in
+    let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
     Format.fprintf fmt "%a = %a@\n@[<hov 4>if %a@]" format_var tmp_var
       (format_expression ctx) e1
       (Format.pp_print_list
@@ -582,7 +589,7 @@ let format_program
   (* We disable the style flag in order to enjoy formatting from the
      pretty-printers of Dcalc and Lcalc but without the color terminal
      markers. *)
-  Cli.call_unstyled (fun _ ->
+  Cli.call_unstyled (fun () ->
       Format.fprintf fmt
         "# This file has been generated by the Catala compiler, do not edit!\n\
          @\n\
@@ -590,20 +597,25 @@ let format_program
          from typing import Any, List, Callable, Tuple\n\
          from enum import Enum\n\
          @\n\
-         %a@\n\
+         @[<v>%a@]@\n\
          @\n\
          %a@?"
         (format_ctx type_ordering) p.decl_ctx
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n@\n")
-           (fun fmt body ->
-             let { Ast.func_params; Ast.func_body } = body.scope_body_func in
-             Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]"
-               format_toplevel_name body.scope_body_var
+        (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt ->
+           function
+           | SVar { var; expr } ->
+             Format.fprintf fmt "@[<hv 4>%a = (@,%a@,@])@," format_var var
+               (format_expression p.decl_ctx)
+               expr
+           | SFunc { var; func }
+           | SScope { scope_body_var = var; scope_body_func = func; _ } ->
+             let { Ast.func_params; Ast.func_body } = func in
+             Format.fprintf fmt "@[<hv 4>def %a(%a):@\n%a@]@," format_func_name
+               var
                (Format.pp_print_list
                   ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
                   (fun fmt (var, typ) ->
                     Format.fprintf fmt "%a:%a" format_var (Marked.unmark var)
                       format_typ typ))
                func_params (format_block p.decl_ctx) func_body))
-        p.scopes)
+        p.code_items)

@@ -39,8 +39,8 @@ class Integer:
     def __mul__(self, other: 'Integer') -> 'Integer':
         return Integer(self.value * other.value)
 
-    def __truediv__(self, other: 'Integer') -> 'Integer':
-        return Integer(self.value // other.value)
+    def __truediv__(self, other: 'Integer') -> 'Decimal':
+        return Decimal (self.value) / Decimal (other.value)
 
     def __neg__(self: 'Integer') -> 'Integer':
         return Integer(- self.value)
@@ -151,7 +151,7 @@ class Money:
 
     def __truediv__(self, other: 'Money') -> Decimal:
         if isinstance(other, Money):
-            return Decimal(mpq(self.value.value / other.value.value))
+            return self.value / other.value
         elif isinstance(other, Decimal):
             return self * (1. / other.value)
         else:
@@ -200,7 +200,7 @@ class Date:
 
     def __sub__(self, other: object) -> object:
         if isinstance(other, Date):
-          return Duration(dateutil.relativedelta.relativedelta(self.value, other.value))
+          return Duration(dateutil.relativedelta.relativedelta(days=(self.value - other.value).days))
         elif isinstance(other, Duration):
           return Date(self.value - other.value)
         else:
@@ -368,22 +368,22 @@ class EmptyError(Exception):
 
 class AssertionFailed(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 class ConflictError(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 class NoValueProvided(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 class AssertionFailure(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 # ============================
@@ -570,6 +570,13 @@ def list_filter(f: Callable[[Alpha], bool], l: List[Alpha]) -> List[Alpha]:
 
 def list_map(f: Callable[[Alpha], Beta], l: List[Alpha]) -> List[Beta]:
     return [f(i) for i in l]
+
+
+def list_reduce(f: Callable[[Alpha, Alpha], Alpha], dft: Alpha, l: List[Alpha]) -> Alpha:
+    if l == []:
+        return dft
+    else:
+        return reduce(f, l)
 
 
 def list_length(l: List[Alpha]) -> Integer:

@@ -173,6 +173,9 @@ module R = Re.Pcre
 #ifndef MR_IN
   #define MR_IN MS_IN
 #endif
+#ifndef MR_AMONG
+  #define MR_AMONG MS_AMONG
+#endif
 #ifndef MR_SUCH
   #define MR_SUCH MS_SUCH
 #endif
@@ -197,14 +200,11 @@ module R = Re.Pcre
 #ifndef MR_MINIMUM
   #define MR_MINIMUM MS_MINIMUM
 #endif
-#ifndef MR_FILTER
-  #define MR_FILTER MS_FILTER
+#ifndef MR_IS
+  #define MR_IS MS_IS
 #endif
-#ifndef MR_MAP
-  #define MR_MAP MS_MAP
-#endif
-#ifndef MR_INIT
-  #define MR_INIT MS_INIT
+#ifndef MR_EMPTY
+  #define MR_EMPTY MS_EMPTY
 #endif
 #ifndef MR_CARDINAL
   #define MR_CARDINAL MS_CARDINAL
@@ -224,20 +224,8 @@ module R = Re.Pcre
 #ifndef MR_FALSE
   #define MR_FALSE MS_FALSE
 #endif
-#ifndef MR_IntToDec
-  #define MR_IntToDec MS_IntToDec
-#endif
-#ifndef MR_MoneyToDec
-  #define MR_MoneyToDec MS_MoneyToDec
-#endif
-#ifndef MR_DecToMoney
-  #define MR_DecToMoney MS_DecToMoney
-#endif
-#ifndef MR_RoundMoney
-  #define MR_RoundMoney MS_RoundMoney
-#endif
-#ifndef MR_RoundDecimal
-  #define MR_RoundDecimal MS_RoundDecimal
+#ifndef MR_Round
+  #define MR_Round MS_Round
 #endif
 #ifndef MR_GetDay
   #define MR_GetDay MS_GetDay
@@ -317,6 +305,7 @@ let token_list : (string * token) list =
     (MS_LET, LET);
     (MS_EXISTS, EXISTS);
     (MS_IN, IN);
+    (MS_AMONG, AMONG);
     (MS_SUCH, SUCH);
     (MS_THAT, THAT);
     (MS_AND, AND);
@@ -325,9 +314,8 @@ let token_list : (string * token) list =
     (MS_NOT, NOT);
     (MS_MAXIMUM, MAXIMUM);
     (MS_MINIMUM, MINIMUM);
-    (MS_FILTER, FILTER);
-    (MS_MAP, MAP);
-    (MS_INIT, INIT);
+    (MS_IS, IS);
+    (MS_EMPTY, EMPTY);
     (MS_CARDINAL, CARDINAL);
     (MS_YEAR, YEAR);
     (MS_MONTH, MONTH);
@@ -344,16 +332,12 @@ let token_list : (string * token) list =
 let lex_builtin (s : string) : Ast.builtin_expression option =
   let lexbuf = Utf8.from_string s in
   match%sedlex lexbuf with
-  | MR_IntToDec, eof -> Some IntToDec
-  | MR_DecToMoney, eof -> Some DecToMoney
-  | MR_MoneyToDec, eof -> Some MoneyToDec
+  | MR_Round, eof -> Some Round
   | MR_GetDay, eof -> Some GetDay
   | MR_GetMonth, eof -> Some GetMonth
   | MR_GetYear, eof -> Some GetYear
   | MR_FirstDayOfMonth -> Some FirstDayOfMonth
   | MR_LastDayOfMonth -> Some LastDayOfMonth
-  | MR_RoundMoney, eof -> Some RoundMoney
-  | MR_RoundDecimal, eof -> Some RoundDecimal
   | _ -> None
 
 (** Regexp matching any digit character.
@@ -550,6 +534,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_IN ->
       L.update_acc lexbuf;
       IN
+  | MR_AMONG ->
+      L.update_acc lexbuf;
+      AMONG
   | MR_SUCH ->
       L.update_acc lexbuf;
       SUCH
@@ -574,15 +561,12 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_MINIMUM ->
       L.update_acc lexbuf;
       MINIMUM
-  | MR_FILTER ->
+  | MR_IS ->
       L.update_acc lexbuf;
-      FILTER
-  | MR_MAP ->
+      IS
+  | MR_EMPTY ->
       L.update_acc lexbuf;
-      MAP
-  | MR_INIT ->
-      L.update_acc lexbuf;
-      INIT
+      EMPTY
   | MR_CARDINAL ->
       L.update_acc lexbuf;
       CARDINAL
@@ -617,14 +601,16 @@ let rec lex_code (lexbuf : lexbuf) : token =
       Buffer.add_string cents (String.make (2 - Buffer.length cents) '0');
       L.update_acc lexbuf;
       MONEY_AMOUNT (Buffer.contents units, Buffer.contents cents)
-  | Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2) ->
+  | '|', Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2), '|' ->
     let rex =
       Re.(compile @@ whole_string @@ seq [
+          char '|';
           group (repn digit 4 None);
           char '-';
           group (repn digit 2 None);
           char '-';
           group (repn digit 2 None);
+          char '|';
         ])
     in
     let date_parts = R.get_substring (R.exec ~rex (Utf8.lexeme lexbuf)) in
@@ -693,19 +679,16 @@ let rec lex_code (lexbuf : lexbuf) : token =
       RPAREN
   | '{' ->
       L.update_acc lexbuf;
-      LBRACKET
+      LBRACE
   | '}' ->
       L.update_acc lexbuf;
-      RBRACKET
+      RBRACE
   | '[' ->
       L.update_acc lexbuf;
-      LSQUARE
+      LBRACKET
   | ']' ->
       L.update_acc lexbuf;
-      RSQUARE
-  | '|' ->
-      L.update_acc lexbuf;
-      VERTICAL
+      RBRACKET
   | ':' ->
       L.update_acc lexbuf;
       COLON
@@ -721,14 +704,17 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | '.' ->
       L.update_acc lexbuf;
       DOT
+  | ',' ->
+      L.update_acc lexbuf;
+      COMMA
   | uppercase, Star (uppercase | lowercase | digit | '_' | '\'') ->
       (* Name of constructor *)
       L.update_acc lexbuf;
-      CONSTRUCTOR (Utf8.lexeme lexbuf)
+      UIDENT (Utf8.lexeme lexbuf)
   | lowercase, Star (lowercase | uppercase | digit | '_' | '\'') ->
       (* Name of variable *)
       L.update_acc lexbuf;
-      IDENT (Utf8.lexeme lexbuf)
+      LIDENT (Utf8.lexeme lexbuf)
   | Opt '-', Plus digit ->
       (* Integer literal*)
       L.update_acc lexbuf;

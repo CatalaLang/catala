@@ -5,7 +5,7 @@
 ```catala
 déclaration champ d'application CasTest1 :
   calcul champ d'application CalculAidePersonnaliséeLogementFoyer
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application CasTest1:
   définition calcul.date_conventionnement égal à |2022-01-01|
@@ -27,7 +27,7 @@ champ d'application CasTest1:
 
 déclaration champ d'application CasTest2 :
   calcul champ d'application CalculAllocationLogementFoyer
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application CasTest2:
   définition calcul.date_conventionnement égal à |2022-01-01|
@@ -55,7 +55,7 @@ champ d'application CasTest2:
 # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf#page=34
 déclaration champ d'application CasTest3 :
   calcul champ d'application CalculAidePersonnaliséeLogementFoyer
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application CasTest3:
   définition calcul.date_conventionnement égal à |2020-01-01|
@@ -79,7 +79,7 @@ champ d'application CasTest3:
 # Transmis par DGALN/DHUP/FE4 le 14/07/2022
 déclaration champ d'application CasTest4 :
   calcul champ d'application CalculAidePersonnaliséeLogementFoyer
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application CasTest4:
   définition calcul.date_conventionnement égal à |2020-01-01|
@@ -104,7 +104,7 @@ champ d'application CasTest4:
 # Transmis par DGALN/DHUP/FE4 le 14/07/2022
 déclaration champ d'application CasTest5 :
   calcul champ d'application CalculAidePersonnaliséeLogementFoyer
-  sortie montant contenu argent
+  résultat montant contenu argent
 
 champ d'application CasTest5:
   définition calcul.date_conventionnement égal à |2020-01-01|

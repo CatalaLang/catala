@@ -70,6 +70,7 @@
 #define MS_LET "let"
 #define MS_EXISTS "exists"
 #define MS_IN "in"
+#define MS_AMONG "among"
 #define MS_SUCH "such"
 #define MS_THAT "that"
 #define MS_AND "and"
@@ -78,9 +79,8 @@
 #define MS_NOT "not"
 #define MS_MAXIMUM "maximum"
 #define MS_MINIMUM "minimum"
-#define MS_FILTER "filter"
-#define MS_MAP "map"
-#define MS_INIT "initial"
+#define MS_IS "is"
+#define MS_EMPTY "empty"
 #define MS_CARDINAL "number"
 #define MS_YEAR "year"
 #define MS_MONTH "month"
@@ -101,11 +101,7 @@
 
 (* Builtins *)
 
-#define MS_RoundMoney "round_money"
-#define MS_RoundDecimal "round_decimal"
-#define MS_IntToDec "integer_to_decimal"
-#define MS_MoneyToDec "money_to_decimal"
-#define MS_DecToMoney "decimal_to_money"
+#define MS_Round "round"
 #define MS_GetDay "get_day"
 #define MS_GetMonth "get_month"
 #define MS_GetYear "get_year"

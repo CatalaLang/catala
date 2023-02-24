@@ -129,8 +129,8 @@ let rec translate_typ (tau : typ) : typ =
       | TAny -> TAny
       | TArray ts -> TArray (translate_typ ts)
       (* catala is not polymorphic *)
-      | TArrow ((TLit TUnit, _), t2) -> TOption (translate_typ t2)
-      | TArrow (t1, t2) -> TArrow (translate_typ t1, translate_typ t2)
+      | TArrow ([(TLit TUnit, _)], t2) -> TOption (translate_typ t2)
+      | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
     end
 
 (** [c = disjoint_union_maps cs] Compute the disjoint union of multiple maps.
@@ -267,6 +267,19 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
   | EStructAccess { name; e = e1; field } ->
     let e1', hoists = translate_and_hoist ctx e1 in
     let e1' = Expr.estructaccess e1' field name mark in
+    e1', hoists
+  | ETuple es ->
+    let hoists, es' =
+      List.fold_left_map
+        (fun hoists e ->
+          let e, h = translate_and_hoist ctx e in
+          h :: hoists, e)
+        [] es
+    in
+    Expr.etuple es' mark, disjoint_union_maps (Expr.pos e) hoists
+  | ETupleAccess { e = e1; index; size } ->
+    let e1', hoists = translate_and_hoist ctx e1 in
+    let e1' = Expr.etupleaccess e1' index size mark in
     e1', hoists
   | EInj { name; e = e1; cons } ->
     let e1', hoists = translate_and_hoist ctx e1 in
@@ -445,7 +458,7 @@ let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
            thunked, then the variable is context. If it's not thunked, it's a
            regular input. *)
         match Marked.unmark typ with
-        | TArrow ((TLit TUnit, _), _) -> false
+        | TArrow ([(TLit TUnit, _)], _) -> false
         | _ -> true)
       | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
       | DestructuringSubScopeResults | Assertion ->
@@ -498,39 +511,34 @@ let translate_scope_body
         })
       (Bindlib.bind_var v' (translate_scope_let ctx' lets))
 
-let rec translate_scopes (ctx : 'm ctx) (scopes : 'm D.expr scopes) :
-    'm A.expr scopes Bindlib.box =
-  match scopes with
-  | Nil -> Bindlib.box Nil
-  | ScopeDef { scope_name; scope_body; scope_next } ->
-    let scope_var, next = Bindlib.unbind scope_next in
-    let vmark =
-      match Bindlib.unbind scope_body.scope_body_expr with
-      | _, (Result e | ScopeLet { scope_let_expr = e; _ }) -> Marked.get_mark e
-    in
-
-    let new_ctx = add_var vmark scope_var true ctx in
-    let new_scope_name =
-      (find ~info:"variable that was just created" scope_var new_ctx).var
-    in
-
-    let scope_pos = Marked.get_mark (ScopeName.get_info scope_name) in
-
-    let new_body = translate_scope_body scope_pos ctx scope_body in
-    let tail = translate_scopes new_ctx next in
-
-    Bindlib.box_apply2
-      (fun body tail ->
-        ScopeDef { scope_name; scope_body = body; scope_next = tail })
-      new_body
-      (Bindlib.bind_var new_scope_name tail)
+let translate_code_items (ctx : 'm ctx) (scopes : 'm D.expr code_item_list) :
+    'm A.expr code_item_list Bindlib.box =
+  let _ctx, scopes =
+    Scope.fold_map
+      ~f:
+        (fun ctx var -> function
+          | Topdef (name, ty, e) ->
+            ( add_var (Marked.get_mark e) var true ctx,
+              Bindlib.box_apply
+                (fun e -> Topdef (name, ty, e))
+                (Expr.Box.lift (translate_expr ~append_esome:false ctx e)) )
+          | ScopeDef (scope_name, scope_body) ->
+            ( ctx,
+              let scope_pos = Marked.get_mark (ScopeName.get_info scope_name) in
+              Bindlib.box_apply
+                (fun body -> ScopeDef (scope_name, body))
+                (translate_scope_body scope_pos ctx scope_body) ))
+      ~varf:Var.translate ctx scopes
+  in
+  scopes
 
 let translate_program (prgm : 'm D.program) : 'm A.program =
   let inputs_structs =
-    Scope.fold_left prgm.scopes ~init:[] ~f:(fun acc scope_def _ ->
-        scope_def.scope_body.scope_body_input_struct :: acc)
+    Scope.fold_left prgm.code_items ~init:[] ~f:(fun acc def _ ->
+        match def with
+        | ScopeDef (_, body) -> body.scope_body_input_struct :: acc
+        | Topdef _ -> acc)
   in
-
   (* Cli.debug_print @@ Format.asprintf "List of structs to modify: [%a]"
      (Format.pp_print_list D.StructName.format_t) inputs_structs; *)
   let decl_ctx =
@@ -557,9 +565,9 @@ let translate_program (prgm : 'm D.program) : 'm A.program =
     }
   in
 
-  let scopes =
+  let code_items =
     Bindlib.unbox
-      (translate_scopes { decl_ctx; vars = Var.Map.empty } prgm.scopes)
+      (translate_code_items { decl_ctx; vars = Var.Map.empty } prgm.code_items)
   in
 
-  { scopes; decl_ctx }
+  { code_items; decl_ctx }

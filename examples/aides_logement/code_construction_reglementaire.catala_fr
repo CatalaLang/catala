@@ -127,8 +127,8 @@ champ d'application RessourcesAidesPersonnelleLogement:
     ressources_personnes_vivant_habituellement_foyer
 
   définition ressources_personnes_vivant_habituellement_foyer égal à
-    somme argent pour personne dans personnes_vivant_habituellement_foyer de
-      personne.ressources
+    somme argent de personne.ressources pour
+      personne parmi personnes_vivant_habituellement_foyer
 ```
 
 Sont considérées comme vivant habituellement au foyer les personnes y ayant
@@ -139,7 +139,7 @@ droit à celle-ci.
 
 ```catala
 champ d'application RessourcesAidesPersonnelleLogement:
-  assertion pour tout personne dans personnes_vivant_habituellement_foyer on a
+  assertion pour tout personne parmi personnes_vivant_habituellement_foyer on a
     personne.durée_résidence_durant_période_r_822_3_1_supérieure_à_6_mois
   # Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
   # des différentes périodes mentionnées et en forçant l'utilisateur à bien
@@ -851,8 +851,8 @@ sur le revenu.
 ```catala
 champ d'application RessourcesAidesPersonnelleLogement:
   exception définition ressources_prises_en_compte sous condition
-     mode_occupation sous forme Locataire ou
-     mode_occupation sous forme RésidentLogementFoyer et
+     (mode_occupation sous forme Locataire ou
+      mode_occupation sous forme RésidentLogementFoyer) et
      condition_âge_bourse_enseignement_supérieur et
      demandeur_poursuit_des_études
   conséquence égal à ressources_forfaitaires_r822_20
@@ -1080,26 +1080,37 @@ sociale agricole compétente.
 # Pas pertinent pour le calcul du montant.
 ```
 
-####### Article R823-2 | LEGIARTI000038878937
+####### Article R823-2 | LEGIARTI000044636869
 
 Les aides personnelles au logement sont attribuées sur la demande de l'intéressé
-déposée auprès de l'organisme payeur mentionné à l'article R. 823-1 dont il
-relève. Cette demande est conforme à un modèle type.
+déposée auprès de l'organisme payeur mentionné à l'article R. 823-1 dont il relève.
+Cette demande est conforme à un modèle type.
 
 Elle est assortie de pièces justificatives définies par arrêté des ministres
 chargés du logement, du budget, de la sécurité sociale et de l'agriculture.
 Le même arrêté définit le modèle-type de la demande et précise celles de ces
-pièces justificatives qui doivent être produites chaque année et, parmi
-celles-ci, celles dont le défaut de présentation avant la date qu'il fixe
-entraîne la suspension du paiement de l'aide.
+pièces justificatives qui doivent être produites chaque année et, parmi celles-ci,
+celles dont le défaut de présentation avant la date qu'il fixe entraîne la
+suspension du paiement de l'aide.
 
-Le fait que le logement réponde aux conditions de décence mentionnées à l'article
-R. 822-24 est justifié par une attestation du bailleur.
+Le fait que le logement réponde aux conditions de décence mentionnées à
+l'article R. 822-24 est justifié par une attestation du bailleur. En outre,
+celui-ci est en mesure de présenter, à la demande des organismes payeurs,
+le diagnostic de performance énergétique du logement faisant état du respect
+du critère de performance énergétique minimale mentionné à l'article 3 bis du
+décret n° 2002-120 du 30 janvier 2002 relatif aux caractéristiques du logement
+décent pris pour l'application de l'article 187 de la loi n° 2000-1208 du 13
+décembre 2000 relative à la solidarité et au renouvellement urbain.
 
 La personne de nationalité étrangère qui demande à bénéficier des aides
 personnelles au logement justifie, en outre, de la régularité de son séjour
-par la production d'un des titres de séjour ou documents prévus à l' article
-D. 512-1 du code de la sécurité sociale .
+par la production d'un des titres de séjour ou documents prévus à l'article
+D. 512-1 du code de la sécurité sociale.
+
+NOTA:
+
+Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions entrent en vigueur le 1er janvier 2023.
 
 ```catala
 # Pas pertinent pour le calcul du montant.
@@ -1124,7 +1135,7 @@ habituellement au foyer :
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition personnes_à_charge_prises_en_compte égal à
-    filtre pour personne_à_charge dans ménage.personnes_à_charge de
+    personne_à_charge parmi ménage.personnes_à_charge tel que
       prise_en_compte_personne_à_charge de personne_à_charge
 ```
 
@@ -1426,7 +1437,7 @@ champ d'application CalculAidePersonnaliséeLogement:
     selon catégorie_calcul_apl sous forme
     -- Location de location:
       (soit traitement_formule égal à
-        CalculAidePersonnaliséeLogementLocatif de {
+        résultat de CalculAidePersonnaliséeLogementLocatif avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1457,7 +1468,7 @@ champ d'application CalculAidePersonnaliséeLogement:
       })
     -- LogementFoyer de logement_foyer_:
       (soit traitement_formule égal à
-        CalculAidePersonnaliséeLogementFoyer de {
+        résultat de CalculAidePersonnaliséeLogementFoyer avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1477,7 +1488,7 @@ champ d'application CalculAidePersonnaliséeLogement:
       })
     -- AccessionPropriété de propriétaire:
       (soit traitement_formule égal à
-         CalculAidePersonnaliséeLogementAccessionPropriété de {
+         résultat de CalculAidePersonnaliséeLogementAccessionPropriété avec {
            -- ressources_ménage_arrondies: ressources_ménage
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone
@@ -1510,7 +1521,7 @@ champ d'application CalculAllocationLogement:
     selon mode_occupation sous forme
     -- Locataire de location:
       (soit traitement_formule égal à
-        CalculAllocationLogementLocatif de {
+        résultat de CalculAllocationLogementLocatif avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1542,7 +1553,7 @@ champ d'application CalculAllocationLogement:
       })
     -- SousLocataire de location: # Identique à Locataire
       (soit traitement_formule égal à
-        CalculAllocationLogementLocatif de {
+        résultat de CalculAllocationLogementLocatif avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1574,7 +1585,7 @@ champ d'application CalculAllocationLogement:
       })
     -- RésidentLogementFoyer de logement_foyer_:
       (soit traitement_formule égal à
-        CalculAllocationLogementFoyer de {
+        résultat de CalculAllocationLogementFoyer avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1595,7 +1606,7 @@ champ d'application CalculAllocationLogement:
       })
     -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
       (soit traitement_formule égal à
-         CalculAllocationLogementAccessionPropriété de {
+         résultat de CalculAllocationLogementAccessionPropriété avec {
            -- ressources_ménage_arrondies: ressources_ménage
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone
@@ -1622,7 +1633,7 @@ champ d'application CalculAllocationLogement:
     -- LocationAccession de propriétaire:
       # Identique à AccessionPropriétéLocalUsageExclusifHabitation
       (soit traitement_formule égal à
-         CalculAllocationLogementAccessionPropriété de {
+         résultat de CalculAllocationLogementAccessionPropriété avec {
            -- ressources_ménage_arrondies: ressources_ménage
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone
@@ -1876,7 +1887,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
       contributions_sociales.montant de aide_finale
     dans
     soit aide_finale_moins_crds_arrondie égal à
-      arrondi_argent de ((aide_finale - crds) - 0,50€)
+      arrondi de ((aide_finale - crds) - 0,50€)
     dans
     si
       aide_finale_moins_crds_arrondie + crds >= 0€
@@ -1963,7 +1974,7 @@ champ d'application CalculAidePersonnaliséeLogement:
   définition ressources_ménage état avec_arrondi égal à
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
-    arrondi_argent de ((ressources_ménage * 1%) + 0,49€) * 100,0
+    arrondi de ((ressources_ménage * 1%) + 0,49€) * 100,0
 ```
 
 5° “ R0 ” est un abattement forfaitaire appliqué aux ressources du ménage. Il est fixé
@@ -2046,7 +2057,7 @@ de la date d'emménagement.
 ```catala
 champ d'application ÉligibilitéPrimeDeDéménagement:
   règle condition_rang_enfant sous condition
-    (nombre pour personne_à_charge dans ménage.personnes_à_charge de
+    nombre de (personne_à_charge parmi ménage.personnes_à_charge tel que
       (selon personne_à_charge sous forme
       -- EnfantÀCharge: vrai
       -- AutrePersonneÀCharge: faux)
@@ -3150,7 +3161,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     soit aide_finale égal à traitement_aide_finale de aide_finale dans
     soit crds égal à contributions_sociales.montant de aide_finale dans
     soit aide_finale_moins_crds_arrondie égal à
-      arrondi_argent de ((aide_finale - crds) - 0,50€)
+      arrondi de ((aide_finale - crds) - 0,50€)
     dans
     si
       aide_finale_moins_crds_arrondie + crds >= 0€
@@ -3196,8 +3207,8 @@ Lorsque le calcul le porte à une valeur supérieure à 0,95, il est considéré
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition coefficient_prise_en_charge_d832_10 état arrondi égal à
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_10 - 0,005)
+  définition coefficient_prise_en_charge_d832_10 état coeff_arrondi égal à
+    (arrondi de ((coefficient_prise_en_charge_d832_10 - 0,005)
       * 100,0)) / 100,0
   définition coefficient_prise_en_charge_d832_10 état seuil égal à
     si coefficient_prise_en_charge_d832_10 >= 0,95 alors 0,95 sinon
@@ -3260,7 +3271,7 @@ champ d'application CalculNombrePartsAccessionPropriété:
     sinon (si nombre_personnes_à_charge = 4 alors
       4,3
     sinon
-      ( 4,3 + (0,5 * (entier_vers_décimal de
+      ( 4,3 + (0,5 * (décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
 
@@ -3432,12 +3443,12 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     # décimal plutôt que argent qui arrondi systématiquement au centime près
     # à chaque étape de calcul.
     soit ressources_ménage_arrondies égal à
-      argent_vers_décimal de ressources_ménage_arrondies
+      décimal de ressources_ménage_arrondies
     dans
     soit montant_limite_tranches_d832_15_1 égal à
-      argent_vers_décimal de montant_limite_tranches_d832_15_1
+      décimal de montant_limite_tranches_d832_15_1
     dans
-    décimal_vers_argent de (
+    argent de (
       ((si
         # Pour la tranche supérieure
         ressources_ménage_arrondies >=
@@ -3805,7 +3816,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
       contributions_sociales.montant de aide_finale
     dans
     soit aide_finale_moins_crds_arrondie égal à
-       arrondi_argent de ((aide_finale - crds) - 0,50€)
+       arrondi de ((aide_finale - crds) - 0,50€)
     dans si
       aide_finale_moins_crds_arrondie + crds >= 0€
     alors
@@ -3872,8 +3883,8 @@ calcul le porte à une valeur supérieure à 0,95, il est considéré égal à 0
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  définition coefficient_prise_en_charge_d832_25 état arrondi égal à
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 - 0,005)
+  définition coefficient_prise_en_charge_d832_25 état coeff_arrondi égal à
+    (arrondi de ((coefficient_prise_en_charge_d832_25 - 0,005)
       * 100,0)) / 100,0
   définition coefficient_prise_en_charge_d832_25 état seuil égal à
     si coefficient_prise_en_charge_d832_25 >= 0,95 alors 0,95 sinon
@@ -3916,7 +3927,7 @@ champ d'application CalculNombrePartLogementFoyer:
     sinon (si nombre_personnes_à_charge = 4 alors
       4,3
     sinon
-      ( 4,3 + (0,5 * (entier_vers_décimal de
+      ( 4,3 + (0,5 * (décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
 
@@ -3954,11 +3965,11 @@ lorsque le calcul le porte à une valeur supérieure à 0,90, il est considéré
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  exception définition coefficient_prise_en_charge_d832_25 état arrondi
+  exception définition coefficient_prise_en_charge_d832_25 état coeff_arrondi
   sous condition
     condition_2_du_832_25
   conséquence égal à
-    (arrondi_décimal de ((coefficient_prise_en_charge_d832_25 - 0,005)
+    (arrondi de ((coefficient_prise_en_charge_d832_25 - 0,005)
       * 100,0)) / 100,0
   exception définition coefficient_prise_en_charge_d832_25 état seuil
   sous condition
@@ -4004,7 +4015,7 @@ champ d'application CalculNombrePartLogementFoyer:
     sinon (si nombre_personnes_à_charge = 4 alors
       4,3
     sinon
-      ( 4,3 + (0,5 * (entier_vers_décimal de
+      ( 4,3 + (0,5 * (décimal de
         (nombre_personnes_à_charge - 4))))
     ))))
 ```
@@ -4025,45 +4036,45 @@ nombre de parts " N ", le total étant divisé par douze.
 # à chaque étape de calcul.
 champ d'application CalculÉquivalenceLoyerMinimale:
   définition tranches_revenus_d832_26_multipliées égal à
-    application pour tranche dans tranches_revenus_d832_26 de
       TrancheRevenuDécimal {
         -- haut: (selon tranche.haut sous forme
           -- LimiteTranche.Infini: LimiteTrancheDécimal.Infini
           -- LimiteTranche.Revenu de tranche_haut:
             LimiteTrancheDécimal.Revenu contenu
-              ((argent_vers_décimal de tranche_haut) * n_nombre_parts_d832_25))
-        -- bas: argent_vers_décimal de tranche.bas *
+              ((décimal de tranche_haut) * n_nombre_parts_d832_25))
+        -- bas: décimal de tranche.bas *
           n_nombre_parts_d832_25
         -- taux: tranche.taux
       }
+      pour tranche parmi tranches_revenus_d832_26
 
   définition montant égal à
     soit ressources_ménage_arrondies égal à
-      argent_vers_décimal de ressources_ménage_arrondies
+      décimal de ressources_ménage_arrondies
     dans
-    décimal_vers_argent de (
-      (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
-        (si
-          ressources_ménage_arrondies <= tranche.bas
-        alors 0,0
-        sinon
-          (selon tranche.haut sous forme
-          -- LimiteTrancheDécimal.Revenu de tranche_haut:
-            (si
-              ressources_ménage_arrondies >= tranche_haut
-            alors
-              (tranche_haut - tranche.bas) *
-                tranche.taux
+    argent de (
+      ((somme décimal de
+          ((si ressources_ménage_arrondies <= tranche.bas alors 0,0
             sinon
-              ((ressources_ménage_arrondies -
-                tranche.bas) *
-                  tranche.taux))
-          -- LimiteTrancheDécimal.Infini:
-            (ressources_ménage_arrondies - tranche.bas) *
-              tranche.taux)
-        ))) +
-      argent_vers_décimal de montant_forfaitaire_d832_26 *
-        n_nombre_parts_d832_25) / 12,0)
+              selon tranche.haut sous forme
+              -- LimiteTrancheDécimal.Revenu de tranche_haut: (
+                si
+                  ressources_ménage_arrondies >= tranche_haut
+                alors
+                  (tranche_haut - tranche.bas) *
+                  tranche.taux
+                sinon
+                  (ressources_ménage_arrondies - tranche.bas) *
+                  tranche.taux
+              )
+              -- LimiteTrancheDécimal.Infini:
+                (ressources_ménage_arrondies - tranche.bas) *
+                tranche.taux))
+            pour tranche parmi tranches_revenus_d832_26_multipliées)
+       +
+       décimal de montant_forfaitaire_d832_26
+       * n_nombre_parts_d832_25)
+      / 12,0)
 ```
 
 Toutefois, pour les logements-foyers de jeunes travailleurs et pour les résidences sociales
@@ -4078,30 +4089,30 @@ champ d'application CalculÉquivalenceLoyerMinimale:
     condition_2_du_832_25
   conséquence égal à
     soit ressources_ménage_arrondies égal à
-      argent_vers_décimal de ressources_ménage_arrondies
+      décimal de ressources_ménage_arrondies
     dans
-    décimal_vers_argent de (
-      (((somme décimal pour tranche dans tranches_revenus_d832_26_multipliées de
-        (si
-          ressources_ménage_arrondies <= tranche.bas
-        alors 0,0
-        sinon
-          (selon tranche.haut sous forme
-          -- LimiteTrancheDécimal.Revenu de tranche_haut:
-            (si
-              ressources_ménage_arrondies >= tranche_haut
-            alors
-              (tranche_haut - tranche.bas) *
-                tranche.taux
-            sinon
-              ((ressources_ménage_arrondies -
-                tranche.bas) *
-                  tranche.taux))
-          -- LimiteTrancheDécimal.Infini:
-            (ressources_ménage_arrondies - tranche.bas) *
-              tranche.taux)
-        ))) +
-      argent_vers_décimal de montant_forfaitaire_d832_26) / 12,0)
+    argent de (
+      ((somme décimal de
+        ((si ressources_ménage_arrondies <= tranche.bas alors 0,0
+          sinon
+            (selon tranche.haut sous forme
+             -- LimiteTrancheDécimal.Revenu de tranche_haut: (
+               si
+                 ressources_ménage_arrondies >= tranche_haut
+               alors
+                 (tranche_haut - tranche.bas) *
+                 tranche.taux
+               sinon
+                 (ressources_ménage_arrondies - tranche.bas) *
+                 tranche.taux
+             )
+             -- LimiteTrancheDécimal.Infini:
+               (ressources_ménage_arrondies - tranche.bas) *
+               tranche.taux))
+         pour tranche parmi tranches_revenus_d832_26_multipliées))
+       +
+       décimal de montant_forfaitaire_d832_26)
+      / 12,0)
 ```
 
 Les pourcentages et le coefficient " N " sont appliqués à la limite supérieure de l'intervalle
@@ -4476,7 +4487,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     soit aide_finale égal à traitement_aide_finale de aide_finale dans
     soit crds égal à contributions_sociales.montant de aide_finale dans
     soit aide_finale_moins_crds_arrondie égal à
-      arrondi_argent de ((aide_finale - crds) - 0,50€)
+      arrondi de ((aide_finale - crds) - 0,50€)
     dans
     si
       aide_finale_moins_crds_arrondie + crds >= 0€
@@ -4715,7 +4726,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     si ressources_ménage_arrondies <= seuil_minimal_ressources_ménage alors
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
-      (arrondi_argent de ((seuil_minimal_ressources_ménage + 49,99€) * 1%)) *
+      (arrondi de ((seuil_minimal_ressources_ménage + 49,99€) * 1%)) *
         100,0
     sinon
       ressources_ménage_arrondies
@@ -4800,7 +4811,7 @@ champ d'application CalculAllocationLogement:
   définition ressources_ménage état avec_arrondi égal à
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
-    arrondi_argent de ((ressources_ménage * 1%) + 0,49€) * 100,0
+    arrondi de ((ressources_ménage * 1%) + 0,49€) * 100,0
 ```
 
 3° " L " est l'équivalence de loyer prise en compte, déterminée selon les dispositions
@@ -4889,7 +4900,7 @@ champ d'application CalculAllocationLogementFoyer:
     soit aide_finale égal à traitement_aide_finale de aide_finale dans
     soit crds égal à contributions_sociales.montant de aide_finale dans
     soit aide_finale_moins_crds_arrondie égal à
-      arrondi_argent de ((aide_finale - crds) - 0,50€)
+      arrondi de ((aide_finale - crds) - 0,50€)
     dans
     si
       aide_finale_moins_crds_arrondie + crds >= 0€

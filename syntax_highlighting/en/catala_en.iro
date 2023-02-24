@@ -166,24 +166,42 @@ main : context {
    }
 
    : push {
-      regex          \= (```catala)
+      regex          \= (^```catala$)
       styles []       = .code_delimiter;
       context []       = code;
    }
 
    : push {
-      regex          \= (```catala-metadata)
+      regex          \= (^```catala-metadata$)
       styles []       = .code_delimiter;
       context []       = code;
    }
 
+   : push {
+      regex          \= (^```catala-test-inline$)
+      styles []       = .code_delimiter;
+      context []       = test;
+   }
+
 }
 
+test : context {
+
+  : pop {
+    regex       \= (^```$)
+    styles []    = .code_delimiter;
+  }
+
+  : pattern {
+    regex \= (^[$] catala \S*)
+    styles [] = .literal ;
+  }
+}
 
 code : context {
 
   : pop {
-    regex       \= (```)
+    regex       \= (^```$)
     styles []    = .code_delimiter;
   }
 
@@ -198,12 +216,12 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(match|with\s+pattern|fixed|by|decreasing|increasing|varies|with|we\s+have|let|in|such\s+that|exists|for|all|of|if|then|else|initial)\b
+    regex \= \b(match|with\s+pattern|fixed|by|decreasing|increasing|varies|with|we\s+have|let|in|scope|depends\s+on|declaration|includes|content|rule|under\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|state|label|exception)\b
     styles [] = .keyword_expression ;
   }
 
   : pattern {
-    regex \=  \b(scope|depends\s+on|declaration|includes|collection|content|optional|structure|enumeration|context|input|output|internal|rule|under\s+condition|condition|data|consequence|fulfilled|equals|assertion|definition|state|label|exception)\b
+    regex \=  \b(contains|number|sum|such\s+that|exists|for|all|of|if|then|else|is|empty|among|maximum|minimum|round)\b
     styles [] = .keyword_rule ;
   }
 
@@ -230,12 +248,12 @@ code : context {
   }
 
   : pattern {
-     regex \= (\-\>|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\$|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\$|>=\$|<=\$|<\$|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|not|or|xor|and|\$|%|year|month|day)
+     regex \= (\-\>|\+\.|\+\@|\+\^|\+\$|\+|\-\.|\-\@|\-\^|\-\$|\-|\*\.|\*\@|\*\^|\*\$|\*|/\.|/\@|/\$|/|\!|>\.|>=\.|<=\.|<\.|>\@|>=\@|<=\@|<\@|>\$|>=\$|<=\$|<\$|>\^|>=\^|<=\^|<\^|>|>=|<=|<|=|not|or|xor|and|\$|€|%|year|month|day)
      styles [] = .operator;
   }
 
   : pattern {
-    regex \= \b(integer|boolean|date|duration|money|text|decimal|number|sum)\b
+    regex \= \b(structure|enumeration|collection|integer|boolean|date|duration|money|text|decimal)\b
     styles [] = .primitive;
   }
 

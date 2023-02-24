@@ -43,7 +43,7 @@ champ d'application AllocationsFamiliales sous condition
   définition montant_initial_base_troisième_enfant_et_plus égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors (bmaf.montant * 41 %) * (
-      entier_vers_décimal de
+      décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 2)
     ) sinon 0 €
 ```
@@ -84,7 +84,7 @@ champ d'application AllocationsFamiliales sous condition
   définition montant_initial_base_troisième_enfant_et_plus égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors (bmaf.montant * 20,5 %) * (
-      entier_vers_décimal de
+      décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 2)
     ) sinon 0 €
 ```
@@ -122,7 +122,7 @@ champ d'application AllocationsFamiliales sous condition
   définition montant_initial_base_troisième_enfant_et_plus égal à
     si nombre de enfants_à_charge_droit_ouvert_prestation_familiale > 2
     alors (bmaf.montant * 10,25 %) * (
-      entier_vers_décimal de
+      décimal de
         ((nombre de enfants_à_charge_droit_ouvert_prestation_familiale) - 2)
     ) sinon 0 €
 ```
@@ -198,8 +198,9 @@ champ d'application AllocationsFamiliales :
 champ d'application AllocationsFamiliales :
   définition montant_versé_forfaitaire égal à
     montant_versé_forfaitaire_par_enfant *
-    entier_vers_décimal de (nombre pour enfant dans enfants_à_charge de
-      droit_ouvert_forfaitaire de enfant)
+    décimal de
+      nombre de (enfant parmi enfants_à_charge
+                 tel que droit_ouvert_forfaitaire de enfant)
 ```
 
 I.-Le montant mensuel de l'allocation forfaitaire prévue au deuxième alinéa de
@@ -301,7 +302,7 @@ I.-Le plafond prévu au 1° du I des articles D. 521-1 et D. 521-2 est fixé à
 ```catala
 champ d'application AllocationsFamiliales :
   définition plafond_I_d521_3 égal à 55 950 € +
-    5 595 € * (entier_vers_décimal de
+    5 595 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 
@@ -311,7 +312,7 @@ II.-Le plafond prévu au 2° du I des articles D. 521-1 et D. 521-2 est fixé à
 ```catala
 champ d'application AllocationsFamiliales :
   définition plafond_II_d521_3 égal à 78 300 € +
-    5 595 € * (entier_vers_décimal de
+    5 595 € * (décimal de
       (nombre de enfants_à_charge_droit_ouvert_prestation_familiale))
 ```
 

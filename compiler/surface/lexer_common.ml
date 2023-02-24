@@ -76,15 +76,14 @@ let token_list_language_agnostic : (string * token) list =
     "=", EQUAL;
     "(", LPAREN;
     ")", RPAREN;
+    "{", LBRACE;
+    "}", RBRACE;
     "{", LBRACKET;
     "}", RBRACKET;
-    "{", LSQUARE;
-    "}", RSQUARE;
     "+", PLUS KPoly;
     "-", MINUS KPoly;
     "*", MULT KPoly;
     "/", DIV KPoly;
-    "|", VERTICAL;
     ":", COLON;
     ";", SEMICOLON;
     "--", ALT;

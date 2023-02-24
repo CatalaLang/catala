@@ -30,32 +30,48 @@ open Catala_utils
 
 (** {1 Type definitions} *)
 
-type constructor = (string[@opaque])
+type uident = (string[@opaque])
 [@@deriving
-  visitors { variety = "map"; name = "constructor_map"; nude = true },
-    visitors { variety = "iter"; name = "constructor_iter"; nude = true }]
+  visitors { variety = "map"; name = "uident_map"; nude = true },
+    visitors { variety = "iter"; name = "uident_iter"; nude = true }]
 (** Constructors are CamelCase *)
 
-type ident = (string[@opaque])
+type lident = (string[@opaque])
 [@@deriving
-  visitors { variety = "map"; name = "ident_map"; nude = true },
-    visitors { variety = "iter"; name = "ident_iter"; nude = true }]
+  visitors { variety = "map"; name = "lident_map"; nude = true },
+    visitors { variety = "iter"; name = "lident_iter"; nude = true }]
 (** Idents are snake_case *)
 
-type qident = ident Marked.pos list
+type path = uident Marked.pos list
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["Marked.pos_map"; "ident_map"];
-      name = "qident_map";
+      ancestors = ["Marked.pos_map"; "uident_map"];
+      name = "path_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["Marked.pos_iter"; "ident_iter"];
-        name = "qident_iter";
+        ancestors = ["Marked.pos_iter"; "uident_iter"];
+        name = "path_iter";
       }]
+
+type scope_var = lident Marked.pos list
+[@@deriving
+  visitors
+    {
+      variety = "map";
+      ancestors = ["Marked.pos_map"; "lident_map"];
+      name = "scope_var_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = ["Marked.pos_iter"; "lident_iter"];
+        name = "scope_var_iter";
+      }]
+(** [foo.bar] in binding position: used to specify variables of subscopes *)
 
 type primitive_typ =
   | Integer
@@ -65,18 +81,18 @@ type primitive_typ =
   | Duration
   | Text
   | Date
-  | Named of constructor
+  | Named of path * uident Marked.pos
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["constructor_map"];
+      ancestors = ["path_map"; "uident_map"];
       name = "primitive_typ_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["constructor_iter"];
+        ancestors = ["path_iter"; "uident_iter"];
         name = "primitive_typ_iter";
       }]
 
@@ -154,25 +170,25 @@ and naked_typ = Base of base_typ | Func of func_typ
       }]
 
 type struct_decl_field = {
-  struct_decl_field_name : ident Marked.pos;
+  struct_decl_field_name : lident Marked.pos;
   struct_decl_field_typ : typ;
 }
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["typ_map"; "ident_map"];
+      ancestors = ["typ_map"; "lident_map"];
       name = "struct_decl_field_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["typ_iter"; "ident_iter"];
+        ancestors = ["typ_iter"; "lident_iter"];
         name = "struct_decl_field_iter";
       }]
 
 type struct_decl = {
-  struct_decl_name : constructor Marked.pos;
+  struct_decl_name : uident Marked.pos;
   struct_decl_fields : struct_decl_field Marked.pos list;
 }
 [@@deriving
@@ -190,7 +206,7 @@ type struct_decl = {
       }]
 
 type enum_decl_case = {
-  enum_decl_case_name : constructor Marked.pos;
+  enum_decl_case_name : uident Marked.pos;
   enum_decl_case_typ : typ option;
 }
 [@@deriving
@@ -210,7 +226,7 @@ type enum_decl_case = {
       }]
 
 type enum_decl = {
-  enum_decl_name : constructor Marked.pos;
+  enum_decl_name : uident Marked.pos;
   enum_decl_cases : enum_decl_case Marked.pos list;
 }
 [@@deriving
@@ -230,19 +246,19 @@ type enum_decl = {
       }]
 
 type match_case_pattern =
-  (constructor Marked.pos option * constructor Marked.pos) list
-  * ident Marked.pos option
+  (path * uident Marked.pos) Marked.pos list * lident Marked.pos option
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["ident_map"; "constructor_map"; "Marked.pos_map"];
+      ancestors = ["path_map"; "lident_map"; "uident_map"; "Marked.pos_map"];
       name = "match_case_pattern_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["ident_iter"; "constructor_iter"; "Marked.pos_iter"];
+        ancestors =
+          ["path_iter"; "lident_iter"; "uident_iter"; "Marked.pos_iter"];
         name = "match_case_pattern_iter";
       }]
 
@@ -301,16 +317,14 @@ type unop = Not | Minus of op_kind
 
 type builtin_expression =
   | Cardinal
-  | IntToDec
-  | MoneyToDec
-  | DecToMoney
+  | ToDecimal
+  | ToMoney
   | GetDay
   | GetMonth
   | GetYear
   | LastDayOfMonth
   | FirstDayOfMonth
-  | RoundMoney
-  | RoundDecimal
+  | Round
 [@@deriving
   visitors { variety = "map"; name = "builtin_expression_map"; nude = true },
     visitors { variety = "iter"; name = "builtin_expression_iter"; nude = true }]
@@ -385,62 +399,54 @@ type literal =
         name = "literal_iter";
       }]
 
-type aggregate_func =
-  | AggregateSum of primitive_typ
+type collection_op =
+  | Exists of { predicate : lident Marked.pos * expression }
+  | Forall of { predicate : lident Marked.pos * expression }
+  | Map of { f : lident Marked.pos * expression }
+  | Filter of { f : lident Marked.pos * expression }
+  | AggregateSum of { typ : primitive_typ }
   (* it would be nice to remove the need for specifying the type here like for
      extremums, but we need an additionl overload for "neutral element for
      addition across types" *)
-  | AggregateCount
-  | AggregateExtremum of bool * primitive_typ option * expression Marked.pos
-  | AggregateArgExtremum of bool * primitive_typ option * expression Marked.pos
-
-and collection_op =
-  | Exists
-  | Forall
-  | Aggregate of aggregate_func
-  | Map
-  | Filter
+  | AggregateExtremum of { max : bool; default : expression }
+  | AggregateArgExtremum of {
+      max : bool;
+      default : expression;
+      f : lident Marked.pos * expression;
+    }
 
 and explicit_match_case = {
   match_case_pattern : match_case_pattern Marked.pos;
-  match_case_expr : expression Marked.pos;
+  match_case_expr : expression;
 }
 
-and match_case =
-  | WildCard of expression Marked.pos
-  | MatchCase of explicit_match_case
-
+and match_case = WildCard of expression | MatchCase of explicit_match_case
 and match_cases = match_case Marked.pos list
+and expression = naked_expression Marked.pos
 
-and expression =
-  | MatchWith of expression Marked.pos * match_cases Marked.pos
-  | IfThenElse of
-      expression Marked.pos * expression Marked.pos * expression Marked.pos
-  | Binop of binop Marked.pos * expression Marked.pos * expression Marked.pos
-  | Unop of unop Marked.pos * expression Marked.pos
-  | CollectionOp of
-      collection_op Marked.pos
-      * ident Marked.pos
-      * expression Marked.pos
-      * expression Marked.pos
-  | MemCollection of expression Marked.pos * expression Marked.pos
-  | TestMatchCase of expression Marked.pos * match_case_pattern Marked.pos
-  | FunCall of expression Marked.pos * expression Marked.pos
+and naked_expression =
+  | Paren of expression
+  | MatchWith of expression * match_cases Marked.pos
+  | IfThenElse of expression * expression * expression
+  | Binop of binop Marked.pos * expression * expression
+  | Unop of unop Marked.pos * expression
+  | CollectionOp of collection_op * expression
+  | MemCollection of expression * expression
+  | TestMatchCase of expression * match_case_pattern Marked.pos
+  | FunCall of expression * expression list
   | ScopeCall of
-      constructor Marked.pos * (ident Marked.pos * expression Marked.pos) list
-  | LetIn of ident Marked.pos * expression Marked.pos * expression Marked.pos
+      (path * uident Marked.pos) Marked.pos
+      * (lident Marked.pos * expression) list
+  | LetIn of lident Marked.pos * expression * expression
   | Builtin of builtin_expression
   | Literal of literal
-  | EnumInject of
-      constructor Marked.pos option
-      * constructor Marked.pos
-      * expression Marked.pos option
+  | EnumInject of (path * uident Marked.pos) Marked.pos * expression option
   | StructLit of
-      constructor Marked.pos * (ident Marked.pos * expression Marked.pos) list
-  | ArrayLit of expression Marked.pos list
-  | Ident of ident
-  | Dotted of
-      expression Marked.pos * constructor Marked.pos option * ident Marked.pos
+      (path * uident Marked.pos) Marked.pos
+      * (lident Marked.pos * expression) list
+  | ArrayLit of expression list
+  | Ident of path * lident Marked.pos
+  | Dotted of expression * (path * lident Marked.pos) Marked.pos
       (** Dotted is for both struct field projection and sub-scope variables *)
 [@@deriving
   visitors
@@ -475,66 +481,66 @@ and expression =
 type exception_to =
   | NotAnException
   | UnlabeledException
-  | ExceptionToLabel of ident Marked.pos
+  | ExceptionToLabel of lident Marked.pos
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["ident_map"; "Marked.pos_map"];
+      ancestors = ["lident_map"; "Marked.pos_map"];
       name = "exception_to_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["ident_iter"; "Marked.pos_iter"];
+        ancestors = ["lident_iter"; "Marked.pos_iter"];
         name = "exception_to_iter";
       }]
 
 type rule = {
-  rule_label : ident Marked.pos option;
+  rule_label : lident Marked.pos option;
   rule_exception_to : exception_to;
-  rule_parameter : ident Marked.pos option;
-  rule_condition : expression Marked.pos option;
-  rule_name : qident Marked.pos;
+  rule_parameter : lident Marked.pos option;
+  rule_condition : expression option;
+  rule_name : scope_var Marked.pos;
   rule_id : Shared_ast.RuleName.t; [@opaque]
   rule_consequence : (bool[@opaque]) Marked.pos;
-  rule_state : ident Marked.pos option;
+  rule_state : lident Marked.pos option;
 }
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["expression_map"; "qident_map"; "exception_to_map"];
+      ancestors = ["expression_map"; "scope_var_map"; "exception_to_map"];
       name = "rule_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["expression_iter"; "qident_iter"; "exception_to_iter"];
+        ancestors = ["expression_iter"; "scope_var_iter"; "exception_to_iter"];
         name = "rule_iter";
       }]
 
 type definition = {
-  definition_label : ident Marked.pos option;
+  definition_label : lident Marked.pos option;
   definition_exception_to : exception_to;
-  definition_name : qident Marked.pos;
-  definition_parameter : ident Marked.pos option;
-  definition_condition : expression Marked.pos option;
+  definition_name : scope_var Marked.pos;
+  definition_parameter : lident Marked.pos option;
+  definition_condition : expression option;
   definition_id : Shared_ast.RuleName.t; [@opaque]
-  definition_expr : expression Marked.pos;
-  definition_state : ident Marked.pos option;
+  definition_expr : expression;
+  definition_state : lident Marked.pos option;
 }
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["expression_map"; "qident_map"; "exception_to_map"];
+      ancestors = ["expression_map"; "scope_var_map"; "exception_to_map"];
       name = "definition_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["expression_iter"; "qident_iter"; "exception_to_iter"];
+        ancestors = ["expression_iter"; "scope_var_iter"; "exception_to_iter"];
         name = "definition_iter";
       }]
 
@@ -544,28 +550,26 @@ type variation_typ = Increasing | Decreasing
     visitors { variety = "iter"; name = "variation_typ_iter" }]
 
 type meta_assertion =
-  | FixedBy of qident Marked.pos * ident Marked.pos
+  | FixedBy of scope_var Marked.pos * lident Marked.pos
   | VariesWith of
-      qident Marked.pos
-      * expression Marked.pos
-      * variation_typ Marked.pos option
+      scope_var Marked.pos * expression * variation_typ Marked.pos option
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["variation_typ_map"; "qident_map"; "expression_map"];
+      ancestors = ["variation_typ_map"; "scope_var_map"; "expression_map"];
       name = "meta_assertion_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["variation_typ_iter"; "qident_iter"; "expression_iter"];
+        ancestors = ["variation_typ_iter"; "scope_var_iter"; "expression_iter"];
         name = "meta_assertion_iter";
       }]
 
 type assertion = {
-  assertion_condition : expression Marked.pos option;
-  assertion_content : expression Marked.pos;
+  assertion_condition : expression option;
+  assertion_content : expression;
 }
 [@@deriving
   visitors
@@ -604,8 +608,8 @@ type scope_use_item =
       }]
 
 type scope_use = {
-  scope_use_condition : expression Marked.pos option;
-  scope_use_name : constructor Marked.pos;
+  scope_use_condition : expression option;
+  scope_use_name : uident Marked.pos;
   scope_use_items : scope_use_item Marked.pos list;
 }
 [@@deriving
@@ -646,8 +650,8 @@ type scope_decl_context_io = {
       }]
 
 type scope_decl_context_scope = {
-  scope_decl_context_scope_name : ident Marked.pos;
-  scope_decl_context_scope_sub_scope : constructor Marked.pos;
+  scope_decl_context_scope_name : lident Marked.pos;
+  scope_decl_context_scope_sub_scope : uident Marked.pos;
   scope_decl_context_scope_attribute : scope_decl_context_io;
 }
 [@@deriving
@@ -656,8 +660,8 @@ type scope_decl_context_scope = {
       variety = "map";
       ancestors =
         [
-          "ident_map";
-          "constructor_map";
+          "lident_map";
+          "uident_map";
           "scope_decl_context_io_map";
           "Marked.pos_map";
         ];
@@ -668,8 +672,8 @@ type scope_decl_context_scope = {
         variety = "iter";
         ancestors =
           [
-            "ident_iter";
-            "constructor_iter";
+            "lident_iter";
+            "uident_iter";
             "scope_decl_context_io_iter";
             "Marked.pos_iter";
           ];
@@ -677,22 +681,22 @@ type scope_decl_context_scope = {
       }]
 
 type scope_decl_context_data = {
-  scope_decl_context_item_name : ident Marked.pos;
+  scope_decl_context_item_name : lident Marked.pos;
   scope_decl_context_item_typ : typ;
   scope_decl_context_item_attribute : scope_decl_context_io;
-  scope_decl_context_item_states : ident Marked.pos list;
+  scope_decl_context_item_states : lident Marked.pos list;
 }
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["typ_map"; "scope_decl_context_io_map"; "ident_map"];
+      ancestors = ["typ_map"; "scope_decl_context_io_map"; "lident_map"];
       name = "scope_decl_context_data_map";
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["typ_iter"; "scope_decl_context_io_iter"; "ident_iter"];
+        ancestors = ["typ_iter"; "scope_decl_context_io_iter"; "lident_iter"];
         name = "scope_decl_context_data_iter";
       }]
 
@@ -716,7 +720,7 @@ type scope_decl_context_item =
       }]
 
 type scope_decl = {
-  scope_decl_name : constructor Marked.pos;
+  scope_decl_name : uident Marked.pos;
   scope_decl_context : scope_decl_context_item Marked.pos list;
 }
 [@@deriving
@@ -733,17 +737,46 @@ type scope_decl = {
         name = "scope_decl_iter";
       }]
 
+type top_def = {
+  topdef_name : lident Marked.pos;
+  topdef_args : (lident Marked.pos * base_typ_data Marked.pos) list;
+      (** Empty list if this is not a function *)
+  topdef_type : base_typ_data Marked.pos;
+      (** Output type if this is a function *)
+  topdef_expr : expression;
+}
+[@@deriving
+  visitors
+    {
+      variety = "map";
+      ancestors = ["lident_map"; "typ_map"; "expression_map"];
+      name = "top_def_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = ["lident_iter"; "typ_iter"; "expression_iter"];
+        name = "top_def_iter";
+      }]
+
 type code_item =
   | ScopeUse of scope_use
   | ScopeDecl of scope_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
+  | Topdef of top_def
 [@@deriving
   visitors
     {
       variety = "map";
       ancestors =
-        ["scope_decl_map"; "enum_decl_map"; "struct_decl_map"; "scope_use_map"];
+        [
+          "scope_decl_map";
+          "enum_decl_map";
+          "struct_decl_map";
+          "scope_use_map";
+          "top_def_map";
+        ];
       name = "code_item_map";
     },
     visitors
@@ -755,6 +788,7 @@ type code_item =
             "enum_decl_iter";
             "struct_decl_iter";
             "scope_use_iter";
+            "top_def_iter";
           ];
         name = "code_item_iter";
       }]
