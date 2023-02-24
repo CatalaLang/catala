@@ -114,27 +114,8 @@ D. 823-16, au 4° des articles D. 842-6 et D. 842-15 du même code, dont les
 valeurs sont fixées respectivement aux articles 9, 34 et 40 ;
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >= |2022-07-01|  et date_courante < |2023-01-01|:
-  exception base définition montant_forfaitaire_charges_d823_16 sous condition
-    (selon résidence sous forme
-    -- Guadeloupe: vrai
-    -- Martinique: vrai
-    -- LaRéunion: vrai
-    -- Mayotte: vrai
-    -- SaintBarthélemy: vrai
-    -- SaintMartin: vrai
-    -- n'importe quel: faux) et
-    # Nous nous assurons ici de ne pas être dans un des cas exceptionnels
-    # pour éviter de déclencher deux exceptions à base dans le cas de
-    # l'outre-mer en chambre ou en colocation
-  non (logement_est_chambre ou colocation)
-  conséquence égal à
-    soit montant égal à
-      56,12€ + 12,72€ * (décimal de nombre_personnes_à_charge)
-    dans
-    soit limite égal à 56,12€ + 12,72€ * 6,0 dans
-    si montant > limite alors limite sinon montant
+# Le montant des valeurs de l'article 9 en outre-mer est donné explicitement
+# au 3° de cet article.
 
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2022-07-01|  et date_courante < |2023-01-01|:
@@ -264,7 +245,7 @@ Par personne supplémentaire à charge dans la limite de six personnes à charge
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2022-07-01| et date_courante < |2023-01-01|:
-  étiquette outre_mer exception colocation
+  étiquette base_outre_mer exception base_métropole
   définition montant_forfaitaire_charges_d823_16 sous condition
     (selon résidence sous forme
     -- Guadeloupe: vrai
@@ -339,7 +320,7 @@ Majoration par personne à charge dans la limite de six personnes à charge 9,69
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2022-07-01| et date_courante < |2023-01-01|:
-  exception outre_mer
+  exception colocation_métropole
   définition montant_forfaitaire_charges_d823_16 sous condition
     (selon résidence sous forme
     -- Guadeloupe: vrai
@@ -603,7 +584,8 @@ du 1er octobre 2021.
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
-  étiquette base définition montant_forfaitaire_charges_d823_16 égal à
+  étiquette base_métropole
+  définition montant_forfaitaire_charges_d823_16 égal à
     54,22€ + 12,29€ * (décimal de nombre_personnes_à_charge)
 ```
 
@@ -838,7 +820,7 @@ Majoration par personne à charge 12,29
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01| et colocation:
-  étiquette colocation exception base
+  étiquette colocation_métropole exception base_outre_mer
   définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 27,10€
@@ -1558,7 +1540,8 @@ compter du 1er octobre 2020.
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante < |2021-10-01| et
     date_courante >= |2020-10-01|:
-  étiquette base définition montant_forfaitaire_charges_d823_16 égal à
+  étiquette base_métropole
+  définition montant_forfaitaire_charges_d823_16 égal à
     53,99€ + 12,24€ * (décimal de nombre_personnes_à_charge)
 ```
 
@@ -1789,7 +1772,8 @@ Majoration par personne à charge 12,24
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante < |2021-10-01| et
     date_courante >= |2020-10-01| et colocation:
-  étiquette colocation exception base
+  étiquette colocation_métropole
+  exception base_outre_mer
   définition montant_forfaitaire_charges_d823_16 égal à
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 26,99€
