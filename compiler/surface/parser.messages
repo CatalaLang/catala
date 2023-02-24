@@ -1,6 +1,6 @@
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT TEXT YEAR
 ##
-## Ends in an error in state: 336.
+## Ends in an error in state: 355.
 ##
 ## list(addpos(enum_decl_line)) -> enum_decl_line . list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -12,9 +12,9 @@ expected another enum case, or a new declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 332.
+## Ends in an error in state: 351.
 ##
-## option(preceded(CONTENT,addpos(typ))) -> CONTENT . typ [ SCOPE END_CODE DECLARATION ALT ]
+## option(preceded(CONTENT,addpos(typ))) -> CONTENT . typ_data [ SCOPE END_CODE DECLARATION ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## CONTENT
@@ -24,7 +24,7 @@ expected a content type
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT YEAR
 ##
-## Ends in an error in state: 331.
+## Ends in an error in state: 350.
 ##
 ## enum_decl_line -> ALT UIDENT . option(preceded(CONTENT,addpos(typ))) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -36,7 +36,7 @@ expected a payload for your enum case, or another case or declaration
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT YEAR
 ##
-## Ends in an error in state: 330.
+## Ends in an error in state: 349.
 ##
 ## enum_decl_line -> ALT . UIDENT option(preceded(CONTENT,addpos(typ))) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -48,7 +48,7 @@ expected the name of an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON YEAR
 ##
-## Ends in an error in state: 329.
+## Ends in an error in state: 348.
 ##
 ## code_item -> DECLARATION ENUM UIDENT COLON . list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -60,7 +60,7 @@ expected an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT YEAR
 ##
-## Ends in an error in state: 328.
+## Ends in an error in state: 347.
 ##
 ## code_item -> DECLARATION ENUM UIDENT . COLON list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -72,7 +72,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 327.
+## Ends in an error in state: 346.
 ##
 ## code_item -> DECLARATION ENUM . UIDENT COLON list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -84,7 +84,7 @@ expected the name of your enum
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON YEAR
 ##
-## Ends in an error in state: 302.
+## Ends in an error in state: 309.
 ##
 ## code_item -> DECLARATION SCOPE UIDENT COLON . nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -96,7 +96,7 @@ expected a context item introduced by "context"
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT YEAR
 ##
-## Ends in an error in state: 301.
+## Ends in an error in state: 308.
 ##
 ## code_item -> DECLARATION SCOPE UIDENT . COLON nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -108,7 +108,7 @@ expected a colon followed by the list of context items of this scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE YEAR
 ##
-## Ends in an error in state: 300.
+## Ends in an error in state: 307.
 ##
 ## code_item -> DECLARATION SCOPE . UIDENT COLON nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -118,38 +118,17 @@ source_file: BEGIN_CODE DECLARATION SCOPE YEAR
 
 expected the name of the scope you are declaring
 
-source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT DEPENDS COLLECTION YEAR
-##
-## Ends in an error in state: 287.
-##
-## typ -> COLLECTION . typ [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEPENDS DEFINED_AS DECLARATION DATA CONTEXT CONDITION COMMA ALT ]
-##
-## The known suffix of the stack is as follows:
-## COLLECTION
-##
 
-expected a new struct data, or another declaration or scope use
-
-source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT DEPENDS TEXT YEAR
-##
-## Ends in an error in state: 297.
-##
-## list(addpos(struct_scope)) -> struct_scope . list(addpos(struct_scope)) [ SCOPE END_CODE DECLARATION ]
-##
-## The known suffix of the stack is as follows:
-## struct_scope
-##
-
-expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT DEPENDS YEAR
 ##
 ## Ends in an error in state: 294.
 ##
-## option(struct_scope_func) -> DEPENDS . typ [ STATE SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION DATA CONTEXT CONDITION ]
+## struct_scope -> struct_scope_base DEPENDS . separated_nonempty_list(COMMA,var_content) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
+## struct_scope -> struct_scope_base DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN [ SCOPE END_CODE DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
-## DEPENDS
+## struct_scope_base DEPENDS
 ##
 
 expected the type of the parameter of this struct data function
@@ -158,7 +137,9 @@ source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT YEAR
 ##
 ## Ends in an error in state: 293.
 ##
-## struct_scope -> struct_scope_base . option(struct_scope_func) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
+## struct_scope -> struct_scope_base . DEPENDS separated_nonempty_list(COMMA,var_content) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
+## struct_scope -> struct_scope_base . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN [ SCOPE END_CODE DECLARATION DATA CONDITION ]
+## struct_scope -> struct_scope_base . [ SCOPE END_CODE DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## struct_scope_base
@@ -182,7 +163,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA LIDENT CONTENT YEAR
 ##
 ## Ends in an error in state: 286.
 ##
-## struct_scope_base -> DATA lident CONTENT . typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
+## struct_scope_base -> DATA lident CONTENT . typ_data [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DATA lident CONTENT
@@ -194,7 +175,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA LIDENT YEAR
 ##
 ## Ends in an error in state: 285.
 ##
-## struct_scope_base -> DATA lident . CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
+## struct_scope_base -> DATA lident . CONTENT typ_data [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DATA lident
@@ -206,7 +187,7 @@ source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA YEAR
 ##
 ## Ends in an error in state: 284.
 ##
-## struct_scope_base -> DATA . lident CONTENT typ [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
+## struct_scope_base -> DATA . lident CONTENT typ_data [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DATA
@@ -257,9 +238,9 @@ source_file: BEGIN_CODE DECLARATION YEAR
 ## code_item -> DECLARATION . STRUCT UIDENT COLON list(addpos(struct_scope)) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE UIDENT COLON nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . ENUM UIDENT COLON list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION . lident CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION . lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION . lident CONTENT typ DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . lident CONTENT typ_data DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION
@@ -662,7 +643,7 @@ expected a payload for the enum case constructor, or the rest of the expression 
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT YEAR
 ##
-## Ends in an error in state: 70.
+## Ends in an error in state: 71.
 ##
 ## expression -> EXISTS lident . AMONG expression SUCH THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -674,7 +655,7 @@ expected the "in" keyword to continue this existential test
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS YEAR
 ##
-## Ends in an error in state: 69.
+## Ends in an error in state: 70.
 ##
 ## expression -> EXISTS . lident AMONG expression SUCH THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -686,7 +667,7 @@ expected an identifier that will designate the existential witness for the test
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT YEAR
 ##
-## Ends in an error in state: 66.
+## Ends in an error in state: 67.
 ##
 ## expression -> FOR ALL lident . AMONG expression WE_HAVE expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -698,7 +679,7 @@ expected the "in" keyword for the rest of the universal test
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL YEAR
 ##
-## Ends in an error in state: 65.
+## Ends in an error in state: 66.
 ##
 ## expression -> FOR ALL . lident AMONG expression WE_HAVE expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -710,7 +691,7 @@ expected an identifier for the bound variable of the universal test
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR YEAR
 ##
-## Ends in an error in state: 64.
+## Ends in an error in state: 65.
 ##
 ## expression -> FOR . ALL lident AMONG expression WE_HAVE expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -722,7 +703,7 @@ expected the "all" keyword to mean the "for all" construction of the universal t
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF TRUE SEMICOLON
 ##
-## Ends in an error in state: 167.
+## Ends in an error in state: 168.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH THEN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -754,7 +735,7 @@ expected the "then" keyword as the conditional expression is complete
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF YEAR
 ##
-## Ends in an error in state: 63.
+## Ends in an error in state: 64.
 ##
 ## expression -> IF . expression THEN expression ELSE expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -766,7 +747,7 @@ expected an expression for the test of the conditional
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION INT_LITERAL WITH_V
 ##
-## Ends in an error in state: 57.
+## Ends in an error in state: 58.
 ##
 ## literal -> INT_LITERAL . option(addpos(unit_literal)) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -778,7 +759,7 @@ expected a unit for this literal, or a valid operator to complete the expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LPAREN TRUE THEN
 ##
-## Ends in an error in state: 181.
+## Ends in an error in state: 182.
 ##
 ## expression -> LPAREN expression . RPAREN [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . DOT qlident [ XOR WITH RPAREN PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -810,7 +791,7 @@ unmatched parenthesis that should have been closed by here
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LPAREN YEAR
 ##
-## Ends in an error in state: 51.
+## Ends in an error in state: 52.
 ##
 ## expression -> LPAREN . expression RPAREN [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -822,7 +803,7 @@ expected an expression inside the parenthesis
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LBRACKET TRUE THEN
 ##
-## Ends in an error in state: 175.
+## Ends in an error in state: 176.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH SEMICOLON RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH SEMICOLON RBRACKET PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -855,7 +836,7 @@ expected a semicolon or a right square bracket after the collection element
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LBRACKET YEAR
 ##
-## Ends in an error in state: 56.
+## Ends in an error in state: 57.
 ##
 ## expression -> LBRACKET . loption(separated_nonempty_list(SEMICOLON,expression)) RBRACKET [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -867,7 +848,7 @@ expected a collection element
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH TRUE WITH ALT YEAR
 ##
-## Ends in an error in state: 185.
+## Ends in an error in state: 186.
 ##
 ## nonempty_list(addpos(preceded(ALT,match_arm))) -> ALT . match_arm [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## nonempty_list(addpos(preceded(ALT,match_arm))) -> ALT . match_arm nonempty_list(addpos(preceded(ALT,match_arm))) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -880,7 +861,7 @@ expected the name of the constructor for the enum case in the pattern matching
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH TRUE WITH YEAR
 ##
-## Ends in an error in state: 184.
+## Ends in an error in state: 185.
 ##
 ## expression -> expression WITH . constructor_binding [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> MATCH expression WITH . nonempty_list(addpos(preceded(ALT,match_arm))) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -893,7 +874,7 @@ expected a pattern matching case
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH YEAR
 ##
-## Ends in an error in state: 50.
+## Ends in an error in state: 51.
 ##
 ## expression -> MATCH . expression WITH nonempty_list(addpos(preceded(ALT,match_arm))) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -974,7 +955,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 373.
+## Ends in an error in state: 387.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -1035,8 +1016,8 @@ source_file: BEGIN_METADATA LAW_TEXT LAW_HEADING
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 1, spurious reduction of production nonempty_list(LAW_TEXT) -> LAW_TEXT
-## In state 362, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
-## In state 363, spurious reduction of production option(law_text) -> law_text
+## In state 376, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
+## In state 377, spurious reduction of production option(law_text) -> law_text
 ##
 
 expected some law text or code block
@@ -1090,7 +1071,7 @@ source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM YEAR
 ##
 ## Ends in an error in state: 20.
 ##
-## expression -> SUM . typ_base OF expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
+## expression -> SUM . primitive_typ OF expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
 ## SUM
@@ -1128,31 +1109,31 @@ expected the structure or enumeration type of the definition under the given mod
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM BOOLEAN YEAR
 ##
-## Ends in an error in state: 30.
+## Ends in an error in state: 31.
 ##
-## expression -> SUM typ_base . OF expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
+## expression -> SUM primitive_typ . OF expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## SUM typ_base
+## SUM primitive_typ
 ##
 
 expected 'of' then the collection on which to operate
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM UIDENT OF YEAR
 ##
-## Ends in an error in state: 31.
+## Ends in an error in state: 32.
 ##
-## expression -> SUM typ_base OF . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
+## expression -> SUM primitive_typ OF . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## SUM typ_base OF
+## SUM primitive_typ OF
 ##
 
 expected the collection on which to operate the sum
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT YEAR
 ##
-## Ends in an error in state: 32.
+## Ends in an error in state: 33.
 ##
 ## expression -> OUTPUT . OF quident option(scope_call_args) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1164,7 +1145,7 @@ expected 'of' then a scope to be applied
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF YEAR
 ##
-## Ends in an error in state: 33.
+## Ends in an error in state: 34.
 ##
 ## expression -> OUTPUT OF . quident option(scope_call_args) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1176,7 +1157,7 @@ expected a scope to be applied
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF UIDENT STATE
 ##
-## Ends in an error in state: 34.
+## Ends in an error in state: 35.
 ##
 ## expression -> OUTPUT OF quident . option(scope_call_args) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1195,7 +1176,7 @@ binary operator to be applied on the results of the call
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF UIDENT WITH_V YEAR
 ##
-## Ends in an error in state: 35.
+## Ends in an error in state: 36.
 ##
 ## option(scope_call_args) -> WITH_V . LBRACE list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1207,7 +1188,7 @@ expected the arguments to the scope call ('{ --var: ... }')
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF UIDENT WITH_V LBRACE YEAR
 ##
-## Ends in an error in state: 36.
+## Ends in an error in state: 37.
 ##
 ## option(scope_call_args) -> WITH_V LBRACE . list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1219,7 +1200,7 @@ expected a list of variable-value bindings in the form `-- var_name : <expressio
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION OUTPUT OF UIDENT WITH_V LBRACE ALT YEAR
 ##
-## Ends in an error in state: 37.
+## Ends in an error in state: 38.
 ##
 ## list(preceded(ALT,struct_content_field)) -> ALT . struct_content_field list(preceded(ALT,struct_content_field)) [ RBRACE ]
 ##
@@ -1231,7 +1212,7 @@ expected a variable name, following the form '-- var_name : <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE ALT LIDENT YEAR
 ##
-## Ends in an error in state: 40.
+## Ends in an error in state: 41.
 ##
 ## struct_content_field -> lident . COLON expression [ RBRACE ALT ]
 ##
@@ -1243,7 +1224,7 @@ expected a colon, following the form '-- var_name : <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE ALT LIDENT COLON YEAR
 ##
-## Ends in an error in state: 41.
+## Ends in an error in state: 42.
 ##
 ## struct_content_field -> lident COLON . expression [ RBRACE ALT ]
 ##
@@ -1255,7 +1236,7 @@ expected an expression, following the form '-- var_name : <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION NOT YEAR
 ##
-## Ends in an error in state: 42.
+## Ends in an error in state: 43.
 ##
 ## expression -> NOT . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1267,7 +1248,7 @@ expected a boolean expression to apply 'not' on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINUS YEAR
 ##
-## Ends in an error in state: 45.
+## Ends in an error in state: 46.
 ##
 ## expression -> MINUS . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1279,7 +1260,7 @@ expected a numeric expression to apply '-' on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM YEAR
 ##
-## Ends in an error in state: 46.
+## Ends in an error in state: 47.
 ##
 ## expression -> MINIMUM . OF expression OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1291,7 +1272,7 @@ expected 'of' then the collection to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM OF YEAR
 ##
-## Ends in an error in state: 47.
+## Ends in an error in state: 48.
 ##
 ## expression -> MINIMUM OF . expression OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1303,7 +1284,7 @@ expected an expression defining the collection to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM YEAR
 ##
-## Ends in an error in state: 48.
+## Ends in an error in state: 49.
 ##
 ## expression -> MAXIMUM . OF expression OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1315,7 +1296,7 @@ expected 'of' then the collection to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM OF YEAR
 ##
-## Ends in an error in state: 49.
+## Ends in an error in state: 50.
 ##
 ## expression -> MAXIMUM OF . expression OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1327,7 +1308,7 @@ expected an expression defining the collection to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT YEAR
 ##
-## Ends in an error in state: 52.
+## Ends in an error in state: 53.
 ##
 ## expression -> LIDENT . [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## lident -> LIDENT . [ AMONG ]
@@ -1340,7 +1321,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET YEAR
 ##
-## Ends in an error in state: 53.
+## Ends in an error in state: 54.
 ##
 ## expression -> LET . lident DEFINED_AS expression IN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1352,7 +1333,7 @@ expected 'var equals expression' after 'let'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET LIDENT YEAR
 ##
-## Ends in an error in state: 54.
+## Ends in an error in state: 55.
 ##
 ## expression -> LET lident . DEFINED_AS expression IN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1364,7 +1345,7 @@ expected 'equals expression' after 'let'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET LIDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 55.
+## Ends in an error in state: 56.
 ##
 ## expression -> LET lident DEFINED_AS . expression IN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1376,7 +1357,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT AMONG YEAR
 ##
-## Ends in an error in state: 67.
+## Ends in an error in state: 68.
 ##
 ## expression -> FOR ALL lident AMONG . expression WE_HAVE expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1388,7 +1369,7 @@ expected an expression describing the collection to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG YEAR
 ##
-## Ends in an error in state: 71.
+## Ends in an error in state: 72.
 ##
 ## expression -> EXISTS lident AMONG . expression SUCH THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1400,7 +1381,7 @@ expected an expression describing the collection to operate on
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION DECIMAL_LITERAL WITH_V
 ##
-## Ends in an error in state: 72.
+## Ends in an error in state: 73.
 ##
 ## literal -> DECIMAL_LITERAL . option(addpos(unit_literal)) [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1412,7 +1393,7 @@ expected binary operator
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE YEAR
 ##
-## Ends in an error in state: 78.
+## Ends in an error in state: 79.
 ##
 ## expression -> quident LBRACE . nonempty_list(preceded(ALT,struct_content_field)) RBRACE [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1424,7 +1405,7 @@ expected a list of field bindings of the form '-- fld : expression'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE ALT YEAR
 ##
-## Ends in an error in state: 79.
+## Ends in an error in state: 80.
 ##
 ## nonempty_list(preceded(ALT,struct_content_field)) -> ALT . struct_content_field [ RBRACE ]
 ## nonempty_list(preceded(ALT,struct_content_field)) -> ALT . struct_content_field nonempty_list(preceded(ALT,struct_content_field)) [ RBRACE ]
@@ -1437,7 +1418,7 @@ expected a 'fldname : expression' binding
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 84.
+## Ends in an error in state: 85.
 ##
 ## option(preceded(CONTENT,expression)) -> CONTENT . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1449,7 +1430,7 @@ expected an expression defining the enumeration case content
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG YEAR
 ##
-## Ends in an error in state: 87.
+## Ends in an error in state: 88.
 ##
 ## expression -> lident AMONG . expression SUCH THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> lident AMONG . expression SUCH THAT expression IS MAXIMUM OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1463,7 +1444,7 @@ expected an expression defining a collection
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG FALSE YEAR
 ##
-## Ends in an error in state: 88.
+## Ends in an error in state: 89.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH SUCH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH SUCH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -1497,7 +1478,7 @@ expected 'such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT XOR YEAR
 ##
-## Ends in an error in state: 89.
+## Ends in an error in state: 90.
 ##
 ## expression -> expression XOR . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1509,7 +1490,7 @@ expected a boolean expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT XOR FALSE YEAR
 ##
-## Ends in an error in state: 90.
+## Ends in an error in state: 91.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1541,7 +1522,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT WITH YEAR
 ##
-## Ends in an error in state: 91.
+## Ends in an error in state: 92.
 ##
 ## expression -> expression WITH . constructor_binding [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1553,7 +1534,7 @@ expected a pattern to match against
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT WITH UIDENT WITH_V
 ##
-## Ends in an error in state: 92.
+## Ends in an error in state: 93.
 ##
 ## constructor_binding -> quident . OF lident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## constructor_binding -> quident . [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1574,7 +1555,7 @@ operator continuing the expression, or a keyword ending the expression and start
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT WITH UIDENT OF YEAR
 ##
-## Ends in an error in state: 93.
+## Ends in an error in state: 94.
 ##
 ## constructor_binding -> quident OF . lident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1586,7 +1567,7 @@ expected an ident, as in the form 'with pattern <Case> of <ident> and <expr>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT PLUSPLUS YEAR
 ##
-## Ends in an error in state: 96.
+## Ends in an error in state: 97.
 ##
 ## expression -> expression PLUSPLUS . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1598,7 +1579,7 @@ expected a collection expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT PLUSPLUS FALSE YEAR
 ##
-## Ends in an error in state: 97.
+## Ends in an error in state: 98.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1630,7 +1611,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT OF YEAR
 ##
-## Ends in an error in state: 98.
+## Ends in an error in state: 99.
 ##
 ## expression -> expression OF . funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1642,7 +1623,7 @@ expected an expression specifying the function argument
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT OF FALSE YEAR
 ##
-## Ends in an error in state: 100.
+## Ends in an error in state: 101.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1675,7 +1656,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT FOR YEAR
 ##
-## Ends in an error in state: 101.
+## Ends in an error in state: 102.
 ##
 ## expression -> expression FOR . lident AMONG expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression FOR . lident AMONG expression SUCH THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1688,7 +1669,7 @@ Expected an identifier as in the form '<expression> for <ident> among <expressio
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT FOR LIDENT YEAR
 ##
-## Ends in an error in state: 102.
+## Ends in an error in state: 103.
 ##
 ## expression -> expression FOR lident . AMONG expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression FOR lident . AMONG expression SUCH THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1701,7 +1682,7 @@ Expected 'in', as in the form '<expression> for <ident> among <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT FOR LIDENT AMONG YEAR
 ##
-## Ends in an error in state: 103.
+## Ends in an error in state: 104.
 ##
 ## expression -> expression FOR lident AMONG . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression FOR lident AMONG . expression SUCH THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1714,7 +1695,7 @@ expected an expression defining a collection
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT FOR LIDENT AMONG FALSE YEAR
 ##
-## Ends in an error in state: 104.
+## Ends in an error in state: 105.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1747,7 +1728,7 @@ Expected 'such that <expression>', or a binary operator continuing the expressio
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT FOR LIDENT AMONG UIDENT SUCH YEAR
 ##
-## Ends in an error in state: 105.
+## Ends in an error in state: 106.
 ##
 ## expression -> expression FOR lident AMONG expression SUCH . THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1759,7 +1740,7 @@ expected the form 'such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT FOR LIDENT AMONG UIDENT SUCH THAT YEAR
 ##
-## Ends in an error in state: 106.
+## Ends in an error in state: 107.
 ##
 ## expression -> expression FOR lident AMONG expression SUCH THAT . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1772,7 +1753,7 @@ collection
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT FOR LIDENT AMONG UIDENT SUCH THAT FALSE YEAR
 ##
-## Ends in an error in state: 107.
+## Ends in an error in state: 108.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1804,7 +1785,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT PLUS YEAR
 ##
-## Ends in an error in state: 108.
+## Ends in an error in state: 109.
 ##
 ## expression -> expression PLUS . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1816,7 +1797,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT PLUS FALSE YEAR
 ##
-## Ends in an error in state: 109.
+## Ends in an error in state: 110.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1848,7 +1829,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT MULT YEAR
 ##
-## Ends in an error in state: 110.
+## Ends in an error in state: 111.
 ##
 ## expression -> expression MULT . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1860,7 +1841,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT MULT FALSE YEAR
 ##
-## Ends in an error in state: 111.
+## Ends in an error in state: 112.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1892,7 +1873,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION DECIMAL_LITERAL DOT YEAR
 ##
-## Ends in an error in state: 112.
+## Ends in an error in state: 113.
 ##
 ## expression -> expression DOT . qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1904,7 +1885,7 @@ expected a structure field or sub-scope variable name
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION DECIMAL_LITERAL DOT UIDENT YEAR
 ##
-## Ends in an error in state: 113.
+## Ends in an error in state: 114.
 ##
 ## qlident -> UIDENT . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1916,7 +1897,7 @@ expected a dot forming a module path, as in 'Module.variable', or a binary opera
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION DECIMAL_LITERAL DOT UIDENT DOT YEAR
 ##
-## Ends in an error in state: 114.
+## Ends in an error in state: 115.
 ##
 ## qlident -> UIDENT DOT . qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1928,7 +1909,7 @@ expected a module path, as in 'Module.Submodule.variable'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT CONTAINS YEAR
 ##
-## Ends in an error in state: 116.
+## Ends in an error in state: 117.
 ##
 ## expression -> expression CONTAINS . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1940,7 +1921,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT CONTAINS FALSE YEAR
 ##
-## Ends in an error in state: 117.
+## Ends in an error in state: 118.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -1972,7 +1953,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT DIV YEAR
 ##
-## Ends in an error in state: 118.
+## Ends in an error in state: 119.
 ##
 ## expression -> expression DIV . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -1984,7 +1965,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT DIV FALSE YEAR
 ##
-## Ends in an error in state: 119.
+## Ends in an error in state: 120.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2016,7 +1997,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT OR YEAR
 ##
-## Ends in an error in state: 120.
+## Ends in an error in state: 121.
 ##
 ## expression -> expression OR . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2028,7 +2009,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT OR FALSE YEAR
 ##
-## Ends in an error in state: 121.
+## Ends in an error in state: 122.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2060,7 +2041,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT NOT_EQUAL YEAR
 ##
-## Ends in an error in state: 122.
+## Ends in an error in state: 123.
 ##
 ## expression -> expression NOT_EQUAL . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2072,7 +2053,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT NOT_EQUAL FALSE YEAR
 ##
-## Ends in an error in state: 123.
+## Ends in an error in state: 124.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2104,7 +2085,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT MINUS YEAR
 ##
-## Ends in an error in state: 124.
+## Ends in an error in state: 125.
 ##
 ## expression -> expression MINUS . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2116,7 +2097,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT MINUS FALSE YEAR
 ##
-## Ends in an error in state: 125.
+## Ends in an error in state: 126.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2148,7 +2129,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LESSER_EQUAL YEAR
 ##
-## Ends in an error in state: 126.
+## Ends in an error in state: 127.
 ##
 ## expression -> expression LESSER_EQUAL . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2160,7 +2141,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LESSER_EQUAL FALSE YEAR
 ##
-## Ends in an error in state: 127.
+## Ends in an error in state: 128.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2192,7 +2173,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LESSER YEAR
 ##
-## Ends in an error in state: 128.
+## Ends in an error in state: 129.
 ##
 ## expression -> expression LESSER . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2204,7 +2185,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LESSER FALSE YEAR
 ##
-## Ends in an error in state: 129.
+## Ends in an error in state: 130.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2236,7 +2217,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT GREATER_EQUAL YEAR
 ##
-## Ends in an error in state: 130.
+## Ends in an error in state: 131.
 ##
 ## expression -> expression GREATER_EQUAL . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2248,7 +2229,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT GREATER_EQUAL FALSE YEAR
 ##
-## Ends in an error in state: 131.
+## Ends in an error in state: 132.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2280,7 +2261,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT GREATER YEAR
 ##
-## Ends in an error in state: 132.
+## Ends in an error in state: 133.
 ##
 ## expression -> expression GREATER . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2292,7 +2273,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT GREATER FALSE YEAR
 ##
-## Ends in an error in state: 133.
+## Ends in an error in state: 134.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2324,7 +2305,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT EQUAL YEAR
 ##
-## Ends in an error in state: 134.
+## Ends in an error in state: 135.
 ##
 ## expression -> expression EQUAL . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2336,7 +2317,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT EQUAL FALSE YEAR
 ##
-## Ends in an error in state: 135.
+## Ends in an error in state: 136.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2368,7 +2349,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT AND YEAR
 ##
-## Ends in an error in state: 136.
+## Ends in an error in state: 137.
 ##
 ## expression -> expression AND . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2380,7 +2361,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT AND FALSE YEAR
 ##
-## Ends in an error in state: 137.
+## Ends in an error in state: 138.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2412,7 +2393,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH YEAR
 ##
-## Ends in an error in state: 140.
+## Ends in an error in state: 141.
 ##
 ## expression -> lident AMONG expression SUCH . THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> lident AMONG expression SUCH . THAT expression IS MAXIMUM OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2426,7 +2407,7 @@ expected the form '<var> among <expression> such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT YEAR
 ##
-## Ends in an error in state: 141.
+## Ends in an error in state: 142.
 ##
 ## expression -> lident AMONG expression SUCH THAT . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> lident AMONG expression SUCH THAT . expression IS MAXIMUM OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2440,7 +2421,7 @@ expected the form '<var> among <expression> such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT FALSE YEAR
 ##
-## Ends in an error in state: 142.
+## Ends in an error in state: 143.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2474,7 +2455,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS YEAR
 ##
-## Ends in an error in state: 143.
+## Ends in an error in state: 144.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS . MAXIMUM OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> lident AMONG expression SUCH THAT expression IS . MINIMUM OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2487,7 +2468,7 @@ expected 'maximum' or 'minimum'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MINIMUM YEAR
 ##
-## Ends in an error in state: 144.
+## Ends in an error in state: 145.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MINIMUM . OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2499,7 +2480,7 @@ expected 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MINIMUM OR YEAR
 ##
-## Ends in an error in state: 145.
+## Ends in an error in state: 146.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MINIMUM OR . IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2511,7 +2492,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MINIMUM OR IF YEAR
 ##
-## Ends in an error in state: 146.
+## Ends in an error in state: 147.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MINIMUM OR IF . COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2523,7 +2504,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MINIMUM OR IF COLLECTION YEAR
 ##
-## Ends in an error in state: 147.
+## Ends in an error in state: 148.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MINIMUM OR IF COLLECTION . EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2535,7 +2516,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MINIMUM OR IF COLLECTION EMPTY YEAR
 ##
-## Ends in an error in state: 148.
+## Ends in an error in state: 149.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MINIMUM OR IF COLLECTION EMPTY . THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2547,7 +2528,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MINIMUM OR IF COLLECTION EMPTY THEN YEAR
 ##
-## Ends in an error in state: 149.
+## Ends in an error in state: 150.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MINIMUM OR IF COLLECTION EMPTY THEN . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2560,7 +2541,7 @@ expected an expression, following the form 'or if collection empty then
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MINIMUM OR IF COLLECTION EMPTY THEN FALSE YEAR
 ##
-## Ends in an error in state: 150.
+## Ends in an error in state: 151.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2592,7 +2573,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MAXIMUM YEAR
 ##
-## Ends in an error in state: 151.
+## Ends in an error in state: 152.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MAXIMUM . OR IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2604,7 +2585,7 @@ expected 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MAXIMUM OR YEAR
 ##
-## Ends in an error in state: 152.
+## Ends in an error in state: 153.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MAXIMUM OR . IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2616,7 +2597,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MAXIMUM OR IF YEAR
 ##
-## Ends in an error in state: 153.
+## Ends in an error in state: 154.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MAXIMUM OR IF . COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2628,7 +2609,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MAXIMUM OR IF COLLECTION YEAR
 ##
-## Ends in an error in state: 154.
+## Ends in an error in state: 155.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MAXIMUM OR IF COLLECTION . EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2640,7 +2621,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MAXIMUM OR IF COLLECTION EMPTY YEAR
 ##
-## Ends in an error in state: 155.
+## Ends in an error in state: 156.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MAXIMUM OR IF COLLECTION EMPTY . THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2652,7 +2633,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MAXIMUM OR IF COLLECTION EMPTY THEN YEAR
 ##
-## Ends in an error in state: 156.
+## Ends in an error in state: 157.
 ##
 ## expression -> lident AMONG expression SUCH THAT expression IS MAXIMUM OR IF COLLECTION EMPTY THEN . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2664,7 +2645,7 @@ expected an expression, following the form 'or if collection empty then <express
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LIDENT AMONG UIDENT SUCH THAT UIDENT IS MAXIMUM OR IF COLLECTION EMPTY THEN FALSE YEAR
 ##
-## Ends in an error in state: 157.
+## Ends in an error in state: 158.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2696,7 +2677,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT CONTENT FALSE YEAR
 ##
-## Ends in an error in state: 158.
+## Ends in an error in state: 159.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2728,7 +2709,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG FALSE YEAR
 ##
-## Ends in an error in state: 160.
+## Ends in an error in state: 161.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH SUCH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH SUCH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -2760,7 +2741,7 @@ expected 'such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG UIDENT SUCH YEAR
 ##
-## Ends in an error in state: 161.
+## Ends in an error in state: 162.
 ##
 ## expression -> EXISTS lident AMONG expression SUCH . THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2772,7 +2753,7 @@ expected the form 'such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG UIDENT SUCH THAT YEAR
 ##
-## Ends in an error in state: 162.
+## Ends in an error in state: 163.
 ##
 ## expression -> EXISTS lident AMONG expression SUCH THAT . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2784,7 +2765,7 @@ expected an expression, following the form 'such that <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION EXISTS LIDENT AMONG UIDENT SUCH THAT FALSE YEAR
 ##
-## Ends in an error in state: 163.
+## Ends in an error in state: 164.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2816,7 +2797,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT AMONG FALSE YEAR
 ##
-## Ends in an error in state: 164.
+## Ends in an error in state: 165.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -2848,7 +2829,7 @@ expected 'we have <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT AMONG UIDENT WE_HAVE YEAR
 ##
-## Ends in an error in state: 165.
+## Ends in an error in state: 166.
 ##
 ## expression -> FOR ALL lident AMONG expression WE_HAVE . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2860,7 +2841,7 @@ expected the form 'we have <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION FOR ALL LIDENT AMONG UIDENT WE_HAVE FALSE YEAR
 ##
-## Ends in an error in state: 166.
+## Ends in an error in state: 167.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2892,7 +2873,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF UIDENT THEN YEAR
 ##
-## Ends in an error in state: 168.
+## Ends in an error in state: 169.
 ##
 ## expression -> IF expression THEN . expression ELSE expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2904,7 +2885,7 @@ expected an expression, followed by 'else <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF UIDENT THEN FALSE YEAR
 ##
-## Ends in an error in state: 169.
+## Ends in an error in state: 170.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL ELSE DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL ELSE DOT DIV CONTAINS AND ]
@@ -2936,7 +2917,7 @@ expected 'else <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF UIDENT THEN UIDENT ELSE YEAR
 ##
-## Ends in an error in state: 170.
+## Ends in an error in state: 171.
 ##
 ## expression -> IF expression THEN expression ELSE . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -2948,7 +2929,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION IF UIDENT THEN UIDENT ELSE FALSE YEAR
 ##
-## Ends in an error in state: 171.
+## Ends in an error in state: 172.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -2980,7 +2961,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LBRACKET UIDENT SEMICOLON YEAR
 ##
-## Ends in an error in state: 176.
+## Ends in an error in state: 177.
 ##
 ## separated_nonempty_list(SEMICOLON,expression) -> expression SEMICOLON . separated_nonempty_list(SEMICOLON,expression) [ RBRACKET ]
 ##
@@ -2992,7 +2973,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET LIDENT DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 178.
+## Ends in an error in state: 179.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER IN GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER IN GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -3024,7 +3005,7 @@ expected the keyword 'in'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET LIDENT DEFINED_AS UIDENT IN YEAR
 ##
-## Ends in an error in state: 179.
+## Ends in an error in state: 180.
 ##
 ## expression -> LET lident DEFINED_AS expression IN . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3036,7 +3017,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION LET LIDENT DEFINED_AS UIDENT IN FALSE YEAR
 ##
-## Ends in an error in state: 180.
+## Ends in an error in state: 181.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -3068,7 +3049,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH FALSE YEAR
 ##
-## Ends in an error in state: 183.
+## Ends in an error in state: 184.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -3100,7 +3081,7 @@ expected 'with pattern -- <pattern> : <expression> ...'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT WILDCARD YEAR
 ##
-## Ends in an error in state: 186.
+## Ends in an error in state: 187.
 ##
 ## match_arm -> WILDCARD . COLON expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3112,7 +3093,7 @@ expected ':' followed by an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT WILDCARD COLON YEAR
 ##
-## Ends in an error in state: 187.
+## Ends in an error in state: 188.
 ##
 ## match_arm -> WILDCARD COLON . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3124,7 +3105,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT WILDCARD COLON FALSE YEAR
 ##
-## Ends in an error in state: 188.
+## Ends in an error in state: 189.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -3156,7 +3137,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT UIDENT XOR
 ##
-## Ends in an error in state: 191.
+## Ends in an error in state: 192.
 ##
 ## match_arm -> constructor_binding . COLON expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3168,14 +3149,14 @@ source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT UIDEN
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 21, spurious reduction of production quident -> UIDENT
-## In state 92, spurious reduction of production constructor_binding -> quident
+## In state 93, spurious reduction of production constructor_binding -> quident
 ##
 
 expected a colon followed by an expression, as in '-- Case : <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT UIDENT COLON YEAR
 ##
-## Ends in an error in state: 192.
+## Ends in an error in state: 193.
 ##
 ## match_arm -> constructor_binding COLON . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3187,7 +3168,7 @@ expected an expression
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MATCH UIDENT WITH ALT UIDENT COLON FALSE YEAR
 ##
-## Ends in an error in state: 193.
+## Ends in an error in state: 194.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -3220,7 +3201,7 @@ expected a binary operator, or the next case in the form '-- NextCase : <express
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM OF FALSE YEAR
 ##
-## Ends in an error in state: 195.
+## Ends in an error in state: 196.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -3252,7 +3233,7 @@ expected 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM OF UIDENT OR YEAR
 ##
-## Ends in an error in state: 196.
+## Ends in an error in state: 197.
 ##
 ## expression -> MAXIMUM OF expression OR . IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression OR . expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -3265,7 +3246,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM OF UIDENT OR IF YEAR
 ##
-## Ends in an error in state: 197.
+## Ends in an error in state: 198.
 ##
 ## expression -> MAXIMUM OF expression OR IF . COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> IF . expression THEN expression ELSE expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -3278,7 +3259,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM OF UIDENT OR IF COLLECTION YEAR
 ##
-## Ends in an error in state: 198.
+## Ends in an error in state: 199.
 ##
 ## expression -> MAXIMUM OF expression OR IF COLLECTION . EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3290,7 +3271,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM OF UIDENT OR IF COLLECTION EMPTY YEAR
 ##
-## Ends in an error in state: 199.
+## Ends in an error in state: 200.
 ##
 ## expression -> MAXIMUM OF expression OR IF COLLECTION EMPTY . THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3302,7 +3283,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM OF UIDENT OR IF COLLECTION EMPTY THEN YEAR
 ##
-## Ends in an error in state: 200.
+## Ends in an error in state: 201.
 ##
 ## expression -> MAXIMUM OF expression OR IF COLLECTION EMPTY THEN . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3314,7 +3295,7 @@ expected an expression, following the form 'or if collection empty then <express
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MAXIMUM OF UIDENT OR IF COLLECTION EMPTY THEN FALSE YEAR
 ##
-## Ends in an error in state: 201.
+## Ends in an error in state: 202.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -3346,7 +3327,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM OF FALSE YEAR
 ##
-## Ends in an error in state: 202.
+## Ends in an error in state: 203.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -3378,7 +3359,7 @@ expected 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM OF UIDENT OR YEAR
 ##
-## Ends in an error in state: 203.
+## Ends in an error in state: 204.
 ##
 ## expression -> MINIMUM OF expression OR . IF COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression OR . expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -3391,7 +3372,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM OF UIDENT OR IF YEAR
 ##
-## Ends in an error in state: 204.
+## Ends in an error in state: 205.
 ##
 ## expression -> MINIMUM OF expression OR IF . COLLECTION EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> IF . expression THEN expression ELSE expression [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ]
@@ -3404,7 +3385,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM OF UIDENT OR IF COLLECTION YEAR
 ##
-## Ends in an error in state: 205.
+## Ends in an error in state: 206.
 ##
 ## expression -> MINIMUM OF expression OR IF COLLECTION . EMPTY THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3416,7 +3397,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM OF UIDENT OR IF COLLECTION EMPTY YEAR
 ##
-## Ends in an error in state: 206.
+## Ends in an error in state: 207.
 ##
 ## expression -> MINIMUM OF expression OR IF COLLECTION EMPTY . THEN expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3428,7 +3409,7 @@ expected the form 'or if collection empty then <expression>'
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM OF UIDENT OR IF COLLECTION EMPTY THEN YEAR
 ##
-## Ends in an error in state: 207.
+## Ends in an error in state: 208.
 ##
 ## expression -> MINIMUM OF expression OR IF COLLECTION EMPTY THEN . expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
@@ -3441,7 +3422,7 @@ expected an expression, following the form 'or if collection empty then
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINIMUM OF UIDENT OR IF COLLECTION EMPTY THEN FALSE YEAR
 ##
-## Ends in an error in state: 208.
+## Ends in an error in state: 209.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -3473,7 +3454,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION MINUS FALSE YEAR
 ##
-## Ends in an error in state: 209.
+## Ends in an error in state: 210.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -3505,7 +3486,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION NOT FALSE YEAR
 ##
-## Ends in an error in state: 210.
+## Ends in an error in state: 211.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -3537,7 +3518,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION UIDENT LBRACE ALT LIDENT COLON FALSE YEAR
 ##
-## Ends in an error in state: 211.
+## Ends in an error in state: 212.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS AND ALT ]
@@ -3569,13 +3550,13 @@ expected another field in the form '-- <var>: <expression>', or a closing '}' br
 
 source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM UIDENT OF FALSE YEAR
 ##
-## Ends in an error in state: 215.
+## Ends in an error in state: 216.
 ##
 ## expression -> expression . DOT qlident [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . OF funcall_args [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . WITH constructor_binding [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . CONTAINS expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
-## expression -> SUM typ_base OF expression . [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
+## expression -> SUM primitive_typ OF expression . [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . FOR lident AMONG expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . MULT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ## expression -> expression . DIV expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
@@ -3594,7 +3575,7 @@ source_file: BEGIN_CODE SCOPE UIDENT UNDER_CONDITION SUM UIDENT OF FALSE YEAR
 ## expression -> expression . FOR lident AMONG expression SUCH THAT expression [ XOR WITH WE_HAVE THEN SUCH SEMICOLON SCOPE RULE RPAREN RBRACKET RBRACE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL IS INCREASING IN GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE ELSE DOT DIV DEFINITION DECREASING DECLARATION CONTAINS CONSEQUENCE COMMA COLON ASSERTION AND ALT ]
 ##
 ## The known suffix of the stack is as follows:
-## SUM typ_base OF expression
+## SUM primitive_typ OF expression
 ##
 
 expected a binary operator continuing the expression, or a keyword ending the expression and starting the next item
@@ -3750,7 +3731,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT YEAR
 ##
-## Ends in an error in state: 307.
+## Ends in an error in state: 314.
 ##
 ## scope_decl_item_attribute -> scope_decl_item_attribute_input . scope_decl_item_attribute_output [ LIDENT ]
 ##
@@ -3762,10 +3743,14 @@ expected a variable name, optionally preceded by 'output'
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON INTERNAL YEAR
 ##
-## Ends in an error in state: 310.
+## Ends in an error in state: 317.
 ##
-## scope_decl_item -> scope_decl_item_attribute . lident CONTENT typ option(struct_scope_func) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute . lident CONDITION option(struct_scope_func) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute . lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute . lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute . lident CONTENT typ_data list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute . lident CONDITION DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute . lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute . lident CONDITION list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_decl_item_attribute
@@ -3775,10 +3760,14 @@ expected a variable name
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT YEAR
 ##
-## Ends in an error in state: 311.
+## Ends in an error in state: 318.
 ##
-## scope_decl_item -> scope_decl_item_attribute lident . CONTENT typ option(struct_scope_func) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-## scope_decl_item -> scope_decl_item_attribute lident . CONDITION option(struct_scope_func) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident . CONTENT typ_data list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident . CONDITION DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident . CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident . CONDITION list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_decl_item_attribute lident
@@ -3788,9 +3777,11 @@ expected either 'condition', or 'content' followed by the expected variable type
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 312.
+## Ends in an error in state: 319.
 ##
-## scope_decl_item -> scope_decl_item_attribute lident CONTENT . typ option(struct_scope_func) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONTENT . typ_data list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_decl_item_attribute lident CONTENT
@@ -3800,33 +3791,23 @@ expected a type
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT BOOLEAN YEAR
 ##
-## Ends in an error in state: 313.
+## Ends in an error in state: 320.
 ##
-## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ . option(struct_scope_func) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
-## scope_decl_item_attribute lident CONTENT typ
+## scope_decl_item_attribute lident CONTENT typ_data
 ##
 
 expected either 'state' definitions for the variable, or the next declaration
 for the scope
 
-source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS BOOLEAN YEAR
-##
-## Ends in an error in state: 314.
-##
-## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ option(struct_scope_func) . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-##
-## The known suffix of the stack is as follows:
-## scope_decl_item_attribute lident CONTENT typ option(struct_scope_func)
-##
-
-expected either 'state' definitions for the variable, or the next declaration
-for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION STATE LIDENT YEAR
 ##
-## Ends in an error in state: 315.
+## Ends in an error in state: 325.
 ##
 ## list(state) -> state . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3837,11 +3818,34 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION 
 expected either another 'state' definitions for the variable, or the next
 declaration for the scope
 
+source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS
+##
+## Ends in an error in state: 328.
+##
+## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+##
+## The known suffix of the stack is as follows:
+## scope_decl_item_attribute lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content)
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 21, spurious reduction of production quident -> UIDENT
+## In state 30, spurious reduction of production primitive_typ -> quident
+## In state 289, spurious reduction of production typ_data -> primitive_typ
+## In state 300, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
+##
+
+expected the next declaration for the scope
+
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION YEAR
 ##
-## Ends in an error in state: 318.
+## Ends in an error in state: 331.
 ##
-## scope_decl_item -> scope_decl_item_attribute lident CONDITION . option(struct_scope_func) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONDITION . DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONDITION . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONDITION . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_decl_item_attribute lident CONDITION
@@ -3849,21 +3853,88 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION 
 
 expected the next declaration for the scope
 
-source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS BOOLEAN YEAR
+source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS YEAR
 ##
-## Ends in an error in state: 319.
+## Ends in an error in state: 332.
 ##
-## scope_decl_item -> scope_decl_item_attribute lident CONDITION option(struct_scope_func) . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS . separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
-## scope_decl_item_attribute lident CONDITION option(struct_scope_func)
+## scope_decl_item_attribute lident CONDITION DEPENDS
 ##
 
-expected the next declaration for the scope
+expected the form 'depends on <ident> content <type>'
+
+source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN YEAR
+##
+## Ends in an error in state: 333.
+##
+## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+##
+## The known suffix of the stack is as follows:
+## scope_decl_item_attribute lident CONDITION DEPENDS LPAREN
+##
+
+expected the form 'depends on (<ident> content <type> [, <ident> content <type> ...])'
+
+source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN LIDENT CONTENT UIDENT STATE
+##
+## Ends in an error in state: 334.
+##
+## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+##
+## The known suffix of the stack is as follows:
+## scope_decl_item_attribute lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content)
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 21, spurious reduction of production quident -> UIDENT
+## In state 30, spurious reduction of production primitive_typ -> quident
+## In state 289, spurious reduction of production typ_data -> primitive_typ
+## In state 300, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
+##
+
+expected a closing paren, or a comma followed by another argument declaration (', <ident> content <type>')
+
+source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
+##
+## Ends in an error in state: 335.
+##
+## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+##
+## The known suffix of the stack is as follows:
+## scope_decl_item_attribute lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN
+##
+
+expected the next definition in scope
+
+source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LIDENT CONTENT UIDENT DEFINED_AS
+##
+## Ends in an error in state: 337.
+##
+## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS separated_nonempty_list(COMMA,var_content) . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+##
+## The known suffix of the stack is as follows:
+## scope_decl_item_attribute lident CONDITION DEPENDS separated_nonempty_list(COMMA,var_content)
+##
+## WARNING: This example involves spurious reductions.
+## This implies that, although the LR(1) items shown above provide an
+## accurate view of the past (what has been recognized so far), they
+## may provide an INCOMPLETE view of the future (what was expected next).
+## In state 21, spurious reduction of production quident -> UIDENT
+## In state 30, spurious reduction of production primitive_typ -> quident
+## In state 289, spurious reduction of production typ_data -> primitive_typ
+## In state 300, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
+##
+
+expected the next definition in scope, or a comma followed by another argument declaration (', <ident> content <type>')
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT SCOPE UIDENT YEAR
 ##
-## Ends in an error in state: 321.
+## Ends in an error in state: 340.
 ##
 ## nonempty_list(addpos(scope_decl_item)) -> scope_decl_item . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(addpos(scope_decl_item)) -> scope_decl_item . nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
@@ -3876,7 +3947,7 @@ expected the next declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT YEAR
 ##
-## Ends in an error in state: 323.
+## Ends in an error in state: 342.
 ##
 ## scope_decl_item -> lident . SCOPE UIDENT [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3888,7 +3959,7 @@ expected the form '<ident> scope <Scope_name>', or a scope variable declaration
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT SCOPE YEAR
 ##
-## Ends in an error in state: 324.
+## Ends in an error in state: 343.
 ##
 ## scope_decl_item -> lident SCOPE . UIDENT [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3900,11 +3971,11 @@ expected a scope name
 
 source_file: BEGIN_CODE DECLARATION LIDENT YEAR
 ##
-## Ends in an error in state: 338.
+## Ends in an error in state: 357.
 ##
-## code_item -> DECLARATION lident . CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident . CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident . CONTENT typ DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident . CONTENT typ_data DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident
@@ -3914,11 +3985,11 @@ expected 'content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 339.
+## Ends in an error in state: 358.
 ##
-## code_item -> DECLARATION lident CONTENT . typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT . typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT . typ DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT . typ_data DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident CONTENT
@@ -3928,14 +3999,14 @@ expected a type
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT BOOLEAN YEAR
 ##
-## Ends in an error in state: 340.
+## Ends in an error in state: 359.
 ##
-## code_item -> DECLARATION lident CONTENT typ . DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT typ . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT typ . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ
+## DECLARATION lident CONTENT typ_data
 ##
 
 expected 'equals <expression>', optionally preceded by 'depends on <var> content
@@ -3943,46 +4014,46 @@ expected 'equals <expression>', optionally preceded by 'depends on <var> content
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 341.
+## Ends in an error in state: 360.
 ##
-## code_item -> DECLARATION lident CONTENT typ DEPENDS . separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT typ DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ DEPENDS
+## DECLARATION lident CONTENT typ_data DEPENDS
 ##
 
 expected a variable name, following the form 'depends on <var> content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 342.
+## Ends in an error in state: 361.
 ##
-## code_item -> DECLARATION lident CONTENT typ DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ DEPENDS LPAREN
+## DECLARATION lident CONTENT typ_data DEPENDS LPAREN
 ##
 
 expected a variable name, following the form 'depends on (<var> content <type>, ...)'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT DEFINED_AS
 ##
-## Ends in an error in state: 343.
+## Ends in an error in state: 362.
 ##
-## code_item -> DECLARATION lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content)
+## DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content)
 ##
 ## WARNING: This example involves spurious reductions.
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 21, spurious reduction of production quident -> UIDENT
-## In state 216, spurious reduction of production typ_base -> quident
-## In state 288, spurious reduction of production typ -> typ_base
-## In state 349, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ
+## In state 30, spurious reduction of production primitive_typ -> quident
+## In state 289, spurious reduction of production typ_data -> primitive_typ
+## In state 300, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
 ##
 
 expected ')', or ',' followed by another argument declaration in the form '<var>
@@ -3990,33 +4061,33 @@ content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 344.
+## Ends in an error in state: 363.
 ##
-## code_item -> DECLARATION lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN
+## DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN
 ##
 
 expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN DEFINED_AS YEAR
 ##
-## Ends in an error in state: 345.
+## Ends in an error in state: 364.
 ##
-## code_item -> DECLARATION lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS . expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS . expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS
+## DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS
 ##
 
 expected an expression
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 346.
+## Ends in an error in state: 365.
 ##
-## code_item -> DECLARATION lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression . [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression . [ SCOPE END_CODE DECLARATION ]
 ## expression -> expression . DOT qlident [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ## expression -> expression . WITH constructor_binding [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
@@ -4039,17 +4110,17 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT 
 ## expression -> expression . FOR lident AMONG expression SUCH THAT expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression
+## DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression
 ##
 
 expected a binary operator continuing the expression, or a keyword ending the expression and starting the next item
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT YEAR
 ##
-## Ends in an error in state: 347.
+## Ends in an error in state: 298.
 ##
-## separated_nonempty_list(COMMA,var_content) -> lident . CONTENT typ [ RPAREN DEFINED_AS ]
-## separated_nonempty_list(COMMA,var_content) -> lident . CONTENT typ COMMA separated_nonempty_list(COMMA,var_content) [ RPAREN DEFINED_AS ]
+## separated_nonempty_list(COMMA,var_content) -> lident . CONTENT typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
+## separated_nonempty_list(COMMA,var_content) -> lident . CONTENT typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## lident
@@ -4059,10 +4130,10 @@ expected 'content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 348.
+## Ends in an error in state: 299.
 ##
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT . typ [ RPAREN DEFINED_AS ]
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT . typ COMMA separated_nonempty_list(COMMA,var_content) [ RPAREN DEFINED_AS ]
+## separated_nonempty_list(COMMA,var_content) -> lident CONTENT . typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
+## separated_nonempty_list(COMMA,var_content) -> lident CONTENT . typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
 ## lident CONTENT
@@ -4072,67 +4143,67 @@ expected a type
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT BOOLEAN YEAR
 ##
-## Ends in an error in state: 349.
+## Ends in an error in state: 300.
 ##
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ . [ RPAREN DEFINED_AS ]
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ . COMMA separated_nonempty_list(COMMA,var_content) [ RPAREN DEFINED_AS ]
+## separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data . [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
+## separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data . COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
-## lident CONTENT typ
+## lident CONTENT typ_data
 ##
 
 expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT COMMA YEAR
 ##
-## Ends in an error in state: 350.
+## Ends in an error in state: 301.
 ##
-## separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ COMMA . separated_nonempty_list(COMMA,var_content) [ RPAREN DEFINED_AS ]
+## separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data COMMA . separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
 ##
 ## The known suffix of the stack is as follows:
-## lident CONTENT typ COMMA
+## lident CONTENT typ_data COMMA
 ##
 
 expected the definition of another argument in the form '<var> content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT RPAREN
 ##
-## Ends in an error in state: 352.
+## Ends in an error in state: 366.
 ##
-## code_item -> DECLARATION lident CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content)
+## DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content)
 ##
 ## WARNING: This example involves spurious reductions.
 ## This implies that, although the LR(1) items shown above provide an
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 21, spurious reduction of production quident -> UIDENT
-## In state 216, spurious reduction of production typ_base -> quident
-## In state 288, spurious reduction of production typ -> typ_base
-## In state 349, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ
+## In state 30, spurious reduction of production primitive_typ -> quident
+## In state 289, spurious reduction of production typ_data -> primitive_typ
+## In state 300, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
 ##
 
 expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 353.
+## Ends in an error in state: 367.
 ##
-## code_item -> DECLARATION lident CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS . expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS . expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS
+## DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS
 ##
 
 expected an expression
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 354.
+## Ends in an error in state: 368.
 ##
-## code_item -> DECLARATION lident CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression . [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression . [ SCOPE END_CODE DECLARATION ]
 ## expression -> expression . DOT qlident [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ## expression -> expression . WITH constructor_binding [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
@@ -4155,14 +4226,14 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT
 ## expression -> expression . FOR lident AMONG expression SUCH THAT expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression
+## DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression
 ##
 
 expected a binary operator continuing the expression, or a keyword ending the expression and starting the next item
 
 source_file: BEGIN_DIRECTIVE YEAR
 ##
-## Ends in an error in state: 364.
+## Ends in an error in state: 378.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE . LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4174,7 +4245,7 @@ expected a directive, e.g. 'Include: <filename>'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE YEAR
 ##
-## Ends in an error in state: 365.
+## Ends in an error in state: 379.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE . COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4186,7 +4257,7 @@ expected ':', then a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON YEAR
 ##
-## Ends in an error in state: 366.
+## Ends in an error in state: 380.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON . nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4198,7 +4269,7 @@ expected a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG YEAR
 ##
-## Ends in an error in state: 367.
+## Ends in an error in state: 381.
 ##
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . [ END_DIRECTIVE AT_PAGE ]
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . nonempty_list(DIRECTIVE_ARG) [ END_DIRECTIVE AT_PAGE ]
@@ -4211,7 +4282,7 @@ expected a page specification in the form '@p.<number>', or a newline
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG AT_PAGE YEAR
 ##
-## Ends in an error in state: 371.
+## Ends in an error in state: 385.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) . END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4223,7 +4294,7 @@ expected a newline
 
 source_file: LAW_HEADING YEAR
 ##
-## Ends in an error in state: 376.
+## Ends in an error in state: 390.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##

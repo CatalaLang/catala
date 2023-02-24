@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope RecursiveFunc:
-  context f content integer depends on integer
+  context f content integer depends on x content integer
 
 scope RecursiveFunc:
   definition f of x equals f of x + 1

@@ -150,7 +150,7 @@ val get_scope : context -> IdentName.t Marked.pos -> ScopeName.t
 (** Find a scope definition from the typedefs, failing if there is none or it
     has a different kind *)
 
-val process_base_typ : context -> Surface.Ast.base_typ Marked.pos -> typ
+val process_type : context -> Surface.Ast.typ -> typ
 (** Convert a surface base type to an AST type *)
 (* Note: should probably be moved to a different module *)
 

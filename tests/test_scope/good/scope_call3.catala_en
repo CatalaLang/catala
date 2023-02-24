@@ -1,6 +1,6 @@
 ```catala
 declaration scope HousingComputation:
-  output f content integer depends on integer
+  output f content integer depends on x content integer
   output result content integer
 
 scope HousingComputation:
@@ -8,8 +8,8 @@ scope HousingComputation:
   definition result equals f of 1
 
 declaration scope RentComputation:
-  internal g content integer depends on integer
-  output f content integer depends on integer
+  internal g content integer depends on x content integer
+  output f content integer depends on x content integer
 
 scope RentComputation:
   definition g of x equals x + 1

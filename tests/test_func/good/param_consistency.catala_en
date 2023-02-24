@@ -1,7 +1,7 @@
 ```catala
 declaration scope S:
   input cond content boolean
-  internal f1 content decimal depends on integer
+  internal f1 content decimal depends on x content integer
   output out content decimal
 
 scope S:

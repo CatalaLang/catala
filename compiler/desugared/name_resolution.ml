@@ -319,10 +319,8 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
   match naked_typ with
   | Surface.Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
   | Surface.Ast.Func { arg_typ; return_typ } ->
-    (* TODO Louis: /!\ There is only one argument in the surface syntax for
-       function now. *)
-    ( TArrow ([process_base_typ ctxt arg_typ], process_base_typ ctxt return_typ),
-      typ_pos )
+    let targs = List.map (fun (_, t) -> process_base_typ ctxt t) arg_typ in
+    TArrow (targs, process_base_typ ctxt return_typ), typ_pos
 
 (** Process data declaration *)
 let process_data_decl

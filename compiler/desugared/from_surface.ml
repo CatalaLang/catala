@@ -1179,15 +1179,10 @@ let process_topdef
       (Marked.unmark def.S.topdef_name)
       ctxt.Name_resolution.topdefs
   in
-  let ty_pos = Marked.get_mark def.S.topdef_type in
-  let translate_typ t =
-    (* Todo: better helper function from a more appropriate place *)
-    Name_resolution.process_base_typ ctxt
-      (S.Data (Marked.unmark t), Marked.get_mark t)
-  in
-  let body_type = translate_typ def.S.topdef_type in
+  let translate_typ t = Name_resolution.process_type ctxt t in
+  let typ = translate_typ def.S.topdef_type in
   let arg_types =
-    List.map (fun (_, ty) -> translate_typ ty) def.S.topdef_args
+    List.map (fun (_, (ty, m)) -> translate_typ (Base ty, m)) def.S.topdef_args
   in
   let expr =
     let ctxt, rv_args =
@@ -1207,11 +1202,6 @@ let process_topdef
         (Array.of_list (List.rev rv_args))
         body arg_types
         (Marked.get_mark def.S.topdef_name)
-  in
-  let typ =
-    match arg_types with
-    | [] -> body_type
-    | _ -> TArrow (arg_types, body_type), ty_pos
   in
   {
     prgm with

@@ -131,21 +131,21 @@ type base_typ = Condition | Data of base_typ_data
       }]
 
 type func_typ = {
-  arg_typ : base_typ Marked.pos;
+  arg_typ : (lident Marked.pos * base_typ Marked.pos) list;
   return_typ : base_typ Marked.pos;
 }
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["base_typ_map"];
+      ancestors = ["lident_map"; "base_typ_map"];
       name = "func_typ_map";
       nude = true;
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["base_typ_iter"];
+        ancestors = ["lident_iter"; "base_typ_iter"];
         name = "func_typ_iter";
         nude = true;
       }]
@@ -739,10 +739,9 @@ type scope_decl = {
 
 type top_def = {
   topdef_name : lident Marked.pos;
-  topdef_args : (lident Marked.pos * base_typ_data Marked.pos) list;
+  topdef_args : (lident Marked.pos * base_typ Marked.pos) list;
       (** Empty list if this is not a function *)
-  topdef_type : base_typ_data Marked.pos;
-      (** Output type if this is a function *)
+  topdef_type : typ;
   topdef_expr : expression;
 }
 [@@deriving
@@ -921,3 +920,11 @@ let rule_to_def (rule : rule) : definition =
     definition_expr = consequence_expr, Marked.get_mark rule.rule_consequence;
     definition_state = rule.rule_state;
   }
+
+let type_from_args
+    (args : (lident Marked.pos * base_typ Marked.pos) list)
+    (return_typ : base_typ Marked.pos) : typ =
+  match args with
+  | [] -> Marked.map_under_mark (fun r -> Base r) return_typ
+  | arg_typ ->
+    Marked.mark (Marked.get_mark return_typ) (Func { arg_typ; return_typ })

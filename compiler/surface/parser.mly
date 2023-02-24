@@ -49,8 +49,9 @@ end>
 
 %type<Ast.uident Marked.pos> addpos(UIDENT)
 %type<Pos.t> pos(CONDITION)
-%type<Ast.primitive_typ> typ_base
-%type<Ast.base_typ_data> typ
+%type<Ast.primitive_typ> primitive_typ
+%type<Ast.base_typ_data> typ_data
+%type<Ast.base_typ> typ
 %type<Ast.uident Marked.pos> uident
 %type<Ast.lident Marked.pos> lident
 %type<Ast.scope_var> scope_var
@@ -82,7 +83,6 @@ end>
 %type<Ast.scope_use_item> assertion
 %type<Ast.scope_use_item> scope_item
 %type<Ast.lident Marked.pos * Ast.base_typ Marked.pos> struct_scope_base
-%type<Ast.base_typ_data Marked.pos> struct_scope_func
 %type<Ast.struct_decl_field> struct_scope
 %type<Ast.io_input> scope_decl_item_attribute_input
 %type<bool> scope_decl_item_attribute_output
@@ -107,7 +107,7 @@ let pos(x) ==
 let addpos(x) ==
 | ~=x ; { x, Pos.from_lpos $loc(x) }
 
-let typ_base :=
+let primitive_typ :=
 | INTEGER ; { Integer }
 | BOOLEAN ; { Boolean }
 | MONEY ; { Money }
@@ -117,9 +117,11 @@ let typ_base :=
 | DATE ; { Date }
 | c = quident ; { let path, uid = c in Named (path, uid) }
 
-let typ :=
-| t = typ_base ; <Primitive>
-| COLLECTION ; t = addpos(typ) ; <Collection>
+let typ_data :=
+| t = primitive_typ ; <Primitive>
+| COLLECTION ; t = addpos(typ_data) ; <Collection>
+
+let typ == t = typ_data ; <Data>
 
 let uident ==
 | ~ = addpos(UIDENT) ; <>
@@ -200,7 +202,7 @@ let naked_expression ==
   e2 = expression ; {
   MemCollection (e2, e1)
 } %prec apply
-| SUM ; typ = addpos(typ_base) ;
+| SUM ; typ = addpos(primitive_typ) ;
   OF ; coll = expression ; {
   CollectionOp (AggregateSum { typ = Marked.unmark typ }, coll)
 } %prec apply
@@ -482,31 +484,19 @@ let scope_item :=
 
 let struct_scope_base :=
 | DATA ; i = lident ;
-  CONTENT ; t = addpos(typ) ; {
-  let t, pos = t in
-  (i, (Data t, pos))
-}
+  CONTENT ; t = addpos(typ) ; <>
 | pos = pos(CONDITION) ; i = lident ; {
   (i, (Condition, pos))
 }
 
-let struct_scope_func ==
-| DEPENDS ; t = addpos(typ) ; <>
-
 let struct_scope :=
 | name_and_typ = struct_scope_base ;
-  func_typ = option(struct_scope_func) ; {
+  args = depends_stance; {
   let (name, typ) = name_and_typ in
-  let (typ, typ_pos) = typ in
+  (* let (typ, typ_pos) = typ in *)
   {
     struct_decl_field_name = name;
-    struct_decl_field_typ = match func_typ with
-    | None -> (Base typ, typ_pos)
-    | Some (arg_typ, arg_pos) ->
-      Func {
-        arg_typ = (Data arg_typ, arg_pos);
-        return_typ = (typ, typ_pos);
-      }, Pos.from_lpos $sloc ;
+    struct_decl_field_typ = Ast.type_from_args args typ;
   }
 }
 
@@ -544,20 +534,12 @@ let scope_decl_item :=
 | attr = scope_decl_item_attribute ;
   i = lident ;
   CONTENT ; t = addpos(typ) ;
-  func_typ = option(struct_scope_func) ;
+  args_typ = depends_stance ;
   states = list(state) ; {
   ContextData {
   scope_decl_context_item_name = i;
   scope_decl_context_item_attribute = attr;
-  scope_decl_context_item_typ =
-    (let (typ, typ_pos) = t in
-    match func_typ with
-    | None -> (Base (Data typ), typ_pos)
-    | Some (arg_typ, arg_pos) ->
-      Func {
-        arg_typ = (Data arg_typ, arg_pos);
-        return_typ = (Data typ, typ_pos);
-      }, Pos.from_lpos $sloc);
+  scope_decl_context_item_typ = type_from_args args_typ t;
   scope_decl_context_item_states = states;
   }
 }
@@ -574,19 +556,13 @@ let scope_decl_item :=
 | attr = scope_decl_item_attribute ;
   i = lident ;
   pos_condition = pos(CONDITION) ;
-  func_typ = option(struct_scope_func) ;
+  args = depends_stance ;
   states = list(state) ; {
   ContextData {
     scope_decl_context_item_name = i;
     scope_decl_context_item_attribute = attr;
     scope_decl_context_item_typ =
-      (match func_typ with
-      | None -> (Base (Condition), pos_condition)
-      | Some (arg_typ, arg_pos) ->
-        Func {
-          arg_typ = (Data arg_typ, arg_pos);
-          return_typ = (Condition, pos_condition);
-        }, Pos.from_lpos $sloc);
+      Ast.type_from_args args (Condition, pos_condition);
     scope_decl_context_item_states = states;
   }
 }
@@ -597,7 +573,7 @@ let enum_decl_line :=
   {
     enum_decl_case_name = c;
     enum_decl_case_typ =
-      Option.map (fun (t, t_pos) ->  Base (Data t), t_pos) t;
+      Option.map (fun (t, t_pos) ->  Base t, t_pos) t;
   }
 }
 
@@ -646,7 +622,7 @@ let code_item :=
   Topdef {
     topdef_name = name;
     topdef_args = args;
-    topdef_type = ty;
+    topdef_type = type_from_args args ty;
     topdef_expr = e;
   }
 }
