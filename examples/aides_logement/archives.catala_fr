@@ -1,6 +1,12 @@
 # Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
 
-## Articles en vigueur du 1er juillet 2022 au 31 décembre 2022
+```catala
+# Nous décidons de remonter jusqu'à l'arrêté du 3 janvier 2020
+# relatif au calcul des aides personnelles au logement pour l'année
+# 2020.
+```
+
+## Articles en vigueur du 1er juillet 2022 au 31 décembre 2022 - Arrêté du 29 juillet 2022 relatif au calcul des aides personnelles au logement NOR : TREL2220748A - Arrêté du 16 août 2022 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer - NOR : TREL2220744A
 
 ### Article 15 | LEGIARTI000046126962 [archive]
 
@@ -52,8 +58,6 @@ NOTA :
 
 Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A),
 ces dispositions sont applicables pour les prestations dues à compter du 1 er juillet 2022.
-
-### Article 17 |
 
 ### Article 46 | LEGIARTI000046206183 [archive]
 
@@ -426,7 +430,38 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 NOTA : Conformément à l’article 3 de l’arrêté du 16 août 2022 (TREL2220744A), ces dispositions sont
 applicables pour les prestations dues à compter du 1er juillet 2022.
 
-## Articles en vigueur du 1er octobre 2021 au 31 décembre 2021
+```catala
+# Cet article a été modifié par l'arrêté du 16 août 2022 et celui du 29 juillet 2022. 
+# Ces deux arrêts apportent des changements différents, mais ont la même date d'entrée en vigueur. La rédaction 
+# ci-dessus est issue de ces deux arrêtés.
+```
+
+### Article 47 | LEGIARTI000046126954 [archive]
+
+Pour l'application du chapitre VII du présent arrêté à Saint-Pierre-et-Miquelon, le calcul de l'allocation 
+de logement pour les logements-foyers repose sur les valeurs fixées au chapitre III relatif au calcul des 
+aides personnelles au logement en secteur locatif. 
+
+Pour l'application du 5° de l'article D. 823-17 à Saint-Pierre-et-Miquelon, le forfait “ R0 ” est fixé 
+selon le tableau suivant : 
+
+Composition du foyer                   MONTANT (en euros) 
+-------------------------------------- ------------------
+Personne seule sans personne à charge  4 870 
+Couple sans personne à charge          6 977 
+Personne seule ou couple ayant : 
+-une personne à charge                 8 322 
+-deux personnes à charge               8 509 
+-trois personnes à charge              8 834 
+-quatre personnes à charge             9 163 
+-cinq personnes à charge               9 488 
+-six personnes à charge                9 816 
+-par personne à charge supplémentaire  323 
+
+NOTA : Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A), ces dispositions 
+sont applicables pour les prestations dues à compter du 1 er juillet 2022.
+
+## Articles en vigueur du 1er octobre 2021 au 31 décembre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A
 
 ### Article 7 | LEGIARTI000044137432 [archive]
 
@@ -1196,6 +1231,7 @@ de l'article D. 823-17 du même code, sont remplacées par les valeurs suivantes
 
 VALEURS DE TF
 Bénéficiaires                     TF
+--------------------------------- -----
 Isolé                             2,81%
 Couple sans enfant                2,99%
 1 enfant ou 1 personne            2,38%
@@ -1208,7 +1244,7 @@ Couple sans enfant                2,99%
 NOTA : Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
 pour les prestations dues à compter du 1er octobre 2021.
 
-## Articles en vigueur du 1er janvier 2022 au 30 juin 2022
+## Articles en vigueur du 1er janvier 2022 au 30 juin 2022 - Arrêté du 20 décembre 2021 relatif au calcul des aides personnelles au logement pour l'année 2022 NOR : LOGL2134477A 
 
 ### Article 6 | LEGIARTI000045011471 [archive]
 
@@ -1382,7 +1418,7 @@ personnelles au logement en secteur locatif.
 NOTA : Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A), ces dispositions sont
 applicables pour les prestations dues à compter du 1 er janvier 2022.
 
-## Articles en vigueur du 1er octobre 2020 au 31 septembre 2021
+## Articles en vigueur du 1er octobre 2020 au 31 septembre 2021 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A
 
 ### Article 7 | LEGIARTI000042378448 [archive]
 
@@ -1675,9 +1711,9 @@ Le loyer de référence LR est défini selon le tableau suivant (en euros) :
 Composition du ménage	                                Montant
 ---------------------------------------------------- --------
 Bénéficiaire isolé	                                  258,69
-Couple sans personne à charge	                      316,64
+Couple sans personne à charge	                        316,64
 Personne seule ou couple ayant une personne à charge  356,3
-Majoration par personne à charge	                  51,86
+Majoration par personne à charge	                    51,86
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -2170,7 +2206,7 @@ Couple sans enfant                2,99%
 NOTA : Conformément à l’article 3, I de l’arrêté du 25 septembre 2020, ces dispositions sont
 applicables pour les prestations dues à compter du 1er octobre 2020.
 
-## Articles en vigueur du 01 janvier 2021 au 31 décembre 2021
+## Articles en vigueur du 01 janvier 2021 au 31 décembre 2021 - Arrêté du 31 décembre 2020 relatif au calcul des aides personnelles au logement pour l'année 2021 NOR : LOGL2028351A
 
 ### Article 6 | LEGIARTI000039160737 [archive]
 
@@ -2189,6 +2225,10 @@ location et à 4 900 euros pour la résidence en logement-foyer.
 # TODO juridique et informatique : vérifier par rapport à la version initiale (version 2019)
 # TODO informatique et juridique: traduire cet article qui vient définir
 # ressources_forfaitaires_r822_20
+# La version du 1er janvier 2021 au 31 décembre 2021 de l'art. 6 est la même que celle applicable 
+# depuis 2019 (donc 1er janvier 2020, date à laquelle on fait remonter les archvies). 
+# Il est donc possible de traduire cet article et de faire remonter l'application
+# à une date antérieure au 1er janvier 2021.
 ```
 
 ### Article 47 | LEGIARTI000043044380 [archive]
@@ -2285,7 +2325,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 NOTA : Conformément à l’article 2 de l’arrêté du 31 décembre 2020 (NOR : LOGL2028351A), ces dispositions sont
 applicables pour les prestations dues à compter du 1 er janvier 2021.
 
-## Articles en vigueur du 01 janvier 2020 au 31 décembre 2021
+## Articles en vigueur du 01 janvier 2020 au 31 décembre 2021 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A
 
 ### Article 15 | LEGIARTI000041489192 [archive]
 
