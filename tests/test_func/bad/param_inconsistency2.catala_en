@@ -13,13 +13,13 @@ scope S:
 
 ```catala-test-inline
 $ catala typecheck
-[ERROR] Inconsistent function definition for f1, the arguments differ
+[ERROR] The arguments of these definitions don't match the declaration.
 
-First definition here
-┌─⯈ tests/test_func/bad/param_inconsistency2.catala_en:8.2-46:
+Declared here
+┌─⯈ tests/test_func/bad/param_inconsistency2.catala_en:4.22-29:
 └─┐
-8 │   definition f1 of x equals decimal of (x * 2)
-  │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+4 │   internal f1 content decimal depends on x content integer
+  │                       ‾‾‾‾‾‾‾
 
 
 ┌─⯈ tests/test_func/bad/param_inconsistency2.catala_en:9.2-10.28:

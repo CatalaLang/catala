@@ -43,7 +43,7 @@ $ catala Interpret -t -s HousingComputation
      7 │   definition f of x equals (output of RentComputation).f of x
        │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     
-[LOG]     ≔  RentComputation.direct.output: RentComputation { "f"= λ (param0: integer) → RentComputation { "f"= λ (param01: integer) → error_empty ⟨true ⊢ λ (param02: integer) → error_empty ⟨true ⊢ param02 +! 1⟩ param01 +! 1⟩ }."f" param0 }
+[LOG]     ≔  RentComputation.direct.output: RentComputation { "f"= λ (param0: integer) → RentComputation { "f"= λ (x: integer) → error_empty ⟨true ⊢ λ (x1: integer) → error_empty ⟨true ⊢ x1 +! 1⟩ x +! 1⟩ }."f" param0 }
 [LOG]   ←  RentComputation.direct
 [LOG]   →  RentComputation.f
 [LOG]     ≔  RentComputation.f.input0: 1
@@ -70,20 +70,20 @@ $ catala Interpret -t -s HousingComputation
 [LOG] ≔  HousingComputation.result: 3
 [RESULT] Computation successful! Results:
 [RESULT] f =
-           λ (param0: integer) → error_empty
+           λ (x: integer) → error_empty
              ⟨true ⊢
                let result : RentComputation {"f": integer → integer} =
                  λ (RentComputation_in: RentComputation_in {}) →
                    let g : integer → integer = error_empty
-                     (λ (param01: integer) → error_empty
-                        ⟨true ⊢ param01 +! 1⟩) in
+                     (λ (x1: integer) → error_empty ⟨true ⊢ x1 +! 1⟩)
+                     in
                    let f : integer → integer = error_empty
-                     (λ (param01: integer) → error_empty
-                        ⟨true ⊢ g param01 +! 1⟩) in
+                     (λ (x1: integer) → error_empty
+                        ⟨true ⊢ g x1 +! 1⟩) in
                    RentComputation { "f"= f } RentComputation_in {  } in
                  let result1 : RentComputation {"f": integer → integer} =
                    RentComputation { "f"=
-                     λ (param01: integer) → result."f" param01 } in
-                 if true then result1 else ∅ ."f" param0⟩
+                     λ (param0: integer) → result."f" param0 } in
+                 if true then result1 else ∅ ."f" x⟩
 [RESULT] result = 3
 ```

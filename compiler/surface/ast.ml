@@ -683,6 +683,7 @@ type scope_decl_context_scope = {
 type scope_decl_context_data = {
   scope_decl_context_item_name : lident Marked.pos;
   scope_decl_context_item_typ : typ;
+  scope_decl_context_item_parameters : (lident Marked.pos * typ) list;
   scope_decl_context_item_attribute : scope_decl_context_io;
   scope_decl_context_item_states : lident Marked.pos list;
 }

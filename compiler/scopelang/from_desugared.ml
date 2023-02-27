@@ -18,6 +18,7 @@
 
 open Catala_utils
 open Shared_ast
+module D = Desugared.Ast
 
 (** {1 Expression translation}*)
 
@@ -212,7 +213,7 @@ let rec rule_tree_to_expr
     ~(is_reentrant_var : bool)
     (ctx : ctx)
     (def_pos : Pos.t)
-    (is_func : Desugared.Ast.expr Var.t list option)
+    (params : Desugared.Ast.expr Var.t list option)
     (tree : rule_tree) : untyped Ast.expr boxed =
   let emark = Untyped { pos = def_pos } in
   let exceptions, base_rules =
@@ -224,7 +225,7 @@ let rec rule_tree_to_expr
   let substitute_parameter
       (e : Desugared.Ast.expr boxed)
       (rule : Desugared.Ast.rule) : Desugared.Ast.expr boxed =
-    match is_func, rule.Desugared.Ast.rule_parameter with
+    match params, rule.Desugared.Ast.rule_parameter with
     | Some new_params, Some old_params_with_types ->
       let old_params, _ = List.split old_params_with_types in
       let old_params = Array.of_list old_params in
@@ -240,7 +241,7 @@ let rec rule_tree_to_expr
     (* should not happen *)
   in
   let ctx =
-    match is_func with
+    match params with
     | None -> ctx
     | Some new_params ->
       ListLabels.fold_left new_params ~init:ctx ~f:(fun ctx new_param ->
@@ -296,7 +297,7 @@ let rec rule_tree_to_expr
   in
   let exceptions =
     List.map
-      (rule_tree_to_expr ~toplevel:false ~is_reentrant_var ctx def_pos is_func)
+      (rule_tree_to_expr ~toplevel:false ~is_reentrant_var ctx def_pos params)
       exceptions
   in
   let default =
@@ -304,7 +305,7 @@ let rec rule_tree_to_expr
       (Expr.elit (LBool true) emark)
       default_containing_base_cases emark
   in
-  match is_func, (List.hd base_rules).Desugared.Ast.rule_parameter with
+  match params, (List.hd base_rules).Desugared.Ast.rule_parameter with
   | None, None -> default
   | Some new_params, Some ls ->
     let _, tys = List.split ls in
@@ -334,135 +335,123 @@ let translate_def
     (ctx : ctx)
     (def_info : Desugared.Ast.ScopeDef.t)
     (def : Desugared.Ast.rule RuleName.Map.t)
+    (params : (Uid.MarkedString.info * typ) list option)
     (typ : typ)
     (io : Desugared.Ast.io)
     ~(is_cond : bool)
     ~(is_subscope_var : bool) : untyped Ast.expr boxed =
   (* Here, we have to transform this list of rules into a default tree. *)
-  let is_def_func =
-    match Marked.unmark typ with TArrow (_, _) -> true | _ -> false
+  let check_params pvars =
+    match params, pvars with
+    | None, None -> true
+    | None, Some _ | Some _, None -> false
+    | Some pdefs, Some pvars -> (
+      try
+        List.for_all2
+          (fun (lbl, ty1) (var, ty2) ->
+            String.equal (Marked.unmark lbl) (Bindlib.name_of var)
+            && Type.equal ty1 ty2)
+          pdefs pvars
+      with Invalid_argument _ -> false)
   in
-  let is_rule_func _ (r : Desugared.Ast.rule) : bool =
-    Option.is_some r.Desugared.Ast.rule_parameter
+  let wrong_params =
+    RuleName.Map.bindings
+      (RuleName.Map.filter
+         (fun _ r -> not (check_params r.D.rule_parameter))
+         def)
   in
-  let all_rules_func = RuleName.Map.for_all is_rule_func def in
-  let all_rules_not_func =
-    RuleName.Map.for_all (fun n r -> not (is_rule_func n r)) def
-  in
-  let is_def_func_param_typ : typ list option =
-    if is_def_func && all_rules_func then
-      match Marked.unmark typ with
-      | TArrow (t_param, _) -> Some t_param
-      | _ ->
-        Errors.raise_spanned_error (Marked.get_mark typ)
-          "The definitions of %a are function but it doesn't have a function \
-           type"
-          Desugared.Ast.ScopeDef.format_t def_info
-    else if (not is_def_func) && all_rules_not_func then None
-    else
-      let spans =
-        List.map
-          (fun (_, r) ->
-            ( Some "This definition is a function:",
-              Expr.pos r.Desugared.Ast.rule_cons ))
-          (RuleName.Map.bindings (RuleName.Map.filter is_rule_func def))
-        @ List.map
-            (fun (_, r) ->
-              ( Some "This definition is not a function:",
-                Expr.pos r.Desugared.Ast.rule_cons ))
-            (RuleName.Map.bindings
-               (RuleName.Map.filter (fun n r -> not (is_rule_func n r)) def))
-      in
-      Errors.raise_multispanned_error spans
-        "some definitions of the same variable are functions while others \
-         aren't"
-  in
-  let top_list = def_map_to_tree def_info def in
-  let is_input =
-    match Marked.unmark io.Desugared.Ast.io_input with
-    | OnlyInput -> true
-    | _ -> false
-  in
-  let is_reentrant =
-    match Marked.unmark io.Desugared.Ast.io_input with
-    | Reentrant -> true
-    | _ -> false
-  in
-  let top_value : Desugared.Ast.rule option =
-    if is_cond && ((not is_subscope_var) || (is_subscope_var && is_input)) then
-      (* We add the bottom [false] value for conditions, only for the scope
-         where the condition is declared. Except when the variable is an input,
-         where we want the [false] to be added at each caller parent scope. *)
-      Some
-        (Desugared.Ast.always_false_rule
-           (Desugared.Ast.ScopeDef.get_position def_info)
-           is_def_func_param_typ)
-    else None
-  in
-  if
-    RuleName.Map.cardinal def = 0
-    && is_subscope_var
-    (* Here we have a special case for the empty definitions. Indeed, we could
-       use the code for the regular case below that would create a convoluted
-       default always returning empty error, and this would be correct. But it
-       gets more complicated with functions. Indeed, if we create an empty
-       definition for a subscope argument whose type is a function, we get
-       something like [fun () -> (fun real_param -> < ... >)] that is passed as
-       an argument to the subscope. The sub-scope de-thunks but the de-thunking
-       does not return empty error, signalling there is not reentrant variable,
-       because functions are values! So the subscope does not see that there is
-       not reentrant variable and does not pick its internal definition instead.
-       See [test/test_scope/subscope_function_arg_not_defined.catala_en] for a
-       test case exercising that subtlety.
-
-       To avoid this complication we special case here and put an empty error
-       for all subscope variables that are not defined. It covers the subtlety
-       with functions described above but also conditions with the false default
-       value. *)
-    && not (is_cond && is_input)
-    (* However, this special case suffers from an exception: when a condition is
-       defined as an OnlyInput to a subscope, since the [false] default value
-       will not be provided by the calee scope, it has to be placed in the
-       caller. *)
-  then
-    let m = Untyped { pos = Desugared.Ast.ScopeDef.get_position def_info } in
-    let empty_error = Expr.elit LEmptyError m in
-    match is_def_func_param_typ with
-    | Some tys ->
-      Expr.make_abs
-        (Array.init (List.length tys) (fun _ -> Var.make "_"))
-        empty_error tys (Expr.mark_pos m)
-    | _ -> empty_error
+  if wrong_params <> [] then
+    Errors.raise_multispanned_error
+      ((Some "Declared here", Marked.get_mark typ)
+      :: List.map
+           (fun (r, _) -> None, Marked.get_mark (RuleName.get_info r))
+           wrong_params)
+      "The arguments of these definitions don't match the declaration."
   else
-    rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant ctx
-      (Desugared.Ast.ScopeDef.get_position def_info)
-      (Option.map
-         (fun l ->
-           ListLabels.mapi l ~f:(fun i _ ->
-               Var.make ("param" ^ string_of_int i)))
-         is_def_func_param_typ)
-      (match top_list, top_value with
-      | [], None ->
-        (* In this case, there are no rules to define the expression and no
-           default value so we put an empty rule. *)
-        Leaf
-          [Desugared.Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ]
-      | [], Some top_value ->
-        (* In this case, there are no rules to define the expression but a
-           default value so we put it. *)
-        Leaf [top_value]
-      | _, Some top_value ->
-        (* When there are rules + a default value, we put the rules as
-           exceptions to the default value *)
-        Node (top_list, [top_value])
-      | [top_tree], None -> top_tree
-      | _, None ->
-        Node
-          ( top_list,
-            [
-              Desugared.Ast.empty_rule (Marked.get_mark typ)
-                is_def_func_param_typ;
-            ] ))
+    let top_list = def_map_to_tree def_info def in
+    let is_input =
+      match Marked.unmark io.Desugared.Ast.io_input with
+      | OnlyInput -> true
+      | _ -> false
+    in
+    let is_reentrant =
+      match Marked.unmark io.Desugared.Ast.io_input with
+      | Reentrant -> true
+      | _ -> false
+    in
+    let top_value : Desugared.Ast.rule option =
+      if is_cond && ((not is_subscope_var) || (is_subscope_var && is_input))
+      then
+        (* We add the bottom [false] value for conditions, only for the scope
+           where the condition is declared. Except when the variable is an
+           input, where we want the [false] to be added at each caller parent
+           scope. *)
+        Some
+          (Desugared.Ast.always_false_rule
+             (Desugared.Ast.ScopeDef.get_position def_info)
+             params)
+      else None
+    in
+    if
+      RuleName.Map.cardinal def = 0
+      && is_subscope_var
+      (* Here we have a special case for the empty definitions. Indeed, we could
+         use the code for the regular case below that would create a convoluted
+         default always returning empty error, and this would be correct. But it
+         gets more complicated with functions. Indeed, if we create an empty
+         definition for a subscope argument whose type is a function, we get
+         something like [fun () -> (fun real_param -> < ... >)] that is passed
+         as an argument to the subscope. The sub-scope de-thunks but the
+         de-thunking does not return empty error, signalling there is not
+         reentrant variable, because functions are values! So the subscope does
+         not see that there is not reentrant variable and does not pick its
+         internal definition instead. See
+         [test/test_scope/subscope_function_arg_not_defined.catala_en] for a
+         test case exercising that subtlety.
+
+         To avoid this complication we special case here and put an empty error
+         for all subscope variables that are not defined. It covers the subtlety
+         with functions described above but also conditions with the false
+         default value. *)
+      && not (is_cond && is_input)
+      (* However, this special case suffers from an exception: when a condition
+         is defined as an OnlyInput to a subscope, since the [false] default
+         value will not be provided by the calee scope, it has to be placed in
+         the caller. *)
+    then
+      let m = Untyped { pos = Desugared.Ast.ScopeDef.get_position def_info } in
+      let empty_error = Expr.elit LEmptyError m in
+      match params with
+      | Some ps ->
+        let labels, tys = List.split ps in
+        Expr.make_abs
+          (Array.of_list
+             (List.map (fun lbl -> Var.make (Marked.unmark lbl)) labels))
+          empty_error tys (Expr.mark_pos m)
+      | _ -> empty_error
+    else
+      rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant ctx
+        (Desugared.Ast.ScopeDef.get_position def_info)
+        (Option.map
+           (List.map (fun (lbl, _) -> Var.make (Marked.unmark lbl)))
+           params)
+        (match top_list, top_value with
+        | [], None ->
+          (* In this case, there are no rules to define the expression and no
+             default value so we put an empty rule. *)
+          Leaf [Desugared.Ast.empty_rule (Marked.get_mark typ) params]
+        | [], Some top_value ->
+          (* In this case, there are no rules to define the expression but a
+             default value so we put it. *)
+          Leaf [top_value]
+        | _, Some top_value ->
+          (* When there are rules + a default value, we put the rules as
+             exceptions to the default value *)
+          Node (top_list, [top_value])
+        | [top_tree], None -> top_tree
+        | _, None ->
+          Node
+            (top_list, [Desugared.Ast.empty_rule (Marked.get_mark typ) params]))
 
 let translate_rule ctx (scope : Desugared.Ast.scope) = function
   | Desugared.Dependency.Vertex.Var (var, state) -> (
@@ -471,9 +460,10 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
         (Desugared.Ast.ScopeDef.Var (var, state))
         scope.scope_defs
     in
-    let var_def = scope_def.scope_def_rules in
-    let var_typ = scope_def.scope_def_typ in
-    let is_cond = scope_def.scope_def_is_condition in
+    let var_def = scope_def.D.scope_def_rules in
+    let var_params = scope_def.D.scope_def_parameters in
+    let var_typ = scope_def.D.scope_def_typ in
+    let is_cond = scope_def.D.scope_def_is_condition in
     match Marked.unmark scope_def.Desugared.Ast.scope_def_io.io_input with
     | OnlyInput when not (RuleName.Map.is_empty var_def) ->
       (* If the variable is tagged as input, then it shall not be redefined. *)
@@ -492,8 +482,8 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
       let expr_def =
         translate_def ctx
           (Desugared.Ast.ScopeDef.Var (var, state))
-          var_def var_typ scope_def.Desugared.Ast.scope_def_io ~is_cond
-          ~is_subscope_var:false
+          var_def var_params var_typ scope_def.Desugared.Ast.scope_def_io
+          ~is_cond ~is_subscope_var:false
       in
       let scope_var =
         match ScopeVar.Map.find var ctx.scope_var_mapping, state with
@@ -577,8 +567,8 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
             (* Now that all is good, we can proceed with translating this
                redefinition to a proper Scopelang term. *)
             let expr_def =
-              translate_def ctx def_key def def_typ
-                scope_def.Desugared.Ast.scope_def_io ~is_cond
+              translate_def ctx def_key def scope_def.D.scope_def_parameters
+                def_typ scope_def.Desugared.Ast.scope_def_io ~is_cond
                 ~is_subscope_var:true
             in
             let subscop_real_name =

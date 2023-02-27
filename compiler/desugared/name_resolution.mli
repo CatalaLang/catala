@@ -55,6 +55,7 @@ type enum_context = typ EnumConstructor.Map.t
 type var_sig = {
   var_sig_typ : typ;
   var_sig_is_condition : bool;
+  var_sig_parameters : (Uid.MarkedString.info * Shared_ast.typ) list;
   var_sig_io : Surface.Ast.scope_decl_context_io;
   var_sig_states_idmap : StateName.t IdentName.Map.t;
   var_sig_states_list : StateName.t list;

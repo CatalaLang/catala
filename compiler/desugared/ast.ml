@@ -144,27 +144,31 @@ module Rule = struct
     | Some _, None -> 1
 end
 
-let empty_rule (pos : Pos.t) (have_parameter : typ list option) : rule =
+let empty_rule
+    (pos : Pos.t)
+    (parameters : (Uid.MarkedString.info * typ) list option) : rule =
   {
     rule_just = Expr.box (ELit (LBool false), Untyped { pos });
     rule_cons = Expr.box (ELit LEmptyError, Untyped { pos });
     rule_parameter =
-      (match have_parameter with
-      | Some typs -> Some (List.map (fun typ -> Var.make "dummy", typ) typs)
-      | None -> None);
+      Option.map
+        (List.map (fun (lbl, typ) -> Var.make (Marked.unmark lbl), typ))
+        parameters;
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("empty", pos);
     rule_label = Unlabeled;
   }
 
-let always_false_rule (pos : Pos.t) (have_parameter : typ list option) : rule =
+let always_false_rule
+    (pos : Pos.t)
+    (parameters : (Uid.MarkedString.info * typ) list option) : rule =
   {
     rule_just = Expr.box (ELit (LBool true), Untyped { pos });
     rule_cons = Expr.box (ELit (LBool false), Untyped { pos });
     rule_parameter =
-      (match have_parameter with
-      | Some typs -> Some (List.map (fun typ -> Var.make "dummy", typ) typs)
-      | None -> None);
+      Option.map
+        (List.map (fun (lbl, typ) -> Var.make (Marked.unmark lbl), typ))
+        parameters;
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("always_false", pos);
     rule_label = Unlabeled;
@@ -181,6 +185,7 @@ type meta_assertion =
 type scope_def = {
   scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
+  scope_def_parameters : (Uid.MarkedString.info * typ) list option;
   scope_def_is_condition : bool;
   scope_def_io : io;
 }

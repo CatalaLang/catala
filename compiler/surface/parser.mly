@@ -539,6 +539,8 @@ let scope_decl_item :=
   ContextData {
   scope_decl_context_item_name = i;
   scope_decl_context_item_attribute = attr;
+  scope_decl_context_item_parameters =
+    List.map (fun (lbl, (base_t, m)) -> lbl, (Base base_t, m)) args_typ;
   scope_decl_context_item_typ = type_from_args args_typ t;
   scope_decl_context_item_states = states;
   }
@@ -561,6 +563,8 @@ let scope_decl_item :=
   ContextData {
     scope_decl_context_item_name = i;
     scope_decl_context_item_attribute = attr;
+    scope_decl_context_item_parameters =
+      List.map (fun (lbl, (base_t, m)) -> lbl, (Base base_t, m)) args;
     scope_decl_context_item_typ =
       Ast.type_from_args args (Condition, pos_condition);
     scope_decl_context_item_states = states;

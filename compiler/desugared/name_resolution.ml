@@ -55,6 +55,7 @@ type enum_context = typ EnumConstructor.Map.t
 type var_sig = {
   var_sig_typ : typ;
   var_sig_is_condition : bool;
+  var_sig_parameters : (Uid.MarkedString.info * Shared_ast.typ) list;
   var_sig_io : Surface.Ast.scope_decl_context_io;
   var_sig_states_idmap : StateName.t IdentName.Map.t;
   var_sig_states_list : StateName.t list;
@@ -360,6 +361,11 @@ let process_data_decl
             state_uid :: states_list ))
         decl.scope_decl_context_item_states (IdentName.Map.empty, [])
     in
+    let var_sig_parameters =
+      List.map
+        (fun (lbl, typ) -> lbl, process_type ctxt typ)
+        decl.scope_decl_context_item_parameters
+    in
     {
       ctxt with
       scopes = ScopeName.Map.add scope scope_ctxt ctxt.scopes;
@@ -368,6 +374,7 @@ let process_data_decl
           {
             var_sig_typ = data_typ;
             var_sig_is_condition = is_cond;
+            var_sig_parameters;
             var_sig_io = decl.scope_decl_context_item_attribute;
             var_sig_states_idmap = states_idmap;
             var_sig_states_list = states_list;

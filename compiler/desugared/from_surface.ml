@@ -1240,6 +1240,8 @@ let init_scope_defs
             Ast.scope_def_rules = RuleName.Map.empty;
             Ast.scope_def_typ = v_sig.var_sig_typ;
             Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+            Ast.scope_def_parameters =
+              (match v_sig.var_sig_parameters with [] -> None | ps -> Some ps);
             Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
           }
           scope_def_map
@@ -1253,6 +1255,10 @@ let init_scope_defs
                   Ast.scope_def_rules = RuleName.Map.empty;
                   Ast.scope_def_typ = v_sig.var_sig_typ;
                   Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                  Ast.scope_def_parameters =
+                    (match v_sig.var_sig_parameters with
+                    | [] -> None
+                    | ps -> Some ps);
                   Ast.scope_def_io =
                     (* The first state should have the input I/O of the original
                        variable, and the last state should have the output I/O
@@ -1296,6 +1302,10 @@ let init_scope_defs
                 Ast.scope_def_rules = RuleName.Map.empty;
                 Ast.scope_def_typ = v_sig.var_sig_typ;
                 Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                Ast.scope_def_parameters =
+                  (match v_sig.var_sig_parameters with
+                  | [] -> None
+                  | ps -> Some ps);
                 Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
               }
               scope_def_map)
