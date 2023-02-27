@@ -3,13 +3,15 @@
 , odoc
 , re
 , ansiterminal
-, cmdliner_1_1_0
+, cmdliner
 , ninja_utils
 , alcotest
 , catala
+, ninja
+, colordiff
 }:
 
-buildDunePackage rec {
+buildDunePackage {
   pname = "clerk";
   version = "0.7.0"; # TODO parse `catala.opam` with opam2json
 
@@ -23,12 +25,15 @@ buildDunePackage rec {
     odoc
     re
     ansiterminal
-    cmdliner_1_1_0
+    cmdliner
     ninja_utils
     alcotest
     catala
   ];
-  doCheck = false;
+
+  # todo: the current colordiff in nixpkgs always prints the banner. This make the logs totally unreadable.
+  nativeBuildInputs = [ catala ninja colordiff ];
+  doCheck = true;
 
   meta = with lib; {
     homepage = "https://github.com/CatalaLang/catala";

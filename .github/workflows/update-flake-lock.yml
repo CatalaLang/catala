@@ -16,12 +16,15 @@ jobs:
       - name: update flake.lock
         run: |
           nix flake update
-      - name: check it builds
+      - name: check catala builds
         run: |
           nix build
+      - name: check clerk builds and catala test-suite passes
+        run:  |
+          nix build .#clerk
       - name: commit changes
         uses: EndBug/add-and-commit@v9
         with:
-          author_name: Catala nix updated
-          author_email: nixer@catala
-          message: "update lock files"
+          author_name: adelaett
+          author_email: 90894311+adelaett@users.noreply.github.com
+          message: "Update lock files"
