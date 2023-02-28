@@ -718,7 +718,7 @@ let make_abs xs e taus pos =
   in
   eabs (bind xs e) taus mark
 
-let make_app e args pos =
+let make_app ?(decl_ctx = None) e args pos =
   let mark =
     fold_marks
       (fun _ -> pos)
@@ -730,35 +730,17 @@ let make_app e args pos =
             assert (Type.unifiable_list tx' (List.map (fun x -> x.ty) argtys));
             tr
           | TAny -> fty.ty
-          | _ -> assert false))
+          | _ -> (
+            match decl_ctx with
+            | None -> assert false
+            | Some decl_ctx ->
+              Errors.raise_error
+                "INTERNAL ERROR: wrong type: found %a while expecting either \
+                 an Arrow or Any"
+                (Print.typ decl_ctx) fty.ty)))
       (List.map Marked.get_mark (e :: args))
   in
   eapp e args mark
-
-let make_app' e u pos decl_ctx =
-  let mark =
-    fold_marks
-      (fun _ -> pos)
-      (function
-        | [] -> assert false
-        | fty :: argtys ->
-          List.fold_left
-            (fun tf tx ->
-              match Marked.unmark tf with
-              | TArrow (tx', tr) ->
-                assert (Type.unifiable tx.ty tx');
-                (* wrong arg type *)
-                tr
-              | TAny -> tf
-              | _ ->
-                Errors.raise_error
-                  "INTERNAL ERROR: wrong type: found %a while expecting either \
-                   an Arrow or Any"
-                  (Print.typ decl_ctx) tf)
-            fty.ty argtys)
-      (List.map Marked.get_mark (e :: u))
-  in
-  eapp e u mark
 
 let empty_thunked_term mark =
   let silent = Var.make "_" in
