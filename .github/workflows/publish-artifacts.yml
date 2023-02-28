@@ -2,9 +2,11 @@
 name: Deploy static content to Pages
 
 on:
-  # Runs on pushes targeting the default branch
-  push:
+  workflow_run:
+    workflows: ["Harness"]
     branches: [master]
+    types:
+      - completed
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -23,6 +25,8 @@ concurrency:
 jobs:
   # Single deploy job since we're just deploying
   deploy:
+    # Don't run if test harness failed
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -31,10 +35,13 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Download build artifacts
-        uses: actions/download-artifact@v3
+        # Not the default gh download-artifact action, which doesn't work
+        # between workflows
+        uses: dawidd6/action-download-artifact@v2
         with:
+          workflow: ${{ github.event.workflow_run.workflow_id }}
           name: Catala artifacts
-          path: artifacts/*
+          path: artifacts/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
