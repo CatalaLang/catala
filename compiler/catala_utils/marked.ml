@@ -18,6 +18,23 @@
 type ('a, 'm) t = 'a * 'm
 type 'a pos = ('a, Pos.t) t
 
+let pos_of_yojson :
+      'a.
+      (Ppx_yojson_conv_lib.Yojson.Safe.t -> 'a) ->
+      Ppx_yojson_conv_lib.Yojson.Safe.t ->
+      'a pos =
+ fun _of_a x -> _of_a x, Pos.no_pos
+
+let _ = pos_of_yojson
+
+let yojson_of_pos :
+      'a.
+      ('a -> Ppx_yojson_conv_lib.Yojson.Safe.t) ->
+      'a pos ->
+      Ppx_yojson_conv_lib.Yojson.Safe.t =
+ fun of_a (a, _) -> of_a a
+
+let _ = yojson_of_pos
 let mark m e : ('a, 'm) t = e, m
 let unmark ((x, _) : ('a, 'm) t) : 'a = x
 let get_mark ((_, x) : ('a, 'm) t) : 'm = x

@@ -1,7 +1,11 @@
 (library
  (name catala_utils)
  (public_name catala.catala_utils)
- (libraries cmdliner ubase ANSITerminal re bindlib catala.runtime_ocaml))
+ (libraries cmdliner ubase ANSITerminal re bindlib catala.runtime_ocaml)
+ (lint
+  (pps ppx_yojson_conv))
+ (preprocess
+  (pps ppx_yojson_conv)))
 
 (documentation
  (package catala)
