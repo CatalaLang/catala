@@ -499,7 +499,7 @@ type exception_to =
 type rule = {
   rule_label : lident Marked.pos option;
   rule_exception_to : exception_to;
-  rule_parameter : lident Marked.pos option;
+  rule_parameter : lident Marked.pos list Marked.pos option;
   rule_condition : expression option;
   rule_name : scope_var Marked.pos;
   rule_id : Shared_ast.RuleName.t; [@opaque]
@@ -524,7 +524,7 @@ type definition = {
   definition_label : lident Marked.pos option;
   definition_exception_to : exception_to;
   definition_name : scope_var Marked.pos;
-  definition_parameter : lident Marked.pos option;
+  definition_parameter : lident Marked.pos list Marked.pos option;
   definition_condition : expression option;
   definition_id : Shared_ast.RuleName.t; [@opaque]
   definition_expr : expression;
@@ -683,7 +683,8 @@ type scope_decl_context_scope = {
 type scope_decl_context_data = {
   scope_decl_context_item_name : lident Marked.pos;
   scope_decl_context_item_typ : typ;
-  scope_decl_context_item_parameters : (lident Marked.pos * typ) list;
+  scope_decl_context_item_parameters :
+    (lident Marked.pos * typ) list Marked.pos option;
   scope_decl_context_item_attribute : scope_decl_context_io;
   scope_decl_context_item_states : lident Marked.pos list;
 }
@@ -740,7 +741,8 @@ type scope_decl = {
 
 type top_def = {
   topdef_name : lident Marked.pos;
-  topdef_args : (lident Marked.pos * base_typ Marked.pos) list;
+  topdef_args :
+    (lident Marked.pos * base_typ Marked.pos) list Marked.pos option;
       (** Empty list if this is not a function *)
   topdef_type : typ;
   topdef_expr : expression;
@@ -923,9 +925,9 @@ let rule_to_def (rule : rule) : definition =
   }
 
 let type_from_args
-    (args : (lident Marked.pos * base_typ Marked.pos) list)
+    (args : (lident Marked.pos * base_typ Marked.pos) list Marked.pos option)
     (return_typ : base_typ Marked.pos) : typ =
   match args with
-  | [] -> Marked.map_under_mark (fun r -> Base r) return_typ
-  | arg_typ ->
+  | None -> Marked.map_under_mark (fun r -> Base r) return_typ
+  | Some (arg_typ, _) ->
     Marked.mark (Marked.get_mark return_typ) (Func { arg_typ; return_typ })

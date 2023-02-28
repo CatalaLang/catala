@@ -71,10 +71,10 @@ end>
 %type<Ast.match_case_pattern> constructor_binding
 %type<Ast.match_case> match_arm
 %type<Ast.expression> condition_consequence
-%type<Ast.scope_var Marked.pos * Ast.lident Marked.pos option> rule_expr
+%type<Ast.scope_var Marked.pos * Ast.lident Marked.pos list Marked.pos option> rule_expr
 %type<bool> rule_consequence
 %type<Ast.rule> rule
-%type<Ast.lident Marked.pos> definition_parameters
+%type<Ast.lident Marked.pos list> definition_parameters
 %type<Ast.lident Marked.pos> label
 %type<Ast.lident Marked.pos> state
 %type<Ast.exception_to> exception_to
@@ -376,7 +376,7 @@ let condition_consequence :=
 | UNDER_CONDITION ; c = expression ; CONSEQUENCE ; <>
 
 let rule_expr :=
-| i = addpos(scope_var) ; p = option(definition_parameters) ; <>
+| i = addpos(scope_var) ; p = option(addpos(definition_parameters)) ; <>
 
 let rule_consequence :=
 | flag = option(NOT); FILLED ; {
@@ -386,33 +386,39 @@ let rule_consequence :=
 let rule :=
 | label = option(label) ;
   except = option(exception_to) ;
-  RULE ;
+  pos_rule = pos(RULE) ;
   name_and_param = rule_expr ;
   cond = option(condition_consequence) ;
   state = option(state) ;
   consequence = addpos(rule_consequence) ; {
-  let (name, param_applied) = name_and_param in
+  let (name, params_applied) = name_and_param in
   let cons : bool Marked.pos = consequence in
   let rule_exception = match except with
     | None -> NotAnException
     | Some x -> x
   in
+  let pos_start =
+    match label with Some (_, pos) -> Pos.from_lpos $loc(label)
+    | None -> match except with Some _ -> Pos.from_lpos $loc(except)
+    | None -> pos_rule
+  in
   {
     rule_label = label;
     rule_exception_to = rule_exception;
-    rule_parameter = param_applied;
+    rule_parameter = params_applied;
     rule_condition = cond;
     rule_name = name;
     rule_id = Shared_ast.RuleName.fresh
       (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
-       Pos.from_lpos $sloc);
+       Pos.join pos_start (Marked.get_mark name));
     rule_consequence = cons;
     rule_state = state;
   }
 }
 
 let definition_parameters :=
-| OF ; i = lident ; <>
+| OF ; args = separated_nonempty_list(COMMA,lident) ; <>
+
 
 let label :=
 | LABEL ; i = lident ; <>
@@ -430,9 +436,9 @@ let exception_to :=
 let definition :=
 | label = option(label);
   except = option(exception_to) ;
-  DEFINITION ;
+  pos_def = pos(DEFINITION) ;
   name = addpos(scope_var) ;
-  param = option(definition_parameters) ;
+  params = option(addpos(definition_parameters)) ;
   state = option(state) ;
   cond = option(condition_consequence) ;
   DEFINED_AS ;
@@ -441,16 +447,21 @@ let definition :=
     | None -> NotAnException
     | Some x -> x
   in
+  let pos_start =
+    match label with Some _ -> Pos.from_lpos $loc(label)
+    | None -> match except with Some _ -> Pos.from_lpos $loc(except)
+    | None -> pos_def
+  in
   {
     definition_label = label;
     definition_exception_to = def_exception;
     definition_name = name;
-    definition_parameter = param;
+    definition_parameter = params;
     definition_condition = cond;
     definition_id =
       Shared_ast.RuleName.fresh
         (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
-          Pos.from_lpos $sloc);
+         Pos.join pos_start (Marked.get_mark name));
     definition_expr = e;
     definition_state = state;
   }
@@ -540,7 +551,10 @@ let scope_decl_item :=
   scope_decl_context_item_name = i;
   scope_decl_context_item_attribute = attr;
   scope_decl_context_item_parameters =
-    List.map (fun (lbl, (base_t, m)) -> lbl, (Base base_t, m)) args_typ;
+    Option.map
+      (Marked.map_under_mark
+         (List.map (fun (lbl, (base_t, m)) -> lbl, (Base base_t, m))))
+      args_typ;
   scope_decl_context_item_typ = type_from_args args_typ t;
   scope_decl_context_item_states = states;
   }
@@ -564,7 +578,10 @@ let scope_decl_item :=
     scope_decl_context_item_name = i;
     scope_decl_context_item_attribute = attr;
     scope_decl_context_item_parameters =
-      List.map (fun (lbl, (base_t, m)) -> lbl, (Base base_t, m)) args;
+      Option.map
+        (Marked.map_under_mark
+           (List.map (fun (lbl, (base_t, m)) -> lbl, (Base base_t, m))))
+        args;
     scope_decl_context_item_typ =
       Ast.type_from_args args (Condition, pos_condition);
     scope_decl_context_item_states = states;
@@ -584,9 +601,13 @@ let enum_decl_line :=
 let var_content ==
 | ~ = lident ; CONTENT ; ty = addpos(typ) ; <>
 let depends_stance ==
-| DEPENDS ; args = separated_nonempty_list(COMMA,var_content) ; <>
-| DEPENDS ; LPAREN ; args = separated_nonempty_list(COMMA,var_content) ; RPAREN ; <>
-| { [] }
+| DEPENDS ; args = separated_nonempty_list(COMMA,var_content) ; {
+  Some (args, Pos.from_lpos $sloc)
+}
+| DEPENDS ; LPAREN ; args = separated_nonempty_list(COMMA,var_content) ; RPAREN ; {
+  Some (args, Pos.from_lpos $sloc)
+}
+| { None }
 
 let code_item :=
 | SCOPE ; c = uident ;

@@ -19,10 +19,10 @@ Incriminated variable:
   └─ Test
 
 Incriminated variable definition:
-┌─⯈ tests/test_io/bad/redefining_input.catala_en:8.2-23:
+┌─⯈ tests/test_io/bad/redefining_input.catala_en:8.2-14:
 └─┐
 8 │   definition a equals 0
-  │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
 
 #return code 255#
 ```

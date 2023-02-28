@@ -55,7 +55,8 @@ type enum_context = typ EnumConstructor.Map.t
 type var_sig = {
   var_sig_typ : typ;
   var_sig_is_condition : bool;
-  var_sig_parameters : (Uid.MarkedString.info * Shared_ast.typ) list;
+  var_sig_parameters :
+    (Uid.MarkedString.info * Shared_ast.typ) list Marked.pos option;
   var_sig_io : Surface.Ast.scope_decl_context_io;
   var_sig_states_idmap : StateName.t IdentName.Map.t;
   var_sig_states_list : StateName.t list;
@@ -123,6 +124,11 @@ val belongs_to : context -> ScopeVar.t -> ScopeName.t -> bool
 
 val get_def_typ : context -> Ast.ScopeDef.t -> typ
 (** Retrieves the type of a scope definition from the context *)
+
+val get_params :
+  context ->
+  Ast.ScopeDef.t ->
+  (Uid.MarkedString.info * typ) list Marked.pos option
 
 val is_def_cond : context -> Ast.ScopeDef.t -> bool
 val is_type_cond : Surface.Ast.typ -> bool

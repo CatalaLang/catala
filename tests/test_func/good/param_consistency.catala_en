@@ -37,3 +37,28 @@ $ catala Interpret -s T1
 [RESULT] o1 = 20.
 [RESULT] o2 = 5.
 ```
+
+## Multi-argument function
+
+```catala
+declaration scope S2:
+  output f content decimal depends on
+    x content integer,
+    y content integer
+
+scope S2:
+  definition f of x, y equals x / y
+
+declaration scope T2:
+  s2 scope S2
+  output o content decimal
+
+scope T2:
+  definition o equals 10. * s2.f of 12, 3
+```
+
+```catala-test-inline
+$ catala Interpret -s T2
+[RESULT] Computation successful! Results:
+[RESULT] o = 40.
+```

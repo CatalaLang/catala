@@ -60,17 +60,18 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr boxed;
   rule_cons : expr boxed;
-  rule_parameter : (expr Var.t * typ) list option;
+  rule_parameter : (expr Var.t Marked.pos * typ) list Marked.pos option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
 
 module Rule : Set.OrderedType with type t = rule
 
-val empty_rule : Pos.t -> (Uid.MarkedString.info * typ) list option -> rule
+val empty_rule :
+  Pos.t -> (Uid.MarkedString.info * typ) list Marked.pos option -> rule
 
 val always_false_rule :
-  Pos.t -> (Uid.MarkedString.info * typ) list option -> rule
+  Pos.t -> (Uid.MarkedString.info * typ) list Marked.pos option -> rule
 
 type assertion = expr boxed
 type variation_typ = Increasing | Decreasing
@@ -104,7 +105,8 @@ type io = {
 type scope_def = {
   scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
-  scope_def_parameters : (Uid.MarkedString.info * Shared_ast.typ) list option;
+  scope_def_parameters :
+    (Uid.MarkedString.info * Shared_ast.typ) list Marked.pos option;
   scope_def_is_condition : bool;
   scope_def_io : io;
 }
