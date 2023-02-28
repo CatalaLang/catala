@@ -49,7 +49,9 @@ let invariant_app_is_either_op_var_let () : string * invariant_expr =
       | EApp { f = EOp _, _; _ } -> Pass
       | EApp { f = EAbs _, _; _ } -> Pass
       | EApp { f = EVar _, _; _ } -> Pass
-      | EApp { f = EApp { f = _, _; args = _ }, _; _ } -> Pass
+      | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
+        Pass
+      | EApp { f = EStructAccess _, _; _ } -> Pass
       | EApp _ -> Fail
       | _ -> Ignore )
 
