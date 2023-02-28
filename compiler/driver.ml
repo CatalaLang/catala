@@ -277,10 +277,20 @@ let driver source_file (options : Cli.options) : int =
           | `DcalcInvariants ->
             Cli.debug_format "Checking invariants";
             let open Dcalc.Invariant in
-            check_invariant (invariant_default_no_arrow ()) prgm;
-            check_invariant (invariant_no_partial_evaluation ()) prgm;
-            check_invariant (invariant_no_return_a_function ()) prgm;
-            Cli.debug_format "Finished checking invariants"
+            let result =
+              List.fold_left ( && ) true
+                [
+                  check_invariant (invariant_default_no_arrow ()) prgm;
+                  check_invariant (invariant_no_partial_evaluation ()) prgm;
+                  check_invariant (invariant_no_return_a_function ()) prgm;
+                  check_invariant (invariant_app_is_either_op_var_let ()) prgm;
+                ]
+            in
+
+            if result then Cli.debug_format "Finished checking invariants"
+            else
+              raise
+                (Errors.StructuredError ("Invariant invalid", [None, Pos.no_pos]))
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
             let prgrm_dcalc_expr =
