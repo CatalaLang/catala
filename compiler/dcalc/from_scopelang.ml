@@ -351,41 +351,49 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
                        (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
                  field sc_sig.scope_sig_output_struct (Expr.with_ty m typ)
              in
-             match Marked.unmark typ with
-             | TArrow (ts_in, t_out) ->
-               (* Here the output scope struct field is a function so we
-                  eta-expand it and insert logging instructions. Invariant:
-                  works because there is no partial evaluation. *)
-               let params_vars =
-                 ListLabels.mapi ts_in ~f:(fun i _ ->
-                     Var.make ("param" ^ string_of_int i))
-               in
-               let f_markings =
-                 [ScopeName.get_info scope; StructField.get_info field]
-               in
-               Expr.make_abs
-                 (Array.of_list params_vars)
-                 (tag_with_log_entry
-                    (tag_with_log_entry
-                       (Expr.eapp
-                          (tag_with_log_entry original_field_expr BeginCall
-                             f_markings)
-                          (ListLabels.mapi (List.combine params_vars ts_in)
-                             ~f:(fun i (param_var, t_in) ->
-                               tag_with_log_entry
-                                 (Expr.make_var param_var (Expr.with_ty m t_in))
-                                 (VarDef (Marked.unmark t_in))
-                                 (f_markings
-                                 @ [
-                                     Marked.mark (Expr.pos e)
-                                       ("input" ^ string_of_int i);
-                                   ])))
-                          (Expr.with_ty m t_out))
-                       (VarDef (Marked.unmark t_out))
-                       (f_markings @ [Marked.mark (Expr.pos e) "output"]))
-                    EndCall f_markings)
-                 ts_in (Expr.pos e)
-             | _ -> original_field_expr)
+             let x = Var.make "result" in
+             let ty_x = TStruct sc_sig.scope_sig_output_struct, Expr.pos e in
+             let body =
+               match Marked.unmark typ with
+               | TArrow (ts_in, t_out) ->
+                 (* Here the output scope struct field is a function so we
+                    eta-expand it and insert logging instructions. Invariant:
+                    works because there is no partial evaluation. *)
+                 let params_vars =
+                   ListLabels.mapi ts_in ~f:(fun i _ ->
+                       Var.make ("param" ^ string_of_int i))
+                 in
+                 let f_markings =
+                   [ScopeName.get_info scope; StructField.get_info field]
+                 in
+                 Expr.make_abs
+                   (Array.of_list params_vars)
+                   (tag_with_log_entry
+                      (tag_with_log_entry
+                         (Expr.eapp
+                            (tag_with_log_entry
+                               (Expr.make_var x (Expr.with_ty m ty_x))
+                               BeginCall f_markings)
+                            (ListLabels.mapi (List.combine params_vars ts_in)
+                               ~f:(fun i (param_var, t_in) ->
+                                 tag_with_log_entry
+                                   (Expr.make_var param_var
+                                      (Expr.with_ty m t_in))
+                                   (VarDef (Marked.unmark t_in))
+                                   (f_markings
+                                   @ [
+                                       Marked.mark (Expr.pos e)
+                                         ("input" ^ string_of_int i);
+                                     ])))
+                            (Expr.with_ty m t_out))
+                         (VarDef (Marked.unmark t_out))
+                         (f_markings @ [Marked.mark (Expr.pos e) "output"]))
+                      EndCall f_markings)
+                   ts_in (Expr.pos e)
+               | _ -> Expr.make_var x (Expr.with_ty m ty_x)
+             in
+
+             Expr.make_let_in x ty_x original_field_expr body (Expr.pos e))
            (StructName.Map.find sc_sig.scope_sig_output_struct ctx.structs))
         (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
     in
