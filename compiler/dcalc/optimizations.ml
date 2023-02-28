@@ -96,6 +96,9 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
     | EApp { f = EAbs { binder; _ }, _; args } ->
       (* beta reduction *)
       Marked.unmark (Bindlib.msubst binder (List.map fst args |> Array.of_list))
+    | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
+      when name = name1 ->
+      Marked.unmark (StructField.Map.find field fields)
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct :) *)
       let excepts =
