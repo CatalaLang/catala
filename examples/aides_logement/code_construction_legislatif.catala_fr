@@ -1880,7 +1880,7 @@ Les articles L. 821-4 et L. 823-8 relatifs aux primes de déménagement ne sont 
 applicables à Saint-Pierre-et-Miquelon.
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+champ d'application ÉligibilitéPrimeDeDéménagement sous condition
   date_courante >= |2022-01-01| :
   exception règle éligibilité_logement sous condition
     ménage.résidence sous forme SaintPierreEtMiquelon

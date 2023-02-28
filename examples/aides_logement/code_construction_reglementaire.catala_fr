@@ -1639,6 +1639,9 @@ champ d'application CalculAllocationLogement:
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone
            -- résidence: résidence
+        -- opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État:
+          propriétaire.
+            opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
            -- date_courante: date_courante
            -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
            -- mensualité_principale: propriétaire.mensualité_principale
@@ -1673,6 +1676,9 @@ champ d'application CalculAllocationLogement:
            -- charges_mensuelles_prêt: propriétaire.charges_mensuelles_prêt
            -- type_travaux_logement: propriétaire.type_travaux_logement_r842_5
            -- date_signature_prêt: propriétaire.prêt.date_signature
+        -- opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État:
+          propriétaire.
+            opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
            -- local_habité_première_fois_bénéficiaire:
              propriétaire.local_habité_première_fois_bénéficiaire
            -- date_entrée_logement: propriétaire.date_entrée_logement
@@ -3970,6 +3976,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
     condition_2_du_832_25
   définition n_nombre_parts_d832_25 égal à
     calcul_nombre_parts.n_nombre_parts_d832_25
+
 ```
 
 2°
@@ -4430,13 +4437,6 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   # foyer prenne bien le 2° du D832-25 et non pas le 1°.
   définition calcul_apl_logement_foyer.condition_2_du_832_25 égal à
     vrai
-  # Attention ! Le calcul de K dépend également du nombre de parts N, qui
-  # est différent selon que l'on soit en secteur accession-propriété ou
-  # en secteur logement-foyer. Ici, nous sommes en secteur accession
-  # propriété donc il faut que le nombre de parts pris en compte pour le calcul
-  # soit le nombre de parts accession-propriété.
-  définition calcul_apl_logement_foyer.n_nombre_parts_d832_25 égal à
-    calcul_nombre_parts.n_nombre_parts_d832_11
 
   définition coefficient_prise_en_charge égal à
     calcul_apl_logement_foyer.coefficient_prise_en_charge_d832_25
@@ -4697,11 +4697,15 @@ par arrêté.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-   exception définition seuil_minimal_dépense_nette_minimale sous condition
-      (type_travaux_logement sous forme TypeTravauxLogementR842_5.PasDeTravaux
+   règle condition_d842_11_3 sous condition
+     (type_travaux_logement sous forme TypeTravauxLogementR842_5.PasDeTravaux
         ou type_travaux_logement sous forme ObjectifDécenceLogement ou
         type_travaux_logement sous forme AgrandirOuRendreHabitableD331_63) et
         date_signature_prêt >= |1999-07-01|
+   conséquence rempli
+
+   exception définition seuil_minimal_dépense_nette_minimale sous condition
+      condition_d842_11_3
    conséquence égal à
       ressources_ménage_arrondies * coefficient_d842_11
 ```
@@ -5017,19 +5021,19 @@ du logement, du budget, de la sécurité sociale, et de l'agriculture.
 ##### Chapitre III : Procédure de conservation et de versement des allocations de logement en cas de non-décence constatée des logements
 
 ```catala
-# Rien à coder.
+# TODO juridique et informatique: coder cette section.
 ```
 
 ##### Chapitre IV : Conditions de peuplement
 
 ```catala
-# Rien à coder.
+# TODO juridique et informatique: coder cette section.
 ```
 
 #### Titre V : Contrôles, lutte contre la fraude et sanctions
 
 ```catala
-# Rien à coder.
+# Hors du champ de la calculette.
 ```
 
 #### Titre VI : Disposition particulières à l'outre-mer
@@ -5042,6 +5046,13 @@ Pour l'application du présent livre en Guadeloupe, en Guyane, en Martinique, à
 Mayotte, un logement-foyer s'entend d'un établissement destiné au logement collectif, à titre
 de résidence principale, de personnes dans des immeubles comportant à la fois des locaux
 privatifs, meublés ou non, et des locaux communs affectés à la vie collective.
+
+```catala
+# Cet article redéfinit L633-1 en éliminant la distinction avec les logements-
+# foyer "résidence sociale", etc. Rien à coder à priori puisque cela veut
+# juste dire que les logements-foyers d'outre mer ne pourront pas cocher la
+# case "résidence sociale" dans les outre-mer.
+```
 
 ###### Article D861-4 | LEGIARTI000038878593
 
@@ -5061,6 +5072,11 @@ déclaration sociale nominative définie à l'article L. 133-5-3 du code de la s
 sont remplacés par les mots : “ prises en compte par les déclarations mentionnées à l'article
 87 A du code général des impôts ”
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 2° L'article R. 822-6 est ainsi modifié :
 
 a) Au premier alinéa, les mots : " l'article L. 815-9 du code de la sécurité sociale " sont
@@ -5073,6 +5089,11 @@ et les mots : " l'allocation de solidarité aux personnes âgées " sont remplac
 " l'allocation spéciale pour les personnes âgées prévue par l'article 28 de la même
 ordonnance " ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 3° L'article R. 822-25 est complété par un alinéa ainsi rédigé :
 
 " Toutefois, lorsqu'en cours de droit, le logement ne répond plus à ces normes de peuplement,
@@ -5080,9 +5101,47 @@ l'allocation de logement est maintenue pour une durée d'un an, à condition que
 habitable globale soit d'au moins treize mètres carrés, augmentée de six mètres carrés par
 personne en plus, dans la limite de cinquante-quatre mètres carrés pour neuf personnes et plus. " ;
 
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  ménage.résidence sous forme Mayotte et
+  date_courante >= date_entrée_vigueur_r861_5:
+
+  exception règle condition_logement_surface sous condition
+    soit nombre_personnes_logement égal à
+      (selon ménage.situation_familiale sous forme
+      -- Célibataire: 1
+      -- Mariés: 2
+      -- Pacsés: 2
+      -- Concubins: 2
+      -- CélibataireSéparéDeFait: 1
+      -- ConcubinageDontSéparéDeFait: 2) +
+      ménage.nombre_autres_occupants_logement +
+      nombre de ménage.personnes_à_charge
+    dans
+    soit condition_logement_surface_minimale_sans_seuil_m_carrés égal à
+      nombre_personnes_logement * 9
+    dans
+    ménage.logement.
+      normes_peuplement_respectées_pour_la_dernière_fois_depuis_moins_d_un_an et
+    (si
+      condition_logement_surface_minimale_sans_seuil_m_carrés >= 54 et
+      nombre_personnes_logement >= 9
+    alors
+      (ménage.logement.surface_m_carrés >= 54)
+    sinon
+      (ménage.logement.surface_m_carrés >=
+        condition_logement_surface_minimale_sans_seuil_m_carrés))
+  conséquence rempli
+```
+
 4° Au dernier alinéa de l'article R. 823-2 , les mots : " prévus à l'article D. 512-1 du code
 de la sécurité sociale " sont remplacés par les mots : " prévus à l'article 14 du décret
 n° 2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 5° L'article R. 823-4 est ainsi modifié :
 
@@ -5104,6 +5163,11 @@ d) A la fin du sixième alinéa, les mots : " prévu à l'article L. 815-9 du co
 sociale " sont remplacés par les mots : " prévu à l'article 28 de l'ordonnance n° 2002-411 du
 27 mars 2002 relative à la protection sanitaire et sociale à Mayotte " ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 6° Pour l'application à Mayotte de l'article R. 823-6-1, les mots : “ définie à l'article
 L. 841-1 du code de la sécurité sociale et l'allocation aux adultes handicapés définie à
 l'article L. 821-1 du même code ” sont remplacés par les mots : “ définie au premier alinéa
@@ -5112,10 +5176,20 @@ d'activité au Département de Mayotte et l'allocation aux adultes handicapés d
 l'article 35 de l'ordonnance n° 2002-411 du 27 mars 2002 relative à la protection sanitaire et
 sociale à Mayotte. ”
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 7° A la fin de l'article R. 823-23 , les mots : " à l'article L. 553-2 du code de la sécurité
 sociale. " sont remplacés par les mots : " à l'article 13 de l'ordonnance du 7 février 2002
 relative à l'extension et la généralisation des prestations familiales et à la protection
 sociale dans la collectivité territoriale de Mayotte. " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 8° L'article R. 823-24 est remplacé par les dispositions suivantes :
 
@@ -5124,6 +5198,11 @@ prestations familiales, conformément aux dispositions des articles 5 à 5-6 du 
 n° 2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte et du I de
 l'article 5 du décret n° 2011-2100 du 30 décembre 2011 relatif aux prestations familiales dans
 le Département de Mayotte. "
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 NOTA : Se reporter aux conditions d'application prévues à l'article 25 du décret n° 2019-1574
 du 30 décembre 2019. Conformément à l'article 1 du décret n° 2020-451 du 20 avril 2020
@@ -5141,6 +5220,18 @@ calcul des droits à l’aide personnalisée au logement prévue pour les accéd
 par l’article L. 831-1 du code de la construction et de l’habitation, à compter du mois de mai
 2021.
 
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  définition date_entrée_vigueur_r861_5 égal à |2021-01-01|
+
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
+  définition éligibilité_commune.date_entrée_vigueur_r861_5 sous condition
+    ménage.logement.mode_occupation sous forme
+      AccessionPropriétéLocalUsageExclusifHabitation
+  conséquence égal à
+    |2021-05-01|
+```
+
 ###### Article D861-6 | LEGIARTI000038878589
 
 Pour son application à Mayotte, à la dernière phrase du huitième alinéa de l'article
@@ -5153,12 +5244,25 @@ protection sanitaire et sociale à Mayotte et à l'article 10-1 de l'ordonnance 
 2002 relative à l'extension et la généralisation des prestations familiales et à la protection
 sociale dans la collectivité départementale de Mayotte ".
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 ###### Article D861-7 | LEGIARTI000044634615
 
 La section 2 du chapitre III du titre II du présent livre n'est pas applicable à Mayotte.
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces dispositions
 s'appliquent aux contributions et aux prestations dues à compter du 1er janvier 2022.
+
+```catala
+champ d'application ÉligibilitéPrimeDeDéménagement sous condition
+  date_courante >= |2022-01-01| :
+  exception règle éligibilité_logement sous condition
+    ménage.résidence sous forme Mayotte
+  conséquence non rempli
+```
 
 ##### Section 2 : Allocations de logement
 
@@ -5170,21 +5274,118 @@ Pour leur application en Guadeloupe, en Guyane, en Martinique, à La Réunion et
 coefficient de prise en charge " K ", la majoration pour personne à charge mentionnée au d
 du 2° de l'article D. 832-25 est limitée à six enfants ;
 
+```catala
+# Ici nous reprenons les chiffres de D832-25, à prendre en compte lorsque
+# ceux-ci seront modifiés
+# TODO informatique: refactorer le code pour éviter la duplication
+champ d'application CalculNombrePartLogementFoyer:
+  exception définition n_nombre_parts_d832_25 sous condition
+    limitation_majoration_personnes_à_charge
+  conséquence égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 1,4
+      -- Couple: 1,8
+    sinon si nombre_personnes_à_charge = 1 alors
+      2,5
+    sinon si nombre_personnes_à_charge = 2 alors
+      3,0
+    sinon si nombre_personnes_à_charge = 3 alors
+      3,7
+    sinon si nombre_personnes_à_charge = 4 alors
+      4,3
+    sinon si
+      nombre_personnes_à_charge > 4 et nombre_personnes_à_charge <= 6
+    alors
+      4,3 + 0,5 * (décimal de
+        (nombre_personnes_à_charge - 4))
+    sinon
+      5,3
+
+# Ci-dessus, nous avons modifié le calcul de CalculNombrePartLogementFoyer
+# lorsque la "limitation_majoration_personnes_à_charge" est activée. Mais il
+# nous faut maintenant activer cette "limitation_majoration_personnes_à_charge"
+# dans les bons cas ! Pour cela, puisque CalculNombrePartLogementFoyer est
+# appelé depuis CalculAidePersonnaliséeLogementFoyer, il nous faut déclarer dans
+# CalculAidePersonnaliséeLogementFoyer une condition
+# "limitation_majoration_personnes_à_charge" similaire qui déclenche celle de
+# CalculNombrePartLogementFoyer. C'est ce que nous faisons ci-dessous.
+champ d'application CalculAidePersonnaliséeLogementFoyer:
+  règle
+    calcul_nombre_parts.limitation_majoration_personnes_à_charge
+  sous condition
+    limitation_majoration_personnes_à_charge
+  conséquence rempli
+
+# Maintenant que nous avons défini notre point d'entrée dans
+# CalculAidePersonnaliséeLogementFoyer, nous pouvons taper dedans depuis
+# CalculAllocationLogementAccessionPropriété à la manière de D842-6.
+# C'est chose faite ci-dessous.
+champ d'application CalculAllocationLogementAccessionPropriété:
+  règle calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge
+  sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Guyane: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- n'importe quel: faux
+  conséquence rempli
+```
+
 2° Les dispositions du troisième alinéa de l'article D. 842-11 et du 1° de l'article
 D. 842-12 ne sont pas applicables aux opérations de logements évolutifs sociaux ou de
 logements très sociaux, en accession à la propriété aidée par l'Etat ;
 
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+   exception règle condition_d842_11_3 sous condition
+      opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+   conséquence non rempli
+```
+
 3° Les arrêtés relatifs aux allocations de logement prévus aux articles D. 842-13 et
 D. 842-18 sont également pris par le ministre chargé de l'outre-mer ;
+
+```catala
+# Rien à coder ici.
+```
 
 4° A l'article D. 842-15 , pour le calcul du nombre de parts " N " intervenant dans le
 coefficient de prise en charge " K ", la majoration pour personne à charge mentionnée au d
 du 2° de l'article D. 832-25 est limitée à six enfants.
 
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  règle calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge
+  sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Guyane: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- n'importe quel: faux
+  conséquence rempli
+```
+
 ###### Article D861-9 | LEGIARTI000038878581
 
 L'âge limite pour l'ouverture du droit à l'allocation de logement sociale prévu par les
 dispositions du dernier alinéa de l'article L. 861-6 est fixé à vingt-deux ans.
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  (selon ménage.résidence sous forme
+  -- Guadeloupe: vrai
+  -- Guyane: vrai
+  -- Martinique: vrai
+  -- LaRéunion: vrai
+  -- Mayotte: vrai
+  -- n'importe quel: faux):
+  définition prestations_familiales.âge_l512_3_2 égal à 22 an
+```
 
 ###### Article D861-10 | LEGIARTI000038878579
 
@@ -5194,9 +5395,19 @@ Pour son application à Mayotte, le 3° de l'article D. 842-16 est ainsi modifi�
 par les mots : " par le premier alinéa de l'article 6 de l'ordonnance n° 2002-411 du 27 mars
 2002 relative à la protection sanitaire et sociale à Mayotte " ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 2° Les mots : " l'allocation mentionnée à l'article L. 815-1 du code de la sécurité sociale "
 sont remplacés par les mots : " l'allocation spéciale pour les personnes âgées prévue par
 l'article 28 de la même ordonnance ".
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 ###### Article D861-11 | LEGIARTI000038878577
 

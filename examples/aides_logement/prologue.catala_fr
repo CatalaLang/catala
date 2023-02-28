@@ -70,6 +70,8 @@ déclaration structure Propriétaire:
   donnée situation_r822_11_13_17 contenu booléen
   donnée ancienneté_logement contenu NeufOuAncien
   donnée prêt contenu Prêt
+  donnée opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+    contenu booléen
 
 déclaration énumération TypeTravauxLogementD832_15:
   -- TravauxPourAcquisitionD832_15_1
@@ -171,6 +173,8 @@ déclaration structure Logement:
   donnée logement_decent_l89_462 contenu booléen
   donnée surface_m_carrés contenu entier
   donnée zone contenu ZoneDHabitation
+  donnée normes_peuplement_respectées_pour_la_dernière_fois_depuis_moins_d_un_an
+    contenu booléen
 
 déclaration énumération SituationGardeAlternée:
   -- PasDeGardeAlternée
@@ -323,6 +327,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne personnes_à_charge_prises_en_compte
     contenu collection PersonneÀCharge
   interne durée_maintien_aide_l861_5_3 contenu durée
+  contexte date_entrée_vigueur_r861_5 contenu date
 
   # Autres variables
   interne patrimoine_total_demandeur contenu argent
@@ -653,6 +658,8 @@ déclaration champ d'application CalculNombrePartLogementFoyer:
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
 
+  contexte limitation_majoration_personnes_à_charge condition
+
   résultat n_nombre_parts_d832_25 contenu décimal
 
 déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
@@ -666,6 +673,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
   entrée redevance contenu argent
 
   contexte condition_2_du_832_25 contenu booléen
+  contexte limitation_majoration_personnes_à_charge condition
 
   résultat coefficient_multiplicateur_d832_25 contenu argent
   résultat coefficient_r_d832_25 contenu argent
@@ -911,6 +919,8 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   entrée date_entrée_logement contenu date
   entrée charges_mensuelles_prêt contenu argent
   entrée copropriété contenu booléen
+  entrée opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+    contenu booléen
 
   interne mensualité_éligible contenu argent
   interne montant_forfaitaire_charges contenu argent
@@ -931,6 +941,7 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne montant_forfaitaire_d842_12 contenu argent
   interne coefficient_d842_11 contenu décimal
   interne coefficient_d842_12 contenu décimal
+  interne condition_d842_11_3 condition
 
   calcul_nombre_parts champ d'application CalculNombrePartsAccessionPropriété
   calcul_apl_logement_foyer champ d'application
