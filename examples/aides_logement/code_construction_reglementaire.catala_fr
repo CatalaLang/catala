@@ -1145,11 +1145,14 @@ l'article L. 823-2 du présent code ;
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
+  # L'âge limite de 21 ans établi ici vient écraser la valeur de l'âge limite
+  # prévue par L512-3 du CSS et définie par défaut par R512-2 du CSS.
+  définition prestations_familiales.âge_l512_3_2 égal à 21 an
+
   étiquette r823_4_enfants
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant:
-      enfant.date_de_naissance + 21 an > date_courante et
       # Pour être considéré à charge pour les aides personnelles au logement,
       # l'enfant doit en plus d'avoir moins de 21 ans mais aussi selon le
       # 7e alinéa de L823-1 être éligible aux prestations familiales.

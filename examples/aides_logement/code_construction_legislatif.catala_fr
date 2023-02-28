@@ -438,7 +438,7 @@ prévues à l'article L. 512-2 du code de la sécurité sociale .
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   # Ici nous définissons cette condition d'applicabilité en apparence
   # toujours vraie mais qui sera peut-être invalidée dans le cas de Mayotte
-  # (articl L861-5).
+  # (article L861-5).
   règle septième_alinéa_l823_1_applicable rempli
 
   exception r823_4_enfants
@@ -1552,7 +1552,30 @@ qu'il se trouve, par suite d'infirmité ou de maladie chronique, dans
 l'impossibilité constatée de se livrer à une activité professionnelle. " ;
 
 ```catala
-# TODO informatique et juridique: coder cette provision.
+# L'analyse juridique de cet alinéa montre qu'ici nous rajoutons une condition
+# plus restrictive d'ouverture des droits pour les enfants à charge compris
+# entre la fin de l'obligation scolaire et l'âge limite de 21 ans défini à
+# l'article R823-4 : il faut en effet que l'enfant soit en études ou
+# apprentissage, etc.
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  (selon ménage.résidence sous forme
+  -- Guadeloupe: vrai
+  -- Guyane: vrai
+  -- Martinique: vrai
+  -- LaRéunion: vrai
+  -- Mayotte: vrai
+  -- n'importe quel: faux):
+
+  exception r823_4_enfants
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+    selon personne_à_charge sous forme
+    -- EnfantÀCharge de enfant:
+      enfant.obligation_scolaire sous forme Après et
+      (enfant.date_de_naissance + prestations_familiales.âge_l512_3_2 >
+        date_courante) et
+      enfant.études_apprentissage_stage_formation_pro_impossibilité_travail
+    -- AutrePersonneÀCharge: faux
+  conséquence non rempli
 ```
 
 2° L'article L. 841-4 est remplacé par les dispositions suivantes :
@@ -1802,7 +1825,27 @@ qu'il se trouve, par suite d'infirmité ou de maladie chronique, dans l'impossib
 constatée de se livrer à une activité professionnelle. " ;
 
 ```catala
-# TODO informatique et juridique: coder cette provision.
+# L'analyse juridique de cet alinéa montre qu'ici nous rajoutons une condition
+# plus restrictive d'ouverture des droits pour les enfants à charge compris
+# entre la fin de l'obligation scolaire et l'âge limite de 21 ans défini à
+# l'article R823-4 : il faut en effet que l'enfant soit en études ou
+# apprentissage, etc.
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  (selon ménage.résidence sous forme
+  -- SaintBarthélemy: vrai
+  -- SaintMartin: vrai
+  -- n'importe quel: faux):
+
+  exception r823_4_enfants
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+    selon personne_à_charge sous forme
+    -- EnfantÀCharge de enfant:
+      enfant.obligation_scolaire sous forme Après et
+      (enfant.date_de_naissance + prestations_familiales.âge_l512_3_2 >
+        date_courante) et
+      enfant.études_apprentissage_stage_formation_pro_impossibilité_travail
+    -- AutrePersonneÀCharge: faux
+  conséquence non rempli
 ```
 
 2° A l'article L. 843-7 , les mots : " définies au 1° de l'article L. 365-1 " sont
@@ -1836,10 +1879,18 @@ ou preneur de bail à construction, emphytéotique ou de bail à réhabilitation
 Les articles L. 821-4 et L. 823-8 relatifs aux primes de déménagement ne sont pas
 applicables à Saint-Pierre-et-Miquelon.
 
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= |2022-01-01| :
+  exception règle éligibilité_logement sous condition
+    ménage.résidence sous forme SaintPierreEtMiquelon
+  conséquence non rempli
+```
+
 NOTA : Aux termes du IV de l'article 23 de l'ordonnance n° 2019-770 du 17 juillet
 2019, les articles L. 863-1 à L. 863-5 du code de la construction et de l’habitation,
 annexés à la présente ordonnance, s’appliquent aux contributions et aux prestations
-dues à compter du 1er janvier 2021.
+dues à compter du 1er janvier 2022.
 
 ####### Article L863-3 | LEGIARTI000038814737
 
@@ -1852,14 +1903,29 @@ ressources prises en compte en vue de l'attribution des prestations de vieilless
 de prestations familiales, des prestations d'aide sociale ou de l'allocation aux
 adultes handicapés. " ;
 
+```catala
+# Prise en compte des ressources pas encore formalisée en Catala donc rien à
+# coder ici pour le moment.
+```
+
 2° A l'article L. 822-8 , la référence à l' article 964 du code général des impôts
 est remplacée par la référence aux dispositions applicables localement ayant le même
 objet ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 3° L'article L. 822-9 est remplacé par les dispositions suivantes :
 
 " Art. L. 822-9.-L'aide n'est due qu'aux personnes dont le logement répond à des
 conditions de décence fixées par voie réglementaire. " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 4° L'article L. 823-3 est remplacé par les dispositions suivantes :
 
@@ -1884,6 +1950,11 @@ financier ;
 et des familles , représentative de la mise à disposition de la ou des pièces
 réservées à la personne accueillie. " ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 5° Le deuxième alinéa de l'article L. 823-4 est remplacé par les dispositions
 suivantes :
 " Les paramètres suivants sont indexés sur l'évolution de l'indice de référence des
@@ -1893,10 +1964,15 @@ améliorer les rapports locatifs et portant modification de la loi n° 86-1290 d
 23 décembre 1986 , soit, à défaut d'indice spécifique à la collectivité, par les
 dispositions en vigueur en métropole : ".
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 NOTA : Aux termes du IV de l'article 23 de l'ordonnance n° 2019-770 du 17 juillet
 2019, les articles L. 863-1 à L. 863-5 du code de la construction et de l’habitation,
 annexés à la présente ordonnance, s’appliquent aux contributions et aux prestations
-dues à compter du 1er janvier 2021.
+dues à compter du 1er janvier 2022.
 
 ###### Section 3 : Allocations de logement
 
@@ -1906,10 +1982,15 @@ Les articles L. 843-1 à L. 843-7 relatifs à la procédure de conservation de
 l'allocation de logement par l'organisme payeur lorsque le logement ne constitue pas
 un logement décent ne sont pas applicables à Saint-Pierre-et-Miquelon.
 
+```catala
+# Hors du champ de notre calculette.
+```
+
+
 NOTA : Aux termes du IV de l'article 23 de l'ordonnance n° 2019-770 du 17 juillet
 2019, les articles L. 863-1 à L. 863-5 du code de la construction et de l’habitation,
 annexés à la présente ordonnance, s’appliquent aux contributions et aux prestations
-dues à compter du 1er janvier 2021.
+dues à compter du 1er janvier 2022.
 
 ###### Section 4 : Contrôles, lutte contre la fraude et sanctions
 

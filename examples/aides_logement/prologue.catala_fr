@@ -186,6 +186,8 @@ déclaration structure EnfantÀCharge:
   donnée rémuneration_mensuelle contenu argent
   donnée obligation_scolaire contenu SituationObligationScolaire
   donnée situation_garde_alternée contenu SituationGardeAlternée
+  donnée études_apprentissage_stage_formation_pro_impossibilité_travail
+    contenu booléen
 
 déclaration énumération Parenté:
   -- Ascendant
