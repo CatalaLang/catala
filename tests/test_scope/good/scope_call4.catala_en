@@ -1,0 +1,22 @@
+```catala
+declaration scope HousingComputation:
+  output f1 content integer depends on integer
+  output f2 content integer depends on integer
+  output result content integer
+
+scope HousingComputation:
+  definition f1 of x equals (output of RentComputation).f1 of x
+  definition f2 of x equals (output of RentComputation).f2 of x
+  definition result equals f1 of 1
+  definition result equals f2 of 1
+
+declaration scope RentComputation:
+  internal g content integer depends on integer
+  output f1 content integer depends on integer
+  output f2 content integer depends on integer
+
+scope RentComputation:
+  definition g of x equals x + 1
+  definition f1 of x equals g of (x + 1)
+  definition f2 of x equals g of (x + 1)
+```
