@@ -37,6 +37,9 @@ RUN opam exec -- ./french_law/python/setup_env.sh
 
 # OCaml backtraces may be useful on failure
 ENV OCAMLRUNPARAM=b
+# Make sure warnings are treated as errors (variable used in Makefile, profile
+# defined in ./dune)
+ENV DUNE_PROFILE=check
 
 # Check promoted files (but delay failure)
 RUN opam exec -- make check-promoted > promotion.out 2>&1 || touch bad-promote
