@@ -93,16 +93,6 @@ let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
       "The variable %a should not be a function in this context." Print.var x;
     Expr.make_var (Var.translate x)
       (make_new_mark m (Var.Map.find x ctx).unpure_info)
-  | EApp { f = EOp { op; tys }, opmark; args } ->
-    let args' = List.map (detect_unpure_expr ctx) args in
-    let unpure =
-      args'
-      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
-      |> List.fold_left ( || ) false
-    in
-    Expr.eapp
-      (Expr.eop op tys (make_new_mark opmark true))
-      args' (make_new_mark m unpure)
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let body' = detect_unpure_expr ctx body in
@@ -155,7 +145,88 @@ let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
       | Some unpure_return -> unpure_return
     in
     Expr.eapp f' args' (make_new_mark m unpure)
-  | _ -> assert false
+  | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
+    assert false
+  | EApp { f = EStructAccess _, _; _ } -> assert false
+  (* Now operator application. Those come in multiple shape and forms: either
+     the operator is an EOp, or it is an array, ifthenelse, struct, inj, match,
+     structAccess, tuple, tupleAccess, Assert.
+
+     Note that for the moment, we consider the ifthenelse an normal if then
+     else, and not the selective applicative functor corresponding. *)
+  | EApp { f = EOp { op; tys }, opmark; args } ->
+    let args' = List.map (detect_unpure_expr ctx) args in
+    let unpure =
+      args'
+      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
+      |> List.fold_left ( || ) false
+    in
+    Expr.eapp
+      (Expr.eop op tys (make_new_mark opmark true))
+      args' (make_new_mark m unpure)
+  | EArray args ->
+    let args = List.map (detect_unpure_expr ctx) args in
+    let unpure =
+      args
+      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
+      |> List.fold_left ( || ) false
+    in
+    Expr.earray args (make_new_mark m unpure)
+  | EStruct { name; fields } ->
+    let fields = StructField.Map.map (detect_unpure_expr ctx) fields in
+    let unpure =
+      fields
+      |> StructField.Map.map (fun field -> (Marked.get_mark field).unpure)
+      |> fun ctx -> StructField.Map.fold (fun _ -> ( || )) ctx false
+    in
+    Expr.estruct name fields (make_new_mark m unpure)
+  | EIfThenElse { cond; etrue; efalse } ->
+    let cond = detect_unpure_expr ctx cond in
+    let etrue = detect_unpure_expr ctx etrue in
+    let efalse = detect_unpure_expr ctx efalse in
+    let unpure =
+      [cond; etrue; efalse]
+      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
+      |> List.fold_left ( || ) false
+    in
+    Expr.eifthenelse cond etrue efalse (make_new_mark m unpure)
+  | EInj { name; e; cons } ->
+    let e = detect_unpure_expr ctx e in
+    let unpure = (Marked.get_mark e).unpure in
+    Expr.einj e cons name (make_new_mark m unpure)
+  | EMatch { name; e; cases } ->
+    let e = detect_unpure_expr ctx e in
+    let cases = EnumConstructor.Map.map (detect_unpure_expr ctx) cases in
+    let unpure =
+      e :: List.map snd (EnumConstructor.Map.bindings cases)
+      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
+      |> List.fold_left ( || ) false
+    in
+    Expr.ematch e name cases (make_new_mark m unpure)
+  | EStructAccess { name; e; field } ->
+    let e = detect_unpure_expr ctx e in
+    let unpure = (Marked.get_mark e).unpure in
+    Expr.estructaccess e field name (make_new_mark m unpure)
+  | ETuple args ->
+    let args = List.map (detect_unpure_expr ctx) args in
+    let unpure =
+      args
+      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
+      |> List.fold_left ( || ) false
+    in
+    Expr.etuple args (make_new_mark m unpure)
+  | ETupleAccess { e; index; size } ->
+    let e = detect_unpure_expr ctx e in
+    let unpure = (Marked.get_mark e).unpure in
+    Expr.etupleaccess e index size (make_new_mark m unpure)
+  | EAssert e ->
+    let e = detect_unpure_expr ctx e in
+    let unpure = (Marked.get_mark e).unpure in
+    Expr.eassert e (make_new_mark m unpure)
+  (* Those cases should not happend because of the structural invariant on the
+     structure of the ast at this point. *)
+  | EApp _ -> assert false (* invalid invariant *)
+  | EOp _ -> assert false (* invalid invariant *)
 
 let _ = detect_unpure_expr
 
