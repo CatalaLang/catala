@@ -103,18 +103,6 @@ let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
     Expr.eapp
       (Expr.eop op tys (make_new_mark opmark true))
       args' (make_new_mark m unpure)
-  | EApp { f = (EVar x, _) as f; args } ->
-    let args' = List.map (detect_unpure_expr ctx) args in
-    let unpure =
-      args'
-      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
-      |> List.fold_left ( || ) false
-      |> ( || ) (Var.Map.find x ctx).unpure_info
-    in
-    let f' = detect_unpure_expr ctx f in
-    if Option.get (Var.Map.find x ctx).unpure_return then
-      Expr.eapp f' args' (make_new_mark m (true || unpure))
-    else Expr.eapp f' args' (make_new_mark m unpure)
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let body' = detect_unpure_expr ctx body in
@@ -139,6 +127,18 @@ let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
     let arg' = detect_unpure_expr ctx arg in
     (* the result is always pure *)
     Expr.eerroronempty arg' (make_new_mark m false)
+  | EApp { f = (EVar x, _) as f; args } ->
+    let args' = List.map (detect_unpure_expr ctx) args in
+    let unpure =
+      args'
+      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
+      |> List.fold_left ( || ) false
+      |> ( || ) (Var.Map.find x ctx).unpure_info
+    in
+    let f' = detect_unpure_expr ctx f in
+    if Option.get (Var.Map.find x ctx).unpure_return then
+      Expr.eapp f' args' (make_new_mark m (true || unpure))
+    else Expr.eapp f' args' (make_new_mark m unpure)
   | EApp { f = (EAbs _, _) as f; args } ->
     let f' = detect_unpure_expr ctx f in
     let args' = List.map (detect_unpure_expr ctx) args in
@@ -753,9 +753,8 @@ let translate_program (prgm : typed D.program) : 'm A.program =
     }
   in
 
-  let code_items =
+  let _code_items =
     Bindlib.unbox
       (translate_code_items { decl_ctx; vars = Var.Map.empty } prgm.code_items)
   in
-
-
+  assert false
