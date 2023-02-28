@@ -1205,7 +1205,7 @@ let process_topdef
   let expr =
     match def.S.topdef_args with
     | None -> translate_expr None None ctxt def.S.topdef_expr
-    | Some (args, arg_pos) ->
+    | Some (args, _) ->
       let ctxt, args_tys =
         List.fold_left_map
           (fun ctxt ((lbl, pos), ty) ->

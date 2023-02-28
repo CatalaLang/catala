@@ -4634,9 +4634,10 @@ des charges, le montant mensuel de l'allocation calculé selon les dispositions 
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-   définition dépense_nette_minimale de allocation_mensuelle égal à
+   définition dépense_nette_minimale de aide_calculée_2_9_d832_10
+   égal à
       charges_mensuelles_prêt + montant_forfaitaire_charges -
-        allocation_mensuelle
+        aide_calculée_2_9_d832_10
 ```
 
 Lorsque la dépense nette minimale est inférieure à un montant fixé par arrêté, il est
@@ -4645,10 +4646,10 @@ constatée.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition abattement_dépense_nette_minimale de allocation_mensuelle
+  définition abattement_dépense_nette_minimale de aide_calculée_1_8_d832_24
   égal à
     soit dépense_nette_minimale égal à
-      dépense_nette_minimale de allocation_mensuelle
+      dépense_nette_minimale de aide_calculée_1_8_d832_24
     dans si
       dépense_nette_minimale < seuil_minimal_dépense_nette_minimale
     alors
@@ -4960,8 +4961,8 @@ calculé selon les modalités précisées aux deuxième à neuvième alinéas du
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition dépense_nette_minimale de allocation_mensuelle égal à
-    équivalence_loyer + montant_forfaitaire_charges - allocation_mensuelle
+  définition dépense_nette_minimale de aide_calculée_2_9_d832_10 égal à
+    équivalence_loyer + montant_forfaitaire_charges - aide_calculée_2_9_d832_10
 ```
 
 Lorsque sa valeur est inférieure à un montant fixé par arrêté, l'abattement sur
@@ -4969,12 +4970,13 @@ le montant mensuel de l'aide est égal à la différence constatée.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition abattement_dépense_nette_minimale de allocation_mensuelle égal à
-  si dépense_nette_minimale de allocation_mensuelle <
+  définition abattement_dépense_nette_minimale
+    de aide_calculée_2_9_d832_10 égal à
+  si dépense_nette_minimale de aide_calculée_2_9_d832_10 <
     montant_minimal_dépense_nette_d842_17
   alors
     montant_minimal_dépense_nette_d842_17 -
-       dépense_nette_minimale de allocation_mensuelle
+       dépense_nette_minimale de aide_calculée_2_9_d832_10
   sinon
     0€
 ```

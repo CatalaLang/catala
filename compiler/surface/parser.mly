@@ -398,7 +398,7 @@ let rule :=
     | Some x -> x
   in
   let pos_start =
-    match label with Some (_, pos) -> Pos.from_lpos $loc(label)
+    match label with Some _ -> Pos.from_lpos $loc(label)
     | None -> match except with Some _ -> Pos.from_lpos $loc(except)
     | None -> pos_rule
   in

@@ -178,7 +178,7 @@ champ d'application AllocationsFamiliales :
       (1,0 / 12,0)
 
   # Dans les autres cas, le dépassement est nul
-  définition complément_dégressif de allocations égal à 0 €
+  définition complément_dégressif de allocation égal à 0 €
 
   définition montant_versé_complément_pour_base_et_majoration égal à
     si droit_ouvert_complément alors

@@ -117,15 +117,20 @@ déclaration champ d'application AllocationsFamiliales:
   interne montant_initial_base_quatrième_enfant_et_plus_mayotte contenu argent
 
   # Variables liées à l'allocation forfaitaire
-  interne droit_ouvert_forfaitaire condition dépend de enfant contenu Enfant
+  interne droit_ouvert_forfaitaire condition
+    dépend de enfant contenu Enfant
   interne montant_versé_forfaitaire_par_enfant contenu argent
   interne montant_versé_forfaitaire contenu argent
 
   # Variables liées aux majorations des allocations familiales
-  interne droit_ouvert_majoration condition dépend de enfant contenu Enfant
-  interne montant_initial_métropole_majoration contenu argent dépend de enfant contenu Enfant
-  interne montant_initial_majoration contenu argent dépend de enfant contenu Enfant
-  interne montant_avec_garde_alternée_majoration contenu argent dépend de enfant contenu Enfant
+  interne droit_ouvert_majoration condition
+    dépend de enfant contenu Enfant
+  interne montant_initial_métropole_majoration contenu argent
+    dépend de enfant contenu Enfant
+  interne montant_initial_majoration contenu argent
+    dépend de enfant contenu Enfant
+  interne montant_avec_garde_alternée_majoration contenu argent
+    dépend de enfant contenu Enfant
   interne montant_versé_majoration contenu argent
 
   # Variables liées au complément dégressif
@@ -144,9 +149,11 @@ déclaration champ d'application AllocationsFamiliales:
 
   # Plafonds, âges limites et autres constantes
   interne nombre_enfants_l521_1 contenu entier
-  interne âge_minimum_alinéa_1_l521_3 contenu durée dépend de enfant contenu Enfant
+  interne âge_minimum_alinéa_1_l521_3 contenu durée
+    dépend de enfant contenu Enfant
   interne nombre_enfants_alinéa_2_l521_3 contenu entier
-  interne est_enfant_le_plus_âgé contenu booléen dépend de enfant contenu Enfant
+  interne est_enfant_le_plus_âgé contenu booléen
+    dépend de enfant contenu Enfant
   interne plafond_I_d521_3 contenu argent
   interne plafond_II_d521_3 contenu argent
 

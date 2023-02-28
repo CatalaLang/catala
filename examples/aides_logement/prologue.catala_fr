@@ -301,7 +301,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne condition_peuplement_logement_l822_10 condition
   interne éligibilité_logement condition
   interne prise_en_compte_personne_à_charge condition
-    dépend de personne contenu PersonneÀCharge
+    dépend de personne_à_charge contenu PersonneÀCharge
   interne personnes_à_charge_prises_en_compte
     contenu collection PersonneÀCharge
 
@@ -321,7 +321,8 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   résultat nombre_personnes_à_charge_prises_en_compte contenu entier
   résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
    collection décimal
-  résultat condition_2_r823_4 condition dépend de personne contenu PersonneÀCharge
+  résultat condition_2_r823_4 condition
+    dépend de personne_à_charge contenu PersonneÀCharge
 
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   # TODO informatique et juridique: trouver une meilleur place pour mettre
@@ -749,7 +750,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogement:
 
   résultat aide_finale_formule contenu argent
   résultat traitement_aide_finale contenu argent
-    dépend de aide_finale contenu argent
+    dépend de arg contenu argent
 ```
 
 ## Calcul du montant de l'allocation logement
@@ -866,7 +867,7 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne seuil_minimal_ressources_ménage contenu argent
   interne taux_francs_vers_euros contenu décimal
   interne dépense_nette_minimale contenu argent
-    dépend de aide_calculée_1_8_d832_24 contenu argent
+    dépend de aide_calculée_2_9_d832_10 contenu argent
   interne abattement_dépense_nette_minimale contenu argent
     dépend de aide_calculée_1_8_d832_24 contenu argent
   interne montant_minimal_aide_d842_6 contenu argent
@@ -934,9 +935,9 @@ déclaration champ d'application CalculAllocationLogementFoyer:
     CatégorieÉquivalenceLoyerAllocationLogementFoyer
 
   interne dépense_nette_minimale contenu argent
-    dépend de aide_finale contenu argent
+    dépend de aide_calculée_2_9_d832_10 contenu argent
   interne abattement_dépense_nette_minimale contenu argent
-    dépend de aide_finale contenu argent
+    dépend de aide_calculée_2_9_d832_10 contenu argent
   interne montant_minimal_aide_d842_15 contenu argent
   interne montant_forfaitaire_d842_15 contenu argent
   interne montant_minimal_dépense_nette_d842_17 contenu argent
@@ -1003,7 +1004,7 @@ déclaration champ d'application CalculAllocationLogement:
 
   résultat aide_finale_formule contenu argent
   résultat traitement_aide_finale contenu argent
-    dépend de aide_finale contenu argent
+    dépend de arg contenu argent
 ```
 
 ### Date d'ouverture des droits à la retraite
