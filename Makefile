@@ -3,7 +3,7 @@ help : Makefile
 
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-export DUNE_PROFILE ?= release
+export DUNE_PROFILE ?= dev
 
 # Export all variables to sub-make
 export
