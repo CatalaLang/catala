@@ -20,11 +20,11 @@ help : ../Makefile.common.mk
 
 #> SCOPE=<ScopeName> <target_file>.run	: Runs the interpeter for the scope of the file
 %.run: %.catala_$(CATALA_LANG)
-	@$(CATALA) Makefile $<
+	@$(CATALA) Makefile $(CURR_DIR)$<
 	$(CATALA) \
 		Interpret \
 		-s $(SCOPE) \
-		$<
+		$(CURR_DIR)$<
 
 #> <target_file>.ml			: Compiles the file to OCaml
 %.ml: %.catala_$(CATALA_LANG)

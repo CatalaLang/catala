@@ -20,9 +20,12 @@ open Ast
 
 let needs_parens (_e : expr) : bool = false
 
-let format_local_name (fmt : Format.formatter) (v : LocalName.t) : unit =
-  Format.fprintf fmt "%a_%s" LocalName.format_t v
-    (string_of_int (LocalName.hash v))
+let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
+  Format.fprintf fmt "%a_%s" VarName.format_t v (string_of_int (VarName.hash v))
+
+let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
+  Format.fprintf fmt "%a_%s" FuncName.format_t v
+    (string_of_int (FuncName.hash v))
 
 let rec format_expr
     (decl_ctx : decl_ctx)
@@ -37,8 +40,8 @@ let rec format_expr
     else Format.fprintf fmt "%a" format_expr e
   in
   match Marked.unmark e with
-  | EVar v -> Format.fprintf fmt "%a" format_local_name v
-  | EFunc v -> Format.fprintf fmt "%a" TopLevelName.format_t v
+  | EVar v -> Format.fprintf fmt "%a" format_var_name v
+  | EFunc v -> Format.fprintf fmt "%a" format_func_name v
   | EStruct (es, s) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format_t s
       Print.punctuation "{"
@@ -75,6 +78,7 @@ let rec format_expr
   | EApp ((EOp op, _), [arg1]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.operator op format_with_parens
       arg1
+  | EApp (f, []) -> Format.fprintf fmt "@[<hov 2>%a@ ()@]" format_expr f
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
@@ -92,22 +96,22 @@ let rec format_statement
   match Marked.unmark stmt with
   | SInnerFuncDef (name, func) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Print.keyword
-      "let" format_local_name (Marked.unmark name)
+      "let" format_var_name (Marked.unmark name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt ((name, _), typ) ->
            Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
-             format_local_name name Print.punctuation ":" (Print.typ decl_ctx)
-             typ Print.punctuation ")"))
+             format_var_name name Print.punctuation ":" (Print.typ decl_ctx) typ
+             Print.punctuation ")"))
       func.func_params Print.punctuation "="
       (format_block decl_ctx ~debug)
       func.func_body
   | SLocalDecl (name, typ) ->
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
-      format_local_name (Marked.unmark name) Print.punctuation ":"
+      format_var_name (Marked.unmark name) Print.punctuation ":"
       (Print.typ decl_ctx) typ
   | SLocalDef (name, naked_expr) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_local_name
+    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_var_name
       (Marked.unmark name) Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
@@ -147,7 +151,7 @@ let rec format_statement
          (fun fmt ((case, _), (arm_block, payload_name)) ->
            Format.fprintf fmt "%a %a%a@ %a @[<v 2>%a@ %a@]" Print.punctuation
              "|" Print.enum_constructor case Print.punctuation ":"
-             format_local_name payload_name Print.punctuation "→"
+             format_var_name payload_name Print.punctuation "→"
              (format_block decl_ctx ~debug)
              arm_block))
       (List.combine
@@ -165,20 +169,35 @@ and format_block
     (format_statement decl_ctx ~debug)
     fmt block
 
-let format_scope
-    (decl_ctx : decl_ctx)
-    ?(debug : bool = false)
-    (fmt : Format.formatter)
-    (body : scope_body) : unit =
-  if debug then () else ();
-  Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Print.keyword
-    "let" TopLevelName.format_t body.scope_body_var
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-       (fun fmt ((name, _), typ) ->
-         Format.fprintf fmt "%a%a %a@ %a%a" Print.punctuation "("
-           format_local_name name Print.punctuation ":" (Print.typ decl_ctx) typ
-           Print.punctuation ")"))
-    body.scope_body_func.func_params Print.punctuation "="
-    (format_block decl_ctx ~debug)
-    body.scope_body_func.func_body
+let format_item decl_ctx ?debug ppf def =
+  Format.pp_open_hvbox ppf 2;
+  Format.pp_open_hovbox ppf 4;
+  Print.keyword ppf "let ";
+  let () =
+    match def with
+    | SVar { var; expr } ->
+      format_var_name ppf var;
+      Print.punctuation ppf " =";
+      Format.pp_close_box ppf ();
+      Format.pp_print_space ppf ();
+      format_expr decl_ctx ?debug ppf expr
+    | SScope { scope_body_var = var; scope_body_func = func; _ }
+    | SFunc { var; func } ->
+      format_func_name ppf var;
+      Format.pp_print_list
+        (fun ppf (arg, ty) ->
+          Format.fprintf ppf "@ (%a: %a)" format_var_name (Marked.unmark arg)
+            (Print.typ decl_ctx) ty)
+        ppf func.func_params;
+      Print.punctuation ppf " =";
+      Format.pp_close_box ppf ();
+      Format.pp_print_space ppf ();
+      format_block decl_ctx ?debug ppf func.func_body
+  in
+  Format.pp_close_box ppf ();
+  Format.pp_print_cut ppf ()
+
+let format_program decl_ctx ?debug ppf prg =
+  Format.pp_open_vbox ppf 0;
+  Format.pp_print_list (format_item decl_ctx ?debug) ppf prg.code_items;
+  Format.pp_close_box ppf ()

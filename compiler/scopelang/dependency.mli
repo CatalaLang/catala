@@ -22,14 +22,16 @@ open Shared_ast
 
 (** {1 Scope dependencies} *)
 
+type vertex = Scope of ScopeName.t | Topdef of TopdefName.t
+
 (** On the edges, the label is the expression responsible for the use of the
     function *)
 module SDependencies :
-  Graph.Sig.P with type V.t = ScopeName.t and type E.label = Pos.t
+  Graph.Sig.P with type V.t = vertex and type E.label = Pos.t
 
 val build_program_dep_graph : 'm Ast.program -> SDependencies.t
-val check_for_cycle_in_scope : SDependencies.t -> unit
-val get_scope_ordering : SDependencies.t -> ScopeName.t list
+val check_for_cycle_in_defs : SDependencies.t -> unit
+val get_defs_ordering : SDependencies.t -> vertex list
 
 (** {1 Type dependencies} *)
 

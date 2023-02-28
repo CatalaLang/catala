@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   and social benefits computation rules. Copyright (C) 2021 Inria, contributor:
    Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,15 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-type t = Definitions.typ
+open Shared_ast
 
-val equal : t -> t -> bool
-val equal_list : t list -> t list -> bool
-val compare : t -> t -> int
-val unifiable : t -> t -> bool
-
-val unifiable_list : t list -> t list -> bool
-(** Similar to [equal], but allows TAny holes *)
-
-val arrow_return : t -> t
-(** Returns the last member in nested [TArrow] types *)
+val translate_program : untyped Lcalc.Ast.program -> Ast.program

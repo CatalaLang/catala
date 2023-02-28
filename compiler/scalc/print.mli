@@ -14,9 +14,12 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-val format_scope :
+val format_item :
   Shared_ast.decl_ctx ->
   ?debug:bool ->
   Format.formatter ->
-  Ast.scope_body ->
+  Ast.code_item ->
   unit
+
+val format_program :
+  Shared_ast.decl_ctx -> ?debug:bool -> Format.formatter -> Ast.program -> unit

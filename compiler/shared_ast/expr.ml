@@ -182,7 +182,7 @@ let fold_marks
   | [] -> invalid_arg "Dcalc.Ast.fold_mark"
   | Untyped _ :: _ as ms ->
     Untyped { pos = pos_f (List.map (function Untyped { pos } -> pos) ms) }
-  | Typed _ :: _ ->
+  | Typed _ :: _ as ms ->
     Typed
       {
         pos = pos_f (List.map (function Typed { pos; _ } -> pos) ms);
@@ -469,12 +469,15 @@ let compare_location
       SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
     let c = SubScopeName.compare xsubindex ysubindex in
     if c = 0 then ScopeVar.compare xsubvar ysubvar else c
+  | ToplevelVar (vx, _), ToplevelVar (vy, _) -> TopdefName.compare vx vy
   | DesugaredScopeVar _, _ -> -1
   | _, DesugaredScopeVar _ -> 1
   | ScopelangScopeVar _, _ -> -1
   | _, ScopelangScopeVar _ -> 1
-  | SubScopeVar _, _ -> .
-  | _, SubScopeVar _ -> .
+  | SubScopeVar _, _ -> -1
+  | _, SubScopeVar _ -> 1
+  | ToplevelVar _, _ -> .
+  | _, ToplevelVar _ -> .
 
 let equal_location a b = compare_location a b = 0
 let equal_except ex1 ex2 = ex1 = ex2
@@ -710,34 +713,27 @@ let make_abs xs e taus pos =
   let mark =
     map_mark
       (fun _ -> pos)
-      (fun ety ->
-        List.fold_right
-          (fun tx acc -> Marked.mark pos (TArrow (tx, acc)))
-          taus ety)
+      (fun ety -> Marked.mark pos (TArrow (taus, ety)))
       (Marked.get_mark e)
   in
   eabs (bind xs e) taus mark
 
-let make_app e u pos =
+let make_app e args pos =
   let mark =
     fold_marks
       (fun _ -> pos)
       (function
         | [] -> assert false
-        | fty :: argtys ->
-          List.fold_left
-            (fun tf tx ->
-              match Marked.unmark tf with
-              | TArrow (tx', tr) ->
-                assert (Type.unifiable tx.ty tx');
-                (* wrong arg type *)
-                tr
-              | TAny -> tf
-              | _ -> assert false)
-            fty.ty argtys)
-      (List.map Marked.get_mark (e :: u))
+        | fty :: argtys -> (
+          match Marked.unmark fty.ty with
+          | TArrow (tx', tr) ->
+            assert (Type.unifiable_list tx' (List.map (fun x -> x.ty) argtys));
+            tr
+          | TAny -> fty.ty
+          | _ -> assert false))
+      (List.map Marked.get_mark (e :: args))
   in
-  eapp e u mark
+  eapp e args mark
 
 let empty_thunked_term mark =
   let silent = Var.make "_" in

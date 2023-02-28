@@ -405,10 +405,12 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
   | None -> (
     match Marked.unmark ty with
     | TArrow (t1, t2) ->
-      let ctx, z3_t1 = translate_typ ctx (Marked.unmark t1) in
+      let ctx, z3_t1 =
+        List.fold_left_map translate_typ ctx (List.map Marked.unmark t1)
+      in
       let ctx, z3_t2 = translate_typ ctx (Marked.unmark t2) in
       let name = unique_name v in
-      let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [z3_t1] z3_t2 in
+      let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name z3_t1 z3_t2 in
       let ctx = add_funcdecl v fd ctx in
       let ctx = add_z3var name v ty ctx in
       ctx, fd
@@ -676,6 +678,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     in
     let ctx, s = translate_expr ctx e in
     ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
+  | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
+  | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj { e; cons; name } ->
     (* This node corresponds to creating a value for the enumeration [en], by
        calling the [idx]-th constructor of enum [en], with argument [e] *)

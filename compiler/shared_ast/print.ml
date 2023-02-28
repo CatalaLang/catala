@@ -66,6 +66,7 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   | SubScopeVar (_, subindex, subvar) ->
     Format.fprintf fmt "%a.%a" SubScopeName.format_t (Marked.unmark subindex)
       ScopeVar.format_t (Marked.unmark subvar)
+  | ToplevelVar v -> TopdefName.format_t fmt (Marked.unmark v)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
   Cli.format_with_style [ANSITerminal.magenta] fmt
@@ -112,9 +113,15 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
         (EnumConstructor.Map.bindings (EnumName.Map.find e ctx.ctx_enums))
         punctuation "]")
   | TOption t -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ t
-  | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" typ_with_parens t1 op_style "→"
+  | TArrow ([t1], t2) ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" typ_with_parens t1 op_style "→"
       typ t2
+  | TArrow (t1, t2) ->
+    Format.fprintf fmt "@[<hov 2>%a%a%a@ %a@ %a@]" op_style "("
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " op_style ",")
+         typ_with_parens)
+      t1 op_style ")" op_style "→" typ t2
   | TArray t1 ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" typ t1
   | TAny -> base_type fmt "any"

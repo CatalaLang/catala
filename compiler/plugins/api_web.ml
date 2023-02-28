@@ -78,8 +78,11 @@ module To_jsoo = struct
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
     | TAny -> Format.fprintf fmt "Js.Unsafe.any Js.t"
     | TArrow (t1, t2) ->
-      Format.fprintf fmt "(@[<hov 2>%a, @ %a@]) Js.meth_callback"
-        format_typ_with_parens t1 format_typ_with_parens t2
+      Format.fprintf fmt "(@[<hov 2>unit, @ %a -> %a@]) Js.meth_callback"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.pp_print_string fmt " -> ")
+           format_typ_with_parens)
+        t1 format_typ_with_parens t2
 
   let rec format_typ_to_jsoo fmt typ =
     match Marked.unmark typ with
@@ -153,13 +156,23 @@ module To_jsoo = struct
              (fun fmt (struct_field, struct_field_type) ->
                match Marked.unmark struct_field_type with
                | TArrow (t1, t2) ->
+                 let args_names =
+                   ListLabels.mapi t1 ~f:(fun i _ ->
+                       "function_input" ^ string_of_int i)
+                 in
                  Format.fprintf fmt
                    "@[<hov 2>method %a =@ Js.wrap_meth_callback@ @[<hv 2>(@,\
-                    fun input ->@ %a (%a.%a (%a input)))@]@]"
+                    fun _ %a ->@ %a (%a.%a %a))@]@]"
                    format_struct_field_name_camel_case struct_field
+                   (Format.pp_print_list (fun fmt (arg_i, ti) ->
+                        Format.fprintf fmt "(%s: %a)" arg_i format_typ ti))
+                   (List.combine args_names t1)
                    format_typ_to_jsoo t2 fmt_struct_name ()
                    format_struct_field_name (None, struct_field)
-                   format_typ_of_jsoo t1
+                   (Format.pp_print_list (fun fmt (i, ti) ->
+                        Format.fprintf fmt "@[<hv 2>(%a@ %a)@]"
+                          format_typ_of_jsoo ti Format.pp_print_string i))
+                   (List.combine args_names t1)
                | _ ->
                  Format.fprintf fmt "@[<hov 2>val %a =@ %a %a.%a@]"
                    format_struct_field_name_camel_case struct_field
@@ -329,48 +342,49 @@ module To_jsoo = struct
           Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
       (type_ordering @ scope_structs)
 
-  let fmt_input_struct_name fmt (scope_def : 'a expr scope_def) =
-    format_struct_name fmt scope_def.scope_body.scope_body_input_struct
+  let fmt_input_struct_name fmt (scope_body : 'a expr scope_body) =
+    format_struct_name fmt scope_body.scope_body_input_struct
 
-  let fmt_output_struct_name fmt (scope_def : 'a expr scope_def) =
-    format_struct_name fmt scope_def.scope_body.scope_body_output_struct
+  let fmt_output_struct_name fmt (scope_body : 'a expr scope_body) =
+    format_struct_name fmt scope_body.scope_body_output_struct
 
-  let rec format_scopes_to_fun
-      (ctx : decl_ctx)
+  let format_scopes_to_fun
+      (_ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scopes : 'e scopes) =
-    match scopes with
-    | Nil -> ()
-    | ScopeDef scope_def ->
-      let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
-      let fmt_fun_call fmt _ =
-        Format.fprintf fmt "@[<hv>%a@ |> %a_of_jsoo@ |> %a@ |> %a_to_jsoo@]"
-          fmt_input_struct_name scope_def fmt_input_struct_name scope_def
-          format_var scope_var fmt_output_struct_name scope_def
-      in
-      Format.fprintf fmt
-        "@\n@\n@[<hov 2>let %a@ (%a : %a Js.t)@ : %a Js.t =@\n%a@]@\n%a"
-        format_var scope_var fmt_input_struct_name scope_def
-        fmt_input_struct_name scope_def fmt_output_struct_name scope_def
-        fmt_fun_call () (format_scopes_to_fun ctx) scope_next
+      (scopes : 'e code_item_list) =
+    Scope.fold_left
+      ~f:(fun () code_item var ->
+        match code_item with
+        | Topdef _ -> ()
+        | ScopeDef (_name, body) ->
+          let fmt_fun_call fmt _ =
+            Format.fprintf fmt "@[<hv>%a@ |> %a_of_jsoo@ |> %a@ |> %a_to_jsoo@]"
+              fmt_input_struct_name body fmt_input_struct_name body format_var
+              var fmt_output_struct_name body
+          in
+          Format.fprintf fmt
+            "@\n@\n@[<hov 2>let %a@ (%a : %a Js.t)@ : %a Js.t =@\n%a@]@\n"
+            format_var var fmt_input_struct_name body fmt_input_struct_name body
+            fmt_output_struct_name body fmt_fun_call ())
+      ~init:() scopes
 
-  let rec format_scopes_to_callbacks
-      (ctx : decl_ctx)
+  let format_scopes_to_callbacks
+      (_ctx : decl_ctx)
       (fmt : Format.formatter)
-      (scopes : 'e scopes) : unit =
-    match scopes with
-    | Nil -> ()
-    | ScopeDef scope_def ->
-      let scope_var, scope_next = Bindlib.unbind scope_def.scope_next in
-      let fmt_meth_name fmt _ =
-        Format.fprintf fmt "method %a : (%a Js.t -> %a Js.t) Js.callback"
-          format_var_camel_case scope_var fmt_input_struct_name scope_def
-          fmt_output_struct_name scope_def
-      in
-      Format.fprintf fmt "@,@[<hov 2>%a =@ Js.wrap_callback@ %a@]@,%a"
-        fmt_meth_name () format_var scope_var
-        (format_scopes_to_callbacks ctx)
-        scope_next
+      (scopes : 'e code_item_list) : unit =
+    Scope.fold_left
+      ~f:(fun () code_item var ->
+        match code_item with
+        | Topdef _ -> ()
+        | ScopeDef (_name, body) ->
+          let fmt_meth_name fmt _ =
+            Format.fprintf fmt "method %a : (%a Js.t -> %a Js.t) Js.callback"
+              format_var_camel_case var fmt_input_struct_name body
+              fmt_output_struct_name body
+          in
+          Format.fprintf fmt "@,@[<hov 2>%a =@ Js.wrap_callback@ %a@]@,"
+            fmt_meth_name () format_var var)
+      ~init:() scopes
 
   let format_program
       (fmt : Format.formatter)
@@ -411,9 +425,9 @@ module To_jsoo = struct
           (Option.fold ~none:"" ~some:(fun name -> name) module_name)
           (format_ctx type_ordering) prgm.decl_ctx
           (format_scopes_to_fun prgm.decl_ctx)
-          prgm.scopes fmt_lib_name ()
+          prgm.code_items fmt_lib_name ()
           (format_scopes_to_callbacks prgm.decl_ctx)
-          prgm.scopes)
+          prgm.code_items)
 end
 
 let apply

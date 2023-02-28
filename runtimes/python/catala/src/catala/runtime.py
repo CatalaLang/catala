@@ -151,7 +151,7 @@ class Money:
 
     def __truediv__(self, other: 'Money') -> Decimal:
         if isinstance(other, Money):
-            return Decimal(mpq(self.value.value / other.value.value))
+            return self.value / other.value
         elif isinstance(other, Decimal):
             return self * (1. / other.value)
         else:
@@ -200,7 +200,7 @@ class Date:
 
     def __sub__(self, other: object) -> object:
         if isinstance(other, Date):
-          return Duration(dateutil.relativedelta.relativedelta(self.value, other.value))
+          return Duration(dateutil.relativedelta.relativedelta(days=(self.value - other.value).days))
         elif isinstance(other, Duration):
           return Date(self.value - other.value)
         else:
@@ -368,22 +368,22 @@ class EmptyError(Exception):
 
 class AssertionFailed(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 class ConflictError(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 class NoValueProvided(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 class AssertionFailure(Exception):
     def __init__(self, source_position: SourcePosition) -> None:
-        self.source_position = SourcePosition
+        self.source_position = source_position
 
 
 # ============================

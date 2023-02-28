@@ -60,15 +60,15 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr boxed;
   rule_cons : expr boxed;
-  rule_parameter : (expr Var.t * typ) option;
+  rule_parameter : (expr Var.t * typ) list option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
 
 module Rule : Set.OrderedType with type t = rule
 
-val empty_rule : Pos.t -> typ option -> rule
-val always_false_rule : Pos.t -> typ option -> rule
+val empty_rule : Pos.t -> typ list option -> rule
+val always_false_rule : Pos.t -> typ list option -> rule
 
 type assertion = expr boxed
 type variation_typ = Increasing | Decreasing
@@ -119,6 +119,7 @@ type scope = {
 
 type program = {
   program_scopes : scope ScopeName.Map.t;
+  program_topdefs : (expr * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 

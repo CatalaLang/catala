@@ -26,7 +26,7 @@ $ catala Interpret -t -s HousingComputation
    │              ‾‾‾‾‾‾
 
 [LOG] →  HousingComputation.f
-[LOG]   ≔  HousingComputation.f.input: 1
+[LOG]   ≔  HousingComputation.f.input0: 1
 [LOG]   ☛ Definition applied:
    ┌─⯈ tests/test_scope/good/scope_call3.catala_en:7.13-14:
    └─┐
@@ -43,10 +43,10 @@ $ catala Interpret -t -s HousingComputation
      7 │   definition f of x equals (output of RentComputation).f of x
        │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     
-[LOG]     ≔  RentComputation.direct.output: RentComputation { "f"= λ (param: integer) → RentComputation { "f"= λ (param1: integer) → error_empty ⟨true ⊢ λ (param2: integer) → error_empty ⟨true ⊢ param2 +! 1⟩ param1 +! 1⟩ }."f" param }
+[LOG]     ≔  RentComputation.direct.output: RentComputation { "f"= λ (param0: integer) → RentComputation { "f"= λ (param01: integer) → error_empty ⟨true ⊢ λ (param02: integer) → error_empty ⟨true ⊢ param02 +! 1⟩ param01 +! 1⟩ }."f" param0 }
 [LOG]   ←  RentComputation.direct
 [LOG]   →  RentComputation.f
-[LOG]     ≔  RentComputation.f.input: 1
+[LOG]     ≔  RentComputation.f.input0: 1
 [LOG]     ☛ Definition applied:
      ┌─⯈ tests/test_scope/good/scope_call3.catala_en:16.13-14:
      └──┐
@@ -54,7 +54,7 @@ $ catala Interpret -t -s HousingComputation
         │              ‾
     
 [LOG]     →  RentComputation.g
-[LOG]       ≔  RentComputation.g.input: 2
+[LOG]       ≔  RentComputation.g.input0: 2
 [LOG]       ☛ Definition applied:
        ┌─⯈ tests/test_scope/good/scope_call3.catala_en:15.13-14:
        └──┐
@@ -70,20 +70,20 @@ $ catala Interpret -t -s HousingComputation
 [LOG] ≔  HousingComputation.result: 3
 [RESULT] Computation successful! Results:
 [RESULT] f =
-           λ (param: integer) → error_empty
+           λ (param0: integer) → error_empty
              ⟨true ⊢
                let result : RentComputation {"f": integer → integer} =
                  λ (RentComputation_in: RentComputation_in {}) →
                    let g : integer → integer = error_empty
-                     (λ (param1: integer) → error_empty
-                        ⟨true ⊢ param1 +! 1⟩) in
+                     (λ (param01: integer) → error_empty
+                        ⟨true ⊢ param01 +! 1⟩) in
                    let f : integer → integer = error_empty
-                     (λ (param1: integer) → error_empty
-                        ⟨true ⊢ g param1 +! 1⟩) in
+                     (λ (param01: integer) → error_empty
+                        ⟨true ⊢ g param01 +! 1⟩) in
                    RentComputation { "f"= f } RentComputation_in {  } in
                  let result1 : RentComputation {"f": integer → integer} =
                    RentComputation { "f"=
-                     λ (param1: integer) → result."f" param1 } in
-                 if true then result1 else result1."f" param⟩
+                     λ (param01: integer) → result."f" param01 } in
+                 if true then result1 else result1."f" param0⟩
 [RESULT] result = 3
 ```
