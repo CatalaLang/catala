@@ -18,6 +18,7 @@
 \usepackage{minted}
 \usepackage[a4paper,landscape,margin=1cm,includehead,headsep=2ex,nofoot]{geometry}
 \usepackage{fancyhdr}\usepackage{hyperref}
+\usepackage{array}
 
 \usemintedstyle{tango}
 
@@ -169,6 +170,8 @@
  {\end{minted}}
 \makeatother
 
+\setlength{\columnseprule}{.1pt}
+
 \begin{document}
 
 \makeheader{\MakeUppercase{La syntaxe de Catala} \hspace{2em}\small version française}{v0.8.0}{1}
@@ -186,165 +189,176 @@
 \begin{multicols}{3}
 
 \newlength\cola
-\setlength\cola{\dimexpr .4\columnwidth -2\tabcolsep}
+\setlength\cola{\dimexpr .6\columnwidth -2\tabcolsep}
 \newlength\colb
-\setlength\colb{\dimexpr .6\columnwidth -2\tabcolsep}
-
-
+\setlength\colb{\dimexpr .4\columnwidth -2\tabcolsep}
 
 \section{Programmation littéraire}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  En-têtes & \begin{catala}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
     # Titre
     ### Sous-sous-titre
   \end{catala}
+  & En-têtes
   \\
-  Référence au journal officiel & \begin{catala}
+  \begin{catala}
     # Article 1 | JORFARTI000012345678
     # Article 2 | LEGIARTI000012345678
     # Décision 3 | CETATEXT000012345678 
   \end{catala}
+  & Référence au journal officiel
   \\
-  Bloc de code &
   \begin{catala}
     ```catala
     ```
   \end{catala}
+  & Bloc de code
   \\
-  Bloc de métadonnées & \begin{catala}
+  \begin{catala}
     ```catala-metadata
     ```
   \end{catala}
+  & Bloc de métadonnées
   \\
-  Inclusion de fichier & \begin{catala}
+  \begin{catala}
     > Inclusion: foo.catala_en
   \end{catala}
+  & Inclusion de fichier
   \\
 \end{tabular}
 
 \newcommand*\FancyVerbStartString{\PYG{l+s}{```catala}}
 \newcommand*\FancyVerbStopString{\PYG{l+s}{```}}
 
-\section{Types et littéraux}
+\section{Littéraux et types}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  \begin{catala}
-    ```catala
-    booléen
-    ```
-  \end{catala}
-  &
+  
   \begin{catala}
     ```catala
     vrai        faux
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    entier
+    booléen
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     65536
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    décimal
+    entier
     ```
   \end{catala}
-  & \begin{catala}
+
+  \\
+  \begin{catala}
       ```catala
       65536,262144        37%
       ```
     \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    argent
+    décimal
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     1 234 567,89€
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    date
+    argent
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     |2021-01-31|
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    durée
+    date
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     254 jour 4 mois 1 an
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    collection entier
+    durée
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     [ 12; 24; 36 ]
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    décimal dépend de argent
+    collection entier
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     f de x égale à x / 12,0€
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    Struct1
+    décimal dépend de argent
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     Struct1 { -- chp1: 9 -- chp2: faux }
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    Énum1
+    Struct1
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     Cas1 contenu 12        Cas2
+    ```
+  \end{catala}
+  & \begin{catala}
+    ```catala
+    Énum1
     ```
   \end{catala}
   \\
@@ -352,84 +366,94 @@
 
 \section{Expressions}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Définition locale & \begin{catala}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
     ```catala
     soit x égale à 36 - 5 dans ...
     ```
   \end{catala}
+  & Définition locale
   \\
-  Filtrage par motif & \begin{catala}
+  \begin{catala}
     ```catala
     selon expr sous forme
-    -- Cas1 de x: ...
+    -- Cas1 de x : ...
     -- Cas2 : ...
     -- n'importe quel : ...
     ```
   \end{catala}
+  & Filtrage par motif
   \\
-  Test de filtrage\newline avec variable optionnelle & \begin{catala}
+  \begin{catala}
     ```catala
     expr sous forme Cas1
     expr sous forme Cas1 de x
               et x >= 2
     ```
   \end{catala}
+  & Test de filtrage\newline avec variable optionnelle
   \\
-  Champ de structure & \begin{catala}
+  \begin{catala}
     ```catala
     struc1.chp2
     ```
   \end{catala}
+  & Champ de structure
   \\
-  Appel de fonction & \begin{catala}
+  \begin{catala}
     ```catala
     f de 44,50€
     ```
   \end{catala}
+  & Appel de fonction
   \\
-  Var. de sous-ch. d'app. & \begin{catala}
+  \begin{catala}
     ```catala
     ss_ch1.var0
     ```
   \end{catala}
+  & Var. de sous-ch. d'app.
   \\
-  Appel direct\newline du champ d'application & \begin{catala}
+  \begin{catala}
     ```catala
     résultat de ChApp1
       avec { -- chp1: 9 -- chp2: vrai }
     ```
   \end{catala}
+  & Appel direct\newline du champ d'application
   \\
-  Branchement conditionnel & \begin{catala}
+  \begin{catala}
     ```catala
     si ... alors ... sinon ...
     ```
   \end{catala}
+  & Branchement conditionnel
   \\
 \end{tabular}
 
 \section{Déclaration des métadonnées}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
 
-  Déclaration de structure &
+  
   \begin{catala}
     ```catala
     déclaration structure Struct1:
       donnée chp1 contenu entier
       donnée chp2 contenu booléen
   \end{catala}
+  & Déclaration de structure
   \\
-  Déclaration d'énumération & \begin{catala}
+  \begin{catala}
     ```catala
     déclaration énumération Énum1:
       -- Cas1 contenu entier
       -- Cas2
     ```
   \end{catala}
+  & Déclaration d'énumération
   \\
-  Déclaration de champ\newline d'application & \begin{catala}
+  \begin{catala}
     ```catala
     déclaration champ d'application ChApp1:
       interne var1 contenu entier
@@ -437,8 +461,9 @@
       ss_ch1 champ d'application ChApp0
     ```
   \end{catala}
+  & Déclaration de champ\newline d'application
   \\
-  Qualificateurs d'entrée-\newline sortie & \begin{catala}
+  \begin{catala}
     ```catala
       interne var1 contenu ...
       résultat var3 contenu ...
@@ -448,21 +473,23 @@
       contexte résultat var7 contenu ...
     ```
   \end{catala}
+  & Qualificateurs d'entrée-\newline sortie
   \\
-  Transitions d'état & \begin{catala}
+  \begin{catala}
     ```catala
       interne var1 contenu ...
         état avant
         état après
     ```
   \end{catala}
+  & Transitions d'état
   \\
 \end{tabular}
 
 \section{Opérations}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Opérateurs logiques & \begin{catala}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
     ```catala
     non a
     a et b
@@ -470,16 +497,18 @@
     a ou bien b   # ou exclusif
     ```
   \end{catala}
+  & Opérateurs logiques
   \\
-  Arithmétique & \begin{catala}
+  \begin{catala}
     ```catala
     - a
     a + b        a - b
     a * b        a / b
     ```
   \end{catala}
+  & Arithmétique
   \\
-  Comparaisons &
+  
   \begin{catala}
     ```catala
     a = b        a != b
@@ -487,29 +516,32 @@
     a >= b       a <= b
     ```
   \end{catala}
+  & Comparaisons
   \\
-  Conversions & \begin{catala}
+  \begin{catala}
     ```catala
     décimal de 44
     argent de 23,15
     ```
   \end{catala}
+  & Conversions
   \\
-  Arrondis & \begin{catala}
+  \begin{catala}
     ```catala
     arrondi de 9,99€
     ```
   \end{catala}
+  & Arrondis
   \\
-  Éléments de dates & \begin{catala}
+  \begin{catala}
     ```catala
     accès_jour de ...
     accès_mois de ...
     accès_année de ...
     ```
   \end{catala}
+  & Éléments de dates
   \\
-  Opérateurs à types\newline explicites &
   \begin{catala}
     ```catala
     a +! b    # entier
@@ -518,6 +550,7 @@
     a +^ b    # durée
     ```
   \end{catala}
+  & Opérateurs à types\newline explicites
   \\
 \end{tabular}
 
@@ -525,167 +558,190 @@
 
 \section{Définition de champ d'application}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Utilisation & \begin{catala}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
     ```catala
     champ d'application ChApp1: ...
     ```
   \end{catala}
+  & Utilisation
   \\
-  Avec condition générale & \begin{catala}
+  \begin{catala}
     ```catala
     champ d'application ChApp1
       sous condition var1 >= 2: ...
     ```
   \end{catala}
+  & Avec condition générale
   \\
-  Définition inconditionnelle & \begin{catala}
+  \begin{catala}
     ```catala
     définition var1 égale à ...
     ```
   \end{catala}
+  & Définition inconditionnelle
   \\
-  Définition conditionnelle& \begin{catala}
+  \begin{catala}
     ```catala
     définition var1
       sous condition ...
       conséquence égale à ...
     ```
   \end{catala}
+  & Définition conditionnelle
   \\
-  Règle\newline(définition de condition) & \begin{catala}
+  \begin{catala}
     ```catala
     règle var2
       sous condition var1 >= 2
       conséquence rempli
     ```
   \end{catala}
+  & Règle\newline(définition de condition)
   \\
-  Règle négative & \begin{catala}
+  \begin{catala}
     ```catala
       conséquence non rempli
     ```
   \end{catala}
+  & Règle négative
   \\
-  Définition de fonction/règle & \begin{catala}
+  \begin{catala}
     ```catala
     définition f de x égale à ...
     ```
   \end{catala}
+  & Définition de fonction/règle
   \\
-  Définition/règle étiquetée & \begin{catala}
+  \begin{catala}
     ```catala
     étiquette étq1 définition var1 ...
     ```
   \end{catala}
+  & Définition/règle étiquetée
   \\
-  Exc. à définition étiquetée & \begin{catala}
+  \begin{catala}
     ```catala
     exception étq1 définition var1 ...
     ```
   \end{catala}
+  & Exc. à définition étiquetée
   \\
-  Exception à implicite & \begin{catala}
+  \begin{catala}
     ```catala
     exception définition var1 ...
     ```
   \end{catala}
+  & Exception à implicite
   \\
-  Définition d'états & \begin{catala}
+  \begin{catala}
     ```catala
     définition var1
       état avant
       égale à ...
     ```
   \end{catala}
+  & Définition d'états
   \\
-  Assertion & \begin{catala}
+  \begin{catala}
     ```catala
     assertion ...
     ```
   \end{catala}
+  & Assertion
   \\
 \end{tabular}
 
 \section{Opérations sur les collections}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  
-  Test de présence& \begin{catala}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
     ```catala
     coll contient 3
     ```
   \end{catala}
+  & Test de présence
   \\
-  Cardinal & \begin{catala}
+  \begin{catala}
     ```catala
     nombre de coll
     ```
   \end{catala}
+  & Cardinal
   \\
-  Test d'existence & \begin{catala}
+  \begin{catala}
     ```catala
     existe x parmi coll tel que x >= 2
     ```
   \end{catala}
+  & Test d'existence
   \\
-  Test pour tous & \begin{catala}
+  \begin{catala}
     ```catala
     pour tout x parmi coll on a x >= 2
     ```
   \end{catala}
+  & Test pour tout
   \\
-  Application un-à-un & \begin{catala}
+  \begin{catala}
     ```catala
     (x + 2) pour x parmi coll
     ```
   \end{catala}
+  & Application un-à-un
   \\
-  Filtrage & \begin{catala}
+  \begin{catala}
     ```catala
     x parmi coll tel que x >= 2
     ```
   \end{catala}
+  & Filtrage
   \\
-  Filtrage + application & \begin{catala}
+  \begin{catala}
     ```catala
     (x - 2) pour x parmi coll
             tel que x >= 2
     ```
   \end{catala}
+  & Filtrage + application
   \\
-  Réunion & \begin{catala}
+  \begin{catala}
     ```catala
     coll1 ++ coll2
     ```
   \end{catala}
+  & Réunion
   \\
-  Aggrégation & \begin{catala}
+  \begin{catala}
     ```catala
     somme entier coll
     ```
   \end{catala}
+  & Aggrégation
   \\
-  Comptage & \begin{catala}
+  \begin{catala}
     ```catala
     nombre de coll
     ```
   \end{catala}
+  & Comptage
   \\
-  Extremums & \begin{catala}
+  \begin{catala}
     ```catala
     maximum de coll
       ou si collection vide alors -1
     ```
   \end{catala}
+  & Extremums
   \\
-  Élément selon extremum & \begin{catala}
+  \begin{catala}
     ```catala
     x parmi coll
       tel que (x * x) est minimum
       ou si collection vide alors -1
     ```
   \end{catala}
+  & Élément selon extremum
   \\
 \end{tabular}
 

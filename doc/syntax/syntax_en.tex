@@ -18,6 +18,7 @@
 \usepackage{minted}
 \usepackage[a4paper,landscape,margin=1cm,includehead,headsep=2ex,nofoot]{geometry}
 \usepackage{fancyhdr}\usepackage{hyperref}
+\usepackage{array}
 
 \usemintedstyle{tango}
 
@@ -169,6 +170,9 @@
  {\end{minted}}
 \makeatother
 
+\setlength{\columnsep}{15pt}
+\setlength{\columnseprule}{.1pt}
+
 \begin{document}
 
 \makeheader{\MakeUppercase{The Catala Syntax} \hspace{2em}\small english version}{v0.8.0}{1}
@@ -186,244 +190,261 @@
 \begin{multicols}{3}
 
 \newlength\cola
-\setlength\cola{\dimexpr .4\columnwidth -2\tabcolsep}
+\setlength\cola{\dimexpr .6\columnwidth -2\tabcolsep}
 \newlength\colb
-\setlength\colb{\dimexpr .6\columnwidth -2\tabcolsep}
-
-
+\setlength\colb{\dimexpr .4\columnwidth -2\tabcolsep}
 
 \section{Literate programming}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Heading & \begin{catala}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
     # Title
     ### Sub-subtitle
   \end{catala}
+  &
+  Heading
   \\
-  Code block &
   \begin{catala}
     ```catala
     ```
   \end{catala}
+  & Code block
   \\
-  Metadata block & \begin{catala}
+  \begin{catala}
     ```catala-metadata
     ```
   \end{catala}
+  & Metadata block
   \\
-  File inclusion & \begin{catala}
+  \begin{catala}
     > Include: foo.catala_en
   \end{catala}
+  & File inclusion
   \\
 \end{tabular}
 
 \newcommand*\FancyVerbStartString{\PYG{l+s}{```catala}}
 \newcommand*\FancyVerbStopString{\PYG{l+s}{```}}
 
-\section{Types and literals}
+\section{Literals and types}
 
 \begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  \begin{catala}
-    ```catala
-    boolean
-    ```
-  \end{catala}
-  &
+
   \begin{catala}
     ```catala
     true        false
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    integer
+    boolean
     ```
   \end{catala}
-  &
+  \\
   \begin{catala}
     ```catala
     65536
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    decimal
+    integer
     ```
   \end{catala}
-  & \begin{catala}
+  \\
+  \begin{catala}
       ```catala
       65536.262144        37%
       ```
     \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    money
+    decimal
     ```
   \end{catala}
-  &
+  \\
   \begin{catala}
     ```catala
     $1,234,567.89
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    date
+    money
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     |2021-01-31|
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    duration
+    date
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     254 day 4 month 1 year
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    collection integer
+    duration
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     [ 12; 24; 36 ]
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    decimal depends on money
+    collection integer
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     f of x equals x / $12.0
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    Struct1
+    decimal depends on money
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     Struct1 { -- fld1: 9 -- fld2: false }
     ```
   \end{catala}
-  \\
-  \begin{catala}
+  & \begin{catala}
     ```catala
-    Enum1
+    Struct1
     ```
   \end{catala}
-  &
+
+  \\
+  
   \begin{catala}
     ```catala
     Case1 content 12        Case2
     ```
   \end{catala}
+  & \begin{catala}
+    ```catala
+    Enum1
+    ```
+  \end{catala}
+
   \\
 \end{tabular}
 
 \section{Expressions}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Local definition & \begin{catala}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
     ```catala
     let x equals 36 - 5 in ...
     ```
   \end{catala}
+  & Local definition
   \\
-  Pattern matching & \begin{catala}
+  \begin{catala}
     ```catala
     match expr with pattern
-    -- Case1 of x: ...
+    -- Case1 of x : ...
     -- Case2 : ...
     -- anything : ...
     ```
   \end{catala}
+  & Pattern matching
   \\
-  Pattern test and optional binding & \begin{catala}
+  \begin{catala}
     ```catala
     expr with pattern Case1
     expr with pattern Case1 of x
               and x >= 2
     ```
   \end{catala}
+  & Pattern test and optional binding
   \\
-  Structure field access & \begin{catala}
+  \begin{catala}
     ```catala
     struc1.fld2
     ```
   \end{catala}
+  & Structure field access
   \\
-  Function call & \begin{catala}
+  \begin{catala}
     ```catala
     f of $44.50
     ```
   \end{catala}
+  & Function call
   \\
-  Subscope variable & \begin{catala}
+  \begin{catala}
     ```catala
     sub1.var0
     ```
   \end{catala}
+  & Subscope variable
   \\
-  Direct scope call & \begin{catala}
+  \begin{catala}
     ```catala
     output of Scope1
       with { -- fld1: 9 -- fld2: true }
     ```
   \end{catala}
+  & Direct scope call
   \\
-  Conditional & \begin{catala}
+  \begin{catala}
     ```catala
     if ... then ... else ...
     ```
   \end{catala}
+  & Conditional
   \\
 \end{tabular}
 
 \section{Metadata declaration}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
 
-  Structure declaration &
+  
   \begin{catala}
     ```catala
     declaration structure Struct1:
       data fld1 content integer
       data fld2 content boolean
   \end{catala}
+  & Structure declaration
   \\
-  Enumeration declaration & \begin{catala}
+  \begin{catala}
     ```catala
     declaration enumeration Enum1:
       -- Case1 content integer
       -- Case2
     ```
   \end{catala}
+  & Enumeration declaration
   \\
-  Scope declaration & \begin{catala}
+  \begin{catala}
     ```catala
     declaration scope Scope1:
       internal var1 content integer
@@ -431,8 +452,9 @@
       sub1 scope Scope0
     ```
   \end{catala}
+  & Scope declaration
   \\
-  Input-output qualifiers & \begin{catala}
+  \begin{catala}
     ```catala
       internal var1 content ...
       output var3 content ...
@@ -442,21 +464,23 @@
       context output var7 content ...
     ```
   \end{catala}
+  & Input-output qualifiers
   \\
-  State transitions declaration & \begin{catala}
+  \begin{catala}
     ```catala
       internal var1 content ...
         state before
         state after
     ```
   \end{catala}
+  & State transitions declaration
   \\
 \end{tabular}
 
 \section{Operators and built-ins}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Logical operators & \begin{catala}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
     ```catala
     not a
     a and b
@@ -464,16 +488,18 @@
     a xor b   # exclusive or
     ```
   \end{catala}
+  & Logical operators
   \\
-  Arithmetic & \begin{catala}
+  \begin{catala}
     ```catala
     - a
     a + b        a - b
     a * b        a / b
     ```
   \end{catala}
+  & Arithmetic
   \\
-  Comparison &
+  
   \begin{catala}
     ```catala
     a = b        a != b
@@ -481,29 +507,33 @@
     a >= b       a <= b
     ```
   \end{catala}
+  & Comparison
   \\
-  Conversions & \begin{catala}
+  \begin{catala}
     ```catala
     decimal of 44
     money of 23.15
     ```
   \end{catala}
+  & Conversions
   \\
-  Rounding & \begin{catala}
+  \begin{catala}
     ```catala
     round of $9.99
     ```
   \end{catala}
+  & Rounding
   \\
-  Date parts & \begin{catala}
+  \begin{catala}
     ```catala
     get_day of ...
     get_month of ...
     get_year of ...
     ```
   \end{catala}
+  & Date parts
   \\
-  Explicitly typed operators &
+  
   \begin{catala}
     ```catala
     a +! b    # integer
@@ -512,6 +542,7 @@
     a +^ b    # duration
     ```
   \end{catala}
+  & Explicitly typed operators
   \\
 \end{tabular}
 
@@ -519,167 +550,191 @@
 
 \section{Scope definition}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
-  Scope use & \begin{catala}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
+  \begin{catala}
     ```catala
     scope Scope1: ...
     ```
   \end{catala}
+  & Scope use
   \\
-  Use-wide condition & \begin{catala}
+  \begin{catala}
     ```catala
     scope Scope1
       under condition var1 >= 2: ...
     ```
   \end{catala}
+  & Use-wide condition
   \\
-  Unconditional definition & \begin{catala}
+  \begin{catala}
     ```catala
     definition var1 equals ...
     ```
   \end{catala}
+  & Unconditional definition
   \\
-  Conditional definition & \begin{catala}
+  \begin{catala}
     ```catala
     definition var1
       under condition ...
       consequence equals ...
     ```
   \end{catala}
+  & Conditional definition
   \\
-  Rule\newline(definition for conditions) & \begin{catala}
+  \begin{catala}
     ```catala
     rule var2
       under condition var1 >= 2
       consequence fulfilled
     ```
   \end{catala}
+  & Rule\newline(definition for conditions)
   \\
-  Negative rule & \begin{catala}
+  \begin{catala}
     ```catala
       consequence not fulfilled
     ```
   \end{catala}
+  & Negative rule
   \\
-  Function definition/rule & \begin{catala}
+  \begin{catala}
     ```catala
     definition f of x equals ...
     ```
   \end{catala}
+  & Function definition/rule
   \\
-  Labeled definition or rule & \begin{catala}
+  \begin{catala}
     ```catala
     label lbl1 definition var1 ...
     ```
   \end{catala}
+  & Labeled definition or rule
   \\
-  Exception to label & \begin{catala}
+  \begin{catala}
     ```catala
     exception lbl1 definition var1 ...
     ```
   \end{catala}
+  & Exception to label
   \\
-  Exception to implicit & \begin{catala}
+  \begin{catala}
     ```catala
     exception definition var1 ...
     ```
   \end{catala}
+  & Exception to implicit
   \\
-  State definition & \begin{catala}
+  \begin{catala}
     ```catala
     definition var1
       state before
       equals ...
     ```
   \end{catala}
+  & State definition
   \\
-  Assertion & \begin{catala}
+  \begin{catala}
     ```catala
     assertion ...
     ```
   \end{catala}
+  & Assertion
   \\
 \end{tabular}
 
 \section{Collection operations}
 
-\begin{tabular}{@{}p{\cola}p{\colb}@{}}
+\begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   
-  Presence test & \begin{catala}
+  \begin{catala}
     ```catala
     coll contains 3
     ```
   \end{catala}
+  & Presence test
   \\
-  Cardinal & \begin{catala}
+  \begin{catala}
     ```catala
     number of coll
     ```
   \end{catala}
+  & Cardinal
   \\
-  Existence test & \begin{catala}
+  \begin{catala}
     ```catala
     exists x among coll such that x >= 2
     ```
   \end{catala}
+  & Existence test
   \\
-  For all test & \begin{catala}
+  \begin{catala}
     ```catala
     for all x among coll we have x >= 2
     ```
   \end{catala}
+  & For all test
   \\
-  Mapping & \begin{catala}
+  \begin{catala}
     ```catala
     (x + 2) for x among coll
     ```
   \end{catala}
+  & Mapping
   \\
-  Filter & \begin{catala}
+  \begin{catala}
     ```catala
     x among coll such that x >= 2
     ```
   \end{catala}
+  & Filter
   \\
-  Filter + map & \begin{catala}
+  \begin{catala}
     ```catala
     (x - 2) for x among coll
             such that x >= 2
     ```
   \end{catala}
+  & Filter + map
   \\
-  Merge & \begin{catala}
+  \begin{catala}
     ```catala
     coll1 ++ coll2
     ```
   \end{catala}
+  & Merge
   \\
-  Aggregation & \begin{catala}
+  \begin{catala}
     ```catala
     sum integer coll
     ```
   \end{catala}
+  & Aggregation
   \\
-  Count & \begin{catala}
+  \begin{catala}
     ```catala
     number of coll
     ```
   \end{catala}
+  & Count
   \\
-  Extremum & \begin{catala}
+  \begin{catala}
     ```catala
     maximum of coll
       or if collection empty then -1
     ```
   \end{catala}
+  & Extremum
   \\
-  Arg-extremum & \begin{catala}
+  \begin{catala}
     ```catala
     x among coll
       such that (x * x) is minimum
       or if collection empty then -1
     ```
   \end{catala}
+  & Arg-extremum
   \\
 \end{tabular}
 
