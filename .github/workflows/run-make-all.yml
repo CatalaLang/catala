@@ -36,7 +36,7 @@ jobs:
               opam --cli=2.1 remove z3 >&2
               opam --cli=2.1 exec -- dune build --profile=release french_law compiler/catala.bc.js >&2
               mv _build/default/compiler/catala.bc.js catala_'"${RELEASE_TAG}"'_node.js >&2
-              tar c -h catala_'"${RELEASE_TAG}"'_node.js doc/syntax/syntax.pdf french_law --exclude french_law/js/node_modules --exclude french_law/python/env --exclude '"'"'.*'"'"'
+              tar c -h catala_'"${RELEASE_TAG}"'_node.js doc/syntax/syntax.pdf french_law --exclude french_law/js/node_modules --exclude french_law/python/env --exclude '"'"'.*'"'"' --exclude '"'"'__*'"'"'
             ' | tar vx -C artifacts
       - name: Build static binaries
         if: ${{ github.ref == 'refs/heads/master' }}

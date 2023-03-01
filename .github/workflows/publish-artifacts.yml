@@ -49,7 +49,7 @@ jobs:
       - name: Generate HTML index
         run: |
           cd artifacts
-          tree -H . --noreport --dirsfirst -T 'Catala latest development artifacts' -s -D --charset utf-8 -o index.html
+          tree -H . --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
