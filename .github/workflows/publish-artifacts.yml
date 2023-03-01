@@ -42,6 +42,10 @@ jobs:
           workflow: ${{ github.event.workflow_run.workflow_id }}
           name: Catala artifacts
           path: artifacts/
+      - name: Generate HTML index
+        run: |
+          sudo apt update && apt install tree
+          cd artifacts && tree -H . --noreport --dirsfirst -T 'Catala latest development artifacts' -s -D --charset utf-8 -o index.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
