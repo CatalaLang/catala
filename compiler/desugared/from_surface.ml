@@ -910,6 +910,32 @@ let merge_conditions
   | None, Some cond -> cond
   | None, None -> Expr.elit (LBool true) (Untyped { pos = default_pos })
 
+let rec arglist_eq_check pos_decl pos_def pdecl pdefs =
+  match pdecl, pdefs with
+  | [], [] -> ()
+  | [], (arg, apos) :: _ ->
+    Errors.raise_multispanned_error
+      [Some "Declared here:", pos_decl; Some "Extra argument:", apos]
+      "This definition has an extra, undeclared argument '%a'" Print.lit_style
+      arg
+  | (arg, apos) :: _, [] ->
+    Errors.raise_multispanned_error
+      [
+        Some "Argument declared here:", apos;
+        Some "Mismatching definition:", pos_def;
+      ]
+      "This definition is missing argument '%a'" Print.lit_style arg
+  | decl :: pdecl, def :: pdefs when Uid.MarkedString.equal decl def ->
+    arglist_eq_check pos_decl pos_def pdecl pdefs
+  | (decl_arg, decl_apos) :: _, (def_arg, def_apos) :: _ ->
+    Errors.raise_multispanned_error
+      [
+        Some "Argument declared here:", decl_apos; Some "Defined here:", def_apos;
+      ]
+      "Function argument name mismatch between declaration ('%a') and \
+       definition ('%a')"
+      Print.lit_style decl_arg Print.lit_style def_arg
+
 let process_rule_parameters
     ctxt
     (def_key : Ast.ScopeDef.t Marked.pos)
@@ -937,19 +963,15 @@ let process_rule_parameters
       "This definition for %a is missing the arguments" Ast.ScopeDef.format_t
       decl_name
   | Some (pdecl, pos_decl), Some (pdefs, pos_def) ->
-    if not (List.equal Uid.MarkedString.equal (List.map fst pdecl) pdefs) then
-      Errors.raise_multispanned_error
-        [Some "Declared here", pos_decl; Some "Mismatching definition", pos_def]
-        "The arguments of this definition don't match the declaration."
-    else
-      let ctxt, params =
-        List.fold_left_map
-          (fun ctxt ((lbl, pos), ty) ->
-            let ctxt, v = Name_resolution.add_def_local_var ctxt lbl in
-            ctxt, ((v, pos), ty))
-          ctxt pdecl
-      in
-      ctxt, Some (params, pos_def)
+    arglist_eq_check pos_decl pos_def (List.map fst pdecl) pdefs;
+    let ctxt, params =
+      List.fold_left_map
+        (fun ctxt ((lbl, pos), ty) ->
+          let ctxt, v = Name_resolution.add_def_local_var ctxt lbl in
+          ctxt, ((v, pos), ty))
+        ctxt pdecl
+    in
+    ctxt, Some (params, pos_def)
 
 (** Translates a surface definition into condition into a desugared {!type:
     Ast.rule} *)

@@ -14,20 +14,20 @@ scope S:
 
 ```catala-test-inline
 $ catala typecheck
-[ERROR] The arguments of this definition don't match the declaration.
+[ERROR] Function argument name mismatch between declaration ('x') and definition ('y')
 
-Declared here
-┌─⯈ tests/test_func/bad/param_inconsistency.catala_en:4.30-58:
+Argument declared here:
+┌─⯈ tests/test_func/bad/param_inconsistency.catala_en:4.41-42:
 └─┐
 4 │   internal f1 content decimal depends on x content integer
-  │                               ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  │                                          ‾
 
 
-Mismatching definition
-┌─⯈ tests/test_func/bad/param_inconsistency.catala_en:10.16-20:
+Defined here:
+┌─⯈ tests/test_func/bad/param_inconsistency.catala_en:10.19-20:
 └──┐
 10 │   definition f1 of y under condition not cond
-   │                 ‾‾‾‾
+   │                    ‾
 
 #return code 255#
 ```

@@ -3526,12 +3526,12 @@ alinéas du même article.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   exception
-  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+  définition dépense_nette_minimale_d832_10 de allocation_mensuelle
   sous condition
     date_signature_prêt >= |1999-06-30|
   conséquence égal à
     mensualité_principale + montant_forfaitaire_charges_d832_10 -
-      aide_calculée_2_9_d832_10
+      allocation_mensuelle
 ```
 
 Dans les autres cas, cette dépense nette est obtenue en déduisant de la seule mensualité
@@ -3539,8 +3539,8 @@ déclarée le montant mensuel de l'aide calculé de la même façon.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10 égal à
-    mensualité_principale - aide_calculée_2_9_d832_10
+  définition dépense_nette_minimale_d832_10 de allocation_mensuelle égal à
+    mensualité_principale - allocation_mensuelle
 ```
 
 Lorsque la dépense nette ainsi calculée est inférieure au produit des ressources et d'un
@@ -3551,10 +3551,10 @@ différence constatée.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition abattement_dépense_nette_minimale_d832_10
-    de aide_calculée_2_9_d832_10
+    de allocation_mensuelle
   égal à
     soit dépense_nette_minimale égal à
-      dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+      dépense_nette_minimale_d832_10 de allocation_mensuelle
     dans
     si dépense_nette_minimale<=
       ressources_ménage_avec_d832_18 * coefficient_multiplicateur_d832_17_3
@@ -4134,15 +4134,15 @@ l'aide est égal à la différence constatée.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  définition dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+  définition dépense_nette_minimale_d832_27 de allocation_mensuelle
   égal à
-    équivalence_loyer_éligible - aide_calculée_1_8_d832_24
+    équivalence_loyer_éligible - allocation_mensuelle
 
   définition abattement_dépense_nette_minimale_d832_27
-    de aide_calculée_1_8_d832_24
+    de allocation_mensuelle
   égal à
     soit dépense_nette_minimale égal à
-      dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+      dépense_nette_minimale_d832_27 de allocation_mensuelle
     dans
     si dépense_nette_minimale <= montant_forfaitaire_d832_27
     alors montant_forfaitaire_d832_27 - dépense_nette_minimale
@@ -4634,10 +4634,10 @@ des charges, le montant mensuel de l'allocation calculé selon les dispositions 
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-   définition dépense_nette_minimale de aide_calculée_2_9_d832_10
+   définition dépense_nette_minimale de allocation_mensuelle
    égal à
       charges_mensuelles_prêt + montant_forfaitaire_charges -
-        aide_calculée_2_9_d832_10
+        allocation_mensuelle
 ```
 
 Lorsque la dépense nette minimale est inférieure à un montant fixé par arrêté, il est
@@ -4646,10 +4646,10 @@ constatée.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-  définition abattement_dépense_nette_minimale de aide_calculée_1_8_d832_24
+  définition abattement_dépense_nette_minimale de allocation_mensuelle
   égal à
     soit dépense_nette_minimale égal à
-      dépense_nette_minimale de aide_calculée_1_8_d832_24
+      dépense_nette_minimale de allocation_mensuelle
     dans si
       dépense_nette_minimale < seuil_minimal_dépense_nette_minimale
     alors
@@ -4961,8 +4961,8 @@ calculé selon les modalités précisées aux deuxième à neuvième alinéas du
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition dépense_nette_minimale de aide_calculée_2_9_d832_10 égal à
-    équivalence_loyer + montant_forfaitaire_charges - aide_calculée_2_9_d832_10
+  définition dépense_nette_minimale de allocation_mensuelle égal à
+    équivalence_loyer + montant_forfaitaire_charges - allocation_mensuelle
 ```
 
 Lorsque sa valeur est inférieure à un montant fixé par arrêté, l'abattement sur
@@ -4971,12 +4971,12 @@ le montant mensuel de l'aide est égal à la différence constatée.
 ```catala
 champ d'application CalculAllocationLogementFoyer:
   définition abattement_dépense_nette_minimale
-    de aide_calculée_2_9_d832_10 égal à
-  si dépense_nette_minimale de aide_calculée_2_9_d832_10 <
+    de allocation_mensuelle égal à
+  si dépense_nette_minimale de allocation_mensuelle <
     montant_minimal_dépense_nette_d842_17
   alors
     montant_minimal_dépense_nette_d842_17 -
-       dépense_nette_minimale de aide_calculée_2_9_d832_10
+       dépense_nette_minimale de allocation_mensuelle
   sinon
     0€
 ```
