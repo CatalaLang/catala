@@ -52,6 +52,9 @@ $(PY_VENV_DIR)/stamp: \
 	  -e syntax_highlighting/pl/pygments
 	touch $@
 
+# Run sub-make within the Python venv
+MAKEP = $(PY_VENV_ACTIVATE) $(MAKE)
+
 dependencies-python: $(PY_VENV_DIR)
 
 #> dependencies				: Install the Catala OCaml, JS and Git dependencies
@@ -164,6 +167,13 @@ vscode_en: ${CURDIR}/syntax_highlighting/en/setup_vscode.sh
 vscode: vscode_fr vscode_en
 
 ##########################################
+# Extra documentation
+##########################################
+
+syntax:
+	$(MAKEP) -C doc/syntax
+
+##########################################
 # Literate programming and examples
 ##########################################
 
@@ -175,8 +185,6 @@ US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
 TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
 TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
 POLISH_TAXES_DIR=$(EXAMPLES_DIR)/polish_taxes
-
-MAKEP = $(PY_VENV_ACTIVATE) $(MAKE)
 
 literate_aides_logement: build $(PY_VENV_DIR)
 	$(MAKEP) -C $(AIDES_LOGEMENT_DIR) aides_logement.tex
