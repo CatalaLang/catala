@@ -10,8 +10,8 @@
 %\usepackage{booktabs}
 \usepackage{upquote} % Uncurly the quotes
 \usepackage{etoolbox} % for backquote fix
-\usepackage[scaled=0.8]{DejaVuSans}
-\usepackage[scaled=0.8]{DejaVuSansMono}
+\usepackage[scaled=0.9]{DejaVuSans}
+\usepackage[scaled=0.9]{DejaVuSansMono}
 \usepackage{mdframed} % nice frames
 \usepackage[nobottomtitles]{titlesec} % better titles
 \usepackage{enumitem}
@@ -19,6 +19,8 @@
 \usepackage[a4paper,landscape,margin=1cm,includehead,headsep=2ex,nofoot]{geometry}
 \usepackage{fancyhdr}\usepackage{hyperref}
 \usepackage{array}
+\usepackage[none]{hyphenat}
+\usepackage[document]{ragged2e}
 
 \usemintedstyle{tango}
 
@@ -158,6 +160,8 @@
 % Text at right
 %\raggedright
 
+\renewcommand{\baselinestretch}{0.9}
+
 % Set up the interline space in tables
 \renewcommand{\arraystretch}{0.0}
 
@@ -170,7 +174,7 @@
  {\end{minted}}
 \makeatother
 
-\setlength{\columnsep}{15pt}
+\setlength{\columnsep}{12pt}
 \setlength{\columnseprule}{.1pt}
 
 \begin{document}
@@ -190,9 +194,9 @@
 \begin{multicols}{3}
 
 \newlength\cola
-\setlength\cola{\dimexpr .6\columnwidth -2\tabcolsep}
+\setlength\cola{\dimexpr .65\columnwidth -2\tabcolsep}
 \newlength\colb
-\setlength\colb{\dimexpr .4\columnwidth -2\tabcolsep}
+\setlength\colb{\dimexpr .35\columnwidth -2\tabcolsep}
 
 \section{Literate programming}
 
@@ -232,7 +236,7 @@
 
   \begin{catala}
     ```catala
-    true        false
+    true                false
     ```
   \end{catala}
   & \begin{catala}
@@ -253,9 +257,9 @@
   \end{catala}
   \\
   \begin{catala}
-      ```catala
-      65536.262144        37%
-      ```
+    ```catala
+    65536.262144        37%
+    ```
     \end{catala}
   & \begin{catala}
     ```catala
@@ -317,12 +321,15 @@
   
   \begin{catala}
     ```catala
-    f of x equals x / $12.0
+    f of x, y equals
+      x * y / $12.0
     ```
   \end{catala}
   & \begin{catala}
     ```catala
-    decimal depends on money
+    decimal depends on
+      x content money,
+      y content decimal
     ```
   \end{catala}
 
@@ -330,7 +337,7 @@
   
   \begin{catala}
     ```catala
-    Struct1 { -- fld1: 9 -- fld2: false }
+    Struct1 { -- fld1: 9 -- fld2: 7% }
     ```
   \end{catala}
   & \begin{catala}
@@ -351,7 +358,6 @@
     Enum1
     ```
   \end{catala}
-
   \\
 \end{tabular}
 
@@ -379,21 +385,21 @@
     ```catala
     expr with pattern Case1
     expr with pattern Case1 of x
-              and x >= 2
+         and x >= 2
     ```
   \end{catala}
-  & Pattern test and optional binding
+  & Pattern test\newline and optional binding
   \\
   \begin{catala}
     ```catala
     struc1.fld2
     ```
   \end{catala}
-  & Structure field access
+  & Field access
   \\
   \begin{catala}
     ```catala
-    f of $44.50
+    f of $44.50, 1/3
     ```
   \end{catala}
   & Function call
@@ -407,8 +413,8 @@
   \\
   \begin{catala}
     ```catala
-    output of Scope1
-      with { -- fld1: 9 -- fld2: true }
+    output of Scope1 with
+      { -- fld1: 9 -- fld2: 15% }
     ```
   \end{catala}
   & Direct scope call
@@ -431,7 +437,7 @@
     ```catala
     declaration structure Struct1:
       data fld1 content integer
-      data fld2 content boolean
+      data fld2 content decimal
   \end{catala}
   & Structure declaration
   \\
@@ -475,6 +481,23 @@
   \end{catala}
   & State transitions declaration
   \\
+  \begin{catala}
+    ```catala
+    declaration const content decimal
+      equals 17.1
+    ```
+  \end{catala}
+  & Global definition
+  \\
+  \begin{catala}
+    ```catala
+    declaration square content decimal
+      depends on x content decimal
+      equals x * x
+    ```
+  \end{catala}
+  & Global function definition
+  \\
 \end{tabular}
 
 \section{Operators and built-ins}
@@ -482,18 +505,16 @@
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   \begin{catala}
     ```catala
-    not a
-    a and b
-    a or b    # "or otherwise"
-    a xor b   # exclusive or
+    not a        a and b
+    a or b       # "or otherwise"
+    a xor b      # exclusive or
     ```
   \end{catala}
   & Logical operators
   \\
   \begin{catala}
     ```catala
-    - a
-    a + b        a - b
+    - a          a + b        a - b
     a * b        a / b
     ```
   \end{catala}
@@ -533,7 +554,6 @@
   \end{catala}
   & Date parts
   \\
-  
   \begin{catala}
     ```catala
     a +! b    # integer
@@ -571,7 +591,7 @@
     definition var1 equals ...
     ```
   \end{catala}
-  & Unconditional definition
+  & Unconditional def.
   \\
   \begin{catala}
     ```catala
@@ -589,7 +609,7 @@
       consequence fulfilled
     ```
   \end{catala}
-  & Rule\newline(definition for conditions)
+  & Rule (definition for conditions)
   \\
   \begin{catala}
     ```catala
@@ -600,17 +620,17 @@
   \\
   \begin{catala}
     ```catala
-    definition f of x equals ...
+    definition f of x, y equals ...
     ```
   \end{catala}
-  & Function definition/rule
+  & Function def. or rule
   \\
   \begin{catala}
     ```catala
     label lbl1 definition var1 ...
     ```
   \end{catala}
-  & Labeled definition or rule
+  & Labeled def. or rule
   \\
   \begin{catala}
     ```catala
@@ -647,7 +667,6 @@
 \section{Collection operations}
 
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
-  
   \begin{catala}
     ```catala
     coll contains 3

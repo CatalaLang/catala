@@ -10,8 +10,8 @@
 %\usepackage{booktabs}
 \usepackage{upquote} % Uncurly the quotes
 \usepackage{etoolbox} % for backquote fix
-\usepackage[scaled=0.8]{DejaVuSans}
-\usepackage[scaled=0.8]{DejaVuSansMono}
+\usepackage[scaled=0.9]{DejaVuSans}
+\usepackage[scaled=0.9]{DejaVuSansMono}
 \usepackage{mdframed} % nice frames
 \usepackage[nobottomtitles]{titlesec} % better titles
 \usepackage{enumitem}
@@ -19,6 +19,8 @@
 \usepackage[a4paper,landscape,margin=1cm,includehead,headsep=2ex,nofoot]{geometry}
 \usepackage{fancyhdr}\usepackage{hyperref}
 \usepackage{array}
+\usepackage[none]{hyphenat}
+\usepackage[document]{ragged2e}
 
 \usemintedstyle{tango}
 
@@ -158,6 +160,8 @@
 % Text at right
 %\raggedright
 
+\renewcommand{\baselinestretch}{0.9}
+
 % Set up the interline space in tables
 \renewcommand{\arraystretch}{0.0}
 
@@ -170,6 +174,7 @@
  {\end{minted}}
 \makeatother
 
+\setlength{\columnsep}{12pt}
 \setlength{\columnseprule}{.1pt}
 
 \begin{document}
@@ -189,9 +194,9 @@
 \begin{multicols}{3}
 
 \newlength\cola
-\setlength\cola{\dimexpr .6\columnwidth -2\tabcolsep}
+\setlength\cola{\dimexpr .65\columnwidth -2\tabcolsep}
 \newlength\colb
-\setlength\colb{\dimexpr .4\columnwidth -2\tabcolsep}
+\setlength\colb{\dimexpr .35\columnwidth -2\tabcolsep}
 
 \section{Programmation littéraire}
 
@@ -210,16 +215,10 @@
   & Référence au journal officiel
   \\
   \begin{catala}
-    ```catala
-    ```
+    ```catala      ```catala-metadata
+    ```            ```
   \end{catala}
-  & Bloc de code
-  \\
-  \begin{catala}
-    ```catala-metadata
-    ```
-  \end{catala}
-  & Bloc de métadonnées
+  & Bloc de code / métadonnées
   \\
   \begin{catala}
     > Inclusion: foo.catala_en
@@ -237,7 +236,7 @@
   
   \begin{catala}
     ```catala
-    vrai        faux
+    vrai                faux
     ```
   \end{catala}
   & \begin{catala}
@@ -245,9 +244,7 @@
     booléen
     ```
   \end{catala}
-
   \\
-  
   \begin{catala}
     ```catala
     65536
@@ -258,7 +255,6 @@
     entier
     ```
   \end{catala}
-
   \\
   \begin{catala}
       ```catala
@@ -270,9 +266,7 @@
     décimal
     ```
   \end{catala}
-
   \\
-  
   \begin{catala}
     ```catala
     1 234 567,89€
@@ -327,12 +321,15 @@
   
   \begin{catala}
     ```catala
-    f de x égale à x / 12,0€
+    f de x, y égal à
+      x * y / 12,0€
     ```
   \end{catala}
   & \begin{catala}
     ```catala
-    décimal dépend de argent
+    décimal dépend de
+      x contenu argent,
+      y contenu décimal
     ```
   \end{catala}
 
@@ -340,7 +337,7 @@
   
   \begin{catala}
     ```catala
-    Struct1 { -- chp1: 9 -- chp2: faux }
+    Struct1 { -- chp1: 9 -- chp2: 7% }
     ```
   \end{catala}
   & \begin{catala}
@@ -369,7 +366,7 @@
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   \begin{catala}
     ```catala
-    soit x égale à 36 - 5 dans ...
+    soit x égal à 36 - 5 dans ...
     ```
   \end{catala}
   & Définition locale
@@ -388,7 +385,7 @@
     ```catala
     expr sous forme Cas1
     expr sous forme Cas1 de x
-              et x >= 2
+         et x >= 2
     ```
   \end{catala}
   & Test de filtrage\newline avec variable optionnelle
@@ -402,7 +399,7 @@
   \\
   \begin{catala}
     ```catala
-    f de 44,50€
+    f de 44,50€, 1/3
     ```
   \end{catala}
   & Appel de fonction
@@ -412,22 +409,22 @@
     ss_ch1.var0
     ```
   \end{catala}
-  & Var. de sous-ch. d'app.
+  & Var. de s/s-ch. d'app.
   \\
   \begin{catala}
     ```catala
-    résultat de ChApp1
-      avec { -- chp1: 9 -- chp2: vrai }
+    résultat de Chp1
+      avec { -- chp1: 9 -- chp2: 15% }
     ```
   \end{catala}
-  & Appel direct\newline du champ d'application
+  & Appel direct de champ d'application
   \\
   \begin{catala}
     ```catala
     si ... alors ... sinon ...
     ```
   \end{catala}
-  & Branchement conditionnel
+  & Branchement
   \\
 \end{tabular}
 
@@ -440,7 +437,7 @@
     ```catala
     déclaration structure Struct1:
       donnée chp1 contenu entier
-      donnée chp2 contenu booléen
+      donnée chp2 contenu décimal
   \end{catala}
   & Déclaration de structure
   \\
@@ -455,13 +452,13 @@
   \\
   \begin{catala}
     ```catala
-    déclaration champ d'application ChApp1:
+    déclaration champ d'application Chp1:
       interne var1 contenu entier
       interne var2 condition
-      ss_ch1 champ d'application ChApp0
+      ss_ch1 champ d'application Chp0
     ```
   \end{catala}
-  & Déclaration de champ\newline d'application
+  & Déclaration de champ d'application
   \\
   \begin{catala}
     ```catala
@@ -473,7 +470,7 @@
       contexte résultat var7 contenu ...
     ```
   \end{catala}
-  & Qualificateurs d'entrée-\newline sortie
+  & Qualificateurs d'entrée-sortie
   \\
   \begin{catala}
     ```catala
@@ -484,6 +481,23 @@
   \end{catala}
   & Transitions d'état
   \\
+  \begin{catala}
+    ```catala
+    déclaration const contenu décimal
+      égal à 17.1
+    ```
+  \end{catala}
+  & Définition globale
+  \\
+  \begin{catala}
+    ```catala
+    déclaration carré contenu décimal
+      dépend de x contenu décimal
+      égal à x * x
+    ```
+  \end{catala}
+  & Définition de fonction globale
+  \\
 \end{tabular}
 
 \section{Opérations}
@@ -491,8 +505,7 @@
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   \begin{catala}
     ```catala
-    non a
-    a et b
+    non a         a et b
     a ou b        # "ou à défaut"
     a ou bien b   # ou exclusif
     ```
@@ -501,8 +514,7 @@
   \\
   \begin{catala}
     ```catala
-    - a
-    a + b        a - b
+    - a          a + b        a - b
     a * b        a / b
     ```
   \end{catala}
@@ -550,7 +562,7 @@
     a +^ b    # durée
     ```
   \end{catala}
-  & Opérateurs à types\newline explicites
+  & Opérateurs à types explicites
   \\
 \end{tabular}
 
@@ -561,14 +573,14 @@
 \begin{tabular}{@{}p{\cola}>{\slshape}p{\colb}@{}}
   \begin{catala}
     ```catala
-    champ d'application ChApp1: ...
+    champ d'application Chp1: ...
     ```
   \end{catala}
   & Utilisation
   \\
   \begin{catala}
     ```catala
-    champ d'application ChApp1
+    champ d'application Chp1
       sous condition var1 >= 2: ...
     ```
   \end{catala}
@@ -576,16 +588,16 @@
   \\
   \begin{catala}
     ```catala
-    définition var1 égale à ...
+    définition var1 égal à ...
     ```
   \end{catala}
-  & Définition inconditionnelle
+  & Déf. inconditionnelle
   \\
   \begin{catala}
     ```catala
     définition var1
       sous condition ...
-      conséquence égale à ...
+      conséquence égal à ...
     ```
   \end{catala}
   & Définition conditionnelle
@@ -608,24 +620,24 @@
   \\
   \begin{catala}
     ```catala
-    définition f de x égale à ...
+    définition f de x égal à ...
     ```
   \end{catala}
-  & Définition de fonction/règle
+  & Déf./règle fonction
   \\
   \begin{catala}
     ```catala
     étiquette étq1 définition var1 ...
     ```
   \end{catala}
-  & Définition/règle étiquetée
+  & Déf./règle étiquetée
   \\
   \begin{catala}
     ```catala
     exception étq1 définition var1 ...
     ```
   \end{catala}
-  & Exc. à définition étiquetée
+  & Exc. à déf. étiquetée
   \\
   \begin{catala}
     ```catala
@@ -638,7 +650,7 @@
     ```catala
     définition var1
       état avant
-      égale à ...
+      égal à ...
     ```
   \end{catala}
   & Définition d'états
