@@ -380,14 +380,13 @@ let build_exceptions_graph
               if LabelName.compare edge.label_to label_to <> 0 then
                 Errors.raise_multispanned_error
                   (( Some
-                       "This declaration contradicts another exception \
-                        declarations:",
+                       "This definition contradicts other exception \
+                        definitions:",
                      edge_pos )
                   :: List.map
-                       (fun pos ->
-                         Some "Here is another exception declaration:", pos)
+                       (fun pos -> Some "Other exception definition:", pos)
                        edge.edge_positions)
-                  "The declaration of exceptions are inconsistent for variable \
+                  "The definition of exceptions are inconsistent for variable \
                    %a."
                   Ast.ScopeDef.format_t def_info)
             other_edges_originating_from_same_label;
@@ -438,38 +437,25 @@ let build_exceptions_graph
   g
 
 (** Outputs an error in case of cycles. *)
-let check_for_exception_cycle (g : ExceptionsDependencies.t) : unit =
+let check_for_exception_cycle
+    (def : Ast.rule RuleName.Map.t)
+    (g : ExceptionsDependencies.t) : unit =
   (* if there is a cycle, there will be an strongly connected component of
      cardinality > 1 *)
   let sccs = ExceptionsSCC.scc_list g in
   if List.length sccs < ExceptionsDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
     let spans =
-      List.flatten
-        (List.map
-           (fun (vs : RuleName.Set.t) ->
-             let v = RuleName.Set.choose vs in
-             let var_str, var_info =
-               Format.asprintf "%a" RuleName.format_t v, RuleName.get_info v
-             in
-             let succs = ExceptionsDependencies.succ_e g vs in
-             let _, edge_pos, _ =
-               List.find (fun (_, _, succ) -> List.mem succ scc) succs
-             in
-             [
-               ( Some
-                   ("Cyclic exception for definition of variable \""
-                   ^ var_str
-                   ^ "\", declared here:"),
-                 Marked.get_mark var_info );
-               ( Some
-                   ("Used here in the definition of another cyclic exception \
-                     for defining \""
-                   ^ var_str
-                   ^ "\":"),
-                 List.hd edge_pos );
-             ])
-           scc)
+      List.rev_map
+        (fun (vs : RuleName.Set.t) ->
+          let v = RuleName.Set.choose vs in
+          let rule = RuleName.Map.find v def in
+          let pos = Marked.get_mark (RuleName.get_info rule.Ast.rule_id) in
+          None, pos)
+        scc
     in
+    let v = RuleName.Set.choose (List.hd scc) in
     Errors.raise_multispanned_error spans
-      "Cyclic dependency detected between exceptions!"
+      "Exception cycle detected when defining %a: each of these %d exceptions \
+       applies over the previous one, and the first applies over the last"
+      RuleName.format_t v (List.length scc)

@@ -33,10 +33,10 @@ Incriminated variable:
   └─ Test
 
 Incriminated subscope variable definition:
-┌─⯈ tests/test_io/bad/inputing_to_not_input.catala_en:14.2-25:
+┌─⯈ tests/test_io/bad/inputing_to_not_input.catala_en:14.2-16:
 └──┐
 14 │   definition a.a equals 0
-   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
 #return code 255#
 ```

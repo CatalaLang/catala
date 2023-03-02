@@ -103,7 +103,7 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr boxed;
   rule_cons : expr boxed;
-  rule_parameter : (expr Var.t * typ) list option;
+  rule_parameter : (expr Var.t Marked.pos * typ) list Marked.pos option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -124,8 +124,8 @@ module Rule = struct
         let c2 = Expr.unbox r2.rule_cons in
         Expr.compare c1 c2
       | n -> n)
-    | Some l1, Some l2 ->
-      ListLabels.compare l1 l2 ~cmp:(fun (v1, t1) (v2, t2) ->
+    | Some (l1, _), Some (l2, _) ->
+      ListLabels.compare l1 l2 ~cmp:(fun ((v1, _), t1) ((v2, _), t2) ->
           match Type.compare t1 t2 with
           | 0 -> (
             let open Bindlib in
@@ -144,27 +144,33 @@ module Rule = struct
     | Some _, None -> 1
 end
 
-let empty_rule (pos : Pos.t) (have_parameter : typ list option) : rule =
+let empty_rule
+    (pos : Pos.t)
+    (parameters : (Uid.MarkedString.info * typ) list Marked.pos option) : rule =
   {
     rule_just = Expr.box (ELit (LBool false), Untyped { pos });
     rule_cons = Expr.box (ELit LEmptyError, Untyped { pos });
     rule_parameter =
-      (match have_parameter with
-      | Some typs -> Some (List.map (fun typ -> Var.make "dummy", typ) typs)
-      | None -> None);
+      Option.map
+        (Marked.map_under_mark
+           (List.map (fun (lbl, typ) -> Marked.map_under_mark Var.make lbl, typ)))
+        parameters;
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("empty", pos);
     rule_label = Unlabeled;
   }
 
-let always_false_rule (pos : Pos.t) (have_parameter : typ list option) : rule =
+let always_false_rule
+    (pos : Pos.t)
+    (parameters : (Uid.MarkedString.info * typ) list Marked.pos option) : rule =
   {
     rule_just = Expr.box (ELit (LBool true), Untyped { pos });
     rule_cons = Expr.box (ELit (LBool false), Untyped { pos });
     rule_parameter =
-      (match have_parameter with
-      | Some typs -> Some (List.map (fun typ -> Var.make "dummy", typ) typs)
-      | None -> None);
+      Option.map
+        (Marked.map_under_mark
+           (List.map (fun (lbl, typ) -> Marked.map_under_mark Var.make lbl, typ)))
+        parameters;
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("always_false", pos);
     rule_label = Unlabeled;
@@ -181,6 +187,7 @@ type meta_assertion =
 type scope_def = {
   scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
+  scope_def_parameters : (Uid.MarkedString.info * typ) list Marked.pos option;
   scope_def_is_condition : bool;
   scope_def_io : io;
 }

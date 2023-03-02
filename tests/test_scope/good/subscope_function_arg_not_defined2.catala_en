@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope Callee:
-  context function condition depends on integer
+  context function condition depends on x content integer
   context input_v content integer
   context output output_v condition
 

@@ -910,6 +910,69 @@ let merge_conditions
   | None, Some cond -> cond
   | None, None -> Expr.elit (LBool true) (Untyped { pos = default_pos })
 
+let rec arglist_eq_check pos_decl pos_def pdecl pdefs =
+  match pdecl, pdefs with
+  | [], [] -> ()
+  | [], (arg, apos) :: _ ->
+    Errors.raise_multispanned_error
+      [Some "Declared here:", pos_decl; Some "Extra argument:", apos]
+      "This definition has an extra, undeclared argument '%a'" Print.lit_style
+      arg
+  | (arg, apos) :: _, [] ->
+    Errors.raise_multispanned_error
+      [
+        Some "Argument declared here:", apos;
+        Some "Mismatching definition:", pos_def;
+      ]
+      "This definition is missing argument '%a'" Print.lit_style arg
+  | decl :: pdecl, def :: pdefs when Uid.MarkedString.equal decl def ->
+    arglist_eq_check pos_decl pos_def pdecl pdefs
+  | (decl_arg, decl_apos) :: _, (def_arg, def_apos) :: _ ->
+    Errors.raise_multispanned_error
+      [
+        Some "Argument declared here:", decl_apos; Some "Defined here:", def_apos;
+      ]
+      "Function argument name mismatch between declaration ('%a') and \
+       definition ('%a')"
+      Print.lit_style decl_arg Print.lit_style def_arg
+
+let process_rule_parameters
+    ctxt
+    (def_key : Ast.ScopeDef.t Marked.pos)
+    (def : Surface.Ast.definition) :
+    Name_resolution.context
+    * (Ast.expr Var.t Marked.pos * typ) list Marked.pos option =
+  let decl_name, decl_pos = def_key in
+  let declared_params = Name_resolution.get_params ctxt decl_name in
+  match declared_params, def.S.definition_parameter with
+  | None, None -> ctxt, None
+  | None, Some (_, pos) ->
+    Errors.raise_multispanned_error
+      [
+        Some "Declared here without arguments", decl_pos;
+        Some "Unexpected arguments appearing here", pos;
+      ]
+      "Extra arguments in this definition of %a" Ast.ScopeDef.format_t decl_name
+  | Some (_, pos), None ->
+    Errors.raise_multispanned_error
+      [
+        Some "Arguments declared here", pos;
+        ( Some "Definition missing the arguments",
+          Marked.get_mark def.Surface.Ast.definition_name );
+      ]
+      "This definition for %a is missing the arguments" Ast.ScopeDef.format_t
+      decl_name
+  | Some (pdecl, pos_decl), Some (pdefs, pos_def) ->
+    arglist_eq_check pos_decl pos_def (List.map fst pdecl) pdefs;
+    let ctxt, params =
+      List.fold_left_map
+        (fun ctxt ((lbl, pos), ty) ->
+          let ctxt, v = Name_resolution.add_def_local_var ctxt lbl in
+          ctxt, ((v, pos), ty))
+        ctxt pdecl
+    in
+    ctxt, Some (params, pos_def)
+
 (** Translates a surface definition into condition into a desugared {!type:
     Ast.rule} *)
 let process_default
@@ -917,7 +980,7 @@ let process_default
     (scope : ScopeName.t)
     (def_key : Ast.ScopeDef.t Marked.pos)
     (rule_id : RuleName.t)
-    (param_uid : Ast.expr Var.t Marked.pos option)
+    (params : (Ast.expr Var.t Marked.pos * typ) list Marked.pos option)
     (precond : Ast.expr boxed option)
     (exception_situation : Ast.exception_situation)
     (label_situation : Ast.label_situation)
@@ -931,26 +994,9 @@ let process_default
   let just = merge_conditions precond just (Marked.get_mark def_key) in
   let cons = translate_expr (Some scope) (Some def_key) ctxt cons in
   {
-    rule_just = just;
+    Ast.rule_just = just;
     rule_cons = cons;
-    rule_parameter =
-      (let def_key_typ =
-         Name_resolution.get_def_typ ctxt (Marked.unmark def_key)
-       in
-       match Marked.unmark def_key_typ, param_uid with
-       | TArrow ([t_in], _), Some param_uid ->
-         Some [Marked.unmark param_uid, t_in]
-       | TArrow _, Some _ ->
-         Errors.raise_spanned_error (Expr.pos cons)
-           "This definition has a function type but there is multiple \
-            arguments."
-       | TArrow _, None ->
-         Errors.raise_spanned_error (Expr.pos cons)
-           "This definition has a function type but the parameter is missing"
-       | _, Some _ ->
-         Errors.raise_spanned_error (Expr.pos cons)
-           "This definition has a parameter but its type is not a function"
-       | _ -> None);
+    rule_parameter = params;
     rule_exception = exception_situation;
     rule_id;
     rule_label = label_situation;
@@ -976,14 +1022,10 @@ let process_def
     Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts
   in
   (* We add to the name resolution context the name of the parameter variable *)
-  let param_uid, new_ctxt =
-    match def.definition_parameter with
-    | None -> None, ctxt
-    | Some param ->
-      let ctxt, param_var =
-        Name_resolution.add_def_local_var ctxt (Marked.unmark param)
-      in
-      Some (Marked.same_mark_as param_var param), ctxt
+  let new_ctxt, param_uids =
+    process_rule_parameters ctxt
+      (Marked.same_mark_as def_key def.definition_name)
+      def
   in
   let scope_updated =
     let scope_def = Ast.ScopeDefMap.find def_key scope.scope_defs in
@@ -1026,7 +1068,7 @@ let process_def
           RuleName.Map.add rule_name
             (process_default new_ctxt scope_uid
                (def_key, Marked.get_mark def.definition_name)
-               rule_name param_uid precond exception_situation label_situation
+               rule_name param_uids precond exception_situation label_situation
                def.definition_condition def.definition_expr)
             scope_def.scope_def_rules;
       }
@@ -1179,39 +1221,27 @@ let process_topdef
       (Marked.unmark def.S.topdef_name)
       ctxt.Name_resolution.topdefs
   in
-  let ty_pos = Marked.get_mark def.S.topdef_type in
-  let translate_typ t =
-    (* Todo: better helper function from a more appropriate place *)
-    Name_resolution.process_base_typ ctxt
-      (S.Data (Marked.unmark t), Marked.get_mark t)
-  in
-  let body_type = translate_typ def.S.topdef_type in
-  let arg_types =
-    List.map (fun (_, ty) -> translate_typ ty) def.S.topdef_args
-  in
+  let translate_typ t = Name_resolution.process_type ctxt t in
+  let translate_tbase (tbase, m) = translate_typ (Base tbase, m) in
+  let typ = translate_typ def.S.topdef_type in
   let expr =
-    let ctxt, rv_args =
-      List.fold_left
-        (fun (ctxt, rv_args) (v, _ty) ->
-          let ctxt, a =
-            Name_resolution.add_def_local_var ctxt (Marked.unmark v)
-          in
-          ctxt, a :: rv_args)
-        (ctxt, []) def.S.topdef_args
-    in
-    let body = translate_expr None None ctxt def.S.topdef_expr in
-    match rv_args with
-    | [] -> body
-    | rv_args ->
+    match def.S.topdef_args with
+    | None -> translate_expr None None ctxt def.S.topdef_expr
+    | Some (args, _) ->
+      let ctxt, args_tys =
+        List.fold_left_map
+          (fun ctxt ((lbl, pos), ty) ->
+            let ctxt, v = Name_resolution.add_def_local_var ctxt lbl in
+            ctxt, ((v, pos), ty))
+          ctxt args
+      in
+      let body = translate_expr None None ctxt def.S.topdef_expr in
+      let args, tys = List.split args_tys in
       Expr.make_abs
-        (Array.of_list (List.rev rv_args))
-        body arg_types
+        (Array.of_list (List.map Marked.unmark args))
+        body
+        (List.map translate_tbase tys)
         (Marked.get_mark def.S.topdef_name)
-  in
-  let typ =
-    match arg_types with
-    | [] -> body_type
-    | _ -> TArrow (arg_types, body_type), ty_pos
   in
   {
     prgm with
@@ -1250,6 +1280,7 @@ let init_scope_defs
             Ast.scope_def_rules = RuleName.Map.empty;
             Ast.scope_def_typ = v_sig.var_sig_typ;
             Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+            Ast.scope_def_parameters = v_sig.var_sig_parameters;
             Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
           }
           scope_def_map
@@ -1263,6 +1294,7 @@ let init_scope_defs
                   Ast.scope_def_rules = RuleName.Map.empty;
                   Ast.scope_def_typ = v_sig.var_sig_typ;
                   Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                  Ast.scope_def_parameters = v_sig.var_sig_parameters;
                   Ast.scope_def_io =
                     (* The first state should have the input I/O of the original
                        variable, and the last state should have the output I/O
@@ -1306,6 +1338,7 @@ let init_scope_defs
                 Ast.scope_def_rules = RuleName.Map.empty;
                 Ast.scope_def_typ = v_sig.var_sig_typ;
                 Ast.scope_def_is_condition = v_sig.var_sig_is_condition;
+                Ast.scope_def_parameters = v_sig.var_sig_parameters;
                 Ast.scope_def_io = attribute_to_io v_sig.var_sig_io;
               }
               scope_def_map)

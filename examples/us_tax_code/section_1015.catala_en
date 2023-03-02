@@ -11,7 +11,8 @@ declaration structure Acquisition:
   data no_sale_or_exchange_before content boolean
 
 declaration structure Value:
-  data fair_market content money depends on date
+  data fair_market content money
+    depends on acquisition_date content date
   data last_acquisition content money
   data net_appreciation content money
 
@@ -19,7 +20,8 @@ declaration structure Transferor:
   data basis content money
   data basis_known content money
   data acquisition content Acquisition
-  data gain_or_loss content money depends on date
+  data gain_or_loss content money
+    depends on acquisition_moment content date
 
 declaration scope BasisOfGift:
   context acquisition content Acquisition
