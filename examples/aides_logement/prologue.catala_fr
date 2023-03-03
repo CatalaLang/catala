@@ -130,10 +130,6 @@ déclaration structure LogementFoyer:
 #### Calcul et éligibilité pour tous les secteurs
 
 ```catala-metadata
-déclaration énumération ArrivéeRécenteFoyerConjointAscendantÀCharge:
-  -- Oui contenu date
-  -- Non
-
 déclaration énumération PrestationReçue:
   -- AllocationsFamiliales
   -- ComplémentFamilial
@@ -227,8 +223,6 @@ déclaration structure Ménage:
   donnée personnes_à_charge contenu collection PersonneÀCharge
   donnée nombre_autres_occupants_logement contenu entier
   donnée situation_familiale contenu SituationFamiliale
-  donnée arrivée_récente_foyer_conjoint_ascendant_à_charge contenu
-    ArrivéeRécenteFoyerConjointAscendantÀCharge
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
   donnée enfant_à_naître_après_quatrième_mois_grossesse contenu booléen
   donnée résidence contenu Collectivité
@@ -328,6 +322,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
     contenu collection PersonneÀCharge
   interne durée_maintien_aide_l861_5_3 contenu durée
   contexte date_entrée_vigueur_r861_5 contenu date
+  interne nombre_personnes_logement contenu entier
 
   # Autres variables
   interne patrimoine_total_demandeur contenu argent
@@ -1259,8 +1254,6 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
              -- GardeAlternéeCoefficientPriseEnCharge: faux
              -- PasDeGardeAlternée: vrai
          )))
-      -- arrivée_récente_foyer_conjoint_ascendant_à_charge:
-        ménage.arrivée_récente_foyer_conjoint_ascendant_à_charge
       -- résidence: ménage.résidence
       -- nombre_autres_occupants_logement :
         ménage.nombre_autres_occupants_logement

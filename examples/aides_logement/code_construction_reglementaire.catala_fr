@@ -1031,18 +1031,19 @@ plus.
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
+  définition nombre_personnes_logement égal à
+    (selon ménage.situation_familiale sous forme
+    -- Célibataire: 1
+    -- Mariés: 2
+    -- Pacsés: 2
+    -- Concubins: 2
+    -- CélibataireSéparéDeFait: 1
+    -- ConcubinageDontSéparéDeFait: 2) +
+    ménage.nombre_autres_occupants_logement +
+    nombre de ménage.personnes_à_charge
+
+  étiquette base
   règle condition_logement_surface sous condition
-    soit nombre_personnes_logement égal à
-      (selon ménage.situation_familiale sous forme
-      -- Célibataire: 1
-      -- Mariés: 2
-      -- Pacsés: 2
-      -- Concubins: 2
-      -- CélibataireSéparéDeFait: 1
-      -- ConcubinageDontSéparéDeFait: 2) +
-      ménage.nombre_autres_occupants_logement +
-      nombre de ménage.personnes_à_charge
-    dans
     soit condition_logement_surface_minimale_sans_seuil_m_carrés égal à
       (selon ménage.situation_familiale sous forme
       -- Célibataire: 9
@@ -5020,6 +5021,13 @@ du logement, du budget, de la sécurité sociale, et de l'agriculture.
 
 ##### Chapitre III : Procédure de conservation et de versement des allocations de logement en cas de non-décence constatée des logements
 
+```catala
+# Nous choisissons pour le moment de ne pas formaliser ce chapitre car il
+# n'affecte pas l'éligibilité et le montant du ménage aux aides au logement.
+# Cependant, il contient des informations importantes pour la gestion du
+# versement des aides au logement donc il faudrait idéalement le formaliser.
+```
+
 ###### Article R843-1 | LEGIARTI000038878645
 
 Lorsque le logement ne répond pas aux caractéristiques de décence mentionnées à
@@ -5054,6 +5062,12 @@ logement et l'hébergement des personnes défavorisées afin que ce dernier exam
 avec l'allocataire une solution adaptée d'amélioration du logement ou une solution
 de relogement.
 
+```catala
+# Cet article décrit la manière dont une perte de décence du logement peut être
+# gérée par le bailleur dans un cadre temporaire. Cependant cela n'affecte
+# pas l'éligibilité et le montant du ménage aux aides au logement donc nous
+# le considérons hors du champ de notre calculette.
+```
 
 ###### Article R843-2 | LEGIARTI000038878643
 
@@ -5061,6 +5075,11 @@ Le délai mentionné au premier alinéa de l'article L. 843-1 est fixé à dix-h
 
 Les délais mentionnés aux premiers alinéas des articles L. 843-3 et L. 843-4 sont
 fixés à six mois.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
 
 ###### Article R843-3 | LEGIARTI000038878641
 
@@ -5073,6 +5092,11 @@ cas où ce dernier saisit la commission départementale de conciliation.
 
 L'information du locataire reproduit les dispositions de ce même article et précise
 l'adresse de la commission départementale de conciliation.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
 
 ###### Article R843-4 | LEGIARTI000044636874
 
@@ -5091,6 +5115,11 @@ de logement conservé par l'organisme payeur est versé au propriétaire.
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions entrent en vigueur le 1er janvier 2023.
 
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
 ###### Article R843-5 | LEGIARTI000038878637
 
 Les organismes mentionnés à l'article L. 843-1 sont habilités, au vu de leur
@@ -5103,6 +5132,11 @@ au moins cinq ans.
 
 L'habilitation ne porte que sur les logements pour lesquels l'organisme payeur verse
 une allocation de logement.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
 
 ###### Article R843-6 | LEGIARTI000038878635
 
@@ -5137,6 +5171,11 @@ un renouvellement de six mois ne peut être accordé que si l'allocataire apport
 preuve qu'il n'était manifestement pas en mesure de trouver un logement au cours du
 délai précédent.
 
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
 ###### Article R843-7 | LEGIARTI000038878633
 
 Lorsque l'allocataire fait simultanément l'objet de la procédure de conservation de
@@ -5161,6 +5200,11 @@ articles L. 843-1 à L. 843-4 pour les sommes dues pendant la période de conser
 Dans tous les cas, l'organisme payeur informe le bailleur de la suspension de
 l'allocation de logement.
 
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
 ###### Article R843-8 | LEGIARTI000038878631
 
 Lorsque l'allocataire fait l'objet soit de la procédure relative à la non-décence du
@@ -5176,6 +5220,11 @@ A l'achèvement de la procédure relative aux impayés, si les conditions de peu
 et de décence ne sont toujours pas respectées et si les délais de la procédure
 prévue aux articles L. 843-1 à L. 843-3 ou de celle prévue aux articles R. 844-1 et
 R. 844-2 sont expirés, le versement de l'allocation de logement est suspendu.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
 
 ##### Chapitre IV : Conditions de peuplement
 
@@ -5200,6 +5249,11 @@ enquête sociale et au vu d'une attestation motivée du préfet certifiant que
 l'allocataire ne peut être logé conformément aux conditions fixées à l'article
 R. 822-25.
 
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
 ###### Article R844-2 | LEGIARTI000038878625
 
 Si un logement devient surpeuplé par suite d'une naissance ou de la prise en charge
@@ -5214,10 +5268,20 @@ l'article R. 822-25 .
 
 En cas de refus de dérogation, le deuxième alinéa de l'article R. 844-1 est applicable.
 
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
 ###### Article R844-3 | LEGIARTI000038878623
 
 Les changements dans les conditions de peuplement des locaux doivent être déclarés
 dans le délai d'un mois par l'allocataire.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
 
 ###### Article R844-4 | LEGIARTI000038878621
 
@@ -5233,6 +5297,22 @@ personne seule et de seize mètres carrés pour deux personnes.
 
 Le droit à l'allocation de logement n'est pas ouvert si la chambre est occupée par
 plus de deux personnes.
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  étiquette r_844_4 exception base
+  règle condition_logement_surface sous condition
+    ménage.personnes_âgées_handicapées_foyer_r844_4 et
+    ménage.logement.surface_m_carrés >=
+      (si nombre_personnes_logement = 1 alors 9 sinon 16)
+  conséquence rempli
+
+  exception r_844_4
+  règle condition_logement_surface sous condition
+    ménage.personnes_âgées_handicapées_foyer_r844_4 et
+    nombre_personnes_logement > 2
+  conséquence non rempli
+```
 
 ###### Article R844-5 | LEGIARTI000038878619
 

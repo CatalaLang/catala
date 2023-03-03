@@ -1361,15 +1361,8 @@ Ces conditions de peuplement et la durée du maintien de l'aide sont fixées
 par voie réglementaire. " ;
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
-  exception règle condition_ouverture_l822_10_peuplement_logement
-  sous condition
-    (non condition_logement_surface) et
-    selon ménage.arrivée_récente_foyer_conjoint_ascendant_à_charge sous forme
-    -- ArrivéeRécenteFoyerConjointAscendantÀCharge.Oui de date_arrivée:
-      date_arrivée + durée_maintien_aide_l861_5_3 <= date_courante
-    -- ArrivéeRécenteFoyerConjointAscendantÀCharge.Non: faux
-  conséquence rempli
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
 ```
 
 4° Le septième alinéa de l'article L. 823-1 n'est pas applicable ;
