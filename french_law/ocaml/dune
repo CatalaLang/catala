@@ -25,3 +25,8 @@
   "A collection of functions for computing French taxes and benefits derived from Catala programs")
  (libraries catala.runtime_ocaml law_source)
  (modules api))
+
+(rule
+ (alias runtest)
+ (action
+  (run ./bench.exe)))
