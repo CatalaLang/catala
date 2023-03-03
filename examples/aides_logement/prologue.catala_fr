@@ -225,6 +225,7 @@ déclaration structure Ménage:
   donnée situation_familiale contenu SituationFamiliale
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
   donnée enfant_à_naître_après_quatrième_mois_grossesse contenu booléen
+  donnée personnes_âgées_handicapées_foyer_r844_4 contenu booléen
   donnée résidence contenu Collectivité
 
 déclaration structure Patrimoine:
@@ -321,7 +322,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne personnes_à_charge_prises_en_compte
     contenu collection PersonneÀCharge
   interne durée_maintien_aide_l861_5_3 contenu durée
-  contexte date_entrée_vigueur_r861_5 contenu date
+  contexte date_entrée_vigueur_différée_cch contenu date
   interne nombre_personnes_logement contenu entier
 
   # Autres variables

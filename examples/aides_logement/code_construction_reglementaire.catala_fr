@@ -5321,6 +5321,11 @@ articles L. 441-1 à L. 443-10 du code de l'action sociale et des familles sont 
 fixées par les articles R. 822-24 et R. 822-25 qui sont compatibles avec les
 contraintes liées à l'âge ou au handicap de ces personnes.
 
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
 #### Titre V : Contrôles, lutte contre la fraude et sanctions
 
 ```catala
@@ -5395,7 +5400,7 @@ personne en plus, dans la limite de cinquante-quatre mètres carrés pour neuf p
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
   ménage.résidence sous forme Mayotte et
-  date_courante >= date_entrée_vigueur_r861_5:
+  date_courante >= date_entrée_vigueur_différée_cch:
 
   exception règle condition_logement_surface sous condition
     soit nombre_personnes_logement égal à
@@ -5512,11 +5517,13 @@ par l’article L. 831-1 du code de la construction et de l’habitation, à com
 2021.
 
 ```catala
+# TODO juridique et informatique: appliquer cette date d'entrée en vigueur
+# différée à tous les autres articles avec une NOTA similaire.
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  définition date_entrée_vigueur_r861_5 égal à |2021-01-01|
+  définition date_entrée_vigueur_différée_cch égal à |2021-01-01|
 
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
-  définition éligibilité_commune.date_entrée_vigueur_r861_5 sous condition
+  définition éligibilité_commune.date_entrée_vigueur_différée_cch sous condition
     ménage.logement.mode_occupation sous forme
       AccessionPropriétéLocalUsageExclusifHabitation
   conséquence égal à
@@ -5632,7 +5639,14 @@ logements très sociaux, en accession à la propriété aidée par l'Etat ;
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
    exception règle condition_d842_11_3 sous condition
-      opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Guyane: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- n'importe quel: faux) et
+    opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
    conséquence non rempli
 ```
 
@@ -5667,15 +5681,28 @@ L'âge limite pour l'ouverture du droit à l'allocation de logement sociale pré
 dispositions du dernier alinéa de l'article L. 861-6 est fixé à vingt-deux ans.
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
-  (selon ménage.résidence sous forme
-  -- Guadeloupe: vrai
-  -- Guyane: vrai
-  -- Martinique: vrai
-  -- LaRéunion: vrai
-  -- Mayotte: vrai
-  -- n'importe quel: faux):
-  définition prestations_familiales.âge_l512_3_2 égal à 22 an
+# Le dernier alinéa de L861-6 introduit une restriction supplémentaire pour
+# la prise en compte des enfants à charge : après l'obligation scolaire,
+# les enfants sont considérés comme à charge jusqu'à un certain âge et
+# s'ils suivent des études ou assimilé. L'âge limite après obligation scolaire
+# existe déjà en Métropole, il est prévu par L512-3 du CCS mais ici on le
+# redéfini pour être à 22 ans, sachant qu'il est déjà redéfini pour être à 21
+# ans par R823-4 CCH. Petite subtilité supplémentaire: ici le D861-9 nous
+# dit que cette âge limite de 22 ans ne s'applique que pour l'allocation
+# logement alors que R823-4 est une disposition commune à l'AL et à l'APL.
+# Or dans les DROM il n'y a pas d'APL, seulement l'AL, donc ici nous pouvons
+# modifier directement l'éligibilité commune aux AL et aux APL pour éviter
+# du code compliqué qui ne s'appliquerait qu'aux AL.
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  exception définition prestations_familiales.âge_l512_3_2 sous condition
+    (selon ménage.résidence sous forme
+      -- Guadeloupe: vrai
+      -- Guyane: vrai
+      -- Martinique: vrai
+      -- LaRéunion: vrai
+      -- Mayotte: vrai
+      -- n'importe quel: faux)
+  conséquence égal à 22 an
 ```
 
 ###### Article D861-10 | LEGIARTI000038878579
@@ -5705,13 +5732,18 @@ l'article 28 de la même ordonnance ".
 Les dispositions du chapitre III du titre IV du présent livre et de l'article R. 844-2 ne
 sont pas applicables à Mayotte.
 
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
 #### Chapitre II : Saint-Barthélemy et Saint-Martin
 
 ###### Article R862-1 | LEGIARTI000038878573
 
 Pour l'application du présent livre à Saint-Barthélemy et à Saint-Martin :
 
-1° La gestion des aides personnelles au logement est assurée :
+1° La gestion des aides personnelles au logement est as surée :
 
 a) A Saint-Martin, dans les conditions prévues par le deuxième alinéa de l'article L. 752-1
 du code de la sécurité sociale ;
@@ -5726,6 +5758,11 @@ destinés au logement collectif, à titre de résidence principale, de personnes
 immeubles comportant à la fois des locaux privatifs, meublés ou non, et des locaux communs
  affectés à la vie collective.
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 ##### Section I : Dispositions communes aux aides personnelles au logement
 
 ###### Article R862-2 | LEGIARTI000041419269
@@ -5737,14 +5774,37 @@ Pour leur application à Saint-Barthélemy et à Saint-Martin :
 de décence que doit remplir le logement sont celles prévues par le décret n° 2002-120 du 30
 janvier 2002 relatif aux caractéristiques du logement décent. " ;
 
+```catala
+# Cette disposition remplace la phrase originelle de R822-4 par une phrase
+# ayant srictement le même sens mais formulée un peu différemment...
+# Rien à faire pour nous.
+```
+
 2° Le deuxième alinéa de l'article R. 823-4 est remplacé par les dispositions suivantes :
 " 1° Les enfants de moins de vingt-deux ans et considérés comme enfants à charge au sens des
 1° et 2° de l'article L. 512-3 du code de la sécurité sociale et de l'article L. 823-2 du
 présent code " ;
 
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= date_entrée_vigueur_différée_cch:
+
+  exception définition prestations_familiales.âge_l512_3_2 sous condition
+    selon ménage.résidence sous forme
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux
+  conséquence égal à 22 an
+```
+
 3° Au 2° de l'article R. 823-11 , les mots : " définies au I de l'article L. 521-2 du
 présent code " sont remplacés par les mots : " prévues par la réglementation applicable
 localement " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 4° Le quatrième alinéa de l'article R. 824-7 est ainsi modifié :
 a) Après les mots : " fonds départemental de solidarité pour le logement ", sont insérés les
@@ -5755,7 +5815,14 @@ en œuvre du droit au logement " sont supprimés ; 5° Au second alinéa de l'ar
 les mots : " mentionné à l'article 3 de la loi n° 90-449 du 31 mai 1990 visant à la mise en
 œuvre du droit au logement, " sont remplacés par les mots : ", s'il existe localement,  "   .
 
-NOTA : Se reporter aux conditions d'application prévues à l'article 25 du décret n° 2019-1574
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+NOTA :
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret n° 2019-1574
 du 30 décembre 2019. Conformément à l'article 1 du décret n° 2020-451 du 20 avril 2020
 l'article susvisé a été modifié :
 Ces dispositions sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
@@ -5771,11 +5838,18 @@ le calcul des droits à l’aide personnalisée au logement prévue pour les acc
 propriété par l’article L. 831-1 du code de la construction et de l’habitation, à compter du
 mois de mai 2021.
 
+```catala
+# NOTA similaire à R861-5, voir cet article pour l'encodage de la date
+# d'entrée en vigueur différée.
+```
+
 ###### Article R862-3 | LEGIARTI000039621265
 
 L'article R. 824-30 n'est pas applicable à Saint-Barthélemy et à Saint-Martin.
 
-##### Section 1 : Dispositions communes aux aides personnelles au logement
+```catala
+# Concerne les impayés de loyer, hors du champ de notre calculette.
+```
 
 ###### Article R862-4 | LEGIARTI000041419262
 
@@ -5785,8 +5859,18 @@ I.-Pour l'application, à Saint-Martin et à Saint-Barthélemy, de l'article D. 
 améliorer les rapports locatifs et portant modification de la loi n° 86-1290 du 23 décembre
 1986 ” sont remplacés par les mots : “ applicable localement ” ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 2° Pour l'application de ce même article, à défaut d'indice spécifique à la collectivité, il
 est fait application de celui en vigueur en métropole.
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 II.-Les arrêtés relatifs aux allocations de logement prévus à l'article D. 823-19 sont
 également pris par le ministre chargé de l'outre-mer.
@@ -5818,9 +5902,19 @@ Pour leur application à Saint-Barthélemy et à Saint-Martin :
 mots : " prévues par la réglementation applicable localement en matière de location-accession
 à la propriété immobilière " ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 2° A l'article R. 832-22 , les mots : " dans les conditions prévues à la section 7 du
 chapitre III du titre V du livre III " sont remplacés par les mots : " dans les conditions
 prévues par la règlementation locale ".
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 ###### Article D862-6 | LEGIARTI000038878559
 
@@ -5831,6 +5925,11 @@ Pour leur application à Saint-Barthélemy et à Saint-Martin :
 a) Au deuxième alinéa, les mots : " prévus aux articles L. 353-20 et L. 442-8-1 " sont
 remplacés par les mots : " prévus par la réglementation applicable localement " ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 b) Le quatrième alinéa est abrogé ;
 
 2° A l'article D. 832-3 , les mots : " les sociétés faisant l'objet des dispositions des
@@ -5839,9 +5938,21 @@ articles L. 212-1 à L. 212-13 et L. 213-1 à L. 213-5 " sont remplacés par les
 en vue de l'attribution d'immeubles aux associés par fractions divises et les sociétés
 coopératives de construction " ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 3° Pour le calcul de l'équivalence de loyer et de charges locatives minimale prévu au 3° de
 l'article D. 832-24 , les articles R. 353-156 à R. 353-160 du présent code sont applicables à
 Saint-Barthélemy et à Saint-Martin.
+
+```catala
+# Les articles R. 353-156 à R. 353-160 parlent de la fraction de la redevance
+# en logement-foyer comptée pour le barème des aides au logement. Ici on nous
+# dit qu'à Saint-Barthélemy les règles de la métropole s'appliquent aussi,
+# rien à coder.
+```
 
 ##### Section III : Allocations de logement
 
@@ -5852,13 +5963,41 @@ Pour leur application à Saint-Barthélemy et à Saint-Martin :
 1° A l'article D. 842-4 , les mots : " en application de l'article L. 522-1 " sont remplacés
 par les mots : " en application de la réglementation applicable localement " ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 2° Aux articles D. 842-6 et D. 842-15 , pour le calcul du nombre de parts " N " intervenant
 dans le coefficient de prise en charge " K ", la majoration pour personne à charge mentionnée
 au d du 2° de l'article D. 832-25 est limitée à six enfants ;
 
+```catala
+# Dispositif déjà codé dans D861-8, ici on l'active succintement.
+champ d'application CalculAllocationLogementAccessionPropriété:
+  règle calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge
+  sous condition
+    selon résidence sous forme
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux
+  conséquence rempli
+```
+
 3° Les dispositions du troisième alinéa de l'article D. 842-11 et du 1° de l'article
 D. 842-12 ne sont pas applicables aux opérations de logements évolutifs sociaux ou de
 logements très sociaux, en accession à la propriété aidée par l'Etat ;
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+   exception règle condition_d842_11_3 sous condition
+    (selon résidence sous forme
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+   conséquence non rempli
+```
 
 4° Les arrêtés relatifs aux allocations de logement prévus aux articles D. 842-13 et
 D. 842-18 sont également pris par le ministre chargé de l'outre-mer.
@@ -5878,6 +6017,13 @@ c) Au dernier alinéa, après les mots : " le comité responsable du plan local 
 logement et l'hébergement des personnes défavorisées " sont insérés les mots :
 ", s'il existe, " ;
 
+```catala
+# Cet article décrit la manière dont une perte de décence du logement peut être
+# gérée par le bailleur dans un cadre temporaire. Cependant cela n'affecte
+# pas l'éligibilité et le montant du ménage aux aides au logement donc nous
+# le considérons hors du champ de notre calculette.
+```
+
 2° L'article R. 843-6 est ainsi modifié :
 
 a) Au 2°, les mots : " de l'article 6 de la loi n° 89-462 du 6 juillet 1989 tendant à
@@ -5888,10 +6034,20 @@ b) Au 5°, les mots : " ou qu'il a saisi la commission de médiation prévue à 
 L. 441-2-3 " sont remplacés par les mots : " ou qu'il a saisi une commission de médiation
 prévue par la réglementation applicable localement ".
 
-###### Article R 862-9 | LEGIARTI000038878551
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R862-9 | LEGIARTI000038878551
 
 L'article R. 843-3 et le deuxième alinéa de l'article R. 844-1 ne sont pas applicables à
 Saint-Barthélemy et à Saint-Martin.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
 
 #### Chapitre III : Saint-Pierre-et-Miquelon
 
@@ -5902,9 +6058,19 @@ Pour l'application du présent livre à Saint-Pierre-et-Miquelon :
 1° La gestion des aides personnelles au logement est confiée à la caisse de prévoyance
 sociale de Saint-Pierre-et-Miquelon ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 2° Un “ logement-foyer ” s'entend d'un établissement destiné au logement collectif, à
 titre de résidence principale, de personnes dans des immeubles comportant à la fois des
 locaux privatifs meublés ou non, et des locaux communs affectés à la vie collective.
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
@@ -5920,11 +6086,7 @@ janvier 2022.
 
 ###### Sous-section I : Principes généraux
 
-```catala
-# Une division en plus dans la hiérachie des titres. On doit répercuter sur tous les autres?
-```
-
-####### Article R 863-3 | LEGIARTI000044636779
+####### Article R863-3 | LEGIARTI000044636779
 
 Les dispositions du titre II du présent livre ne sont pas applicables à
 Saint-Pierre-et-Miquelon en ce qui concerne l'aide personnalisée au logement mentionnée
@@ -5933,6 +6095,10 @@ au 1° de l'article L. 821-1.
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
 janvier 2022.
+
+```catala
+# Redite de L860-3, rien à coder.
+```
 
 ###### Sous-section II : Conditions générales d'attribution
 
@@ -5943,12 +6109,24 @@ Pour leur application à Saint-Pierre-et-Miquelon :
 1° A l'article R. 822-2, les mots : “ la période mentionnée au 1° de l'article R. 822-3 ”
 sont remplacés par les mots : “ l'année civile ” ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 2° L'article R. 822-3 est remplacé par les dispositions suivantes :
 “ Art. R. 822-3.-Les ressources prises en compte pour l'établissement des aides
 personnelles au logement sont celles perçues pendant l'année civile de référence.
 
 “ L'année civile de référence est l'avant-dernière année précédant la période de
 paiement. ” ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
 
 3° L'article R. 822-4 est remplacé par les dispositions suivantes :
 
@@ -5986,16 +6164,51 @@ des impôts.
 faveur d'une personne handicapée, mentionnés au g du 2 de l'article 75 du code local des
 impôts. ” ;
 
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
 4° L'article R. 822-5 n'est pas applicable à Saint-Pierre-et-Miquelon ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
 
 5° Au 2° l'article R. 822-6, après les mots : “ l'article L. 161-17-2 du code de la
 sécurité sociale ”, sont insérés les mots : “ dans sa rédaction résultant du b du 1° de
 l'article 5 de la loi n° 87-563 du 17 juillet 1987 portant réforme du régime d'assurance
 vieillesse applicable à Saint-Pierre-et-Miquelon ” ;
 
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
 6° A l'article R. 822-7, les mots : “ au 1° de ” sont remplacés par le mot : “ à ” ;
 
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
 7° L'article R. 822-18 n'est pas applicable à Saint-Pierre-et-Miquelon ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
 
 8° A l'article R. 822-22 :
 
@@ -6006,6 +6219,12 @@ b) Le 2° est remplacé par les dispositions suivantes :
 “ 2° Pour le patrimoine immobilier, du loyer moyen annuel brut observé sur ce type de
 bien. ” ;
 
+```catala
+# Ici on modifie les règles à Saint-Pierre-Et-Miquelon pour correctement
+# remplir demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
+# mais rien à coder pour nous.
+```
+
 9° L'article R. 822-24 est remplacé par les dispositions suivantes :
 
 “ Art. R. 822-24.-Pour le versement de l'aide personnelle au logement, les
@@ -6013,6 +6232,10 @@ caractéristiques de décence que doit remplir le logement sont celles prévues 
 dispositions du décret n° 2002-120 du 30 janvier 2002 relatif aux caractéristiques du
 logement décent pris pour l'application de l'article 187 de la loi n° 2000-1208 du 13
 décembre 2000 relative à la solidarité et au renouvellement urbain.
+
+```catala
+# Décence du logement déjà prise en compte dans L822-9
+```
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
@@ -6031,6 +6254,12 @@ applicable localement. Ils sont arrondis à la centaine d'euro la plus proche.
 “ A défaut d'indice spécifique à la collectivité, il est fait application de celui en
 vigueur en métropole.
 
+```catala
+# Cet article régit la manière dont les montants forfaitaires de ressources
+# évoluent d'année en année mais nous ne cherchons pas à formaliser cela
+# dans ce calculateur.
+```
+
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
 janvier 2022.
@@ -6047,8 +6276,17 @@ Pour leur application à Saint-Pierre-et-Miquelon :
 Caisse de prévoyance sociale de Saint-Pierre-et-Miquelon pour les bénéficiaires résidant
 à Saint-Pierre-et-Miquelon. ” ;
 
+```catala
+# Pas pertinent pour le calcul du montant.
+```
+
 2° A l'article R. 823-2, le mot : “ agriculture ” est remplacé par le mot :
 “ outre-mer ” ;
+
+
+```catala
+# Pas pertinent pour le calcul du montant.
+```
 
 3° Le 1° et 2° de l'article R. 823-4 sont remplacés par les dispositions suivantes :
 
@@ -6057,6 +6295,15 @@ Caisse de prévoyance sociale de Saint-Pierre-et-Miquelon pour les bénéficiair
 résultant du 2° de l'article 11 de l'ordonnance n° 77-1102 du 26 septembre 1977 portant
 extension et adaptation au département de Saint-Pierre-et-Miquelon de diverses
 dispositions relatives aux affaires sociales et de l'article L. 823-2 du présent code ;
+
+```catala
+# TODO juridique: l'âge limite de prise en compte des enfants à charge est-il
+# 20 ans ou 21 ans pour Saint-Pierre et Miquelon ? Selon le 3° ici cela semble
+# être 21 ans comme pour les aides au logement en métropole sauf que le
+# 2° de l'article 11 de l'ordonnance n° 77-1102 du 26 septembre 1977 modifie
+# L512-3 pour enlever la mention d'un âge limite différent pour les aides au
+# logement, différent de l'âge limite de 20 ans prévu dans le CCS.
+```
 
 “ 2° Les ascendants du bénéficiaire ou de son conjoint dont les ressources déterminées
 dans les conditions prévues aux articles R. 822-3 à R. 822-6 n'excèdent pas le plafond
@@ -6074,6 +6321,11 @@ dans sa rédaction résultant du b du 1° de l'article 5 de la loi n° 87-563 me
 précédemment et bénéficiaires de l'article L. 161-19 et de l'article L. 351-8 dans sa
 rédaction résultant du même article 5 ; ”
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 4° L'article R. 823-6 est remplacé par les dispositions suivantes :
 
 “ Art. R. 823-6.-Les aides personnelles au logement sont calculées au 1er janvier de
@@ -6089,10 +6341,25 @@ soit à compter de l'ouverture du droit jusqu'au 31 décembre suivant. Dans ce d
 elles sont calculées et servies proportionnellement au nombre de mois pendant lesquels
 le droit est ouvert. ” ;
 
+```catala
+# Les délais d'examen des demandes définis dans cet article ne sont pas
+# nécessairement pertinents à formaliser pour le moment.
+```
+
 5° L'article R. 823-6-1 n'est pas applicable à Saint-Pierre-et-Miquelon ;
+
+```catala
+# Pas pertinent pour le moment.
+```
 
 6° L'article R. 823-8 est complété par les mots : “ et s'il y a lieu les accords
 particuliers prévus à l'article L. 812-3 ” ;
+
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 7° L'article R. 823-11 est remplacé par les dispositions suivantes :
 
@@ -6102,16 +6369,30 @@ réunies aux personnes dont le logement a fait l'objet d'un arrêté d'insalubri
 péril lorsqu'elles reprennent le paiement du loyer ou de toute autre somme versée en
 contrepartie de l'occupation de ce logement ou lorsqu'elles sont relogées. ” ;
 
+```catala
+# Pas pertinent pour le moment.
+# Mais d'autres modes d'occupation peuvent peut-être être ajoutés?
+```
+
 8° A l'article R. 823-23, après les mots : “ article L. 553-2 du code de la sécurité
 sociale ”, sont ajoutés les mots : “ dans sa rédaction résultant du c du 13° de
 l'article 11 de l'ordonnance n° 77-1102 du 26 septembre 1977 portant extension et
 adaptation au département de Saint-Pierre-et-Miquelon de diverses dispositions relatives
 aux affaires sociales. ” ;
 
+```catala
+# Pas pertinent pour le moment.
+```
+
 9° L'article R. 823-24 est remplacé par les dispositions suivantes :
 
 “ Art. R. 823-24.-Les dispositions des articles D. 553-1 et D. 553-2 du code de la
 sécurité sociale sont applicables au recouvrement des indus.
+
+
+```catala
+# Pas pertinent pour le moment.
+```
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
@@ -6133,6 +6414,11 @@ articles R. 842-5 et D. 842-6 à D. 842-13 ;
 “ 2° Pour les autres ménages, par les règles communes figurant aux articles D. 823-16 à
 D. 823-19 et par les règles particulières figurant aux articles D. 842-1 à D. 842-4. ” ;
 
+```catala
+# TODO informatique: coder le fait qu'il n'y ait pas de logement-foyer à
+# Saint-Pierre-et-Miquelon
+```
+
 2° Au 5° de l'article D. 823-17, les mots : “ en fonction de l'évolution de l'indice des
 prix à la consommation des ménages hors tabac. Cette évolution est appréciée entre le
 1er octobre de l'avant-dernière année précédant la revalorisation et le 1er octobre de
@@ -6140,14 +6426,28 @@ l'année précédant la revalorisation. ” sont remplacés par les mots : “ s
 annuelle du dernier indice des prix à la consommation des ménages hors tabac en vigueur
 localement et connu à la date du 1er novembre. ” ;
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 3° A l'article D. 823-19, le mot : “ agriculture ” est remplacé par le mot :
 “ outre-mer ” ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 4° L'article D. 823-25 est remplacé par les dispositions suivantes :
 
 “ Art. D. 823-25.-Les organismes payeurs sont autorisés à abandonner la mise en
 recouvrement des sommes indûment payées, pour un montant en deçà de 0,68 % du plafond
 mensuel de sécurité sociale en vigueur, arrondi à l'euro supérieur. ”
+
+```catala
+# Pas pertinent pour le moment.
+```
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
@@ -6157,6 +6457,10 @@ janvier 2022.
 
 La section 2 du chapitre III du titre II du présent livre n'est pas applicable à
 Saint-Pierre-et-Miquelon.
+
+```catala
+# Redite de L863-2, rien à coder.
+```
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
@@ -6201,11 +6505,20 @@ NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 202
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
 janvier 2022.
 
+```catala
+# Pas pertinent pour le moment.
+```
+
 ####### Article D863-10 | LEGIARTI000044636795
 
 Pour son application à Saint-Pierre-et-Miquelon, à l'article D. 824-15, après les mots
 : “ l'article L. 442-8-2 ”, sont ajoutés les mots : “ ou des dispositions locales
 équivalentes ”.
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
@@ -6228,6 +6541,10 @@ NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 202
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
 janvier 2022.
 
+```catala
+# Redite de L860-3, rien à coder ici.
+```
+
 ##### Section IV : Allocations de logement
 
 ###### Article R863-13 | LEGIARTI000044636801
@@ -6239,6 +6556,11 @@ mentionnés à l'article D. 331-63 ” sont remplacés par les mots : “ en vig
 pour le bénéfice des aides accordées pour les travaux concourant à l'aménagement à usage
 de logement de locaux non destinés à l'habitation ou à l'agrandissement de logements
 existants ” ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
 
 2° L'article R. 843-1 est remplacé par les dispositions suivantes :
 
