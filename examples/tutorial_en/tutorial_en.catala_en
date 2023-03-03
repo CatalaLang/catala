@@ -869,7 +869,8 @@ declaration scope WorkdaysPerWeek:
 scope WorkdaysPerWeek:
   definition value equals 5
 
-# Requiring to declare the scope with just an output variable is quite cumbersome, and impedes readability
+# Requiring to declare the scope with just an output variable is quite
+# cumbersome, and impedes readability
 ```
 
 b. The General Lunch Allocation is $2 per workday, over the number of work weeks.

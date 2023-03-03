@@ -12,7 +12,7 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = groff python3 colordiff node pygmentize node npm ninja pandoc
+EXECUTABLES = groff python3 colordiff node node npm ninja pandoc
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
@@ -32,10 +32,35 @@ dependencies-ocaml-with-z3:
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
 
-#> dependencies				: Install the Catala OCaml, JS and Git dependencies
-dependencies: dependencies-ocaml dependencies-js
+PY_VENV_DIR = _python_venv
 
-dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js
+PY_VENV_ACTIVATE = . $(PY_VENV_DIR)/bin/activate;
+
+# Rebuild when requirements change
+$(PY_VENV_DIR): $(PY_VENV_DIR)/stamp
+
+$(PY_VENV_DIR)/stamp: \
+    runtimes/python/catala/pyproject.toml \
+    syntax_highlighting/en/pygments/pyproject.toml \
+    syntax_highlighting/fr/pygments/pyproject.toml \
+    syntax_highlighting/pl/pygments/pyproject.toml
+	test -d $(PY_VENV_DIR) || python3 -m venv $(PY_VENV_DIR)
+	$(PY_VENV_ACTIVATE) python3 -m pip install -U \
+	  -e runtimes/python/catala \
+	  -e syntax_highlighting/en/pygments \
+	  -e syntax_highlighting/fr/pygments \
+	  -e syntax_highlighting/pl/pygments
+	touch $@
+
+# Run sub-make within the Python venv
+MAKEP = $(PY_VENV_ACTIVATE) $(MAKE)
+
+dependencies-python: $(PY_VENV_DIR)
+
+#> dependencies				: Install the Catala OCaml, JS and Git dependencies
+dependencies: dependencies-ocaml dependencies-js dependencies-python
+
+dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js dependencies-python
 
 ##########################################
 # Catala compiler rules
@@ -104,17 +129,8 @@ SYNTAX_HIGHLIGHTING_FR=${CURDIR}/syntax_highlighting/fr
 SYNTAX_HIGHLIGHTING_EN=${CURDIR}/syntax_highlighting/en
 SYNTAX_HIGHLIGHTING_PL=${CURDIR}/syntax_highlighting/pl
 
-pygmentize_fr: $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh
-	chmod +x $<
-	$<
-
-pygmentize_en: $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh
-	chmod +x $<
-	$<
-
-pygmentize_pl: $(SYNTAX_HIGHLIGHTING_PL)/set_up_pygments.sh
-	chmod +x $<
-	$<
+pygmentize_%: $(PY_VENV_DIR)
+	$(PY_VENV_ACTIVATE) python3 -m pip install syntax_highlighting/$*/pygments
 
 #> pygments				: Extends your pygmentize executable with Catala lexers
 pygments: pygmentize_fr pygmentize_en pygmentize_pl
@@ -151,6 +167,13 @@ vscode_en: ${CURDIR}/syntax_highlighting/en/setup_vscode.sh
 vscode: vscode_fr vscode_en
 
 ##########################################
+# Extra documentation
+##########################################
+
+syntax:
+	$(MAKEP) -C doc/syntax
+
+##########################################
 # Literate programming and examples
 ##########################################
 
@@ -163,33 +186,33 @@ TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
 TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
 POLISH_TAXES_DIR=$(EXAMPLES_DIR)/polish_taxes
 
-literate_aides_logement: build
-	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.tex
-	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.html
+literate_aides_logement: build $(PY_VENV_DIR)
+	$(MAKEP) -C $(AIDES_LOGEMENT_DIR) aides_logement.tex
+	$(MAKEP) -C $(AIDES_LOGEMENT_DIR) aides_logement.html
 
 literate_allocations_familiales: build
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.html
+	$(MAKEP) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
+	$(MAKEP) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.html
 
 literate_code_general_impots: build
-	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.tex
-	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.html
+	$(MAKEP) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.tex
+	$(MAKEP) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.html
 
 literate_us_tax_code: build
-	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.tex
-	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.html
+	$(MAKEP) -C $(US_TAX_CODE_DIR) us_tax_code.tex
+	$(MAKEP) -C $(US_TAX_CODE_DIR) us_tax_code.html
 
 literate_tutorial_en: build
-	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.tex
-	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.html
+	$(MAKEP) -C $(TUTORIAL_EN_DIR) tutorial_en.tex
+	$(MAKEP) -C $(TUTORIAL_EN_DIR) tutorial_en.html
 
 literate_tutoriel_fr: build
-	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
-	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
+	$(MAKEP) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
+	$(MAKEP) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
 
 literate_polish_taxes: build
-	$(MAKE) -C $(POLISH_TAXES_DIR) polish_taxes.tex
-	$(MAKE) -C $(POLISH_TAXES_DIR) polish_taxes.html
+	$(MAKEP) -C $(POLISH_TAXES_DIR) polish_taxes.tex
+	$(MAKEP) -C $(POLISH_TAXES_DIR) polish_taxes.html
 
 #> literate_examples			: Builds the .tex and .html versions of the examples code. Needs pygments to be installed and patched with Catala.
 literate_examples: literate_allocations_familiales literate_code_general_impots \
@@ -269,11 +292,6 @@ FRENCH_LAW_LIBRARY_PYTHON = \
   $(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py \
   $(FRENCH_LAW_PYTHON_LIB_DIR)/src/aides_logement.py
 
-PY_VIRTUALENV = $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate
-
-$(PY_VIRTUALENV):
-	@$(if $(wildcard $(PY_VIRTUALENV)),,$(error "Python virtualenv not initialised, you need to run $(FRENCH_LAW_PYTHON_LIB_DIR)/setup_env.sh"))
-
 $(FRENCH_LAW_LIBRARY_PYTHON):
 	dune build $@
 
@@ -282,15 +300,11 @@ generate_french_law_library_python:
 	dune build $(FRENCH_LAW_LIBRARY_PYTHON)
 
 #> type_french_law_library_python		: Types the French law library Python sources with mypy
-type_french_law_library_python: $(PY_VIRTUALENV) \
-  generate_french_law_library_python
-	. $(PY_VIRTUALENV) ;\
-	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
+type_french_law_library_python: $(PY_VENV_DIR) generate_french_law_library_python
+	$(MAKEP) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
 
-run_french_law_library_benchmark_python: $(PY_VIRTUALENV) \
-  type_french_law_library_python
-	. $(PY_VIRTUALENV) ;\
-	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) bench
+run_french_law_library_benchmark_python: $(PY_ENV_DIR) type_french_law_library_python
+	$(MAKEP) -C $(FRENCH_LAW_PYTHON_LIB_DIR) bench
 
 ##########################################
 # High-level test and benchmarks commands
