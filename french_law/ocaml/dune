@@ -1,7 +1,9 @@
 (executable
  (name bench)
  (modes native)
+ (public_name bench)
  (modules bench)
+ (package french_law)
  (libraries catala.runtime_ocaml french_law benchmark))
 
 (executable
@@ -28,5 +30,6 @@
 
 (rule
  (alias runtest)
+ (package french_law)
  (action
-  (run ./bench.exe)))
+  (run bench)))
