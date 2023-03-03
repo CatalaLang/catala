@@ -32,18 +32,16 @@ module ScopeDef = struct
 
   let compare x y =
     match x, y with
-    | Var (x, None), Var (y, None)
-    | Var (x, Some _), Var (y, None)
-    | Var (x, None), Var (y, Some _)
-    | Var (x, _), SubScopeVar (_, y, _)
-    | SubScopeVar (_, x, _), Var (y, _) ->
-      ScopeVar.compare x y
-    | Var (x, Some sx), Var (y, Some sy) ->
-      let cmp = ScopeVar.compare x y in
-      if cmp = 0 then StateName.compare sx sy else cmp
+    | Var (x, stx), Var (y, sty) ->
+      (match ScopeVar.compare x y with
+       | 0 -> Option.compare StateName.compare stx sty
+       | n -> n)
     | SubScopeVar (x', x, _), SubScopeVar (y', y, _) ->
-      let cmp = SubScopeName.compare x' y' in
-      if cmp = 0 then ScopeVar.compare x y else cmp
+      (match SubScopeName.compare x' y' with
+       | 0 -> ScopeVar.compare x y
+       | n -> n)
+    | Var _, _ -> -1
+    | _, Var _ -> 1
 
   let get_position x =
     match x with
