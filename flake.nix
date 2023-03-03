@@ -32,6 +32,10 @@
               pkgs.obelisk
               pkgs.ninja
               pkgs.colordiff
+              pkgs.pandoc
+              pkgs.python3.pkgs.pygments
+              pkgs.nodejs
+              pkgs.nodePackages.npm
             ];
           };
         }

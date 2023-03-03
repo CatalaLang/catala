@@ -262,7 +262,7 @@ let var_debug fmt v =
 let var fmt v = Format.pp_print_string fmt (Bindlib.name_of v)
 
 let needs_parens (type a) (e : (a, _) gexpr) : bool =
-  match Marked.unmark e with EAbs _ | EStruct _ -> true | _ -> false
+  match Marked.unmark e with _ -> true
 
 let rec expr_aux :
     type a.
@@ -307,7 +307,7 @@ let rec expr_aux :
     let expr = exprb bnd_ctx in
     let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
-    Format.fprintf fmt "%a%a"
+    Format.fprintf fmt "(%a%a)"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
          (fun fmt (x, tau, arg) ->

@@ -131,10 +131,11 @@ let merge_defaults
 
 let tag_with_log_entry
     (e : 'm Ast.expr boxed)
-    (l : log_entry)
-    (markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
-  let m = mark_tany (Marked.get_mark e) (Expr.pos e) in
-  Expr.eapp (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] m) [e] m
+    (_l : log_entry)
+    (_markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
+  let _m = mark_tany (Marked.get_mark e) (Expr.pos e) in
+  (* Expr.eapp (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] m) [e] m *)
+  e
 
 (* In a list of exceptions, it is normally an error if more than a single one
    apply at the same time. This relaxes this constraint slightly, allowing a
@@ -335,7 +336,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
        function and not during its definition, then we're missing the call log
        instructions of the function returned. To avoid this trap, we need to
        rebind the resulting scope output struct by eta-expanding the functions
-       to insert logging instructions*)
+       to insert logging instructions. *)
     let result_var = Var.make "result" in
     let result_eta_expanded_var = Var.make "result" in
     (* result_eta_expanded = { struct_output_function_field = lambda x -> log

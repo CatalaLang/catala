@@ -33,7 +33,7 @@ let option_enum_config : typ EnumConstructor.Map.t =
   |> EnumConstructor.Map.add none_constr (TLit TUnit, Pos.no_pos)
   |> EnumConstructor.Map.add some_constr (TAny, Pos.no_pos)
 
-(* FIXME: proper typing in all the constructors below *)
+(* TODO: proper typing in all the constructors below *)
 
 let make_none m =
   let tunit = TLit TUnit, Expr.mark_pos m in

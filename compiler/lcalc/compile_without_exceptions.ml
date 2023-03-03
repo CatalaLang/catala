@@ -54,7 +54,7 @@ type analysis_mark = {
 (* voir sur papier pour voir si ça marche *)
 
 type analysis_info = { unpure_info : bool; unpure_return : bool option }
-(* type analysis_ctx = (dcalc, analysis_info) Var.Map.t *)
+type analysis_ctx = (dcalc, analysis_info) Var.Map.t
 
 let make_new_mark (m : typed mark) ?(unpure_return = None) (unpure : bool) :
     analysis_mark =
@@ -69,16 +69,6 @@ let make_new_mark (m : typed mark) ?(unpure_return = None) (unpure : bool) :
     end;
     { pos = m.pos; ty = m.ty; unpure; unpure_return }
 
-(** [{
-      type struct_ctx_analysis = bool StructField.Map.t StructName.Map.t
-    }]
-
-    [{ let rec detect_unpure_expr = assert false }]
-    [{ let detect_unpure_scope_let = assert false }]
-    [{ let detect_unpure_scope_body = assert false }]
-    [{ let detect_unpure_scopes = assert false }]
-    [{ let detect_unpure_program = assert false }]
-    [{ let detect_unpure_scope_let = assert false }] *)
 let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
     (dcalc, analysis_mark) boxed_gexpr =
   let m = Marked.get_mark e in
@@ -229,6 +219,30 @@ let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
   | EOp _ -> assert false (* invalid invariant *)
 
 let _ = detect_unpure_expr
+
+(** [{
+      type struct_ctx_analysis = bool StructField.Map.t StructName.Map.t
+    }]
+
+    [{ let rec detect_unpure_expr = assert false }]
+    [{ let detect_unpure_scope_let = assert false }]
+    [{ let detect_unpure_scope_body = assert false }]
+    [{ let detect_unpure_scopes = assert false }]
+    [{ let detect_unpure_program = assert false }]
+    [{ let detect_unpure_scope_let = assert false }] *)
+
+let detect_unpure_code_item (ctx : analysis_ctx) var (code_item : _ code_item) :
+    analysis_ctx * _ code_item Bindlib.box =
+  match code_item with _ -> assert false
+
+let detect_unpure_code_item_list ctx code_items =
+  Scope.fold_map ~f:detect_unpure_code_item ~varf:Fun.id ctx code_items
+
+(* f:('a -> ([< `Dcalc | `Desugared | `Lcalc | `Scopelang ] as 'b, 'c mark)
+   gexpr code_item -> 'a * ([< `Dcalc | `Desugared | `Lcalc | `Scopelang ] as
+   'd, 'e mark) gexpr code_item Bindlib.box) -> varf:(('b, 'c mark) naked_gexpr
+   Bindlib.var -> ('d, 'e mark) naked_gexpr Bindlib.var) -> 'a -> ('b, 'c mark)
+   gexpr code_item_list -> ('d, 'e mark) gexpr code_item_list Bindlib.box *)
 
 type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
 (** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)

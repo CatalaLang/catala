@@ -25,6 +25,7 @@
 , z3
 , zarith
 , zarith_stubs_js
+, cohttp-lwt-unix
 }:
 
 buildDunePackage {
@@ -61,6 +62,7 @@ buildDunePackage {
     z3
     zarith
     zarith_stubs_js
+    cohttp-lwt-unix
   ];
 
   # Currently there is no unit tests in catala and Cram tests are handled by clerk
