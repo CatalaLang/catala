@@ -32,14 +32,12 @@ module ScopeDef = struct
 
   let compare x y =
     match x, y with
-    | Var (x, stx), Var (y, sty) ->
-      (match ScopeVar.compare x y with
-       | 0 -> Option.compare StateName.compare stx sty
-       | n -> n)
-    | SubScopeVar (x', x, _), SubScopeVar (y', y, _) ->
-      (match SubScopeName.compare x' y' with
-       | 0 -> ScopeVar.compare x y
-       | n -> n)
+    | Var (x, stx), Var (y, sty) -> (
+      match ScopeVar.compare x y with
+      | 0 -> Option.compare StateName.compare stx sty
+      | n -> n)
+    | SubScopeVar (x', x, _), SubScopeVar (y', y, _) -> (
+      match SubScopeName.compare x' y' with 0 -> ScopeVar.compare x y | n -> n)
     | Var _, _ -> -1
     | _, Var _ -> 1
 
