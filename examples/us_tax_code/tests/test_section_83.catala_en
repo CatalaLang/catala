@@ -2,23 +2,7 @@
 
 ```catala-test-inline
 $ catala proof
-[WARNING] This binding will be ignored (remove it to suppress warning)
-
-┌─⯈ ./../section_83.catala_en:81.52-69:
-└──┐
-81 │                         with pattern DidNotElect of fair_market_value
-   │                                                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-[ERROR] "fair_market_value": unknown identifier for a local or scope-wide variable
-
-┌─⯈ ./../section_83.catala_en:84.42-59:
-└──┐
-84 │        then IncludeInGrossIncome content (fair_market_value - transfer.amount_paid)
-   │                                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-#return code 255#
+[RESULT] No errors found during the proof mode run.
 ```
 
 ```catala-metadata
@@ -75,23 +59,8 @@ scope Test1:
 
 ```catala-test-inline
 $ catala Interpret -s Test1
-[WARNING] This binding will be ignored (remove it to suppress warning)
-
-┌─⯈ ./../section_83.catala_en:81.52-69:
-└──┐
-81 │                         with pattern DidNotElect of fair_market_value
-   │                                                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-[ERROR] "fair_market_value": unknown identifier for a local or scope-wide variable
-
-┌─⯈ ./../section_83.catala_en:84.42-59:
-└──┐
-84 │        then IncludeInGrossIncome content (fair_market_value - transfer.amount_paid)
-   │                                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-#return code 255#
+[RESULT] Computation successful! Results:
+[RESULT] result = IncludeInGrossIncome $100.00
 ```
 
 # Test2
@@ -118,23 +87,8 @@ scope Test2:
 
 ```catala-test-inline
 $ catala Interpret -s Test2
-[WARNING] This binding will be ignored (remove it to suppress warning)
-
-┌─⯈ ./../section_83.catala_en:81.52-69:
-└──┐
-81 │                         with pattern DidNotElect of fair_market_value
-   │                                                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-[ERROR] "fair_market_value": unknown identifier for a local or scope-wide variable
-
-┌─⯈ ./../section_83.catala_en:84.42-59:
-└──┐
-84 │        then IncludeInGrossIncome content (fair_market_value - transfer.amount_paid)
-   │                                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-#return code 255#
+[RESULT] Computation successful! Results:
+[RESULT] result = NotThisYear ()
 ```
 
 # Test3
@@ -161,23 +115,8 @@ scope Test3:
 
 ```catala-test-inline
 $ catala Interpret -s Test3
-[WARNING] This binding will be ignored (remove it to suppress warning)
-
-┌─⯈ ./../section_83.catala_en:81.52-69:
-└──┐
-81 │                         with pattern DidNotElect of fair_market_value
-   │                                                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-[ERROR] "fair_market_value": unknown identifier for a local or scope-wide variable
-
-┌─⯈ ./../section_83.catala_en:84.42-59:
-└──┐
-84 │        then IncludeInGrossIncome content (fair_market_value - transfer.amount_paid)
-   │                                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-#return code 255#
+[RESULT] Computation successful! Results:
+[RESULT] result = IncludeInGrossIncome $100.00
 ```
 
 
@@ -205,23 +144,8 @@ scope Test4:
 
 ```catala-test-inline
 $ catala Interpret -s Test4
-[WARNING] This binding will be ignored (remove it to suppress warning)
-
-┌─⯈ ./../section_83.catala_en:81.52-69:
-└──┐
-81 │                         with pattern DidNotElect of fair_market_value
-   │                                                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-[ERROR] "fair_market_value": unknown identifier for a local or scope-wide variable
-
-┌─⯈ ./../section_83.catala_en:84.42-59:
-└──┐
-84 │        then IncludeInGrossIncome content (fair_market_value - transfer.amount_paid)
-   │                                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-#return code 255#
+[RESULT] Computation successful! Results:
+[RESULT] result = IncludeInGrossIncome $0.00
 ```
 
 
@@ -249,23 +173,8 @@ scope Test5:
 
 ```catala-test-inline
 $ catala Interpret -s Test5
-[WARNING] This binding will be ignored (remove it to suppress warning)
-
-┌─⯈ ./../section_83.catala_en:81.52-69:
-└──┐
-81 │                         with pattern DidNotElect of fair_market_value
-   │                                                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-[ERROR] "fair_market_value": unknown identifier for a local or scope-wide variable
-
-┌─⯈ ./../section_83.catala_en:84.42-59:
-└──┐
-84 │        then IncludeInGrossIncome content (fair_market_value - transfer.amount_paid)
-   │                                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-#return code 255#
+[RESULT] Computation successful! Results:
+[RESULT] result = DoesNotApply ()
 ```
 
 
@@ -293,23 +202,8 @@ scope Test6:
 
 ```catala-test-inline
 $ catala Interpret -s Test6
-[WARNING] This binding will be ignored (remove it to suppress warning)
-
-┌─⯈ ./../section_83.catala_en:81.52-69:
-└──┐
-81 │                         with pattern DidNotElect of fair_market_value
-   │                                                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-[ERROR] "fair_market_value": unknown identifier for a local or scope-wide variable
-
-┌─⯈ ./../section_83.catala_en:84.42-59:
-└──┐
-84 │        then IncludeInGrossIncome content (fair_market_value - transfer.amount_paid)
-   │                                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-#return code 255#
+[RESULT] Computation successful! Results:
+[RESULT] result = DoesNotApply ()
 ```
 
 
@@ -337,21 +231,6 @@ scope Test7:
 
 ```catala-test-inline
 $ catala Interpret -s Test7
-[WARNING] This binding will be ignored (remove it to suppress warning)
-
-┌─⯈ ./../section_83.catala_en:81.52-69:
-└──┐
-81 │                         with pattern DidNotElect of fair_market_value
-   │                                                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-[ERROR] "fair_market_value": unknown identifier for a local or scope-wide variable
-
-┌─⯈ ./../section_83.catala_en:84.42-59:
-└──┐
-84 │        then IncludeInGrossIncome content (fair_market_value - transfer.amount_paid)
-   │                                           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ 83. Property transferred in connection with performance of services
-    └─ (a) General rule
-#return code 255#
+[RESULT] Computation successful! Results:
+[RESULT] result = IncludeInGrossIncome $100.00
 ```
