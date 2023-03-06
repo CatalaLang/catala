@@ -17,7 +17,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Prepare container with all dependencies
@@ -35,8 +35,11 @@ jobs:
           docker run --rm catalalang/catala-build:${IMAGE_TAG} sh -uexc '
               opam --cli=2.1 remove z3 >&2
               opam --cli=2.1 exec -- dune build --profile=release french_law compiler/catala.bc.js >&2
+              opam --cli=2.1 exec -- dune build --profile=release @doc >&2
+              opam --cli=2.1 exec -- make -C doc/syntax >&2
               mv _build/default/compiler/catala.bc.js catala_'"${RELEASE_TAG}"'_node.js >&2
-              tar c -h catala_'"${RELEASE_TAG}"'_node.js french_law --exclude french_law/js/node_modules --exclude french_law/python/env --exclude '"'"'.*'"'"'
+              mv _build/default/_doc/_html doc/api >&2
+              tar c -h catala_'"${RELEASE_TAG}"'_node.js french_law doc/syntax/syntax.pdf doc/api --exclude french_law/js/node_modules --exclude french_law/python/env --exclude '"'"'.*'"'"' --exclude '"'"'__*'"'"'
             ' | tar vx -C artifacts
       - name: Build static binaries
         if: ${{ github.ref == 'refs/heads/master' }}

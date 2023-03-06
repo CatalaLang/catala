@@ -16,6 +16,7 @@
           packages = {
             catala = ocamlPackages.catala;
             clerk = ocamlPackages.clerk;
+            french_law = ocamlPackages.french_law;
           };
           defaultPackage = packages.catala;
           devShell = pkgs.mkShell {

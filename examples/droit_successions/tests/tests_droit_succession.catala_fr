@@ -4,7 +4,7 @@
 
 ```catala
 déclaration champ d'application Enfants:
-  résultat base contenu Enfant dépend de entier
+  résultat base contenu Enfant dépend de identifiant contenu entier
 
 champ d'application Enfants:
   définition base de identifiant égal à

@@ -32,7 +32,8 @@ déclaration structure BienUsufruitRenteViagère:
 déclaration champ d'application RéserveHéréditaire:
   résultat quotité_réserve_héréditaire contenu décimal
   entrée enfants contenu collection Enfant
-  interne enfant_pris_en_compte_réserve_héréditaire contenu booléen dépend de Enfant
+  interne enfant_pris_en_compte_réserve_héréditaire contenu booléen
+    dépend de enfant contenu Enfant
   interne enfants_réserve_héréditaire contenu collection Enfant
   entrée conjoint_survivant_non_divorcé condition
 

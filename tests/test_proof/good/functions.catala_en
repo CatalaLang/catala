@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  context x content integer depends on boolean
+  context x content integer depends on y content boolean
   context z content integer
 
 scope A:

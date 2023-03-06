@@ -1,6 +1,6 @@
 # Stage 1: setup an opam switch with all dependencies installed
 # (only depends on the opam files)
-FROM ocamlpro/ocaml:4.14-2022-07-17 AS dev-build-context
+FROM ocamlpro/ocaml:4.14-2023-02-26 AS dev-build-context
 
 # pandoc is not in alpine stable yet, install it manually with an explicit repository
 RUN sudo apk add pandoc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
@@ -17,7 +17,6 @@ ENV OPAMVAR_catalaz3mode=1
 
 # Get a switch with all the dependencies installed
 RUN opam --cli=2.1 switch create catala ocaml-system && \
-    opam --cli=2.1 update && \
     opam --cli=2.1 pin . --no-action && \
     opam --cli=2.1 install . --with-test --with-doc --depext-only && \
     opam --cli=2.1 install . --with-test --with-doc --deps-only && \
@@ -32,11 +31,13 @@ FROM dev-build-context
 ADD --chown=ocaml:ocaml . .
 
 # Prepare extra local dependencies
-RUN opam exec -- make pygments dependencies-js
-RUN opam exec -- ./french_law/python/setup_env.sh
+RUN opam exec -- make dependencies-python dependencies-js pygments
 
 # OCaml backtraces may be useful on failure
 ENV OCAMLRUNPARAM=b
+# Make sure warnings are treated as errors (variable used in Makefile, profile
+# defined in ./dune)
+ENV DUNE_PROFILE=check
 
 # Check promoted files (but delay failure)
 RUN opam exec -- make check-promoted > promotion.out 2>&1 || touch bad-promote

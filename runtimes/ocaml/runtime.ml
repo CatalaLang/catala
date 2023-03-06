@@ -223,7 +223,7 @@ and var_def = {
 
 and fun_call = {
   fun_name : information;
-  input : var_def;
+  inputs : var_def list;
   body : event list;
   output : var_def;
 }
@@ -306,7 +306,7 @@ let rec pp_events ?(is_first_call = true) ppf events =
       when Option.is_some var_def_with_fun.fun_calls ->
       Format.fprintf ppf "%a" format_var_def_with_fun_calls var_def_with_fun
     | VarComputation var_def -> Format.fprintf ppf "%a" format_var_def var_def
-    | FunCall { fun_name; input; body; output } ->
+    | FunCall { fun_name; inputs; body; output } ->
       Format.fprintf ppf
         "@[<hov 1><function_call>@ %s :=@ {@[<hv 1>@ input:@ %a,@ output:@ \
          %a,@ body:@ [@,\
@@ -314,7 +314,10 @@ let rec pp_events ?(is_first_call = true) ppf events =
          @]@,\
          }"
         (String.concat "." fun_name)
-        format_var_def input format_var_def_with_fun_calls output
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
+           format_var_def)
+        inputs format_var_def_with_fun_calls output
         (pp_events ~is_first_call:false)
         body
     | SubScopeCall { name; inputs; body } ->
@@ -376,6 +379,16 @@ module EventParser = struct
       Printf.sprintf "DecisionTaken(%s:%d.%d-%d.%d)" pos.filename pos.start_line
         pos.start_column pos.end_line pos.end_column
 
+  (** [takewhile p xs] split the list [xs] as the longest prefix of the list
+      [xs] where every element [x] satisfies [p x] and the rest. *)
+  let rec take_while (p : 'a -> bool) (l : 'a list) : 'a list * 'a list =
+    match l with
+    | [] -> [], []
+    | h :: t when p h ->
+      let t, rest = take_while p t in
+      h :: t, rest
+    | _ -> [], l
+
   let parse_raw_events raw_events =
     let nb_raw_events = List.length raw_events
     and is_function_call infos = 2 = List.length infos
@@ -384,7 +397,8 @@ module EventParser = struct
     and is_output_var_def name =
       3 = List.length name && "output" = List.nth name 2
     and is_input_var_def name =
-      3 = List.length name && "input" = List.nth name 2
+      3 = List.length name
+      && String.starts_with ~prefix:"input" (List.nth name 2)
     and is_subscope_input_var_def name =
       2 = List.length name && String.contains (List.nth name 1) '.'
     in
@@ -427,12 +441,15 @@ module EventParser = struct
         when is_function_call infos ->
         (* Variable definition with function calls. *)
         let rec parse_fun_calls fun_calls raw_events =
-          match raw_events with
-          | VariableDefinition _ :: BeginCall infos :: _
-            when is_function_call infos ->
+          match
+            take_while
+              (function VariableDefinition _ -> true | _ -> false)
+              raw_events
+          with
+          | _, BeginCall infos :: _ when is_function_call infos ->
             let rest, fun_call = parse_fun_call raw_events in
             parse_fun_calls (fun_call :: fun_calls) rest
-          | rest -> rest, fun_calls |> List.rev
+          | _ -> raw_events, fun_calls |> List.rev
         in
         let rest, var_comp =
           let rest, fun_calls = parse_fun_calls [] (List.tl ctx.rest) in
@@ -481,9 +498,19 @@ module EventParser = struct
       | EndCall _ :: rest -> { ctx with events = ctx.events |> List.rev; rest }
       | event :: _ -> failwith ("Unexpected event: " ^ raw_event_to_string event)
     and parse_fun_call events =
-      match events with
-      | VariableDefinition (name, value) :: BeginCall infos :: rest
-        when is_function_call infos && is_input_var_def name ->
+      match
+        take_while
+          (function
+            | VariableDefinition (name, _) -> is_input_var_def name | _ -> false)
+          events
+      with
+      | inputs, BeginCall infos :: rest when is_function_call infos ->
+        let inputs =
+          ListLabels.map inputs ~f:(function
+            | VariableDefinition (name, value) ->
+              { pos = None; name; value; fun_calls = None }
+            | _ -> assert false)
+        in
         let rest, body, output =
           let body_ctx =
             parse_events { vars = VarDefMap.empty; events = []; rest }
@@ -497,13 +524,7 @@ module EventParser = struct
           | _ -> failwith "Missing function output variable definition."
         in
 
-        ( rest,
-          {
-            fun_name = infos;
-            input = { pos = None; name; value; fun_calls = None };
-            body;
-            output;
-          } )
+        rest, { fun_name = infos; inputs; body; output }
       | _ -> failwith "Invalid start of function call."
     in
 

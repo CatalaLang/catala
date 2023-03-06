@@ -40,7 +40,7 @@ declaration scope Section121SinglePerson:
     content collection Period
   # Invariant: the periods in the collection are disjoint
   internal aggregate_periods_from_last_five_years content duration
-    depends on collection Period
+    depends on periods content collection Period
   context output gain_cap content money
   input gain_from_sale_or_exchange_of_property content money
   output income_excluded_from_gross_income_uncapped content money

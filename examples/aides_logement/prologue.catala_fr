@@ -305,7 +305,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   entrée résultat date_courante contenu date
 
   # Différentes conditions pour l'éligibilité
-  interne condition_prêt condition dépend de Prêt
+  interne condition_prêt condition dépend de prêt contenu Prêt
   interne condition_nationalité contenu booléen
   contexte condition_logement_résidence_principale condition
   interne condition_logement_mode_occupation condition
@@ -318,7 +318,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne septième_alinéa_l823_1_applicable condition
   interne éligibilité_logement condition
   interne prise_en_compte_personne_à_charge condition
-    dépend de PersonneÀCharge
+    dépend de personne_à_charge contenu PersonneÀCharge
   interne personnes_à_charge_prises_en_compte
     contenu collection PersonneÀCharge
   interne durée_maintien_aide_l861_5_3 contenu durée
@@ -343,7 +343,8 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   résultat nombre_personnes_à_charge_prises_en_compte contenu entier
   résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
    collection décimal
-  résultat condition_2_r823_4 condition dépend de PersonneÀCharge
+  résultat condition_2_r823_4 condition
+    dépend de personne_à_charge contenu PersonneÀCharge
 
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   # TODO informatique et juridique: trouver une meilleur place pour mettre
@@ -393,8 +394,8 @@ déclaration champ d'application ÉligibilitéAidePersonnaliséeLogement:
   interne logement_situé_commune_déséquilibre_l831_2 condition
   interne condition_logement_bailleur condition
   interne condition_logement_prêt condition
-  interne caractéristiques_prêt_l831_1_1 condition dépend de Prêt
-  interne caractéristiques_prêt_l831_1_6 condition dépend de Prêt
+  interne caractéristiques_prêt_l831_1_1 condition dépend de prêt contenu Prêt
+  interne caractéristiques_prêt_l831_1_6 condition dépend de prêt contenu Prêt
 
   éligibilité_commune champ d'application ÉligibilitéAidesPersonnelleLogement
 
@@ -553,7 +554,7 @@ déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
   interne taux_crds contenu décimal
   interne exonéré_csg condition
 
-  résultat montant contenu argent dépend de argent
+  résultat montant contenu argent dépend de aide_finale contenu argent
 
 champ d'application ContributionsSocialesAidesPersonnelleLogement:
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
@@ -611,7 +612,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
 
   résultat aide_finale_formule contenu argent
 
-  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent dépend de aide_finale contenu argent
     état diminué
     état minoration_forfaitaire
     état contributions_sociales_arrondi
@@ -677,8 +678,9 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
   résultat équivalence_loyer_éligible contenu argent
   résultat plafond_équivalence_loyer_éligible contenu argent
   interne abattement_dépense_nette_minimale_d832_27
-    contenu argent dépend de argent
-  interne dépense_nette_minimale_d832_27 contenu argent dépend de argent
+    contenu argent dépend de allocation_mensuelle contenu argent
+  interne dépense_nette_minimale_d832_27
+    contenu argent dépend de allocation_mensuelle contenu argent
   interne montant_forfaitaire_d832_24 contenu argent
   interne montant_forfaitaire_d832_27 contenu argent
   interne montant_minimal_aide_d823_24 contenu argent
@@ -696,7 +698,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
     état seuil
 
   résultat aide_finale_formule contenu argent
-  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent dépend de aide_finale contenu argent
     état minoration_forfaitaire
     état abattement
     état contributions_sociales_arrondi
@@ -743,15 +745,17 @@ déclaration champ d'application
   interne plafond_mensualité_d832_10_3 contenu argent
     état base
     état copropriétaires
-  interne calcul_plafond_mensualité_d832_10_3 contenu argent dépend de date
+  interne calcul_plafond_mensualité_d832_10_3 contenu argent
+    dépend de date_signature_prêt contenu date
   interne n_nombre_parts_d832_11 contenu décimal
   résultat coefficient_prise_en_charge_d832_10 contenu décimal
     état formule
     état coeff_arrondi
     état seuil
-  interne dépense_nette_minimale_d832_10 contenu argent dépend de argent
+  interne dépense_nette_minimale_d832_10 contenu argent
+    dépend de allocation_mensuelle contenu argent
   interne abattement_dépense_nette_minimale_d832_10
-    contenu argent dépend de argent
+    contenu argent dépend de allocation_mensuelle contenu argent
   interne ressources_ménage_avec_d832_18 contenu argent
   interne montant_forfaitaire_charges_d832_10 contenu argent
   interne montant_forfaitaire_d832_10 contenu argent
@@ -771,7 +775,8 @@ déclaration champ d'application
     ContributionsSocialesAidesPersonnelleLogement
 
   résultat aide_finale_formule contenu argent
-  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent
+    dépend de aide_finale contenu argent
     état minoration_forfaitaire
     état abattement
     état contributions_sociales_arrondi
@@ -791,7 +796,8 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 ```catala-metadata
 déclaration structure Traitement_formule_aide_finale:
   donnée aide_finale_formule contenu argent
-  donnée traitement_aide_finale contenu argent dépend de argent
+  donnée traitement_aide_finale contenu argent
+    dépend de aide_finale contenu argent
 
 déclaration champ d'application CalculAidePersonnaliséeLogement:
   entrée mode_occupation contenu ModeOccupation
@@ -811,7 +817,8 @@ déclaration champ d'application CalculAidePersonnaliséeLogement:
   interne sous_calcul_traitement contenu Traitement_formule_aide_finale
 
   résultat aide_finale_formule contenu argent
-  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent
+    dépend de arg contenu argent
 ```
 
 ## Calcul du montant de l'allocation logement
@@ -854,7 +861,8 @@ déclaration champ d'application CalculAllocationLogementLocatif:
 
   résultat aide_finale_formule contenu argent
 
-  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent
+    dépend de aide_finale contenu argent
 
 champ d'application CalculAllocationLogementLocatif:
   définition calcul_apl_locatif.loyer_principal égal à
@@ -923,15 +931,18 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne mensualité_minimale contenu argent
   interne coefficient_prise_en_charge contenu décimal
   interne plafond_mensualité_d842_6 contenu argent
-  interne calcul_plafond_mensualité_d842_6 contenu argent dépend de date
+  interne calcul_plafond_mensualité_d842_6 contenu argent
+    dépend de date_calcul contenu date
     état base
     état avec_copropriété
   interne montant_forfaitaire_d842_6 contenu argent
   interne seuil_minimal_dépense_nette_minimale contenu argent
   interne seuil_minimal_ressources_ménage contenu argent
   interne taux_francs_vers_euros contenu décimal
-  interne dépense_nette_minimale contenu argent dépend de argent
-  interne abattement_dépense_nette_minimale contenu argent dépend de argent
+  interne dépense_nette_minimale contenu argent
+    dépend de allocation_mensuelle contenu argent
+  interne abattement_dépense_nette_minimale contenu argent
+    dépend de allocation_mensuelle contenu argent
   interne montant_minimal_aide_d842_6 contenu argent
   interne montant_forfaitaire_d842_11 contenu argent
   interne montant_forfaitaire_d842_12 contenu argent
@@ -949,7 +960,8 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
 
   résultat aide_finale_formule contenu argent
 
-  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent
+    dépend de aide_finale contenu argent
     état minoration_forfaitaire
     état dépense_nette_minimale
     état contributions_sociales_arrondi
@@ -1003,8 +1015,10 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   entrée catégorie_équivalence_loyer_d842_16 contenu
     CatégorieÉquivalenceLoyerAllocationLogementFoyer
 
-  interne dépense_nette_minimale contenu argent dépend de argent
-  interne abattement_dépense_nette_minimale contenu argent dépend de argent
+  interne dépense_nette_minimale contenu argent
+    dépend de allocation_mensuelle contenu argent
+  interne abattement_dépense_nette_minimale contenu argent
+    dépend de allocation_mensuelle contenu argent
   interne montant_minimal_aide_d842_15 contenu argent
   interne montant_forfaitaire_d842_15 contenu argent
   interne montant_minimal_dépense_nette_d842_17 contenu argent
@@ -1022,7 +1036,8 @@ déclaration champ d'application CalculAllocationLogementFoyer:
     CalculÉquivalenceLoyerMinimale
 
   résultat aide_finale_formule contenu argent
-  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent
+    dépend de aide_finale contenu argent
     état minoration_forfaitaire
     état dépense_nette_minimale
     état redevance
@@ -1075,7 +1090,8 @@ déclaration champ d'application CalculAllocationLogement:
   interne sous_calcul_traitement contenu Traitement_formule_aide_finale
 
   résultat aide_finale_formule contenu argent
-  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent
+    dépend de arg contenu argent
 ```
 
 ### Date d'ouverture des droits à la retraite
@@ -1138,7 +1154,8 @@ déclaration champ d'application CalculetteAidesAuLogement:
 
   résultat éligibilité contenu booléen
   résultat aide_finale_formule contenu argent
-  résultat traitement_aide_finale contenu argent dépend de argent
+  résultat traitement_aide_finale contenu argent
+    dépend de aide_finale contenu argent
   résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
    collection décimal
 

@@ -44,8 +44,11 @@ déclaration champ d'application ÉligibilitéPrestationsFamiliales:
 
   interne plafond_l512_3_2 contenu argent
 
-  résultat droit_ouvert condition dépend de EnfantPrestationsFamiliales
-  résultat conditions_hors_âge condition dépend de EnfantPrestationsFamiliales
+  résultat droit_ouvert condition
+    dépend de enfant contenu EnfantPrestationsFamiliales
+  résultat conditions_hors_âge condition
+    dépend de enfant contenu EnfantPrestationsFamiliales
+  résultat âge_l512_3_2 contenu durée
   résultat régime_outre_mer_l751_1 condition
 
   smic champ d'application Smic

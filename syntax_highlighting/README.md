@@ -40,19 +40,20 @@ You can now reload VSCode and check that you have syntax highlighting on any `.c
 
 ## Pygments
 
-Pygments is a Python-based versatile lexer for various
-programming languages. To use a version of Pygments
-augmented with the Catala plugin, simply enter from the root of the repository
+Pygments is a Python-based versatile lexer for various programming languages. To
+use a version of Pygments augmented with the Catala plugin, simply enter from
+the root of the repository
 
-    sudo make pygments
+    make pygments
 
-This will execute the
-script `syntax_highlighting/fr/pygments/set_up_pygments.sh`,
-`syntax_highlighting/pl/pygments/set_up_pygments.sh` and
-`syntax_highlighting/en/pygments/set_up_pygments.sh`.
+This will setup a Python virtual environment ("venv"), and install the syntax
+highlighting plugins that allow Pygments to handle Catala files. Those are
+defined in `syntax_highlighting/XX/pygments/`.
 
-The scripts patch your `pygmentize` executable, used for instance by the `minted` LaTeX package.
-It will now point to the Catala-enabled version with the appropriate `catala_*` lexer.
+Pygments is used for instance by the `minted` LaTeX package. To make sure it is
+available, you need to "activate" the python venv each time using:
+
+    . _python_venv/bin/activate
 
 ## GNU gedit
 

@@ -1,6 +1,6 @@
 ```catala
 declaration scope HousingComputation:
-  output f content integer depends on integer
+  output f content integer depends on x content integer
   output result content integer
 
 scope HousingComputation:
@@ -8,8 +8,8 @@ scope HousingComputation:
   definition result equals f of 1
 
 declaration scope RentComputation:
-  internal g content integer depends on integer
-  output f content integer depends on integer
+  internal g content integer depends on x content integer
+  output f content integer depends on x content integer
 
 scope RentComputation:
   definition g of x equals x + 1
@@ -32,7 +32,7 @@ $ catala Interpret -t -s HousingComputation
    └─┐
    7 │   definition f of x equals (output of RentComputation).f of x
      │              ‾
-  
+
 [LOG]   →  RentComputation.direct
 [LOG]     ≔  RentComputation.direct.input: RentComputation_in {  }
 [LOG]     ≔  RentComputation.g: <function>
@@ -42,8 +42,8 @@ $ catala Interpret -t -s HousingComputation
      └─┐
      7 │   definition f of x equals (output of RentComputation).f of x
        │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    
-[LOG]     ≔  RentComputation.direct.output: RentComputation { "f"= λ (param0: integer) → RentComputation { "f"= λ (param01: integer) → error_empty ⟨true ⊢ λ (param02: integer) → error_empty ⟨true ⊢ param02 +! 1⟩ param01 +! 1⟩ }."f" param0 }
+
+[LOG]     ≔  RentComputation.direct.output: RentComputation { "f"= λ (param0: integer) → RentComputation { "f"= λ (x: integer) → error_empty ⟨true ⊢ λ (x1: integer) → error_empty ⟨true ⊢ x1 +! 1⟩ x +! 1⟩ }."f" param0 }
 [LOG]   ←  RentComputation.direct
 [LOG]   →  RentComputation.f
 [LOG]     ≔  RentComputation.f.input0: 1
@@ -52,7 +52,7 @@ $ catala Interpret -t -s HousingComputation
      └──┐
      16 │   definition f of x equals g of (x + 1)
         │              ‾
-    
+
 [LOG]     →  RentComputation.g
 [LOG]       ≔  RentComputation.g.input0: 2
 [LOG]       ☛ Definition applied:
@@ -60,7 +60,7 @@ $ catala Interpret -t -s HousingComputation
        └──┐
        15 │   definition g of x equals x + 1
           │              ‾
-      
+
 [LOG]       ≔  RentComputation.g.output: 3
 [LOG]     ←  RentComputation.g
 [LOG]     ≔  RentComputation.f.output: 3
@@ -70,16 +70,16 @@ $ catala Interpret -t -s HousingComputation
 [LOG] ≔  HousingComputation.result: 3
 [RESULT] Computation successful! Results:
 [RESULT] f =
-           λ (param0: integer) → error_empty
+           λ (x: integer) → error_empty
              ⟨true ⊢
                let result : RentComputation {"f": integer → integer} =
                  λ (RentComputation_in: RentComputation_in {}) →
                    let g : integer → integer = error_empty
-                     (λ (param01: integer) → error_empty
-                        ⟨true ⊢ param01 +! 1⟩) in
+                     (λ (x1: integer) → error_empty ⟨true ⊢ x1 +! 1⟩)
+                     in
                    let f : integer → integer = error_empty
-                     (λ (param01: integer) → error_empty
-                        ⟨true ⊢ g param01 +! 1⟩) in
+                     (λ (x1: integer) → error_empty
+                        ⟨true ⊢ g x1 +! 1⟩) in
                    RentComputation { "f"= f } RentComputation_in {  } in
                  let result1 : RentComputation {"f": integer → integer} =
                    RentComputation { "f"=
