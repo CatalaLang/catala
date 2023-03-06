@@ -64,7 +64,7 @@ module Vertex = struct
     match x with
     | Var (v, None) -> ScopeVar.format_t fmt v
     | Var (v, Some sv) ->
-      Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
+      Format.fprintf fmt "%a@%a" ScopeVar.format_t v StateName.format_t sv
     | SubScope v -> SubScopeName.format_t fmt v
 
   let info = function
@@ -108,30 +108,25 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
   if List.length sccs < ScopeDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
     let spans =
-      List.flatten
-        (List.map
-           (fun v ->
-             let var_str = Format.asprintf "%a" Vertex.format_t v in
-             let var_info = Vertex.info v in
-             let succs = ScopeDependencies.succ_e g v in
-             let _, edge_pos, succ =
-               List.find (fun (_, _, succ) -> List.mem succ scc) succs
-             in
-             let succ_str = Format.asprintf "%a" Vertex.format_t succ in
-             [
-               ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
-                 Marked.get_mark var_info );
-               ( Some
-                   ("Used here in the definition of another cycle variable "
-                   ^ succ_str
-                   ^ ":"),
-                 edge_pos );
-             ])
-           scc)
+      List.map2
+        (fun v1 v2 ->
+           let msg =
+             Format.asprintf "%a is used here in the definition of %a:"
+               Vertex.format_t v1
+               Vertex.format_t v2
+           in
+           let _, edge_pos, _ = ScopeDependencies.find_edge g v1 v2 in
+           Some msg, edge_pos)
+        scc
+        (List.tl scc @ [List.hd scc])
     in
     Errors.raise_multispanned_error spans
-      "Cyclic dependency detected between variables of scope %a!"
+      "@[<hov 2>Cyclic dependency detected between the following variables of \
+       scope %a:@,@[<hv>%a@]@]"
       ScopeName.format_t scope.scope_uid
+      (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.fprintf ppf " →@ ")
+         Vertex.format_t)
+      (scc @ [List.hd scc])
 
 (** Builds the dependency graph of a particular scope *)
 let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =

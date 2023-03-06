@@ -81,7 +81,7 @@ end>
 %type<Ast.definition> definition
 %type<Ast.variation_typ> variation_type
 %type<Ast.scope_use_item> assertion
-%type<Ast.scope_use_item> scope_item
+%type<Ast.scope_use_item Marked.pos> scope_item
 %type<Ast.lident Marked.pos * Ast.base_typ Marked.pos> struct_scope_base
 %type<Ast.struct_decl_field> struct_scope
 %type<Ast.io_input> scope_decl_item_attribute_input
@@ -489,9 +489,13 @@ let assertion :=
 }
 
 let scope_item :=
-| r = rule ; <Rule>
-| d = definition ; <Definition>
-| ASSERTION ; contents = assertion ; <>
+| r = rule ; {
+  Rule r, Marked.get_mark (Shared_ast.RuleName.get_info r.rule_id)
+}
+| d = definition ; {
+  Definition d, Marked.get_mark (Shared_ast.RuleName.get_info d.definition_id)
+}
+| ASSERTION ; contents = addpos(assertion) ; <>
 
 let struct_scope_base :=
 | DATA ; i = lident ;
@@ -612,7 +616,7 @@ let depends_stance ==
 let code_item :=
 | SCOPE ; c = uident ;
   e = option(preceded(UNDER_CONDITION,expression)) ;
-  COLON ; items = nonempty_list(addpos(scope_item)) ; {
+  COLON ; items = nonempty_list(scope_item) ; {
   ScopeUse {
     scope_use_name = c;
     scope_use_condition = e;
