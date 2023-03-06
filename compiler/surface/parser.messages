@@ -326,7 +326,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION UNDER_CONDITION TRUE THEN
 ##
 ## Ends in an error in state: 235.
 ##
-## condition_consequence -> UNDER_CONDITION expression . CONSEQUENCE [ UIDENT TRUE SUM STATE OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LPAREN LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CARDINAL ]
+## condition_consequence -> UNDER_CONDITION expression . CONSEQUENCE [ UIDENT TRUE SUM OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LPAREN LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CARDINAL ]
 ## expression -> expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
 ## expression -> expression . WITH constructor_binding [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
@@ -358,7 +358,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION UNDER_CONDITION YEAR
 ##
 ## Ends in an error in state: 234.
 ##
-## condition_consequence -> UNDER_CONDITION . expression CONSEQUENCE [ UIDENT TRUE SUM STATE OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LPAREN LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CARDINAL ]
+## condition_consequence -> UNDER_CONDITION . expression CONSEQUENCE [ UIDENT TRUE SUM OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LPAREN LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CARDINAL ]
 ##
 ## The known suffix of the stack is as follows:
 ## UNDER_CONDITION
@@ -480,7 +480,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON EXCEPTION LIDENT YEAR
 ## Ends in an error in state: 251.
 ##
 ## definition -> option(label) option(exception_to) . DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
-## rule -> option(label) option(exception_to) . RULE rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(exception_to) . RULE rule_expr option(state) option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label) option(exception_to)
@@ -505,7 +505,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON LABEL LIDENT DEFINED_AS
 ## Ends in an error in state: 247.
 ##
 ## definition -> option(label) . option(exception_to) DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
-## rule -> option(label) . option(exception_to) RULE rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) . option(exception_to) RULE rule_expr option(state) option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label)
@@ -596,7 +596,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON RULE YEAR
 ##
 ## Ends in an error in state: 252.
 ##
-## rule -> option(label) option(exception_to) RULE . rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(exception_to) RULE . rule_expr option(state) option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label) option(exception_to) RULE
@@ -3628,19 +3628,19 @@ expected the next item in the scope, or the start of a new top-level decleration
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT UNDER_CONDITION UIDENT CONSEQUENCE YEAR
 ##
-## Ends in an error in state: 262.
+## Ends in an error in state: 266.
 ##
-## rule -> option(label) option(exception_to) RULE rule_expr option(condition_consequence) . option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(exception_to) RULE rule_expr option(state) option(condition_consequence) . rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to) RULE rule_expr option(condition_consequence)
+## option(label) option(exception_to) RULE rule_expr option(state) option(condition_consequence)
 ##
 
 expected either 'fulfilled' or 'not fulfilled'
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT STATE YEAR
 ##
-## Ends in an error in state: 263.
+## Ends in an error in state: 262.
 ##
 ## state -> STATE . lident [ UNDER_CONDITION STATE SCOPE OUTPUT NOT LIDENT INTERNAL INPUT FILLED END_CODE DEFINED_AS DECLARATION CONTEXT ]
 ##
@@ -3652,12 +3652,12 @@ expected an identifier defining the name of the state
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT STATE LIDENT YEAR
 ##
-## Ends in an error in state: 266.
+## Ends in an error in state: 265.
 ##
-## rule -> option(label) option(exception_to) RULE rule_expr option(condition_consequence) option(state) . rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(exception_to) RULE rule_expr option(state) . option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to) RULE rule_expr option(condition_consequence) option(state)
+## option(label) option(exception_to) RULE rule_expr option(state)
 ##
 
 expected 'equals' then an expression defining the rule
