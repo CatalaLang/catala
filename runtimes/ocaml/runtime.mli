@@ -43,7 +43,7 @@ exception EmptyError
 exception AssertionFailed of source_position
 exception ConflictError of source_position
 exception UncomparableDurations
-exception IndivisableDurations
+exception IndivisibleDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
 
@@ -330,6 +330,7 @@ module Oper : sig
   val o_div_rat_rat : decimal -> decimal -> decimal
   val o_div_mon_mon : money -> money -> decimal
   val o_div_mon_rat : money -> decimal -> money
+  val o_div_dur_dur : duration -> duration -> decimal
   val o_lt_int_int : integer -> integer -> bool
   val o_lt_rat_rat : decimal -> decimal -> bool
   val o_lt_mon_mon : money -> money -> bool
