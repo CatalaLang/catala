@@ -284,6 +284,7 @@ let driver source_file (options : Cli.options) : int =
                   check_invariant (invariant_no_partial_evaluation ()) prgm;
                   check_invariant (invariant_no_return_a_function ()) prgm;
                   check_invariant (invariant_app_is_either_op_var_let ()) prgm;
+                  check_invariant (invariant_match ()) prgm;
                 ]
             in
 

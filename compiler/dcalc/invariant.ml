@@ -55,6 +55,23 @@ let invariant_app_is_either_op_var_let () : string * invariant_expr =
       | EApp _ -> Fail
       | _ -> Ignore )
 
+(** the arity of constructors when matching is always one. *)
+let invariant_match () : string * invariant_expr =
+  ( __FUNCTION__,
+    fun e ->
+      match Marked.unmark e with
+      | EMatch { cases; _ } ->
+        if
+          EnumConstructor.Map.for_all
+            (fun _ case ->
+              match Marked.unmark case with
+              | EAbs { binder; _ } -> Bindlib.mbinder_arity binder = 1
+              | _ -> false)
+            cases
+        then Pass
+        else Fail
+      | _ -> Ignore )
+
 let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
   (* TODO: add a Program.fold_exprs to get rid of the reference 0:-)? *)
   let result = ref true in

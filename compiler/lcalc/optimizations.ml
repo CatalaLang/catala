@@ -31,12 +31,28 @@ let rec iota_expr (e : 'm expr) : 'm expr boxed =
     Expr.eapp case [e1] m
   | EMatch { e = e'; cases; name = n }
     when cases
-         |> EnumConstructor.Map.mapi (fun i case ->
+         |> EnumConstructor.Map.for_all (fun i case ->
                 match Marked.unmark case with
-                | EInj { cons = i'; name = n'; _ } ->
-                  EnumConstructor.equal i i' && EnumName.equal n n'
-                | _ -> false)
-         |> EnumConstructor.Map.for_all (fun _ b -> b) ->
+                | EAbs { binder; _ } -> (
+                  let var, body = Bindlib.unmbind binder in
+                  (* because of invariant [invariant_match], the arity is always
+                     one. *)
+                  let[@warning "-8"] [| var |] = var in
+
+                  match Marked.unmark body with
+                  | EInj { cons = i'; name = n'; e = EVar x, _ } ->
+                    EnumConstructor.equal i i'
+                    && EnumName.equal n n'
+                    && Bindlib.eq_vars x var
+                  | EInj { cons = i'; name = n'; e = ELit LUnit, _ } ->
+                    (* since unit is the only value of type unit. We don't need
+                       to check the equality. *)
+                    EnumConstructor.equal i i' && EnumName.equal n n'
+                  | _ -> false)
+                | _ ->
+                  (* because of invariant [invariant_match], there is always
+                     some EAbs in each cases. *)
+                  assert false) ->
     visitor_map iota_expr e'
   | _ -> visitor_map iota_expr e
 
