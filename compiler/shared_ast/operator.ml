@@ -71,6 +71,7 @@ let name : type a k. (a, k) t -> string = function
   | Div_rat_rat -> "o_div_rat_rat"
   | Div_mon_mon -> "o_div_mon_mon"
   | Div_mon_rat -> "o_div_mon_mon"
+  | Div_dur_dur -> "o_div_dur_dur"
   | Lt -> "o_lt"
   | Lt_int_int -> "o_lt_int_int"
   | Lt_rat_rat -> "o_lt_rat_rat"
@@ -175,6 +176,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Div_rat_rat, Div_rat_rat
   | Div_mon_mon, Div_mon_mon
   | Div_mon_rat, Div_mon_rat
+  | Div_dur_dur, Div_dur_dur
   | Lt, Lt
   | Lt_int_int, Lt_int_int
   | Lt_rat_rat, Lt_rat_rat
@@ -257,6 +259,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Div_rat_rat, _ -> -1 | _, Div_rat_rat -> 1
   | Div_mon_mon, _ -> -1 | _, Div_mon_mon -> 1
   | Div_mon_rat, _ -> -1 | _, Div_mon_rat -> 1
+  | Div_dur_dur, _ -> -1 | _, Div_dur_dur -> 1
   | Lt, _ -> -1 | _, Lt -> 1
   | Lt_int_int, _ -> -1 | _, Lt_int_int -> 1
   | Lt_rat_rat, _ -> -1 | _, Lt_rat_rat -> 1
@@ -316,12 +319,12 @@ let kind_dispatch :
     | Add_mon_mon | Add_dat_dur | Add_dur_dur | Sub_int_int | Sub_rat_rat
     | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
     | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
-    | Div_mon_mon | Div_mon_rat | Lt_int_int | Lt_rat_rat | Lt_mon_mon
-    | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
-    | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
-    | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
-    | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
-    | Eq_dat_dat | Eq_dur_dur ) as op ->
+    | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
+    | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
+    | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
+    | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
+    | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
+    | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ) as op ->
     resolved op
 
 (* Glorified identity... allowed operators are the same in scopelang, dcalc,
@@ -377,6 +380,7 @@ let translate :
   | Div_rat_rat -> Div_rat_rat
   | Div_mon_mon -> Div_mon_mon
   | Div_mon_rat -> Div_mon_rat
+  | Div_dur_dur -> Div_dur_dur
   | Lt_int_int -> Lt_int_int
   | Lt_rat_rat -> Lt_rat_rat
   | Lt_mon_mon -> Lt_mon_mon
@@ -462,6 +466,7 @@ let resolved_type (op, pos) =
     | Div_rat_rat -> [TRat; TRat], TRat
     | Div_mon_mon -> [TMoney; TMoney], TRat
     | Div_mon_rat -> [TMoney; TRat], TMoney
+    | Div_dur_dur -> [TDuration; TDuration], TRat
     | Lt_int_int -> [TInt; TInt], TBool
     | Lt_rat_rat -> [TRat; TRat], TBool
     | Lt_mon_mon -> [TMoney; TMoney], TBool
@@ -524,6 +529,7 @@ let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
   | Div, [TRat; TRat] -> Div_rat_rat, `Straight
   | Div, [TMoney; TMoney] -> Div_mon_mon, `Straight
   | Div, [TMoney; TRat] -> Div_mon_rat, `Straight
+  | Div, [TDuration; TDuration] -> Div_dur_dur, `Straight
   | Lt, [TInt; TInt] -> Lt_int_int, `Straight
   | Lt, [TRat; TRat] -> Lt_rat_rat, `Straight
   | Lt, [TMoney; TMoney] -> Lt_mon_mon, `Straight
