@@ -36,17 +36,18 @@ declaration scope Section121SinglePerson:
   input date_of_sale_or_exchange content date
   input person content PersonalData
   # Invariant: the periods in the collection are disjoint
-  internal aggregate_periods_from_last_five_years content duration
+  context output aggregate_periods_from_last_five_years content duration
     depends on periods content collection Period
   context output gain_cap content money
     state section_121b
     state section_121c
   input gain_from_sale_or_exchange_of_property content money
+  internal section_121_c_applies condition
+  context output section_121_c_2_A condition
   output income_excluded_from_gross_income_uncapped content money
   output income_excluded_from_gross_income content money
+  internal section_121_b_3_applies_disregarding_121c condition
   context output section_121_b_3_applies condition
-    state before_121c
-    state after_121c
 
 declaration structure PersonalData:
   data property_ownage content collection Period
@@ -75,11 +76,15 @@ declaration scope Section121TwoPersons:
   section121Person1 scope Section121SinglePerson
   context output person2 content PersonalData
   section121Person2 scope Section121SinglePerson
-  internal section121a_requirements_met condition
+  internal section121a_requirements_met condition # Unused ?
+  internal section_121_c_applies condition
+  internal section_121_c_2_A condition
   output section_121_b_2_A_condition condition
   output gain_cap_person_1 content money
   output gain_cap_person_2 content money
   context gain_cap content money
+    state section_121b
+    state section_121c
   input return_type content ReturnType
   input return_date content date
   input date_of_sale_or_exchange content date
@@ -108,6 +113,9 @@ scope Section121TwoPersons:
   definition section121Person1.person equals person1
 
   definition section121Person2.person equals person2
+
+  definition section121Person1.gain_from_sale_or_exchange_of_property equals gain_from_sale_or_exchange_of_property # ?
+  definition section121Person2.gain_from_sale_or_exchange_of_property equals gain_from_sale_or_exchange_of_property # ?
 
   definition gain_cap_person_1 equals section121Person1.gain_cap
   definition gain_cap_person_2 equals section121Person2.gain_cap
@@ -174,12 +182,12 @@ scope Section121SinglePerson:
   # Regulation 1.121-1(c)(1): the periods of ownage and usage
   # don't have to overlap
   rule requirements_ownership_met under condition
-    aggregate_periods_from_last_five_years of property_ownage >= 730 day
+    aggregate_periods_from_last_five_years of person.property_ownage >= 730 day
   consequence fulfilled
 
   rule requirements_usage_met under condition
     aggregate_periods_from_last_five_years of
-       property_usage_as_principal_residence >= 730 day
+       person.property_usage_as_principal_residence >= 730 day
   consequence fulfilled
 
   rule requirements_met under condition
@@ -193,6 +201,7 @@ scope Section121SinglePerson:
 scope Section121TwoPersons:
   definition section121a_requirements_met equals
     section121Person1.requirements_met
+    # or section121Person2.requirements_met ??
 
   definition income_excluded_from_gross_income_uncapped equals
     section121Person1.income_excluded_from_gross_income_uncapped
@@ -220,7 +229,7 @@ scope Section121SinglePerson:
       income_excluded_from_gross_income_uncapped
 
 scope Section121TwoPersons:
-    definition gain_cap equals section121Person1.gain_cap
+    definition gain_cap state section_121b equals section121Person1.gain_cap
 
     definition income_excluded_from_gross_income equals
     if income_excluded_from_gross_income_uncapped >= gain_cap then
@@ -242,6 +251,7 @@ of the sale or exchange of the property—
 ```
 
 ##### (A) $500,000 Limitation for certain joint returns
+
 
 Paragraph (1) shall be applied by substituting “$500,000” for “$250,000” if—
 
@@ -268,7 +278,7 @@ scope Section121TwoPersons:
      section121Person2.requirements_usage_met)
   # iii)
   and
-  (not (section121Person1.section_121_b_3_applies))
+  (not (section121Person1.section_121_b_3_applies)) # before or after 121c ?
   and
   (not (section121Person2.section_121_b_3_applies))
   consequence fulfilled
@@ -279,7 +289,7 @@ scope Section121TwoPersons:
   consequence fulfilled
 
   exception
-  definition gain_cap under condition
+  definition gain_cap state section_121b under condition
     section_121_b_2_A_condition
   consequence equals $500,000
 ```
@@ -315,12 +325,14 @@ scope Section121TwoPasses under condition
     -- property_usage_as_principal_residence:
       first_pass.person1.property_usage_as_principal_residence
     -- other_section_121a_sale: first_pass.person1.other_section_121a_sale
+    -- good_reason_for_exchange: first_pass.person1.good_reason_for_exchange
   }
   definition second_pass.person2 equals PersonalData {
     -- property_ownage: period_merge.output_periods
     -- property_usage_as_principal_residence:
       first_pass.person2.property_usage_as_principal_residence
     -- other_section_121a_sale: first_pass.person2.other_section_121a_sale
+    -- good_reason_for_exchange: first_pass.person2.good_reason_for_exchange
   }
 ```
 
@@ -333,8 +345,8 @@ was any other sale or exchange by the taxpayer to which subsection (a) applied.
 
 ```catala
 scope Section121SinglePerson:
-  rule section_121_b_3_applies state before_121c under condition
-    other_section_121a_sale with pattern
+  rule section_121_b_3_applies_disregarding_121c under condition
+    person.other_section_121a_sale with pattern
        MostRecentSaleWhereSection121aApplied of other_sale and
     date_of_sale_or_exchange - other_sale.date_of_sale_or_exchange <= 2 year
   consequence fulfilled
@@ -451,21 +463,31 @@ not apply; but the dollar limitation under paragraph (1) or (2) of subsection
 
 ```catala
 scope Section121SinglePerson:
-  definition section_121_b_3_applies state after_121c
-    equals (not section_121_c_applies) and section_121_b_3_applies
+  definition section_121_b_3_applies
+    equals section_121_b_3_applies_disregarding_121c and not section_121_c_applies
 
   exception rule requirements_met
     under condition section_121_c_applies
     consequence fulfilled
+
+# scope Section121TwoPersons:
+#   definition section121Person1.section_121_b_3_applies
+#     equals (not section_121_c_applies) and section121Person1.section_121_b_3_applies_disregarding_121c
+# 
+#   definition section121Person2.section_121_b_3_applies state after_121c
+#     equals (not section_121_c_applies) and section121Person2.section_121_b_3_applies
+
+#  exception rule section121Person1.requirements_met
+#    under condition section_121_c_applies
+#    consequence fulfilled
+
+#  exception rule section121Person2.requirements_met
+#    under condition section_121_c_applies
+#    consequence fulfilled
 
 scope Section121TwoPersons:
-  exception rule section_121_b_3_applies
-    under condition section_121_c_applies
-    consequence false
-
-  exception rule requirements_met
-    under condition section_121_c_applies
-    consequence fulfilled
+  exception rule section121a_requirements_met under condition section_121_c_applies
+    consequence fulfilled # ??
 ```
 
 ##### (A) the amount which bears the same ratio to such limitation (determined without regard to this paragraph) as
@@ -483,32 +505,32 @@ declaration min_duration content duration
     if dur1 <= dur2 then dur1 else dur2
 
 scope Section121SinglePerson:
-  exception definition gain_cap state section_121c
+  definition gain_cap state section_121c
     under condition section_121_c_applies
-    equals
+    consequence equals
       let shorter equals
         # this is the precise meaning of (I) and (II)
         # according to Reg. 1.121-3(g)(1)
         min_duration of
           (min_duration of
-            (aggregate_periods_from_last_five_years of property_ownage),
-            (aggregate_periods_from_last_five_years of property_usage_as_principal_residence)),
-          (match other_section_121a_sale with pattern
+            (aggregate_periods_from_last_five_years of person.property_ownage),
+            (aggregate_periods_from_last_five_years of person.property_usage_as_principal_residence)),
+          (match person.other_section_121a_sale with pattern
            -- MostRecentSaleWhereSection121aApplied of previous_sale:
              date_of_sale_or_exchange - previous_sale.date_of_sale_or_exchange
            -- NoOtherSaleWhereSection121aApplied: 2 year)
       in
-      gain_cap * ((duration_days of shorter) / 730)
+      gain_cap * (shorter / 730 day)
 
 scope Section121TwoPersons:
-  exception definition gain_cap state section_121c
+  definition gain_cap state section_121c
     under condition section_121_c_applies
-    equals
+    consequence equals
       let shorter_person1 equals
         min_duration of
           (min_duration of
-            (aggregate_periods_from_last_five_years of person1.property_ownage),
-            (aggregate_periods_from_last_five_years of person1.property_usage_as_principal_residence)),
+            (section121Person1.aggregate_periods_from_last_five_years of person1.property_ownage),
+            (section121Person1.aggregate_periods_from_last_five_years of person1.property_usage_as_principal_residence)),
           (match person1.other_section_121a_sale with pattern
            -- MostRecentSaleWhereSection121aApplied of previous_sale:
              date_of_sale_or_exchange - previous_sale.date_of_sale_or_exchange
@@ -517,8 +539,8 @@ scope Section121TwoPersons:
       let shorter_person2 equals
         min_duration of
           (min_duration of
-            (aggregate_periods_from_last_five_years of person2.property_ownage),
-            (aggregate_periods_from_last_five_years of person2.property_usage_as_principal_residence)),
+            (section121Person2.aggregate_periods_from_last_five_years of person2.property_ownage),
+            (section121Person2.aggregate_periods_from_last_five_years of person2.property_usage_as_principal_residence)),
           (match person2.other_section_121a_sale with pattern
            -- MostRecentSaleWhereSection121aApplied of previous_sale:
              date_of_sale_or_exchange - previous_sale.date_of_sale_or_exchange
@@ -529,7 +551,7 @@ scope Section121TwoPersons:
         min_duration of shorter_person1, shorter_person2
         # Could be max or mean instead of min ?
       in
-      gain_cap * ((duration_days of shorter) / 730)
+      gain_cap * (shorter / 730 day)
 ```
 
 #### (2) Sales and exchanges to which subsection applies
@@ -545,14 +567,14 @@ scope Section121SinglePerson:
   rule section_121_c_2_A under condition
       (not (requirements_ownership_met and
             requirements_usage_met)
-       or section_121_b_3_applies)
+       or section_121_b_3_applies_disregarding_121c)
     consequence fulfilled
   rule section_121_c_applies under condition
-      section_121_c_2_A and good_reason
+      section_121_c_2_A and person.good_reason_for_exchange
     consequence fulfilled
 
 scope Section121TwoPersons:
-  definition section121_c_2_A equals
+  definition section_121_c_2_A equals
     # We want not(a_applies) =
     #         not(person1.a_applies or person2.a_applies) =
     #         (not person1.a_applies) and (not person2.a_applies)
@@ -562,7 +584,7 @@ scope Section121TwoPersons:
     # `not section_121_b_2_A_condition` might make more sense here,
     # but it's not equivalent and nothing in the text suggests it
   rule section_121_c_applies under condition
-    section121_c_2_A and
+    section_121_c_2_A and
     (person1.good_reason_for_exchange
      or # This "or" is not specified but we can assume it from the rulings
      person2.good_reason_for_exchange)
@@ -575,8 +597,8 @@ scope Section121TwoPersons:
 If a husband and wife make a joint return for the taxable year of the sale or exchange of the property, subsections (a) and (c) shall apply if either spouse meets the ownership and use requirements of subsection (a) with respect to such property.
 
 ```catala
-scope Section121SinglePerson:
-  exception rule section_121_c_2_A under condition
-    
-  consequence fulfilled
-```
+#scope Section121SinglePerson:
+#  exception rule section_121_c_2_A under condition
+#    
+#  consequence fulfilled
+    ```
