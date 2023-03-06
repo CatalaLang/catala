@@ -1042,7 +1042,6 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
     ménage.nombre_autres_occupants_logement +
     nombre de ménage.personnes_à_charge
 
-  étiquette base
   règle condition_logement_surface sous condition
     soit condition_logement_surface_minimale_sans_seuil_m_carrés égal à
       (selon ménage.situation_familiale sous forme
@@ -5302,7 +5301,9 @@ plus de deux personnes.
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  étiquette r_844_4 exception base
+  # TODO informatique: vérifier qu'avec la cumulativité des exceptions
+  # ici on a bien le bon comportement pour "condition_logement_surface"
+  étiquette r_844_4
   règle condition_logement_surface sous condition
     ménage.personnes_âgées_handicapées_foyer_r844_4 et
     ménage.logement.surface_m_carrés >=
@@ -5404,7 +5405,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
   ménage.résidence sous forme Mayotte et
   date_courante >= date_entrée_vigueur_différée_cch:
 
-  exception règle condition_logement_surface sous condition
+  règle condition_logement_surface sous condition
     soit nombre_personnes_logement égal à
       (selon ménage.situation_familiale sous forme
       -- Célibataire: 1
@@ -6597,6 +6598,10 @@ président du conseil territorial.
 “ Ces derniers examinent avec l'allocataire une solution adaptée d'amélioration du
 logement ou une solution de relogement. ”
 
+```catala
+# Pas pertinent pour le moment.
+```
+
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
 janvier 2022.
@@ -6611,6 +6616,11 @@ remplacés par les mots : “en application de la règlementation applicable loc
 2° A l'article D. 842-13, les mots : “et de l'agriculture” sont remplacés par les mots :
 “et de l'outre-mer”.
 
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
 janvier 2022.
@@ -6618,6 +6628,11 @@ janvier 2022.
 ###### Article D863-15 | LEGIARTI000044970240
 
 Les articles D. 842-15 à D. 842-18 ne sont pas applicables à Saint-Pierre-et-Miquelon.
+
+```catala
+# TODO informatique: coder le fait qu'il n'y ait pas de logement-foyer à
+# Saint-Pierre-et-Miquelon
+```
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
@@ -6627,6 +6642,10 @@ janvier 2022.
 
 Les articles R. 842-14, R. 843-2 à R. 843-8 ne sont pas applicables à
 Saint-Pierre-et-Miquelon.
+
+```catala
+# Pas pertinent pour le moment.
+```
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er

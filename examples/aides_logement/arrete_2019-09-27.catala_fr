@@ -4389,14 +4389,10 @@ Personne seule ou couple ayant 7 personnes à charge 1,67 %
 Majoration par personne à charge supplémentaire     -0,06 %
 
 ```catala
-# TODO juridique: Ici bizarrerie, à la ligne pour 7 personnes on a un TF plus
-# grand que la ligne à 6 personnes alors que partout ailleurs on a une décrois-
-# ance. Il faut regarder les archives de cet article pour identifier à partir
-# de quand cette bizarrerie a été introduite.
-# 
-# Cette bizarrerie a été introduite avec la dernière version de l'arrêté de 2019 
+# Ici bizarrerie, à la ligne pour 7 personnes on a un TF plus grand que la
+# ligne à 6 personnes alors que partout ailleurs on a une décroissance.
+# Cette bizarrerie a été introduite avec la dernière version de l'arrêté de 2019
 # (arrêté du 26 décembre 2022).
-```
 
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2023-01-01|:

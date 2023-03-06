@@ -1281,6 +1281,8 @@ champ d'application CalculetteAidesAuLogementGardeAlternée:
         ménage.condition_rattaché_foyer_fiscal_parent_ifi
       -- enfant_à_naître_après_quatrième_mois_grossesse:
         ménage.enfant_à_naître_après_quatrième_mois_grossesse
+      -- personnes_âgées_handicapées_foyer_r844_4:
+        ménage.personnes_âgées_handicapées_foyer_r844_4
     }
   définition éligibilité égal à calculette.éligibilité
 ```
