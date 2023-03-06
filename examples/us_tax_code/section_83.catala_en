@@ -6,6 +6,8 @@ declaration structure PropertyTransfer:
   data elects_to_include_in_year_of_transfer content boolean
     # has to be explicitely selected within 30 days of transfer
 
+  data recipient_not_the_person_the_service_was_performed_for
+
   data fair_market_value_unrestricted content money
   data fair_market_value_when_transfered content money
   data amount_paid content money
@@ -74,7 +76,8 @@ scope Transferred_property_83:
   exception section_83_default
   definition amount_to_include_in_gross_income state computing
     under condition not is_restricted and
-                    not transfer.was_disposed_of_before_unrestricted
+                    not transfer.was_disposed_of_before_unrestricted and
+                    transfer.recipient_not_the_person_the_service_was_performed_for
     consequence equals
       if transfer.fair_market_value_unrestricted > transfer.amount_paid
       then IncludeInGrossIncome content
@@ -100,8 +103,15 @@ deduction shall be allowed in respect of such forfeiture.
 scope Transferred_property_83:
   exception section_83a
   definition amount_to_include_in_gross_income state computing
-    under condition transfer.elects_to_include_in_year_of_transfer
-    # todo legal: can this still apply if was_disposed_of_before_unrestricted ?
+    under condition transfer.elects_to_include_in_year_of_transfer and
+                    transfer.recipient_not_the_person_the_service_was_performed_for
+    # The wording is different from 83a in that it does not mention "any
+    # *other* person", nevertheless it seems more consistent to still add this
+    # condition here: this is in accordance with the definition of a "transfer"
+    # as found in Reg. 1.83-3(a)(1).
+
+    # todo legal: can this still apply if the property was disposed of before the
+    # election is made ?
     consequence equals
       if transfer.fair_market_value_when_transfered > transfer.amount_paid
       then IncludeInGrossIncome content (transfer.fair_market_value_when_transfered - transfer.amount_paid)
