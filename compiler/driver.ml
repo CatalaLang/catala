@@ -1,7 +1,7 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020 Inria,
    contributors: Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley
-   <emile.rolley@tuta.io>
+   <emile.rolley@tuta.io>, Jean-Marc Le Roux <contact@jmlx.io>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -145,8 +145,8 @@ let driver source_file (options : Cli.options) : int =
               Literate.Html.wrap_html prgm.Surface.Ast.program_source_files
                 language fmt (fun fmt -> weave_output fmt prgm)
           else weave_output fmt prgm)
-    | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
-      | `Scopelang | `Proof | `Plugin _ ) as backend -> (
+    | ( `Interpret | `Typecheck | `OCaml | `Python | `Solidity | `Scalc | `Lcalc
+      | `Dcalc | `Scopelang | `Proof | `Plugin _ ) as backend -> (
       Cli.debug_print "Name resolution...";
       let ctxt = Desugared.Name_resolution.form_context prgm in
       let scope_uid =
@@ -193,8 +193,8 @@ let driver source_file (options : Cli.options) : int =
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.program ~debug:options.debug)
             prgm
-      | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
-        | `Proof | `Plugin _ ) as backend -> (
+      | ( `Interpret | `Typecheck | `OCaml | `Python | `Solidity | `Scalc
+        | `Lcalc | `Dcalc | `Proof | `Plugin _ ) as backend -> (
         Cli.debug_print "Typechecking...";
         let type_ordering =
           Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
@@ -251,8 +251,8 @@ let driver source_file (options : Cli.options) : int =
             Format.fprintf fmt "%a\n"
               (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
               prgrm_dcalc_expr
-        | (`Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _)
-          as backend -> (
+        | ( `Interpret | `OCaml | `Python | `Solidity | `Scalc | `Lcalc | `Proof
+          | `Plugin _ ) as backend -> (
           Cli.debug_print "Typechecking again...";
           let prgm =
             try Shared_ast.Typing.program prgm
@@ -296,7 +296,8 @@ let driver source_file (options : Cli.options) : int =
                   (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
                   result)
               results
-          | (`OCaml | `Python | `Lcalc | `Scalc | `Plugin _) as backend -> (
+          | (`OCaml | `Python | `Solidity | `Lcalc | `Scalc | `Plugin _) as
+            backend -> (
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm =
               if options.avoid_exceptions then
@@ -335,7 +336,8 @@ let driver source_file (options : Cli.options) : int =
                 Format.fprintf fmt "%a\n"
                   (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
                   prgrm_lcalc_expr
-            | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
+            | (`OCaml | `Python | `Solidity | `Scalc | `Plugin _) as backend
+              -> (
               match backend with
               | `OCaml ->
                 let output_file, with_output =
@@ -355,7 +357,8 @@ let driver source_file (options : Cli.options) : int =
                   p.Plugin.name;
                 p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
                   prgm type_ordering
-              | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
+              | (`Python | `Solidity | `Scalc | `Plugin (Plugin.Scalc _)) as
+                backend -> (
                 let prgm = Scalc.From_lcalc.translate_program prgm in
                 match backend with
                 | `Scalc ->
@@ -383,6 +386,16 @@ let driver source_file (options : Cli.options) : int =
                   with_output
                   @@ fun fmt ->
                   Scalc.To_python.format_program fmt prgm type_ordering
+                | `Solidity ->
+                  let output_file, with_output =
+                    get_output_format ~ext:".sol" ()
+                  in
+                  Cli.debug_print "Compiling program into Solidity...";
+                  Cli.debug_print "Writing to %s..."
+                    (Option.value ~default:"stdout" output_file);
+                  with_output
+                  @@ fun fmt ->
+                  Scalc.To_solidity.format_program fmt prgm type_ordering
                 | `Plugin (Plugin.Lcalc _) -> assert false
                 | `Plugin (Plugin.Scalc p) ->
                   let output_file, _ = get_output ~ext:p.Plugin.extension () in

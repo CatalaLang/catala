@@ -14,6 +14,7 @@ _minted*
 *.d
 *.new
 *.ml
-*.py
+.py
+.sol
 *.xdv
 *.json

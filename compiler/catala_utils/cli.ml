@@ -25,6 +25,7 @@ type backend_option_builtin =
   | `Typecheck
   | `OCaml
   | `Python
+  | `Solidity
   | `Scalc
   | `Lcalc
   | `Dcalc
@@ -43,6 +44,7 @@ let backend_option_to_string = function
   | `Proof -> "Proof"
   | `Html -> "Html"
   | `Python -> "Python"
+  | `Solidity -> "Solidity"
   | `Typecheck -> "Typecheck"
   | `Scalc -> "Scalc"
   | `Lcalc -> "Lcalc"
@@ -59,6 +61,7 @@ let backend_option_of_string backend =
   | "proof" -> `Proof
   | "html" -> `Html
   | "python" -> `Python
+  | "solidity" -> `Solidity
   | "typecheck" -> `Typecheck
   | "scalc" -> `Scalc
   | "lcalc" -> `Lcalc
@@ -341,6 +344,9 @@ let info =
            execution of the Catala program." );
       `I ("$(b,OCaml)", "Generates an OCaml translation of the Catala program.");
       `I ("$(b,Python)", "Generates a Python translation of the Catala program.");
+      `I
+        ( "$(b,Solidity)",
+          "Generates a Solidity translation of the Catala program." );
       `I
         ( "$(b,LaTeX)",
           "Weaves a LaTeX literate programming output of the Catala program." );

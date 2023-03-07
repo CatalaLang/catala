@@ -25,6 +25,7 @@ type backend_option_builtin =
   | `Typecheck
   | `OCaml
   | `Python
+  | `Solidity
   | `Scalc
   | `Lcalc
   | `Dcalc
