@@ -313,7 +313,7 @@ let set_option_globals options : unit =
   disable_counterexamples := options.disable_counterexamples;
   avoid_exceptions_flag := options.avoid_exceptions
 
-let version = "0.7.0"
+let version = "0.8.0"
 
 let info =
   let doc =
