@@ -1,0 +1,19 @@
+```catala
+déclaration champ d'application Test:
+  contexte bday contenu date
+  contexte today contenu date
+  contexte ambiguité contenu booléen
+
+champ d'application Test:
+  définition bday égal à |2000-02-29|
+  définition today égal à |2018-03-01|
+  définition ambiguité égal à bday + 18 an <= today 
+```
+
+```catala-test-inline
+$ catala Interpret -s Test
+catala: internal error, uncaught exception:
+        Dates_calc.Dates.AmbiguousComputation
+        
+#return code 125#
+```
