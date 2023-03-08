@@ -36,7 +36,7 @@ exception EmptyError
 exception AssertionFailed of source_position
 exception ConflictError of source_position
 exception UncomparableDurations
-exception IndivisableDurations
+exception IndivisibleDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
 
@@ -676,6 +676,15 @@ module Oper = struct
 
   let o_div_mon_rat m1 r1 =
     if Q.zero = r1 then raise Division_by_zero else o_mult_mon_rat m1 (Q.inv r1)
+
+  let o_div_dur_dur d1 d2 =
+    let i1, i2 =
+      try
+        ( integer_of_int (Dates_calc.Dates.period_to_days d1),
+          integer_of_int (Dates_calc.Dates.period_to_days d2) )
+      with Dates_calc.Dates.AmbiguousComputation -> raise IndivisibleDurations
+    in
+    o_div_int_int i1 i2
 
   let o_lt_int_int i1 i2 = Z.compare i1 i2 < 0
   let o_lt_rat_rat i1 i2 = Q.compare i1 i2 < 0

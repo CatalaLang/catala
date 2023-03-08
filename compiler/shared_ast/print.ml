@@ -207,6 +207,7 @@ let operator_to_string : type a k. (a, k) Op.t -> string = function
   | Div_rat_rat -> "/."
   | Div_mon_mon -> "/$"
   | Div_mon_rat -> "/$."
+  | Div_dur_dur -> "/^"
   | Lt -> "<"
   | Lt_int_int -> "<!"
   | Lt_rat_rat -> "<."

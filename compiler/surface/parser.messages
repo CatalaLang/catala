@@ -1,6 +1,6 @@
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT TEXT YEAR
 ##
-## Ends in an error in state: 358.
+## Ends in an error in state: 359.
 ##
 ## list(addpos(enum_decl_line)) -> enum_decl_line . list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -12,7 +12,7 @@ expected another enum case, or a new declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 354.
+## Ends in an error in state: 355.
 ##
 ## option(preceded(CONTENT,addpos(typ))) -> CONTENT . typ_data [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -24,7 +24,7 @@ expected a content type
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT UIDENT YEAR
 ##
-## Ends in an error in state: 353.
+## Ends in an error in state: 354.
 ##
 ## enum_decl_line -> ALT UIDENT . option(preceded(CONTENT,addpos(typ))) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -36,7 +36,7 @@ expected a payload for your enum case, or another case or declaration
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON ALT YEAR
 ##
-## Ends in an error in state: 352.
+## Ends in an error in state: 353.
 ##
 ## enum_decl_line -> ALT . UIDENT option(preceded(CONTENT,addpos(typ))) [ SCOPE END_CODE DECLARATION ALT ]
 ##
@@ -48,7 +48,7 @@ expected the name of an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT COLON YEAR
 ##
-## Ends in an error in state: 351.
+## Ends in an error in state: 352.
 ##
 ## code_item -> DECLARATION ENUM UIDENT COLON . list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -60,7 +60,7 @@ expected an enum case
 
 source_file: BEGIN_CODE DECLARATION ENUM UIDENT YEAR
 ##
-## Ends in an error in state: 350.
+## Ends in an error in state: 351.
 ##
 ## code_item -> DECLARATION ENUM UIDENT . COLON list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -72,7 +72,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION ENUM YEAR
 ##
-## Ends in an error in state: 349.
+## Ends in an error in state: 350.
 ##
 ## code_item -> DECLARATION ENUM . UIDENT COLON list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -84,7 +84,7 @@ expected the name of your enum
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON YEAR
 ##
-## Ends in an error in state: 312.
+## Ends in an error in state: 313.
 ##
 ## code_item -> DECLARATION SCOPE UIDENT COLON . nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -96,7 +96,7 @@ expected a context item introduced by "context"
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT YEAR
 ##
-## Ends in an error in state: 311.
+## Ends in an error in state: 312.
 ##
 ## code_item -> DECLARATION SCOPE UIDENT . COLON nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -108,7 +108,7 @@ expected a colon followed by the list of context items of this scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE YEAR
 ##
-## Ends in an error in state: 310.
+## Ends in an error in state: 311.
 ##
 ## code_item -> DECLARATION SCOPE . UIDENT COLON nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -122,7 +122,7 @@ expected the name of the scope you are declaring
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 297.
+## Ends in an error in state: 298.
 ##
 ## struct_scope -> struct_scope_base DEPENDS . separated_nonempty_list(COMMA,var_content) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
 ## struct_scope -> struct_scope_base DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN [ SCOPE END_CODE DECLARATION DATA CONDITION ]
@@ -135,7 +135,7 @@ expected the type of the parameter of this struct data function
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION LIDENT YEAR
 ##
-## Ends in an error in state: 296.
+## Ends in an error in state: 297.
 ##
 ## struct_scope -> struct_scope_base . DEPENDS separated_nonempty_list(COMMA,var_content) [ SCOPE END_CODE DECLARATION DATA CONDITION ]
 ## struct_scope -> struct_scope_base . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN [ SCOPE END_CODE DECLARATION DATA CONDITION ]
@@ -149,7 +149,7 @@ expected a new struct data, or another declaration or scope use
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON CONDITION YEAR
 ##
-## Ends in an error in state: 294.
+## Ends in an error in state: 295.
 ##
 ## struct_scope_base -> CONDITION . lident [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -161,7 +161,7 @@ expected the name of this struct condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 289.
+## Ends in an error in state: 290.
 ##
 ## struct_scope_base -> DATA lident CONTENT . typ_data [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -173,7 +173,7 @@ expected the type of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA LIDENT YEAR
 ##
-## Ends in an error in state: 288.
+## Ends in an error in state: 289.
 ##
 ## struct_scope_base -> DATA lident . CONTENT typ_data [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -185,7 +185,7 @@ expected the type of this struct data, introduced by the content keyword
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON DATA YEAR
 ##
-## Ends in an error in state: 287.
+## Ends in an error in state: 288.
 ##
 ## struct_scope_base -> DATA . lident CONTENT typ_data [ SCOPE END_CODE DEPENDS DECLARATION DATA CONDITION ]
 ##
@@ -197,7 +197,7 @@ expected the name of this struct data
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT COLON YEAR
 ##
-## Ends in an error in state: 286.
+## Ends in an error in state: 287.
 ##
 ## code_item -> DECLARATION STRUCT UIDENT COLON . list(addpos(struct_scope)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -209,7 +209,7 @@ expected struct data or condition
 
 source_file: BEGIN_CODE DECLARATION STRUCT UIDENT YEAR
 ##
-## Ends in an error in state: 285.
+## Ends in an error in state: 286.
 ##
 ## code_item -> DECLARATION STRUCT UIDENT . COLON list(addpos(struct_scope)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -221,7 +221,7 @@ expected a colon
 
 source_file: BEGIN_CODE DECLARATION STRUCT YEAR
 ##
-## Ends in an error in state: 284.
+## Ends in an error in state: 285.
 ##
 ## code_item -> DECLARATION STRUCT . UIDENT COLON list(addpos(struct_scope)) [ SCOPE END_CODE DECLARATION ]
 ##
@@ -233,7 +233,7 @@ expected the struct name
 
 source_file: BEGIN_CODE DECLARATION YEAR
 ##
-## Ends in an error in state: 283.
+## Ends in an error in state: 284.
 ##
 ## code_item -> DECLARATION . STRUCT UIDENT COLON list(addpos(struct_scope)) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE UIDENT COLON nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
@@ -326,7 +326,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION UNDER_CONDITION TRUE THEN
 ##
 ## Ends in an error in state: 235.
 ##
-## condition_consequence -> UNDER_CONDITION expression . CONSEQUENCE [ UIDENT TRUE SUM STATE OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LPAREN LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CARDINAL ]
+## condition_consequence -> UNDER_CONDITION expression . CONSEQUENCE [ UIDENT TRUE SUM OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LPAREN LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CARDINAL ]
 ## expression -> expression . DOT qlident [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
 ## expression -> expression . WITH constructor_binding [ XOR WITH PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL DOT DIV CONTAINS CONSEQUENCE AND ]
@@ -358,7 +358,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON ASSERTION UNDER_CONDITION YEAR
 ##
 ## Ends in an error in state: 234.
 ##
-## condition_consequence -> UNDER_CONDITION . expression CONSEQUENCE [ UIDENT TRUE SUM STATE OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LPAREN LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CARDINAL ]
+## condition_consequence -> UNDER_CONDITION . expression CONSEQUENCE [ UIDENT TRUE SUM OUTPUT NOT MONEY_AMOUNT MONEY MINUS MINIMUM MAXIMUM MATCH LPAREN LIDENT LET LBRACKET INT_LITERAL IF FOR FILLED FALSE EXISTS DEFINED_AS DECIMAL_LITERAL DECIMAL DATE_LITERAL CARDINAL ]
 ##
 ## The known suffix of the stack is as follows:
 ## UNDER_CONDITION
@@ -422,7 +422,7 @@ expected an expression that shoud be asserted during execution
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 276.
+## Ends in an error in state: 265.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS . expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -447,7 +447,7 @@ expected an expression for defining this function, introduced by the defined as 
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT WITH_V
 ##
-## Ends in an error in state: 272.
+## Ends in an error in state: 253.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) . option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -465,7 +465,7 @@ expected the defined as keyword to introduce the definition of this variable
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION YEAR
 ##
-## Ends in an error in state: 271.
+## Ends in an error in state: 252.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION . separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -477,13 +477,13 @@ expected the name of the variable you want to define
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON EXCEPTION LIDENT YEAR
 ##
-## Ends in an error in state: 251.
+## Ends in an error in state: 279.
 ##
-## definition -> option(label) option(exception_to) . DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
-## rule -> option(label) option(exception_to) . RULE rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## option(addpos(exception_to)) -> exception_to . [ RULE ]
+## option(exception_to) -> exception_to . [ DEFINITION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to)
+## exception_to
 ##
 
 expected a rule or a definition after the exception declaration
@@ -505,7 +505,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON LABEL LIDENT DEFINED_AS
 ## Ends in an error in state: 247.
 ##
 ## definition -> option(label) . option(exception_to) DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
-## rule -> option(label) . option(exception_to) RULE rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) . option(addpos(exception_to)) RULE rule_expr option(state) option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
 ## option(label)
@@ -539,7 +539,7 @@ expected a struct field or a sub-scope context item after the dot
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT NOT FALSE
 ##
-## Ends in an error in state: 269.
+## Ends in an error in state: 277.
 ##
 ## rule_consequence -> option(NOT) . FILLED [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -563,7 +563,7 @@ expected the name of the parameter for this dependent variable
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT WITH_V
 ##
-## Ends in an error in state: 253.
+## Ends in an error in state: 270.
 ##
 ## rule_expr -> separated_nonempty_list(DOT,addpos(LIDENT)) . option(addpos(definition_parameters)) [ UNDER_CONDITION STATE NOT FILLED ]
 ##
@@ -594,12 +594,12 @@ expected a condition or a consequence for this rule, or the rest of the variable
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE YEAR
 ##
-## Ends in an error in state: 252.
+## Ends in an error in state: 269.
 ##
-## rule -> option(label) option(exception_to) RULE . rule_expr option(condition_consequence) option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(addpos(exception_to)) RULE . rule_expr option(state) option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to) RULE
+## option(label) option(addpos(exception_to)) RULE
 ##
 
 expected the name of the variable subject to the rule
@@ -608,7 +608,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON YEAR
 ##
 ## Ends in an error in state: 219.
 ##
-## code_item -> SCOPE UIDENT option(preceded(UNDER_CONDITION,expression)) COLON . nonempty_list(addpos(scope_item)) [ SCOPE END_CODE DECLARATION ]
+## code_item -> SCOPE UIDENT option(preceded(UNDER_CONDITION,expression)) COLON . nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## SCOPE UIDENT option(preceded(UNDER_CONDITION,expression)) COLON
@@ -922,7 +922,7 @@ source_file: BEGIN_CODE SCOPE UIDENT YEAR
 ##
 ## Ends in an error in state: 8.
 ##
-## code_item -> SCOPE UIDENT . option(preceded(UNDER_CONDITION,expression)) COLON nonempty_list(addpos(scope_item)) [ SCOPE END_CODE DECLARATION ]
+## code_item -> SCOPE UIDENT . option(preceded(UNDER_CONDITION,expression)) COLON nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## SCOPE UIDENT
@@ -934,7 +934,7 @@ source_file: BEGIN_CODE SCOPE YEAR
 ##
 ## Ends in an error in state: 7.
 ##
-## code_item -> SCOPE . UIDENT option(preceded(UNDER_CONDITION,expression)) COLON nonempty_list(addpos(scope_item)) [ SCOPE END_CODE DECLARATION ]
+## code_item -> SCOPE . UIDENT option(preceded(UNDER_CONDITION,expression)) COLON nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## SCOPE
@@ -944,7 +944,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 390.
+## Ends in an error in state: 391.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -1005,8 +1005,8 @@ source_file: BEGIN_METADATA LAW_TEXT LAW_HEADING
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 1, spurious reduction of production nonempty_list(LAW_TEXT) -> LAW_TEXT
-## In state 379, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
-## In state 380, spurious reduction of production option(law_text) -> law_text
+## In state 380, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
+## In state 381, spurious reduction of production option(law_text) -> law_text
 ##
 
 expected some law text or code block
@@ -3617,8 +3617,8 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT FILLED YEAR
 ##
 ## Ends in an error in state: 245.
 ##
-## nonempty_list(addpos(scope_item)) -> scope_item . [ SCOPE END_CODE DECLARATION ]
-## nonempty_list(addpos(scope_item)) -> scope_item . nonempty_list(addpos(scope_item)) [ SCOPE END_CODE DECLARATION ]
+## nonempty_list(scope_item) -> scope_item . [ SCOPE END_CODE DECLARATION ]
+## nonempty_list(scope_item) -> scope_item . nonempty_list(scope_item) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## scope_item
@@ -3628,19 +3628,19 @@ expected the next item in the scope, or the start of a new top-level decleration
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT UNDER_CONDITION UIDENT CONSEQUENCE YEAR
 ##
-## Ends in an error in state: 262.
+## Ends in an error in state: 274.
 ##
-## rule -> option(label) option(exception_to) RULE rule_expr option(condition_consequence) . option(state) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(addpos(exception_to)) RULE rule_expr option(state) option(condition_consequence) . rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to) RULE rule_expr option(condition_consequence)
+## option(label) option(addpos(exception_to)) RULE rule_expr option(state) option(condition_consequence)
 ##
 
 expected either 'fulfilled' or 'not fulfilled'
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT STATE YEAR
 ##
-## Ends in an error in state: 263.
+## Ends in an error in state: 260.
 ##
 ## state -> STATE . lident [ UNDER_CONDITION STATE SCOPE OUTPUT NOT LIDENT INTERNAL INPUT FILLED END_CODE DEFINED_AS DECLARATION CONTEXT ]
 ##
@@ -3652,19 +3652,19 @@ expected an identifier defining the name of the state
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT STATE LIDENT YEAR
 ##
-## Ends in an error in state: 266.
+## Ends in an error in state: 273.
 ##
-## rule -> option(label) option(exception_to) RULE rule_expr option(condition_consequence) option(state) . rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
+## rule -> option(label) option(addpos(exception_to)) RULE rule_expr option(state) . option(condition_consequence) rule_consequence [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
 ## The known suffix of the stack is as follows:
-## option(label) option(exception_to) RULE rule_expr option(condition_consequence) option(state)
+## option(label) option(addpos(exception_to)) RULE rule_expr option(state)
 ##
 
 expected 'equals' then an expression defining the rule
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT STATE LIDENT YEAR
 ##
-## Ends in an error in state: 274.
+## Ends in an error in state: 263.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) . option(condition_consequence) DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -3676,7 +3676,7 @@ expected 'equals' then an expression defining the rule
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT UNDER_CONDITION UIDENT CONSEQUENCE YEAR
 ##
-## Ends in an error in state: 275.
+## Ends in an error in state: 264.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) . DEFINED_AS expression [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ##
@@ -3688,7 +3688,7 @@ expected 'fulfilled' or 'not fulfilled'
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON DEFINITION LIDENT DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 277.
+## Ends in an error in state: 266.
 ##
 ## definition -> option(label) option(exception_to) DEFINITION separated_nonempty_list(DOT,addpos(LIDENT)) option(addpos(definition_parameters)) option(state) option(condition_consequence) DEFINED_AS expression . [ SCOPE RULE LABEL EXCEPTION END_CODE DEFINITION DECLARATION ASSERTION ]
 ## expression -> expression . DOT qlident [ XOR WITH SCOPE RULE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER LABEL GREATER_EQUAL GREATER FOR EXCEPTION EQUAL END_CODE DOT DIV DEFINITION DECLARATION CONTAINS ASSERTION AND ]
@@ -3720,7 +3720,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT YEAR
 ##
-## Ends in an error in state: 317.
+## Ends in an error in state: 318.
 ##
 ## scope_decl_item_attribute -> scope_decl_item_attribute_input . scope_decl_item_attribute_output [ LIDENT ]
 ##
@@ -3732,7 +3732,7 @@ expected a variable name, optionally preceded by 'output'
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON INTERNAL YEAR
 ##
-## Ends in an error in state: 320.
+## Ends in an error in state: 321.
 ##
 ## scope_decl_item -> scope_decl_item_attribute . lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> scope_decl_item_attribute . lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
@@ -3749,7 +3749,7 @@ expected a variable name
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT YEAR
 ##
-## Ends in an error in state: 321.
+## Ends in an error in state: 322.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> scope_decl_item_attribute lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
@@ -3766,7 +3766,7 @@ expected either 'condition', or 'content' followed by the expected variable type
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 322.
+## Ends in an error in state: 323.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
@@ -3780,7 +3780,7 @@ expected a type
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT BOOLEAN YEAR
 ##
-## Ends in an error in state: 323.
+## Ends in an error in state: 324.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
@@ -3795,7 +3795,7 @@ for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 324.
+## Ends in an error in state: 325.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data DEPENDS . separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
@@ -3808,7 +3808,7 @@ expected a name and type for the dependency of this definition ('<ident> content
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 325.
+## Ends in an error in state: 326.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3820,7 +3820,7 @@ expected a name and type for the dependency of this definition ('<ident> content
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT STATE
 ##
-## Ends in an error in state: 326.
+## Ends in an error in state: 327.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3833,15 +3833,15 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UI
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 21, spurious reduction of production quident -> UIDENT
 ## In state 30, spurious reduction of production primitive_typ -> quident
-## In state 292, spurious reduction of production typ_data -> primitive_typ
-## In state 303, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
+## In state 293, spurious reduction of production typ_data -> primitive_typ
+## In state 304, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
 ##
 
 expected a closing paren, or a comma followed by another argument specification
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 327.
+## Ends in an error in state: 328.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3853,7 +3853,7 @@ expected a 'state' declaration for the preceding declaration, or the next declar
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION STATE LIDENT YEAR
 ##
-## Ends in an error in state: 328.
+## Ends in an error in state: 329.
 ##
 ## list(state) -> state . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3866,7 +3866,7 @@ declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS
 ##
-## Ends in an error in state: 331.
+## Ends in an error in state: 332.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3879,15 +3879,15 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONTENT UI
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 21, spurious reduction of production quident -> UIDENT
 ## In state 30, spurious reduction of production primitive_typ -> quident
-## In state 292, spurious reduction of production typ_data -> primitive_typ
-## In state 303, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
+## In state 293, spurious reduction of production typ_data -> primitive_typ
+## In state 304, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
 ##
 
 expected the next declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION YEAR
 ##
-## Ends in an error in state: 334.
+## Ends in an error in state: 335.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONDITION . DEPENDS separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> scope_decl_item_attribute lident CONDITION . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
@@ -3901,7 +3901,7 @@ expected the next declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS YEAR
 ##
-## Ends in an error in state: 335.
+## Ends in an error in state: 336.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS . separated_nonempty_list(COMMA,var_content) list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
@@ -3914,7 +3914,7 @@ expected the form 'depends on <ident> content <type>'
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 336.
+## Ends in an error in state: 337.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3926,7 +3926,7 @@ expected the form 'depends on (<ident> content <type> [, <ident> content <type> 
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN LIDENT CONTENT UIDENT STATE
 ##
-## Ends in an error in state: 337.
+## Ends in an error in state: 338.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3939,15 +3939,15 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION 
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 21, spurious reduction of production quident -> UIDENT
 ## In state 30, spurious reduction of production primitive_typ -> quident
-## In state 292, spurious reduction of production typ_data -> primitive_typ
-## In state 303, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
+## In state 293, spurious reduction of production typ_data -> primitive_typ
+## In state 304, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
 ##
 
 expected a closing paren, or a comma followed by another argument declaration (', <ident> content <type>')
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 338.
+## Ends in an error in state: 339.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3959,7 +3959,7 @@ expected the next definition in scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LIDENT CONTENT UIDENT DEFINED_AS
 ##
-## Ends in an error in state: 340.
+## Ends in an error in state: 341.
 ##
 ## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS separated_nonempty_list(COMMA,var_content) . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -3972,15 +3972,15 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION 
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 21, spurious reduction of production quident -> UIDENT
 ## In state 30, spurious reduction of production primitive_typ -> quident
-## In state 292, spurious reduction of production typ_data -> primitive_typ
-## In state 303, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
+## In state 293, spurious reduction of production typ_data -> primitive_typ
+## In state 304, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
 ##
 
 expected the next definition in scope, or a comma followed by another argument declaration (', <ident> content <type>')
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT SCOPE UIDENT YEAR
 ##
-## Ends in an error in state: 343.
+## Ends in an error in state: 344.
 ##
 ## nonempty_list(addpos(scope_decl_item)) -> scope_decl_item . [ SCOPE END_CODE DECLARATION ]
 ## nonempty_list(addpos(scope_decl_item)) -> scope_decl_item . nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
@@ -3993,7 +3993,7 @@ expected the next declaration for the scope
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT YEAR
 ##
-## Ends in an error in state: 345.
+## Ends in an error in state: 346.
 ##
 ## scope_decl_item -> lident . SCOPE UIDENT [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -4005,7 +4005,7 @@ expected the form '<ident> scope <Scope_name>', or a scope variable declaration
 
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT SCOPE YEAR
 ##
-## Ends in an error in state: 346.
+## Ends in an error in state: 347.
 ##
 ## scope_decl_item -> lident SCOPE . UIDENT [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
@@ -4017,7 +4017,7 @@ expected a scope name
 
 source_file: BEGIN_CODE DECLARATION LIDENT YEAR
 ##
-## Ends in an error in state: 360.
+## Ends in an error in state: 361.
 ##
 ## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
@@ -4031,7 +4031,7 @@ expected 'content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 361.
+## Ends in an error in state: 362.
 ##
 ## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
@@ -4045,7 +4045,7 @@ expected a type
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT BOOLEAN YEAR
 ##
-## Ends in an error in state: 362.
+## Ends in an error in state: 363.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
@@ -4060,7 +4060,7 @@ expected 'equals <expression>', optionally preceded by 'depends on <var> content
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
-## Ends in an error in state: 363.
+## Ends in an error in state: 364.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
@@ -4073,7 +4073,7 @@ expected a variable name, following the form 'depends on <var> content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN YEAR
 ##
-## Ends in an error in state: 364.
+## Ends in an error in state: 365.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
@@ -4085,7 +4085,7 @@ expected a variable name, following the form 'depends on (<var> content <type>, 
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT DEFINED_AS
 ##
-## Ends in an error in state: 365.
+## Ends in an error in state: 366.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
@@ -4098,8 +4098,8 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT 
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 21, spurious reduction of production quident -> UIDENT
 ## In state 30, spurious reduction of production primitive_typ -> quident
-## In state 292, spurious reduction of production typ_data -> primitive_typ
-## In state 303, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
+## In state 293, spurious reduction of production typ_data -> primitive_typ
+## In state 304, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
 ##
 
 expected ')', or ',' followed by another argument declaration in the form '<var>
@@ -4107,7 +4107,7 @@ content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN YEAR
 ##
-## Ends in an error in state: 366.
+## Ends in an error in state: 367.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
@@ -4119,7 +4119,7 @@ expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN DEFINED_AS YEAR
 ##
-## Ends in an error in state: 367.
+## Ends in an error in state: 368.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS . expression [ SCOPE END_CODE DECLARATION ]
 ##
@@ -4131,7 +4131,7 @@ expected an expression
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 368.
+## Ends in an error in state: 369.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression . [ SCOPE END_CODE DECLARATION ]
 ## expression -> expression . DOT qlident [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
@@ -4163,7 +4163,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT YEAR
 ##
-## Ends in an error in state: 301.
+## Ends in an error in state: 302.
 ##
 ## separated_nonempty_list(COMMA,var_content) -> lident . CONTENT typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
 ## separated_nonempty_list(COMMA,var_content) -> lident . CONTENT typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
@@ -4176,7 +4176,7 @@ expected 'content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT YEAR
 ##
-## Ends in an error in state: 302.
+## Ends in an error in state: 303.
 ##
 ## separated_nonempty_list(COMMA,var_content) -> lident CONTENT . typ_data [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
 ## separated_nonempty_list(COMMA,var_content) -> lident CONTENT . typ_data COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
@@ -4189,7 +4189,7 @@ expected a type
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT BOOLEAN YEAR
 ##
-## Ends in an error in state: 303.
+## Ends in an error in state: 304.
 ##
 ## separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data . [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
 ## separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data . COMMA separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
@@ -4202,7 +4202,7 @@ expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT COMMA YEAR
 ##
-## Ends in an error in state: 304.
+## Ends in an error in state: 305.
 ##
 ## separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data COMMA . separated_nonempty_list(COMMA,var_content) [ STATE SCOPE RPAREN OUTPUT LIDENT INTERNAL INPUT END_CODE DEFINED_AS DECLARATION DATA CONTEXT CONDITION ]
 ##
@@ -4214,7 +4214,7 @@ expected the definition of another argument in the form '<var> content <type>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT RPAREN
 ##
-## Ends in an error in state: 369.
+## Ends in an error in state: 370.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
 ##
@@ -4227,15 +4227,15 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 21, spurious reduction of production quident -> UIDENT
 ## In state 30, spurious reduction of production primitive_typ -> quident
-## In state 292, spurious reduction of production typ_data -> primitive_typ
-## In state 303, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
+## In state 293, spurious reduction of production typ_data -> primitive_typ
+## In state 304, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
 ##
 
 expected 'equals <expression>'
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS YEAR
 ##
-## Ends in an error in state: 370.
+## Ends in an error in state: 371.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS . expression [ SCOPE END_CODE DECLARATION ]
 ##
@@ -4247,7 +4247,7 @@ expected an expression
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 371.
+## Ends in an error in state: 372.
 ##
 ## code_item -> DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression . [ SCOPE END_CODE DECLARATION ]
 ## expression -> expression . DOT qlident [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
@@ -4279,7 +4279,7 @@ expected a binary operator continuing the expression, or a keyword ending the ex
 
 source_file: BEGIN_DIRECTIVE YEAR
 ##
-## Ends in an error in state: 381.
+## Ends in an error in state: 382.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE . LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4291,7 +4291,7 @@ expected a directive, e.g. 'Include: <filename>'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE YEAR
 ##
-## Ends in an error in state: 382.
+## Ends in an error in state: 383.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE . COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4303,7 +4303,7 @@ expected ':', then a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON YEAR
 ##
-## Ends in an error in state: 383.
+## Ends in an error in state: 384.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON . nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4315,7 +4315,7 @@ expected a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG YEAR
 ##
-## Ends in an error in state: 384.
+## Ends in an error in state: 385.
 ##
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . [ END_DIRECTIVE AT_PAGE ]
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . nonempty_list(DIRECTIVE_ARG) [ END_DIRECTIVE AT_PAGE ]
@@ -4328,7 +4328,7 @@ expected a page specification in the form '@p.<number>', or a newline
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG AT_PAGE YEAR
 ##
-## Ends in an error in state: 388.
+## Ends in an error in state: 389.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) . END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4340,7 +4340,7 @@ expected a newline
 
 source_file: LAW_HEADING YEAR
 ##
-## Ends in an error in state: 393.
+## Ends in an error in state: 394.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##

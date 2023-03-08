@@ -31,16 +31,23 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           RELEASE_TAG=$(git describe --tags)
-          mkdir -p artifacts
           docker run --rm catalalang/catala-build:${IMAGE_TAG} sh -uexc '
               opam --cli=2.1 remove z3 >&2
               opam --cli=2.1 exec -- dune build --profile=release french_law compiler/catala.bc.js >&2
               opam --cli=2.1 exec -- dune build --profile=release @doc >&2
               opam --cli=2.1 exec -- make -C doc/syntax >&2
-              mv _build/default/compiler/catala.bc.js catala_'"${RELEASE_TAG}"'_node.js >&2
-              mv _build/default/_doc/_html doc/api >&2
-              tar c -h catala_'"${RELEASE_TAG}"'_node.js french_law doc/syntax/syntax.pdf doc/api --exclude french_law/js/node_modules --exclude french_law/python/env --exclude '"'"'.*'"'"' --exclude '"'"'__*'"'"'
-            ' | tar vx -C artifacts
+              mkdir -p artifacts >&2
+              mv _build/default/compiler/catala.bc.js artifacts/catala_'"${RELEASE_TAG}"'_node.js >&2
+              mv _build/default/_doc/_html artifacts/api-doc >&2
+              mv doc/syntax/syntax.pdf artifacts/ >&2
+              tar czf artifacts/french_law_'"${RELEASE_TAG}"'_ocaml.tar.gz french_law/ocaml >&2
+              tar czf artifacts/french_law_'"${RELEASE_TAG}"'_js.tar.gz french_law/js --exclude french_law/js/node_modules >&2
+              tar czf artifacts/french_law_'"${RELEASE_TAG}"'_python.tar.gz french_law/python >&2
+              ln -s french_law_'"${RELEASE_TAG}"'_ocaml.tar.gz artifacts/french_law_ocaml.tar.gz >&2
+              ln -s french_law_'"${RELEASE_TAG}"'_js.tar.gz artifacts/french_law_js.tar.gz >&2
+              ln -s french_law_'"${RELEASE_TAG}"'_python.tar.gz artifacts/french_law_python.tar.gz >&2
+              tar c artifacts/*
+            ' | tar vx
       - name: Build static binaries
         if: ${{ github.ref == 'refs/heads/master' }}
         run: ./build_release.sh -C artifacts
