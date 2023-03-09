@@ -179,7 +179,10 @@ let rec law_structure_to_html
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
     Format.fprintf fmt
-      "<div class='code-wrapper%s'>\n<div class='filename'>%s</div>\n%s\n</div>"
+      "<div class='code-wrapper%s catala-code'>\n\
+       <div class='filename'>%s</div>\n\
+       %s\n\
+       </div>"
       (if metadata then " code-metadata" else "")
       (Pos.get_file (Marked.get_mark c))
       (pygmentize_code
