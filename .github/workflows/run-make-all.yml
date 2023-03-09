@@ -36,12 +36,12 @@ jobs:
               opam --cli=2.1 exec -- dune build --profile=release french_law compiler/catala.bc.js >&2
               opam --cli=2.1 exec -- dune build --profile=release @doc >&2
               opam --cli=2.1 exec -- make -C doc/syntax >&2
+              opam --cli=2.1 exec -- make literate_tutorial_en literate_tutoriel_fr grammar.html catala.html clerk.html catala_legifrance.html >&2
               mkdir -p artifacts >&2
               mv _build/default/compiler/catala.bc.js artifacts/catala_'"${RELEASE_TAG}"'_node.js >&2
               mv _build/default/_doc/_html artifacts/api-doc >&2
               mv doc/syntax/syntax.pdf artifacts/ >&2
-              mv examples/tutorial_en/tutorial_en.html artifacts/ >&2
-              mv examples/tutoriel_fr/tutoriel_fr.html artifacts/ >&2
+              mv examples/tuto*/*.html _build/default/compiler/*.html artifacts/ >&2
               tar czf artifacts/french_law_'"${RELEASE_TAG}"'_ocaml.tar.gz french_law/ocaml >&2
               tar czf artifacts/french_law_'"${RELEASE_TAG}"'_js.tar.gz french_law/js --exclude french_law/js/node_modules >&2
               tar czf artifacts/french_law_'"${RELEASE_TAG}"'_python.tar.gz french_law/python >&2
