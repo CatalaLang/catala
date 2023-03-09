@@ -40,6 +40,8 @@ jobs:
               mv _build/default/compiler/catala.bc.js artifacts/catala_'"${RELEASE_TAG}"'_node.js >&2
               mv _build/default/_doc/_html artifacts/api-doc >&2
               mv doc/syntax/syntax.pdf artifacts/ >&2
+              mv examples/tutorial_en/tutorial_en.html artifacts/ >&2
+              mv examples/tutoriel_fr/tutoriel_fr.html artifacts/ >&2
               tar czf artifacts/french_law_'"${RELEASE_TAG}"'_ocaml.tar.gz french_law/ocaml >&2
               tar czf artifacts/french_law_'"${RELEASE_TAG}"'_js.tar.gz french_law/js --exclude french_law/js/node_modules >&2
               tar czf artifacts/french_law_'"${RELEASE_TAG}"'_python.tar.gz french_law/python >&2
