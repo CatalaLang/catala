@@ -139,6 +139,10 @@ val escopecall :
   't ->
   ('a, 't) boxed_gexpr
 
+val eid :
+  'a mark ->
+  ([< `Dcalc | `Desugared | `Lcalc | `Scopelang ], 'a mark) boxed_gexpr
+
 (** Manipulation of marks *)
 
 val no_mark : 'm mark -> 'm mark

@@ -147,6 +147,11 @@ let mark_pos (type m) (m : m mark) : Pos.t =
 let pos (type m) (x : ('a, m mark) Marked.t) : Pos.t =
   mark_pos (Marked.get_mark x)
 
+let eid mark :
+    ([< `Dcalc | `Desugared | `Lcalc | `Scopelang ], 'a mark) boxed_gexpr =
+  let x = Var.make "x" in
+  eabs (bind [| x |] (evar x mark)) [TAny, mark_pos mark] mark
+
 let ty (_, m) : typ = match m with Typed { ty; _ } -> ty
 
 let set_ty (type m) (ty : typ) (x : ('a, m mark) Marked.t) :
