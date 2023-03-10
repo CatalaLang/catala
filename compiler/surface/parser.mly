@@ -504,8 +504,8 @@ let scope_item :=
        DateRounding(v), Marked.get_mark v
     | _ -> 
          Errors.raise_spanned_error
-           (Pos.from_lpos $sloc)
-           "Expected round"
+           (Pos.from_lpos $loc(i))
+           "Expected the form 'date round increasing' or 'date round decreasing'"
   }
 
 let struct_scope_base :=
