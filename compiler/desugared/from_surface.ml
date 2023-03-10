@@ -1151,7 +1151,11 @@ let process_scope_use_item
       | Surface.Ast.Decreasing -> Ast.Decreasing
     in
     let new_scope =
-      match List.find_opt (fun scope_opt -> scope_opt = Ast.DateRounding _) scope.scope_options with
+      match
+        List.find_opt
+          (fun scope_opt -> scope_opt = Ast.DateRounding _)
+          scope.scope_options
+      with
       | Some _ ->
         Errors.raise_spanned_error (Marked.get_mark item)
           "A date rounding mode has already been specified"
