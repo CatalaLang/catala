@@ -1,7 +1,0 @@
-(executable
- (name scratch)
- (package catala)
- (public_name catala.toy)
- (libraries cmdliner ubase ANSITerminal re bindlib catala.runtime_ocaml)
- (preprocess
-  (pps ppx_yojson_conv)))
