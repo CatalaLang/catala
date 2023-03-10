@@ -54,7 +54,7 @@ type analysis_mark = {
 (* voir sur papier pour voir si ça marche *)
 
 type analysis_info = { unpure_info : bool; unpure_return : bool option }
-type analysis_ctx = (dcalc, analysis_info) Var.Map.t
+(* type analysis_ctx = (dcalc, analysis_info) Var.Map.t *)
 
 let make_new_mark (m : typed mark) ?(unpure_return = None) (unpure : bool) :
     analysis_mark =
@@ -231,18 +231,52 @@ let _ = detect_unpure_expr
     [{ let detect_unpure_program = assert false }]
     [{ let detect_unpure_scope_let = assert false }] *)
 
-let detect_unpure_code_item (ctx : analysis_ctx) var (code_item : _ code_item) :
-    analysis_ctx * _ code_item Bindlib.box =
-  match code_item with _ -> assert false
+(* let detect_unpure_code_item (ctx : analysis_ctx) var (code_item : _
+   code_item) : analysis_ctx * _ code_item Bindlib.box = match code_item with _
+   -> assert false
 
-let detect_unpure_code_item_list ctx code_items =
-  Scope.fold_map ~f:detect_unpure_code_item ~varf:Fun.id ctx code_items
+   let detect_unpure_code_item_list ctx code_items = Scope.fold_map
+   ~f:detect_unpure_code_item ~varf:Fun.id ctx code_items *)
 
-(* f:('a -> ([< `Dcalc | `Desugared | `Lcalc | `Scopelang ] as 'b, 'c mark)
-   gexpr code_item -> 'a * ([< `Dcalc | `Desugared | `Lcalc | `Scopelang ] as
-   'd, 'e mark) gexpr code_item Bindlib.box) -> varf:(('b, 'c mark) naked_gexpr
-   Bindlib.var -> ('d, 'e mark) naked_gexpr Bindlib.var) -> 'a -> ('b, 'c mark)
-   gexpr code_item_list -> ('d, 'e mark) gexpr code_item_list Bindlib.box *)
+type ctx2
+
+let find : ctx2 -> analysis_info = fun _ -> assert false
+
+let add_var : ctx2 -> 'a Bindlib.var -> analysis_info -> ctx2 =
+ fun _ -> assert false
+
+let rec is_pure ctx (expr : typed D.expr) =
+  match Marked.unmark expr with
+  | ELit l -> ( match l with LEmptyError -> true | _ -> false)
+  | EApp { f = EOp _, _; args } -> List.for_all (is_pure ctx) args
+  | EApp { f = EAbs { binder; _ }, _; args } ->
+    let vars, body = Bindlib.unmbind binder in
+    let vars = Array.to_list vars in
+    let ctx' =
+      ListLabels.fold_left2 vars args ~init:ctx ~f:(fun ctx var arg ->
+          add_var ctx var
+            {
+              unpure_info = false;
+              unpure_return = Option.map not (return_pure ctx arg);
+            })
+    in
+    is_pure ctx' body
+  | EApp { f = (EVar _, _) as f; args } ->
+    List.for_all (is_pure ctx) args && Option.get (return_pure ctx f)
+  | EVar _ -> not (find ctx).unpure_info
+  | EAbs _ -> true
+  | EDefault _ -> false
+  | EErrorOnEmpty _ -> true
+  | EArray _ | EIfThenElse _ | EStruct _ | EInj _ | EMatch _ | ETuple _
+  | ETupleAccess _ | EStructAccess _ | EAssert _ ->
+    failwith "not implemented yet"
+  | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
+    assert false
+  | EOp _ | EApp _ -> failwith "wont implement"
+
+and return_pure _ctx _expr = assert false
+
+let _ = is_pure
 
 type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
 (** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
@@ -344,299 +378,299 @@ let disjoint_union_maps (pos : Pos.t) (cs : ('e, 'a) Var.Map.t list) :
 
   List.fold_left disjoint_union Var.Map.empty cs
 
-(** [e' = translate_and_hoist ctx e ] Translate the Dcalc expression e into an
-    expression in Lcalc, given we translate each hoists correctly. It ensures
-    the equivalence between the execution of e and the execution of e' are
-    equivalent in an environement where each variable v, where (v, e_v) is in
-    hoists, has the non-empty value in e_v. *)
-let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
-    'm A.expr boxed * 'm hoists =
-  Cli.debug_format "%a" (Print.expr_debug ~debug:false) e;
-  let mark = Marked.get_mark e in
-  let pos = Expr.mark_pos mark in
+(** errorOnEmpty : 'a option -> 'a
+
+    pure var: 'a
+
+    unpure var: 'a option
+
+    default: 'a option list -> bool -> 'a option -> 'a option
+
+    empty: 'a option
+
+    ELit : 'a
+
+    let x = arg in body := bind [arg] (fun x: 'a -> [body])
+
+    app f x1 x2 x3 x4 = bindn [x1; x2; x3; x4] (f x1 x2 x3 x4)
+
+    match arg with case1 case2 := bind arg (fun x -> match x with case1 case2) *)
+
+let monad_return e ~(mark : 'a mark) =
+  Expr.einj e Ast.some_constr Ast.option_enum mark
+
+let monad_empty ~(mark : 'a mark) =
+  Expr.einj (Expr.elit LUnit mark) Ast.none_constr Ast.option_enum mark
+
+let monad_bind_aux f arg ~(mark : 'a mark) =
+  let cases =
+    EnumConstructor.Map.of_seq
+      (List.to_seq
+         [
+           ( Ast.none_constr,
+             let x = Var.make "x" in
+             Expr.eabs
+               (Expr.bind [| x |]
+                  (Expr.einj (Expr.evar x mark) Ast.none_constr Ast.option_enum
+                     mark))
+               [TAny, Expr.mark_pos mark]
+               mark );
+           (* | None x -> None x *)
+           ( Ast.some_constr,
+             let x = Var.make "x" in
+             Expr.eabs
+               (Expr.bind [| x |]
+                  (Expr.einj (f x) Ast.some_constr Ast.option_enum mark))
+               [TAny, Expr.mark_pos mark]
+               mark )
+           (*| Some x -> Some x *);
+         ])
+  in
+  Expr.ematch arg Ast.option_enum cases mark
+
+let monad_bind_var f x arg ~(mark : 'a mark) =
+  let cases =
+    EnumConstructor.Map.of_seq
+      (List.to_seq
+         [
+           ( Ast.none_constr,
+             let x = Var.make "x" in
+             Expr.eabs
+               (Expr.bind [| x |]
+                  (Expr.einj (Expr.evar x mark) Ast.none_constr Ast.option_enum
+                     mark))
+               [TAny, Expr.mark_pos mark]
+               mark );
+           (* | None x -> None x *)
+           ( Ast.some_constr,
+             Expr.eabs
+               (Expr.bind [| x |]
+                  (Expr.einj f Ast.some_constr Ast.option_enum mark))
+               [TAny, Expr.mark_pos mark]
+               mark )
+           (*| Some x -> Some x *);
+         ])
+  in
+  Expr.ematch arg Ast.option_enum cases mark
+
+let monad_bind f arg ~(mark : 'a mark) =
+  let x = Var.make "x" in
+  monad_bind_var f x arg ~mark
+
+let monad_bind_cont f arg ~(mark : 'a mark) =
+  let x = Var.make "x" in
+  monad_bind_var (f x) x arg ~mark
+
+let monad_mbind_mvar f xs args ~(mark : 'a mark) =
+  (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _ ->
+     None *)
+  ListLabels.fold_left2 xs args ~f:(monad_bind_var ~mark)
+    ~init:(Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
+
+let monad_mbind f args ~(mark : 'a mark) =
+  (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _ ->
+     None *)
+  let vars =
+    ListLabels.mapi args ~f:(fun i _ -> Var.make (Format.sprintf "e_%i" i))
+  in
+  monad_mbind_mvar f vars args ~mark
+
+let monad_mbind_cont f args ~(mark : 'a mark) =
+  let vars =
+    ListLabels.mapi args ~f:(fun i _ -> Var.make (Format.sprintf "e_%i" i))
+  in
+  monad_mbind_mvar (f vars) vars args ~mark
+
+let monad_map_var f x arg ~(mark : 'a mark) =
+  monad_bind_var (monad_return f ~mark) x arg ~mark
+
+let monad_map f x arg ~(mark : 'a mark) =
+  let x = Var.make "x" in
+  monad_map_var f x arg ~mark
+
+let monad_mmap_mvar f xs args ~(mark : 'a mark) =
+  monad_mbind_mvar (monad_return f ~mark) xs args ~mark
+
+let monad_mmap f args ~(mark : 'a mark) =
+  let vars =
+    ListLabels.mapi args ~f:(fun i _ -> Var.make (Format.sprintf "e_%i" i))
+  in
+  monad_mmap_mvar f vars args ~mark
+
+let monad_eoe arg ~(mark : 'a mark) =
+  let cases =
+    EnumConstructor.Map.of_seq
+      (List.to_seq
+         [
+           ( Ast.none_constr,
+             let x = Var.make "x" in
+             Expr.eabs
+               (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
+               [TAny, Expr.mark_pos mark]
+               mark );
+           (* | None x -> raise NoValueProvided *)
+           Ast.some_constr, Expr.eid mark (* | Some x -> x*);
+         ])
+  in
+  Expr.ematch arg Ast.option_enum cases mark
+
+let _ = monad_return
+let _ = monad_empty
+let _ = monad_bind_aux
+let _ = monad_bind_var
+let _ = monad_bind
+let _ = monad_bind_cont
+let _ = monad_mbind_mvar
+let _ = monad_mbind
+let _ = monad_mbind_cont
+let _ = monad_eoe
+let trans_var _ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t = Var.translate x
+
+(* TODO: louis ? :) *)
+let trans_op : (dcalc, 'a) Op.t -> (lcalc, 'a) Op.t = Obj.magic
+let admit = assert false
+
+let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
+  let m = Marked.get_mark e in
+  let mark = m in
+  let pos = Expr.pos e in
   match Marked.unmark e with
-  (* empty-producing/using terms. We hoist those. (D.EVar in some cases,
-     EApp(D.EVar _, [ELit LUnit]), EDefault _, ELit LEmptyDefault) I'm unsure
-     about assert. *)
-  | EVar v ->
-    (* todo: for now, every unpure (such that [is_pure] is [false] in the
-       current context) is thunked, hence matched in the next case. This
-       assumption can change in the future, and this case is here for this
-       reason. *)
-    if not (find ~info:"search for a variable" v ctx).is_pure then
-      let v' = Var.make (Bindlib.name_of v) in
-      (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
-         created a variable %a to replace it" Print.var v Print.var v'; *)
-      Expr.make_var v' mark, Var.Map.singleton v' e
-    else (find ~info:"should never happen" v ctx).expr, Var.Map.empty
-  | EApp { f = EVar v, p; args = [(ELit LUnit, _)] } ->
-    if not (find ~info:"search for a variable" v ctx).is_pure then
-      let v' = Var.make (Bindlib.name_of v) in
-      (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
-         created a variable %a to replace it" Print.var v Print.var v'; *)
-      Expr.make_var v' mark, Var.Map.singleton v' (EVar v, p)
-    else
-      Errors.raise_spanned_error (Expr.pos e)
-        "Internal error: an pure variable was found in an unpure environment."
-  | EDefault _ ->
-    let v' = Var.make "default_term" in
-    Expr.make_var v' mark, Var.Map.singleton v' e
-  | ELit LEmptyError ->
-    let v' = Var.make "empty_litteral" in
-    Expr.make_var v' mark, Var.Map.singleton v' e
-  (* This one is a very special case. It transform an unpure expression
-     environement to a pure expression. *)
-  | EErrorOnEmpty arg ->
-    (* [ match arg with | None -> raise NoValueProvided | Some v -> {{ v }} ] *)
-    let silent_var = Var.make "_" in
-    let x = Var.make "non_empty_argument" in
-
-    let arg' = translate_expr ctx arg in
-    let rty = Expr.maybe_ty mark in
-
-    ( A.make_matchopt_with_abs_arms arg'
-        (Expr.make_abs [| silent_var |]
-           (Expr.eraise NoValueProvided (Expr.with_ty mark rty))
-           [rty] pos)
-        (Expr.make_abs [| x |] (Expr.make_var x mark) [rty] pos),
-      Var.Map.empty )
-  (* pure terms *)
-  | ELit
-      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
-      l) ->
-    Expr.elit l mark, Var.Map.empty
-  | EIfThenElse { cond; etrue; efalse } ->
-    let cond', h1 = translate_and_hoist ctx cond in
-    let etrue', h2 = translate_and_hoist ctx etrue in
-    let efalse', h3 = translate_and_hoist ctx efalse in
-
-    let e' = Expr.eifthenelse cond' etrue' efalse' mark in
-
-    (*(* equivalent code : *) let e' = let+ cond' = cond' and+ etrue' = etrue'
-      and+ efalse' = efalse' in (A.EIfThenElse (cond', etrue', efalse'), pos)
-      in *)
-    e', disjoint_union_maps (Expr.pos e) [h1; h2; h3]
-  | EAssert e1 ->
-    (* same behavior as in the ICFP paper: if e1 is empty, then no error is
-       raised. *)
-    let e1', h1 = translate_and_hoist ctx e1 in
-    Expr.eassert e1' mark, h1
+  | EVar x ->
+    if (Var.Map.find x ctx).is_pure then
+      monad_return (Expr.evar (trans_var ctx x) m) ~mark
+    else Expr.evar (trans_var ctx x) m
+  | EApp { f = EVar v, _; args = [(ELit LUnit, _)] } ->
+    (* lazy *)
+    assert (not (Var.Map.find v ctx).is_pure);
+    Expr.evar (trans_var ctx v) m
   | EAbs { binder; tys } ->
+    (* this is to be used with monad_bind. *)
     let vars, body = Bindlib.unmbind binder in
-    let ctx, lc_vars =
-      ArrayLabels.fold_right vars ~init:(ctx, []) ~f:(fun var (ctx, lc_vars) ->
-          (* We suppose the invariant that when applying a function, its
-             arguments cannot be of the type "option".
-
-             The code should behave correctly in the without this assumption if
-             we put here an is_pure=false, but the types are more compilcated.
-             (unimplemented for now) *)
-          let ctx = add_var mark var true ctx in
-          let lc_var = (find var ctx).var in
-          ctx, lc_var :: lc_vars)
+    let ctx' =
+      assert
+        false (* addvars vars (ArrayLabels.map vars ~f:(Fun.const true)) ctx *)
     in
-    let lc_vars = Array.of_list lc_vars in
+    let body' = trans ctx' body in
+    let binder' = Expr.bind (Array.map Var.translate vars) body' in
+    Expr.eabs binder' tys m
+  | EDefault { excepts; just; cons } ->
+    let excepts' = List.map (trans ctx) excepts in
+    let just' = trans ctx just in
+    let cons' = trans ctx cons in
 
-    (* Even if abstractions cannot have unpure arguments, it is possible its
-       returns unpure values. For instance, the term $fun x -> <|x > 0 :- x>$ is
-       valid and appear in the basecode. Hence, we need to translate it using
-       the transalte_expr function. This is linked to a more complex handling of
-       the EApp case. *)
-    let new_body = translate_expr ctx body in
-    let new_binder = Expr.bind lc_vars new_body in
-
-    Expr.eabs new_binder (List.map translate_typ tys) mark, Var.Map.empty
-  | EApp { f = EAbs { binder; tys }, varmark; args }
-    when Bindlib.mbinder_arity binder = 1 && List.length args = 1 ->
-    (* let bindings *)
-    let vars, body = Bindlib.unmbind binder in
-    let var =
-      match vars with
-      | [| var |] -> var
-      | _ ->
-        Errors.raise_error
-          "Internal Error: found a let binding with variable arity different \
-           than one."
-    in
-
-    let var' : (lcalc, 'm mark) naked_gexpr Bindlib.var =
-      Var.make (Bindlib.name_of var)
-    in
-    let arg =
-      match args with
-      | [arg] -> arg
-      | _ ->
-        Errors.raise_error
-          "Internal Error: found a let binding with argument arity different \
-           to one."
-    in
-    let ty =
-      match tys with
-      | [ty] -> ty
-      | _ ->
-        Errors.raise_error
-          "Internal Error: found a let binding with type arity different to \
-           one."
-    in
-
-    (* [let var: ty = arg in body]*)
-
-    (* translation depends on whenever arg can return empty. To not make things
-       more complicated, we just translate it as an expression and match the
-       result. *)
-    let arg' = translate_expr ctx arg in
-    let ctx' = add_var varmark var true ctx in
-    let body' = translate_expr ctx' body in
-
-    (* type is unchanged *)
-    Expr.make_let_in var' ty arg' body' (Expr.mark_pos varmark), Var.Map.empty
-  | EApp { f; args } -> begin
-    match Marked.unmark f with
-    | EOp _ ->
-      let f', h1 = translate_and_hoist ctx f in
-      let args', h_args =
-        args |> List.map (translate_and_hoist ctx) |> List.split
-      in
-      let hoists = disjoint_union_maps (Expr.pos e) (h1 :: h_args) in
-      Expr.eapp f' args' mark, hoists
-    | _ ->
-      let v' = Var.make "function_application" in
-      Expr.make_var v' mark, Var.Map.singleton v' e
+    (* for each e in excepts, e: 'a option. just: bool. cons': 'a option.
+       Result: 'a option*)
+    let m' = match m with Typed m -> Typed { m with ty = TAny, pos } in
+    (* App Handle_default excepts just cons *)
+    Expr.make_app
+      (Expr.make_var (Var.translate A.handle_default_opt) m')
+      [Expr.earray excepts' m; just'; cons']
+      pos
+  | ELit l -> begin
+    match l with
+    | LEmptyError -> monad_empty ~mark
+    (* gadts cannot infer l is in fact lcalc glit. Hence, we explicit it. *)
+    | (LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
+      l ->
+      monad_return ~mark (Expr.elit l m)
   end
+  | EErrorOnEmpty arg ->
+    let arg' = trans ctx arg in
+    monad_eoe arg' ~mark
+  | EApp { f = (EVar _, _) as f; args } ->
+    (* INVARIANT: functions are always encoded using this function. *)
+    let f_var = Var.make "f" in
+    monad_bind_var ~mark (trans ctx f) f_var
+      (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
+  | EApp { f = EAbs { binder; tys }, _; args } ->
+    let var, body = Bindlib.unmbind binder in
+    let[@warning "-8"] [| var |] = var in
+    let var' = Var.translate var in
+    let[@warning "-8"] [arg] = args in
+    let ctx' = assert false in
+    monad_bind_var (trans ctx arg) var' (trans ctx' body) ~mark
+  | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
+    assert false
+  | EApp { f = EStructAccess _, _; _ } -> assert false
+  | EApp { f = EOp { op; tys }, opmark; args } ->
+    monad_mbind
+      (Expr.eop (trans_op op) tys opmark)
+      (List.map (trans ctx) args)
+      ~mark
+  | EMatch { name; e; cases } ->
+    let cases =
+      EnumConstructor.MapLabels.map cases ~f:(fun case ->
+          match Marked.unmark case with
+          | EAbs { binder; tys } ->
+            let vars, body = Bindlib.unmbind binder in
+            let ctx' =
+              addvars vars (ArrayLabels.map vars ~f:(Fun.const true)) ctx
+            in
+            let binder =
+              Expr.bind (Array.map Var.translate vars) (trans ctx' body)
+            in
+            Expr.eabs binder tys m
+          | _ -> assert false)
+    in
+    monad_bind_cont
+      (fun e -> Expr.ematch (Expr.evar e m) name cases m)
+      (trans ctx e) ~mark
+  | EArray args ->
+    monad_mbind_cont ~mark
+      (fun vars -> Expr.earray (List.map (fun v -> Expr.evar v m) vars) mark)
+      (List.map (trans ctx) args)
   | EStruct { name; fields } ->
-    let fields', h_fields =
-      StructField.Map.fold
-        (fun field e (fields, hoists) ->
-          let e, h = translate_and_hoist ctx e in
-          StructField.Map.add field e fields, h :: hoists)
-        fields
-        (StructField.Map.empty, [])
-    in
-    let hoists = disjoint_union_maps (Expr.pos e) h_fields in
-    Expr.estruct name fields' mark, hoists
-  | EStructAccess { name; e = e1; field } ->
-    let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = Expr.estructaccess e1' field name mark in
-    e1', hoists
-  | ETuple es ->
-    let hoists, es' =
-      List.fold_left_map
-        (fun hoists e ->
-          let e, h = translate_and_hoist ctx e in
-          h :: hoists, e)
-        [] es
-    in
-    Expr.etuple es' mark, disjoint_union_maps (Expr.pos e) hoists
-  | ETupleAccess { e = e1; index; size } ->
-    let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = Expr.etupleaccess e1' index size mark in
-    e1', hoists
-  | EInj { name; e = e1; cons } ->
-    let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = Expr.einj e1' cons name mark in
-    e1', hoists
-  | EMatch { name; e = e1; cases } ->
-    (* The current encoding of matches is e with an expression, that will be
-       deconstructed and a series of cases. Each cases is an key constructor and
-       a expression that contains a lambda expression. Hence the following
-       encoding is correct: hoist each branches & the destructed expression. *)
-    let e1', h1 = translate_and_hoist ctx e1 in
-    let cases', h_cases =
-      EnumConstructor.Map.fold
-        (fun cons e (cases, hoists) ->
-          let e', h = translate_and_hoist ctx e in
-          EnumConstructor.Map.add cons e' cases, h :: hoists)
-        cases
-        (EnumConstructor.Map.empty, [])
-    in
-    let hoists = disjoint_union_maps (Expr.pos e) (h1 :: h_cases) in
-    let e' = Expr.ematch e1' name cases' mark in
-    e', hoists
-  | EArray es ->
-    let es', hoists = es |> List.map (translate_and_hoist ctx) |> List.split in
+    (* TODO: since ocaml is determinisitc, the fields will always be enumerated
+       in the same order on the fields. *)
+    let fields_name, fields = List.split (StructField.Map.bindings fields) in
+    monad_mbind_cont
+      (fun xs ->
+        let fields =
+          ListLabels.fold_right2 fields_name
+            (List.map (fun x -> Expr.evar x mark) xs)
+            ~f:StructField.Map.add ~init:StructField.Map.empty
+        in
+        Expr.estruct name fields mark)
+      (List.map (trans ctx) fields)
+      ~mark
+  | EIfThenElse { cond; etrue; efalse } ->
+    (* semantic one : ife is not rendondant with defaults. *)
+    (* monad_bind_cont ~mark (fun cond -> monad_bind_cont (fun etrue ->
+       monad_bind_cont ~mark (fun efalse -> Expr.eifthenelse (Expr.evar cond m)
+       (Expr.evar etrue m) (Expr.evar efalse m) m) (trans ctx efalse)) (trans
+       ctx etrue) ~mark) (trans ctx cond) *)
 
-    Expr.earray es' mark, disjoint_union_maps (Expr.pos e) hoists
-  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys mark, Var.Map.empty
+    (* semantic two: ife is redondant with defaults. *)
+    monad_bind_cont ~mark
+      (fun cond ->
+        Expr.eifthenelse (Expr.evar cond mark) (trans ctx etrue)
+          (trans ctx efalse) mark)
+      (trans ctx cond)
+  | EInj { name; cons; e } ->
+    monad_bind_cont
+      (fun e -> Expr.einj (Expr.evar e mark) cons name mark)
+      (trans ctx e) ~mark
+  | EStructAccess { name; e; field } ->
+    monad_bind_cont
+      (fun e -> Expr.estructaccess (Expr.evar e mark) field name mark)
+      (trans ctx e) ~mark
+  | ETuple args ->
+    monad_mbind_cont
+      (fun xs -> Expr.etuple (List.map (fun x -> Expr.evar x mark) xs) mark)
+      (List.map (trans ctx) args)
+      ~mark
+  | ETupleAccess { e; index; size } ->
+    monad_bind_cont
+      (fun e -> Expr.etupleaccess (Expr.evar e mark) index size mark)
+      (trans ctx e) ~mark
+  | EAssert e ->
+    monad_bind_cont
+      (fun e -> Expr.eassert (Expr.evar e mark) mark)
+      (trans ctx e) ~mark
+  | EApp _ -> assert false
+  | EOp _ -> assert false
 
-and translate_hoists ~append_esome ctx hoists kont =
-  ListLabels.fold_left hoists
-    ~init:(if append_esome then A.make_some kont else kont)
-    ~f:(fun acc (v, (hoist, mark_hoist)) ->
-      (* Cli.debug_print @@ Format.asprintf "hoist using A.%a" Print.var v; *)
-      let pos = Expr.mark_pos mark_hoist in
-      let c' : 'm A.expr boxed =
-        match hoist with
-        (* Here we have to handle only the cases appearing in hoists, as defined
-           the [translate_and_hoist] function. *)
-        | EVar v -> (find ~info:"should never happen" v ctx).expr
-        | EDefault { excepts; just; cons } ->
-          let excepts' = List.map (translate_expr ctx) excepts in
-          let just' = translate_expr ctx just in
-          let cons' = translate_expr ctx cons in
-          (* calls handle_option. *)
-          Cli.debug_format "building_default %a"
-            (Print.expr_debug ~debug:false)
-            (Marked.mark mark_hoist hoist);
-          let new_mark : typed mark =
-            match mark_hoist with Typed m -> Typed { m with ty = TAny, pos }
-          in
-          Expr.make_app ~decl_ctx:(Some ctx.decl_ctx)
-            (Expr.make_var (Var.translate A.handle_default_opt) new_mark)
-            [Expr.earray excepts' new_mark; just'; cons']
-            pos
-        | ELit LEmptyError -> A.make_none mark_hoist
-        | EApp { f; args } ->
-          let f = translate_expr ctx f in
-          let args = List.map (translate_expr ctx) args in
-
-          (* let*m args' = args' and* f' = f' in f' args' *)
-          Cli.debug_format "building_app %a"
-            (Print.expr_debug ~debug:false)
-            (Marked.mark mark_hoist hoist);
-
-          A.make_bind_cont mark_hoist f (fun f ->
-              A.make_bindm_cont mark_hoist args (fun args ->
-                  Expr.make_app ~decl_ctx:(Some ctx.decl_ctx) f args pos
-                  (* A.make_bind_cont mark_hosit (Expr.make_app f args pos) *)))
-          (* assert false *)
-        | EAssert arg ->
-          let arg' = translate_expr ctx arg in
-
-          (* [ match arg with | None -> raise NoValueProvided | Some v -> assert
-             {{ v }} ] *)
-          let silent_var = Var.make "_" in
-          let x = Var.make "assertion_argument" in
-
-          A.make_matchopt_with_abs_arms arg'
-            (Expr.make_abs [| silent_var |]
-               (Expr.eraise NoValueProvided mark_hoist)
-               [TAny, Expr.mark_pos mark_hoist]
-               pos)
-            (Expr.make_abs [| x |]
-               (Expr.eassert (Expr.make_var x mark_hoist) mark_hoist)
-               [TAny, Expr.mark_pos mark_hoist]
-               pos)
-        | _ ->
-          Errors.raise_spanned_error (Expr.mark_pos mark_hoist)
-            "Internal Error: An term was found in a position where it should \
-             not be"
-      in
-
-      A.make_matchopt pos v
-        (TAny, Expr.mark_pos mark_hoist)
-        c' (A.make_none mark_hoist) acc)
-
-and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
-    'm A.expr boxed =
-  let e', hoists = translate_and_hoist ctx e in
-  let hoists = Var.Map.bindings hoists in
-
-  let _pos = Marked.get_mark e in
-
-  (* build the hoists *)
-  (* Cli.debug_print @@ Format.asprintf "hoist for the expression: [%a]"
-     (Format.pp_print_list Print.var) (List.map fst hoists); *)
-  translate_hoists ~append_esome ctx hoists e'
+let _ = trans
 
 let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
     'm A.expr scope_body_expr Bindlib.box =
@@ -838,8 +872,8 @@ let translate_program (prgm : typed D.program) : 'm A.program =
     }
   in
 
-  let _code_items =
+  let code_items =
     Bindlib.unbox
       (translate_code_items { decl_ctx; vars = Var.Map.empty } prgm.code_items)
   in
-  assert false
+  { decl_ctx; code_items }
