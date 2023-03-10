@@ -97,6 +97,12 @@ To get started, the best place is the [tutorial](https://catala-lang.org/en/exam
 of the language. A [French version](https://catala-lang.org/fr/examples/tutoriel)
 is also available but might be out of sync with the latest language features.
 
+> **Note:** bleeding-edge version
+>
+> If you are interested in the latest development version, pre-built artifacts
+> including binaries and API documentation can be found at
+> https://catalalang.github.io/catala
+
 ## Building and installation
 
 Catala is available as an [opam package](https://opam.ocaml.org/packages/catala/)!
