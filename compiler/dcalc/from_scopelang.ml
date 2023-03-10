@@ -917,14 +917,13 @@ let translate_scope_decl
       ctx scope_variables
   in
   let date_rounding =
-    List.find_opt
+   match List.find_opt
       (function Desugared.Ast.DateRounding _ -> true)
-      sigma.scope_options
-    |> Option.map (function
-         | Desugared.Ast.DateRounding Desugared.Ast.Increasing ->
-           (RoundUp : Runtime_ocaml.Runtime.date_rounding)
-         | DateRounding Decreasing -> RoundDown)
-    |> Option.value ~default:Dates_calc.Dates.AbortOnRound
+      sigma.scope_options with
+   | Some (Desugared.Ast.DateRounding Desugared.Ast.Increasing) ->
+     (RoundUp : Runtime_ocaml.Runtime.date_rounding)
+   | Some (DateRounding Decreasing)  -> RoundDown
+   | None -> Dates_calc.Dates.AbortOnRound
   in
   let ctx = { ctx with date_rounding } in
   let scope_input_var = scope_sig.scope_sig_input_var in
