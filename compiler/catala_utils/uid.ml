@@ -35,7 +35,9 @@ module type Id = sig
   val hash : t -> int
 
   module Set : Set.S with type elt = t
+  module SetLabels : MoreLabels.Set.S with type elt = t and type t = Set.t
   module Map : Map.S with type key = t
+  module MapLabels : MoreLabels.Map.S with type 'a t = 'a Map.t
 end
 
 module Make (X : Info) () : Id with type info = X.info = struct
@@ -62,6 +64,8 @@ module Make (X : Info) () : Id with type info = X.info = struct
 
   module Set = Set.Make (Ordering)
   module Map = Map.Make (Ordering)
+  module SetLabels = MoreLabels.Set.Make (Ordering)
+  module MapLabels = MoreLabels.Map.Make (Ordering)
 end
 
 module MarkedString = struct

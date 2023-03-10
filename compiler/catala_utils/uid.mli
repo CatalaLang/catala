@@ -50,7 +50,9 @@ module type Id = sig
   val hash : t -> int
 
   module Set : Set.S with type elt = t
+  module SetLabels : MoreLabels.Set.S with type elt = t and type t = Set.t
   module Map : Map.S with type key = t
+  module MapLabels : MoreLabels.Map.S with type 'a t = 'a Map.t
 end
 
 (** This is the generative functor that ensures that two modules resulting from
