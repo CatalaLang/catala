@@ -1153,7 +1153,9 @@ let process_scope_use_item
     let new_scope =
       match
         List.find_opt
-          (fun scope_opt -> scope_opt = Ast.DateRounding _)
+          (fun scope_opt ->
+            scope_opt = Ast.DateRounding Ast.Increasing
+            || scope_opt = Ast.DateRounding Ast.Decreasing)
           scope.scope_options
       with
       | Some _ ->
