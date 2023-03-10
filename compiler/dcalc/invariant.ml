@@ -47,7 +47,9 @@ let invariant_app_is_either_op_var_let () : string * invariant_expr =
     fun e ->
       match Marked.unmark e with
       | EApp { f = EOp _, _; _ } -> Pass
-      | EApp { f = EAbs _, _; _ } -> Pass
+      | EApp { f = EAbs { binder; _ }, _; args } ->
+        if Bindlib.mbinder_arity binder = 1 && List.length args = 1 then Pass
+        else Fail
       | EApp { f = EVar _, _; _ } -> Pass
       | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
         Pass
