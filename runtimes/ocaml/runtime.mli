@@ -171,7 +171,7 @@ and var_def = {
 
 and fun_call = {
   fun_name : information;
-  inputs : var_def list;
+  fun_inputs : var_def list;
   body : event list;
   output : var_def;
 }
