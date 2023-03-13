@@ -64,3 +64,18 @@ val get_formatter_of_out_channel :
 val temp_file : string -> string -> string
 (** Like [Filename.temp_file], but registers the file for deletion at program
     exit unless Cli.debug_flag is set. *)
+
+val with_temp_file :
+  string -> string -> ?contents:string -> (string -> 'a) -> 'a
+(** Creates a temp file (with prefix and suffix like [temp_file], optionally
+    with the given contents, for the lifetime of the supplied function, then
+    remove it unconditionally *)
+
+val contents : string -> string
+(** Reads the contents of a file as a string *)
+
+val process_out : ?check_exit:(int -> unit) -> string -> string list -> string
+(** [process_out cmd args] executes the given command with the specified
+    arguments, and returns the stdout of the process as a string. [check_exit]
+    is called on the return code of the sub-process, the default is to fail on
+    anything but 0. *)

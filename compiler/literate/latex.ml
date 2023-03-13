@@ -59,7 +59,8 @@ let wrap_latex
 \usepackage{fontspec}
 \usepackage[hidelinks]{hyperref}
 %s
-\usepackage{minted}
+\usepackage{fancyvrb}
+\usepackage{color}
 \usepackage{longtable}
 \usepackage{booktabs,tabularx}
 \usepackage{newunicodechar}
@@ -122,8 +123,10 @@ let wrap_latex
 \newunicodechar{→}{$\rightarrow$}
 \newunicodechar{≠}{$\neq$}
 
-\newcommand*\FancyVerbStartString{\PYG{l+s}{```catala}}
-\newcommand*\FancyVerbStopString{\PYG{l+s}{```}}
+%s
+
+\newcommand*\FancyVerbStartString{\PY{l+s}{```catala}}
+\newcommand*\FancyVerbStopString{\PY{l+s}{```}}
 
 \fvset{
 numbers=left,
@@ -157,6 +160,7 @@ codes={\catcode`\$=3\catcode`\^=7}
     (match language with Fr -> "\\setmainfont{Marianne}" | _ -> "")
     (* for France, we use the official font of the French state design system
        https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography *)
+    (call_pygmentize ["-f"; "latex"; "-S"; "default"])
     (literal_title language)
     (literal_generated_by language)
     Cli.version
@@ -186,17 +190,22 @@ codes={\catcode`\$=3\catcode`\^=7}
 (** {1 Weaving} *)
 
 let code_block ~meta lang fmt (code, pos) =
-  let opts = if meta then "numbersep=9mm, " else "" in
+  (* Pygments does'nt allow to specify multiple 'verboptions' (escaping bug ?)
+     so we call it with "nowrap" and write the FancyVrb wrapper ourselves. *)
+  let pygmentized_code =
+    let contents = String.concat "" ["```catala\n"; code; "```"] in
+    File.with_temp_file "catala_latex_pygments" "in" ~contents
+    @@ fun temp_file_in ->
+    call_pygmentize ~lang ["-f"; "latex"; "-O"; "nowrap=true"; temp_file_in]
+  in
   Format.fprintf fmt
-    "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},%sfirstnumber=%d]{%s}\n\
-     ```catala\n\
-     %s```\n\
-     \\end{minted}"
-    (pre_latexify (Filename.basename (Pos.get_file pos)))
-    opts
+    {latex|\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=%d,stepnumber=1,label={\hspace*{\fill}\texttt{%s}}%s]|latex}
     (Pos.get_start_line pos + 1)
-    (get_language_extension lang)
-    code
+    (pre_latexify (Filename.basename (Pos.get_file pos)))
+    (if meta then ",numbersep=9mm" else "");
+  Format.pp_print_newline fmt ();
+  Format.pp_print_string fmt pygmentized_code;
+  Format.pp_print_string fmt "\\end{Verbatim}\n"
 
 let rec law_structure_to_latex
     (language : C.backend_lang)

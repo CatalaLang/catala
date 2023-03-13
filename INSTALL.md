@@ -73,14 +73,12 @@ Next, install all the packages that Catala depends on with
 
 This should ensure everything is set up for developing on the Catala compiler!
 The Python dependencies are installed inside a local virtual environment
-(`venv`), so for things like syntax coloration in Catala's literate output to
-work, you will have to run
+(`venv`). The Makefile rules will use it automatically when building the syntax
+cheat-sheet, for example, but if you need to otherwise colorise Catala code, or
+use generated Python code, you should run the following command once in every
+new shell session:
 
     . _python_venv/bin/activate
-
-from the catala directory to enable it. This needs to be done in every new shell
-session, unless you use the predefined `make` rules which already account for
-that.
 
 **Warning**: the `make dependencies` command does not include the `z3`
 dependency required to enable the proof platform feature of Catala. If you wish

@@ -66,3 +66,45 @@ let get_out_channel ~source_file ~output_file ?ext () =
 let get_formatter_of_out_channel ~source_file ~output_file ?ext () =
   let f, with_ = get_out_channel ~source_file ~output_file ?ext () in
   f, fun fmt -> with_ (fun oc -> with_formatter_of_out_channel oc fmt)
+
+let with_temp_file pfx sfx ?contents f =
+  let filename = temp_file pfx sfx in
+  finally (fun () -> Sys.remove filename)
+  @@ fun () ->
+  Option.iter
+    (fun contents ->
+      with_out_channel filename (fun oc -> output_string oc contents))
+    contents;
+  f filename
+
+let contents filename =
+  with_in_channel filename (fun ic ->
+      really_input_string ic (in_channel_length ic))
+
+let process_out ?check_exit cmd args =
+  let check_exit =
+    let default n =
+      if n <> 0 then
+        Printf.ksprintf failwith "Sub-process %s returned with status %d" cmd n
+    in
+    Option.value check_exit ~default
+  in
+  let aargs = Array.of_list (cmd :: args) in
+  let ic =
+    try Unix.open_process_args_in cmd aargs
+    with Unix.Unix_error (Unix.ENOENT, _, _) ->
+      Printf.ksprintf failwith "ERROR: program %s not found" cmd
+  in
+  let buf = Buffer.create 4096 in
+  finally (fun () ->
+      match Unix.close_process_in ic with
+      | Unix.WEXITED n -> check_exit n
+      | Unix.WSIGNALED n | Unix.WSTOPPED n ->
+        Printf.ksprintf failwith "Sub-process %s was killed (%d)" cmd n)
+  @@ fun () ->
+  try
+    while true do
+      Buffer.add_channel buf ic 4096
+    done;
+    assert false
+  with End_of_file -> Buffer.contents buf
