@@ -215,133 +215,26 @@ let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
     Expr.eassert e (make_new_mark m unpure)
   (* Those cases should not happend because of the structural invariant on the
      structure of the ast at this point. *)
-  | EApp _ -> assert false (* invalid invariant *)
-  | EOp _ -> assert false (* invalid invariant *)
+  | EApp _ ->
+    Errors.raise_spanned_error (Expr.pos e)
+      "Internal Error: found an EApp that does not satisfy the invariants when \
+       translating Dcalc to Lcalc without exceptions."
+  (* invalid invariant *)
+  | EOp _ ->
+    Errors.raise_spanned_error (Expr.pos e)
+      "Internal Error: found an EOp that does not satisfy the invariants when \
+       translating Dcalc to Lcalc without exceptions."
+(* invalid invariant *)
 
 let _ = detect_unpure_expr
 
-(** [{
-      type struct_ctx_analysis = bool StructField.Map.t StructName.Map.t
-    }]
+type info_pure = { info_pure : bool }
 
-    [{ let rec detect_unpure_expr = assert false }]
-    [{ let detect_unpure_scope_let = assert false }]
-    [{ let detect_unpure_scope_body = assert false }]
-    [{ let detect_unpure_scopes = assert false }]
-    [{ let detect_unpure_program = assert false }]
-    [{ let detect_unpure_scope_let = assert false }] *)
-
-(* let detect_unpure_code_item (ctx : analysis_ctx) var (code_item : _
-   code_item) : analysis_ctx * _ code_item Bindlib.box = match code_item with _
-   -> assert false
-
-   let detect_unpure_code_item_list ctx code_items = Scope.fold_map
-   ~f:detect_unpure_code_item ~varf:Fun.id ctx code_items *)
-
-type ctx2
-
-let find : ctx2 -> analysis_info = fun _ -> assert false
-
-let add_var : ctx2 -> 'a Bindlib.var -> analysis_info -> ctx2 =
- fun _ -> assert false
-
-let rec is_pure ctx (expr : typed D.expr) =
-  match Marked.unmark expr with
-  | ELit l -> ( match l with LEmptyError -> true | _ -> false)
-  | EApp { f = EOp _, _; args } -> List.for_all (is_pure ctx) args
-  | EApp { f = EAbs { binder; _ }, _; args } ->
-    let vars, body = Bindlib.unmbind binder in
-    let vars = Array.to_list vars in
-    let ctx' =
-      ListLabels.fold_left2 vars args ~init:ctx ~f:(fun ctx var arg ->
-          add_var ctx var
-            {
-              unpure_info = false;
-              unpure_return = Option.map not (return_pure ctx arg);
-            })
-    in
-    is_pure ctx' body
-  | EApp { f = (EVar _, _) as f; args } ->
-    List.for_all (is_pure ctx) args && Option.get (return_pure ctx f)
-  | EVar _ -> not (find ctx).unpure_info
-  | EAbs _ -> true
-  | EDefault _ -> false
-  | EErrorOnEmpty _ -> true
-  | EArray _ | EIfThenElse _ | EStruct _ | EInj _ | EMatch _ | ETuple _
-  | ETupleAccess _ | EStructAccess _ | EAssert _ ->
-    failwith "not implemented yet"
-  | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
-    assert false
-  | EOp _ | EApp _ -> failwith "wont implement"
-
-and return_pure _ctx _expr = assert false
-
-let _ = is_pure
-
-type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
-(** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
-
-type 'm info = { expr : 'm A.expr boxed; var : 'm A.expr Var.t; is_pure : bool }
 (** Information about each encontered Dcalc variable is stored inside a context
     : what is the corresponding LCalc variable; an expression corresponding to
     the variable build correctly using Bindlib, and a boolean `is_pure`
     indicating whenever the variable can be an EmptyError and hence should be
     matched (false) or if it never can be EmptyError (true). *)
-
-let pp_info (fmt : Format.formatter) (info : 'm info) =
-  Format.fprintf fmt "{var: %a; is_pure: %b}" Print.var info.var info.is_pure
-
-type 'm ctx = {
-  decl_ctx : decl_ctx;
-  vars : ('m D.expr, 'm info) Var.Map.t;
-      (** information context about variables in the current scope *)
-}
-
-let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
-  let pp_binding
-      (fmt : Format.formatter)
-      ((v, info) : 'm D.expr Var.t * 'm info) =
-    Format.fprintf fmt "%a: %a" Print.var v pp_info info
-  in
-
-  let pp_bindings =
-    Format.pp_print_list
-      ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
-      pp_binding
-  in
-
-  Format.fprintf fmt "@[<2>[%a]@]" pp_bindings (Var.Map.bindings ctx.vars)
-
-(** [find ~info n ctx] is a warpper to ocaml's Map.find that handle errors in a
-    slightly better way. *)
-let find ?(info : string = "none") (n : 'm D.expr Var.t) (ctx : 'm ctx) :
-    'm info =
-  try Var.Map.find n ctx.vars
-  with Not_found ->
-    Errors.raise_spanned_error Pos.no_pos
-      "Internal Error: Variable %a was not found in the current environment. \
-       Additional informations : %s."
-      Print.var n info
-
-(** [add_var pos var is_pure ctx] add to the context [ctx] the Dcalc variable
-    var, creating a unique corresponding variable in Lcalc, with the
-    corresponding expression, and the boolean is_pure. It is usefull for
-    debuging purposes as it printing each of the Dcalc/Lcalc variable pairs. *)
-let add_var
-    (mark : 'm mark)
-    (var : 'm D.expr Var.t)
-    (is_pure : bool)
-    (ctx : 'm ctx) : 'm ctx =
-  let new_var = Var.make (Bindlib.name_of var) in
-  let expr = Expr.make_var new_var mark in
-
-  {
-    ctx with
-    vars =
-      Var.Map.update var
-        (fun _ -> Some { expr; var = new_var; is_pure })
-        ctx.vars;
-  }
 
 (** [tau' = translate_typ tau] translate the a dcalc type into a lcalc type.
 
@@ -364,37 +257,6 @@ let rec translate_typ (tau : typ) : typ =
       | TArrow ([(TLit TUnit, _)], t2) -> TOption (translate_typ t2)
       | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
     end
-
-(** [c = disjoint_union_maps cs] Compute the disjoint union of multiple maps.
-    Raises an internal error if there is two identicals keys in differnts parts. *)
-let disjoint_union_maps (pos : Pos.t) (cs : ('e, 'a) Var.Map.t list) :
-    ('e, 'a) Var.Map.t =
-  let disjoint_union =
-    Var.Map.union (fun _ _ _ ->
-        Errors.raise_spanned_error pos
-          "Internal Error: Two supposed to be disjoints maps have one shared \
-           key.")
-  in
-
-  List.fold_left disjoint_union Var.Map.empty cs
-
-(** errorOnEmpty : 'a option -> 'a
-
-    pure var: 'a
-
-    unpure var: 'a option
-
-    default: 'a option list -> bool -> 'a option -> 'a option
-
-    empty: 'a option
-
-    ELit : 'a
-
-    let x = arg in body := bind [arg] (fun x: 'a -> [body])
-
-    app f x1 x2 x3 x4 = bindn [x1; x2; x3; x4] (f x1 x2 x3 x4)
-
-    match arg with case1 case2 := bind arg (fun x -> match x with case1 case2) *)
 
 let monad_return e ~(mark : 'a mark) =
   Expr.einj e Ast.some_constr Ast.option_enum mark
@@ -484,7 +346,7 @@ let monad_mbind_cont f args ~(mark : 'a mark) =
 let monad_map_var f x arg ~(mark : 'a mark) =
   monad_bind_var (monad_return f ~mark) x arg ~mark
 
-let monad_map f x arg ~(mark : 'a mark) =
+let monad_map f arg ~(mark : 'a mark) =
   let x = Var.make "x" in
   monad_map_var f x arg ~mark
 
@@ -524,11 +386,11 @@ let _ = monad_mbind_mvar
 let _ = monad_mbind
 let _ = monad_mbind_cont
 let _ = monad_eoe
+let _ = monad_map
+let _ = monad_mmap_mvar
+let _ = monad_mmap
 let trans_var _ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t = Var.translate x
-
-(* TODO: louis ? :) *)
-let trans_op : (dcalc, 'a) Op.t -> (lcalc, 'a) Op.t = Obj.magic
-let admit = assert false
+let trans_op : (dcalc, 'a) Op.t -> (lcalc, 'a) Op.t = Operator.translate
 
 let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   let m = Marked.get_mark e in
@@ -536,12 +398,12 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   let pos = Expr.pos e in
   match Marked.unmark e with
   | EVar x ->
-    if (Var.Map.find x ctx).is_pure then
+    if (Var.Map.find x ctx).info_pure then
       monad_return (Expr.evar (trans_var ctx x) m) ~mark
     else Expr.evar (trans_var ctx x) m
   | EApp { f = EVar v, _; args = [(ELit LUnit, _)] } ->
     (* lazy *)
-    assert (not (Var.Map.find v ctx).is_pure);
+    assert (not (Var.Map.find v ctx).info_pure);
     Expr.evar (trans_var ctx v) m
   | EAbs { binder; tys } ->
     (* this is to be used with monad_bind. *)
@@ -582,12 +444,12 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let f_var = Var.make "f" in
     monad_bind_var ~mark (trans ctx f) f_var
       (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
-  | EApp { f = EAbs { binder; tys }, _; args } ->
+  | EApp { f = EAbs { binder; _ }, _; args } ->
     let var, body = Bindlib.unmbind binder in
     let[@warning "-8"] [| var |] = var in
     let var' = Var.translate var in
     let[@warning "-8"] [arg] = args in
-    let ctx' = assert false in
+    let ctx' = Var.Map.add var { info_pure = true } ctx in
     monad_bind_var (trans ctx arg) var' (trans ctx' body) ~mark
   | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
     assert false
@@ -604,7 +466,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
           | EAbs { binder; tys } ->
             let vars, body = Bindlib.unmbind binder in
             let ctx' =
-              addvars vars (ArrayLabels.map vars ~f:(Fun.const true)) ctx
+              ArrayLabels.fold_right vars ~init:ctx ~f:(fun var ->
+                  Var.Map.add var { info_pure = true })
             in
             let binder =
               Expr.bind (Array.map Var.translate vars) (trans ctx' body)
@@ -667,179 +530,175 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     monad_bind_cont
       (fun e -> Expr.eassert (Expr.evar e mark) mark)
       (trans ctx e) ~mark
-  | EApp _ -> assert false
-  | EOp _ -> assert false
+  | EApp _ ->
+    Errors.raise_spanned_error (Expr.pos e)
+      "Internal Error: found an EApp that does not satisfy the invariants when \
+       translating Dcalc to Lcalc without exceptions."
+  (* invalid invariant *)
+  | EOp _ ->
+    Errors.raise_spanned_error (Expr.pos e)
+      "Internal Error: found an EOp that does not satisfy the invariants when \
+       translating Dcalc to Lcalc without exceptions."
 
-let _ = trans
-
-let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
-    'm A.expr scope_body_expr Bindlib.box =
-  match lets with
-  | Result e ->
-    Bindlib.box_apply
-      (fun e -> Result e)
-      (Expr.Box.lift (translate_expr ~append_esome:false ctx e))
-  | ScopeLet
-      {
-        scope_let_kind = SubScopeVarDefinition;
-        scope_let_typ = typ;
-        scope_let_expr = EAbs { binder; _ }, emark;
-        scope_let_next = next;
-        scope_let_pos = pos;
-      } ->
+let rec trans_scope_let ctx s =
+  match s with
+  | {
+   scope_let_kind = SubScopeVarDefinition;
+   scope_let_typ;
+   scope_let_expr = EAbs { binder; _ }, _;
+   scope_let_next;
+   scope_let_pos;
+  } ->
     (* special case : the subscope variable is thunked (context i/o). We remove
        this thunking. *)
-    let _, expr = Bindlib.unmbind binder in
+    let _, scope_let_expr = Bindlib.unmbind binder in
+    let next_var, next_body = Bindlib.unbind scope_let_next in
 
-    let var_is_pure = true in
-    let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
-    let vmark = Expr.with_ty emark ~pos typ in
-    let ctx' = add_var vmark var var_is_pure ctx in
-    let new_var = (find ~info:"variable that was just created" var ctx').var in
-    let new_next = translate_scope_let ctx' next in
+    let ctx' = Var.Map.add next_var { info_pure = false } ctx in
+
+    let next_var = Var.translate next_var in
+    let next_body = trans_scope_body_expr ctx' next_body in
+
+    let scope_let_next = Bindlib.bind_var next_var next_body in
+
+    let scope_let_expr = Expr.Box.lift @@ trans ctx scope_let_expr in
+
     Bindlib.box_apply2
-      (fun new_expr new_next ->
-        ScopeLet
-          {
-            scope_let_kind = SubScopeVarDefinition;
-            scope_let_typ = translate_typ typ;
-            scope_let_expr = new_expr;
-            scope_let_next = new_next;
-            scope_let_pos = pos;
-          })
-      (Expr.Box.lift (translate_expr ctx ~append_esome:false expr))
-      (Bindlib.bind_var new_var new_next)
-  | ScopeLet
-      {
-        scope_let_kind = SubScopeVarDefinition;
-        scope_let_typ = typ;
-        scope_let_expr = (EErrorOnEmpty _, emark) as expr;
-        scope_let_next = next;
-        scope_let_pos = pos;
-      } ->
+      (fun scope_let_expr scope_let_next ->
+        {
+          scope_let_kind = SubScopeVarDefinition;
+          scope_let_typ = translate_typ scope_let_typ;
+          scope_let_expr;
+          scope_let_next;
+          scope_let_pos;
+        })
+      scope_let_expr scope_let_next
+  | {
+   scope_let_kind = SubScopeVarDefinition;
+   scope_let_typ;
+   scope_let_expr = (EErrorOnEmpty _, _) as scope_let_expr;
+   scope_let_next;
+   scope_let_pos;
+  } ->
     (* special case: regular input to the subscope *)
-    let var_is_pure = true in
-    let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
-    let vmark = Expr.with_ty emark ~pos typ in
-    let ctx' = add_var vmark var var_is_pure ctx in
-    let new_var = (find ~info:"variable that was just created" var ctx').var in
+    let next_var, next_body = Bindlib.unbind scope_let_next in
+
+    let ctx' = Var.Map.add next_var { info_pure = false } ctx in
+
+    let next_var = Var.translate next_var in
+    let next_body = trans_scope_body_expr ctx' next_body in
+
+    let scope_let_next = Bindlib.bind_var next_var next_body in
+
+    let scope_let_expr = Expr.Box.lift @@ trans ctx scope_let_expr in
+
     Bindlib.box_apply2
-      (fun new_expr new_next ->
-        ScopeLet
-          {
-            scope_let_kind = SubScopeVarDefinition;
-            scope_let_typ = translate_typ typ;
-            scope_let_expr = new_expr;
-            scope_let_next = new_next;
-            scope_let_pos = pos;
-          })
-      (Expr.Box.lift (translate_expr ctx ~append_esome:false expr))
-      (Bindlib.bind_var new_var (translate_scope_let ctx' next))
-  | ScopeLet
-      {
-        scope_let_kind = SubScopeVarDefinition;
-        scope_let_pos = pos;
-        scope_let_expr = expr;
-        _;
-      } ->
+      (fun scope_let_expr scope_let_next ->
+        {
+          scope_let_kind = SubScopeVarDefinition;
+          scope_let_typ = translate_typ scope_let_typ;
+          scope_let_expr;
+          scope_let_next;
+          scope_let_pos;
+        })
+      scope_let_expr scope_let_next
+  | { scope_let_kind = SubScopeVarDefinition; scope_let_pos = pos; _ } ->
     Errors.raise_spanned_error pos
       "Internal Error: found an SubScopeVarDefinition that does not satisfy \
-       the invariants when translating Dcalc to Lcalc without exceptions: \
-       @[<hov 2>%a@]"
-      (Expr.format ctx.decl_ctx) expr
-  | ScopeLet
-      {
-        scope_let_kind = kind;
-        scope_let_typ = typ;
-        scope_let_expr = expr;
-        scope_let_next = next;
-        scope_let_pos = pos;
-      } ->
-    let var_is_pure =
-      match kind with
-      | DestructuringInputStruct -> (
-        (* Here, we have to distinguish between context and input variables. We
-           can do so by looking at the typ of the destructuring: if it's
-           thunked, then the variable is context. If it's not thunked, it's a
-           regular input. *)
-        match Marked.unmark typ with
-        | TArrow ([(TLit TUnit, _)], _) -> false
-        | _ -> true)
-      | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
-      | DestructuringSubScopeResults | Assertion ->
-        true
-    in
-    let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
-    let vmark = Expr.with_ty (Marked.get_mark expr) ~pos typ in
-    let ctx' = add_var vmark var var_is_pure ctx in
-    let new_var = (find ~info:"variable that was just created" var ctx').var in
-    Bindlib.box_apply2
-      (fun new_expr new_next ->
-        ScopeLet
-          {
-            scope_let_kind = kind;
-            scope_let_typ = translate_typ typ;
-            scope_let_expr = new_expr;
-            scope_let_next = new_next;
-            scope_let_pos = pos;
-          })
-      (Expr.Box.lift (translate_expr ctx ~append_esome:false expr))
-      (Bindlib.bind_var new_var (translate_scope_let ctx' next))
-
-let translate_scope_body
-    (scope_pos : Pos.t)
-    (ctx : 'm ctx)
-    (body : typed D.expr scope_body) : 'm A.expr scope_body Bindlib.box =
-  match body with
+       the invariants when translating Dcalc to Lcalc without exceptions."
   | {
-   scope_body_expr = result;
-   scope_body_input_struct = input_struct;
-   scope_body_output_struct = output_struct;
+   scope_let_kind;
+   scope_let_typ;
+   scope_let_expr;
+   scope_let_next;
+   scope_let_pos;
   } ->
-    let v, lets = Bindlib.unbind result in
-    let vmark =
-      let m =
-        match lets with
-        | Result e | ScopeLet { scope_let_expr = e; _ } -> Marked.get_mark e
-      in
-      Expr.map_mark (fun _ -> scope_pos) (fun ty -> ty) m
+    (* base case *)
+    let next_var, next_body = Bindlib.unbind scope_let_next in
+
+    let ctx' =
+      Var.Map.add next_var
+        (match scope_let_kind with
+        | DestructuringInputStruct -> (
+          (* Here, we have to distinguish between context and input variables.
+             We can do so by looking at the typ of the destructuring: if it's
+             thunked, then the variable is context. If it's not thunked, it's a
+             regular input. *)
+          match Marked.unmark scope_let_typ with
+          | TArrow ([(TLit TUnit, _)], _) -> { info_pure = false }
+          | _ -> { info_pure = false })
+        | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
+        | DestructuringSubScopeResults | Assertion ->
+          { info_pure = false })
+        ctx
     in
-    let ctx' = add_var vmark v true ctx in
-    let v' = (find ~info:"variable that was just created" v ctx').var in
-    Bindlib.box_apply
-      (fun new_expr ->
+
+    let next_var = Var.translate next_var in
+    let next_body = trans_scope_body_expr ctx' next_body in
+
+    let scope_let_next = Bindlib.bind_var next_var next_body in
+
+    let scope_let_expr = Expr.Box.lift @@ trans ctx scope_let_expr in
+
+    Bindlib.box_apply2
+      (fun scope_let_expr scope_let_next ->
         {
-          scope_body_expr = new_expr;
-          scope_body_input_struct = input_struct;
-          scope_body_output_struct = output_struct;
+          scope_let_kind;
+          scope_let_typ = translate_typ scope_let_typ;
+          scope_let_expr;
+          scope_let_next;
+          scope_let_pos;
         })
-      (Bindlib.bind_var v' (translate_scope_let ctx' lets))
+      scope_let_expr scope_let_next
 
-let translate_code_items (ctx : 'm ctx) (scopes : 'm D.expr code_item_list) :
-    'm A.expr code_item_list Bindlib.box =
-  let _ctx, scopes =
-    Scope.fold_map
-      ~f:
-        (fun ctx var -> function
-          | Topdef (name, ty, e) ->
-            ( add_var (Marked.get_mark e) var true ctx,
-              Bindlib.box_apply
-                (fun e -> Topdef (name, ty, e))
-                (Expr.Box.lift (translate_expr ~append_esome:false ctx e)) )
-          | ScopeDef (scope_name, scope_body) ->
-            ( ctx,
-              let scope_pos = Marked.get_mark (ScopeName.get_info scope_name) in
-              Bindlib.box_apply
-                (fun body -> ScopeDef (scope_name, body))
-                (translate_scope_body scope_pos ctx scope_body) ))
-      ~varf:Var.translate ctx scopes
+and trans_scope_body_expr ctx s :
+    (lcalc, typed mark) gexpr scope_body_expr Bindlib.box =
+  match s with
+  | Result e ->
+    Bindlib.box_apply (fun e -> Result e) (Expr.Box.lift @@ trans ctx e)
+  | ScopeLet s ->
+    Bindlib.box_apply (fun s -> ScopeLet s) (trans_scope_let ctx s)
+
+let trans_scope_body
+    ctx
+    { scope_body_input_struct; scope_body_output_struct; scope_body_expr } =
+  let var, body = Bindlib.unbind scope_body_expr in
+  let body =
+    trans_scope_body_expr (Var.Map.add var { info_pure = true } ctx) body
   in
-  scopes
+  let binder = Bindlib.bind_var (Var.translate var) body in
+  Bindlib.box_apply
+    (fun scope_body_expr ->
+      { scope_body_input_struct; scope_body_output_struct; scope_body_expr })
+    binder
 
-let translate_program (prgm : typed D.program) : 'm A.program =
+let rec trans_code_items ctx c :
+    (lcalc, typed mark) gexpr code_item_list Bindlib.box =
+  match c with
+  | Nil -> Bindlib.box Nil
+  | Cons (c, next) -> (
+    let var, next = Bindlib.unbind next in
+    match c with
+    | Topdef (name, typ, e) ->
+      let next =
+        Bindlib.bind_var (Var.translate var)
+          (trans_code_items (Var.Map.add var { info_pure = false } ctx) next)
+      in
+      let e = Expr.Box.lift @@ trans ctx e in
+      Bindlib.box_apply2
+        (fun next e -> Cons (Topdef (name, translate_typ typ, e), next))
+        next e
+    | ScopeDef (name, body) ->
+      let next =
+        Bindlib.bind_var (Var.translate var)
+          (trans_code_items (Var.Map.add var { info_pure = false } ctx) next)
+      in
+      let body = trans_scope_body ctx body in
+      Bindlib.box_apply2
+        (fun next body -> Cons (ScopeDef (name, body), next))
+        next body)
+
+let translate_program (prgm : typed D.program) : untyped A.program =
   let inputs_structs =
     Scope.fold_left prgm.code_items ~init:[] ~f:(fun acc def _ ->
         match def with
@@ -872,8 +731,9 @@ let translate_program (prgm : typed D.program) : 'm A.program =
     }
   in
 
-  let code_items =
-    Bindlib.unbox
-      (translate_code_items { decl_ctx; vars = Var.Map.empty } prgm.code_items)
-  in
-  { decl_ctx; code_items }
+  let code_items = trans_code_items Var.Map.empty prgm.code_items in
+
+  (* assert (Bindlib.free_vars code_items = Bindlib.empty_ctxt); *)
+  let code_items = Bindlib.unbox code_items in
+
+  Program.untype { decl_ctx; code_items }

@@ -76,7 +76,8 @@ let make_bind_cont
   let v_exp : (_ Bindlib.box, _) Marked.t = Expr.make_var v mark in
 
   make_matchopt_with_abs_arms arg
-    (Expr.make_abs [| Var.make "_" |] (make_none mark) [TLit TUnit, pos] pos)
+    (let empty = Var.make "_" in
+     Expr.make_abs [| empty |] (make_none mark) [TLit TUnit, pos] pos)
     (Expr.make_abs [| v |] (e_some v_exp) [tau] pos)
 
 let make_bindm_cont mark args e_some =
