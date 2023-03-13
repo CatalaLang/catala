@@ -223,7 +223,7 @@ and var_def = {
 
 and fun_call = {
   fun_name : information;
-  inputs : var_def list;
+  fun_inputs : var_def list;
   body : event list;
   output : var_def;
 }
@@ -306,7 +306,7 @@ let rec pp_events ?(is_first_call = true) ppf events =
       when Option.is_some var_def_with_fun.fun_calls ->
       Format.fprintf ppf "%a" format_var_def_with_fun_calls var_def_with_fun
     | VarComputation var_def -> Format.fprintf ppf "%a" format_var_def var_def
-    | FunCall { fun_name; inputs; body; output } ->
+    | FunCall { fun_name; fun_inputs; body; output } ->
       Format.fprintf ppf
         "@[<hov 1><function_call>@ %s :=@ {@[<hv 1>@ input:@ %a,@ output:@ \
          %a,@ body:@ [@,\
@@ -317,7 +317,7 @@ let rec pp_events ?(is_first_call = true) ppf events =
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
            format_var_def)
-        inputs format_var_def_with_fun_calls output
+        fun_inputs format_var_def_with_fun_calls output
         (pp_events ~is_first_call:false)
         body
     | SubScopeCall { name; inputs; body } ->
@@ -505,7 +505,7 @@ module EventParser = struct
           events
       with
       | inputs, BeginCall infos :: rest when is_function_call infos ->
-        let inputs =
+        let fun_inputs =
           ListLabels.map inputs ~f:(function
             | VariableDefinition (name, value) ->
               { pos = None; name; value; fun_calls = None }
@@ -524,7 +524,7 @@ module EventParser = struct
           | _ -> failwith "Missing function output variable definition."
         in
 
-        rest, { fun_name = infos; inputs; body; output }
+        rest, { fun_name = infos; fun_inputs; body; output }
       | _ -> failwith "Invalid start of function call."
     in
 
