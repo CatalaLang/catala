@@ -58,7 +58,7 @@ let wrap_html
     (fmt : Format.formatter)
     (wrapped : Format.formatter -> unit) : unit =
   let pygments = "pygmentize" in
-  let css_file = Filename.temp_file "catala_css_pygments" "" in
+  let css_file = File.temp_file "catala_css_pygments" "" in
   let pygments_args =
     [| "-f"; "html"; "-S"; "colorful"; "-a"; ".catala-code" |]
   in
@@ -73,12 +73,15 @@ let wrap_html
   let css_as_string = really_input_string oc (in_channel_length oc) in
   close_in oc;
   Format.fprintf fmt
-    "<head>\n\
+    "<!DOCTYPE html>\n\
+     <html>\n\
+     <head>\n\
      <style>\n\
      %s\n\
      </style>\n\
      <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n\
      </head>\n\
+     <body>\n\
      <h1>%s<br />\n\
      <small>%s Catala version %s</small>\n\
      </h1>\n\
@@ -110,7 +113,8 @@ let wrap_html
               (literal_last_modification language)
               ftime)
           source_files));
-  wrapped fmt
+  wrapped fmt;
+  Format.fprintf fmt "</body>\n</html>\n"
 
 (** Performs syntax highlighting on a piece of code by using Pygments and the
     special Catala lexer. *)
@@ -118,17 +122,26 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
     =
   C.debug_print "Pygmenting the code chunk %s"
     (Pos.to_string (Marked.get_mark c));
-  let temp_file_in = Filename.temp_file "catala_html_pygments" "in" in
-  let temp_file_out = Filename.temp_file "catala_html_pygments" "out" in
+  let pyg_lexer =
+    let lexer_fname = "lexer_" ^ Cli.language_code language ^ ".py" in
+    match Pygment_lexers.read lexer_fname with
+    | None -> failwith "Pygments lexer not found for this language"
+    | Some parser ->
+      let f = File.temp_file "pygments_lexer_" ".py" in
+      File.with_out_channel f (fun oc -> output_string oc parser);
+      f
+  in
+  let temp_file_in = File.temp_file "catala_html_pygments" "in" in
+  let temp_file_out = File.temp_file "catala_html_pygments" "out" in
   let oc = open_out temp_file_in in
   Printf.fprintf oc "%s" (Marked.unmark c);
   close_out oc;
   let pygments = "pygmentize" in
-  let pygments_lexer = get_language_extension language in
   let pygments_args =
     [|
       "-l";
-      pygments_lexer;
+      pyg_lexer;
+      "-x";
       "-f";
       "html";
       "-O";
@@ -146,10 +159,13 @@ let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
       (String.concat " " (Array.to_list pygments_args))
   in
   let return_code = Sys.command cmd in
+  Sys.remove temp_file_in;
+  Sys.remove pyg_lexer;
   if return_code <> 0 then raise_failed_pygments cmd return_code;
   let oc = open_in temp_file_out in
   let output = really_input_string oc (in_channel_length oc) in
   close_in oc;
+  Sys.remove temp_file_out;
   (* Remove code blocks delimiters needed by [Pygments]. *)
   let trimmed_output =
     output |> remove_cb_first_lines |> remove_cb_last_lines

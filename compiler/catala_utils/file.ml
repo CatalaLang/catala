@@ -26,6 +26,12 @@ let finally f k =
     f ();
     r
 
+let temp_file pfx sfx =
+  let f = Filename.temp_file pfx sfx in
+  if not !Cli.debug_flag then
+    at_exit (fun () -> try Sys.remove f with _ -> ());
+  f
+
 let with_out_channel filename f =
   let oc = open_out filename in
   finally (fun () -> close_out oc) (fun () -> f oc)

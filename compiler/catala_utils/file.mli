@@ -60,3 +60,7 @@ val get_formatter_of_out_channel :
 (** [get_output_format ~source_file ~output_file ?ext ()] returns the infered
     filename and its corresponding [with_formatter_of_out_channel] function. If
     the [output_file] is equal to [Some "-"] returns a wrapper around [stdout]. *)
+
+val temp_file : string -> string -> string
+(** Like [Filename.temp_file], but registers the file for deletion at program
+    exit unless Cli.debug_flag is set. *)
