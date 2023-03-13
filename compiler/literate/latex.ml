@@ -185,6 +185,19 @@ codes={\catcode`\$=3\catcode`\^=7}
 
 (** {1 Weaving} *)
 
+let code_block ~meta lang fmt (code, pos) =
+  let opts = if meta then "numbersep=9mm, " else "" in
+  Format.fprintf fmt
+    "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},%sfirstnumber=%d]{%s}\n\
+     ```catala\n\
+     %s```\n\
+     \\end{minted}"
+    (pre_latexify (Filename.basename (Pos.get_file pos)))
+    opts
+    (Pos.get_start_line pos + 1)
+    (get_language_extension lang)
+    code
+
 let rec law_structure_to_latex
     (language : C.backend_lang)
     (print_only_law : bool)
@@ -228,15 +241,7 @@ let rec law_structure_to_latex
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
     update_lines_of_code c;
-    Format.fprintf fmt
-      "\\begin{minted}[label={\\hspace*{\\fill}\\texttt{%s}},firstnumber=%d]{%s}\n\
-       ```catala\n\
-       %s```\n\
-       \\end{minted}"
-      (pre_latexify (Filename.basename (Pos.get_file (Marked.get_mark c))))
-      (Pos.get_start_line (Marked.get_mark c) + 1)
-      (get_language_extension language)
-      (Marked.unmark c)
+    code_block ~meta:false language fmt c
   | A.CodeBlock (_, c, true) when not print_only_law ->
     let metadata_title =
       match language with
@@ -253,15 +258,11 @@ let rec law_structure_to_latex
       "\\begin{tcolorbox}[colframe=OliveGreen, breakable, \
        title=\\textcolor{black}{\\texttt{%s}},title after \
        break=\\textcolor{black}{\\texttt{%s}},before skip=1em, after skip=1em]\n\
-       \\begin{minted}[numbersep=9mm, firstnumber=%d, \
-       label={\\hspace*{\\fill}\\texttt{%s}}]{%s}\n\
-       ```catala\n\
-       %s```\n\
-       \\end{minted}\n\
+       %a\n\
        \\end{tcolorbox}"
-      metadata_title metadata_title start_line (pre_latexify filename)
-      (get_language_extension language)
-      block_content
+      metadata_title metadata_title
+      (code_block ~meta:true language)
+      c
   | A.CodeBlock _ -> ()
 
 (** {1 API} *)
