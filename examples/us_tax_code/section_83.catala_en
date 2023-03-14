@@ -3,10 +3,13 @@
 ```catala-metadata
 declaration structure PropertyTransfer:
   data taxpayer_performed_the_service content boolean
-  data elects_to_include_in_year_of_transfer content boolean
+  data elects_to_include_in_year_of_transfer_b content boolean
     # has to be explicitely selected within 30 days of transfer
+  data elects_to_include_i content boolean
 
   data recipient_not_the_person_the_service_was_performed_for
+
+  data date_of_transfer content date
 
   data fair_market_value_unrestricted content money
   data fair_market_value_when_transfered content money
@@ -19,14 +22,21 @@ declaration structure PropertyTransfer:
   data option_without_ascertainable_fair_market_value content boolean
   data exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant content boolean
   data group_term_life_insurance_79 content boolean
-
+  data is_qualified_stock content boolean
+  data is_qualified_employee content boolean
 
 declaration scope Transferred_property_83:
   input transfer content PropertyTransfer
+  input current_taxable_year_start content date
+  internal current_taxable_year_end content date
   internal is_restricted content boolean
   output amount_to_include_in_gross_income content TransferredReturn
     state computing
     state final
+
+scope Transferred_property_83:
+  definition current_taxable_year_end equals
+    current_taxable_year_start + 1 year - 1 day
 
 declaration enumeration TransferredReturn:
   -- DoesNotApply
@@ -216,6 +226,16 @@ For purposes of this subtitle--
 
 If qualified stock is transferred to a qualified employee who makes an election with respect to such stock under this subsection, subsection (a) shall be applied by including the amount determined under such subsection with respect to such stock in income of the employee in the taxable year determined under subparagraph (B) in lieu of the taxable year described in subsection (a).
 
+```catala
+scope Transferred_property_83:
+  exception
+    under condition
+      elects_to_include_i and is_qualified_stock and is_qualified_employee
+  definition 
+    
+
+```
+
 #### (B) Taxable year determined.
 
 The taxable year determined under this subparagraph is the taxable year of the employee which includes the earliest of--
@@ -239,6 +259,11 @@ For purposes of this subsection, the term “qualified stock” means, with resp
 - (ii) such option or restricted stock unit was granted by the corporation--
   - (I) in connection with the performance of services as an employee, and
   - (II) during a calendar year in which such corporation was an eligible corporation.
+
+```catala
+
+
+```
 
 #### (B) Limitation.
 
@@ -297,6 +322,11 @@ The term “excluded employee” means, with respect to any corporation, any ind
 
 An election with respect to qualified stock shall be made under this subsection no later than 30 days after the first date the rights of the employee in such stock are transferable or are not subject to a substantial risk of forfeiture, whichever occurs earlier, and shall be made in a manner similar to the manner in which an election is made under subsection (b).
 
+```catala
+# This section describes how the election should be made, it doesn't directly
+# concern the computation (just like (b)(2))
+```
+
 #### (B) Limitations.
 
 No election may be made under this section with respect to any qualified stock if--
@@ -308,6 +338,18 @@ No election may be made under this section with respect to any qualified stock i
 - (iii) such corporation purchased any of its outstanding stock in the calendar year preceding the calendar year which includes the first date the rights of the employee in such stock are transferable or are not subject to a substantial risk of forfeiture, unless--
   - (I) not less than 25 percent of the total dollar amount of the stock so purchased is deferral stock, and
   - (II) the determination of which individuals from whom deferral stock is purchased is made on a reasonable basis.
+
+```catala
+scope Transferred_property_83:
+  definition conditions_forbidding_election_83i equals
+    elects_to_include_b or
+    stock_readily_tradable_1Bii or
+    (corporation_purchased_in_year_before_unrestricted = $0 or
+     (25% <= company_purchased_deferral_stock_value /
+             corporation_purchased_in_year_before_unrestricted
+      and
+      reasonable_basis_for_purchase))
+```
 
 #### (C) Definitions and special rules related to limitation on stock redemptions.--
 
