@@ -36,7 +36,7 @@ exception EmptyError
 exception AssertionFailed of source_position
 exception ConflictError of source_position
 exception UncomparableDurations
-exception IndivisableDurations
+exception IndivisibleDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
 
@@ -223,7 +223,7 @@ and var_def = {
 
 and fun_call = {
   fun_name : information;
-  inputs : var_def list;
+  fun_inputs : var_def list;
   body : event list;
   output : var_def;
 }
@@ -306,7 +306,7 @@ let rec pp_events ?(is_first_call = true) ppf events =
       when Option.is_some var_def_with_fun.fun_calls ->
       Format.fprintf ppf "%a" format_var_def_with_fun_calls var_def_with_fun
     | VarComputation var_def -> Format.fprintf ppf "%a" format_var_def var_def
-    | FunCall { fun_name; inputs; body; output } ->
+    | FunCall { fun_name; fun_inputs; body; output } ->
       Format.fprintf ppf
         "@[<hov 1><function_call>@ %s :=@ {@[<hv 1>@ input:@ %a,@ output:@ \
          %a,@ body:@ [@,\
@@ -317,7 +317,7 @@ let rec pp_events ?(is_first_call = true) ppf events =
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
            format_var_def)
-        inputs format_var_def_with_fun_calls output
+        fun_inputs format_var_def_with_fun_calls output
         (pp_events ~is_first_call:false)
         body
     | SubScopeCall { name; inputs; body } ->
@@ -505,7 +505,7 @@ module EventParser = struct
           events
       with
       | inputs, BeginCall infos :: rest when is_function_call infos ->
-        let inputs =
+        let fun_inputs =
           ListLabels.map inputs ~f:(function
             | VariableDefinition (name, value) ->
               { pos = None; name; value; fun_calls = None }
@@ -524,7 +524,7 @@ module EventParser = struct
           | _ -> failwith "Missing function output variable definition."
         in
 
-        rest, { fun_name = infos; inputs; body; output }
+        rest, { fun_name = infos; fun_inputs; body; output }
       | _ -> failwith "Invalid start of function call."
     in
 
@@ -676,6 +676,15 @@ module Oper = struct
 
   let o_div_mon_rat m1 r1 =
     if Q.zero = r1 then raise Division_by_zero else o_mult_mon_rat m1 (Q.inv r1)
+
+  let o_div_dur_dur d1 d2 =
+    let i1, i2 =
+      try
+        ( integer_of_int (Dates_calc.Dates.period_to_days d1),
+          integer_of_int (Dates_calc.Dates.period_to_days d2) )
+      with Dates_calc.Dates.AmbiguousComputation -> raise IndivisibleDurations
+    in
+    o_div_int_int i1 i2
 
   let o_lt_int_int i1 i2 = Z.compare i1 i2 < 0
   let o_lt_rat_rat i1 i2 = Q.compare i1 i2 < 0

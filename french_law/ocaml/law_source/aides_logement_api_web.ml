@@ -295,45 +295,6 @@ let limite_tranche_decimal_of_jsoo
         cons)
 
 
-class type arrivee_recente_foyer_conjoint_ascendant_a_charge =
-  object
-    method kind :
-      Js.js_string Js.t Js.readonly_prop
-      (** Expects one of:
-        - "Oui"
-        - "Non" *)
-    
-    method payload : Js.Unsafe.any Js.t Js.readonly_prop
-  end
-
-let arrivee_recente_foyer_conjoint_ascendant_a_charge_to_jsoo
-  : ArriveeRecenteFoyerConjointAscendantACharge.t -> arrivee_recente_foyer_conjoint_ascendant_a_charge Js.t
-  = function
-  | Oui arg -> object%js
-      val kind = Js.string "Oui"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject (date_to_jsoo arg))
-    end
-  | Non arg -> object%js
-      val kind = Js.string "Non"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-
-let arrivee_recente_foyer_conjoint_ascendant_a_charge_of_jsoo
-  (arrivee_recente_foyer_conjoint_ascendant_a_charge
-    : arrivee_recente_foyer_conjoint_ascendant_a_charge Js.t)
-  : ArriveeRecenteFoyerConjointAscendantACharge.t =
-  match arrivee_recente_foyer_conjoint_ascendant_a_charge##.kind
-    |> Js.to_string with
-  | "Oui" ->
-  ArriveeRecenteFoyerConjointAscendantACharge.Oui (date_of_jsoo (Js.Unsafe.coerce arrivee_recente_foyer_conjoint_ascendant_a_charge##.payload))
-  | "Non" -> ArriveeRecenteFoyerConjointAscendantACharge.Non ()
-  | cons ->
-    failwith
-      (Printf.sprintf
-        "Unexpected '%s' kind for the enumeration 'ArriveeRecenteFoyerConjointAscendantACharge.t'"
-        cons)
-
-
 class type prestation_recue =
   object
     method kind :
@@ -2781,6 +2742,8 @@ class type proprietaire =
     method situationR822111317: bool Js.t Js.readonly_prop
     method ancienneteLogement: neuf_ou_ancien Js.t Js.readonly_prop
     method pret: pret Js.t Js.readonly_prop
+    method operationsLogementEvolutifsSociauxAccessionProprieteAideeEtat:
+      bool Js.t Js.readonly_prop
   end
   let proprietaire_to_jsoo (proprietaire : Proprietaire.t)
     : proprietaire Js.t =
@@ -2801,6 +2764,8 @@ class type proprietaire =
       val ancienneteLogement =
         neuf_ou_ancien_to_jsoo proprietaire.anciennete_logement
       val pret = pret_to_jsoo proprietaire.pret
+      val operationsLogementEvolutifsSociauxAccessionProprieteAideeEtat =
+        Js.bool proprietaire.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat
       end
   let proprietaire_of_jsoo (proprietaire : proprietaire Js.t) :
     Proprietaire.t =
@@ -2824,22 +2789,28 @@ class type proprietaire =
       situation_r822_11_13_17 = Js.to_bool proprietaire##.situationR822111317;
       anciennete_logement =
         neuf_ou_ancien_of_jsoo proprietaire##.ancienneteLogement;
-      pret = pret_of_jsoo proprietaire##.pret
+      pret = pret_of_jsoo proprietaire##.pret;
+      operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat =
+        Js.to_bool
+          proprietaire
+          ##.operationsLogementEvolutifsSociauxAccessionProprieteAideeEtat
     }
 
 class type eligibilite_prestations_familiales =
   object
+    method ageL51232: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
     method droitOuvert:
       (unit,  enfant_prestations_familiales Js.t -> bool Js.t) Js.meth_callback Js.meth
     method conditionsHorsAge:
       (unit,  enfant_prestations_familiales Js.t -> bool Js.t) Js.meth_callback Js.meth
-    method ageL51232: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
     method regimeOutreMerL7511: bool Js.t Js.readonly_prop
   end
   let eligibilite_prestations_familiales_to_jsoo
     (eligibilite_prestations_familiales : EligibilitePrestationsFamiliales.t)
     : eligibilite_prestations_familiales Js.t =
     object%js
+      val ageL51232 =
+        duration_to_jsoo eligibilite_prestations_familiales.age_l512_3_2
       method droitOuvert = Js.wrap_meth_callback
         (
           fun _ (function_input0: enfant_prestations_familiales Js.t) ->
@@ -2851,8 +2822,6 @@ class type eligibilite_prestations_familiales =
           Js.bool (eligibilite_prestations_familiales.conditions_hors_age 
           (enfant_prestations_familiales_of_jsoo
             function_input0)))
-      val ageL51232 =
-        duration_to_jsoo eligibilite_prestations_familiales.age_l512_3_2
       val regimeOutreMerL7511 =
         Js.bool eligibilite_prestations_familiales.regime_outre_mer_l751_1
       end
@@ -2861,10 +2830,10 @@ class type eligibilite_prestations_familiales =
       : eligibilite_prestations_familiales Js.t) :
     EligibilitePrestationsFamiliales.t =
     {
-      droit_ouvert = failwith "The function 'droit_ouvert' translation isn't yet supported...";
-      conditions_hors_age = failwith "The function 'conditions_hors_age' translation isn't yet supported...";
       age_l512_3_2 =
         duration_of_jsoo eligibilite_prestations_familiales##.ageL51232;
+      droit_ouvert = failwith "The function 'droit_ouvert' translation isn't yet supported...";
+      conditions_hors_age = failwith "The function 'conditions_hors_age' translation isn't yet supported...";
       regime_outre_mer_l751_1 =
         Js.to_bool eligibilite_prestations_familiales##.regimeOutreMerL7511
     }
@@ -2923,6 +2892,8 @@ class type enfant_a_charge =
       situation_obligation_scolaire Js.t Js.readonly_prop
     method situationGardeAlternee:
       situation_garde_alternee Js.t Js.readonly_prop
+    method etudesApprentissageStageFormationProImpossibiliteTravail:
+      bool Js.t Js.readonly_prop
   end
   let enfant_a_charge_to_jsoo (enfant_a_charge : EnfantACharge.t)
     : enfant_a_charge Js.t =
@@ -2940,6 +2911,8 @@ class type enfant_a_charge =
         situation_obligation_scolaire_to_jsoo enfant_a_charge.obligation_scolaire
       val situationGardeAlternee =
         situation_garde_alternee_to_jsoo enfant_a_charge.situation_garde_alternee
+      val etudesApprentissageStageFormationProImpossibiliteTravail =
+        Js.bool enfant_a_charge.etudes_apprentissage_stage_formation_pro_impossibilite_travail
       end
   let enfant_a_charge_of_jsoo (enfant_a_charge : enfant_a_charge Js.t) :
     EnfantACharge.t =
@@ -2960,7 +2933,11 @@ class type enfant_a_charge =
           enfant_a_charge##.obligationScolaire;
       situation_garde_alternee =
         situation_garde_alternee_of_jsoo
-          enfant_a_charge##.situationGardeAlternee
+          enfant_a_charge##.situationGardeAlternee;
+      etudes_apprentissage_stage_formation_pro_impossibilite_travail =
+        Js.to_bool
+          enfant_a_charge
+          ##.etudesApprentissageStageFormationProImpossibiliteTravail
     }
 
 class type location =
@@ -3208,6 +3185,8 @@ class type logement =
     method logementDecentL89462: bool Js.t Js.readonly_prop
     method surfaceMCarres: int Js.readonly_prop
     method zone: zone_d_habitation Js.t Js.readonly_prop
+    method normesPeuplementRespecteesPourLaDerniereFoisDepuisMoinsDUnAn:
+      bool Js.t Js.readonly_prop
   end
   let logement_to_jsoo (logement : Logement.t) : logement Js.t =
     object%js
@@ -3222,6 +3201,8 @@ class type logement =
       val logementDecentL89462 = Js.bool logement.logement_decent_l89_462
       val surfaceMCarres = integer_to_int logement.surface_m_carres
       val zone = zone_d_habitation_to_jsoo logement.zone
+      val normesPeuplementRespecteesPourLaDerniereFoisDepuisMoinsDUnAn =
+        Js.bool logement.normes_peuplement_respectees_pour_la_derniere_fois_depuis_moins_d_un_an
       end
   let logement_of_jsoo (logement : logement Js.t) : Logement.t =
     {
@@ -3236,7 +3217,11 @@ class type logement =
       usufruit = parent_ou_autre_of_jsoo logement##.usufruit;
       logement_decent_l89_462 = Js.to_bool logement##.logementDecentL89462;
       surface_m_carres = integer_of_int logement##.surfaceMCarres;
-      zone = zone_d_habitation_of_jsoo logement##.zone
+      zone = zone_d_habitation_of_jsoo logement##.zone;
+      normes_peuplement_respectees_pour_la_derniere_fois_depuis_moins_d_un_an =
+        Js.to_bool
+          logement
+          ##.normesPeuplementRespecteesPourLaDerniereFoisDepuisMoinsDUnAn
     }
 
 class type menage =
@@ -3248,11 +3233,10 @@ class type menage =
       personne_a_charge Js.t Js.js_array Js.t Js.readonly_prop
     method nombreAutresOccupantsLogement: int Js.readonly_prop
     method situationFamiliale: situation_familiale Js.t Js.readonly_prop
-    method arriveeRecenteFoyerConjointAscendantACharge:
-      arrivee_recente_foyer_conjoint_ascendant_a_charge Js.t Js.readonly_prop
     method conditionRattacheFoyerFiscalParentIfi: bool Js.t Js.readonly_prop
     method enfantANaitreApresQuatriemeMoisGrossesse:
       bool Js.t Js.readonly_prop
+    method personnesAgeesHandicapeesFoyerR8444: bool Js.t Js.readonly_prop
     method residence: collectivite Js.t Js.readonly_prop
   end
   let menage_to_jsoo (menage : Menage.t) : menage Js.t =
@@ -3266,12 +3250,12 @@ class type menage =
         integer_to_int menage.nombre_autres_occupants_logement
       val situationFamiliale =
         situation_familiale_to_jsoo menage.situation_familiale
-      val arriveeRecenteFoyerConjointAscendantACharge =
-        arrivee_recente_foyer_conjoint_ascendant_a_charge_to_jsoo menage.arrivee_recente_foyer_conjoint_ascendant_a_charge
       val conditionRattacheFoyerFiscalParentIfi =
         Js.bool menage.condition_rattache_foyer_fiscal_parent_ifi
       val enfantANaitreApresQuatriemeMoisGrossesse =
         Js.bool menage.enfant_a_naitre_apres_quatrieme_mois_grossesse
+      val personnesAgeesHandicapeesFoyerR8444 =
+        Js.bool menage.personnes_agees_handicapees_foyer_r844_4
       val residence = collectivite_to_jsoo menage.residence
       end
   let menage_of_jsoo (menage : menage Js.t) : Menage.t =
@@ -3287,13 +3271,12 @@ class type menage =
         integer_of_int menage##.nombreAutresOccupantsLogement;
       situation_familiale =
         situation_familiale_of_jsoo menage##.situationFamiliale;
-      arrivee_recente_foyer_conjoint_ascendant_a_charge =
-        arrivee_recente_foyer_conjoint_ascendant_a_charge_of_jsoo
-          menage##.arriveeRecenteFoyerConjointAscendantACharge;
       condition_rattache_foyer_fiscal_parent_ifi =
         Js.to_bool menage##.conditionRattacheFoyerFiscalParentIfi;
       enfant_a_naitre_apres_quatrieme_mois_grossesse =
         Js.to_bool menage##.enfantANaitreApresQuatriemeMoisGrossesse;
+      personnes_agees_handicapees_foyer_r844_4 =
+        Js.to_bool menage##.personnesAgeesHandicapeesFoyerR8444;
       residence = collectivite_of_jsoo menage##.residence
     }
 
@@ -3306,6 +3289,8 @@ class type eligibilite_aides_personnelle_logement_in =
       (unit,  unit -> bool Js.t) Js.meth_callback Js.meth
     method conditionLogementSurfaceIn:
       (unit,  unit -> bool Js.t) Js.meth_callback Js.meth
+    method dateEntreeVigueurDiffereeCchIn:
+      (unit,  unit -> Js.js_string Js.t) Js.meth_callback Js.meth
   end
   let eligibilite_aides_personnelle_logement_in_to_jsoo
     (eligibilite_aides_personnelle_logement_in
@@ -3330,6 +3315,12 @@ class type eligibilite_aides_personnelle_logement_in =
           Js.bool (eligibilite_aides_personnelle_logement_in.condition_logement_surface_in 
           (
             function_input0)))
+      method dateEntreeVigueurDiffereeCchIn = Js.wrap_meth_callback
+        (
+          fun _ (function_input0: unit) ->
+          date_to_jsoo (eligibilite_aides_personnelle_logement_in.date_entree_vigueur_differee_cch_in 
+          (
+            function_input0)))
       end
   let eligibilite_aides_personnelle_logement_in_of_jsoo
     (eligibilite_aides_personnelle_logement_in
@@ -3345,7 +3336,8 @@ class type eligibilite_aides_personnelle_logement_in =
         date_of_jsoo
           eligibilite_aides_personnelle_logement_in##.dateCouranteIn;
       condition_logement_residence_principale_in = failwith "The function 'condition_logement_residence_principale_in' translation isn't yet supported...";
-      condition_logement_surface_in = failwith "The function 'condition_logement_surface_in' translation isn't yet supported..."
+      condition_logement_surface_in = failwith "The function 'condition_logement_surface_in' translation isn't yet supported...";
+      date_entree_vigueur_differee_cch_in = failwith "The function 'date_entree_vigueur_differee_cch_in' translation isn't yet supported..."
     }
 
 class type eligibilite_aide_personnalisee_logement_in =
@@ -3754,6 +3746,8 @@ class type calcul_nombre_part_logement_foyer_in =
     method nombrePersonnesAChargeIn: int Js.readonly_prop
     method situationFamilialeCalculAplIn:
       situation_familiale_calcul_a_p_l Js.t Js.readonly_prop
+    method limitationMajorationPersonnesAChargeIn:
+      (unit,  unit -> bool Js.t) Js.meth_callback Js.meth
   end
   let calcul_nombre_part_logement_foyer_in_to_jsoo
     (calcul_nombre_part_logement_foyer_in
@@ -3766,6 +3760,12 @@ class type calcul_nombre_part_logement_foyer_in =
         integer_to_int calcul_nombre_part_logement_foyer_in.nombre_personnes_a_charge_in
       val situationFamilialeCalculAplIn =
         situation_familiale_calcul_a_p_l_to_jsoo calcul_nombre_part_logement_foyer_in.situation_familiale_calcul_apl_in
+      method limitationMajorationPersonnesAChargeIn = Js.wrap_meth_callback
+        (
+          fun _ (function_input0: unit) ->
+          Js.bool (calcul_nombre_part_logement_foyer_in.limitation_majoration_personnes_a_charge_in 
+          (
+            function_input0)))
       end
   let calcul_nombre_part_logement_foyer_in_of_jsoo
     (calcul_nombre_part_logement_foyer_in
@@ -3780,7 +3780,8 @@ class type calcul_nombre_part_logement_foyer_in =
       situation_familiale_calcul_apl_in =
         situation_familiale_calcul_a_p_l_of_jsoo
           calcul_nombre_part_logement_foyer_in
-          ##.situationFamilialeCalculAplIn
+          ##.situationFamilialeCalculAplIn;
+      limitation_majoration_personnes_a_charge_in = failwith "The function 'limitation_majoration_personnes_a_charge_in' translation isn't yet supported..."
     }
 
 class type calcul_aide_personnalisee_logement_foyer_in =
@@ -3795,6 +3796,8 @@ class type calcul_aide_personnalisee_logement_foyer_in =
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
     method redevanceIn: Js.number Js.t Js.readonly_prop
     method condition2Du83225In:
+      (unit,  unit -> bool Js.t) Js.meth_callback Js.meth
+    method limitationMajorationPersonnesAChargeIn:
       (unit,  unit -> bool Js.t) Js.meth_callback Js.meth
     method nNombrePartsD83225In:
       (unit,  unit -> Js.number Js.t) Js.meth_callback Js.meth
@@ -3824,6 +3827,12 @@ class type calcul_aide_personnalisee_logement_foyer_in =
         (
           fun _ (function_input0: unit) ->
           Js.bool (calcul_aide_personnalisee_logement_foyer_in.condition_2_du_832_25_in 
+          (
+            function_input0)))
+      method limitationMajorationPersonnesAChargeIn = Js.wrap_meth_callback
+        (
+          fun _ (function_input0: unit) ->
+          Js.bool (calcul_aide_personnalisee_logement_foyer_in.limitation_majoration_personnes_a_charge_in 
           (
             function_input0)))
       method nNombrePartsD83225In = Js.wrap_meth_callback
@@ -3867,6 +3876,7 @@ class type calcul_aide_personnalisee_logement_foyer_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_aide_personnalisee_logement_foyer_in##.redevanceIn;
       condition_2_du_832_25_in = failwith "The function 'condition_2_du_832_25_in' translation isn't yet supported...";
+      limitation_majoration_personnes_a_charge_in = failwith "The function 'limitation_majoration_personnes_a_charge_in' translation isn't yet supported...";
       n_nombre_parts_d832_25_in = failwith "The function 'n_nombre_parts_d832_25_in' translation isn't yet supported..."
     }
 
@@ -4209,6 +4219,8 @@ class type calcul_allocation_logement_accession_propriete_in =
     method dateEntreeLogementIn: Js.js_string Js.t Js.readonly_prop
     method chargesMensuellesPretIn: Js.number Js.t Js.readonly_prop
     method coproprieteIn: bool Js.t Js.readonly_prop
+    method operationsLogementEvolutifsSociauxAccessionProprieteAideeEtatIn:
+      bool Js.t Js.readonly_prop
   end
   let calcul_allocation_logement_accession_propriete_in_to_jsoo
     (calcul_allocation_logement_accession_propriete_in
@@ -4243,6 +4255,8 @@ class type calcul_allocation_logement_accession_propriete_in =
         Js.number_of_float @@ money_to_float calcul_allocation_logement_accession_propriete_in.charges_mensuelles_pret_in
       val coproprieteIn =
         Js.bool calcul_allocation_logement_accession_propriete_in.copropriete_in
+      val operationsLogementEvolutifsSociauxAccessionProprieteAideeEtatIn =
+        Js.bool calcul_allocation_logement_accession_propriete_in.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat_in
       end
   let calcul_allocation_logement_accession_propriete_in_of_jsoo
     (calcul_allocation_logement_accession_propriete_in
@@ -4300,7 +4314,11 @@ class type calcul_allocation_logement_accession_propriete_in =
           ##.chargesMensuellesPretIn;
       copropriete_in =
         Js.to_bool
-          calcul_allocation_logement_accession_propriete_in##.coproprieteIn
+          calcul_allocation_logement_accession_propriete_in##.coproprieteIn;
+      operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat_in =
+        Js.to_bool
+          calcul_allocation_logement_accession_propriete_in
+          ##.operationsLogementEvolutifsSociauxAccessionProprieteAideeEtatIn
     }
 
 class type calcul_allocation_logement_foyer_in =
@@ -4619,6 +4637,8 @@ class type eligibilite_prestations_familiales_in =
     method prestationCouranteIn:
       element_prestations_familiales Js.t Js.readonly_prop
     method residenceIn: collectivite Js.t Js.readonly_prop
+    method ageL51232In:
+      (unit,  unit -> Runtime_jsoo.Runtime.duration Js.t) Js.meth_callback Js.meth
   end
   let eligibilite_prestations_familiales_in_to_jsoo
     (eligibilite_prestations_familiales_in
@@ -4631,6 +4651,12 @@ class type eligibilite_prestations_familiales_in =
         element_prestations_familiales_to_jsoo eligibilite_prestations_familiales_in.prestation_courante_in
       val residenceIn =
         collectivite_to_jsoo eligibilite_prestations_familiales_in.residence_in
+      method ageL51232In = Js.wrap_meth_callback
+        (
+          fun _ (function_input0: unit) ->
+          duration_to_jsoo (eligibilite_prestations_familiales_in.age_l512_3_2_in 
+          (
+            function_input0)))
       end
   let eligibilite_prestations_familiales_in_of_jsoo
     (eligibilite_prestations_familiales_in
@@ -4644,7 +4670,8 @@ class type eligibilite_prestations_familiales_in =
           eligibilite_prestations_familiales_in##.prestationCouranteIn;
       residence_in =
         collectivite_of_jsoo
-          eligibilite_prestations_familiales_in##.residenceIn
+          eligibilite_prestations_familiales_in##.residenceIn;
+      age_l512_3_2_in = failwith "The function 'age_l512_3_2_in' translation isn't yet supported..."
     }
 
 

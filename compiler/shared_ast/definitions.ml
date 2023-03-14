@@ -181,6 +181,7 @@ module Op = struct
     | Div_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
     | Div_mon_rat : ([< scopelang | dcalc | lcalc ], resolved) t
     | Div_mon_mon : ([< scopelang | dcalc | lcalc ], resolved) t
+    | Div_dur_dur : ([< scopelang | dcalc | lcalc ], resolved) t
     | Lt : (desugared, overloaded) t
     | Lt_int_int : ([< scopelang | dcalc | lcalc ], resolved) t
     | Lt_rat_rat : ([< scopelang | dcalc | lcalc ], resolved) t
