@@ -246,7 +246,7 @@ build_french_law_library_ocaml:
 	dune build $(FRENCH_LAW_OCAML_LIB_DIR)/api.a
 
 run_french_law_library_benchmark_ocaml:
-	dune exec --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
+	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
 
 run_french_law_library_ocaml_tests:
 	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
@@ -277,7 +277,7 @@ run_french_law_library_benchmark_js: build_french_law_library_js
 
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
 build_french_law_library_js:
-	dune build $(FRENCH_LAW_JS_LIB_DIR)/french_law.js --profile=release
+	dune build $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
 
 #> build_french_law_library_web_api	: Builds the web API of the French law library
 build_french_law_library_web_api: build_french_law_library_js generate_french_law_json_schemas
@@ -356,9 +356,12 @@ WEBSITE_ASSETS = grammar.html catala.html clerk.html catala_legifrance.html
 $(addprefix _build/default/,$(WEBSITE_ASSETS)):
 	dune build $@
 
-#> website-assets				: Builds all the assets necessary for the Catala website
-website-assets: build_french_law_library_web_api doc literate_examples build
+website-assets-base: build_french_law_library_web_api doc literate_examples build
 	dune build $(WEBSITE_ASSETS)
+
+#> website-assets				: Builds all the assets necessary for the Catala website
+website-assets:
+	$(MAKE) DUNE_PROFILE=release website-assets-base
 
 ##########################################
 # Misceallenous
@@ -376,7 +379,7 @@ all: \
 	bench_js \
 	generate_french_law_library_python type_french_law_library_python \
 	bench_python \
-	website-assets
+	website-assets-base
 
 
 #> clean					: Clean build artifacts
@@ -417,4 +420,5 @@ help_catala_legifrance:
 	run_french_law_library_benchmark_python					\
 	run_french_law_library_benchmark_js run_french_law_library_ocaml_tests	\
 	build_french_law_library_js build_french_law_library_web_api		\
-	build_french_law_library_ocaml
+	build_french_law_library_ocaml                                          \
+	website-assets website-assets-base
