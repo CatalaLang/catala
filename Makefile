@@ -52,9 +52,6 @@ $(PY_VENV_DIR)/stamp: \
 	  -e syntax_highlighting/pl/pygments
 	touch $@
 
-# Run sub-make within the Python venv
-MAKEP = $(PY_VENV_ACTIVATE) $(MAKE)
-
 dependencies-python: $(PY_VENV_DIR)
 
 #> dependencies				: Install the Catala OCaml, JS and Git dependencies
@@ -171,7 +168,7 @@ vscode: vscode_fr vscode_en
 ##########################################
 
 syntax:
-	$(MAKEP) -C doc/syntax
+	$(MAKE) -C doc/syntax
 
 ##########################################
 # Literate programming and examples
@@ -187,32 +184,32 @@ TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
 POLISH_TAXES_DIR=$(EXAMPLES_DIR)/polish_taxes
 
 literate_aides_logement: build $(PY_VENV_DIR)
-	$(MAKEP) -C $(AIDES_LOGEMENT_DIR) aides_logement.tex
-	$(MAKEP) -C $(AIDES_LOGEMENT_DIR) aides_logement.html
+	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.tex
+	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.html
 
 literate_allocations_familiales: build
-	$(MAKEP) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
-	$(MAKEP) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.html
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
+	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.html
 
 literate_code_general_impots: build
-	$(MAKEP) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.tex
-	$(MAKEP) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.html
+	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.tex
+	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) code_general_impots.html
 
 literate_us_tax_code: build
-	$(MAKEP) -C $(US_TAX_CODE_DIR) us_tax_code.tex
-	$(MAKEP) -C $(US_TAX_CODE_DIR) us_tax_code.html
+	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.tex
+	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.html
 
 literate_tutorial_en: build
-	$(MAKEP) -C $(TUTORIAL_EN_DIR) tutorial_en.tex
-	$(MAKEP) -C $(TUTORIAL_EN_DIR) tutorial_en.html
+	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.tex
+	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.html
 
 literate_tutoriel_fr: build
-	$(MAKEP) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
-	$(MAKEP) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
+	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
+	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
 
 literate_polish_taxes: build
-	$(MAKEP) -C $(POLISH_TAXES_DIR) polish_taxes.tex
-	$(MAKEP) -C $(POLISH_TAXES_DIR) polish_taxes.html
+	$(MAKE) -C $(POLISH_TAXES_DIR) polish_taxes.tex
+	$(MAKE) -C $(POLISH_TAXES_DIR) polish_taxes.html
 
 #> literate_examples			: Builds the .tex and .html versions of the examples code. Needs pygments to be installed and patched with Catala.
 literate_examples: literate_allocations_familiales literate_code_general_impots \
@@ -301,10 +298,10 @@ generate_french_law_library_python:
 
 #> type_french_law_library_python		: Types the French law library Python sources with mypy
 type_french_law_library_python: $(PY_VENV_DIR) generate_french_law_library_python
-	$(MAKEP) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
+	$(PY_VENV_ACTIVATE) $(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
 
 run_french_law_library_benchmark_python: $(PY_ENV_DIR) type_french_law_library_python
-	$(MAKEP) -C $(FRENCH_LAW_PYTHON_LIB_DIR) bench
+	$(PY_VENV_ACTIVATE) $(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) bench
 
 ##########################################
 # High-level test and benchmarks commands
