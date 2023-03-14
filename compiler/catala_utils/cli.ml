@@ -33,6 +33,13 @@ type backend_option_builtin =
 
 type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
 
+(** Associates a {!type: Cli.backend_lang} with its string represtation. *)
+let languages = ["en", En; "fr", Fr; "pl", Pl]
+
+let language_code =
+  let rl = List.map (fun (a, b) -> b, a) languages in
+  fun l -> List.assoc l rl
+
 let backend_option_to_string = function
   | `Interpret -> "Interpret"
   | `Makefile -> "Makefile"

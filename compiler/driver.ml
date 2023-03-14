@@ -17,9 +17,6 @@
 
 open Catala_utils
 
-(** Associates a {!type: Cli.backend_lang} with its string represtation. *)
-let languages = ["en", Cli.En; "fr", Cli.Fr; "pl", Cli.Pl]
-
 (** Associates a file extension with its corresponding {!type: Cli.backend_lang}
     string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
@@ -59,7 +56,7 @@ let driver source_file (options : Cli.options) : int =
         try List.assoc ext extensions with Not_found -> ext)
     in
     let language =
-      try List.assoc l languages
+      try List.assoc l Cli.languages
       with Not_found ->
         Errors.raise_error
           "The selected language (%s) is not supported by Catala" l

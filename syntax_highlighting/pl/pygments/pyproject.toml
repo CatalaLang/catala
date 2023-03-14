@@ -8,4 +8,4 @@ version = "0.8"
 dependencies = ["pygments"]
 
 [project.entry-points."pygments.lexers"]
-catala-pl-lexer = "catala_pl_lexer.lexer:CatalaPlLexer"
+catala-pl-lexer = "catala_pl_lexer.lexer:CustomLexer"

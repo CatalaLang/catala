@@ -3,9 +3,9 @@ from pygments.token import *
 
 import re
 
-__all__=['CatalaFrLexer']
+__all__=['CustomLexer']
 
-class CatalaFrLexer(RegexLexer):
+class CustomLexer(RegexLexer):
     name = 'CatalaFr'
     aliases = ['catala_fr']
     filenames = ['*.catala_fr']
