@@ -277,7 +277,7 @@ run_french_law_library_benchmark_js: build_french_law_library_js
 
 #> build_french_law_library_js		: Builds the JS version of the OCaml French law library
 build_french_law_library_js:
-	dune build $(FRENCH_LAW_JS_LIB_DIR)/french_law.js
+	dune build $(FRENCH_LAW_JS_LIB_DIR)/french_law.js --profile=release
 
 #> build_french_law_library_web_api	: Builds the web API of the French law library
 build_french_law_library_web_api: build_french_law_library_js generate_french_law_json_schemas
