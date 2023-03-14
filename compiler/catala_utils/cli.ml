@@ -378,6 +378,10 @@ let info =
           "Prints a debugging verbatim of the statement calculus intermediate \
            representation of the Catala program. Use the $(b,-s) option to \
            restrict the output to a particular scope." );
+      `I
+        ( "$(b,pygmentize)",
+          "This special command is a wrapper around the $(b,pygmentize) \
+           command that enables support for colorising Catala code." );
       `S Manpage.s_authors;
       `P "The authors are listed by alphabetical order.";
       `P "Nicolas Chataing <nicolas.chataing@ens.fr>";
