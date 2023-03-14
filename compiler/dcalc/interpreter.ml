@@ -204,7 +204,9 @@ and evaluate_operator :
                  evaluate_expr ctx
                    (Marked.same_mark_as (EApp { f; args = [acc; e'] }) e'))
                init es)
-        | (Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce), _ ->
+        | ( ( Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce
+            | HandleDefaultOpt | HandleDefault ),
+            _ ) ->
           err ())
       ~monomorphic:(fun op ->
         let rlit =

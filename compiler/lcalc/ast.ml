@@ -24,15 +24,6 @@ and 'm expr = (lcalc, 'm mark) gexpr
 
 type 'm program = 'm expr Shared_ast.program
 
-let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
-let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)
-let some_constr : EnumConstructor.t = EnumConstructor.fresh ("ESome", Pos.no_pos)
-
-let option_enum_config : typ EnumConstructor.Map.t =
-  EnumConstructor.Map.empty
-  |> EnumConstructor.Map.add none_constr (TLit TUnit, Pos.no_pos)
-  |> EnumConstructor.Map.add some_constr (TAny, Pos.no_pos)
-
 (* TODO: proper typing in all the constructors below *)
 
 let make_none m =

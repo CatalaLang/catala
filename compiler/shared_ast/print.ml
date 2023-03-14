@@ -237,6 +237,8 @@ let operator_to_string : type a k. (a, k) Op.t -> string = function
   | Eq_dur_dur -> "=^"
   | Eq_dat_dat -> "=@"
   | Fold -> "fold"
+  | HandleDefault -> "handledefault"
+  | HandleDefaultOpt -> "handledefault_opt"
 
 let operator (type k) (fmt : Format.formatter) (op : ('a, k) operator) : unit =
   match op with

@@ -101,6 +101,8 @@ let name : type a k. (a, k) t -> string = function
   | Eq_dur_dur -> "o_eq_dur_dur"
   | Eq_dat_dat -> "o_eq_dat_dat"
   | Fold -> "o_fold"
+  | HandleDefault -> "o_handledefault"
+  | HandleDefaultOpt -> "o_handledefaultopt"
 
 let compare_log_entries l1 l2 =
   match l1, l2 with
@@ -204,7 +206,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Eq_mon_mon, Eq_mon_mon
   | Eq_dat_dat, Eq_dat_dat
   | Eq_dur_dur, Eq_dur_dur
-  | Fold, Fold -> 0
+  | Fold, Fold |HandleDefault, HandleDefault | HandleDefaultOpt, HandleDefaultOpt -> 0
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
   | GetDay, _ -> -1 | _, GetDay -> 1
@@ -286,6 +288,8 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Eq_mon_mon, _ -> -1 | _, Eq_mon_mon -> 1
   | Eq_dat_dat, _ -> -1 | _, Eq_dat_dat -> 1
   | Eq_dur_dur, _ -> -1 | _, Eq_dur_dur -> 1
+  | HandleDefault, _ -> -1 | _, HandleDefault -> 1
+  | HandleDefaultOpt, _ -> -1 | _, HandleDefaultOpt -> 1
   | Fold, _  | _, Fold -> .
 
 let equal (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) = compare t1 t2 = 0
@@ -306,7 +310,8 @@ let kind_dispatch :
   | ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | And
     | Or | Xor ) as op ->
     monomorphic op
-  | (Log _ | Length | Eq | Map | Concat | Filter | Reduce | Fold) as op ->
+  | ( Log _ | Length | Eq | Map | Concat | Filter | Reduce | Fold
+    | HandleDefault | HandleDefaultOpt ) as op ->
     polymorphic op
   | ( Minus | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt | Lte | Gt
     | Gte ) as op ->
@@ -402,6 +407,8 @@ let translate :
   | Eq_mon_mon -> Eq_mon_mon
   | Eq_dat_dat -> Eq_dat_dat
   | Eq_dur_dur -> Eq_dur_dur
+  | HandleDefault -> assert false
+  | HandleDefaultOpt -> assert false
 
 let monomorphic_type (op, pos) =
   let args, ret =
