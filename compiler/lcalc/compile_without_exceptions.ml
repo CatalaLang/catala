@@ -305,11 +305,7 @@ let monad_bind_var f x arg ~(mark : 'a mark) =
                mark );
            (* | None x -> None x *)
            ( Ast.some_constr,
-             Expr.eabs
-               (Expr.bind [| x |]
-                  (Expr.einj f Ast.some_constr Ast.option_enum mark))
-               [TAny, Expr.mark_pos mark]
-               mark )
+             Expr.eabs (Expr.bind [| x |] f) [TAny, Expr.mark_pos mark] mark )
            (*| Some x -> Some x *);
          ])
   in
@@ -343,15 +339,20 @@ let monad_mbind_cont f args ~(mark : 'a mark) =
   in
   monad_mbind_mvar (f vars) vars args ~mark
 
-let monad_map_var f x arg ~(mark : 'a mark) =
-  monad_bind_var (monad_return f ~mark) x arg ~mark
+let monad_mmap_mvar f xs args ~(mark : 'a mark) =
+  (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _ ->
+     None *)
+  ListLabels.fold_left2 xs args ~f:(monad_bind_var ~mark)
+    ~init:
+      (Expr.einj
+         (Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
+         Ast.some_constr Ast.option_enum mark)
+
+let monad_map_var f x arg ~(mark : 'a mark) = monad_mmap_mvar f [x] [arg] ~mark
 
 let monad_map f arg ~(mark : 'a mark) =
   let x = Var.make "x" in
   monad_map_var f x arg ~mark
-
-let monad_mmap_mvar f xs args ~(mark : 'a mark) =
-  monad_mbind_mvar (monad_return f ~mark) xs args ~mark
 
 let monad_mmap f args ~(mark : 'a mark) =
   let vars =
@@ -425,7 +426,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let m' = match m with Typed m -> Typed { m with ty = TAny, pos } in
     (* App Handle_default excepts just cons *)
     Expr.make_app
-      (Expr.make_var (Var.translate A.handle_default_opt) m')
+      (Expr.eop Op.HandleDefaultOpt [TAny, pos; TAny, pos; TAny, pos] m')
       [Expr.earray excepts' m; just'; cons']
       pos
   | ELit l -> begin
@@ -455,10 +456,18 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     assert false
   | EApp { f = EStructAccess _, _; _ } -> assert false
   | EApp { f = EOp { op; tys }, opmark; args } ->
-    monad_mbind
-      (Expr.eop (trans_op op) tys opmark)
-      (List.map (trans ctx) args)
-      ~mark
+    let res =
+      monad_mmap
+        (Expr.eop (trans_op op) tys opmark)
+        (List.map (trans ctx) args)
+        ~mark
+    in
+
+    Cli.debug_format "before:\n%a" (Print.expr_debug ~debug:true) e;
+    Cli.debug_format "after:\n%a"
+      (Print.expr_debug ~debug:true)
+      (Expr.unbox res);
+    res
   | EMatch { name; e; cases } ->
     let cases =
       EnumConstructor.MapLabels.map cases ~f:(fun case ->
