@@ -504,6 +504,20 @@ and typecheck_expr_top_down :
       typecheck_expr_top_down ctx env (unionfind (TStruct name)) e_struct
     in
     Expr.estructaccess e_struct' field name mark
+  | A.EInj { name; cons; e = e_enum }
+    when name = Definitions.option_enum && cons = Definitions.some_constr ->
+    let cell_type = unionfind (TAny (Any.fresh ())) in
+    let mark = uf_mark (unionfind (TOption cell_type)) in
+    let e_enum' = typecheck_expr_top_down ctx env cell_type e_enum in
+    Expr.einj e_enum' cons name mark
+  | A.EInj { name; cons; e = e_enum }
+    when name = Definitions.option_enum && cons = Definitions.none_constr ->
+    let cell_type = unionfind (TAny (Any.fresh ())) in
+    let mark = uf_mark (unionfind (TOption cell_type)) in
+    let e_enum' =
+      typecheck_expr_top_down ctx env (unionfind (TLit TUnit)) e_enum
+    in
+    Expr.einj e_enum' cons name mark
   | A.EInj { name; cons; e = e_enum } ->
     let mark = uf_mark (unionfind (TEnum name)) in
     let e_enum' =
@@ -514,6 +528,31 @@ and typecheck_expr_top_down :
         e_enum
     in
     Expr.einj e_enum' cons name mark
+  | A.EMatch { e = e1; name; cases } when name = Definitions.option_enum ->
+    let cell_type = TAny (Any.fresh ()) in
+    let t_arg = unionfind ~pos:e1 (TOption (unionfind ~pos:e1 cell_type)) in
+    let cases_ty =
+      ListLabels.fold_right2
+        [A.none_constr; A.some_constr]
+        [TLit TUnit; cell_type] ~f:A.EnumConstructor.Map.add
+        ~init:A.EnumConstructor.Map.empty
+    in
+    let t_ret = TAny (Any.fresh ()) in
+    let mark = uf_mark (unionfind ~pos:e t_ret) in
+    let e1' = typecheck_expr_top_down ctx env t_arg e1 in
+    let cases' =
+      A.EnumConstructor.MapLabels.merge cases cases_ty ~f:(fun _ e e_ty ->
+          match e, e_ty with
+          | Some e, Some e_ty ->
+            Some
+              (typecheck_expr_top_down ctx env
+                 (unionfind ~pos:e
+                    (TArrow ([unionfind ~pos:e e_ty], unionfind ~pos:e t_ret)))
+                 e)
+          | _ -> assert false)
+    in
+
+    Expr.ematch e1' name cases' mark
   | A.EMatch { e = e1; name; cases } ->
     let cases_ty = A.EnumName.Map.find name ctx.A.ctx_enums in
     let t_ret = unionfind ~pos:e1 (TAny (Any.fresh ())) in
