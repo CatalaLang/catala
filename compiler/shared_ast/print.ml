@@ -89,8 +89,7 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
     match ctx with
     | None -> Format.fprintf fmt "@[<hov 2>%a@]" StructName.format_t s
     | Some ctx ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format_t s
-        punctuation "{"
+      Format.fprintf fmt "@[<hov 2> %a%a%a%a@]" punctuation "{"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
            (fun fmt (field, mty) ->
@@ -98,7 +97,7 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
                StructField.format_t field punctuation "\"" punctuation ":" typ
                mty))
         (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs))
-        punctuation "}")
+        punctuation "}_" StructName.format_t s)
   | TEnum e -> (
     match ctx with
     | None -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format_t e
@@ -278,11 +277,31 @@ let rec expr_aux :
   let exprb bnd_ctx e = expr_aux ~debug ctx bnd_ctx e in
   let expr e = exprb bnd_ctx e in
   let var = if debug then var_debug else var in
+  let rainbow =
+    [
+      ANSITerminal.white;
+      ANSITerminal.red;
+      ANSITerminal.blue;
+      ANSITerminal.yellow;
+      ANSITerminal.green;
+      ANSITerminal.magenta;
+      ANSITerminal.cyan;
+    ]
+  in
+  let rainbow_state = ref 0 in
   let with_parens fmt e =
     if needs_parens e then (
-      punctuation fmt "(";
+      let floyd =
+        incr rainbow_state;
+        [
+          (* ANSITerminal.Blink; *)
+          List.nth rainbow (!rainbow_state mod List.length rainbow);
+        ]
+      in
+
+      Cli.format_with_style floyd fmt "(";
       expr fmt e;
-      punctuation fmt ")")
+      Cli.format_with_style floyd fmt ")")
     else expr fmt e
   in
   match Marked.unmark e with
@@ -309,7 +328,7 @@ let rec expr_aux :
     let expr = exprb bnd_ctx in
     let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
-    Format.fprintf fmt "(%a%a)"
+    Format.fprintf fmt "%a%a"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
          (fun fmt (x, tau, arg) ->
@@ -374,8 +393,7 @@ let rec expr_aux :
     Format.fprintf fmt "%a%a%a%a%a" expr e punctuation "." punctuation "\""
       IdentName.format_t field punctuation "\""
   | EStruct { name; fields } ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]" StructName.format_t name
-      punctuation "{"
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a%a@]" punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
          (fun fmt (field_name, field_expr) ->
@@ -383,21 +401,22 @@ let rec expr_aux :
              StructField.format_t field_name punctuation "\"" punctuation "="
              expr field_expr))
       (StructField.Map.bindings fields)
-      punctuation "}"
+      punctuation "}_" StructName.format_t name
   | EStructAccess { e; field; _ } ->
     Format.fprintf fmt "%a%a%a%a%a" expr e punctuation "." punctuation "\""
       StructField.format_t field punctuation "\""
   | EInj { e; cons; _ } ->
-    Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons expr e
+    Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons with_parens e
   | EMatch { e; cases; _ } ->
-    Format.fprintf fmt "@[<hov 0>%a@ @[<hov 2>%a@]@ %a@ %a@]" keyword "match"
-      expr e keyword "with"
+    Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a@]@ %a@ %a@ %a@]" keyword
+      "match" expr e keyword "with"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt (cons_name, case_expr) ->
            Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
              enum_constructor cons_name punctuation "→" expr case_expr))
       (EnumConstructor.Map.bindings cases)
+      keyword "end"
   | EScopeCall { scope; args } ->
     Format.pp_open_hovbox fmt 2;
     ScopeName.format_t fmt scope;
