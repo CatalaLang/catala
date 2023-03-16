@@ -1153,16 +1153,21 @@ let process_scope_use_item
     let new_scope =
       match
         List.find_opt
-          (fun scope_opt ->
+          (fun (scope_opt, _) ->
             scope_opt = Ast.DateRounding Ast.Increasing
             || scope_opt = Ast.DateRounding Ast.Decreasing)
           scope.scope_options
       with
-      | Some _ ->
-        Errors.raise_spanned_error (Marked.get_mark item)
-          "A date rounding mode has already been specified"
+      | Some (_, old_pos) ->
+        Errors.raise_multispanned_error
+          [None, old_pos; None, Marked.get_mark item]
+          "You cannot set multiple date rounding modes"
       | None ->
-        { scope with scope_options = Ast.DateRounding r :: scope.scope_options }
+        {
+          scope with
+          scope_options =
+            Marked.same_mark_as (Ast.DateRounding r) item :: scope.scope_options;
+        }
     in
     {
       prgm with

@@ -919,11 +919,11 @@ let translate_scope_decl
   let date_rounding : date_rounding =
     match
       List.find_opt
-        (function Desugared.Ast.DateRounding _ -> true)
+        (function Desugared.Ast.DateRounding _, _ -> true)
         sigma.scope_options
     with
-    | Some (Desugared.Ast.DateRounding Desugared.Ast.Increasing) -> RoundUp
-    | Some (DateRounding Decreasing) -> RoundDown
+    | Some (Desugared.Ast.DateRounding Desugared.Ast.Increasing, _) -> RoundUp
+    | Some (DateRounding Decreasing, _) -> RoundDown
     | None -> AbortOnRound
   in
   let ctx = { ctx with date_rounding } in

@@ -25,7 +25,13 @@ scope Test:
 
 ```catala-test-inline
 $ catala Interpret -s Test
-[ERROR] A date rounding mode has already been specified
+[ERROR] You cannot set multiple date rounding modes
+
+┌─⯈ tests/test_date/bad/rounding_option_conflict.catala_en:10.13-23:
+└──┐
+10 │   date round decreasing
+   │              ‾‾‾‾‾‾‾‾‾‾
+
 
 ┌─⯈ tests/test_date/bad/rounding_option_conflict.catala_en:12.13-23:
 └──┐

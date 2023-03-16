@@ -197,7 +197,7 @@ type scope = {
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
-  scope_options : catala_option list;
+  scope_options : catala_option Marked.pos list;
   scope_meta_assertions : meta_assertion list;
 }
 
