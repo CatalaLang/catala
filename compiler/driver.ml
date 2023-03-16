@@ -318,9 +318,10 @@ let driver source_file (options : Cli.options) : int =
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm =
               if options.avoid_exceptions then
-                Shared_ast.Typing.program
-                  (Lcalc.Compile_without_exceptions.translate_program prgm)
-              else Lcalc.Compile_with_exceptions.translate_program prgm
+                Lcalc.Compile_without_exceptions.translate_program prgm
+              else
+                Shared_ast.Program.untype
+                @@ Lcalc.Compile_with_exceptions.translate_program prgm
             in
             let prgm =
               if options.optimize then begin

@@ -26,9 +26,16 @@ let rec iota_expr (e : 'm expr) : 'm expr boxed =
   match Marked.unmark e with
   | EMatch { e = EInj { e = e'; cons; name = n' }, _; cases; name = n }
     when EnumName.equal n n' ->
-    let e1 = visitor_map iota_expr e' in
-    let case = visitor_map iota_expr (EnumConstructor.Map.find cons cases) in
-    Expr.eapp case [e1] m
+    (* match E x with | E y -> e1 = e1[y |-> x]*)
+    if true then
+      match Marked.unmark @@ EnumConstructor.Map.find cons cases with
+      | EAbs { binder; _ } -> visitor_map iota_expr (Expr.subst binder [e'])
+      | _ -> assert false
+    else
+      let e1 = visitor_map iota_expr e' in
+      let case = visitor_map iota_expr (EnumConstructor.Map.find cons cases) in
+      Expr.eapp case [e1] m
+      (* if the size of the expression is small enought, we just substitute. *)
   | EMatch { e = e'; cases; name = n }
     when cases
          |> EnumConstructor.Map.for_all (fun i case ->
@@ -56,6 +63,56 @@ let rec iota_expr (e : 'm expr) : 'm expr boxed =
     visitor_map iota_expr e'
   | _ -> visitor_map iota_expr e
 
+let rec iota2_expr (e : 'm expr) : 'm expr boxed =
+  let m = Marked.get_mark e in
+  match Marked.unmark e with
+  | EMatch
+      {
+        e = EMatch { e = arg; cases = cases1; name = n1 }, _;
+        cases = cases2;
+        name = n2;
+      }
+    when n1 = n2
+         &&
+         let n = n1 in
+         let b =
+           EnumConstructor.MapLabels.for_all cases1 ~f:(fun i case ->
+               match Marked.unmark case with
+               | EAbs { binder; _ } -> (
+                 let _, body = Bindlib.unmbind binder in
+                 Cli.debug_format "expr %a" (Print.expr_debug ~debug:true) body;
+                 match Marked.unmark body with
+                 | EInj { cons = i'; name = n'; _ } ->
+                   Cli.debug_format "bla %a %a %b" EnumConstructor.format_t i
+                     EnumConstructor.format_t i'
+                     (EnumConstructor.equal i i');
+
+                   Cli.debug_format "bli %a %a %b" EnumName.format_t n
+                     EnumName.format_t n' (EnumName.equal n n');
+                   EnumConstructor.equal i i' && EnumName.equal n n'
+                 | _ -> false)
+               | _ -> assert false)
+         in
+         Cli.debug_format "%b" b;
+         b ->
+    let cases =
+      EnumConstructor.MapLabels.merge cases1 cases2 ~f:(fun _i o1 o2 ->
+          match o1, o2 with
+          | Some b1, Some e2 -> (
+            match Marked.unmark b1, Marked.unmark e2 with
+            | EAbs { binder = b1; _ }, EAbs { binder = b2; tys } ->
+              let v1, e1 = Bindlib.unmbind b1 in
+              let[@warning "-8"] [| v1 |] = v1 in
+              Some
+                (Expr.make_abs [| v1 |]
+                   (visitor_map iota_expr (Expr.subst b2 [e1]))
+                   tys (Expr.pos e2))
+            | _ -> assert false)
+          | _ -> assert false)
+    in
+    Expr.ematch (visitor_map iota_expr arg) n1 cases m
+  | _ -> visitor_map iota2_expr e
+
 let rec beta_expr (e : 'm expr) : 'm expr boxed =
   let m = Marked.get_mark e in
   match Marked.unmark e with
@@ -71,6 +128,12 @@ let rec beta_expr (e : 'm expr) : 'm expr boxed =
 let iota_optimizations (p : 'm program) : 'm program =
   let new_code_items =
     Scope.map_exprs ~f:iota_expr ~varf:(fun v -> v) p.code_items
+  in
+  { p with code_items = Bindlib.unbox new_code_items }
+
+let iota2_optimizations (p : 'm program) : 'm program =
+  let new_code_items =
+    Scope.map_exprs ~f:iota2_expr ~varf:(fun v -> v) p.code_items
   in
   { p with code_items = Bindlib.unbox new_code_items }
 
@@ -121,4 +184,83 @@ let peephole_optimizations (p : 'm program) : 'm program =
   { p with code_items = Bindlib.unbox new_code_items }
 
 let optimize_program (p : 'm program) : untyped program =
-  p |> iota_optimizations |> peephole_optimizations |> Program.untype
+  p
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota2_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> iota_optimizations
+  |> peephole_optimizations
+  |> Program.untype

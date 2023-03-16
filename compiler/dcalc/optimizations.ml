@@ -141,7 +141,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
                   } ),
               _ ) ) ->
           ELit LEmptyError
-        | [], just when not !Cli.avoid_exceptions_flag ->
+        | [], just when false ->
           (* without exceptions, a default is just an [if then else] raising an
              error in the else case. This exception is only valid in the context
              of compilation_with_exceptions, so we desactivate with a global

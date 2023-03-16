@@ -44,190 +44,6 @@ module A = Ast
 
 open Shared_ast
 
-type analysis_mark = {
-  pos : Pos.t;
-  ty : typ;
-  unpure : bool;
-  unpure_return : bool option;
-}
-
-(* voir sur papier pour voir si ça marche *)
-
-type analysis_info = { unpure_info : bool; unpure_return : bool option }
-(* type analysis_ctx = (dcalc, analysis_info) Var.Map.t *)
-
-let make_new_mark (m : typed mark) ?(unpure_return = None) (unpure : bool) :
-    analysis_mark =
-  match m with
-  | Typed m ->
-    begin
-      match Marked.unmark m.ty, unpure_return with
-      | TArrow _, None ->
-        Errors.raise_error
-          "Internal Error: no pure/unpure return type commentary on a function."
-      | _ -> ()
-    end;
-    { pos = m.pos; ty = m.ty; unpure; unpure_return }
-
-let rec detect_unpure_expr ctx (e : (dcalc, typed mark) gexpr) :
-    (dcalc, analysis_mark) boxed_gexpr =
-  let m = Marked.get_mark e in
-  match Marked.unmark e with
-  | EVar x ->
-    (* we suppose we don't need any information on a variable containing a
-       function, because the only place such variable [f] can appear is in a
-       EApp {f; ...} position. Hence it will be matched elsewhere. This is kept
-       by the following invariant: *)
-    Errors.assert_internal_error
-      (match Marked.unmark (Expr.ty e) with TArrow _ -> false | _ -> true)
-      "The variable %a should not be a function in this context." Print.var x;
-    Expr.make_var (Var.translate x)
-      (make_new_mark m (Var.Map.find x ctx).unpure_info)
-  | EAbs { binder; tys } ->
-    let vars, body = Bindlib.unmbind binder in
-    let body' = detect_unpure_expr ctx body in
-    let binder' = Expr.bind (Array.map Var.translate vars) body' in
-    (* eabs is a value, hence is always pure. However, it is possible the
-       function returns something that is pure. In this case the information
-       needs to be backpropagated somewhere. *)
-    Expr.eabs binder' tys
-      (make_new_mark m false
-         ~unpure_return:(Some (Marked.get_mark body').unpure))
-  | EDefault { excepts; just; cons } ->
-    let excepts' = List.map (detect_unpure_expr ctx) excepts in
-    let just' = detect_unpure_expr ctx just in
-    let cons' = detect_unpure_expr ctx cons in
-    (* because of the structural invariant, there is no functions inside an
-       default. Hence, there is no need for any verification here. *)
-    Expr.edefault excepts' just' cons' (make_new_mark m true)
-  | ELit l ->
-    Expr.elit l
-      (make_new_mark m (match l with LEmptyError -> true | _ -> false))
-  | EErrorOnEmpty arg ->
-    let arg' = detect_unpure_expr ctx arg in
-    (* the result is always pure *)
-    Expr.eerroronempty arg' (make_new_mark m false)
-  | EApp { f = (EVar x, _) as f; args } ->
-    let args' = List.map (detect_unpure_expr ctx) args in
-    let unpure =
-      args'
-      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
-      |> List.fold_left ( || ) false
-      |> ( || ) (Var.Map.find x ctx).unpure_info
-    in
-    let f' = detect_unpure_expr ctx f in
-    if Option.get (Var.Map.find x ctx).unpure_return then
-      Expr.eapp f' args' (make_new_mark m (true || unpure))
-    else Expr.eapp f' args' (make_new_mark m unpure)
-  | EApp { f = (EAbs _, _) as f; args } ->
-    let f' = detect_unpure_expr ctx f in
-    let args' = List.map (detect_unpure_expr ctx) args in
-    let unpure =
-      args'
-      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
-      |> List.fold_left ( || ) false
-      |> ( || ) (Marked.get_mark f').unpure
-      ||
-      match (Marked.get_mark f').unpure_return with
-      | None ->
-        Errors.raise_internal_error
-          "A function has no information on whenever it is empty or not"
-      | Some unpure_return -> unpure_return
-    in
-    Expr.eapp f' args' (make_new_mark m unpure)
-  | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
-    assert false
-  | EApp { f = EStructAccess _, _; _ } -> assert false
-  (* Now operator application. Those come in multiple shape and forms: either
-     the operator is an EOp, or it is an array, ifthenelse, struct, inj, match,
-     structAccess, tuple, tupleAccess, Assert.
-
-     Note that for the moment, we consider the ifthenelse an normal if then
-     else, and not the selective applicative functor corresponding. *)
-  | EApp { f = EOp { op; tys }, opmark; args } ->
-    let args' = List.map (detect_unpure_expr ctx) args in
-    let unpure =
-      args'
-      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
-      |> List.fold_left ( || ) false
-    in
-    Expr.eapp
-      (Expr.eop op tys (make_new_mark opmark true))
-      args' (make_new_mark m unpure)
-  | EArray args ->
-    let args = List.map (detect_unpure_expr ctx) args in
-    let unpure =
-      args
-      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
-      |> List.fold_left ( || ) false
-    in
-    Expr.earray args (make_new_mark m unpure)
-  | EStruct { name; fields } ->
-    let fields = StructField.Map.map (detect_unpure_expr ctx) fields in
-    let unpure =
-      fields
-      |> StructField.Map.map (fun field -> (Marked.get_mark field).unpure)
-      |> fun ctx -> StructField.Map.fold (fun _ -> ( || )) ctx false
-    in
-    Expr.estruct name fields (make_new_mark m unpure)
-  | EIfThenElse { cond; etrue; efalse } ->
-    let cond = detect_unpure_expr ctx cond in
-    let etrue = detect_unpure_expr ctx etrue in
-    let efalse = detect_unpure_expr ctx efalse in
-    let unpure =
-      [cond; etrue; efalse]
-      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
-      |> List.fold_left ( || ) false
-    in
-    Expr.eifthenelse cond etrue efalse (make_new_mark m unpure)
-  | EInj { name; e; cons } ->
-    let e = detect_unpure_expr ctx e in
-    let unpure = (Marked.get_mark e).unpure in
-    Expr.einj e cons name (make_new_mark m unpure)
-  | EMatch { name; e; cases } ->
-    let e = detect_unpure_expr ctx e in
-    let cases = EnumConstructor.Map.map (detect_unpure_expr ctx) cases in
-    let unpure =
-      e :: List.map snd (EnumConstructor.Map.bindings cases)
-      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
-      |> List.fold_left ( || ) false
-    in
-    Expr.ematch e name cases (make_new_mark m unpure)
-  | EStructAccess { name; e; field } ->
-    let e = detect_unpure_expr ctx e in
-    let unpure = (Marked.get_mark e).unpure in
-    Expr.estructaccess e field name (make_new_mark m unpure)
-  | ETuple args ->
-    let args = List.map (detect_unpure_expr ctx) args in
-    let unpure =
-      args
-      |> List.map (fun arg -> (Marked.get_mark arg).unpure)
-      |> List.fold_left ( || ) false
-    in
-    Expr.etuple args (make_new_mark m unpure)
-  | ETupleAccess { e; index; size } ->
-    let e = detect_unpure_expr ctx e in
-    let unpure = (Marked.get_mark e).unpure in
-    Expr.etupleaccess e index size (make_new_mark m unpure)
-  | EAssert e ->
-    let e = detect_unpure_expr ctx e in
-    let unpure = (Marked.get_mark e).unpure in
-    Expr.eassert e (make_new_mark m unpure)
-  (* Those cases should not happend because of the structural invariant on the
-     structure of the ast at this point. *)
-  | EApp _ ->
-    Errors.raise_spanned_error (Expr.pos e)
-      "Internal Error: found an EApp that does not satisfy the invariants when \
-       translating Dcalc to Lcalc without exceptions."
-  (* invalid invariant *)
-  | EOp _ ->
-    Errors.raise_spanned_error (Expr.pos e)
-      "Internal Error: found an EOp that does not satisfy the invariants when \
-       translating Dcalc to Lcalc without exceptions."
-(* invalid invariant *)
-
-let _ = detect_unpure_expr
-
 type info_pure = { info_pure : bool }
 
 (** Information about each encontered Dcalc variable is stored inside a context
@@ -264,32 +80,6 @@ let monad_return e ~(mark : 'a mark) =
 let monad_empty ~(mark : 'a mark) =
   Expr.einj (Expr.elit LUnit mark) Ast.none_constr Ast.option_enum mark
 
-let monad_bind_aux f arg ~(mark : 'a mark) =
-  let cases =
-    EnumConstructor.Map.of_seq
-      (List.to_seq
-         [
-           ( Ast.none_constr,
-             let x = Var.make "x" in
-             Expr.eabs
-               (Expr.bind [| x |]
-                  (Expr.einj (Expr.evar x mark) Ast.none_constr Ast.option_enum
-                     mark))
-               [TAny, Expr.mark_pos mark]
-               mark );
-           (* | None x -> None x *)
-           ( Ast.some_constr,
-             let x = Var.make "x" in
-             Expr.eabs
-               (Expr.bind [| x |]
-                  (Expr.einj (f x) Ast.some_constr Ast.option_enum mark))
-               [TAny, Expr.mark_pos mark]
-               mark )
-           (*| Some x -> Some x *);
-         ])
-  in
-  Expr.ematch arg Ast.option_enum cases mark
-
 let monad_bind_var f x arg ~(mark : 'a mark) =
   let cases =
     EnumConstructor.Map.of_seq
@@ -301,7 +91,7 @@ let monad_bind_var f x arg ~(mark : 'a mark) =
                (Expr.bind [| x |]
                   (Expr.einj (Expr.evar x mark) Ast.none_constr Ast.option_enum
                      mark))
-               [TAny, Expr.mark_pos mark]
+               [TLit TUnit, Expr.mark_pos mark]
                mark );
            (* | None x -> None x *)
            ( Ast.some_constr,
@@ -360,7 +150,7 @@ let monad_mmap f args ~(mark : 'a mark) =
   in
   monad_mmap_mvar f vars args ~mark
 
-let monad_eoe arg ~(mark : 'a mark) =
+let monad_eoe ?(toplevel = false) arg ~(mark : 'a mark) =
   let cases =
     EnumConstructor.Map.of_seq
       (List.to_seq
@@ -375,11 +165,11 @@ let monad_eoe arg ~(mark : 'a mark) =
            Ast.some_constr, Expr.eid mark (* | Some x -> x*);
          ])
   in
-  Expr.ematch arg Ast.option_enum cases mark
+  if toplevel then Expr.ematch arg Ast.option_enum cases mark
+  else monad_return ~mark (Expr.ematch arg Ast.option_enum cases mark)
 
 let _ = monad_return
 let _ = monad_empty
-let _ = monad_bind_aux
 let _ = monad_bind_var
 let _ = monad_bind
 let _ = monad_bind_cont
@@ -439,12 +229,16 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   end
   | EErrorOnEmpty arg ->
     let arg' = trans ctx arg in
-    monad_eoe arg' ~mark
-  | EApp { f = (EVar _, _) as f; args } ->
-    (* INVARIANT: functions are always encoded using this function. *)
-    let f_var = Var.make "f" in
-    monad_bind_var ~mark (trans ctx f) f_var
+    monad_eoe arg' ~mark ~toplevel:false
+  | EApp { f = (EVar ff, _) as f; args } ->
+    (* INVARIANT: functions are always encoded using this function.info_pure
+       Invariant failed : scope calls are encoded using an other technique. *)
+    Cli.debug_format "%s %b" (Bindlib.name_of ff)
+      (Var.Map.find ff ctx).info_pure;
+    let f_var = Var.make "fff" in
+    monad_bind_var ~mark
       (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
+      f_var (trans ctx f)
   | EApp { f = EAbs { binder; _ }, _; args } ->
     let var, body = Bindlib.unmbind binder in
     let[@warning "-8"] [| var |] = var in
@@ -463,10 +257,9 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
         ~mark
     in
 
-    Cli.debug_format "before:\n%a" (Print.expr_debug ~debug:true) e;
-    Cli.debug_format "after:\n%a"
-      (Print.expr_debug ~debug:true)
-      (Expr.unbox res);
+    (* Cli.debug_format "before:\n%a" (Print.expr_debug ~debug:true) e;
+       Cli.debug_format "after:\n%a" (Print.expr_debug ~debug:true) (Expr.unbox
+       res); *)
     res
   | EMatch { name; e; cases } ->
     let cases =
@@ -489,7 +282,9 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (trans ctx e) ~mark
   | EArray args ->
     monad_mbind_cont ~mark
-      (fun vars -> Expr.earray (List.map (fun v -> Expr.evar v m) vars) mark)
+      (fun vars ->
+        monad_return ~mark
+          (Expr.earray (List.map (fun v -> Expr.evar v m) vars) mark))
       (List.map (trans ctx) args)
   | EStruct { name; fields } ->
     (* TODO: since ocaml is determinisitc, the fields will always be enumerated
@@ -502,7 +297,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
             (List.map (fun x -> Expr.evar x mark) xs)
             ~f:StructField.Map.add ~init:StructField.Map.empty
         in
-        Expr.estruct name fields mark)
+        monad_return ~mark (Expr.estruct name fields mark))
       (List.map (trans ctx) fields)
       ~mark
   | EIfThenElse { cond; etrue; efalse } ->
@@ -520,7 +315,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (trans ctx cond)
   | EInj { name; cons; e } ->
     monad_bind_cont
-      (fun e -> Expr.einj (Expr.evar e mark) cons name mark)
+      (fun e ->
+        monad_return ~mark (Expr.einj (Expr.evar e mark) cons name mark))
       (trans ctx e) ~mark
   | EStructAccess { name; e; field } ->
     monad_bind_cont
@@ -528,7 +324,9 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (trans ctx e) ~mark
   | ETuple args ->
     monad_mbind_cont
-      (fun xs -> Expr.etuple (List.map (fun x -> Expr.evar x mark) xs) mark)
+      (fun xs ->
+        monad_return ~mark
+          (Expr.etuple (List.map (fun x -> Expr.evar x mark) xs) mark))
       (List.map (trans ctx) args)
       ~mark
   | ETupleAccess { e; index; size } ->
@@ -537,7 +335,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (trans ctx e) ~mark
   | EAssert e ->
     monad_bind_cont
-      (fun e -> Expr.eassert (Expr.evar e mark) mark)
+      (fun e -> monad_return ~mark (Expr.eassert (Expr.evar e mark) mark))
       (trans ctx e) ~mark
   | EApp _ ->
     Errors.raise_spanned_error (Expr.pos e)
@@ -585,7 +383,7 @@ let rec trans_scope_let ctx s =
   | {
    scope_let_kind = SubScopeVarDefinition;
    scope_let_typ;
-   scope_let_expr = (EErrorOnEmpty _, _) as scope_let_expr;
+   scope_let_expr = EErrorOnEmpty e, mark;
    scope_let_next;
    scope_let_pos;
   } ->
@@ -599,7 +397,9 @@ let rec trans_scope_let ctx s =
 
     let scope_let_next = Bindlib.bind_var next_var next_body in
 
-    let scope_let_expr = Expr.Box.lift @@ trans ctx scope_let_expr in
+    let scope_let_expr =
+      Expr.Box.lift @@ monad_eoe ~mark ~toplevel:true (trans ctx e)
+    in
 
     Bindlib.box_apply2
       (fun scope_let_expr scope_let_next ->
@@ -663,8 +463,19 @@ let rec trans_scope_let ctx s =
 and trans_scope_body_expr ctx s :
     (lcalc, typed mark) gexpr scope_body_expr Bindlib.box =
   match s with
-  | Result e ->
-    Bindlib.box_apply (fun e -> Result e) (Expr.Box.lift @@ trans ctx e)
+  | Result e -> begin
+    (* invariant : result is always in the form of a record. *)
+    match Marked.unmark e with
+    | EStruct { name; fields } ->
+      Bindlib.box_apply
+        (fun e -> Result e)
+        (Expr.Box.lift
+        @@ monad_return ~mark:(Marked.get_mark e)
+             (Expr.estruct name
+                (StructField.Map.map (trans ctx) fields)
+                (Marked.get_mark e)))
+    | _ -> assert false
+  end
   | ScopeLet s ->
     Bindlib.box_apply (fun s -> ScopeLet s) (trans_scope_let ctx s)
 
@@ -694,13 +505,14 @@ let rec trans_code_items ctx c :
           (trans_code_items (Var.Map.add var { info_pure = false } ctx) next)
       in
       let e = Expr.Box.lift @@ trans ctx e in
+      (* TODO: need to add an error_on_empty *)
       Bindlib.box_apply2
         (fun next e -> Cons (Topdef (name, translate_typ typ, e), next))
         next e
     | ScopeDef (name, body) ->
       let next =
         Bindlib.bind_var (Var.translate var)
-          (trans_code_items (Var.Map.add var { info_pure = false } ctx) next)
+          (trans_code_items (Var.Map.add var { info_pure = true } ctx) next)
       in
       let body = trans_scope_body ctx body in
       Bindlib.box_apply2
