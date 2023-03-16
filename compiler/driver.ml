@@ -403,6 +403,10 @@ let driver source_file (options : Cli.options) : int =
     -1
 
 let main () =
+  if
+    Array.length Sys.argv >= 2
+    && String.lowercase_ascii Sys.argv.(1) = "pygmentize"
+  then Literate.Pygmentize.exec ();
   let return_code =
     Cmdliner.Cmd.eval'
       (Cmdliner.Cmd.v Cli.info (Cli.catala_t (fun f -> driver (FileName f))))

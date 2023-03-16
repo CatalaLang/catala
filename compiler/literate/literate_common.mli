@@ -51,3 +51,7 @@ val call_pygmentize : ?lang:Cli.backend_lang -> string list -> string
 (** Calls the [pygmentize] command with the given arguments, and returns the
     results as a string. If [lang] is specified, the proper arguments for the
     Catala lexer are already passed. *)
+
+val with_pygmentize_lexer : Cli.backend_lang -> (string list -> 'a) -> 'a
+(** Creates the required lexer file and returns the corresponding [pygmentize]
+    command-line arguments *)
