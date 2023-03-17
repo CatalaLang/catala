@@ -222,3 +222,24 @@ let optimize_program (p : 'm program) : untyped program =
            (* _beta_optimizations; *)
            peephole_optimizations;
          ])
+
+let%expect_test _ =
+  Cli.call_unstyled (fun _ ->
+      let x = Var.make "x" in
+
+      let t = EnumName.fresh ("t", Pos.no_pos) in
+      let a = EnumConstructor.fresh ("A", Pos.no_pos) in
+      let b = EnumConstructor.fresh ("B", Pos.no_pos) in
+
+      let nomark = Untyped { pos = Pos.no_pos } in
+
+      let e1 = Expr.einj (Expr.evar x nomark) a t nomark in
+      let e2 = Expr.einj (Expr.evar x nomark) b t nomark in
+
+      Format.printf "e1=%a\n" (Print.expr_debug ~debug:false) (Expr.unbox e1);
+      Format.printf "e2=%a\n" (Print.expr_debug ~debug:false) (Expr.unbox e2);
+
+      [%expect {|
+    e1=A (x)
+    e2=B
+    (x) |}])

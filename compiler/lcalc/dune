@@ -2,8 +2,9 @@
  (name lcalc)
  (public_name catala.lcalc)
  (libraries bindlib ubase dcalc scopelang catala.runtime_ocaml)
+ (inline_tests)
  (preprocess
-  (pps visitors.ppx)))
+  (pps visitors.ppx ppx_expect)))
 
 (documentation
  (package catala)

@@ -4,11 +4,9 @@
 , benchmark
 , bindlib
 , buildDunePackage
-, calendar
 , cmdliner
 , cppo
 , dates_calc
-, fetchFromGitHub
 , js_of_ocaml
 , js_of_ocaml-ppx
 , menhir
@@ -26,6 +24,7 @@
 , zarith
 , zarith_stubs_js
 , cohttp-lwt-unix
+, ppx_expect
 }:
 
 buildDunePackage {
@@ -63,6 +62,7 @@ buildDunePackage {
     zarith
     zarith_stubs_js
     cohttp-lwt-unix
+    ppx_expect
   ];
 
   # Currently there is no unit tests in catala and Cram tests are handled by clerk
