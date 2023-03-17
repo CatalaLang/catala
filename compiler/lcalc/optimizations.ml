@@ -80,15 +80,8 @@ let rec iota2_expr (e : 'm expr) : 'm expr boxed =
                match Marked.unmark case with
                | EAbs { binder; _ } -> (
                  let _, body = Bindlib.unmbind binder in
-                 Cli.debug_format "expr %a" (Print.expr_debug ~debug:true) body;
                  match Marked.unmark body with
                  | EInj { cons = i'; name = n'; _ } ->
-                   Cli.debug_format "bla %a %a %b" EnumConstructor.format_t i
-                     EnumConstructor.format_t i'
-                     (EnumConstructor.equal i i');
-
-                   Cli.debug_format "bli %a %a %b" EnumName.format_t n
-                     EnumName.format_t n' (EnumName.equal n n');
                    EnumConstructor.equal i i' && EnumName.equal n n'
                  | _ -> false)
                | _ -> assert false)
@@ -100,13 +93,17 @@ let rec iota2_expr (e : 'm expr) : 'm expr boxed =
           match o1, o2 with
           | Some b1, Some e2 -> (
             match Marked.unmark b1, Marked.unmark e2 with
-            | EAbs { binder = b1; _ }, EAbs { binder = b2; tys } ->
+            | EAbs { binder = b1; _ }, EAbs { binder = b2; tys } -> (
               let v1, e1 = Bindlib.unmbind b1 in
               let[@warning "-8"] [| v1 |] = v1 in
-              Some
-                (Expr.make_abs [| v1 |]
-                   (visitor_map iota_expr (Expr.subst b2 [e1]))
-                   tys (Expr.pos e2))
+
+              match Marked.unmark e1 with
+              | EInj { e = e1; _ } ->
+                Some
+                  (Expr.make_abs [| v1 |]
+                     (visitor_map iota_expr (Expr.subst b2 [e1]))
+                     tys (Expr.pos e2))
+              | _ -> assert false)
             | _ -> assert false)
           | _ -> assert false)
     in
@@ -155,16 +152,6 @@ let fold_optimizations (p : 'm program) : 'm program =
   in
   { p with code_items = Bindlib.unbox new_code_items }
 
-(* TODO: beta optimizations apply inlining of the program. We left the inclusion
-   of beta-optimization as future work since its produce code that is harder to
-   read, and can produce exponential blowup of the size of the generated
-   program. *)
-let _beta_optimizations (p : 'm program) : 'm program =
-  let new_code_items =
-    Scope.map_exprs ~f:beta_expr ~varf:(fun v -> v) p.code_items
-  in
-  { p with code_items = Bindlib.unbox new_code_items }
-
 let rec peephole_expr (e : 'm expr) : 'm expr boxed =
   let m = Marked.get_mark e in
   match Marked.unmark e with
@@ -194,6 +181,16 @@ let rec peephole_expr (e : 'm expr) : 'm expr boxed =
         | _ -> ECatch { body; exn; handler })
       m
   | _ -> visitor_map peephole_expr e
+
+(* TODO: beta optimizations apply inlining of the program. We left the inclusion
+   of beta-optimization as future work since its produce code that is harder to
+   read, and can produce exponential blowup of the size of the generated
+   program. *)
+let _beta_optimizations (p : 'm program) : 'm program =
+  let new_code_items =
+    Scope.map_exprs ~f:beta_expr ~varf:(fun v -> v) p.code_items
+  in
+  { p with code_items = Bindlib.unbox new_code_items }
 
 let peephole_optimizations (p : 'm program) : 'm program =
   let new_code_items =
