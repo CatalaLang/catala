@@ -662,6 +662,7 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
     Ast.scope_decl_rules;
     Ast.scope_sig;
     Ast.scope_mark = Untyped { pos };
+    Ast.scope_options = scope.scope_options;
   }
 
 (** {1 API} *)

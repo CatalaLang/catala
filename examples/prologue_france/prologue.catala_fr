@@ -14,4 +14,24 @@ déclaration énumération Collectivité :
   -- Métropole
   -- SaintPierreEtMiquelon
   -- Mayotte
+
+déclaration champ d'application VérificationÂgeInférieurOuÉgalÀ:
+  entrée date_naissance contenu date
+  entrée date_courante contenu date
+  entrée années contenu durée
+  résultat est_inférieur_ou_égal contenu booléen
+
+champ d'application VérificationÂgeInférieurOuÉgalÀ:
+  définition est_inférieur_ou_égal égal à date_naissance + années <= date_courante
+  date arrondi croissant
+
+déclaration champ d'application VérificationÂgeSupérieurÀ:
+  entrée date_naissance contenu date
+  entrée date_courante contenu date
+  entrée années contenu durée
+  résultat est_supérieur contenu booléen
+
+champ d'application VérificationÂgeSupérieurÀ:
+  définition est_supérieur égal à date_naissance + années > date_courante
+  date arrondi croissant
 ```

@@ -19,6 +19,7 @@ type money = Z.t
 type integer = Z.t
 type decimal = Q.t
 type date = Dates_calc.Dates.date
+type date_rounding = Dates_calc.Dates.date_rounding
 type duration = Dates_calc.Dates.period
 type 'a eoption = ENone of unit | ESome of 'a
 
@@ -637,7 +638,7 @@ module Oper = struct
   let o_add_int_int i1 i2 = Z.add i1 i2
   let o_add_rat_rat i1 i2 = Q.add i1 i2
   let o_add_mon_mon m1 m2 = Z.add m1 m2
-  let o_add_dat_dur da du = Dates_calc.Dates.add_dates da du
+  let o_add_dat_dur r da du = Dates_calc.Dates.add_dates ~round:r da du
   let o_add_dur_dur = Dates_calc.Dates.add_periods
   let o_sub_int_int i1 i2 = Z.sub i1 i2
   let o_sub_rat_rat i1 i2 = Q.sub i1 i2

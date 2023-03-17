@@ -2189,6 +2189,40 @@ class type base_mensuelle_allocations_familiales =
           base_mensuelle_allocations_familiales##.montant
     }
 
+class type verification_age_inferieur_ou_egal_a =
+  object method estInferieurOuEgal: bool Js.t Js.readonly_prop
+  end
+  let verification_age_inferieur_ou_egal_a_to_jsoo
+    (verification_age_inferieur_ou_egal_a
+    : VerificationAgeInferieurOuEgalA.t)
+    : verification_age_inferieur_ou_egal_a Js.t =
+    object%js
+      val estInferieurOuEgal =
+        Js.bool verification_age_inferieur_ou_egal_a.est_inferieur_ou_egal
+      end
+  let verification_age_inferieur_ou_egal_a_of_jsoo
+    (verification_age_inferieur_ou_egal_a
+      : verification_age_inferieur_ou_egal_a Js.t) :
+    VerificationAgeInferieurOuEgalA.t =
+    {
+      est_inferieur_ou_egal =
+        Js.to_bool verification_age_inferieur_ou_egal_a##.estInferieurOuEgal
+    }
+
+class type verification_age_superieur_a =
+  object method estSuperieur: bool Js.t Js.readonly_prop
+  end
+  let verification_age_superieur_a_to_jsoo (verification_age_superieur_a
+    : VerificationAgeSuperieurA.t) : verification_age_superieur_a Js.t =
+    object%js
+      val estSuperieur = Js.bool verification_age_superieur_a.est_superieur
+      end
+  let verification_age_superieur_a_of_jsoo
+    (verification_age_superieur_a : verification_age_superieur_a Js.t) :
+    VerificationAgeSuperieurA.t =
+    {est_superieur = Js.to_bool verification_age_superieur_a##.estSuperieur
+    }
+
 class type smic =
   object method brutHoraire: Js.number Js.t Js.readonly_prop
   end
@@ -2450,6 +2484,9 @@ class type logement_foyer =
     method redevance: Js.number Js.t Js.readonly_prop
     method categorieEquivalenceLoyerD84216:
       categorie_equivalence_loyer_allocation_logement_foyer Js.t Js.readonly_prop
+    method beneficiaireAideAdulteOuEnfantHandicapes:
+      bool Js.t Js.readonly_prop
+    method logementMeubleD8422: bool Js.t Js.readonly_prop
   end
   let logement_foyer_to_jsoo (logement_foyer : LogementFoyer.t)
     : logement_foyer Js.t =
@@ -2469,6 +2506,9 @@ class type logement_foyer =
         Js.number_of_float @@ money_to_float logement_foyer.redevance
       val categorieEquivalenceLoyerD84216 =
         categorie_equivalence_loyer_allocation_logement_foyer_to_jsoo logement_foyer.categorie_equivalence_loyer_d842_16
+      val beneficiaireAideAdulteOuEnfantHandicapes =
+        Js.bool logement_foyer.beneficiaire_aide_adulte_ou_enfant_handicapes
+      val logementMeubleD8422 = Js.bool logement_foyer.logement_meuble_d842_2
       end
   let logement_foyer_of_jsoo (logement_foyer : logement_foyer Js.t) :
     LogementFoyer.t =
@@ -2489,7 +2529,11 @@ class type logement_foyer =
           logement_foyer##.redevance;
       categorie_equivalence_loyer_d842_16 =
         categorie_equivalence_loyer_allocation_logement_foyer_of_jsoo
-          logement_foyer##.categorieEquivalenceLoyerD84216
+          logement_foyer##.categorieEquivalenceLoyerD84216;
+      beneficiaire_aide_adulte_ou_enfant_handicapes =
+        Js.to_bool logement_foyer##.beneficiaireAideAdulteOuEnfantHandicapes;
+      logement_meuble_d842_2 =
+        Js.to_bool logement_foyer##.logementMeubleD8422
     }
 
 class type enfant_prestations_familiales =
@@ -3746,6 +3790,7 @@ class type calcul_nombre_part_logement_foyer_in =
     method nombrePersonnesAChargeIn: int Js.readonly_prop
     method situationFamilialeCalculAplIn:
       situation_familiale_calcul_a_p_l Js.t Js.readonly_prop
+    method residenceIn: collectivite Js.t Js.readonly_prop
     method limitationMajorationPersonnesAChargeIn:
       (unit,  unit -> bool Js.t) Js.meth_callback Js.meth
   end
@@ -3760,6 +3805,8 @@ class type calcul_nombre_part_logement_foyer_in =
         integer_to_int calcul_nombre_part_logement_foyer_in.nombre_personnes_a_charge_in
       val situationFamilialeCalculAplIn =
         situation_familiale_calcul_a_p_l_to_jsoo calcul_nombre_part_logement_foyer_in.situation_familiale_calcul_apl_in
+      val residenceIn =
+        collectivite_to_jsoo calcul_nombre_part_logement_foyer_in.residence_in
       method limitationMajorationPersonnesAChargeIn = Js.wrap_meth_callback
         (
           fun _ (function_input0: unit) ->
@@ -3781,6 +3828,9 @@ class type calcul_nombre_part_logement_foyer_in =
         situation_familiale_calcul_a_p_l_of_jsoo
           calcul_nombre_part_logement_foyer_in
           ##.situationFamilialeCalculAplIn;
+      residence_in =
+        collectivite_of_jsoo
+          calcul_nombre_part_logement_foyer_in##.residenceIn;
       limitation_majoration_personnes_a_charge_in = failwith "The function 'limitation_majoration_personnes_a_charge_in' translation isn't yet supported..."
     }
 
@@ -3795,6 +3845,7 @@ class type calcul_aide_personnalisee_logement_foyer_in =
     method zoneIn: zone_d_habitation Js.t Js.readonly_prop
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
     method redevanceIn: Js.number Js.t Js.readonly_prop
+    method residenceIn: collectivite Js.t Js.readonly_prop
     method condition2Du83225In:
       (unit,  unit -> bool Js.t) Js.meth_callback Js.meth
     method limitationMajorationPersonnesAChargeIn:
@@ -3823,6 +3874,8 @@ class type calcul_aide_personnalisee_logement_foyer_in =
         date_to_jsoo calcul_aide_personnalisee_logement_foyer_in.date_courante_in
       val redevanceIn =
         Js.number_of_float @@ money_to_float calcul_aide_personnalisee_logement_foyer_in.redevance_in
+      val residenceIn =
+        collectivite_to_jsoo calcul_aide_personnalisee_logement_foyer_in.residence_in
       method condition2Du83225In = Js.wrap_meth_callback
         (
           fun _ (function_input0: unit) ->
@@ -3875,6 +3928,9 @@ class type calcul_aide_personnalisee_logement_foyer_in =
       redevance_in =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_aide_personnalisee_logement_foyer_in##.redevanceIn;
+      residence_in =
+        collectivite_of_jsoo
+          calcul_aide_personnalisee_logement_foyer_in##.residenceIn;
       condition_2_du_832_25_in = failwith "The function 'condition_2_du_832_25_in' translation isn't yet supported...";
       limitation_majoration_personnes_a_charge_in = failwith "The function 'limitation_majoration_personnes_a_charge_in' translation isn't yet supported...";
       n_nombre_parts_d832_25_in = failwith "The function 'n_nombre_parts_d832_25_in' translation isn't yet supported..."
@@ -4615,6 +4671,66 @@ class type base_mensuelle_allocations_familiales_in =
           base_mensuelle_allocations_familiales_in##.dateCouranteIn
     }
 
+class type verification_age_inferieur_ou_egal_a_in =
+  object
+    method dateNaissanceIn: Js.js_string Js.t Js.readonly_prop
+    method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
+    method anneesIn: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
+  end
+  let verification_age_inferieur_ou_egal_a_in_to_jsoo
+    (verification_age_inferieur_ou_egal_a_in
+    : VerificationAgeInferieurOuEgalAIn.t)
+    : verification_age_inferieur_ou_egal_a_in Js.t =
+    object%js
+      val dateNaissanceIn =
+        date_to_jsoo verification_age_inferieur_ou_egal_a_in.date_naissance_in
+      val dateCouranteIn =
+        date_to_jsoo verification_age_inferieur_ou_egal_a_in.date_courante_in
+      val anneesIn =
+        duration_to_jsoo verification_age_inferieur_ou_egal_a_in.annees_in
+      end
+  let verification_age_inferieur_ou_egal_a_in_of_jsoo
+    (verification_age_inferieur_ou_egal_a_in
+      : verification_age_inferieur_ou_egal_a_in Js.t) :
+    VerificationAgeInferieurOuEgalAIn.t =
+    {
+      date_naissance_in =
+        date_of_jsoo
+          verification_age_inferieur_ou_egal_a_in##.dateNaissanceIn;
+      date_courante_in =
+        date_of_jsoo verification_age_inferieur_ou_egal_a_in##.dateCouranteIn;
+      annees_in =
+        duration_of_jsoo verification_age_inferieur_ou_egal_a_in##.anneesIn
+    }
+
+class type verification_age_superieur_a_in =
+  object
+    method dateNaissanceIn: Js.js_string Js.t Js.readonly_prop
+    method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
+    method anneesIn: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
+  end
+  let verification_age_superieur_a_in_to_jsoo
+    (verification_age_superieur_a_in : VerificationAgeSuperieurAIn.t)
+    : verification_age_superieur_a_in Js.t =
+    object%js
+      val dateNaissanceIn =
+        date_to_jsoo verification_age_superieur_a_in.date_naissance_in
+      val dateCouranteIn =
+        date_to_jsoo verification_age_superieur_a_in.date_courante_in
+      val anneesIn =
+        duration_to_jsoo verification_age_superieur_a_in.annees_in
+      end
+  let verification_age_superieur_a_in_of_jsoo
+    (verification_age_superieur_a_in : verification_age_superieur_a_in Js.t) :
+    VerificationAgeSuperieurAIn.t =
+    {
+      date_naissance_in =
+        date_of_jsoo verification_age_superieur_a_in##.dateNaissanceIn;
+      date_courante_in =
+        date_of_jsoo verification_age_superieur_a_in##.dateCouranteIn;
+      annees_in = duration_of_jsoo verification_age_superieur_a_in##.anneesIn
+    }
+
 class type smic_in =
   object
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
@@ -4738,6 +4854,24 @@ let base_mensuelle_allocations_familiales
   |> base_mensuelle_allocations_familiales_in_of_jsoo
   |> base_mensuelle_allocations_familiales
   |> base_mensuelle_allocations_familiales_to_jsoo
+
+
+let verification_age_inferieur_ou_egal_a
+  (verification_age_inferieur_ou_egal_a_in : verification_age_inferieur_ou_egal_a_in Js.t)
+  : verification_age_inferieur_ou_egal_a Js.t =
+  verification_age_inferieur_ou_egal_a_in
+  |> verification_age_inferieur_ou_egal_a_in_of_jsoo
+  |> verification_age_inferieur_ou_egal_a
+  |> verification_age_inferieur_ou_egal_a_to_jsoo
+
+
+let verification_age_superieur_a
+  (verification_age_superieur_a_in : verification_age_superieur_a_in Js.t)
+  : verification_age_superieur_a Js.t =
+  verification_age_superieur_a_in
+  |> verification_age_superieur_a_in_of_jsoo
+  |> verification_age_superieur_a
+  |> verification_age_superieur_a_to_jsoo
 
 
 let smic (smic_in : smic_in Js.t)
@@ -4913,6 +5047,12 @@ let _ =
       
       method baseMensuelleAllocationsFamiliales : (base_mensuelle_allocations_familiales_in Js.t -> base_mensuelle_allocations_familiales Js.t) Js.callback =
         Js.wrap_callback base_mensuelle_allocations_familiales
+      
+      method verificationAgeInferieurOuEgalA : (verification_age_inferieur_ou_egal_a_in Js.t -> verification_age_inferieur_ou_egal_a Js.t) Js.callback =
+        Js.wrap_callback verification_age_inferieur_ou_egal_a
+      
+      method verificationAgeSuperieurA : (verification_age_superieur_a_in Js.t -> verification_age_superieur_a Js.t) Js.callback =
+        Js.wrap_callback verification_age_superieur_a
       
       method smic : (smic_in Js.t -> smic Js.t) Js.callback =
         Js.wrap_callback smic

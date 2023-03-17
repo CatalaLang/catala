@@ -239,7 +239,7 @@ and evaluate_operator :
           | Add_int_int, [LInt x; LInt y] -> LInt (o_add_int_int x y)
           | Add_rat_rat, [LRat x; LRat y] -> LRat (o_add_rat_rat x y)
           | Add_mon_mon, [LMoney x; LMoney y] -> LMoney (o_add_mon_mon x y)
-          | Add_dat_dur, [LDate x; LDuration y] -> LDate (o_add_dat_dur x y)
+          | Add_dat_dur r, [LDate x; LDuration y] -> LDate (o_add_dat_dur r x y)
           | Add_dur_dur, [LDuration x; LDuration y] ->
             LDuration (o_add_dur_dur x y)
           | Sub_int_int, [LInt x; LInt y] -> LInt (o_sub_int_int x y)
@@ -294,7 +294,7 @@ and evaluate_operator :
             LBool (protect o_eq_dur_dur x y)
           | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int
               | ToRat_mon | ToMoney_rat | Round_rat | Round_mon | Add_int_int
-              | Add_rat_rat | Add_mon_mon | Add_dat_dur | Add_dur_dur
+              | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
               | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
               | Sub_dat_dur | Sub_dur_dur | Mult_int_int | Mult_rat_rat
               | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat

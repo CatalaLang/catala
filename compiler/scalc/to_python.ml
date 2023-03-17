@@ -70,8 +70,8 @@ let format_op
   | LastDayOfMonth -> Format.pp_print_string fmt "last_day_of_month"
   | Round_mon -> Format.pp_print_string fmt "money_round"
   | Round_rat -> Format.pp_print_string fmt "decimal_round"
-  | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur | Add_dur_dur | Concat
-    ->
+  | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
+  | Concat ->
     Format.pp_print_string fmt "+"
   | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
   | Sub_dur_dur ->

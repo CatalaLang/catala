@@ -221,8 +221,11 @@ exception cas_base_l822_4 règle condition_logement_location_tiers
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- LouéOuSousLouéÀDesTiers.Non: vrai
     -- LouéOuSousLouéÀDesTiers.Oui de personne:
-      personne.date_naissance_personne_sous_location + 30 an >
-        date_courante ou
+      (résultat de VérificationÂgeSupérieurÀ avec
+        { -- date_naissance: personne.date_naissance_personne_sous_location
+          -- date_courante: date_courante
+          -- années: 30 an }).est_supérieur
+        ou
       personne.conforme_article_l442_1
   conséquence rempli
 ```
@@ -983,6 +986,7 @@ champ d'application ÉligibilitéAllocationLogement:
       = 0
     et
     (selon ménage.situation_familiale sous forme
+    # VERIF: opération ambiguë
     -- Mariés de date_mariage : date_courante <= date_mariage + durée_l841_1_3
     -- n'importe quel: faux)
   conséquence rempli
