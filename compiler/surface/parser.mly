@@ -496,6 +496,17 @@ let scope_item :=
   Definition d, Marked.get_mark (Shared_ast.RuleName.get_info d.definition_id)
 }
 | ASSERTION ; contents = addpos(assertion) ; <>
+| DATE ; i = LIDENT ; v = addpos(variation_type) ;
+  {
+    (* Round is a builtin, we need to check which one it is *)
+    match Localisation.lex_builtin i with
+    | Some Round ->
+       DateRounding(v), Marked.get_mark v
+    | _ -> 
+         Errors.raise_spanned_error
+           (Pos.from_lpos $loc(i))
+           "Expected the form 'date round increasing' or 'date round decreasing'"
+  }
 
 let struct_scope_base :=
 | DATA ; i = lident ;

@@ -58,6 +58,7 @@ type 'm ctx = {
     ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t
     SubScopeName.Map.t;
   local_vars : ('m Scopelang.Ast.expr, 'm Ast.expr Var.t) Var.Map.t;
+  date_rounding : date_rounding;
 }
 
 let mark_tany m pos = Expr.with_ty m (Marked.mark pos TAny) ~pos
@@ -557,7 +558,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
       (translate_expr ctx efalse)
       m
-  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
+  | EOp { op; tys } ->
+    Expr.eop (Operator.translate (Some ctx.date_rounding) op) tys m
   | EErrorOnEmpty e' -> Expr.eerroronempty (translate_expr ctx e') m
   | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
 
@@ -914,6 +916,17 @@ let translate_scope_decl
         | _ -> ctx)
       ctx scope_variables
   in
+  let date_rounding : date_rounding =
+    match
+      List.find_opt
+        (function Desugared.Ast.DateRounding _, _ -> true)
+        sigma.scope_options
+    with
+    | Some (Desugared.Ast.DateRounding Desugared.Ast.Increasing, _) -> RoundUp
+    | Some (DateRounding Decreasing, _) -> RoundDown
+    | None -> AbortOnRound
+  in
+  let ctx = { ctx with date_rounding } in
   let scope_input_var = scope_sig.scope_sig_input_var in
   let scope_input_struct_name = scope_sig.scope_sig_input_struct in
   let scope_return_struct_name = scope_sig.scope_sig_output_struct in
@@ -1079,6 +1092,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
       subscope_vars = SubScopeName.Map.empty;
       local_vars = Var.Map.empty;
       toplevel_vars;
+      date_rounding = AbortOnRound;
     }
   in
   (* the resulting expression is the list of definitions of all the scopes,

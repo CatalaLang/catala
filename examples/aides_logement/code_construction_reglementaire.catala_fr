@@ -1148,7 +1148,10 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant:
-      enfant.date_de_naissance + 21 an > date_courante
+      (résultat de VérificationÂgeSupérieurÀ avec
+        { -- date_naissance: enfant.date_de_naissance
+          -- date_courante: date_courante
+          -- années: 21 an }).r
     -- AutrePersonneÀCharge de parent: faux
   conséquence rempli
 ```
@@ -1177,12 +1180,17 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
         parent.ressources <=
           plafond_individuel_l815_9_sécu * 1,25 et
         (
+          # VERIF: parent.date_naissance + âge_l351_8_1_sécu est ambiguë, à détecter
           (parent.date_naissance +
             âge_l351_8_1_sécu <= date_courante ou
               (parent.titulaire_allocation_personne_âgée et
-                parent.date_naissance + 65 an <=
-                  date_courante)
+               (résultat de VérificationÂgeInférieurOuÉgalÀ avec
+                { -- date_naissance: parent.date_naissance
+                  -- date_courante: date_courante
+                  -- années: 65 an }).r
+              )
           ) ou
+          # VERIF: parent.date_naissance + âge_l161_17_2_sécu est ambiguë, à détecter
           (parent.date_naissance +
             âge_l161_17_2_sécu <= date_courante et
               parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
@@ -2075,6 +2083,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
       -- AvantPremierJourMoisCivilTroisièmeMoisDeGrossesse: faux
       -- AprèsPremierJourMoisCivilTroisièmeMoisDeGrossesse: vrai
       -- DateDeNaissance de date_naissance:
+        # VERIF: ambigü
         date_courante <=
           ((premier_jour_du_mois de (date_naissance + 2 an))) + (-1 jour))
     )

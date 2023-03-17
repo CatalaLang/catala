@@ -52,7 +52,12 @@ let name : type a k. (a, k) t -> string = function
   | Add_int_int -> "o_add_int_int"
   | Add_rat_rat -> "o_add_rat_rat"
   | Add_mon_mon -> "o_add_mon_mon"
-  | Add_dat_dur -> "o_add_dat_dur"
+  | Add_dat_dur rm -> begin
+    match rm with
+    | RoundUp -> "o_add_dat_dur RoundUp"
+    | RoundDown -> "o_add_dat_dur RoundDown"
+    | AbortOnRound -> "o_add_dat_dur AbortOnRound"
+  end
   | Add_dur_dur -> "o_add_dur_dur"
   | Sub -> "o_sub"
   | Sub_int_int -> "o_sub_int_int"
@@ -125,6 +130,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
     match compare_log_entries l1 l2 with
     | 0 -> List.compare Uid.MarkedString.compare info1 info2
     | n -> n)
+  | Add_dat_dur l, Add_dat_dur r -> Stdlib.compare l r
   | Not, Not
   | Length, Length
   | GetDay, GetDay
@@ -157,7 +163,6 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Add_int_int, Add_int_int
   | Add_rat_rat, Add_rat_rat
   | Add_mon_mon, Add_mon_mon
-  | Add_dat_dur, Add_dat_dur
   | Add_dur_dur, Add_dur_dur
   | Sub, Sub
   | Sub_int_int, Sub_int_int
@@ -240,7 +245,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Add_int_int, _ -> -1 | _, Add_int_int -> 1
   | Add_rat_rat, _ -> -1 | _, Add_rat_rat -> 1
   | Add_mon_mon, _ -> -1 | _, Add_mon_mon -> 1
-  | Add_dat_dur, _ -> -1 | _, Add_dat_dur -> 1
+  | Add_dat_dur _, _ -> -1 | _, Add_dat_dur _ -> 1
   | Add_dur_dur, _ -> -1 | _, Add_dur_dur -> 1
   | Sub, _ -> -1 | _, Sub -> 1
   | Sub_int_int, _ -> -1 | _, Sub_int_int -> 1
@@ -316,7 +321,7 @@ let kind_dispatch :
     overloaded op
   | ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
     | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
-    | Add_mon_mon | Add_dat_dur | Add_dur_dur | Sub_int_int | Sub_rat_rat
+    | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
     | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
     | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
     | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
@@ -331,9 +336,10 @@ let kind_dispatch :
    lcalc *)
 let translate :
     type k.
+    date_rounding option ->
     ([< scopelang | dcalc | lcalc ], k) t ->
     ([< scopelang | dcalc | lcalc ], k) t =
- fun op ->
+ fun r op ->
   match op with
   | Length -> Length
   | Log (i, l) -> Log (i, l)
@@ -364,7 +370,7 @@ let translate :
   | Add_int_int -> Add_int_int
   | Add_rat_rat -> Add_rat_rat
   | Add_mon_mon -> Add_mon_mon
-  | Add_dat_dur -> Add_dat_dur
+  | Add_dat_dur rmode -> Add_dat_dur (Option.value r ~default:rmode)
   | Add_dur_dur -> Add_dur_dur
   | Sub_int_int -> Sub_int_int
   | Sub_rat_rat -> Sub_rat_rat
@@ -450,7 +456,7 @@ let resolved_type (op, pos) =
     | Add_int_int -> [TInt; TInt], TInt
     | Add_rat_rat -> [TRat; TRat], TRat
     | Add_mon_mon -> [TMoney; TMoney], TMoney
-    | Add_dat_dur -> [TDate; TDuration], TDate
+    | Add_dat_dur _ -> [TDate; TDuration], TDate
     | Add_dur_dur -> [TDuration; TDuration], TDuration
     | Sub_int_int -> [TInt; TInt], TInt
     | Sub_rat_rat -> [TRat; TRat], TRat
@@ -511,8 +517,8 @@ let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
   | Add, [TRat; TRat] -> Add_rat_rat, `Straight
   | Add, [TMoney; TMoney] -> Add_mon_mon, `Straight
   | Add, [TDuration; TDuration] -> Add_dur_dur, `Straight
-  | Add, [TDate; TDuration] -> Add_dat_dur, `Straight
-  | Add, [TDuration; TDate] -> Add_dat_dur, `Reversed
+  | Add, [TDate; TDuration] -> Add_dat_dur AbortOnRound, `Straight
+  | Add, [TDuration; TDate] -> Add_dat_dur AbortOnRound, `Reversed
   | Sub, [TInt; TInt] -> Sub_int_int, `Straight
   | Sub, [TRat; TRat] -> Sub_rat_rat, `Straight
   | Sub, [TMoney; TMoney] -> Sub_mon_mon, `Straight
