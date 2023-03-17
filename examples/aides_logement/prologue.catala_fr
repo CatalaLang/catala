@@ -124,6 +124,8 @@ déclaration structure LogementFoyer:
   donnée redevance contenu argent
   donnée catégorie_équivalence_loyer_d842_16 contenu
     CatégorieÉquivalenceLoyerAllocationLogementFoyer
+  donnée bénéficiaire_aide_adulte_ou_enfant_handicapés contenu booléen
+  donnée logement_meublé_d842_2 contenu booléen
 
 ```
 

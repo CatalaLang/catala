@@ -1454,7 +1454,7 @@ champ d'application CalculAidePersonnaliséeLogement:
       Traitement_formule_aide_finale.traitement_aide_finale de arg)
 ```
 
-```catala-metadata
+```catala
   # Maintenant que nous avons déterminé comment calculer l'aide finale
   # en fonction du mode d'occupation, il nous faut donner à chacun des modes
   # de calcul les paramètres qu'il attend.
@@ -1546,8 +1546,8 @@ champ d'application CalculAidePersonnaliséeLogement:
 
 champ d'application CalculAllocationLogement:
   définition sous_calcul_traitement égal à
-    selon mode_occupation sous forme
-    -- Locataire de location:
+    selon catégorie_calcul_apl sous forme
+    -- Location de location:
       (soit traitement_formule égal à
         résultat de CalculAllocationLogementLocatif avec {
           -- résidence: résidence
@@ -1580,40 +1580,7 @@ champ d'application CalculAllocationLogement:
             CalculAllocationLogementLocatif.
               traitement_aide_finale
       })
-    -- SousLocataire de location: # Identique à Locataire
-      (soit traitement_formule égal à
-        résultat de CalculAllocationLogementLocatif avec {
-          -- résidence: résidence
-          -- ressources_ménage_arrondies: ressources_ménage
-          -- nombre_personnes_à_charge: nombre_personnes_à_charge
-          -- zone: zone
-          -- date_courante: date_courante
-          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
-          -- loyer_principal: location.loyer_principal
-          -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
-              location.bénéficiaire_aide_adulte_ou_enfant_handicapés
-          -- logement_est_chambre: location.logement_est_chambre
-          -- colocation: location.colocation
-          -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers:
-              location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-          -- type_aide: type_aide
-          -- réduction_loyer_solidarité:
-              (selon location.bailleur sous forme
-                 -- BailleurSocial de bailleur:
-                     bailleur.réduction_loyer_solidarité_perçue
-                 -- n'importe quel: 0€)
-          -- logement_meublé_d842_2: location.logement_meublé_d842_2
-          -- changement_logement_d842_4: location.changement_logement_d842_4
-        }
-      dans Traitement_formule_aide_finale {
-        -- aide_finale_formule:
-          traitement_formule.
-            CalculAllocationLogementLocatif.aide_finale_formule
-        -- traitement_aide_finale:
-          traitement_formule.
-            CalculAllocationLogementLocatif.traitement_aide_finale
-      })
-    -- RésidentLogementFoyer de logement_foyer_:
+    -- LogementFoyer de logement_foyer_:
       (soit traitement_formule égal à
         résultat de CalculAllocationLogementFoyer avec {
           -- ressources_ménage_arrondies: ressources_ménage
@@ -1635,7 +1602,7 @@ champ d'application CalculAllocationLogement:
           traitement_formule.
             CalculAllocationLogementFoyer.traitement_aide_finale
       })
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+    -- AccessionPropriété de propriétaire:
       (soit traitement_formule égal à
          résultat de CalculAllocationLogementAccessionPropriété avec {
            -- ressources_ménage_arrondies: ressources_ménage
@@ -1651,37 +1618,6 @@ champ d'application CalculAllocationLogement:
            -- charges_mensuelles_prêt: propriétaire.charges_mensuelles_prêt
            -- type_travaux_logement: propriétaire.type_travaux_logement_r842_5
            -- date_signature_prêt: propriétaire.prêt.date_signature
-           -- local_habité_première_fois_bénéficiaire:
-             propriétaire.local_habité_première_fois_bénéficiaire
-           -- date_entrée_logement: propriétaire.date_entrée_logement
-           -- copropriété: propriétaire.copropriété
-           -- situation_r822_11_13_17: propriétaire.situation_r822_11_13_17
-         }
-      dans Traitement_formule_aide_finale {
-        -- aide_finale_formule:
-          traitement_formule.
-            CalculAllocationLogementAccessionPropriété.aide_finale_formule
-        -- traitement_aide_finale:
-          traitement_formule.
-            CalculAllocationLogementAccessionPropriété.traitement_aide_finale
-      })
-    -- LocationAccession de propriétaire:
-      # Identique à AccessionPropriétéLocalUsageExclusifHabitation
-      (soit traitement_formule égal à
-         résultat de CalculAllocationLogementAccessionPropriété avec {
-           -- ressources_ménage_arrondies: ressources_ménage
-           -- nombre_personnes_à_charge: nombre_personnes_à_charge
-           -- zone: zone
-           -- résidence: résidence
-           -- date_courante: date_courante
-           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
-           -- mensualité_principale: propriétaire.mensualité_principale
-           -- charges_mensuelles_prêt: propriétaire.charges_mensuelles_prêt
-           -- type_travaux_logement: propriétaire.type_travaux_logement_r842_5
-           -- date_signature_prêt: propriétaire.prêt.date_signature
-        -- opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État:
-          propriétaire.
-            opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
            -- local_habité_première_fois_bénéficiaire:
              propriétaire.local_habité_première_fois_bénéficiaire
            -- date_entrée_logement: propriétaire.date_entrée_logement
@@ -6428,9 +6364,123 @@ articles R. 842-5 et D. 842-6 à D. 842-13 ;
 “ 2° Pour les autres ménages, par les règles communes figurant aux articles D. 823-16 à
 D. 823-19 et par les règles particulières figurant aux articles D. 842-1 à D. 842-4. ” ;
 
+
 ```catala
-# TODO informatique: coder le fait qu'il n'y ait pas de logement-foyer à
-# Saint-Pierre-et-Miquelon
+# Ici, l'effet de cette modification est d'imposer le mode de calcul du
+# secteur locatif à tous les logements-foyer de Saint-Pierre et Miquelon.
+champ d'application CalculAidePersonnaliséeLogement sous condition
+  résidence sous forme SaintPierreEtMiquelon et
+  catégorie_calcul_apl sous forme LogementFoyer:
+
+  exception définition sous_calcul_traitement égal à
+    selon catégorie_calcul_apl sous forme
+    # Les deux premiers cas ne se déclenchent pas dans cette exception donc
+    # nous renvoyons des valeurs nulles qui ne seront jamais utilisées.
+    -- AccessionPropriété:
+      Traitement_formule_aide_finale {
+        -- aide_finale_formule: 0€
+        -- traitement_aide_finale: traitement_nul_tout_le_temps
+      }
+    -- Location: Traitement_formule_aide_finale {
+        -- aide_finale_formule: 0€
+        -- traitement_aide_finale: traitement_nul_tout_le_temps
+      }
+    # Maintenant on arrive au cas intéressant des logements-foyer
+    -- LogementFoyer de logement_foyer_:
+      (soit traitement_formule égal à
+        résultat de CalculAidePersonnaliséeLogementLocatif avec {
+          -- ressources_ménage_arrondies: ressources_ménage
+          -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- zone: zone
+          -- date_courante: date_courante
+          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+          # Nous assimilons la redevance au loyer pour le calcul
+          -- loyer_principal: logement_foyer_.redevance
+          -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
+              logement_foyer_.bénéficiaire_aide_adulte_ou_enfant_handicapés
+          # TODO juridique: est-ce qu'on applique le barème spécial chambre
+          # systématiquement pour les personnes résidant en logement-foyer
+          # à Saint-Pierre-et-Miquelon ?
+          -- logement_est_chambre: vrai
+          # TODO juridique: examiner si dans ce cas on considère qu'une personne
+          # habitant en logement-foyer n'est pas en colocation au sens du
+          # secteur locatif.
+          -- colocation: faux
+          # Ce cas prévu à l'article 8 de l'arrêté du 27 septembre 2019 n'est
+          # pas possible pour un hébergement en logement-foyer.
+          -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
+          -- type_aide: type_aide
+          # TODO juridique: examiner si les logement-foyers de Saint-Pierre-et-
+          # Miquelon ouvrent droit à la réducation de loyer de solidarité
+          -- réduction_loyer_solidarité: 0 €
+          -- logement_meublé_d842_2: logement_foyer_.logement_meublé_d842_2
+          -- résidence: résidence
+        }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule:
+          traitement_formule.aide_finale_formule
+        -- traitement_aide_finale:
+          traitement_formule.traitement_aide_finale
+      })
+
+
+champ d'application CalculAllocationLogement sous condition
+  résidence sous forme SaintPierreEtMiquelon:
+
+  exception définition sous_calcul_traitement égal à
+    selon catégorie_calcul_apl sous forme
+    -- LogementFoyer de logement_foyer_:
+      (soit traitement_formule égal à
+        résultat de CalculAllocationLogementLocatif avec {
+          -- résidence: résidence
+          -- ressources_ménage_arrondies: ressources_ménage
+          -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- zone: zone
+          -- date_courante: date_courante
+          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+          # Nous assimilons la redevance au loyer pour le calcul
+          -- loyer_principal: logement_foyer_.redevance
+          -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
+              logement_foyer_.bénéficiaire_aide_adulte_ou_enfant_handicapés
+          # TODO juridique: est-ce qu'on applique le barème spécial chambre
+          # systématiquement pour les personnes résidant en logement-foyer
+          # à Saint-Pierre-et-Miquelon ?
+          -- logement_est_chambre: vrai
+          # TODO juridique: examiner si dans ce cas on considère qu'une personne
+          # habitant en logement-foyer n'est pas en colocation au sens du
+          # secteur locatif.
+          -- colocation: faux
+          # Ce cas prévu à l'article 8 de l'arrêté du 27 septembre 2019 n'est
+          # pas possible pour un hébergement en logement-foyer.
+          -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
+          -- type_aide: type_aide
+          # TODO juridique: examiner si les logement-foyers de Saint-Pierre-et-
+          # Miquelon ouvrent droit à la réducation de loyer de solidarité
+          -- réduction_loyer_solidarité: 0 €
+          -- logement_meublé_d842_2: logement_foyer_.logement_meublé_d842_2
+          -- changement_logement_d842_4: PasDeChangement
+        }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule:
+          traitement_formule.aide_finale_formule
+        -- traitement_aide_finale:
+          traitement_formule.
+            CalculAllocationLogementLocatif.traitement_aide_finale
+      })
+    # Les deux premiers cas ne se déclenchent pas dans cette exception donc
+    # nous renvoyons des valeurs nulles qui ne seront jamais utilisées.
+    -- AccessionPropriété:
+      Traitement_formule_aide_finale {
+        -- aide_finale_formule: 0€
+        -- traitement_aide_finale: traitement_nul_tout_le_temps
+    }
+    -- Location: Traitement_formule_aide_finale {
+        -- aide_finale_formule: 0€
+        -- traitement_aide_finale: traitement_nul_tout_le_temps
+    }
+
+déclaration traitement_nul_tout_le_temps contenu argent
+  dépend de aide_finale contenu argent égal à 0 €
 ```
 
 2° Au 5° de l'article D. 823-17, les mots : “ en fonction de l'évolution de l'indice des
@@ -6641,8 +6691,11 @@ janvier 2022.
 Les articles D. 842-15 à D. 842-18 ne sont pas applicables à Saint-Pierre-et-Miquelon.
 
 ```catala
-# TODO informatique: coder le fait qu'il n'y ait pas de logement-foyer à
-# Saint-Pierre-et-Miquelon
+# Les articles D842-15 à D842-18 concernent les modalités de calcul de
+# l'allocation de logement pour les logements-foyers, mais nous savions
+# déjà depuis D863-7 qu'il faut utiliser les règles du secteur locatif
+# au lieu des règles du secteur logement-foyer à Saint-Pierre-et-Miquelon.
+# Voir le code Catala de D863-7 pour l'implémentation.
 ```
 
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
