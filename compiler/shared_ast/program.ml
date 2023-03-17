@@ -58,14 +58,23 @@ let rec all_scopes code_item_list =
 
 let to_expr p main_scope =
   let _, main_scope_body = find_scope main_scope [] p.code_items in
-  Scope.unfold p.decl_ctx p.code_items
-    (Scope.get_body_mark main_scope_body)
-    (ScopeName main_scope)
+
+  let res =
+    Scope.unfold p.decl_ctx p.code_items
+      (Scope.get_body_mark main_scope_body)
+      (ScopeName main_scope)
+  in
+  assert (Bindlib.is_closed (Expr.Box.lift res));
+  res
 
 let equal p p' =
   let ss = all_scopes p.code_items in
   let ss' = all_scopes p'.code_items in
 
+
   ListLabels.for_all2 ss ss' ~f:(fun s s' ->
       ScopeName.equal s s'
-      && Expr.equal (Expr.unbox @@ to_expr p s) (Expr.unbox @@ to_expr p' s))
+      &&
+      let e1 = Expr.unbox @@ to_expr p s in
+      let e2 = Expr.unbox @@ to_expr p s' in
+      Expr.equal e1 e2)
