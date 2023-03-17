@@ -855,7 +855,8 @@ champ d'application RessourcesAidesPersonnelleLogement:
       mode_occupation sous forme RésidentLogementFoyer) et
      condition_âge_bourse_enseignement_supérieur et
      demandeur_poursuit_des_études
-  conséquence égal à ressources_forfaitaires_r822_20
+  conséquence égal à 0€
+  #ressources_forfaitaires_r822_20
 
 # Le montant minoré sera défini plus tard, et donc constituera une exception
 # au cas de base de ressources_forfaitaires_r822_20
@@ -1042,6 +1043,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
     ménage.nombre_autres_occupants_logement +
     nombre de ménage.personnes_à_charge
 
+  étiquette base
   règle condition_logement_surface sous condition
     soit condition_logement_surface_minimale_sans_seuil_m_carrés égal à
       (selon ménage.situation_familiale sous forme
@@ -1497,6 +1499,7 @@ champ d'application CalculAidePersonnaliséeLogement:
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
+          -- résidence: résidence
           -- date_courante: date_courante
           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
           -- redevance: logement_foyer_.redevance
@@ -2006,11 +2009,25 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
 à la section 2 du chapitre II du présent titre et arrondies à la centaine d'euros supérieure ;
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogement:
-  définition ressources_ménage état avec_arrondi égal à
+déclaration arrondi_centaine_supérieure contenu argent
+  dépend de ressources_ménage contenu argent
+  égal à
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
     arrondi de ((ressources_ménage * 1%) + 0,49€) * 100,0
+
+# Ici nous arrondissons le montant des ressources pour tous les modes
+# de calcul et pour l'APL et l'AL. En effet, chaque mode de calcul
+# pour l'APL et l'AL prévoient le même arrondi des ressources du ménage.
+# Si jamais cela change, il faudra complexifier le code.
+
+champ d'application CalculAidePersonnaliséeLogement:
+  définition ressources_ménage état avec_arrondi égal à
+    arrondi_centaine_supérieure de ressources_ménage
+
+champ d'application CalculAllocationLogement:
+  définition ressources_ménage état avec_arrondi égal à
+    arrondi_centaine_supérieure de ressources_ménage
 ```
 
 5° “ R0 ” est un abattement forfaitaire appliqué aux ressources du ménage. Il est fixé
@@ -3949,23 +3966,28 @@ majoration par personne à charge supplémentaire	              0,5
 
 ```catala
 champ d'application CalculNombrePartLogementFoyer:
-  définition n_nombre_parts_d832_25 égal à
+  définition n_nombre_parts_d832_25_base égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 1,4
       -- Couple: 1,8
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       2,5
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       3,0
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       3,7
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon # si nombre_personnes_à_charge = 4 alors
       4,3
-    sinon
-      ( 4,3 + (0,5 * (décimal de
-        (nombre_personnes_à_charge - 4))))
-    ))))
+
+  étiquette d832_25_1
+  définition n_nombre_parts_d832_25_majoration égal à
+    si nombre_personnes_à_charge > 4 alors
+      0,5 * (décimal de (nombre_personnes_à_charge - 4))
+    sinon 0,0
+
+  définition n_nombre_parts_d832_25 égal à
+    n_nombre_parts_d832_25_base + n_nombre_parts_d832_25_majoration
 
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition calcul_nombre_parts.nombre_personnes_à_charge égal à
@@ -3974,6 +3996,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
     situation_familiale_calcul_apl
   définition calcul_nombre_parts.condition_2_du_832_25 égal à
     condition_2_du_832_25
+  définition calcul_nombre_parts.résidence égal à résidence
   définition n_nombre_parts_d832_25 égal à
     calcul_nombre_parts.n_nombre_parts_d832_25
 
@@ -4036,25 +4059,29 @@ majoration par personne à charge supplémentaire	             0,5
 
 ```catala
 champ d'application CalculNombrePartLogementFoyer:
-  exception définition n_nombre_parts_d832_25 sous condition
+  exception définition n_nombre_parts_d832_25_base sous condition
     condition_2_du_832_25
   conséquence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 1,2
       -- Couple: 1,5
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       2,5
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       3,0
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       3,7
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon # si nombre_personnes_à_charge = 4 alors
       4,3
-    sinon
-      ( 4,3 + (0,5 * (décimal de
-        (nombre_personnes_à_charge - 4))))
-    ))))
+
+  étiquette d832_25_2 exception d832_25_1
+  définition n_nombre_parts_d832_25_majoration sous condition
+    condition_2_du_832_25
+  conséquence égal à
+    si nombre_personnes_à_charge > 4 alors
+      0,5 * (décimal de (nombre_personnes_à_charge - 4))
+    sinon 0,0
 ```
 
 ######## Article D832-26 | LEGIARTI000038878708
@@ -4839,14 +4866,6 @@ champ d'application CalculAllocationLogementFoyer:
 
   définition coefficient_prise_en_charge égal à
     calcul_apl_logement_foyer.coefficient_prise_en_charge_d832_25
-
-champ d'application CalculAllocationLogement:
-  # TODO informatique: mieux gérer où on fait l'arrondi des ressources parce
-  # que là par exemple c'est pas explicitement précisé dans la loi.
-  définition ressources_ménage état avec_arrondi égal à
-    # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
-    # exemples pour vous en convaincre, dont 100 et 150.
-    arrondi de ((ressources_ménage * 1%) + 0,49€) * 100,0
 ```
 
 3° " L " est l'équivalence de loyer prise en compte, déterminée selon les dispositions
@@ -4871,6 +4890,7 @@ champ d'application CalculAllocationLogementFoyer:
     nombre_personnes_à_charge
   définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
    situation_familiale_calcul_apl
+  définition calcul_nombre_parts.résidence égal à résidence
   définition calcul_nombre_parts.condition_2_du_832_25 égal à vrai
 
   définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
@@ -5301,9 +5321,7 @@ plus de deux personnes.
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  # TODO informatique: vérifier qu'avec la cumulativité des exceptions
-  # ici on a bien le bon comportement pour "condition_logement_surface"
-  étiquette r_844_4
+  étiquette r_844_4 exception base
   règle condition_logement_surface sous condition
     ménage.personnes_âgées_handicapées_foyer_r844_4 et
     ménage.logement.surface_m_carrés >=
@@ -5405,6 +5423,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
   ménage.résidence sous forme Mayotte et
   date_courante >= date_entrée_vigueur_différée_cch:
 
+  exception base
   règle condition_logement_surface sous condition
     soit nombre_personnes_logement égal à
       (selon ménage.situation_familiale sous forme
@@ -5578,30 +5597,22 @@ du 2° de l'article D. 832-25 est limitée à six enfants ;
 ```catala
 # Ici nous reprenons les chiffres de D832-25, à prendre en compte lorsque
 # ceux-ci seront modifiés
-# TODO informatique: refactorer le code pour éviter la duplication
 champ d'application CalculNombrePartLogementFoyer:
-  exception définition n_nombre_parts_d832_25 sous condition
-    limitation_majoration_personnes_à_charge
+  exception d832_25_2
+  définition n_nombre_parts_d832_25_majoration sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Guyane: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- n'importe quel: faux
   conséquence égal à
-    si nombre_personnes_à_charge = 0 alors
-      selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 1,4
-      -- Couple: 1,8
-    sinon si nombre_personnes_à_charge = 1 alors
-      2,5
-    sinon si nombre_personnes_à_charge = 2 alors
-      3,0
-    sinon si nombre_personnes_à_charge = 3 alors
-      3,7
-    sinon si nombre_personnes_à_charge = 4 alors
-      4,3
-    sinon si
-      nombre_personnes_à_charge > 4 et nombre_personnes_à_charge <= 6
-    alors
-      4,3 + 0,5 * (décimal de
-        (nombre_personnes_à_charge - 4))
-    sinon
-      5,3
+    si nombre_personnes_à_charge > 6 alors
+      1,0
+    sinon  si nombre_personnes_à_charge > 4 alors
+      0,5 * (décimal de (nombre_personnes_à_charge - 4))
+    sinon 0,0
 
 # Ci-dessus, nous avons modifié le calcul de CalculNombrePartLogementFoyer
 # lorsque la "limitation_majoration_personnes_à_charge" est activée. Mais il

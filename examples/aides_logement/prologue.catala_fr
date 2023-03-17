@@ -321,7 +321,6 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
     dépend de personne_à_charge contenu PersonneÀCharge
   interne personnes_à_charge_prises_en_compte
     contenu collection PersonneÀCharge
-  interne durée_maintien_aide_l861_5_3 contenu durée
   contexte date_entrée_vigueur_différée_cch contenu date
   interne nombre_personnes_logement contenu entier
 
@@ -529,7 +528,7 @@ déclaration champ d'application RessourcesAidesPersonnelleLogement:
     PaiementLogementDistinctProfessionnel
   entrée ressources_ménage_arrondies contenu argent
     état base
-    état seuil
+    # état seuil
 
   interne ressources_personnes_vivant_habituellement_foyer contenu argent
   interne abattement_r_822_8 contenu argent
@@ -537,7 +536,7 @@ déclaration champ d'application RessourcesAidesPersonnelleLogement:
   interne abattement_r_822_7 contenu argent
   interne montant_forfaitaire_r_822_7 contenu argent
   interne abattement_r_822_10 contenu argent
-  interne ressources_forfaitaires_r822_20 contenu argent
+  # interne ressources_forfaitaires_r822_20 contenu argent
 
   base_mensuelle_allocations_familiales champ d'application
     BaseMensuelleAllocationsFamiliales
@@ -654,8 +653,12 @@ déclaration champ d'application CalculNombrePartLogementFoyer:
   entrée condition_2_du_832_25 contenu booléen
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
+  entrée résidence contenu Collectivité
 
   contexte limitation_majoration_personnes_à_charge condition
+
+  interne n_nombre_parts_d832_25_base contenu décimal
+  interne n_nombre_parts_d832_25_majoration contenu décimal
 
   résultat n_nombre_parts_d832_25 contenu décimal
 
@@ -668,6 +671,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
   entrée zone contenu ZoneDHabitation
   entrée date_courante contenu date
   entrée redevance contenu argent
+  entrée résidence contenu Collectivité
 
   contexte condition_2_du_832_25 contenu booléen
   contexte limitation_majoration_personnes_à_charge condition
@@ -988,6 +992,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     situation_familiale_calcul_apl
   définition calcul_apl_logement_foyer.zone égal à
     zone
+  définition calcul_apl_logement_foyer.résidence égal à résidence
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
   définition contributions_sociales.date_courante égal à date_courante
@@ -1057,8 +1062,8 @@ champ d'application CalculAllocationLogementFoyer:
     nombre_personnes_à_charge
   définition calcul_apl_logement_foyer.situation_familiale_calcul_apl égal à
     situation_familiale_calcul_apl
-  définition calcul_apl_logement_foyer.zone égal à
-    zone
+  définition calcul_apl_logement_foyer.zone égal à zone
+  définition calcul_apl_logement_foyer.résidence égal à résidence
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
   définition contributions_sociales.date_courante égal à date_courante
