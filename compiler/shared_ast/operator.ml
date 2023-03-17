@@ -407,8 +407,8 @@ let translate :
   | Eq_mon_mon -> Eq_mon_mon
   | Eq_dat_dat -> Eq_dat_dat
   | Eq_dur_dur -> Eq_dur_dur
-  | HandleDefault -> assert false
-  | HandleDefaultOpt -> assert false
+  | HandleDefault -> HandleDefault
+  | HandleDefaultOpt -> HandleDefaultOpt
 
 let monomorphic_type (op, pos) =
   let args, ret =
