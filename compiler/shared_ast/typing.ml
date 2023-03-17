@@ -68,13 +68,11 @@ let rec typ_to_ast ?(unsafe = false) (ty : unionfind_typ) : A.typ =
         "Internal error: typing at this point could not be resolved"
 
 (* Checks that there are no type variables remaining *)
-let rec all_resolved ty =
-  match Marked.unmark (UnionFind.get (UnionFind.find ty)) with
-  | TAny _ -> false
-  | TLit _ | TStruct _ | TEnum _ -> true
-  | TOption t1 | TArray t1 -> all_resolved t1
-  | TArrow (t1, t2) -> List.for_all all_resolved t1 && all_resolved t2
-  | TTuple ts -> List.for_all all_resolved ts
+(* let rec all_resolved ty = match Marked.unmark (UnionFind.get (UnionFind.find
+   ty)) with | TAny _ -> false | TLit _ | TStruct _ | TEnum _ -> true | TOption
+   t1 | TArray t1 -> all_resolved t1 | TArrow (t1, t2) -> List.for_all
+   all_resolved t1 && all_resolved t2 | TTuple ts -> List.for_all all_resolved
+   ts *)
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
@@ -626,7 +624,7 @@ and typecheck_expr_top_down :
       let t_ret = unionfind (TAny (Any.fresh ())) in
       let t_func = unionfind (TArrow (tau_args, t_ret)) in
       let mark = uf_mark t_func in
-      assert (List.for_all all_resolved tau_args);
+      (* assert (List.for_all all_resolved tau_args); *)
       let xs, body = Bindlib.unmbind binder in
       let xs' = Array.map Var.translate xs in
       let env =

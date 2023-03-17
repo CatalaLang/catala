@@ -168,6 +168,16 @@ let monad_eoe ?(toplevel = false) arg ~(mark : 'a mark) =
   if toplevel then Expr.ematch arg Ast.option_enum cases mark
   else monad_return ~mark (Expr.ematch arg Ast.option_enum cases mark)
 
+let monad_handle_default ~(_mark : 'a mark) _except _cond _just =
+  (* let handle_default_opt (exceptions : 'a eoption array) (just : bool
+     eoption) (cons : 'a eoption) : 'a eoption = let except = Array.fold_left
+     (fun acc except -> match acc, except with | ENone _, _ -> except | ESome _,
+     ENone _ -> acc | ESome _, ESome _ -> raise (ConflictError pos)) (ENone ())
+     exceptions in match except with | ESome _ -> except | ENone _ -> ( match
+     just with | ESome b -> if b then cons else ENone () | ENone _ -> ENone
+     ()) *)
+  assert false
+
 let _ = monad_return
 let _ = monad_empty
 let _ = monad_bind_var
@@ -180,6 +190,7 @@ let _ = monad_eoe
 let _ = monad_map
 let _ = monad_mmap_mvar
 let _ = monad_mmap
+let _ = monad_handle_default
 let trans_var _ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t = Var.translate x
 let trans_op : (dcalc, 'a) Op.t -> (lcalc, 'a) Op.t = Operator.translate
 

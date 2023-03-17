@@ -125,6 +125,18 @@ let rec beta_expr (e : 'm expr) : 'm expr boxed =
       m
   | _ -> visitor_map beta_expr e
 
+let rec fold_expr (e : 'm expr) : 'm expr boxed =
+  match Marked.unmark e with
+  | EApp { f = EOp { op = Op.Fold; _ }, _; args = [_f; init; (EArray [], _)] }
+    ->
+    visitor_map fold_expr init
+  | EApp { f = EOp { op = Op.Fold; _ }, _; args = [f; init; (EArray [e'], _)] }
+    ->
+    Expr.make_app (visitor_map fold_expr f)
+      [visitor_map fold_expr init; visitor_map fold_expr e']
+      (Expr.pos e)
+  | _ -> visitor_map fold_expr e
+
 let iota_optimizations (p : 'm program) : 'm program =
   let new_code_items =
     Scope.map_exprs ~f:iota_expr ~varf:(fun v -> v) p.code_items
@@ -134,6 +146,12 @@ let iota_optimizations (p : 'm program) : 'm program =
 let iota2_optimizations (p : 'm program) : 'm program =
   let new_code_items =
     Scope.map_exprs ~f:iota2_expr ~varf:(fun v -> v) p.code_items
+  in
+  { p with code_items = Bindlib.unbox new_code_items }
+
+let fold_optimizations (p : 'm program) : 'm program =
+  let new_code_items =
+    Scope.map_exprs ~f:fold_expr ~varf:(fun v -> v) p.code_items
   in
   { p with code_items = Bindlib.unbox new_code_items }
 
@@ -183,84 +201,24 @@ let peephole_optimizations (p : 'm program) : 'm program =
   in
   { p with code_items = Bindlib.unbox new_code_items }
 
+let rec fix_opti
+    ?(maxiter = 100)
+    ~(fs : ('m program -> 'm program) list)
+    (p : 'm program) =
+  assert (maxiter >= 0);
+  let p' = ListLabels.fold_left ~init:p fs ~f:(fun p f -> f p) in
+
+  if Program.equal p' p || maxiter = 0 then p'
+  else fix_opti ~fs p ~maxiter:(maxiter - 1)
+
 let optimize_program (p : 'm program) : untyped program =
-  p
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota2_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> iota_optimizations
-  |> peephole_optimizations
-  |> Program.untype
+  Program.untype
+    (fix_opti p
+       ~fs:
+         [
+           iota_optimizations;
+           iota2_optimizations;
+           fold_optimizations;
+           (* _beta_optimizations; *)
+           peephole_optimizations;
+         ])

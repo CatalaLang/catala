@@ -46,8 +46,26 @@ let rec find_scope name vars = function
     let var, next = Bindlib.unbind next_bind in
     find_scope name (var :: vars) next
 
+let rec all_scopes code_item_list =
+  match code_item_list with
+  | Nil -> []
+  | Cons (ScopeDef (n, _), next_bind) ->
+    let _var, next = Bindlib.unbind next_bind in
+    n :: all_scopes next
+  | Cons (_, next_bind) ->
+    let _var, next = Bindlib.unbind next_bind in
+    all_scopes next
+
 let to_expr p main_scope =
   let _, main_scope_body = find_scope main_scope [] p.code_items in
   Scope.unfold p.decl_ctx p.code_items
     (Scope.get_body_mark main_scope_body)
     (ScopeName main_scope)
+
+let equal p p' =
+  let ss = all_scopes p.code_items in
+  let ss' = all_scopes p'.code_items in
+
+  ListLabels.for_all2 ss ss' ~f:(fun s s' ->
+      ScopeName.equal s s'
+      && Expr.equal (Expr.unbox @@ to_expr p s) (Expr.unbox @@ to_expr p' s))
