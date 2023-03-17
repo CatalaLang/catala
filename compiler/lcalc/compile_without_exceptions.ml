@@ -86,7 +86,7 @@ let monad_bind_var f x arg ~(mark : 'a mark) =
       (List.to_seq
          [
            ( Ast.none_constr,
-             let x = Var.make "x" in
+             let x = Var.make "_" in
              Expr.eabs
                (Expr.bind [| x |]
                   (Expr.einj (Expr.evar x mark) Ast.none_constr Ast.option_enum
@@ -96,13 +96,14 @@ let monad_bind_var f x arg ~(mark : 'a mark) =
            (* | None x -> None x *)
            ( Ast.some_constr,
              Expr.eabs (Expr.bind [| x |] f) [TAny, Expr.mark_pos mark] mark )
-           (*| Some x -> Some x *);
+           (*| Some x -> f (where f contains x as a free variable) *);
          ])
   in
   Expr.ematch arg Ast.option_enum cases mark
 
 let monad_bind f arg ~(mark : 'a mark) =
   let x = Var.make "x" in
+  (* todo modify*)
   monad_bind_var f x arg ~mark
 
 let monad_bind_cont f arg ~(mark : 'a mark) =
@@ -127,7 +128,8 @@ let monad_mbind_cont f args ~(mark : 'a mark) =
   let vars =
     ListLabels.mapi args ~f:(fun i _ -> Var.make (Format.sprintf "e_%i" i))
   in
-  monad_mbind_mvar (f vars) vars args ~mark
+  ListLabels.fold_left2 vars args ~f:(monad_bind_var ~mark) ~init:(f vars)
+(* monad_mbind_mvar (f vars) vars args ~mark *)
 
 let monad_mmap_mvar f xs args ~(mark : 'a mark) =
   (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _ ->
@@ -191,6 +193,9 @@ let _ = monad_map
 let _ = monad_mmap_mvar
 let _ = monad_mmap
 let _ = monad_handle_default
+
+(** Start of the translation *)
+
 let trans_var _ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t = Var.translate x
 let trans_op : (dcalc, 'a) Op.t -> (lcalc, 'a) Op.t = Operator.translate
 
@@ -251,6 +256,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
       f_var (trans ctx f)
   | EApp { f = EAbs { binder; _ }, _; args } ->
+    (* Invariant: every let have only one argument. (checked by
+       invariant_let) *)
     let var, body = Bindlib.unmbind binder in
     let[@warning "-8"] [| var |] = var in
     let var' = Var.translate var in
