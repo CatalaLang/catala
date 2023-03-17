@@ -5361,37 +5361,9 @@ habitable globale soit d'au moins treize mètres carrés, augmentée de six mèt
 personne en plus, dans la limite de cinquante-quatre mètres carrés pour neuf personnes et plus. " ;
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
-  ménage.résidence sous forme Mayotte et
-  date_courante >= date_entrée_vigueur_différée_cch:
-
-  exception base
-  règle condition_logement_surface sous condition
-    soit nombre_personnes_logement égal à
-      (selon ménage.situation_familiale sous forme
-      -- Célibataire: 1
-      -- Mariés: 2
-      -- Pacsés: 2
-      -- Concubins: 2
-      -- CélibataireSéparéDeFait: 1
-      -- ConcubinageDontSéparéDeFait: 2) +
-      ménage.nombre_autres_occupants_logement +
-      nombre de ménage.personnes_à_charge
-    dans
-    soit condition_logement_surface_minimale_sans_seuil_m_carrés égal à
-      nombre_personnes_logement * 9
-    dans
-    ménage.logement.
-      normes_peuplement_respectées_pour_la_dernière_fois_depuis_moins_d_un_an et
-    (si
-      condition_logement_surface_minimale_sans_seuil_m_carrés >= 54 et
-      nombre_personnes_logement >= 9
-    alors
-      (ménage.logement.surface_m_carrés >= 54)
-    sinon
-      (ménage.logement.surface_m_carrés >=
-        condition_logement_surface_minimale_sans_seuil_m_carrés))
-  conséquence rempli
+# Nous choississons ici de ne pas coder informatiquement ces dispositions
+# transitoires que nous laissons pour l'instant hors du champ de notre
+# calculette.
 ```
 
 4° Au dernier alinéa de l'article R. 823-2 , les mots : " prévus à l'article D. 512-1 du code

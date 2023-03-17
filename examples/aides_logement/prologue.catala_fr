@@ -171,8 +171,7 @@ déclaration structure Logement:
   donnée logement_decent_l89_462 contenu booléen
   donnée surface_m_carrés contenu entier
   donnée zone contenu ZoneDHabitation
-  donnée normes_peuplement_respectées_pour_la_dernière_fois_depuis_moins_d_un_an
-    contenu booléen
+
 
 déclaration énumération SituationGardeAlternée:
   -- PasDeGardeAlternée

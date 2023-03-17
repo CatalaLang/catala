@@ -16,6 +16,7 @@ champ d'application CasTest1:
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.zone égal à Zone3
   définition calcul.date_courante égal à |2022-04-23|
+  définition calcul.résidence égal à Métropole
   assertion calcul.coefficient_r_d832_25 = 1217,26 €
   assertion calcul.coefficient_multiplicateur_d832_25 = 13393,40 €
   assertion calcul.n_nombre_parts_d832_25 = 1,8
@@ -67,6 +68,7 @@ champ d'application CasTest3:
   définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
   définition calcul.zone égal à Zone1
   définition calcul.date_courante égal à |2021-09-15|
+  définition calcul.résidence égal à Métropole
   assertion calcul.équivalence_loyer_éligible = 350 €
   assertion calcul.plafond_équivalence_loyer_éligible = 444,43€
   assertion calcul.équivalence_loyer_minimale = 98,95 €
@@ -91,6 +93,7 @@ champ d'application CasTest4:
   définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
   définition calcul.zone égal à Zone1
   définition calcul.date_courante égal à |2022-05-01|
+  définition calcul.résidence égal à Métropole
   assertion calcul.équivalence_loyer_éligible = 350 €
   assertion calcul.plafond_équivalence_loyer_éligible = 446,30€
   assertion calcul.équivalence_loyer_minimale = 98,95 €
@@ -117,6 +120,7 @@ champ d'application CasTest5:
   définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
   définition calcul.zone égal à Zone1
   définition calcul.date_courante égal à |2022-05-01|
+  définition calcul.résidence égal à Métropole
   assertion calcul.équivalence_loyer_éligible = 350 €
   assertion calcul.plafond_équivalence_loyer_éligible = 446,30€
   assertion calcul.équivalence_loyer_minimale = 124,64 €
