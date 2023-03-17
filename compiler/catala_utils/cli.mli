@@ -150,6 +150,7 @@ val debug_print : ('a, out_channel, unit) format -> 'a
 val debug_format : ('a, Format.formatter, unit) format -> 'a
 val error_print : ('a, out_channel, unit) format -> 'a
 val warning_print : ('a, out_channel, unit) format -> 'a
+val warning_format : ('a, Format.formatter, unit) format -> 'a
 val result_print : ('a, out_channel, unit) format -> 'a
 val result_format : ('a, Format.formatter, unit) format -> 'a
 val log_print : ('a, out_channel, unit) format -> 'a
