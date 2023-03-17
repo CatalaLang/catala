@@ -380,7 +380,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
 
   définition prestations_familiales.date_courante égal à date_courante
   définition prestations_familiales.prestation_courante égal à
-    ÉlémentPrestationsFamiliales.AllocationsFamiliales
+    ÉlémentPrestationsFamiliales.AllocationLogement
   définition prestations_familiales.résidence égal à ménage.résidence
 ```
 
@@ -459,7 +459,7 @@ champ d'application ÉligibilitéAllocationLogement:
   # familiales pour les besoins de L841-1.
   définition prestations_familiales.date_courante égal à date_courante
   définition prestations_familiales.prestation_courante égal à
-    ÉlémentPrestationsFamiliales.AllocationsFamiliales
+    ÉlémentPrestationsFamiliales.AllocationLogement
   définition prestations_familiales.résidence égal à ménage.résidence
 
   définition éligibilité_commune.ménage égal à ménage
