@@ -430,10 +430,10 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   étiquette base définition loyer_référence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 259,78€
-      -- Couple: 317,97€
-    sinon (357,80€ +
-      (52,08€ * (décimal de (nombre_personnes_à_charge - 1))))
+      -- PersonneSeule: 268,87€
+      -- Couple: 329,10€
+    sinon (370,32€ +
+      (53,90€ * (décimal de (nombre_personnes_à_charge - 1))))
 ```
 
 NOTA :
