@@ -3229,8 +3229,6 @@ class type logement =
     method logementDecentL89462: bool Js.t Js.readonly_prop
     method surfaceMCarres: int Js.readonly_prop
     method zone: zone_d_habitation Js.t Js.readonly_prop
-    method normesPeuplementRespecteesPourLaDerniereFoisDepuisMoinsDUnAn:
-      bool Js.t Js.readonly_prop
   end
   let logement_to_jsoo (logement : Logement.t) : logement Js.t =
     object%js
@@ -3245,8 +3243,6 @@ class type logement =
       val logementDecentL89462 = Js.bool logement.logement_decent_l89_462
       val surfaceMCarres = integer_to_int logement.surface_m_carres
       val zone = zone_d_habitation_to_jsoo logement.zone
-      val normesPeuplementRespecteesPourLaDerniereFoisDepuisMoinsDUnAn =
-        Js.bool logement.normes_peuplement_respectees_pour_la_derniere_fois_depuis_moins_d_un_an
       end
   let logement_of_jsoo (logement : logement Js.t) : Logement.t =
     {
@@ -3261,11 +3257,7 @@ class type logement =
       usufruit = parent_ou_autre_of_jsoo logement##.usufruit;
       logement_decent_l89_462 = Js.to_bool logement##.logementDecentL89462;
       surface_m_carres = integer_of_int logement##.surfaceMCarres;
-      zone = zone_d_habitation_of_jsoo logement##.zone;
-      normes_peuplement_respectees_pour_la_derniere_fois_depuis_moins_d_un_an =
-        Js.to_bool
-          logement
-          ##.normesPeuplementRespecteesPourLaDerniereFoisDepuisMoinsDUnAn
+      zone = zone_d_habitation_of_jsoo logement##.zone
     }
 
 class type menage =

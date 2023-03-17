@@ -97,11 +97,18 @@ function run_computation_AL(log) {
             "beneficieTitrePersonnelAidePersonnelleLogement": false,
             "aDejaOuvertDroitAuxAllocationsFamiliales": true,
             "remunerationMensuelle": 0,
+            "nationalite": {
+              "kind": "Francaise",
+              "payload": null,
+            },
+            "etudesApprentissageStageFormationProImpossibiliteTravail": false,
             "obligationScolaire": {
-              "kind": "Pendant"
+              "kind": "Pendant",
+              "payload": null,
             },
             "situationGardeAlternee": {
-              "kind": "PasDeGardeAlternee"
+              "kind": "PasDeGardeAlternee",
+              "payload": null,
             },
             "dateDeNaissance": "2015-01-01",
             "identifiant": 0
@@ -113,11 +120,18 @@ function run_computation_AL(log) {
             "beneficieTitrePersonnelAidePersonnelleLogement": false,
             "aDejaOuvertDroitAuxAllocationsFamiliales": true,
             "remunerationMensuelle": 0,
+            "nationalite": {
+              "kind": "Francaise",
+              "payload": null,
+            },
+            "etudesApprentissageStageFormationProImpossibiliteTravail": false,
             "obligationScolaire": {
-              "kind": "Pendant"
+              "kind": "Pendant",
+              "payload": null,
             },
             "situationGardeAlternee": {
-              "kind": "PasDeGardeAlternee"
+              "kind": "PasDeGardeAlternee",
+              "payload": null,
             },
             "dateDeNaissance": "2016-01-01",
             "identifiant": 1
@@ -131,11 +145,19 @@ function run_computation_AL(log) {
       },
       "conditionRattacheFoyerFiscalParentIfi": false,
       "enfantANaitreApresQuatriemeMoisGrossesse": false,
+      "personnesAgeesHandicapeesFoyerR8444": false,
+      "residence": {
+        "kind": "Metropole",
+        "payload": null
+      }
     },
     "demandeurIn": {
       "nationalite": {
-        "kind": "Francaise"
+        "kind": "Francaise",
+        "payload": null,
       },
+      "estNonSalarieAgricoleL7818L78146CodeRural": false,
+      "magistratFonctionnaireCentreInteretsMaterielsFamiliauxHorsMayotte": false,
       "patrimoine": {
         "produisantRevenuPeriodeR82233R8224": 0,
         "neProduisantPasRevenuPeriodeR82233R8224": 0
@@ -144,7 +166,7 @@ function run_computation_AL(log) {
       "dateNaissance": "1992-01-01"
     },
     "dateCouranteIn": "2022-05-01",
-    "ressourcesMenagePrisesEnCompteIn": 11500
+    "ressourcesMenagePrisesEnCompteIn": 11500,
   });
   if (log) {
     console.log(
@@ -163,7 +185,7 @@ try {
   run_computation_AF(false);
   run_computation_AL(false);
 } catch (error) {
-  console.log(error.message);
+  console.log(error[2]);
 }
 process.exit(0);
 
