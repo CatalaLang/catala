@@ -26,6 +26,7 @@
 , z3
 , zarith
 , zarith_stubs_js
+, ocaml-crunch
 }:
 
 buildDunePackage {

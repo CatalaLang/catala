@@ -17,13 +17,13 @@
 (** Reference interpreter for the default calculus *)
 
 open Catala_utils
-open Shared_ast
+open Definitions
 module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Helpers} *)
 
-let is_empty_error (e : 'm Ast.expr) : bool =
-  match Marked.unmark e with EEmptyError -> true | _ -> false
+let is_empty_error : ([< `Dcalc | `Lcalc ], 'm) gexpr -> bool =
+ fun e -> match Marked.unmark e with EEmptyError -> true | _ -> false
 
 let log_indent = ref 0
 
@@ -118,7 +118,7 @@ and evaluate_operator :
  fun ctx op pos args ->
   let protect f x y =
     let get_binop_args_pos = function
-      | (arg0 :: arg1 :: _ : 'm Ast.expr list) ->
+      | (arg0 :: arg1 :: _ : ('t, 'm) gexpr list) ->
         [None, Expr.pos arg0; None, Expr.pos arg1]
       | _ -> assert false
     in
@@ -329,7 +329,7 @@ and evaluate_operator :
         _ ) ->
       err ()
 
-and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
+and evaluate_expr (ctx : decl_ctx) (e : ('t, 'm) gexpr) : ('t, 'm) gexpr =
   match Marked.unmark e with
   | EVar _ ->
     Errors.raise_spanned_error (Expr.pos e)
@@ -523,11 +523,8 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
 
 (** {1 API} *)
 
-let interpret_program :
-      'm. decl_ctx -> 'm Ast.expr -> (Uid.MarkedString.info * 'm Ast.expr) list
-    =
- fun (ctx : decl_ctx) (e : 'm Ast.expr) :
-     (Uid.MarkedString.info * 'm Ast.expr) list ->
+let interpret_program (ctx : decl_ctx) (e : ('t, 'm) gexpr) :
+    (Uid.MarkedString.info * ('t, 'm) gexpr) list =
   match evaluate_expr ctx e with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not

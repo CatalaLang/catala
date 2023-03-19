@@ -17,13 +17,18 @@
 (** Reference interpreter for the default calculus *)
 
 open Catala_utils
-open Shared_ast
+open Definitions
 
-val evaluate_expr : decl_ctx -> 'm Ast.expr -> 'm Ast.expr
+val evaluate_expr :
+  decl_ctx ->
+  ([< `Dcalc | `Lcalc ], 'm) gexpr ->
+  ([< `Dcalc | `Lcalc ], 'm) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program :
-  decl_ctx -> 'm Ast.expr -> (Uid.MarkedString.info * 'm Ast.expr) list
+  decl_ctx ->
+  ([< `Dcalc | `Lcalc ], 'm) gexpr ->
+  (Uid.MarkedString.info * ([< `Dcalc | `Lcalc ], 'm) gexpr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all

@@ -276,7 +276,8 @@ let driver source_file (options : Cli.options) : int =
               Shared_ast.Expr.unbox (Shared_ast.Program.to_expr prgm scope_uid)
             in
             let results =
-              Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr
+              Shared_ast.Interpreter.interpret_program prgm.decl_ctx
+                prgrm_dcalc_expr
             in
             let results =
               List.sort
