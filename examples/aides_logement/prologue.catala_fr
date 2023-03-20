@@ -522,6 +522,7 @@ déclaration champ d'application RessourcesAidesPersonnelleLogement:
   entrée personnes_à_charge contenu collection PersonneÀCharge
   entrée situation_familiale contenu SituationFamiliale
   entrée mode_occupation contenu ModeOccupation
+  entrée date_courante contenu date
   entrée condition_âge_bourse_enseignement_supérieur condition
   entrée demandeur_poursuit_des_études condition
   entrée date_demande_ou_reexamen_droit contenu date

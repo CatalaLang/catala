@@ -7,7 +7,8 @@
 L'abattement forfaitaire prévu par l'article R. 822-7 du même code est fixé à 95 euros.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
+champ d'application RessourcesAidesPersonnelleLogement
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_r_822_7 égal à 95€
 
 ```
@@ -17,7 +18,8 @@ champ d'application RessourcesAidesPersonnelleLogement:
 L'abattement forfaitaire prévu par l'article R. 822-8 du même code est fixé à 2 589 euros.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
+champ d'application RessourcesAidesPersonnelleLogement
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_r_822_8 égal à 2 589€
 ```
 
@@ -249,7 +251,8 @@ III	 2,5                      3,1
 -----------------------------------------------------
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition plafond_dégressivité_d823_16 égal à
     selon zone sous forme
     -- Zone1: plafond_loyer_d823_16_2 * 3,4
@@ -270,7 +273,8 @@ Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 823-16
 du même code est fixé à 5 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_d823_16 égal à 5 €
 ```
 
@@ -282,7 +286,8 @@ est fixé à 10 euros pour les allocations de logement et à 0 euro pour l'aide
 personnalisée au logement.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementLocatif:
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_minimal_aide_d823_16 égal à
     selon type_aide sous forme
     -- AidePersonnaliséeLogement: 0 €
@@ -363,10 +368,8 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     sinon si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% - (0,06% * (décimal de
-        (nombre_personnes_à_charge - 6))))
-# TODO informatique: corriger le parseur pour éviter d'avoir à mettre
-# toutes ces parenthèses.
+      1,73% - (0,06% * (décimal de
+        (nombre_personnes_à_charge - 6)))
 ```
 
 2° TL représente un taux complémentaire fixé ci-dessous en fonction de la valeur du rapport
@@ -613,7 +616,8 @@ Par personne supplémentaire à charge	                   430	  379     346
 # Ici les montants des mensualités sont en francs car signées avant
 # l'avènement de l'euro mais pour le calcul des APL en euros il faut
 # que la mensualité plafond soit exprimée en euros. Donc nous convertissons.
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >= |1992-06-30| et
@@ -657,7 +661,8 @@ Par personne supplémentaire à charge	                   347	  305     279
 
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >= |1992-06-30| et
@@ -702,7 +707,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge 2 600	2 312   2 142
 Par personne supplémentaire à charge	                   380	  335     305
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
     date_signature_prêt >= |1994-11-27| et
@@ -745,7 +751,8 @@ Bénéficiaire isolé ou couple ayant une personne à charge 2 093	1 858   1 725
 Par personne supplémentaire à charge	                   306	  269     246
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
    sous condition
     date_signature_prêt >= |1994-11-27| et
@@ -800,7 +807,8 @@ Par personne supplémentaire à charge                     102
 
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   exception petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
@@ -1055,7 +1063,8 @@ ces dispositions sont applicables pour les prestations dues à compter du 1er ja
 ```
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   étiquette petit_2
   définition calcul_plafond_mensualité_d832_10_3 de date_signature_prêt
   sous condition
@@ -2341,7 +2350,8 @@ Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 832-10
 du même code est fixé à 5 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_d832_10 égal à 5€
 ```
 
@@ -2352,7 +2362,8 @@ avant application de la contribution pour le remboursement de la dette sociale,
 est fixé à 10 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_minimal_aide_d832_10 égal à 10€
 ```
 
@@ -2361,8 +2372,9 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 Le coefficient « cm » défini au 3° de l'article D. 832-11 du même code est fixé à 22 111,33 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-   définition coefficient_multiplicateur_d832_11 égal à 22 111,33€
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
+  définition coefficient_multiplicateur_d832_11 égal à 22 111,33€
 ```
 
 ### Article 23 | LEGIARTI000039160771
@@ -2376,7 +2388,8 @@ du contrat de prêt ou de location-accession est postérieure au 30 juin 1992 :
 2° 41,60 % pour la tranche de ressources supérieures à 5 600,85 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_limite_tranches_d832_15_1 égal à 5 600,85 €
   définition taux_tranche_inférieure_d832_15_1 égal à 20,80%
   définition taux_tranche_supérieure_d832_15_1 égal à 41,60%
@@ -2436,7 +2449,8 @@ a) 0,0226 pour les prêts souscrits avant le 1er octobre 1998 ;
 b) 0,0234 pour les prêts souscrits à compter de cette dernière date.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition coefficient_multiplicateur_d832_17_3 égal à
     selon ancienneté_logement sous forme
     -- Neuf:
@@ -2454,7 +2468,8 @@ Pour déterminer le plancher de ressources, le coefficient prévu à l'article
 D. 832-18 du même code est fixé à 16,25.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
+champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition coefficient_multiplicateur_d832_18 égal à 16,25
 ```
 
@@ -2537,7 +2552,8 @@ Le montant de minoration forfaitaire prévu au 8e alinéa de l'article D. 832-24
 du même code est fixé à 5 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_d832_24 égal à 5 €
 ```
 
@@ -2548,7 +2564,8 @@ avant application de la contribution pour le remboursement de la dette sociale,
 est fixé à 10 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_minimal_aide_d823_24 égal à 10 €
 ```
 
@@ -2560,7 +2577,8 @@ dans la formule de calcul du coefficient de prise en charge « K » sont fixées
 1° 1 217,26 pour le coefficient « r » défini au c du 1° ;
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   # Attention par homogénéité de la formule du D832-25 il faut que cm soit
   # un montant d'argent.
   définition coefficient_r_d832_25 égal à 1217,26 €
@@ -2570,7 +2588,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 respectivement au d du 1° et au c du 2°.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   # Attention par homogénéité de la formule du D832-25 il faut que cm soit
   # un montant d'argent.
   définition coefficient_multiplicateur_d832_25 égal à
@@ -2718,7 +2737,8 @@ pour les logements-foyers de jeunes travailleurs et les résidences sociales vis
 D. 832-25 du même code pour lesquels ce montant est fixé à 15 euros.
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_d832_27 égal à
     si condition_2_du_832_25 alors 15 € sinon 26,68€
 ```
@@ -3967,7 +3987,8 @@ champ d'application CalculAllocationLogementAccessionPropriété
 Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 842-6 du même code est fixé à 5 euros.
 
 ```catala
-champ d'application CalculAllocationLogementAccessionPropriété:
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_d842_6 égal à 5 €
 ```
 
@@ -3977,7 +3998,8 @@ Le seuil de versement prévu au dernier alinéa de l'article D. 842-6 du même c
 contribution pour le remboursement de la dette sociale, est fixé à 10 euros.
 
 ```catala
-champ d'application CalculAllocationLogementAccessionPropriété:
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_minimal_aide_d842_6 égal à 10 €
 ```
 
@@ -4032,14 +4054,16 @@ Pour le calcul de la dépense nette minimale de logement définie à l'article D
 1° Le montant minimum mentionné au deuxième alinéa est fixé à 15 euros ;
 
 ```catala
-champ d'application CalculAllocationLogementAccessionPropriété:
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_d842_11 égal à 15 €
 ```
 
 2° Le coefficient mentionné au troisième alinéa est fixé à 0,0234.
 
 ```catala
-champ d'application CalculAllocationLogementAccessionPropriété:
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition coefficient_d842_11 égal à 0,0234
 ```
 
@@ -4050,14 +4074,16 @@ Pour déterminer le plancher de ressources défini à l'article D. 842-12 du mê
 1° Le coefficient prévu au 1° est fixé à 16,25 ;
 
 ```catala
-champ d'application CalculAllocationLogementAccessionPropriété:
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition coefficient_d842_12 égal à 16,25
 ```
 
 2° Le montant forfaitaire prévu au 2° est fixé à 3 900 euros.
 
 ```catala
-champ d'application CalculAllocationLogementAccessionPropriété:
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_d842_12 égal à 3 900 €
 ```
 
@@ -4094,7 +4120,8 @@ Le montant de minoration forfaitaire prévu au 9e alinéa de l'article D. 842-15
 fixé à 5 euros.
 
 ```catala
-champ d'application CalculAllocationLogementFoyer:
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_forfaitaire_d842_15 égal à 5 €
 ```
 
@@ -4105,7 +4132,8 @@ avant application de la contribution pour le remboursement de la dette sociale,
 est fixé à 10 euros.
 
 ```catala
-champ d'application CalculAllocationLogementFoyer:
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_minimal_aide_d842_15 égal à 10 €
 ```
 
@@ -4196,7 +4224,8 @@ Le montant minimum de dépense nette de logement défini à l'article D. 842-17 
 est fixé à 15 euros.
 
 ```catala
-champ d'application CalculAllocationLogementFoyer:
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition montant_minimal_dépense_nette_d842_17 égal à 15 €
 ```
 
@@ -4211,7 +4240,8 @@ les bénéficiaires isolés ou couples ayant trois enfants à charge et est
 majoré de 20 % par enfant supplémentaire à charge.
 
 ```catala
-champ d'application ÉligibilitéPrimeDeDéménagement:
+champ d'application ÉligibilitéPrimeDeDéménagement
+  sous condition date_courante >= |2019-10-01|: # Voir article 50
   définition plafond_d823_22 égal à
    base_mensuelle_allocations_familiales.montant * 240% +
    (si
@@ -4227,11 +4257,6 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
 ## Chapitre IX : Calcul des allocations de logement en outre-mer
 
 ### Article 46 | LEGIARTI000046834756
-
-```catala
-# TODO informatique: vérifier structures exceptions autres quantités
-# mentionnées dans cet article.
-```
 
 Pour l'application en Guadeloupe, en Guyane, en Martinique, à La Réunion, à
 Mayotte, à Saint-Barthélemy et à Saint-Martin des dispositions des chapitres
@@ -4343,7 +4368,8 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- Mayotte: vrai
     -- SaintBarthélemy: vrai
     -- SaintMartin: vrai
-    -- n'importe quel: faux)
+    -- n'importe quel: faux) et
+    colocation
   conséquence égal à
     (selon situation_familiale_calcul_apl sous forme
      -- PersonneSeule: 19,38€
@@ -4361,7 +4387,8 @@ champ d'application CalculAllocationLogementAccessionPropriété
     -- Mayotte: vrai
     -- SaintBarthélemy: vrai
     -- SaintMartin: vrai
-    -- n'importe quel: faux)
+    -- n'importe quel: faux) et
+    copropriété
   conséquence égal à
     (selon situation_familiale_calcul_apl sous forme
      -- PersonneSeule: 19,38€
@@ -4555,7 +4582,7 @@ dérogation sont celles appartenant à la zone III.
 
 ```catala
 champ d'application ÉligibilitéAidePersonnaliséeLogement sous condition
-  date_courante >= |2019-01-01|: # Voir article 50
+  date_courante >= |2019-10-01|: # Voir article 50
   règle logement_situé_commune_déséquilibre_l831_2 sous condition
      ménage.logement.zone sous forme Zone3
   conséquence rempli
@@ -4566,10 +4593,6 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement sous condition
 Les dispositions du présent arrêté sont applicables pour les prestations dues
 à compter du 1er octobre 2019.
 
-```catala
-# TODO informatique : aller modifier tous les articles ci-dessus sans NOTA
-# pour rajouter que les provisions ne sont valables qu'à partir de 2019.
-```
 
 ### Article 51 | LEGIARTI000046834740
 
