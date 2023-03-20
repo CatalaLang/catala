@@ -22,7 +22,7 @@ module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Helpers} *)
 
-let is_empty_error : ([< `Dcalc | `Lcalc ], 'm) gexpr -> bool =
+let is_empty_error : type a. (a, 'm) gexpr -> bool =
  fun e -> match Marked.unmark e with EEmptyError -> true | _ -> false
 
 let log_indent = ref 0
@@ -65,6 +65,13 @@ let print_log ctx entry infos pos e =
       log_indent := !log_indent - 1;
       Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
         Print.uid_list infos
+
+type 'm dcalc_lcalc =
+  | DLcalc : ([< `Lcalc | `Dcalc ], 'm) gexpr -> 'm dcalc_lcalc
+
+
+exception CatalaException of except
+
 
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
@@ -329,197 +336,207 @@ and evaluate_operator :
         _ ) ->
       err ()
 
-and evaluate_expr (ctx : decl_ctx) (e : ('t, 'm) gexpr) : ('t, 'm) gexpr =
-  match Marked.unmark e with
-  | EVar _ ->
-    Errors.raise_spanned_error (Expr.pos e)
-      "free variable found at evaluation (should not happen if term was \
-       well-typed)"
-  | EApp { f = e1; args } -> (
-    let e1 = evaluate_expr ctx e1 in
-    let args = List.map (evaluate_expr ctx) args in
-    match Marked.unmark e1 with
-    | EAbs { binder; _ } ->
-      if Bindlib.mbinder_arity binder = List.length args then
-        evaluate_expr ctx
-          (Bindlib.msubst binder (Array.of_list (List.map Marked.unmark args)))
-      else
-        Errors.raise_spanned_error (Expr.pos e)
-          "wrong function call, expected %d arguments, got %d"
-          (Bindlib.mbinder_arity binder)
-          (List.length args)
-    | EOp { op; _ } ->
-      Marked.same_mark_as (evaluate_operator ctx op (Expr.pos e) args) e
-    | EEmptyError -> Marked.same_mark_as EEmptyError e
-    | _ ->
+and evaluate_expr : type a. decl_ctx -> (a, 'm) gexpr -> (a, 'm) gexpr =
+ fun ctx e ->
+  let (DLcalc e) = DLcalc e in
+  match (Marked.unmark e : ([< `Dcalc | `Lcalc ], 'a mark) naked_gexpr) with
+  | ELocation _ -> assert false
+  | EScopeCall _ -> assert false
+  | ERaise exn -> raise (CatalaException exn)
+  | ECatch { body; exn; handler } -> 
+    (try evaluate_expr ctx body with
+    | CatalaException catched -> if except_eq catched exn then evaluate_expr ctx handler else raise (CatalaException catched) )
+    | EVar _ ->
       Errors.raise_spanned_error (Expr.pos e)
-        "function has not been reduced to a lambda at evaluation (should not \
-         happen if the term was well-typed")
-  | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
-  | EStruct { fields = es; name } ->
-    let new_es = StructField.Map.map (evaluate_expr ctx) es in
-    if StructField.Map.exists (fun _ e -> is_empty_error e) new_es then
-      Marked.same_mark_as EEmptyError e
-    else Marked.same_mark_as (EStruct { fields = new_es; name }) e
-  | EStructAccess { e = e1; name = s; field } -> (
-    let e1 = evaluate_expr ctx e1 in
-    match Marked.unmark e1 with
-    | EStruct { fields = es; name = s' } -> (
-      if not (StructName.equal s s') then
-        Errors.raise_multispanned_error
-          [None, Expr.pos e; None, Expr.pos e1]
-          "Error during struct access: not the same structs (should not happen \
-           if the term was well-typed)";
-      match StructField.Map.find_opt field es with
-      | Some e' -> e'
-      | None ->
-        Errors.raise_spanned_error (Expr.pos e1)
-          "Invalid field access %a in struct %a (should not happen if the term \
-           was well-typed)"
-          StructField.format_t field StructName.format_t s)
-    | EEmptyError -> Marked.same_mark_as EEmptyError e
-    | _ ->
-      Errors.raise_spanned_error (Expr.pos e1)
-        "The expression %a should be a struct %a but is not (should not happen \
-         if the term was well-typed)"
-        (Expr.format ctx ~debug:true)
-        e StructName.format_t s)
-  | ETuple es ->
-    Marked.same_mark_as (ETuple (List.map (evaluate_expr ctx) es)) e
-  | ETupleAccess { e = e1; index; size } -> (
-    match evaluate_expr ctx e1 with
-    | ETuple es, _ when List.length es = size -> List.nth es index
-    | e ->
-      Errors.raise_spanned_error (Expr.pos e)
-        "The expression %a was expected to be a tuple of size %d (should not \
-         happen if the term was well-typed)"
-        (Expr.format ctx ~debug:true)
-        e size)
-  | EInj { e = e1; name; cons } ->
-    let e1' = evaluate_expr ctx e1 in
-    if is_empty_error e then Marked.same_mark_as EEmptyError e
-    else Marked.same_mark_as (EInj { e = e1'; name; cons }) e
-  | EMatch { e = e1; cases = es; name } -> (
-    let e1 = evaluate_expr ctx e1 in
-    match Marked.unmark e1 with
-    | EInj { e = e1; cons; name = name' } ->
-      if not (EnumName.equal name name') then
-        Errors.raise_multispanned_error
-          [None, Expr.pos e; None, Expr.pos e1]
-          "Error during match: two different enums found (should not happen if \
-           the term was well-typed)";
-      let es_n =
-        match EnumConstructor.Map.find_opt cons es with
-        | Some es_n -> es_n
-        | None ->
+        "free variable found at evaluation (should not happen if term was \
+         well-typed)"
+    | EApp { f = e1; args } -> (
+      let e1 = evaluate_expr ctx e1 in
+      let args = List.map (evaluate_expr ctx) args in
+      match Marked.unmark e1 with
+      | EAbs { binder; _ } ->
+        if Bindlib.mbinder_arity binder = List.length args then
+          evaluate_expr ctx
+            (Bindlib.msubst binder
+               (Array.of_list (List.map Marked.unmark args)))
+        else
           Errors.raise_spanned_error (Expr.pos e)
-            "sum type index error (should not happen if the term was \
-             well-typed)"
-      in
-      let new_e = Marked.same_mark_as (EApp { f = es_n; args = [e1] }) e in
-      evaluate_expr ctx new_e
-    | EEmptyError -> Marked.same_mark_as EEmptyError e
-    | _ ->
-      Errors.raise_spanned_error (Expr.pos e1)
-        "Expected a term having a sum type as an argument to a match (should \
-         not happen if the term was well-typed")
-  | EDefault { excepts; just; cons } -> (
-    let excepts = List.map (evaluate_expr ctx) excepts in
-    let empty_count = List.length (List.filter is_empty_error excepts) in
-    match List.length excepts - empty_count with
-    | 0 -> (
-      let just = evaluate_expr ctx just in
-      match Marked.unmark just with
-      | EEmptyError -> Marked.same_mark_as EEmptyError e
-      | ELit (LBool true) -> evaluate_expr ctx cons
-      | ELit (LBool false) -> Marked.same_mark_as EEmptyError e
+            "wrong function call, expected %d arguments, got %d"
+            (Bindlib.mbinder_arity binder)
+            (List.length args)
+      | EOp { op; _ } ->
+        Marked.same_mark_as (evaluate_operator ctx op (Expr.pos e) args) e
+      | EEmptyError -> Marked.same_mark_as (EEmptyError) e
       | _ ->
         Errors.raise_spanned_error (Expr.pos e)
-          "Default justification has not been reduced to a boolean at \
-           evaluation (should not happen if the term was well-typed")
-    | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
-    | _ ->
-      Errors.raise_multispanned_error
-        (List.map
-           (fun except ->
-             Some "This consequence has a valid justification:", Expr.pos except)
-           (List.filter (fun sub -> not (is_empty_error sub)) excepts))
-        "There is a conflict between multiple valid consequences for assigning \
-         the same variable.")
-  | EIfThenElse { cond; etrue; efalse } -> (
-    match Marked.unmark (evaluate_expr ctx cond) with
-    | ELit (LBool true) -> evaluate_expr ctx etrue
-    | ELit (LBool false) -> evaluate_expr ctx efalse
+          "function has not been reduced to a lambda at evaluation (should not \
+           happen if the term was well-typed")
+    | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
+    | EStruct { fields = es; name } ->
+      let new_es = StructField.Map.map (evaluate_expr ctx) es in
+      if StructField.Map.exists (fun _ e -> is_empty_error e) new_es then
+      Marked.same_mark_as EEmptyError e
+      else Marked.same_mark_as (EStruct { fields = new_es; name }) e
+    | EStructAccess { e = e1; name = s; field } -> (
+      let e1 = evaluate_expr ctx e1 in
+      match Marked.unmark e1 with
+      | EStruct { fields = es; name = s' } -> (
+        if not (StructName.equal s s') then
+          Errors.raise_multispanned_error
+            [None, Expr.pos e; None, Expr.pos e1]
+            "Error during struct access: not the same structs (should not \
+             happen if the term was well-typed)";
+        match StructField.Map.find_opt field es with
+        | Some e' -> e'
+        | None ->
+          Errors.raise_spanned_error (Expr.pos e1)
+            "Invalid field access %a in struct %a (should not happen if the \
+             term was well-typed)"
+            StructField.format_t field StructName.format_t s)
     | EEmptyError -> Marked.same_mark_as EEmptyError e
-    | _ ->
-      Errors.raise_spanned_error (Expr.pos cond)
-        "Expected a boolean literal for the result of this condition (should \
-         not happen if the term was well-typed)")
-  | EArray es ->
-    let new_es = List.map (evaluate_expr ctx) es in
-    if List.exists is_empty_error new_es then Marked.same_mark_as EEmptyError e
-    else Marked.same_mark_as (EArray new_es) e
-  | EEmptyError -> Marked.same_mark_as EEmptyError e
-  | EErrorOnEmpty e' ->
-    let e' = evaluate_expr ctx e' in
-    if Marked.unmark e' = EEmptyError then
-      Errors.raise_spanned_error (Expr.pos e')
-        "This variable evaluated to an empty term (no rule that defined it \
-         applied in this situation)"
-    else e'
-  | EAssert e' -> (
-    match Marked.unmark (evaluate_expr ctx e') with
-    | ELit (LBool true) -> Marked.same_mark_as (ELit LUnit) e'
-    | ELit (LBool false) -> (
-      match Marked.unmark e' with
-      | EErrorOnEmpty
-          ( EApp
-              {
-                f = EOp { op; _ }, _;
-                args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
-              },
-            _ ) ->
-        Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
-          (Expr.format ctx ~debug:false)
-          e1 Print.operator op
-          (Expr.format ctx ~debug:false)
-          e2
-      | EApp
-          {
-            f = EOp { op = Log _; _ }, _;
-            args =
-              [
-                ( EApp
-                    {
-                      f = EOp { op; _ }, _;
-                      args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
-                    },
-                  _ );
-              ];
-          } ->
-        Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
-          (Expr.format ctx ~debug:false)
-          e1 Print.operator op
-          (Expr.format ctx ~debug:false)
-          e2
-      | EApp
-          {
-            f = EOp { op; _ }, _;
-            args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
-          } ->
-        Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
-          (Expr.format ctx ~debug:false)
-          e1 Print.operator op
-          (Expr.format ctx ~debug:false)
-          e2
       | _ ->
-        Cli.debug_format "%a" (Expr.format ctx) e';
-        Errors.raise_spanned_error (Expr.pos e') "Assertion failed")
+        Errors.raise_spanned_error (Expr.pos e1)
+          "The expression %a should be a struct %a but is not (should not \
+           happen if the term was well-typed)"
+          (Expr.format ctx ~debug:true)
+          e StructName.format_t s)
+    | ETuple es ->
+      Marked.same_mark_as (ETuple (List.map (evaluate_expr ctx) es)) e
+    | ETupleAccess { e = e1; index; size } -> (
+      match evaluate_expr ctx e1 with
+      | ETuple es, _ when List.length es = size -> List.nth es index
+      | e ->
+        Errors.raise_spanned_error (Expr.pos e)
+          "The expression %a was expected to be a tuple of size %d (should not \
+           happen if the term was well-typed)"
+          (Expr.format ctx ~debug:true)
+          e size)
+    | EInj { e = e1; name; cons } ->
+      let e1' = evaluate_expr ctx e1 in
+    if is_empty_error e then Marked.same_mark_as EEmptyError e
+      else Marked.same_mark_as (EInj { e = e1'; name; cons }) e
+    | EMatch { e = e1; cases = es; name } -> (
+      let e1 = evaluate_expr ctx e1 in
+      match Marked.unmark e1 with
+      | EInj { e = e1; cons; name = name' } ->
+        if not (EnumName.equal name name') then
+          Errors.raise_multispanned_error
+            [None, Expr.pos e; None, Expr.pos e1]
+            "Error during match: two different enums found (should not happen \
+             if the term was well-typed)";
+        let es_n =
+          match EnumConstructor.Map.find_opt cons es with
+          | Some es_n -> es_n
+          | None ->
+            Errors.raise_spanned_error (Expr.pos e)
+              "sum type index error (should not happen if the term was \
+               well-typed)"
+        in
+        let new_e = Marked.same_mark_as (EApp { f = es_n; args = [e1] }) e in
+        evaluate_expr ctx new_e
     | EEmptyError -> Marked.same_mark_as EEmptyError e
-    | _ ->
-      Errors.raise_spanned_error (Expr.pos e')
-        "Expected a boolean literal for the result of this assertion (should \
-         not happen if the term was well-typed)")
+      | _ ->
+        Errors.raise_spanned_error (Expr.pos e1)
+          "Expected a term having a sum type as an argument to a match (should \
+           not happen if the term was well-typed")
+    | EDefault { excepts; just; cons } -> (
+      let excepts = List.map (evaluate_expr ctx) excepts in
+      let empty_count = List.length (List.filter is_empty_error excepts) in
+      match List.length excepts - empty_count with
+      | 0 -> (
+        let just = evaluate_expr ctx just in
+        match Marked.unmark just with
+      | EEmptyError -> Marked.same_mark_as EEmptyError e
+        | ELit (LBool true) -> evaluate_expr ctx cons
+      | ELit (LBool false) -> Marked.same_mark_as EEmptyError e
+        | _ ->
+          Errors.raise_spanned_error (Expr.pos e)
+            "Default justification has not been reduced to a boolean at \
+             evaluation (should not happen if the term was well-typed")
+      | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
+      | _ ->
+        Errors.raise_multispanned_error
+          (List.map
+             (fun except ->
+               ( Some "This consequence has a valid justification:",
+                 Expr.pos except ))
+             (List.filter (fun sub -> not (is_empty_error sub)) excepts))
+          "There is a conflict between multiple valid consequences for \
+           assigning the same variable.")
+    | EIfThenElse { cond; etrue; efalse } -> (
+      match Marked.unmark (evaluate_expr ctx cond) with
+      | ELit (LBool true) -> evaluate_expr ctx etrue
+      | ELit (LBool false) -> evaluate_expr ctx efalse
+    | EEmptyError -> Marked.same_mark_as EEmptyError e
+      | _ ->
+        Errors.raise_spanned_error (Expr.pos cond)
+          "Expected a boolean literal for the result of this condition (should \
+           not happen if the term was well-typed)")
+    | EArray es ->
+      let new_es = List.map (evaluate_expr ctx) es in
+    if List.exists is_empty_error new_es then Marked.same_mark_as EEmptyError e
+      else Marked.same_mark_as (EArray new_es) e
+  | EEmptyError -> Marked.same_mark_as EEmptyError e
+    | EErrorOnEmpty e' ->
+      let e' = evaluate_expr ctx e' in
+    if Marked.unmark e' = EEmptyError then
+        Errors.raise_spanned_error (Expr.pos e')
+          "This variable evaluated to an empty term (no rule that defined it \
+           applied in this situation)"
+      else e'
+    | EAssert e' -> (
+      match Marked.unmark (evaluate_expr ctx e') with
+      | ELit (LBool true) -> Marked.same_mark_as (ELit LUnit) e'
+      | ELit (LBool false) -> (
+        match Marked.unmark e' with
+        | EErrorOnEmpty
+            ( EApp
+                {
+                  f = EOp { op; _ }, _;
+                  args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
+                },
+              _ ) ->
+          Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
+            (Expr.format ctx ~debug:false)
+            e1 Print.operator op
+            (Expr.format ctx ~debug:false)
+            e2
+        | EApp
+            {
+              f = EOp { op = Log _; _ }, _;
+              args =
+                [
+                  ( EApp
+                      {
+                        f = EOp { op; _ }, _;
+                        args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
+                      },
+                    _ );
+                ];
+            } ->
+          Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
+            (Expr.format ctx ~debug:false)
+            e1 Print.operator op
+            (Expr.format ctx ~debug:false)
+            e2
+        | EApp
+            {
+              f = EOp { op; _ }, _;
+              args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
+            } ->
+          Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
+            (Expr.format ctx ~debug:false)
+            e1 Print.operator op
+            (Expr.format ctx ~debug:false)
+            e2
+        | _ ->
+          Cli.debug_format "%a" (Expr.format ctx) e';
+          Errors.raise_spanned_error (Expr.pos e') "Assertion failed")
+    | EEmptyError -> Marked.same_mark_as EEmptyError e
+      | _ ->
+        Errors.raise_spanned_error (Expr.pos e')
+          "Expected a boolean literal for the result of this assertion (should \
+           not happen if the term was well-typed)"))
 
 (** {1 API} *)
 

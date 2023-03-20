@@ -261,6 +261,14 @@ end
 type 'a operator = 'a Op.t
 type except = ConflictError | EmptyError | NoValueProvided | Crash
 
+let except_eq = function
+  | ConflictError, ConflictError
+  | EmptyError, EmptyError
+  | NoValueProvided, NoValueProvided
+  | Crash, Crash ->
+    true
+  | _ -> false
+
 (** {2 Generic expressions} *)
 
 (** Define a common base type for the expressions in most passes of the compiler *)
