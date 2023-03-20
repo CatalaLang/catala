@@ -6,7 +6,7 @@
 # 2020.
 ```
 
-## Articles en vigueur du 1er juillet 2022 au 31 décembre 2022 - Arrêté du 29 juillet 2022 relatif au calcul des aides personnelles au logement NOR : TREL2220748A - Arrêté du 16 août 2022 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer - NOR : TREL2220744A
+## Articles en vigueur à partir du 1er juillet 2022 - Arrêté du 29 juillet 2022 relatif au calcul des aides personnelles au logement NOR : TREL2220748A - Arrêté du 16 août 2022 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer - NOR : TREL2220744A
 
 ### Article 15 | LEGIARTI000046126962 [archive]
 
@@ -30,28 +30,31 @@ Personne seule ou couple ayant :
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2022-07-01| et
     date_courante <= |2022-12-31|:
+
+  étiquette métropole
+  définition multiplicateur_majoration_r0 égal à
+    décimal de (nombre_personnes_à_charge - 6)
+
   étiquette métropole
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 4 870 €
       -- Couple: 6 977 €
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       8 322 €
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       8 509 €
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       8 834 €
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon si nombre_personnes_à_charge = 4 alors
       9 163 €
-    sinon (si nombre_personnes_à_charge = 5 alors
+    sinon si nombre_personnes_à_charge = 5 alors
       9 488 €
-    sinon (si nombre_personnes_à_charge = 6 alors
+    sinon si nombre_personnes_à_charge = 6 alors
       9 816 €
     sinon
-      (9 816€ + (323 € * (décimal de
-        (nombre_personnes_à_charge - 6))))
-    ))))))
+      9 816€ + 323 € * multiplicateur_majoration_r0
 ```
 
 NOTA :
@@ -72,8 +75,10 @@ construction et de l'habitation, dont les valeurs sont fixées à l'article 7 ;
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >= |2022-07-01|  et date_courante < |2023-01-01|:
-  exception base définition plafond_loyer_d823_16_2 sous condition
+  sous condition date_courante >= |2022-07-01| et date_courante < |2023-01-01|:
+  exception métropole
+  définition multiplicateur_majoration_plafond_loyer_d823_16_2
+  sous condition
     (selon résidence sous forme
     -- Guadeloupe: vrai
     -- Martinique: vrai
@@ -82,35 +87,13 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- SaintBarthélemy: vrai
     -- SaintMartin: vrai
     -- n'importe quel: faux) et
-    nombre_personnes_à_charge >= 1 et
-    # Nous nous assurons ici de ne pas être dans un des cas exceptionnels
-    # pour éviter de déclencher deux exceptions à base dans le cas de
-    # l'outre-mer en chambre ou en colocation
-    non (logement_est_chambre ou colocation)
-  conséquence égal à
-    selon zone sous forme
-    --Zone1:
-      soit montant égal à
-        420,52€ + 61,01€ * (décimal de (nombre_personnes_à_charge - 1))
-      dans
-      soit limite égal à 420,52€ + 61,01€ * 6,0 dans
-      si montant > limite alors limite sinon montant
-    --Zone2:
-      soit montant égal à
-        370,32€ + 53,90€ * (décimal de (nombre_personnes_à_charge - 1))
-      dans
-      soit limite égal à 370,32€ + 53,90€ * 6,0 dans
-      si montant > limite alors limite sinon montant
-    --Zone3:
-      soit montant égal à
-        342,52€ + 49,09€ * (décimal de (nombre_personnes_à_charge - 1))
-      dans
-      soit limite égal à 342,52€ + 49,09€ * 6,0 dans
-      si montant > limite alors limite sinon montant
-
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 5,0
 # TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
 # charge s'applique également aux exceptions à l'article 7 que sont les
 # articles 8 et 16 de l'arrêté pour les chambres et la colocation.
+# Ici nous avons choisi de faire appliquer la limitation à tous les cas
+# y compris les chambres et la colocation.
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article
@@ -123,7 +106,8 @@ valeurs sont fixées respectivement aux articles 9, 34 et 40 ;
 
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2022-07-01|  et date_courante < |2023-01-01|:
-  exception base définition montant_forfaitaire_charges sous condition
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
     (selon résidence sous forme
     -- Guadeloupe: vrai
     -- Martinique: vrai
@@ -132,20 +116,13 @@ champ d'application CalculAllocationLogementAccessionPropriété
     -- SaintBarthélemy: vrai
     -- SaintMartin: vrai
     -- n'importe quel: faux) et
-    # Nous nous assurons ici de ne pas être dans un des cas exceptionnels
-    # pour éviter de déclencher deux exceptions à base dans le cas de
-    # l'outre-mer en copropriété
-    non copropriété
-  conséquence égal à
-    soit montant égal à
-      56,12€ + 12,72€ * (décimal de nombre_personnes_à_charge)
-    dans
-    soit limite égal à 56,12€ + 12,72€ * 6,0 dans
-    si montant > limite alors limite sinon montant
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
 
 champ d'application CalculAllocationLogementFoyer
   sous condition date_courante >= |2022-07-01|  et date_courante < |2023-01-01|:
-  exception base définition montant_forfaitaire_charges sous condition
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
     (selon résidence sous forme
     -- Guadeloupe: vrai
     -- Martinique: vrai
@@ -153,13 +130,9 @@ champ d'application CalculAllocationLogementFoyer
     -- Mayotte: vrai
     -- SaintBarthélemy: vrai
     -- SaintMartin: vrai
-    -- n'importe quel: faux)
-  conséquence égal à
-    soit montant égal à
-      56,12€ + 12,72€ * (décimal de nombre_personnes_à_charge)
-    dans
-    soit limite égal à 56,12€ + 12,72€ * 6,0 dans
-    si montant > limite alors limite sinon montant
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
 ```
 
 c) Le loyer de référence " LR ", dont les valeurs sont fixées à l'article 14,
@@ -168,18 +141,19 @@ personnelle (" Tp ") visé au 3° de l'article D. 823-17 du même code ;
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >= |2022-07-01|  et date_courante < |2023-01-01|:
-  exception base définition loyer_référence égal à
-    si nombre_personnes_à_charge = 0 alors
-      selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 259,78€
-      -- Couple: 317,97€
-    sinon
-      soit montant égal à (357,80€ +
-      (52,08€ * (décimal de (nombre_personnes_à_charge - 1))))
-      dans
-      soit limite égal à 357,80€ + 52,08€ * 6,0 dans
-      si montant > limite alors limite sinon montant
+  sous condition date_courante >= |2022-07-01| et date_courante < |2023-01-01|:
+  exception base
+  définition multiplicateur_majoration_loyer_référence sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 5,0
 ```
 
 d) Le forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, dont
@@ -189,7 +163,7 @@ les valeurs sont fixées à l'article 15 ;
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2022-07-01| et date_courante < |2023-01-01|:
   exception métropole
-  définition abattement_forfaitaire_d823_17
+  définition multiplicateur_majoration_r0
   sous condition
     (selon résidence sous forme
     -- Guadeloupe: vrai
@@ -200,8 +174,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- SaintMartin: vrai
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
-  conséquence égal à
-    9 975 €
+  conséquence égal à 0,0
 ```
 
 e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont les
@@ -410,58 +383,540 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 2,81%
       -- Couple: 2,99%
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       2,38%
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       2,17%
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       1,94%
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon si nombre_personnes_à_charge = 4 alors
       1,80%
-    sinon (si nombre_personnes_à_charge = 5 alors
+    sinon si nombre_personnes_à_charge = 5 alors
       1,69%
     sinon # si nombre_personnes_à_charge >= 6 alors
-      1,62%)))))
+      1,62%
 ```
 
 5° A compter du 1er janvier 2022, pour l'application du 5° de l'article D. 823-17 du même code, le forfait
 “ R0 ” applicable à Mayotte est identique à celui applicable en outre-mer.
 
+```catala
+# Rien à coder
+```
+
 NOTA : Conformément à l’article 3 de l’arrêté du 16 août 2022 (TREL2220744A), ces dispositions sont
 applicables pour les prestations dues à compter du 1er juillet 2022.
 
 ```catala
-# Cet article a été modifié par l'arrêté du 16 août 2022 et celui du 29 juillet 2022. 
-# Ces deux arrêts apportent des changements différents, mais ont la même date d'entrée en vigueur. La rédaction 
+# Cet article a été modifié par l'arrêté du 16 août 2022 et celui du 29 juillet 2022.
+# Ces deux arrêts apportent des changements différents, mais ont la même date d'entrée en vigueur. La rédaction
 # ci-dessus est issue de ces deux arrêtés.
 ```
 
 ### Article 47 | LEGIARTI000046126954 [archive]
 
-Pour l'application du chapitre VII du présent arrêté à Saint-Pierre-et-Miquelon, le calcul de l'allocation 
-de logement pour les logements-foyers repose sur les valeurs fixées au chapitre III relatif au calcul des 
-aides personnelles au logement en secteur locatif. 
+Pour l'application du chapitre VII du présent arrêté à Saint-Pierre-et-Miquelon, le calcul de l'allocation
+de logement pour les logements-foyers repose sur les valeurs fixées au chapitre III relatif au calcul des
+aides personnelles au logement en secteur locatif.
 
-Pour l'application du 5° de l'article D. 823-17 à Saint-Pierre-et-Miquelon, le forfait “ R0 ” est fixé 
-selon le tableau suivant : 
+Pour l'application du 5° de l'article D. 823-17 à Saint-Pierre-et-Miquelon, le forfait “ R0 ” est fixé
+selon le tableau suivant :
 
-Composition du foyer                   MONTANT (en euros) 
+Composition du foyer                   MONTANT (en euros)
 -------------------------------------- ------------------
-Personne seule sans personne à charge  4 870 
-Couple sans personne à charge          6 977 
-Personne seule ou couple ayant : 
--une personne à charge                 8 322 
--deux personnes à charge               8 509 
--trois personnes à charge              8 834 
--quatre personnes à charge             9 163 
--cinq personnes à charge               9 488 
--six personnes à charge                9 816 
--par personne à charge supplémentaire  323 
+Personne seule sans personne à charge  4 870
+Couple sans personne à charge          6 977
+Personne seule ou couple ayant :
+-une personne à charge                 8 322
+-deux personnes à charge               8 509
+-trois personnes à charge              8 834
+-quatre personnes à charge             9 163
+-cinq personnes à charge               9 488
+-six personnes à charge                9 816
+-par personne à charge supplémentaire  323
 
-NOTA : Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A), ces dispositions 
+NOTA : Conformément à l’article 3 de l’arrêté du 29 juillet 2022 (NOR : TREL2220748A), ces dispositions
 sont applicables pour les prestations dues à compter du 1 er juillet 2022.
 
-## Articles en vigueur du 1er octobre 2021 au 31 décembre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-07-01| et date_courante < |2023-01-01|:
+  exception métropole
+  définition abattement_forfaitaire_d823_17 sous condition
+    selon résidence sous forme
+    -- SaintPierreEtMiquelon: vrai
+    -- n'importe quel: faux
+  conséquence égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 4 870 €
+      -- Couple:  6 977 €
+    sinon si nombre_personnes_à_charge = 1 alors
+      8 322 €
+    sinon si nombre_personnes_à_charge = 2 alors
+      8 509 €
+    sinon si nombre_personnes_à_charge = 3 alors
+      8 834 €
+    sinon si nombre_personnes_à_charge = 4 alors
+      9 163 €
+    sinon si nombre_personnes_à_charge = 5 alors
+      9 488 €
+    sinon si nombre_personnes_à_charge = 6 alors
+      9 816 €
+    sinon
+      9 816 € + 350 € * (décimal de (nombre_personnes_à_charge - 6))
+```
+
+## Articles en vigueur à partir du 1er janvier 2022 - Arrêté du 20 décembre 2021 relatif au calcul des aides personnelles au logement pour l'année 2022 NOR : LOGL2134477A
+
+### Article 6 | LEGIARTI000045011471 [archive]
+
+Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
+égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
+pour la location et à 6 000 euros pour la résidence en logement-foyer.
+
+Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est
+pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros
+pour la location et à 4 900 euros pour la résidence en logement-foyer.
+
+```catala
+# TODO informatique et juridique: traduire cet article qui vient définir
+# ressources_forfaitaires_r822_20
+```
+
+NOTA :
+
+Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
+
+### Article 15 | LEGIARTI000045011468 [archive]
+
+Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
+le tableau suivant (en euros) :
+
+Composition du foyer	                     MONTANT  (en euros)
+-----------------------------------------  -------------------
+Personne seule sans personne à charge	     4 683
+Couple sans personne à charge	             6 709
+Personne seule ou couple ayant :
+    -une personne à charge	               8 002
+    -deux personnes à charge	             8 182
+    -trois personnes à charge	             8 495
+    -quatre personnes à charge	           8 811
+    -cinq personnes à charge	             9 124
+    -six personnes à charge                9 439
+    -par personne à charge supplémentaire  311
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01| et
+    date_courante < |2022-07-01|:
+
+  étiquette métropole
+  définition multiplicateur_majoration_r0 égal à
+    décimal de (nombre_personnes_à_charge - 6)
+
+  étiquette métropole
+  définition abattement_forfaitaire_d823_17 égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 4 683 €
+      -- Couple: 6709 €
+    sinon si nombre_personnes_à_charge = 1 alors
+      8 002 €
+    sinon si nombre_personnes_à_charge = 2 alors
+      8 192 €
+    sinon si nombre_personnes_à_charge = 3 alors
+      8 495 €
+    sinon si nombre_personnes_à_charge = 4 alors
+      8 811 €
+    sinon si nombre_personnes_à_charge = 5 alors
+      9 124 €
+    sinon si nombre_personnes_à_charge = 6 alors
+      9 439 €
+    sinon
+      9 439€ + 311 € * multiplicateur_majoration_r0
+```
+
+NOTA :
+Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
+ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
+
+### Article 46 | LEGIARTI000045011463 [archive]
+
+Pour l'application en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Mayotte, à Saint-Barthélemy
+et à Saint-Martin des dispositions des chapitres III, VI et VII du présent arrêté :
+
+1° La majoration pour personne à charge est limitée à 6 personnes. Les paramètres suivants sont impactés :
+
+a) Les plafonds de loyers visés au 2° de l'article D. 823-16 du code de la construction et de l'habitation ,
+dont les valeurs sont fixées à l'article 7 ;
+
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01| et date_courante < |2022-07-01|:
+  exception métropole
+  définition multiplicateur_majoration_plafond_loyer_d823_16_2
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 5,0
+# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
+# charge s'applique également aux exceptions à l'article 7 que sont les
+# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
+# Ici nous avons choisi de faire appliquer la limitation à tous les cas
+# y compris les chambres et la colocation.
+```
+
+b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des articles
+D. 842-6 et D. 842-15 du même code, dont les valeurs sont fixées respectivement aux articles 9, 34 et 40 ;
+
+
+```catala
+# Le montant des valeurs de l'article 9 en outre-mer est donné explicitement
+# au 3° de cet article.
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
+
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
+```
+
+c) Le loyer de référence " LR ", dont les valeurs sont fixées à l'article 14, intervenant dans le calcul de
+" TL ", terme du taux de la participation personnelle (" Tp ") visé au 3° de l'article D. 823-17 du même
+code ;
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  exception base
+  définition multiplicateur_majoration_loyer_référence sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à  5,0
+```
+
+d) Le forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, dont les valeurs sont fixées à
+l'article 15 ;
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+
+  exception métropole
+  définition multiplicateur_majoration_r0
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 0,0
+```
+
+e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont les valeurs sont fixées à
+l'article 33 ;
+
+```catala
+# TODO informatique: pour coder ça il faut rajouter le nombre de personnes à
+# charge en paramètre de calcul_plafond_mensualité_d842_6 et ajouter une
+# exception à plafond_mensualité_d842_6 directement pour éviter de dupliquer
+# le code de calcul_plafond_mensualité_d842_6.
+```
+
+
+2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, pour
+un ménage ayant un enfant à charge, est remplacée par " 7 742 euros " ;
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  exception métropole
+  définition abattement_forfaitaire_d823_17
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge = 1
+  conséquence égal à
+    7 742 €
+```
+
+3° Les montants forfaitaires au titre des charges sont modifiés ainsi :
+
+a) Les montants visés au 3° de l'article D. 823-16, au 4° des articles D. 842-6 et D. 842-15 du même code,
+dont les valeurs sont fixées aux articles 9, 34 et 40, sont remplacés par les valeurs suivantes (en euros) :
+
+Désignation                                                                    Toutes zones
+-----------------------------------------------------------------------------  ------------
+Bénéficiaire isolé ou couple sans personne à charge                            36,40
+Par personne supplémentaire à charge dans la limite de six personnes à charge  9,36
+
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  étiquette base_outre_mer exception base_métropole
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,40€ + 9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,40€ + 9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  étiquette outre_mer exception copropriété
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,40€ + 9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,40€ + 9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  exception base définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,40€ + 9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,40€ + 9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+```
+
+b) Les montants des colocataires et des copropriétaires prévus respectivement aux articles D. 823-18 et
+D. 842-10 du même code, dont les valeurs sont fixées aux articles 16 et 37, sont remplacés par les valeurs
+suivantes (en euros) :
+
+Composition du ménage                                                     Montant
+------------------------------------------------------------------------  -------
+Bénéficiaire isolé                                                        18,72
+Couple sans personne à charge                                             36,40
+Majoration par personne à charge dans la limite de six personnes à charge 9,36
+
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  exception colocation_métropole
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,72€
+       -- Couple: 36,40€) +
+      9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,72€
+       -- Couple: 36,40€) +
+      9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  exception outre_mer
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,72€
+       -- Couple: 36,40€) +
+      9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,72€
+       -- Couple: 36,40€) +
+      9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+```
+
+4° Les valeurs du taux " TF " fixées à l'article 14, taux fonction de la taille de la famille visé au 3° de
+l'article D. 823-17 du même code, sont remplacées par les valeurs suivantes :
+
+VALEURS DE TF
+
+Bénéficiaires                      TF
+---------------------------------  -----
+Isolé                              2,81%
+Couple sans enfant                 2,99%
+1 enfant ou 1 personne             2,38%
+2 enfants ou 2 personnes           2,17%
+3 enfants ou 3 personnes           1,94%
+4 enfants ou 4 personnes           1,80%
+5 enfants ou 5 personnes           1,69%
+6 enfants ou 6 personnes et plus   1,62%
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  exception base définition taux_composition_familiale sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 2,81%
+      -- Couple: 2,99%
+    sinon si nombre_personnes_à_charge = 1 alors
+      2,38%
+    sinon si nombre_personnes_à_charge = 2 alors
+      2,17%
+    sinon si nombre_personnes_à_charge = 3 alors
+      1,94%
+    sinon si nombre_personnes_à_charge = 4 alors
+      1,80%
+    sinon si nombre_personnes_à_charge = 5 alors
+      1,69%
+    sinon # si nombre_personnes_à_charge >= 6 alors
+      1,62%
+```
+
+5° A compter du 1er janvier 2022, pour l'application du 5° de l'article D. 823-17 du même code, le forfait
+“ R0 ” applicable à Mayotte est identique à celui applicable en outre-mer.
+
+NOTA : Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A), ces dispositions sont
+applicables pour les prestations dues à compter du 1 er janvier 2022.
+
+### Article 47 | LEGIARTI000045011460 [archive]
+
+Pour l'application du chapitre VII du présent arrêté à Saint-Pierre-et-Miquelon, le calcul de l'allocation de
+logement pour les logements-foyers repose sur les valeurs fixées au chapitre III relatif au calcul des aides
+personnelles au logement en secteur locatif.
+
+
+```catala
+# On regarde si les montants fixés pour les APL en secteur locatif (chapitre III, art. 9, 11, 12)
+# sont les mêmes que ceux des allocations foyers (chapitre VII, art. 40 à 44)
+
+# Article 40 montant forfaitaire des charges : valeurs identiques à partir du
+# 1er janvier 2023 à celles de l'article 9 donc rien à coder.
+
+# Article 41 minoration forfaitaire : valeurs identiques à partir du
+# 1er janvier 2023 à celles de l'article 11 donc rien à coder.
+
+# Article 42 seuil de versement : valeurs identiques à partir du
+# 1er janvier 2023 à celles de l'article 12 donc rien à coder.
+
+# TODO juridique : l'article 43 parle de l'équivalence loyer en secteur
+# logement-foyer mais il n'existe pas de quantité équivalente en secteur
+# locatif! Comment donc appliquer la règle de prendre les valeurs du chapitre
+# III pour l'application du chapitre VII dans ce cas ?
+# Idem pour l'article 44 et et le montant minimal de dépense nette de loyer.
+```
+
+NOTA : Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A), ces dispositions sont
+applicables pour les prestations dues à compter du 1 er janvier 2022.
+
+## Articles en vigueur à partir du 1er octobre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A
 
 ### Article 7 | LEGIARTI000044137432 [archive]
 
@@ -510,20 +965,21 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     --Zone2: 317,97€
     --Zone3: 295,15€
 
+  étiquette métropole
+  définition multiplicateur_majoration_plafond_loyer_d823_16_2 égal à
+    décimal de (nombre_personnes_à_charge - 1)
+
   # Colonnes 3 et 4
   étiquette base définition plafond_loyer_d823_16_2 sous condition
     nombre_personnes_à_charge >= 1
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      406,30€ + 58,95€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      406,30€ + 58,95€ * multiplicateur_majoration_plafond_loyer_d823_16_2
     --Zone2:
-      357,80€ + 52,08€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      357,80€ + 52,08€ * multiplicateur_majoration_plafond_loyer_d823_16_2
     --Zone3:
-      330,94€ + 47,43€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      330,94€ + 47,43€ * multiplicateur_majoration_plafond_loyer_d823_16_2
 
 ```
 
@@ -619,9 +1075,14 @@ du 1er octobre 2021.
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
+
+  étiquette métropole
+  définition multiplicateur_majoration_charges_d823_16 égal à
+    décimal de nombre_personnes_à_charge
+
   étiquette base_métropole
   définition montant_forfaitaire_charges_d823_16 égal à
-    54,22€ + 12,29€ * (décimal de nombre_personnes_à_charge)
+    54,22€ + 12,29€ * multiplicateur_majoration_charges_d823_16
 ```
 
 ### Article 13 | LEGIARTI000044137423 [archive]
@@ -683,24 +1144,20 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 2,83%
       -- Couple: 3,15%
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       2,70%
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       2,38%
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       2,01%
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon si nombre_personnes_à_charge = 4 alors
       1,85%
-    sinon (si nombre_personnes_à_charge = 5 alors
+    sinon si nombre_personnes_à_charge = 5 alors
       1,79%
-    sinon (si nombre_personnes_à_charge = 6 alors
+    sinon si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% - (0,06% * (décimal de
-        (nombre_personnes_à_charge - 6))))
-    ))))))
-# TODO informatique: corriger le parseur pour éviter d'avoir à mettre
-# toutes ces parenthèses.
+      1,73% - 0,06% * (décimal de (nombre_personnes_à_charge - 6))
 ```
 
 2° TL représente un taux complémentaire fixé ci-dessous en fonction de la valeur du rapport
@@ -729,7 +1186,7 @@ TL est exprimé en pourcentage et arrondi à la troisième décimale.
 Le tableau suivant traduit cette formule :
 
 Si $\textrm{RL}<45\%$ Si $45\% < \textrm{RL} < 75\%$                 Si $\textrm{RL} >75 \%$
---------------------- ---------------------------------------------  ---------------------------------------------------------------
+--------------------- ---------------------------------------------- ---------------------------------------------------------------
 $\textrm{TL}=0 \%$    $\textrm{TL}=0,45 \%\times (\textrm{RL}-45\%)$ $\textrm{TL}=0,45\%\times30 \%+0,68 \%\times(\textrm{RL}-75\%)$
 
 ```catala
@@ -764,13 +1221,17 @@ Majoration par personne à charge	                    52,08
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
-  étiquette base définition loyer_référence égal à
+
+  étiquette base
+  définition multiplicateur_majoration_loyer_référence égal à
+    décimal de (nombre_personnes_à_charge - 1)
+
+  définition loyer_référence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 259,78€
       -- Couple: 317,97€
-    sinon (357,80€ +
-      (52,08€ * (décimal de (nombre_personnes_à_charge - 1))))
+    sinon 357,80€ + 52,08€ * multiplicateur_majoration_loyer_référence
 ```
 
 NOTA :
@@ -828,19 +1289,20 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     --Zone2: 238,48€
     --Zone3: 221,36€
 
+  étiquette métropole
+  définition multiplicateur_majoration_plafond_loyer_d823_16_2 égal à
+    décimal de (nombre_personnes_à_charge - 1)
+
   exception base définition plafond_loyer_d823_16_2 sous condition
     nombre_personnes_à_charge >= 1
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      304,73€ + 44,21€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      304,73€ + 44,21€ * multiplicateur_majoration_plafond_loyer_d823_16_2
     --Zone2:
-      268,35€ + 39,06€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      268,35€ + 39,06€ * multiplicateur_majoration_plafond_loyer_d823_16_2
     --Zone3:
-      248,21€ + 35,57€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      248,21€ + 35,57€ * multiplicateur_majoration_plafond_loyer_d823_16_2
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
@@ -860,7 +1322,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 27,10€
     -- Couple: 54,22€) +
-    12,29€ * (décimal de nombre_personnes_à_charge)
+    12,29€ * multiplicateur_majoration_charges_d823_16
 ```
 
 NOTA :
@@ -1023,10 +1485,14 @@ les prestations dues à compter du 1er octobre 2021.
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
+
+  étiquette métropole
+  définition multiplicateur_majoration_charges égal à
+    décimal de nombre_personnes_à_charge
+
   étiquette base définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 54,22 €
-   sinon 54,22 € + (12,29 € * (
-     décimal de nombre_personnes_à_charge))
+   sinon 54,22 € + 12,29 € * multiplicateur_majoration_charges
 ```
 
 ### Article 37 | LEGIARTI000044137400 [archive]
@@ -1092,10 +1558,14 @@ sont applicables pour les prestations dues à compter du 1er octobre 2021.
 champ d'application CalculAllocationLogementFoyer
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
+
+  étiquette métropole
+  définition multiplicateur_majoration_charges égal à
+    décimal de nombre_personnes_à_charge
+
   étiquette base définition montant_forfaitaire_charges égal à
    si nombre_personnes_à_charge = 0 alors 54,22 €
-   sinon 54,22 € + (12,29 € * (
-     décimal de nombre_personnes_à_charge))
+   sinon 54,22 € + 12,29 € * multiplicateur_majoration_charges
 ```
 
 
@@ -1193,38 +1663,282 @@ et à Saint-Martin des dispositions des chapitres III, VI et VII du présent arr
 a) Les plafonds de loyers visés au 2° de l'article D. 823-16 du code de la construction et de l'habitation ,
 dont les valeurs sont fixées à l'article 7 ;
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2021-10-01| et date_courante < |2022-01-01|:
+  exception métropole
+  définition multiplicateur_majoration_plafond_loyer_d823_16_2
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 5,0
+# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
+# charge s'applique également aux exceptions à l'article 7 que sont les
+# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
+# Ici nous avons choisi de faire appliquer la limitation à tous les cas
+# y compris les chambres et la colocation.
+```
+
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des articles
 D. 842-6 et D. 842-15 du même code, dont les valeurs sont fixées respectivement aux articles 9, 34 et 40 ;
+
+```catala
+# Le montant des valeurs de l'article 9 en outre-mer est donné explicitement
+# au 3° de cet article.
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
+
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
+```
 
 c) Le loyer de référence " LR ", dont les valeurs sont fixées à l'article 14, intervenant dans le calcul
 de " TL ", terme du taux de la participation personnelle (" Tp ") visé au 3° de l'article D. 823-17 du même
 code ;
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception base
+  définition multiplicateur_majoration_loyer_référence sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 5,0
+```
+
 d) Le forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, dont les valeurs sont fixées à
 l'article 15 ;
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception métropole
+  définition multiplicateur_majoration_r0
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 0,0
+```
+
 e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont les valeurs sont fixées à
 l'article 33 ;
+
+
+```catala
+# TODO informatique: pour coder ça il faut rajouter le nombre de personnes à
+# charge en paramètre de calcul_plafond_mensualité_d842_6 et ajouter une
+# exception à plafond_mensualité_d842_6 directement pour éviter de dupliquer
+# le code de calcul_plafond_mensualité_d842_6.
+```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même code,
 pour un ménage ayant un enfant à charge, est remplacée par " 7 584 euros " ; 3° Les montants forfaitaires
 au titre des charges sont modifiés ainsi :
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception métropole
+  définition abattement_forfaitaire_d823_17
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge = 1
+  conséquence égal à
+    7 584 €
+```
+
+3° Les montants forfaitaires au titre des charges sont modifiés ainsi :
+
 a) Les montants visés au 3° de l'article D. 823-16, au 4° des articles D. 842-6 et D. 842-15 du même code,
 dont les valeurs sont fixées aux articles 9, 34 et 40, sont remplacés par les valeurs suivantes (en euros) :
 
-Désignation                                                                    Toutes zones
-Bénéficiaire isolé ou couple sans personne à charge                            36,40
-Par personne supplémentaire à charge dans la limite de six personnes à charge  9,36
+Désignation                                                                   Toutes zones
+----------------------------------------------------------------------------- ------------
+Bénéficiaire isolé ou couple sans personne à charge                           36,40
+Par personne supplémentaire à charge dans la limite de six personnes à charge 9,36
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  étiquette base_outre_mer exception base_métropole
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,40€ + 9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,40€ + 9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  étiquette outre_mer exception copropriété
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,40€ + 9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,40€ + 9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception base définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,40€ + 9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,40€ + 9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+```
 
 b) Les montants des colocataires et des copropriétaires prévus respectivement aux articles D. 823-18 et
 D. 842-10 du même code, dont les valeurs sont fixées aux articles 16 et 37, sont remplacés par les valeurs
 suivantes (en euros) :
 
-Composition du ménage                                                       Montant
-Bénéficiaire isolé                                                          18,72
-Couple sans personne à charge                                               36,40
-Majoration par personne à charge dans la limite de six personnes à charge   9,36
+Composition du ménage                                                      Montant
+-------------------------------------------------------------------------- -------
+Bénéficiaire isolé                                                         18,72
+Couple sans personne à charge                                              36,40
+Majoration par personne à charge dans la limite de six personnes à charge  9,36
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception colocation_métropole
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,72€
+       -- Couple: 36,40€) +
+      9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,72€
+       -- Couple: 36,40€) +
+      9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception outre_mer
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,72€
+       -- Couple: 36,40€) +
+      9,36€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,72€
+       -- Couple: 36,40€) +
+      9,36€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+```
 
 4° Les valeurs du taux " TF " fixées à l'article 14, taux fonction de la taille de la famille visé au 3°
 de l'article D. 823-17 du même code, sont remplacées par les valeurs suivantes :
@@ -1241,184 +1955,42 @@ Couple sans enfant                2,99%
 5 enfants ou 5 personnes          1,69%
 6 enfants ou 6 personnes et plus  1,62%
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception base définition taux_composition_familiale sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 2,81%
+      -- Couple: 2,99%
+    sinon si nombre_personnes_à_charge = 1 alors
+      2,38%
+    sinon si nombre_personnes_à_charge = 2 alors
+      2,17%
+    sinon si nombre_personnes_à_charge = 3 alors
+      1,94%
+    sinon si nombre_personnes_à_charge = 4 alors
+      1,80%
+    sinon si nombre_personnes_à_charge = 5 alors
+      1,69%
+    sinon # si nombre_personnes_à_charge >= 6 alors
+      1,62%
+```
+
 NOTA : Conformément au I de l’article 3 de l’arrêté du 23 septembre 2021, ces dispositions sont applicables
 pour les prestations dues à compter du 1er octobre 2021.
 
-## Articles en vigueur du 1er janvier 2022 au 30 juin 2022 - Arrêté du 20 décembre 2021 relatif au calcul des aides personnelles au logement pour l'année 2022 NOR : LOGL2134477A 
 
-### Article 6 | LEGIARTI000045011471 [archive]
-
-Pour l'application de l'article D. 822-21 du même code, le montant forfaitaire auquel sont réputées
-égales les ressources du bénéficiaire et, le cas échéant, de son conjoint, est fixé à 7 800 euros
-pour la location et à 6 000 euros pour la résidence en logement-foyer.
-
-Toutefois, lorsque le demandeur est titulaire d'une bourse de l'enseignement supérieur qui n'est
-pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources est fixé à 6 300 euros
-pour la location et à 4 900 euros pour la résidence en logement-foyer.
-
-```catala
-# TODO informatique et juridique: traduire cet article qui vient définir
-# ressources_forfaitaires_r822_20
-```
-
-NOTA :
-
-Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
-
-### Article 15 | LEGIARTI000045011468 [archive]
-
-Pour l'application du 5° de l'article D. 823-17 du même code, le forfait " R0 " est fixé selon
-le tableau suivant (en euros) :
-
-Composition du foyer	                     MONTANT  (en euros)
------------------------------------------  -------------------
-Personne seule sans personne à charge	     4 683
-Couple sans personne à charge	             6 709
-Personne seule ou couple ayant :
-    -une personne à charge	               8 002
-    -deux personnes à charge	             8 182
-    -trois personnes à charge	             8 495
-    -quatre personnes à charge	           8 811
-    -cinq personnes à charge	             9 124
-    -six personnes à charge                9 439
-    -par personne à charge supplémentaire  311
-
-```catala
-champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >= |2022-01-01| et
-    date_courante < |2022-07-01|:
-  étiquette métropole
-  définition abattement_forfaitaire_d823_17 égal à
-    si nombre_personnes_à_charge = 0 alors
-      selon situation_familiale_calcul_apl sous forme
-      -- PersonneSeule: 4 683 €
-      -- Couple: 6709 €
-    sinon (si nombre_personnes_à_charge = 1 alors
-      8 002 €
-    sinon (si nombre_personnes_à_charge = 2 alors
-      8 192 €
-    sinon (si nombre_personnes_à_charge = 3 alors
-      8 495 €
-    sinon (si nombre_personnes_à_charge = 4 alors
-      8 811 €
-    sinon (si nombre_personnes_à_charge = 5 alors
-      9 124 €
-    sinon (si nombre_personnes_à_charge = 6 alors
-      9 439 €
-    sinon
-      (9 439€ + (311 € * (décimal de
-        (nombre_personnes_à_charge - 6))))
-    ))))))
-```
-
-NOTA :
-Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A),
-ces dispositions sont applicables pour les prestations dues à compter du 1 er janvier 2022.
-
-### Article 46 | LEGIARTI000045011463 [archive]
-
-```catala
-# TODO informatique : faire comme l'article 46 du début
-```
-
-Pour l'application en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Mayotte, à Saint-Barthélemy
-et à Saint-Martin des dispositions des chapitres III, VI et VII du présent arrêté :
-
-1° La majoration pour personne à charge est limitée à 6 personnes. Les paramètres suivants sont impactés :
-
-a) Les plafonds de loyers visés au 2° de l'article D. 823-16 du code de la construction et de l'habitation ,
-dont les valeurs sont fixées à l'article 7 ;
-
-b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des articles
-D. 842-6 et D. 842-15 du même code, dont les valeurs sont fixées respectivement aux articles 9, 34 et 40 ;
-
-c) Le loyer de référence " LR ", dont les valeurs sont fixées à l'article 14, intervenant dans le calcul de
-" TL ", terme du taux de la participation personnelle (" Tp ") visé au 3° de l'article D. 823-17 du même
-code ;
-
-d) Le forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, dont les valeurs sont fixées à
-l'article 15 ;
-
-e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont les valeurs sont fixées à
-l'article 33 ;
-
-2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, pour
-un ménage ayant un enfant à charge, est remplacée par " 7 742 euros " ;
-
-3° Les montants forfaitaires au titre des charges sont modifiés ainsi :
-
-a) Les montants visés au 3° de l'article D. 823-16, au 4° des articles D. 842-6 et D. 842-15 du même code,
-dont les valeurs sont fixées aux articles 9, 34 et 40, sont remplacés par les valeurs suivantes (en euros) :
-
-Désignation                                                                    Toutes zones
------------------------------------------------------------------------------  ------------
-Bénéficiaire isolé ou couple sans personne à charge                            36,40
-Par personne supplémentaire à charge dans la limite de six personnes à charge  9,36
-
-b) Les montants des colocataires et des copropriétaires prévus respectivement aux articles D. 823-18 et
-D. 842-10 du même code, dont les valeurs sont fixées aux articles 16 et 37, sont remplacés par les valeurs
-suivantes (en euros) :
-
-Composition du ménage                                                     Montant
-------------------------------------------------------------------------  -------
-Bénéficiaire isolé                                                        18,72
-Couple sans personne à charge                                             36,40
-Majoration par personne à charge dans la limite de six personnes à charge 9,36
-
-4° Les valeurs du taux " TF " fixées à l'article 14, taux fonction de la taille de la famille visé au 3° de
-l'article D. 823-17 du même code, sont remplacées par les valeurs suivantes :
-
-VALEURS DE TF
-
-Bénéficiaires                      TF
----------------------------------  -----
-Isolé                              2,81%
-Couple sans enfant                 2,99%
-1 enfant ou 1 personne             2,38%
-2 enfants ou 2 personnes           2,17%
-3 enfants ou 3 personnes           1,94%
-4 enfants ou 4 personnes           1,80%
-5 enfants ou 5 personnes           1,69%
-6 enfants ou 6 personnes et plus   1,62%
-
-5° A compter du 1er janvier 2022, pour l'application du 5° de l'article D. 823-17 du même code, le forfait
-“ R0 ” applicable à Mayotte est identique à celui applicable en outre-mer.
-
-NOTA : Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A), ces dispositions sont
-applicables pour les prestations dues à compter du 1 er janvier 2022.
-
-### Article 47 | LEGIARTI000045011460 [archive]
-
-Pour l'application du chapitre VII du présent arrêté à Saint-Pierre-et-Miquelon, le calcul de l'allocation de
-logement pour les logements-foyers repose sur les valeurs fixées au chapitre III relatif au calcul des aides
-personnelles au logement en secteur locatif.
-
-
-```catala
-# On regarde si les montants fixés pour les APL en secteur locatif (chapitre III, art. 9, 11, 12)  
-# sont les mêmes que ceux des allocations foyers (chapitre VII, art. 40 à 44)
-
-# Article 40 montant forfaitaire des charges : valeurs identiques à partir du
-# 1er janvier 2023 à celles de l'article 9 donc rien à coder.
-
-# Article 41 minoration forfaitaire : valeurs identiques à partir du
-# 1er janvier 2023 à celles de l'article 11 donc rien à coder.
-
-# Article 42 seuil de versement : valeurs identiques à partir du
-# 1er janvier 2023 à celles de l'article 12 donc rien à coder.
-
-# TODO juridique : l'article 43 parle de l'équivalence loyer en secteur
-# logement-foyer mais il n'existe pas de quantité équivalente en secteur
-# locatif! Comment donc appliquer la règle de prendre les valeurs du chapitre
-# III pour l'application du chapitre VII dans ce cas ?
-# Idem pour l'article 44 et et le montant minimal de dépense nette de loyer.
-```
-
-NOTA : Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A), ces dispositions sont
-applicables pour les prestations dues à compter du 1 er janvier 2022.
-
-## Articles en vigueur du 1er octobre 2020 au 31 septembre 2021 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A
+## Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A
 
 ### Article 7 | LEGIARTI000042378448 [archive]
 
@@ -1468,20 +2040,21 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     --Zone2: 316,64€
     --Zone3: 293,92€
 
+  étiquette métropole
+  définition multiplicateur_majoration_plafond_loyer_d823_16_2 égal à
+    décimal de (nombre_personnes_à_charge - 1)
+
   # Colonnes 3 et 4
   étiquette base définition plafond_loyer_d823_16_2 sous condition
     nombre_personnes_à_charge >= 1
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      404,60€ + 58,70€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      404,60€ + 58,70€ * multiplicateur_majoration_plafond_loyer_d823_16_2
     --Zone2:
-      356,30€ + 51,86€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      356,30€ + 51,86€ * multiplicateur_majoration_plafond_loyer_d823_16_2
     --Zone3:
-      329,56€ + 47,23€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      329,56€ + 47,23€ * multiplicateur_majoration_plafond_loyer_d823_16_2
 
 ```
 
@@ -1576,9 +2149,14 @@ compter du 1er octobre 2020.
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante < |2021-10-01| et
     date_courante >= |2020-10-01|:
+
+  étiquette métropole
+  définition multiplicateur_majoration_charges_d823_16 égal à
+    décimal de nombre_personnes_à_charge
+
   étiquette base_métropole
   définition montant_forfaitaire_charges_d823_16 égal à
-    53,99€ + 12,24€ * (décimal de nombre_personnes_à_charge)
+    53,99€ + 12,24€ * multiplicateur_majoration_charges_d823_16
 ```
 
 ### Article 13 | LEGIARTI000042378442 [archive]
@@ -1641,24 +2219,20 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 2,83%
       -- Couple: 3,15%
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       2,70%
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       2,38%
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       2,01%
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon si nombre_personnes_à_charge = 4 alors
       1,85%
-    sinon (si nombre_personnes_à_charge = 5 alors
+    sinon si nombre_personnes_à_charge = 5 alors
       1,79%
-    sinon (si nombre_personnes_à_charge = 6 alors
+    sinon si nombre_personnes_à_charge = 6 alors
       1,73%
     sinon
-      (1,73% - (0,06% * (décimal de
-        (nombre_personnes_à_charge - 6))))
-    ))))))
-# TODO informatique: corriger le parseur pour éviter d'avoir à mettre
-# toutes ces parenthèses.
+      1,73% - 0,06% * (décimal de (nombre_personnes_à_charge - 6))
 ```
 
 2° TL représente un taux complémentaire fixé ci-dessous en fonction de la valeur du rapport
@@ -1719,13 +2293,17 @@ Majoration par personne à charge	                    51,86
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2020-10-01| et
     date_courante < |2021-10-01|:
-  étiquette base définition loyer_référence égal à
+
+  étiquette base
+  définition multiplicateur_majoration_loyer_référence égal à
+    décimal de (nombre_personnes_à_charge - 1)
+
+  définition loyer_référence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 258,69€
       -- Couple: 316,64€
-    sinon (356,30€ +
-      (51,86€ * (décimal de (nombre_personnes_à_charge - 1))))
+    sinon 356,30€ + 51,86€ * multiplicateur_majoration_loyer_référence
 ```
 
 NOTA :
@@ -1744,18 +2322,18 @@ D. 823-16 du même code et fixés à l'article 7.
 Les montants obtenus par l'application de ces pourcentages sont arrondis au centime d'euro le plus proche.
 On obtient les loyers plafonds suivants (en euros) :
 
---------------------------------------------------------
-Zone	                             I       II     III
----------------------------------- ------- ------ ------
-Personne seule	                    222,62 194,02 181,85
+-------------------------------------------------------
+Zone	                             I      II     III
+---------------------------------- ------ ------ ------
+Personne seule	                   222,62 194,02 181,85
 
-Couple sans personne à charge	    268,49 237,48 220,44
+Couple sans personne à charge	     268,49 237,48 220,44
 
 Personne seule ou couple ayant une
-personne à charge	                303,45 267,23 247,17
+personne à charge	                 303,45 267,23 247,17
 
 Par personne à
-charge supplémentaire               44,03  38,90  35,42
+charge supplémentaire              44,03  38,90  35,42
 --------------------------------------------------------
 
 ```catala
@@ -1781,19 +2359,20 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     --Zone2: 237,48€
     --Zone3: 220,44€
 
+  étiquette métropole
+  définition multiplicateur_majoration_plafond_loyer_d823_16_2 égal à
+    décimal de (nombre_personnes_à_charge - 1)
+
   exception base définition plafond_loyer_d823_16_2 sous condition
     nombre_personnes_à_charge >= 1
   conséquence égal à
     selon zone sous forme
     --Zone1:
-      303,45€ + 44,03€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      303,45€ + 44,03€ * multiplicateur_majoration_plafond_loyer_d823_16_2
     --Zone2:
-      267,23€ + 38,90€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      267,23€ + 38,90€ * multiplicateur_majoration_plafond_loyer_d823_16_2
     --Zone3:
-      247,17€ + 35,42€ * (décimal de
-        (nombre_personnes_à_charge - 1))
+      247,17€ + 35,42€ * multiplicateur_majoration_plafond_loyer_d823_16_2
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
@@ -1814,7 +2393,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     (selon situation_familiale_calcul_apl sous forme
     -- PersonneSeule: 26,99€
     -- Couple: 53,99€) +
-    12,24€ * (décimal de nombre_personnes_à_charge)
+    12,24€ * multiplicateur_majoration_charges_d823_16
 ```
 
 NOTA :
@@ -2136,10 +2715,6 @@ pour les prestations dues à compter du 1er octobre 2020.
 
 ### Article 46 | LEGIARTI000042378415 [archive]
 
-```catala
-# TODO informatique: faire comme le 46 plus récent dans l'archive.
-```
-
 Pour l'application en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Mayotte, à
 Saint-Barthélemy et à Saint-Martin des dispositions des chapitres III, VI et VII du présent
 arrêté :
@@ -2150,22 +2725,141 @@ impactés :
 a) Les plafonds de loyers visés au 2° de l'article D. 823-16 du code de la construction et de
 l'habitation , dont les valeurs sont fixées à l'article 7 ;
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception métropole
+  définition multiplicateur_majoration_plafond_loyer_d823_16_2
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 5,0
+# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
+# charge s'applique également aux exceptions à l'article 7 que sont les
+# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
+# Ici nous avons choisi de faire appliquer la limitation à tous les cas
+# y compris les chambres et la colocation.
+```
+
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des
 articles D. 842-6 et D. 842-15 du même code, dont les valeurs sont fixées respectivement aux
 articles 9, 34 et 40 ;
+
+```catala
+# Le montant des valeurs de l'article 9 en outre-mer est donné explicitement
+# au 3° de cet article.
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
+
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
+```
 
 c) Le loyer de référence " LR ", dont les valeurs sont fixées à l'article 14, intervenant dans
 le calcul de " TL ", terme du taux de la participation personnelle (" Tp ") visé au 3° de l'article
 D. 823-17 du même code ;
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception base
+  définition multiplicateur_majoration_loyer_référence sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 5,0
+```
+
 d) Le forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, dont les valeurs sont
 fixées à l'article 15 ;
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception métropole
+  définition multiplicateur_majoration_r0
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 0,0
+```
 
 e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont les valeurs sont
 fixées à l'article 33 ;
 
+```catala
+# TODO informatique: pour coder ça il faut rajouter le nombre de personnes à
+# charge en paramètre de calcul_plafond_mensualité_d842_6 et ajouter une
+# exception à plafond_mensualité_d842_6 directement pour éviter de dupliquer
+# le code de calcul_plafond_mensualité_d842_6.
+```
+
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même
 code, pour un ménage ayant un enfant à charge, est remplacée par " 7 584 euros " ;
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception métropole
+  définition abattement_forfaitaire_d823_17
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge = 1
+  conséquence égal à
+    7 584 €
+```
 
 3° Les montants forfaitaires au titre des charges sont modifiés ainsi :
 
@@ -2178,6 +2872,71 @@ Désignation                                                                    
 Bénéficiaire isolé ou couple sans personne à charge                            36,25
 Par personne supplémentaire à charge dans la limite de six personnes à charge  9,32
 
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  étiquette base_outre_mer exception base_métropole
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,25€ + 9,32€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,25€ + 9,32€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  étiquette outre_mer exception copropriété
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,25€ + 9,32€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,25€ + 9,32€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception base définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,25€ + 9,32€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,25€ + 9,32€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+```
+
 b) Les montants des colocataires et des copropriétaires prévus respectivement aux articles D. 823-18
 et D. 842-10 du même code, dont les valeurs sont fixées aux articles 16 et 37, sont remplacés
 par les valeurs suivantes (en euros) :
@@ -2187,6 +2946,62 @@ Composition du ménage                                                       Mon
 Bénéficiaire isolé                                                          18,64
 Couple sans personne à charge                                               36,25
 Majoration par personne à charge dans la limite de six personnes à charge   9,32
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception colocation_métropole
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,64€
+       -- Couple: 36,25€) +
+      9,32€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,64€
+       -- Couple: 36,25€) +
+      9,32€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception outre_mer
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,64€
+       -- Couple: 36,25€) +
+      9,32€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,64€
+       -- Couple: 36,25€) +
+      9,32€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+```
 
 4° Les valeurs du taux " TF " fixées à l'article 14, taux fonction de la taille de la famille
 visé au 3° de l'article D. 823-17 du même code, sont remplacées par les valeurs suivantes :
@@ -2203,10 +3018,41 @@ Couple sans enfant                2,99%
 5 enfants ou 5 personnes          1,69%
 6 enfants ou 6 personnes et plus  1,62%
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception base définition taux_composition_familiale sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 2,81%
+      -- Couple: 2,99%
+    sinon si nombre_personnes_à_charge = 1 alors
+      2,38%
+    sinon si nombre_personnes_à_charge = 2 alors
+      2,17%
+    sinon si nombre_personnes_à_charge = 3 alors
+      1,94%
+    sinon si nombre_personnes_à_charge = 4 alors
+      1,80%
+    sinon si nombre_personnes_à_charge = 5 alors
+      1,69%
+    sinon # si nombre_personnes_à_charge >= 6 alors
+      1,62%
+```
+
 NOTA : Conformément à l’article 3, I de l’arrêté du 25 septembre 2020, ces dispositions sont
 applicables pour les prestations dues à compter du 1er octobre 2020.
 
-## Articles en vigueur du 01 janvier 2021 au 31 décembre 2021 - Arrêté du 31 décembre 2020 relatif au calcul des aides personnelles au logement pour l'année 2021 NOR : LOGL2028351A
+## Articles en vigueur à partir du 01 janvier 2021 - Arrêté du 31 décembre 2020 relatif au calcul des aides personnelles au logement pour l'année 2021 NOR : LOGL2028351A
 
 ### Article 6 | LEGIARTI000039160737 [archive]
 
@@ -2222,11 +3068,10 @@ location et à 4 900 euros pour la résidence en logement-foyer.
 ```catala
 # Modifications non subsantielles mais qui peuvent améliorer la compréhension et la précision des
 # dispositions par rapport à la version initiale.
-# TODO juridique et informatique : vérifier par rapport à la version initiale (version 2019)
 # TODO informatique et juridique: traduire cet article qui vient définir
 # ressources_forfaitaires_r822_20
-# La version du 1er janvier 2021 au 31 décembre 2021 de l'art. 6 est la même que celle applicable 
-# depuis 2019 (donc 1er janvier 2020, date à laquelle on fait remonter les archvies). 
+# La version du 1er janvier 2021 au 31 décembre 2021 de l'art. 6 est la même que celle applicable
+# depuis 2019 (donc 1er janvier 2020, date à laquelle on fait remonter les archvies).
 # Il est donc possible de traduire cet article et de faire remonter l'application
 # à une date antérieure au 1er janvier 2021.
 ```
@@ -2325,7 +3170,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 NOTA : Conformément à l’article 2 de l’arrêté du 31 décembre 2020 (NOR : LOGL2028351A), ces dispositions sont
 applicables pour les prestations dues à compter du 1 er janvier 2021.
 
-## Articles en vigueur du 01 janvier 2020 au 31 décembre 2021 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A
+## Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A
 
 ### Article 15 | LEGIARTI000041489192 [archive]
 
@@ -2349,28 +3194,31 @@ Personne seule ou couple ayant :
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante < |2022-01-01| et
     date_courante >= |2020-01-01|:
+
+  étiquette métropole
+  définition multiplicateur_majoration_r0 égal à
+    décimal de (nombre_personnes_à_charge - 6)
+
   étiquette métropole
   définition abattement_forfaitaire_d823_17 égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 4 588 €
       -- Couple: 6 572 €
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       7 839 €
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       8 015 €
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       8 322 €
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon si nombre_personnes_à_charge = 4 alors
       8 631 €
-    sinon (si nombre_personnes_à_charge = 5 alors
+    sinon si nombre_personnes_à_charge = 5 alors
       8 938 €
-    sinon (si nombre_personnes_à_charge = 6 alors
+    sinon si nombre_personnes_à_charge = 6 alors
       9 246 €
     sinon
-      (9 246€ + (305 € * (décimal de
-        (nombre_personnes_à_charge - 6))))
-    ))))))
+      9 246€ + 305 € * (décimal de (nombre_personnes_à_charge - 6))
 ```
 
 NOTA :
@@ -2380,7 +3228,7 @@ du 1er janvier 2020.
 
 ### Article 33 | LEGIARTI000041489184 [archive]
 
-```catala 
+```catala
 # Modifications non subsantielles mais qui peuvent améliorer la compréhension et la précision des
 # dispositions par rapport à la version initiale.
 # TODO juridique et informatique : vérifier par rapport à la version initiale (version 2019)
@@ -2388,9 +3236,6 @@ du 1er janvier 2020.
 
 ### Article 46 | LEGIARTI000041489188 [archive]
 
-```catala
-# TODO informatique: faire comme autres article 46
-```
 
 Pour l'application en Guadeloupe, en Guyane, en Martinique, à La Réunion, à Mayotte, à
 Saint-Barthélemy et à Saint-Martin des dispositions des chapitres III, VI et VII du présent
@@ -2402,22 +3247,143 @@ sont impactés :
 a) Les plafonds de loyers visés au 2° de l'article D. 823-16 du code de la construction et
 de l'habitation , dont les valeurs sont fixées à l'article 7 ;
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  exception métropole
+  définition multiplicateur_majoration_plafond_loyer_d823_16_2
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 5,0
+# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
+# charge s'applique également aux exceptions à l'article 7 que sont les
+# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
+# Ici nous avons choisi de faire appliquer la limitation à tous les cas
+# y compris les chambres et la colocation.
+```
+
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au
 4° des articles D. 842-6 et D. 842-15 du même code, dont les valeurs sont fixées respectivement
 aux articles 9, 34 et 40 ;
+
+```catala
+# Le montant des valeurs de l'article 9 en outre-mer est donné explicitement
+# au 3° de cet article.
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
+
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  exception métropole
+  définition multiplicateur_majoration_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 6,0
+```
 
 c) Le loyer de référence " LR ", dont les valeurs sont fixées à l'article 14, intervenant
 dans le calcul de " TL ", terme du taux de la participation personnelle (" Tp ") visé au 3°
 de l'article D. 823-17 du même code ;
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  exception base
+  définition multiplicateur_majoration_loyer_référence sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 5,0
+```
+
 d) Le forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, dont les valeurs sont
 fixées à l'article 15 ;
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+
+  exception métropole
+  définition multiplicateur_majoration_r0
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge >= 6
+  conséquence égal à 0,0
+```
 
 e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont les valeurs sont
 fixées à l'article 33 ;
 
+```catala
+# TODO informatique: pour coder ça il faut rajouter le nombre de personnes à
+# charge en paramètre de calcul_plafond_mensualité_d842_6 et ajouter une
+# exception à plafond_mensualité_d842_6 directement pour éviter de dupliquer
+# le code de calcul_plafond_mensualité_d842_6.
+```
+
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du
 même code, pour un ménage ayant un enfant à charge, est remplacée par " 7 584 euros " ;
+
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  exception métropole
+  définition abattement_forfaitaire_d823_17
+  sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    nombre_personnes_à_charge = 1
+  conséquence égal à
+    7 584 €
+```
 
 3° Les montants forfaitaires au titre des charges sont modifiés ainsi :
 
@@ -2430,6 +3396,70 @@ Désignation                                                                    
 Bénéficiaire isolé ou couple sans personne à charge                            36,14
 Par personne supplémentaire à charge dans la limite de six personnes à charge  9,29
 
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  étiquette base_outre_mer exception base_métropole
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,14€ + 9,29€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,14€ + 9,29€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  étiquette outre_mer exception copropriété
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,14€ + 9,29€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,14€ + 9,29€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementFoyer
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  exception base définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      36,14€ + 9,29€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      36,14€ + 9,29€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+```
+
 b) Les montants des colocataires et des copropriétaires prévus respectivement aux articles
 D. 823-18 et D. 842-10 du même code, dont les valeurs sont fixées aux articles 16 et 37, sont
 remplacés par les valeurs suivantes (en euros) :
@@ -2439,6 +3469,62 @@ Composition du ménage                                                       Mon
 Bénéficiaire isolé                                                          18,58
 Couple sans personne à charge                                               36,14
 Majoration par personne à charge dans la limite de six personnes à charge   9,29
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  exception colocation_métropole
+  définition montant_forfaitaire_charges_d823_16 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,58€
+       -- Couple: 36,14€) +
+      9,29€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,58€
+       -- Couple: 36,14€) +
+      9,29€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  exception outre_mer
+  définition montant_forfaitaire_charges sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    soit montant égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,58€
+       -- Couple: 36,14€) +
+      9,29€ * (décimal de nombre_personnes_à_charge)
+    dans
+    soit limite égal à
+      (selon situation_familiale_calcul_apl sous forme
+       -- PersonneSeule: 18,58€
+       -- Couple: 36,14€) +
+      9,29€ * 6,0
+    dans
+    si montant > limite alors limite sinon montant
+```
 
 4° Les valeurs du taux " TF " fixées à l'article 14, taux fonction de la taille de la famille
 visé au 3° de l'article D. 823-17 du même code, sont remplacées par les valeurs suivantes :
@@ -2454,6 +3540,38 @@ Couple sans enfant                  2,99%
 4 enfants ou 4 personnes            1,80%
 5 enfants ou 5 personnes            1,69%
 6 enfants ou 6 personnes et plus    1,62%
+
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementLocatif
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception base définition taux_composition_familiale sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux)
+  conséquence égal à
+    si nombre_personnes_à_charge = 0 alors
+      selon situation_familiale_calcul_apl sous forme
+      -- PersonneSeule: 2,81%
+      -- Couple: 2,99%
+    sinon si nombre_personnes_à_charge = 1 alors
+      2,38%
+    sinon si nombre_personnes_à_charge = 2 alors
+      2,17%
+    sinon si nombre_personnes_à_charge = 3 alors
+      1,94%
+    sinon si nombre_personnes_à_charge = 4 alors
+      1,80%
+    sinon si nombre_personnes_à_charge = 5 alors
+      1,69%
+    sinon # si nombre_personnes_à_charge >= 6 alors
+      1,62%
+```
 
 NOTA : Conformément à l'article 2 de l'arrêté du 3 janvier 2020 ( NOR : LOGL1934006A ), ces
 dispositions sont applicables pour les prestations dues à compter du 1er janvier 2020.
@@ -2531,16 +3649,16 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 3 960 €
       -- Couple:  5 673 €
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       6 396 €
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       6 849 €
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       7 386 €
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon si nombre_personnes_à_charge = 4 alors
       7 935 €
-    sinon (si nombre_personnes_à_charge = 5 alors
+    sinon si nombre_personnes_à_charge = 5 alors
       8 484 €
     sinon # si nombre_personnes_à_charge = 6 alors
-      9 032 €)))))
+      9 032 €
 ```

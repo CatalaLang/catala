@@ -601,6 +601,10 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   interne montant_minimal_aide_d823_16 contenu argent
   interne abattement_forfaitaire_d823_17 contenu argent
   interne taux_prise_compte_ressources contenu décimal
+  interne multiplicateur_majoration_plafond_loyer_d823_16_2 contenu décimal
+  interne multiplicateur_majoration_charges_d823_16 contenu décimal
+  interne multiplicateur_majoration_loyer_référence contenu décimal
+  interne multiplicateur_majoration_r0 contenu décimal
 
   résultat montant_forfaitaire_charges_d823_16 contenu argent
   résultat plafond_loyer_d823_16_2 contenu argent
@@ -955,6 +959,7 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne coefficient_d842_11 contenu décimal
   interne coefficient_d842_12 contenu décimal
   interne condition_d842_11_3 condition
+  interne multiplicateur_majoration_charges contenu décimal
 
   calcul_nombre_parts champ d'application CalculNombrePartsAccessionPropriété
   calcul_apl_logement_foyer champ d'application
@@ -1029,6 +1034,7 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   interne montant_minimal_aide_d842_15 contenu argent
   interne montant_forfaitaire_d842_15 contenu argent
   interne montant_minimal_dépense_nette_d842_17 contenu argent
+  interne multiplicateur_majoration_charges contenu décimal
   résultat coefficient_prise_en_charge contenu décimal
   résultat équivalence_loyer contenu argent
   résultat montant_forfaitaire_charges contenu argent
