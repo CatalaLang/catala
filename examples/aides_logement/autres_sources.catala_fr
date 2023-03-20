@@ -348,6 +348,10 @@ titre du mois de janvier 2022 jusqu'au mois de décembre 2025 est calculé selon
 
 ALspm = ALt × (1 (2026-n) / 8)
 
+```catala
+# TODO juridique: pourquoi le "1" dans la formule ? Ça ne sert à rien.
+```
+
 Dans laquelle :
 
 1° « ALspm » est l'aide mensuelle due aux bénéficiaires de l'aide personnelle au logement à
@@ -360,5 +364,14 @@ code précité, le cas échéant adaptées selon les dispositions de l'article 2
 peuvent être modifiées par décret.
 
 ```catala
-# TODO informatique : coder les deux articles ci-dessus relatifs à la montée en charge des AL à SPM.
+# D'après L860-3 CCH, les habitants de Saint-Pierre et Miquelon n'ont
+# droit qu'à l'allocation logement et pas à l'aide au logement. Donc on
+# ne modifie que le champ d'application CalculAllocationLogement.
+champ d'application CalculAllocationLogement:
+  exception définition aide_finale_formule sous condition
+    résidence sous forme SaintPierreEtMiquelon et
+    date_courante >= |2022-01-01|
+  conséquence égal à
+    sous_calcul_traitement.aide_finale_formule *
+      (décimal de (2026 - accès_année de date_courante) / 8,0)
 ```
