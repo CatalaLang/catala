@@ -941,10 +941,12 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   interne mensualité_minimale contenu argent
   interne coefficient_prise_en_charge contenu décimal
   interne plafond_mensualité_d842_6 contenu argent
-  interne calcul_plafond_mensualité_d842_6 contenu argent
-    dépend de date_calcul contenu date
+  interne calcul_plafond_mensualité_d842_6 contenu argent dépend de
+    date_calcul contenu date,
+    nombre_personnes_à_charge contenu entier
     état base
     état avec_copropriété
+    état avec_limitation_dom_tom
   interne montant_forfaitaire_d842_6 contenu argent
   interne seuil_minimal_dépense_nette_minimale contenu argent
   interne seuil_minimal_ressources_ménage contenu argent

@@ -4565,7 +4565,8 @@ l'article D. 842-7 a été établi.
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition plafond_mensualité_d842_6 égal à
-    calcul_plafond_mensualité_d842_6 de date_signature_prêt
+    calcul_plafond_mensualité_d842_6 de
+      date_signature_prêt, nombre_personnes_à_charge
 ```
 
 Le plafond ainsi retenu ne pourra, en aucun cas, être inférieur à celui applicable au
@@ -4585,10 +4586,12 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     local_habité_première_fois_bénéficiaire
   conséquence égal à
     soit plafond_signature égal à
-      calcul_plafond_mensualité_d842_6 de date_signature_prêt
+      calcul_plafond_mensualité_d842_6 de
+        date_signature_prêt, nombre_personnes_à_charge
     dans
     soit plafond_entrée égal à
-      calcul_plafond_mensualité_d842_6 de date_entrée_logement
+      calcul_plafond_mensualité_d842_6 de
+        date_entrée_logement, nombre_personnes_à_charge
     dans
     si
       plafond_signature < plafond_entrée

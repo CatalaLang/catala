@@ -2948,7 +2948,9 @@ Certificats datés          I       314,76    379,33    407,87   419,27   431,06
 champ d'application CalculAllocationLogementAccessionPropriété sous condition
   date_courante >= |2020-01-01|:
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |1992-07-01| et date_calcul < |1994-07-01|
   conséquence égal à
@@ -2959,42 +2961,41 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 1587€
          -- Couple: 1913€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 2055 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2113 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2171 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2229 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2280 € sinon
-        (2280€ + 198€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 2055 € sinon
+        si nombre_personnes_à_charge = 2 alors 2113 € sinon
+        si nombre_personnes_à_charge = 3 alors 2171 € sinon
+        si nombre_personnes_à_charge = 4 alors 2229 € sinon
+        si nombre_personnes_à_charge = 5 alors 2280 € sinon
+        2280€ + 198€ * (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1393 €
          -- Couple: 1706€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1847 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1912 € sinon
-        (si nombre_personnes_à_charge = 3 alors 1977 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2042 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2187 € sinon
-        (2187€ + 191€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1847 € sinon
+        si nombre_personnes_à_charge = 2 alors 1912 € sinon
+        si nombre_personnes_à_charge = 3 alors 1977 € sinon
+        si nombre_personnes_à_charge = 4 alors 2042 € sinon
+        si nombre_personnes_à_charge = 5 alors 2187 € sinon
+        2187€ + 191€ * (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1306 €
          -- Couple: 1584€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1726 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1798 € sinon
-        (si nombre_personnes_à_charge = 3 alors 1870 € sinon
-        (si nombre_personnes_à_charge = 4 alors 1942 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2086 € sinon
-        (2086€ + 182€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1726 € sinon
+        si nombre_personnes_à_charge = 2 alors 1798 € sinon
+        si nombre_personnes_à_charge = 3 alors 1870 € sinon
+        si nombre_personnes_à_charge = 4 alors 1942 € sinon
+        si nombre_personnes_à_charge = 5 alors 2086 € sinon
+        2086€ + 182€ * (décimal de (nombre_personnes_à_charge - 5)))
     ) * taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |1994-07-01| et date_calcul < |1997-07-01|
   conséquence égal à
@@ -3005,42 +3006,41 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 1604€
          -- Couple: 1934€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 2078 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2137 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2196 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2255 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2305 € sinon
-        (2305€ + 200€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 2078 € sinon
+        si nombre_personnes_à_charge = 2 alors 2137 € sinon
+        si nombre_personnes_à_charge = 3 alors 2196 € sinon
+        si nombre_personnes_à_charge = 4 alors 2255 € sinon
+        si nombre_personnes_à_charge = 5 alors 2305 € sinon
+        2305€ + 200€ * (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1408 €
          -- Couple: 1725€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1867 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1933 € sinon
-        (si nombre_personnes_à_charge = 3 alors 1999 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2065 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2211 € sinon
-        (2211 € + 193€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1867 € sinon
+        si nombre_personnes_à_charge = 2 alors 1933 € sinon
+        si nombre_personnes_à_charge = 3 alors 1999 € sinon
+        si nombre_personnes_à_charge = 4 alors 2065 € sinon
+        si nombre_personnes_à_charge = 5 alors 2211 € sinon
+        2211 € + 193€ * (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1320 €
          -- Couple: 1801€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1745 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1818 € sinon
-        (si nombre_personnes_à_charge = 3 alors 1891 € sinon
-        (si nombre_personnes_à_charge = 4 alors 1964 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2109 € sinon
-        (2109€ + 184€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1745 € sinon
+        si nombre_personnes_à_charge = 2 alors 1818 € sinon
+        si nombre_personnes_à_charge = 3 alors 1891 € sinon
+        si nombre_personnes_à_charge = 4 alors 1964 € sinon
+        si nombre_personnes_à_charge = 5 alors 2109 € sinon
+        2109€ + 184€ * (décimal de (nombre_personnes_à_charge - 5)))
     ) * taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |1997-07-01| et date_calcul < |1998-07-01|
   conséquence égal à
@@ -3051,42 +3051,41 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 1633€
          -- Couple: 1969€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 2116 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2176 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2236 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2296 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2346 € sinon
-        (2346€ + 204€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 2116 € sinon
+        si nombre_personnes_à_charge = 2 alors 2176 € sinon
+        si nombre_personnes_à_charge = 3 alors 2236 € sinon
+        si nombre_personnes_à_charge = 4 alors 2296 € sinon
+        si nombre_personnes_à_charge = 5 alors 2346 € sinon
+        2346€ + 204€ * (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1433 €
          -- Couple: 1756€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1901 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1966 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2035 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2102 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2251 € sinon
-        (2251 € + 196€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1901 € sinon
+        si nombre_personnes_à_charge = 2 alors 1966 € sinon
+        si nombre_personnes_à_charge = 3 alors 2035 € sinon
+        si nombre_personnes_à_charge = 4 alors 2102 € sinon
+        si nombre_personnes_à_charge = 5 alors 2251 € sinon
+        2251 € + 196€ * (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1344 €
          -- Couple: 1630€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1777 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1851 € sinon
-        (si nombre_personnes_à_charge = 3 alors 1925 € sinon
-        (si nombre_personnes_à_charge = 4 alors 1999 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2147 € sinon
-        (2147€ + 187€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1777 € sinon
+        si nombre_personnes_à_charge = 2 alors 1851 € sinon
+        si nombre_personnes_à_charge = 3 alors 1925 € sinon
+        si nombre_personnes_à_charge = 4 alors 1999 € sinon
+        si nombre_personnes_à_charge = 5 alors 2147 € sinon
+        2147€ + 187€ * (décimal de (nombre_personnes_à_charge - 5)))
     ) * taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |1998-07-01| et date_calcul < |1999-07-01|
   conséquence égal à
@@ -3097,42 +3096,41 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 1672€
          -- Couple: 2016€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 2167 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2228 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2290 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2351 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2402 € sinon
-        (2402€ + 209€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 2167 € sinon
+        si nombre_personnes_à_charge = 2 alors 2228 € sinon
+        si nombre_personnes_à_charge = 3 alors 2290 € sinon
+        si nombre_personnes_à_charge = 4 alors 2351 € sinon
+        si nombre_personnes_à_charge = 5 alors 2402 € sinon
+        2402€ + 209€ * (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1467 €
          -- Couple: 1798€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1947 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2015 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2084 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2152 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2305 € sinon
-        (2305 € + 201€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1947 € sinon
+        si nombre_personnes_à_charge = 2 alors 2015 € sinon
+        si nombre_personnes_à_charge = 3 alors 2084 € sinon
+        si nombre_personnes_à_charge = 4 alors 2152 € sinon
+        si nombre_personnes_à_charge = 5 alors 2305 € sinon
+        2305 € + 201€ * (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1376 €
          -- Couple: 1669€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1820 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1895 € sinon
-        (si nombre_personnes_à_charge = 3 alors 1971 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2047 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2199 € sinon
-        (2199€ + 191€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1820 € sinon
+        si nombre_personnes_à_charge = 2 alors 1895 € sinon
+        si nombre_personnes_à_charge = 3 alors 1971 € sinon
+        si nombre_personnes_à_charge = 4 alors 2047 € sinon
+        si nombre_personnes_à_charge = 5 alors 2199 € sinon
+        2199€ + 191€ * (décimal de (nombre_personnes_à_charge - 5)))
     ) * taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |1999-07-01| et date_calcul < |2000-07-01|
   conséquence égal à
@@ -3143,42 +3141,44 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 1674€
          -- Couple: 2018€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 2169 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2230 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2292 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2353 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2404 € sinon
-        (2404€ + 209€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 2169 € sinon
+        si nombre_personnes_à_charge = 2 alors 2230 € sinon
+        si nombre_personnes_à_charge = 3 alors 2292 € sinon
+        si nombre_personnes_à_charge = 4 alors 2353 € sinon
+        si nombre_personnes_à_charge = 5 alors 2404 € sinon
+        2404€ + 209€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1468 €
          -- Couple: 1800€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1949 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2017 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2086 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2154 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2307 € sinon
-        (2307 € + 201€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1949 € sinon
+        si nombre_personnes_à_charge = 2 alors 2017 € sinon
+        si nombre_personnes_à_charge = 3 alors 2086 € sinon
+        si nombre_personnes_à_charge = 4 alors 2154 € sinon
+        si nombre_personnes_à_charge = 5 alors 2307 € sinon
+        2307 € + 201€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1377 €
          -- Couple: 1671€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1822 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1897 € sinon
-        (si nombre_personnes_à_charge = 3 alors 1973 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2049 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2201 € sinon
-        (2201€ + 191€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1822 € sinon
+        si nombre_personnes_à_charge = 2 alors 1897 € sinon
+        si nombre_personnes_à_charge = 3 alors 1973 € sinon
+        si nombre_personnes_à_charge = 4 alors 2049 € sinon
+        si nombre_personnes_à_charge = 5 alors 2201 € sinon
+        2201€ + 191€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     ) * taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2000-07-01| et date_calcul < |2001-07-01|
   conséquence égal à
@@ -3189,42 +3189,44 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 1691€
          -- Couple: 2038€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 2191 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2252 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2315 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2377 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2428 € sinon
-        (2428€ + 211€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 2191 € sinon
+        si nombre_personnes_à_charge = 2 alors 2252 € sinon
+        si nombre_personnes_à_charge = 3 alors 2315 € sinon
+        si nombre_personnes_à_charge = 4 alors 2377 € sinon
+        si nombre_personnes_à_charge = 5 alors 2428 € sinon
+        2428€ + 211€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1483 €
          -- Couple: 1818€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1968 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2037 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2107 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2176 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2330 € sinon
-        (2330 € + 203€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1968 € sinon
+        si nombre_personnes_à_charge = 2 alors 2037 € sinon
+        si nombre_personnes_à_charge = 3 alors 2107 € sinon
+        si nombre_personnes_à_charge = 4 alors 2176 € sinon
+        si nombre_personnes_à_charge = 5 alors 2330 € sinon
+        2330 € + 203€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1391 €
          -- Couple: 1688€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1840 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1916 € sinon
-        (si nombre_personnes_à_charge = 3 alors 1993 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2069 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2223 € sinon
-        (2223€ + 193€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1840 € sinon
+        si nombre_personnes_à_charge = 2 alors 1916 € sinon
+        si nombre_personnes_à_charge = 3 alors 1993 € sinon
+        si nombre_personnes_à_charge = 4 alors 2069 € sinon
+        si nombre_personnes_à_charge = 5 alors 2223 € sinon
+        2223€ + 193€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     ) * taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2001-07-01| et date_calcul < |2002-01-01|
   conséquence égal à
@@ -3235,42 +3237,44 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 1711€
          -- Couple: 2062€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 2217 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2279 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2343 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2406 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2457 € sinon
-        (2457€ + 214€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 2217 € sinon
+        si nombre_personnes_à_charge = 2 alors 2279 € sinon
+        si nombre_personnes_à_charge = 3 alors 2343 € sinon
+        si nombre_personnes_à_charge = 4 alors 2406 € sinon
+        si nombre_personnes_à_charge = 5 alors 2457 € sinon
+        2457€ + 214€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1501 €
          -- Couple: 1840€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1992 € sinon
-        (si nombre_personnes_à_charge = 2 alors 2061 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2132 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2202 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2358 € sinon
-        (2358 € + 205€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1992 € sinon
+        si nombre_personnes_à_charge = 2 alors 2061 € sinon
+        si nombre_personnes_à_charge = 3 alors 2132 € sinon
+        si nombre_personnes_à_charge = 4 alors 2202 € sinon
+        si nombre_personnes_à_charge = 5 alors 2358 € sinon
+        2358 € + 205€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 1408 €
          -- Couple: 1708€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 1862 € sinon
-        (si nombre_personnes_à_charge = 2 alors 1939 € sinon
-        (si nombre_personnes_à_charge = 3 alors 2017 € sinon
-        (si nombre_personnes_à_charge = 4 alors 2094 € sinon
-        (si nombre_personnes_à_charge = 5 alors 2250 € sinon
-        (2250€ + 195€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 1862 € sinon
+        si nombre_personnes_à_charge = 2 alors 1939 € sinon
+        si nombre_personnes_à_charge = 3 alors 2017 € sinon
+        si nombre_personnes_à_charge = 4 alors 2094 € sinon
+        si nombre_personnes_à_charge = 5 alors 2250 € sinon
+        2250€ + 195€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     ) * taux_francs_vers_euros
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2002-01-01| et date_calcul < |2002-07-01|
   conséquence égal à
@@ -3281,41 +3285,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 260,84€
          -- Couple: 314,35€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 337,98 € sinon
-        (si nombre_personnes_à_charge = 2 alors 347,43 € sinon
-        (si nombre_personnes_à_charge = 3 alors 357,19 € sinon
-        (si nombre_personnes_à_charge = 4 alors 366,79 € sinon
-        (si nombre_personnes_à_charge = 5 alors 374,57 € sinon
-        (374,57€ + 32,62€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 337,98 € sinon
+        si nombre_personnes_à_charge = 2 alors 347,43 € sinon
+        si nombre_personnes_à_charge = 3 alors 357,19 € sinon
+        si nombre_personnes_à_charge = 4 alors 366,79 € sinon
+        si nombre_personnes_à_charge = 5 alors 374,57 € sinon
+        374,57€ + 32,62€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 228,83 €
          -- Couple: 280,51€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 303,68 € sinon
-        (si nombre_personnes_à_charge = 2 alors 314,20 € sinon
-        (si nombre_personnes_à_charge = 3 alors 325,02 € sinon
-        (si nombre_personnes_à_charge = 4 alors 335,69 € sinon
-        (si nombre_personnes_à_charge = 5 alors 359,47 € sinon
-        (359,47 € + 31,25€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 303,68 € sinon
+        si nombre_personnes_à_charge = 2 alors 314,20 € sinon
+        si nombre_personnes_à_charge = 3 alors 325,02 € sinon
+        si nombre_personnes_à_charge = 4 alors 335,69 € sinon
+        si nombre_personnes_à_charge = 5 alors 359,47 € sinon
+        359,47 € + 31,25€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 214,65 €
          -- Couple: 260,38€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 283,86 € sinon
-        (si nombre_personnes_à_charge = 2 alors 295,60 € sinon
-        (si nombre_personnes_à_charge = 3 alors 307,49 € sinon
-        (si nombre_personnes_à_charge = 4 alors 319,23 € sinon
-        (si nombre_personnes_à_charge = 5 alors 343,01 € sinon
-        (343,01€ + 29,73€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 283,86 € sinon
+        si nombre_personnes_à_charge = 2 alors 295,60 € sinon
+        si nombre_personnes_à_charge = 3 alors 307,49 € sinon
+        si nombre_personnes_à_charge = 4 alors 319,23 € sinon
+        si nombre_personnes_à_charge = 5 alors 343,01 € sinon
+        343,01€ + 29,73€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2002-07-01| et date_calcul < |2003-07-01|
   conséquence égal à
@@ -3326,41 +3332,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 263,97€
          -- Couple: 318,12€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 342,04 € sinon
-        (si nombre_personnes_à_charge = 2 alors 351,60 € sinon
-        (si nombre_personnes_à_charge = 3 alors 361,48 € sinon
-        (si nombre_personnes_à_charge = 4 alors 371,19 € sinon
-        (si nombre_personnes_à_charge = 5 alors 379,06 € sinon
-        (379,06€ + 33,01€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 342,04 € sinon
+        si nombre_personnes_à_charge = 2 alors 351,60 € sinon
+        si nombre_personnes_à_charge = 3 alors 361,48 € sinon
+        si nombre_personnes_à_charge = 4 alors 371,19 € sinon
+        si nombre_personnes_à_charge = 5 alors 379,06 € sinon
+        379,06€ + 33,01€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 231,58 €
          -- Couple: 283,88€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 307,32 € sinon
-        (si nombre_personnes_à_charge = 2 alors 317,97 € sinon
-        (si nombre_personnes_à_charge = 3 alors 328,92 € sinon
-        (si nombre_personnes_à_charge = 4 alors 339,72 € sinon
-        (si nombre_personnes_à_charge = 5 alors 363,78 € sinon
-        (363,78 € + 31,63€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 307,32 € sinon
+        si nombre_personnes_à_charge = 2 alors 317,97 € sinon
+        si nombre_personnes_à_charge = 3 alors 328,92 € sinon
+        si nombre_personnes_à_charge = 4 alors 339,72 € sinon
+        si nombre_personnes_à_charge = 5 alors 363,78 € sinon
+        363,78 € + 31,63€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 217,23 €
          -- Couple: 263,50€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 287,27 € sinon
-        (si nombre_personnes_à_charge = 2 alors 299,15 € sinon
-        (si nombre_personnes_à_charge = 3 alors 311,18 € sinon
-        (si nombre_personnes_à_charge = 4 alors 323,06 € sinon
-        (si nombre_personnes_à_charge = 5 alors 347,13 € sinon
-        (347,13€ + 30,09€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 287,27 € sinon
+        si nombre_personnes_à_charge = 2 alors 299,15 € sinon
+        si nombre_personnes_à_charge = 3 alors 311,18 € sinon
+        si nombre_personnes_à_charge = 4 alors 323,06 € sinon
+        si nombre_personnes_à_charge = 5 alors 347,13 € sinon
+        347,13€ + 30,09€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2003-07-01| et date_calcul < |2005-09-01|
   conséquence égal à
@@ -3371,41 +3379,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 267,14€
          -- Couple: 321,94€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 346,14 € sinon
-        (si nombre_personnes_à_charge = 2 alors 355,82 € sinon
-        (si nombre_personnes_à_charge = 3 alors 365,82 € sinon
-        (si nombre_personnes_à_charge = 4 alors 375,64 € sinon
-        (si nombre_personnes_à_charge = 5 alors 383,61 € sinon
-        (383,61€ + 33,41€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 346,14 € sinon
+        si nombre_personnes_à_charge = 2 alors 355,82 € sinon
+        si nombre_personnes_à_charge = 3 alors 365,82 € sinon
+        si nombre_personnes_à_charge = 4 alors 375,64 € sinon
+        si nombre_personnes_à_charge = 5 alors 383,61 € sinon
+        383,61€ + 33,41€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 234,36 €
          -- Couple: 287,29€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 311,01 € sinon
-        (si nombre_personnes_à_charge = 2 alors 321,79 € sinon
-        (si nombre_personnes_à_charge = 3 alors 332,87 € sinon
-        (si nombre_personnes_à_charge = 4 alors 343,80 € sinon
-        (si nombre_personnes_à_charge = 5 alors 368,15 € sinon
-        (368,15 € + 32,01€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 311,01 € sinon
+        si nombre_personnes_à_charge = 2 alors 321,79 € sinon
+        si nombre_personnes_à_charge = 3 alors 332,87 € sinon
+        si nombre_personnes_à_charge = 4 alors 343,80 € sinon
+        si nombre_personnes_à_charge = 5 alors 368,15 € sinon
+        368,15 € + 32,01€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 219,84 €
          -- Couple: 266,66€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 290,72 € sinon
-        (si nombre_personnes_à_charge = 2 alors 302,74 € sinon
-        (si nombre_personnes_à_charge = 3 alors 314,91 € sinon
-        (si nombre_personnes_à_charge = 4 alors 326,94 € sinon
-        (si nombre_personnes_à_charge = 5 alors 351,30 € sinon
-        (351,30€ + 30,45€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 290,72 € sinon
+        si nombre_personnes_à_charge = 2 alors 302,74 € sinon
+        si nombre_personnes_à_charge = 3 alors 314,91 € sinon
+        si nombre_personnes_à_charge = 4 alors 326,94 € sinon
+        si nombre_personnes_à_charge = 5 alors 351,30 € sinon
+        351,30€ + 30,45€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2005-09-01| et date_calcul < |2007-01-01|
   conséquence égal à
@@ -3416,41 +3426,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 271,95€
          -- Couple: 327,73€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 352,37 € sinon
-        (si nombre_personnes_à_charge = 2 alors 362,22 € sinon
-        (si nombre_personnes_à_charge = 3 alors 372,40 € sinon
-        (si nombre_personnes_à_charge = 4 alors 382,40 € sinon
-        (si nombre_personnes_à_charge = 5 alors 390,51 € sinon
-        (390,51€ + 34,01€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 352,37 € sinon
+        si nombre_personnes_à_charge = 2 alors 362,22 € sinon
+        si nombre_personnes_à_charge = 3 alors 372,40 € sinon
+        si nombre_personnes_à_charge = 4 alors 382,40 € sinon
+        si nombre_personnes_à_charge = 5 alors 390,51 € sinon
+        390,51€ + 34,01€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 238,58 €
          -- Couple: 292,46€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 316,61 € sinon
-        (si nombre_personnes_à_charge = 2 alors 327,58 € sinon
-        (si nombre_personnes_à_charge = 3 alors 338,86 € sinon
-        (si nombre_personnes_à_charge = 4 alors 349,99 € sinon
-        (si nombre_personnes_à_charge = 5 alors 374,78 € sinon
-        (374,78 € + 32,59€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 316,61 € sinon
+        si nombre_personnes_à_charge = 2 alors 327,58 € sinon
+        si nombre_personnes_à_charge = 3 alors 338,86 € sinon
+        si nombre_personnes_à_charge = 4 alors 349,99 € sinon
+        si nombre_personnes_à_charge = 5 alors 374,78 € sinon
+        374,78 € + 32,59€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 223,80 €
          -- Couple: 271,46€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 295,95 € sinon
-        (si nombre_personnes_à_charge = 2 alors 308,19 € sinon
-        (si nombre_personnes_à_charge = 3 alors 320,58 € sinon
-        (si nombre_personnes_à_charge = 4 alors 332,82 € sinon
-        (si nombre_personnes_à_charge = 5 alors 357,62 € sinon
-        (357,62€ + 31,00€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 295,95 € sinon
+        si nombre_personnes_à_charge = 2 alors 308,19 € sinon
+        si nombre_personnes_à_charge = 3 alors 320,58 € sinon
+        si nombre_personnes_à_charge = 4 alors 332,82 € sinon
+        si nombre_personnes_à_charge = 5 alors 357,62 € sinon
+        357,62€ + 31,00€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2007-01-01| et date_calcul < |2008-01-01|
   conséquence égal à
@@ -3461,41 +3473,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 279,56€
          -- Couple: 336,91€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 362,24 € sinon
-        (si nombre_personnes_à_charge = 2 alors 372,36 € sinon
-        (si nombre_personnes_à_charge = 3 alors 382,83 € sinon
-        (si nombre_personnes_à_charge = 4 alors 393,11 € sinon
-        (si nombre_personnes_à_charge = 5 alors 401,44 € sinon
-        (401,44€ + 34,96€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 362,24 € sinon
+        si nombre_personnes_à_charge = 2 alors 372,36 € sinon
+        si nombre_personnes_à_charge = 3 alors 382,83 € sinon
+        si nombre_personnes_à_charge = 4 alors 393,11 € sinon
+        si nombre_personnes_à_charge = 5 alors 401,44 € sinon
+        401,44€ + 34,96€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 245,26 €
          -- Couple: 300,65€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 325,48 € sinon
-        (si nombre_personnes_à_charge = 2 alors 336,75 € sinon
-        (si nombre_personnes_à_charge = 3 alors 348,65 € sinon
-        (si nombre_personnes_à_charge = 4 alors 359,79 € sinon
-        (si nombre_personnes_à_charge = 5 alors 385,27 € sinon
-        (385,27 € + 33,50€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 325,48 € sinon
+        si nombre_personnes_à_charge = 2 alors 336,75 € sinon
+        si nombre_personnes_à_charge = 3 alors 348,65 € sinon
+        si nombre_personnes_à_charge = 4 alors 359,79 € sinon
+        si nombre_personnes_à_charge = 5 alors 385,27 € sinon
+        385,27 € + 33,50€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 230,07 €
          -- Couple: 279,06€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 304,24 € sinon
-        (si nombre_personnes_à_charge = 2 alors 316,82 € sinon
-        (si nombre_personnes_à_charge = 3 alors 329,56 € sinon
-        (si nombre_personnes_à_charge = 4 alors 342,14 € sinon
-        (si nombre_personnes_à_charge = 5 alors 367,33 € sinon
-        (367,33€ + 31,87€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 304,24 € sinon
+        si nombre_personnes_à_charge = 2 alors 316,82 € sinon
+        si nombre_personnes_à_charge = 3 alors 329,56 € sinon
+        si nombre_personnes_à_charge = 4 alors 342,14 € sinon
+        si nombre_personnes_à_charge = 5 alors 367,33 € sinon
+        367,33€ + 31,87€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2008-01-01| et date_calcul < |2009-01-01|
   conséquence égal à
@@ -3506,41 +3520,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 287,28€
          -- Couple: 346,21€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 372,24 € sinon
-        (si nombre_personnes_à_charge = 2 alors 382,64 € sinon
-        (si nombre_personnes_à_charge = 3 alors 393,40 € sinon
-        (si nombre_personnes_à_charge = 4 alors 403,96 € sinon
-        (si nombre_personnes_à_charge = 5 alors 412,52 € sinon
-        (412,52€ + 35,92€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 372,24 € sinon
+        si nombre_personnes_à_charge = 2 alors 382,64 € sinon
+        si nombre_personnes_à_charge = 3 alors 393,40 € sinon
+        si nombre_personnes_à_charge = 4 alors 403,96 € sinon
+        si nombre_personnes_à_charge = 5 alors 412,52 € sinon
+        412,52€ + 35,92€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 252,03 €
          -- Couple: 308,95€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 334,46 € sinon
-        (si nombre_personnes_à_charge = 2 alors 346,04 € sinon
-        (si nombre_personnes_à_charge = 3 alors 357,96 € sinon
-        (si nombre_personnes_à_charge = 4 alors 369,72 € sinon
-        (si nombre_personnes_à_charge = 5 alors 395,90 € sinon
-        (395,90 € + 34,42€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 334,46 € sinon
+        si nombre_personnes_à_charge = 2 alors 346,04 € sinon
+        si nombre_personnes_à_charge = 3 alors 357,96 € sinon
+        si nombre_personnes_à_charge = 4 alors 369,72 € sinon
+        si nombre_personnes_à_charge = 5 alors 395,90 € sinon
+        395,90 € + 34,42€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 236,42 €
          -- Couple: 286,76€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 312,64 € sinon
-        (si nombre_personnes_à_charge = 2 alors 325,56 € sinon
-        (si nombre_personnes_à_charge = 3 alors 338,66 € sinon
-        (si nombre_personnes_à_charge = 4 alors 351,58 € sinon
-        (si nombre_personnes_à_charge = 5 alors 377,78 € sinon
-        (377,78€ + 32,75€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 312,64 € sinon
+        si nombre_personnes_à_charge = 2 alors 325,56 € sinon
+        si nombre_personnes_à_charge = 3 alors 338,66 € sinon
+        si nombre_personnes_à_charge = 4 alors 351,58 € sinon
+        si nombre_personnes_à_charge = 5 alors 377,78 € sinon
+        377,78€ + 32,75€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2009-01-01| et date_calcul < |2010-01-01|
   conséquence égal à
@@ -3551,41 +3567,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 295,75€
          -- Couple: 356,42€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 383,22 € sinon
-        (si nombre_personnes_à_charge = 2 alors 393,93 € sinon
-        (si nombre_personnes_à_charge = 3 alors 405,01 € sinon
-        (si nombre_personnes_à_charge = 4 alors 415,88 € sinon
-        (si nombre_personnes_à_charge = 5 alors 424,69 € sinon
-        (424,69€ + 36,98€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 383,22 € sinon
+        si nombre_personnes_à_charge = 2 alors 393,93 € sinon
+        si nombre_personnes_à_charge = 3 alors 405,01 € sinon
+        si nombre_personnes_à_charge = 4 alors 415,88 € sinon
+        si nombre_personnes_à_charge = 5 alors 424,69 € sinon
+        424,69€ + 36,98€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 259,46 €
          -- Couple: 318,06 €)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 344,33 € sinon
-        (si nombre_personnes_à_charge = 2 alors 356,25 € sinon
-        (si nombre_personnes_à_charge = 3 alors 368,52 € sinon
-        (si nombre_personnes_à_charge = 4 alors 380,63 € sinon
-        (si nombre_personnes_à_charge = 5 alors 407,58 € sinon
-        (407,58 € + 35,44€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 344,33 € sinon
+        si nombre_personnes_à_charge = 2 alors 356,25 € sinon
+        si nombre_personnes_à_charge = 3 alors 368,52 € sinon
+        si nombre_personnes_à_charge = 4 alors 380,63 € sinon
+        si nombre_personnes_à_charge = 5 alors 407,58 € sinon
+        407,58 € + 35,44€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 243,39 €
          -- Couple: 295,22€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 321,86 € sinon
-        (si nombre_personnes_à_charge = 2 alors 335,16 € sinon
-        (si nombre_personnes_à_charge = 3 alors 348,65 € sinon
-        (si nombre_personnes_à_charge = 4 alors 361,95 € sinon
-        (si nombre_personnes_à_charge = 5 alors 388,92 € sinon
-        (388,92€ + 33,72€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 321,86 € sinon
+        si nombre_personnes_à_charge = 2 alors 335,16 € sinon
+        si nombre_personnes_à_charge = 3 alors 348,65 € sinon
+        si nombre_personnes_à_charge = 4 alors 361,95 € sinon
+        si nombre_personnes_à_charge = 5 alors 388,92 € sinon
+        388,92€ + 33,72€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2010-01-01| et date_calcul < |2011-01-01|
   conséquence égal à
@@ -3596,41 +3614,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 296,70€
          -- Couple: 357,57€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 384,45 € sinon
-        (si nombre_personnes_à_charge = 2 alors 395,19 € sinon
-        (si nombre_personnes_à_charge = 3 alors 406,01 € sinon
-        (si nombre_personnes_à_charge = 4 alors 417,21 € sinon
-        (si nombre_personnes_à_charge = 5 alors 426,05 € sinon
-        (426,05€ + 37,10€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 384,45 € sinon
+        si nombre_personnes_à_charge = 2 alors 395,19 € sinon
+        si nombre_personnes_à_charge = 3 alors 406,01 € sinon
+        si nombre_personnes_à_charge = 4 alors 417,21 € sinon
+        si nombre_personnes_à_charge = 5 alors 426,05 € sinon
+        426,05€ + 37,10€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 260,29 €
          -- Couple: 319,08 €)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 346,43 € sinon
-        (si nombre_personnes_à_charge = 2 alors 357,39 € sinon
-        (si nombre_personnes_à_charge = 3 alors 369,70 € sinon
-        (si nombre_personnes_à_charge = 4 alors 381,85 € sinon
-        (si nombre_personnes_à_charge = 5 alors 408,88 € sinon
-        (408,88 € + 35,55€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 346,43 € sinon
+        si nombre_personnes_à_charge = 2 alors 357,39 € sinon
+        si nombre_personnes_à_charge = 3 alors 369,70 € sinon
+        si nombre_personnes_à_charge = 4 alors 381,85 € sinon
+        si nombre_personnes_à_charge = 5 alors 408,88 € sinon
+        408,88 € + 35,55€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 244,17 €
          -- Couple: 296,16€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 322,89 € sinon
-        (si nombre_personnes_à_charge = 2 alors 336,23 € sinon
-        (si nombre_personnes_à_charge = 3 alors 349,77 € sinon
-        (si nombre_personnes_à_charge = 4 alors 363,11 € sinon
-        (si nombre_personnes_à_charge = 5 alors 390,16 € sinon
-        (390,16€ + 33,83€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 322,89 € sinon
+        si nombre_personnes_à_charge = 2 alors 336,23 € sinon
+        si nombre_personnes_à_charge = 3 alors 349,77 € sinon
+        si nombre_personnes_à_charge = 4 alors 363,11 € sinon
+        si nombre_personnes_à_charge = 5 alors 390,16 € sinon
+        390,16€ + 33,83€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2011-01-01| et date_calcul < |2012-01-01|
   conséquence égal à
@@ -3641,41 +3661,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 299,96€
          -- Couple: 361,49€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 388,68 € sinon
-        (si nombre_personnes_à_charge = 2 alors 399,54 € sinon
-        (si nombre_personnes_à_charge = 3 alors 410,78 € sinon
-        (si nombre_personnes_à_charge = 4 alors 421,80 € sinon
-        (si nombre_personnes_à_charge = 5 alors 430,74 € sinon
-        (430,74€ + 37,51€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 388,68 € sinon
+        si nombre_personnes_à_charge = 2 alors 399,54 € sinon
+        si nombre_personnes_à_charge = 3 alors 410,78 € sinon
+        si nombre_personnes_à_charge = 4 alors 421,80 € sinon
+        si nombre_personnes_à_charge = 5 alors 430,74 € sinon
+        430,74€ + 37,51€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 263,15 €
          -- Couple: 322,59 €)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 349,23 € sinon
-        (si nombre_personnes_à_charge = 2 alors 361,32 € sinon
-        (si nombre_personnes_à_charge = 3 alors 373,73 € sinon
-        (si nombre_personnes_à_charge = 4 alors 386,05 € sinon
-        (si nombre_personnes_à_charge = 5 alors 413,38 € sinon
-        (413,38 € + 35,94€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 349,23 € sinon
+        si nombre_personnes_à_charge = 2 alors 361,32 € sinon
+        si nombre_personnes_à_charge = 3 alors 373,73 € sinon
+        si nombre_personnes_à_charge = 4 alors 386,05 € sinon
+        si nombre_personnes_à_charge = 5 alors 413,38 € sinon
+        413,38 € + 35,94€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 246,86 €
          -- Couple: 299,42€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 326,44 € sinon
-        (si nombre_personnes_à_charge = 2 alors 339,93 € sinon
-        (si nombre_personnes_à_charge = 3 alors 353,62 € sinon
-        (si nombre_personnes_à_charge = 4 alors 367,10 € sinon
-        (si nombre_personnes_à_charge = 5 alors 394,45 € sinon
-        (394,45€ + 34,20€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 326,44 € sinon
+        si nombre_personnes_à_charge = 2 alors 339,93 € sinon
+        si nombre_personnes_à_charge = 3 alors 353,62 € sinon
+        si nombre_personnes_à_charge = 4 alors 367,10 € sinon
+        si nombre_personnes_à_charge = 5 alors 394,45 € sinon
+        394,45€ + 34,20€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2012-01-01| et date_calcul < |2013-01-01|
   conséquence égal à
@@ -3686,41 +3708,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 302,96€
          -- Couple: 365,10€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 392,57 € sinon
-        (si nombre_personnes_à_charge = 2 alors 403,54 € sinon
-        (si nombre_personnes_à_charge = 3 alors 414,89 € sinon
-        (si nombre_personnes_à_charge = 4 alors 426,02 € sinon
-        (si nombre_personnes_à_charge = 5 alors 435,05 € sinon
-        (435,05€ + 37,89€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 392,57 € sinon
+        si nombre_personnes_à_charge = 2 alors 403,54 € sinon
+        si nombre_personnes_à_charge = 3 alors 414,89 € sinon
+        si nombre_personnes_à_charge = 4 alors 426,02 € sinon
+        si nombre_personnes_à_charge = 5 alors 435,05 € sinon
+        435,05€ + 37,89€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 265,78 €
          -- Couple: 325,82 €)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 352,72 € sinon
-        (si nombre_personnes_à_charge = 2 alors 364,93 € sinon
-        (si nombre_personnes_à_charge = 3 alors 377,51 € sinon
-        (si nombre_personnes_à_charge = 4 alors 389,91 € sinon
-        (si nombre_personnes_à_charge = 5 alors 417,51 € sinon
-        (417,51 € + 36,30€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 352,72 € sinon
+        si nombre_personnes_à_charge = 2 alors 364,93 € sinon
+        si nombre_personnes_à_charge = 3 alors 377,51 € sinon
+        si nombre_personnes_à_charge = 4 alors 389,91 € sinon
+        si nombre_personnes_à_charge = 5 alors 417,51 € sinon
+        417,51 € + 36,30€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 249,33 €
          -- Couple: 302,41€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 329,70 € sinon
-        (si nombre_personnes_à_charge = 2 alors 343,33 € sinon
-        (si nombre_personnes_à_charge = 3 alors 357,16 € sinon
-        (si nombre_personnes_à_charge = 4 alors 370,77 € sinon
-        (si nombre_personnes_à_charge = 5 alors 398,39 € sinon
-        (398,39€ + 34,54€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 329,70 € sinon
+        si nombre_personnes_à_charge = 2 alors 343,33 € sinon
+        si nombre_personnes_à_charge = 3 alors 357,16 € sinon
+        si nombre_personnes_à_charge = 4 alors 370,77 € sinon
+        si nombre_personnes_à_charge = 5 alors 398,39 € sinon
+        398,39€ + 34,54€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2013-01-01| et date_calcul < |2014-10-01|
   conséquence égal à
@@ -3731,41 +3755,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 309,47€
          -- Couple: 372,95€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 401,01 € sinon
-        (si nombre_personnes_à_charge = 2 alors 412,22 € sinon
-        (si nombre_personnes_à_charge = 3 alors 423,81 € sinon
-        (si nombre_personnes_à_charge = 4 alors 435,18 € sinon
-        (si nombre_personnes_à_charge = 5 alors 444,40 € sinon
-        (444,40€ + 38,70€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 401,01 € sinon
+        si nombre_personnes_à_charge = 2 alors 412,22 € sinon
+        si nombre_personnes_à_charge = 3 alors 423,81 € sinon
+        si nombre_personnes_à_charge = 4 alors 435,18 € sinon
+        si nombre_personnes_à_charge = 5 alors 444,40 € sinon
+        444,40€ + 38,70€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 271,49 €
          -- Couple: 332,83 €)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 360,30 € sinon
-        (si nombre_personnes_à_charge = 2 alors 372,78 € sinon
-        (si nombre_personnes_à_charge = 3 alors 385,63 € sinon
-        (si nombre_personnes_à_charge = 4 alors 398,29 € sinon
-        (si nombre_personnes_à_charge = 5 alors 426,49 € sinon
-        (426,59 € + 37,08€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 360,30 € sinon
+        si nombre_personnes_à_charge = 2 alors 372,78 € sinon
+        si nombre_personnes_à_charge = 3 alors 385,63 € sinon
+        si nombre_personnes_à_charge = 4 alors 398,29 € sinon
+        si nombre_personnes_à_charge = 5 alors 426,49 € sinon
+        426,59 € + 37,08€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 254,69 €
          -- Couple: 308,91€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 336,79 € sinon
-        (si nombre_personnes_à_charge = 2 alors 350,71 € sinon
-        (si nombre_personnes_à_charge = 3 alors 364,84 € sinon
-        (si nombre_personnes_à_charge = 4 alors 378,74 € sinon
-        (si nombre_personnes_à_charge = 5 alors 406,96 € sinon
-        (406,96€ + 35,28€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 336,79 € sinon
+        si nombre_personnes_à_charge = 2 alors 350,71 € sinon
+        si nombre_personnes_à_charge = 3 alors 364,84 € sinon
+        si nombre_personnes_à_charge = 4 alors 378,74 € sinon
+        si nombre_personnes_à_charge = 5 alors 406,96 € sinon
+        406,96€ + 35,28€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2014-10-01| et date_calcul < |2015-10-01|
   conséquence égal à
@@ -3776,41 +3802,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 311,23€
          -- Couple: 375,08€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 403,30 € sinon
-        (si nombre_personnes_à_charge = 2 alors 414,57 € sinon
-        (si nombre_personnes_à_charge = 3 alors 426,23 € sinon
-        (si nombre_personnes_à_charge = 4 alors 437,66 € sinon
-        (si nombre_personnes_à_charge = 5 alors 446,93 € sinon
-        (446,93€ + 38,92€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 403,30 € sinon
+        si nombre_personnes_à_charge = 2 alors 414,57 € sinon
+        si nombre_personnes_à_charge = 3 alors 426,23 € sinon
+        si nombre_personnes_à_charge = 4 alors 437,66 € sinon
+        si nombre_personnes_à_charge = 5 alors 446,93 € sinon
+        446,93€ + 38,92€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 273,04 €
          -- Couple: 334,73 €)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 362,35 € sinon
-        (si nombre_personnes_à_charge = 2 alors 374,90 € sinon
-        (si nombre_personnes_à_charge = 3 alors 387,83 € sinon
-        (si nombre_personnes_à_charge = 4 alors 400,56 € sinon
-        (si nombre_personnes_à_charge = 5 alors 428,92 € sinon
-        (428,92 € + 37,29€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 362,35 € sinon
+        si nombre_personnes_à_charge = 2 alors 374,90 € sinon
+        si nombre_personnes_à_charge = 3 alors 387,83 € sinon
+        si nombre_personnes_à_charge = 4 alors 400,56 € sinon
+        si nombre_personnes_à_charge = 5 alors 428,92 € sinon
+        428,92 € + 37,29€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 256,14 €
          -- Couple: 310,67€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 338,71 € sinon
-        (si nombre_personnes_à_charge = 2 alors 352,71 € sinon
-        (si nombre_personnes_à_charge = 3 alors 366,92 € sinon
-        (si nombre_personnes_à_charge = 4 alors 380,90 € sinon
-        (si nombre_personnes_à_charge = 5 alors 409,28 € sinon
-        (409,28€ + 35,48€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 338,71 € sinon
+        si nombre_personnes_à_charge = 2 alors 352,71 € sinon
+        si nombre_personnes_à_charge = 3 alors 366,92 € sinon
+        si nombre_personnes_à_charge = 4 alors 380,90 € sinon
+        si nombre_personnes_à_charge = 5 alors 409,28 € sinon
+        409,28€ + 35,48€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2015-10-01| et date_calcul < |2017-10-01|
   conséquence égal à
@@ -3821,41 +3849,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 311,48€
          -- Couple: 375,38€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 403,62 € sinon
-        (si nombre_personnes_à_charge = 2 alors 414,90 € sinon
-        (si nombre_personnes_à_charge = 3 alors 426,57 € sinon
-        (si nombre_personnes_à_charge = 4 alors 438,01 € sinon
-        (si nombre_personnes_à_charge = 5 alors 447,29 € sinon
-        (447,29€ + 38,95€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 403,62 € sinon
+        si nombre_personnes_à_charge = 2 alors 414,90 € sinon
+        si nombre_personnes_à_charge = 3 alors 426,57 € sinon
+        si nombre_personnes_à_charge = 4 alors 438,01 € sinon
+        si nombre_personnes_à_charge = 5 alors 447,29 € sinon
+        447,29€ + 38,95€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 273,26 €
          -- Couple: 335 €)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 362,64 € sinon
-        (si nombre_personnes_à_charge = 2 alors 375,20 € sinon
-        (si nombre_personnes_à_charge = 3 alors 388,14 € sinon
-        (si nombre_personnes_à_charge = 4 alors 400,88 € sinon
-        (si nombre_personnes_à_charge = 5 alors 429,26 € sinon
-        (429,26 € + 37,32€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 362,64 € sinon
+        si nombre_personnes_à_charge = 2 alors 375,20 € sinon
+        si nombre_personnes_à_charge = 3 alors 388,14 € sinon
+        si nombre_personnes_à_charge = 4 alors 400,88 € sinon
+        si nombre_personnes_à_charge = 5 alors 429,26 € sinon
+        429,26 € + 37,32€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 256,34 €
          -- Couple: 310,92€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 338,98 € sinon
-        (si nombre_personnes_à_charge = 2 alors 352,99 € sinon
-        (si nombre_personnes_à_charge = 3 alors 367,21 € sinon
-        (si nombre_personnes_à_charge = 4 alors 381,20 € sinon
-        (si nombre_personnes_à_charge = 5 alors 409,61 € sinon
-        (409,61€ + 35,51€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 338,98 € sinon
+        si nombre_personnes_à_charge = 2 alors 352,99 € sinon
+        si nombre_personnes_à_charge = 3 alors 367,21 € sinon
+        si nombre_personnes_à_charge = 4 alors 381,20 € sinon
+        si nombre_personnes_à_charge = 5 alors 409,61 € sinon
+        409,61€ + 35,51€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2017-10-01| et date_calcul < |2019-10-01|
   conséquence égal à
@@ -3866,41 +3896,43 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 313,82€
          -- Couple: 378,20€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 406,65 € sinon
-        (si nombre_personnes_à_charge = 2 alors 418,01 € sinon
-        (si nombre_personnes_à_charge = 3 alors 429,77 € sinon
-        (si nombre_personnes_à_charge = 4 alors 441,30 € sinon
-        (si nombre_personnes_à_charge = 5 alors 450,64 € sinon
-        (450,64€ + 39,24€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 406,65 € sinon
+        si nombre_personnes_à_charge = 2 alors 418,01 € sinon
+        si nombre_personnes_à_charge = 3 alors 429,77 € sinon
+        si nombre_personnes_à_charge = 4 alors 441,30 € sinon
+        si nombre_personnes_à_charge = 5 alors 450,64 € sinon
+        450,64€ + 39,24€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 275,31 €
          -- Couple: 337,51 €)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 365,36 € sinon
-        (si nombre_personnes_à_charge = 2 alors 378,01 € sinon
-        (si nombre_personnes_à_charge = 3 alors 391,05 € sinon
-        (si nombre_personnes_à_charge = 4 alors 403,89 € sinon
-        (si nombre_personnes_à_charge = 5 alors 432,48 € sinon
-        (432,48 € + 37,60€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 365,36 € sinon
+        si nombre_personnes_à_charge = 2 alors 378,01 € sinon
+        si nombre_personnes_à_charge = 3 alors 391,05 € sinon
+        si nombre_personnes_à_charge = 4 alors 403,89 € sinon
+        si nombre_personnes_à_charge = 5 alors 432,48 € sinon
+        432,48 € + 37,60€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 258,26 €
          -- Couple: 313,25€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 341,52 € sinon
-        (si nombre_personnes_à_charge = 2 alors 355,64 € sinon
-        (si nombre_personnes_à_charge = 3 alors 369,96 € sinon
-        (si nombre_personnes_à_charge = 4 alors 384,06 € sinon
-        (si nombre_personnes_à_charge = 5 alors 412,68 € sinon
-        (412,68€ + 35,78€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 341,52 € sinon
+        si nombre_personnes_à_charge = 2 alors 355,64 € sinon
+        si nombre_personnes_à_charge = 3 alors 369,96 € sinon
+        si nombre_personnes_à_charge = 4 alors 384,06 € sinon
+        si nombre_personnes_à_charge = 5 alors 412,68 € sinon
+        412,68€ + 35,78€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
-  définition calcul_plafond_mensualité_d842_6 de date_calcul état base
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état base
   sous condition
     date_calcul >= |2019-10-01|
   conséquence égal à
@@ -3911,44 +3943,51 @@ champ d'application CalculAllocationLogementAccessionPropriété sous condition
          -- PersonneSeule: 314,76€
          -- Couple: 379,33€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 407,87 € sinon
-        (si nombre_personnes_à_charge = 2 alors 419,27 € sinon
-        (si nombre_personnes_à_charge = 3 alors 431,06 € sinon
-        (si nombre_personnes_à_charge = 4 alors 442,62 € sinon
-        (si nombre_personnes_à_charge = 5 alors 452,00 € sinon
-        (452,00€ + 39,36€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 407,87 € sinon
+        si nombre_personnes_à_charge = 2 alors 419,27 € sinon
+        si nombre_personnes_à_charge = 3 alors 431,06 € sinon
+        si nombre_personnes_à_charge = 4 alors 442,62 € sinon
+        si nombre_personnes_à_charge = 5 alors 452,00 € sinon
+        452,00€ + 39,36€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 276,14 €
          -- Couple: 338,53 €)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 366,46 € sinon
-        (si nombre_personnes_à_charge = 2 alors 379,15 € sinon
-        (si nombre_personnes_à_charge = 3 alors 392,22 € sinon
-        (si nombre_personnes_à_charge = 4 alors 405,10 € sinon
-        (si nombre_personnes_à_charge = 5 alors 433,78 € sinon
-        (433,78 € + 37,71€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 366,46 € sinon
+        si nombre_personnes_à_charge = 2 alors 379,15 € sinon
+        si nombre_personnes_à_charge = 3 alors 392,22 € sinon
+        si nombre_personnes_à_charge = 4 alors 405,10 € sinon
+        si nombre_personnes_à_charge = 5 alors 433,78 € sinon
+        433,78 € + 37,71€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 259,04 €
          -- Couple: 314,19€)
       sinon
-        (si nombre_personnes_à_charge = 1 alors 342,55 € sinon
-        (si nombre_personnes_à_charge = 2 alors 356,70 € sinon
-        (si nombre_personnes_à_charge = 3 alors 371,07 € sinon
-        (si nombre_personnes_à_charge = 4 alors 385,21 € sinon
-        (si nombre_personnes_à_charge = 5 alors 413,92 € sinon
-        (413,92€ + 35,88€ *
-          (décimal de (nombre_personnes_à_charge - 5)))))))))
+        si nombre_personnes_à_charge = 1 alors 342,55 € sinon
+        si nombre_personnes_à_charge = 2 alors 356,70 € sinon
+        si nombre_personnes_à_charge = 3 alors 371,07 € sinon
+        si nombre_personnes_à_charge = 4 alors 385,21 € sinon
+        si nombre_personnes_à_charge = 5 alors 413,92 € sinon
+        413,92€ + 35,88€ *
+          (décimal de (nombre_personnes_à_charge - 5)))
 
   # Une exception est à venir avec l'article 37
-  définition calcul_plafond_mensualité_d842_6 de date_calcul
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
   état avec_copropriété égal à
-    calcul_plafond_mensualité_d842_6 de date_calcul
+    calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
+
+  # Une exception est à venir dans les archives de l'article 46
+  définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état avec_limitation_dom_tom égal à
+    calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 NOTA :
@@ -4028,12 +4067,14 @@ Dans le cas des copropriétaires prévus à l'article D. 842-10 du même code :
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2022-07-01|:
-  exception définition calcul_plafond_mensualité_d842_6 de date_calcul
+  exception définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
   état avec_copropriété égal à
     si copropriété alors
-      calcul_plafond_mensualité_d842_6 de date_calcul * 75%
+      (calcul_plafond_mensualité_d842_6 de
+        date_calcul, nombre_personnes_à_charge) * 75%
     sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul
+      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
@@ -4455,23 +4496,22 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 2,81%
       -- Couple: 2,99%
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       2,38%
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       2,17%
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       1,94%
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon si nombre_personnes_à_charge = 4 alors
       1,80%
-    sinon (si nombre_personnes_à_charge = 5 alors
+    sinon si nombre_personnes_à_charge = 5 alors
       1,69%
-    sinon (si nombre_personnes_à_charge = 6 alors
+    sinon si nombre_personnes_à_charge = 6 alors
       1,62%
-    sinon (si nombre_personnes_à_charge = 7 alors
+    sinon si nombre_personnes_à_charge = 7 alors
       1,67%
     sinon (
-      (1,67% - (0,06% * (décimal de
-        (nombre_personnes_à_charge - 7))))))))))))
+      1,67% - 0,06% * (décimal de (nombre_personnes_à_charge - 7)))
 ```
 
 4° A compter du 1er janvier 2022, pour l'application du 5° de l'article

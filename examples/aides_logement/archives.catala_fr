@@ -181,10 +181,24 @@ e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont l
 valeurs sont fixées à l'article 33 ;
 
 ```catala
-# TODO informatique: pour coder ça il faut rajouter le nombre de personnes à
-# charge en paramètre de calcul_plafond_mensualité_d842_6 et ajouter une
-# exception à plafond_mensualité_d842_6 directement pour éviter de dupliquer
-# le code de calcul_plafond_mensualité_d842_6.
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2022-07-01| et date_courante < |2023-01-01|:
+  exception définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état avec_limitation_dom_tom sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux
+  conséquence égal à
+    si nombre_personnes_à_charge >= 6 alors
+      calcul_plafond_mensualité_d842_6 de date_calcul, 6
+    sinon
+      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, pour
@@ -662,10 +676,24 @@ e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont l
 l'article 33 ;
 
 ```catala
-# TODO informatique: pour coder ça il faut rajouter le nombre de personnes à
-# charge en paramètre de calcul_plafond_mensualité_d842_6 et ajouter une
-# exception à plafond_mensualité_d842_6 directement pour éviter de dupliquer
-# le code de calcul_plafond_mensualité_d842_6.
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2022-01-01|  et date_courante < |2022-07-01|:
+  exception définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état avec_limitation_dom_tom sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux
+  conséquence égal à
+    si nombre_personnes_à_charge >= 6 alors
+      calcul_plafond_mensualité_d842_6 de date_calcul, 6
+    sinon
+      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 
@@ -1421,50 +1449,46 @@ champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
   date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
   définition plafond_équivalence_loyer_éligible égal à
-    (selon zone sous forme
+    selon zone sous forme
     -- Zone1: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 446,30 €
          -- Couple: 523,21€)
-      sinon (si nombre_personnes_à_charge = 1 alors
+      sinon si nombre_personnes_à_charge = 1 alors
         557,88 €
-      sinon (si nombre_personnes_à_charge = 2 alors
+      sinon si nombre_personnes_à_charge = 2 alors
         597,04 €
-      sinon (si nombre_personnes_à_charge = 3 alors
+      sinon si nombre_personnes_à_charge = 3 alors
         636,35 €
       sinon
-        (686,37 € +
-        71,19€ * (décimal de (nombre_personnes_à_charge - 4)))))))
+        686,37 € + 71,19€ * (décimal de (nombre_personnes_à_charge - 4)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 408,14 €
          -- Couple: 476,32€)
-      sinon (si nombre_personnes_à_charge = 1 alors
+      sinon si nombre_personnes_à_charge = 1 alors
         507,87 €
-      sinon (si nombre_personnes_à_charge = 2 alors
+      sinon si nombre_personnes_à_charge = 2 alors
         543,65 €
-      sinon (si nombre_personnes_à_charge = 3 alors
+      sinon si nombre_personnes_à_charge = 3 alors
         579,29 €
       sinon
-        (617,27 € +
-        64,34€ * (décimal de (nombre_personnes_à_charge - 4)))))))
+        617,27 € + 64,34€ * (décimal de (nombre_personnes_à_charge - 4)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 387,40 €
          -- Couple: 450,57€)
-      sinon (si nombre_personnes_à_charge = 1 alors
+      sinon si nombre_personnes_à_charge = 1 alors
         478,02 €
-      sinon (si nombre_personnes_à_charge = 2 alors
+      sinon si nombre_personnes_à_charge = 2 alors
         509,57 €
-      sinon (si nombre_personnes_à_charge = 3 alors
+      sinon si nombre_personnes_à_charge = 3 alors
         541,10 €
       sinon
-        (576,57 € +
-        59,71€ * (décimal de (nombre_personnes_à_charge - 4)))))))
-    )
+        576,57 € + 59,71€ * (décimal de (nombre_personnes_à_charge - 4)))
 ```
 
 ### Article 34 | LEGIARTI000044137403 [archive]
@@ -1505,12 +1529,14 @@ Dans le cas des copropriétaires prévus à l'article D. 842-10 du même code :
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2021-10-01| et
     date_courante < |2022-07-01|:
-  exception définition calcul_plafond_mensualité_d842_6 de date_calcul
+  exception définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
   état avec_copropriété égal à
     si copropriété alors
-      calcul_plafond_mensualité_d842_6 de date_calcul * 75%
+      (calcul_plafond_mensualité_d842_6 de
+        date_calcul, nombre_personnes_à_charge) * 75%
     sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul
+      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
@@ -1771,10 +1797,24 @@ l'article 33 ;
 
 
 ```catala
-# TODO informatique: pour coder ça il faut rajouter le nombre de personnes à
-# charge en paramètre de calcul_plafond_mensualité_d842_6 et ajouter une
-# exception à plafond_mensualité_d842_6 directement pour éviter de dupliquer
-# le code de calcul_plafond_mensualité_d842_6.
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
+  exception définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état avec_limitation_dom_tom sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux
+  conséquence égal à
+    si nombre_personnes_à_charge >= 6 alors
+      calcul_plafond_mensualité_d842_6 de date_calcul, 6
+    sinon
+      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même code,
@@ -2493,50 +2533,46 @@ sont applicables pour les prestations dues à compter du 1er octobre 2020.
 champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
   date_courante < |2021-10-01| et date_courante >= |2020-10-01|:
   définition plafond_équivalence_loyer_éligible égal à
-    (selon zone sous forme
+    selon zone sous forme
     -- Zone1: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 444,43 €
          -- Couple: 521,01€)
-      sinon (si nombre_personnes_à_charge = 1 alors
+      sinon si nombre_personnes_à_charge = 1 alors
         555,55 €
-      sinon (si nombre_personnes_à_charge = 2 alors
+      sinon si nombre_personnes_à_charge = 2 alors
         594,54 €
-      sinon (si nombre_personnes_à_charge = 3 alors
+      sinon si nombre_personnes_à_charge = 3 alors
         633,69 €
       sinon
-        (683,5 € +
-        70,89€ * (décimal de (nombre_personnes_à_charge - 4)))))))
+        683,5 € + 70,89€ * (décimal de (nombre_personnes_à_charge - 4)))
     -- Zone2: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 406,43 €
          -- Couple: 474,33€)
-      sinon (si nombre_personnes_à_charge = 1 alors
+      sinon si nombre_personnes_à_charge = 1 alors
         505,75 €
-      sinon (si nombre_personnes_à_charge = 2 alors
+      sinon si nombre_personnes_à_charge = 2 alors
         541,38 €
-      sinon (si nombre_personnes_à_charge = 3 alors
+      sinon si nombre_personnes_à_charge = 3 alors
         576,87 €
       sinon
-        (614,69 € +
-        64,07€ * (décimal de (nombre_personnes_à_charge - 4)))))))
+        614,69 € + 64,07€ * (décimal de (nombre_personnes_à_charge - 4)))
     -- Zone3: (
       si nombre_personnes_à_charge = 0 alors
         (selon situation_familiale_calcul_apl sous forme
          -- PersonneSeule: 385,78 €
          -- Couple: 448,69€)
-      sinon (si nombre_personnes_à_charge = 1 alors
+      sinon si nombre_personnes_à_charge = 1 alors
         476,02 €
-      sinon (si nombre_personnes_à_charge = 2 alors
+      sinon si nombre_personnes_à_charge = 2 alors
         507,44 €
-      sinon (si nombre_personnes_à_charge = 3 alors
+      sinon si nombre_personnes_à_charge = 3 alors
         538,84 €
       sinon
-        (574,16 € +
-        59,46€ * (décimal de (nombre_personnes_à_charge - 4)))))))
-    )
+        574,16 € + 59,46€ * (décimal de (nombre_personnes_à_charge - 4)))
 ```
 
 ### Article 34 | LEGIARTI000042378426 [archive]
@@ -2573,12 +2609,14 @@ l'article 33 ;
 champ d'application CalculAllocationLogementAccessionPropriété
   sous condition date_courante >= |2020-10-01| et
     date_courante < |2021-10-01|:
-  exception définition calcul_plafond_mensualité_d842_6 de date_calcul
+  exception définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
   état avec_copropriété égal à
     si copropriété alors
-      calcul_plafond_mensualité_d842_6 de date_calcul * 75%
+      (calcul_plafond_mensualité_d842_6 de
+        date_calcul, nombre_personnes_à_charge) * 75%
     sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul
+      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
@@ -2833,10 +2871,24 @@ e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont l
 fixées à l'article 33 ;
 
 ```catala
-# TODO informatique: pour coder ça il faut rajouter le nombre de personnes à
-# charge en paramètre de calcul_plafond_mensualité_d842_6 et ajouter une
-# exception à plafond_mensualité_d842_6 directement pour éviter de dupliquer
-# le code de calcul_plafond_mensualité_d842_6.
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  exception définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état avec_limitation_dom_tom sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux
+  conséquence égal à
+    si nombre_personnes_à_charge >= 6 alors
+      calcul_plafond_mensualité_d842_6 de date_calcul, 6
+    sinon
+      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même
@@ -3153,18 +3205,18 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 4 274 €
       -- Couple:  6 122 €
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       6 990 €
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       7 432 €
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       7 854 €
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon si nombre_personnes_à_charge = 4 alors
       8 283 €
-    sinon (si nombre_personnes_à_charge = 5 alors
+    sinon si nombre_personnes_à_charge = 5 alors
       8 711 €
     sinon # si nombre_personnes_à_charge = 6 alors
-      9 139 €)))))
+      9 139 €
 ```
 
 NOTA : Conformément à l’article 2 de l’arrêté du 31 décembre 2020 (NOR : LOGL2028351A), ces dispositions sont
@@ -3356,10 +3408,24 @@ e) Les mensualités plafonds visées à l'article D. 842-6 du même code, dont l
 fixées à l'article 33 ;
 
 ```catala
-# TODO informatique: pour coder ça il faut rajouter le nombre de personnes à
-# charge en paramètre de calcul_plafond_mensualité_d842_6 et ajouter une
-# exception à plafond_mensualité_d842_6 directement pour éviter de dupliquer
-# le code de calcul_plafond_mensualité_d842_6.
+champ d'application CalculAllocationLogementAccessionPropriété
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
+  exception définition calcul_plafond_mensualité_d842_6 de
+    date_calcul, nombre_personnes_à_charge
+  état avec_limitation_dom_tom sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux
+  conséquence égal à
+    si nombre_personnes_à_charge >= 6 alors
+      calcul_plafond_mensualité_d842_6 de date_calcul, 6
+    sinon
+      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du
