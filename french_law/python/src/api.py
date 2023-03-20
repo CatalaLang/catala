@@ -1,7 +1,7 @@
 from abc import ABC
 from catala.runtime import *
 from .allocations_familiales import Collectivite, Collectivite_Code, InterfaceAllocationsFamilialesIn, PriseEnCharge, interface_allocations_familiales, PriseEnCharge_Code, EnfantEntree, InterfaceAllocationsFamilialesIn
-from .aides_logement import AutrePersonneACharge, CategorieEquivalenceLoyerAllocationLogementFoyer, CategorieEquivalenceLoyerAllocationLogementFoyer_Code, ChangementLogementD8424, ChangementLogementD8424_Code, ConventionANHA, ConventionBailleurSocial, EnfantACharge, InfosChangementLogementD8424, Location, Logement, LogementFoyer, LoueOuSousLoueADesTiers, LoueOuSousLoueADesTiers_Code, Menage, ModeOccupation, ModeOccupation_Code, Nationalite, Nationalite_Code, NeufOuAncien, NeufOuAncien_Code, ParentOuAutre, ParentOuAutre_Code, Parente, Parente_Code, Patrimoine, PersonneACharge, PersonneSousLocation, PrestationRecue, PrestationRecue_Code, Pret, Proprietaire, SituationFamiliale, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TitulairePret, TitulairePret_Code, TypeBailleur, TypeBailleur_Code, TypeLogementFoyer, TypeLogementFoyer_Code, TypePret, TypePret_Code, TypeTravauxLogementD83215, TypeTravauxLogementD83215_Code, TypeTravauxLogementR8425, TypeTravauxLogementR8425_Code, ZoneDHabitation, ZoneDHabitation_Code, calculette_aides_au_logement_garde_alternee, CalculetteAidesAuLogementGardeAlterneeIn, ressources_aides_personnelle_logement, Demandeur, PersonneACharge_Code, SituationObligationScolaire, SituationGardeAlternee
+from .aides_logement import AutrePersonneACharge, CategorieEquivalenceLoyerAllocationLogementFoyer, CategorieEquivalenceLoyerAllocationLogementFoyer_Code, ChangementLogementD8424, ChangementLogementD8424_Code, ConventionANHA, ConventionBailleurSocial, EnfantACharge, InfosChangementLogementD8424, Location, Logement, LogementFoyer, LoueOuSousLoueADesTiers, LoueOuSousLoueADesTiers_Code, Menage, ModeOccupation, ModeOccupation_Code, Nationalite, Nationalite_Code, NeufOuAncien, NeufOuAncien_Code, ParentOuAutre, ParentOuAutre_Code, Parente, Parente_Code, Patrimoine, PersonneACharge, PersonneSousLocation, PrestationRecue, PrestationRecue_Code, Pret, Proprietaire, SituationFamiliale, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TitulairePret, TitulairePret_Code, TypeBailleur, TypeBailleur_Code, TypeLogementFoyer, TypeLogementFoyer_Code, TypePret, TypePret_Code, TypeTravauxLogementD83215, TypeTravauxLogementD83215_Code, TypeTravauxLogementR8425, TypeTravauxLogementR8425_Code, ZoneDHabitation, ZoneDHabitation_Code, calculette_aides_au_logement_garde_alternee, CalculetteAidesAuLogementGardeAlterneeIn, ressources_aides_personnelle_logement, Demandeur, PersonneACharge_Code, SituationObligationScolaire, SituationGardeAlternee, AccordFinancementRepresentantEtatOutreMer_Code, AccordFinancementRepresentantEtatOutreMer
 from .aides_logement import Collectivite_Code as Collectivite_Code_APL
 from .aides_logement import Collectivite as Collectivite_APL
 
@@ -72,7 +72,9 @@ class EnfantAPL(PersonneAChargeAPL):
                  remuneration_mensuelle: int,
                  obligation_scolaire: SituationObligationScolaire_Code,
                  situation_garde_alternee: SituationGardeAlternee_Code,
-                 coefficient_garde_alternee: Optional[int]):
+                 coefficient_garde_alternee: Optional[int],
+                 nationalite: Nationalite,
+                 etudes_apprentissage_stage_formation_pro_impossibilite_travail: bool):
         self.identifiant = identifiant
         self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
         self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
@@ -81,6 +83,8 @@ class EnfantAPL(PersonneAChargeAPL):
         self.obligation_scolaire = obligation_scolaire
         self.situation_garde_alternee = situation_garde_alternee
         self.coefficient_garde_alternee = coefficient_garde_alternee
+        self.nationalite = nationalite
+        self.etudes_apprentissage_stage_formation_pro_impossibilite_travail = etudes_apprentissage_stage_formation_pro_impossibilite_travail
 
 
 class ParentAPL(PersonneAChargeAPL):
@@ -136,7 +140,10 @@ class InfosLogementFoyer(InfosSpecifiques):
                  date_conventionnement: datetime.date,
                  construit_application_loi_1957_12_III: bool,
                  redevance: int,
-                 categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer_Code):
+                 categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer_Code,
+                 conventionne_selon_regles_mayotte: bool,
+                 beneficiaire_aide_adulte_ou_enfant_handicapes: bool,
+                 logement_meuble_d842_2: bool):
         self.type = type
         self.remplit_conditions_r832_21 = remplit_conditions_r832_21
         self.conventionne_livre_III_titre_V_chap_III = conventionne_livre_III_titre_V_chap_III
@@ -144,6 +151,9 @@ class InfosLogementFoyer(InfosSpecifiques):
         self.construit_application_loi_1957_12_III = construit_application_loi_1957_12_III
         self.redevance = redevance
         self.categorie_equivalence_loyer_d842_16 = categorie_equivalence_loyer_d842_16
+        self.conventionne_selon_regles_mayotte = conventionne_selon_regles_mayotte
+        self.beneficiaire_aide_adulte_ou_enfant_handicapes = beneficiaire_aide_adulte_ou_enfant_handicapes
+        self.logement_meuble_d842_2 = logement_meuble_d842_2
 
 
 class InfosAccessionPropriete(InfosSpecifiques):
@@ -161,7 +171,9 @@ class InfosAccessionPropriete(InfosSpecifiques):
                  ameliore_par_occupant: Optional[bool],
                  type_pret: TypePret_Code,
                  date_signature_pret: datetime.date,
-                 titulaire_pret: TitulairePret_Code):
+                 titulaire_pret: TitulairePret_Code,
+                 operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat: bool,
+                 accord_financement_representant_Etat_outre_mer: AccordFinancementRepresentantEtatOutreMer_Code):
         self.logement_situe_commune_desequilibre_l831_2 = logement_situe_commune_desequilibre_l831_2
         self.mensualite_principale = mensualite_principale
         self.charges_mensuelles_pret = charges_mensuelles_pret
@@ -176,6 +188,8 @@ class InfosAccessionPropriete(InfosSpecifiques):
         self.type_pret = type_pret
         self.date_signature_pret = date_signature_pret
         self.titulaire_pret = titulaire_pret
+        self.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat = operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat
+        self.accord_financement_representant_Etat_outre_mer = accord_financement_representant_Etat_outre_mer
 
 
 def aides_logement(
@@ -183,13 +197,14 @@ def aides_logement(
     residence: Collectivite_Code_APL,
     ressources_menage_prises_en_compte: int,
     date_naissance_demandeur: datetime.date,
-    nationalite_demandeur: Nationalite_Code,
+    nationalite_demandeur: Nationalite,
     patrimoine_produisant_revenu: int,
     patrimoine_ne_produisant_pas_revenu: int,
     personne_hebergee_centre_soins: bool,
     personne_rattache_foyer_fiscal_parent_ifi: bool,
     nombre_autres_occupants_logement_hors_menage: int,
     enfant_a_naitre_apres_quatrieme_mois_grossesse: bool,
+    personnes_agees_handicapees_foyer_r844_4: bool,
     situation_familiale: SituationFamiliale_Code,
     date_mariage: Optional[datetime.date],
     prestations_recues: List[PrestationRecue_Code],
@@ -201,6 +216,8 @@ def aides_logement(
     parts_logement_propriete_famille: Optional[int],
     parts_logement_usufruits_famille: Optional[int],
     date_naissance_et_conformite_sous_locataire_tiers: Optional[Tuple[datetime.date, bool]],
+    magistrat_fonctionnaire_centre_interets_materiels_familiaux_hors_mayotte: bool,
+    est_non_salarie_agricole_l781_8_l_781_46_code_rural: bool,
     mode_occupation: ModeOccupation_Code,
     infos_specifiques: InfosSpecifiques,
     personnes_a_charge: List[PersonneAChargeAPL],
@@ -247,6 +264,9 @@ def aides_logement(
                         (LogementFoyer(
                             type=TypeLogementFoyer(
                                 code=infos_specifiques.type, value=Unit()),
+                            conventionne_selon_regles_mayotte=infos_specifiques.conventionne_selon_regles_mayotte,
+                            logement_meuble_d842_2=infos_specifiques.logement_meuble_d842_2,
+                            beneficiaire_aide_adulte_ou_enfant_handicapes=infos_specifiques.beneficiaire_aide_adulte_ou_enfant_handicapes,
                             remplit_conditions_r832_21=infos_specifiques.remplit_conditions_r832_21,
                             conventionne_livre_III_titre_V_chap_III=infos_specifiques.conventionne_livre_III_titre_V_chap_III,
                             date_conventionnement=date_of_datetime(
@@ -260,7 +280,6 @@ def aides_logement(
                             )
                         ) if isinstance(infos_specifiques, InfosLogementFoyer) else
                             (Proprietaire(
-                                logement_situe_commune_desequilibre_l831_2=infos_specifiques.logement_situe_commune_desequilibre_l831_2,
                                 mensualite_principale=money_of_units_int(
                                     infos_specifiques.mensualite_principale),
                                 charges_mensuelles_pret=money_of_units_int(
@@ -284,8 +303,12 @@ def aides_logement(
                                     date_signature=date_of_datetime(
                                         infos_specifiques.date_signature_pret),
                                     titulaire_pret=TitulairePret(
-                                        code=infos_specifiques.titulaire_pret, value=Unit())
-                                )
+                                        code=infos_specifiques.titulaire_pret, value=Unit()),
+                                    accord_financement_representant_Etat_outre_mer=AccordFinancementRepresentantEtatOutreMer(
+                                        code=infos_specifiques.accord_financement_representant_Etat_outre_mer,
+                                        value=Unit())
+                                ),
+                                operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat=infos_specifiques.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat
                             ) if isinstance(infos_specifiques, InfosAccessionPropriete)
                             else None  # type: ignore
                         )))
@@ -312,6 +335,8 @@ def aides_logement(
             personnes_a_charge=[
                 (PersonneACharge(code=PersonneACharge_Code.EnfantACharge,
                                  value=EnfantACharge(
+                                     nationalite=personne_a_charge.nationalite,
+                                     etudes_apprentissage_stage_formation_pro_impossibilite_travail=personne_a_charge.etudes_apprentissage_stage_formation_pro_impossibilite_travail,
                                      identifiant=integer_of_int(
                                          personne_a_charge.identifiant),
                                      beneficie_titre_personnel_aide_personnelle_logement=personne_a_charge.beneficie_titre_personnel_aide_personnelle_logement,
@@ -349,11 +374,14 @@ def aides_logement(
                 value=Unit() if date_mariage is None else date_of_datetime(date_mariage)
             ),
             condition_rattache_foyer_fiscal_parent_ifi=personne_rattache_foyer_fiscal_parent_ifi,
-            enfant_a_naitre_apres_quatrieme_mois_grossesse=enfant_a_naitre_apres_quatrieme_mois_grossesse
+            enfant_a_naitre_apres_quatrieme_mois_grossesse=enfant_a_naitre_apres_quatrieme_mois_grossesse,
+            personnes_agees_handicapees_foyer_r844_4=personnes_agees_handicapees_foyer_r844_4
         ),
         demandeur_in=Demandeur(
             date_naissance=date_of_datetime(date_naissance_demandeur),
-            nationalite=Nationalite(code=nationalite_demandeur, value=Unit()),
+            nationalite=nationalite_demandeur,
+            est_non_salarie_agricole_l781_8_l_781_46_code_rural=est_non_salarie_agricole_l781_8_l_781_46_code_rural,
+            magistrat_fonctionnaire_centre_interets_materiels_familiaux_hors_mayotte=magistrat_fonctionnaire_centre_interets_materiels_familiaux_hors_mayotte,
             patrimoine=Patrimoine(
                 produisant_revenu_periode_r822_3_3_r822_4=money_of_units_int(
                     patrimoine_produisant_revenu),
