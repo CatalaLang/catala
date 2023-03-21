@@ -5536,7 +5536,7 @@ champ d'application CalculNombrePartLogementFoyer:
 # Ci-dessus, nous avons modifié le calcul de CalculNombrePartLogementFoyer
 # lorsque la "limitation_majoration_personnes_à_charge" est activée. Mais il
 # nous faut maintenant activer cette "limitation_majoration_personnes_à_charge"
-# dans les bons cas ! Pour cela, puisque CalculNombrePartLogementFoyer est
+# dans les bons cas ! Pour cela, puisque CalculNombrePartLogemeinternentFoyer est
 # appelé depuis CalculAidePersonnaliséeLogementFoyer, il nous faut déclarer dans
 # CalculAidePersonnaliséeLogementFoyer une condition
 # "limitation_majoration_personnes_à_charge" similaire qui déclenche celle de
@@ -5587,7 +5587,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
 D. 842-18 sont également pris par le ministre chargé de l'outre-mer ;
 
 ```catala
-# Rien à coder ici.
+# Rien à coder ici.interne
 ```
 
 4° A l'article D. 842-15 , pour le calcul du nombre de parts " N " intervenant dans le
@@ -6697,4 +6697,3 @@ Saint-Pierre-et-Miquelon.
 NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
 janvier 2022.
-

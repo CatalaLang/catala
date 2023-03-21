@@ -938,10 +938,10 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   entrée opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
     contenu booléen
 
-  interne mensualité_éligible contenu argent
+  résultat mensualité_éligible contenu argent
   interne montant_forfaitaire_charges contenu argent
-  interne mensualité_minimale contenu argent
-  interne coefficient_prise_en_charge contenu décimal
+  résultat mensualité_minimale contenu argent
+  résultat coefficient_prise_en_charge contenu décimal
   interne plafond_mensualité_d842_6 contenu argent
   interne calcul_plafond_mensualité_d842_6 contenu argent dépend de
     date_calcul contenu date,
