@@ -3510,6 +3510,7 @@ class type ressources_aides_personnelle_logement_in =
       personne_a_charge Js.t Js.js_array Js.t Js.readonly_prop
     method situationFamilialeIn: situation_familiale Js.t Js.readonly_prop
     method modeOccupationIn: mode_occupation Js.t Js.readonly_prop
+    method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
     method conditionAgeBourseEnseignementSuperieurIn:
       bool Js.t Js.readonly_prop
     method demandeurPoursuitDesEtudesIn: bool Js.t Js.readonly_prop
@@ -3539,6 +3540,8 @@ class type ressources_aides_personnelle_logement_in =
         situation_familiale_to_jsoo ressources_aides_personnelle_logement_in.situation_familiale_in
       val modeOccupationIn =
         mode_occupation_to_jsoo ressources_aides_personnelle_logement_in.mode_occupation_in
+      val dateCouranteIn =
+        date_to_jsoo ressources_aides_personnelle_logement_in.date_courante_in
       val conditionAgeBourseEnseignementSuperieurIn =
         Js.bool ressources_aides_personnelle_logement_in.condition_age_bourse_enseignement_superieur_in
       val demandeurPoursuitDesEtudesIn =
@@ -3582,6 +3585,9 @@ class type ressources_aides_personnelle_logement_in =
       mode_occupation_in =
         mode_occupation_of_jsoo
           ressources_aides_personnelle_logement_in##.modeOccupationIn;
+      date_courante_in =
+        date_of_jsoo
+          ressources_aides_personnelle_logement_in##.dateCouranteIn;
       condition_age_bourse_enseignement_superieur_in =
         Js.to_bool
           ressources_aides_personnelle_logement_in

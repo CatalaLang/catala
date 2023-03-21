@@ -196,7 +196,7 @@ let code_block ~meta lang fmt (code, pos) =
     let contents = String.concat "" ["```catala\n"; code; "```"] in
     File.with_temp_file "catala_latex_pygments" "in" ~contents
     @@ fun temp_file_in ->
-    call_pygmentize ~lang ["-f"; "latex"; "-O"; "nowrap=true"; temp_file_in]
+    call_pygmentize ~lang ["-f"; "latex"; "-O"; "nowrap=True"; temp_file_in]
   in
   Format.fprintf fmt
     {latex|\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=%d,stepnumber=1,label={\hspace*{\fill}\texttt{%s}}%s]|latex}
