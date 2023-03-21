@@ -23,6 +23,7 @@ type money
 type integer
 type decimal
 type date
+type date_rounding = Dates_calc.Dates.date_rounding
 type duration
 
 type source_position = {
@@ -43,7 +44,7 @@ exception EmptyError
 exception AssertionFailed of source_position
 exception ConflictError of source_position
 exception UncomparableDurations
-exception IndivisableDurations
+exception IndivisibleDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
 
@@ -171,7 +172,7 @@ and var_def = {
 
 and fun_call = {
   fun_name : information;
-  input : var_def;
+  fun_inputs : var_def list;
   body : event list;
   output : var_def;
 }
@@ -314,7 +315,7 @@ module Oper : sig
   val o_add_int_int : integer -> integer -> integer
   val o_add_rat_rat : decimal -> decimal -> decimal
   val o_add_mon_mon : money -> money -> money
-  val o_add_dat_dur : date -> duration -> date
+  val o_add_dat_dur : date_rounding -> date -> duration -> date
   val o_add_dur_dur : duration -> duration -> duration
   val o_sub_int_int : integer -> integer -> integer
   val o_sub_rat_rat : decimal -> decimal -> decimal
@@ -330,6 +331,7 @@ module Oper : sig
   val o_div_rat_rat : decimal -> decimal -> decimal
   val o_div_mon_mon : money -> money -> decimal
   val o_div_mon_rat : money -> decimal -> money
+  val o_div_dur_dur : duration -> duration -> decimal
   val o_lt_int_int : integer -> integer -> bool
   val o_lt_rat_rat : decimal -> decimal -> bool
   val o_lt_mon_mon : money -> money -> bool

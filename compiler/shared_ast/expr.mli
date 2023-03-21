@@ -43,10 +43,10 @@ val subst :
   ('a, 't) gexpr list ->
   ('a, 't) gexpr
 
-val etuple : (lcalc, 't) boxed_gexpr list -> 't -> (lcalc, 't) boxed_gexpr
+val etuple : ('a any, 't) boxed_gexpr list -> 't -> ('a, 't) boxed_gexpr
 
 val etupleaccess :
-  (lcalc, 't) boxed_gexpr -> int -> int -> 't -> (lcalc, 't) boxed_gexpr
+  ('a any, 't) boxed_gexpr -> int -> int -> 't -> ('a, 't) boxed_gexpr
 
 val earray : ('a any, 't) boxed_gexpr list -> 't -> ('a, 't) boxed_gexpr
 val elit : 'a any glit -> 't -> ('a, 't) boxed_gexpr
@@ -304,7 +304,7 @@ val make_default :
     - [<ex | false :- _>], when [ex] is a single exception, is rewritten as [ex] *)
 
 val make_tuple :
-  (lcalc, 'm mark) boxed_gexpr list -> 'm mark -> (lcalc, 'm mark) boxed_gexpr
+  ('a any, 'm mark) boxed_gexpr list -> 'm mark -> ('a, 'm mark) boxed_gexpr
 (** Builds a tuple; the mark argument is only used as witness and for position
     when building 0-uples *)
 

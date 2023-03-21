@@ -70,7 +70,7 @@ déclaration structure Personne:
   # par une lettre majuscule: c'est la convention CamelCase.
   donnée revenu contenu argent
   # A cette ligne, revenu est le nom du champ de la structure et
-  # "argent" est le type de de données de ce champ.
+  # "argent" est le type de données de ce champ.
   # On peut utiliser d'autres types comme : entier, décimal,
   # argent, date, durée ou tout autre structure ou énumération
   # que vous aurez déclaré
@@ -79,7 +79,7 @@ déclaration structure Personne:
   # ils adhèrent à la convention snake_case
 ```
 
-Cette structure contient deux champs de de données, "revenu" et "nombre_enfants".
+Cette structure contient deux champs de données, "revenu" et "nombre_enfants".
 Les structures sont utiles pour regrouper des données qui vont ensemble.
 Typiquement, vous aurez une structure pour une entité concrète sur laquelle
 s'applique la loi (comme une personne). C'est à vous de décider comment regrouper
@@ -220,7 +220,8 @@ déclaration structure DeuxTranches:
 
 déclaration champ d'application CalculImpôtDeuxTranches :
   entrée tranches contenu DeuxTranches
-  résultat formule_imposition contenu argent dépend de argent
+  résultat formule_imposition contenu argent
+    dépend de revenu contenu argent
 ```
 
 Et dans le code :

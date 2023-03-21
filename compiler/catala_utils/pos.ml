@@ -19,6 +19,24 @@ type t = { code_pos : Lexing.position * Lexing.position; law_pos : string list }
 let from_lpos (p : Lexing.position * Lexing.position) : t =
   { code_pos = p; law_pos = [] }
 
+let lex_pos_compare lp1 lp2 =
+  match String.compare lp1.Lexing.pos_fname lp2.Lexing.pos_fname with
+  | 0 -> Int.compare lp1.Lexing.pos_cnum lp2.Lexing.pos_cnum
+  | n -> n
+
+let join (p1 : t) (p2 : t) : t =
+  if (fst p1.code_pos).Lexing.pos_fname <> (fst p2.code_pos).Lexing.pos_fname
+  then invalid_arg "Pos.join";
+  let beg1, end1 = p1.code_pos in
+  let beg2, end2 = p2.code_pos in
+  {
+    code_pos =
+      ( (if lex_pos_compare beg1 beg2 <= 0 then beg1 else beg2),
+        if lex_pos_compare end1 end2 <= 0 then end2 else end1 );
+    law_pos =
+      (if lex_pos_compare beg1 beg2 <= 0 then p1.law_pos else p2.law_pos);
+  }
+
 let from_info
     (file : string)
     (sline : int)

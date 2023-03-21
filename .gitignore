@@ -1,5 +1,6 @@
 _build/
 _opam/
+_python_venv/
 dune-workspace*
 result
 *.install
@@ -13,3 +14,5 @@ legifrance_oauth*
 node_modules/
 build.ninja
 
+.envrc
+.direnv

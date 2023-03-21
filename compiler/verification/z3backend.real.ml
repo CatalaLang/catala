@@ -124,7 +124,8 @@ let date_of_year (year : int) = Runtime.date_of_numbers year 1 1
     defined here as Jan 1, 1900 **)
 let nb_days_to_date (nb : int) : string =
   Runtime.date_to_string
-    (Runtime.Oper.o_add_dat_dur base_day (Runtime.duration_of_numbers 0 0 nb))
+    (Runtime.Oper.o_add_dat_dur AbortOnRound base_day
+       (Runtime.duration_of_numbers 0 0 nb))
 
 (** [print_z3model_expr] pretty-prints the value [e] given by a Z3 model
     according to the Catala type [ty], corresponding to [e] **)
@@ -405,10 +406,12 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
   | None -> (
     match Marked.unmark ty with
     | TArrow (t1, t2) ->
-      let ctx, z3_t1 = translate_typ ctx (Marked.unmark t1) in
+      let ctx, z3_t1 =
+        List.fold_left_map translate_typ ctx (List.map Marked.unmark t1)
+      in
       let ctx, z3_t2 = translate_typ ctx (Marked.unmark t2) in
       let name = unique_name v in
-      let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name [z3_t1] z3_t2 in
+      let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name z3_t1 z3_t2 in
       let ctx = add_funcdecl v fd ctx in
       let ctx = add_z3var name v ty ctx in
       ctx, fd
@@ -539,7 +542,8 @@ let rec translate_op :
   | And, _ -> app Boolean.mk_and
   | Or, _ -> app Boolean.mk_or
   | Xor, _ -> app2 Boolean.mk_xor
-  | (Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur | Add_dur_dur), _ ->
+  | (Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur), _
+    ->
     app Arithmetic.mk_add
   | ( ( Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
       | Sub_dur_dur ),
@@ -676,6 +680,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     in
     let ctx, s = translate_expr ctx e in
     ctx, Expr.mk_app ctx.ctx_z3 accessor [s]
+  | ETuple _ -> failwith "[Z3 encoding] ETuple unsupported"
+  | ETupleAccess _ -> failwith "[Z3 encoding] ETupleAccess unsupported"
   | EInj { e; cons; name } ->
     (* This node corresponds to creating a value for the enumeration [en], by
        calling the [idx]-th constructor of enum [en], with argument [e] *)

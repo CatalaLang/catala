@@ -52,7 +52,12 @@ let name : type a k. (a, k) t -> string = function
   | Add_int_int -> "o_add_int_int"
   | Add_rat_rat -> "o_add_rat_rat"
   | Add_mon_mon -> "o_add_mon_mon"
-  | Add_dat_dur -> "o_add_dat_dur"
+  | Add_dat_dur rm -> begin
+    match rm with
+    | RoundUp -> "o_add_dat_dur RoundUp"
+    | RoundDown -> "o_add_dat_dur RoundDown"
+    | AbortOnRound -> "o_add_dat_dur AbortOnRound"
+  end
   | Add_dur_dur -> "o_add_dur_dur"
   | Sub -> "o_sub"
   | Sub_int_int -> "o_sub_int_int"
@@ -71,6 +76,7 @@ let name : type a k. (a, k) t -> string = function
   | Div_rat_rat -> "o_div_rat_rat"
   | Div_mon_mon -> "o_div_mon_mon"
   | Div_mon_rat -> "o_div_mon_mon"
+  | Div_dur_dur -> "o_div_dur_dur"
   | Lt -> "o_lt"
   | Lt_int_int -> "o_lt_int_int"
   | Lt_rat_rat -> "o_lt_rat_rat"
@@ -124,6 +130,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
     match compare_log_entries l1 l2 with
     | 0 -> List.compare Uid.MarkedString.compare info1 info2
     | n -> n)
+  | Add_dat_dur l, Add_dat_dur r -> Stdlib.compare l r
   | Not, Not
   | Length, Length
   | GetDay, GetDay
@@ -156,7 +163,6 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Add_int_int, Add_int_int
   | Add_rat_rat, Add_rat_rat
   | Add_mon_mon, Add_mon_mon
-  | Add_dat_dur, Add_dat_dur
   | Add_dur_dur, Add_dur_dur
   | Sub, Sub
   | Sub_int_int, Sub_int_int
@@ -175,6 +181,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Div_rat_rat, Div_rat_rat
   | Div_mon_mon, Div_mon_mon
   | Div_mon_rat, Div_mon_rat
+  | Div_dur_dur, Div_dur_dur
   | Lt, Lt
   | Lt_int_int, Lt_int_int
   | Lt_rat_rat, Lt_rat_rat
@@ -238,7 +245,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Add_int_int, _ -> -1 | _, Add_int_int -> 1
   | Add_rat_rat, _ -> -1 | _, Add_rat_rat -> 1
   | Add_mon_mon, _ -> -1 | _, Add_mon_mon -> 1
-  | Add_dat_dur, _ -> -1 | _, Add_dat_dur -> 1
+  | Add_dat_dur _, _ -> -1 | _, Add_dat_dur _ -> 1
   | Add_dur_dur, _ -> -1 | _, Add_dur_dur -> 1
   | Sub, _ -> -1 | _, Sub -> 1
   | Sub_int_int, _ -> -1 | _, Sub_int_int -> 1
@@ -257,6 +264,7 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | Div_rat_rat, _ -> -1 | _, Div_rat_rat -> 1
   | Div_mon_mon, _ -> -1 | _, Div_mon_mon -> 1
   | Div_mon_rat, _ -> -1 | _, Div_mon_rat -> 1
+  | Div_dur_dur, _ -> -1 | _, Div_dur_dur -> 1
   | Lt, _ -> -1 | _, Lt -> 1
   | Lt_int_int, _ -> -1 | _, Lt_int_int -> 1
   | Lt_rat_rat, _ -> -1 | _, Lt_rat_rat -> 1
@@ -313,24 +321,25 @@ let kind_dispatch :
     overloaded op
   | ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
     | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
-    | Add_mon_mon | Add_dat_dur | Add_dur_dur | Sub_int_int | Sub_rat_rat
+    | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
     | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
     | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
-    | Div_mon_mon | Div_mon_rat | Lt_int_int | Lt_rat_rat | Lt_mon_mon
-    | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
-    | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
-    | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
-    | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
-    | Eq_dat_dat | Eq_dur_dur ) as op ->
+    | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
+    | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
+    | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
+    | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
+    | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
+    | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ) as op ->
     resolved op
 
 (* Glorified identity... allowed operators are the same in scopelang, dcalc,
    lcalc *)
 let translate :
     type k.
+    date_rounding option ->
     ([< scopelang | dcalc | lcalc ], k) t ->
     ([< scopelang | dcalc | lcalc ], k) t =
- fun op ->
+ fun r op ->
   match op with
   | Length -> Length
   | Log (i, l) -> Log (i, l)
@@ -361,7 +370,7 @@ let translate :
   | Add_int_int -> Add_int_int
   | Add_rat_rat -> Add_rat_rat
   | Add_mon_mon -> Add_mon_mon
-  | Add_dat_dur -> Add_dat_dur
+  | Add_dat_dur rmode -> Add_dat_dur (Option.value r ~default:rmode)
   | Add_dur_dur -> Add_dur_dur
   | Sub_int_int -> Sub_int_int
   | Sub_rat_rat -> Sub_rat_rat
@@ -377,6 +386,7 @@ let translate :
   | Div_rat_rat -> Div_rat_rat
   | Div_mon_mon -> Div_mon_mon
   | Div_mon_rat -> Div_mon_rat
+  | Div_dur_dur -> Div_dur_dur
   | Lt_int_int -> Lt_int_int
   | Lt_rat_rat -> Lt_rat_rat
   | Lt_mon_mon -> Lt_mon_mon
@@ -404,18 +414,19 @@ let translate :
   | Eq_dur_dur -> Eq_dur_dur
 
 let monomorphic_type (op, pos) =
-  let ( @- ) a b = TArrow ((TLit a, pos), b), pos in
-  let ( @-> ) a b = TArrow ((TLit a, pos), (TLit b, pos)), pos in
-  match op with
-  | Not -> TBool @-> TBool
-  | GetDay -> TDate @-> TInt
-  | GetMonth -> TDate @-> TInt
-  | GetYear -> TDate @-> TInt
-  | FirstDayOfMonth -> TDate @-> TDate
-  | LastDayOfMonth -> TDate @-> TDate
-  | And -> TBool @- TBool @-> TBool
-  | Or -> TBool @- TBool @-> TBool
-  | Xor -> TBool @- TBool @-> TBool
+  let args, ret =
+    match op with
+    | Not -> [TBool], TBool
+    | GetDay -> [TDate], TInt
+    | GetMonth -> [TDate], TInt
+    | GetYear -> [TDate], TInt
+    | FirstDayOfMonth -> [TDate], TDate
+    | LastDayOfMonth -> [TDate], TDate
+    | And -> [TBool; TBool], TBool
+    | Or -> [TBool; TBool], TBool
+    | Xor -> [TBool; TBool], TBool
+  in
+  TArrow (List.map (fun tau -> TLit tau, pos) args, (TLit ret, pos)), pos
 
 (** Rules for overloads definitions:
 
@@ -431,62 +442,64 @@ let monomorphic_type (op, pos) =
     ['a], ['b] and ['c], there should be a unique solution for the third. *)
 
 let resolved_type (op, pos) =
-  let ( @- ) a b = TArrow ((TLit a, pos), b), pos in
-  let ( @-> ) a b = TArrow ((TLit a, pos), (TLit b, pos)), pos in
-  match op with
-  | Minus_int -> TInt @-> TInt
-  | Minus_rat -> TRat @-> TRat
-  | Minus_mon -> TMoney @-> TMoney
-  | Minus_dur -> TDuration @-> TDuration
-  | ToRat_int -> TInt @-> TRat
-  | ToRat_mon -> TMoney @-> TRat
-  | ToMoney_rat -> TRat @-> TMoney
-  | Round_rat -> TRat @-> TRat
-  | Round_mon -> TMoney @-> TMoney
-  | Add_int_int -> TInt @- TInt @-> TInt
-  | Add_rat_rat -> TRat @- TRat @-> TRat
-  | Add_mon_mon -> TMoney @- TMoney @-> TMoney
-  | Add_dat_dur -> TDate @- TDuration @-> TDate
-  | Add_dur_dur -> TDuration @- TDuration @-> TDuration
-  | Sub_int_int -> TInt @- TInt @-> TInt
-  | Sub_rat_rat -> TRat @- TRat @-> TRat
-  | Sub_mon_mon -> TMoney @- TMoney @-> TMoney
-  | Sub_dat_dat -> TDate @- TDate @-> TDuration
-  | Sub_dat_dur -> TDate @- TDuration @-> TDuration
-  | Sub_dur_dur -> TDuration @- TDuration @-> TDuration
-  | Mult_int_int -> TInt @- TInt @-> TInt
-  | Mult_rat_rat -> TRat @- TRat @-> TRat
-  | Mult_mon_rat -> TMoney @- TRat @-> TMoney
-  | Mult_dur_int -> TDuration @- TInt @-> TDuration
-  | Div_int_int -> TInt @- TInt @-> TRat
-  | Div_rat_rat -> TRat @- TRat @-> TRat
-  | Div_mon_mon -> TMoney @- TMoney @-> TRat
-  | Div_mon_rat -> TMoney @- TRat @-> TMoney
-  | Lt_int_int -> TInt @- TInt @-> TBool
-  | Lt_rat_rat -> TRat @- TRat @-> TBool
-  | Lt_mon_mon -> TMoney @- TMoney @-> TBool
-  | Lt_dat_dat -> TDate @- TDate @-> TBool
-  | Lt_dur_dur -> TDuration @- TDuration @-> TBool
-  | Lte_int_int -> TInt @- TInt @-> TBool
-  | Lte_rat_rat -> TRat @- TRat @-> TBool
-  | Lte_mon_mon -> TMoney @- TMoney @-> TBool
-  | Lte_dat_dat -> TDate @- TDate @-> TBool
-  | Lte_dur_dur -> TDuration @- TDuration @-> TBool
-  | Gt_int_int -> TInt @- TInt @-> TBool
-  | Gt_rat_rat -> TRat @- TRat @-> TBool
-  | Gt_mon_mon -> TMoney @- TMoney @-> TBool
-  | Gt_dat_dat -> TDate @- TDate @-> TBool
-  | Gt_dur_dur -> TDuration @- TDuration @-> TBool
-  | Gte_int_int -> TInt @- TInt @-> TBool
-  | Gte_rat_rat -> TRat @- TRat @-> TBool
-  | Gte_mon_mon -> TMoney @- TMoney @-> TBool
-  | Gte_dat_dat -> TDate @- TDate @-> TBool
-  | Gte_dur_dur -> TDuration @- TDuration @-> TBool
-  | Eq_int_int -> TInt @- TInt @-> TBool
-  | Eq_rat_rat -> TRat @- TRat @-> TBool
-  | Eq_mon_mon -> TMoney @- TMoney @-> TBool
-  | Eq_dat_dat -> TDate @- TDate @-> TBool
-  | Eq_dur_dur -> TDuration @- TDuration @-> TBool
+  let args, ret =
+    match op with
+    | Minus_int -> [TInt], TInt
+    | Minus_rat -> [TRat], TRat
+    | Minus_mon -> [TMoney], TMoney
+    | Minus_dur -> [TDuration], TDuration
+    | ToRat_int -> [TInt], TRat
+    | ToRat_mon -> [TMoney], TRat
+    | ToMoney_rat -> [TRat], TMoney
+    | Round_rat -> [TRat], TRat
+    | Round_mon -> [TMoney], TMoney
+    | Add_int_int -> [TInt; TInt], TInt
+    | Add_rat_rat -> [TRat; TRat], TRat
+    | Add_mon_mon -> [TMoney; TMoney], TMoney
+    | Add_dat_dur _ -> [TDate; TDuration], TDate
+    | Add_dur_dur -> [TDuration; TDuration], TDuration
+    | Sub_int_int -> [TInt; TInt], TInt
+    | Sub_rat_rat -> [TRat; TRat], TRat
+    | Sub_mon_mon -> [TMoney; TMoney], TMoney
+    | Sub_dat_dat -> [TDate; TDate], TDuration
+    | Sub_dat_dur -> [TDate; TDuration], TDuration
+    | Sub_dur_dur -> [TDuration; TDuration], TDuration
+    | Mult_int_int -> [TInt; TInt], TInt
+    | Mult_rat_rat -> [TRat; TRat], TRat
+    | Mult_mon_rat -> [TMoney; TRat], TMoney
+    | Mult_dur_int -> [TDuration; TInt], TDuration
+    | Div_int_int -> [TInt; TInt], TRat
+    | Div_rat_rat -> [TRat; TRat], TRat
+    | Div_mon_mon -> [TMoney; TMoney], TRat
+    | Div_mon_rat -> [TMoney; TRat], TMoney
+    | Div_dur_dur -> [TDuration; TDuration], TRat
+    | Lt_int_int -> [TInt; TInt], TBool
+    | Lt_rat_rat -> [TRat; TRat], TBool
+    | Lt_mon_mon -> [TMoney; TMoney], TBool
+    | Lt_dat_dat -> [TDate; TDate], TBool
+    | Lt_dur_dur -> [TDuration; TDuration], TBool
+    | Lte_int_int -> [TInt; TInt], TBool
+    | Lte_rat_rat -> [TRat; TRat], TBool
+    | Lte_mon_mon -> [TMoney; TMoney], TBool
+    | Lte_dat_dat -> [TDate; TDate], TBool
+    | Lte_dur_dur -> [TDuration; TDuration], TBool
+    | Gt_int_int -> [TInt; TInt], TBool
+    | Gt_rat_rat -> [TRat; TRat], TBool
+    | Gt_mon_mon -> [TMoney; TMoney], TBool
+    | Gt_dat_dat -> [TDate; TDate], TBool
+    | Gt_dur_dur -> [TDuration; TDuration], TBool
+    | Gte_int_int -> [TInt; TInt], TBool
+    | Gte_rat_rat -> [TRat; TRat], TBool
+    | Gte_mon_mon -> [TMoney; TMoney], TBool
+    | Gte_dat_dat -> [TDate; TDate], TBool
+    | Gte_dur_dur -> [TDuration; TDuration], TBool
+    | Eq_int_int -> [TInt; TInt], TBool
+    | Eq_rat_rat -> [TRat; TRat], TBool
+    | Eq_mon_mon -> [TMoney; TMoney], TBool
+    | Eq_dat_dat -> [TDate; TDate], TBool
+    | Eq_dur_dur -> [TDuration; TDuration], TBool
+  in
+  TArrow (List.map (fun tau -> TLit tau, pos) args, (TLit ret, pos)), pos
 
 let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
     ('b, resolved) t * [ `Straight | `Reversed ] =
@@ -504,8 +517,8 @@ let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
   | Add, [TRat; TRat] -> Add_rat_rat, `Straight
   | Add, [TMoney; TMoney] -> Add_mon_mon, `Straight
   | Add, [TDuration; TDuration] -> Add_dur_dur, `Straight
-  | Add, [TDate; TDuration] -> Add_dat_dur, `Straight
-  | Add, [TDuration; TDate] -> Add_dat_dur, `Reversed
+  | Add, [TDate; TDuration] -> Add_dat_dur AbortOnRound, `Straight
+  | Add, [TDuration; TDate] -> Add_dat_dur AbortOnRound, `Reversed
   | Sub, [TInt; TInt] -> Sub_int_int, `Straight
   | Sub, [TRat; TRat] -> Sub_rat_rat, `Straight
   | Sub, [TMoney; TMoney] -> Sub_mon_mon, `Straight
@@ -522,6 +535,7 @@ let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
   | Div, [TRat; TRat] -> Div_rat_rat, `Straight
   | Div, [TMoney; TMoney] -> Div_mon_mon, `Straight
   | Div, [TMoney; TRat] -> Div_mon_rat, `Straight
+  | Div, [TDuration; TDuration] -> Div_dur_dur, `Straight
   | Lt, [TInt; TInt] -> Lt_int_int, `Straight
   | Lt, [TRat; TRat] -> Lt_rat_rat, `Straight
   | Lt, [TMoney; TMoney] -> Lt_mon_mon, `Straight

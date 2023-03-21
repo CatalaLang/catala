@@ -1148,7 +1148,10 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant:
-      enfant.date_de_naissance + 21 an > date_courante
+      (résultat de VérificationÂgeSupérieurÀ avec
+        { -- date_naissance: enfant.date_de_naissance
+          -- date_courante: date_courante
+          -- années: 21 an }).r
     -- AutrePersonneÀCharge de parent: faux
   conséquence rempli
 ```
@@ -1177,12 +1180,17 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
         parent.ressources <=
           plafond_individuel_l815_9_sécu * 1,25 et
         (
+          # VERIF: parent.date_naissance + âge_l351_8_1_sécu est ambiguë, à détecter
           (parent.date_naissance +
             âge_l351_8_1_sécu <= date_courante ou
               (parent.titulaire_allocation_personne_âgée et
-                parent.date_naissance + 65 an <=
-                  date_courante)
+               (résultat de VérificationÂgeInférieurOuÉgalÀ avec
+                { -- date_naissance: parent.date_naissance
+                  -- date_courante: date_courante
+                  -- années: 65 an }).r
+              )
           ) ou
+          # VERIF: parent.date_naissance + âge_l161_17_2_sécu est ambiguë, à détecter
           (parent.date_naissance +
             âge_l161_17_2_sécu <= date_courante et
               parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
@@ -2075,6 +2083,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
       -- AvantPremierJourMoisCivilTroisièmeMoisDeGrossesse: faux
       -- AprèsPremierJourMoisCivilTroisièmeMoisDeGrossesse: vrai
       -- DateDeNaissance de date_naissance:
+        # VERIF: ambigü
         date_courante <=
           ((premier_jour_du_mois de (date_naissance + 2 an))) + (-1 jour))
     )
@@ -3526,12 +3535,12 @@ alinéas du même article.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   exception
-  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+  définition dépense_nette_minimale_d832_10 de allocation_mensuelle
   sous condition
     date_signature_prêt >= |1999-06-30|
   conséquence égal à
     mensualité_principale + montant_forfaitaire_charges_d832_10 -
-      aide_calculée_2_9_d832_10
+      allocation_mensuelle
 ```
 
 Dans les autres cas, cette dépense nette est obtenue en déduisant de la seule mensualité
@@ -3539,8 +3548,8 @@ déclarée le montant mensuel de l'aide calculé de la même façon.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
-  définition dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10 égal à
-    mensualité_principale - aide_calculée_2_9_d832_10
+  définition dépense_nette_minimale_d832_10 de allocation_mensuelle égal à
+    mensualité_principale - allocation_mensuelle
 ```
 
 Lorsque la dépense nette ainsi calculée est inférieure au produit des ressources et d'un
@@ -3551,10 +3560,10 @@ différence constatée.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition abattement_dépense_nette_minimale_d832_10
-    de aide_calculée_2_9_d832_10
+    de allocation_mensuelle
   égal à
     soit dépense_nette_minimale égal à
-      dépense_nette_minimale_d832_10 de aide_calculée_2_9_d832_10
+      dépense_nette_minimale_d832_10 de allocation_mensuelle
     dans
     si dépense_nette_minimale<=
       ressources_ménage_avec_d832_18 * coefficient_multiplicateur_d832_17_3
@@ -4134,15 +4143,15 @@ l'aide est égal à la différence constatée.
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
-  définition dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+  définition dépense_nette_minimale_d832_27 de allocation_mensuelle
   égal à
-    équivalence_loyer_éligible - aide_calculée_1_8_d832_24
+    équivalence_loyer_éligible - allocation_mensuelle
 
   définition abattement_dépense_nette_minimale_d832_27
-    de aide_calculée_1_8_d832_24
+    de allocation_mensuelle
   égal à
     soit dépense_nette_minimale égal à
-      dépense_nette_minimale_d832_27 de aide_calculée_1_8_d832_24
+      dépense_nette_minimale_d832_27 de allocation_mensuelle
     dans
     si dépense_nette_minimale <= montant_forfaitaire_d832_27
     alors montant_forfaitaire_d832_27 - dépense_nette_minimale
@@ -4634,7 +4643,8 @@ des charges, le montant mensuel de l'allocation calculé selon les dispositions 
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-   définition dépense_nette_minimale de allocation_mensuelle égal à
+   définition dépense_nette_minimale de allocation_mensuelle
+   égal à
       charges_mensuelles_prêt + montant_forfaitaire_charges -
         allocation_mensuelle
 ```
@@ -4969,7 +4979,8 @@ le montant mensuel de l'aide est égal à la différence constatée.
 
 ```catala
 champ d'application CalculAllocationLogementFoyer:
-  définition abattement_dépense_nette_minimale de allocation_mensuelle égal à
+  définition abattement_dépense_nette_minimale
+    de allocation_mensuelle égal à
   si dépense_nette_minimale de allocation_mensuelle <
     montant_minimal_dépense_nette_d842_17
   alors

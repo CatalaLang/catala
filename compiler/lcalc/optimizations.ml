@@ -53,16 +53,20 @@ let rec beta_expr (e : 'm expr) : 'm expr boxed =
   | _ -> visitor_map beta_expr e
 
 let iota_optimizations (p : 'm program) : 'm program =
-  let new_scopes = Scope.map_exprs ~f:iota_expr ~varf:(fun v -> v) p.scopes in
-  { p with scopes = Bindlib.unbox new_scopes }
+  let new_code_items =
+    Scope.map_exprs ~f:iota_expr ~varf:(fun v -> v) p.code_items
+  in
+  { p with code_items = Bindlib.unbox new_code_items }
 
 (* TODO: beta optimizations apply inlining of the program. We left the inclusion
    of beta-optimization as future work since its produce code that is harder to
    read, and can produce exponential blowup of the size of the generated
    program. *)
 let _beta_optimizations (p : 'm program) : 'm program =
-  let new_scopes = Scope.map_exprs ~f:beta_expr ~varf:(fun v -> v) p.scopes in
-  { p with scopes = Bindlib.unbox new_scopes }
+  let new_code_items =
+    Scope.map_exprs ~f:beta_expr ~varf:(fun v -> v) p.code_items
+  in
+  { p with code_items = Bindlib.unbox new_code_items }
 
 let rec peephole_expr (e : 'm expr) : 'm expr boxed =
   let m = Marked.get_mark e in
@@ -105,10 +109,10 @@ let rec peephole_expr (e : 'm expr) : 'm expr boxed =
   | _ -> visitor_map peephole_expr e
 
 let peephole_optimizations (p : 'm program) : 'm program =
-  let new_scopes =
-    Scope.map_exprs ~f:peephole_expr ~varf:(fun v -> v) p.scopes
+  let new_code_items =
+    Scope.map_exprs ~f:peephole_expr ~varf:(fun v -> v) p.code_items
   in
-  { p with scopes = Bindlib.unbox new_scopes }
+  { p with code_items = Bindlib.unbox new_code_items }
 
 let optimize_program (p : 'm program) : untyped program =
   p |> iota_optimizations |> peephole_optimizations |> Program.untype

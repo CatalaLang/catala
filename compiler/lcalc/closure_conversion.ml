@@ -270,74 +270,71 @@ let closure_conversion_scope_let ctx scope_body_expr =
     scope_body_expr
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
-  let new_scopes, _, new_decl_ctx =
-    Scope.fold_left
-      ~f:(fun (acc_new_scopes, global_vars, decl_ctx) scope scope_var ->
-        (* [acc_new_scopes] represents what has been translated in the past, it
-           needs a continuation to attach the rest of the translated scopes. *)
-        let scope_input_var, scope_body_expr =
-          Bindlib.unbind scope.scope_body.scope_body_expr
-        in
-        let new_global_vars = Var.Set.add scope_var global_vars in
-        let ctx =
-          {
-            decl_ctx = p.decl_ctx;
-            name_context = Marked.unmark (ScopeName.get_info scope.scope_name);
-            globally_bound_vars = new_global_vars;
-          }
-        in
-        let new_scope_lets = closure_conversion_scope_let ctx scope_body_expr in
-        let new_scope_body_expr =
-          Bindlib.bind_var scope_input_var new_scope_lets
-        in
-        let new_decl_ctx =
-          (* Because closure conversion can change the type of input and output
-             scope variables that are structs, their type will change. So we
-             replace their type decleration in the structs with TAny so that a
-             later re-typing phase can infer them. *)
-          let replace_type_with_any s =
-            Some
-              (StructField.Map.map
-                 (fun t -> Marked.same_mark_as TAny t)
-                 (Option.get s))
+  let _, new_code_items =
+    Scope.fold_map
+      ~f:(fun (toplevel_vars, decl_ctx) var code_item ->
+        match code_item with
+        | ScopeDef (name, body) ->
+          let scope_input_var, scope_body_expr =
+            Bindlib.unbind body.scope_body_expr
           in
-          {
-            decl_ctx with
-            ctx_structs =
-              StructName.Map.update scope.scope_body.scope_body_output_struct
-                replace_type_with_any
-                (StructName.Map.update scope.scope_body.scope_body_input_struct
-                   replace_type_with_any decl_ctx.ctx_structs);
-          }
-        in
-        ( (fun next ->
-            acc_new_scopes
-              (Bindlib.box_apply2
-                 (fun new_scope_body_expr next ->
-                   ScopeDef
-                     {
-                       scope with
-                       scope_body =
-                         {
-                           scope.scope_body with
-                           scope_body_expr = new_scope_body_expr;
-                         };
-                       scope_next = next;
-                     })
-                 new_scope_body_expr
-                 (Bindlib.bind_var scope_var next))),
-          new_global_vars,
-          new_decl_ctx ))
-      ~init:
-        ( Fun.id,
-          Var.Set.of_list
-            (List.map Var.translate [handle_default; handle_default_opt]),
-          p.decl_ctx )
-      p.scopes
+          let ctx =
+            {
+              decl_ctx = p.decl_ctx;
+              name_context = Marked.unmark (ScopeName.get_info name);
+              globally_bound_vars = toplevel_vars;
+            }
+          in
+          let new_scope_lets =
+            closure_conversion_scope_let ctx scope_body_expr
+          in
+          let new_scope_body_expr =
+            Bindlib.bind_var scope_input_var new_scope_lets
+          in
+          let new_decl_ctx =
+            (* Because closure conversion can change the type of input and
+               output scope variables that are structs, their type will change.
+               So we replace their type decleration in the structs with TAny so
+               that a later re-typing phase can infer them. *)
+            let replace_type_with_any s =
+              Some
+                (StructField.Map.map
+                   (fun t -> Marked.same_mark_as TAny t)
+                   (Option.get s))
+            in
+            {
+              decl_ctx with
+              ctx_structs =
+                StructName.Map.update body.scope_body_output_struct
+                  replace_type_with_any
+                  (StructName.Map.update body.scope_body_input_struct
+                     replace_type_with_any decl_ctx.ctx_structs);
+            }
+          in
+          ( (Var.Set.add var toplevel_vars, new_decl_ctx),
+            Bindlib.box_apply
+              (fun scope_body_expr ->
+                ScopeDef (name, { body with scope_body_expr }))
+              new_scope_body_expr )
+        | Topdef (name, ty, expr) ->
+          let ctx =
+            {
+              decl_ctx = p.decl_ctx;
+              name_context = Marked.unmark (TopdefName.get_info name);
+              globally_bound_vars = toplevel_vars;
+            }
+          in
+          let _free_vars, new_expr = transform_closures_expr ctx expr in
+          ( (Var.Set.add var toplevel_vars, decl_ctx),
+            Bindlib.box_apply
+              (fun e -> Topdef (name, ty, e))
+              (Expr.Box.lift new_expr) ))
+      ~varf:(fun v -> v)
+      ( Var.Set.of_list
+          (List.map Var.translate [handle_default; handle_default_opt]),
+        p.decl_ctx )
+      p.code_items
   in
-  let new_program =
-    Bindlib.box_apply
-      (fun new_scopes -> { scopes = new_scopes; decl_ctx = new_decl_ctx })
-      (new_scopes (Bindlib.box Nil))
-  in
-  new_program
+  Bindlib.box_apply
+    (fun new_code_items -> { p with code_items = new_code_items })
+    new_code_items

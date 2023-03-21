@@ -39,6 +39,7 @@ module Vertex : sig
     | SubScope of Shared_ast.SubScopeName.t
 
   val format_t : Format.formatter -> t -> unit
+  val info : t -> Uid.MarkedString.info
 
   include Graph.Sig.COMPARABLE with type t := t
 end
@@ -77,4 +78,5 @@ module ExceptionsDependencies :
 val build_exceptions_graph :
   Ast.rule RuleName.Map.t -> Ast.ScopeDef.t -> ExceptionsDependencies.t
 
-val check_for_exception_cycle : ExceptionsDependencies.t -> unit
+val check_for_exception_cycle :
+  Ast.rule RuleName.Map.t -> ExceptionsDependencies.t -> unit

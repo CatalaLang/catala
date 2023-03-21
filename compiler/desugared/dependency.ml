@@ -41,22 +41,36 @@ module Vertex = struct
     | Var (x, Some sx) -> Int.logxor (ScopeVar.hash x) (StateName.hash sx)
     | SubScope x -> SubScopeName.hash x
 
-  let compare = compare
+  let compare x y =
+    match x, y with
+    | Var (x, xst), Var (y, yst) -> (
+      match ScopeVar.compare x y with
+      | 0 -> Option.compare StateName.compare xst yst
+      | n -> n)
+    | SubScope x, SubScope y -> SubScopeName.compare x y
+    | Var _, _ -> -1
+    | _, Var _ -> 1
+    | SubScope _, _ -> .
+    | _, SubScope _ -> .
 
   let equal x y =
     match x, y with
-    | Var (x, None), Var (y, None) -> ScopeVar.compare x y = 0
-    | Var (x, Some sx), Var (y, Some sy) ->
-      ScopeVar.compare x y = 0 && StateName.compare sx sy = 0
-    | SubScope x, SubScope y -> SubScopeName.compare x y = 0
-    | _ -> false
+    | Var (x, sx), Var (y, sy) ->
+      ScopeVar.equal x y && Option.equal StateName.equal sx sy
+    | SubScope x, SubScope y -> SubScopeName.equal x y
+    | (Var _ | SubScope _), _ -> false
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     match x with
     | Var (v, None) -> ScopeVar.format_t fmt v
     | Var (v, Some sv) ->
-      Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
+      Format.fprintf fmt "%a@%a" ScopeVar.format_t v StateName.format_t sv
     | SubScope v -> SubScopeName.format_t fmt v
+
+  let info = function
+    | Var (v, None) -> ScopeVar.get_info v
+    | Var (_, Some sv) -> StateName.get_info sv
+    | SubScope v -> SubScopeName.get_info v
 end
 
 (** On the edges, the label is the position of the expression responsible for
@@ -88,55 +102,53 @@ let correct_computation_ordering (g : ScopeDependencies.t) : Vertex.t list =
 
 (** Outputs an error in case of cycles. *)
 let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
-  (* if there is a cycle, there will be an strongly connected component of
+  (* if there is a cycle, there will be a strongly connected component of
      cardinality > 1 *)
   let sccs = SCC.scc_list g in
-  if List.length sccs < ScopeDependencies.nb_vertex g then
-    let scc = List.find (fun scc -> List.length scc > 1) sccs in
+  match List.find_opt (function [] | [_] -> false | _ -> true) sccs with
+  | None -> ()
+  | Some [] -> assert false
+  | Some (v0 :: _ as scc) ->
+    let module VSet = Set.Make (Vertex) in
+    let scc = VSet.of_list scc in
+    let rec get_cycle cycle cycle_set v =
+      let cycle = v :: cycle in
+      let cycle_set = VSet.add v cycle_set in
+      let succ = ScopeDependencies.succ g v in
+      if List.exists (fun v -> VSet.mem v cycle_set) succ then
+        (* a cycle may be smaller than the scc, in that case we just return the
+           first one found *)
+        let rec cut_after acc = function
+          | [] -> acc
+          | v :: vs ->
+            if List.mem v succ then v :: acc else cut_after (v :: acc) vs
+        in
+        cut_after [] cycle
+      else
+        get_cycle cycle cycle_set
+          (List.find (fun succ -> VSet.mem succ scc) succ)
+    in
+    let cycle = get_cycle [] VSet.empty v0 in
     let spans =
-      List.flatten
-        (List.map
-           (fun v ->
-             let var_str, var_info =
-               match v with
-               | Vertex.Var (v, None) ->
-                 Format.asprintf "%a" ScopeVar.format_t v, ScopeVar.get_info v
-               | Vertex.Var (v, Some sv) ->
-                 ( Format.asprintf "%a.%a" ScopeVar.format_t v
-                     StateName.format_t sv,
-                   StateName.get_info sv )
-               | Vertex.SubScope v ->
-                 ( Format.asprintf "%a" SubScopeName.format_t v,
-                   SubScopeName.get_info v )
-             in
-             let succs = ScopeDependencies.succ_e g v in
-             let _, edge_pos, succ =
-               List.find (fun (_, _, succ) -> List.mem succ scc) succs
-             in
-             let succ_str =
-               match succ with
-               | Vertex.Var (v, None) ->
-                 Format.asprintf "%a" ScopeVar.format_t v
-               | Vertex.Var (v, Some sv) ->
-                 Format.asprintf "%a.%a" ScopeVar.format_t v StateName.format_t
-                   sv
-               | Vertex.SubScope v ->
-                 Format.asprintf "%a" SubScopeName.format_t v
-             in
-             [
-               ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
-                 Marked.get_mark var_info );
-               ( Some
-                   ("Used here in the definition of another cycle variable "
-                   ^ succ_str
-                   ^ ":"),
-                 edge_pos );
-             ])
-           scc)
+      List.map2
+        (fun v1 v2 ->
+          let msg =
+            Format.asprintf "%a is used here in the definition of %a:"
+              Vertex.format_t v1 Vertex.format_t v2
+          in
+          let _, edge_pos, _ = ScopeDependencies.find_edge g v1 v2 in
+          Some msg, edge_pos)
+        cycle
+        (List.tl cycle @ [List.hd cycle])
     in
     Errors.raise_multispanned_error spans
-      "Cyclic dependency detected between variables of scope %a!"
+      "@[<hov 2>Cyclic dependency detected between the following variables of \
+       scope %a:@ @[<hv>%a@]@]"
       ScopeName.format_t scope.scope_uid
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf " →@ ")
+         Vertex.format_t)
+      (cycle @ [List.hd cycle])
 
 (** Builds the dependency graph of a particular scope *)
 let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
@@ -171,7 +183,10 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
             | ( Ast.ScopeDef.Var (v_defined, s_defined),
                 Ast.ScopeDef.Var (v_used, s_used) ) ->
               (* simple case *)
-              if v_used = v_defined && s_used = s_defined then
+              if
+                ScopeVar.equal v_used v_defined
+                && Option.equal StateName.equal s_used s_defined
+              then
                 (* variable definitions cannot be recursive *)
                 Errors.raise_spanned_error fv_def_pos
                   "The variable %a is used in one of its definitions, but \
@@ -199,7 +214,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 Ast.ScopeDef.SubScopeVar (used, _, _) ) ->
               (* here we are defining the input of a scope with the output of
                  another subscope *)
-              if used = defined then
+              if SubScopeName.equal used defined then
                 (* subscopes are not recursive functions *)
                 Errors.raise_spanned_error fv_def_pos
                   "The subscope %a is used when defining one of its inputs, \
@@ -382,14 +397,13 @@ let build_exceptions_graph
               if LabelName.compare edge.label_to label_to <> 0 then
                 Errors.raise_multispanned_error
                   (( Some
-                       "This declaration contradicts another exception \
-                        declarations:",
+                       "This definition contradicts other exception \
+                        definitions:",
                      edge_pos )
                   :: List.map
-                       (fun pos ->
-                         Some "Here is another exception declaration:", pos)
+                       (fun pos -> Some "Other exception definition:", pos)
                        edge.edge_positions)
-                  "The declaration of exceptions are inconsistent for variable \
+                  "The definition of exceptions are inconsistent for variable \
                    %a."
                   Ast.ScopeDef.format_t def_info)
             other_edges_originating_from_same_label;
@@ -440,38 +454,25 @@ let build_exceptions_graph
   g
 
 (** Outputs an error in case of cycles. *)
-let check_for_exception_cycle (g : ExceptionsDependencies.t) : unit =
+let check_for_exception_cycle
+    (def : Ast.rule RuleName.Map.t)
+    (g : ExceptionsDependencies.t) : unit =
   (* if there is a cycle, there will be an strongly connected component of
      cardinality > 1 *)
   let sccs = ExceptionsSCC.scc_list g in
   if List.length sccs < ExceptionsDependencies.nb_vertex g then
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
     let spans =
-      List.flatten
-        (List.map
-           (fun (vs : RuleName.Set.t) ->
-             let v = RuleName.Set.choose vs in
-             let var_str, var_info =
-               Format.asprintf "%a" RuleName.format_t v, RuleName.get_info v
-             in
-             let succs = ExceptionsDependencies.succ_e g vs in
-             let _, edge_pos, _ =
-               List.find (fun (_, _, succ) -> List.mem succ scc) succs
-             in
-             [
-               ( Some
-                   ("Cyclic exception for definition of variable \""
-                   ^ var_str
-                   ^ "\", declared here:"),
-                 Marked.get_mark var_info );
-               ( Some
-                   ("Used here in the definition of another cyclic exception \
-                     for defining \""
-                   ^ var_str
-                   ^ "\":"),
-                 List.hd edge_pos );
-             ])
-           scc)
+      List.rev_map
+        (fun (vs : RuleName.Set.t) ->
+          let v = RuleName.Set.choose vs in
+          let rule = RuleName.Map.find v def in
+          let pos = Marked.get_mark (RuleName.get_info rule.Ast.rule_id) in
+          None, pos)
+        scc
     in
+    let v = RuleName.Set.choose (List.hd scc) in
     Errors.raise_multispanned_error spans
-      "Cyclic dependency detected between exceptions!"
+      "Exception cycle detected when defining %a: each of these %d exceptions \
+       applies over the previous one, and the first applies over the last"
+      RuleName.format_t v (List.length scc)

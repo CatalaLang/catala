@@ -49,10 +49,12 @@ type 'm scope_decl = {
   scope_sig : (typ * Desugared.Ast.io) ScopeVar.Map.t;
   scope_decl_rules : 'm rule list;
   scope_mark : 'm mark;
+  scope_options : Desugared.Ast.catala_option Marked.pos list;
 }
 
 type 'm program = {
   program_scopes : 'm scope_decl ScopeName.Map.t;
+  program_topdefs : ('m expr * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 
@@ -70,12 +72,26 @@ let type_rule decl_ctx env = function
 
 let type_program (prg : 'm program) : typed program =
   let typing_env =
+    TopdefName.Map.fold
+      (fun name (_, ty) -> Typing.Env.add_toplevel_var name ty)
+      prg.program_topdefs
+      (Typing.Env.empty prg.program_ctx)
+  in
+  let program_topdefs =
+    TopdefName.Map.map
+      (fun (expr, typ) ->
+        ( Expr.unbox
+            (Typing.expr prg.program_ctx ~leave_unresolved:false ~env:typing_env
+               ~typ expr),
+          typ ))
+      prg.program_topdefs
+  in
+  let typing_env =
     ScopeName.Map.fold
       (fun scope_name scope_decl ->
         let vars = ScopeVar.Map.map fst scope_decl.scope_sig in
         Typing.Env.add_scope scope_name ~vars)
-      prg.program_scopes
-      (Typing.Env.empty prg.program_ctx)
+      prg.program_scopes typing_env
   in
   let program_scopes =
     ScopeName.Map.map
@@ -99,4 +115,4 @@ let type_program (prg : 'm program) : typed program =
         { scope_decl with scope_decl_rules; scope_mark })
       prg.program_scopes
   in
-  { prg with program_scopes }
+  { prg with program_topdefs; program_scopes }

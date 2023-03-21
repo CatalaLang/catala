@@ -23,7 +23,7 @@ syn match Include "^\s*>\s*Inclusion:.*$"
 syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
-syn match Keyword contained "\<\(contexte\|entrée\|sortie\|interne\|champ\s\+d'application\|collection\|structure\|donnée\|énumération\|définition\|déclaration\|si\s\+et\s\+seulement\s\+si\|dépend\s\+de\|inclus\|contenu\|optionnel\|règle\|sous\s\+condition\|condition\|conséquence\|rempli\|égal\s\+à\|assertion\|état\|étiquette\|exception\|n'importe\s\+quel\)\>"
+syn match Keyword contained "\<\(contexte\|entrée\|résultat\|interne\|champ\s\+d'application\|collection\|structure\|donnée\|énumération\|définition\|déclaration\|si\s\+et\s\+seulement\s\+si\|dépend\s\+de\|inclus\|contenu\|optionnel\|règle\|sous\s\+condition\|condition\|conséquence\|rempli\|égal\s\+à\|assertion\|état\|étiquette\|exception\|n'importe\s\+quel\)\>"
 syn match Statement contained "\<\(selon\|sous\s\+forme\|fixé\|par\|décroissante\|croissante\|varie\|avec\|on\s\+a\|soit\|dans\|tel\s\+que\|existe\|pour\|tout\|de\|initial\)\>"
 syn keyword Conditional contained si alors sinon
 syn match Comment contained "#.*$"
@@ -36,7 +36,7 @@ syn match punctuation contained "\(--\|\;\|\.\|,\|\:\|(\|)\|\[\|\]\|{\|}\)"
 syn keyword Type contained entier booléen date durée argent texte décimal décret loi nombre somme
 
 syn region ctxt contained
-      \ matchgroup=Keyword start="\<\(contexte\|entrée\|sortie\|interne\)\(|\s\+sortie\)"
+      \ matchgroup=Keyword start="\<\(contexte\|entrée\|résultat\|interne\)\(|\s\+résultat\)"
       \ matchgroup=sc_id_def end="\s\+\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 
 syn region cc_id_dot_sc_id contained contains=punctuation

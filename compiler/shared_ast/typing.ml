@@ -39,7 +39,7 @@ type unionfind_typ = naked_typ Marked.pos UnionFind.elem
 
 and naked_typ =
   | TLit of A.typ_lit
-  | TArrow of unionfind_typ * unionfind_typ
+  | TArrow of unionfind_typ list * unionfind_typ
   | TTuple of unionfind_typ list
   | TStruct of A.StructName.t
   | TEnum of A.EnumName.t
@@ -56,7 +56,7 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
   | TStruct s -> A.TStruct s, pos
   | TEnum e -> A.TEnum e, pos
   | TOption t -> A.TOption (typ_to_ast t), pos
-  | TArrow (t1, t2) -> A.TArrow (typ_to_ast t1, typ_to_ast t2), pos
+  | TArrow (t1, t2) -> A.TArrow (List.map typ_to_ast t1, typ_to_ast t2), pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
   | TAny _ ->
     if leave_unresolved then A.TAny, pos
@@ -73,15 +73,14 @@ let rec all_resolved ty =
   | TAny _ -> false
   | TLit _ | TStruct _ | TEnum _ -> true
   | TOption t1 | TArray t1 -> all_resolved t1
-  | TArrow (t1, t2) -> all_resolved t1 && all_resolved t2
+  | TArrow (t1, t2) -> List.for_all all_resolved t1 && all_resolved t2
   | TTuple ts -> List.for_all all_resolved ts
-  [@@warning "-32"]
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
     match Marked.unmark ty with
     | A.TLit l -> TLit l
-    | A.TArrow (t1, t2) -> TArrow (ast_to_typ t1, ast_to_typ t2)
+    | A.TArrow (t1, t2) -> TArrow (List.map ast_to_typ t1, ast_to_typ t2)
     | A.TTuple ts -> TTuple (List.map ast_to_typ ts)
     | A.TStruct s -> TStruct s
     | A.TEnum e -> TEnum e
@@ -119,9 +118,15 @@ let rec format_typ
   | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format_t e
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>%a@ %s@]" format_typ_with_parens t "eoption"
-  | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a →@ %a@]" format_typ_with_parens t1
+  | TArrow ([t1], t2) ->
+    Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]" format_typ_with_parens t1
       format_typ t2
+  | TArrow (t1, t2) ->
+    Format.fprintf fmt "@[<hov 2>(%a)@ →@ %a@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         format_typ_with_parens)
+      t1 format_typ t2
   | TArray t1 -> (
     match Marked.unmark (UnionFind.get (UnionFind.find t1)) with
     | TAny _ when not !Cli.debug_flag -> Format.pp_print_string fmt "collection"
@@ -150,12 +155,13 @@ let rec unify
   let () =
     match Marked.unmark t1_repr, Marked.unmark t2_repr with
     | TLit tl1, TLit tl2 -> if tl1 <> tl2 then raise_type_error ()
-    | TArrow (t11, t12), TArrow (t21, t22) ->
+    | TArrow (t11, t12), TArrow (t21, t22) -> (
       unify e t12 t22;
-      unify e t11 t21
-    | TTuple ts1, TTuple ts2 ->
-      if List.length ts1 = List.length ts2 then List.iter2 (unify e) ts1 ts2
-      else raise_type_error ()
+      try List.iter2 (unify e) t11 t21
+      with Invalid_argument _ -> raise_type_error ())
+    | TTuple ts1, TTuple ts2 -> (
+      try List.iter2 (unify e) ts1 ts2
+      with Invalid_argument _ -> raise_type_error ())
     | TStruct s1, TStruct s2 ->
       if not (A.StructName.equal s1 s2) then raise_type_error ()
     | TEnum e1, TEnum e2 ->
@@ -241,19 +247,19 @@ let polymorphic_op_type (op : ('a, Operator.polymorphic) A.operator Marked.pos)
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
   let ( @-> ) x y =
-    lazy (UnionFind.make (TArrow (Lazy.force x, Lazy.force y), pos))
+    lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
   in
   let ty =
     match Marked.unmark op with
-    | Fold -> (any2 @-> any @-> any2) @-> any2 @-> array any @-> any2
-    | Eq -> any @-> any @-> bt
-    | Map -> (any @-> any2) @-> array any @-> array any2
-    | Filter -> (any @-> bt) @-> array any @-> array any
-    | Reduce -> (any @-> any @-> any) @-> any @-> array any @-> any
-    | Concat -> array any @-> array any @-> array any
-    | Log (PosRecordIfTrueBool, _) -> bt @-> bt
-    | Log _ -> any @-> any
-    | Length -> array any @-> it
+    | Fold -> [[any2; any] @-> any2; any2; array any] @-> any2
+    | Eq -> [any; any] @-> bt
+    | Map -> [[any] @-> any2; array any] @-> array any2
+    | Filter -> [[any] @-> bt; array any] @-> array any
+    | Reduce -> [[any; any] @-> any; any; array any] @-> any
+    | Concat -> [array any; array any] @-> array any
+    | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
+    | Log _ -> [any] @-> any
+    | Length -> [array any] @-> it
   in
   Lazy.force ty
 
@@ -280,6 +286,7 @@ module Env = struct
     vars : ('e, unionfind_typ) Var.Map.t;
     scope_vars : A.typ A.ScopeVar.Map.t;
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
+    toplevel_vars : A.typ A.TopdefName.Map.t;
   }
 
   let empty (decl_ctx : A.decl_ctx) =
@@ -297,10 +304,12 @@ module Env = struct
       vars = Var.Map.empty;
       scope_vars = A.ScopeVar.Map.empty;
       scopes = A.ScopeName.Map.empty;
+      toplevel_vars = A.TopdefName.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
   let get_scope_var t sv = A.ScopeVar.Map.find_opt sv t.scope_vars
+  let get_toplevel_var t v = A.TopdefName.Map.find_opt v t.toplevel_vars
 
   let get_subscope_out_var t scope var =
     Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
@@ -314,6 +323,9 @@ module Env = struct
 
   let add_scope scope_name ~vars t =
     { t with scopes = A.ScopeName.Map.add scope_name vars t.scopes }
+
+  let add_toplevel_var v typ t =
+    { t with toplevel_vars = A.TopdefName.Map.add v typ t.toplevel_vars }
 
   let open_scope scope_name t =
     let scope_vars =
@@ -377,6 +389,7 @@ and typecheck_expr_top_down :
         Env.get_scope_var env (Marked.unmark v)
       | SubScopeVar (scope, _, v) ->
         Env.get_subscope_out_var env scope (Marked.unmark v)
+      | ToplevelVar v -> Env.get_toplevel_var env (Marked.unmark v)
     in
     let ty =
       match ty_opt with
@@ -514,7 +527,7 @@ and typecheck_expr_top_down :
     in
     Expr.einj e_enum' cons name mark
   | A.EMatch { e = e1; name; cases } ->
-    let cases_ty = A.EnumName.Map.find name env.enums in
+    let cases_ty = A.EnumName.Map.find name ctx.A.ctx_enums in
     let t_ret = unionfind ~pos:e1 (TAny (Any.fresh ())) in
     let mark = uf_mark t_ret in
     let e1' =
@@ -525,7 +538,10 @@ and typecheck_expr_top_down :
       A.EnumConstructor.Map.mapi
         (fun c_name e ->
           let c_ty = A.EnumConstructor.Map.find c_name cases_ty in
-          let e_ty = unionfind ~pos:e (TArrow (c_ty, t_ret)) in
+          (* For now our constructors are limited to zero or one argument. If
+             there is a change to allow for multiple arguments, it might be
+             easier to use tuples directly. *)
+          let e_ty = unionfind ~pos:e (TArrow ([ast_to_typ c_ty], t_ret)) in
           typecheck_expr_top_down ~leave_unresolved ctx env e_ty e)
         cases
     in
@@ -592,11 +608,7 @@ and typecheck_expr_top_down :
     else
       let tau_args = List.map ast_to_typ t_args in
       let t_ret = unionfind (TAny (Any.fresh ())) in
-      let t_func =
-        List.fold_right
-          (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
-          tau_args t_ret
-      in
+      let t_func = unionfind (TArrow (tau_args, t_ret)) in
       let mark = uf_mark t_func in
       (* assert (List.for_all all_resolved tau_args); *)
       let xs, body = Bindlib.unmbind binder in
@@ -611,19 +623,9 @@ and typecheck_expr_top_down :
       in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
       Expr.eabs binder' (List.map (typ_to_ast ~leave_unresolved) tau_args) mark
-  | A.EApp { f = (EOp { op; _ }, _) as e1; args } ->
-    (* Same as EApp, but the typing order is different to help with
-       disambiguation: - type of the operator is extracted first (to figure
-       linked type vars between arguments) - arguments are typed right-to-left,
-       because our operators with function args always have the functions first,
-       and the argument types of those functions can always be inferred from the
-       later operator arguments *)
-    let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
-    let t_func =
-      List.fold_right
-        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
-        t_args tau
-    in
+  | A.EApp { f = (EOp { op; tys }, _) as e1; args } ->
+    let t_args = List.map ast_to_typ tys in
+    let t_func = unionfind (TArrow (t_args, tau)) in
     let e1', args' =
       Operator.kind_dispatch op
         ~polymorphic:(fun _ ->
@@ -679,11 +681,7 @@ and typecheck_expr_top_down :
        of the arguments if [f] is [EAbs] before disambiguation. This is also the
        right order for the [let-in] form. *)
     let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
-    let t_func =
-      List.fold_right
-        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
-        t_args tau
-    in
+    let t_func = unionfind (TArrow (t_args, tau)) in
     let args' =
       List.map2 (typecheck_expr_top_down ~leave_unresolved ctx env) t_args args
     in
@@ -692,11 +690,7 @@ and typecheck_expr_top_down :
   | A.EOp { op; tys } ->
     let tys' = List.map ast_to_typ tys in
     let t_ret = unionfind (TAny (Any.fresh ())) in
-    let t_func =
-      List.fold_right
-        (fun t_arg acc -> unionfind (TArrow (t_arg, acc)))
-        tys' t_ret
-    in
+    let t_func = unionfind (TArrow (tys', t_ret)) in
     unify ctx e t_func tau;
     let tys, mark =
       Operator.kind_dispatch op
@@ -859,54 +853,41 @@ let scope_body ~leave_unresolved ctx env body =
   let var, e = Bindlib.unbind body.A.scope_body_expr in
   let env = Env.add var ty_in env in
   let e' = scope_body_expr ~leave_unresolved ctx env ty_out e in
-  ( Bindlib.bind_var (Var.translate var) e',
+  ( Bindlib.box_apply
+      (fun scope_body_expr -> { body with scope_body_expr })
+      (Bindlib.bind_var (Var.translate var) e'),
     UnionFind.make
       (Marked.mark
          (get_pos body.A.scope_body_output_struct)
-         (TArrow (ty_in, ty_out))) )
+         (TArrow ([ty_in], ty_out))) )
 
 let rec scopes ~leave_unresolved ctx env = function
   | A.Nil -> Bindlib.box A.Nil
-  | A.ScopeDef def ->
-    let body_e, ty_scope =
-      scope_body ~leave_unresolved ctx env def.scope_body
+  | A.Cons (item, next_bind) ->
+    let var, next = Bindlib.unbind next_bind in
+    let env, def =
+      match item with
+      | A.ScopeDef (name, body) ->
+        let body_e, ty_scope = scope_body ~leave_unresolved ctx env body in
+        ( Env.add var ty_scope env,
+          Bindlib.box_apply (fun body -> A.ScopeDef (name, body)) body_e )
+      | A.Topdef (name, typ, e) ->
+        let e' = expr_raw ~leave_unresolved ctx ~env ~typ e in
+        let uf = (Marked.get_mark e').uf in
+        let e' = Expr.map_marks ~f:(get_ty_mark ~leave_unresolved) e' in
+        ( Env.add var uf env,
+          Bindlib.box_apply
+            (fun e -> A.Topdef (name, typ, e))
+            (Expr.Box.lift e') )
     in
-    let scope_next =
-      let scope_var, next = Bindlib.unbind def.scope_next in
-      let env = Env.add scope_var ty_scope env in
-      let next' = scopes ~leave_unresolved ctx env next in
-      Bindlib.bind_var (Var.translate scope_var) next'
-    in
-    Bindlib.box_apply2
-      (fun scope_body_expr scope_next ->
-        A.ScopeDef
-          {
-            def with
-            scope_body = { def.scope_body with scope_body_expr };
-            scope_next;
-          })
-      body_e scope_next
+    let next' = scopes ~leave_unresolved ctx env next in
+    let next_bind' = Bindlib.bind_var (Var.translate var) next' in
+    Bindlib.box_apply2 (fun item next -> A.Cons (item, next)) def next_bind'
 
 let program ~leave_unresolved prg =
-  let env = Env.empty prg.A.decl_ctx in
-  let scopes =
-    Bindlib.unbox (scopes ~leave_unresolved prg.A.decl_ctx env prg.A.scopes)
+  let code_items =
+    Bindlib.unbox
+      (scopes ~leave_unresolved prg.A.decl_ctx (Env.empty prg.A.decl_ctx)
+         prg.A.code_items)
   in
-  {
-    A.scopes;
-    decl_ctx =
-      {
-        prg.decl_ctx with
-        (* We can retrieve the inferred types from [env] even though we didn't
-           get an updated version from [scopes] because unification is
-           imperative. *)
-        ctx_structs =
-          A.StructName.Map.map
-            (A.StructField.Map.map (typ_to_ast ~leave_unresolved))
-            env.structs;
-        ctx_enums =
-          A.EnumName.Map.map
-            (A.EnumConstructor.Map.map (typ_to_ast ~leave_unresolved))
-            env.enums;
-      };
-  }
+  { prg with code_items }

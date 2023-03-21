@@ -131,21 +131,21 @@ type base_typ = Condition | Data of base_typ_data
       }]
 
 type func_typ = {
-  arg_typ : base_typ Marked.pos;
+  arg_typ : (lident Marked.pos * base_typ Marked.pos) list;
   return_typ : base_typ Marked.pos;
 }
 [@@deriving
   visitors
     {
       variety = "map";
-      ancestors = ["base_typ_map"];
+      ancestors = ["lident_map"; "base_typ_map"];
       name = "func_typ_map";
       nude = true;
     },
     visitors
       {
         variety = "iter";
-        ancestors = ["base_typ_iter"];
+        ancestors = ["lident_iter"; "base_typ_iter"];
         name = "func_typ_iter";
         nude = true;
       }]
@@ -433,7 +433,7 @@ and naked_expression =
   | CollectionOp of collection_op * expression
   | MemCollection of expression * expression
   | TestMatchCase of expression * match_case_pattern Marked.pos
-  | FunCall of expression * expression
+  | FunCall of expression * expression list
   | ScopeCall of
       (path * uident Marked.pos) Marked.pos
       * (lident Marked.pos * expression) list
@@ -499,7 +499,7 @@ type exception_to =
 type rule = {
   rule_label : lident Marked.pos option;
   rule_exception_to : exception_to;
-  rule_parameter : lident Marked.pos option;
+  rule_parameter : lident Marked.pos list Marked.pos option;
   rule_condition : expression option;
   rule_name : scope_var Marked.pos;
   rule_id : Shared_ast.RuleName.t; [@opaque]
@@ -524,7 +524,7 @@ type definition = {
   definition_label : lident Marked.pos option;
   definition_exception_to : exception_to;
   definition_name : scope_var Marked.pos;
-  definition_parameter : lident Marked.pos option;
+  definition_parameter : lident Marked.pos list Marked.pos option;
   definition_condition : expression option;
   definition_id : Shared_ast.RuleName.t; [@opaque]
   definition_expr : expression;
@@ -586,6 +586,7 @@ type scope_use_item =
   | Definition of definition
   | Assertion of assertion
   | MetaAssertion of meta_assertion
+  | DateRounding of variation_typ Marked.pos
 [@@deriving
   visitors
     {
@@ -683,6 +684,8 @@ type scope_decl_context_scope = {
 type scope_decl_context_data = {
   scope_decl_context_item_name : lident Marked.pos;
   scope_decl_context_item_typ : typ;
+  scope_decl_context_item_parameters :
+    (lident Marked.pos * typ) list Marked.pos option;
   scope_decl_context_item_attribute : scope_decl_context_io;
   scope_decl_context_item_states : lident Marked.pos list;
 }
@@ -737,17 +740,46 @@ type scope_decl = {
         name = "scope_decl_iter";
       }]
 
+type top_def = {
+  topdef_name : lident Marked.pos;
+  topdef_args :
+    (lident Marked.pos * base_typ Marked.pos) list Marked.pos option;
+      (** Empty list if this is not a function *)
+  topdef_type : typ;
+  topdef_expr : expression;
+}
+[@@deriving
+  visitors
+    {
+      variety = "map";
+      ancestors = ["lident_map"; "typ_map"; "expression_map"];
+      name = "top_def_map";
+    },
+    visitors
+      {
+        variety = "iter";
+        ancestors = ["lident_iter"; "typ_iter"; "expression_iter"];
+        name = "top_def_iter";
+      }]
+
 type code_item =
   | ScopeUse of scope_use
   | ScopeDecl of scope_decl
   | StructDecl of struct_decl
   | EnumDecl of enum_decl
+  | Topdef of top_def
 [@@deriving
   visitors
     {
       variety = "map";
       ancestors =
-        ["scope_decl_map"; "enum_decl_map"; "struct_decl_map"; "scope_use_map"];
+        [
+          "scope_decl_map";
+          "enum_decl_map";
+          "struct_decl_map";
+          "scope_use_map";
+          "top_def_map";
+        ];
       name = "code_item_map";
     },
     visitors
@@ -759,6 +791,7 @@ type code_item =
             "enum_decl_iter";
             "struct_decl_iter";
             "scope_use_iter";
+            "top_def_iter";
           ];
         name = "code_item_iter";
       }]
@@ -891,3 +924,11 @@ let rule_to_def (rule : rule) : definition =
     definition_expr = consequence_expr, Marked.get_mark rule.rule_consequence;
     definition_state = rule.rule_state;
   }
+
+let type_from_args
+    (args : (lident Marked.pos * base_typ Marked.pos) list Marked.pos option)
+    (return_typ : base_typ Marked.pos) : typ =
+  match args with
+  | None -> Marked.map_under_mark (fun r -> Base r) return_typ
+  | Some (arg_typ, _) ->
+    Marked.mark (Marked.get_mark return_typ) (Func { arg_typ; return_typ })

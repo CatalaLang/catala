@@ -3,6 +3,21 @@
  (public_name catala.literate)
  (libraries re catala_utils surface ubase uutf))
 
+(rule
+ (target pygment_lexers.ml)
+ (action
+  (progn
+   (copy
+    ../../syntax_highlighting/en/pygments/catala_en_lexer/lexer.py
+    lexer_en.py)
+   (copy
+    ../../syntax_highlighting/fr/pygments/catala_fr_lexer/lexer.py
+    lexer_fr.py)
+   (copy
+    ../../syntax_highlighting/pl/pygments/catala_pl_lexer/lexer.py
+    lexer_pl.py)
+   (run ocaml-crunch -e py -m plain -o %{target} .))))
+
 (documentation
  (package catala)
  (mld_files literate))

@@ -1,7 +1,9 @@
 (executable
  (name bench)
  (modes native)
+ (public_name bench)
  (modules bench)
+ (package french_law)
  (libraries catala.runtime_ocaml french_law benchmark))
 
 (executable
@@ -25,3 +27,9 @@
   "A collection of functions for computing French taxes and benefits derived from Catala programs")
  (libraries catala.runtime_ocaml law_source)
  (modules api))
+
+(rule
+ (alias runtest)
+ (package french_law)
+ (action
+  (run bench)))

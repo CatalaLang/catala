@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope S:
-  output f content integer depends on integer
+  output f content integer depends on y content integer
   input x content boolean
 
 scope S:

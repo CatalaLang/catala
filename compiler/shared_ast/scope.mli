@@ -15,7 +15,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Functions handling the scope structures of [shared_ast] *)
+(** Functions handling the code item structures of [shared_ast], in particular
+    the scopes *)
 
 open Catala_utils
 open Definitions
@@ -50,18 +51,18 @@ val map_exprs_in_lets :
   'expr2 scope_body_expr Bindlib.box
 
 val fold_left :
-  f:('a -> 'expr1 scope_def -> 'expr1 Var.t -> 'a) ->
+  f:('a -> 'expr1 code_item -> 'expr1 Var.t -> 'a) ->
   init:'a ->
-  'expr1 scopes ->
+  'expr1 code_item_list ->
   'a
-(** Usage: [fold_left ~f:(fun acc scope_def scope_var -> ...) ~init scope_def],
-    where [scope_var] is the variable bound to the scope in the next scopes to
-    be examined. *)
+(** Usage: [fold_left ~f:(fun acc code_def code_var -> ...) ~init code_def],
+    where [code_var] is the variable bound to the code item in the next code
+    items to be examined. *)
 
 val fold_right :
-  f:('expr1 scope_def -> 'expr1 Var.t -> 'a -> 'a) ->
+  f:('expr1 code_item -> 'expr1 Var.t -> 'a -> 'a) ->
   init:'a ->
-  'expr1 scopes ->
+  'expr1 code_item_list ->
   'a
 (** Usage:
     [fold_right_scope ~f:(fun  scope_def scope_var acc -> ...) ~init scope_def],
@@ -69,15 +70,32 @@ val fold_right :
     be examined (which are before in the program order). *)
 
 val map :
-  f:('e scope_def -> 'e scope_def Bindlib.box) ->
-  'e scopes ->
-  'e scopes Bindlib.box
+  f:('e1 code_item -> 'e2 code_item Bindlib.box) ->
+  varf:('e1 Var.t -> 'e2 Var.t) ->
+  'e1 code_item_list ->
+  'e2 code_item_list Bindlib.box
+
+val map_ctx :
+  f:('ctx -> 'e1 code_item -> 'ctx * 'e2 code_item Bindlib.box) ->
+  varf:('e1 Var.t -> 'e2 Var.t) ->
+  'ctx ->
+  'e1 code_item_list ->
+  'e2 code_item_list Bindlib.box
+(** Similar to [map], but a context is passed left-to-right through the given
+    function *)
+
+val fold_map :
+  f:('ctx -> 'e1 Var.t -> 'e1 code_item -> 'ctx * 'e2 code_item Bindlib.box) ->
+  varf:('e1 Var.t -> 'e2 Var.t) ->
+  'ctx ->
+  'e1 code_item_list ->
+  'ctx * 'e2 code_item_list Bindlib.box
 
 val map_exprs :
   f:('expr1 -> 'expr2 boxed) ->
   varf:('expr1 Var.t -> 'expr2 Var.t) ->
-  'expr1 scopes ->
-  'expr2 scopes Bindlib.box
+  'expr1 code_item_list ->
+  'expr2 code_item_list Bindlib.box
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
@@ -104,7 +122,7 @@ type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 
 val unfold :
   decl_ctx ->
-  ((_, 'm mark) gexpr as 'e) scopes ->
+  ((_, 'm mark) gexpr as 'e) code_item_list ->
   'm mark ->
   'e scope_name_or_var ->
   'e boxed
@@ -117,5 +135,5 @@ val build_typ_from_sig :
 (** {2 Analysis and tests} *)
 
 val free_vars_body_expr : 'e scope_body_expr -> 'e Var.Set.t
-val free_vars_body : 'e scope_body -> 'e Var.Set.t
-val free_vars : 'e scopes -> 'e Var.Set.t
+val free_vars_item : 'e code_item -> 'e Var.Set.t
+val free_vars : 'e code_item_list -> 'e Var.Set.t

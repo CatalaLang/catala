@@ -292,10 +292,10 @@ declaration scope TwoBracketsTaxComputation :
   input brackets content TwoBrackets
   # This input variable contains the description of the
   # parameters of the tax formula.
-  output tax_formula content money depends on money
+  output tax_formula content money depends on income content money
   # But for declaring the tax_formula variable, we declare it as
-  # a function: "content money depends on money" means a function that
-  # returns money as output (the tax) and takes money as input (the income).
+  # a function: "content money depends on income content money" means a function
+  # that returns money as output (the tax) and takes the income money as input.
 ```
 
 ### Article 4
@@ -468,7 +468,7 @@ fixed version of the NewIncomeTaxComputation scope:
 declaration scope NewIncomeTaxComputationFixed:
   two_brackets scope TwoBracketsTaxComputation
   input individual content Individual
-  output tax_formula content money depends on money
+  output tax_formula content money depends on income content money
   context output income_tax content money
   # This variable is tagged with "context", a new concept which we have not
   # introduced yet. For now, ignore it as we'll come back to it in the section
@@ -843,3 +843,157 @@ There is no single way to write Catala programs, as the program style should be
 adapted to the legislation it annotates. However, Catala is a functional
 language at heart, so following standard functional programming design patterns
 should help achieve concise and readable code.
+
+
+
+# Annex A: top-level value definitions
+
+Toplevel definitions provide a way to define values or functions directly in the
+program, without putting them in a scope. This is useful for constants or helper
+functions, as shown in the examples below.
+
+Toplevel definitions are available by name throughout the program ; they can
+depend on each other (as long as there are no cycles), but are not allowed to
+rely on any scope evaluations.
+
+## Example 1: toplevel constants
+
+### A. Using only scope definitions
+
+a. Throughout this corpus, the number of workdays per week is assumed to be 5.
+
+```catala
+declaration scope WorkdaysPerWeek:
+  output value content integer
+
+scope WorkdaysPerWeek:
+  definition value equals 5
+
+# Requiring to declare the scope with just an output variable is quite
+# cumbersome, and impedes readability
+```
+
+b. The General Lunch Allocation is $2 per workday, over the number of work weeks.
+
+```catala
+declaration scope LunchAllocation_A:
+  input number_of_work_weeks content integer
+  workdays_per_week scope WorkdaysPerWeek
+  # The subscope needs to be declared just to access its value.
+  # Note that in some cases it may be a good thing to have that dependency
+  # explicit
+  output value content money
+
+scope LunchAllocation_A:
+  definition value equals
+    $2 * (number_of_work_weeks * workdays_per_week.value / 7)
+  # The value requires <scope_name>.<variable_name> to be accessed
+```
+
+
+
+### B. Using toplevel definitions
+
+a. Throughout this corpus, the number of workdays per week is assumed to be 5.
+
+```catala
+declaration workdays_per_week content integer equals 5
+# This is more straightforward: declaration and value are given at once,
+# no need for a sub-variable name.
+```
+
+b. The General Lunch Allocation is $2 per workday, over the number of work weeks.
+
+```catala
+declaration scope LunchAllocation_B:
+  input number_of_work_weeks content integer
+  output value content money
+
+scope LunchAllocation_B:
+  definition value equals $2 * (number_of_work_weeks * workdays_per_week / 7)
+  # No need for a subscope, `workdays_per_week` is accessed directly by name
+```
+
+## Example 2: toplevel functions
+
+a. The base allocation is equal to 30% of the rent
+
+```catala
+declaration scope Allocation:
+  input rent content money
+  output value content money
+    state base
+    state final
+
+scope Allocation:
+  definition value state base equals rent * 30%
+```
+
+### A. With the current syntax
+
+b. The final allocation is rounded up to the next multiple of $100
+
+```catala
+scope Allocation:
+  definition value state final equals
+    round of (value / 100.0 + $0.49) * 100.0
+    # Here you should explain why that formula does what the text says,
+    # since that's far from obvious
+    # It's ok if it's just used once, but far from ideal if that specific
+    # rounding is used all over the law.
+```
+
+
+### B. Proposed new syntax for "toplevel functions"
+
+b. The final allocation is rounded up to the next multiple of $100
+
+```catala
+declaration round_up_100
+    content money
+    depends on money_amount content money
+  equals
+    (money_amount / 100.0 + $0.49) * 100.0
+    # The explanation is still needed, but it doesn't clutter the current scope
+    # This definition could even be put in the Prelude
+
+scope Allocation:
+  definition value state final equals round_up_100 of value
+```
+
+## Example 3: functions with multiple parameters
+
+The amount to include in gross income is the excess of the fair market value of
+the property over the amount paid.
+
+```catala-metadata
+declaration scope IncludeInGrossIncome:
+  input fair_market_value content money
+  input amount_paid content money
+  output amount_to_include content money
+```
+
+### A. With the current syntax
+
+```catala
+scope IncludeInGrossIncome:
+  definition amount_to_include equals
+    if fair_market_value > amount_paid then fair_market_value - amount_paid
+    else $0
+    # That's basically the definition of "excess of"
+```
+
+### A. With a two-argument function
+
+```catala
+declaration excess
+    content money
+    depends on x content money,
+               y content money
+  equals
+    if x > y then x - y
+    else $0
+
+scope IncludeInGrossIncome:
+  definition amount_to_include equals excess of fair_market_value, amount_paid
+```

@@ -1,6 +1,6 @@
 ```catala
 declaration scope HousingComputation:
-  output f content integer depends on integer
+  output f content integer depends on x content integer
   output result content integer
 
 scope HousingComputation:
@@ -8,8 +8,8 @@ scope HousingComputation:
   definition result equals f of 1
 
 declaration scope RentComputation:
-  internal g content integer depends on integer
-  output f content integer depends on integer
+  internal g content integer depends on x content integer
+  output f content integer depends on x content integer
 
 scope RentComputation:
   definition g of x equals x + 1
@@ -26,7 +26,7 @@ $ catala Interpret -t -s HousingComputation
    │              ‾‾‾‾‾‾
 
 [LOG] →  HousingComputation.f
-[LOG]   ≔  HousingComputation.f.input: 1
+[LOG]   ≔  HousingComputation.f.input0: 1
 [LOG]   ☛ Definition applied:
    ┌─⯈ tests/test_scope/good/scope_call3.catala_en:7.13-14:
    └─┐
@@ -43,10 +43,10 @@ $ catala Interpret -t -s HousingComputation
      7 │   definition f of x equals (output of RentComputation).f of x
        │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     
-[LOG]     ≔  RentComputation.direct.output: RentComputation { "f"= λ (param: integer) → RentComputation { "f"= λ (param1: integer) → error_empty ⟨true ⊢ λ (param2: integer) → error_empty ⟨true ⊢ param2 +! 1⟩ param1 +! 1⟩ }."f" param }
+[LOG]     ≔  RentComputation.direct.output: RentComputation { "f"= λ (param0: integer) → RentComputation { "f"= λ (x: integer) → error_empty ⟨true ⊢ λ (x1: integer) → error_empty ⟨true ⊢ x1 +! 1⟩ x +! 1⟩ }."f" param0 }
 [LOG]   ←  RentComputation.direct
 [LOG]   →  RentComputation.f
-[LOG]     ≔  RentComputation.f.input: 1
+[LOG]     ≔  RentComputation.f.input0: 1
 [LOG]     ☛ Definition applied:
      ┌─⯈ tests/test_scope/good/scope_call3.catala_en:16.13-14:
      └──┐
@@ -54,7 +54,7 @@ $ catala Interpret -t -s HousingComputation
         │              ‾
     
 [LOG]     →  RentComputation.g
-[LOG]       ≔  RentComputation.g.input: 2
+[LOG]       ≔  RentComputation.g.input0: 2
 [LOG]       ☛ Definition applied:
        ┌─⯈ tests/test_scope/good/scope_call3.catala_en:15.13-14:
        └──┐
@@ -70,20 +70,20 @@ $ catala Interpret -t -s HousingComputation
 [LOG] ≔  HousingComputation.result: 3
 [RESULT] Computation successful! Results:
 [RESULT] f =
-           λ (param: integer) → error_empty
+           λ (x: integer) → error_empty
              ⟨true ⊢
                let result : RentComputation {"f": integer → integer} =
                  λ (RentComputation_in: RentComputation_in {}) →
                    let g : integer → integer = error_empty
-                     (λ (param1: integer) → error_empty
-                        ⟨true ⊢ param1 +! 1⟩) in
+                     (λ (x1: integer) → error_empty ⟨true ⊢ x1 +! 1⟩)
+                     in
                    let f : integer → integer = error_empty
-                     (λ (param1: integer) → error_empty
-                        ⟨true ⊢ g param1 +! 1⟩) in
+                     (λ (x1: integer) → error_empty
+                        ⟨true ⊢ g x1 +! 1⟩) in
                    RentComputation { "f"= f } RentComputation_in {  } in
                  let result1 : RentComputation {"f": integer → integer} =
                    RentComputation { "f"=
-                     λ (param1: integer) → result."f" param1 } in
-                 if true then result1 else ∅ ."f" param⟩
+                     λ (param0: integer) → result."f" param0 } in
+                 if true then result1 else ∅ ."f" x⟩
 [RESULT] result = 3
 ```

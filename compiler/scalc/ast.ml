@@ -18,18 +18,18 @@ open Catala_utils
 open Shared_ast
 module D = Dcalc.Ast
 module L = Lcalc.Ast
-module TopLevelName = Uid.Make (Uid.MarkedString) ()
-module LocalName = Uid.Make (Uid.MarkedString) ()
+module FuncName = Uid.Gen ()
+module VarName = Uid.Gen ()
 
-let dead_value = LocalName.fresh ("dead_value", Pos.no_pos)
-let handle_default = TopLevelName.fresh ("handle_default", Pos.no_pos)
-let handle_default_opt = TopLevelName.fresh ("handle_default_opt", Pos.no_pos)
+let dead_value = VarName.fresh ("dead_value", Pos.no_pos)
+let handle_default = FuncName.fresh ("handle_default", Pos.no_pos)
+let handle_default_opt = FuncName.fresh ("handle_default_opt", Pos.no_pos)
 
 type expr = naked_expr Marked.pos
 
 and naked_expr =
-  | EVar : LocalName.t -> naked_expr
-  | EFunc : TopLevelName.t -> naked_expr
+  | EVar : VarName.t -> naked_expr
+  | EFunc : FuncName.t -> naked_expr
   | EStruct : expr list * StructName.t -> naked_expr
   | EStructFieldAccess : expr * StructField.t * StructName.t -> naked_expr
   | EInj : expr * EnumConstructor.t * EnumName.t -> naked_expr
@@ -39,9 +39,9 @@ and naked_expr =
   | EOp : (lcalc, _) operator -> naked_expr
 
 type stmt =
-  | SInnerFuncDef of LocalName.t Marked.pos * func
-  | SLocalDecl of LocalName.t Marked.pos * typ
-  | SLocalDef of LocalName.t Marked.pos * expr
+  | SInnerFuncDef of VarName.t Marked.pos * func
+  | SLocalDecl of VarName.t Marked.pos * typ
+  | SLocalDef of VarName.t Marked.pos * expr
   | STryExcept of block * except * block
   | SRaise of except
   | SIfThenElse of expr * block * block
@@ -49,7 +49,7 @@ type stmt =
       expr
       * EnumName.t
       * (block (* Statements corresponding to arm closure body*)
-        * (* Variable instantiated with enum payload *) LocalName.t)
+        * (* Variable instantiated with enum payload *) VarName.t)
         list  (** Each block corresponds to one case of the enum *)
   | SReturn of naked_expr
   | SAssert of naked_expr
@@ -57,14 +57,19 @@ type stmt =
 and block = stmt Marked.pos list
 
 and func = {
-  func_params : (LocalName.t Marked.pos * typ) list;
+  func_params : (VarName.t Marked.pos * typ) list;
   func_body : block;
 }
 
 type scope_body = {
   scope_body_name : ScopeName.t;
-  scope_body_var : TopLevelName.t;
+  scope_body_var : FuncName.t;
   scope_body_func : func;
 }
 
-type program = { decl_ctx : decl_ctx; scopes : scope_body list }
+type code_item =
+  | SVar of { var : VarName.t; expr : expr }
+  | SFunc of { var : FuncName.t; func : func }
+  | SScope of scope_body
+
+type program = { decl_ctx : decl_ctx; code_items : code_item list }

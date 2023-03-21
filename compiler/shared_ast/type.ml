@@ -29,7 +29,7 @@ let rec equal ty1 ty2 =
   | TStruct n1, TStruct n2 -> StructName.equal n1 n2
   | TEnum n1, TEnum n2 -> EnumName.equal n1 n2
   | TOption t1, TOption t2 -> equal t1 t2
-  | TArrow (t1, t1'), TArrow (t2, t2') -> equal t1 t2 && equal t1' t2'
+  | TArrow (t1, t1'), TArrow (t2, t2') -> equal_list t1 t2 && equal t1' t2'
   | TArray t1, TArray t2 -> equal t1 t2
   | TAny, TAny -> true
   | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
@@ -49,7 +49,8 @@ let rec unifiable ty1 ty2 =
   | TStruct n1, TStruct n2 -> StructName.equal n1 n2
   | TEnum n1, TEnum n2 -> EnumName.equal n1 n2
   | TOption t1, TOption t2 -> unifiable t1 t2
-  | TArrow (t1, t1'), TArrow (t2, t2') -> unifiable t1 t2 && unifiable t1' t2'
+  | TArrow (t1, t1'), TArrow (t2, t2') ->
+    unifiable_list t1 t2 && unifiable t1' t2'
   | TArray t1, TArray t2 -> unifiable t1 t2
   | ( (TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _ | TArray _),
       _ ) ->
@@ -66,7 +67,7 @@ let rec compare ty1 ty2 =
   | TEnum en1, TEnum en2 -> EnumName.compare en1 en2
   | TOption t1, TOption t2 -> compare t1 t2
   | TArrow (a1, b1), TArrow (a2, b2) -> (
-    match compare a1 a2 with 0 -> compare b1 b2 | n -> n)
+    match List.compare compare a1 a2 with 0 -> compare b1 b2 | n -> n)
   | TArray t1, TArray t2 -> compare t1 t2
   | TAny, TAny -> 0
   | TLit _, _ -> -1

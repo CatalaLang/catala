@@ -55,6 +55,8 @@ type enum_context = typ EnumConstructor.Map.t
 type var_sig = {
   var_sig_typ : typ;
   var_sig_is_condition : bool;
+  var_sig_parameters :
+    (Uid.MarkedString.info * Shared_ast.typ) list Marked.pos option;
   var_sig_io : Surface.Ast.scope_decl_context_io;
   var_sig_states_idmap : StateName.t IdentName.Map.t;
   var_sig_states_list : StateName.t list;
@@ -81,6 +83,7 @@ type context = {
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
   scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
+  topdefs : TopdefName.t IdentName.Map.t;  (** Global definitions *)
   structs : struct_context StructName.Map.t;
       (** For each struct, its context *)
   enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
@@ -165,6 +168,16 @@ let get_def_typ (ctxt : context) (def : Ast.ScopeDef.t) : typ =
      referring back to the original subscope *)
   | Ast.ScopeDef.Var (x, _) ->
     get_var_typ ctxt x
+
+(** Retrieves the type of a scope definition from the context *)
+let get_params (ctxt : context) (def : Ast.ScopeDef.t) :
+    (Uid.MarkedString.info * typ) list Marked.pos option =
+  match def with
+  | Ast.ScopeDef.SubScopeVar (_, x, _)
+  (* we don't need to look at the subscope prefix because [x] is already the uid
+     referring back to the original subscope *)
+  | Ast.ScopeDef.Var (x, _) ->
+    (ScopeVar.Map.find x ctxt.var_typs).var_sig_parameters
 
 let is_def_cond (ctxt : context) (def : Ast.ScopeDef.t) : bool =
   match def with
@@ -318,8 +331,8 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
   match naked_typ with
   | Surface.Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
   | Surface.Ast.Func { arg_typ; return_typ } ->
-    ( TArrow (process_base_typ ctxt arg_typ, process_base_typ ctxt return_typ),
-      typ_pos )
+    let targs = List.map (fun (_, t) -> process_base_typ ctxt t) arg_typ in
+    TArrow (targs, process_base_typ ctxt return_typ), typ_pos
 
 (** Process data declaration *)
 let process_data_decl
@@ -359,6 +372,12 @@ let process_data_decl
             state_uid :: states_list ))
         decl.scope_decl_context_item_states (IdentName.Map.empty, [])
     in
+    let var_sig_parameters =
+      Option.map
+        (Marked.map_under_mark
+           (List.map (fun (lbl, typ) -> lbl, process_type ctxt typ)))
+        decl.scope_decl_context_item_parameters
+    in
     {
       ctxt with
       scopes = ScopeName.Map.add scope scope_ctxt ctxt.scopes;
@@ -367,6 +386,7 @@ let process_data_decl
           {
             var_sig_typ = data_typ;
             var_sig_is_condition = is_cond;
+            var_sig_parameters;
             var_sig_io = decl.scope_decl_context_item_attribute;
             var_sig_states_idmap = states_idmap;
             var_sig_states_list = states_list;
@@ -638,6 +658,15 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
           (TEnum e_uid) ctxt.typedefs;
     }
   | ScopeUse _ -> ctxt
+  | Topdef def ->
+    let name, pos = def.topdef_name in
+    Option.iter
+      (fun use ->
+        raise_already_defined_error (TopdefName.get_info use) name pos
+          "toplevel definition")
+      (IdentName.Map.find_opt name ctxt.topdefs);
+    let uid = TopdefName.fresh def.topdef_name in
+    { ctxt with topdefs = IdentName.Map.add name uid ctxt.topdefs }
 
 (** Process a code item that is a declaration *)
 let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
@@ -647,6 +676,7 @@ let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
   | StructDecl sdecl -> process_struct_decl ctxt sdecl
   | EnumDecl edecl -> process_enum_decl ctxt edecl
   | ScopeUse _ -> ctxt
+  | Topdef _ -> ctxt
 
 (** Process a code block *)
 let process_code_block
@@ -865,7 +895,7 @@ let process_scope_use (ctxt : context) (suse : Surface.Ast.scope_use) : context
 let process_use_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
     : context =
   match Marked.unmark item with
-  | ScopeDecl _ | StructDecl _ | EnumDecl _ -> ctxt
+  | ScopeDecl _ | StructDecl _ | EnumDecl _ | Topdef _ -> ctxt
   | ScopeUse suse -> process_scope_use ctxt suse
 
 (** {1 API} *)
@@ -877,6 +907,7 @@ let form_context (prgm : Surface.Ast.program) : context =
       local_var_idmap = IdentName.Map.empty;
       typedefs = IdentName.Map.empty;
       scopes = ScopeName.Map.empty;
+      topdefs = IdentName.Map.empty;
       var_typs = ScopeVar.Map.empty;
       structs = StructName.Map.empty;
       field_idmap = IdentName.Map.empty;

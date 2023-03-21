@@ -1,7 +1,7 @@
 {
   inputs = {
-    flake-utils.url = github:numtide/flake-utils;
-    nixpkgs.url = github:NixOS/nixpkgs/nixos-unstable;
+    flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
   };
 
   outputs = {nixpkgs, flake-utils, ...}:
@@ -16,17 +16,22 @@
           packages = {
             catala = ocamlPackages.catala;
             clerk = ocamlPackages.clerk;
+            french_law = ocamlPackages.french_law;
           };
           defaultPackage = packages.catala;
           devShell = pkgs.mkShell {
-            inputsFrom = [packages.catala];
+            inputsFrom = [ packages.catala ];
             buildInputs = [
               pkgs.inotify-tools
               ocamlPackages.merlin
-              pkgs.ocamlformat
+              pkgs.ocamlformat_0_21_0
               ocamlPackages.ocp-indent
               ocamlPackages.utop
+              ocamlPackages.odoc
               ocamlPackages.ocaml-lsp
+              pkgs.groff
+              pkgs.obelisk
+              pkgs.ninja
             ];
           };
         }

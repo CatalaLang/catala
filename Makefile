@@ -3,7 +3,7 @@ help : Makefile
 
 ROOT_DIR:=$(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 
-export DUNE_PROFILE ?= release
+export DUNE_PROFILE ?= dev
 
 # Export all variables to sub-make
 export
@@ -12,7 +12,7 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = groff python3 colordiff node pygmentize node npm ninja pandoc
+EXECUTABLES = groff python3 colordiff node node npm ninja pandoc
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
@@ -32,10 +32,32 @@ dependencies-ocaml-with-z3:
 dependencies-js:
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
 
-#> dependencies				: Install the Catala OCaml, JS and Git dependencies
-dependencies: dependencies-ocaml dependencies-js
+PY_VENV_DIR = _python_venv
 
-dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js
+PY_VENV_ACTIVATE = . $(PY_VENV_DIR)/bin/activate;
+
+# Rebuild when requirements change
+$(PY_VENV_DIR): $(PY_VENV_DIR)/stamp
+
+$(PY_VENV_DIR)/stamp: \
+    runtimes/python/catala/pyproject.toml \
+    syntax_highlighting/en/pygments/pyproject.toml \
+    syntax_highlighting/fr/pygments/pyproject.toml \
+    syntax_highlighting/pl/pygments/pyproject.toml
+	test -d $(PY_VENV_DIR) || python3 -m venv $(PY_VENV_DIR)
+	$(PY_VENV_ACTIVATE) python3 -m pip install -U \
+	  -e runtimes/python/catala \
+	  -e syntax_highlighting/en/pygments \
+	  -e syntax_highlighting/fr/pygments \
+	  -e syntax_highlighting/pl/pygments
+	touch $@
+
+dependencies-python: $(PY_VENV_DIR)
+
+#> dependencies				: Install the Catala OCaml, JS and Git dependencies
+dependencies: dependencies-ocaml dependencies-js dependencies-python
+
+dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js dependencies-python
 
 ##########################################
 # Catala compiler rules
@@ -104,17 +126,8 @@ SYNTAX_HIGHLIGHTING_FR=${CURDIR}/syntax_highlighting/fr
 SYNTAX_HIGHLIGHTING_EN=${CURDIR}/syntax_highlighting/en
 SYNTAX_HIGHLIGHTING_PL=${CURDIR}/syntax_highlighting/pl
 
-pygmentize_fr: $(SYNTAX_HIGHLIGHTING_FR)/set_up_pygments.sh
-	chmod +x $<
-	$<
-
-pygmentize_en: $(SYNTAX_HIGHLIGHTING_EN)/set_up_pygments.sh
-	chmod +x $<
-	$<
-
-pygmentize_pl: $(SYNTAX_HIGHLIGHTING_PL)/set_up_pygments.sh
-	chmod +x $<
-	$<
+pygmentize_%: $(PY_VENV_DIR)
+	$(PY_VENV_ACTIVATE) python3 -m pip install syntax_highlighting/$*/pygments
 
 #> pygments				: Extends your pygmentize executable with Catala lexers
 pygments: pygmentize_fr pygmentize_en pygmentize_pl
@@ -151,6 +164,13 @@ vscode_en: ${CURDIR}/syntax_highlighting/en/setup_vscode.sh
 vscode: vscode_fr vscode_en
 
 ##########################################
+# Extra documentation
+##########################################
+
+syntax:
+	$(MAKE) -C doc/syntax
+
+##########################################
 # Literate programming and examples
 ##########################################
 
@@ -163,7 +183,7 @@ TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
 TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
 POLISH_TAXES_DIR=$(EXAMPLES_DIR)/polish_taxes
 
-literate_aides_logement: build
+literate_aides_logement: build $(PY_VENV_DIR)
 	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.tex
 	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.html
 
@@ -223,7 +243,7 @@ build_french_law_library_ocaml:
 	dune build $(FRENCH_LAW_OCAML_LIB_DIR)/api.a
 
 run_french_law_library_benchmark_ocaml:
-	dune exec --profile release $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
+	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
 
 run_french_law_library_ocaml_tests:
 	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
@@ -269,11 +289,6 @@ FRENCH_LAW_LIBRARY_PYTHON = \
   $(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py \
   $(FRENCH_LAW_PYTHON_LIB_DIR)/src/aides_logement.py
 
-PY_VIRTUALENV = $(FRENCH_LAW_PYTHON_LIB_DIR)/env/bin/activate
-
-$(PY_VIRTUALENV):
-	@$(if $(wildcard $(PY_VIRTUALENV)),,$(error "Python virtualenv not initialised, you need to run $(FRENCH_LAW_PYTHON_LIB_DIR)/setup_env.sh"))
-
 $(FRENCH_LAW_LIBRARY_PYTHON):
 	dune build $@
 
@@ -282,15 +297,11 @@ generate_french_law_library_python:
 	dune build $(FRENCH_LAW_LIBRARY_PYTHON)
 
 #> type_french_law_library_python		: Types the French law library Python sources with mypy
-type_french_law_library_python: $(PY_VIRTUALENV) \
-  generate_french_law_library_python
-	. $(PY_VIRTUALENV) ;\
-	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
+type_french_law_library_python: $(PY_VENV_DIR) generate_french_law_library_python
+	$(PY_VENV_ACTIVATE) $(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
 
-run_french_law_library_benchmark_python: $(PY_VIRTUALENV) \
-  type_french_law_library_python
-	. $(PY_VIRTUALENV) ;\
-	$(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) bench
+run_french_law_library_benchmark_python: $(PY_ENV_DIR) type_french_law_library_python
+	$(PY_VENV_ACTIVATE) $(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) bench
 
 ##########################################
 # High-level test and benchmarks commands
@@ -342,9 +353,12 @@ WEBSITE_ASSETS = grammar.html catala.html clerk.html catala_legifrance.html
 $(addprefix _build/default/,$(WEBSITE_ASSETS)):
 	dune build $@
 
-#> website-assets				: Builds all the assets necessary for the Catala website
-website-assets: build_french_law_library_web_api doc literate_examples build
+website-assets-base: build_french_law_library_web_api doc literate_examples build
 	dune build $(WEBSITE_ASSETS)
+
+#> website-assets				: Builds all the assets necessary for the Catala website
+website-assets:
+	$(MAKE) DUNE_PROFILE=release website-assets-base
 
 ##########################################
 # Misceallenous
@@ -362,7 +376,7 @@ all: \
 	bench_js \
 	generate_french_law_library_python type_french_law_library_python \
 	bench_python \
-	website-assets
+	website-assets-base
 
 
 #> clean					: Clean build artifacts
@@ -403,4 +417,5 @@ help_catala_legifrance:
 	run_french_law_library_benchmark_python					\
 	run_french_law_library_benchmark_js run_french_law_library_ocaml_tests	\
 	build_french_law_library_js build_french_law_library_web_api		\
-	build_french_law_library_ocaml
+	build_french_law_library_ocaml                                          \
+	website-assets website-assets-base

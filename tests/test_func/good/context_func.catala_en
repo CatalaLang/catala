@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  context f content integer depends on integer
+  context f content integer depends on x content integer
 
 declaration scope B:
   input b content boolean
@@ -19,7 +19,7 @@ scope B:
 $ catala Scopelang -s B
 let scope B (b: bool|input) =
   let a.f : integer → integer =
-    λ (param: integer) → ⟨b && param >! 0 ⊢ param -! 1⟩;
+    λ (x: integer) → ⟨b && x >! 0 ⊢ x -! 1⟩;
   call A[a]
 ```
 
@@ -29,8 +29,8 @@ let A =
   λ (A_in: A_in {"f_in": integer → integer}) →
     let f : integer → integer = A_in."f_in" in
     let f1 : integer → integer =
-      λ (param: integer) → error_empty
-        ⟨f param | true ⊢ ⟨true ⊢ param +! 1⟩⟩ in
+      λ (x: integer) → error_empty
+        ⟨f x | true ⊢ ⟨true ⊢ x +! 1⟩⟩ in
     A {  }
 ```
 
@@ -40,7 +40,7 @@ let B =
   λ (B_in: B_in {"b_in": bool}) →
     let b : bool = B_in."b_in" in
     let a.f : integer → integer =
-      λ (param: integer) → ⟨b && param >! 0 ⊢ param -! 1⟩ in
+      λ (x: integer) → ⟨b && x >! 0 ⊢ x -! 1⟩ in
     let result : A {} = A (A_in { "f_in"= a.f }) in
     B {  }
 ```

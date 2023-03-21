@@ -32,18 +32,14 @@ module ScopeDef = struct
 
   let compare x y =
     match x, y with
-    | Var (x, None), Var (y, None)
-    | Var (x, Some _), Var (y, None)
-    | Var (x, None), Var (y, Some _)
-    | Var (x, _), SubScopeVar (_, y, _)
-    | SubScopeVar (_, x, _), Var (y, _) ->
-      ScopeVar.compare x y
-    | Var (x, Some sx), Var (y, Some sy) ->
-      let cmp = ScopeVar.compare x y in
-      if cmp = 0 then StateName.compare sx sy else cmp
-    | SubScopeVar (x', x, _), SubScopeVar (y', y, _) ->
-      let cmp = SubScopeName.compare x' y' in
-      if cmp = 0 then ScopeVar.compare x y else cmp
+    | Var (x, stx), Var (y, sty) -> (
+      match ScopeVar.compare x y with
+      | 0 -> Option.compare StateName.compare stx sty
+      | n -> n)
+    | SubScopeVar (x', x, _), SubScopeVar (y', y, _) -> (
+      match SubScopeName.compare x' y' with 0 -> ScopeVar.compare x y | n -> n)
+    | Var _, _ -> -1
+    | _, Var _ -> 1
 
   let get_position x =
     match x with
@@ -103,7 +99,7 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr boxed;
   rule_cons : expr boxed;
-  rule_parameter : (expr Var.t * typ) option;
+  rule_parameter : (expr Var.t Marked.pos * typ) list Marked.pos option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -124,46 +120,53 @@ module Rule = struct
         let c2 = Expr.unbox r2.rule_cons in
         Expr.compare c1 c2
       | n -> n)
-    | Some (v1, t1), Some (v2, t2) -> (
-      match Type.compare t1 t2 with
-      | 0 -> (
-        let open Bindlib in
-        let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_just)) in
-        let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_just)) in
-        let _, j1, j2 = unbind2 b1 b2 in
-        match Expr.compare j1 j2 with
-        | 0 ->
-          let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_cons)) in
-          let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_cons)) in
-          let _, c1, c2 = unbind2 b1 b2 in
-          Expr.compare c1 c2
-        | n -> n)
-      | n -> n)
+    | Some (l1, _), Some (l2, _) ->
+      ListLabels.compare l1 l2 ~cmp:(fun ((v1, _), t1) ((v2, _), t2) ->
+          match Type.compare t1 t2 with
+          | 0 -> (
+            let open Bindlib in
+            let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_just)) in
+            let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_just)) in
+            let _, j1, j2 = unbind2 b1 b2 in
+            match Expr.compare j1 j2 with
+            | 0 ->
+              let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_cons)) in
+              let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_cons)) in
+              let _, c1, c2 = unbind2 b1 b2 in
+              Expr.compare c1 c2
+            | n -> n)
+          | n -> n)
     | None, Some _ -> -1
     | Some _, None -> 1
 end
 
-let empty_rule (pos : Pos.t) (have_parameter : typ option) : rule =
+let empty_rule
+    (pos : Pos.t)
+    (parameters : (Uid.MarkedString.info * typ) list Marked.pos option) : rule =
   {
     rule_just = Expr.box (ELit (LBool false), Untyped { pos });
     rule_cons = Expr.box (ELit LEmptyError, Untyped { pos });
     rule_parameter =
-      (match have_parameter with
-      | Some typ -> Some (Var.make "dummy", typ)
-      | None -> None);
+      Option.map
+        (Marked.map_under_mark
+           (List.map (fun (lbl, typ) -> Marked.map_under_mark Var.make lbl, typ)))
+        parameters;
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("empty", pos);
     rule_label = Unlabeled;
   }
 
-let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule =
+let always_false_rule
+    (pos : Pos.t)
+    (parameters : (Uid.MarkedString.info * typ) list Marked.pos option) : rule =
   {
     rule_just = Expr.box (ELit (LBool true), Untyped { pos });
     rule_cons = Expr.box (ELit (LBool false), Untyped { pos });
     rule_parameter =
-      (match have_parameter with
-      | Some typ -> Some (Var.make "dummy", typ)
-      | None -> None);
+      Option.map
+        (Marked.map_under_mark
+           (List.map (fun (lbl, typ) -> Marked.map_under_mark Var.make lbl, typ)))
+        parameters;
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("always_false", pos);
     rule_label = Unlabeled;
@@ -172,6 +175,7 @@ let always_false_rule (pos : Pos.t) (have_parameter : typ option) : rule =
 type assertion = expr boxed
 type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
+type catala_option = DateRounding of variation_typ
 
 type meta_assertion =
   | FixedBy of reference_typ Marked.pos
@@ -180,6 +184,7 @@ type meta_assertion =
 type scope_def = {
   scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
+  scope_def_parameters : (Uid.MarkedString.info * typ) list Marked.pos option;
   scope_def_is_condition : bool;
   scope_def_io : io;
 }
@@ -192,11 +197,13 @@ type scope = {
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
+  scope_options : catala_option Marked.pos list;
   scope_meta_assertions : meta_assertion list;
 }
 
 type program = {
   program_scopes : scope ScopeName.Map.t;
+  program_topdefs : (expr * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 
@@ -216,15 +223,19 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
       Pos.t ScopeDefMap.t =
     LocationSet.fold
       (fun (loc, loc_pos) acc ->
-        ScopeDefMap.add
-          (match loc with
-          | DesugaredScopeVar (v, st) -> ScopeDef.Var (Marked.unmark v, st)
+        let usage =
+          match loc with
+          | DesugaredScopeVar (v, st) ->
+            Some (ScopeDef.Var (Marked.unmark v, st))
           | SubScopeVar (_, sub_index, sub_var) ->
-            ScopeDef.SubScopeVar
-              ( Marked.unmark sub_index,
-                Marked.unmark sub_var,
-                Marked.get_mark sub_index ))
-          loc_pos acc)
+            Some
+              (ScopeDef.SubScopeVar
+                 ( Marked.unmark sub_index,
+                   Marked.unmark sub_var,
+                   Marked.get_mark sub_index ))
+          | ToplevelVar _ -> None
+        in
+        match usage with Some u -> ScopeDefMap.add u loc_pos acc | None -> acc)
       locs acc
   in
   RuleName.Map.fold

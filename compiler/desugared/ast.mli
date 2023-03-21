@@ -60,19 +60,23 @@ type rule = {
   rule_id : RuleName.t;
   rule_just : expr boxed;
   rule_cons : expr boxed;
-  rule_parameter : (expr Var.t * typ) option;
+  rule_parameter : (expr Var.t Marked.pos * typ) list Marked.pos option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
 
 module Rule : Set.OrderedType with type t = rule
 
-val empty_rule : Pos.t -> typ option -> rule
-val always_false_rule : Pos.t -> typ option -> rule
+val empty_rule :
+  Pos.t -> (Uid.MarkedString.info * typ) list Marked.pos option -> rule
+
+val always_false_rule :
+  Pos.t -> (Uid.MarkedString.info * typ) list Marked.pos option -> rule
 
 type assertion = expr boxed
 type variation_typ = Increasing | Decreasing
 type reference_typ = Decree | Law
+type catala_option = DateRounding of variation_typ
 
 type meta_assertion =
   | FixedBy of reference_typ Marked.pos
@@ -102,6 +106,8 @@ type io = {
 type scope_def = {
   scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
+  scope_def_parameters :
+    (Uid.MarkedString.info * Shared_ast.typ) list Marked.pos option;
   scope_def_is_condition : bool;
   scope_def_io : io;
 }
@@ -114,11 +120,13 @@ type scope = {
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDefMap.t;
   scope_assertions : assertion list;
+  scope_options : catala_option Marked.pos list;
   scope_meta_assertions : meta_assertion list;
 }
 
 type program = {
   program_scopes : scope ScopeName.Map.t;
+  program_topdefs : (expr * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 

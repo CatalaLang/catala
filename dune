@@ -4,6 +4,30 @@
 
 (copy_files compiler/surface/grammar.html)
 
+; Override dune default warnings with sane settings
+
+(env
+ ; don't stop building because of warnings
+ (dev
+  (flags
+   (:standard -warn-error -a)))
+ ; for CI runs: must fail on warnings
+ (check
+  (flags
+   (:standard
+    -w
+    +a-4-29-40-41-42-44-45-48-58-59-60-63-64-65-66-67-68-69-70
+    -warn-error
+    +a)))
+ ; let us see the warnings even in release mode, but non-fatal
+ (release
+  (flags
+   (:standard
+    -w
+    +a-4-29-40-41-42-44-45-48-58-59-60-63-64-65-66-67-68-69-70
+    -warn-error
+    -a))))
+
 (rule
  (action
   (with-stdout-to
