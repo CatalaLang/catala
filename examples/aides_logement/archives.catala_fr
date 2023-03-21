@@ -422,9 +422,10 @@ NOTA : Conformément à l’article 3 de l’arrêté du 16 août 2022 (TREL2220
 applicables pour les prestations dues à compter du 1er juillet 2022.
 
 ```catala
-# Cet article a été modifié par l'arrêté du 16 août 2022 et celui du 29 juillet 2022.
-# Ces deux arrêts apportent des changements différents, mais ont la même date d'entrée en vigueur. La rédaction
-# ci-dessus est issue de ces deux arrêtés.
+# Cet article a été modifié par l'arrêté du 16 août 2022 et celui du 29 juillet
+# 2022. Ces deux arrêts apportent des changements différents, mais ont la même
+# date d'entrée en vigueur. La rédaction ci-dessus est issue de ces deux
+# arrêtés.
 ```
 
 ### Article 47 | LEGIARTI000046126954 [archive]
@@ -922,8 +923,9 @@ personnelles au logement en secteur locatif.
 
 
 ```catala
-# On regarde si les montants fixés pour les APL en secteur locatif (chapitre III, art. 9, 11, 12)
-# sont les mêmes que ceux des allocations foyers (chapitre VII, art. 40 à 44)
+# On regarde si les montants fixés pour les APL en secteur locatif (chapitre
+# III, art. 9, 11, 12) sont les mêmes que ceux des allocations foyers (chapitre
+# VII, art. 40 à 44)
 
 # Article 40 montant forfaitaire des charges : valeurs identiques à partir du
 # 1er janvier 2023 à celles de l'article 9 donc rien à coder.
@@ -3118,14 +3120,14 @@ assujettie à l'impôt sur le revenu, le montant minimal de ressources est fixé
 location et à 4 900 euros pour la résidence en logement-foyer.
 
 ```catala
-# Modifications non subsantielles mais qui peuvent améliorer la compréhension et la précision des
-# dispositions par rapport à la version initiale.
+# Modifications non subsantielles mais qui peuvent améliorer la compréhension et
+# la précision des dispositions par rapport à la version initiale.
 # TODO informatique et juridique: traduire cet article qui vient définir
-# ressources_forfaitaires_r822_20
-# La version du 1er janvier 2021 au 31 décembre 2021 de l'art. 6 est la même que celle applicable
-# depuis 2019 (donc 1er janvier 2020, date à laquelle on fait remonter les archvies).
-# Il est donc possible de traduire cet article et de faire remonter l'application
-# à une date antérieure au 1er janvier 2021.
+# ressources_forfaitaires_r822_20 La version du 1er janvier 2021 au 31 décembre
+# 2021 de l'art. 6 est la même que celle applicable depuis 2019 (donc 1er
+# janvier 2020, date à laquelle on fait remonter les archvies). Il est donc
+# possible de traduire cet article et de faire remonter l'application à une date
+# antérieure au 1er janvier 2021.
 ```
 
 ### Article 47 | LEGIARTI000043044380 [archive]
@@ -3197,8 +3199,8 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- Mayotte: vrai
     -- SaintBarthélemy: vrai
     -- SaintMartin: vrai
-    # TODO juridique: vérifier qu'au 1er octobre 2021 cet article ne s'appliquait
-    # pas à Saint-Pierre et Miquelon
+    # TODO juridique: vérifier qu'au 1er octobre 2021 cet article ne
+    # s'appliquait pas à Saint-Pierre et Miquelon
     -- n'importe quel: faux
   conséquence égal à
     si nombre_personnes_à_charge = 0 alors
@@ -3281,9 +3283,10 @@ du 1er janvier 2020.
 ### Article 33 | LEGIARTI000041489184 [archive]
 
 ```catala
-# Modifications non subsantielles mais qui peuvent améliorer la compréhension et la précision des
-# dispositions par rapport à la version initiale.
-# TODO juridique et informatique : vérifier par rapport à la version initiale (version 2019)
+# Modifications non subsantielles mais qui peuvent améliorer la compréhension et
+# la précision des dispositions par rapport à la version initiale.
+# TODO juridique et informatique : vérifier par rapport à la version initiale
+# (version 2019)
 ```
 
 ### Article 46 | LEGIARTI000041489188 [archive]
@@ -3707,8 +3710,8 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- Mayotte: vrai
     -- SaintBarthélemy: vrai
     -- SaintMartin: vrai
-    # TODO juridique: vérifier qu'au 1er octobre 2021 cet article ne s'appliquait
-    # pas à Saint-Pierre et Miquelon
+    # TODO juridique: vérifier qu'au 1er octobre 2021 cet article ne
+    # s'appliquait pas à Saint-Pierre et Miquelon
     -- n'importe quel: faux
   conséquence égal à
     si nombre_personnes_à_charge = 0 alors

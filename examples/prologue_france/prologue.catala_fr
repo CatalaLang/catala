@@ -22,7 +22,8 @@ déclaration champ d'application VérificationÂgeInférieurOuÉgalÀ:
   résultat est_inférieur_ou_égal contenu booléen
 
 champ d'application VérificationÂgeInférieurOuÉgalÀ:
-  définition est_inférieur_ou_égal égal à date_naissance + années <= date_courante
+  définition est_inférieur_ou_égal égal à
+    date_naissance + années <= date_courante
   date arrondi croissant
 
 déclaration champ d'application VérificationÂgeSupérieurÀ:

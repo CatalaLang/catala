@@ -1203,7 +1203,8 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
         parent.ressources <=
           plafond_individuel_l815_9_sécu * 1,25 et
         (
-          # VERIF: parent.date_naissance + âge_l351_8_1_sécu est ambiguë, à détecter
+          # VERIF: parent.date_naissance + âge_l351_8_1_sécu est ambiguë,
+          # à détecter
           (parent.date_naissance +
             âge_l351_8_1_sécu <= date_courante ou
               (parent.titulaire_allocation_personne_âgée et
@@ -1213,7 +1214,8 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
                   -- années: 65 an }).est_inférieur_ou_égal
               )
           ) ou
-          # VERIF: parent.date_naissance + âge_l161_17_2_sécu est ambiguë, à détecter
+          # VERIF: parent.date_naissance + âge_l161_17_2_sécu est ambiguë,
+          # à détecter
           (parent.date_naissance +
             âge_l161_17_2_sécu <= date_courante et
               parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)

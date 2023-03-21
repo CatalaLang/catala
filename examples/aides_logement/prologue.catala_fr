@@ -617,7 +617,8 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
 
   résultat aide_finale_formule contenu argent
 
-  résultat traitement_aide_finale contenu argent dépend de aide_finale contenu argent
+  résultat traitement_aide_finale contenu argent
+    dépend de aide_finale contenu argent
     état diminué
     état minoration_forfaitaire
     état contributions_sociales_arrondi
@@ -708,7 +709,8 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
     état seuil
 
   résultat aide_finale_formule contenu argent
-  résultat traitement_aide_finale contenu argent dépend de aide_finale contenu argent
+  résultat traitement_aide_finale contenu argent
+    dépend de aide_finale contenu argent
     état minoration_forfaitaire
     état abattement
     état contributions_sociales_arrondi

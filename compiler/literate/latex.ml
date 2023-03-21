@@ -246,7 +246,7 @@ let rec law_structure_to_latex
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
     let start_line = Pos.get_start_line (Marked.get_mark c) - 1 in
-    let filename = Filename.basename (Pos.get_file (Marked.get_mark c)) in
+    let filename = Pos.get_file (Marked.get_mark c) in
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
     update_lines_of_code c;
@@ -259,7 +259,7 @@ let rec law_structure_to_latex
       | Pl -> "Metadane"
     in
     let start_line = Pos.get_start_line (Marked.get_mark c) + 1 in
-    let filename = Filename.basename (Pos.get_file (Marked.get_mark c)) in
+    let filename = Pos.get_file (Marked.get_mark c) in
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
     update_lines_of_code c;

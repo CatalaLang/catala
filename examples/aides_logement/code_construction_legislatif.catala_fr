@@ -810,8 +810,8 @@ Dans des cas fixés par voie réglementaire, elle peut être versée au locatair
 propriétaire du logement.
 
 ```catala
-# Ne touche ni à l'éligibilité ni au calcul du montant donc nous ne formaliserons
-# pas pour l'instant.
+# Ne touche ni à l'éligibilité ni au calcul du montant donc nous ne
+# formaliserons pas pour l'instant.
 ```
 
 ###### Article L832-2 | LEGIARTI000038814874
@@ -828,8 +828,8 @@ La part de l'aide qui excède le montant du loyer et des charges récupérables 
 versée à l'allocataire.
 
 ```catala
-# Ne touche ni à l'éligibilité ni au calcul du montant donc nous ne formaliserons
-# pas pour l'instant.
+# Ne touche ni à l'éligibilité ni au calcul du montant donc nous ne
+# formaliserons pas pour l'instant.
 ```
 
 ###### Article L832-3 | LEGIARTI000038814872
@@ -860,8 +860,8 @@ Dans le cas prévu à l'article L. 824-3 , le versement reprend dans les conditi
 à l'article L. 832-1 .
 
 ```catala
-# Ne touche ni à l'éligibilité ni au calcul du montant donc nous ne formaliserons
-# pas pour l'instant.
+# Ne touche ni à l'éligibilité ni au calcul du montant donc nous ne
+# formaliserons pas pour l'instant.
 ```
 
 #### Titre IV : Allocations de logement
@@ -1174,8 +1174,7 @@ champ d'application ÉligibilitéAllocationLogement:
   # de L841-2, alors il pourrait y avoir conflit entre ces deux exceptions.
   # Cependant le conflit est impossible puisqu'on ne peut pas à la fois
   # être dans une unité de soin longue durée et avoir acheté cette unité
-  # de soin longue durée avec un prêt aidé par l'État (quoique...
-  # https://www.mediapart.fr/journal/france/160123/les-folles-economies-de-la-famille-ciotti-au-detriment-de-la-securite-sociale).
+  # de soin longue durée avec un prêt aidé par l'État.
   # Donc ici plutôt que d'écrire un invariant qui exclut ce cas de figure,
   # on préfère hiérarchiser entre elles les exceptions pour lever le conflit.
   définition éligibilité état l841_2 sous condition
