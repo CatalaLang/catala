@@ -610,7 +610,7 @@ and typecheck_expr_top_down :
       let t_ret = unionfind (TAny (Any.fresh ())) in
       let t_func = unionfind (TArrow (tau_args, t_ret)) in
       let mark = uf_mark t_func in
-      (* assert (List.for_all all_resolved tau_args); *)
+      if not leave_unresolved then assert (List.for_all all_resolved tau_args);
       let xs, body = Bindlib.unmbind binder in
       let xs' = Array.map Var.translate xs in
       let env =
