@@ -186,6 +186,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
   exception définition calcul_plafond_mensualité_d842_6 de
     date_calcul, nombre_personnes_à_charge
   état avec_limitation_dom_tom sous condition
+    nombre_personnes_à_charge >= 6 et
     selon résidence sous forme
     -- Guadeloupe: vrai
     -- Martinique: vrai
@@ -195,10 +196,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
     -- SaintMartin: vrai
     -- n'importe quel: faux
   conséquence égal à
-    si nombre_personnes_à_charge >= 6 alors
-      calcul_plafond_mensualité_d842_6 de date_calcul, 6
-    sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
+    calcul_plafond_mensualité_d842_6 de date_calcul, 6
 ```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même code, pour
@@ -682,6 +680,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
   exception définition calcul_plafond_mensualité_d842_6 de
     date_calcul, nombre_personnes_à_charge
   état avec_limitation_dom_tom sous condition
+    nombre_personnes_à_charge >= 6 et
     selon résidence sous forme
     -- Guadeloupe: vrai
     -- Martinique: vrai
@@ -691,10 +690,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
     -- SaintMartin: vrai
     -- n'importe quel: faux
   conséquence égal à
-    si nombre_personnes_à_charge >= 6 alors
-      calcul_plafond_mensualité_d842_6 de date_calcul, 6
-    sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
+    calcul_plafond_mensualité_d842_6 de date_calcul, 6
 ```
 
 
@@ -1533,12 +1529,11 @@ champ d'application CalculAllocationLogementAccessionPropriété
     date_courante < |2022-07-01|:
   exception définition calcul_plafond_mensualité_d842_6 de
     date_calcul, nombre_personnes_à_charge
-  état avec_copropriété égal à
-    si copropriété alors
+  état avec_copropriété sous condition
+    copropriété
+  conséquence égal à
       (calcul_plafond_mensualité_d842_6 de
         date_calcul, nombre_personnes_à_charge) * 75%
-    sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
@@ -1804,6 +1799,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
   exception définition calcul_plafond_mensualité_d842_6 de
     date_calcul, nombre_personnes_à_charge
   état avec_limitation_dom_tom sous condition
+    nombre_personnes_à_charge >= 6 et
     selon résidence sous forme
     -- Guadeloupe: vrai
     -- Martinique: vrai
@@ -1813,10 +1809,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
     -- SaintMartin: vrai
     -- n'importe quel: faux
   conséquence égal à
-    si nombre_personnes_à_charge >= 6 alors
-      calcul_plafond_mensualité_d842_6 de date_calcul, 6
-    sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
+    calcul_plafond_mensualité_d842_6 de date_calcul, 6
 ```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même code,
@@ -2613,12 +2606,11 @@ champ d'application CalculAllocationLogementAccessionPropriété
     date_courante < |2021-10-01|:
   exception définition calcul_plafond_mensualité_d842_6 de
     date_calcul, nombre_personnes_à_charge
-  état avec_copropriété égal à
-    si copropriété alors
+  état avec_copropriété sous condition
+    copropriété
+  conséquence égal à
       (calcul_plafond_mensualité_d842_6 de
         date_calcul, nombre_personnes_à_charge) * 75%
-    sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
 ```
 
 2° Le montant forfaitaire au titre des charges est fixé comme suit (en euros) :
@@ -2878,6 +2870,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
   exception définition calcul_plafond_mensualité_d842_6 de
     date_calcul, nombre_personnes_à_charge
   état avec_limitation_dom_tom sous condition
+    nombre_personnes_à_charge >= 6 et
     selon résidence sous forme
     -- Guadeloupe: vrai
     -- Martinique: vrai
@@ -2887,10 +2880,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
     -- SaintMartin: vrai
     -- n'importe quel: faux
   conséquence égal à
-    si nombre_personnes_à_charge >= 6 alors
-      calcul_plafond_mensualité_d842_6 de date_calcul, 6
-    sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
+    calcul_plafond_mensualité_d842_6 de date_calcul, 6
 ```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même
@@ -3416,6 +3406,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
   exception définition calcul_plafond_mensualité_d842_6 de
     date_calcul, nombre_personnes_à_charge
   état avec_limitation_dom_tom sous condition
+    nombre_personnes_à_charge >= 6 et
     selon résidence sous forme
     -- Guadeloupe: vrai
     -- Martinique: vrai
@@ -3425,10 +3416,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
     -- SaintMartin: vrai
     -- n'importe quel: faux
   conséquence égal à
-    si nombre_personnes_à_charge >= 6 alors
-      calcul_plafond_mensualité_d842_6 de date_calcul, 6
-    sinon
-      calcul_plafond_mensualité_d842_6 de date_calcul, nombre_personnes_à_charge
+    calcul_plafond_mensualité_d842_6 de date_calcul, 6
 ```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du

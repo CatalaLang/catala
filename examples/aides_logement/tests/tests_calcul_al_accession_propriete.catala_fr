@@ -31,9 +31,15 @@ champ d'application Exemple1:
   définition montant égal à
     calcul.traitement_aide_finale de
     calcul.aide_finale_formule
-  assertion montant = 96 €
+  assertion montant = 96,48 €
   assertion calcul.mensualité_éligible = 375,2 €
   assertion calcul.mensualité_minimale = 267,90 €
   assertion calcul.coefficient_prise_en_charge = 0,62
-  assertion calcul.aide_finale_formule = 101,8€
+  assertion calcul.aide_finale_formule = 101,90€
+```
+
+```catala-test-inline
+$ catala Interpret -s Exemple1
+[RESULT] Computation successful! Results:
+[RESULT] montant = 96.48 €
 ```

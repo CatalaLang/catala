@@ -5519,6 +5519,7 @@ du 2° de l'article D. 832-25 est limitée à six enfants ;
 champ d'application CalculNombrePartLogementFoyer:
   exception d832_25_2
   définition n_nombre_parts_d832_25_majoration sous condition
+    nombre_personnes_à_charge > 6 et
     selon résidence sous forme
     -- Guadeloupe: vrai
     -- Guyane: vrai
@@ -5527,11 +5528,7 @@ champ d'application CalculNombrePartLogementFoyer:
     -- Mayotte: vrai
     -- n'importe quel: faux
   conséquence égal à
-    si nombre_personnes_à_charge > 6 alors
       1,0
-    sinon  si nombre_personnes_à_charge > 4 alors
-      0,5 * (décimal de (nombre_personnes_à_charge - 4))
-    sinon 0,0
 
 # Ci-dessus, nous avons modifié le calcul de CalculNombrePartLogementFoyer
 # lorsque la "limitation_majoration_personnes_à_charge" est activée. Mais il
