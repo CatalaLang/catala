@@ -213,7 +213,7 @@ let driver source_file (options : Cli.options) : int =
         | `Typecheck ->
           Cli.debug_print "Typechecking again...";
           let _ =
-            try Shared_ast.Typing.program prgm
+            try Shared_ast.Typing.program prgm ~leave_unresolved:true
             with Errors.StructuredError (msg, details) ->
               let msg =
                 "Typing error occured during re-typing on the 'default \
