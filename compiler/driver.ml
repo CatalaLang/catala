@@ -276,15 +276,15 @@ let driver source_file (options : Cli.options) : int =
             Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `DcalcInvariants ->
             Cli.debug_format "Checking invariants";
-            let open Dcalc.Invariant in
+            let open Dcalc.Invariants in
             let result =
               List.fold_left ( && ) true
                 [
                   check_invariant (invariant_default_no_arrow ()) prgm;
                   check_invariant (invariant_no_partial_evaluation ()) prgm;
                   check_invariant (invariant_no_return_a_function ()) prgm;
-                  check_invariant (invariant_app_is_either_op_var_let ()) prgm;
-                  check_invariant (invariant_match ()) prgm;
+                  check_invariant (invariant_app_inversion ()) prgm;
+                  check_invariant (invariant_match_inversion ()) prgm;
                 ]
             in
 
