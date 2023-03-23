@@ -330,6 +330,14 @@ let driver source_file (options : Cli.options) : int =
               end
               else Shared_ast.Program.untype prgm
             in
+            let _ =
+              Cli.debug_format "program: @.%a"
+                (Shared_ast.Program.format ~debug:true)
+                prgm
+            in
+            let prgm =
+              Shared_ast.Program.untype @@ Shared_ast.Typing.program prgm
+            in
             let prgm =
               if options.closure_conversion then (
                 Cli.debug_print "Performing closure conversion...";

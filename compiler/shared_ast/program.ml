@@ -71,10 +71,59 @@ let equal p p' =
   let ss = all_scopes p.code_items in
   let ss' = all_scopes p'.code_items in
 
-
   ListLabels.for_all2 ss ss' ~f:(fun s s' ->
       ScopeName.equal s s'
       &&
       let e1 = Expr.unbox @@ to_expr p s in
       let e2 = Expr.unbox @@ to_expr p s' in
       Expr.equal e1 e2)
+
+let format_enum
+    ?(debug = false)
+    decl_ctx
+    fmt
+    ((n, c) : EnumName.t * typ EnumConstructor.Map.t) =
+  Format.fprintf fmt "@[<hov 0> %a %a %a@;%a@]" Print.keyword "type"
+    EnumName.format_t n Print.punctuation "="
+    (fun fmt b ->
+      ListLabels.iter b ~f:(fun (n, ty) ->
+          Format.fprintf fmt "@[%a %a %a %a@]@;" Print.punctuation "|"
+            EnumConstructor.format_t n Print.keyword "of"
+            (if debug then Print.typ_debug else Print.typ decl_ctx)
+            ty))
+    (EnumConstructor.Map.bindings c)
+
+let format_struct
+    ?(debug = false)
+    decl_ctx
+    fmt
+    ((n, c) : StructName.t * typ StructField.Map.t) =
+  Format.fprintf fmt "@[<hov 0> %a %a %a@;%a%a%a@]" Print.keyword "type"
+    StructName.format_t n Print.punctuation "=" Print.punctuation "{"
+    (fun fmt b ->
+      ListLabels.iter b ~f:(fun (n, ty) ->
+          Format.fprintf fmt "@[%a%a %a%a@]@;" StructField.format_t n
+            Print.keyword ":"
+            (if debug then Print.typ_debug else Print.typ decl_ctx)
+            ty Print.punctuation ";"))
+    (StructField.Map.bindings c)
+    Print.punctuation "}"
+
+let format_decl_ctx
+    ?(debug = false)
+    decl_ctx
+    (fmt : Format.formatter)
+    (ctx : decl_ctx) : unit =
+  let { ctx_enums; ctx_structs; _ } = ctx in
+
+  Format.fprintf fmt "@[<v>%a@;@;%a@] @;"
+    (Format.pp_print_list ~pp_sep:Format.pp_print_cut
+       (format_enum ~debug decl_ctx))
+    (EnumName.Map.bindings ctx_enums)
+    (Format.pp_print_list ~pp_sep:Format.pp_print_cut
+       (format_struct ~debug decl_ctx))
+    (StructName.Map.bindings ctx_structs)
+
+let format ?(debug = false) fmt p =
+  format_decl_ctx ~debug p.decl_ctx fmt p.decl_ctx;
+  Scope.code_item_list_format ~debug p.decl_ctx fmt p.code_items

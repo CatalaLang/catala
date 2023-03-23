@@ -316,7 +316,7 @@ let%expect_test _ =
              (cases_of_list
                 [
                   (consB, fun x -> injBe (injB x));
-                  (consA, fun x -> injAe (num 20));
+                  (consA, fun _x -> injAe (num 20));
                 ])
              nomark)
           enumT
@@ -324,11 +324,10 @@ let%expect_test _ =
           nomark
       in
 
-      Format.printf "before=%a\n"
+      Format.printf "before=@[%a@]@."
         (Print.expr_debug ~debug:false)
         (Expr.unbox matchA);
-      Format.print_flush ();
-      Format.printf "after=%a\n"
+      Format.printf "after=%a@."
         (Print.expr_debug ~debug:false)
         (Expr.unbox (iota2_expr (Expr.unbox matchA)));
 
