@@ -50,8 +50,10 @@ val kind_dispatch :
   'b
 (** Calls one of the supplied functions depending on the kind of the operator *)
 
+type 'a no_overloads = [< all_ast_features | `Monomorphic | `Polymorphic | `Resolved ] as 'a
+
 val translate :
-  [< scopelang | dcalc | lcalc > `Monomorphic `Polymorphic `Resolved ] t ->
+  [> `Monomorphic | `Polymorphic | `Resolved ] no_overloads t ->
   [> `Monomorphic | `Polymorphic | `Resolved ] t
 (** An identity function that allows translating an operator between different
     passes that don't change operator types *)

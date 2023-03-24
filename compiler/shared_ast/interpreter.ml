@@ -18,6 +18,7 @@
 
 open Catala_utils
 open Definitions
+open Op
 module Runtime = Runtime_ocaml.Runtime
 
 (** {1 Helpers} *)
@@ -66,17 +67,12 @@ let print_log ctx entry infos pos e =
       Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
         Print.uid_list infos
 
-type 'm dcalc_lcalc =
-  | DLcalc : ([< `Lcalc | `Dcalc ], 'm) gexpr -> 'm dcalc_lcalc
-
-
 exception CatalaException of except
-
 
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
    builtin equality function instead of this. *)
-let rec handle_eq ctx pos e1 e2 =
+let handle_eq evaluate_operator ctx pos e1 e2 =
   let open Runtime.Oper in
   match e1, e2 with
   | ELit LUnit, ELit LUnit -> true
@@ -119,10 +115,7 @@ let rec handle_eq ctx pos e1 e2 =
   | _, _ -> false (* comparing anything else return false *)
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
-and evaluate_operator :
-    decl_ctx -> dcalc operator -> Pos.t -> 'm Ast.expr list -> 'm Ast.naked_expr
-    =
- fun ctx op pos args ->
+let rec evaluate_operator evaluate_expr ctx (op: [< dcalc | lcalc] operator) pos args =
   let protect f x y =
     let get_binop_args_pos = function
       | (arg0 :: arg1 :: _ : ('t, 'm) gexpr list) ->
@@ -157,16 +150,16 @@ and evaluate_operator :
        (should not happen if the term was well-typed)"
   in
   let open Runtime.Oper in
-  if List.exists (function EEmptyError, _ -> true | _ -> false) args then
-    EEmptyError
-  else
+  (* if List.exists (function EEmptyError, _ -> true | _ -> false) args then
+   *   ELit LEmptyError TODO FIXME
+   * else *)
     match op, args with
     | Length, [(EArray es, _)] ->
       ELit (LInt (Runtime.integer_of_int (List.length es)))
     | Log (entry, infos), [e'] ->
       print_log ctx entry infos pos e';
       Marked.unmark e'
-    | Eq, [(e1, _); (e2, _)] -> ELit (LBool (handle_eq ctx pos e1 e2))
+    | Eq, [(e1, _); (e2, _)] -> ELit (LBool (handle_eq (evaluate_operator evaluate_expr) ctx pos e1 e2))
     | Map, [f; (EArray es, _)] ->
       EArray
         (List.map
@@ -336,17 +329,15 @@ and evaluate_operator :
         _ ) ->
       err ()
 
-and evaluate_expr : type a. decl_ctx -> (a, 'm) gexpr -> (a, 'm) gexpr =
- fun ctx e ->
-  let (DLcalc e) = DLcalc e in
-  match (Marked.unmark e : ([< `Dcalc | `Lcalc ], 'a mark) naked_gexpr) with
-  | ELocation _ -> assert false
-  | EScopeCall _ -> assert false
+type 'a dlcalc = [< dcalc | lcalc ] as 'a
+
+let rec evaluate_expr ctx (e: ('a dlcalc, 'm mark) gexpr) : ('a, 'm mark) gexpr =
+  match Marked.unmark e with
   | ERaise exn -> raise (CatalaException exn)
-  | ECatch { body; exn; handler } -> 
+  | ECatch { body; exn; handler } ->
     (try evaluate_expr ctx body with
-    | CatalaException catched -> if except_eq catched exn then evaluate_expr ctx handler else raise (CatalaException catched) )
-    | EVar _ ->
+    | CatalaException caught -> if Expr.equal_except caught exn then evaluate_expr ctx handler else raise (CatalaException caught) )
+  | EVar _ ->
       Errors.raise_spanned_error (Expr.pos e)
         "free variable found at evaluation (should not happen if term was \
          well-typed)"
@@ -365,7 +356,7 @@ and evaluate_expr : type a. decl_ctx -> (a, 'm) gexpr -> (a, 'm) gexpr =
             (Bindlib.mbinder_arity binder)
             (List.length args)
       | EOp { op; _ } ->
-        Marked.same_mark_as (evaluate_operator ctx op (Expr.pos e) args) e
+        Marked.same_mark_as (evaluate_operator evaluate_expr ctx op (Expr.pos e) args) e
       | EEmptyError -> Marked.same_mark_as (EEmptyError) e
       | _ ->
         Errors.raise_spanned_error (Expr.pos e)
@@ -536,7 +527,7 @@ and evaluate_expr : type a. decl_ctx -> (a, 'm) gexpr -> (a, 'm) gexpr =
       | _ ->
         Errors.raise_spanned_error (Expr.pos e')
           "Expected a boolean literal for the result of this assertion (should \
-           not happen if the term was well-typed)"))
+           not happen if the term was well-typed)")
 
 (** {1 API} *)
 

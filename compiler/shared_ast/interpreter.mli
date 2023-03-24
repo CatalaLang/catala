@@ -21,14 +21,14 @@ open Definitions
 
 val evaluate_expr :
   decl_ctx ->
-  ([< `Dcalc | `Lcalc ], 'm) gexpr ->
-  ([< `Dcalc | `Lcalc ], 'm) gexpr
+  ([ dcalc | lcalc ], 'm mark) gexpr ->
+  ([ dcalc | lcalc ], 'm mark) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program :
   decl_ctx ->
-  ([< `Dcalc | `Lcalc ], 'm) gexpr ->
-  (Uid.MarkedString.info * ([< `Dcalc | `Lcalc ], 'm) gexpr) list
+  ([ dcalc | lcalc ], 'm mark) gexpr ->
+  (Uid.MarkedString.info * ([ dcalc | lcalc ], 'm mark) gexpr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all

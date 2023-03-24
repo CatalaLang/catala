@@ -332,8 +332,10 @@ let kind_dispatch :
     | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ) as op ->
     resolved op
 
+type 'a no_overloads = [< all_ast_features | `Monomorphic | `Polymorphic | `Resolved ] as 'a
+
 let translate
-    (t : [< scopelang | dcalc | lcalc > `Monomorphic `Polymorphic `Resolved ] t)
+    (t : [> `Monomorphic | `Polymorphic | `Resolved ] no_overloads t)
     =
   match t with
   | ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | And
