@@ -430,8 +430,7 @@ let is_leap_year = Runtime.is_leap_year
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
 let rec translate_op :
-    type k.
-    context -> (dcalc, k) operator -> 'm expr list -> context * Expr.expr =
+    context -> dcalc operator -> 'm expr list -> context * Expr.expr =
  fun ctx op args ->
   let ill_formed () =
     Format.kasprintf failwith

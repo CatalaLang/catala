@@ -113,12 +113,8 @@ let rec handle_eq ctx pos e1 e2 =
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 and evaluate_operator :
-    type k.
-    decl_ctx ->
-    (dcalc, k) operator ->
-    Pos.t ->
-    'm Ast.expr list ->
-    'm Ast.naked_expr =
+    decl_ctx -> dcalc operator -> Pos.t -> 'm Ast.expr list -> 'm Ast.naked_expr
+    =
  fun ctx op pos args ->
   let protect f x y =
     let get_binop_args_pos = function
@@ -157,159 +153,181 @@ and evaluate_operator :
   if List.exists (function ELit LEmptyError, _ -> true | _ -> false) args then
     ELit LEmptyError
   else
-    Operator.kind_dispatch op
-      ~polymorphic:(fun op ->
-        match op, args with
-        | Length, [(EArray es, _)] ->
-          ELit (LInt (Runtime.integer_of_int (List.length es)))
-        | Log (entry, infos), [e'] ->
-          print_log ctx entry infos pos e';
-          Marked.unmark e'
-        | Eq, [(e1, _); (e2, _)] -> ELit (LBool (handle_eq ctx pos e1 e2))
-        | Map, [f; (EArray es, _)] ->
-          EArray
-            (List.map
-               (fun e' ->
-                 evaluate_expr ctx
-                   (Marked.same_mark_as (EApp { f; args = [e'] }) e'))
-               es)
-        | Reduce, [_; default; (EArray [], _)] -> Marked.unmark default
-        | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
-          Marked.unmark
-            (List.fold_left
-               (fun acc x ->
-                 evaluate_expr ctx
-                   (Marked.same_mark_as (EApp { f; args = [acc; x] }) f))
-               x0 xn)
-        | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
-        | Filter, [f; (EArray es, _)] ->
-          EArray
-            (List.filter
-               (fun e' ->
-                 match
-                   evaluate_expr ctx
-                     (Marked.same_mark_as (EApp { f; args = [e'] }) e')
-                 with
-                 | ELit (LBool b), _ -> b
-                 | _ ->
-                   Errors.raise_spanned_error
-                     (Expr.pos (List.nth args 0))
-                     "This predicate evaluated to something else than a \
-                      boolean (should not happen if the term was well-typed)")
-               es)
-        | Fold, [f; init; (EArray es, _)] ->
-          Marked.unmark
-            (List.fold_left
-               (fun acc e' ->
-                 evaluate_expr ctx
-                   (Marked.same_mark_as (EApp { f; args = [acc; e'] }) e'))
-               init es)
-        | (Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce), _ ->
-          err ())
-      ~monomorphic:(fun op ->
-        let rlit =
-          match op, List.map (function ELit l, _ -> l | _ -> err ()) args with
-          | Not, [LBool b] -> LBool (o_not b)
-          | GetDay, [LDate d] -> LInt (o_getDay d)
-          | GetMonth, [LDate d] -> LInt (o_getMonth d)
-          | GetYear, [LDate d] -> LInt (o_getYear d)
-          | FirstDayOfMonth, [LDate d] -> LDate (o_firstDayOfMonth d)
-          | LastDayOfMonth, [LDate d] -> LDate (o_lastDayOfMonth d)
-          | And, [LBool b1; LBool b2] -> LBool (o_and b1 b2)
-          | Or, [LBool b1; LBool b2] -> LBool (o_or b1 b2)
-          | Xor, [LBool b1; LBool b2] -> LBool (o_xor b1 b2)
-          | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth
-              | LastDayOfMonth | And | Or | Xor ),
-              _ ) ->
-            err ()
-        in
-        ELit rlit)
-      ~resolved:(fun op ->
-        let rlit =
-          match op, List.map (function ELit l, _ -> l | _ -> err ()) args with
-          | Minus_int, [LInt x] -> LInt (o_minus_int x)
-          | Minus_rat, [LRat x] -> LRat (o_minus_rat x)
-          | Minus_mon, [LMoney x] -> LMoney (o_minus_mon x)
-          | Minus_dur, [LDuration x] -> LDuration (o_minus_dur x)
-          | ToRat_int, [LInt i] -> LRat (o_torat_int i)
-          | ToRat_mon, [LMoney i] -> LRat (o_torat_mon i)
-          | ToMoney_rat, [LRat i] -> LMoney (o_tomoney_rat i)
-          | Round_mon, [LMoney m] -> LMoney (o_round_mon m)
-          | Round_rat, [LRat m] -> LRat (o_round_rat m)
-          | Add_int_int, [LInt x; LInt y] -> LInt (o_add_int_int x y)
-          | Add_rat_rat, [LRat x; LRat y] -> LRat (o_add_rat_rat x y)
-          | Add_mon_mon, [LMoney x; LMoney y] -> LMoney (o_add_mon_mon x y)
-          | Add_dat_dur r, [LDate x; LDuration y] -> LDate (o_add_dat_dur r x y)
-          | Add_dur_dur, [LDuration x; LDuration y] ->
-            LDuration (o_add_dur_dur x y)
-          | Sub_int_int, [LInt x; LInt y] -> LInt (o_sub_int_int x y)
-          | Sub_rat_rat, [LRat x; LRat y] -> LRat (o_sub_rat_rat x y)
-          | Sub_mon_mon, [LMoney x; LMoney y] -> LMoney (o_sub_mon_mon x y)
-          | Sub_dat_dat, [LDate x; LDate y] -> LDuration (o_sub_dat_dat x y)
-          | Sub_dat_dur, [LDate x; LDuration y] -> LDate (o_sub_dat_dur x y)
-          | Sub_dur_dur, [LDuration x; LDuration y] ->
-            LDuration (o_sub_dur_dur x y)
-          | Mult_int_int, [LInt x; LInt y] -> LInt (o_mult_int_int x y)
-          | Mult_rat_rat, [LRat x; LRat y] -> LRat (o_mult_rat_rat x y)
-          | Mult_mon_rat, [LMoney x; LRat y] -> LMoney (o_mult_mon_rat x y)
-          | Mult_dur_int, [LDuration x; LInt y] ->
-            LDuration (o_mult_dur_int x y)
-          | Div_int_int, [LInt x; LInt y] -> LRat (protect o_div_int_int x y)
-          | Div_rat_rat, [LRat x; LRat y] -> LRat (protect o_div_rat_rat x y)
-          | Div_mon_mon, [LMoney x; LMoney y] ->
-            LRat (protect o_div_mon_mon x y)
-          | Div_mon_rat, [LMoney x; LRat y] ->
-            LMoney (protect o_div_mon_rat x y)
-          | Div_dur_dur, [LDuration x; LDuration y] ->
-            LRat (protect o_div_dur_dur x y)
-          | Lt_int_int, [LInt x; LInt y] -> LBool (o_lt_int_int x y)
-          | Lt_rat_rat, [LRat x; LRat y] -> LBool (o_lt_rat_rat x y)
-          | Lt_mon_mon, [LMoney x; LMoney y] -> LBool (o_lt_mon_mon x y)
-          | Lt_dat_dat, [LDate x; LDate y] -> LBool (o_lt_dat_dat x y)
-          | Lt_dur_dur, [LDuration x; LDuration y] ->
-            LBool (protect o_lt_dur_dur x y)
-          | Lte_int_int, [LInt x; LInt y] -> LBool (o_lte_int_int x y)
-          | Lte_rat_rat, [LRat x; LRat y] -> LBool (o_lte_rat_rat x y)
-          | Lte_mon_mon, [LMoney x; LMoney y] -> LBool (o_lte_mon_mon x y)
-          | Lte_dat_dat, [LDate x; LDate y] -> LBool (o_lte_dat_dat x y)
-          | Lte_dur_dur, [LDuration x; LDuration y] ->
-            LBool (protect o_lte_dur_dur x y)
-          | Gt_int_int, [LInt x; LInt y] -> LBool (o_gt_int_int x y)
-          | Gt_rat_rat, [LRat x; LRat y] -> LBool (o_gt_rat_rat x y)
-          | Gt_mon_mon, [LMoney x; LMoney y] -> LBool (o_gt_mon_mon x y)
-          | Gt_dat_dat, [LDate x; LDate y] -> LBool (o_gt_dat_dat x y)
-          | Gt_dur_dur, [LDuration x; LDuration y] ->
-            LBool (protect o_gt_dur_dur x y)
-          | Gte_int_int, [LInt x; LInt y] -> LBool (o_gte_int_int x y)
-          | Gte_rat_rat, [LRat x; LRat y] -> LBool (o_gte_rat_rat x y)
-          | Gte_mon_mon, [LMoney x; LMoney y] -> LBool (o_gte_mon_mon x y)
-          | Gte_dat_dat, [LDate x; LDate y] -> LBool (o_gte_dat_dat x y)
-          | Gte_dur_dur, [LDuration x; LDuration y] ->
-            LBool (protect o_gte_dur_dur x y)
-          | Eq_int_int, [LInt x; LInt y] -> LBool (o_eq_int_int x y)
-          | Eq_rat_rat, [LRat x; LRat y] -> LBool (o_eq_rat_rat x y)
-          | Eq_mon_mon, [LMoney x; LMoney y] -> LBool (o_eq_mon_mon x y)
-          | Eq_dat_dat, [LDate x; LDate y] -> LBool (o_eq_dat_dat x y)
-          | Eq_dur_dur, [LDuration x; LDuration y] ->
-            LBool (protect o_eq_dur_dur x y)
-          | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int
-              | ToRat_mon | ToMoney_rat | Round_rat | Round_mon | Add_int_int
-              | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
-              | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat
-              | Sub_dat_dur | Sub_dur_dur | Mult_int_int | Mult_rat_rat
-              | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
-              | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int
-              | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int
-              | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur
-              | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur
-              | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
-              | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat
-              | Eq_dur_dur ),
-              _ ) ->
-            err ()
-        in
-        ELit rlit)
-      ~overloaded:(fun _ -> assert false)
+    match op, args with
+    | Length, [(EArray es, _)] ->
+      ELit (LInt (Runtime.integer_of_int (List.length es)))
+    | Log (entry, infos), [e'] ->
+      print_log ctx entry infos pos e';
+      Marked.unmark e'
+    | Eq, [(e1, _); (e2, _)] -> ELit (LBool (handle_eq ctx pos e1 e2))
+    | Map, [f; (EArray es, _)] ->
+      EArray
+        (List.map
+           (fun e' ->
+             evaluate_expr ctx
+               (Marked.same_mark_as (EApp { f; args = [e'] }) e'))
+           es)
+    | Reduce, [_; default; (EArray [], _)] -> Marked.unmark default
+    | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
+      Marked.unmark
+        (List.fold_left
+           (fun acc x ->
+             evaluate_expr ctx
+               (Marked.same_mark_as (EApp { f; args = [acc; x] }) f))
+           x0 xn)
+    | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
+    | Filter, [f; (EArray es, _)] ->
+      EArray
+        (List.filter
+           (fun e' ->
+             match
+               evaluate_expr ctx
+                 (Marked.same_mark_as (EApp { f; args = [e'] }) e')
+             with
+             | ELit (LBool b), _ -> b
+             | _ ->
+               Errors.raise_spanned_error
+                 (Expr.pos (List.nth args 0))
+                 "This predicate evaluated to something else than a boolean \
+                  (should not happen if the term was well-typed)")
+           es)
+    | Fold, [f; init; (EArray es, _)] ->
+      Marked.unmark
+        (List.fold_left
+           (fun acc e' ->
+             evaluate_expr ctx
+               (Marked.same_mark_as (EApp { f; args = [acc; e'] }) e'))
+           init es)
+    | (Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce), _ -> err ()
+    | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
+    | GetDay, [(ELit (LDate d), _)] -> ELit (LInt (o_getDay d))
+    | GetMonth, [(ELit (LDate d), _)] -> ELit (LInt (o_getMonth d))
+    | GetYear, [(ELit (LDate d), _)] -> ELit (LInt (o_getYear d))
+    | FirstDayOfMonth, [(ELit (LDate d), _)] ->
+      ELit (LDate (o_firstDayOfMonth d))
+    | LastDayOfMonth, [(ELit (LDate d), _)] -> ELit (LDate (o_lastDayOfMonth d))
+    | And, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
+      ELit (LBool (o_and b1 b2))
+    | Or, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
+      ELit (LBool (o_or b1 b2))
+    | Xor, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
+      ELit (LBool (o_xor b1 b2))
+    | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
+        | And | Or | Xor ),
+        _ ) ->
+      err ()
+    | Minus_int, [(ELit (LInt x), _)] -> ELit (LInt (o_minus_int x))
+    | Minus_rat, [(ELit (LRat x), _)] -> ELit (LRat (o_minus_rat x))
+    | Minus_mon, [(ELit (LMoney x), _)] -> ELit (LMoney (o_minus_mon x))
+    | Minus_dur, [(ELit (LDuration x), _)] -> ELit (LDuration (o_minus_dur x))
+    | ToRat_int, [(ELit (LInt i), _)] -> ELit (LRat (o_torat_int i))
+    | ToRat_mon, [(ELit (LMoney i), _)] -> ELit (LRat (o_torat_mon i))
+    | ToMoney_rat, [(ELit (LRat i), _)] -> ELit (LMoney (o_tomoney_rat i))
+    | Round_mon, [(ELit (LMoney m), _)] -> ELit (LMoney (o_round_mon m))
+    | Round_rat, [(ELit (LRat m), _)] -> ELit (LRat (o_round_rat m))
+    | Add_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+      ELit (LInt (o_add_int_int x y))
+    | Add_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+      ELit (LRat (o_add_rat_rat x y))
+    | Add_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+      ELit (LMoney (o_add_mon_mon x y))
+    | Add_dat_dur r, [(ELit (LDate x), _); (ELit (LDuration y), _)] ->
+      ELit (LDate (o_add_dat_dur r x y))
+    | Add_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+      ELit (LDuration (o_add_dur_dur x y))
+    | Sub_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+      ELit (LInt (o_sub_int_int x y))
+    | Sub_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+      ELit (LRat (o_sub_rat_rat x y))
+    | Sub_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+      ELit (LMoney (o_sub_mon_mon x y))
+    | Sub_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+      ELit (LDuration (o_sub_dat_dat x y))
+    | Sub_dat_dur, [(ELit (LDate x), _); (ELit (LDuration y), _)] ->
+      ELit (LDate (o_sub_dat_dur x y))
+    | Sub_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+      ELit (LDuration (o_sub_dur_dur x y))
+    | Mult_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+      ELit (LInt (o_mult_int_int x y))
+    | Mult_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+      ELit (LRat (o_mult_rat_rat x y))
+    | Mult_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
+      ELit (LMoney (o_mult_mon_rat x y))
+    | Mult_dur_int, [(ELit (LDuration x), _); (ELit (LInt y), _)] ->
+      ELit (LDuration (o_mult_dur_int x y))
+    | Div_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+      ELit (LRat (protect o_div_int_int x y))
+    | Div_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+      ELit (LRat (protect o_div_rat_rat x y))
+    | Div_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+      ELit (LRat (protect o_div_mon_mon x y))
+    | Div_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
+      ELit (LMoney (protect o_div_mon_rat x y))
+    | Div_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+      ELit (LRat (protect o_div_dur_dur x y))
+    | Lt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+      ELit (LBool (o_lt_int_int x y))
+    | Lt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+      ELit (LBool (o_lt_rat_rat x y))
+    | Lt_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+      ELit (LBool (o_lt_mon_mon x y))
+    | Lt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+      ELit (LBool (o_lt_dat_dat x y))
+    | Lt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+      ELit (LBool (protect o_lt_dur_dur x y))
+    | Lte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+      ELit (LBool (o_lte_int_int x y))
+    | Lte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+      ELit (LBool (o_lte_rat_rat x y))
+    | Lte_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+      ELit (LBool (o_lte_mon_mon x y))
+    | Lte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+      ELit (LBool (o_lte_dat_dat x y))
+    | Lte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+      ELit (LBool (protect o_lte_dur_dur x y))
+    | Gt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+      ELit (LBool (o_gt_int_int x y))
+    | Gt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+      ELit (LBool (o_gt_rat_rat x y))
+    | Gt_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+      ELit (LBool (o_gt_mon_mon x y))
+    | Gt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+      ELit (LBool (o_gt_dat_dat x y))
+    | Gt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+      ELit (LBool (protect o_gt_dur_dur x y))
+    | Gte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+      ELit (LBool (o_gte_int_int x y))
+    | Gte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+      ELit (LBool (o_gte_rat_rat x y))
+    | Gte_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+      ELit (LBool (o_gte_mon_mon x y))
+    | Gte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+      ELit (LBool (o_gte_dat_dat x y))
+    | Gte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+      ELit (LBool (protect o_gte_dur_dur x y))
+    | Eq_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+      ELit (LBool (o_eq_int_int x y))
+    | Eq_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+      ELit (LBool (o_eq_rat_rat x y))
+    | Eq_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+      ELit (LBool (o_eq_mon_mon x y))
+    | Eq_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+      ELit (LBool (o_eq_dat_dat x y))
+    | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+      ELit (LBool (protect o_eq_dur_dur x y))
+    | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
+        | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
+        | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
+        | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
+        | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
+        | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
+        | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
+        | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
+        | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
+        | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
+        | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ),
+        _ ) ->
+      err ()
 
 and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
   match Marked.unmark e with

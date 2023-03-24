@@ -35,7 +35,7 @@ val tlit : Format.formatter -> typ_lit -> unit
 val location : Format.formatter -> 'a glocation -> unit
 val typ : decl_ctx -> Format.formatter -> typ -> unit
 val lit : Format.formatter -> 'a glit -> unit
-val operator : Format.formatter -> ('a any, 'k) operator -> unit
+val operator : Format.formatter -> 'a operator -> unit
 val log_entry : Format.formatter -> log_entry -> unit
 val except : Format.formatter -> except -> unit
 val var : Format.formatter -> 'e Var.t -> unit

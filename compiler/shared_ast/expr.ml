@@ -214,7 +214,7 @@ let map
   | EApp { f = e1; args } -> eapp (f e1) (List.map f args) m
   | EOp { op; tys } -> eop op tys m
   | EArray args -> earray (List.map f args) m
-  | EVar v -> evar (Var.translate v) m
+  | EVar v -> evar (Var.translate_mark v) m
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let body = f body in
@@ -383,7 +383,7 @@ let map_gather
 (* - *)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
-let rec rebox e = map ~f:rebox e
+let rec rebox (e : ('a any, 't) gexpr) = map ~f:rebox e
 
 let box e = Marked.same_mark_as (Bindlib.box (Marked.unmark e)) e
 let unbox (e, m) = Bindlib.unbox e, m
@@ -650,11 +650,11 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EInj _, _ -> -1 | _, EInj _ -> 1
   | EAssert _, _ -> -1 | _, EAssert _ -> 1
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
-  | EErrorOnEmpty _, _ -> . | _, EErrorOnEmpty _ -> .
+  | EErrorOnEmpty _, _ -> -1 | _, EErrorOnEmpty _ -> 1
   | ERaise _, _ -> -1 | _, ERaise _ -> 1
   | ECatch _, _ -> . | _, ECatch _ -> .
 
-let rec free_vars : type a. (a, 't) gexpr -> (a, 't) gexpr Var.Set.t = function
+let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
   | EVar v, _ -> Var.Set.singleton v
   | EAbs { binder; _ }, _ ->
     let vs, body = Bindlib.unmbind binder in

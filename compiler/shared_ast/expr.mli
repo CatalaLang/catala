@@ -28,7 +28,7 @@ val box : ('a, 't) gexpr -> ('a, 't) boxed_gexpr
 val unbox : ('a, 't) boxed_gexpr -> ('a, 't) gexpr
 (** For closed expressions, similar to [Bindlib.unbox] *)
 
-val rebox : ('a, 't) gexpr -> ('a, 't) boxed_gexpr
+val rebox : ('a any, 't) gexpr -> ('a, 't) boxed_gexpr
 (** Rebuild the whole term, re-binding all variables and exposing free variables *)
 
 val evar : ('a, 't) gexpr Var.t -> 't -> ('a, 't) boxed_gexpr
@@ -43,101 +43,101 @@ val subst :
   ('a, 't) gexpr list ->
   ('a, 't) gexpr
 
-val etuple : ('a any, 't) boxed_gexpr list -> 't -> ('a, 't) boxed_gexpr
+val etuple : ('a, 't) boxed_gexpr list -> 't -> ('a any, 't) boxed_gexpr
 
 val etupleaccess :
-  ('a any, 't) boxed_gexpr -> int -> int -> 't -> ('a, 't) boxed_gexpr
+  ('a, 't) boxed_gexpr -> int -> int -> 't -> ('a any, 't) boxed_gexpr
 
-val earray : ('a any, 't) boxed_gexpr list -> 't -> ('a, 't) boxed_gexpr
-val elit : 'a any glit -> 't -> ('a, 't) boxed_gexpr
+val earray : ('a, 't) boxed_gexpr list -> 't -> ('a any, 't) boxed_gexpr
+val elit : 'a glit -> 't -> ('a any, 't) boxed_gexpr
 
 val eabs :
-  (('a any, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder Bindlib.box ->
+  (('a, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder Bindlib.box ->
   typ list ->
   't ->
-  ('a, 't) boxed_gexpr
+  ('a any, 't) boxed_gexpr
 
 val eapp :
-  ('a any, 't) boxed_gexpr ->
+  ('a, 't) boxed_gexpr ->
   ('a, 't) boxed_gexpr list ->
   't ->
-  ('a, 't) boxed_gexpr
+  ('a any, 't) boxed_gexpr
 
 val eassert :
-  (([< dcalc | lcalc ] as 'a), 't) boxed_gexpr -> 't -> ('a, 't) boxed_gexpr
+  ('a, 't) boxed_gexpr -> 't -> (([< all > `Assertions ] as 'a), 't) boxed_gexpr
 
-val eop : ('a any, 'k) operator -> typ list -> 't -> ('a, 't) boxed_gexpr
+val eop : 'a operator -> typ list -> 't -> (([< all ] as 'a), 't) boxed_gexpr
 
 val edefault :
-  (([< desugared | scopelang | dcalc ] as 'a), 't) boxed_gexpr list ->
+  ('a, 't) boxed_gexpr list ->
   ('a, 't) boxed_gexpr ->
   ('a, 't) boxed_gexpr ->
   't ->
-  ('a, 't) boxed_gexpr
+  (([< all > `DefaultTerms ] as 'a), 't) boxed_gexpr
 
 val eifthenelse :
-  ('a any, 't) boxed_gexpr ->
+  ('a, 't) boxed_gexpr ->
   ('a, 't) boxed_gexpr ->
   ('a, 't) boxed_gexpr ->
   't ->
-  ('a, 't) boxed_gexpr
+  ('a any, 't) boxed_gexpr
 
 val eerroronempty :
-  (([< desugared | scopelang | dcalc ] as 'a), 't) boxed_gexpr ->
+  ('a, 't) boxed_gexpr ->
   't ->
-  ('a, 't) boxed_gexpr
+  (([< all > `DefaultTerms ] as 'a), 't) boxed_gexpr
 
 val ecatch :
-  (lcalc, 't) boxed_gexpr ->
+  ('a, 't) boxed_gexpr ->
   except ->
-  (lcalc, 't) boxed_gexpr ->
+  ('a, 't) boxed_gexpr ->
   't ->
-  (lcalc, 't) boxed_gexpr
+  (([< all > `Exceptions ] as 'a), 't) boxed_gexpr
 
-val eraise : except -> 't -> (lcalc, 't) boxed_gexpr
+val eraise : except -> 't -> ([< all > `Exceptions ], 't) boxed_gexpr
 
 val elocation :
-  ([< desugared | scopelang ] as 'a) glocation -> 't -> ('a, 't) boxed_gexpr
+  'a glocation -> 't -> (([< all > `ExplicitScopes ] as 'a), 't) boxed_gexpr
 
 val estruct :
   StructName.t ->
-  ('a any, 't) boxed_gexpr StructField.Map.t ->
+  ('a, 't) boxed_gexpr StructField.Map.t ->
   't ->
-  ('a, 't) boxed_gexpr
+  ('a any, 't) boxed_gexpr
 
 val edstructaccess :
-  (desugared, 't) boxed_gexpr ->
+  ('a, 't) boxed_gexpr ->
   IdentName.t ->
   StructName.t option ->
   't ->
-  (desugared, 't) boxed_gexpr
+  (([< all > `SyntacticNames ] as 'a), 't) boxed_gexpr
 
 val estructaccess :
-  (([< scopelang | dcalc | lcalc ] as 'a), 't) boxed_gexpr ->
+  ('a, 't) boxed_gexpr ->
   StructField.t ->
   StructName.t ->
   't ->
-  ('a, 't) boxed_gexpr
+  (([< all > `ResolvedNames ] as 'a), 't) boxed_gexpr
 
 val einj :
-  ('a any, 't) boxed_gexpr ->
+  ('a, 't) boxed_gexpr ->
   EnumConstructor.t ->
   EnumName.t ->
   't ->
-  ('a, 't) boxed_gexpr
+  ('a any, 't) boxed_gexpr
 
 val ematch :
-  ('a any, 't) boxed_gexpr ->
+  ('a, 't) boxed_gexpr ->
   EnumName.t ->
   ('a, 't) boxed_gexpr EnumConstructor.Map.t ->
   't ->
-  ('a, 't) boxed_gexpr
+  ('a any, 't) boxed_gexpr
 
 val escopecall :
   ScopeName.t ->
-  (([< desugared | scopelang ] as 'a), 't) boxed_gexpr ScopeVar.Map.t ->
+  ('a, 't) boxed_gexpr ScopeVar.Map.t ->
   't ->
-  ('a, 't) boxed_gexpr
+  (([< all > `ExplicitScopes ] as 'a), 't) boxed_gexpr
 
 (** Manipulation of marks *)
 
@@ -266,7 +266,7 @@ val make_app :
   ('a, 'm mark) boxed_gexpr
 
 val empty_thunked_term :
-  'm mark -> ([< dcalc | desugared | scopelang ], 'm mark) boxed_gexpr
+  'm mark -> ([< all > `DefaultTerms ], 'm mark) boxed_gexpr
 
 val make_let_in :
   ('a, 'm mark) gexpr Var.t ->
@@ -285,11 +285,11 @@ val make_multiple_let_in :
   ('a, 'm mark) boxed_gexpr
 
 val make_default :
-  (([< desugared | scopelang | dcalc ] as 'a), 't) boxed_gexpr list ->
+  ('a, 't) boxed_gexpr list ->
   ('a, 't) boxed_gexpr ->
   ('a, 't) boxed_gexpr ->
   't ->
-  ('a, 't) boxed_gexpr
+  (([< all > `Polymorphic `DefaultTerms ] as 'a), 't) boxed_gexpr
 (** [make_default ?pos exceptions just cons] builds a term semantically
     equivalent to [<exceptions | just :- cons>] (the [EDefault] constructor)
     while avoiding redundant nested constructions. The position is extracted
@@ -310,7 +310,8 @@ val make_tuple :
 
 (** {2 Transformations} *)
 
-val remove_logging_calls : ('a any, 't) gexpr -> ('a, 't) boxed_gexpr
+val remove_logging_calls :
+  (([< all > `Polymorphic ] as 'a), 't) gexpr -> ('a, 't) boxed_gexpr
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
 

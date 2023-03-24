@@ -86,7 +86,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     in
     let new_args = List.rev new_args in
     args_stmts, (A.EArray new_args, Expr.pos expr)
-  | EOp { op; _ } -> [], (A.EOp op, Expr.pos expr)
+  | EOp { op; _ } -> [], (A.EOp (Operator.translate None op), Expr.pos expr)
   | ELit l -> [], (A.ELit l, Expr.pos expr)
   | _ ->
     let tmp_var =

@@ -237,8 +237,8 @@ let lit_type (type a) (lit : a A.glit) : naked_typ =
     functions separate. In particular [resolve_overloads] requires its argument
     types to be known in advance. *)
 
-let polymorphic_op_type (op : ('a, Operator.polymorphic) A.operator Marked.pos)
-    : unionfind_typ =
+let polymorphic_op_type (op : Operator.polymorphic A.operator Marked.pos) :
+    unionfind_typ =
   let open Operator in
   let pos = Marked.get_mark op in
   let any = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
@@ -266,7 +266,7 @@ let polymorphic_op_type (op : ('a, Operator.polymorphic) A.operator Marked.pos)
 let resolve_overload_ret_type
     (ctx : A.decl_ctx)
     e
-    (op : ('a A.any, Operator.overloaded) A.operator)
+    (op : Operator.overloaded A.operator)
     tys : unionfind_typ =
   let op_ty =
     Operator.overload_type ctx
