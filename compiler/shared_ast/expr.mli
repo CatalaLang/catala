@@ -336,6 +336,9 @@ val make_tuple :
 
 (** {2 Transformations} *)
 
+val skip_wrappers : ('a, 'm) gexpr -> ('a, 'm) gexpr
+(** Removes surface logging calls and [EErrorOnEmpty] nodes. Shallow function *)
+
 val remove_logging_calls :
   (([< all > `Polymorphic ] as 'a), 't) gexpr -> ('a, 't) boxed_gexpr
 (** Removes all calls to [Log] unary operators in the AST, replacing them by

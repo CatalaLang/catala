@@ -26,6 +26,17 @@ module Runtime = Runtime_ocaml.Runtime
 let is_empty_error : type a. (a, 'm) gexpr -> bool =
  fun e -> match Marked.unmark e with EEmptyError -> true | _ -> false
 
+let forward_empty_error :
+    type a. (a, 'm) gexpr -> ((a, 'm) gexpr -> (a, 'm) gexpr) -> (a, 'm) gexpr =
+ fun e f -> match e with (EEmptyError, _) as e -> e | e -> f e
+
+let forward_empty_error_list elist f =
+  let rec aux acc = function
+    | [] -> f (List.rev acc)
+    | e :: r -> forward_empty_error e (fun e -> aux (e :: acc) r)
+  in
+  aux [] elist
+
 let log_indent = ref 0
 
 (** {1 Evaluation} *)
@@ -86,7 +97,7 @@ let handle_eq evaluate_operator ctx pos e1 e2 =
     try
       List.for_all2
         (fun e1 e2 ->
-          match evaluate_operator ctx Eq pos [e1; e2] with
+          match Marked.unmark (evaluate_operator ctx Eq pos [e1; e2]) with
           | ELit (LBool b) -> b
           | _ -> assert false
           (* should not happen *))
@@ -96,7 +107,7 @@ let handle_eq evaluate_operator ctx pos e1 e2 =
     StructName.equal s1 s2
     && StructField.Map.equal
          (fun e1 e2 ->
-           match evaluate_operator ctx Eq pos [e1; e2] with
+           match Marked.unmark (evaluate_operator ctx Eq pos [e1; e2]) with
            | ELit (LBool b) -> b
            | _ -> assert false
            (* should not happen *))
@@ -107,7 +118,7 @@ let handle_eq evaluate_operator ctx pos e1 e2 =
       EnumName.equal en1 en2
       && EnumConstructor.equal i1 i2
       &&
-      match evaluate_operator ctx Eq pos [e1; e2] with
+      match Marked.unmark (evaluate_operator ctx Eq pos [e1; e2]) with
       | ELit (LBool b) -> b
       | _ -> assert false
       (* should not happen *)
@@ -115,7 +126,13 @@ let handle_eq evaluate_operator ctx pos e1 e2 =
   | _, _ -> false (* comparing anything else return false *)
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
-let rec evaluate_operator evaluate_expr ctx (op: [< dcalc | lcalc] operator) pos args =
+let rec evaluate_operator
+    evaluate_expr
+    ctx
+    (op : [< dcalc | lcalc ] operator)
+    m
+    args =
+  let pos = Expr.mark_pos m in
   let protect f x y =
     let get_binop_args_pos = function
       | (arg0 :: arg1 :: _ : ('t, 'm) gexpr list) ->
@@ -149,385 +166,388 @@ let rec evaluate_operator evaluate_expr ctx (op: [< dcalc | lcalc] operator) pos
       "Operator applied to the wrong arguments\n\
        (should not happen if the term was well-typed)"
   in
+  forward_empty_error_list args
+  @@ fun args ->
   let open Runtime.Oper in
-  (* if List.exists (function EEmptyError, _ -> true | _ -> false) args then
-   *   ELit LEmptyError TODO FIXME
-   * else *)
-    match op, args with
-    | Length, [(EArray es, _)] ->
-      ELit (LInt (Runtime.integer_of_int (List.length es)))
-    | Log (entry, infos), [e'] ->
-      print_log ctx entry infos pos e';
-      Marked.unmark e'
-    | Eq, [(e1, _); (e2, _)] -> ELit (LBool (handle_eq (evaluate_operator evaluate_expr) ctx pos e1 e2))
-    | Map, [f; (EArray es, _)] ->
-      EArray
-        (List.map
-           (fun e' ->
+  Marked.mark m
+  @@
+  match op, args with
+  | Length, [(EArray es, _)] ->
+    ELit (LInt (Runtime.integer_of_int (List.length es)))
+  | Log (entry, infos), [e'] ->
+    print_log ctx entry infos pos e';
+    Marked.unmark e'
+  | Eq, [(e1, _); (e2, _)] ->
+    ELit (LBool (handle_eq (evaluate_operator evaluate_expr) ctx m e1 e2))
+  | Map, [f; (EArray es, _)] ->
+    EArray
+      (List.map
+         (fun e' ->
+           evaluate_expr ctx (Marked.same_mark_as (EApp { f; args = [e'] }) e'))
+         es)
+  | Reduce, [_; default; (EArray [], _)] -> Marked.unmark default
+  | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
+    Marked.unmark
+      (List.fold_left
+         (fun acc x ->
+           evaluate_expr ctx
+             (Marked.same_mark_as (EApp { f; args = [acc; x] }) f))
+         x0 xn)
+  | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
+  | Filter, [f; (EArray es, _)] ->
+    EArray
+      (List.filter
+         (fun e' ->
+           match
              evaluate_expr ctx
-               (Marked.same_mark_as (EApp { f; args = [e'] }) e'))
-           es)
-    | Reduce, [_; default; (EArray [], _)] -> Marked.unmark default
-    | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
-      Marked.unmark
-        (List.fold_left
-           (fun acc x ->
-             evaluate_expr ctx
-               (Marked.same_mark_as (EApp { f; args = [acc; x] }) f))
-           x0 xn)
-    | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
-    | Filter, [f; (EArray es, _)] ->
-      EArray
-        (List.filter
-           (fun e' ->
-             match
-               evaluate_expr ctx
-                 (Marked.same_mark_as (EApp { f; args = [e'] }) e')
-             with
-             | ELit (LBool b), _ -> b
-             | _ ->
-               Errors.raise_spanned_error
-                 (Expr.pos (List.nth args 0))
-                 "This predicate evaluated to something else than a boolean \
-                  (should not happen if the term was well-typed)")
-           es)
-    | Fold, [f; init; (EArray es, _)] ->
-      Marked.unmark
-        (List.fold_left
-           (fun acc e' ->
-             evaluate_expr ctx
-               (Marked.same_mark_as (EApp { f; args = [acc; e'] }) e'))
-           init es)
-    | (Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce), _ -> err ()
-    | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
-    | GetDay, [(ELit (LDate d), _)] -> ELit (LInt (o_getDay d))
-    | GetMonth, [(ELit (LDate d), _)] -> ELit (LInt (o_getMonth d))
-    | GetYear, [(ELit (LDate d), _)] -> ELit (LInt (o_getYear d))
-    | FirstDayOfMonth, [(ELit (LDate d), _)] ->
-      ELit (LDate (o_firstDayOfMonth d))
-    | LastDayOfMonth, [(ELit (LDate d), _)] -> ELit (LDate (o_lastDayOfMonth d))
-    | And, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
-      ELit (LBool (o_and b1 b2))
-    | Or, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
-      ELit (LBool (o_or b1 b2))
-    | Xor, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
-      ELit (LBool (o_xor b1 b2))
-    | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
-        | And | Or | Xor ),
-        _ ) ->
-      err ()
-    | Minus_int, [(ELit (LInt x), _)] -> ELit (LInt (o_minus_int x))
-    | Minus_rat, [(ELit (LRat x), _)] -> ELit (LRat (o_minus_rat x))
-    | Minus_mon, [(ELit (LMoney x), _)] -> ELit (LMoney (o_minus_mon x))
-    | Minus_dur, [(ELit (LDuration x), _)] -> ELit (LDuration (o_minus_dur x))
-    | ToRat_int, [(ELit (LInt i), _)] -> ELit (LRat (o_torat_int i))
-    | ToRat_mon, [(ELit (LMoney i), _)] -> ELit (LRat (o_torat_mon i))
-    | ToMoney_rat, [(ELit (LRat i), _)] -> ELit (LMoney (o_tomoney_rat i))
-    | Round_mon, [(ELit (LMoney m), _)] -> ELit (LMoney (o_round_mon m))
-    | Round_rat, [(ELit (LRat m), _)] -> ELit (LRat (o_round_rat m))
-    | Add_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-      ELit (LInt (o_add_int_int x y))
-    | Add_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-      ELit (LRat (o_add_rat_rat x y))
-    | Add_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-      ELit (LMoney (o_add_mon_mon x y))
-    | Add_dat_dur r, [(ELit (LDate x), _); (ELit (LDuration y), _)] ->
-      ELit (LDate (o_add_dat_dur r x y))
-    | Add_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-      ELit (LDuration (o_add_dur_dur x y))
-    | Sub_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-      ELit (LInt (o_sub_int_int x y))
-    | Sub_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-      ELit (LRat (o_sub_rat_rat x y))
-    | Sub_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-      ELit (LMoney (o_sub_mon_mon x y))
-    | Sub_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-      ELit (LDuration (o_sub_dat_dat x y))
-    | Sub_dat_dur, [(ELit (LDate x), _); (ELit (LDuration y), _)] ->
-      ELit (LDate (o_sub_dat_dur x y))
-    | Sub_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-      ELit (LDuration (o_sub_dur_dur x y))
-    | Mult_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-      ELit (LInt (o_mult_int_int x y))
-    | Mult_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-      ELit (LRat (o_mult_rat_rat x y))
-    | Mult_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
-      ELit (LMoney (o_mult_mon_rat x y))
-    | Mult_dur_int, [(ELit (LDuration x), _); (ELit (LInt y), _)] ->
-      ELit (LDuration (o_mult_dur_int x y))
-    | Div_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-      ELit (LRat (protect o_div_int_int x y))
-    | Div_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-      ELit (LRat (protect o_div_rat_rat x y))
-    | Div_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-      ELit (LRat (protect o_div_mon_mon x y))
-    | Div_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
-      ELit (LMoney (protect o_div_mon_rat x y))
-    | Div_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-      ELit (LRat (protect o_div_dur_dur x y))
-    | Lt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-      ELit (LBool (o_lt_int_int x y))
-    | Lt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-      ELit (LBool (o_lt_rat_rat x y))
-    | Lt_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-      ELit (LBool (o_lt_mon_mon x y))
-    | Lt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-      ELit (LBool (o_lt_dat_dat x y))
-    | Lt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-      ELit (LBool (protect o_lt_dur_dur x y))
-    | Lte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-      ELit (LBool (o_lte_int_int x y))
-    | Lte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-      ELit (LBool (o_lte_rat_rat x y))
-    | Lte_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-      ELit (LBool (o_lte_mon_mon x y))
-    | Lte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-      ELit (LBool (o_lte_dat_dat x y))
-    | Lte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-      ELit (LBool (protect o_lte_dur_dur x y))
-    | Gt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-      ELit (LBool (o_gt_int_int x y))
-    | Gt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-      ELit (LBool (o_gt_rat_rat x y))
-    | Gt_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-      ELit (LBool (o_gt_mon_mon x y))
-    | Gt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-      ELit (LBool (o_gt_dat_dat x y))
-    | Gt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-      ELit (LBool (protect o_gt_dur_dur x y))
-    | Gte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-      ELit (LBool (o_gte_int_int x y))
-    | Gte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-      ELit (LBool (o_gte_rat_rat x y))
-    | Gte_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-      ELit (LBool (o_gte_mon_mon x y))
-    | Gte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-      ELit (LBool (o_gte_dat_dat x y))
-    | Gte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-      ELit (LBool (protect o_gte_dur_dur x y))
-    | Eq_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
-      ELit (LBool (o_eq_int_int x y))
-    | Eq_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
-      ELit (LBool (o_eq_rat_rat x y))
-    | Eq_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
-      ELit (LBool (o_eq_mon_mon x y))
-    | Eq_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
-      ELit (LBool (o_eq_dat_dat x y))
-    | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
-      ELit (LBool (protect o_eq_dur_dur x y))
-    | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
-        | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
-        | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
-        | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
-        | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
-        | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
-        | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
-        | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
-        | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
-        | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
-        | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ),
-        _ ) ->
-      err ()
+               (Marked.same_mark_as (EApp { f; args = [e'] }) e')
+           with
+           | ELit (LBool b), _ -> b
+           | _ ->
+             Errors.raise_spanned_error
+               (Expr.pos (List.nth args 0))
+               "This predicate evaluated to something else than a boolean \
+                (should not happen if the term was well-typed)")
+         es)
+  | Fold, [f; init; (EArray es, _)] ->
+    Marked.unmark
+      (List.fold_left
+         (fun acc e' ->
+           evaluate_expr ctx
+             (Marked.same_mark_as (EApp { f; args = [acc; e'] }) e'))
+         init es)
+  | (Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce), _ -> err ()
+  | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
+  | GetDay, [(ELit (LDate d), _)] -> ELit (LInt (o_getDay d))
+  | GetMonth, [(ELit (LDate d), _)] -> ELit (LInt (o_getMonth d))
+  | GetYear, [(ELit (LDate d), _)] -> ELit (LInt (o_getYear d))
+  | FirstDayOfMonth, [(ELit (LDate d), _)] -> ELit (LDate (o_firstDayOfMonth d))
+  | LastDayOfMonth, [(ELit (LDate d), _)] -> ELit (LDate (o_lastDayOfMonth d))
+  | And, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
+    ELit (LBool (o_and b1 b2))
+  | Or, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
+    ELit (LBool (o_or b1 b2))
+  | Xor, [(ELit (LBool b1), _); (ELit (LBool b2), _)] ->
+    ELit (LBool (o_xor b1 b2))
+  | ( ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
+      | And | Or | Xor ),
+      _ ) ->
+    err ()
+  | Minus_int, [(ELit (LInt x), _)] -> ELit (LInt (o_minus_int x))
+  | Minus_rat, [(ELit (LRat x), _)] -> ELit (LRat (o_minus_rat x))
+  | Minus_mon, [(ELit (LMoney x), _)] -> ELit (LMoney (o_minus_mon x))
+  | Minus_dur, [(ELit (LDuration x), _)] -> ELit (LDuration (o_minus_dur x))
+  | ToRat_int, [(ELit (LInt i), _)] -> ELit (LRat (o_torat_int i))
+  | ToRat_mon, [(ELit (LMoney i), _)] -> ELit (LRat (o_torat_mon i))
+  | ToMoney_rat, [(ELit (LRat i), _)] -> ELit (LMoney (o_tomoney_rat i))
+  | Round_mon, [(ELit (LMoney m), _)] -> ELit (LMoney (o_round_mon m))
+  | Round_rat, [(ELit (LRat m), _)] -> ELit (LRat (o_round_rat m))
+  | Add_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+    ELit (LInt (o_add_int_int x y))
+  | Add_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+    ELit (LRat (o_add_rat_rat x y))
+  | Add_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+    ELit (LMoney (o_add_mon_mon x y))
+  | Add_dat_dur r, [(ELit (LDate x), _); (ELit (LDuration y), _)] ->
+    ELit (LDate (o_add_dat_dur r x y))
+  | Add_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+    ELit (LDuration (o_add_dur_dur x y))
+  | Sub_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+    ELit (LInt (o_sub_int_int x y))
+  | Sub_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+    ELit (LRat (o_sub_rat_rat x y))
+  | Sub_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+    ELit (LMoney (o_sub_mon_mon x y))
+  | Sub_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+    ELit (LDuration (o_sub_dat_dat x y))
+  | Sub_dat_dur, [(ELit (LDate x), _); (ELit (LDuration y), _)] ->
+    ELit (LDate (o_sub_dat_dur x y))
+  | Sub_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+    ELit (LDuration (o_sub_dur_dur x y))
+  | Mult_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+    ELit (LInt (o_mult_int_int x y))
+  | Mult_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+    ELit (LRat (o_mult_rat_rat x y))
+  | Mult_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
+    ELit (LMoney (o_mult_mon_rat x y))
+  | Mult_dur_int, [(ELit (LDuration x), _); (ELit (LInt y), _)] ->
+    ELit (LDuration (o_mult_dur_int x y))
+  | Div_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+    ELit (LRat (protect o_div_int_int x y))
+  | Div_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+    ELit (LRat (protect o_div_rat_rat x y))
+  | Div_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+    ELit (LRat (protect o_div_mon_mon x y))
+  | Div_mon_rat, [(ELit (LMoney x), _); (ELit (LRat y), _)] ->
+    ELit (LMoney (protect o_div_mon_rat x y))
+  | Div_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+    ELit (LRat (protect o_div_dur_dur x y))
+  | Lt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+    ELit (LBool (o_lt_int_int x y))
+  | Lt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+    ELit (LBool (o_lt_rat_rat x y))
+  | Lt_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+    ELit (LBool (o_lt_mon_mon x y))
+  | Lt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+    ELit (LBool (o_lt_dat_dat x y))
+  | Lt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+    ELit (LBool (protect o_lt_dur_dur x y))
+  | Lte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+    ELit (LBool (o_lte_int_int x y))
+  | Lte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+    ELit (LBool (o_lte_rat_rat x y))
+  | Lte_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+    ELit (LBool (o_lte_mon_mon x y))
+  | Lte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+    ELit (LBool (o_lte_dat_dat x y))
+  | Lte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+    ELit (LBool (protect o_lte_dur_dur x y))
+  | Gt_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+    ELit (LBool (o_gt_int_int x y))
+  | Gt_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+    ELit (LBool (o_gt_rat_rat x y))
+  | Gt_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+    ELit (LBool (o_gt_mon_mon x y))
+  | Gt_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+    ELit (LBool (o_gt_dat_dat x y))
+  | Gt_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+    ELit (LBool (protect o_gt_dur_dur x y))
+  | Gte_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+    ELit (LBool (o_gte_int_int x y))
+  | Gte_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+    ELit (LBool (o_gte_rat_rat x y))
+  | Gte_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+    ELit (LBool (o_gte_mon_mon x y))
+  | Gte_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+    ELit (LBool (o_gte_dat_dat x y))
+  | Gte_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+    ELit (LBool (protect o_gte_dur_dur x y))
+  | Eq_int_int, [(ELit (LInt x), _); (ELit (LInt y), _)] ->
+    ELit (LBool (o_eq_int_int x y))
+  | Eq_rat_rat, [(ELit (LRat x), _); (ELit (LRat y), _)] ->
+    ELit (LBool (o_eq_rat_rat x y))
+  | Eq_mon_mon, [(ELit (LMoney x), _); (ELit (LMoney y), _)] ->
+    ELit (LBool (o_eq_mon_mon x y))
+  | Eq_dat_dat, [(ELit (LDate x), _); (ELit (LDate y), _)] ->
+    ELit (LBool (o_eq_dat_dat x y))
+  | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
+    ELit (LBool (protect o_eq_dur_dur x y))
+  | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
+      | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
+      | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
+      | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
+      | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
+      | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
+      | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
+      | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
+      | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
+      | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
+      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ),
+      _ ) ->
+    err ()
 
-type 'a dlcalc = [< dcalc | lcalc ] as 'a
-
-let rec evaluate_expr ctx (e: ('a dlcalc, 'm mark) gexpr) : ('a, 'm mark) gexpr =
+(* typed with ['a] for simplicity, but only actually implemented on dcalc and
+   lcalc at the moment *)
+let rec evaluate_expr :
+    type a. decl_ctx -> (a, 'm mark) gexpr -> (a, 'm mark) gexpr =
+ fun ctx e ->
+  let m = Marked.get_mark e in
+  let pos = Expr.mark_pos m in
   match Marked.unmark e with
+  | ELocation _ | EScopeCall _ | EDStructAccess _ ->
+    (* These cases don't belong to dcalc or lcalc *)
+    assert false
   | ERaise exn -> raise (CatalaException exn)
-  | ECatch { body; exn; handler } ->
-    (try evaluate_expr ctx body with
-    | CatalaException caught -> if Expr.equal_except caught exn then evaluate_expr ctx handler else raise (CatalaException caught) )
+  | ECatch { body; exn; handler } -> (
+    try evaluate_expr ctx body
+    with CatalaException caught when Expr.equal_except caught exn ->
+      evaluate_expr ctx handler)
   | EVar _ ->
-      Errors.raise_spanned_error (Expr.pos e)
-        "free variable found at evaluation (should not happen if term was \
-         well-typed)"
-    | EApp { f = e1; args } -> (
-      let e1 = evaluate_expr ctx e1 in
-      let args = List.map (evaluate_expr ctx) args in
-      match Marked.unmark e1 with
-      | EAbs { binder; _ } ->
-        if Bindlib.mbinder_arity binder = List.length args then
-          evaluate_expr ctx
-            (Bindlib.msubst binder
-               (Array.of_list (List.map Marked.unmark args)))
-        else
-          Errors.raise_spanned_error (Expr.pos e)
-            "wrong function call, expected %d arguments, got %d"
-            (Bindlib.mbinder_arity binder)
-            (List.length args)
-      | EOp { op; _ } ->
-        Marked.same_mark_as (evaluate_operator evaluate_expr ctx op (Expr.pos e) args) e
-      | EEmptyError -> Marked.same_mark_as (EEmptyError) e
-      | _ ->
-        Errors.raise_spanned_error (Expr.pos e)
-          "function has not been reduced to a lambda at evaluation (should not \
-           happen if the term was well-typed")
-    | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
-    | EStruct { fields = es; name } ->
-      let new_es = StructField.Map.map (evaluate_expr ctx) es in
-      if StructField.Map.exists (fun _ e -> is_empty_error e) new_es then
-      Marked.same_mark_as EEmptyError e
-      else Marked.same_mark_as (EStruct { fields = new_es; name }) e
-    | EStructAccess { e = e1; name = s; field } -> (
-      let e1 = evaluate_expr ctx e1 in
-      match Marked.unmark e1 with
-      | EStruct { fields = es; name = s' } -> (
-        if not (StructName.equal s s') then
-          Errors.raise_multispanned_error
-            [None, Expr.pos e; None, Expr.pos e1]
-            "Error during struct access: not the same structs (should not \
-             happen if the term was well-typed)";
-        match StructField.Map.find_opt field es with
-        | Some e' -> e'
-        | None ->
-          Errors.raise_spanned_error (Expr.pos e1)
-            "Invalid field access %a in struct %a (should not happen if the \
-             term was well-typed)"
-            StructField.format_t field StructName.format_t s)
-    | EEmptyError -> Marked.same_mark_as EEmptyError e
-      | _ ->
-        Errors.raise_spanned_error (Expr.pos e1)
-          "The expression %a should be a struct %a but is not (should not \
-           happen if the term was well-typed)"
-          (Expr.format ctx ~debug:true)
-          e StructName.format_t s)
-    | ETuple es ->
-      Marked.same_mark_as (ETuple (List.map (evaluate_expr ctx) es)) e
-    | ETupleAccess { e = e1; index; size } -> (
-      match evaluate_expr ctx e1 with
-      | ETuple es, _ when List.length es = size -> List.nth es index
-      | e ->
-        Errors.raise_spanned_error (Expr.pos e)
-          "The expression %a was expected to be a tuple of size %d (should not \
-           happen if the term was well-typed)"
-          (Expr.format ctx ~debug:true)
-          e size)
-    | EInj { e = e1; name; cons } ->
-      let e1' = evaluate_expr ctx e1 in
-    if is_empty_error e then Marked.same_mark_as EEmptyError e
-      else Marked.same_mark_as (EInj { e = e1'; name; cons }) e
-    | EMatch { e = e1; cases = es; name } -> (
-      let e1 = evaluate_expr ctx e1 in
-      match Marked.unmark e1 with
-      | EInj { e = e1; cons; name = name' } ->
-        if not (EnumName.equal name name') then
-          Errors.raise_multispanned_error
-            [None, Expr.pos e; None, Expr.pos e1]
-            "Error during match: two different enums found (should not happen \
-             if the term was well-typed)";
-        let es_n =
-          match EnumConstructor.Map.find_opt cons es with
-          | Some es_n -> es_n
-          | None ->
-            Errors.raise_spanned_error (Expr.pos e)
-              "sum type index error (should not happen if the term was \
-               well-typed)"
-        in
-        let new_e = Marked.same_mark_as (EApp { f = es_n; args = [e1] }) e in
-        evaluate_expr ctx new_e
-    | EEmptyError -> Marked.same_mark_as EEmptyError e
-      | _ ->
-        Errors.raise_spanned_error (Expr.pos e1)
-          "Expected a term having a sum type as an argument to a match (should \
-           not happen if the term was well-typed")
-    | EDefault { excepts; just; cons } -> (
-      let excepts = List.map (evaluate_expr ctx) excepts in
-      let empty_count = List.length (List.filter is_empty_error excepts) in
-      match List.length excepts - empty_count with
-      | 0 -> (
-        let just = evaluate_expr ctx just in
-        match Marked.unmark just with
-      | EEmptyError -> Marked.same_mark_as EEmptyError e
-        | ELit (LBool true) -> evaluate_expr ctx cons
-      | ELit (LBool false) -> Marked.same_mark_as EEmptyError e
-        | _ ->
-          Errors.raise_spanned_error (Expr.pos e)
-            "Default justification has not been reduced to a boolean at \
-             evaluation (should not happen if the term was well-typed")
-      | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
-      | _ ->
+    Errors.raise_spanned_error pos
+      "free variable found at evaluation (should not happen if term was \
+       well-typed)"
+  | EApp { f = e1; args } -> (
+    let e1 = evaluate_expr ctx e1 in
+    let args = List.map (evaluate_expr ctx) args in
+    forward_empty_error e1
+    @@ fun e1 ->
+    match Marked.unmark e1 with
+    | EAbs { binder; _ } ->
+      if Bindlib.mbinder_arity binder = List.length args then
+        evaluate_expr ctx
+          (Bindlib.msubst binder (Array.of_list (List.map Marked.unmark args)))
+      else
+        Errors.raise_spanned_error pos
+          "wrong function call, expected %d arguments, got %d"
+          (Bindlib.mbinder_arity binder)
+          (List.length args)
+    | EOp
+        {
+          op =
+            ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth
+            | LastDayOfMonth | And | Or | Xor | Log _ | Length | Eq | Map
+            | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat
+            | Minus_mon | Minus_dur | ToRat_int | ToRat_mon | ToMoney_rat
+            | Round_rat | Round_mon | Add_int_int | Add_rat_rat | Add_mon_mon
+            | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
+            | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur
+            | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int
+            | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat
+            | Div_dur_dur | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat
+            | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat
+            | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat
+            | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
+            | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat
+            | Eq_dur_dur ) as op;
+          _;
+        } ->
+      evaluate_operator evaluate_expr ctx op m args
+    | _ ->
+      Errors.raise_spanned_error pos
+        "function has not been reduced to a lambda at evaluation (should not \
+         happen if the term was well-typed")
+  | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
+  | EStruct { fields = es; name } ->
+    let fields, es = List.split (StructField.Map.bindings es) in
+    let es = List.map (evaluate_expr ctx) es in
+    forward_empty_error_list es
+    @@ fun es ->
+    Marked.mark m
+      (EStruct
+         {
+           fields =
+             StructField.Map.of_seq
+               (Seq.zip (List.to_seq fields) (List.to_seq es));
+           name;
+         })
+  | EStructAccess { e; name = s; field } -> (
+    forward_empty_error (evaluate_expr ctx e)
+    @@ fun e ->
+    match Marked.unmark e with
+    | EStruct { fields = es; name } -> (
+      if not (StructName.equal s name) then
         Errors.raise_multispanned_error
-          (List.map
-             (fun except ->
-               ( Some "This consequence has a valid justification:",
-                 Expr.pos except ))
-             (List.filter (fun sub -> not (is_empty_error sub)) excepts))
-          "There is a conflict between multiple valid consequences for \
-           assigning the same variable.")
-    | EIfThenElse { cond; etrue; efalse } -> (
-      match Marked.unmark (evaluate_expr ctx cond) with
-      | ELit (LBool true) -> evaluate_expr ctx etrue
-      | ELit (LBool false) -> evaluate_expr ctx efalse
-    | EEmptyError -> Marked.same_mark_as EEmptyError e
+          [None, pos; None, Expr.pos e]
+          "Error during struct access: not the same structs (should not happen \
+           if the term was well-typed)";
+      match StructField.Map.find_opt field es with
+      | Some e' -> e'
+      | None ->
+        Errors.raise_spanned_error (Expr.pos e)
+          "Invalid field access %a in struct %a (should not happen if the term \
+           was well-typed)"
+          StructField.format_t field StructName.format_t s)
+    | _ ->
+      Errors.raise_spanned_error (Expr.pos e)
+        "The expression %a should be a struct %a but is not (should not happen \
+         if the term was well-typed)"
+        (Expr.format ctx ~debug:true)
+        e StructName.format_t s)
+  | ETuple es -> Marked.mark m (ETuple (List.map (evaluate_expr ctx) es))
+  | ETupleAccess { e = e1; index; size } -> (
+    match evaluate_expr ctx e1 with
+    | ETuple es, _ when List.length es = size -> List.nth es index
+    | e ->
+      Errors.raise_spanned_error (Expr.pos e)
+        "The expression %a was expected to be a tuple of size %d (should not \
+         happen if the term was well-typed)"
+        (Expr.format ctx ~debug:true)
+        e size)
+  | EInj { e; name; cons } ->
+    forward_empty_error (evaluate_expr ctx e)
+    @@ fun e -> Marked.mark m (EInj { e; name; cons })
+  | EMatch { e; cases; name } -> (
+    forward_empty_error (evaluate_expr ctx e)
+    @@ fun e ->
+    match Marked.unmark e with
+    | EInj { e = e1; cons; name = name' } ->
+      if not (EnumName.equal name name') then
+        Errors.raise_multispanned_error
+          [None, Expr.pos e; None, Expr.pos e1]
+          "Error during match: two different enums found (should not happen if \
+           the term was well-typed)";
+      let es_n =
+        match EnumConstructor.Map.find_opt cons cases with
+        | Some es_n -> es_n
+        | None ->
+          Errors.raise_spanned_error (Expr.pos e)
+            "sum type index error (should not happen if the term was \
+             well-typed)"
+      in
+      let new_e = Marked.mark m (EApp { f = es_n; args = [e1] }) in
+      evaluate_expr ctx new_e
+    | _ ->
+      Errors.raise_spanned_error (Expr.pos e)
+        "Expected a term having a sum type as an argument to a match (should \
+         not happen if the term was well-typed")
+  | EDefault { excepts; just; cons } -> (
+    let excepts = List.map (evaluate_expr ctx) excepts in
+    let empty_count = List.length (List.filter is_empty_error excepts) in
+    match List.length excepts - empty_count with
+    | 0 -> (
+      let just = evaluate_expr ctx just in
+      match Marked.unmark just with
+      | EEmptyError -> Marked.mark m EEmptyError
+      | ELit (LBool true) -> evaluate_expr ctx cons
+      | ELit (LBool false) -> Marked.same_mark_as EEmptyError e
       | _ ->
-        Errors.raise_spanned_error (Expr.pos cond)
-          "Expected a boolean literal for the result of this condition (should \
-           not happen if the term was well-typed)")
-    | EArray es ->
-      let new_es = List.map (evaluate_expr ctx) es in
-    if List.exists is_empty_error new_es then Marked.same_mark_as EEmptyError e
-      else Marked.same_mark_as (EArray new_es) e
+        Errors.raise_spanned_error (Expr.pos e)
+          "Default justification has not been reduced to a boolean at \
+           evaluation (should not happen if the term was well-typed")
+    | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
+    | _ ->
+      Errors.raise_multispanned_error
+        (List.map
+           (fun except ->
+             Some "This consequence has a valid justification:", Expr.pos except)
+           (List.filter (fun sub -> not (is_empty_error sub)) excepts))
+        "There is a conflict between multiple valid consequences for assigning \
+         the same variable.")
+  | EIfThenElse { cond; etrue; efalse } -> (
+    forward_empty_error (evaluate_expr ctx cond)
+    @@ fun cond ->
+    match Marked.unmark cond with
+    | ELit (LBool true) -> evaluate_expr ctx etrue
+    | ELit (LBool false) -> evaluate_expr ctx efalse
+    | _ ->
+      Errors.raise_spanned_error (Expr.pos cond)
+        "Expected a boolean literal for the result of this condition (should \
+         not happen if the term was well-typed)")
+  | EArray es ->
+    forward_empty_error_list (List.map (evaluate_expr ctx) es)
+    @@ fun es -> Marked.mark m (EArray es)
   | EEmptyError -> Marked.same_mark_as EEmptyError e
-    | EErrorOnEmpty e' ->
-      let e' = evaluate_expr ctx e' in
-    if Marked.unmark e' = EEmptyError then
-        Errors.raise_spanned_error (Expr.pos e')
-          "This variable evaluated to an empty term (no rule that defined it \
-           applied in this situation)"
-      else e'
-    | EAssert e' -> (
-      match Marked.unmark (evaluate_expr ctx e') with
-      | ELit (LBool true) -> Marked.same_mark_as (ELit LUnit) e'
-      | ELit (LBool false) -> (
-        match Marked.unmark e' with
-        | EErrorOnEmpty
-            ( EApp
-                {
-                  f = EOp { op; _ }, _;
-                  args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
-                },
-              _ ) ->
-          Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
-            (Expr.format ctx ~debug:false)
-            e1 Print.operator op
-            (Expr.format ctx ~debug:false)
-            e2
-        | EApp
-            {
-              f = EOp { op = Log _; _ }, _;
-              args =
-                [
-                  ( EApp
-                      {
-                        f = EOp { op; _ }, _;
-                        args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
-                      },
-                    _ );
-                ];
-            } ->
-          Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
-            (Expr.format ctx ~debug:false)
-            e1 Print.operator op
-            (Expr.format ctx ~debug:false)
-            e2
-        | EApp
-            {
-              f = EOp { op; _ }, _;
-              args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
-            } ->
-          Errors.raise_spanned_error (Expr.pos e') "Assertion failed: %a %a %a"
-            (Expr.format ctx ~debug:false)
-            e1 Print.operator op
-            (Expr.format ctx ~debug:false)
-            e2
+  | EErrorOnEmpty e' -> (
+    match evaluate_expr ctx e' with
+    | EEmptyError, _ ->
+      Errors.raise_spanned_error (Expr.pos e')
+        "This variable evaluated to an empty term (no rule that defined it \
+         applied in this situation)"
+    | e -> e)
+  | EAssert e' ->
+    forward_empty_error (evaluate_expr ctx e') (fun e ->
+        match Marked.unmark e with
+        | ELit (LBool true) -> Marked.mark m (ELit LUnit)
+        | ELit (LBool false) -> (
+          match Marked.unmark (Expr.skip_wrappers e') with
+          | EApp
+              {
+                f = EOp { op; _ }, _;
+                args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
+              } ->
+            Errors.raise_spanned_error (Expr.pos e')
+              "Assertion failed: %a %a %a"
+              (Expr.format ctx ~debug:false)
+              e1 Print.operator op
+              (Expr.format ctx ~debug:false)
+              e2
+          | _ ->
+            Cli.debug_format "%a" (Expr.format ctx) e';
+            Errors.raise_spanned_error (Expr.mark_pos m) "Assertion failed")
         | _ ->
-          Cli.debug_format "%a" (Expr.format ctx) e';
-          Errors.raise_spanned_error (Expr.pos e') "Assertion failed")
-    | EEmptyError -> Marked.same_mark_as EEmptyError e
-      | _ ->
-        Errors.raise_spanned_error (Expr.pos e')
-          "Expected a boolean literal for the result of this assertion (should \
-           not happen if the term was well-typed)")
+          Errors.raise_spanned_error (Expr.pos e')
+            "Expected a boolean literal for the result of this assertion \
+             (should not happen if the term was well-typed)")
 
 (** {1 API} *)
 

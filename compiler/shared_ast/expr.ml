@@ -666,6 +666,11 @@ let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
     Array.fold_right Var.Set.remove vs (free_vars body)
   | e -> shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
 
+let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
+  | EApp { f = EOp { op = Log _; _ }, _; args = [e] }, _ -> skip_wrappers e
+  | EErrorOnEmpty e, _ -> skip_wrappers e
+  | e -> e
+
 let remove_logging_calls e =
   let rec f e =
     match Marked.unmark e with
