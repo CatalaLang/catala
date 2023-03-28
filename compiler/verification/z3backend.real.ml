@@ -742,6 +742,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> ctx, translate_lit ctx l
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
+  | EApp { f = head; args = [] } -> failwith "[Z3 encoding] let in"
   | EApp { f = head; args } -> (
     match Marked.unmark head with
     | EOp { op; _ } -> translate_op ctx op args
@@ -758,6 +759,14 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
           args (ctx, [])
       in
       ctx, Expr.mk_app ctx.ctx_z3 fd z3_args
+    | EAbs { binder; _ } ->
+      let vars, body = Bindlib.unmbind binder in
+      if Array.length vars != 1 || List.length args != 1 then
+        failwith "[Z3 encoding] EAbs not supported beyond let_in"
+      else
+        let arg = List.hd args in
+        let expr = Bindlib.msubst binder [| Marked.unmark arg |] in
+        translate_expr ctx expr
     | _ ->
       failwith
         "[Z3 encoding] EApp node: Catala function calls should only include \
