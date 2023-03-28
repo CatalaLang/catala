@@ -49,6 +49,14 @@ val map_exprs_in_lets :
   varf:('expr1 Var.t -> 'expr2 Var.t) ->
   'expr1 scope_body_expr ->
   'expr2 scope_body_expr Bindlib.box
+(** Usage
+    [map_exprs_in_lets ~f:(fun e -> ...) ~varf:(fun var -> ...) scope_body_expr],
+    where [e] is the right-hand-side of a scope let or the result of the scope
+    body, and [var] represents the left-hand-side variable of a scope let.
+    [~varf] is usually the identity function or [Var.translate] when the map
+    sends the expression to a new flavor of the shared AST. If [~reset_types] is
+    activated, then the resulting types in the scope let left-hand-sides will be
+    reset to [TAny]. *)
 
 val fold_left :
   f:('a -> 'expr1 code_item -> 'expr1 Var.t -> 'a) ->
