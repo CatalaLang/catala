@@ -198,16 +198,22 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     (* lazy *)
     assert (not (Var.Map.find v ctx).info_pure);
     Expr.evar (trans_var ctx v) m
+  | EAbs { binder; tys = [(TLit TUnit, _)] } ->
+    (* this is to be used with monad_bind. *)
+    let _, body = Bindlib.unmbind binder in
+    trans ctx body
   | EAbs { binder; tys } ->
     (* this is to be used with monad_bind. *)
     let vars, body = Bindlib.unmbind binder in
     let ctx' =
-      assert
-        false (* addvars vars (ArrayLabels.map vars ~f:(Fun.const true)) ctx *)
+      ArrayLabels.fold_right vars ~init:ctx ~f:(fun v ->
+          Var.Map.add v
+            { info_pure = true; is_scope = false; var = Var.translate v })
     in
+
     let body' = trans ctx' body in
     let binder' = Expr.bind (Array.map Var.translate vars) body' in
-    Expr.eabs binder' tys m
+    monad_return ~mark (Expr.eabs binder' tys m)
   | EDefault { excepts; just; cons } ->
     let excepts' = List.map (trans ctx) excepts in
     let just' = trans ctx just in
