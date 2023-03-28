@@ -1,0 +1,31 @@
+## Article
+
+```catala
+declaration scope S:
+  internal f content integer depends on y content integer
+  input x content boolean
+  output z content integer
+
+scope S:
+  definition f of y equals if x then y else - y
+  definition z equals f of -1
+```
+
+```catala-test-inline
+$ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
+let S =
+  λ (S_in: S_in {"x_in": bool}) →
+    let x : bool = S_in."x_in" in
+    let f : (((bool), integer) → integer * (bool)) =
+      let f1 : ((bool), integer) → integer =
+        λ (env: (bool)) (y: integer) →
+          let x1 : bool = env.0 in
+          if x1 then y else -! y in
+      (f1, (x)) in
+    let z : integer =
+      let code_and_env : (((bool), integer) → integer * (bool)) = f in
+      let code : ((bool), integer) → integer = code_and_env.0 in
+      let env : (bool) = code_and_env.1 in
+      code env -1 in
+    S { "z"= z }
+```

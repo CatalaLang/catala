@@ -23,7 +23,7 @@ let expr ctx env e =
      [Some] *)
   (* Intermediate unboxings are fine since the last [untype] will rebox in
      depth *)
-  Typing.check_expr ctx ~env (Expr.unbox e)
+  Typing.check_expr ~leave_unresolved:false ctx ~env (Expr.unbox e)
 
 let rule ctx env rule =
   let env =
@@ -63,7 +63,8 @@ let program prg =
   let env =
     TopdefName.Map.fold
       (fun name (_e, ty) env -> Typing.Env.add_toplevel_var name ty env)
-      prg.program_topdefs Typing.Env.empty
+      prg.program_topdefs
+      (Typing.Env.empty prg.program_ctx)
   in
   let program_topdefs =
     TopdefName.Map.map
