@@ -316,9 +316,13 @@ let driver source_file (options : Cli.options) : int =
               results
           | (`OCaml | `Python | `Lcalc | `Scalc | `Plugin _) as backend -> (
             Cli.debug_print "Compiling program into lambda calculus...";
+            Cli.debug_format "before:";
+            Format.print_cut ();
+            Cli.debug_format "%a" (Shared_ast.Program.format ~debug:true) prgm;
             let prgm =
               if options.avoid_exceptions then
-                Lcalc.Compile_without_exceptions.translate_program prgm
+                Shared_ast.Program.untype
+                @@ Lcalc.Compile_without_exceptions.translate_program prgm
               else
                 Shared_ast.Program.untype
                 @@ Lcalc.Compile_with_exceptions.translate_program prgm
