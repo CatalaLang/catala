@@ -742,7 +742,6 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> ctx, translate_lit ctx l
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
-  | EApp { f = head; args = [] } -> failwith "[Z3 encoding] let in"
   | EApp { f = head; args } -> (
     match Marked.unmark head with
     | EOp { op; _ } -> translate_op ctx op args
