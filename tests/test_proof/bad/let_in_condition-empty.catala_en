@@ -1,0 +1,12 @@
+## Test
+
+```catala
+declaration scope A:
+  context x content boolean
+
+scope A:
+  definition x under condition
+    let y equals false in
+    y 
+  consequence equals true
+```
