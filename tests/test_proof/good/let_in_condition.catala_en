@@ -12,6 +12,6 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
-[RESULT] Computation successful!
+$ catala Proof --disable_counterexamples
+[RESULT] No errors found during the proof mode run.
 ```
