@@ -10,3 +10,8 @@ scope A:
     y 
   consequence equals true
 ```
+
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful!
+```
