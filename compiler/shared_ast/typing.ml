@@ -242,6 +242,7 @@ let polymorphic_op_type (op : ('a, Operator.polymorphic) A.operator Marked.pos)
   let any = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let any2 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let bt = lazy (UnionFind.make (TLit TBool, pos)) in
+  let ut = lazy (UnionFind.make (TLit TUnit, pos)) in
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
   let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
@@ -259,7 +260,7 @@ let polymorphic_op_type (op : ('a, Operator.polymorphic) A.operator Marked.pos)
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    | HandleDefault -> assert false
+    | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
     | HandleDefaultOpt ->
       [array (option any); option bt; option any] @-> option any
   in
