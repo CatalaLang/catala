@@ -5533,9 +5533,9 @@ champ d'application CalculNombrePartLogementFoyer:
 # Ci-dessus, nous avons modifié le calcul de CalculNombrePartLogementFoyer
 # lorsque la "limitation_majoration_personnes_à_charge" est activée. Mais il
 # nous faut maintenant activer cette "limitation_majoration_personnes_à_charge"
-# dans les bons cas ! Pour cela, puisque CalculNombrePartLogemeinternentFoyer est
-# appelé depuis CalculAidePersonnaliséeLogementFoyer, il nous faut déclarer dans
-# CalculAidePersonnaliséeLogementFoyer une condition
+# dans les bons cas ! Pour cela, puisque CalculNombrePartLogemeinternentFoyer
+# est appelé depuis CalculAidePersonnaliséeLogementFoyer, il nous faut déclarer
+# dans CalculAidePersonnaliséeLogementFoyer une condition
 # "limitation_majoration_personnes_à_charge" similaire qui déclenche celle de
 # CalculNombrePartLogementFoyer. C'est ce que nous faisons ci-dessous.
 champ d'application CalculAidePersonnaliséeLogementFoyer:

@@ -141,7 +141,7 @@ class InfosLogementFoyer(InfosSpecifiques):
                  construit_application_loi_1957_12_III: bool,
                  redevance: int,
                  categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer_Code,
-                 conventionne_selon_regles_mayotte: bool,
+                 conventionne_selon_regles_drom: bool,
                  beneficiaire_aide_adulte_ou_enfant_handicapes: bool,
                  logement_meuble_d842_2: bool):
         self.type = type
@@ -151,7 +151,7 @@ class InfosLogementFoyer(InfosSpecifiques):
         self.construit_application_loi_1957_12_III = construit_application_loi_1957_12_III
         self.redevance = redevance
         self.categorie_equivalence_loyer_d842_16 = categorie_equivalence_loyer_d842_16
-        self.conventionne_selon_regles_mayotte = conventionne_selon_regles_mayotte
+        self.conventionne_selon_regles_drom = conventionne_selon_regles_drom
         self.beneficiaire_aide_adulte_ou_enfant_handicapes = beneficiaire_aide_adulte_ou_enfant_handicapes
         self.logement_meuble_d842_2 = logement_meuble_d842_2
 
@@ -264,7 +264,7 @@ def aides_logement(
                         (LogementFoyer(
                             type=TypeLogementFoyer(
                                 code=infos_specifiques.type, value=Unit()),
-                            conventionne_selon_regles_mayotte=infos_specifiques.conventionne_selon_regles_mayotte,
+                            conventionne_selon_regles_drom=infos_specifiques.conventionne_selon_regles_drom,
                             logement_meuble_d842_2=infos_specifiques.logement_meuble_d842_2,
                             beneficiaire_aide_adulte_ou_enfant_handicapes=infos_specifiques.beneficiaire_aide_adulte_ou_enfant_handicapes,
                             remplit_conditions_r832_21=infos_specifiques.remplit_conditions_r832_21,

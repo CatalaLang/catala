@@ -1954,6 +1954,9 @@ class type calcul_allocation_logement_locatif =
 
 class type calcul_allocation_logement_accession_propriete =
   object
+    method mensualiteEligible: Js.number Js.t Js.readonly_prop
+    method mensualiteMinimale: Js.number Js.t Js.readonly_prop
+    method coefficientPriseEnCharge: Js.number Js.t Js.readonly_prop
     method aideFinaleFormule: Js.number Js.t Js.readonly_prop
     method traitementAideFinale:
       (unit,  Js.number Js.t -> Js.number Js.t) Js.meth_callback Js.meth
@@ -1963,6 +1966,12 @@ class type calcul_allocation_logement_accession_propriete =
     : CalculAllocationLogementAccessionPropriete.t)
     : calcul_allocation_logement_accession_propriete Js.t =
     object%js
+      val mensualiteEligible =
+        Js.number_of_float @@ money_to_float calcul_allocation_logement_accession_propriete.mensualite_eligible
+      val mensualiteMinimale =
+        Js.number_of_float @@ money_to_float calcul_allocation_logement_accession_propriete.mensualite_minimale
+      val coefficientPriseEnCharge =
+        Js.number_of_float @@ decimal_to_float calcul_allocation_logement_accession_propriete.coefficient_prise_en_charge
       val aideFinaleFormule =
         Js.number_of_float @@ money_to_float calcul_allocation_logement_accession_propriete.aide_finale_formule
       method traitementAideFinale = Js.wrap_meth_callback
@@ -1977,6 +1986,16 @@ class type calcul_allocation_logement_accession_propriete =
       : calcul_allocation_logement_accession_propriete Js.t) :
     CalculAllocationLogementAccessionPropriete.t =
     {
+      mensualite_eligible =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_accession_propriete##.mensualiteEligible;
+      mensualite_minimale =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_accession_propriete##.mensualiteMinimale;
+      coefficient_prise_en_charge =
+        decimal_of_float @@ Js.float_of_number
+          calcul_allocation_logement_accession_propriete
+          ##.coefficientPriseEnCharge;
       aide_finale_formule =
         money_of_decimal @@ decimal_of_float @@ Js.float_of_number
           calcul_allocation_logement_accession_propriete##.aideFinaleFormule;
@@ -2478,7 +2497,7 @@ class type logement_foyer =
     method typeUser: type_logement_foyer Js.t Js.readonly_prop
     method remplitConditionsR83221: bool Js.t Js.readonly_prop
     method conventionneLivreIIITitreVChapIII: bool Js.t Js.readonly_prop
-    method conventionneSelonReglesMayotte: bool Js.t Js.readonly_prop
+    method conventionneSelonReglesDrom: bool Js.t Js.readonly_prop
     method dateConventionnement: Js.js_string Js.t Js.readonly_prop
     method construitApplicationLoi195712III: bool Js.t Js.readonly_prop
     method redevance: Js.number Js.t Js.readonly_prop
@@ -2496,8 +2515,8 @@ class type logement_foyer =
         Js.bool logement_foyer.remplit_conditions_r832_21
       val conventionneLivreIIITitreVChapIII =
         Js.bool logement_foyer.conventionne_livre_III_titre_V_chap_III
-      val conventionneSelonReglesMayotte =
-        Js.bool logement_foyer.conventionne_selon_regles_mayotte
+      val conventionneSelonReglesDrom =
+        Js.bool logement_foyer.conventionne_selon_regles_drom
       val dateConventionnement =
         date_to_jsoo logement_foyer.date_conventionnement
       val construitApplicationLoi195712III =
@@ -2518,8 +2537,8 @@ class type logement_foyer =
         Js.to_bool logement_foyer##.remplitConditionsR83221;
       conventionne_livre_III_titre_V_chap_III =
         Js.to_bool logement_foyer##.conventionneLivreIIITitreVChapIII;
-      conventionne_selon_regles_mayotte =
-        Js.to_bool logement_foyer##.conventionneSelonReglesMayotte;
+      conventionne_selon_regles_drom =
+        Js.to_bool logement_foyer##.conventionneSelonReglesDrom;
       date_conventionnement =
         date_of_jsoo logement_foyer##.dateConventionnement;
       construit_application_loi_1957_12_III =

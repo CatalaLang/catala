@@ -1406,12 +1406,19 @@ Pour l'application de l'article L. 831-1 en Guadeloupe, en Guyane, en Martinique
 conditions sont fixées par voie réglementaire ;”.
 
 ```catala
-champ d'application ÉligibilitéAidePersonnaliséeLogement:
+champ d'application ÉligibilitéAidePersonnaliséeLogement sous condition
+  (selon ménage.résidence sous forme
+  -- Guadeloupe: vrai
+  -- Guyane: vrai
+  -- Martinique: vrai
+  -- LaRéunion: vrai
+  -- Mayotte: vrai
+  -- n'importe quel: faux):
   exception l831_1_alinea_5
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de location:
-        location.conventionné_selon_règles_mayotte
+        location.conventionné_selon_règles_drom
       -- n'importe quel: faux
   conséquence rempli
 ```
