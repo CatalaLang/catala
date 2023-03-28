@@ -1813,8 +1813,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
 ```
 
 2° La valeur fixée à l'article 15 du forfait " R0 ", visé au 5° de l'article D. 823-17 du même code,
-pour un ménage ayant un enfant à charge, est remplacée par " 7 584 euros " ; 3° Les montants forfaitaires
-au titre des charges sont modifiés ainsi :
+pour un ménage ayant un enfant à charge, est remplacée par " 7 584 euros " ;
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
@@ -2093,7 +2092,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 
 ```
 
-#### Article 8 | LEGIARTI000042378446 [archive]
+### Article 8 | LEGIARTI000042378446 [archive]
 
 Dans le cas où le logement occupé est une chambre, les plafonds
 de loyers visés au 2° de l'article D. 823-16 du même code sont
@@ -2462,7 +2461,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
     53,99 € + 12,24 € * (décimal de nombre_personnes_à_charge)
 ```
 
-#### Article 24 | LEGIARTI000042378430 [archive]
+### Article 24 | LEGIARTI000042378430 [archive]
 
 Dans le cas des copropriétaires prévus à l'article D. 832-16 du même code :
 

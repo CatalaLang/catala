@@ -14,6 +14,7 @@ depends: [
   "cohttp-lwt-unix" {>= "5.0.0"}
   "cohttp" {>= "5.0.0"}
   "tls" {>= "0.15.3"}
+  "lwt-ssl" { >= "1.2.0" }
   "catala" {= version}
   "odoc" {with-doc}
 ]

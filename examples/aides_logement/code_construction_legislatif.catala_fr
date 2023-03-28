@@ -58,7 +58,7 @@ déménagement.
 
 Toutefois, lorsque le montant ainsi versé est inférieur à celui de la prime
 de déménagement à laquelle la personne ou le ménage aurait droit en vertu des
-dispositions de l'article L. 823-8, la différence est versée par l'organisme
+dispositions de l'article L. 823-8 , la différence est versée par l'organisme
 payeur.
 
 ```catala
@@ -1288,7 +1288,7 @@ au chapitre III du présent titre.
 # Rien à coder pour l'instant, on verra au chapitre III du présent titre.
 ```
 
-NOTA:
+NOTA :
 
 Aux termes du III de l'article 23 de l'ordonnance n° 2019-770 du 17 juillet
 2019, le II de l’article L. 860-3 du code de la construction et de l’habitation,
@@ -1305,7 +1305,7 @@ annexé à la présente ordonnance, entre en vigueur le 1er janvier 2021.
 
 ####### Article L861-4 | LEGIARTI000038814781
 
-Les articles L. 821-4 et L. 823-8, relatifs aux primes de déménagement,
+Les articles L. 821-4 et L. 823-8 , relatifs aux primes de déménagement,
 ne sont pas applicables à Mayotte.
 
 ```catala
@@ -1339,8 +1339,8 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
       conditions.satisfait_art_4_ordonnance_2002_mayotte
 ```
 
-2° A l'article L. 822-5, les mots : " prévue à l'article L. 821-1 du code de
-la sécurité sociale " sont remplacés par les mots : " prévue à l'article 35
+2° A l'article L. 822-5 , les mots : " prévue à l'article L. 821-1 du code de
+la sécurité sociale " sont remplacés par les mots : " prévue à l' article 35
 de l'ordonnance n° 2002-411 du 27 mars 2002 relative à la protection sanitaire
 et sociale à Mayotte " et les mots : " prévue à l'article L. 541-1 du même
 code " sont remplacés par les mots : " prévu par l'article 10-1 de l'ordonnance
@@ -1359,7 +1359,7 @@ départementale de Mayotte " ;
 " Art. L. 822-10.-L'attribution d'une aide personnelle au logement est
 subordonnée au respect de conditions de peuplement des logements. Si un
 logement devient surpeuplé, du fait de l'arrivée au foyer d'un conjoint ou
-d'un ascendant à charge, l'aide est maintenue pendant une durée déterminée."
+d'un ascendant à charge, l'aide est maintenue pendant une durée déterminée. "
 Ces conditions de peuplement et la durée du maintien de l'aide sont fixées
 par voie réglementaire. " ;
 
@@ -1377,10 +1377,10 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   conséquence non rempli
 ```
 
-5° A l'article L. 823-9, les mots : " Les articles L. 161-1-5 et L. 553-2 du
+5° A l'article L. 823-9 , les mots : " Les articles L. 161-1-5 et L. 553-2 du
 code de la sécurité sociale " sont remplacés par les mots : " Le deuxième
 alinéa de l'article 20 de l'ordonnance n° 2002-411 du 27 mars 2002 relative à
-la protection sanitaire et sociale à Mayotte et l'article 13 de l'ordonnance
+la protection sanitaire et sociale à Mayotte et l' article 13 de l'ordonnance
 n° 2002-149 du 7 février 2002 relative à l'extension et la généralisation des
 prestations familiales et à la protection sociale dans la collectivité
 territoriale de Mayotte ".
