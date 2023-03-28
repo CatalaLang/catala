@@ -759,7 +759,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
       in
       ctx, Expr.mk_app ctx.ctx_z3 fd z3_args
     | EAbs { binder; _ } ->
-      let vars, body = Bindlib.unmbind binder in
+      let vars, _ = Bindlib.unmbind binder in
       if Array.length vars != 1 || List.length args != 1 then
         failwith "[Z3 encoding] EAbs not supported beyond let_in"
       else
