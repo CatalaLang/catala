@@ -44,7 +44,26 @@ module A = Ast
 
 open Shared_ast
 
-type info_pure = { info_pure : bool; is_scope : bool }
+module Ren = struct
+  module Set = Set.Make (String)
+
+  type ctxt = Set.t
+
+  let skip_constant_binders = true
+  let reset_context_for_closed_terms = true
+  let constant_binder_name = None
+  let empty_ctxt = Set.empty
+  let reserve_name n s = Set.add n s
+  let new_name n s = n, Set.add n s
+end
+
+module Ctx = Bindlib.Ctxt (Ren)
+
+type 'a info_pure = {
+  info_pure : bool;
+  is_scope : bool;
+  var : 'a Ast.expr Var.t;
+}
 
 (** Information about each encontered Dcalc variable is stored inside a context
     : what is the corresponding LCalc variable; an expression corresponding to
@@ -182,13 +201,19 @@ let _ = monad_handle_default
 
 (** Start of the translation *)
 
-let trans_var _ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t = Var.translate x
+let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
+  let new_ = (Var.Map.find x ctx).var in
+  Cli.debug_format "before: %a after: %a" Print.var_debug x Print.var_debug new_;
+
+  new_
+
 let trans_op : (dcalc, 'a) Op.t -> (lcalc, 'a) Op.t = Operator.translate
 
 let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   let m = Marked.get_mark e in
   let mark = m in
   let pos = Expr.pos e in
+  (* Cli.debug_format "%a" (Print.expr_debug ~debug:true) e; *)
   match Marked.unmark e with
   | EVar x ->
     if (Var.Map.find x ctx).info_pure then
@@ -241,8 +266,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   | EApp { f = (EVar ff, _) as f; args } ->
     (* INVARIANT: functions are always encoded using this function.info_pure
        Invariant failed : scope calls are encoded using an other technique. *)
-    Cli.debug_format "%s %b" (Bindlib.name_of ff)
-      (Var.Map.find ff ctx).info_pure;
+    (* Cli.debug_format "%s %b" (Bindlib.name_of ff) (Var.Map.find ff
+       ctx).info_pure; *)
 
     (* todo: is_scope test *)
     if (Var.Map.find ff ctx).is_scope then
@@ -255,6 +280,12 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       monad_bind_var ~mark
         (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
         f_var (trans ctx f)
+  | EApp { f = (EStructAccess _, _) as f; args } ->
+    let f_var = Var.make "fff" in
+    monad_bind_var ~mark
+      (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
+      f_var (trans ctx f)
+    (* correspond to what? *)
   | EApp { f = EAbs { binder; _ }, _; args } ->
     (* Invariant: every let have only one argument. (checked by
        invariant_let) *)
@@ -262,11 +293,12 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let[@warning "-8"] [| var |] = var in
     let var' = Var.translate var in
     let[@warning "-8"] [arg] = args in
-    let ctx' = Var.Map.add var { info_pure = true; is_scope = false } ctx in
+    let ctx' =
+      Var.Map.add var { info_pure = true; is_scope = false; var = var' } ctx
+    in
     monad_bind_var (trans ctx arg) var' (trans ctx' body) ~mark
   | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
     assert false
-  | EApp { f = EStructAccess _, _; _ } -> assert false
   | EApp { f = EOp { op; tys }, opmark; args } ->
     let res =
       monad_mmap
@@ -287,7 +319,12 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
             let vars, body = Bindlib.unmbind binder in
             let ctx' =
               ArrayLabels.fold_right vars ~init:ctx ~f:(fun var ->
-                  Var.Map.add var { info_pure = true; is_scope = false })
+                  Var.Map.add var
+                    {
+                      info_pure = true;
+                      is_scope = false;
+                      var = Var.translate var;
+                    })
             in
             let binder =
               Expr.bind (Array.map Var.translate vars) (trans ctx' body)
@@ -312,7 +349,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (fun xs ->
         let fields =
           ListLabels.fold_right2 fields_name
-            (List.map (fun x -> Expr.evar x mark) xs)
+            (List.map (fun x -> monad_return ~mark (Expr.evar x mark)) xs)
             ~f:StructField.Map.add ~init:StructField.Map.empty
         in
         monad_return ~mark (Expr.estruct name fields mark))
@@ -369,7 +406,7 @@ let rec trans_scope_let ctx s =
   match s with
   | {
    scope_let_kind = SubScopeVarDefinition;
-   scope_let_typ;
+   scope_let_typ = (TArrow ([(TLit TUnit, _)], _), _) as scope_let_typ;
    scope_let_expr = EAbs { binder; _ }, _;
    scope_let_next;
    scope_let_pos;
@@ -379,11 +416,47 @@ let rec trans_scope_let ctx s =
     let _, scope_let_expr = Bindlib.unmbind binder in
     let next_var, next_body = Bindlib.unbind scope_let_next in
 
+    let next_var' = Var.translate next_var in
     let ctx' =
-      Var.Map.add next_var { info_pure = false; is_scope = false } ctx
+      Var.Map.add next_var
+        { info_pure = false; is_scope = false; var = next_var' }
+        ctx
     in
 
-    let next_var = Var.translate next_var in
+    let next_var = next_var' in
+    let next_body = trans_scope_body_expr ctx' next_body in
+
+    let scope_let_next = Bindlib.bind_var next_var next_body in
+
+    let scope_let_expr = Expr.Box.lift @@ trans ctx scope_let_expr in
+
+    Bindlib.box_apply2
+      (fun scope_let_expr scope_let_next ->
+        {
+          scope_let_kind = SubScopeVarDefinition;
+          scope_let_typ = trans_typ scope_let_typ;
+          scope_let_expr;
+          scope_let_next;
+          scope_let_pos;
+        })
+      scope_let_expr scope_let_next
+  | {
+   scope_let_kind = SubScopeVarDefinition;
+   scope_let_typ;
+   scope_let_expr = (EAbs _, _) as scope_let_expr;
+   scope_let_next;
+   scope_let_pos;
+  } ->
+    (* special case : the subscope variable is thunked (context i/o). We remove
+       this thunking. *)
+    let next_var, next_body = Bindlib.unbind scope_let_next in
+    let next_var' = Var.translate next_var in
+    let ctx' =
+      Var.Map.add next_var
+        { info_pure = false; is_scope = false; var = next_var' }
+        ctx
+    in
+    let next_var = next_var' in
     let next_body = trans_scope_body_expr ctx' next_body in
 
     let scope_let_next = Bindlib.bind_var next_var next_body in
@@ -410,11 +483,14 @@ let rec trans_scope_let ctx s =
     (* special case: regular input to the subscope *)
     let next_var, next_body = Bindlib.unbind scope_let_next in
 
+    let next_var' = Var.translate next_var in
     let ctx' =
-      Var.Map.add next_var { info_pure = false; is_scope = false } ctx
+      Var.Map.add next_var
+        { info_pure = false; is_scope = false; var = next_var' }
+        ctx
     in
 
-    let next_var = Var.translate next_var in
+    let next_var = next_var' in
     let next_body = trans_scope_body_expr ctx' next_body in
 
     let scope_let_next = Bindlib.bind_var next_var next_body in
@@ -447,6 +523,7 @@ let rec trans_scope_let ctx s =
     (* base case *)
     let next_var, next_body = Bindlib.unbind scope_let_next in
 
+    let next_var' = Var.translate next_var in
     let ctx' =
       Var.Map.add next_var
         (match scope_let_kind with
@@ -457,15 +534,15 @@ let rec trans_scope_let ctx s =
              regular input. *)
           match Marked.unmark scope_let_typ with
           | TArrow ([(TLit TUnit, _)], _) ->
-            { info_pure = false; is_scope = false }
-          | _ -> { info_pure = false; is_scope = false })
+            { info_pure = false; is_scope = false; var = next_var' }
+          | _ -> { info_pure = false; is_scope = false; var = next_var' })
         | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
         | DestructuringSubScopeResults | Assertion ->
-          { info_pure = false; is_scope = false })
+          { info_pure = false; is_scope = false; var = next_var' })
         ctx
     in
 
-    let next_var = Var.translate next_var in
+    let next_var = next_var' in
     let next_body = trans_scope_body_expr ctx' next_body in
 
     let scope_let_next = Bindlib.bind_var next_var next_body in
@@ -507,7 +584,9 @@ let trans_scope_body
   let var, body = Bindlib.unbind scope_body_expr in
   let body =
     trans_scope_body_expr
-      (Var.Map.add var { info_pure = true; is_scope = false } ctx)
+      (Var.Map.add var
+         { info_pure = true; is_scope = false; var = Var.translate var }
+         ctx)
       body
   in
   let binder = Bindlib.bind_var (Var.translate var) body in
@@ -527,7 +606,9 @@ let rec trans_code_items ctx c :
       let next =
         Bindlib.bind_var (Var.translate var)
           (trans_code_items
-             (Var.Map.add var { info_pure = false; is_scope = false } ctx)
+             (Var.Map.add var
+                { info_pure = false; is_scope = false; var = Var.translate var }
+                ctx)
              next)
       in
       let e = Expr.Box.lift @@ trans ctx e in
@@ -539,7 +620,9 @@ let rec trans_code_items ctx c :
       let next =
         Bindlib.bind_var (Var.translate var)
           (trans_code_items
-             (Var.Map.add var { info_pure = true; is_scope = true } ctx)
+             (Var.Map.add var
+                { info_pure = true; is_scope = true; var = Var.translate var }
+                ctx)
              next)
       in
       let body = trans_scope_body ctx body in
@@ -548,6 +631,7 @@ let rec trans_code_items ctx c :
         next body)
 
 let rec translate_typ (tau : typ) : typ =
+  let m = Marked.get_mark tau in
   (Fun.flip Marked.same_mark_as)
     tau
     begin
@@ -559,17 +643,18 @@ let rec translate_typ (tau : typ) : typ =
       | TOption _ -> assert false
       | TAny -> TAny
       | TArray ts -> TArray (translate_typ ts) (* catala is not polymorphic *)
-      | TArrow ([(TLit TUnit, _)], t2) -> TOption (translate_typ t2)
-      | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
+      | TArrow ([(TLit TUnit, _)], t2) -> Marked.unmark (translate_typ t2)
+      | TArrow (t1, t2) ->
+        TArrow (List.map translate_typ t1, (TOption (translate_typ t2), m))
     end
 
+let translate_typ (tau : typ) : typ =
+  Marked.same_mark_as (TOption (translate_typ tau)) tau
+
 let translate_program (prgm : typed D.program) : untyped A.program =
-  let inputs_structs =
-    Scope.fold_left prgm.code_items ~init:[] ~f:(fun acc def _ ->
-        match def with
-        | ScopeDef (_, body) -> body.scope_body_input_struct :: acc
-        | Topdef _ -> acc)
-  in
+  (* let inputs_structs = Scope.fold_left prgm.code_items ~init:[] ~f:(fun acc
+     def _ -> match def with | ScopeDef (_, body) ->
+     body.scope_body_input_struct :: acc | Topdef _ -> acc) in *)
   (* Cli.debug_print @@ Format.asprintf "List of structs to modify: [%a]"
      (Format.pp_print_list D.StructName.format_t) inputs_structs; *)
   let decl_ctx =
@@ -585,20 +670,22 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       decl_ctx with
       ctx_structs =
         prgm.decl_ctx.ctx_structs
-        |> StructName.Map.mapi (fun n str ->
-               if List.mem n inputs_structs then
-                 StructField.Map.map translate_typ str
-                 (* Cli.debug_print @@ Format.asprintf "Input type: %a"
-                    (Print.typ decl_ctx) tau; Cli.debug_print @@ Format.asprintf
-                    "Output type: %a" (Print.typ decl_ctx) (translate_typ
-                    tau); *)
-               else str);
+        |> StructName.Map.mapi (fun _n str ->
+               StructField.Map.map translate_typ str
+               (* Cli.debug_print @@ Format.asprintf "Input type: %a" (Print.typ
+                  decl_ctx) tau; Cli.debug_print @@ Format.asprintf "Output
+                  type: %a" (Print.typ decl_ctx) (translate_typ tau); *));
     }
   in
 
   let code_items = trans_code_items Var.Map.empty prgm.code_items in
 
+  let fv = Ren.Set.elements (Ctx.free_vars code_items) in
+
+  ListLabels.iter fv ~f:(fun s -> Cli.debug_format "freevar: %s" s);
+
   (* assert (Bindlib.free_vars code_items = Bindlib.empty_ctxt); *)
+  (* assert (Bindlib.is_closed code_items); *)
   let code_items = Bindlib.unbox code_items in
 
   Program.untype { decl_ctx; code_items }
