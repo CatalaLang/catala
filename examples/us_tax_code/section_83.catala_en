@@ -1,13 +1,29 @@
 # 83. Property transferred in connection with performance of services
 
 ```catala-metadata
+declaration structure StockPropertyTransfer:
+  data is_qualified_stock content boolean
+  data stock_readily_tradable_1Biii content boolean
+  data is_1_percent_owner content boolean
+  data is_ceo content boolean
+  data is_cfo content boolean
+  data has_relationship_with_ceo content boolean
+  data has_relationship_with_cfo content boolean
+  data is_among_4_highest_compensated_officers content boolean
+  data was_among_4_highest_compensated_officers_in_last_10_years content boolean
+    (received_in_connection_with_exercise_of_option or
+     received_in_settlement_of_restricted_stock_unit)
+    (granted_in_connection_with_service and
+
+
+
 declaration structure PropertyTransfer:
   data taxpayer_performed_the_service content boolean
   data elects_to_include_in_year_of_transfer_b content boolean
     # has to be explicitely selected within 30 days of transfer
   data elects_to_include_i content boolean
 
-  data recipient_not_the_person_the_service_was_performed_for
+  data recipient_not_the_person_the_service_was_performed_for content boolean
 
   data date_of_transfer content date
 
@@ -22,14 +38,16 @@ declaration structure PropertyTransfer:
   data option_without_ascertainable_fair_market_value content boolean
   data exercise_of_option_with_readily_ascertainable_fair_market_value_at_grant content boolean
   data group_term_life_insurance_79 content boolean
-  data is_qualified_stock content boolean
-  data is_qualified_employee content boolean
+  data stock content StockPropertyTransfer
 
 declaration scope Transferred_property_83:
   input transfer content PropertyTransfer
   input current_taxable_year_start content date
   internal current_taxable_year_end content date
   internal is_restricted content boolean
+  internal conditions_forbidding_election_83i content boolean
+  internal is_qualified_employee content boolean
+  internal eligible_corporation content boolean
   output amount_to_include_in_gross_income content TransferredReturn
     state computing
     state final
@@ -261,8 +279,13 @@ For purposes of this subsection, the term “qualified stock” means, with resp
   - (II) during a calendar year in which such corporation was an eligible corporation.
 
 ```catala
-
-
+scope Transferred_property_83:
+  definition is_qualified_stock equals
+    (transfer.stock.received_in_connection_with_exercise_of_option or
+     transfer.stock.received_in_settlement_of_restricted_stock_unit)
+    and
+    (transfer.stock.granted_in_connection_with_service and
+     eligible_corporation)
 ```
 
 #### (B) Limitation.
@@ -302,6 +325,13 @@ The term “qualified employee” means any individual who--
 
 - (ii) agrees in the election made under this subsection to meet such requirements as are determined by the Secretary to be necessary to ensure that the withholding requirements of the corporation under chapter 24 with respect to the qualified stock are met.
 
+```catala
+scope Transferred_property_83:
+  definition is_qualified_employee equals
+    not is_excluded_employee and
+    transfer.stock.agrees_with_secretary_requirements
+```
+
 #### (B) Excluded employee.
 
 The term “excluded employee” means, with respect to any corporation, any individual--
@@ -315,6 +345,18 @@ The term “excluded employee” means, with respect to any corporation, any ind
 - (iii) who bears a relationship described in section 318(a)(1) to any individual described in subclause (I) or (II) of clause (ii), or
 
 - (iv) who is one of the 4 highest compensated officers of such corporation for the taxable year, or was one of the 4 highest compensated officers of such corporation for any of the 10 preceding taxable years, determined with respect to each such taxable year on the basis of the shareholder disclosure rules for compensation under the Securities Exchange Act of 1934 (as if such rules applied to such corporation).
+
+```catala
+scope Transferred_property_83:
+  definition is_excluded_employee equals
+      transfer.stock.is_1_percent_owner or
+      transfer.stock.is_ceo or
+      transfer.stock.is_cfo or
+      transfer.stock.has_relationship_with_ceo or
+      transfer.stock.has_relationship_with_cfo or
+      transfer.stock.is_among_4_highest_compensated_officers or
+      transfer.stock.was_among_4_highest_compensated_officers_in_last_10_years
+```
 
 ### (4) Election.
 
@@ -342,13 +384,13 @@ No election may be made under this section with respect to any qualified stock i
 ```catala
 scope Transferred_property_83:
   definition conditions_forbidding_election_83i equals
-    elects_to_include_b or
-    stock_readily_tradable_1Bii or
-    (corporation_purchased_in_year_before_unrestricted = $0 or
-     (25% <= company_purchased_deferral_stock_value /
-             corporation_purchased_in_year_before_unrestricted
-      and
-      reasonable_basis_for_purchase))
+    transfer.elects_to_include_in_year_of_transfer_b or
+    transfer.stock.stock_readily_tradable_1Biii
+#    (corporation_purchased_in_year_before_unrestricted = $0 or
+#     (25% <= company_purchased_deferral_stock_value /
+#             corporation_purchased_in_year_before_unrestricted
+#      and
+#      reasonable_basis_for_purchase))
 ```
 
 #### (C) Definitions and special rules related to limitation on stock redemptions.--
