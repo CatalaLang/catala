@@ -54,13 +54,13 @@ OCaml's distribution and package manager. Follow the [instructions on the `opam`
 website](https://opam.ocaml.org/doc/Install.html).
 
 Next, you will need to use the correct version of OCaml. Catala has been tested
-with OCaml compiler versions that are at least 4.13.0. To switch to OCaml 4.13.0.,
+with OCaml compiler versions that are at least 4.14.0. To switch to OCaml 4.14.0,
 just use:
 
-    opam switch 4.13.0
+    opam switch 4.14.0
 
-If you get a `No switch 4.13.0 is currently installed` error message, follow
-the hint and enter `opam switch create 4.13.0`.
+If you get a `No switch 4.14.0 is currently installed` error message, follow
+the hint and enter `opam switch create 4.14.0`.
 
 ## Dependencies
 
