@@ -299,6 +299,12 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     monad_bind_var (trans ctx' body) var' (trans ctx arg) ~mark
   | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
     assert false
+  (* | EApp { f = EOp { op = Op.Fold; tys }, opmark; args = [f; init; l] } -> (*
+     *) let x1 = Var.make "x1" in let x2 = var.make "x2" in let body = monad let
+     f' = assert false in monad_mbind (Expr.eop (trans_op Op.Fold) tys opmark)
+     [f'; trans ctx init; trans ctx l] ~mark | EApp { f = EOp { op = Op.Fold; _
+     }, _; _ } -> (* Cannot happend: folds must be fully determined *) assert
+     false *)
   | EApp { f = EOp { op; tys }, opmark; args } ->
     let res =
       monad_mmap
