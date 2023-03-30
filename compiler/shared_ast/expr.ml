@@ -205,15 +205,17 @@ let maybe_ty (type m) ?(typ = TAny) (m : m mark) : typ =
 (* - Traversal functions - *)
 
 (* shallow map *)
-let map
-    (type a)
-    ~(f : (a, 'm1) gexpr -> (a, 'm2) boxed_gexpr)
-    (e : ((a, 'm1) naked_gexpr, 'm2) Marked.t) : (a, 'm2) boxed_gexpr =
+let map_raw
+    (type a b)
+    ~(f : (a, 'm1) gexpr -> (b, 'm2) boxed_gexpr)
+    ~(fop : a Op.t -> b Op.t)
+    ~(floc : a glocation -> b glocation)
+    (e : ((a, b, 'm1) base_gexpr, 'm2) Marked.t) : (b, 'm2) boxed_gexpr =
   let m = Marked.get_mark e in
   match Marked.unmark e with
   | ELit l -> elit l m
   | EApp { f = e1; args } -> eapp (f e1) (List.map f args) m
-  | EOp { op; tys } -> eop op tys m
+  | EOp { op; tys } -> eop (fop op) tys m
   | EArray args -> earray (List.map f args) m
   | EVar v -> evar (Var.translate v) m
   | EAbs { binder; tys } ->
@@ -233,7 +235,7 @@ let map
   | EErrorOnEmpty e1 -> eerroronempty (f e1) m
   | ECatch { body; exn; handler } -> ecatch (f body) exn (f handler) m
   | ERaise exn -> eraise exn m
-  | ELocation loc -> elocation loc m
+  | ELocation loc -> elocation (floc loc) m
   | EStruct { name; fields } ->
     let fields = StructField.Map.map f fields in
     estruct name fields m
@@ -247,6 +249,7 @@ let map
     let fields = ScopeVar.Map.map f args in
     escopecall scope fields m
 
+let map = map_raw ~fop:(fun op -> op) ~floc:(fun loc -> loc)
 let rec map_top_down ~f e = map ~f:(map_top_down ~f) (f e)
 
 let map_marks ~f e =
