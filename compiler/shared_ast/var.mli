@@ -30,9 +30,6 @@ val make : string -> 'e t
 val compare : 'e t -> 'e t -> int
 val eq : 'e t -> 'e t -> bool
 
-val translate_mark :
-  ('a any, 't1) naked_gexpr Bindlib.var -> ('a any, 't2) naked_gexpr Bindlib.var
-
 val translate : 'e1 t -> 'e2 t
 (** Needed when converting from one AST type to another. See the note of caution
     on [Bindlib.copy_var]. *)

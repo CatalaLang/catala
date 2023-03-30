@@ -214,7 +214,7 @@ let map
   | EApp { f = e1; args } -> eapp (f e1) (List.map f args) m
   | EOp { op; tys } -> eop op tys m
   | EArray args -> earray (List.map f args) m
-  | EVar v -> evar (Var.translate_mark v) m
+  | EVar v -> evar (Var.translate v) m
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let body = f body in
