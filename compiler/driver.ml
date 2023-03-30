@@ -213,7 +213,7 @@ let driver source_file (options : Cli.options) : int =
         | `Typecheck ->
           Cli.debug_print "Typechecking again...";
           let _ =
-            try Shared_ast.Typing.program prgm
+            try Shared_ast.Typing.program prgm ~leave_unresolved:false
             with Errors.StructuredError (msg, details) ->
               let msg =
                 "Typing error occured during re-typing on the 'default \
@@ -252,7 +252,7 @@ let driver source_file (options : Cli.options) : int =
           as backend -> (
           Cli.debug_print "Typechecking again...";
           let prgm =
-            try Shared_ast.Typing.program prgm
+            try Shared_ast.Typing.program ~leave_unresolved:false prgm
             with Errors.StructuredError (msg, details) ->
               let msg =
                 "Typing error occured during re-typing on the 'default \
@@ -309,9 +309,24 @@ let driver source_file (options : Cli.options) : int =
             in
             let prgm =
               if options.closure_conversion then (
+                if not options.avoid_exceptions then
+                  Errors.raise_error
+                    "Option --avoid_exceptions must be enabled for \
+                     --closure_conversion";
                 Cli.debug_print "Performing closure conversion...";
                 let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
                 let prgm = Bindlib.unbox prgm in
+                let prgm =
+                  if options.optimize then (
+                    Cli.debug_print "Optimizing lambda calculus...";
+                    Lcalc.Optimizations.optimize_program prgm)
+                  else prgm
+                in
+                Cli.debug_print "Retyping lambda calculus...";
+                let prgm =
+                  Shared_ast.Program.untype
+                    (Shared_ast.Typing.program ~leave_unresolved:true prgm)
+                in
                 prgm)
               else prgm
             in
