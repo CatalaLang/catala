@@ -33,39 +33,36 @@ open Catala_utils
 open Definitions
 include module type of Definitions.Op
 
-val equal : ('a1, 'k1) t -> ('a2, 'k2) t -> bool
-val compare : ('a1, 'k1) t -> ('a2, 'k2) t -> int
+val equal : 'a1 t -> 'a2 t -> bool
+val compare : 'a1 t -> 'a2 t -> int
 
-val name : ('a, 'k) t -> string
+val name : 'a t -> string
 (** Returns the operator name as a valid ident starting with a lowercase
     character. This is different from Print.operator which returns operator
     symbols, e.g. [+$]. *)
 
 val kind_dispatch :
-  polymorphic:((_ any, polymorphic) t -> 'b) ->
-  monomorphic:((_ any, monomorphic) t -> 'b) ->
-  ?overloaded:((desugared, overloaded) t -> 'b) ->
-  ?resolved:(([< scopelang | dcalc | lcalc ], resolved) t -> 'b) ->
-  ('a, 'k) t ->
+  polymorphic:([> polymorphic ] t -> 'b) ->
+  monomorphic:([> monomorphic ] t -> 'b) ->
+  ?overloaded:([> overloaded ] t -> 'b) ->
+  ?resolved:([> resolved ] t -> 'b) ->
+  'a t ->
   'b
 (** Calls one of the supplied functions depending on the kind of the operator *)
 
 val translate :
   date_rounding option ->
-  ([< scopelang | dcalc | lcalc ], 'k) t ->
-  ([< scopelang | dcalc | lcalc ], 'k) t
+  [< scopelang | dcalc | lcalc > `Monomorphic `Polymorphic `Resolved ] t ->
+  [> `Monomorphic | `Polymorphic | `Resolved ] t
 (** An identity function that allows translating an operator between different
     passes that don't change operator types *)
 
 (** {2 Getting the types of operators} *)
 
-val monomorphic_type : ('a any, monomorphic) t Marked.pos -> typ
+val monomorphic_type : monomorphic t Marked.pos -> typ
+val resolved_type : resolved t Marked.pos -> typ
 
-val resolved_type :
-  ([< scopelang | dcalc | lcalc ], resolved) t Marked.pos -> typ
-
-val overload_type :
-  decl_ctx -> (desugared, overloaded) t Marked.pos -> typ list -> typ
+val overload_type : decl_ctx -> overloaded t Marked.pos -> typ list -> typ
 (** The type for typing overloads is different since the types of the operands
     are required in advance.
 
@@ -78,9 +75,9 @@ val overload_type :
 
 val resolve_overload :
   decl_ctx ->
-  (desugared, overloaded) t Marked.pos ->
+  overloaded t Marked.pos ->
   typ list ->
-  ([< scopelang | dcalc | lcalc ], resolved) t * [ `Straight | `Reversed ]
+  [> resolved ] t * [ `Straight | `Reversed ]
 (** Some overloads are sugar for an operation with reversed operands, e.g.
     [TRat * TMoney] is using [mult_mon_rat]. [`Reversed] is returned to signify
     this case. *)
