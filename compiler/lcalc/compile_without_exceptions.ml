@@ -296,7 +296,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let ctx' =
       Var.Map.add var { info_pure = true; is_scope = false; var = var' } ctx
     in
-    monad_bind_var (trans ctx arg) var' (trans ctx' body) ~mark
+    monad_bind_var (trans ctx' body) var' (trans ctx arg) ~mark
   | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
     assert false
   | EApp { f = EOp { op; tys }, opmark; args } ->
