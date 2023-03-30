@@ -101,6 +101,7 @@ let eifthenelse cond etrue efalse =
   @@ fun cond etrue efalse -> EIfThenElse { cond; etrue; efalse }
 
 let eerroronempty e1 = Box.app1 e1 @@ fun e1 -> EErrorOnEmpty e1
+let eemptyerror mark = Marked.mark mark (Bindlib.box EEmptyError)
 let eraise e1 = Box.app0 @@ ERaise e1
 
 let ecatch body exn handler =
@@ -228,6 +229,7 @@ let map
   | EAssert e1 -> eassert (f e1) m
   | EDefault { excepts; just; cons } ->
     edefault (List.map f excepts) (f just) (f cons) m
+  | EEmptyError -> eemptyerror m
   | EErrorOnEmpty e1 -> eerroronempty (f e1) m
   | ECatch { body; exn; handler } -> ecatch (f body) exn (f handler) m
   | ERaise exn -> eraise exn m
@@ -259,7 +261,7 @@ let shallow_fold
     (acc : 'acc) : 'acc =
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   match Marked.unmark e with
-  | ELit _ | EOp _ | EVar _ | ERaise _ | ELocation _ -> acc
+  | ELit _ | EOp _ | EVar _ | ERaise _ | ELocation _ | EEmptyError -> acc
   | EApp { f = e; args } -> acc |> f e |> lfold args
   | EArray args -> acc |> lfold args
   | EAbs _ -> acc
@@ -334,6 +336,7 @@ let map_gather
     let acc2, just = f just in
     let acc3, cons = f cons in
     join (join acc1 acc2) acc3, edefault excepts just cons m
+  | EEmptyError -> acc, eemptyerror m
   | EErrorOnEmpty e ->
     let acc, e = f e in
     acc, eerroronempty e m
@@ -396,27 +399,23 @@ let is_value (type a) (e : (a, _) gexpr) =
   | ELit _ | EAbs _ | EOp _ | ERaise _ -> true
   | _ -> false
 
-let equal_lit (type a) (l1 : a glit) (l2 : a glit) =
+let equal_lit (l1 : lit) (l2 : lit) =
   let open Runtime.Oper in
   match l1, l2 with
   | LBool b1, LBool b2 -> not (o_xor b1 b2)
-  | LEmptyError, LEmptyError -> true
   | LInt n1, LInt n2 -> o_eq_int_int n1 n2
   | LRat r1, LRat r2 -> o_eq_rat_rat r1 r2
   | LMoney m1, LMoney m2 -> o_eq_mon_mon m1 m2
   | LUnit, LUnit -> true
   | LDate d1, LDate d2 -> o_eq_dat_dat d1 d2
   | LDuration d1, LDuration d2 -> o_eq_dur_dur d1 d2
-  | ( ( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
-      | LDuration _ ),
-      _ ) ->
+  | (LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _), _ ->
     false
 
-let compare_lit (type a) (l1 : a glit) (l2 : a glit) =
+let compare_lit (l1 : lit) (l2 : lit) =
   let open Runtime.Oper in
   match l1, l2 with
   | LBool b1, LBool b2 -> Bool.compare b1 b2
-  | LEmptyError, LEmptyError -> 0
   | LInt n1, LInt n2 ->
     if o_lt_int_int n1 n2 then -1 else if o_eq_int_int n1 n2 then 0 else 1
   | LRat r1, LRat r2 ->
@@ -436,8 +435,6 @@ let compare_lit (type a) (l1 : a glit) (l2 : a glit) =
     | n -> n)
   | LBool _, _ -> -1
   | _, LBool _ -> 1
-  | LEmptyError, _ -> -1
-  | _, LEmptyError -> 1
   | LInt _, _ -> -1
   | _, LInt _ -> 1
   | LRat _, _ -> -1
@@ -516,6 +513,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( EIfThenElse { cond = if1; etrue = then1; efalse = else1 },
       EIfThenElse { cond = if2; etrue = then2; efalse = else2 } ) ->
     equal if1 if2 && equal then1 then2 && equal else1 else2
+  | EEmptyError, EEmptyError -> true
   | EErrorOnEmpty e1, EErrorOnEmpty e2 -> equal e1 e2
   | ERaise ex1, ERaise ex2 -> equal_except ex1 ex2
   | ( ECatch { body = etry1; exn = ex1; handler = ewith1 },
@@ -544,9 +542,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
       EScopeCall { scope = s2; args = fields2 } ) ->
     ScopeName.equal s1 s2 && ScopeVar.Map.equal equal fields1 fields2
   | ( ( EVar _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _ | EAbs _ | EApp _
-      | EAssert _ | EOp _ | EDefault _ | EIfThenElse _ | EErrorOnEmpty _
-      | ERaise _ | ECatch _ | ELocation _ | EStruct _ | EDStructAccess _
-      | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ ),
+      | EAssert _ | EOp _ | EDefault _ | EIfThenElse _ | EEmptyError
+      | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _ | EStruct _
+      | EDStructAccess _ | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ ),
       _ ) ->
     false
 
@@ -623,6 +621,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare just1 just2 @@< fun () ->
     compare cons1 cons2 @@< fun () ->
     List.compare compare exs1 exs2
+  | EEmptyError, EEmptyError -> 0
   | EErrorOnEmpty e1, EErrorOnEmpty e2 ->
     compare e1 e2
   | ERaise ex1, ERaise ex2 ->
@@ -650,6 +649,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EInj _, _ -> -1 | _, EInj _ -> 1
   | EAssert _, _ -> -1 | _, EAssert _ -> 1
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
+  | EEmptyError , _ -> -1 | _, EEmptyError  -> 1
   | EErrorOnEmpty _, _ -> -1 | _, EErrorOnEmpty _ -> 1
   | ERaise _, _ -> -1 | _, ERaise _ -> 1
   | ECatch _, _ -> . | _, ECatch _ -> .
@@ -674,7 +674,7 @@ let format ?debug decl_ctx ppf e = Print.expr ?debug decl_ctx ppf e
 let rec size : type a. (a, 't) gexpr -> int =
  fun e ->
   match Marked.unmark e with
-  | EVar _ | ELit _ | EOp _ -> 1
+  | EVar _ | ELit _ | EOp _ | EEmptyError -> 1
   | ETuple args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | EArray args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | ETupleAccess { e; _ } -> size e + 1
@@ -738,10 +738,7 @@ let make_app e args pos =
 let empty_thunked_term mark =
   let silent = Var.make "_" in
   let pos = mark_pos mark in
-  make_abs [| silent |]
-    (Bindlib.box (ELit LEmptyError), mark)
-    [TLit TUnit, pos]
-    pos
+  make_abs [| silent |] (Bindlib.box EEmptyError, mark) [TLit TUnit, pos] pos
 
 let make_let_in x tau e1 e2 mpos =
   make_app (make_abs [| x |] e2 [tau] mpos) [e1] (pos e2)

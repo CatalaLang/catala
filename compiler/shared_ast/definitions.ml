@@ -267,15 +267,14 @@ type except = ConflictError | EmptyError | NoValueProvided | Crash
 
 (** Literals are the same throughout compilation except for the [LEmptyError]
     case which is eliminated midway through. *)
-type _ glit =
-  | LBool : bool -> 'a glit
-  | LInt : Runtime.integer -> 'a glit
-  | LRat : Runtime.decimal -> 'a glit
-  | LMoney : Runtime.money -> 'a glit
-  | LUnit : 'a glit
-  | LDate : date -> 'a glit
-  | LDuration : duration -> 'a glit
-  | LEmptyError : [> `DefaultTerms ] glit
+type lit =
+  | LBool of bool
+  | LInt of Runtime.integer
+  | LRat of Runtime.decimal
+  | LMoney of Runtime.money
+  | LUnit
+  | LDate of date
+  | LDuration of duration
 
 (** Locations are handled differently in [desugared] and [scopelang] *)
 type 'a glocation =
@@ -306,7 +305,7 @@ type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Marked.t
 
 and ('a, 't) naked_gexpr =
   (* Constructors common to all ASTs *)
-  | ELit : 'a glit -> (([< all ] as 'a), 't) naked_gexpr
+  | ELit : lit -> (([< all ] as 'a), 't) naked_gexpr
   | EApp : {
       f : ('a, 't) gexpr;
       args : ('a, 't) gexpr list;
@@ -388,6 +387,7 @@ and ('a, 't) naked_gexpr =
       cons : ('a, 't) gexpr;
     }
       -> (([< all > `DefaultTerms ] as 'a), 't) naked_gexpr
+  | EEmptyError : (([< all > `DefaultTerms ] as 'a), 't) naked_gexpr
   | EErrorOnEmpty :
       ('a, 't) gexpr
       -> (([< all > `DefaultTerms ] as 'a), 't) naked_gexpr

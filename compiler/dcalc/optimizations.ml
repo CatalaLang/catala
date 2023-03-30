@@ -29,7 +29,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
   let e = Expr.map ~f:(partial_evaluation ctx) e in
   let mark = Marked.get_mark e in
   (* Then reduce the parent node *)
-  let reduce e =
+  let reduce (e : 'm expr) =
     (* Todo: improve the handling of eapp(log,elit) cases here, it obfuscates
        the matches and the log calls are not preserved, which would be a good
        property *)
@@ -99,9 +99,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct :) *)
       let excepts =
-        List.filter
-          (fun except -> Marked.unmark except <> ELit LEmptyError)
-          excepts
+        List.filter (fun except -> Marked.unmark except <> EEmptyError) excepts
         (* we can discard the exceptions that are always empty error *)
       in
       let value_except_count =
@@ -137,7 +135,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
                     args = [(ELit (LBool false), _)];
                   } ),
               _ ) ) ->
-          ELit LEmptyError
+          EEmptyError
         | [], just when not !Cli.avoid_exceptions_flag ->
           (* without exceptions, a default is just an [if then else] raising an
              error in the else case. This exception is only valid in the context
@@ -145,8 +143,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
              flag to know if we will be compiling using exceptions or the option
              monad. FIXME: move this optimisation somewhere else to avoid this
              check *)
-          EIfThenElse
-            { cond = just; etrue = cons; efalse = ELit LEmptyError, mark }
+          EIfThenElse { cond = just; etrue = cons; efalse = EEmptyError, mark }
         | excepts, just -> EDefault { excepts; just; cons })
     | EIfThenElse
         {

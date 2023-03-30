@@ -36,7 +36,7 @@ and naked_expr =
   | EStructFieldAccess : expr * StructField.t * StructName.t -> naked_expr
   | EInj : expr * EnumConstructor.t * EnumName.t -> naked_expr
   | EArray : expr list -> naked_expr
-  | ELit : L.lit -> naked_expr
+  | ELit : lit -> naked_expr
   | EApp : expr * expr list -> naked_expr
   | EOp : operator -> naked_expr
 

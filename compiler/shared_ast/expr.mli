@@ -49,7 +49,7 @@ val etupleaccess :
   ('a, 't) boxed_gexpr -> int -> int -> 't -> ('a any, 't) boxed_gexpr
 
 val earray : ('a, 't) boxed_gexpr list -> 't -> ('a any, 't) boxed_gexpr
-val elit : 'a glit -> 't -> ('a any, 't) boxed_gexpr
+val elit : lit -> 't -> ('a any, 't) boxed_gexpr
 
 val eabs :
   (('a, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder Bindlib.box ->
@@ -81,6 +81,8 @@ val eifthenelse :
   ('a, 't) boxed_gexpr ->
   't ->
   ('a any, 't) boxed_gexpr
+
+val eemptyerror : 't -> (([< all > `DefaultTerms ] as 'a), 't) boxed_gexpr
 
 val eerroronempty :
   ('a, 't) boxed_gexpr ->
@@ -324,8 +326,8 @@ val format :
 
 (** {2 Analysis and tests} *)
 
-val equal_lit : 'a glit -> 'a glit -> bool
-val compare_lit : 'a glit -> 'a glit -> int
+val equal_lit : lit -> lit -> bool
+val compare_lit : lit -> lit -> int
 val equal_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> bool
 val compare_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> int
 

@@ -182,7 +182,7 @@ let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
   | EDefault _ ->
     let v' = Var.make "default_term" in
     Expr.make_var v' mark, Var.Map.singleton v' e
-  | ELit LEmptyError ->
+  | EEmptyError ->
     let v' = Var.make "empty_litteral" in
     Expr.make_var v' mark, Var.Map.singleton v' e
   (* This one is a very special case. It transform an unpure expression
@@ -333,7 +333,7 @@ and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
             (Expr.make_var (Var.translate A.handle_default_opt) mark_hoist)
             [Expr.earray excepts' mark_hoist; just'; cons']
             pos
-        | ELit LEmptyError -> A.make_none mark_hoist
+        | EEmptyError -> A.make_none mark_hoist
         | EAssert arg ->
           let arg' = translate_expr ctx arg in
 
