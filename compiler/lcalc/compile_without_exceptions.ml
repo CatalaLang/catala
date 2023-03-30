@@ -339,7 +339,9 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     monad_mbind_cont ~mark
       (fun vars ->
         monad_return ~mark
-          (Expr.earray (List.map (fun v -> Expr.evar v m) vars) mark))
+          (Expr.earray
+             (List.map (fun v -> monad_return ~mark (Expr.evar v m)) vars)
+             mark))
       (List.map (trans ctx) args)
   | EStruct { name; fields } ->
     (* TODO: since ocaml is determinisitc, the fields will always be enumerated
@@ -642,7 +644,8 @@ let rec translate_typ (tau : typ) : typ =
       | TEnum en -> TEnum en
       | TOption _ -> assert false
       | TAny -> TAny
-      | TArray ts -> TArray (translate_typ ts) (* catala is not polymorphic *)
+      | TArray ts ->
+        TArray (TOption (translate_typ ts), m) (* catala is not polymorphic *)
       | TArrow ([(TLit TUnit, _)], t2) -> Marked.unmark (translate_typ t2)
       | TArrow (t1, t2) ->
         TArrow (List.map translate_typ t1, (TOption (translate_typ t2), m))
