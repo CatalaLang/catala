@@ -602,6 +602,7 @@ let rec lex_code (lexbuf : lexbuf) : token =
       L.update_acc lexbuf;
       MONEY_AMOUNT (Buffer.contents units, Buffer.contents cents)
   | '|', Rep (digit, 4), '-', Rep (digit, 2), '-', Rep (digit, 2), '|' ->
+    L.update_acc lexbuf;
     let rex =
       Re.(compile @@ whole_string @@ seq [
           char '|';

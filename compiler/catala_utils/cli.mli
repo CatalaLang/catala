@@ -34,6 +34,11 @@ type backend_option_builtin =
 
 type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
 
+val languages : (string * backend_lang) list
+
+val language_code : backend_lang -> string
+(** Returns the lowercase two-letter language code *)
+
 val backend_option_to_string : string backend_option -> string
 (** [backend_option_to_string backend] returns the string representation of the
     given [backend].*)

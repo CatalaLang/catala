@@ -46,16 +46,14 @@ module SVertex = struct
     | Scope s -> ScopeName.hash s
     | Topdef g -> TopdefName.hash g
 
-  let to_string v =
-    Format.asprintf "%a"
-      (fun ppf -> function
-        | Scope s -> ScopeName.format_t ppf s
-        | Topdef g -> TopdefName.format_t ppf g)
-      v
+  let format_t ppf = function
+    | Scope s -> ScopeName.format_t ppf s
+    | Topdef g -> TopdefName.format_t ppf g
 
-  let info = function
-    | Scope s -> ScopeName.get_info s
-    | Topdef g -> TopdefName.get_info g
+  (* let to_string v = Format.asprintf "%a" format_t v
+
+     let info = function | Scope s -> ScopeName.get_info s | Topdef g ->
+     TopdefName.get_info g *)
 end
 
 module VMap = Map.Make (SVertex)
@@ -155,31 +153,49 @@ let check_for_cycle_in_defs (g : SDependencies.t) : unit =
   (* if there is a cycle, there will be an strongly connected component of
      cardinality > 1 *)
   let sccs = SSCC.scc_list g in
-  if List.length sccs < SDependencies.nb_vertex g then
-    let scc = List.find (fun scc -> List.length scc > 1) sccs in
+  match List.find_opt (function [] | [_] -> false | _ -> true) sccs with
+  | None -> ()
+  | Some [] -> assert false
+  | Some (v0 :: _ as scc) ->
+    let module VSet = Set.Make (SVertex) in
+    let scc = VSet.of_list scc in
+    let rec get_cycle cycle cycle_set v =
+      let cycle = v :: cycle in
+      let cycle_set = VSet.add v cycle_set in
+      let succ = SDependencies.succ g v in
+      if List.exists (fun v -> VSet.mem v cycle_set) succ then
+        (* a cycle may be smaller than the scc, in that case we just return the
+           first one found *)
+        let rec cut_after acc = function
+          | [] -> acc
+          | v :: vs ->
+            if List.mem v succ then v :: acc else cut_after (v :: acc) vs
+        in
+        cut_after [] cycle
+      else
+        get_cycle cycle cycle_set
+          (List.find (fun succ -> VSet.mem succ scc) succ)
+    in
+    let cycle = get_cycle [] VSet.empty v0 in
     let spans =
-      List.flatten
-        (List.map
-           (fun v ->
-             let var_str, var_info = SVertex.to_string v, SVertex.info v in
-             let succs = SDependencies.succ_e g v in
-             let _, edge_pos, succ =
-               List.find (fun (_, _, succ) -> List.mem succ scc) succs
-             in
-             let succ_str = SVertex.to_string succ in
-             [
-               ( Some ("Cycle variable " ^ var_str ^ ", declared:"),
-                 Marked.get_mark var_info );
-               ( Some
-                   ("Used here in the definition of another cycle variable "
-                   ^ succ_str
-                   ^ ":"),
-                 edge_pos );
-             ])
-           scc)
+      List.map2
+        (fun v1 v2 ->
+          let msg =
+            Format.asprintf "%a is used here in the definition of %a:"
+              SVertex.format_t v1 SVertex.format_t v2
+          in
+          let _, edge_pos, _ = SDependencies.find_edge g v1 v2 in
+          Some msg, edge_pos)
+        cycle
+        (List.tl cycle @ [List.hd cycle])
     in
     Errors.raise_multispanned_error spans
-      "Cyclic dependency detected between scopes!"
+      "@[<hov 2>Cyclic dependency detected between the following scopes:@ \
+       @[<hv>%a@]@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.fprintf ppf " →@ ")
+         SVertex.format_t)
+      (cycle @ [List.hd cycle])
 
 let get_defs_ordering (g : SDependencies.t) : SVertex.t list =
   List.rev (STopologicalTraversal.fold (fun sd acc -> sd :: acc) g [])

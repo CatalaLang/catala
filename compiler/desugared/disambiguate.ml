@@ -23,14 +23,14 @@ let expr ctx env e =
      [Some] *)
   (* Intermediate unboxings are fine since the last [untype] will rebox in
      depth *)
-  Typing.check_expr ctx ~env (Expr.unbox e)
+  Typing.check_expr ~leave_unresolved:false ctx ~env (Expr.unbox e)
 
 let rule ctx env rule =
   let env =
     match rule.rule_parameter with
     | None -> env
-    | Some vars_and_types ->
-      ListLabels.fold_right vars_and_types ~init:env ~f:(fun (v, t) ->
+    | Some (vars_and_types, _) ->
+      ListLabels.fold_right vars_and_types ~init:env ~f:(fun ((v, _), t) ->
           Typing.Env.add_var v t)
   in
   (* Note: we could use the known rule type here to direct typing. We choose not
@@ -63,7 +63,8 @@ let program prg =
   let env =
     TopdefName.Map.fold
       (fun name (_e, ty) env -> Typing.Env.add_toplevel_var name ty env)
-      prg.program_topdefs Typing.Env.empty
+      prg.program_topdefs
+      (Typing.Env.empty prg.program_ctx)
   in
   let program_topdefs =
     TopdefName.Map.map

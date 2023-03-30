@@ -124,3 +124,28 @@ let check_exceeding_lines
                 ANSITerminal.[red]
                 "%s"
                 String.(sub s max_len (len_s - max_len)))))
+
+let with_pygmentize_lexer lang f =
+  let lexer_py =
+    let lexer_fname = "lexer_" ^ Cli.language_code lang ^ ".py" in
+    match Pygment_lexers.read lexer_fname with
+    | None -> failwith "Pygments lexer not found for this language"
+    | Some lexer -> lexer
+  in
+  File.with_temp_file "pygments_lexer_" ".py" ~contents:lexer_py
+  @@ fun pyg_lexer -> f ["-l"; pyg_lexer; "-x"]
+
+let call_pygmentize ?lang args =
+  let cmd = "pygmentize" in
+  let check_exit n =
+    if n <> 0 then
+      Errors.raise_error
+        "Weaving failed: pygmentize command %S returned with error code %d"
+        (String.concat " " (cmd :: args))
+        n
+  in
+  match lang with
+  | None -> File.process_out ~check_exit cmd args
+  | Some lang ->
+    with_pygmentize_lexer lang
+    @@ fun lex_args -> File.process_out ~check_exit cmd (lex_args @ args)

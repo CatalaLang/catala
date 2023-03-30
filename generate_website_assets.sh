@@ -13,7 +13,7 @@ mkdir -p $1/playground
 
 BUILD=_build/default
 
-rsync -a $BUILD/_doc/_html/ $1/ocaml_docs/
+rsync -a $BUILD/_doc/_html/ $1/ocaml_docs/ --delete
 
 rsync $BUILD/examples/allocations_familiales/allocations_familiales.html $1/
 rsync $BUILD/examples/aides_logement/aides_logement.html $1/

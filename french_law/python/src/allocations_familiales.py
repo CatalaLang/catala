@@ -192,6 +192,38 @@ class AllocationsFamiliales:
     def __str__(self) -> str:
         return "AllocationsFamiliales(montant_verse={})".format(self.montant_verse)
 
+class VerificationAgeInferieurOuEgalA:
+    def __init__(self, r: bool) -> None:
+        self.r = r
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, VerificationAgeInferieurOuEgalA):
+            return (self.r == other.r)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "VerificationAgeInferieurOuEgalA(r={})".format(self.r)
+
+class VerificationAgeSuperieurA:
+    def __init__(self, r: bool) -> None:
+        self.r = r
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, VerificationAgeSuperieurA):
+            return (self.r == other.r)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "VerificationAgeSuperieurA(r={})".format(self.r)
+
 class Smic:
     def __init__(self, brut_horaire: Money) -> None:
         self.brut_horaire = brut_horaire
@@ -427,6 +459,48 @@ class AllocationsFamilialesIn:
             self.date_courante_in, self.enfants_a_charge_in,
             self.avait_enfant_a_charge_avant_1er_janvier_2012_in)
 
+class VerificationAgeInferieurOuEgalAIn:
+    def __init__(self, date_naissance_in: Date, date_courante_in: Date, annees_in: Duration) -> None:
+        self.date_naissance_in = date_naissance_in
+        self.date_courante_in = date_courante_in
+        self.annees_in = annees_in
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, VerificationAgeInferieurOuEgalAIn):
+            return (self.date_naissance_in == other.date_naissance_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.annees_in == other.annees_in)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "VerificationAgeInferieurOuEgalAIn(date_naissance_in={},date_courante_in={},annees_in={})".format(self.date_naissance_in,
+            self.date_courante_in, self.annees_in)
+
+class VerificationAgeSuperieurAIn:
+    def __init__(self, date_naissance_in: Date, date_courante_in: Date, annees_in: Duration) -> None:
+        self.date_naissance_in = date_naissance_in
+        self.date_courante_in = date_courante_in
+        self.annees_in = annees_in
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, VerificationAgeSuperieurAIn):
+            return (self.date_naissance_in == other.date_naissance_in and
+                   self.date_courante_in == other.date_courante_in and
+                   self.annees_in == other.annees_in)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "VerificationAgeSuperieurAIn(date_naissance_in={},date_courante_in={},annees_in={})".format(self.date_naissance_in,
+            self.date_courante_in, self.annees_in)
+
 class SmicIn:
     def __init__(self, date_courante_in: Date, residence_in: Collectivite) -> None:
         self.date_courante_in = date_courante_in
@@ -542,8 +616,40 @@ def enfant_le_plus_age(enfant_le_plus_age_in:EnfantLePlusAgeIn):
     le_plus_age = temp_le_plus_age_1
     return EnfantLePlusAge(le_plus_age = le_plus_age)
 
+def verification_age_inferieur_ou_egal_a(verification_age_inferieur_ou_egal_a_in:VerificationAgeInferieurOuEgalAIn):
+    date_naissance = verification_age_inferieur_ou_egal_a_in.date_naissance_in
+    date_courante = verification_age_inferieur_ou_egal_a_in.date_courante_in
+    annees = verification_age_inferieur_ou_egal_a_in.annees_in
+    try:
+        temp_r = ((date_naissance + annees) <= date_courante)
+    except EmptyError:
+        temp_r = dead_value
+        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr",
+                                             start_line=17, start_column=12,
+                                             end_line=17, end_column=13,
+                                             law_headings=["Prologue",
+                                             "Montant du salaire minimum de croissance"]))
+    r = temp_r
+    return VerificationAgeInferieurOuEgalA(r = r)
+
+def verification_age_superieur_a(verification_age_superieur_a_in:VerificationAgeSuperieurAIn):
+    date_naissance_1 = verification_age_superieur_a_in.date_naissance_in
+    date_courante_1 = verification_age_superieur_a_in.date_courante_in
+    annees_1 = verification_age_superieur_a_in.annees_in
+    try:
+        temp_r_1 = ((date_naissance_1 + annees_1) > date_courante_1)
+    except EmptyError:
+        temp_r_1 = dead_value
+        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr",
+                                             start_line=27, start_column=12,
+                                             end_line=27, end_column=13,
+                                             law_headings=["Prologue",
+                                             "Montant du salaire minimum de croissance"]))
+    r_1 = temp_r_1
+    return VerificationAgeSuperieurA(r = r_1)
+
 def smic(smic_in:SmicIn):
-    date_courante = smic_in.date_courante_in
+    date_courante_2 = smic_in.date_courante_in
     residence = smic_in.residence_in
     try:
         def temp_brut_horaire(_:Unit):
@@ -551,16 +657,16 @@ def smic(smic_in:SmicIn):
         def temp_brut_horaire_1(_:Unit):
             return False
         def temp_brut_horaire_2(_:Unit):
-            if ((date_courante >= date_of_numbers(2023,1,1)) and
-                ((date_courante <= date_of_numbers(2023,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2023,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2023,12,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
                 Unit())))):
                 return money_of_cents_string("851")
             else:
                 raise EmptyError
         def temp_brut_horaire_3(_:Unit):
-            if ((date_courante >= date_of_numbers(2023,1,1)) and
-                ((date_courante <= date_of_numbers(2023,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2023,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2023,12,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
                 Unit())) or ((residence ==
                 Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -578,16 +684,16 @@ def smic(smic_in:SmicIn):
             else:
                 raise EmptyError
         def temp_brut_horaire_4(_:Unit):
-            if ((date_courante >= date_of_numbers(2022,8,1)) and
-                ((date_courante <= date_of_numbers(2022,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2022,8,1)) and
+                ((date_courante_2 <= date_of_numbers(2022,12,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
                 Unit())))):
                 return money_of_cents_string("835")
             else:
                 raise EmptyError
         def temp_brut_horaire_5(_:Unit):
-            if ((date_courante >= date_of_numbers(2022,8,1)) and
-                ((date_courante <= date_of_numbers(2022,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2022,8,1)) and
+                ((date_courante_2 <= date_of_numbers(2022,12,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
                 Unit())) or ((residence ==
                 Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -605,16 +711,16 @@ def smic(smic_in:SmicIn):
             else:
                 raise EmptyError
         def temp_brut_horaire_6(_:Unit):
-            if ((date_courante >= date_of_numbers(2022,5,1)) and
-                ((date_courante <= date_of_numbers(2022,7,31)) and
+            if ((date_courante_2 >= date_of_numbers(2022,5,1)) and
+                ((date_courante_2 <= date_of_numbers(2022,7,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
                 Unit())))):
                 return money_of_cents_string("819")
             else:
                 raise EmptyError
         def temp_brut_horaire_7(_:Unit):
-            if ((date_courante >= date_of_numbers(2022,5,1)) and
-                ((date_courante <= date_of_numbers(2022,7,31)) and
+            if ((date_courante_2 >= date_of_numbers(2022,5,1)) and
+                ((date_courante_2 <= date_of_numbers(2022,7,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
                 Unit())) or ((residence ==
                 Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -632,16 +738,16 @@ def smic(smic_in:SmicIn):
             else:
                 raise EmptyError
         def temp_brut_horaire_8(_:Unit):
-            if ((date_courante >= date_of_numbers(2022,1,1)) and
-                ((date_courante <= date_of_numbers(2022,4,30)) and
+            if ((date_courante_2 >= date_of_numbers(2022,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2022,4,30)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
                 Unit())))):
                 return money_of_cents_string("798")
             else:
                 raise EmptyError
         def temp_brut_horaire_9(_:Unit):
-            if ((date_courante >= date_of_numbers(2022,1,1)) and
-                ((date_courante <= date_of_numbers(2022,4,30)) and
+            if ((date_courante_2 >= date_of_numbers(2022,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2022,4,30)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
                 Unit())) or ((residence ==
                 Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -659,16 +765,16 @@ def smic(smic_in:SmicIn):
             else:
                 raise EmptyError
         def temp_brut_horaire_10(_:Unit):
-            if ((date_courante >= date_of_numbers(2021,1,1)) and
-                ((date_courante <= date_of_numbers(2021,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2021,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2021,12,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
                 Unit())))):
                 return money_of_cents_string("774")
             else:
                 raise EmptyError
         def temp_brut_horaire_11(_:Unit):
-            if ((date_courante >= date_of_numbers(2021,1,1)) and
-                ((date_courante <= date_of_numbers(2021,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2021,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2021,12,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
                 Unit())) or ((residence ==
                 Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -686,16 +792,16 @@ def smic(smic_in:SmicIn):
             else:
                 raise EmptyError
         def temp_brut_horaire_12(_:Unit):
-            if ((date_courante >= date_of_numbers(2020,1,1)) and
-                ((date_courante <= date_of_numbers(2020,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2020,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2020,12,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
                 Unit())))):
                 return money_of_cents_string("766")
             else:
                 raise EmptyError
         def temp_brut_horaire_13(_:Unit):
-            if ((date_courante >= date_of_numbers(2020,1,1)) and
-                ((date_courante <= date_of_numbers(2020,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2020,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2020,12,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
                 Unit())) or ((residence ==
                 Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -713,16 +819,16 @@ def smic(smic_in:SmicIn):
             else:
                 raise EmptyError
         def temp_brut_horaire_14(_:Unit):
-            if ((date_courante >= date_of_numbers(2019,1,1)) and
-                ((date_courante <= date_of_numbers(2019,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2019,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2019,12,31)) and
                 (residence == Collectivite(Collectivite_Code.Mayotte,
                 Unit())))):
                 return money_of_cents_string("757")
             else:
                 raise EmptyError
         def temp_brut_horaire_15(_:Unit):
-            if ((date_courante >= date_of_numbers(2019,1,1)) and
-                ((date_courante <= date_of_numbers(2019,12,31)) and
+            if ((date_courante_2 >= date_of_numbers(2019,1,1)) and
+                ((date_courante_2 <= date_of_numbers(2019,12,31)) and
                 ((residence == Collectivite(Collectivite_Code.Metropole,
                 Unit())) or ((residence ==
                 Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -770,36 +876,36 @@ def smic(smic_in:SmicIn):
     return Smic(brut_horaire = brut_horaire)
 
 def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_in:BaseMensuelleAllocationsFamilialesIn):
-    date_courante_1 = base_mensuelle_allocations_familiales_in.date_courante_in
+    date_courante_3 = base_mensuelle_allocations_familiales_in.date_courante_in
     try:
         def temp_montant(_:Unit):
             raise EmptyError
         def temp_montant_1(_:Unit):
             return False
         def temp_montant_2(_:Unit):
-            if ((date_courante_1 >= date_of_numbers(2022,4,1)) and
-                (date_courante_1 <
+            if ((date_courante_3 >= date_of_numbers(2022,4,1)) and
+                (date_courante_3 <
                 date_of_numbers(2023,4,1))):
                 return money_of_cents_string("42228")
             else:
                 raise EmptyError
         def temp_montant_3(_:Unit):
-            if ((date_courante_1 >= date_of_numbers(2021,4,1)) and
-                (date_courante_1 <
+            if ((date_courante_3 >= date_of_numbers(2021,4,1)) and
+                (date_courante_3 <
                 date_of_numbers(2022,4,1))):
                 return money_of_cents_string("41481")
             else:
                 raise EmptyError
         def temp_montant_4(_:Unit):
-            if ((date_courante_1 >= date_of_numbers(2020,4,1)) and
-                (date_courante_1 <
+            if ((date_courante_3 >= date_of_numbers(2020,4,1)) and
+                (date_courante_3 <
                 date_of_numbers(2021,4,1))):
                 return money_of_cents_string("41440")
             else:
                 raise EmptyError
         def temp_montant_5(_:Unit):
-            if ((date_courante_1 >= date_of_numbers(2019,4,1)) and
-                (date_courante_1 <
+            if ((date_courante_3 >= date_of_numbers(2019,4,1)) and
+                (date_courante_3 <
                 date_of_numbers(2020,4,1))):
                 return money_of_cents_string("41316")
             else:
@@ -821,7 +927,7 @@ def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_
     return BaseMensuelleAllocationsFamiliales(montant = montant)
 
 def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
-    date_courante_2 = prestations_familiales_in.date_courante_in
+    date_courante_4 = prestations_familiales_in.date_courante_in
     prestation_courante = prestations_familiales_in.prestation_courante_in
     residence_1 = prestations_familiales_in.residence_in
     try:
@@ -836,7 +942,7 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
                                              "Prologue"]))
     age_l512_3_2 = temp_age_l512_3_2
     try:
-        temp_smic_dot_date_courante = date_courante_2
+        temp_smic_dot_date_courante = date_courante_4
     except EmptyError:
         temp_smic_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
@@ -908,10 +1014,10 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
                                              "Prologue"]))
     plafond_l512_3_2 = temp_plafond_l512_3_2
     try:
-        def temp_conditions_hors_age(param:Enfant):
+        def temp_conditions_hors_age(enfant:Enfant):
             try:
                 try:
-                    match_arg = param.obligation_scolaire
+                    match_arg = enfant.obligation_scolaire
                     if match_arg.code == SituationObligationScolaire_Code.Avant:
                         _ = match_arg.value
                         temp_conditions_hors_age_1 = False
@@ -921,7 +1027,7 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
                     elif match_arg.code == SituationObligationScolaire_Code.Apres:
                         _ = match_arg.value
                         temp_conditions_hors_age_1 = True
-                    match_arg_1 = param.obligation_scolaire
+                    match_arg_1 = enfant.obligation_scolaire
                     if match_arg_1.code == SituationObligationScolaire_Code.Avant:
                         _ = match_arg_1.value
                         temp_conditions_hors_age_2 = False
@@ -931,7 +1037,7 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
                     elif match_arg_1.code == SituationObligationScolaire_Code.Apres:
                         _ = match_arg_1.value
                         temp_conditions_hors_age_2 = False
-                    match_arg_2 = param.obligation_scolaire
+                    match_arg_2 = enfant.obligation_scolaire
                     if match_arg_2.code == SituationObligationScolaire_Code.Avant:
                         _ = match_arg_2.value
                         temp_conditions_hors_age_3 = True
@@ -944,7 +1050,7 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
                     if ((temp_conditions_hors_age_3 or
                         (temp_conditions_hors_age_2 or
                         temp_conditions_hors_age_1)) and
-                        (param.remuneration_mensuelle <=
+                        (enfant.remuneration_mensuelle <=
                         plafond_l512_3_2)):
                         return True
                     else:
@@ -970,17 +1076,17 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
                                              "Prologue"]))
     conditions_hors_age = temp_conditions_hors_age
     try:
-        def temp_droit_ouvert(param_1:Enfant):
+        def temp_droit_ouvert(enfant_1:Enfant):
             try:
                 try:
                     try:
-                        if param_1.beneficie_titre_personnel_aide_personnelle_logement:
+                        if enfant_1.beneficie_titre_personnel_aide_personnelle_logement:
                             return False
                         else:
                             raise EmptyError
                     except EmptyError:
                         try:
-                            match_arg_3 = param_1.obligation_scolaire
+                            match_arg_3 = enfant_1.obligation_scolaire
                             if match_arg_3.code == SituationObligationScolaire_Code.Avant:
                                 _ = match_arg_3.value
                                 temp_droit_ouvert_1 = False
@@ -991,15 +1097,16 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
                                 _ = match_arg_3.value
                                 temp_droit_ouvert_1 = True
                             if (temp_droit_ouvert_1 and
-                                ((param_1.remuneration_mensuelle <=
+                                ((enfant_1.remuneration_mensuelle <=
                                 plafond_l512_3_2) and
-                                ((param_1.date_de_naissance + age_l512_3_2) >
-                                date_courante_2))):
+                                ((enfant_1.date_de_naissance +
+                                age_l512_3_2) >
+                                date_courante_4))):
                                 return True
                             else:
                                 raise EmptyError
                         except EmptyError:
-                            match_arg_4 = param_1.obligation_scolaire
+                            match_arg_4 = enfant_1.obligation_scolaire
                             if match_arg_4.code == SituationObligationScolaire_Code.Avant:
                                 _ = match_arg_4.value
                                 temp_droit_ouvert_2 = False
@@ -1009,7 +1116,7 @@ def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
                             elif match_arg_4.code == SituationObligationScolaire_Code.Apres:
                                 _ = match_arg_4.value
                                 temp_droit_ouvert_2 = False
-                            match_arg_5 = param_1.obligation_scolaire
+                            match_arg_5 = enfant_1.obligation_scolaire
                             if match_arg_5.code == SituationObligationScolaire_Code.Avant:
                                 _ = match_arg_5.value
                                 temp_droit_ouvert_3 = True
@@ -1054,11 +1161,11 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     personne_charge_effective_permanente_remplit_titre__i = allocations_familiales_in.personne_charge_effective_permanente_remplit_titre_I_in
     ressources_menage = allocations_familiales_in.ressources_menage_in
     residence_2 = allocations_familiales_in.residence_in
-    date_courante_3 = allocations_familiales_in.date_courante_in
+    date_courante_5 = allocations_familiales_in.date_courante_in
     enfants_a_charge = allocations_familiales_in.enfants_a_charge_in
     avait_enfant_a_charge_avant_1er_janvier_2012 = allocations_familiales_in.avait_enfant_a_charge_avant_1er_janvier_2012_in
     try:
-        def temp_prise_en_compte(param_2:Enfant):
+        def temp_prise_en_compte(enfant_2:Enfant):
             try:
                 def temp_prise_en_compte_1(_:Unit):
                     raise EmptyError
@@ -1067,7 +1174,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_prise_en_compte_3(_:Unit):
                     try:
                         try:
-                            match_arg_6 = param_2.prise_en_charge
+                            match_arg_6 = enfant_2.prise_en_charge
                             if match_arg_6.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                                 _ = match_arg_6.value
                                 temp_prise_en_compte_4 = False
@@ -1089,7 +1196,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                             else:
                                 raise EmptyError
                         except EmptyError:
-                            match_arg_7 = param_2.prise_en_charge
+                            match_arg_7 = enfant_2.prise_en_charge
                             if match_arg_7.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                                 _ = match_arg_7.value
                                 temp_prise_en_compte_5 = False
@@ -1111,7 +1218,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                             else:
                                 raise EmptyError
                     except EmptyError:
-                        match_arg_8 = param_2.prise_en_charge
+                        match_arg_8 = enfant_2.prise_en_charge
                         if match_arg_8.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                             _ = match_arg_8.value
                             temp_prise_en_compte_6 = False
@@ -1133,7 +1240,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                         else:
                             raise EmptyError
                 def temp_prise_en_compte_7(_:Unit):
-                    match_arg_9 = param_2.prise_en_charge
+                    match_arg_9 = enfant_2.prise_en_charge
                     if match_arg_9.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                         _ = match_arg_9.value
                         temp_prise_en_compte_8 = False
@@ -1154,7 +1261,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     else:
                         raise EmptyError
                 def temp_prise_en_compte_9(_:Unit):
-                    match_arg_10 = param_2.prise_en_charge
+                    match_arg_10 = enfant_2.prise_en_charge
                     if match_arg_10.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                         _ = match_arg_10.value
                         temp_prise_en_compte_10 = True
@@ -1204,7 +1311,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     prise_en_compte = temp_prise_en_compte
     try:
-        def temp_versement(param_3:Enfant):
+        def temp_versement(enfant_3:Enfant):
             try:
                 def temp_versement_1(_:Unit):
                     raise EmptyError
@@ -1214,7 +1321,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     try:
                         try:
                             try:
-                                match_arg_11 = param_3.prise_en_charge
+                                match_arg_11 = enfant_3.prise_en_charge
                                 if match_arg_11.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                                     _ = match_arg_11.value
                                     temp_versement_4 = False
@@ -1236,7 +1343,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                 else:
                                     raise EmptyError
                             except EmptyError:
-                                match_arg_12 = param_3.prise_en_charge
+                                match_arg_12 = enfant_3.prise_en_charge
                                 if match_arg_12.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                                     _ = match_arg_12.value
                                     temp_versement_5 = True
@@ -1258,7 +1365,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                 else:
                                     raise EmptyError
                         except EmptyError:
-                            match_arg_13 = param_3.prise_en_charge
+                            match_arg_13 = enfant_3.prise_en_charge
                             if match_arg_13.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                                 _ = match_arg_13.value
                                 temp_versement_6 = False
@@ -1280,7 +1387,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                             else:
                                 raise EmptyError
                     except EmptyError:
-                        match_arg_14 = param_3.prise_en_charge
+                        match_arg_14 = enfant_3.prise_en_charge
                         if match_arg_14.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                             _ = match_arg_14.value
                             temp_versement_7 = False
@@ -1302,7 +1409,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                         else:
                             raise EmptyError
                 def temp_versement_8(_:Unit):
-                    match_arg_15 = param_3.prise_en_charge
+                    match_arg_15 = enfant_3.prise_en_charge
                     if match_arg_15.code == PriseEnCharge_Code.GardeAlterneePartageAllocations:
                         _ = match_arg_15.value
                         temp_versement_9 = False
@@ -1354,8 +1461,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_nombre_enfants_l521_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=145, start_column=11,
-                                             end_line=145, end_column=32,
+                                             start_line=151, start_column=11,
+                                             end_line=151, end_column=32,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -1365,8 +1472,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_nombre_enfants_alinea_2_l521_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=147, start_column=11,
-                                             end_line=147, end_column=41,
+                                             start_line=154, start_column=11,
+                                             end_line=154, end_column=41,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -1374,12 +1481,12 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     result_1 = allocation_familiales_avril2008(AllocationFamilialesAvril2008In())
     version_avril_2008_dot_age_minimum_alinea_1_l521_3 = result_1.age_minimum_alinea_1_l521_3
     try:
-        temp_bmaf_dot_date_courante = date_courante_3
+        temp_bmaf_dot_date_courante = date_courante_5
     except EmptyError:
         temp_bmaf_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=159, start_column=14,
-                                             end_line=159, end_column=32,
+                                             start_line=167, start_column=14,
+                                             end_line=167, end_column=32,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -1387,12 +1494,12 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     result_2 = base_mensuelle_allocations_familiales(BaseMensuelleAllocationsFamilialesIn(date_courante_in = bmaf_dot_date_courante))
     bmaf_dot_montant = result_2.montant
     try:
-        temp_prestations_familiales_dot_date_courante = date_courante_3
+        temp_prestations_familiales_dot_date_courante = date_courante_5
     except EmptyError:
         temp_prestations_familiales_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=155, start_column=14,
-                                             end_line=155, end_column=50,
+                                             start_line=163, start_column=14,
+                                             end_line=163, end_column=50,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -1403,8 +1510,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_prestations_familiales_dot_prestation_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=153, start_column=14,
-                                             end_line=153, end_column=56,
+                                             start_line=161, start_column=14,
+                                             end_line=161, end_column=56,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -1414,8 +1521,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_prestations_familiales_dot_residence = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=157, start_column=14,
-                                             end_line=157, end_column=46,
+                                             start_line=165, start_column=14,
+                                             end_line=165, end_column=46,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -1440,10 +1547,10 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     result_4 = enfant_le_plus_age(EnfantLePlusAgeIn(enfants_in = enfant_le_plus_age_dot_enfants))
     enfant_le_plus_age_dot_le_plus_age = result_4.le_plus_age
     try:
-        def temp_age_minimum_alinea_1_l521_3_1(param_4:Enfant):
+        def temp_age_minimum_alinea_1_l521_3_1(enfant_4:Enfant):
             try:
                 try:
-                    if ((param_4.date_de_naissance +
+                    if ((enfant_4.date_de_naissance +
                         duration_of_numbers(11,0,0)) <=
                         date_of_numbers(2008,4,30)):
                         return version_avril_2008_dot_age_minimum_alinea_1_l521_3
@@ -1453,9 +1560,9 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     return duration_of_numbers(14,0,0)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                                     start_line=146,
+                                                     start_line=152,
                                                      start_column=11,
-                                                     end_line=146,
+                                                     end_line=152,
                                                      end_column=38,
                                                      law_headings=["Allocations familiales",
                                                      "Champs d'applications",
@@ -1463,15 +1570,15 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_age_minimum_alinea_1_l521_3_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=146, start_column=11,
-                                             end_line=146, end_column=38,
+                                             start_line=152, start_column=11,
+                                             end_line=152, end_column=38,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
     age_minimum_alinea_1_l521_3_1 = temp_age_minimum_alinea_1_l521_3_1
     try:
-        def temp_enfants_a_charge_droit_ouvert_prestation_familiale(enfant:Enfant):
-            return prestations_familiales_dot_droit_ouvert(enfant)
+        def temp_enfants_a_charge_droit_ouvert_prestation_familiale(enfant_5:Enfant):
+            return prestations_familiales_dot_droit_ouvert(enfant_5)
         temp_enfants_a_charge_droit_ouvert_prestation_familiale_1 = list_filter(temp_enfants_a_charge_droit_ouvert_prestation_familiale,
             enfants_a_charge)
     except EmptyError:
@@ -1484,14 +1591,14 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     enfants_a_charge_droit_ouvert_prestation_familiale = temp_enfants_a_charge_droit_ouvert_prestation_familiale_1
     try:
-        def temp_est_enfant_le_plus_age(param_5:Enfant):
+        def temp_est_enfant_le_plus_age(enfant_6:Enfant):
             try:
-                return (enfant_le_plus_age_dot_le_plus_age == param_5)
+                return (enfant_le_plus_age_dot_le_plus_age == enfant_6)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                                     start_line=148,
+                                                     start_line=155,
                                                      start_column=11,
-                                                     end_line=148,
+                                                     end_line=155,
                                                      end_column=33,
                                                      law_headings=["Allocations familiales",
                                                      "Champs d'applications",
@@ -1499,8 +1606,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_est_enfant_le_plus_age = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=148, start_column=11,
-                                             end_line=148, end_column=33,
+                                             start_line=155, start_column=11,
+                                             end_line=155, end_column=33,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -1512,8 +1619,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
             def temp_plafond__i_i_d521_3_1(_:Unit):
                 return False
             def temp_plafond__i_i_d521_3_2(_:Unit):
-                if ((date_courante_3 >= date_of_numbers(2021,1,1)) and
-                    (date_courante_3 <=
+                if ((date_courante_5 >= date_of_numbers(2021,1,1)) and
+                    (date_courante_5 <=
                     date_of_numbers(2021,12,31))):
                     return (money_of_cents_string("8155800") +
                         (money_of_cents_string("582700") *
@@ -1521,8 +1628,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 else:
                     raise EmptyError
             def temp_plafond__i_i_d521_3_3(_:Unit):
-                if ((date_courante_3 >= date_of_numbers(2020,1,1)) and
-                    (date_courante_3 <=
+                if ((date_courante_5 >= date_of_numbers(2020,1,1)) and
+                    (date_courante_5 <=
                     date_of_numbers(2020,12,31))):
                     return (money_of_cents_string("8083100") +
                         (money_of_cents_string("577500") *
@@ -1530,8 +1637,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 else:
                     raise EmptyError
             def temp_plafond__i_i_d521_3_4(_:Unit):
-                if ((date_courante_3 >= date_of_numbers(2019,1,1)) and
-                    (date_courante_3 <=
+                if ((date_courante_5 >= date_of_numbers(2019,1,1)) and
+                    (date_courante_5 <=
                     date_of_numbers(2019,12,31))):
                     return (money_of_cents_string("7955800") +
                         (money_of_cents_string("568400") *
@@ -1539,8 +1646,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 else:
                     raise EmptyError
             def temp_plafond__i_i_d521_3_5(_:Unit):
-                if ((date_courante_3 >= date_of_numbers(2018,1,1)) and
-                    (date_courante_3 <=
+                if ((date_courante_5 >= date_of_numbers(2018,1,1)) and
+                    (date_courante_5 <=
                     date_of_numbers(2018,12,31))):
                     return (money_of_cents_string("7877000") +
                         (money_of_cents_string("562800") *
@@ -1548,9 +1655,9 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 else:
                     raise EmptyError
             temp_plafond__i_i_d521_3_6 = handle_default(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                                        start_line=150,
+                                                        start_line=158,
                                                         start_column=11,
-                                                        end_line=150, end_column=28,
+                                                        end_line=158, end_column=28,
                                                         law_headings=["Allocations familiales",
                                                         "Champs d'applications",
                                                         "Prologue"]), [temp_plafond__i_i_d521_3_5,
@@ -1566,8 +1673,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_plafond__i_i_d521_3_6 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=150, start_column=11,
-                                             end_line=150, end_column=28,
+                                             start_line=158, start_column=11,
+                                             end_line=158, end_column=28,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -1579,8 +1686,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
             def temp_plafond__i_d521_3_1(_:Unit):
                 return False
             def temp_plafond__i_d521_3_2(_:Unit):
-                if ((date_courante_3 >= date_of_numbers(2021,1,1)) and
-                    (date_courante_3 <=
+                if ((date_courante_5 >= date_of_numbers(2021,1,1)) and
+                    (date_courante_5 <=
                     date_of_numbers(2021,12,31))):
                     return (money_of_cents_string("5827900") +
                         (money_of_cents_string("582700") *
@@ -1588,8 +1695,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 else:
                     raise EmptyError
             def temp_plafond__i_d521_3_3(_:Unit):
-                if ((date_courante_3 >= date_of_numbers(2020,1,1)) and
-                    (date_courante_3 <=
+                if ((date_courante_5 >= date_of_numbers(2020,1,1)) and
+                    (date_courante_5 <=
                     date_of_numbers(2020,12,31))):
                     return (money_of_cents_string("5775900") +
                         (money_of_cents_string("577500") *
@@ -1597,8 +1704,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 else:
                     raise EmptyError
             def temp_plafond__i_d521_3_4(_:Unit):
-                if ((date_courante_3 >= date_of_numbers(2019,1,1)) and
-                    (date_courante_3 <=
+                if ((date_courante_5 >= date_of_numbers(2019,1,1)) and
+                    (date_courante_5 <=
                     date_of_numbers(2019,12,31))):
                     return (money_of_cents_string("5684900") +
                         (money_of_cents_string("568400") *
@@ -1606,8 +1713,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 else:
                     raise EmptyError
             def temp_plafond__i_d521_3_5(_:Unit):
-                if ((date_courante_3 >= date_of_numbers(2018,1,1)) and
-                    (date_courante_3 <=
+                if ((date_courante_5 >= date_of_numbers(2018,1,1)) and
+                    (date_courante_5 <=
                     date_of_numbers(2018,12,31))):
                     return (money_of_cents_string("5628600") +
                         (money_of_cents_string("562800") *
@@ -1615,9 +1722,9 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 else:
                     raise EmptyError
             temp_plafond__i_d521_3_6 = handle_default(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                                      start_line=149,
+                                                      start_line=157,
                                                       start_column=11,
-                                                      end_line=149, end_column=27,
+                                                      end_line=157, end_column=27,
                                                       law_headings=["Allocations familiales",
                                                       "Champs d'applications",
                                                       "Prologue"]), [temp_plafond__i_d521_3_5,
@@ -1633,8 +1740,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_plafond__i_d521_3_6 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=149, start_column=11,
-                                             end_line=149, end_column=27,
+                                             start_line=157, start_column=11,
+                                             end_line=157, end_column=27,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -1656,14 +1763,14 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_droit_ouvert_complement = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=132, start_column=11,
-                                             end_line=132, end_column=34,
+                                             start_line=137, start_column=11,
+                                             end_line=137, end_column=34,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
     droit_ouvert_complement = temp_droit_ouvert_complement
     try:
-        def temp_droit_ouvert_forfaitaire(param_6:Enfant):
+        def temp_droit_ouvert_forfaitaire(enfant_7:Enfant):
             try:
                 try:
                     try:
@@ -1676,13 +1783,13 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     except EmptyError:
                         if ((list_length(enfants_a_charge) >=
                             nombre_enfants_alinea_2_l521_3) and
-                            ((((param_6.date_de_naissance +
+                            ((((enfant_7.date_de_naissance +
                             prestations_familiales_dot_age_l512_3_2) -
-                            date_courante_3) <
+                            date_courante_5) <
                             duration_of_numbers(0,0,365)) and
-                            (param_6.a_deja_ouvert_droit_aux_allocations_familiales and
+                            (enfant_7.a_deja_ouvert_droit_aux_allocations_familiales and
                             prestations_familiales_dot_conditions_hors_age(
-                            param_6)))):
+                            enfant_7)))):
                             return True
                         else:
                             raise EmptyError
@@ -1732,8 +1839,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 return False
             def temp_montant_initial_base_troisieme_enfant_mayotte_2(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2020,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2020,1,1)) and (date_courante_5 <=
                     date_of_numbers(2020,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1745,8 +1852,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             def temp_montant_initial_base_troisieme_enfant_mayotte_3(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2019,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2019,1,1)) and (date_courante_5 <=
                     date_of_numbers(2019,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1758,8 +1865,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             def temp_montant_initial_base_troisieme_enfant_mayotte_4(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2018,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2018,1,1)) and (date_courante_5 <=
                     date_of_numbers(2018,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1771,8 +1878,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             def temp_montant_initial_base_troisieme_enfant_mayotte_5(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2017,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2017,1,1)) and (date_courante_5 <=
                     date_of_numbers(2017,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1784,8 +1891,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             def temp_montant_initial_base_troisieme_enfant_mayotte_6(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2016,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2016,1,1)) and (date_courante_5 <=
                     date_of_numbers(2016,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1797,8 +1904,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             def temp_montant_initial_base_troisieme_enfant_mayotte_7(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2015,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2015,1,1)) and (date_courante_5 <=
                     date_of_numbers(2015,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1810,8 +1917,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             def temp_montant_initial_base_troisieme_enfant_mayotte_8(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2014,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2014,1,1)) and (date_courante_5 <=
                     date_of_numbers(2014,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1823,8 +1930,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             def temp_montant_initial_base_troisieme_enfant_mayotte_9(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2013,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2013,1,1)) and (date_courante_5 <=
                     date_of_numbers(2013,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1836,8 +1943,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             def temp_montant_initial_base_troisieme_enfant_mayotte_10(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2012,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2012,1,1)) and (date_courante_5 <=
                     date_of_numbers(2012,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1849,8 +1956,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             def temp_montant_initial_base_troisieme_enfant_mayotte_11(_:Unit):
                 if ((residence_2 == Collectivite(Collectivite_Code.Mayotte,
-                    Unit())) and ((date_courante_3 >=
-                    date_of_numbers(2011,1,1)) and (date_courante_3 <=
+                    Unit())) and ((date_courante_5 >=
+                    date_of_numbers(2011,1,1)) and (date_courante_5 <=
                     date_of_numbers(2011,12,31)))):
                     if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                         integer_of_string("2")):
@@ -1905,8 +2012,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     nombre_total_enfants = temp_nombre_total_enfants
     try:
-        def temp_nombre_moyen_enfants(enfant_1:Enfant):
-            match_arg_16 = prise_en_compte(enfant_1)
+        def temp_nombre_moyen_enfants(enfant_8:Enfant):
+            match_arg_16 = prise_en_compte(enfant_8)
             if match_arg_16.code == PriseEnCompte_Code.Complete:
                 _ = match_arg_16.value
                 return decimal_of_string("1.")
@@ -1963,8 +2070,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_7(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2020,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2020,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2020,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2020,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -1977,8 +2084,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_8(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2019,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2019,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2019,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2019,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -1991,8 +2098,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_9(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2018,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2018,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2018,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2018,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -2005,8 +2112,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_10(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2017,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2017,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2017,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2017,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -2019,8 +2126,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_11(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2016,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2016,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2016,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2016,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -2033,8 +2140,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_12(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2015,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2015,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2015,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2015,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -2047,8 +2154,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_13(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2014,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2014,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2014,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2014,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -2061,8 +2168,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_14(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2013,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2013,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2013,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2013,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -2075,8 +2182,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_15(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2012,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2012,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2012,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2012,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -2089,8 +2196,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_premier_enfant_16(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2011,1,1)) and
-                        ((date_courante_3 <= date_of_numbers(2011,12,31)) and
+                        ((date_courante_5 >= date_of_numbers(2011,1,1)) and
+                        ((date_courante_5 <= date_of_numbers(2011,12,31)) and
                         not avait_enfant_a_charge_avant_1er_janvier_2012))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("0")):
@@ -2185,23 +2292,23 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     droit_ouvert_base = temp_droit_ouvert_base
     try:
-        def temp_droit_ouvert_majoration(param_7:Enfant):
+        def temp_droit_ouvert_majoration(enfant_9:Enfant):
             try:
                 try:
                     try:
                         if ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >=
                             nombre_enfants_alinea_2_l521_3) and
-                            ((param_7.date_de_naissance +
-                            age_minimum_alinea_1_l521_3_1(param_7)) <=
-                            date_courante_3)):
+                            ((enfant_9.date_de_naissance +
+                            age_minimum_alinea_1_l521_3_1(enfant_9)) <=
+                            date_courante_5)):
                             return True
                         else:
                             raise EmptyError
                     except EmptyError:
-                        if (not est_enfant_le_plus_age(param_7) and
-                            ((param_7.date_de_naissance +
-                            age_minimum_alinea_1_l521_3_1(param_7)) <=
-                            date_courante_3)):
+                        if (not est_enfant_le_plus_age(enfant_9) and
+                            ((enfant_9.date_de_naissance +
+                            age_minimum_alinea_1_l521_3_1(enfant_9)) <=
+                            date_courante_5)):
                             return True
                         else:
                             raise EmptyError
@@ -2209,9 +2316,9 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     return False
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                                     start_line=125,
+                                                     start_line=126,
                                                      start_column=11,
-                                                     end_line=125,
+                                                     end_line=126,
                                                      end_column=34,
                                                      law_headings=["Allocations familiales",
                                                      "Champs d'applications",
@@ -2219,14 +2326,14 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_droit_ouvert_majoration = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=125, start_column=11,
-                                             end_line=125, end_column=34,
+                                             start_line=126, start_column=11,
+                                             end_line=126, end_column=34,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
     droit_ouvert_majoration = temp_droit_ouvert_majoration
     try:
-        def temp_complement_degressif(param_8:Money):
+        def temp_complement_degressif(allocation:Money):
             try:
                 try:
                     def temp_complement_degressif_1(_:Unit):
@@ -2236,9 +2343,9 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     def temp_complement_degressif_3(_:Unit):
                         if ((ressources_menage > plafond__i_i_d521_3) and
                             (ressources_menage <= (plafond__i_i_d521_3 +
-                            (param_8 *
+                            (allocation *
                             decimal_of_string("12."))))):
-                            return (((plafond__i_i_d521_3 + (param_8 *
+                            return (((plafond__i_i_d521_3 + (allocation *
                                 decimal_of_string("12."))) -
                                 ressources_menage) *
                                 (decimal_of_string("1.") /
@@ -2248,9 +2355,9 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     def temp_complement_degressif_4(_:Unit):
                         if ((ressources_menage > plafond__i_d521_3) and
                             (ressources_menage <= (plafond__i_d521_3 +
-                            (param_8 *
+                            (allocation *
                             decimal_of_string("12."))))):
-                            return (((plafond__i_d521_3 + (param_8 *
+                            return (((plafond__i_d521_3 + (allocation *
                                 decimal_of_string("12."))) -
                                 ressources_menage) *
                                 (decimal_of_string("1.") /
@@ -2258,8 +2365,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                         else:
                             raise EmptyError
                     return handle_default(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                          start_line=134, start_column=11,
-                                          end_line=134, end_column=31,
+                                          start_line=139, start_column=11,
+                                          end_line=139, end_column=31,
                                           law_headings=["Allocations familiales",
                                           "Champs d'applications",
                                           "Prologue"]), [temp_complement_degressif_4,
@@ -2270,9 +2377,9 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     return money_of_cents_string("0")
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                                     start_line=134,
+                                                     start_line=139,
                                                      start_column=11,
-                                                     end_line=134,
+                                                     end_line=139,
                                                      end_column=31,
                                                      law_headings=["Allocations familiales",
                                                      "Champs d'applications",
@@ -2280,8 +2387,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_complement_degressif = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=134, start_column=11,
-                                             end_line=134, end_column=31,
+                                             start_line=139, start_column=11,
+                                             end_line=139, end_column=31,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -2312,7 +2419,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 raise EmptyError
         temp_montant_verse_forfaitaire_par_enfant_5 = handle_default(
             SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-            start_line=121, start_column=11, end_line=121, end_column=47,
+            start_line=122, start_column=11, end_line=122, end_column=47,
             law_headings=["Allocations familiales", "Champs d'applications",
             "Prologue"]), [temp_montant_verse_forfaitaire_par_enfant_4,
             temp_montant_verse_forfaitaire_par_enfant_3,
@@ -2322,8 +2429,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_montant_verse_forfaitaire_par_enfant_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=121, start_column=11,
-                                             end_line=121, end_column=47,
+                                             start_line=122, start_column=11,
+                                             end_line=122, end_column=47,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -2399,8 +2506,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_2(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2020,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2020,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2020,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2413,8 +2520,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_3(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2019,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2019,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2019,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2427,8 +2534,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_4(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2018,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2018,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2018,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2441,8 +2548,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_5(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2017,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2017,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2017,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2455,8 +2562,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_6(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2016,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2016,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2016,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2469,8 +2576,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_7(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2015,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2015,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2015,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2483,8 +2590,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_8(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2014,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2014,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2014,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2497,8 +2604,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_9(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2013,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2013,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2013,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2511,8 +2618,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_10(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2012,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2012,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2012,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2525,8 +2632,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 def temp_montant_initial_base_deuxieme_enfant_11(_:Unit):
                     if ((residence_2 ==
                         Collectivite(Collectivite_Code.Mayotte, Unit())) and
-                        ((date_courante_3 >= date_of_numbers(2011,1,1)) and
-                        (date_courante_3 <=
+                        ((date_courante_5 >= date_of_numbers(2011,1,1)) and
+                        (date_courante_5 <=
                         date_of_numbers(2011,12,31)))):
                         if (list_length(enfants_a_charge_droit_ouvert_prestation_familiale) >
                             integer_of_string("1")):
@@ -2638,39 +2745,39 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     rapport_enfants_total_moyen = temp_rapport_enfants_total_moyen
     try:
-        def temp_montant_initial_metropole_majoration(param_9:Enfant):
+        def temp_montant_initial_metropole_majoration(enfant_10:Enfant):
             try:
                 def temp_montant_initial_metropole_majoration_1(_:Unit):
                     raise EmptyError
                 def temp_montant_initial_metropole_majoration_2(_:Unit):
                     return False
                 def temp_montant_initial_metropole_majoration_3(_:Unit):
-                    if not droit_ouvert_majoration(param_9):
+                    if not droit_ouvert_majoration(enfant_10):
                         return money_of_cents_string("0")
                     else:
                         raise EmptyError
                 def temp_montant_initial_metropole_majoration_4(_:Unit):
                     if ((ressources_menage > plafond__i_i_d521_3) and
-                        droit_ouvert_majoration(param_9)):
+                        droit_ouvert_majoration(enfant_10)):
                         return (bmaf_dot_montant * decimal_of_string("0.04"))
                     else:
                         raise EmptyError
                 def temp_montant_initial_metropole_majoration_5(_:Unit):
                     if (((ressources_menage > plafond__i_d521_3) and
                         (ressources_menage <= plafond__i_i_d521_3)) and
-                        droit_ouvert_majoration(param_9)):
+                        droit_ouvert_majoration(enfant_10)):
                         return (bmaf_dot_montant * decimal_of_string("0.08"))
                     else:
                         raise EmptyError
                 def temp_montant_initial_metropole_majoration_6(_:Unit):
                     if ((ressources_menage <= plafond__i_d521_3) and
-                        droit_ouvert_majoration(param_9)):
+                        droit_ouvert_majoration(enfant_10)):
                         return (bmaf_dot_montant * decimal_of_string("0.16"))
                     else:
                         raise EmptyError
                 return handle_default(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                      start_line=126, start_column=11,
-                                      end_line=126, end_column=47,
+                                      start_line=128, start_column=11,
+                                      end_line=128, end_column=47,
                                       law_headings=["Allocations familiales",
                                       "Champs d'applications",
                                       "Prologue"]), [temp_montant_initial_metropole_majoration_6,
@@ -2681,9 +2788,9 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                       temp_montant_initial_metropole_majoration_1)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                                     start_line=126,
+                                                     start_line=128,
                                                      start_column=11,
-                                                     end_line=126,
+                                                     end_line=128,
                                                      end_column=47,
                                                      law_headings=["Allocations familiales",
                                                      "Champs d'applications",
@@ -2691,23 +2798,23 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_montant_initial_metropole_majoration = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=126, start_column=11,
-                                             end_line=126, end_column=47,
+                                             start_line=128, start_column=11,
+                                             end_line=128, end_column=47,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
     montant_initial_metropole_majoration = temp_montant_initial_metropole_majoration
     try:
-        def temp_montant_verse_forfaitaire(enfant_2:Enfant):
-            return droit_ouvert_forfaitaire(enfant_2)
+        def temp_montant_verse_forfaitaire(enfant_11:Enfant):
+            return droit_ouvert_forfaitaire(enfant_11)
         temp_montant_verse_forfaitaire_1 = (montant_verse_forfaitaire_par_enfant *
             decimal_of_integer(list_length(list_filter(temp_montant_verse_forfaitaire,
             enfants_a_charge))))
     except EmptyError:
         temp_montant_verse_forfaitaire_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=122, start_column=11,
-                                             end_line=122, end_column=36,
+                                             start_line=123, start_column=11,
+                                             end_line=123, end_column=36,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -2757,7 +2864,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     montant_initial_base = temp_montant_initial_base_4
     try:
-        def temp_montant_initial_majoration(param_10:Enfant):
+        def temp_montant_initial_majoration(enfant_12:Enfant):
             try:
                 try:
                     def temp_montant_initial_majoration_1(_:Unit):
@@ -2765,35 +2872,35 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     def temp_montant_initial_majoration_2(_:Unit):
                         return False
                     def temp_montant_initial_majoration_3(_:Unit):
-                        if (droit_ouvert_majoration(param_10) and
+                        if (droit_ouvert_majoration(enfant_12) and
                             (prestations_familiales_dot_regime_outre_mer_l751_1 and
                             ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale) ==
                             integer_of_string("1")) and
-                            ((param_10.date_de_naissance +
+                            ((enfant_12.date_de_naissance +
                             duration_of_numbers(16,0,0)) <=
-                            date_courante_3)))):
+                            date_courante_5)))):
                             return (bmaf_dot_montant *
                                 decimal_of_string("0.0567"))
                         else:
                             raise EmptyError
                     def temp_montant_initial_majoration_4(_:Unit):
-                        if (droit_ouvert_majoration(param_10) and
+                        if (droit_ouvert_majoration(enfant_12) and
                             (prestations_familiales_dot_regime_outre_mer_l751_1 and
                             ((list_length(enfants_a_charge_droit_ouvert_prestation_familiale) ==
                             integer_of_string("1")) and
-                            (((param_10.date_de_naissance +
+                            (((enfant_12.date_de_naissance +
                             duration_of_numbers(11,0,0)) <=
-                            date_courante_3) and
-                            ((param_10.date_de_naissance +
+                            date_courante_5) and
+                            ((enfant_12.date_de_naissance +
                             duration_of_numbers(16,0,0)) >
-                            date_courante_3))))):
+                            date_courante_5))))):
                             return (bmaf_dot_montant *
                                 decimal_of_string("0.0369"))
                         else:
                             raise EmptyError
                     return handle_default(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                          start_line=127, start_column=11,
-                                          end_line=127, end_column=37,
+                                          start_line=130, start_column=11,
+                                          end_line=130, end_column=37,
                                           law_headings=["Allocations familiales",
                                           "Champs d'applications",
                                           "Prologue"]), [temp_montant_initial_majoration_4,
@@ -2801,12 +2908,12 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                           temp_montant_initial_majoration_2,
                                           temp_montant_initial_majoration_1)
                 except EmptyError:
-                    return montant_initial_metropole_majoration(param_10)
+                    return montant_initial_metropole_majoration(enfant_12)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                                     start_line=127,
+                                                     start_line=130,
                                                      start_column=11,
-                                                     end_line=127,
+                                                     end_line=130,
                                                      end_column=37,
                                                      law_headings=["Allocations familiales",
                                                      "Champs d'applications",
@@ -2814,8 +2921,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_montant_initial_majoration = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=127, start_column=11,
-                                             end_line=127, end_column=37,
+                                             start_line=130, start_column=11,
+                                             end_line=130, end_column=37,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -2850,7 +2957,7 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                     raise EmptyError
             temp_montant_verse_complement_pour_forfaitaire_4 = handle_default(
                 SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                start_line=136, start_column=11, end_line=136, end_column=52,
+                start_line=142, start_column=11, end_line=142, end_column=52,
                 law_headings=["Allocations familiales",
                 "Champs d'applications",
                 "Prologue"]), [temp_montant_verse_complement_pour_forfaitaire_3,
@@ -2862,8 +2969,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_montant_verse_complement_pour_forfaitaire_4 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=136, start_column=11,
-                                             end_line=136, end_column=52,
+                                             start_line=142, start_column=11,
+                                             end_line=142, end_column=52,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -2881,9 +2988,9 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Prologue"]))
     montant_avec_garde_alternee_base = temp_montant_avec_garde_alternee_base
     try:
-        def temp_montant_avec_garde_alternee_majoration(param_11:Enfant):
+        def temp_montant_avec_garde_alternee_majoration(enfant_13:Enfant):
             try:
-                match_arg_17 = prise_en_compte(param_11)
+                match_arg_17 = prise_en_compte(enfant_13)
                 if match_arg_17.code == PriseEnCompte_Code.Complete:
                     _ = match_arg_17.value
                     temp_montant_avec_garde_alternee_majoration_1 = decimal_of_string("1.")
@@ -2893,13 +3000,13 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                 elif match_arg_17.code == PriseEnCompte_Code.Zero:
                     _ = match_arg_17.value
                     temp_montant_avec_garde_alternee_majoration_1 = decimal_of_string("0.")
-                return (montant_initial_majoration(param_11) *
+                return (montant_initial_majoration(enfant_13) *
                     temp_montant_avec_garde_alternee_majoration_1)
             except EmptyError:
                 raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                                     start_line=128,
+                                                     start_line=132,
                                                      start_column=11,
-                                                     end_line=128,
+                                                     end_line=132,
                                                      end_column=49,
                                                      law_headings=["Allocations familiales",
                                                      "Champs d'applications",
@@ -2907,8 +3014,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_montant_avec_garde_alternee_majoration = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=128, start_column=11,
-                                             end_line=128, end_column=49,
+                                             start_line=132, start_column=11,
+                                             end_line=132, end_column=49,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -2929,8 +3036,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     montant_verse_base = temp_montant_verse_base
     try:
         if droit_ouvert_base:
-            def temp_montant_verse_majoration(enfant_3:Enfant):
-                return montant_avec_garde_alternee_majoration(enfant_3)
+            def temp_montant_verse_majoration(enfant_14:Enfant):
+                return montant_avec_garde_alternee_majoration(enfant_14)
             def temp_montant_verse_majoration_1(sum1_1:Money, sum2_1:Money):
                 return (sum1_1 + sum2_1)
             temp_montant_verse_majoration_2 = list_reduce(temp_montant_verse_majoration_1,
@@ -2942,8 +3049,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_montant_verse_majoration_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=129, start_column=11,
-                                             end_line=129, end_column=35,
+                                             start_line=134, start_column=11,
+                                             end_line=134, end_column=35,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -2954,8 +3061,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_montant_base_complement_pour_base_et_majoration = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=133, start_column=11,
-                                             end_line=133, end_column=58,
+                                             start_line=138, start_column=11,
+                                             end_line=138, end_column=58,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -2969,8 +3076,8 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     except EmptyError:
         temp_montant_verse_complement_pour_base_et_majoration = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/prologue.catala_fr",
-                                             start_line=135, start_column=11,
-                                             end_line=135, end_column=59,
+                                             start_line=141, start_column=11,
+                                             end_line=141, end_column=59,
                                              law_headings=["Allocations familiales",
                                              "Champs d'applications",
                                              "Prologue"]))
@@ -3028,14 +3135,14 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
     i_personne_charge_effective_permanente_remplit_titre__i = interface_allocations_familiales_in.i_personne_charge_effective_permanente_remplit_titre_I_in
     i_avait_enfant_a_charge_avant_1er_janvier_2012 = interface_allocations_familiales_in.i_avait_enfant_a_charge_avant_1er_janvier_2012_in
     try:
-        def temp_enfants_a_charge(enfant_4:EnfantEntree):
-            if ((enfant_4.d_date_de_naissance +
+        def temp_enfants_a_charge(enfant_15:EnfantEntree):
+            if ((enfant_15.d_date_de_naissance +
                 duration_of_numbers(3,0,0)) >=
                 i_date_courante):
                 temp_enfants_a_charge_1 = SituationObligationScolaire(SituationObligationScolaire_Code.Avant,
                     Unit())
             else:
-                if ((enfant_4.d_date_de_naissance +
+                if ((enfant_15.d_date_de_naissance +
                     duration_of_numbers(16,0,0)) >=
                     i_date_courante):
                     temp_enfants_a_charge_1 = SituationObligationScolaire(SituationObligationScolaire_Code.Pendant,
@@ -3043,13 +3150,13 @@ def interface_allocations_familiales(interface_allocations_familiales_in:Interfa
                 else:
                     temp_enfants_a_charge_1 = SituationObligationScolaire(SituationObligationScolaire_Code.Apres,
                         Unit())
-            return Enfant(identifiant = enfant_4.d_identifiant,
+            return Enfant(identifiant = enfant_15.d_identifiant,
                 obligation_scolaire = temp_enfants_a_charge_1,
-                remuneration_mensuelle = enfant_4.d_remuneration_mensuelle,
-                date_de_naissance = enfant_4.d_date_de_naissance,
-                prise_en_charge = enfant_4.d_prise_en_charge,
-                a_deja_ouvert_droit_aux_allocations_familiales = enfant_4.d_a_deja_ouvert_droit_aux_allocations_familiales,
-                beneficie_titre_personnel_aide_personnelle_logement = enfant_4.d_beneficie_titre_personnel_aide_personnelle_logement)
+                remuneration_mensuelle = enfant_15.d_remuneration_mensuelle,
+                date_de_naissance = enfant_15.d_date_de_naissance,
+                prise_en_charge = enfant_15.d_prise_en_charge,
+                a_deja_ouvert_droit_aux_allocations_familiales = enfant_15.d_a_deja_ouvert_droit_aux_allocations_familiales,
+                beneficie_titre_personnel_aide_personnelle_logement = enfant_15.d_beneficie_titre_personnel_aide_personnelle_logement)
         temp_enfants_a_charge_2 = list_map(temp_enfants_a_charge, i_enfants)
     except EmptyError:
         temp_enfants_a_charge_2 = dead_value

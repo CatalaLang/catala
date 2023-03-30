@@ -30,13 +30,6 @@ module C = Cli
 (** Converts double lines into HTML newlines. *)
 let pre_html (s : string) = String.trim (run_pandoc s `Html)
 
-(** Raise an error if pygments cannot be found *)
-let raise_failed_pygments (command : string) (error_code : int) : 'a =
-  Errors.raise_error
-    "Weaving to HTML failed: pygmentize command \"%s\" returned with error \
-     code %d"
-    command error_code
-
 (** Partial application allowing to remove first code lines of
     [<td class="code">] and [<td class="linenos">] generated HTML. Basically,
     remove all code block first lines. *)
@@ -57,28 +50,19 @@ let wrap_html
     (language : Cli.backend_lang)
     (fmt : Format.formatter)
     (wrapped : Format.formatter -> unit) : unit =
-  let pygments = "pygmentize" in
-  let css_file = Filename.temp_file "catala_css_pygments" "" in
-  let pygments_args =
-    [| "-f"; "html"; "-S"; "colorful"; "-a"; ".catala-code" |]
+  let css_as_string =
+    call_pygmentize ["-f"; "html"; "-S"; "default"; "-a"; ".catala-code"]
   in
-  let cmd =
-    Format.sprintf "%s %s > %s" pygments
-      (String.concat " " (Array.to_list pygments_args))
-      css_file
-  in
-  let return_code = Sys.command cmd in
-  if return_code <> 0 then raise_failed_pygments cmd return_code;
-  let oc = open_in css_file in
-  let css_as_string = really_input_string oc (in_channel_length oc) in
-  close_in oc;
   Format.fprintf fmt
-    "<head>\n\
+    "<!DOCTYPE html>\n\
+     <html>\n\
+     <head>\n\
      <style>\n\
      %s\n\
      </style>\n\
      <meta http-equiv='Content-Type' content='text/html; charset=utf-8'/>\n\
      </head>\n\
+     <body>\n\
      <h1>%s<br />\n\
      <small>%s Catala version %s</small>\n\
      </h1>\n\
@@ -110,46 +94,29 @@ let wrap_html
               (literal_last_modification language)
               ftime)
           source_files));
-  wrapped fmt
+  wrapped fmt;
+  Format.fprintf fmt "</body>\n</html>\n"
 
 (** Performs syntax highlighting on a piece of code by using Pygments and the
     special Catala lexer. *)
-let pygmentize_code (c : string Marked.pos) (language : C.backend_lang) : string
-    =
+let pygmentize_code (c : string Marked.pos) (lang : C.backend_lang) : string =
   C.debug_print "Pygmenting the code chunk %s"
     (Pos.to_string (Marked.get_mark c));
-  let temp_file_in = Filename.temp_file "catala_html_pygments" "in" in
-  let temp_file_out = Filename.temp_file "catala_html_pygments" "out" in
-  let oc = open_out temp_file_in in
-  Printf.fprintf oc "%s" (Marked.unmark c);
-  close_out oc;
-  let pygments = "pygmentize" in
-  let pygments_lexer = get_language_extension language in
-  let pygments_args =
-    [|
-      "-l";
-      pygments_lexer;
-      "-f";
-      "html";
-      "-O";
-      "style=colorful,anchorlinenos=True,lineanchors=\""
-      ^ String.to_ascii (Pos.get_file (Marked.get_mark c))
-      ^ "\",linenos=table,linenostart="
-      ^ string_of_int (Pos.get_start_line (Marked.get_mark c));
-      "-o";
-      temp_file_out;
-      temp_file_in;
-    |]
+  let output =
+    File.with_temp_file "catala_html_pygments" "in" ~contents:(Marked.unmark c)
+    @@ fun temp_file_in ->
+    call_pygmentize ~lang
+      [
+        "-f";
+        "html";
+        "-O";
+        "anchorlinenos=True,lineanchors="
+        ^ String.to_ascii (Pos.get_file (Marked.get_mark c))
+        ^ ",linenos=table,linenostart="
+        ^ string_of_int (Pos.get_start_line (Marked.get_mark c));
+        temp_file_in;
+      ]
   in
-  let cmd =
-    Format.asprintf "%s %s" pygments
-      (String.concat " " (Array.to_list pygments_args))
-  in
-  let return_code = Sys.command cmd in
-  if return_code <> 0 then raise_failed_pygments cmd return_code;
-  let oc = open_in temp_file_out in
-  let output = really_input_string oc (in_channel_length oc) in
-  close_in oc;
   (* Remove code blocks delimiters needed by [Pygments]. *)
   let trimmed_output =
     output |> remove_cb_first_lines |> remove_cb_last_lines
@@ -179,7 +146,10 @@ let rec law_structure_to_html
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
     Format.fprintf fmt
-      "<div class='code-wrapper%s'>\n<div class='filename'>%s</div>\n%s\n</div>"
+      "<div class='code-wrapper%s catala-code'>\n\
+       <div class='filename'>%s</div>\n\
+       %s\n\
+       </div>"
       (if metadata then " code-metadata" else "")
       (Pos.get_file (Marked.get_mark c))
       (pygmentize_code

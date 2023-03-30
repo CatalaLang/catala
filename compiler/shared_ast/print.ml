@@ -189,7 +189,9 @@ let operator_to_string : type a k. (a, k) Op.t -> string = function
   | Add_int_int -> "+!"
   | Add_rat_rat -> "+."
   | Add_mon_mon -> "+$"
-  | Add_dat_dur -> "+@"
+  | Add_dat_dur AbortOnRound -> "+@"
+  | Add_dat_dur RoundUp -> "+@u"
+  | Add_dat_dur RoundDown -> "+@d"
   | Add_dur_dur -> "+^"
   | Sub -> "-"
   | Sub_int_int -> "-!"
@@ -208,6 +210,7 @@ let operator_to_string : type a k. (a, k) Op.t -> string = function
   | Div_rat_rat -> "/."
   | Div_mon_mon -> "/$"
   | Div_mon_rat -> "/$."
+  | Div_dur_dur -> "/^"
   | Lt -> "<"
   | Lt_int_int -> "<!"
   | Lt_rat_rat -> "<."
@@ -410,15 +413,14 @@ let rec expr_aux :
   | EInj { e; cons; _ } ->
     Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons with_parens e
   | EMatch { e; cases; _ } ->
-    Format.fprintf fmt "@[<hov 2>%a@ @[<hov 2>%a@]@ %a@ %a@ %a@]" keyword
-      "match" expr e keyword "with"
+    Format.fprintf fmt "@[<v 0>@[<hov 2>%a@ %a@]@ %a@ %a@]" keyword "match" expr
+      e keyword "with"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt (cons_name, case_expr) ->
            Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
              enum_constructor cons_name punctuation "→" expr case_expr))
       (EnumConstructor.Map.bindings cases)
-      keyword "end"
   | EScopeCall { scope; args } ->
     Format.pp_open_hovbox fmt 2;
     ScopeName.format_t fmt scope;

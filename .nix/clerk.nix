@@ -13,7 +13,7 @@
 
 buildDunePackage {
   pname = "clerk";
-  version = "0.7.0"; # TODO parse `catala.opam` with opam2json
+  version = "0.8.0"; # TODO parse `catala.opam` with opam2json
 
   minimumOCamlVersion = "4.11";
 

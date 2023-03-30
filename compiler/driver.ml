@@ -17,9 +17,6 @@
 
 open Catala_utils
 
-(** Associates a {!type: Cli.backend_lang} with its string represtation. *)
-let languages = ["en", Cli.En; "fr", Cli.Fr; "pl", Cli.Pl]
-
 (** Associates a file extension with its corresponding {!type: Cli.backend_lang}
     string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
@@ -59,7 +56,7 @@ let driver source_file (options : Cli.options) : int =
         try List.assoc ext extensions with Not_found -> ext)
     in
     let language =
-      try List.assoc l languages
+      try List.assoc l Cli.languages
       with Not_found ->
         Errors.raise_error
           "The selected language (%s) is not supported by Catala" l
@@ -216,7 +213,7 @@ let driver source_file (options : Cli.options) : int =
         | `Typecheck ->
           Cli.debug_print "Typechecking again...";
           let _ =
-            try Shared_ast.Typing.program prgm
+            try Shared_ast.Typing.program prgm ~leave_unresolved:false
             with Errors.StructuredError (msg, details) ->
               let msg =
                 "Typing error occured during re-typing on the 'default \
@@ -255,7 +252,7 @@ let driver source_file (options : Cli.options) : int =
           | `DcalcInvariants | `Plugin _ ) as backend -> (
           Cli.debug_print "Typechecking again...";
           let prgm =
-            try Shared_ast.Typing.program prgm
+            try Shared_ast.Typing.program ~leave_unresolved:false prgm
             with Errors.StructuredError (msg, details) ->
               let msg =
                 "Typing error occured during re-typing on the 'default \
@@ -344,9 +341,24 @@ let driver source_file (options : Cli.options) : int =
             in
             let prgm =
               if options.closure_conversion then (
+                if not options.avoid_exceptions then
+                  Errors.raise_error
+                    "Option --avoid_exceptions must be enabled for \
+                     --closure_conversion";
                 Cli.debug_print "Performing closure conversion...";
                 let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
                 let prgm = Bindlib.unbox prgm in
+                let prgm =
+                  if options.optimize then (
+                    Cli.debug_print "Optimizing lambda calculus...";
+                    Lcalc.Optimizations.optimize_program prgm)
+                  else prgm
+                in
+                Cli.debug_print "Retyping lambda calculus...";
+                let prgm =
+                  Shared_ast.Program.untype
+                    (Shared_ast.Typing.program ~leave_unresolved:true prgm)
+                in
                 prgm)
               else prgm
             in
@@ -438,6 +450,10 @@ let driver source_file (options : Cli.options) : int =
     -1
 
 let main () =
+  if
+    Array.length Sys.argv >= 2
+    && String.lowercase_ascii Sys.argv.(1) = "pygmentize"
+  then Literate.Pygmentize.exec ();
   let return_code =
     Cmdliner.Cmd.eval'
       (Cmdliner.Cmd.v Cli.info (Cli.catala_t (fun f -> driver (FileName f))))

@@ -55,6 +55,8 @@ type enum_context = typ EnumConstructor.Map.t
 type var_sig = {
   var_sig_typ : typ;
   var_sig_is_condition : bool;
+  var_sig_parameters :
+    (Uid.MarkedString.info * Shared_ast.typ) list Marked.pos option;
   var_sig_io : Surface.Ast.scope_decl_context_io;
   var_sig_states_idmap : StateName.t IdentName.Map.t;
   var_sig_states_list : StateName.t list;
@@ -166,6 +168,16 @@ let get_def_typ (ctxt : context) (def : Ast.ScopeDef.t) : typ =
      referring back to the original subscope *)
   | Ast.ScopeDef.Var (x, _) ->
     get_var_typ ctxt x
+
+(** Retrieves the type of a scope definition from the context *)
+let get_params (ctxt : context) (def : Ast.ScopeDef.t) :
+    (Uid.MarkedString.info * typ) list Marked.pos option =
+  match def with
+  | Ast.ScopeDef.SubScopeVar (_, x, _)
+  (* we don't need to look at the subscope prefix because [x] is already the uid
+     referring back to the original subscope *)
+  | Ast.ScopeDef.Var (x, _) ->
+    (ScopeVar.Map.find x ctxt.var_typs).var_sig_parameters
 
 let is_def_cond (ctxt : context) (def : Ast.ScopeDef.t) : bool =
   match def with
@@ -319,10 +331,8 @@ let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
   match naked_typ with
   | Surface.Ast.Base base_typ -> process_base_typ ctxt (base_typ, typ_pos)
   | Surface.Ast.Func { arg_typ; return_typ } ->
-    (* TODO Louis: /!\ There is only one argument in the surface syntax for
-       function now. *)
-    ( TArrow ([process_base_typ ctxt arg_typ], process_base_typ ctxt return_typ),
-      typ_pos )
+    let targs = List.map (fun (_, t) -> process_base_typ ctxt t) arg_typ in
+    TArrow (targs, process_base_typ ctxt return_typ), typ_pos
 
 (** Process data declaration *)
 let process_data_decl
@@ -362,6 +372,12 @@ let process_data_decl
             state_uid :: states_list ))
         decl.scope_decl_context_item_states (IdentName.Map.empty, [])
     in
+    let var_sig_parameters =
+      Option.map
+        (Marked.map_under_mark
+           (List.map (fun (lbl, typ) -> lbl, process_type ctxt typ)))
+        decl.scope_decl_context_item_parameters
+    in
     {
       ctxt with
       scopes = ScopeName.Map.add scope scope_ctxt ctxt.scopes;
@@ -370,6 +386,7 @@ let process_data_decl
           {
             var_sig_typ = data_typ;
             var_sig_is_condition = is_cond;
+            var_sig_parameters;
             var_sig_io = decl.scope_decl_context_item_attribute;
             var_sig_states_idmap = states_idmap;
             var_sig_states_list = states_list;

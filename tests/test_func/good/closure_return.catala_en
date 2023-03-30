@@ -1,0 +1,12 @@
+## Article
+
+```catala
+declaration scope S:
+  output f content integer depends on y content integer
+  input x content boolean
+
+scope S:
+  definition f of y equals if x then y else - y
+
+# TODO: pass this
+```

@@ -224,6 +224,16 @@ let run_test_aides_logement () =
     exit (-1)
   | Runtime.AssertionFailed _ -> ()
 
+let _test =
+  let _ = run_test_aides_logement () in
+  let raw_events = Runtime.retrieve_log () in
+  Runtime.EventParser.parse_raw_events raw_events
+
+let _test =
+  let _ = run_test_allocations_familiales () in
+  let raw_events = Runtime.retrieve_log () in
+  Runtime.EventParser.parse_raw_events raw_events
+
 let _bench =
   Random.init (int_of_float (Unix.time ()));
   let num_iter = 10000 in

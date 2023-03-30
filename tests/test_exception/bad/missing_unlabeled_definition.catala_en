@@ -13,14 +13,12 @@ scope A:
 $ catala Interpret -s A
 [ERROR] This exception does not have a corresponding definition
 
-┌─⯈ tests/test_exception/bad/missing_unlabeled_definition.catala_en:7.8-9.23:
+┌─⯈ tests/test_exception/bad/missing_unlabeled_definition.catala_en:8.2-9.14:
 └─┐
-7 │ scope A:
-  │
 8 │   exception
   │   ‾‾‾‾‾‾‾‾‾
 9 │   definition x equals 1
-  │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
   └─ Test
 #return code 255#
 ```

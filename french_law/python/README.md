@@ -3,9 +3,17 @@
 This folder contains a ready-to-use Python library featuring French public
 algorithms coded up in Catala.
 
-The Python version expected to run the Python code is above 3.6. For the commands
-noted below to run, you are expected to setup a virtual Python environment with
-`virtualenv` by running the `setup_env.sh` script.
+The Python version expected to run the Python code is above 3.6. For the
+commands noted below to run, you are expected to setup a virtual Python
+environment: run `make dependencies-python` from the root of the Catala
+repository.
+
+Then activate the environment (needs to be done every time you open a new shell
+session). From the root of the Catala repository, run the following command:
+
+```
+. _python_venv/bin/activate
+```
 
 ## Organization
 

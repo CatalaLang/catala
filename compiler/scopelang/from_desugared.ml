@@ -18,6 +18,7 @@
 
 open Catala_utils
 open Shared_ast
+module D = Desugared.Ast
 
 (** {1 Expression translation}*)
 
@@ -177,7 +178,7 @@ let def_map_to_tree
     (def_info : Desugared.Ast.ScopeDef.t)
     (def : Desugared.Ast.rule RuleName.Map.t) : rule_tree list =
   let exc_graph = Desugared.Dependency.build_exceptions_graph def def_info in
-  Desugared.Dependency.check_for_exception_cycle exc_graph;
+  Desugared.Dependency.check_for_exception_cycle def exc_graph;
   (* we start by the base cases: they are the vertices which have no
      successors *)
   let base_cases =
@@ -212,7 +213,7 @@ let rec rule_tree_to_expr
     ~(is_reentrant_var : bool)
     (ctx : ctx)
     (def_pos : Pos.t)
-    (is_func : Desugared.Ast.expr Var.t list option)
+    (params : Desugared.Ast.expr Var.t list option)
     (tree : rule_tree) : untyped Ast.expr boxed =
   let emark = Untyped { pos = def_pos } in
   let exceptions, base_rules =
@@ -224,10 +225,10 @@ let rec rule_tree_to_expr
   let substitute_parameter
       (e : Desugared.Ast.expr boxed)
       (rule : Desugared.Ast.rule) : Desugared.Ast.expr boxed =
-    match is_func, rule.Desugared.Ast.rule_parameter with
-    | Some new_params, Some old_params_with_types ->
+    match params, rule.Desugared.Ast.rule_parameter with
+    | Some new_params, Some (old_params_with_types, _) ->
       let old_params, _ = List.split old_params_with_types in
-      let old_params = Array.of_list old_params in
+      let old_params = Array.of_list (List.map Marked.unmark old_params) in
       let new_params = Array.of_list new_params in
       let binder = Bindlib.bind_mvar old_params (Marked.unmark e) in
       Marked.mark (Marked.get_mark e)
@@ -240,7 +241,7 @@ let rec rule_tree_to_expr
     (* should not happen *)
   in
   let ctx =
-    match is_func with
+    match params with
     | None -> ctx
     | Some new_params ->
       ListLabels.fold_left new_params ~init:ctx ~f:(fun ctx new_param ->
@@ -296,7 +297,7 @@ let rec rule_tree_to_expr
   in
   let exceptions =
     List.map
-      (rule_tree_to_expr ~toplevel:false ~is_reentrant_var ctx def_pos is_func)
+      (rule_tree_to_expr ~toplevel:false ~is_reentrant_var ctx def_pos params)
       exceptions
   in
   let default =
@@ -304,9 +305,9 @@ let rec rule_tree_to_expr
       (Expr.elit (LBool true) emark)
       default_containing_base_cases emark
   in
-  match is_func, (List.hd base_rules).Desugared.Ast.rule_parameter with
+  match params, (List.hd base_rules).Desugared.Ast.rule_parameter with
   | None, None -> default
-  | Some new_params, Some ls ->
+  | Some new_params, Some (ls, _) ->
     let _, tys = List.split ls in
     if toplevel then
       (* When we're creating a function from multiple defaults, we must check
@@ -334,49 +335,12 @@ let translate_def
     (ctx : ctx)
     (def_info : Desugared.Ast.ScopeDef.t)
     (def : Desugared.Ast.rule RuleName.Map.t)
+    (params : (Uid.MarkedString.info * typ) list Marked.pos option)
     (typ : typ)
     (io : Desugared.Ast.io)
     ~(is_cond : bool)
     ~(is_subscope_var : bool) : untyped Ast.expr boxed =
   (* Here, we have to transform this list of rules into a default tree. *)
-  let is_def_func =
-    match Marked.unmark typ with TArrow (_, _) -> true | _ -> false
-  in
-  let is_rule_func _ (r : Desugared.Ast.rule) : bool =
-    Option.is_some r.Desugared.Ast.rule_parameter
-  in
-  let all_rules_func = RuleName.Map.for_all is_rule_func def in
-  let all_rules_not_func =
-    RuleName.Map.for_all (fun n r -> not (is_rule_func n r)) def
-  in
-  let is_def_func_param_typ : typ list option =
-    if is_def_func && all_rules_func then
-      match Marked.unmark typ with
-      | TArrow (t_param, _) -> Some t_param
-      | _ ->
-        Errors.raise_spanned_error (Marked.get_mark typ)
-          "The definitions of %a are function but it doesn't have a function \
-           type"
-          Desugared.Ast.ScopeDef.format_t def_info
-    else if (not is_def_func) && all_rules_not_func then None
-    else
-      let spans =
-        List.map
-          (fun (_, r) ->
-            ( Some "This definition is a function:",
-              Expr.pos r.Desugared.Ast.rule_cons ))
-          (RuleName.Map.bindings (RuleName.Map.filter is_rule_func def))
-        @ List.map
-            (fun (_, r) ->
-              ( Some "This definition is not a function:",
-                Expr.pos r.Desugared.Ast.rule_cons ))
-            (RuleName.Map.bindings
-               (RuleName.Map.filter (fun n r -> not (is_rule_func n r)) def))
-      in
-      Errors.raise_multispanned_error spans
-        "some definitions of the same variable are functions while others \
-         aren't"
-  in
   let top_list = def_map_to_tree def_info def in
   let is_input =
     match Marked.unmark io.Desugared.Ast.io_input with
@@ -396,7 +360,7 @@ let translate_def
       Some
         (Desugared.Ast.always_false_rule
            (Desugared.Ast.ScopeDef.get_position def_info)
-           is_def_func_param_typ)
+           params)
     else None
   in
   if
@@ -427,26 +391,26 @@ let translate_def
   then
     let m = Untyped { pos = Desugared.Ast.ScopeDef.get_position def_info } in
     let empty_error = Expr.elit LEmptyError m in
-    match is_def_func_param_typ with
-    | Some tys ->
+    match params with
+    | Some (ps, _) ->
+      let labels, tys = List.split ps in
       Expr.make_abs
-        (Array.init (List.length tys) (fun _ -> Var.make "_"))
+        (Array.of_list
+           (List.map (fun lbl -> Var.make (Marked.unmark lbl)) labels))
         empty_error tys (Expr.mark_pos m)
     | _ -> empty_error
   else
     rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant ctx
       (Desugared.Ast.ScopeDef.get_position def_info)
       (Option.map
-         (fun l ->
-           ListLabels.mapi l ~f:(fun i _ ->
-               Var.make ("param" ^ string_of_int i)))
-         is_def_func_param_typ)
+         (fun (ps, _) ->
+           (List.map (fun (lbl, _) -> Var.make (Marked.unmark lbl))) ps)
+         params)
       (match top_list, top_value with
       | [], None ->
         (* In this case, there are no rules to define the expression and no
            default value so we put an empty rule. *)
-        Leaf
-          [Desugared.Ast.empty_rule (Marked.get_mark typ) is_def_func_param_typ]
+        Leaf [Desugared.Ast.empty_rule (Marked.get_mark typ) params]
       | [], Some top_value ->
         (* In this case, there are no rules to define the expression but a
            default value so we put it. *)
@@ -457,12 +421,7 @@ let translate_def
         Node (top_list, [top_value])
       | [top_tree], None -> top_tree
       | _, None ->
-        Node
-          ( top_list,
-            [
-              Desugared.Ast.empty_rule (Marked.get_mark typ)
-                is_def_func_param_typ;
-            ] ))
+        Node (top_list, [Desugared.Ast.empty_rule (Marked.get_mark typ) params]))
 
 let translate_rule ctx (scope : Desugared.Ast.scope) = function
   | Desugared.Dependency.Vertex.Var (var, state) -> (
@@ -471,9 +430,10 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
         (Desugared.Ast.ScopeDef.Var (var, state))
         scope.scope_defs
     in
-    let var_def = scope_def.scope_def_rules in
-    let var_typ = scope_def.scope_def_typ in
-    let is_cond = scope_def.scope_def_is_condition in
+    let var_def = scope_def.D.scope_def_rules in
+    let var_params = scope_def.D.scope_def_parameters in
+    let var_typ = scope_def.D.scope_def_typ in
+    let is_cond = scope_def.D.scope_def_is_condition in
     match Marked.unmark scope_def.Desugared.Ast.scope_def_io.io_input with
     | OnlyInput when not (RuleName.Map.is_empty var_def) ->
       (* If the variable is tagged as input, then it shall not be redefined. *)
@@ -492,8 +452,8 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
       let expr_def =
         translate_def ctx
           (Desugared.Ast.ScopeDef.Var (var, state))
-          var_def var_typ scope_def.Desugared.Ast.scope_def_io ~is_cond
-          ~is_subscope_var:false
+          var_def var_params var_typ scope_def.Desugared.Ast.scope_def_io
+          ~is_cond ~is_subscope_var:false
       in
       let scope_var =
         match ScopeVar.Map.find var ctx.scope_var_mapping, state with
@@ -577,8 +537,8 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
             (* Now that all is good, we can proceed with translating this
                redefinition to a proper Scopelang term. *)
             let expr_def =
-              translate_def ctx def_key def def_typ
-                scope_def.Desugared.Ast.scope_def_io ~is_cond
+              translate_def ctx def_key def scope_def.D.scope_def_parameters
+                def_typ scope_def.Desugared.Ast.scope_def_io ~is_cond
                 ~is_subscope_var:true
             in
             let subscop_real_name =
@@ -683,6 +643,7 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
     Ast.scope_decl_rules;
     Ast.scope_sig;
     Ast.scope_mark = Untyped { pos };
+    Ast.scope_options = scope.scope_options;
   }
 
 (** {1 API} *)
