@@ -333,7 +333,6 @@ let rec rule_tree_to_expr
     an {!constructor: Dcalc.EDefault} *)
 let translate_def
     (ctx : ctx)
-    (scope : ScopeName.t)
     (def_info : Desugared.Ast.ScopeDef.t)
     (def : Desugared.Ast.rule RuleName.Map.t)
     (params : (Uid.MarkedString.info * typ) list Marked.pos option)
@@ -341,23 +340,6 @@ let translate_def
     (io : Desugared.Ast.io)
     ~(is_cond : bool)
     ~(is_subscope_var : bool) : untyped Ast.expr boxed =
-  (* Linting : if the variable is not an input, then it should be defined
-     somewhere. *)
-  if
-    RuleName.Map.is_empty def
-    && (not is_cond)
-    &&
-    match Marked.unmark io.io_input with
-    | Desugared.Ast.NoInput -> true
-    | _ -> false
-  then
-    Errors.format_spanned_warning
-      (D.ScopeDef.get_position def_info)
-      "The variable %a is declared but never defined in scope %a"
-      (Cli.format_with_style [ANSITerminal.yellow])
-      (Format.asprintf "\"%a\"" Desugared.Ast.ScopeDef.format_t def_info)
-      (Cli.format_with_style [ANSITerminal.yellow])
-      (Format.asprintf "\"%a\"" ScopeName.format_t scope);
   (* Here, we have to transform this list of rules into a default tree. *)
   let top_list = def_map_to_tree def_info def in
   let is_input =
