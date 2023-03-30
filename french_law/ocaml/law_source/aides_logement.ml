@@ -4483,8 +4483,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                  ([||])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                      start_line=2189; start_column=14;
-                                      end_line=2189; end_column=55;
+                                      start_line=2188; start_column=14;
+                                      end_line=2188; end_column=55;
                                       law_headings=["Article 9";
                                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -4756,9 +4756,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                          (fun (_: unit) ->
                                                             (log_decision_taken
                                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                                              start_line=3606;
+                                                              start_line=3605;
                                                               start_column=6;
-                                                              end_line=3613; end_column=28;
+                                                              end_line=3612; end_column=28;
                                                               law_headings=
                                                               ["Article 46";
                                                                 "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
@@ -4850,9 +4850,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                  (fun (_: unit) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                                      start_line=3069;
+                                                      start_line=3068;
                                                       start_column=6;
-                                                      end_line=3076; end_column=28;
+                                                      end_line=3075; end_column=28;
                                                       law_headings=["Article 46";
                                                                     "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                                     "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -4939,9 +4939,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                          (fun (_: unit) ->
                                             (log_decision_taken
                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                              start_line=1997;
+                                              start_line=1996;
                                               start_column=6;
-                                              end_line=2004; end_column=28;
+                                              end_line=2003; end_column=28;
                                               law_headings=["Article 46";
                                                              "Articles en vigueur à partir du 1er octobre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A";
                                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -5186,8 +5186,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                       ([||])
                                       (fun (_: unit) -> (log_decision_taken
                                          {filename = "examples/aides_logement/archives.catala_fr";
-                                           start_line=2252; start_column=29;
-                                           end_line=2252; end_column=55;
+                                           start_line=2251; start_column=29;
+                                           end_line=2251; end_column=55;
                                            law_headings=["Article 14";
                                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -5457,9 +5457,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                          (fun (_: unit) ->
                                                             (log_decision_taken
                                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                                              start_line=3388;
+                                                              start_line=3387;
                                                               start_column=5;
-                                                              end_line=3396; end_column=35;
+                                                              end_line=3395; end_column=35;
                                                               law_headings=
                                                               ["Article 46";
                                                                 "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
@@ -5512,9 +5512,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                  (fun (_: unit) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                                      start_line=2852;
+                                                      start_line=2851;
                                                       start_column=5;
-                                                      end_line=2860; end_column=35;
+                                                      end_line=2859; end_column=35;
                                                       law_headings=["Article 46";
                                                                     "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                                     "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -5711,9 +5711,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                               (fun (_: unit) ->
                                                  (log_decision_taken
                                                  {filename = "examples/aides_logement/archives.catala_fr";
-                                                   start_line=3243;
+                                                   start_line=3242;
                                                    start_column=14;
-                                                   end_line=3243; end_column=42;
+                                                   end_line=3242; end_column=42;
                                                    law_headings=["Article 15";
                                                                   "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
                                                                   "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -5856,9 +5856,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                          (fun (_: unit) ->
                                                             (log_decision_taken
                                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                                              start_line=3366;
+                                                              start_line=3365;
                                                               start_column=5;
-                                                              end_line=3374; end_column=35;
+                                                              end_line=3373; end_column=35;
                                                               law_headings=
                                                               ["Article 46";
                                                                 "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
@@ -5911,9 +5911,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                  (fun (_: unit) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                                      start_line=2831;
+                                                      start_line=2830;
                                                       start_column=5;
-                                                      end_line=2839; end_column=35;
+                                                      end_line=2838; end_column=35;
                                                       law_headings=["Article 46";
                                                                     "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                                     "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -6099,8 +6099,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                       ([||])
                                       (fun (_: unit) -> (log_decision_taken
                                          {filename = "examples/aides_logement/archives.catala_fr";
-                                           start_line=2333; start_column=14;
-                                           end_line=2333; end_column=55;
+                                           start_line=2332; start_column=14;
+                                           end_line=2332; end_column=55;
                                            law_headings=["Article 14";
                                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -6224,9 +6224,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                          (fun (_: unit) ->
                                                             (log_decision_taken
                                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                                              start_line=3301;
+                                                              start_line=3300;
                                                               start_column=5;
-                                                              end_line=3309; end_column=35;
+                                                              end_line=3308; end_column=35;
                                                               law_headings=
                                                               ["Article 46";
                                                                 "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
@@ -6279,9 +6279,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                  (fun (_: unit) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                                      start_line=2766;
+                                                      start_line=2765;
                                                       start_column=5;
-                                                      end_line=2774; end_column=35;
+                                                      end_line=2773; end_column=35;
                                                       law_headings=["Article 46";
                                                                     "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                                     "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -6489,9 +6489,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                       (fun (_: unit) ->
                                                          (log_decision_taken
                                                          {filename = "examples/aides_logement/archives.catala_fr";
-                                                           start_line=2398;
+                                                           start_line=2397;
                                                            start_column=14;
-                                                           end_line=2398; end_column=63;
+                                                           end_line=2397; end_column=63;
                                                            law_headings=
                                                            ["Article 16";
                                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
@@ -6514,9 +6514,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                               (fun (_: unit) ->
                                                  (log_decision_taken
                                                  {filename = "examples/aides_logement/archives.catala_fr";
-                                                   start_line=2079;
+                                                   start_line=2078;
                                                    start_column=14;
-                                                   end_line=2079; end_column=63;
+                                                   end_line=2078; end_column=63;
                                                    law_headings=["Article 7";
                                                                   "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                                   "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -6791,9 +6791,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                  (fun (_: unit) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                                      start_line=1927;
+                                                      start_line=1926;
                                                       start_column=6;
-                                                      end_line=1934; end_column=28;
+                                                      end_line=1933; end_column=28;
                                                       law_headings=["Article 46";
                                                                     "Articles en vigueur à partir du 1er octobre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A";
                                                                     "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -6949,9 +6949,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                          (fun (_: unit) ->
                                             (log_decision_taken
                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                              start_line=2999;
+                                              start_line=2998;
                                               start_column=6;
-                                              end_line=3006; end_column=28;
+                                              end_line=3005; end_column=28;
                                               law_headings=["Article 46";
                                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7033,9 +7033,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                          (fun (_: unit) ->
                                             (log_decision_taken
                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                              start_line=3535;
+                                              start_line=3534;
                                               start_column=6;
-                                              end_line=3542; end_column=28;
+                                              end_line=3541; end_column=28;
                                               law_headings=["Article 46";
                                                              "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
                                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7201,8 +7201,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                       ([||])
                                       (fun (_: unit) -> (log_decision_taken
                                          {filename = "examples/aides_logement/archives.catala_fr";
-                                           start_line=2427; start_column=14;
-                                           end_line=2427; end_column=49;
+                                           start_line=2426; start_column=14;
+                                           end_line=2426; end_column=49;
                                            law_headings=["Article 16";
                                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7349,8 +7349,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                       ([||])
                                       (fun (_: unit) -> (log_decision_taken
                                          {filename = "examples/aides_logement/archives.catala_fr";
-                                           start_line=1853; start_column=6;
-                                           end_line=1860; end_column=28;
+                                           start_line=1852; start_column=6;
+                                           end_line=1859; end_column=28;
                                            law_headings=["Article 46";
                                                           "Articles en vigueur à partir du 1er octobre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A";
                                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7452,8 +7452,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                               ([||])
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/aides_logement/archives.catala_fr";
-                                   start_line=2925; start_column=6;
-                                   end_line=2932; end_column=28;
+                                   start_line=2924; start_column=6;
+                                   end_line=2931; end_column=28;
                                    law_headings=["Article 46";
                                                   "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                   "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7504,8 +7504,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                               ([||])
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/aides_logement/archives.catala_fr";
-                                   start_line=3461; start_column=6;
-                                   end_line=3468; end_column=28;
+                                   start_line=3460; start_column=6;
+                                   end_line=3467; end_column=28;
                                    law_headings=["Article 46";
                                                   "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
                                                   "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7616,8 +7616,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/archives.catala_fr";
-                           start_line=2193; start_column=14;
-                           end_line=2193; end_column=49;
+                           start_line=2192; start_column=14;
+                           end_line=2192; end_column=49;
                            law_headings=["Article 9";
                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -7952,8 +7952,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=3185; start_column=5;
-                              end_line=3194; end_column=28;
+                              start_line=3184; start_column=5;
+                              end_line=3193; end_column=28;
                               law_headings=["Article 47";
                                              "Articles en vigueur à partir du 01 janvier 2021 - Arrêté du 31 décembre 2020 relatif au calcul des aides personnelles au logement pour l'année 2021 NOR : LOGL2028351A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8039,9 +8039,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                          (fun (_: unit) ->
                                             (log_decision_taken
                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                              start_line=3432;
+                                              start_line=3431;
                                               start_column=5;
-                                              end_line=3440; end_column=34;
+                                              end_line=3439; end_column=34;
                                               law_headings=["Article 46";
                                                              "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
                                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8081,8 +8081,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                             money_of_cents_string "758400"))|])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                      start_line=2895; start_column=5;
-                                      end_line=2903; end_column=34;
+                                      start_line=2894; start_column=5;
+                                      end_line=2902; end_column=34;
                                       law_headings=["Article 46";
                                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8116,8 +8116,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                     "758400"))|])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=1825; start_column=5;
-                              end_line=1833; end_column=34;
+                              start_line=1824; start_column=5;
+                              end_line=1832; end_column=34;
                               law_headings=["Article 46";
                                              "Articles en vigueur à partir du 1er octobre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8155,8 +8155,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=3694; start_column=5;
-                              end_line=3703; end_column=28;
+                              start_line=3693; start_column=5;
+                              end_line=3702; end_column=28;
                               law_headings=["Article 47";
                                              "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8425,8 +8425,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/archives.catala_fr";
-                           start_line=3247; start_column=14;
-                           end_line=3247; end_column=44;
+                           start_line=3246; start_column=14;
+                           end_line=3246; end_column=44;
                            law_headings=["Article 15";
                                           "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8578,8 +8578,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/archives.catala_fr";
-                      start_line=2336; start_column=14;
-                      end_line=2336; end_column=29;
+                      start_line=2335; start_column=14;
+                      end_line=2335; end_column=29;
                       law_headings=["Article 14";
                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8901,8 +8901,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=2380; start_column=5;
-                              end_line=2381; end_column=34;
+                              start_line=2379; start_column=5;
+                              end_line=2380; end_column=34;
                               law_headings=["Article 16";
                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8944,8 +8944,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=2389; start_column=5;
-                              end_line=2390; end_column=34;
+                              start_line=2388; start_column=5;
+                              end_line=2389; end_column=34;
                               law_headings=["Article 16";
                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -8987,8 +8987,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=2402; start_column=5;
-                              end_line=2402; end_column=35;
+                              start_line=2401; start_column=5;
+                              end_line=2401; end_column=35;
                               law_headings=["Article 16";
                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -9121,9 +9121,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                  ([||])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                      start_line=2152; start_column=5;
-                                      end_line=2152; end_column=61;
-                                      law_headings=["Article 8"; "Article 7";
+                                      start_line=2151; start_column=5;
+                                      end_line=2151; end_column=61;
+                                      law_headings=["Article 8";
                                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                     (o_and
@@ -9231,9 +9231,9 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                               ([||])
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/aides_logement/archives.catala_fr";
-                                   start_line=2145; start_column=14;
-                                   end_line=2145; end_column=37;
-                                   law_headings=["Article 8"; "Article 7";
+                                   start_line=2144; start_column=14;
+                                   end_line=2144; end_column=37;
+                                   law_headings=["Article 8";
                                                   "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                   "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                  (o_and
@@ -9516,8 +9516,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/archives.catala_fr";
-                           start_line=2060; start_column=5;
-                           end_line=2061; end_column=34;
+                           start_line=2059; start_column=5;
+                           end_line=2060; end_column=34;
                            law_headings=["Article 7";
                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -9557,8 +9557,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/archives.catala_fr";
-                           start_line=2070; start_column=5;
-                           end_line=2071; end_column=34;
+                           start_line=2069; start_column=5;
+                           end_line=2070; end_column=34;
                            law_headings=["Article 7";
                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -9598,8 +9598,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/archives.catala_fr";
-                           start_line=2084; start_column=5;
-                           end_line=2084; end_column=35;
+                           start_line=2083; start_column=5;
+                           end_line=2083; end_column=35;
                            law_headings=["Article 7";
                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -9920,8 +9920,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/archives.catala_fr";
-                      start_line=2207; start_column=14;
-                      end_line=2207; end_column=36;
+                      start_line=2206; start_column=14;
+                      end_line=2206; end_column=36;
                       law_headings=["Article 13";
                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -9993,8 +9993,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                  ([||])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                      start_line=2282; start_column=14;
-                                      end_line=2282; end_column=28;
+                                      start_line=2281; start_column=14;
+                                      end_line=2281; end_column=28;
                                       law_headings=["Article 14";
                                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -10162,8 +10162,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                  ([||])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                      start_line=2306; start_column=14;
-                                      end_line=2306; end_column=33;
+                                      start_line=2305; start_column=14;
+                                      end_line=2305; end_column=33;
                                       law_headings=["Article 14";
                                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -10405,8 +10405,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                  ([||])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                      start_line=2313; start_column=14;
-                                      end_line=2313; end_column=33;
+                                      start_line=2312; start_column=14;
+                                      end_line=2312; end_column=33;
                                       law_headings=["Article 14";
                                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -11284,8 +11284,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/archives.catala_fr";
-                      start_line=2530; start_column=14;
-                      end_line=2530; end_column=48;
+                      start_line=2529; start_column=14;
+                      end_line=2529; end_column=48;
                       law_headings=["Article 27";
                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -12811,7 +12811,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
               start_line=2407; start_column=14; end_line=2407; end_column=47;
-              law_headings=["Article 23"; "Article 18";
+              law_headings=["Article 23";
+                             "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             (o_gte_dat_dat date_courante_ (date_of_numbers (2019) (10) (1)))))
          (fun (_: unit) -> decimal_of_string "0.416"))
@@ -12837,7 +12838,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
               start_line=2406; start_column=14; end_line=2406; end_column=47;
-              law_headings=["Article 23"; "Article 18";
+              law_headings=["Article 23";
+                             "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             (o_gte_dat_dat date_courante_ (date_of_numbers (2019) (10) (1)))))
          (fun (_: unit) -> decimal_of_string "0.208"))
@@ -12863,7 +12865,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
               start_line=2405; start_column=14; end_line=2405; end_column=47;
-              law_headings=["Article 23"; "Article 18";
+              law_headings=["Article 23";
+                             "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             (o_gte_dat_dat date_courante_ (date_of_numbers (2019) (10) (1)))))
          (fun (_: unit) -> money_of_cents_string "560085"))
@@ -12889,7 +12892,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
               start_line=2485; start_column=14; end_line=2485; end_column=48;
-              law_headings=["Article 26"; "Article 18";
+              law_headings=["Article 26";
+                             "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             (o_gte_dat_dat date_courante_ (date_of_numbers (2019) (10) (1)))))
          (fun (_: unit) -> decimal_of_string "16.25"))
@@ -12915,7 +12919,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
               start_line=2389; start_column=14; end_line=2389; end_column=48;
-              law_headings=["Article 22"; "Article 18";
+              law_headings=["Article 22";
+                             "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             (o_gte_dat_dat date_courante_ (date_of_numbers (2019) (10) (1)))))
          (fun (_: unit) -> money_of_cents_string "2211133"))
@@ -12941,7 +12946,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
               start_line=2466; start_column=14; end_line=2466; end_column=50;
-              law_headings=["Article 25"; "Article 18";
+              law_headings=["Article 25";
+                             "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             (o_gte_dat_dat date_courante_ (date_of_numbers (2019) (10) (1)))))
          (fun (_: unit) ->
@@ -12985,7 +12991,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
               start_line=2379; start_column=14; end_line=2379; end_column=42;
-              law_headings=["Article 21"; "Article 18";
+              law_headings=["Article 21";
+                             "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             (o_gte_dat_dat date_courante_ (date_of_numbers (2019) (10) (1)))))
          (fun (_: unit) -> money_of_cents_string "1000"))
@@ -13011,7 +13018,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
          (fun (_: unit) -> (log_decision_taken
             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
               start_line=2367; start_column=14; end_line=2367; end_column=41;
-              law_headings=["Article 20"; "Article 18";
+              law_headings=["Article 20";
+                             "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
             (o_gte_dat_dat date_courante_ (date_of_numbers (2019) (10) (1)))))
          (fun (_: unit) -> money_of_cents_string "500"))
@@ -13057,7 +13065,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                             {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
                               start_line=2438; start_column=7;
                               end_line=2438; end_column=18;
-                              law_headings=["Article 24"; "Article 18";
+                              law_headings=["Article 24";
+                                             "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                              "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                             (o_and
                                (o_gte_dat_dat date_courante_
@@ -13119,9 +13128,9 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=2495; start_column=7;
-                              end_line=2495; end_column=18;
-                              law_headings=["Article 24"; "Article 19";
+                              start_line=2494; start_column=7;
+                              end_line=2494; end_column=18;
+                              law_headings=["Article 24";
                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                             (o_and
@@ -13165,7 +13174,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                          {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
                            start_line=2355; start_column=29;
                            end_line=2355; end_column=64;
-                           law_headings=["Article 19"; "Article 18";
+                           law_headings=["Article 19";
+                                          "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                           "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                          (o_gte_dat_dat date_courante_
                             (date_of_numbers (2022) (7) (1)))))
@@ -13211,8 +13221,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/archives.catala_fr";
-                           start_line=2461; start_column=29;
-                           end_line=2461; end_column=64;
+                           start_line=2460; start_column=29;
+                           end_line=2460; end_column=64;
                            law_headings=["Article 19";
                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -13271,6 +13281,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                    start_line=827; start_column=5;
                                    end_line=842; end_column=36;
                                    law_headings=["Article 18";
+                                                  "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                   "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                  (o_and
                                     (o_gte_dat_dat date_courante_
@@ -13355,6 +13366,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1083; start_column=5;
                                         end_line=1087; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -13488,6 +13500,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1116; start_column=5;
                                         end_line=1120; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -13621,6 +13634,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1149; start_column=5;
                                         end_line=1153; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -13754,6 +13768,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1182; start_column=5;
                                         end_line=1186; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -13887,6 +13902,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1215; start_column=5;
                                         end_line=1219; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -14020,6 +14036,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1248; start_column=5;
                                         end_line=1252; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -14153,6 +14170,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1281; start_column=5;
                                         end_line=1285; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -14286,6 +14304,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1314; start_column=5;
                                         end_line=1318; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -14411,6 +14430,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1347; start_column=5;
                                         end_line=1351; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -14544,6 +14564,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1380; start_column=5;
                                         end_line=1384; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -14669,6 +14690,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1413; start_column=5;
                                         end_line=1417; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -14794,6 +14816,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1446; start_column=5;
                                         end_line=1450; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -14919,6 +14942,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1479; start_column=5;
                                         end_line=1483; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -15044,6 +15068,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1512; start_column=5;
                                         end_line=1516; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -15169,6 +15194,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1545; start_column=5;
                                         end_line=1549; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -15294,6 +15320,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1578; start_column=5;
                                         end_line=1582; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -15419,6 +15446,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1611; start_column=5;
                                         end_line=1615; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -15544,6 +15572,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1644; start_column=5;
                                         end_line=1648; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -15669,6 +15698,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1677; start_column=5;
                                         end_line=1681; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -15794,6 +15824,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1710; start_column=5;
                                         end_line=1714; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -15919,6 +15950,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1743; start_column=5;
                                         end_line=1747; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -16044,6 +16076,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1776; start_column=5;
                                         end_line=1780; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -16169,6 +16202,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1809; start_column=5;
                                         end_line=1813; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -16294,6 +16328,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1842; start_column=5;
                                         end_line=1846; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -16419,6 +16454,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1875; start_column=5;
                                         end_line=1879; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -16544,6 +16580,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1908; start_column=5;
                                         end_line=1912; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -16669,6 +16706,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1941; start_column=5;
                                         end_line=1945; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -16794,6 +16832,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=1974; start_column=5;
                                         end_line=1978; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -16919,6 +16958,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2007; start_column=5;
                                         end_line=2011; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -17044,6 +17084,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2040; start_column=5;
                                         end_line=2044; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -17169,6 +17210,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2073; start_column=5;
                                         end_line=2077; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -17294,6 +17336,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2106; start_column=5;
                                         end_line=2110; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -17419,6 +17462,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2139; start_column=5;
                                         end_line=2143; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -17544,6 +17588,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2172; start_column=5;
                                         end_line=2176; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -17669,6 +17714,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2205; start_column=5;
                                         end_line=2209; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -17794,6 +17840,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2238; start_column=5;
                                         end_line=2242; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -17919,6 +17966,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2271; start_column=5;
                                         end_line=2274; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -18039,6 +18087,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         start_line=2303; start_column=5;
                                         end_line=2306; end_column=36;
                                         law_headings=["Article 18";
+                                                       "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                                        "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                       (o_and
                                          (o_gte_dat_dat date_courante_
@@ -19246,10 +19295,9 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                  ([||])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                      start_line=2475; start_column=14;
-                                      end_line=2475; end_column=42;
+                                      start_line=2474; start_column=14;
+                                      end_line=2474; end_column=42;
                                       law_headings=["Article 24";
-                                                     "Article 19";
                                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                                     (o_and
@@ -19285,7 +19333,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                     {filename = "examples/aides_logement/arrete_2019-09-27.catala_fr";
                       start_line=2419; start_column=14;
                       end_line=2419; end_column=42;
-                      law_headings=["Article 24"; "Article 18";
+                      law_headings=["Article 24";
+                                     "Chapitre IV : Calcul de l'aide personnalisée au logement en secteur accession";
                                      "Arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
                     (o_gte_dat_dat date_courante_
                        (date_of_numbers (2022) (7) (1)))))
@@ -21791,9 +21840,9 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                                          (fun (_: unit) ->
                                                             (log_decision_taken
                                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                                              start_line=3345;
+                                                              start_line=3344;
                                                               start_column=5;
-                                                              end_line=3353; end_column=35;
+                                                              end_line=3352; end_column=35;
                                                               law_headings=
                                                               ["Article 46";
                                                                 "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
@@ -21846,9 +21895,9 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                                  (fun (_: unit) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                                      start_line=2810;
+                                                      start_line=2809;
                                                       start_column=5;
-                                                      end_line=2818; end_column=35;
+                                                      end_line=2817; end_column=35;
                                                       law_headings=["Article 46";
                                                                     "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                                     "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22442,8 +22491,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/archives.catala_fr";
-                      start_line=2681; start_column=6;
-                      end_line=2681; end_column=79;
+                      start_line=2680; start_column=6;
+                      end_line=2680; end_column=79;
                       law_headings=["Article 43";
                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22480,8 +22529,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                   "Prologue : aides au logement"]} ([||])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/archives.catala_fr";
-                      start_line=2718; start_column=6;
-                      end_line=2719; end_column=38;
+                      start_line=2717; start_column=6;
+                      end_line=2718; end_column=38;
                       law_headings=["Article 43";
                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22527,8 +22576,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=2737; start_column=6;
-                              end_line=2738; end_column=24;
+                              start_line=2736; start_column=6;
+                              end_line=2737; end_column=24;
                               law_headings=["Article 43";
                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22557,8 +22606,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                 (money_of_cents_string "26329")))|])
                  (fun (_: unit) -> (log_decision_taken
                     {filename = "examples/aides_logement/archives.catala_fr";
-                      start_line=2699; start_column=6;
-                      end_line=2700; end_column=46;
+                      start_line=2698; start_column=6;
+                      end_line=2699; end_column=46;
                       law_headings=["Article 43";
                                      "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22890,8 +22939,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                  ([||])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                      start_line=1894; start_column=6;
-                                      end_line=1901; end_column=28;
+                                      start_line=1893; start_column=6;
+                                      end_line=1900; end_column=28;
                                       law_headings=["Article 46";
                                                      "Articles en vigueur à partir du 1er octobre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A";
                                                      "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -22982,8 +23031,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=2966; start_column=6;
-                              end_line=2973; end_column=28;
+                              start_line=2965; start_column=6;
+                              end_line=2972; end_column=28;
                               law_headings=["Article 46";
                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -23030,8 +23079,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                          ([||])
                          (fun (_: unit) -> (log_decision_taken
                             {filename = "examples/aides_logement/archives.catala_fr";
-                              start_line=3502; start_column=6;
-                              end_line=3509; end_column=28;
+                              start_line=3501; start_column=6;
+                              end_line=3508; end_column=28;
                               law_headings=["Article 46";
                                              "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -23143,8 +23192,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/archives.catala_fr";
-                           start_line=2656; start_column=29;
-                           end_line=2656; end_column=56;
+                           start_line=2655; start_column=29;
+                           end_line=2655; end_column=56;
                            law_headings=["Article 40";
                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -23912,9 +23961,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                          (fun (_: unit) ->
                                                             (log_decision_taken
                                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                                              start_line=3330;
+                                                              start_line=3329;
                                                               start_column=5;
-                                                              end_line=3338; end_column=35;
+                                                              end_line=3337; end_column=35;
                                                               law_headings=
                                                               ["Article 46";
                                                                 "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
@@ -23967,9 +24016,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                  (fun (_: unit) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                                      start_line=2795;
+                                                      start_line=2794;
                                                       start_column=5;
-                                                      end_line=2803; end_column=35;
+                                                      end_line=2802; end_column=35;
                                                       law_headings=["Article 46";
                                                                     "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                                     "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -28391,9 +28440,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                  (fun (_: unit) ->
                                                     (log_decision_taken
                                                     {filename = "examples/aides_logement/archives.catala_fr";
-                                                      start_line=1954;
+                                                      start_line=1953;
                                                       start_column=6;
-                                                      end_line=1961; end_column=28;
+                                                      end_line=1960; end_column=28;
                                                       law_headings=["Article 46";
                                                                     "Articles en vigueur à partir du 1er octobre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A";
                                                                     "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -28548,9 +28597,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                          (fun (_: unit) ->
                                             (log_decision_taken
                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                              start_line=3026;
+                                              start_line=3025;
                                               start_column=6;
-                                              end_line=3033; end_column=28;
+                                              end_line=3032; end_column=28;
                                               law_headings=["Article 46";
                                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -28631,9 +28680,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                          (fun (_: unit) ->
                                             (log_decision_taken
                                             {filename = "examples/aides_logement/archives.catala_fr";
-                                              start_line=3562;
+                                              start_line=3561;
                                               start_column=6;
-                                              end_line=3569; end_column=28;
+                                              end_line=3568; end_column=28;
                                               law_headings=["Article 46";
                                                              "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
                                                              "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -28837,9 +28886,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                               (fun (_: unit) ->
                                                  (log_decision_taken
                                                  {filename = "examples/aides_logement/archives.catala_fr";
-                                                   start_line=1874;
+                                                   start_line=1873;
                                                    start_column=6;
-                                                   end_line=1881; end_column=28;
+                                                   end_line=1880; end_column=28;
                                                    law_headings=["Article 46";
                                                                   "Articles en vigueur à partir du 1er octobre 2021 - Arrêté du 23 septembre 2021 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2123452A";
                                                                   "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -28957,8 +29006,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                       ([||])
                                       (fun (_: unit) -> (log_decision_taken
                                          {filename = "examples/aides_logement/archives.catala_fr";
-                                           start_line=2946; start_column=6;
-                                           end_line=2953; end_column=28;
+                                           start_line=2945; start_column=6;
+                                           end_line=2952; end_column=28;
                                            law_headings=["Article 46";
                                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -29017,8 +29066,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                       ([||])
                                       (fun (_: unit) -> (log_decision_taken
                                          {filename = "examples/aides_logement/archives.catala_fr";
-                                           start_line=3482; start_column=6;
-                                           end_line=3489; end_column=28;
+                                           start_line=3481; start_column=6;
+                                           end_line=3488; end_column=28;
                                            law_headings=["Article 46";
                                                           "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
                                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -29153,8 +29202,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                               ([||])
                               (fun (_: unit) -> (log_decision_taken
                                  {filename = "examples/aides_logement/archives.catala_fr";
-                                   start_line=2631; start_column=5;
-                                   end_line=2631; end_column=16;
+                                   start_line=2630; start_column=5;
+                                   end_line=2630; end_column=16;
                                    law_headings=["Article 37";
                                                   "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                   "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -29252,8 +29301,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                       ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/archives.catala_fr";
-                           start_line=2590; start_column=29;
-                           end_line=2590; end_column=56;
+                           start_line=2589; start_column=29;
+                           end_line=2589; end_column=56;
                            law_headings=["Article 34";
                                           "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                           "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -29487,9 +29536,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                               (fun (_: unit) ->
                                                  (log_decision_taken
                                                  {filename = "examples/aides_logement/archives.catala_fr";
-                                                   start_line=2610;
+                                                   start_line=2609;
                                                    start_column=5;
-                                                   end_line=2610; end_column=16;
+                                                   end_line=2609; end_column=16;
                                                    law_headings=["Article 37";
                                                                   "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
                                                                   "Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement"]}
@@ -29805,9 +29854,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                                  (_: unit) ->
                                                                  (log_decision_taken
                                                                  {filename = "examples/aides_logement/archives.catala_fr";
-                                                                   start_line=3409;
+                                                                   start_line=3408;
                                                                    start_column=5;
-                                                                   end_line=3417; end_column=28;
+                                                                   end_line=3416; end_column=28;
                                                                    law_headings=
                                                                    ["Article 46";
                                                                     "Articles en vigueur à partir du 1er janvier 2020 - Arrêté du 3 janvier 2020 relatif au calcul des aides personnelles au logement pour l'année 2020 NOR : LOGL1934006A";
@@ -29884,9 +29933,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                       (fun (_: unit) ->
                                                          (log_decision_taken
                                                          {filename = "examples/aides_logement/archives.catala_fr";
-                                                           start_line=2873;
+                                                           start_line=2872;
                                                            start_column=5;
-                                                           end_line=2881; end_column=28;
+                                                           end_line=2880; end_column=28;
                                                            law_headings=
                                                            ["Article 46";
                                                              "Articles en vigueur à partir du du 1er octobre 2020 - Arrêté du 25 septembre 2020 relatif au calcul des aides personnelles au logement et de l'aide à l'accession sociale et à la sortie de l'insalubrité spécifique à l'outre-mer NOR : LOGL2020835A";
