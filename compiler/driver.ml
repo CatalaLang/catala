@@ -337,7 +337,8 @@ let driver source_file (options : Cli.options) : int =
                 prgm
             in
             let prgm =
-              Shared_ast.Program.untype @@ Shared_ast.Typing.program prgm
+              Shared_ast.Program.untype
+              @@ Shared_ast.Typing.program ~leave_unresolved:false prgm
             in
             let prgm =
               if options.closure_conversion then (

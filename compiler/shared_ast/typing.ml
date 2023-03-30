@@ -68,11 +68,13 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
         "Internal error: typing at this point could not be resolved"
 
 (* Checks that there are no type variables remaining *)
-(* let rec all_resolved ty = match Marked.unmark (UnionFind.get (UnionFind.find
-   ty)) with | TAny _ -> false | TLit _ | TStruct _ | TEnum _ -> true | TOption
-   t1 | TArray t1 -> all_resolved t1 | TArrow (t1, t2) -> List.for_all
-   all_resolved t1 && all_resolved t2 | TTuple ts -> List.for_all all_resolved
-   ts *)
+let rec all_resolved ty =
+  match Marked.unmark (UnionFind.get (UnionFind.find ty)) with
+  | TAny _ -> false
+  | TLit _ | TStruct _ | TEnum _ -> true
+  | TOption t1 | TArray t1 -> all_resolved t1
+  | TArrow (t1, t2) -> List.for_all all_resolved t1 && all_resolved t2
+  | TTuple ts -> List.for_all all_resolved ts
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
@@ -525,14 +527,17 @@ and typecheck_expr_top_down :
     when name = Definitions.option_enum && cons = Definitions.some_constr ->
     let cell_type = unionfind (TAny (Any.fresh ())) in
     let mark = uf_mark (unionfind (TOption cell_type)) in
-    let e_enum' = typecheck_expr_top_down ctx env cell_type e_enum in
+    let e_enum' =
+      typecheck_expr_top_down ~leave_unresolved ctx env cell_type e_enum
+    in
     Expr.einj e_enum' cons name mark
   | A.EInj { name; cons; e = e_enum }
     when name = Definitions.option_enum && cons = Definitions.none_constr ->
     let cell_type = unionfind (TAny (Any.fresh ())) in
     let mark = uf_mark (unionfind (TOption cell_type)) in
     let e_enum' =
-      typecheck_expr_top_down ctx env (unionfind (TLit TUnit)) e_enum
+      typecheck_expr_top_down ~leave_unresolved ctx env (unionfind (TLit TUnit))
+        e_enum
     in
     Expr.einj e_enum' cons name mark
   | A.EInj { name; cons; e = e_enum } ->
@@ -554,13 +559,13 @@ and typecheck_expr_top_down :
     in
     let t_ret = TAny (Any.fresh ()) in
     let mark = uf_mark (unionfind ~pos:e t_ret) in
-    let e1' = typecheck_expr_top_down ctx env t_arg e1 in
+    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env t_arg e1 in
     let cases' =
       A.EnumConstructor.MapLabels.merge cases cases_ty ~f:(fun _ e e_ty ->
           match e, e_ty with
           | Some e, Some e_ty ->
             Some
-              (typecheck_expr_top_down ctx env
+              (typecheck_expr_top_down ~leave_unresolved ctx env
                  (unionfind ~pos:e
                     (TArrow ([unionfind ~pos:e e_ty], unionfind ~pos:e t_ret)))
                  e)

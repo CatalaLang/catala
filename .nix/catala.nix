@@ -25,6 +25,7 @@
 , zarith_stubs_js
 , cohttp-lwt-unix
 , ppx_expect
+, ocaml-crunch
 }:
 
 buildDunePackage {
