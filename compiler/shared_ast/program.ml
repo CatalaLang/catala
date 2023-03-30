@@ -22,6 +22,12 @@ let map_exprs ~f ~varf { code_items; decl_ctx } =
     (fun code_items -> { code_items; decl_ctx })
     (Scope.map_exprs ~f ~varf code_items)
 
+let fold_left_exprs ~f ~init { code_items; decl_ctx = _ } =
+  Scope.fold_left ~f:(fun acc e _ -> f acc e) ~init code_items
+
+let fold_right_exprs ~f ~init { code_items; decl_ctx = _ } =
+  Scope.fold_right ~f:(fun e _ acc -> f e acc) ~init code_items
+
 let get_scope_body { code_items; _ } scope =
   match
     Scope.fold_left ~init:None

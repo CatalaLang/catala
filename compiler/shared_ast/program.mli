@@ -25,6 +25,12 @@ val map_exprs :
   'expr1 program ->
   'expr2 program Bindlib.box
 
+val fold_left_exprs :
+  f:('a -> 'expr code_item -> 'a) -> init:'a -> 'expr program -> 'a
+
+val fold_right_exprs :
+  f:('expr code_item -> 'a -> 'a) -> init:'a -> 'expr program -> 'a
+
 val get_scope_body :
   ((_ any, 't) gexpr as 'e) program -> ScopeName.t -> 'e scope_body
 
