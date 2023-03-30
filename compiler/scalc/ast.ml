@@ -25,6 +25,8 @@ let dead_value = VarName.fresh ("dead_value", Pos.no_pos)
 let handle_default = FuncName.fresh ("handle_default", Pos.no_pos)
 let handle_default_opt = FuncName.fresh ("handle_default_opt", Pos.no_pos)
 
+type operator = [ `Monomorphic | `Polymorphic | `Resolved ] Shared_ast.operator
+
 type expr = naked_expr Marked.pos
 
 and naked_expr =
@@ -36,7 +38,7 @@ and naked_expr =
   | EArray : expr list -> naked_expr
   | ELit : L.lit -> naked_expr
   | EApp : expr * expr list -> naked_expr
-  | EOp : (lcalc, _) operator -> naked_expr
+  | EOp : operator -> naked_expr
 
 type stmt =
   | SInnerFuncDef of VarName.t Marked.pos * func
