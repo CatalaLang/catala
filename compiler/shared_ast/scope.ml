@@ -197,9 +197,10 @@ let rec format_scope_body_expr ?(debug = false) ctx fmt b : unit =
     Format.fprintf fmt "@[<hov 2>%a %a %a %a %a %a@; %a @;%a @]@,%a"
       Print.keyword "let"
       (format_scope_let_kind ~debug ctx)
-      scope_let_kind (if debug then Print.var_debug else Print.var) var Print.punctuation ":" (Print.typ ctx)
-      scope_let_typ Print.punctuation "=" (Print.expr ~debug ctx) scope_let_expr
-      Print.keyword "in"
+      scope_let_kind
+      (if debug then Print.var_debug else Print.var)
+      var Print.punctuation ":" (Print.typ ctx) scope_let_typ Print.punctuation
+      "=" (Print.expr ~debug ctx) scope_let_expr Print.keyword "in"
       (format_scope_body_expr ~debug ctx)
       next
 

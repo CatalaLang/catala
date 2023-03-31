@@ -67,15 +67,6 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
       Errors.raise_spanned_error pos
         "Internal error: typing at this point could not be resolved"
 
-(* Checks that there are no type variables remaining *)
-let rec all_resolved ty =
-  match Marked.unmark (UnionFind.get (UnionFind.find ty)) with
-  | TAny _ -> false
-  | TLit _ | TStruct _ | TEnum _ -> true
-  | TOption t1 | TArray t1 -> all_resolved t1
-  | TArrow (t1, t2) -> List.for_all all_resolved t1 && all_resolved t2
-  | TTuple ts -> List.for_all all_resolved ts
-
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
     match Marked.unmark ty with

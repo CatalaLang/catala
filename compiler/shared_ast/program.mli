@@ -41,7 +41,4 @@ val equal :
   bool
 
 val format :
-  ?debug:bool ->
-  Format.formatter ->
-  ([< `Dcalc | `Desugared | `Lcalc | `Scopelang ], 'a mark) gexpr program ->
-  unit
+  ?debug:bool -> Format.formatter -> ('a any, 'm mark) gexpr program -> unit

@@ -128,7 +128,7 @@ val code_item_format :
         actual term. *) ->
   decl_ctx ->
   Format.formatter ->
-  ([< `Dcalc | `Desugared | `Lcalc | `Scopelang ], 'a mark) gexpr code_item ->
+  ('a any, 'm mark) gexpr code_item ->
   unit
 
 val code_item_list_format :
@@ -138,7 +138,7 @@ val code_item_list_format :
         actual term. *) ->
   decl_ctx ->
   Format.formatter ->
-  ([< `Dcalc | `Desugared | `Lcalc | `Scopelang ], 'a mark) gexpr code_item_list ->
+  ('a any, 'm mark) gexpr code_item_list ->
   unit
 
 val to_expr :

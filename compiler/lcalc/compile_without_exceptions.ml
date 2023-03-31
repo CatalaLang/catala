@@ -193,8 +193,7 @@ let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
      new_; *)
   new_
 
-let trans_op : type m. (dcalc, m) Op.t -> (lcalc, m) Op.t =
- fun op -> Operator.translate None op
+let trans_op : dcalc Op.t -> lcalc Op.t = fun op -> Operator.translate op
 
 let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   let m = Marked.get_mark e in
