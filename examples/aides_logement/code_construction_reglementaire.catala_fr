@@ -120,15 +120,10 @@ les personnes vivant habituellement au foyer.
 # Ici "conjoint" veut implicitement dire également "concubin" car on
 # a vu que les deux cas étaient gérés de la même manière précédemment.
 # Interprétation confirmée par DGALN/DHUP/FE4 le 25/05/2022.
-champ d'application RessourcesAidesPersonnelleLogement:
-  définition ressources_prises_en_compte égal à
-    ressources_demandeur +
-    ressources_conjoint +
-    ressources_personnes_vivant_habituellement_foyer
-
-  définition ressources_personnes_vivant_habituellement_foyer égal à
-    somme argent de personne.ressources pour
-      personne parmi personnes_vivant_habituellement_foyer
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 Sont considérées comme vivant habituellement au foyer les personnes y ayant
@@ -138,19 +133,20 @@ qui y résident encore au moment de la demande de l'aide ou du réexamen du
 droit à celle-ci.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  assertion pour tout personne parmi personnes_vivant_habituellement_foyer on a
-    personne.durée_résidence_durant_période_r_822_3_1_supérieure_à_6_mois
-  # Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
-  # des différentes périodes mentionnées et en forçant l'utilisateur à bien
-  # remplir toutes ses périodes de résidence mais cela rendrait le formulaire
-  # plus lourd et ne correspondrait peut-être pas au besoin d'un système expert
-  # comme celui utilisé à la CNAF. On pourrait également laisser l'utilisateur
-  # spécifier une durée en jours mais cela aurait deux inconvénients :
-  # premièrement c'est une intrusion dans la vie privée du potentiel
-  # bénéficiaire (cette information serait nécéssaire en cas de contrôle mais
-  # pas dans tous les cas), et deuxièmement la comparaison d'un nombre de jours
-  # avec "6 mois" est computationellement ambiguë.
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+# Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
+# des différentes périodes mentionnées et en forçant l'utilisateur à bien
+# remplir toutes ses périodes de résidence mais cela rendrait le formulaire
+# plus lourd et ne correspondrait peut-être pas au besoin d'un système expert
+# comme celui utilisé à la CNAF. On pourrait également laisser l'utilisateur
+# spécifier une durée en jours mais cela aurait deux inconvénients :
+# premièrement c'est une intrusion dans la vie privée du potentiel
+# bénéficiaire (cette information serait nécéssaire en cas de contrôle mais
+# pas dans tous les cas), et deuxièmement la comparaison d'un nombre de jours
+# avec "6 mois" est computationellement ambiguë.
 ```
 
 NOTA :
@@ -405,18 +401,10 @@ des allocations familiales en vigueur à la date de la demande ou du réexamen
 du droit.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  définition abattement_r_822_7 égal à
-    si demandeur_exerce_activité_rémunérée et
-      conjoint_exerce_activité_rémunérée et
-      (ressources_demandeur + ressources_conjoint) >=
-       base_mensuelle_allocations_familiales.montant * 12,0
-    alors
-      montant_forfaitaire_r_822_7
-    sinon 0€
-
-  définition base_mensuelle_allocations_familiales.date_courante égal à
-    date_demande_ou_reexamen_droit
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 Le montant de cet abattement est fixé par arrêté des ministres chargés du
@@ -458,12 +446,10 @@ charges de loyer supplémentaires correspondant à ce logement, il est procédé
 à un abattement forfaitaire sur ses ressources ou sur celles du ménage.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  définition abattement_r_822_8 égal à
-    selon paiement_logement_distinct_professionnel sous forme
-    -- OuiAvecLoyerOuCharges de loyer_ou_charges:
-      montant_forfaitaire_r_822_8
-    -- PaiementLogementDistinctProfessionnel.Non: 0€
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 L'abattement est appliqué à compter du premier jour du mois civil suivant celui
@@ -520,16 +506,10 @@ il est opéré sur ses ressources un abattement de :
 2° 1 350 euros dès trois personnes à charge.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  définition abattement_r_822_10 égal à
-    soit abattement égal à
-      si nombre de personnes_à_charge = 0 alors 0 €
-      sinon (si nombre de personnes_à_charge <= 2 alors 901 €
-      sinon 1 350 €)
-    dans selon situation_familiale sous forme
-    -- Célibataire: abattement
-    -- CélibataireSéparéDeFait: abattement
-    -- n'importe quel: 0 €
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 ######## Article R822-11 | LEGIARTI000041419384
@@ -849,14 +829,10 @@ d'une bourse de l'enseignement supérieur qui n'est pas assujettie à l'impôt
 sur le revenu.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  exception définition ressources_prises_en_compte sous condition
-     (mode_occupation sous forme Locataire ou
-      mode_occupation sous forme RésidentLogementFoyer) et
-     condition_âge_bourse_enseignement_supérieur et
-     demandeur_poursuit_des_études
-  conséquence égal à 0€
-  #ressources_forfaitaires_r822_20
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 
 # Le montant minoré sera défini plus tard, et donc constituera une exception
 # au cas de base de ressources_forfaitaires_r822_20
@@ -1199,7 +1175,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
     selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
       -- AutrePersonneÀCharge de parent:
-        parent.parenté = Ascendant et
+        parent.parenté sous forme Ascendant et
         parent.ressources <=
           plafond_individuel_l815_9_sécu * 1,25 et
         (
