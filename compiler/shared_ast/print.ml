@@ -155,7 +155,9 @@ let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
         Cli.format_with_style [ANSITerminal.green] fmt "☛ ")
     entry
 
-let operator_to_string : type a k. (a, k) Op.t -> string = function
+let operator_to_string : type a. a Op.t -> string =
+  let open Op in
+  function
   | Not -> "~"
   | Length -> "length"
   | GetDay -> "get_day"
@@ -244,7 +246,9 @@ let operator_to_string : type a k. (a, k) Op.t -> string = function
   | HandleDefault -> "handledefault"
   | HandleDefaultOpt -> "handledefault_opt"
 
-let operator (type k) (fmt : Format.formatter) (op : ('a, k) operator) : unit =
+let operator : type a. Format.formatter -> a Op.t -> unit =
+ fun fmt op ->
+  let open Op in
   match op with
   | Log (entry, infos) ->
     Format.fprintf fmt "%a@[<hov 2>[%a|%a]@]" op_style "log" log_entry entry

@@ -40,7 +40,7 @@
 (rule
  (target grammar.html)
  (action
-  (run obelisk html -o %{target} %{dep:parser.mly})))
+  (run obelisk html -i -o %{target} %{dep:parser.mly})))
 
 (documentation
  (package catala)

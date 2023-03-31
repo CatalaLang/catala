@@ -49,10 +49,7 @@ let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   | EndCall -> Format.fprintf fmt "%s" "← "
   | PosRecordIfTrueBool -> Format.pp_print_string fmt "☛ "
 
-let format_op
-    (type k)
-    (fmt : Format.formatter)
-    (op : (lcalc, k) operator Marked.pos) : unit =
+let format_op (fmt : Format.formatter) (op : operator Marked.pos) : unit =
   match Marked.unmark op with
   | Log (entry, infos) -> assert false
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->

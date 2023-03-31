@@ -559,8 +559,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
       (translate_expr ctx efalse)
       m
-  | EOp { op; tys } ->
-    Expr.eop (Operator.translate (Some ctx.date_rounding) op) tys m
+  | EOp { op = Add_dat_dur _; tys } ->
+    Expr.eop (Add_dat_dur ctx.date_rounding) tys m
+  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
   | EErrorOnEmpty e' -> Expr.eerroronempty (translate_expr ctx e') m
   | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
 

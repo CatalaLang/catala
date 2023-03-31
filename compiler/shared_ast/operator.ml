@@ -18,7 +18,7 @@ open Catala_utils
 open Definitions
 include Definitions.Op
 
-let name : type a k. (a, k) t -> string = function
+let name : type a. a t -> string = function
   | Not -> "o_not"
   | Length -> "o_length"
   | GetDay -> "o_getDay"
@@ -126,7 +126,7 @@ let compare_log_entries l1 l2 =
   | PosRecordIfTrueBool, _ -> .
   | _, PosRecordIfTrueBool -> .
 
-let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
+let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   match[@ocamlformat "disable"] t1, t2 with
   | Log (l1, info1), Log (l2, info2) -> (
     match compare_log_entries l1 l2 with
@@ -300,18 +300,18 @@ let compare (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) =
   | HandleDefaultOpt, _ -> -1 | _, HandleDefaultOpt -> 1
   | Fold, _  | _, Fold -> .
 
-let equal (type a k a2 k2) (t1 : (a, k) t) (t2 : (a2, k2) t) = compare t1 t2 = 0
+let equal t1 t2 = compare t1 t2 = 0
 
 (* Classification of operators *)
 
 let kind_dispatch :
-    type a b k.
-    polymorphic:((_, polymorphic) t -> b) ->
-    monomorphic:((_, monomorphic) t -> b) ->
-    ?overloaded:((_, overloaded) t -> b) ->
-    ?resolved:((_, resolved) t -> b) ->
-    (a, k) t ->
-    b =
+    type a.
+    polymorphic:([> polymorphic ] t -> 'b) ->
+    monomorphic:([> monomorphic ] t -> 'b) ->
+    ?overloaded:([> overloaded ] t -> 'b) ->
+    ?resolved:([> resolved ] t -> 'b) ->
+    a t ->
+    'b =
  fun ~polymorphic ~monomorphic ?(overloaded = fun _ -> assert false)
      ?(resolved = fun _ -> assert false) op ->
   match op with
@@ -337,90 +337,28 @@ let kind_dispatch :
     | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ) as op ->
     resolved op
 
-(* Glorified identity... allowed operators are the same in scopelang, dcalc,
-   lcalc *)
-let translate :
-    type k.
-    date_rounding option ->
-    ([< scopelang | dcalc | lcalc ], k) t ->
-    ([< scopelang | dcalc | lcalc ], k) t =
- fun r op ->
-  match op with
-  | Length -> Length
-  | Log (i, l) -> Log (i, l)
-  | Eq -> Eq
-  | Map -> Map
-  | Concat -> Concat
-  | Filter -> Filter
-  | Reduce -> Reduce
-  | Fold -> Fold
-  | Not -> Not
-  | GetDay -> GetDay
-  | GetMonth -> GetMonth
-  | GetYear -> GetYear
-  | FirstDayOfMonth -> FirstDayOfMonth
-  | LastDayOfMonth -> LastDayOfMonth
-  | And -> And
-  | Or -> Or
-  | Xor -> Xor
-  | Minus_int -> Minus_int
-  | Minus_rat -> Minus_rat
-  | Minus_mon -> Minus_mon
-  | Minus_dur -> Minus_dur
-  | ToRat_int -> ToRat_int
-  | ToRat_mon -> ToRat_mon
-  | ToMoney_rat -> ToMoney_rat
-  | Round_rat -> Round_rat
-  | Round_mon -> Round_mon
-  | Add_int_int -> Add_int_int
-  | Add_rat_rat -> Add_rat_rat
-  | Add_mon_mon -> Add_mon_mon
-  | Add_dat_dur rmode -> Add_dat_dur (Option.value r ~default:rmode)
-  | Add_dur_dur -> Add_dur_dur
-  | Sub_int_int -> Sub_int_int
-  | Sub_rat_rat -> Sub_rat_rat
-  | Sub_mon_mon -> Sub_mon_mon
-  | Sub_dat_dat -> Sub_dat_dat
-  | Sub_dat_dur -> Sub_dat_dur
-  | Sub_dur_dur -> Sub_dur_dur
-  | Mult_int_int -> Mult_int_int
-  | Mult_rat_rat -> Mult_rat_rat
-  | Mult_mon_rat -> Mult_mon_rat
-  | Mult_dur_int -> Mult_dur_int
-  | Div_int_int -> Div_int_int
-  | Div_rat_rat -> Div_rat_rat
-  | Div_mon_mon -> Div_mon_mon
-  | Div_mon_rat -> Div_mon_rat
-  | Div_dur_dur -> Div_dur_dur
-  | Lt_int_int -> Lt_int_int
-  | Lt_rat_rat -> Lt_rat_rat
-  | Lt_mon_mon -> Lt_mon_mon
-  | Lt_dat_dat -> Lt_dat_dat
-  | Lt_dur_dur -> Lt_dur_dur
-  | Lte_int_int -> Lte_int_int
-  | Lte_rat_rat -> Lte_rat_rat
-  | Lte_mon_mon -> Lte_mon_mon
-  | Lte_dat_dat -> Lte_dat_dat
-  | Lte_dur_dur -> Lte_dur_dur
-  | Gt_int_int -> Gt_int_int
-  | Gt_rat_rat -> Gt_rat_rat
-  | Gt_mon_mon -> Gt_mon_mon
-  | Gt_dat_dat -> Gt_dat_dat
-  | Gt_dur_dur -> Gt_dur_dur
-  | Gte_int_int -> Gte_int_int
-  | Gte_rat_rat -> Gte_rat_rat
-  | Gte_mon_mon -> Gte_mon_mon
-  | Gte_dat_dat -> Gte_dat_dat
-  | Gte_dur_dur -> Gte_dur_dur
-  | Eq_int_int -> Eq_int_int
-  | Eq_rat_rat -> Eq_rat_rat
-  | Eq_mon_mon -> Eq_mon_mon
-  | Eq_dat_dat -> Eq_dat_dat
-  | Eq_dur_dur -> Eq_dur_dur
-  | HandleDefault -> HandleDefault
-  | HandleDefaultOpt -> HandleDefaultOpt
+let translate
+    (t : [< scopelang | dcalc | lcalc > `Monomorphic `Polymorphic `Resolved ] t)
+    =
+  match t with
+  | ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | And
+    | Or | Xor ) as op ->
+    op
+  | (Log _ | Length | Eq | Map | Concat | Filter | Reduce | Fold) as op -> op
+  | ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
+    | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
+    | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
+    | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
+    | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
+    | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
+    | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
+    | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
+    | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
+    | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
+    | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefault | HandleDefaultOpt ) as op ->
+    op
 
-let monomorphic_type (op, pos) =
+let monomorphic_type ((op : monomorphic t), pos) =
   let args, ret =
     match op with
     | Not -> [TBool], TBool
@@ -448,7 +386,7 @@ let monomorphic_type (op, pos) =
     considering an operator with type ['a -> 'b -> 'c], for any given two among
     ['a], ['b] and ['c], there should be a unique solution for the third. *)
 
-let resolved_type (op, pos) =
+let resolved_type ((op : resolved t), pos) =
   let args, ret =
     match op with
     | Minus_int -> [TInt], TInt
@@ -508,8 +446,8 @@ let resolved_type (op, pos) =
   in
   TArrow (List.map (fun tau -> TLit tau, pos) args, (TLit ret, pos)), pos
 
-let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
-    ('b, resolved) t * [ `Straight | `Reversed ] =
+let resolve_overload_aux (op : [< overloaded ] t) (operands : typ_lit list) :
+    [> resolved ] t * [ `Straight | `Reversed ] =
   match op, operands with
   | Minus, [TInt] -> Minus_int, `Straight
   | Minus, [TRat] -> Minus_rat, `Straight
@@ -568,10 +506,8 @@ let resolve_overload_aux (op : ('a, overloaded) t) (operands : typ_lit list) :
       _ ) ->
     raise Not_found
 
-let resolve_overload
-    ctx
-    (op : ('a, overloaded) t Marked.pos)
-    (operands : typ list) : ('b, resolved) t * [ `Straight | `Reversed ] =
+let resolve_overload ctx (op : overloaded t Marked.pos) (operands : typ list) :
+    [> resolved ] t * [ `Straight | `Reversed ] =
   try
     let operands =
       List.map
@@ -597,7 +533,7 @@ let resolve_overload
          (Print.typ ctx))
       operands
 
-let overload_type ctx (op : ('a, overloaded) t Marked.pos) (operands : typ list)
-    : typ =
+let overload_type ctx (op : overloaded t Marked.pos) (operands : typ list) : typ
+    =
   let rop = fst (resolve_overload ctx op operands) in
   resolved_type (Marked.same_mark_as rop op)

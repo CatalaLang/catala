@@ -78,7 +78,7 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
       l) ->
     Expr.elit l m
   | ELit LEmptyError -> Expr.eraise EmptyError m
-  | EOp { op; tys } -> Expr.eop (Operator.translate None op) tys m
+  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
   | EIfThenElse { cond; etrue; efalse } ->
     Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
       (translate_expr ctx efalse)

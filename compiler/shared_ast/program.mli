@@ -26,14 +26,11 @@ val map_exprs :
   'expr2 program Bindlib.box
 
 val get_scope_body :
-  (([< dcalc | lcalc ], _) gexpr as 'e) program -> ScopeName.t -> 'e scope_body
+  ((_ any, 't) gexpr as 'e) program -> ScopeName.t -> 'e scope_body
 
-val untype :
-  (([< dcalc | lcalc ] as 'a), 'm mark) gexpr program ->
-  ('a, untyped mark) gexpr program
+val untype : ('a any, _ mark) gexpr program -> ('a, untyped mark) gexpr program
 
-val to_expr :
-  (([< dcalc | lcalc ], _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
+val to_expr : ((_ any, _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
 (** Usage: [build_whole_program_expr program main_scope] builds an expression
     corresponding to the main program and returning the main scope as a
     function. *)
