@@ -88,7 +88,7 @@ let rec iota2_expr (e : 'm expr) : 'm expr boxed =
                  | _ -> false)
                | _ -> assert false)
          in
-         Cli.debug_format "%b" b;
+         (* Cli.debug_format "%b" b; *)
          b ->
     let cases =
       EnumConstructor.MapLabels.merge cases1 cases2 ~f:(fun _i o1 o2 ->
@@ -143,24 +143,6 @@ let rec fold_expr (e : 'm expr) : 'm expr boxed =
     visitor_map fold_expr init
   | _ -> visitor_map fold_expr e
 
-let iota_optimizations (p : 'm program) : 'm program =
-  let new_code_items =
-    Scope.map_exprs ~f:iota_expr ~varf:(fun v -> v) p.code_items
-  in
-  { p with code_items = Bindlib.unbox new_code_items }
-
-let iota2_optimizations (p : 'm program) : 'm program =
-  let new_code_items =
-    Scope.map_exprs ~f:iota2_expr ~varf:(fun v -> v) p.code_items
-  in
-  { p with code_items = Bindlib.unbox new_code_items }
-
-let fold_optimizations (p : 'm program) : 'm program =
-  let new_code_items =
-    Scope.map_exprs ~f:fold_expr ~varf:(fun v -> v) p.code_items
-  in
-  { p with code_items = Bindlib.unbox new_code_items }
-
 let rec peephole_expr (e : 'm expr) : 'm expr boxed =
   let m = Marked.get_mark e in
   match Marked.unmark e with
@@ -180,16 +162,13 @@ let rec peephole_expr (e : 'm expr) : 'm expr boxed =
           Marked.unmark efalse
         | _ -> EIfThenElse { cond; etrue; efalse })
       m
-  | EApp { f = EAbs { binder; tys = [_ty] }, _; args = [(EVar v, _)] } ->
+  | EApp { f = EAbs { binder; tys = [_ty] }, _; args = [(_, _)] as args } ->
     (* basic inlining 1 *)
-    Expr.box (Bindlib.msubst binder [| EVar v |])
-  | EApp { f = EAbs { binder; tys = [_ty] }, _; args = [arg] } -> (
-    (* basic inlining 2 *)
-    let vars, body = Bindlib.unmbind binder in
-    let v = Array.get vars 0 in
-    match Marked.unmark body with
-    | EVar v' when Var.eq v v' -> visitor_map peephole_expr arg
-    | _ -> visitor_map peephole_expr e)
+    visitor_map peephole_expr (Expr.subst binder args)
+  (* | EApp { f = EAbs { binder; tys = [_ty] }, _; args = [arg] } -> ( (* basic
+     inlining 2 *) let vars, body = Bindlib.unmbind binder in let v = Array.get
+     vars 0 in match Marked.unmark body with | EVar v' when Var.eq v v' ->
+     visitor_map peephole_expr arg | _ -> visitor_map peephole_expr e) *)
   | ECatch { body; exn; handler } ->
     Expr.Box.app2 (peephole_expr body) (peephole_expr handler)
       (fun body handler ->
@@ -209,26 +188,55 @@ let _beta_optimizations (p : 'm program) : 'm program =
   let new_code_items =
     Scope.map_exprs ~f:beta_expr ~varf:(fun v -> v) p.code_items
   in
+  assert (Bindlib.is_closed new_code_items);
   { p with code_items = Bindlib.unbox new_code_items }
 
 let peephole_optimizations (p : 'm program) : 'm program =
   let new_code_items =
     Scope.map_exprs ~f:peephole_expr ~varf:(fun v -> v) p.code_items
   in
+  assert (Bindlib.is_closed new_code_items);
+
+  { p with code_items = Bindlib.unbox new_code_items }
+
+let iota2_optimizations (p : 'm program) : 'm program =
+  let new_code_items =
+    Scope.map_exprs ~f:iota2_expr ~varf:(fun v -> v) p.code_items
+  in
+  assert (Bindlib.is_closed new_code_items);
+
+  { p with code_items = Bindlib.unbox new_code_items }
+
+let fold_optimizations (p : 'm program) : 'm program =
+  let new_code_items =
+    Scope.map_exprs ~f:fold_expr ~varf:(fun v -> v) p.code_items
+  in
+  assert (Bindlib.is_closed new_code_items);
+
   { p with code_items = Bindlib.unbox new_code_items }
 
 let rec fix_opti
-    ?(maxiter = 100)
+    ?(maxiter = 5)
     ~(fs : ('m program -> 'm program) list)
     (p : 'm program) =
   assert (maxiter >= 0);
   Cli.debug_format "============================= %i" maxiter;
   let p' = ListLabels.fold_left ~init:p fs ~f:(fun p f -> f p) in
 
-  Cli.debug_format "============================= %b" (Program.equal p' p);
-
+  (* Cli.debug_format "============================= %b" (Program.equal p'
+     p); *)
   if (* Program.equal p' p || *) maxiter = 0 then p'
   else fix_opti ~fs p' ~maxiter:(maxiter - 1)
+
+let iota_optimizations (p : 'm program) : 'm program =
+  let new_code_items =
+    Scope.map_exprs ~f:iota_expr ~varf:(fun v -> v) p.code_items
+  in
+
+  let prgm = { p with code_items = Bindlib.unbox new_code_items } in
+  assert (Bindlib.is_closed new_code_items);
+
+  prgm
 
 let optimize_program (p : 'm program) : untyped program =
   Program.untype
