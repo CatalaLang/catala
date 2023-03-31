@@ -23,6 +23,13 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
+[WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:7.6-7:
+└─┐
+7 │    -- C content boolean
+  │       ‾
+  └─ Test
 [ERROR] [A.x] At least two exceptions overlap for this variable:
 ┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:15.10-11:
 └──┐

@@ -20,5 +20,12 @@ scope A:
 ```
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
+[WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_proof/good/enums.catala_en:5.6-7:
+└─┐
+5 │    -- C content boolean
+  │       ‾
+  └─ Test
 [RESULT] No errors found during the proof mode run.
 ```

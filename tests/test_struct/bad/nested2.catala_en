@@ -15,6 +15,27 @@ declaration scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
+[WARNING] The field "x" of struct "S" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/bad/nested2.catala_en:5.7-8:
+└─┐
+5 │   data x content E
+  │        ‾
+  └─ Article
+[WARNING] The field "y" of struct "S" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/bad/nested2.catala_en:6.7-8:
+└─┐
+6 │   data y content integer
+  │        ‾
+  └─ Article
+[WARNING] The enumeration "E" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/bad/nested2.catala_en:8.24-25:
+└─┐
+8 │ declaration enumeration E:
+  │                         ‾
+  └─ Article
 [ERROR] Cyclic dependency detected between types!
 
 Cycle type S, declared:

@@ -18,5 +18,12 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
+[WARNING] The field "f" of struct "Bar" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/good/ambiguous_fields.catala_en:8.7-8:
+└─┐
+8 │   data f content integer
+  │        ‾
+  └─ Article
 [RESULT] Computation successful!
 ```
