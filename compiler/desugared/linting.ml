@@ -120,19 +120,31 @@ let detect_unused_enum_constructors (p : program) : unit =
   in
   EnumName.Map.iter
     (fun e_name constructors ->
-      EnumConstructor.Map.iter
-        (fun constructor _ ->
-          if not (EnumConstructor.Set.mem constructor enum_constructors_used)
-          then
-            Errors.format_spanned_warning
-              (snd (EnumConstructor.get_info constructor))
-              "The constructor %a of enumeration %a is never used; maybe it's \
-               unnecessary?"
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" EnumConstructor.format_t constructor)
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" EnumName.format_t e_name))
-        constructors)
+      if
+        EnumConstructor.Map.for_all
+          (fun cons _ ->
+            not (EnumConstructor.Set.mem cons enum_constructors_used))
+          constructors
+      then
+        Errors.format_spanned_warning
+          (snd (EnumName.get_info e_name))
+          "The enumeration %a is never used; maybe it's unnecessary?"
+          (Cli.format_with_style [ANSITerminal.yellow])
+          (Format.asprintf "\"%a\"" EnumName.format_t e_name)
+      else
+        EnumConstructor.Map.iter
+          (fun constructor _ ->
+            if not (EnumConstructor.Set.mem constructor enum_constructors_used)
+            then
+              Errors.format_spanned_warning
+                (snd (EnumConstructor.get_info constructor))
+                "The constructor %a of enumeration %a is never used; maybe \
+                 it's unnecessary?"
+                (Cli.format_with_style [ANSITerminal.yellow])
+                (Format.asprintf "\"%a\"" EnumConstructor.format_t constructor)
+                (Cli.format_with_style [ANSITerminal.yellow])
+                (Format.asprintf "\"%a\"" EnumName.format_t e_name))
+          constructors)
     p.program_ctx.ctx_enums
 
 let lint_program (p : program) : unit =
