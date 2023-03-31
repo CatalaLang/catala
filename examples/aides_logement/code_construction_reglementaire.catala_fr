@@ -1222,7 +1222,9 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
    selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
       -- AutrePersonneÀCharge de parent:
-        # Pas besoin de préciser parenté car inclusif ici
+        (parent.parenté sous forme Ascendant ou
+        parent.parenté sous forme Descendant ou
+        parent.parenté sous forme CollatéralDeuxièmeTroisièmeDegré) et
         parent.incapacité_80_pourcent_ou_restriction_emploi et
         parent.ressources <=
           plafond_individuel_l815_9_sécu * 1,25
@@ -4175,9 +4177,45 @@ au calcul de l'allocation de logement versée en secteur locatif, sous réserve 
 des articles D. 842-2 et D. 842-4.
 
 ```catala
-# Rien à formaliser ici, voir le prologue sur la déclaration du
-# champ d'application de calcul des allocations logement qui appelle
-# directement le champ d'application de calcul de l'APL en secteur locatif.
+# Ici nous branchons le calcul de l'AL en secteur locatif sur le calcul de
+# l'APL en secteur locatif.
+champ d'application CalculAllocationLogementLocatif:
+  définition calcul_apl_locatif.loyer_principal égal à
+    loyer_principal
+  définition calcul_apl_locatif.ressources_ménage_arrondies égal à
+    ressources_ménage_arrondies
+  définition calcul_apl_locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés
+  égal à
+    bénéficiaire_aide_adulte_ou_enfant_handicapés
+  définition calcul_apl_locatif.date_courante égal à
+    date_courante
+  définition calcul_apl_locatif.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_apl_locatif.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition calcul_apl_locatif.zone égal à
+    zone
+  définition calcul_apl_locatif.logement_est_chambre égal à
+    logement_est_chambre
+  définition
+    calcul_apl_locatif.
+      âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à
+    âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  définition calcul_apl_locatif.type_aide égal à
+    type_aide
+  définition calcul_apl_locatif.colocation égal à
+    colocation
+  définition calcul_apl_locatif.réduction_loyer_solidarité égal à
+    réduction_loyer_solidarité
+  définition calcul_apl_locatif.logement_meublé_d842_2 égal à
+    logement_meublé_d842_2
+  définition calcul_apl_locatif.résidence égal à résidence
+
+
+  définition aide_finale_formule égal à calcul_apl_locatif.aide_finale_formule
+  définition traitement_aide_finale de aide_finale égal à
+    calcul_apl_locatif.traitement_aide_finale de aide_finale
 ```
 
 ####### Article D842-2 | LEGIARTI000038878685
@@ -5434,8 +5472,6 @@ par l’article L. 831-1 du code de la construction et de l’habitation, à com
 2021.
 
 ```catala
-# TODO juridique et informatique: appliquer cette date d'entrée en vigueur
-# différée à tous les autres articles avec une NOTA similaire.
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   définition date_entrée_vigueur_différée_cch égal à |2021-01-01|
 
@@ -5509,7 +5545,7 @@ champ d'application CalculNombrePartLogementFoyer:
 # Ci-dessus, nous avons modifié le calcul de CalculNombrePartLogementFoyer
 # lorsque la "limitation_majoration_personnes_à_charge" est activée. Mais il
 # nous faut maintenant activer cette "limitation_majoration_personnes_à_charge"
-# dans les bons cas ! Pour cela, puisque CalculNombrePartLogemeinternentFoyer
+# dans les bons cas ! Pour cela, puisque CalculNombrePartLogementFoyer
 # est appelé depuis CalculAidePersonnaliséeLogementFoyer, il nous faut déclarer
 # dans CalculAidePersonnaliséeLogementFoyer une condition
 # "limitation_majoration_personnes_à_charge" similaire qui déclenche celle de
@@ -5796,6 +5832,11 @@ calcul des droits à l’aide personnelle au logement à compter du mois de janv
 le calcul des droits à l’aide personnalisée au logement prévue pour les accédants à la
 propriété par l’article L. 831-1 du code de la construction et de l’habitation, à compter
 du mois de mai 2021.
+
+```catala
+# NOTA similaire à R861-5, voir cet article pour l'encodage de la date
+# d'entrée en vigueur différée.
+```
 
 ##### Section 2 : Aide personnalisée au logement
 
@@ -6203,12 +6244,10 @@ extension et adaptation au département de Saint-Pierre-et-Miquelon de diverses
 dispositions relatives aux affaires sociales et de l'article L. 823-2 du présent code ;
 
 ```catala
-# TODO juridique: l'âge limite de prise en compte des enfants à charge est-il
-# 20 ans ou 21 ans pour Saint-Pierre et Miquelon ? Selon le 3° ici cela semble
-# être 21 ans comme pour les aides au logement en métropole sauf que le
-# 2° de l'article 11 de l'ordonnance n° 77-1102 du 26 septembre 1977 modifie
-# L512-3 pour enlever la mention d'un âge limite différent pour les aides au
-# logement, différent de l'âge limite de 20 ans prévu dans le CCS.
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+# Attention : ici on redit 21 ans en dur comme l'âge de la métropole mais si
+# R823-4 change il faut bien penser à mettre à jour ici aussi.
 ```
 
 “ 2° Les ascendants du bénéficiaire ou de son conjoint dont les ressources déterminées
@@ -6323,62 +6362,11 @@ D. 823-19 et par les règles particulières figurant aux articles D. 842-1 à D.
 
 ```catala
 # Ici, l'effet de cette modification est d'imposer le mode de calcul du
-# secteur locatif à tous les logements-foyer de Saint-Pierre et Miquelon.
-champ d'application CalculAidePersonnaliséeLogement sous condition
-  résidence sous forme SaintPierreEtMiquelon et
-  catégorie_calcul_apl sous forme LogementFoyer:
-
-  exception définition sous_calcul_traitement égal à
-    selon catégorie_calcul_apl sous forme
-    # Les deux premiers cas ne se déclenchent pas dans cette exception donc
-    # nous renvoyons des valeurs nulles qui ne seront jamais utilisées.
-    -- AccessionPropriété:
-      Traitement_formule_aide_finale {
-        -- aide_finale_formule: 0€
-        -- traitement_aide_finale: traitement_nul_tout_le_temps
-      }
-    -- Location: Traitement_formule_aide_finale {
-        -- aide_finale_formule: 0€
-        -- traitement_aide_finale: traitement_nul_tout_le_temps
-      }
-    # Maintenant on arrive au cas intéressant des logements-foyer
-    -- LogementFoyer de logement_foyer_:
-      (soit traitement_formule égal à
-        résultat de CalculAidePersonnaliséeLogementLocatif avec {
-          -- ressources_ménage_arrondies: ressources_ménage
-          -- nombre_personnes_à_charge: nombre_personnes_à_charge
-          -- zone: zone
-          -- date_courante: date_courante
-          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
-          # Nous assimilons la redevance au loyer pour le calcul
-          -- loyer_principal: logement_foyer_.redevance
-          -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
-              logement_foyer_.bénéficiaire_aide_adulte_ou_enfant_handicapés
-          # TODO juridique: est-ce qu'on applique le barème spécial chambre
-          # systématiquement pour les personnes résidant en logement-foyer
-          # à Saint-Pierre-et-Miquelon ?
-          -- logement_est_chambre: vrai
-          # TODO juridique: examiner si dans ce cas on considère qu'une personne
-          # habitant en logement-foyer n'est pas en colocation au sens du
-          # secteur locatif.
-          -- colocation: faux
-          # Ce cas prévu à l'article 8 de l'arrêté du 27 septembre 2019 n'est
-          # pas possible pour un hébergement en logement-foyer.
-          -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
-          -- type_aide: type_aide
-          # TODO juridique: examiner si les logement-foyers de Saint-Pierre-et-
-          # Miquelon ouvrent droit à la réducation de loyer de solidarité
-          -- réduction_loyer_solidarité: 0 €
-          -- logement_meublé_d842_2: logement_foyer_.logement_meublé_d842_2
-          -- résidence: résidence
-        }
-      dans Traitement_formule_aide_finale {
-        -- aide_finale_formule:
-          traitement_formule.aide_finale_formule
-        -- traitement_aide_finale:
-          traitement_formule.traitement_aide_finale
-      })
-
+# secteur locatif à tous les logements-foyer de Saint-Pierre et Miquelon, qui
+# sont inclus dans "pour les autres ménages du 2°".
+# On ne code que l'effet sur le calcul de l'allocation logement car au titre
+# de L860-3 les Saint-Pierre-et-Miquelonnais n'ont pas droit à l'aide
+# personnalisée au logement.
 
 champ d'application CalculAllocationLogement sous condition
   résidence sous forme SaintPierreEtMiquelon:
@@ -6410,8 +6398,9 @@ champ d'application CalculAllocationLogement sous condition
           # pas possible pour un hébergement en logement-foyer.
           -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
           -- type_aide: type_aide
-          # TODO juridique: examiner si les logement-foyers de Saint-Pierre-et-
-          # Miquelon ouvrent droit à la réducation de loyer de solidarité
+          # D'après l'article L442-2-1 du CCH la réduction de loyer de
+          # solidarité est liée à la nature du logement et exclut explicitement
+          # les logements-foyer. Donc ici 0 € de RLS.
           -- réduction_loyer_solidarité: 0 €
           -- logement_meublé_d842_2: logement_foyer_.logement_meublé_d842_2
           -- changement_logement_d842_4: PasDeChangement

@@ -819,44 +819,6 @@ déclaration champ d'application CalculAllocationLogementLocatif:
 
   résultat traitement_aide_finale contenu argent
     dépend de aide_finale contenu argent
-
-champ d'application CalculAllocationLogementLocatif:
-  définition calcul_apl_locatif.loyer_principal égal à
-    loyer_principal
-  définition calcul_apl_locatif.ressources_ménage_arrondies égal à
-    ressources_ménage_arrondies
-  définition calcul_apl_locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés
-  égal à
-    bénéficiaire_aide_adulte_ou_enfant_handicapés
-  définition calcul_apl_locatif.date_courante égal à
-    date_courante
-  définition calcul_apl_locatif.nombre_personnes_à_charge égal à
-    nombre_personnes_à_charge
-  définition calcul_apl_locatif.situation_familiale_calcul_apl égal à
-    situation_familiale_calcul_apl
-  définition calcul_apl_locatif.zone égal à
-    zone
-  définition calcul_apl_locatif.logement_est_chambre égal à
-    logement_est_chambre
-  définition
-    calcul_apl_locatif.
-      âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-  égal à
-    âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-  définition calcul_apl_locatif.type_aide égal à
-    type_aide
-  définition calcul_apl_locatif.colocation égal à
-    colocation
-  définition calcul_apl_locatif.réduction_loyer_solidarité égal à
-    réduction_loyer_solidarité
-  définition calcul_apl_locatif.logement_meublé_d842_2 égal à
-    logement_meublé_d842_2
-  définition calcul_apl_locatif.résidence égal à résidence
-
-
-  définition aide_finale_formule égal à calcul_apl_locatif.aide_finale_formule
-  définition traitement_aide_finale de aide_finale égal à
-    calcul_apl_locatif.traitement_aide_finale de aide_finale
 ```
 
 ### Secteur accession à la propriété

@@ -432,10 +432,10 @@ prévues à l'article L. 512-2 du code de la sécurité sociale .
 ```catala
 # Ici nous sommes dans une situation délicate car pour les enfants à charge
 # les règles de prise en compte sont énoncées dans R823-4, sauf que le dernier
-# alinéa nous rajoutent une condition qui n'est pas dans R823-4.
+# alinéa nous rajoute ici une condition qui n'est pas dans R823-4.
 # Pour prendre en compte cette condition supplémentaire en respectant la
 # structure du texte de droit nous choisissons de l'encoder comme une
-# exception négative qui vient invalide la règle de R823-4 dans le cas où
+# exception négative qui vient invalider la règle de R823-4 dans le cas où
 # l'enfant étranger ne remplit pas les conditions de l'article
 # L512-2 du code de la sécurité sociale.
 champ d'application ÉligibilitéAidesPersonnelleLogement:
@@ -901,7 +901,7 @@ d) Soit l'allocation de soutien familial mentionnée au 6° du même article ;
 champ d'application ÉligibilitéAllocationLogement:
   règle l_841_1_1_applicable rempli
 
-  étiquette l841_1_1 règle éligibilité_allocation_logement_familiale
+  règle éligibilité_allocation_logement_familiale
   sous condition
     l_841_1_1_applicable et
     existe prestation parmi ménage.prestations_reçues tel que (
@@ -923,7 +923,6 @@ ont un enfant à charge au sens de l'article L. 512-3 du code de la sécurité s
 champ d'application ÉligibilitéAllocationLogement:
   règle l_841_1_2_applicable rempli
 
-  étiquette l841_1_2 exception l841_1_1
   règle éligibilité_allocation_logement_familiale
   sous condition
     l_841_1_2_applicable et
@@ -956,7 +955,7 @@ champ d'application ÉligibilitéAllocationLogement:
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  étiquette l841_1_3 exception l841_1_2
+
   règle éligibilité_allocation_logement_familiale
   sous condition
     nombre de
@@ -996,7 +995,7 @@ un âge déterminé ;
 # Selon mail de DGALN/DHUP/FE4 du 06/07/2022, l'expression "âge déterminé" ici
 # renvoie au 2° du R823-4 du même code.
 champ d'application ÉligibilitéAllocationLogement:
-  étiquette l841_1_4 exception l841_1_3
+
   règle éligibilité_allocation_logement_familiale
   sous condition
     nombre de (personne_à_charge parmi ménage.personnes_à_charge
@@ -1014,7 +1013,7 @@ prévue par l'article L. 146-9 du code de l'action sociale et des familles ;
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  étiquette l841_1_5 exception l841_1_4
+
   règle éligibilité_allocation_logement_familiale
   sous condition
     (nombre de (personne_à_charge parmi ménage.personnes_à_charge tel que
@@ -1040,7 +1039,6 @@ quatrième mois de la grossesse et jusqu'au mois civil de la naissance de l'enfa
 champ d'application ÉligibilitéAllocationLogement:
   règle l_841_1_6_applicable rempli
 
-  étiquette l841_1_6 exception l841_1_5
   règle éligibilité_allocation_logement_familiale
   sous condition
     l_841_1_6_applicable et
@@ -1477,7 +1475,7 @@ champ d'application ÉligibilitéAllocationLogement sous condition
   -- LaRéunion: vrai
   -- Mayotte: vrai
   -- n'importe quel: faux):
-  étiquette l841_1_4_mayotte exception l841_1_6
+
   règle éligibilité_allocation_logement_familiale
   sous condition
     nombre de
@@ -1519,7 +1517,7 @@ champ d'application ÉligibilitéAllocationLogement sous condition
   -- LaRéunion: vrai
   -- Mayotte: vrai
   -- n'importe quel: faux):
-  étiquette l841_1_5_mayotte exception l841_1_4_mayotte
+
   règle éligibilité_allocation_logement_familiale
   sous condition
     demandeur.est_non_salarié_agricole_l781_8_l_781_46_code_rural
@@ -1611,7 +1609,7 @@ champ d'application ÉligibilitéAllocationLogement sous condition
   conséquence égal à PasÉligible
 ```
 
-####### Article L816-7 | LEGIARTI000038814773
+####### Article L861-7 | LEGIARTI000038814773
 
 Les articles L. 843-1 à L. 843-7 relatifs à la procédure de conservation de
 l'allocation de logement par l'organisme payeur, lorsque le logement ne constitue
@@ -1621,7 +1619,7 @@ pas un logement décent, ne sont pas applicables à Mayotte.
 # Hors du champ de notre calculette.
 ```
 
-####### Article L816-8 | LEGIARTI000038814771
+####### Article L861-8 | LEGIARTI000038814771
 
 A Mayotte, le bénéfice de l'allocation de logement n'est pas ouvert aux magistrats
 et aux fonctionnaires civils et militaires de l'Etat dont le centre des intérêts
@@ -1688,12 +1686,15 @@ conditions de décence définies par voie réglementaire. " ;
 4° L'article L. 823-3 est remplacé par les dispositions suivantes :
 
 " Art. L. 823-3.-Sont assimilées aux loyers :
+
 " 1° Les mensualités acquittées au titre des charges de remboursement des prêts
 contractés pour l'acquisition du logement ou son amélioration ;
+
 " 2° La redevance versée dans le cadre de contrats de location-accession portant sur
 des immeubles à usage d'habitation ou à usage professionnel et d'habitation, en
 contrepartie du droit de l'accédant à la jouissance du logement et de son droit
 personnel au transfert de propriété du bien ;
+
 " 3° La rémunération de l'opérateur chargé de toutes les missions concourant au
 redressement de la copropriété, notamment la maîtrise d'ouvrage d'un programme de
 travaux et la mise au point du financement de l'opération, désigné par
@@ -1702,8 +1703,11 @@ copropriété ne permet pas de réaliser les travaux nécessaires à la conserva
 la mise en sécurité de l'immeuble, la protection des occupants, la préservation de
 leur santé et la réduction des charges de copropriété permettant son redressement
 financier ;
+
 " 4° L'indemnité d'occupation versée à l'expropriant ;
+
 " 5° La redevance versée à l'opérateur en charge des parties communes expropriées ;
+
 " 6° L'indemnité, mentionnée au 4° de l'article L. 442-1 du code de l'action sociale
 et des familles , représentative de la mise à disposition de la ou des pièces
 réservées à la personne accueillie. " ;
@@ -1769,7 +1773,6 @@ champ d'application ÉligibilitéAllocationLogement sous condition
   -- SaintMartin: vrai
   -- n'importe quel: faux):
 
-  étiquette l841_1_4_saint_barth_martin exception l841_1_6
   règle éligibilité_allocation_logement_familiale
   sous condition
     nombre de
@@ -1809,7 +1812,6 @@ champ d'application ÉligibilitéAllocationLogement sous condition
   -- SaintMartin: vrai
   -- n'importe quel: faux):
 
-  étiquette l841_1_5_saint_barth_martin exception l841_1_4_saint_barth_martin
   règle éligibilité_allocation_logement_familiale
   sous condition
     demandeur.est_non_salarié_agricole_l781_8_l_781_46_code_rural

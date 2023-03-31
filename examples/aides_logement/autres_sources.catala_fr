@@ -370,7 +370,8 @@ peuvent être modifiées par décret.
 champ d'application CalculAllocationLogement:
   exception définition aide_finale_formule sous condition
     résidence sous forme SaintPierreEtMiquelon et
-    date_courante >= |2022-01-01|
+    date_courante >= |2022-01-01| et
+    date_courante <= |2025-12-31|
   conséquence égal à
     sous_calcul_traitement.aide_finale_formule *
       (décimal de (2026 - accès_année de date_courante) / 8,0)

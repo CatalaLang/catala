@@ -450,7 +450,7 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
     (* we do not provide any definition for an input-only variable *)
     | _ ->
       let expr_def =
-        translate_def ctx scope.scope_uid
+        translate_def ctx
           (Desugared.Ast.ScopeDef.Var (var, state))
           var_def var_params var_typ scope_def.Desugared.Ast.scope_def_io
           ~is_cond ~is_subscope_var:false
@@ -537,9 +537,8 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
             (* Now that all is good, we can proceed with translating this
                redefinition to a proper Scopelang term. *)
             let expr_def =
-              translate_def ctx scope.scope_uid def_key def
-                scope_def.D.scope_def_parameters def_typ
-                scope_def.Desugared.Ast.scope_def_io ~is_cond
+              translate_def ctx def_key def scope_def.D.scope_def_parameters
+                def_typ scope_def.Desugared.Ast.scope_def_io ~is_cond
                 ~is_subscope_var:true
             in
             let subscop_real_name =
