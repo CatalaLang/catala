@@ -44,21 +44,6 @@ module A = Ast
 
 open Shared_ast
 
-module Ren = struct
-  module Set = Set.Make (String)
-
-  type ctxt = Set.t
-
-  let skip_constant_binders = true
-  let reset_context_for_closed_terms = true
-  let constant_binder_name = None
-  let empty_ctxt = Set.empty
-  let reserve_name n s = Set.add n s
-  let new_name n s = n, Set.add n s
-end
-
-module Ctx = Bindlib.Ctxt (Ren)
-
 type 'a info_pure = {
   info_pure : bool;
   is_scope : bool;
@@ -404,18 +389,24 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
           monad_return ~mark
             (Expr.eabs
                (Expr.bind [| x1 |]
-                  (monad_mbind_cont ~mark
-                     (fun vars ->
-                       Expr.eapp (Expr.evar f m)
-                         (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
-                         m)
-                     [Expr.evar x1 m]))
+                  (monad_eoe ~toplevel:true ~mark
+                     (monad_mbind_cont ~mark
+                        (fun vars ->
+                          Expr.eapp (Expr.evar f m)
+                            (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+                            m)
+                        [Expr.evar x1 m])))
                [TAny, pos]
                m))
         (trans ctx f)
     in
-    monad_mbind
-      (Expr.eop (trans_op Op.Filter) tys opmark)
+    monad_mbind_cont
+      (fun vars ->
+        monad_return ~mark
+          (Expr.eapp
+             (Expr.eop (trans_op Op.Filter) tys opmark)
+             (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+             mark))
       [f'; trans ctx l]
       ~mark
   | EApp { f = EOp { op = Op.Filter; _ }, _; _ } ->
@@ -804,12 +795,12 @@ let translate_program (prgm : typed D.program) : untyped A.program =
 
   let code_items = trans_code_items Var.Map.empty prgm.code_items in
 
-  let fv = Ren.Set.elements (Ctx.free_vars code_items) in
+  (* ListLabels.iter (Bindlib_ext.fv code_items) ~f:(fun s -> Cli.debug_format
+     "freevar: %s" s); *)
+  assert (Bindlib.is_closed code_items);
+  assert (Bindlib.free_vars code_items = Bindlib.empty_ctxt);
 
-  ListLabels.iter fv ~f:(fun s -> Cli.debug_format "freevar: %s" s);
-
-  (* assert (Bindlib.free_vars code_items = Bindlib.empty_ctxt); *)
-  (* assert (Bindlib.is_closed code_items); *)
+  (* program is closed here. *)
   let code_items = Bindlib.unbox code_items in
 
   Program.untype { decl_ctx; code_items }
