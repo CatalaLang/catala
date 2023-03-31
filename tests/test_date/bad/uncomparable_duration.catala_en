@@ -42,6 +42,38 @@ scope Ge:
 
 ```catala-test-inline
 $ catala Interpret -s Ge
+[WARNING] In scope "Lt", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:7.10-11:
+└─┐
+7 │   context d content boolean
+  │           ‾
+  └┬ `UncomparableDurations` exception management
+   └─ `<` operator
+[WARNING] In scope "Le", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:17.10-11:
+└──┐
+17 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+[WARNING] In scope "Gt", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:27.10-11:
+└──┐
+27 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+[WARNING] In scope "Ge", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:37.10-11:
+└──┐
+37 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `>=` operator
 [ERROR] Cannot compare together durations that cannot be converted to a precise number of days
 
 ┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:40.22-29:
@@ -62,6 +94,38 @@ $ catala Interpret -s Ge
 
 ```catala-test-inline
 $ catala Interpret -s Gt
+[WARNING] In scope "Lt", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:7.10-11:
+└─┐
+7 │   context d content boolean
+  │           ‾
+  └┬ `UncomparableDurations` exception management
+   └─ `<` operator
+[WARNING] In scope "Le", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:17.10-11:
+└──┐
+17 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+[WARNING] In scope "Gt", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:27.10-11:
+└──┐
+27 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+[WARNING] In scope "Ge", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:37.10-11:
+└──┐
+37 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `>=` operator
 [ERROR] Cannot compare together durations that cannot be converted to a precise number of days
 
 ┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:30.22-29:
@@ -82,6 +146,38 @@ $ catala Interpret -s Gt
 
 ```catala-test-inline
 $ catala Interpret -s Le
+[WARNING] In scope "Lt", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:7.10-11:
+└─┐
+7 │   context d content boolean
+  │           ‾
+  └┬ `UncomparableDurations` exception management
+   └─ `<` operator
+[WARNING] In scope "Le", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:17.10-11:
+└──┐
+17 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+[WARNING] In scope "Gt", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:27.10-11:
+└──┐
+27 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+[WARNING] In scope "Ge", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:37.10-11:
+└──┐
+37 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `>=` operator
 [ERROR] Cannot compare together durations that cannot be converted to a precise number of days
 
 ┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:20.22-29:
@@ -102,6 +198,38 @@ $ catala Interpret -s Le
 
 ```catala-test-inline
 $ catala Interpret -s Lt
+[WARNING] In scope "Lt", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:7.10-11:
+└─┐
+7 │   context d content boolean
+  │           ‾
+  └┬ `UncomparableDurations` exception management
+   └─ `<` operator
+[WARNING] In scope "Le", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:17.10-11:
+└──┐
+17 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+[WARNING] In scope "Gt", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:27.10-11:
+└──┐
+27 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+[WARNING] In scope "Ge", the variable "d" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:37.10-11:
+└──┐
+37 │   context d content boolean
+   │           ‾
+   └┬ `UncomparableDurations` exception management
+    └─ `>=` operator
 [ERROR] Cannot compare together durations that cannot be converted to a precise number of days
 
 ┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:10.22-29:

@@ -249,7 +249,7 @@ $ catala Interpret -s Exemple1 --disable_warnings
 
 ```catala-test-inline
 $ catala Typecheck
-[WARNING] The variable "ressources_ménage_arrondies.seuil" is declared but never defined in scope "RessourcesAidesPersonnelleLogement"; did you forget something?
+[WARNING] In scope in scope "RessourcesAidesPersonnelleLogement", the variable "ressources_ménage_arrondies.seuil" is declared but never defined; did you forget something?
 
 ┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:496.9-14:
 └───┐
@@ -258,7 +258,7 @@ $ catala Typecheck
     └┬ Prologue : aides au logement
      └┬ Déclarations des champs d'application
       └─ Prise en compte des ressources pour les aides personnelles au logement
-[WARNING] The variable "ressources_forfaitaires_r822_20" is declared but never defined in scope "RessourcesAidesPersonnelleLogement"; did you forget something?
+[WARNING] In scope in scope "RessourcesAidesPersonnelleLogement", the variable "ressources_forfaitaires_r822_20" is declared but never defined; did you forget something?
 
 ┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:504.10-41:
 └───┐
@@ -267,6 +267,104 @@ $ catala Typecheck
     └┬ Prologue : aides au logement
      └┬ Déclarations des champs d'application
       └─ Prise en compte des ressources pour les aides personnelles au logement
+[WARNING] In scope "ÉligibilitéAidesPersonnelleLogement", the variable "condition_prêt" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:292.10-24:
+└───┐
+292 │   interne condition_prêt condition dépend de prêt contenu Prêt
+    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    └┬ Prologue : aides au logement
+     └┬ Déclarations des champs d'application
+      └─ Éligibilité aux aides personnelles au logement
+[WARNING] In scope "ÉligibilitéAidesPersonnelleLogement", the variable "condition_peuplement_logement_l822_10" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:301.10-47:
+└───┐
+301 │   interne condition_peuplement_logement_l822_10 condition
+    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    └┬ Prologue : aides au logement
+     └┬ Déclarations des champs d'application
+      └─ Éligibilité aux aides personnelles au logement
+[WARNING] In scope "ÉligibilitéAidesPersonnelleLogement", the variable "patrimoine_pris_en_compte" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:314.10-35:
+└───┐
+314 │   interne patrimoine_pris_en_compte contenu argent
+    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    └┬ Prologue : aides au logement
+     └┬ Déclarations des champs d'application
+      └─ Éligibilité aux aides personnelles au logement
+[WARNING] In scope "ÉligibilitéPrimeDeDéménagement", the variable "éligibilité_logement" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:457.10-30:
+└───┐
+457 │   interne éligibilité_logement condition
+    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    └┬ Prologue : aides au logement
+     └┬ Déclarations des champs d'application
+      └─ Éligibilité à la prime de déménagement
+[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "ressources_ménage_arrondies.seuil" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:496.9-14:
+└───┐
+496 │     état seuil
+    │          ‾‾‾‾‾
+    └┬ Prologue : aides au logement
+     └┬ Déclarations des champs d'application
+      └─ Prise en compte des ressources pour les aides personnelles au logement
+[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "ressources_ménage_arrondies.base" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:495.9-13:
+└───┐
+495 │     état base
+    │          ‾‾‾‾
+    └┬ Prologue : aides au logement
+     └┬ Déclarations des champs d'application
+      └─ Prise en compte des ressources pour les aides personnelles au logement
+[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "abattement_r_822_8" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:499.10-28:
+└───┐
+499 │   interne abattement_r_822_8 contenu argent
+    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    └┬ Prologue : aides au logement
+     └┬ Déclarations des champs d'application
+      └─ Prise en compte des ressources pour les aides personnelles au logement
+[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "abattement_r_822_7" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:501.10-28:
+└───┐
+501 │   interne abattement_r_822_7 contenu argent
+    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    └┬ Prologue : aides au logement
+     └┬ Déclarations des champs d'application
+      └─ Prise en compte des ressources pour les aides personnelles au logement
+[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "abattement_r_822_10" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:503.10-29:
+└───┐
+503 │   interne abattement_r_822_10 contenu argent
+    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+    └┬ Prologue : aides au logement
+     └┬ Déclarations des champs d'application
+      └─ Prise en compte des ressources pour les aides personnelles au logement
+[WARNING] In scope "CalculAllocationLogement", the variable "catégorie_calcul_apl" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:1000.10-30:
+└────┐
+1000 │   interne catégorie_calcul_apl contenu CatégorieCalculAPL
+     │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+     └┬ Prologue : aides au logement
+      └┬ Calcul du montant de l'allocation logement
+       └┬ Secteur logement-foyer
+        └─ Tous secteurs
+[WARNING] In scope "ÉligibilitéPrestationsFamiliales", the variable "prestation_courante" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:48.9-28:
+└──┐
+48 │   entrée prestation_courante contenu ÉlémentPrestationsFamiliales
+   │          ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Prologue : prestations familiales
 [WARNING] The constructor "AllocationJeuneEnfant" of enumeration "PrestationReçue" is never used; maybe it's unnecessary?
 
 ┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:132.5-26:

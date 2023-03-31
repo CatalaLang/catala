@@ -21,6 +21,13 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples
+[WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_proof/bad/enums-nonbool-empty.catala_en:13.10-11:
+└──┐
+13 │   context x content integer
+   │           ‾
+   └─ Test
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_proof/bad/enums-nonbool-empty.catala_en:5.6-7:

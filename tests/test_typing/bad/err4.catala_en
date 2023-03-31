@@ -10,19 +10,12 @@ Should be "catala Typecheck", see test err3
 
 ```catala-test-inline
 $ catala ocaml
-[WARNING] The field "i" of struct "Structure" is never used; maybe it's unnecessary?
+[WARNING] The structure "Structure" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_typing/bad/common.catala_en:8.7-8:
+┌─⯈ tests/test_typing/bad/common.catala_en:7.22-31:
 └─┐
-8 │   data i content integer
-  │        ‾
-
-[WARNING] The field "e" of struct "Structure" is never used; maybe it's unnecessary?
-
-┌─⯈ tests/test_typing/bad/common.catala_en:9.7-8:
-└─┐
-9 │   data e content Enum
-  │        ‾
+7 │ declaration structure Structure:
+  │                       ‾‾‾‾‾‾‾‾‾
 
 [WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
 

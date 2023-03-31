@@ -18,12 +18,12 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[WARNING] The field "f" of struct "Bar" is never used; maybe it's unnecessary?
+[WARNING] The structure "Bar" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_struct/good/same_name_fields.catala_en:8.7-8:
+┌─⯈ tests/test_struct/good/same_name_fields.catala_en:7.22-25:
 └─┐
-8 │   data f content integer
-  │        ‾
+7 │ declaration structure Bar:
+  │                       ‾‾‾
   └─ Article
 [RESULT] Computation successful! Results:
 [RESULT] x = Foo { "f"= 1 }

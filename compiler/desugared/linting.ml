@@ -35,12 +35,45 @@ let detect_empty_definitions (p : program) : unit =
           then
             Errors.format_spanned_warning
               (ScopeDef.get_position scope_def_key)
-              "The variable %a is declared but never defined in scope %a; did \
-               you forget something?"
+              "In scope in scope %a, the variable %a is declared but never \
+               defined; did you forget something?"
+              (Cli.format_with_style [ANSITerminal.yellow])
+              (Format.asprintf "\"%a\"" ScopeName.format_t scope_name)
+              (Cli.format_with_style [ANSITerminal.yellow])
+              (Format.asprintf "\"%a\"" Ast.ScopeDef.format_t scope_def_key))
+        scope.scope_defs)
+    p.program_scopes
+
+let detect_unused_scope_vars (p : program) : unit =
+  let used_scope_vars =
+    Ast.fold_exprs
+      ~f:(fun used_scope_vars e ->
+        let rec used_scope_vars_expr e used_scope_vars =
+          match Marked.unmark e with
+          | ELocation (DesugaredScopeVar (v, _)) ->
+            ScopeVar.Set.add (Marked.unmark v) used_scope_vars
+          | _ -> Expr.deep_fold used_scope_vars_expr e used_scope_vars
+        in
+        used_scope_vars_expr e used_scope_vars)
+      ~init:ScopeVar.Set.empty p
+  in
+  ScopeName.Map.iter
+    (fun (scope_name : ScopeName.t) scope ->
+      ScopeDefMap.iter
+        (fun scope_def_key scope_def ->
+          match scope_def_key with
+          | ScopeDef.Var (v, _)
+            when (not (ScopeVar.Set.mem v used_scope_vars))
+                 && not (Marked.unmark scope_def.scope_def_io.io_output) ->
+            Errors.format_spanned_warning
+              (ScopeDef.get_position scope_def_key)
+              "In scope %a, the variable %a is never used anywhere; maybe it's \
+               unnecessary?"
+              (Cli.format_with_style [ANSITerminal.yellow])
+              (Format.asprintf "\"%a\"" ScopeName.format_t scope_name)
               (Cli.format_with_style [ANSITerminal.yellow])
               (Format.asprintf "\"%a\"" Ast.ScopeDef.format_t scope_def_key)
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" ScopeName.format_t scope_name))
+          | _ -> ())
         scope.scope_defs)
     p.program_scopes
 
@@ -78,20 +111,35 @@ let detect_unused_struct_fields (p : program) : unit =
   in
   StructName.Map.iter
     (fun s_name fields ->
-      StructField.Map.iter
-        (fun field _ ->
-          if
-            (not (StructField.Set.mem field struct_fields_used))
-            && not (StructField.Set.mem field scope_out_structs_fields)
-          then
-            Errors.format_spanned_warning
-              (snd (StructField.get_info field))
-              "The field %a of struct %a is never used; maybe it's unnecessary?"
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" StructField.format_t field)
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" StructName.format_t s_name))
-        fields)
+      if
+        (not (StructField.Map.is_empty fields))
+        && StructField.Map.for_all
+             (fun field _ ->
+               (not (StructField.Set.mem field struct_fields_used))
+               && not (StructField.Set.mem field scope_out_structs_fields))
+             fields
+      then
+        Errors.format_spanned_warning
+          (snd (StructName.get_info s_name))
+          "The structure %a is never used; maybe it's unnecessary?"
+          (Cli.format_with_style [ANSITerminal.yellow])
+          (Format.asprintf "\"%a\"" StructName.format_t s_name)
+      else
+        StructField.Map.iter
+          (fun field _ ->
+            if
+              (not (StructField.Set.mem field struct_fields_used))
+              && not (StructField.Set.mem field scope_out_structs_fields)
+            then
+              Errors.format_spanned_warning
+                (snd (StructField.get_info field))
+                "The field %a of struct %a is never used; maybe it's \
+                 unnecessary?"
+                (Cli.format_with_style [ANSITerminal.yellow])
+                (Format.asprintf "\"%a\"" StructField.format_t field)
+                (Cli.format_with_style [ANSITerminal.yellow])
+                (Format.asprintf "\"%a\"" StructName.format_t s_name))
+          fields)
     p.program_ctx.ctx_structs
 
 let detect_unused_enum_constructors (p : program) : unit =
@@ -149,5 +197,6 @@ let detect_unused_enum_constructors (p : program) : unit =
 
 let lint_program (p : program) : unit =
   detect_empty_definitions p;
+  detect_unused_scope_vars p;
   detect_unused_struct_fields p;
   detect_unused_enum_constructors p

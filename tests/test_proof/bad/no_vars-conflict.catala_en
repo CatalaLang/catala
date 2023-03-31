@@ -17,6 +17,13 @@ scope A:
 ```
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
+[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_proof/bad/no_vars-conflict.catala_en:8.10-11:
+└─┐
+8 │   context y content integer
+  │           ‾
+  └─ Test
 [ERROR] [A.y] At least two exceptions overlap for this variable:
 ┌─⯈ tests/test_proof/bad/no_vars-conflict.catala_en:8.10-11:
 └─┐

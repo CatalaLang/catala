@@ -21,5 +21,12 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
+[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_proof/good/enums_unit.catala_en:10.10-11:
+└──┐
+10 │   context y content integer
+   │           ‾
+   └─ Article
 [RESULT] No errors found during the proof mode run.
 ```

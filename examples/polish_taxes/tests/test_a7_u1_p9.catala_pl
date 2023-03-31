@@ -12,6 +12,6 @@ zakres Test_A7_U1_P9:
   asercja sprzedaz.podatek = 5 PLN
 ```
 ```catala-test-inline
-$ catala Interpret -s Test_A7_U1_P9
+$ catala Interpret -s Test_A7_U1_P9 --disable_warnings
 [RESULT] Computation successful!
 ```

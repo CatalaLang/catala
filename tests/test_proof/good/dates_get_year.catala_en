@@ -15,5 +15,12 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
+[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_proof/good/dates_get_year.catala_en:6.10-11:
+└─┐
+6 │   context y content boolean
+  │           ‾
+  └─ Test
 [RESULT] No errors found during the proof mode run.
 ```

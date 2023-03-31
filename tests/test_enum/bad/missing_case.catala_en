@@ -18,6 +18,13 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
+[WARNING] In scope "A", the variable "out" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_enum/bad/missing_case.catala_en:11.10-13:
+└──┐
+11 │   context out content boolean
+   │           ‾‾‾
+   └─ Article
 [WARNING] The constructor "Case3" of enumeration "E" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_enum/bad/missing_case.catala_en:7.5-10:

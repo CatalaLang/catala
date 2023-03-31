@@ -26,19 +26,12 @@ scope Foo:
 
 ```catala-test-inline
 $ catala interpret -s Foo
-[WARNING] The field "z2" of struct "Test" is never used; maybe it's unnecessary?
+[WARNING] The structure "Test" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_scope/good/scope_call.catala_en:3.9-11:
+┌─⯈ tests/test_scope/good/scope_call.catala_en:2.22-26:
 └─┐
-3 │     data z2 content integer
-  │          ‾‾
-
-[WARNING] The field "z3" of struct "Test" is never used; maybe it's unnecessary?
-
-┌─⯈ tests/test_scope/good/scope_call.catala_en:4.9-11:
-└─┐
-4 │     data z3 content integer
-  │          ‾‾
+2 │ declaration structure Test:
+  │                       ‾‾‾‾
 
 [RESULT] Computation successful! Results:
 [RESULT] example = -7

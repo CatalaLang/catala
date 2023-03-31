@@ -33,6 +33,30 @@ scope Money:
 
 ```catala-test-inline
 $ catala Interpret -s Dec
+[WARNING] In scope "Int", the variable "i" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:7.10-11:
+└─┐
+7 │   context i content decimal
+  │           ‾
+  └┬ `Division_by_zero` exception management
+   └─ with integers
+[WARNING] In scope "Dec", the variable "i" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:17.10-11:
+└──┐
+17 │   context i content decimal
+   │           ‾
+   └┬ `Division_by_zero` exception management
+    └─ with decimals
+[WARNING] In scope "Money", the variable "i" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:27.10-11:
+└──┐
+27 │   context i content decimal
+   │           ‾
+   └┬ `Division_by_zero` exception management
+    └─ with money
 [ERROR] division by zero at runtime
 
 The division operator:
@@ -55,6 +79,30 @@ The null denominator:
 
 ```catala-test-inline
 $ catala Interpret -s Int
+[WARNING] In scope "Int", the variable "i" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:7.10-11:
+└─┐
+7 │   context i content decimal
+  │           ‾
+  └┬ `Division_by_zero` exception management
+   └─ with integers
+[WARNING] In scope "Dec", the variable "i" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:17.10-11:
+└──┐
+17 │   context i content decimal
+   │           ‾
+   └┬ `Division_by_zero` exception management
+    └─ with decimals
+[WARNING] In scope "Money", the variable "i" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:27.10-11:
+└──┐
+27 │   context i content decimal
+   │           ‾
+   └┬ `Division_by_zero` exception management
+    └─ with money
 [ERROR] division by zero at runtime
 
 The division operator:
@@ -77,6 +125,30 @@ The null denominator:
 
 ```catala-test-inline
 $ catala Interpret -s Money
+[WARNING] In scope "Int", the variable "i" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:7.10-11:
+└─┐
+7 │   context i content decimal
+  │           ‾
+  └┬ `Division_by_zero` exception management
+   └─ with integers
+[WARNING] In scope "Dec", the variable "i" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:17.10-11:
+└──┐
+17 │   context i content decimal
+   │           ‾
+   └┬ `Division_by_zero` exception management
+    └─ with decimals
+[WARNING] In scope "Money", the variable "i" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:27.10-11:
+└──┐
+27 │   context i content decimal
+   │           ‾
+   └┬ `Division_by_zero` exception management
+    └─ with money
 [ERROR] division by zero at runtime
 
 The division operator:
