@@ -19,7 +19,7 @@ val translate_program_with_exceptions : 'm Dcalc.Ast.program -> 'm Ast.program
     translation uses exceptions to handle empty default terms. *)
 
 val translate_program_without_exceptions :
-  Shared_ast.typed Dcalc.Ast.program -> Shared_ast.typed Ast.program
+  Shared_ast.typed Dcalc.Ast.program -> Shared_ast.untyped Ast.program
 (** Translation from the default calculus to the lambda calculus. This
     translation uses an option monad to handle empty defaults terms. This
     transformation is one piece to permit to compile toward legacy languages

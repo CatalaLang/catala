@@ -203,8 +203,9 @@ let _ = monad_handle_default
 
 let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
   let new_ = (Var.Map.find x ctx).var in
-  Cli.debug_format "before: %a after: %a" Print.var_debug x Print.var_debug new_;
 
+  (* Cli.debug_format "before: %a after: %a" Print.var_debug x Print.var_debug
+     new_; *)
   new_
 
 let trans_op : type m. (dcalc, m) Op.t -> (lcalc, m) Op.t =
@@ -300,12 +301,125 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     monad_bind_var (trans ctx' body) var' (trans ctx arg) ~mark
   | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
     assert false
-  (* | EApp { f = EOp { op = Op.Fold; tys }, opmark; args = [f; init; l] } -> (*
-     *) let x1 = Var.make "x1" in let x2 = var.make "x2" in let body = monad let
-     f' = assert false in monad_mbind (Expr.eop (trans_op Op.Fold) tys opmark)
-     [f'; trans ctx init; trans ctx l] ~mark | EApp { f = EOp { op = Op.Fold; _
-     }, _; _ } -> (* Cannot happend: folds must be fully determined *) assert
-     false *)
+  | EApp { f = EOp { op = Op.Fold; tys }, opmark; args = [f; init; l] } ->
+    (* The function f should have type b -> a -> a. Hence, its translation has
+       type [b] -> [a] -> option [a]. But we need a function of type option [b]
+       -> option [a] -> option [a] for the type checking of fold. Hence, we
+       "iota-expand" the function as follows: [λ x y. bindm x y. [f] x y] *)
+    let x1 = Var.make "x1" in
+    let x2 = Var.make "x2" in
+    let f' =
+      monad_bind_cont ~mark
+        (fun f ->
+          monad_return ~mark
+            (Expr.eabs
+               (Expr.bind [| x1; x2 |]
+                  (monad_mbind_cont ~mark
+                     (fun vars ->
+                       Expr.eapp (Expr.evar f m)
+                         (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+                         m)
+                     [Expr.evar x1 m; Expr.evar x2 m]))
+               [TAny, pos; TAny, pos]
+               m))
+        (trans ctx f)
+    in
+    monad_mbind
+      (Expr.eop (trans_op Op.Fold) tys opmark)
+      [f'; monad_return ~mark (trans ctx init); trans ctx l]
+      ~mark
+  | EApp { f = EOp { op = Op.Fold; _ }, _; _ } ->
+    (* Cannot happend: folds must be fully determined *) assert false
+  | EApp { f = EOp { op = Op.Reduce; tys }, opmark; args = [f; init; l] } ->
+    (* The function f should have type b -> a -> a. Hence, its translation has
+       type [b] -> [a] -> option [a]. But we need a function of type option [b]
+       -> option [a] -> option [a] for the type checking of fold. Hence, we
+       "iota-expand" the function as follows: [λ x y. bindm x y. [f] x y] *)
+    let x1 = Var.make "x1" in
+    let x2 = Var.make "x2" in
+    let f' =
+      monad_bind_cont ~mark
+        (fun f ->
+          monad_return ~mark
+            (Expr.eabs
+               (Expr.bind [| x1; x2 |]
+                  (monad_mbind_cont ~mark
+                     (fun vars ->
+                       Expr.eapp (Expr.evar f m)
+                         (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+                         m)
+                     [Expr.evar x1 m; Expr.evar x2 m]))
+               [TAny, pos; TAny, pos]
+               m))
+        (trans ctx f)
+    in
+    monad_mbind
+      (Expr.eop (trans_op Op.Reduce) tys opmark)
+      [f'; monad_return ~mark (trans ctx init); trans ctx l]
+      ~mark
+  | EApp { f = EOp { op = Op.Reduce; _ }, _; _ } ->
+    (* Cannot happend: folds must be fully determined *) assert false
+  | EApp { f = EOp { op = Op.Map; tys }, opmark; args = [f; l] } ->
+    (* The function f should have type b -> a -> a. Hence, its translation has
+       type [b] -> [a] -> option [a]. But we need a function of type option [b]
+       -> option [a] -> option [a] for the type checking of fold. Hence, we
+       "iota-expand" the function as follows: [λ x y. bindm x y. [f] x y] *)
+    let x1 = Var.make "x1" in
+    let f' =
+      monad_bind_cont ~mark
+        (fun f ->
+          monad_return ~mark
+            (Expr.eabs
+               (Expr.bind [| x1 |]
+                  (monad_mbind_cont ~mark
+                     (fun vars ->
+                       Expr.eapp (Expr.evar f m)
+                         (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+                         m)
+                     [Expr.evar x1 m]))
+               [TAny, pos]
+               m))
+        (trans ctx f)
+    in
+    monad_mbind_cont
+      (fun vars ->
+        monad_return ~mark
+          (Expr.eapp
+             (Expr.eop (trans_op Op.Map) tys opmark)
+             (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+             mark))
+      [f'; trans ctx l]
+      ~mark
+  | EApp { f = EOp { op = Op.Map; _ }, _; _ } ->
+    (* Cannot happend: folds must be fully determined *) assert false
+  | EApp { f = EOp { op = Op.Filter; tys }, opmark; args = [f; l] } ->
+    (* The function f should have type b -> a -> a. Hence, its translation has
+       type [b] -> [a] -> option [a]. But we need a function of type option [b]
+       -> option [a] -> option [a] for the type checking of fold. Hence, we
+       "iota-expand" the function as follows: [λ x y. bindm x y. [f] x y] *)
+    let x1 = Var.make "x1" in
+    let f' =
+      monad_bind_cont ~mark
+        (fun f ->
+          monad_return ~mark
+            (Expr.eabs
+               (Expr.bind [| x1 |]
+                  (monad_mbind_cont ~mark
+                     (fun vars ->
+                       Expr.eapp (Expr.evar f m)
+                         (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+                         m)
+                     [Expr.evar x1 m]))
+               [TAny, pos]
+               m))
+        (trans ctx f)
+    in
+    monad_mbind
+      (Expr.eop (trans_op Op.Filter) tys opmark)
+      [f'; trans ctx l]
+      ~mark
+  | EApp { f = EOp { op = Op.Filter; _ }, _; _ } ->
+    (* Cannot happend: folds must be fully determined *) assert false
   | EApp { f = EOp { op; tys }, opmark; args } ->
     let res =
       monad_mmap
@@ -495,7 +609,7 @@ let rec trans_scope_let ctx s =
     let next_var' = Var.translate next_var in
     let ctx' =
       Var.Map.add next_var
-        { info_pure = false; is_scope = false; var = next_var' }
+        { info_pure = true; is_scope = false; var = next_var' }
         ctx
     in
 
