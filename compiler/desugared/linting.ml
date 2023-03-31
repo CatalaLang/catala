@@ -52,18 +52,8 @@ let detect_unused_struct_fields (p : program) : unit =
           match Marked.unmark e with
           | EDStructAccess { name_opt = Some name; e = e_struct; field } ->
             let field =
-              try
-                StructName.Map.find name
-                  (IdentName.Map.find field p.program_ctx.ctx_struct_fields)
-              with Not_found ->
-                (* Should not happen after disambiguation *)
-                Errors.raise_spanned_error
-                  (Expr.mark_pos (Marked.get_mark e))
-                  "Field %a does not belong to structure %a"
-                  (Cli.format_with_style [ANSITerminal.yellow])
-                  field
-                  (Cli.format_with_style [ANSITerminal.yellow])
-                  (Format.asprintf "\"%a\"" StructName.format_t name)
+              StructName.Map.find name
+                (IdentName.Map.find field p.program_ctx.ctx_struct_fields)
             in
             StructField.Set.add field
               (structs_fields_used_expr e_struct struct_fields_used)
@@ -73,8 +63,7 @@ let detect_unused_struct_fields (p : program) : unit =
                 StructField.Set.add field
                   (structs_fields_used_expr e_field struct_fields_used))
               fields struct_fields_used
-          | _ ->
-            Expr.shallow_fold structs_fields_used_expr e StructField.Set.empty
+          | _ -> Expr.deep_fold structs_fields_used_expr e struct_fields_used
         in
         structs_fields_used_expr e struct_fields_used)
       ~init:StructField.Set.empty p
@@ -105,6 +94,48 @@ let detect_unused_struct_fields (p : program) : unit =
         fields)
     p.program_ctx.ctx_structs
 
+let detect_unused_enum_constructors (p : program) : unit =
+  let enum_constructors_used =
+    Ast.fold_exprs
+      ~f:(fun enum_constructors_used e ->
+        let rec enum_constructors_used_expr e enum_constructors_used =
+          match Marked.unmark e with
+          | EInj { name = _; e = e_enum; cons } ->
+            EnumConstructor.Set.add cons
+              (enum_constructors_used_expr e_enum enum_constructors_used)
+          | EMatch { e = e_match; name = _; cases } ->
+            let enum_constructors_used =
+              enum_constructors_used_expr e_match enum_constructors_used
+            in
+            EnumConstructor.Map.fold
+              (fun cons e_cons enum_constructors_used ->
+                EnumConstructor.Set.add cons
+                  (enum_constructors_used_expr e_cons enum_constructors_used))
+              cases enum_constructors_used
+          | _ ->
+            Expr.deep_fold enum_constructors_used_expr e enum_constructors_used
+        in
+        enum_constructors_used_expr e enum_constructors_used)
+      ~init:EnumConstructor.Set.empty p
+  in
+  EnumName.Map.iter
+    (fun e_name constructors ->
+      EnumConstructor.Map.iter
+        (fun constructor _ ->
+          if not (EnumConstructor.Set.mem constructor enum_constructors_used)
+          then
+            Errors.format_spanned_warning
+              (snd (EnumConstructor.get_info constructor))
+              "The constructor %a of enumeration %a is never used; maybe it's \
+               unnecessary?"
+              (Cli.format_with_style [ANSITerminal.yellow])
+              (Format.asprintf "\"%a\"" EnumConstructor.format_t constructor)
+              (Cli.format_with_style [ANSITerminal.yellow])
+              (Format.asprintf "\"%a\"" EnumName.format_t e_name))
+        constructors)
+    p.program_ctx.ctx_enums
+
 let lint_program (p : program) : unit =
   detect_empty_definitions p;
-  detect_unused_struct_fields p
+  detect_unused_struct_fields p;
+  detect_unused_enum_constructors p

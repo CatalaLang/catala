@@ -224,6 +224,10 @@ val shallow_fold :
           shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
     ]} *)
 
+val deep_fold :
+  (('a, 't) gexpr -> 'acc -> 'acc) -> ('a, 't) gexpr -> 'acc -> 'acc
+(** Same as [shallow_fold] but opens binders. *)
+
 val map_gather :
   acc:'acc ->
   join:('acc -> 'acc -> 'acc) ->

@@ -278,6 +278,19 @@ let shallow_fold
     acc |> f e |> EnumConstructor.Map.fold (fun _ -> f) cases
   | EScopeCall { args; _ } -> acc |> ScopeVar.Map.fold (fun _ -> f) args
 
+(* Folds the given function on the direct children of the given expression. Open
+   binders. *)
+let deep_fold
+    (type a)
+    (f : (a, 'm) gexpr -> 'acc -> 'acc)
+    (e : (a, 'm) gexpr)
+    (acc : 'acc) : 'acc =
+  match Marked.unmark e with
+  | EAbs { binder; tys = _ } ->
+    let _, body = Bindlib.unmbind binder in
+    acc |> f body
+  | _ -> shallow_fold f e acc
+
 (* Like [map], but also allows to gather a result bottom-up. *)
 let map_gather
     (type a)
