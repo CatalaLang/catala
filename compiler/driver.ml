@@ -39,9 +39,6 @@ let driver source_file (options : Cli.options) : int =
     (match source_file with
     | Pos.FileName f -> filename := f
     | Contents c -> Cli.contents := c);
-    (match options.max_prec_digits with
-    | None -> ()
-    | Some i -> Cli.max_prec_digits := i);
     let l =
       match options.language with
       | Some l -> l

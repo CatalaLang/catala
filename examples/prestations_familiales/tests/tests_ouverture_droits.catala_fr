@@ -62,6 +62,6 @@ champ d'application Test1:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test1
+$ catala Interpret -s Test1 --disable_warnings
 [RESULT] Computation successful!
 ```
