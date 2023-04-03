@@ -201,8 +201,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
   match Marked.unmark e with
   | EVar v -> Expr.evar (Var.Map.find v ctx.local_vars) m
   | ELit
-      (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
-       | LDuration _ ) as l) ->
+      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
+      l) ->
     Expr.elit l m
   | EStruct { name; fields } ->
     let fields = StructField.Map.map (translate_expr ctx) fields in
@@ -254,7 +254,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
           let expr =
             match str_field, expr with
             | Some { scope_input_io = Desugared.Ast.Reentrant, _; _ }, None ->
-              Some (Expr.unbox (Expr.elit LEmptyError (mark_tany m pos)))
+              Some (Expr.unbox (Expr.eemptyerror (mark_tany m pos)))
             | _ -> expr
           in
           match str_field, expr with
@@ -555,8 +555,10 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
       (translate_expr ctx efalse)
       m
-  | EOp { op; tys } ->
-    Expr.eop (Operator.translate (Some ctx.date_rounding) op) tys m
+  | EOp { op = Add_dat_dur _; tys } ->
+    Expr.eop (Add_dat_dur ctx.date_rounding) tys m
+  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
+  | EEmptyError -> Expr.eemptyerror m
   | EErrorOnEmpty e' -> Expr.eerroronempty (translate_expr ctx e') m
   | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
 

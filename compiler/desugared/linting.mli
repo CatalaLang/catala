@@ -1,7 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>, Alain Delaët-Tixeuil
-   <alain.delaet--tixeuil@inria.fr>
+   and social benefits computation rules. Copyright (C) 2023 Inria, contributor:
+   Denis Merigoux <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -15,11 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Abstract syntax tree of the default calculus intermediate representation *)
-
-open Shared_ast
-
-type 'm naked_expr = (dcalc, 'm mark) naked_gexpr
-and 'm expr = (dcalc, 'm mark) gexpr
-
-type 'm program = 'm expr Shared_ast.program
+val lint_program : Ast.program -> unit
+(** Performs various lints on the program, displaying warnings to help the
+    developer improve the code. *)

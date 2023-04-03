@@ -21,8 +21,6 @@ open Shared_ast
 
 (** {1 Abstract syntax tree} *)
 
-type lit = lcalc glit
-
 type 'm naked_expr = (lcalc, 'm mark) naked_gexpr
 and 'm expr = (lcalc, 'm mark) gexpr
 

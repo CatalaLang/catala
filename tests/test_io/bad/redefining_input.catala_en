@@ -9,6 +9,13 @@ scope A:
 ```
 ```catala-test-inline
 $ catala Typecheck 
+[WARNING] In scope "A", the variable "a" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_io/bad/redefining_input.catala_en:5.8-9:
+└─┐
+5 │   input a content integer
+  │         ‾
+  └─ Test
 [ERROR] It is impossible to give a definition to a scope variable tagged as input.
 
 Incriminated variable:

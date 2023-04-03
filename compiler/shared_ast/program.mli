@@ -25,15 +25,18 @@ val map_exprs :
   'expr1 program ->
   'expr2 program Bindlib.box
 
+val fold_left_exprs :
+  f:('a -> 'expr code_item -> 'a) -> init:'a -> 'expr program -> 'a
+
+val fold_right_exprs :
+  f:('expr code_item -> 'a -> 'a) -> init:'a -> 'expr program -> 'a
+
 val get_scope_body :
-  (([< dcalc | lcalc ], _) gexpr as 'e) program -> ScopeName.t -> 'e scope_body
+  ((_ any, 't) gexpr as 'e) program -> ScopeName.t -> 'e scope_body
 
-val untype :
-  (([< dcalc | lcalc ] as 'a), 'm mark) gexpr program ->
-  ('a, untyped mark) gexpr program
+val untype : ('a any, _ mark) gexpr program -> ('a, untyped mark) gexpr program
 
-val to_expr :
-  (([< dcalc | lcalc ], _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
+val to_expr : ((_ any, _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
 (** Usage: [build_whole_program_expr program main_scope] builds an expression
     corresponding to the main program and returning the main scope as a
     function. *)

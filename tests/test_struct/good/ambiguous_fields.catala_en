@@ -18,5 +18,19 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
+[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/good/ambiguous_fields.catala_en:12.10-11:
+└──┐
+12 │   context y content integer
+   │           ‾
+   └─ Article
+[WARNING] The structure "Bar" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/good/ambiguous_fields.catala_en:7.22-25:
+└─┐
+7 │ declaration structure Bar:
+  │                       ‾‾‾
+  └─ Article
 [RESULT] Computation successful!
 ```

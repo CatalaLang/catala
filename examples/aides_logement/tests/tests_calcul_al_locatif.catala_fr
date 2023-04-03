@@ -90,13 +90,13 @@ champ d'application Exemple2 :
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Exemple1
+$ catala Interpret -s Exemple1 --disable_warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 345.73 €
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Exemple2
+$ catala Interpret -s Exemple2 --disable_warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 352.77 €
 ```

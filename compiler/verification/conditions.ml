@@ -198,7 +198,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
             (Marked.get_mark e);
         ])
       (Marked.get_mark e)
-  | ELit LEmptyError -> Marked.same_mark_as (ELit (LBool false)) e
+  | EEmptyError -> Marked.same_mark_as (ELit (LBool false)) e
   | EVar _
   (* Per default calculus semantics, you cannot call a function with an argument
      that evaluates to the empty error. Thus, all variable evaluate to
@@ -229,7 +229,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                            can be ignored *)
                         let _vars, body = Bindlib.unmbind binder in
                         match Marked.unmark body with
-                        | ELit LEmptyError ->
+                        | EEmptyError ->
                           Marked.same_mark_as (ELit (LBool true)) field
                         | _ ->
                           (* same as basic [EAbs case]*)

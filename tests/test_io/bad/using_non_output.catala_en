@@ -15,6 +15,13 @@ scope B:
 ```
 ```catala-test-inline
 $ catala Typecheck
+[WARNING] In scope "A", the variable "a" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_io/bad/using_non_output.catala_en:5.11-12:
+└─┐
+5 │   internal a content integer
+  │            ‾
+  └─ Test
 [ERROR] The variable a.a cannot be used here, as it is not part of subscope a's results. Maybe you forgot to qualify it as an output?
 
 Incriminated variable usage:

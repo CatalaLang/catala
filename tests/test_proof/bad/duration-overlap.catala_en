@@ -13,6 +13,13 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
+[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_proof/bad/duration-overlap.catala_en:6.10-11:
+└─┐
+6 │   context y content boolean
+  │           ‾
+  └─ Test
 [ERROR] [A.y] At least two exceptions overlap for this variable:
 ┌─⯈ tests/test_proof/bad/duration-overlap.catala_en:6.10-11:
 └─┐

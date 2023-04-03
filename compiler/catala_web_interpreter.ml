@@ -23,6 +23,7 @@ let _ =
              max_prec_digits = None;
              closure_conversion = false;
              trace;
+             disable_warnings = true;
              disable_counterexamples = false;
              optimize = false;
              ex_scope = Some (Js.to_string scope);

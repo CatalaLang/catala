@@ -7,6 +7,13 @@ declaration scope Foo2:
 
 ```catala-test-inline
 $ catala Scalc -s Foo2 -O -t
+[WARNING] In scope "Foo2", the variable "bar" is declared but never defined; did you forget something?
+
+┌─⯈ tests/test_scope/good/nothing.catala_en:5.9-12:
+└─┐
+5 │   output bar content integer
+  │          ‾‾‾
+  └─ Test
 let Foo2_3 (Foo2_in_2: Foo2_in {}) =
   decl temp_bar_4 : any;
   temp_bar_4 = dead_value_1;

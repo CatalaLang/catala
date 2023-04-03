@@ -21,10 +21,8 @@ open Definitions
 (** This module provides types and helpers for Bindlib variables on the [gexpr]
     type *)
 
-type 'e t = ('a, 't) naked_gexpr Bindlib.var constraint 'e = ('a any, 't) gexpr
-
-type 'e vars = ('a, 't) naked_gexpr Bindlib.mvar
-  constraint 'e = ('a any, 't) gexpr
+type 'e t = ('a, 't) naked_gexpr Bindlib.var constraint 'e = ('a, 't) gexpr
+type 'e vars = ('a, 't) naked_gexpr Bindlib.mvar constraint 'e = ('a, 't) gexpr
 
 let make (name : string) : 'e t = Bindlib.new_var (fun x -> EVar x) name
 let compare = Bindlib.compare_vars

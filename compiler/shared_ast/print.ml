@@ -126,11 +126,10 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" typ t1
   | TAny -> base_type fmt "any"
 
-let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
+let lit (fmt : Format.formatter) (l : lit) : unit =
   match l with
   | LBool b -> lit_style fmt (string_of_bool b)
   | LInt i -> lit_style fmt (Runtime.integer_to_string i)
-  | LEmptyError -> lit_style fmt "∅ "
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
@@ -154,7 +153,9 @@ let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
         Cli.format_with_style [ANSITerminal.green] fmt "☛ ")
     entry
 
-let operator_to_string : type a k. (a, k) Op.t -> string = function
+let operator_to_string : type a. a Op.t -> string =
+  let open Op in
+  function
   | Not -> "~"
   | Length -> "length"
   | GetDay -> "get_day"
@@ -241,7 +242,9 @@ let operator_to_string : type a k. (a, k) Op.t -> string = function
   | Eq_dat_dat -> "=@"
   | Fold -> "fold"
 
-let operator (type k) (fmt : Format.formatter) (op : ('a, k) operator) : unit =
+let operator : type a. Format.formatter -> a Op.t -> unit =
+ fun fmt op ->
+  let open Op in
   match op with
   | Log (entry, infos) ->
     Format.fprintf fmt "%a@[<hov 2>[%a|%a]@]" op_style "log" log_entry entry
@@ -360,6 +363,7 @@ let rec expr_aux :
            expr)
         excepts punctuation "|" expr just punctuation "⊢" expr cons punctuation
         "⟩"
+  | EEmptyError -> lit_style fmt "∅ "
   | EErrorOnEmpty e' ->
     Format.fprintf fmt "%a@ %a" op_style "error_empty" with_parens e'
   | EAssert e' ->

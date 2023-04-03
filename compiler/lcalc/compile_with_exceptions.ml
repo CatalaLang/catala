@@ -59,44 +59,11 @@ let rec translate_default
 and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
   let m = Marked.get_mark e in
   match Marked.unmark e with
-  | EVar v -> Expr.make_var (translate_var v) m
-  | EStruct { name; fields } ->
-    Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
-  | EStructAccess { name; e; field } ->
-    Expr.estructaccess (translate_expr ctx e) field name m
-  | ETuple es -> Expr.etuple (List.map (translate_expr ctx) es) m
-  | ETupleAccess { e; index; size } ->
-    Expr.etupleaccess (translate_expr ctx e) index size m
-  | EInj { name; e; cons } -> Expr.einj (translate_expr ctx e) cons name m
-  | EMatch { name; e; cases } ->
-    Expr.ematch (translate_expr ctx e) name
-      (EnumConstructor.Map.map (translate_expr ctx) cases)
-      m
-  | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
-  | ELit
-      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
-      l) ->
-    Expr.elit l m
-  | ELit LEmptyError -> Expr.eraise EmptyError m
-  | EOp { op; tys } -> Expr.eop (Operator.translate None op) tys m
-  | EIfThenElse { cond; etrue; efalse } ->
-    Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
-      (translate_expr ctx efalse)
-      m
-  | EAssert e1 -> Expr.eassert (translate_expr ctx e1) m
+  | EEmptyError -> Expr.eraise EmptyError m
   | EErrorOnEmpty arg ->
     Expr.ecatch (translate_expr ctx arg) EmptyError
       (Expr.eraise NoValueProvided m)
       m
-  | EApp { f; args } ->
-    Expr.eapp (translate_expr ctx f)
-      (List.map (translate_expr ctx) args)
-      (Marked.get_mark e)
-  | EAbs { binder; tys } ->
-    let vars, body = Bindlib.unmbind binder in
-    let new_body = translate_expr ctx body in
-    let new_binder = Expr.bind (Array.map translate_var vars) new_body in
-    Expr.eabs new_binder tys (Marked.get_mark e)
   | EDefault { excepts = [exn]; just; cons } when !Cli.optimize_flag ->
     (* FIXME: bad place to rely on a global flag *)
     Expr.ecatch (translate_expr ctx exn) EmptyError
@@ -106,6 +73,12 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
       (Marked.get_mark e)
   | EDefault { excepts; just; cons } ->
     translate_default ctx excepts just cons (Marked.get_mark e)
+  | ( ELit _ | EApp _ | EOp _ | EArray _ | EVar _ | EAbs _ | EIfThenElse _
+    | ETuple _ | ETupleAccess _ | EInj _ | EAssert _ | EStruct _
+    | EStructAccess _ | EMatch _ ) as e ->
+    Expr.map_raw ~fop:Operator.translate
+      ~floc:(function _ -> .)
+      ~f:(translate_expr ctx) (Marked.mark m e)
 
 let rec translate_scope_lets
     (decl_ctx : decl_ctx)

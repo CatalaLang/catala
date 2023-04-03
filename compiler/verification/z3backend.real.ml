@@ -374,7 +374,6 @@ let translate_lit (ctx : context) (l : lit) : Expr.expr =
   match l with
   | LBool b ->
     if b then Boolean.mk_true ctx.ctx_z3 else Boolean.mk_false ctx.ctx_z3
-  | LEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
   | LInt n ->
     Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
   | LRat r ->
@@ -430,8 +429,7 @@ let is_leap_year = Runtime.is_leap_year
 (** [translate_op] returns the Z3 expression corresponding to the application of
     [op] to the arguments [args] **)
 let rec translate_op :
-    type k.
-    context -> (dcalc, k) operator -> 'm expr list -> context * Expr.expr =
+    context -> dcalc operator -> 'm expr list -> context * Expr.expr =
  fun ctx op args ->
   let ill_formed () =
     Format.kasprintf failwith
@@ -786,6 +784,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
             (Boolean.mk_not ctx.ctx_z3 z3_if)
             z3_else;
         ] )
+  | EEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
   | EErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
 
 (** [create_z3unit] creates a Z3 sort and expression corresponding to the unit
