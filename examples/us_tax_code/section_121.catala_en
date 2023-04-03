@@ -506,15 +506,15 @@ declaration min_duration content duration
 
 scope Section121SinglePerson:
   definition gain_cap state section_121c
-    under condition section_121_c_applies
+    under condition
+      section_121_c_applies
     consequence equals
       let shorter equals
         # this is the precise meaning of (I) and (II)
         # according to Reg. 1.121-3(g)(1)
         min_duration of
-          (min_duration of
-            (aggregate_periods_from_last_five_years of person.property_ownage),
-            (aggregate_periods_from_last_five_years of person.property_usage_as_principal_residence)),
+          (min_duration of (aggregate_periods_from_last_five_years of person.property_ownage),
+             (aggregate_periods_from_last_five_years of person.property_usage_as_principal_residence)),
           (match person.other_section_121a_sale with pattern
            -- MostRecentSaleWhereSection121aApplied of previous_sale:
              date_of_sale_or_exchange - previous_sale.date_of_sale_or_exchange
@@ -529,8 +529,8 @@ scope Section121TwoPersons:
       let shorter_person1 equals
         min_duration of
           (min_duration of
-            (section121Person1.aggregate_periods_from_last_five_years of person1.property_ownage),
-            (section121Person1.aggregate_periods_from_last_five_years of person1.property_usage_as_principal_residence)),
+             (section121Person1.aggregate_periods_from_last_five_years of person1.property_ownage),
+             (section121Person1.aggregate_periods_from_last_five_years of person1.property_usage_as_principal_residence)),
           (match person1.other_section_121a_sale with pattern
            -- MostRecentSaleWhereSection121aApplied of previous_sale:
              date_of_sale_or_exchange - previous_sale.date_of_sale_or_exchange
@@ -539,8 +539,8 @@ scope Section121TwoPersons:
       let shorter_person2 equals
         min_duration of
           (min_duration of
-            (section121Person2.aggregate_periods_from_last_five_years of person2.property_ownage),
-            (section121Person2.aggregate_periods_from_last_five_years of person2.property_usage_as_principal_residence)),
+             (section121Person2.aggregate_periods_from_last_five_years of person2.property_ownage),
+             (section121Person2.aggregate_periods_from_last_five_years of person2.property_usage_as_principal_residence)),
           (match person2.other_section_121a_sale with pattern
            -- MostRecentSaleWhereSection121aApplied of previous_sale:
              date_of_sale_or_exchange - previous_sale.date_of_sale_or_exchange
@@ -575,19 +575,19 @@ scope Section121SinglePerson:
 
 scope Section121TwoPersons:
   definition section_121_c_2_A equals
-    # We want not(a_applies) =
-    #         not(person1.a_applies or person2.a_applies) =
-    #         (not person1.a_applies) and (not person2.a_applies)
-    section121Person1.section_121_c_2_A
-    and
-    section121Person2.section_121_c_2_A
-    # `not section_121_b_2_A_condition` might make more sense here,
-    # but it's not equivalent and nothing in the text suggests it
+      # We want not(a_applies) =
+      #         not(person1.a_applies or person2.a_applies) =
+      #         (not person1.a_applies) and (not person2.a_applies)
+      section121Person1.section_121_c_2_A
+      and
+      section121Person2.section_121_c_2_A
+  # `not section_121_b_2_A_condition` might make more sense here,
+  # but it's not equivalent and nothing in the text suggests it
   rule section_121_c_applies under condition
-    section_121_c_2_A and
-    (person1.good_reason_for_exchange
-     or # This "or" is not specified but we can assume it from the rulings
-     person2.good_reason_for_exchange)
+      section_121_c_2_A and
+      (person1.good_reason_for_exchange
+       or # This "or" is not specified but we can assume it from the rulings
+       person2.good_reason_for_exchange)
   consequence fulfilled
 ```
 
@@ -601,4 +601,4 @@ If a husband and wife make a joint return for the taxable year of the sale or ex
 #  exception rule section_121_c_2_A under condition
 #    
 #  consequence fulfilled
-    ```
+```
