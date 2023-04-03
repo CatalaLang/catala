@@ -2106,10 +2106,12 @@ de la sécurité sociale et de l'agriculture.
 ```catala
 champ d'application ÉligibilitéPrimeDeDéménagement:
   définition montant_prime_déménagement égal à
-    si dépenses_justifiées_réellement_engagées <= plafond_d823_22 alors
-      dépenses_justifiées_réellement_engagées
-    sinon
-      plafond_d823_22
+    si éligibilité alors
+      si dépenses_justifiées_réellement_engagées <= plafond_d823_22 alors
+        dépenses_justifiées_réellement_engagées
+      sinon
+        plafond_d823_22
+    sinon 0€
 ```
 
 ###### Section 3 : Recouvrement des sommes indûment versées
@@ -5534,7 +5536,7 @@ s'appliquent aux contributions et aux prestations dues à compter du 1er janvier
 ```catala
 champ d'application ÉligibilitéPrimeDeDéménagement sous condition
   date_courante >= |2022-01-01| :
-  exception règle éligibilité_logement sous condition
+  exception règle éligibilité sous condition
     ménage.résidence sous forme Mayotte
   conséquence non rempli
 ```

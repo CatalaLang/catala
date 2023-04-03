@@ -583,7 +583,7 @@ de l'aide.
 ```catala
 # Voir le champ d'application ÉligibilitéPrimeDeDéménagement.
 champ d'application ÉligibilitéPrimeDeDéménagement:
-  règle éligibilité_logement sous condition
+  règle éligibilité sous condition
     éligibilité_apl.éligibilité et condition_rang_enfant et
     condition_période_déménagement et
     éligibilité_apl.date_courante - date_emménagement
@@ -1296,7 +1296,7 @@ ne sont pas applicables à Mayotte.
 
 ```catala
 champ d'application ÉligibilitéPrimeDeDéménagement:
-  exception règle éligibilité_logement sous condition
+  exception règle éligibilité sous condition
     ménage.résidence sous forme Mayotte
   conséquence non rempli
 ```
@@ -1875,7 +1875,7 @@ applicables à Saint-Pierre-et-Miquelon.
 ```catala
 champ d'application ÉligibilitéPrimeDeDéménagement sous condition
   date_courante >= |2022-01-01| :
-  exception règle éligibilité_logement sous condition
+  exception règle éligibilité sous condition
     ménage.résidence sous forme SaintPierreEtMiquelon
   conséquence non rempli
 ```

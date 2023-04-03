@@ -481,7 +481,6 @@ déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
 
   interne condition_rang_enfant condition
   interne condition_période_déménagement condition
-  interne éligibilité_logement condition
   interne délai_après_emménagement_l823_8_2 contenu durée
   interne plafond_d823_22 contenu argent
 
@@ -489,6 +488,7 @@ déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
   base_mensuelle_allocations_familiales champ d'application
     BaseMensuelleAllocationsFamiliales
 
+  résultat éligibilité condition
   résultat montant_prime_déménagement contenu argent
 
 champ d'application ÉligibilitéPrimeDeDéménagement:
