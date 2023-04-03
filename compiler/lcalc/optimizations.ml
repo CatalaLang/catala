@@ -188,14 +188,14 @@ let _beta_optimizations (p : 'm program) : 'm program =
   let new_code_items =
     Scope.map_exprs ~f:beta_expr ~varf:(fun v -> v) p.code_items
   in
-  assert (Bindlib.is_closed new_code_items);
+  Bindlib_ext.assert_closed new_code_items;
   { p with code_items = Bindlib.unbox new_code_items }
 
 let peephole_optimizations (p : 'm program) : 'm program =
   let new_code_items =
     Scope.map_exprs ~f:peephole_expr ~varf:(fun v -> v) p.code_items
   in
-  assert (Bindlib.is_closed new_code_items);
+  Bindlib_ext.assert_closed new_code_items;
 
   { p with code_items = Bindlib.unbox new_code_items }
 
@@ -203,7 +203,7 @@ let iota2_optimizations (p : 'm program) : 'm program =
   let new_code_items =
     Scope.map_exprs ~f:iota2_expr ~varf:(fun v -> v) p.code_items
   in
-  assert (Bindlib.is_closed new_code_items);
+  Bindlib_ext.assert_closed new_code_items;
 
   { p with code_items = Bindlib.unbox new_code_items }
 
@@ -211,7 +211,7 @@ let fold_optimizations (p : 'm program) : 'm program =
   let new_code_items =
     Scope.map_exprs ~f:fold_expr ~varf:(fun v -> v) p.code_items
   in
-  assert (Bindlib.is_closed new_code_items);
+  Bindlib_ext.assert_closed new_code_items;
 
   { p with code_items = Bindlib.unbox new_code_items }
 
@@ -234,7 +234,7 @@ let iota_optimizations (p : 'm program) : 'm program =
   in
 
   let prgm = { p with code_items = Bindlib.unbox new_code_items } in
-  assert (Bindlib.is_closed new_code_items);
+  Bindlib_ext.assert_closed new_code_items;
 
   prgm
 

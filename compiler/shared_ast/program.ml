@@ -64,7 +64,7 @@ let to_expr p main_scope =
       (Scope.get_body_mark main_scope_body)
       (ScopeName main_scope)
   in
-  assert (Bindlib.is_closed (Expr.Box.lift res));
+  Catala_utils.Bindlib_ext.assert_closed (Expr.Box.lift res);
   res
 
 let equal p p' =

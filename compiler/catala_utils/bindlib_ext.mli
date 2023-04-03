@@ -16,3 +16,7 @@
 
 val fv : 'b Bindlib.box -> string list
 (** [fv] return the list of free variables from a boxed term. *)
+
+val assert_closed : 'b Bindlib.box -> unit
+(** [assert_closed b] check there is no free variables in then [b] boxed term.
+    It raises an internal error if it not the case, printing all free variables. *)

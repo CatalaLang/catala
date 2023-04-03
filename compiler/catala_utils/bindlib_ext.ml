@@ -30,3 +30,20 @@ end
 module Ctx = Bindlib.Ctxt (Ren)
 
 let fv b = Ren.Set.elements (Ctx.free_vars b)
+
+let assert_closed b =
+  match fv b with
+  | [] -> ()
+  | [h] ->
+    Errors.raise_internal_error
+      "The boxed term is not closed the variable %s is free in the global \
+       context"
+      h
+  | l ->
+    Errors.raise_internal_error
+      "The boxed term is not closed the variables %a is free in the global \
+       context"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
+         Format.pp_print_string)
+      l

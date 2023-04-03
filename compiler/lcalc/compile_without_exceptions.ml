@@ -794,10 +794,7 @@ let translate_program (prgm : typed D.program) : untyped A.program =
 
   let code_items = trans_code_items Var.Map.empty prgm.code_items in
 
-  (* ListLabels.iter (Bindlib_ext.fv code_items) ~f:(fun s -> Cli.debug_format
-     "freevar: %s" s); *)
-  assert (Bindlib.is_closed code_items);
-  assert (Bindlib.free_vars code_items = Bindlib.empty_ctxt);
+  Bindlib_ext.assert_closed code_items;
 
   (* program is closed here. *)
   let code_items = Bindlib.unbox code_items in
