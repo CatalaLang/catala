@@ -145,7 +145,7 @@ let empty_rule
     (parameters : (Uid.MarkedString.info * typ) list Marked.pos option) : rule =
   {
     rule_just = Expr.box (ELit (LBool false), Untyped { pos });
-    rule_cons = Expr.box (ELit LEmptyError, Untyped { pos });
+    rule_cons = Expr.box (EEmptyError, Untyped { pos });
     rule_parameter =
       Option.map
         (Marked.map_under_mark

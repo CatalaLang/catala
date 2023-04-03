@@ -34,7 +34,7 @@ val enum_constructor : Format.formatter -> EnumConstructor.t -> unit
 val tlit : Format.formatter -> typ_lit -> unit
 val location : Format.formatter -> 'a glocation -> unit
 val typ : decl_ctx -> Format.formatter -> typ -> unit
-val lit : Format.formatter -> 'a glit -> unit
+val lit : Format.formatter -> lit -> unit
 val operator : Format.formatter -> 'a operator -> unit
 val log_entry : Format.formatter -> log_entry -> unit
 val except : Format.formatter -> except -> unit

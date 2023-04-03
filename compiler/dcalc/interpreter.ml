@@ -23,7 +23,7 @@ module Runtime = Runtime_ocaml.Runtime
 (** {1 Helpers} *)
 
 let is_empty_error (e : 'm Ast.expr) : bool =
-  match Marked.unmark e with ELit LEmptyError -> true | _ -> false
+  match Marked.unmark e with EEmptyError -> true | _ -> false
 
 let log_indent = ref 0
 
@@ -150,8 +150,8 @@ and evaluate_operator :
        (should not happen if the term was well-typed)"
   in
   let open Runtime.Oper in
-  if List.exists (function ELit LEmptyError, _ -> true | _ -> false) args then
-    ELit LEmptyError
+  if List.exists (function EEmptyError, _ -> true | _ -> false) args then
+    EEmptyError
   else
     match op, args with
     | Length, [(EArray es, _)] ->
@@ -350,7 +350,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
           (List.length args)
     | EOp { op; _ } ->
       Marked.same_mark_as (evaluate_operator ctx op (Expr.pos e) args) e
-    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
+    | EEmptyError -> Marked.same_mark_as EEmptyError e
     | _ ->
       Errors.raise_spanned_error (Expr.pos e)
         "function has not been reduced to a lambda at evaluation (should not \
@@ -359,7 +359,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
   | EStruct { fields = es; name } ->
     let new_es = StructField.Map.map (evaluate_expr ctx) es in
     if StructField.Map.exists (fun _ e -> is_empty_error e) new_es then
-      Marked.same_mark_as (ELit LEmptyError) e
+      Marked.same_mark_as EEmptyError e
     else Marked.same_mark_as (EStruct { fields = new_es; name }) e
   | EStructAccess { e = e1; name = s; field } -> (
     let e1 = evaluate_expr ctx e1 in
@@ -377,7 +377,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
           "Invalid field access %a in struct %a (should not happen if the term \
            was well-typed)"
           StructField.format_t field StructName.format_t s)
-    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
+    | EEmptyError -> Marked.same_mark_as EEmptyError e
     | _ ->
       Errors.raise_spanned_error (Expr.pos e1)
         "The expression %a should be a struct %a but is not (should not happen \
@@ -397,7 +397,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
         e size)
   | EInj { e = e1; name; cons } ->
     let e1' = evaluate_expr ctx e1 in
-    if is_empty_error e then Marked.same_mark_as (ELit LEmptyError) e
+    if is_empty_error e then Marked.same_mark_as EEmptyError e
     else Marked.same_mark_as (EInj { e = e1'; name; cons }) e
   | EMatch { e = e1; cases = es; name } -> (
     let e1 = evaluate_expr ctx e1 in
@@ -418,7 +418,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
       in
       let new_e = Marked.same_mark_as (EApp { f = es_n; args = [e1] }) e in
       evaluate_expr ctx new_e
-    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
+    | EEmptyError -> Marked.same_mark_as EEmptyError e
     | _ ->
       Errors.raise_spanned_error (Expr.pos e1)
         "Expected a term having a sum type as an argument to a match (should \
@@ -430,9 +430,9 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
     | 0 -> (
       let just = evaluate_expr ctx just in
       match Marked.unmark just with
-      | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
+      | EEmptyError -> Marked.same_mark_as EEmptyError e
       | ELit (LBool true) -> evaluate_expr ctx cons
-      | ELit (LBool false) -> Marked.same_mark_as (ELit LEmptyError) e
+      | ELit (LBool false) -> Marked.same_mark_as EEmptyError e
       | _ ->
         Errors.raise_spanned_error (Expr.pos e)
           "Default justification has not been reduced to a boolean at \
@@ -450,19 +450,19 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
     match Marked.unmark (evaluate_expr ctx cond) with
     | ELit (LBool true) -> evaluate_expr ctx etrue
     | ELit (LBool false) -> evaluate_expr ctx efalse
-    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
+    | EEmptyError -> Marked.same_mark_as EEmptyError e
     | _ ->
       Errors.raise_spanned_error (Expr.pos cond)
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
     let new_es = List.map (evaluate_expr ctx) es in
-    if List.exists is_empty_error new_es then
-      Marked.same_mark_as (ELit LEmptyError) e
+    if List.exists is_empty_error new_es then Marked.same_mark_as EEmptyError e
     else Marked.same_mark_as (EArray new_es) e
+  | EEmptyError -> Marked.same_mark_as EEmptyError e
   | EErrorOnEmpty e' ->
     let e' = evaluate_expr ctx e' in
-    if Marked.unmark e' = ELit LEmptyError then
+    if Marked.unmark e' = EEmptyError then
       Errors.raise_spanned_error (Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
          applied in this situation)"
@@ -515,7 +515,7 @@ and evaluate_expr (ctx : decl_ctx) (e : 'm Ast.expr) : 'm Ast.expr =
       | _ ->
         Cli.debug_format "%a" (Expr.format ctx) e';
         Errors.raise_spanned_error (Expr.pos e') "Assertion failed")
-    | ELit LEmptyError -> Marked.same_mark_as (ELit LEmptyError) e
+    | EEmptyError -> Marked.same_mark_as EEmptyError e
     | _ ->
       Errors.raise_spanned_error (Expr.pos e')
         "Expected a boolean literal for the result of this assertion (should \
@@ -543,7 +543,7 @@ let interpret_program :
           | TArrow (ty_in, ty_out) ->
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-              (Bindlib.box (ELit LEmptyError), Expr.with_ty mark_e ty_out)
+              (Bindlib.box EEmptyError, Expr.with_ty mark_e ty_out)
               ty_in (Expr.mark_pos mark_e)
           | _ ->
             Errors.raise_spanned_error (Marked.get_mark ty)

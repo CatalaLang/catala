@@ -221,7 +221,7 @@ let handle_type_error ctx e t1 t2 =
     (Cli.format_with_style [ANSITerminal.blue; ANSITerminal.Bold])
     "-->" t2_s ()
 
-let lit_type (type a) (lit : a A.glit) : naked_typ =
+let lit_type (lit : A.lit) : naked_typ =
   match lit with
   | LBool _ -> TLit TBool
   | LInt _ -> TLit TInt
@@ -230,7 +230,6 @@ let lit_type (type a) (lit : a A.glit) : naked_typ =
   | LDate _ -> TLit TDate
   | LDuration _ -> TLit TDuration
   | LUnit -> TLit TUnit
-  | LEmptyError -> TAny (Any.fresh ())
 
 (** [op_type] and [resolve_overload] are a bit similar, and work on disjoint
     sets of operators. However, their assumptions are different so we keep the
@@ -742,6 +741,7 @@ and typecheck_expr_top_down :
         e1
     in
     Expr.eassert e1' mark
+  | A.EEmptyError -> Expr.eemptyerror (ty_mark (TAny (Any.fresh ())))
   | A.EErrorOnEmpty e1 ->
     let e1' = typecheck_expr_top_down ~leave_unresolved ctx env tau e1 in
     Expr.eerroronempty e1' context_mark
