@@ -35,8 +35,8 @@ let detect_empty_definitions (p : program) : unit =
           then
             Errors.format_spanned_warning
               (ScopeDef.get_position scope_def_key)
-              "In scope in scope %a, the variable %a is declared but never \
-               defined; did you forget something?"
+              "In scope %a, the variable %a is declared but never defined; did \
+               you forget something?"
               (Cli.format_with_style [ANSITerminal.yellow])
               (Format.asprintf "\"%a\"" ScopeName.format_t scope_name)
               (Cli.format_with_style [ANSITerminal.yellow])
@@ -52,7 +52,7 @@ let detect_unused_scope_vars (p : program) : unit =
           match Marked.unmark e with
           | ELocation (DesugaredScopeVar (v, _)) ->
             ScopeVar.Set.add (Marked.unmark v) used_scope_vars
-          | _ -> Expr.deep_fold used_scope_vars_expr e used_scope_vars
+          | _ -> Expr.shallow_fold used_scope_vars_expr e used_scope_vars
         in
         used_scope_vars_expr e used_scope_vars)
       ~init:ScopeVar.Set.empty p
@@ -96,7 +96,7 @@ let detect_unused_struct_fields (p : program) : unit =
                 StructField.Set.add field
                   (structs_fields_used_expr e_field struct_fields_used))
               fields struct_fields_used
-          | _ -> Expr.deep_fold structs_fields_used_expr e struct_fields_used
+          | _ -> Expr.shallow_fold structs_fields_used_expr e struct_fields_used
         in
         structs_fields_used_expr e struct_fields_used)
       ~init:StructField.Set.empty p
@@ -161,7 +161,8 @@ let detect_unused_enum_constructors (p : program) : unit =
                   (enum_constructors_used_expr e_cons enum_constructors_used))
               cases enum_constructors_used
           | _ ->
-            Expr.deep_fold enum_constructors_used_expr e enum_constructors_used
+            Expr.shallow_fold enum_constructors_used_expr e
+              enum_constructors_used
         in
         enum_constructors_used_expr e enum_constructors_used)
       ~init:EnumConstructor.Set.empty p

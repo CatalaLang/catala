@@ -249,7 +249,7 @@ $ catala Interpret -s Exemple1 --disable_warnings
 
 ```catala-test-inline
 $ catala Typecheck
-[WARNING] In scope in scope "RessourcesAidesPersonnelleLogement", the variable "ressources_ménage_arrondies.seuil" is declared but never defined; did you forget something?
+[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "ressources_ménage_arrondies.seuil" is declared but never defined; did you forget something?
 
 ┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:496.9-14:
 └───┐
@@ -258,7 +258,7 @@ $ catala Typecheck
     └┬ Prologue : aides au logement
      └┬ Déclarations des champs d'application
       └─ Prise en compte des ressources pour les aides personnelles au logement
-[WARNING] In scope in scope "RessourcesAidesPersonnelleLogement", the variable "ressources_forfaitaires_r822_20" is declared but never defined; did you forget something?
+[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "ressources_forfaitaires_r822_20" is declared but never defined; did you forget something?
 
 ┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:504.10-41:
 └───┐

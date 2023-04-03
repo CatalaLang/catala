@@ -210,9 +210,9 @@ val map_marks : f:('t1 -> 't2) -> ('a, 't1) gexpr -> ('a, 't2) boxed_gexpr
 val shallow_fold :
   (('a, 't) gexpr -> 'acc -> 'acc) -> ('a, 't) gexpr -> 'acc -> 'acc
 (** Applies a function on all sub-terms of the given expression. Does not
-    recurse, and doesn't open binders. Useful as helper for recursive calls
-    within traversal functions. This can be used to compute free variables with
-    e.g.:
+    recurse. It opens binders unless you avoid sending binders to the function
+    like the example below. Useful as helper for recursive calls within
+    traversal functions. This can be used to compute free variables with e.g.:
 
     {[
       let rec free_vars = function
@@ -223,10 +223,6 @@ val shallow_fold :
         | e ->
           shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
     ]} *)
-
-val deep_fold :
-  (('a, 't) gexpr -> 'acc -> 'acc) -> ('a, 't) gexpr -> 'acc -> 'acc
-(** Same as [shallow_fold] but opens binders. *)
 
 val map_gather :
   acc:'acc ->
