@@ -132,11 +132,13 @@ let merge_defaults
 
 let tag_with_log_entry
     (e : 'm Ast.expr boxed)
-    (_l : log_entry)
-    (_markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
-  let _m = mark_tany (Marked.get_mark e) (Expr.pos e) in
-  (* Expr.eapp (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] m) [e] m *)
-  e
+    (l : log_entry)
+    (markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
+  let m = mark_tany (Marked.get_mark e) (Expr.pos e) in
+
+  if !Cli.trace_flag then
+    Expr.eapp (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] m) [e] m
+  else e
 
 (* In a list of exceptions, it is normally an error if more than a single one
    apply at the same time. This relaxes this constraint slightly, allowing a
