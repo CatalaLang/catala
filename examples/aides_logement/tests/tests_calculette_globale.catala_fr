@@ -55,7 +55,6 @@ champ d'application Exemple1 :
    -- logement: Logement {
       -- zone: Zone1
       -- résidence_principale : vrai
-      -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
       -- mode_occupation : Locataire contenu (Location {
       -- loyer_principal: 1700 €
       -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
@@ -87,10 +86,6 @@ champ d'application Exemple1 :
     -- personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale: faux
     -- date_naissance : |1970-05-02|
     -- nationalité : Française
-    -- patrimoine : Patrimoine {
-      -- produisant_revenu_période_r822_3_3_r822_4: 0€
-      -- ne_produisant_pas_revenu_période_r822_3_3_r822_4: 0€
-      }
     }
   définition calculette.ressources_ménage_prises_en_compte égal à 20 000 €
 ```
