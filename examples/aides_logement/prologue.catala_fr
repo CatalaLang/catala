@@ -260,19 +260,6 @@ déclaration énumération CatégorieCalculAPL:
   -- LogementFoyer contenu LogementFoyer
 ```
 
-### Informations concernant l'évaluation des ressources du ménage
-
-```catala-metadata
-déclaration structure PersonneVivantHabituellementAuFoyer:
-  donnée durée_résidence_durant_période_r_822_3_1_supérieure_à_6_mois
-    contenu booléen
-  donnée ressources contenu argent
-
-déclaration énumération PaiementLogementDistinctProfessionnel:
-  -- OuiAvecLoyerOuCharges contenu argent
-  -- Non
-```
-
 ### Informations relatives aux impayés de dépense de logement
 
 ```catala-metadata
@@ -498,43 +485,6 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
     date_courante
   définition base_mensuelle_allocations_familiales.date_courante égal à
     date_courante
-```
-
-### Prise en compte des ressources pour les aides personnelles au logement
-
-```catala-metadata
-déclaration champ d'application RessourcesAidesPersonnelleLogement:
-  entrée ressources_demandeur contenu argent
-  entrée ressources_conjoint contenu argent
-  entrée personnes_vivant_habituellement_foyer contenu
-    collection PersonneVivantHabituellementAuFoyer
-  entrée demandeur_exerce_activité_rémunérée contenu booléen
-  entrée conjoint_exerce_activité_rémunérée contenu booléen
-  entrée personnes_à_charge contenu collection PersonneÀCharge
-  entrée situation_familiale contenu SituationFamiliale
-  entrée mode_occupation contenu ModeOccupation
-  entrée date_courante contenu date
-  entrée condition_âge_bourse_enseignement_supérieur condition
-  entrée demandeur_poursuit_des_études condition
-  entrée date_demande_ou_reexamen_droit contenu date
-  entrée paiement_logement_distinct_professionnel contenu
-    PaiementLogementDistinctProfessionnel
-  entrée ressources_ménage_arrondies contenu argent
-    état base
-    # état seuil
-
-  interne ressources_personnes_vivant_habituellement_foyer contenu argent
-  interne abattement_r_822_8 contenu argent
-  interne montant_forfaitaire_r_822_8 contenu argent
-  interne abattement_r_822_7 contenu argent
-  interne montant_forfaitaire_r_822_7 contenu argent
-  interne abattement_r_822_10 contenu argent
-  # interne ressources_forfaitaires_r822_20 contenu argent
-
-  base_mensuelle_allocations_familiales champ d'application
-    BaseMensuelleAllocationsFamiliales
-
-  résultat ressources_prises_en_compte contenu argent
 ```
 
 ### Calcul des contributions sociales s'appliquant aux aides personnelles au logement

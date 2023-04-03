@@ -7,10 +7,10 @@
 L'abattement forfaitaire prévu par l'article R. 822-7 du même code est fixé à 95 euros.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement
-  sous condition date_courante >= |2019-10-01|: # Voir article 50
-  définition montant_forfaitaire_r_822_7 égal à 95€
-
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 ### Article 4 | LEGIARTI000039160733
@@ -18,9 +18,10 @@ champ d'application RessourcesAidesPersonnelleLogement
 L'abattement forfaitaire prévu par l'article R. 822-8 du même code est fixé à 2 589 euros.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement
-  sous condition date_courante >= |2019-10-01|: # Voir article 50
-  définition montant_forfaitaire_r_822_8 égal à 2 589€
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 ### Article 6 | LEGIARTI000046126949
@@ -34,8 +35,10 @@ pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources e
 pour la location et à 5 100 euros pour la résidence en logement-foyer.
 
 ```catala
-# TODO informatique et juridique: traduire cet article qui vient définir
-# ressources_forfaitaires_r822_20
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 NOTA :
