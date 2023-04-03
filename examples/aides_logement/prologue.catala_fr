@@ -163,7 +163,6 @@ déclaration énumération LouéOuSousLouéÀDesTiers:
 
 déclaration structure Logement:
   donnée résidence_principale contenu booléen
-  donnée est_ehpad_ou_maison_autonomie_l313_12_asf contenu booléen
   donnée mode_occupation contenu ModeOccupation
   donnée propriétaire contenu ParentOuAutre
   donnée loué_ou_sous_loué_à_des_tiers contenu LouéOuSousLouéÀDesTiers
