@@ -135,10 +135,8 @@ déclaration structure LogementFoyer:
 déclaration énumération PrestationReçue:
   -- AllocationsFamiliales
   -- ComplémentFamilial
-  -- AllocationJeuneEnfant
   -- AllocationSoutienFamilial
   -- AllocationSoutienEnfantHandicapé
-  -- AllocationAdulteHandicapé
 
 
 déclaration énumération ModeOccupation:
