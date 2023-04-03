@@ -1485,7 +1485,6 @@ champ d'application CalculAidePersonnaliséeLogement:
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
-          -- résidence: résidence
           -- date_courante: date_courante
           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
           -- redevance: logement_foyer_.redevance
@@ -3921,7 +3920,6 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
     situation_familiale_calcul_apl
   définition calcul_nombre_parts.condition_2_du_832_25 égal à
     condition_2_du_832_25
-  définition calcul_nombre_parts.résidence égal à résidence
   définition n_nombre_parts_d832_25 égal à
     calcul_nombre_parts.n_nombre_parts_d832_25
 
@@ -4854,7 +4852,6 @@ champ d'application CalculAllocationLogementFoyer:
     nombre_personnes_à_charge
   définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
    situation_familiale_calcul_apl
-  définition calcul_nombre_parts.résidence égal à résidence
   définition calcul_nombre_parts.condition_2_du_832_25 égal à vrai
 
   définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
@@ -5534,14 +5531,8 @@ du 2° de l'article D. 832-25 est limitée à six enfants ;
 champ d'application CalculNombrePartLogementFoyer:
   exception d832_25_2
   définition n_nombre_parts_d832_25_majoration sous condition
-    nombre_personnes_à_charge > 6 et
-    selon résidence sous forme
-    -- Guadeloupe: vrai
-    -- Guyane: vrai
-    -- Martinique: vrai
-    -- LaRéunion: vrai
-    -- Mayotte: vrai
-    -- n'importe quel: faux
+    limitation_majoration_personnes_à_charge et
+    nombre_personnes_à_charge > 6
   conséquence égal à
       1,0
 
