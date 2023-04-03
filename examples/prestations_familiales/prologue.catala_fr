@@ -38,7 +38,6 @@ déclaration énumération ÉlémentPrestationsFamiliales:
 
 déclaration champ d'application ÉligibilitéPrestationsFamiliales:
   entrée date_courante contenu date
-  entrée prestation_courante contenu ÉlémentPrestationsFamiliales
   entrée résidence contenu Collectivité
 
   interne plafond_l512_3_2 contenu argent

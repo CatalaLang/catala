@@ -356,8 +356,6 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   assertion date_courante >= |2018-04-01|
 
   définition prestations_familiales.date_courante égal à date_courante
-  définition prestations_familiales.prestation_courante égal à
-    ÉlémentPrestationsFamiliales.AllocationLogement
   définition prestations_familiales.résidence égal à ménage.résidence
 ```
 
@@ -435,8 +433,6 @@ champ d'application ÉligibilitéAllocationLogement:
   # Ici nous instancions le champ d'application d'éligibilité aux prestations
   # familiales pour les besoins de L841-1.
   définition prestations_familiales.date_courante égal à date_courante
-  définition prestations_familiales.prestation_courante égal à
-    ÉlémentPrestationsFamiliales.AllocationLogement
   définition prestations_familiales.résidence égal à ménage.résidence
 
   définition éligibilité_commune.ménage égal à ménage
