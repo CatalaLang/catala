@@ -64,6 +64,7 @@ val max_prec_digits : int ref
 (** Max number of digits to show for decimal results *)
 
 val trace_flag : bool ref
+val disable_warnings_flag : bool ref
 
 val disable_counterexamples : bool ref
 (** Disables model-generated counterexamples for proofs that fail. *)
@@ -99,6 +100,7 @@ type options = {
   language : string option;
   max_prec_digits : int option;
   trace : bool;
+  disable_warnings : bool;
   disable_counterexamples : bool;
   optimize : bool;
   ex_scope : string option;

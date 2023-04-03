@@ -267,7 +267,9 @@ let shallow_fold
   | ELit _ | EOp _ | EVar _ | ERaise _ | ELocation _ | EEmptyError -> acc
   | EApp { f = e; args } -> acc |> f e |> lfold args
   | EArray args -> acc |> lfold args
-  | EAbs _ -> acc
+  | EAbs { binder; tys = _ } ->
+    let _, body = Bindlib.unmbind binder in
+    acc |> f body
   | EIfThenElse { cond; etrue; efalse } -> acc |> f cond |> f etrue |> f efalse
   | ETuple args -> acc |> lfold args
   | ETupleAccess { e; _ } -> acc |> f e

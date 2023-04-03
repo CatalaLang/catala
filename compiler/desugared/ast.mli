@@ -134,3 +134,9 @@ type program = {
 
 val locations_used : expr -> LocationSet.t
 val free_variables : rule RuleName.Map.t -> Pos.t ScopeDefMap.t
+
+val fold_exprs : f:('a -> expr -> 'a) -> init:'a -> program -> 'a
+(** Usage: [fold_exprs ~f ~init program] applies ~f to all the expressions
+    inside rules (justifications and consequences), expressions and top-level
+    definitions of the program. Note that there may be free variables in these
+    expressions. *)

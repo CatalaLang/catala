@@ -23,11 +23,11 @@ zakres Test_A7_U1_P1_PPb:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test_A7_U1_P1_PPa
+$ catala Interpret -s Test_A7_U1_P1_PPa --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test_A7_U1_P1_PPb
+$ catala Interpret -s Test_A7_U1_P1_PPb --disable_warnings
 [RESULT] Computation successful!
 ```

@@ -16,5 +16,12 @@ scope A:
 ```
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
+[WARNING] In scope "A", the variable "z" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_proof/good/simple_vars.catala_en:7.10-11:
+└─┐
+7 │   context z content integer
+  │           ‾
+  └─ Test
 [RESULT] No errors found during the proof mode run.
 ```

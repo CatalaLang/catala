@@ -12,6 +12,13 @@ scope S:
 
 ```catala-test-inline
 $ catala Typecheck
+[WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_typing/bad/common.catala_en:4.5-8:
+└─┐
+4 │   -- Dec content decimal
+  │      ‾‾‾
+
 [ERROR] Error during typechecking, incompatible types:
 --> integer
 --> decimal
@@ -43,6 +50,13 @@ Re-putting the same check again, to ensure that the `Typecheck` and `ocaml` subc
 
 ```catala-test-inline
 $ catala ocaml
+[WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_typing/bad/common.catala_en:4.5-8:
+└─┐
+4 │   -- Dec content decimal
+  │      ‾‾‾
+
 [ERROR] Error during typechecking, incompatible types:
 --> integer
 --> decimal

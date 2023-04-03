@@ -146,31 +146,31 @@ scope Test6:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test1
+$ catala Interpret -s Test1 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test2
+$ catala Interpret -s Test2 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test3
+$ catala Interpret -s Test3 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test4
+$ catala Interpret -s Test4 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test5
+$ catala Interpret -s Test5 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test6
+$ catala Interpret -s Test6 --disable_warnings
 [RESULT] Computation successful!
 ```

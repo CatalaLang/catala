@@ -474,18 +474,27 @@ and typecheck_expr_top_down :
           try A.IdentName.Map.find field ctx.ctx_struct_fields
           with Not_found ->
             Errors.raise_spanned_error context_mark.pos
-              "Field %s does not belong to structure %a (no structure defines \
+              "Field %a does not belong to structure %a (no structure defines \
                it)"
-              field A.StructName.format_t name
+              (Cli.format_with_style [ANSITerminal.yellow])
+              ("\"" ^ field ^ "\"")
+              (Cli.format_with_style [ANSITerminal.yellow])
+              (Format.asprintf "\"%a\"" A.StructName.format_t name)
         in
         try A.StructName.Map.find name candidate_structs
         with Not_found ->
           Errors.raise_spanned_error context_mark.pos
-            "Field %s does not belong to structure %a, but to %a" field
-            A.StructName.format_t name
+            "Field %a does not belong to structure %a, but to %a"
+            (Cli.format_with_style [ANSITerminal.yellow])
+            ("\"" ^ field ^ "\"")
+            (Cli.format_with_style [ANSITerminal.yellow])
+            (Format.asprintf "\"%a\"" A.StructName.format_t name)
             (Format.pp_print_list
                ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
-               A.StructName.format_t)
+               (fun fmt s_name ->
+                 Format.fprintf fmt "%a"
+                   (Cli.format_with_style [ANSITerminal.yellow])
+                   (Format.asprintf "\"%a\"" A.StructName.format_t s_name)))
             (List.map fst (A.StructName.Map.bindings candidate_structs))
       in
       A.StructField.Map.find field str

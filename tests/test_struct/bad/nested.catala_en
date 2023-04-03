@@ -14,6 +14,20 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
+[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/bad/nested.catala_en:9.10-11:
+└─┐
+9 │   context y content E
+  │           ‾
+  └─ Article
+[WARNING] The constructor "Rec" of enumeration "E" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/bad/nested.catala_en:6.5-8:
+└─┐
+6 │   -- Rec content E
+  │      ‾‾‾
+  └─ Article
 [ERROR] The type E is defined using itself, which is forbidden since Catala does not provide recursive types
 
 ┌─⯈ tests/test_struct/bad/nested.catala_en:6.17-18:

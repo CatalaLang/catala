@@ -18,6 +18,13 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
+[WARNING] The structure "Bar" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/good/same_name_fields.catala_en:7.22-25:
+└─┐
+7 │ declaration structure Bar:
+  │                       ‾‾‾
+  └─ Article
 [RESULT] Computation successful! Results:
 [RESULT] x = Foo { "f"= 1 }
 [RESULT] y = 1
