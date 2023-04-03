@@ -1141,11 +1141,6 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
         -- obligation_scolaire: enfant.obligation_scolaire
         -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
         -- date_de_naissance: enfant.date_de_naissance
-        -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
-          -- GardeAlternéeCoefficientPriseEnCharge:
-            PriseEnChargeEnfant.GardeAlternéePartageAllocations
-          -- PasDeGardeAlternée:
-            PriseEnChargeEnfant.EffectiveEtPermanente)
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
           enfant.a_déjà_ouvert_droit_aux_allocations_familiales
         -- bénéficie_titre_personnel_aide_personnelle_logement:

@@ -462,10 +462,8 @@ conjointe des parents, soit si les parents sont en désaccord sur la désignatio
 du bénéficiaire, selon des modalités définies par voie réglementaire.
 
 ```catala
-déclaration énumération PriseEnCharge:
-  -- EffectiveEtPermanente
-  -- RésidenceAlternéeAllocataireUnique
-  -- RésidenceAlternéeAllocationsPartagée
+# Voir énumération "SituationGardeAlternée" et la décision n°398563 du 21
+# juillet 2017 du Conseil d'État pour l'implémentation du calcul.
 ```
 
 ###### Article L823-3 | LEGIARTI000038814916
@@ -927,11 +925,6 @@ champ d'application ÉligibilitéAllocationLogement:
           -- obligation_scolaire: enfant.obligation_scolaire
           -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
           -- date_de_naissance: enfant.date_de_naissance
-          -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
-            -- GardeAlternéeCoefficientPriseEnCharge:
-              PriseEnChargeEnfant.GardeAlternéePartageAllocations
-            -- PasDeGardeAlternée:
-              PriseEnChargeEnfant.EffectiveEtPermanente)
           -- a_déjà_ouvert_droit_aux_allocations_familiales:
             enfant.a_déjà_ouvert_droit_aux_allocations_familiales
           -- bénéficie_titre_personnel_aide_personnelle_logement:
@@ -959,11 +952,6 @@ champ d'application ÉligibilitéAllocationLogement:
           -- obligation_scolaire: enfant.obligation_scolaire
           -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
           -- date_de_naissance: enfant.date_de_naissance
-          -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
-            -- GardeAlternéeCoefficientPriseEnCharge:
-              PriseEnChargeEnfant.GardeAlternéePartageAllocations
-            -- PasDeGardeAlternée:
-              PriseEnChargeEnfant.EffectiveEtPermanente)
           -- a_déjà_ouvert_droit_aux_allocations_familiales:
             enfant.a_déjà_ouvert_droit_aux_allocations_familiales
           -- bénéficie_titre_personnel_aide_personnelle_logement:
@@ -1479,11 +1467,6 @@ champ d'application ÉligibilitéAllocationLogement sous condition
           -- obligation_scolaire: enfant.obligation_scolaire
           -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
           -- date_de_naissance: enfant.date_de_naissance
-          -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
-            -- GardeAlternéeCoefficientPriseEnCharge:
-              PriseEnChargeEnfant.GardeAlternéePartageAllocations
-            -- PasDeGardeAlternée:
-              PriseEnChargeEnfant.EffectiveEtPermanente)
           -- a_déjà_ouvert_droit_aux_allocations_familiales:
             enfant.a_déjà_ouvert_droit_aux_allocations_familiales
           -- bénéficie_titre_personnel_aide_personnelle_logement:
@@ -1776,11 +1759,6 @@ champ d'application ÉligibilitéAllocationLogement sous condition
           -- obligation_scolaire: enfant.obligation_scolaire
           -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
           -- date_de_naissance: enfant.date_de_naissance
-          -- prise_en_charge: (selon enfant.situation_garde_alternée sous forme
-            -- GardeAlternéeCoefficientPriseEnCharge:
-              PriseEnChargeEnfant.GardeAlternéePartageAllocations
-            -- PasDeGardeAlternée:
-              PriseEnChargeEnfant.EffectiveEtPermanente)
           -- a_déjà_ouvert_droit_aux_allocations_familiales:
             enfant.a_déjà_ouvert_droit_aux_allocations_familiales
           -- bénéficie_titre_personnel_aide_personnelle_logement:
