@@ -474,7 +474,10 @@ conjointe des parents, soit si les parents sont en désaccord sur la désignatio
 du bénéficiaire, selon des modalités définies par voie réglementaire.
 
 ```catala
-# Voir énumération "SituationGardeAlternée".
+déclaration énumération PriseEnCharge:
+  -- EffectiveEtPermanente
+  -- RésidenceAlternéeAllocataireUnique
+  -- RésidenceAlternéeAllocationsPartagée
 ```
 
 ###### Article L823-3 | LEGIARTI000038814916
