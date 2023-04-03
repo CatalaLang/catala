@@ -263,16 +263,6 @@ réglementaire.
 # Cet article est une déclaration d'intention qui donne des propriétée sur
 # la formule de calcul. Dans le futur il serait interessant de vérifier que
 # la formule est bien de cette forme là.
-champ d'application ÉligibilitéAidesPersonnelleLogement:
-  définition patrimoine_total_demandeur égal à
-    demandeur.patrimoine.produisant_revenu_période_r822_3_3_r822_4 +
-    demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
-
-  étiquette l822_5_1 définition patrimoine_pris_en_compte égal à
-    si patrimoine_total_demandeur > seuil_l822_5_patrimoine alors
-      patrimoine_total_demandeur
-    sinon
-      0€
 ```
 
 Par dérogation à la règle énoncée au premier alinéa, lorsque le demandeur d'une
@@ -283,12 +273,10 @@ du même code , la valeur en capital du patrimoine appréciée pour l'ensemble d
 n'est pas prise en compte dans le calcul de l'aide personnelle au logement.
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
-  exception r822_22_3 définition patrimoine_pris_en_compte
-  sous condition existe prestation parmi ménage.prestations_reçues tel que
-    (prestation = AllocationSoutienEnfantHandicapé ou
-     prestation = AllocationAdulteHandicapé)
-  conséquence égal à 0€
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet alinéa et des précédents et de ceux auxquels il
+# se réfère pour correctement évaluer leur montant.
 ```
 
 La même dérogation s'applique au demandeur d'une aide personnelle au logement
@@ -297,10 +285,10 @@ ou dans une résidence autonomie mentionnés à l'article L. 313-12 du code de
 l'action sociale et des familles .
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
-  exception r822_22_3 définition patrimoine_pris_en_compte
-  sous condition ménage.logement.est_ehpad_ou_maison_autonomie_l313_12_asf
-  conséquence égal à 0€
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet alinéa et des précédents et de ceux auxquels il
+# se réfère pour correctement évaluer leur montant.
 ```
 
 

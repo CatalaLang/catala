@@ -924,8 +924,10 @@ de la construction et de l’habitation, à compter du mois de mai 2021.
 Le montant prévu au premier alinéa de l'article L. 822-5 est fixé à 30 000 euros.
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
-  définition seuil_l822_5_patrimoine égal à 30 000 €
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet alinéa et des précédents et de ceux auxquels il
+# se réfère pour correctement évaluer leur montant.
 ```
 
 Il est appliqué à la somme de la valeur du patrimoine mobilier financier et de
@@ -939,12 +941,10 @@ le revenu au titre des revenus nets catégoriels mentionnés à l'article
 R. 822-4 est pris en compte pour le calcul de l'aide.
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
-  étiquette r822_22_3 exception l822_5_1
-  définition patrimoine_pris_en_compte sous condition
-    patrimoine_total_demandeur >= seuil_l822_5_patrimoine
-  conséquence égal à
-    demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet alinéa et des précédents et de ceux auxquels il
+# se réfère pour correctement évaluer leur montant.
 ```
 
 Ce patrimoine est considéré comme procurant un revenu annuel égal à 50 % de
@@ -6191,9 +6191,10 @@ b) Le 2° est remplacé par les dispositions suivantes :
 bien. ” ;
 
 ```catala
-# Ici on modifie les règles à Saint-Pierre-Et-Miquelon pour correctement
-# remplir demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
-# mais rien à coder pour nous.
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet alinéa et des précédents et de ceux auxquels il
+# se réfère pour correctement évaluer leur montant.
 ```
 
 9° L'article R. 822-24 est remplacé par les dispositions suivantes :
