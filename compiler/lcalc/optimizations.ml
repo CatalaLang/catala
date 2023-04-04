@@ -13,6 +13,10 @@
    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
    License for the specific language governing permissions and limitations under
    the License. *)
+
+(* To implement a new pass, you can describe how to optimize an expression, and
+   then use the [lift_optim] function to lift it to program. *)
+
 open Catala_utils
 open Shared_ast
 open Ast
@@ -23,11 +27,9 @@ let visitor_map (t : 'm expr -> 'm expr boxed) (e : 'm expr) : 'm expr boxed =
 
 let rec iota_expr (e : 'm expr) : 'm expr boxed =
   let m = Marked.get_mark e in
-  Cli.debug_format "%a" (Print.expr_debug ~debug:true) e;
   match Marked.unmark e with
   | EMatch { e = EInj { e = e'; cons; name = n' }, _; cases; name = n }
     when EnumName.equal n n' ->
-    Cli.debug_format "matched!";
     (* match E x with | E y -> e1 = e1[y |-> x]*)
     if true then
       match Marked.unmark @@ EnumConstructor.Map.find cons cases with
@@ -134,13 +136,6 @@ let rec fold_expr (e : 'm expr) : 'm expr boxed =
     Expr.make_app (visitor_map fold_expr f)
       [visitor_map fold_expr init; visitor_map fold_expr e']
       (Expr.pos e)
-  (* todo: *)
-  | EApp
-      {
-        f = EOp { op = Op.HandleDefaultOpt; _ }, _;
-        args = [(EArray [], _); _f; init];
-      } ->
-    visitor_map fold_expr init
   | _ -> visitor_map fold_expr e
 
 let rec peephole_expr (e : 'm expr) : 'm expr boxed =
@@ -162,13 +157,10 @@ let rec peephole_expr (e : 'm expr) : 'm expr boxed =
           Marked.unmark efalse
         | _ -> EIfThenElse { cond; etrue; efalse })
       m
-  | EApp { f = EAbs { binder; tys = [_ty] }, _; args = [(_, _)] as args } ->
+  | EApp { f = EAbs { binder; tys = [_ty] }, _; args = [(EVar _, _)] as args }
+    ->
     (* basic inlining 1 *)
     visitor_map peephole_expr (Expr.subst binder args)
-  (* | EApp { f = EAbs { binder; tys = [_ty] }, _; args = [arg] } -> ( (* basic
-     inlining 2 *) let vars, body = Bindlib.unmbind binder in let v = Array.get
-     vars 0 in match Marked.unmark body with | EVar v' when Var.eq v v' ->
-     visitor_map peephole_expr arg | _ -> visitor_map peephole_expr e) *)
   | ECatch { body; exn; handler } ->
     Expr.Box.app2 (peephole_expr body) (peephole_expr handler)
       (fun body handler ->
@@ -180,62 +172,21 @@ let rec peephole_expr (e : 'm expr) : 'm expr boxed =
       m
   | _ -> visitor_map peephole_expr e
 
-(* TODO: beta optimizations apply inlining of the program. We left the inclusion
-   of beta-optimization as future work since its produce code that is harder to
-   read, and can produce exponential blowup of the size of the generated
-   program. *)
-let _beta_optimizations (p : 'm program) : 'm program =
-  let new_code_items =
-    Scope.map_exprs ~f:beta_expr ~varf:(fun v -> v) p.code_items
-  in
-  Bindlib_ext.assert_closed new_code_items;
-  { p with code_items = Bindlib.unbox new_code_items }
-
-let peephole_optimizations (p : 'm program) : 'm program =
-  let new_code_items =
-    Scope.map_exprs ~f:peephole_expr ~varf:(fun v -> v) p.code_items
-  in
-  Bindlib_ext.assert_closed new_code_items;
-
-  { p with code_items = Bindlib.unbox new_code_items }
-
-let iota2_optimizations (p : 'm program) : 'm program =
-  let new_code_items =
-    Scope.map_exprs ~f:iota2_expr ~varf:(fun v -> v) p.code_items
-  in
-  Bindlib_ext.assert_closed new_code_items;
-
-  { p with code_items = Bindlib.unbox new_code_items }
-
-let fold_optimizations (p : 'm program) : 'm program =
-  let new_code_items =
-    Scope.map_exprs ~f:fold_expr ~varf:(fun v -> v) p.code_items
-  in
-  Bindlib_ext.assert_closed new_code_items;
-
-  { p with code_items = Bindlib.unbox new_code_items }
-
 let rec fix_opti
     ?(maxiter = 5)
     ~(fs : ('m program -> 'm program) list)
     (p : 'm program) =
   assert (maxiter >= 0);
-  Cli.debug_format "============================= %i" maxiter;
   let p' = ListLabels.fold_left ~init:p fs ~f:(fun p f -> f p) in
 
-  (* Cli.debug_format "============================= %b" (Program.equal p'
-     p); *)
-  if (* Program.equal p' p || *) maxiter = 0 then p'
-  else fix_opti ~fs p' ~maxiter:(maxiter - 1)
+  if Program.equal p' p then p' else fix_opti ~fs p' ~maxiter:(maxiter - 1)
 
-let iota_optimizations (p : 'm program) : 'm program =
-  let new_code_items =
-    Scope.map_exprs ~f:iota_expr ~varf:(fun v -> v) p.code_items
-  in
-
-  let prgm = { p with code_items = Bindlib.unbox new_code_items } in
-  Bindlib_ext.assert_closed new_code_items;
-
+(** the function [lift_optim f p] apply the expression transformation [f] all
+    expression of the program [p]. *)
+let lift_optim f p =
+  let code_items = Scope.map_exprs ~f ~varf:(fun v -> v) p.code_items in
+  Bindlib_ext.assert_closed code_items;
+  let prgm = { p with code_items = Bindlib.unbox code_items } in
   prgm
 
 let optimize_program (p : 'm program) : untyped program =
@@ -243,11 +194,11 @@ let optimize_program (p : 'm program) : untyped program =
     (fix_opti p
        ~fs:
          [
-           iota_optimizations;
-           iota2_optimizations;
-           fold_optimizations;
-           (* _beta_optimizations; *)
-           peephole_optimizations;
+           lift_optim iota_expr;
+           lift_optim iota2_expr;
+           lift_optim fold_expr;
+           lift_optim beta_expr;
+           lift_optim peephole_expr;
          ])
 
 let%expect_test _ =
