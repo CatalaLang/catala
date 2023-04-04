@@ -182,86 +182,6 @@ let versement_allocations_of_jsoo
         cons)
 
 
-class type element_prestations_familiales =
-  object
-    method kind :
-      Js.js_string Js.t Js.readonly_prop
-      (** Expects one of:
-        - "PrestationAccueilJeuneEnfant"
-        - "AllocationsFamiliales"
-        - "ComplementFamilial"
-        - "AllocationLogement"
-        - "AllocationEducationEnfantHandicape"
-        - "AllocationSoutienFamilial"
-        - "AllocationRentreeScolaire"
-        - "AllocationJournalierePresenceParentale" *)
-    
-    method payload : Js.Unsafe.any Js.t Js.readonly_prop
-  end
-
-let element_prestations_familiales_to_jsoo
-  : ElementPrestationsFamiliales.t -> element_prestations_familiales Js.t
-  = function
-  | PrestationAccueilJeuneEnfant arg -> object%js
-      val kind = Js.string "PrestationAccueilJeuneEnfant"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | AllocationsFamiliales arg -> object%js
-      val kind = Js.string "AllocationsFamiliales"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | ComplementFamilial arg -> object%js
-      val kind = Js.string "ComplementFamilial"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | AllocationLogement arg -> object%js
-      val kind = Js.string "AllocationLogement"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | AllocationEducationEnfantHandicape arg -> object%js
-      val kind = Js.string "AllocationEducationEnfantHandicape"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | AllocationSoutienFamilial arg -> object%js
-      val kind = Js.string "AllocationSoutienFamilial"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | AllocationRentreeScolaire arg -> object%js
-      val kind = Js.string "AllocationRentreeScolaire"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-  | AllocationJournalierePresenceParentale arg -> object%js
-      val kind = Js.string "AllocationJournalierePresenceParentale"
-      val payload = Js.Unsafe.coerce (Js.Unsafe.inject ( arg))
-    end
-
-let element_prestations_familiales_of_jsoo
-  (element_prestations_familiales : element_prestations_familiales Js.t)
-  : ElementPrestationsFamiliales.t =
-  match element_prestations_familiales##.kind |> Js.to_string with
-  | "PrestationAccueilJeuneEnfant" ->
-    ElementPrestationsFamiliales.PrestationAccueilJeuneEnfant ()
-  | "AllocationsFamiliales" ->
-    ElementPrestationsFamiliales.AllocationsFamiliales ()
-  | "ComplementFamilial" ->
-    ElementPrestationsFamiliales.ComplementFamilial ()
-  | "AllocationLogement" ->
-    ElementPrestationsFamiliales.AllocationLogement ()
-  | "AllocationEducationEnfantHandicape" ->
-    ElementPrestationsFamiliales.AllocationEducationEnfantHandicape ()
-  | "AllocationSoutienFamilial" ->
-    ElementPrestationsFamiliales.AllocationSoutienFamilial ()
-  | "AllocationRentreeScolaire" ->
-    ElementPrestationsFamiliales.AllocationRentreeScolaire ()
-  | "AllocationJournalierePresenceParentale" ->
-    ElementPrestationsFamiliales.AllocationJournalierePresenceParentale ()
-  | cons ->
-    failwith
-      (Printf.sprintf
-        "Unexpected '%s' kind for the enumeration 'ElementPrestationsFamiliales.t'"
-        cons)
-
-
 class type collectivite =
   object
     method kind :
@@ -356,24 +276,6 @@ class type allocation_familiales_avril2008 =
       age_minimum_alinea_1_l521_3 =
         duration_of_jsoo
           allocation_familiales_avril2008##.ageMinimumAlinea1L5213
-    }
-
-class type allocations_familiales =
-  object method montantVerse: Js.number Js.t Js.readonly_prop
-  end
-  let allocations_familiales_to_jsoo (allocations_familiales
-    : AllocationsFamiliales.t) : allocations_familiales Js.t =
-    object%js
-      val montantVerse =
-        Js.number_of_float @@ money_to_float allocations_familiales.montant_verse
-      end
-  let allocations_familiales_of_jsoo
-    (allocations_familiales : allocations_familiales Js.t) :
-    AllocationsFamiliales.t =
-    {
-      montant_verse =
-        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
-          allocations_familiales##.montantVerse
     }
 
 class type verification_age_inferieur_ou_egal_a =
@@ -551,6 +453,34 @@ class type enfant =
         Js.to_bool enfant##.beneficieTitrePersonnelAidePersonnelleLogement
     }
 
+class type allocations_familiales =
+  object
+    method versement:
+      (unit,  enfant Js.t -> versement_allocations Js.t) Js.meth_callback Js.meth
+    method montantVerse: Js.number Js.t Js.readonly_prop
+  end
+  let allocations_familiales_to_jsoo (allocations_familiales
+    : AllocationsFamiliales.t) : allocations_familiales Js.t =
+    object%js
+      method versement = Js.wrap_meth_callback
+        (
+          fun _ (function_input0: enfant Js.t) ->
+          versement_allocations_to_jsoo (allocations_familiales.versement 
+          (enfant_of_jsoo
+            function_input0)))
+      val montantVerse =
+        Js.number_of_float @@ money_to_float allocations_familiales.montant_verse
+      end
+  let allocations_familiales_of_jsoo
+    (allocations_familiales : allocations_familiales Js.t) :
+    AllocationsFamiliales.t =
+    {
+      versement = failwith "The function 'versement' translation isn't yet supported...";
+      montant_verse =
+        money_of_decimal @@ decimal_of_float @@ Js.float_of_number
+          allocations_familiales##.montantVerse
+    }
+
 class type enfant_le_plus_age =
   object method lePlusAge: enfant Js.t Js.readonly_prop
   end
@@ -604,8 +534,6 @@ class type prestations_familiales =
 class type prestations_familiales_in =
   object
     method dateCouranteIn: Js.js_string Js.t Js.readonly_prop
-    method prestationCouranteIn:
-      element_prestations_familiales Js.t Js.readonly_prop
     method residenceIn: collectivite Js.t Js.readonly_prop
   end
   let prestations_familiales_in_to_jsoo (prestations_familiales_in
@@ -613,8 +541,6 @@ class type prestations_familiales_in =
     object%js
       val dateCouranteIn =
         date_to_jsoo prestations_familiales_in.date_courante_in
-      val prestationCouranteIn =
-        element_prestations_familiales_to_jsoo prestations_familiales_in.prestation_courante_in
       val residenceIn =
         collectivite_to_jsoo prestations_familiales_in.residence_in
       end
@@ -624,9 +550,6 @@ class type prestations_familiales_in =
     {
       date_courante_in =
         date_of_jsoo prestations_familiales_in##.dateCouranteIn;
-      prestation_courante_in =
-        element_prestations_familiales_of_jsoo
-          prestations_familiales_in##.prestationCouranteIn;
       residence_in =
         collectivite_of_jsoo prestations_familiales_in##.residenceIn
     }
