@@ -593,7 +593,7 @@ scope Test5:
     else $0 # Insert some other modes of computation here
 ```
 
-Here the `NewIncomeTaxComputationFixed with` syntax triggers a call of the scope
+Here the `output of NewIncomeTaxComputationFixed with` syntax triggers a call of the scope
 while setting its input variable `individual`; then the "dot" syntax is used to
 recover its `income_tax` output field.
 
