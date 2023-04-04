@@ -33,7 +33,7 @@ val evaluate_operator :
     operator. *)
 
 val evaluate_expr :
-  decl_ctx -> (([< dcalc | lcalc ] as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr
+  decl_ctx -> ((< .. > as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program_dcalc :

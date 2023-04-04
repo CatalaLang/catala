@@ -137,7 +137,7 @@ let handle_eq evaluate_operator ctx pos e1 e2 =
 let rec evaluate_operator
     evaluate_expr
     ctx
-    (op : [< dcalc | lcalc ] operator)
+    (op : < overloaded : no ; .. > operator)
     m
     args =
   let pos = Expr.mark_pos m in
