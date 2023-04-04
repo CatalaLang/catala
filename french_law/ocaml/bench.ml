@@ -125,7 +125,6 @@ let aides_logement_input :
         logement =
           {
             residence_principale = true;
-            est_ehpad_ou_maison_autonomie_l313_12_asf = false;
             mode_occupation =
               Law_source.Aides_logement.ModeOccupation.Locataire
                 {
@@ -205,13 +204,6 @@ let aides_logement_input :
     demandeur_in =
       {
         nationalite = Law_source.Aides_logement.Nationalite.Francaise ();
-        patrimoine =
-          {
-            produisant_revenu_periode_r822_3_3_r822_4 =
-              Runtime.money_of_units_int 0;
-            ne_produisant_pas_revenu_periode_r822_3_3_r822_4 =
-              Runtime.money_of_units_int 0;
-          };
         personne_hebergee_centre_soin_l_L162_22_3_securite_sociale = false;
         date_naissance = Runtime.date_of_numbers 1992 1 1;
         est_non_salarie_agricole_l781_8_l_781_46_code_rural = false;
