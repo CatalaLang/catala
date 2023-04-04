@@ -21,7 +21,6 @@
 
 open Shared_ast
 open Ast
-open Catala_utils
 
 type invariant_status = Fail | Pass | Ignore
 type invariant_expr = typed expr -> invariant_status

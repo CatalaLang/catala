@@ -14,7 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
 open Shared_ast
 
 (** Abstract syntax tree for the lambda calculus *)
@@ -34,36 +33,3 @@ val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
 val option_enum_config : typ EnumConstructor.Map.t
-val make_none : 'm mark -> 'm expr boxed
-val make_some : 'm expr boxed -> 'm expr boxed
-
-val make_matchopt_with_abs_arms :
-  'm expr boxed -> 'm expr boxed -> 'm expr boxed -> 'm expr boxed
-
-val make_matchopt :
-  Pos.t ->
-  'm expr Var.t ->
-  typ ->
-  'm expr boxed ->
-  'm expr boxed ->
-  'm expr boxed ->
-  'm expr boxed
-(** [e' = make_matchopt'' pos v e e_none e_some] Builds the term corresponding
-    to [match e with | None -> fun () -> e_none |Some -> fun v -> e_some]. *)
-
-val make_bind_cont :
-  typed mark ->
-  typed expr boxed ->
-  (typed expr boxed -> typed expr boxed) ->
-  typed expr boxed
-
-val make_bindm_cont :
-  typed mark ->
-  typed expr boxed list ->
-  (typed expr boxed list -> typed expr boxed) ->
-  typed expr boxed
-
-(** {1 Special symbols} *)
-
-val handle_default : untyped expr Var.t
-val handle_default_opt : untyped expr Var.t
