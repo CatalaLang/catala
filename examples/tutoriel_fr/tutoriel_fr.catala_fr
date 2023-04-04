@@ -160,7 +160,7 @@ Le champ d'application est l’unité d’abstraction de base dans des programme
 Catala, et la déclaration du champ d’application est semblable à une signature
 de fonction : elle contient une liste de tous les paramètres ainsi que leurs
 types. Mais dans Catala, les variables d’un champ d’application représentent
-trois choses: paramètres d’entrées, paramètres locales et paramètres de
+trois choses: paramètres d’entrées, paramètres locaux et paramètres de
 résultats. La différence entre les trois catégories peuvent être spécifiées par
 les différents attributs d’entrée/résultat qui précèdent les noms de variables.
 « entrée » signifie que la variable doit être définie seulement quand le champ
