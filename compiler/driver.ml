@@ -286,9 +286,7 @@ let driver source_file (options : Cli.options) : int =
             in
 
             if result then Cli.debug_format "Finished checking invariants"
-            else
-              raise
-                (Errors.StructuredError ("Invariant invalid", [None, Pos.no_pos]))
+            else raise (Errors.raise_error "Invariant invalid")
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
             let prgrm_dcalc_expr =
@@ -313,9 +311,6 @@ let driver source_file (options : Cli.options) : int =
               results
           | (`OCaml | `Python | `Lcalc | `Scalc | `Plugin _) as backend -> (
             Cli.debug_print "Compiling program into lambda calculus...";
-            Cli.debug_format "before:";
-            Format.print_cut ();
-            Cli.debug_format "%a" (Shared_ast.Program.format ~debug:true) prgm;
             let prgm =
               if options.avoid_exceptions then
                 Shared_ast.Program.untype
@@ -330,11 +325,6 @@ let driver source_file (options : Cli.options) : int =
                 Lcalc.Optimizations.optimize_program prgm
               end
               else Shared_ast.Program.untype prgm
-            in
-            let _ =
-              Cli.debug_format "program: @.%a"
-                (Shared_ast.Program.format ~debug:true)
-                prgm
             in
             let prgm =
               Shared_ast.Program.untype
