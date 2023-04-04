@@ -7,33 +7,33 @@ var suite = new Benchmark.Suite();
 
 function run_computation_AF(log) {
   var result = Law.computeAllocationsFamiliales({
-    iDateCouranteIn: "2020-04-20",
-    iEnfantsIn: [
+    "iDateCouranteIn": "2020-04-20",
+    "iEnfantsIn": [
       {
-        dIdentifiant: 0,
-        dRemunerationMensuelle: 0,
-        dDateDeNaissance: "2003-02-02",
-        dPriseEnCharge: { kind: "EffectiveEtPermanente", payload: null },
-        dADejaOuvertDroitAuxAllocationsFamiliales: true,
-        dBeneficieTitrePersonnelAidePersonnelleLogement: false,
+        "dIdentifiant": 0,
+        "dRemunerationMensuelle": 0,
+        "dDateDeNaissance": "2003-02-02",
+        "dPriseEnCharge": { kind: "EffectiveEtPermanente", payload: null },
+        "dADejaOuvertDroitAuxAllocationsFamiliales": true,
+        "dBeneficieTitrePersonnelAidePersonnelleLogement": false,
       },
       {
-        dIdentifiant: 1,
-        dRemunerationMensuelle: 300,
-        dDateDeNaissance: "2013-09-30",
-        dPriseEnCharge: {
-          kind: "GardeAlterneePartageAllocations",
-          payload: null,
+        "dIdentifiant": 1,
+        "dRemunerationMensuelle": 300,
+        "dDateDeNaissance": "2013-09-30",
+        "dPriseEnCharge": {
+          "kind": "GardeAlterneePartageAllocations",
+          "payload": null,
         },
-        dADejaOuvertDroitAuxAllocationsFamiliales: true,
-        dBeneficieTitrePersonnelAidePersonnelleLogement: false,
+        "dADejaOuvertDroitAuxAllocationsFamiliales": true,
+        "dBeneficieTitrePersonnelAidePersonnelleLogement": false,
       },
     ],
-    iRessourcesMenageIn: 30000,
-    iResidenceIn: { kind: "Metropole", payload: null },
-    iPersonneChargeEffectivePermanenteEstParentIn: true,
-    iPersonneChargeEffectivePermanenteRemplitTitreIIn: true,
-    iAvaitEnfantAChargeAvant1erJanvier2012In: false,
+    "iRessourcesMenageIn": 30000,
+    "iResidenceIn": { "kind": "Metropole", "payload": null },
+    "iPersonneChargeEffectivePermanenteEstParentIn": true,
+    "iPersonneChargeEffectivePermanenteRemplitTitreIIn": true,
+    "iAvaitEnfantAChargeAvant1erJanvier2012In": false,
   });
   if (log) {
     console.log(
@@ -183,7 +183,7 @@ function run_computation_AL(log) {
 
 try {
   run_computation_AF(false);
-  run_computation_AL(false);
+  // run_computation_AL(false);
 } catch (error) {
   console.log(error[2]);
 }
