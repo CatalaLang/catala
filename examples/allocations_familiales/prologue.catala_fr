@@ -37,15 +37,6 @@ déclaration énumération VersementAllocations:
   -- Normal
   -- AllocationVerséeAuxServicesSociaux
 
-déclaration énumération ÉlémentPrestationsFamiliales:
-  -- PrestationAccueilJeuneEnfant
-  -- AllocationsFamiliales
-  -- ComplémentFamilial
-  -- AllocationLogement
-  -- AllocationÉducationEnfantHandicapé
-  -- AllocationSoutienFamilial
-  -- AllocationRentréeScolaire
-  -- AllocationJournalièrePresenceParentale
 ```
 
 ## Champs d'applications
@@ -60,7 +51,6 @@ déclaration champ d'application PrestationsFamiliales:
   résultat âge_l512_3_2 contenu durée
   résultat régime_outre_mer_l751_1 condition
   entrée date_courante contenu date
-  entrée prestation_courante contenu ÉlémentPrestationsFamiliales
   entrée résidence contenu Collectivité
   smic champ d'application Smic
 
@@ -95,7 +85,7 @@ déclaration champ d'application AllocationsFamiliales:
   interne enfants_à_charge_droit_ouvert_prestation_familiale
     contenu collection Enfant
   interne prise_en_compte contenu PriseEnCompte dépend de enfant contenu Enfant
-  interne versement contenu VersementAllocations dépend de enfant contenu Enfant
+  résultat versement contenu VersementAllocations dépend de enfant contenu Enfant
 
   résultat montant_versé contenu argent
 
@@ -148,7 +138,6 @@ déclaration champ d'application AllocationsFamiliales:
   bmaf champ d'application BaseMensuelleAllocationsFamiliales
 
   # Plafonds, âges limites et autres constantes
-  interne nombre_enfants_l521_1 contenu entier
   interne âge_minimum_alinéa_1_l521_3 contenu durée
     dépend de enfant contenu Enfant
   interne nombre_enfants_alinéa_2_l521_3 contenu entier
@@ -158,8 +147,6 @@ déclaration champ d'application AllocationsFamiliales:
   interne plafond_II_d521_3 contenu argent
 
 champ d'application AllocationsFamiliales:
-  définition prestations_familiales.prestation_courante égal à
-    AllocationsFamiliales
   définition prestations_familiales.date_courante égal à
     date_courante
   définition prestations_familiales.résidence égal à
