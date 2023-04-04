@@ -34,36 +34,11 @@ module A = Ast
     expression [<e1, e2, ..., en| e_just :- e_cons>], and we return as the
     translated expression [let x = y * 3 in x + 1].
 
-    The compilation of expressions is found in the functions
-    [translate_and_hoist ctx e] and [translate_expr ctx e]. Every
-    option-generating expression when calling [translate_and_hoist] will be
-    hoisted and later handled by the [translate_expr] function. Every other
-    cases is found in the translate_and_hoist function.
-
-    Problem arise when there is a function application. *)
+    The compilation process is handled by the [trans_expr] function. *)
 
 open Shared_ast
 
-type 'a info_pure = {
-  info_pure : bool;
-  is_scope : bool;
-  var : 'a Ast.expr Var.t;
-}
-
-(** Information about each encontered Dcalc variable is stored inside a context
-    : what is the corresponding LCalc variable; an expression corresponding to
-    the variable build correctly using Bindlib, and a boolean `is_pure`
-    indicating whenever the variable can be an EmptyError and hence should be
-    matched (false) or if it never can be EmptyError (true). *)
-
-(** [tau' = translate_typ tau] translate the a dcalc type into a lcalc type.
-
-    Since positions where there is thunked expressions is exactly where we will
-    put option expressions. Hence, the transformation simply reduce [unit -> 'a]
-    into ['a option] recursivly. There is no polymorphism inside catala. *)
-
-let trans_typ (tau : typ) : typ = Marked.same_mark_as TAny tau
-
+(** Default-monad utilities. *)
 let monad_return e ~(mark : 'a mark) =
   Expr.einj e Ast.some_constr Ast.option_enum mark
 
@@ -160,16 +135,6 @@ let monad_eoe ?(toplevel = false) arg ~(mark : 'a mark) =
   if toplevel then Expr.ematch arg Ast.option_enum cases mark
   else monad_return ~mark (Expr.ematch arg Ast.option_enum cases mark)
 
-let monad_handle_default ~(_mark : 'a mark) _except _cond _just =
-  (* let handle_default_opt (exceptions : 'a eoption array) (just : bool
-     eoption) (cons : 'a eoption) : 'a eoption = let except = Array.fold_left
-     (fun acc except -> match acc, except with | ENone _, _ -> except | ESome _,
-     ENone _ -> acc | ESome _, ESome _ -> raise (ConflictError pos)) (ENone ())
-     exceptions in match except with | ESome _ -> except | ENone _ -> ( match
-     just with | ESome b -> if b then cons else ENone () | ENone _ -> ENone
-     ()) *)
-  assert false
-
 let _ = monad_return
 let _ = monad_empty
 let _ = monad_bind_var
@@ -182,9 +147,43 @@ let _ = monad_eoe
 let _ = monad_map
 let _ = monad_mmap_mvar
 let _ = monad_mmap
-let _ = monad_handle_default
 
 (** Start of the translation *)
+
+(** Type translating functions.
+
+    Since positions where there is thunked expressions is exactly where we will
+    put option expressions. Hence, the transformation simply reduce [unit -> 'a]
+    into ['a option] recursivly. There is no polymorphism inside catala. *)
+
+(** In the general case, we use the [trans_typ] function to put [TAny] and then
+    ask the typing algorithm to reinfer all the types. However, this is not
+    sufficient as the typing inference need at least input and output types.
+    Those a generated using the [translate_typ] function, that build TOptions
+    where needed. *)
+let trans_typ (tau : typ) : typ = Marked.same_mark_as TAny tau
+
+let rec translate_typ (tau : typ) : typ =
+  let m = Marked.get_mark tau in
+  (Fun.flip Marked.same_mark_as)
+    tau
+    begin
+      match Marked.unmark tau with
+      | TLit l -> TLit l
+      | TTuple ts -> TTuple (List.map translate_typ ts)
+      | TStruct s -> TStruct s
+      | TEnum en -> TEnum en
+      | TOption _ -> assert false
+      | TAny -> TAny
+      | TArray ts ->
+        TArray (TOption (translate_typ ts), m) (* catala is not polymorphic *)
+      | TArrow ([(TLit TUnit, _)], t2) -> Marked.unmark (translate_typ t2)
+      | TArrow (t1, t2) ->
+        TArrow (List.map translate_typ t1, (TOption (translate_typ t2), m))
+    end
+
+let translate_typ (tau : typ) : typ =
+  Marked.same_mark_as (TOption (translate_typ tau)) tau
 
 let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
   let new_ = (Var.Map.find x ctx).var in
@@ -193,7 +192,25 @@ let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
      new_; *)
   new_
 
-let trans_op : dcalc Op.t -> lcalc Op.t = fun op -> Operator.translate op
+let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
+
+(** The function [e' = trans ctx e] actually do the translation between dexpr
+    and lexpr. The context link every free variables of the [e] expression to a
+    new lcalc variable [var], and some information [info_pure] on whenever the
+    variable can be an EmptyError while evaluating and hence should be matched.
+    We also keep [is_scope] to indicate if a variable come from a top-level
+    scope definition. This is used when applying functions as described below.
+    Finally, the following invariant it kept by the application of the function
+    if [e] is of type [a], then the result should be of type [translate_typ a].
+    For literals, this mean that a expression of type [money] will be of type
+    [money option]. We rely on later optimization to shorten the size of the
+    generated code. *)
+
+type 'a info_pure = {
+  info_pure : bool;
+  is_scope : bool;
+  var : 'a Ast.expr Var.t;
+}
 
 let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   let m = Marked.get_mark e in
@@ -206,7 +223,6 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       monad_return (Expr.evar (trans_var ctx x) m) ~mark
     else Expr.evar (trans_var ctx x) m
   | EApp { f = EVar v, _; args = [(ELit LUnit, _)] } ->
-    (* lazy *)
     assert (not (Var.Map.find v ctx).info_pure);
     Expr.evar (trans_var ctx v) m
   | EAbs { binder; tys = [(TLit TUnit, _)] } ->
@@ -214,7 +230,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let _, body = Bindlib.unmbind binder in
     trans ctx body
   | EAbs { binder; tys } ->
-    (* this is to be used with monad_bind. *)
+    (* Every functions of type [a -> b] are translated to a function of type [a
+       -> option b] *)
     let vars, body = Bindlib.unmbind binder in
     let ctx' =
       ArrayLabels.fold_right vars ~init:ctx ~f:(fun v ->
@@ -230,10 +247,10 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let just' = trans ctx just in
     let cons' = trans ctx cons in
 
-    (* for each e in excepts, e: 'a option. just: bool. cons': 'a option.
-       Result: 'a option*)
+    (* If the default term has the following type [<es: a list | just: bool |-
+       cons: a>] then resulting term will have type [handledefaultOpt (es': a
+       option list) (just': bool option) (cons': a option)] *)
     let m' = match m with Typed m -> Typed { m with ty = TAny, pos } in
-    (* App Handle_default excepts just cons *)
     Expr.make_app
       (Expr.eop Op.HandleDefaultOpt [TAny, pos; TAny, pos; TAny, pos] m')
       [Expr.earray excepts' m; just'; cons']
@@ -250,12 +267,14 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let arg' = trans ctx arg in
     monad_eoe arg' ~mark ~toplevel:false
   | EApp { f = (EVar ff, _) as f; args } ->
-    (* INVARIANT: functions are always encoded using this function.info_pure
-       Invariant failed : scope calls are encoded using an other technique. *)
-    (* Cli.debug_format "%s %b" (Bindlib.name_of ff) (Var.Map.find ff
-       ctx).info_pure; *)
+    (* INVARIANT: functions are always encoded using this function.
 
-    (* todo: is_scope test *)
+       As every functions of type [a -> b] but top-level scopes are built using
+       this function, returning a function of type [a -> b option], it is
+       required to use [monad_mbind].
+
+       For scope, the resulting type is [a -> b]. Hence, we have a different
+       encoding using [monad_mmap]. *)
     if (Var.Map.find ff ctx).is_scope then
       let f_var = Var.make "fff" in
       monad_bind_var ~mark
@@ -267,13 +286,14 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
         (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
         f_var (trans ctx f)
   | EApp { f = (EStructAccess _, _) as f; args } ->
+    (* This occurs when calling a subscope function. The same encoding as the
+       one for [EApp (Var _) _] if the variable is not a scope works. *)
     let f_var = Var.make "fff" in
     monad_bind_var ~mark
       (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
       f_var (trans ctx f)
-    (* correspond to what? *)
   | EApp { f = EAbs { binder; _ }, _; args } ->
-    (* Invariant: every let have only one argument. (checked by
+    (* INVARIANTS: every let have only one argument. (checked by
        invariant_let) *)
     let var, body = Bindlib.unmbind binder in
     let[@warning "-8"] [| var |] = var in
@@ -284,7 +304,11 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     in
     monad_bind_var (trans ctx' body) var' (trans ctx arg) ~mark
   | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
-    assert false
+    Errors.raise_error
+      "Parameter trace is incompatible with parameter avoid_exceptions: some \
+       tracing logs were added while they are not supported."
+  (* Encoding of Fold, Filter, Map and Reduce is non trivial because we don't
+     define new monadic operator for every one of those. *)
   | EApp { f = EOp { op = Op.Fold; tys }, opmark; args = [f; init; l] } ->
     (* The function f should have type b -> a -> a. Hence, its translation has
        type [b] -> [a] -> option [a]. But we need a function of type option [b]
@@ -312,13 +336,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (Expr.eop (trans_op Op.Fold) tys opmark)
       [f'; monad_return ~mark (trans ctx init); trans ctx l]
       ~mark
-  | EApp { f = EOp { op = Op.Fold; _ }, _; _ } ->
-    (* Cannot happend: folds must be fully determined *) assert false
   | EApp { f = EOp { op = Op.Reduce; tys }, opmark; args = [f; init; l] } ->
-    (* The function f should have type b -> a -> a. Hence, its translation has
-       type [b] -> [a] -> option [a]. But we need a function of type option [b]
-       -> option [a] -> option [a] for the type checking of fold. Hence, we
-       "iota-expand" the function as follows: [λ x y. bindm x y. [f] x y] *)
     let x1 = Var.make "x1" in
     let x2 = Var.make "x2" in
     let f' =
@@ -341,8 +359,6 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (Expr.eop (trans_op Op.Reduce) tys opmark)
       [f'; monad_return ~mark (trans ctx init); trans ctx l]
       ~mark
-  | EApp { f = EOp { op = Op.Reduce; _ }, _; _ } ->
-    (* Cannot happend: folds must be fully determined *) assert false
   | EApp { f = EOp { op = Op.Map; tys }, opmark; args = [f; l] } ->
     (* The function f should have type b -> a -> a. Hence, its translation has
        type [b] -> [a] -> option [a]. But we need a function of type option [b]
@@ -374,8 +390,6 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
              mark))
       [f'; trans ctx l]
       ~mark
-  | EApp { f = EOp { op = Op.Map; _ }, _; _ } ->
-    (* Cannot happend: folds must be fully determined *) assert false
   | EApp { f = EOp { op = Op.Filter; tys }, opmark; args = [f; l] } ->
     (* The function f should have type b -> a -> a. Hence, its translation has
        type [b] -> [a] -> option [a]. But we need a function of type option [b]
@@ -408,8 +422,15 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
              mark))
       [f'; trans ctx l]
       ~mark
-  | EApp { f = EOp { op = Op.Filter; _ }, _; _ } ->
-    (* Cannot happend: folds must be fully determined *) assert false
+  | EApp { f = EOp { op = Op.Filter as op; _ }, _; _ }
+  | EApp { f = EOp { op = Op.Map as op; _ }, _; _ }
+  | EApp { f = EOp { op = Op.Fold as op; _ }, _; _ }
+  | EApp { f = EOp { op = Op.Reduce as op; _ }, _; _ } ->
+    (* Cannot happend: list operator must be fully determined *)
+    Errors.raise_internal_error
+      "List operator %a was not fully determined: some partial evaluation was \
+       found while compiling."
+      Print.operator op
   | EApp { f = EOp { op; tys }, opmark; args } ->
     let res =
       monad_mmap
@@ -417,10 +438,6 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
         (List.map (trans ctx) args)
         ~mark
     in
-
-    (* Cli.debug_format "before:\n%a" (Print.expr_debug ~debug:true) e;
-       Cli.debug_format "after:\n%a" (Print.expr_debug ~debug:true) (Expr.unbox
-       res); *)
     res
   | EMatch { name; e; cases } ->
     let cases =
@@ -469,13 +486,19 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (List.map (trans ctx) fields)
       ~mark
   | EIfThenElse { cond; etrue; efalse } ->
-    (* semantic one : ife is not rendondant with defaults. *)
+    (* As discussed previously, there is two different encoding of the if then
+       else. The first one is to consider it as if it is an operator. Hence, if
+       one of the branches is an EmptyError, then it propagate to the final
+       result of the expression. The second one is [<<|cond |- a >, <|not cond
+       |- b>| false :- empty>]. This is indeed redondant with exising default
+       terms. I provide here the two possible semantics translation. *)
+    (* semantic one: *)
     (* monad_bind_cont ~mark (fun cond -> monad_bind_cont (fun etrue ->
        monad_bind_cont ~mark (fun efalse -> Expr.eifthenelse (Expr.evar cond m)
        (Expr.evar etrue m) (Expr.evar efalse m) m) (trans ctx efalse)) (trans
        ctx etrue) ~mark) (trans ctx cond) *)
 
-    (* semantic two: ife is redondant with defaults. *)
+    (* semantic two: *)
     monad_bind_cont ~mark
       (fun cond ->
         Expr.eifthenelse (Expr.evar cond mark) (trans ctx etrue)
@@ -515,6 +538,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       "Internal Error: found an EOp that does not satisfy the invariants when \
        translating Dcalc to Lcalc without exceptions."
 
+(** Now we have translated expression, we still need to translate the statements
+    (scope_let_list) and then scopes. This is pretty much straightforward. *)
 let rec trans_scope_let ctx s =
   match s with
   | {
@@ -641,10 +666,8 @@ let rec trans_scope_let ctx s =
       Var.Map.add next_var
         (match scope_let_kind with
         | DestructuringInputStruct -> (
-          (* Here, we have to distinguish between context and input variables.
-             We can do so by looking at the typ of the destructuring: if it's
-             thunked, then the variable is context. If it's not thunked, it's a
-             regular input. *)
+          (* todo: we keep the old separation for further optimization while
+             building the terms. *)
           match Marked.unmark scope_let_typ with
           | TArrow ([(TLit TUnit, _)], _) ->
             { info_pure = false; is_scope = false; var = next_var' }
@@ -742,28 +765,6 @@ let rec trans_code_items ctx c :
       Bindlib.box_apply2
         (fun next body -> Cons (ScopeDef (name, body), next))
         next body)
-
-let rec translate_typ (tau : typ) : typ =
-  let m = Marked.get_mark tau in
-  (Fun.flip Marked.same_mark_as)
-    tau
-    begin
-      match Marked.unmark tau with
-      | TLit l -> TLit l
-      | TTuple ts -> TTuple (List.map translate_typ ts)
-      | TStruct s -> TStruct s
-      | TEnum en -> TEnum en
-      | TOption _ -> assert false
-      | TAny -> TAny
-      | TArray ts ->
-        TArray (TOption (translate_typ ts), m) (* catala is not polymorphic *)
-      | TArrow ([(TLit TUnit, _)], t2) -> Marked.unmark (translate_typ t2)
-      | TArrow (t1, t2) ->
-        TArrow (List.map translate_typ t1, (TOption (translate_typ t2), m))
-    end
-
-let translate_typ (tau : typ) : typ =
-  Marked.same_mark_as (TOption (translate_typ tau)) tau
 
 let translate_program (prgm : typed D.program) : untyped A.program =
   (* let inputs_structs = Scope.fold_left prgm.code_items ~init:[] ~f:(fun acc

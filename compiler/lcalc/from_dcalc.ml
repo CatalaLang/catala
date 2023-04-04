@@ -17,5 +17,5 @@
 let translate_program_with_exceptions =
   Compile_with_exceptions.translate_program
 
-let translate_program_without_exceptions p =
-  Compile_without_exceptions.translate_program p
+let translate_program_without_exceptions =
+  Compile_without_exceptions.translate_program

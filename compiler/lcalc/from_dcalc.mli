@@ -23,4 +23,4 @@ val translate_program_without_exceptions :
 (** Translation from the default calculus to the lambda calculus. This
     translation uses an option monad to handle empty defaults terms. This
     transformation is one piece to permit to compile toward legacy languages
-    that does not contains exceptions. *)
+    that does not contains catchable exceptions. *)
