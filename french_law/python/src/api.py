@@ -1,7 +1,7 @@
 from abc import ABC
 from catala.runtime import *
 from .allocations_familiales import Collectivite, Collectivite_Code, InterfaceAllocationsFamilialesIn, PriseEnCharge, interface_allocations_familiales, PriseEnCharge_Code, EnfantEntree, InterfaceAllocationsFamilialesIn
-from .aides_logement import AutrePersonneACharge, CategorieEquivalenceLoyerAllocationLogementFoyer, CategorieEquivalenceLoyerAllocationLogementFoyer_Code, ChangementLogementD8424, ChangementLogementD8424_Code, ConventionANHA, ConventionBailleurSocial, EnfantACharge, InfosChangementLogementD8424, Location, Logement, LogementFoyer, LoueOuSousLoueADesTiers, LoueOuSousLoueADesTiers_Code, Menage, ModeOccupation, ModeOccupation_Code, Nationalite, Nationalite_Code, NeufOuAncien, NeufOuAncien_Code, ParentOuAutre, ParentOuAutre_Code, Parente, Parente_Code, Patrimoine, PersonneACharge, PersonneSousLocation, PrestationRecue, PrestationRecue_Code, Pret, Proprietaire, SituationFamiliale, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TitulairePret, TitulairePret_Code, TypeBailleur, TypeBailleur_Code, TypeLogementFoyer, TypeLogementFoyer_Code, TypePret, TypePret_Code, TypeTravauxLogementD83215, TypeTravauxLogementD83215_Code, TypeTravauxLogementR8425, TypeTravauxLogementR8425_Code, ZoneDHabitation, ZoneDHabitation_Code, calculette_aides_au_logement_garde_alternee, CalculetteAidesAuLogementGardeAlterneeIn, ressources_aides_personnelle_logement, Demandeur, PersonneACharge_Code, SituationObligationScolaire, SituationGardeAlternee, AccordFinancementRepresentantEtatOutreMer_Code, AccordFinancementRepresentantEtatOutreMer
+from .aides_logement import AutrePersonneACharge, CategorieEquivalenceLoyerAllocationLogementFoyer, CategorieEquivalenceLoyerAllocationLogementFoyer_Code, ChangementLogementD8424, ChangementLogementD8424_Code, ConventionANHA, ConventionBailleurSocial, EnfantACharge, InfosChangementLogementD8424, Location, Logement, LogementFoyer, LoueOuSousLoueADesTiers, LoueOuSousLoueADesTiers_Code, Menage, ModeOccupation, ModeOccupation_Code, Nationalite, Nationalite_Code, NeufOuAncien, NeufOuAncien_Code, ParentOuAutre, ParentOuAutre_Code, Parente, Parente_Code, PersonneACharge, PersonneSousLocation, PrestationRecue, PrestationRecue_Code, Pret, Proprietaire, SituationFamiliale, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TitulairePret, TitulairePret_Code, TypeBailleur, TypeBailleur_Code, TypeLogementFoyer, TypeLogementFoyer_Code, TypePret, TypePret_Code, TypeTravauxLogementD83215, TypeTravauxLogementD83215_Code, TypeTravauxLogementR8425, TypeTravauxLogementR8425_Code, ZoneDHabitation, ZoneDHabitation_Code, calculette_aides_au_logement_garde_alternee, CalculetteAidesAuLogementGardeAlterneeIn, Demandeur, PersonneACharge_Code, SituationObligationScolaire, SituationGardeAlternee, AccordFinancementRepresentantEtatOutreMer_Code, AccordFinancementRepresentantEtatOutreMer
 from .aides_logement import Collectivite_Code as Collectivite_Code_APL
 from .aides_logement import Collectivite as Collectivite_APL
 
@@ -198,8 +198,6 @@ def aides_logement(
     ressources_menage_prises_en_compte: int,
     date_naissance_demandeur: datetime.date,
     nationalite_demandeur: Nationalite,
-    patrimoine_produisant_revenu: int,
-    patrimoine_ne_produisant_pas_revenu: int,
     personne_hebergee_centre_soins: bool,
     personne_rattache_foyer_fiscal_parent_ifi: bool,
     nombre_autres_occupants_logement_hors_menage: int,
@@ -209,7 +207,6 @@ def aides_logement(
     date_mariage: Optional[datetime.date],
     prestations_recues: List[PrestationRecue_Code],
     residence_principale: bool,
-    logement_est_maison_de_retraite: bool,
     logement_est_decent: bool,
     surface_logement_m_carres: int,
     zone: ZoneDHabitation_Code,
@@ -230,7 +227,6 @@ def aides_logement(
                 code=presta, value=Unit()) for presta in prestations_recues],
             logement=Logement(
                 residence_principale=residence_principale,
-                est_ehpad_ou_maison_autonomie_l313_12_asf=logement_est_maison_de_retraite,
                 mode_occupation=ModeOccupation(
                     code=mode_occupation,
                     value=(Location(
@@ -382,12 +378,6 @@ def aides_logement(
             nationalite=nationalite_demandeur,
             est_non_salarie_agricole_l781_8_l_781_46_code_rural=est_non_salarie_agricole_l781_8_l_781_46_code_rural,
             magistrat_fonctionnaire_centre_interets_materiels_familiaux_hors_mayotte=magistrat_fonctionnaire_centre_interets_materiels_familiaux_hors_mayotte,
-            patrimoine=Patrimoine(
-                produisant_revenu_periode_r822_3_3_r822_4=money_of_units_int(
-                    patrimoine_produisant_revenu),
-                ne_produisant_pas_revenu_periode_r822_3_3_r822_4=money_of_units_int(
-                    patrimoine_ne_produisant_pas_revenu)
-            ),
             personne_hebergee_centre_soin_l_L162_22_3_securite_sociale=personne_hebergee_centre_soins,
         ),
         date_courante_in=date_of_datetime(date_courante),

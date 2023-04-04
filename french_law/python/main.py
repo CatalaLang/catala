@@ -43,8 +43,6 @@ def call_aides_logement() -> float:
         date_naissance_demandeur=date(1992, 1, 1),
         nationalite_demandeur=Nationalite(
             code=Nationalite_Code.Francaise, value=Unit()),
-        patrimoine_produisant_revenu=0,
-        patrimoine_ne_produisant_pas_revenu=0,
         personne_hebergee_centre_soins=False,
         personne_rattache_foyer_fiscal_parent_ifi=False,
         nombre_autres_occupants_logement_hors_menage=0,
@@ -54,7 +52,6 @@ def call_aides_logement() -> float:
         date_mariage=None,
         prestations_recues=[],
         residence_principale=True,
-        logement_est_maison_de_retraite=False,
         surface_logement_m_carres=65,
         zone=ZoneDHabitation_Code.Zone2,
         parts_logement_propriete_famille=None,

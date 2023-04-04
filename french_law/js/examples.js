@@ -183,7 +183,7 @@ function run_computation_AL(log) {
 
 try {
   run_computation_AF(false);
-  // run_computation_AL(false);
+  run_computation_AL(false);
 } catch (error) {
   console.log(error[2]);
 }
