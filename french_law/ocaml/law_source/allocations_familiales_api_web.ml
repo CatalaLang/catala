@@ -532,9 +532,10 @@ class type enfant_le_plus_age =
 
 class type prestations_familiales =
   object
-    method droitOuvert: (enfant Js.t,  bool Js.t) Js.meth_callback Js.meth
+    method droitOuvert:
+      (unit,  enfant Js.t -> bool Js.t) Js.meth_callback Js.meth
     method conditionsHorsAge:
-      (enfant Js.t,  bool Js.t) Js.meth_callback Js.meth
+      (unit,  enfant Js.t -> bool Js.t) Js.meth_callback Js.meth
     method ageL51232: Runtime_jsoo.Runtime.duration Js.t Js.readonly_prop
     method regimeOutreMerL7511: bool Js.t Js.readonly_prop
   end
@@ -543,12 +544,14 @@ class type prestations_familiales =
     object%js
       method droitOuvert = Js.wrap_meth_callback
         (
-          fun input ->
-          Js.bool (prestations_familiales.droit_ouvert (enfant_of_jsoo input)))
+          fun _ (function_input0: enfant Js.t) ->
+          Js.bool (prestations_familiales.droit_ouvert (enfant_of_jsoo
+                                                         function_input0)))
       method conditionsHorsAge = Js.wrap_meth_callback
         (
-          fun input ->
-          Js.bool (prestations_familiales.conditions_hors_age (enfant_of_jsoo input)))
+          fun _ (function_input0: enfant Js.t) ->
+          Js.bool (prestations_familiales.conditions_hors_age (enfant_of_jsoo
+                                                                function_input0)))
       val ageL51232 = duration_to_jsoo prestations_familiales.age_l512_3_2
       val regimeOutreMerL7511 =
         Js.bool prestations_familiales.regime_outre_mer_l751_1
