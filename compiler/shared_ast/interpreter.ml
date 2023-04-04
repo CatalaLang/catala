@@ -351,22 +351,14 @@ let rec evaluate_operator
       _ ) ->
     err ()
 
-(* typed with ['a] for simplicity, but only actually implemented on dcalc and
-   lcalc at the moment *)
 let rec evaluate_expr :
-    type a. decl_ctx -> (a, 'm mark) gexpr -> (a, 'm mark) gexpr =
+    type a b.
+    decl_ctx -> ((a, b) dcalc_lcalc, 'm) gexpr -> ((a, b) dcalc_lcalc, 'm) gexpr
+    =
  fun ctx e ->
   let m = Marked.get_mark e in
   let pos = Expr.mark_pos m in
   match Marked.unmark e with
-  | ELocation _ | EScopeCall _ | EDStructAccess _ ->
-    (* These cases don't belong to dcalc or lcalc *)
-    assert false
-  | ERaise exn -> raise (CatalaException exn)
-  | ECatch { body; exn; handler } -> (
-    try evaluate_expr ctx body
-    with CatalaException caught when Expr.equal_except caught exn ->
-      evaluate_expr ctx handler)
   | EVar _ ->
     Errors.raise_spanned_error pos
       "free variable found at evaluation (should not happen if term was \
@@ -386,32 +378,12 @@ let rec evaluate_expr :
           "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | EOp
-        {
-          op =
-            ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth
-            | LastDayOfMonth | And | Or | Xor | Log _ | Length | Eq | Map
-            | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat
-            | Minus_mon | Minus_dur | ToRat_int | ToRat_mon | ToMoney_rat
-            | Round_rat | Round_mon | Add_int_int | Add_rat_rat | Add_mon_mon
-            | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
-            | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur
-            | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int
-            | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat
-            | Div_dur_dur | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat
-            | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat
-            | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat
-            | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
-            | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat
-            | Eq_dur_dur ) as op;
-          _;
-        } ->
-      evaluate_operator (evaluate_expr ctx) ctx op m args
+    | EOp { op; _ } -> evaluate_operator (evaluate_expr ctx) ctx op m args
     | _ ->
       Errors.raise_spanned_error pos
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
-  | EAbs _ | ELit _ | EOp _ -> e (* these are values *)
+  | (EAbs _ | ELit _ | EOp _) as e -> Marked.mark m e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx) es in
@@ -485,29 +457,6 @@ let rec evaluate_expr :
       Errors.raise_spanned_error (Expr.pos e)
         "Expected a term having a sum type as an argument to a match (should \
          not happen if the term was well-typed")
-  | EDefault { excepts; just; cons } -> (
-    let excepts = List.map (evaluate_expr ctx) excepts in
-    let empty_count = List.length (List.filter is_empty_error excepts) in
-    match List.length excepts - empty_count with
-    | 0 -> (
-      let just = evaluate_expr ctx just in
-      match Marked.unmark just with
-      | EEmptyError -> Marked.mark m EEmptyError
-      | ELit (LBool true) -> evaluate_expr ctx cons
-      | ELit (LBool false) -> Marked.same_mark_as EEmptyError e
-      | _ ->
-        Errors.raise_spanned_error (Expr.pos e)
-          "Default justification has not been reduced to a boolean at \
-           evaluation (should not happen if the term was well-typed")
-    | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
-    | _ ->
-      Errors.raise_multispanned_error
-        (List.map
-           (fun except ->
-             Some "This consequence has a valid justification:", Expr.pos except)
-           (List.filter (fun sub -> not (is_empty_error sub)) excepts))
-        "There is a conflict between multiple valid consequences for assigning \
-         the same variable.")
   | EIfThenElse { cond; etrue; efalse } -> (
     propagate_empty_error (evaluate_expr ctx cond)
     @@ fun cond ->
@@ -521,14 +470,6 @@ let rec evaluate_expr :
   | EArray es ->
     propagate_empty_error_list (List.map (evaluate_expr ctx) es)
     @@ fun es -> Marked.mark m (EArray es)
-  | EEmptyError -> Marked.same_mark_as EEmptyError e
-  | EErrorOnEmpty e' -> (
-    match evaluate_expr ctx e' with
-    | EEmptyError, _ ->
-      Errors.raise_spanned_error (Expr.pos e')
-        "This variable evaluated to an empty term (no rule that defined it \
-         applied in this situation)"
-    | e -> e)
   | EAssert e' ->
     propagate_empty_error (evaluate_expr ctx e') (fun e ->
         match Marked.unmark e with
@@ -553,6 +494,43 @@ let rec evaluate_expr :
           Errors.raise_spanned_error (Expr.pos e')
             "Expected a boolean literal for the result of this assertion \
              (should not happen if the term was well-typed)")
+  | EEmptyError -> Marked.same_mark_as EEmptyError e
+  | EErrorOnEmpty e' -> (
+    match evaluate_expr ctx e' with
+    | EEmptyError, _ ->
+      Errors.raise_spanned_error (Expr.pos e')
+        "This variable evaluated to an empty term (no rule that defined it \
+         applied in this situation)"
+    | e -> e)
+  | EDefault { excepts; just; cons } -> (
+    let excepts = List.map (evaluate_expr ctx) excepts in
+    let empty_count = List.length (List.filter is_empty_error excepts) in
+    match List.length excepts - empty_count with
+    | 0 -> (
+      let just = evaluate_expr ctx just in
+      match Marked.unmark just with
+      | EEmptyError -> Marked.mark m EEmptyError
+      | ELit (LBool true) -> evaluate_expr ctx cons
+      | ELit (LBool false) -> Marked.same_mark_as EEmptyError e
+      | _ ->
+        Errors.raise_spanned_error (Expr.pos e)
+          "Default justification has not been reduced to a boolean at \
+           evaluation (should not happen if the term was well-typed")
+    | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
+    | _ ->
+      Errors.raise_multispanned_error
+        (List.map
+           (fun except ->
+             Some "This consequence has a valid justification:", Expr.pos except)
+           (List.filter (fun sub -> not (is_empty_error sub)) excepts))
+        "There is a conflict between multiple valid consequences for assigning \
+         the same variable.")
+  | ERaise exn -> raise (CatalaException exn)
+  | ECatch { body; exn; handler } -> (
+    try evaluate_expr ctx body
+    with CatalaException caught when Expr.equal_except caught exn ->
+      evaluate_expr ctx handler)
+  | _ -> .
 
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =

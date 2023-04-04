@@ -21,9 +21,9 @@ open Catala_utils
 open Definitions
 
 val evaluate_operator :
-  ((([< all ] as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr) ->
+  ((((_, _) dcalc_lcalc as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr) ->
   decl_ctx ->
-  [< dcalc | lcalc > `Monomorphic `Polymorphic `Resolved ] operator ->
+  'a operator ->
   'm mark ->
   ('a, 'm mark) gexpr list ->
   ('a, 'm mark) gexpr
@@ -33,7 +33,9 @@ val evaluate_operator :
     operator. *)
 
 val evaluate_expr :
-  decl_ctx -> ((< .. > as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr
+  decl_ctx ->
+  (('a, 'b) dcalc_lcalc, 'm mark) gexpr ->
+  (('a, 'b) dcalc_lcalc, 'm mark) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program_dcalc :

@@ -116,9 +116,23 @@ type lcalc =
   ; exceptions : yes >
 
 type 'a any = < .. > as 'a
-
 (** ['a any] is 'a, but adds the constraint that it should be restricted to
     valid AST kinds *)
+
+type ('a, 'b) dcalc_lcalc =
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; resolvedNames : yes
+  ; scopeVarStates : no
+  ; scopeVarSimpl : no
+  ; explicitScopes : no
+  ; assertions : yes
+  ; defaultTerms : 'a
+  ; exceptions : 'b >
+(** This type regroups Dcalc and Lcalc ASTs. *)
 
 (** {2 Types} *)
 
