@@ -165,7 +165,7 @@ résultats. La différence entre les trois catégories peuvent être spécifiée
 les différents attributs d’entrée/résultat qui précèdent les noms de variables.
 « entrée » signifie que la variable doit être définie seulement quand le champ
 d’application « CalculImpôtRevenu » est appelé.
-« interne » signifie que la variable ne peut pas voir en dehors du champ
+« interne » signifie que la variable ne peut pas être vue en dehors du champ
 d’application : elle n’est ni une entrée, ni un résultat du champ d’application.
 « résultat » signifie qu’un appel au champ d’application peut récupérer la
 valeur calculée de la variable. Notez qu’une variable peut aussi être
