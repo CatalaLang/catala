@@ -71,12 +71,13 @@ let equal p p' =
   let ss = all_scopes p.code_items in
   let ss' = all_scopes p'.code_items in
 
-  ListLabels.for_all2 ss ss' ~f:(fun s s' ->
-      ScopeName.equal s s'
-      &&
-      let e1 = Expr.unbox @@ to_expr p s in
-      let e2 = Expr.unbox @@ to_expr p s' in
-      Expr.equal e1 e2)
+  List.length ss = List.length ss'
+  && ListLabels.for_all2 ss ss' ~f:(fun s s' ->
+         ScopeName.equal s s'
+         &&
+         let e1 = Expr.unbox @@ to_expr p s in
+         let e2 = Expr.unbox @@ to_expr p s' in
+         Expr.equal e1 e2)
 
 let format_enum
     ?(debug = false)
