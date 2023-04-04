@@ -1,6 +1,14 @@
 # 83. Property transferred in connection with performance of services
 
 ```catala-metadata
+declaration structure Property:
+  data taxable_year content integer
+  data fair_market_value content money
+
+declaration enumeration MaybeProperty:
+  -- Property content Property
+  -- NoProperty
+
 declaration structure PropertyTransfer:
   data taxpayer_performed_the_service content boolean
   data elects_to_include_in_year_of_transfer_b content boolean
@@ -9,11 +17,11 @@ declaration structure PropertyTransfer:
 
   data recipient_not_the_person_the_service_was_performed_for content boolean
 
-  data year_becomes_unrestricted content integer
-  data year_of_transfer content integer
+  data when_unrestricted content MaybeProperty
+  # Fixme: it's a bit inconsistent that we have here a condition on 'unrestricted' that relies on the user, but afterwards the "unrestricted" condition is actually computed from forfeiture and transferable.
+  # we could have e.g. "year_became_transferable" etc, but we need that the fair market value be computed at that point in time anyway, so the user does need to know the corresponding year already.
+  data when_transferred content MaybeProperty
 
-  data fair_market_value_unrestricted content money
-  data fair_market_value_when_transfered content money
   data amount_paid content money
   data was_disposed_of_before_unrestricted content boolean
   data substantial_risk_of_forfeiture content boolean
@@ -28,8 +36,6 @@ declaration structure PropertyTransfer:
 declaration scope Transferred_property_83:
   input transfer content PropertyTransfer
   input current_taxable_year content integer
-#  input current_taxable_year_start content date
-#  internal current_taxable_year_end content date
   internal taxable_year_when_applies content integer
   internal is_restricted content boolean
   output amount_to_include_in_gross_income content TransferredReturn
@@ -53,9 +59,11 @@ declaration structure QualifiedStockPropertyTransfer:
   data eligible_corporation_83iC content boolean
 
 declaration scope Transferred_stock_83:
-  input stock_transfer content StockPropertyTransfer
-  internal conditions_forbidding_election_83i content boolean
-  internal is_qualified_employee content boolean
+  input stock_transfer content QualifiedStockPropertyTransfer
+  internal conditions_forbidding_election_83i condition
+  internal is_qualified_stock condition
+  internal is_excluded_employee condition
+  internal is_qualified_employee condition
 
 #scope Transferred_property_83:
 #  definition current_taxable_year_end equals
@@ -109,7 +117,10 @@ scope Transferred_property_83:
   # where it becomes applicable ; we add a specific case for an already disposed of property
   # because it's clear it won't apply any other year.
 
-  definition taxable_year_when_applies equals year_becomes_unrestricted
+  definition taxable_year_when_applies equals
+      match transfer.when_unrestricted with pattern
+      -- Property of p: p.taxable_year
+      -- NoProperty: 0
 
   label section_83a
   exception section_83_default
@@ -144,7 +155,9 @@ scope Transferred_property_83:
   definition taxable_year_when_applies
   under condition transfer.elects_to_include_in_year_of_transfer
   consequence equals
-      year_of_transfer
+      match transfer.when_transferred with pattern
+      -- Property of p: p.taxable_year
+      -- NoProperty: 0
 
   exception section_83a
   definition amount_to_include_in_gross_income state computing
