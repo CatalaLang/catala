@@ -1032,7 +1032,7 @@ déclaration champ d'application ImpayéDépenseLogement:
 
 ## Calcul de l'aide au logement effective
 
-## Calculette globale
+### Calculette globale
 
 Le but de ce champ d'application est de réaliser le calcul automatique
 de l'éligibilité et du montant de l'aide au logement pour un ménage, en fonction
@@ -1118,7 +1118,7 @@ champ d'application CalculetteAidesAuLogement:
       coefficents_enfants_garde_alternée_pris_en_compte
 ```
 
-## Calculette avec garde alternée
+### Calculette avec garde alternée
 
 Afin de calculer l'impact de la garde alternée sur les aides au logement,
 il est nécessaire de réaliser une double liquidation du calcul des aides
