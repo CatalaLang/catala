@@ -555,11 +555,57 @@ let rec evaluate_expr :
             "Expected a boolean literal for the result of this assertion \
              (should not happen if the term was well-typed)")
 
-(** {1 API} *)
-
-let interpret_program (ctx : decl_ctx) (e : ('t, 'm) gexpr) :
-    (Uid.MarkedString.info * ('t, 'm) gexpr) list =
+let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
+    =
+  let e = Expr.unbox @@ Program.to_expr p s in
+  let ctx = p.decl_ctx in
   match evaluate_expr ctx e with
+  | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
+    (* At this point, the interpreter seeks to execute the scope but does not
+       have a way to retrieve input values from the command line. [taus] contain
+       the types of the scope arguments. For [context] arguments, we can provide
+       an empty thunked term. But for [input] arguments of another type, we
+       cannot provide anything so we have to fail. *)
+    let taus = StructName.Map.find s_in ctx.ctx_structs in
+    let application_term =
+      StructField.Map.map
+        (fun ty ->
+          match Marked.unmark ty with
+          | _ ->
+            Errors.raise_spanned_error (Marked.get_mark ty)
+              "This scope needs input arguments to be executed. But the Catala \
+               built-in interpreter does not have a way to retrieve input \
+               values from the command line, so it cannot execute this scope. \
+               Please create another scope thatprovide the input arguments to \
+               this one and execute it instead. ")
+        taus
+    in
+    let to_interpret =
+      Expr.make_app (Expr.box e)
+        [Expr.estruct s_in application_term mark_e]
+        (Expr.pos e)
+    in
+    match Marked.unmark (evaluate_expr ctx (Expr.unbox to_interpret)) with
+    | EStruct { fields; _ } ->
+      List.map
+        (fun (fld, e) -> StructField.get_info fld, e)
+        (StructField.Map.bindings fields)
+    | _ ->
+      Errors.raise_spanned_error (Expr.pos e)
+        "The interpretation of a program should always yield a struct \
+         corresponding to the scope variables"
+  end
+  | _ ->
+    Errors.raise_spanned_error (Expr.pos e)
+      "The interpreter can only interpret terms starting with functions having \
+       thunked arguments"
+
+(** {1 API} *)
+let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
+    =
+  let ctx = p.decl_ctx in
+  let e = Expr.unbox (Program.to_expr p s) in
+  match evaluate_expr p.decl_ctx e with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain

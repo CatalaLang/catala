@@ -273,7 +273,7 @@ let driver source_file (options : Cli.options) : int =
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
             let results =
-              Shared_ast.Interpreter.interpret_program prgm scope_uid
+              Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
             in
             let results =
               List.sort
@@ -347,7 +347,7 @@ let driver source_file (options : Cli.options) : int =
             | `Interpret_Lcalc ->
               Cli.debug_print "Starting interpretation...";
               let results =
-                Shared_ast.Interpreter.interpret_program prgm scope_uid
+                Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
               in
               let results =
                 List.sort

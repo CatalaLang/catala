@@ -24,10 +24,19 @@ val evaluate_expr :
   decl_ctx -> (([< dcalc | lcalc ] as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
-val interpret_program :
-  (([< dcalc | lcalc ] as 'a), 'm mark) gexpr program ->
+val interpret_program_dcalc :
+  (dcalc, 'm mark) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * ('a, 'm mark) gexpr) list
+  (Uid.MarkedString.info * (dcalc, 'm mark) gexpr) list
+(** Interprets a program. This function expects an expression typed as a
+    function whose argument are all thunked. The function is executed by
+    providing for each argument a thunked empty default. Returns a list of all
+    the computed values for the scope variables of the executed scope. *)
+
+val interpret_program_lcalc :
+  (lcalc, 'm mark) gexpr program ->
+  ScopeName.t ->
+  (Uid.MarkedString.info * (lcalc, 'm mark) gexpr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
