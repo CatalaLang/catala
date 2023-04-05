@@ -205,10 +205,41 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
      non-empty-error terms. *)
   | ELit _ | EOp _ ->
     Marked.same_mark_as (ELit (LBool true)) e
+  | EApp { f; args } ->
+    (* Invariant: For the [EApp] case, we assume here that function calls never
+       return empty error, which implies all functions have been checked never
+       to return empty errors. *)
+    conjunction
+      (generate_vc_must_not_return_empty ctx f
+      :: List.flatten
+           (List.map
+              (fun arg ->
+                match Marked.unmark arg with
+                | EStruct { fields; _ } ->
+                  List.map
+                    (fun (_, field) ->
+                      match Marked.unmark field with
+                      | EAbs { binder; tys = [(TLit TUnit, _)] } -> (
+                        (* Invariant: when calling a function with a thunked
+                           emptyerror, this means we're in a direct scope call
+                           with a context argument. In that case, we don't apply
+                           the standard [EAbs] rule and suppose, in coherence
+                           with the [EApp] invariant, that the subscope will
+                           never return empty error so the thunked emptyerror
+                           can be ignored *)
+                        let _vars, body = Bindlib.unmbind binder in
+                        match Marked.unmark body with
+                        | EEmptyError ->
+                          Marked.same_mark_as (ELit (LBool true)) field
+                        | _ ->
+                          (* same as basic [EAbs case]*)
+                          generate_vc_must_not_return_empty ctx field)
+                      | _ -> generate_vc_must_not_return_empty ctx field)
+                    (StructField.Map.bindings fields)
+                | _ -> [generate_vc_must_not_return_empty ctx arg])
+              args))
+      (Marked.get_mark e)
   | _ ->
-    (* For the [EApp] case, We assume here that function calls never return
-       empty error, which implies all functions have been checked never to
-       return empty errors. *)
     conjunction
       (Expr.shallow_fold
          (fun e acc -> generate_vc_must_not_return_empty ctx e :: acc)

@@ -9,6 +9,11 @@ déclaration champ d'application Smic :
   entrée date_courante contenu date
   entrée résidence contenu Collectivité
   résultat brut_horaire contenu argent
+
+champ d'application Smic :
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2019-01-01|
 ```
 
 ## Décret n° 2018-1173 du 19 décembre 2018 portant relèvement du salaire minimum de croissance
@@ -212,7 +217,7 @@ champ d'application Smic :
 ### Article 2 | JORFARTI000046113526
 
 En conséquence, à compter du 1er août 2022, pour les catégories de travailleurs
-mentionnés à l'article L. 2211-1 du code du travail, le montant du salaire
+mentionnés à l' article L. 2211-1 du code du travail , le montant du salaire
 minimum de croissance est relevé dans les conditions ci-après :
 
 1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion,
@@ -252,7 +257,7 @@ champ d'application Smic :
 
 
 A compter du 1er janvier 2023, pour les catégories de travailleurs mentionnés à
-l'article L. 2211-1 du code du travail, le montant du salaire minimum de
+l' article L. 2211-1 du code du travail , le montant du salaire minimum de
 croissance est relevé dans les conditions ci-après :
 
 1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion,
@@ -262,7 +267,7 @@ son montant est porté à 11,27 euros l'heure ;
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >= |2023-01-01| et date_courante <= |2023-12-31| et (
+    date_courante >= |2023-01-01| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -280,7 +285,7 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >= |2023-01-01| et date_courante <= |2023-12-31| et (
+    date_courante >= |2023-01-01| et (
       (résidence = Mayotte)
     )
   conséquence égal à 8,51 €

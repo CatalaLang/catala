@@ -120,11 +120,11 @@ let aides_logement_input :
   {
     menage_in =
       {
+        personnes_agees_handicapees_foyer_r844_4 = false;
         prestations_recues = Array.of_list [];
         logement =
           {
             residence_principale = true;
-            est_ehpad_ou_maison_autonomie_l313_12_asf = false;
             mode_occupation =
               Law_source.Aides_logement.ModeOccupation.Locataire
                 {
@@ -157,6 +157,10 @@ let aides_logement_input :
                 {
                   beneficie_titre_personnel_aide_personnelle_logement = false;
                   a_deja_ouvert_droit_aux_allocations_familiales = true;
+                  nationalite =
+                    Law_source.Aides_logement.Nationalite.Francaise ();
+                  etudes_apprentissage_stage_formation_pro_impossibilite_travail =
+                    false;
                   remuneration_mensuelle = Runtime.money_of_units_int 0;
                   obligation_scolaire =
                     Law_source.Aides_logement.SituationObligationScolaire
@@ -182,6 +186,10 @@ let aides_logement_input :
                     Law_source.Aides_logement.SituationGardeAlternee
                     .PasDeGardeAlternee
                       ();
+                  nationalite =
+                    Law_source.Aides_logement.Nationalite.Francaise ();
+                  etudes_apprentissage_stage_formation_pro_impossibilite_travail =
+                    false;
                   date_de_naissance = Runtime.date_of_numbers 2016 1 1;
                   identifiant = Runtime.integer_of_int 1;
                 };
@@ -191,19 +199,16 @@ let aides_logement_input :
           Law_source.Aides_logement.SituationFamiliale.Concubins ();
         condition_rattache_foyer_fiscal_parent_ifi = false;
         enfant_a_naitre_apres_quatrieme_mois_grossesse = false;
+        residence = Metropole ();
       };
     demandeur_in =
       {
         nationalite = Law_source.Aides_logement.Nationalite.Francaise ();
-        patrimoine =
-          {
-            produisant_revenu_periode_r822_3_3_r822_4 =
-              Runtime.money_of_units_int 0;
-            ne_produisant_pas_revenu_periode_r822_3_3_r822_4 =
-              Runtime.money_of_units_int 0;
-          };
         personne_hebergee_centre_soin_l_L162_22_3_securite_sociale = false;
         date_naissance = Runtime.date_of_numbers 1992 1 1;
+        est_non_salarie_agricole_l781_8_l_781_46_code_rural = false;
+        magistrat_fonctionnaire_centre_interets_materiels_familiaux_hors_mayotte =
+          false;
       };
     date_courante_in = Runtime.date_of_numbers 2022 5 1;
     ressources_menage_prises_en_compte_in = Runtime.money_of_units_int 11500;

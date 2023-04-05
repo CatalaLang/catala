@@ -12,6 +12,7 @@ champ d'application Exemple1 :
   assertion éligible
   définition éligibilité.date_courante égal à |2020-03-10|
   définition éligibilité.ménage égal à Ménage {
+    -- résidence: Métropole
     -- prestations_reçues: [
       PrestationReçue.AllocationSoutienEnfantHandicapé;
       PrestationReçue.ComplémentFamilial;
@@ -21,7 +22,9 @@ champ d'application Exemple1 :
     -- personnes_à_charge: [
       EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+        -- nationalité: Française
         -- identifiant: 0
+        -- études_apprentissage_stage_formation_pro_impossibilité_travail: vrai
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2001-01-01|
         -- rémuneration_mensuelle: 0€
@@ -29,15 +32,19 @@ champ d'application Exemple1 :
         -- situation_garde_alternée: PasDeGardeAlternée
       }); EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+        -- nationalité: Française
         -- identifiant: 1
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2009-01-01|
+        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
         -- rémuneration_mensuelle: 0€
         -- obligation_scolaire: Pendant
         -- situation_garde_alternée: PasDeGardeAlternée
       }); EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+        -- nationalité: Française
         -- identifiant: 2
+        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2012-01-01|
         -- rémuneration_mensuelle: 0€
@@ -47,7 +54,6 @@ champ d'application Exemple1 :
     -- logement: Logement {
       -- zone: Zone1
       -- résidence_principale : vrai
-      -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
       -- mode_occupation : Locataire contenu (Location {
         -- loyer_principal: 750 €
         -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
@@ -70,14 +76,13 @@ champ d'application Exemple1 :
     -- nombre_autres_occupants_logement: 1
     -- condition_rattaché_foyer_fiscal_parent_ifi: faux
     -- enfant_à_naître_après_quatrième_mois_grossesse: faux
+    -- personnes_âgées_handicapées_foyer_r844_4: faux
   }
   définition éligibilité.demandeur égal à Demandeur {
     -- date_naissance : |1970-05-02|
+    -- est_non_salarié_agricole_l781_8_l_781_46_code_rural: faux
+    -- magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte: faux
     -- nationalité : Française
-    -- patrimoine : Patrimoine {
-      -- produisant_revenu_période_r822_3_3_r822_4: 0€
-      -- ne_produisant_pas_revenu_période_r822_3_3_r822_4: 0€
-      }
     -- personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale: faux
   }
 
@@ -90,6 +95,7 @@ champ d'application Exemple2 :
   assertion éligible = TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale
   définition éligibilité.date_courante égal à |2022-05-01|
   définition éligibilité.ménage égal à Ménage {
+    -- résidence: Métropole
     -- prestations_reçues: [
       PrestationReçue.AllocationsFamiliales
     ]
@@ -98,13 +104,17 @@ champ d'application Exemple2 :
       EnfantÀCharge contenu (EnfantÀCharge {
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
         -- identifiant: 0
+        -- nationalité: Française
+        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2016-01-01|
         -- rémuneration_mensuelle: 0€
         -- obligation_scolaire: Pendant
         -- situation_garde_alternée: PasDeGardeAlternée
       }); EnfantÀCharge contenu (EnfantÀCharge {
+        -- nationalité: Française
         -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
         -- identifiant: 1
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2015-01-01|
@@ -115,7 +125,6 @@ champ d'application Exemple2 :
     -- logement: Logement {
       -- zone: Zone2
       -- résidence_principale : vrai
-      -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
       -- mode_occupation : Locataire contenu (Location {
         -- bailleur: BailleurSocial contenu (ConventionBailleurSocial{
           -- conventionné_livre_III_titre_V_chap_III: vrai
@@ -138,14 +147,13 @@ champ d'application Exemple2 :
     -- nombre_autres_occupants_logement: 0
     -- condition_rattaché_foyer_fiscal_parent_ifi: faux
     -- enfant_à_naître_après_quatrième_mois_grossesse: faux
+    -- personnes_âgées_handicapées_foyer_r844_4: faux
   }
   définition éligibilité.demandeur égal à Demandeur {
+    -- est_non_salarié_agricole_l781_8_l_781_46_code_rural: faux
+    -- magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte: faux
     -- date_naissance : |1992-01-01|
     -- nationalité : Française
-    -- patrimoine : Patrimoine {
-      -- produisant_revenu_période_r822_3_3_r822_4: 0€
-      -- ne_produisant_pas_revenu_période_r822_3_3_r822_4: 0€
-      }
     -- personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale: faux
   }
   définition éligibilité.bénéficie_aide_personnalisée_logement égal à faux
@@ -249,233 +257,5 @@ $ catala Interpret -s Exemple1 --disable_warnings
 
 ```catala-test-inline
 $ catala Typecheck
-[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "ressources_ménage_arrondies.seuil" is declared but never defined; did you forget something?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:496.9-14:
-└───┐
-496 │     état seuil
-    │          ‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Prise en compte des ressources pour les aides personnelles au logement
-[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "ressources_forfaitaires_r822_20" is declared but never defined; did you forget something?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:504.10-41:
-└───┐
-504 │   interne ressources_forfaitaires_r822_20 contenu argent
-    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Prise en compte des ressources pour les aides personnelles au logement
-[WARNING] In scope "ÉligibilitéAidesPersonnelleLogement", the variable "condition_prêt" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:292.10-24:
-└───┐
-292 │   interne condition_prêt condition dépend de prêt contenu Prêt
-    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Éligibilité aux aides personnelles au logement
-[WARNING] In scope "ÉligibilitéAidesPersonnelleLogement", the variable "condition_peuplement_logement_l822_10" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:301.10-47:
-└───┐
-301 │   interne condition_peuplement_logement_l822_10 condition
-    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Éligibilité aux aides personnelles au logement
-[WARNING] In scope "ÉligibilitéAidesPersonnelleLogement", the variable "patrimoine_pris_en_compte" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:314.10-35:
-└───┐
-314 │   interne patrimoine_pris_en_compte contenu argent
-    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Éligibilité aux aides personnelles au logement
-[WARNING] In scope "ÉligibilitéPrimeDeDéménagement", the variable "éligibilité_logement" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:457.10-30:
-└───┐
-457 │   interne éligibilité_logement condition
-    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Éligibilité à la prime de déménagement
-[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "ressources_ménage_arrondies.seuil" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:496.9-14:
-└───┐
-496 │     état seuil
-    │          ‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Prise en compte des ressources pour les aides personnelles au logement
-[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "ressources_ménage_arrondies.base" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:495.9-13:
-└───┐
-495 │     état base
-    │          ‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Prise en compte des ressources pour les aides personnelles au logement
-[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "abattement_r_822_8" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:499.10-28:
-└───┐
-499 │   interne abattement_r_822_8 contenu argent
-    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Prise en compte des ressources pour les aides personnelles au logement
-[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "abattement_r_822_7" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:501.10-28:
-└───┐
-501 │   interne abattement_r_822_7 contenu argent
-    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Prise en compte des ressources pour les aides personnelles au logement
-[WARNING] In scope "RessourcesAidesPersonnelleLogement", the variable "abattement_r_822_10" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:503.10-29:
-└───┐
-503 │   interne abattement_r_822_10 contenu argent
-    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Déclarations des champs d'application
-      └─ Prise en compte des ressources pour les aides personnelles au logement
-[WARNING] In scope "CalculAllocationLogement", the variable "catégorie_calcul_apl" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:1000.10-30:
-└────┐
-1000 │   interne catégorie_calcul_apl contenu CatégorieCalculAPL
-     │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-     └┬ Prologue : aides au logement
-      └┬ Calcul du montant de l'allocation logement
-       └┬ Secteur logement-foyer
-        └─ Tous secteurs
-[WARNING] In scope "ÉligibilitéPrestationsFamiliales", the variable "prestation_courante" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:48.9-28:
-└──┐
-48 │   entrée prestation_courante contenu ÉlémentPrestationsFamiliales
-   │          ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "AllocationJeuneEnfant" of enumeration "PrestationReçue" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:132.5-26:
-└───┐
-132 │   -- AllocationJeuneEnfant
-    │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Types de données manipulées par le programme
-      └┬ Calcul et éligibilité des aides personnelles au logement
-       └─ Calcul et éligibilité pour tous les secteurs
-[WARNING] The constructor "Descendant" of enumeration "Parenté" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:185.5-15:
-└───┐
-185 │   -- Descendant
-    │      ‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Types de données manipulées par le programme
-      └┬ Calcul et éligibilité des aides personnelles au logement
-       └─ Calcul et éligibilité pour tous les secteurs
-[WARNING] The constructor "CollatéralDeuxièmeTroisièmeDegré" of enumeration "Parenté" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../prologue.catala_fr:186.5-37:
-└───┐
-186 │   -- CollatéralDeuxièmeTroisièmeDegré
-    │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Prologue : aides au logement
-     └┬ Types de données manipulées par le programme
-      └┬ Calcul et éligibilité des aides personnelles au logement
-       └─ Calcul et éligibilité pour tous les secteurs
-[WARNING] The enumeration "PriseEnCharge" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../code_construction_legislatif.catala_fr:444.24-37:
-└───┐
-444 │ déclaration énumération PriseEnCharge:
-    │                         ‾‾‾‾‾‾‾‾‾‾‾‾‾
-    └┬ Code de la construction et de l'habitation
-     └┬ Partie législative
-      └┬ Livre VIII : Aides personnelles au logement
-       └┬ Titre II : Dispositions communes aux aides personnelles au logement
-        └┬ Chapitre III : Modalités de liquidation et de versement
-         └─ Article L823-2
-[WARNING] The constructor "GardeAlternéeAllocataireUnique" of enumeration "PriseEnChargeEnfant" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:10.5-35:
-└──┐
-10 │   -- GardeAlternéeAllocataireUnique
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "ServicesSociauxAllocationVerséeÀLaFamille" of enumeration "PriseEnChargeEnfant" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:12.5-46:
-└──┐
-12 │   -- ServicesSociauxAllocationVerséeÀLaFamille
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "ServicesSociauxAllocationVerséeAuxServicesSociaux" of enumeration "PriseEnChargeEnfant" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:13.5-54:
-└──┐
-13 │   -- ServicesSociauxAllocationVerséeAuxServicesSociaux
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "PrestationAccueilJeuneEnfant" of enumeration "ÉlémentPrestationsFamiliales" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:30.5-33:
-└──┐
-30 │   -- PrestationAccueilJeuneEnfant
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "ComplémentFamilial" of enumeration "ÉlémentPrestationsFamiliales" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:32.5-23:
-└──┐
-32 │   -- ComplémentFamilial
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "AllocationLogement" of enumeration "ÉlémentPrestationsFamiliales" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:33.5-23:
-└──┐
-33 │   -- AllocationLogement
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "AllocationÉducationEnfantHandicapé" of enumeration "ÉlémentPrestationsFamiliales" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:34.5-39:
-└──┐
-34 │   -- AllocationÉducationEnfantHandicapé
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "AllocationSoutienFamilial" of enumeration "ÉlémentPrestationsFamiliales" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:35.5-30:
-└──┐
-35 │   -- AllocationSoutienFamilial
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "AllocationRentréeScolaire" of enumeration "ÉlémentPrestationsFamiliales" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:36.5-30:
-└──┐
-36 │   -- AllocationRentréeScolaire
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
-[WARNING] The constructor "AllocationJournalièrePresenceParentale" of enumeration "ÉlémentPrestationsFamiliales" is never used; maybe it's unnecessary?
-
-┌─⯈ examples/aides_logement/tests/../../prestations_familiales/prologue.catala_fr:37.5-43:
-└──┐
-37 │   -- AllocationJournalièrePresenceParentale
-   │      ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Prologue : prestations familiales
 [RESULT] Typechecking successful!
 ```

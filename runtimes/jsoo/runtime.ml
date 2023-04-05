@@ -168,7 +168,7 @@ let execute_or_throw_error f =
     Js.Js_error.raise_
       (Js.Js_error.of_error
          (object%js
-            val mutable name = Js.string "NoValueProvided"
+            val mutable name = Js.string "CatalaError"
             val mutable message = msg
             val mutable stack = Js.Optdef.empty
             method toString = msg

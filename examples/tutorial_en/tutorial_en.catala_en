@@ -581,6 +581,7 @@ declaration scope Test5:
   output income_tax content money
 
 scope Test5:
+  definition normal_income_tax_computation_applies equals true
   definition individual equals Individual {
     -- income: $7,000
     -- number_of_children: 7

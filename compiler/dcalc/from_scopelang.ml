@@ -395,7 +395,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
        enclosed in the log because it might get optimized by a compiler later
        down the chain. *)
     (* if_then_else_returned = if log true then result_eta_expanded else
-       emptyError *)
+       result_eta_expanded *)
     let if_then_else_returned =
       Expr.eifthenelse
         (tag_with_log_entry
@@ -406,11 +406,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
            PosRecordIfTrueBool direct_output_info)
         (Expr.make_var result_eta_expanded_var
            (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
-        (Expr.box
-           (Marked.mark
-              (Expr.with_ty m
-                 (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
-              EEmptyError))
+        (Expr.make_var result_eta_expanded_var
+           (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
         (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
     in
     (* let result_var = calling_expr in let result_eta_expanded_var =
