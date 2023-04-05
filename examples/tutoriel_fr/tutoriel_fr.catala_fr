@@ -523,7 +523,7 @@ n’importe quel identifiant en « snake_case » pour l’étiquette :
 ```catala
 champ d'application NouveauCalculImpôtRevenuCorrect:
   étiquette article_5
-  définition impôt_revenu égal à 
+  définition impôt_revenu égal à
     deux_tranches.formule_imposition de personne.revenu
 
   # Puis, vous pouvez déclarez l’exception qui se réfère à l’étiquette
@@ -600,8 +600,8 @@ variables de résultat de la même manière qu’avec des sous-champs d’applic
 
 ```catala
 déclaration champ d'application Test5:
-  entrée personne contenu Personne
-  entrée est_applicable_au_calcul_normal_impôt_revenu contenu booléen
+  interne personne contenu Personne
+  interne est_applicable_au_calcul_normal_impôt_revenu contenu booléen
   résultat impôt_revenu contenu argent
 
 champ d'application Test5:
@@ -672,7 +672,7 @@ champ d'application DétermineBaseAmende:
   # définition, à l’intérieur de « NouveauCalculImpôtRevenuCorrect », ou
   # prenez-vous la valeur venant de l’entrée du champ d'application ?
   # Ce dilemme est résolu de deux manières.
-  # Premièrement, en examinant les conditions des définitions : seules les 
+  # Premièrement, en examinant les conditions des définitions : seules les
   # définitions, dont la condition est évaluée à « vrai > au moment de
   # l’exécution, seront prises en compte. S’il n’y en a qu'une, le choix est
   # facile. Mais que se passe-t-il si deux définitions se déclenchent en même
@@ -724,7 +724,7 @@ déclaration champ d'application ImpôtSurLaFortune:
 champ d'application ImpôtSurLaFortune:
   définition patrimoine état total égal à total_du_patrimoine
   définition patrimoine état après_déduction_caritative égal à
-    patrimoine - après_déduction_caritative
+    patrimoine - valeur_du_bâtiment_pour_exploitation_caritative
     # Ci-dessus, « patrimoine » se réfère à l’état « total »
   définition patrimoine état après_plafonnement égal à
     si patrimoine >= 2 500 000€ alors 2 500 000€ sinon patrimoine
@@ -817,7 +817,7 @@ produisant une décimale.
 ```catala
 déclaration champ d'application ValeursMonétaires:
   interne valeur1 contenu décimal
-  interne valeur2 contenu argent 
+  interne valeur2 contenu argent
 
 champ d'application ValeursMonétaires:
   définition valeur1 sous condition
@@ -843,11 +843,11 @@ préfixés par « @ », tandis que les opérateurs de durée sont préfixés
 ```catala
 déclaration champ d'application ValeursDate:
   interne valeur1 contenu date
-  interne value2 contenu durée
+  interne valeur2 contenu durée
 
 champ d'application ValeursDate:
   définition valeur1 égal à |2000-01-01| + 1 an # produit |2001-01-01|
-  définition valeur2 égal à 
+  définition valeur2 égal à
     (valeur1 - |1999-12-31|) + 45 jour # 367 + 45 jours (2000 est bissextile)
 ```
 
@@ -874,7 +874,7 @@ champ d'application ValeursDeCollection:
 ## Conclusion
 
 Ce tutoriel présente les concepts de base et la syntaxe des fonctionnalités
-du langage Catala. C’est à vous de les utiliser pour annoter du texte 
+du langage Catala. C’est à vous de les utiliser pour annoter du texte
 législatif avec leur traduction algorithmique.
 
 Il n’y a pas une seule bonne façon d’écrire des programmes Catala, car le style
@@ -927,12 +927,12 @@ déclaration champ d'application FraisDeRepas_A:
 champ d'application FraisDeRepas_A:
   définition valeur égal à
     2€ * (nombre_de_semaines_travaillées *
-          nombre_de_jours_travaillés.valeur / 7)
+          nombre_de_jours_travaillés_par_semaine.valeur / 7)
           # La syntaxe est <nom_du_champ_d’application>.<nom_de_variable>
 	  # afin d’accéder à la valeur
 ```
 
-### B. En utilisant les définitions de premier niveau 
+### B. En utilisant les définitions de premier niveau
 
 a. À travers ce corpus, le nombre de jours de travail par semaine est supposé
 être 5.
@@ -948,12 +948,12 @@ semaines travaillées.
 
 ```catala
 déclaration champ d'application FraisDeRepas_B:
-  entrée nombre_de_jours_travaillés contenu entier
+  entrée nombre_de_semaines_travaillées contenu entier
   résultat valeur contenu argent
 
 champ d'application FraisDeRepas_B:
   définition valeur égal à
-    2€ * (nombre_de_semaines_travaillés *
+    2€ * (nombre_de_semaines_travaillées *
           nombre_de_jours_travaillés_par_semaine / 7)
           # Il n’est pas nécessaire d’un sous-champ d'application, la valeur
           # de « nombre_de_jours_travaillés_par semaine » est accessible
