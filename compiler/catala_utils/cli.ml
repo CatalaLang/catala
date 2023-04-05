@@ -29,7 +29,8 @@ type backend_option_builtin =
   | `Lcalc
   | `Dcalc
   | `Scopelang
-  | `Proof ]
+  | `Proof
+  | `Interpret_Lcalc ]
 
 type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
 
@@ -42,6 +43,7 @@ let language_code =
 
 let backend_option_to_string = function
   | `Interpret -> "Interpret"
+  | `Interpret_Lcalc -> "Interpret_Lcalc"
   | `Makefile -> "Makefile"
   | `OCaml -> "Ocaml"
   | `Scopelang -> "Scopelang"
@@ -58,6 +60,7 @@ let backend_option_to_string = function
 let backend_option_of_string backend =
   match String.lowercase_ascii backend with
   | "interpret" -> `Interpret
+  | "interpret_lcalc" -> `Interpret_Lcalc
   | "makefile" -> `Makefile
   | "ocaml" -> `OCaml
   | "scopelang" -> `Scopelang
