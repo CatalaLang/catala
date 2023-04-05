@@ -1,6 +1,8 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley <emile.rolley@tuta.io>
+   Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley
+   <emile.rolley@tuta.io>, Alain Delaët <alain.delaet--tixeuil@inria.Fr>, Louis
+   Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -26,14 +28,18 @@ module Runtime = Runtime_ocaml.Runtime
 let is_empty_error : type a. (a, 'm) gexpr -> bool =
  fun e -> match Marked.unmark e with EEmptyError -> true | _ -> false
 
-let forward_empty_error :
+(** [e' = propagate_empty_error e f] return [EEmptyError] if [e] is
+    [EEmptyError], else it apply [f] on not-empty term [e]. *)
+let propagate_empty_error :
     type a. (a, 'm) gexpr -> ((a, 'm) gexpr -> (a, 'm) gexpr) -> (a, 'm) gexpr =
  fun e f -> match e with (EEmptyError, _) as e -> e | e -> f e
 
-let forward_empty_error_list elist f =
+(** [e' = propagate_empty_error_list elist f] return [EEmptyError] if one lement
+    of [es] is [EEmptyError], else it apply [f] on not-empty term list [elist]. *)
+let propagate_empty_error_list elist f =
   let rec aux acc = function
     | [] -> f (List.rev acc)
-    | e :: r -> forward_empty_error e (fun e -> aux (e :: acc) r)
+    | e :: r -> propagate_empty_error e (fun e -> aux (e :: acc) r)
   in
   aux [] elist
 
@@ -166,7 +172,7 @@ let rec evaluate_operator
       "Operator applied to the wrong arguments\n\
        (should not happen if the term was well-typed)"
   in
-  forward_empty_error_list args
+  propagate_empty_error_list args
   @@ fun args ->
   let open Runtime.Oper in
   Marked.mark m
@@ -369,7 +375,7 @@ let rec evaluate_expr :
   | EApp { f = e1; args } -> (
     let e1 = evaluate_expr ctx e1 in
     let args = List.map (evaluate_expr ctx) args in
-    forward_empty_error e1
+    propagate_empty_error e1
     @@ fun e1 ->
     match Marked.unmark e1 with
     | EAbs { binder; _ } ->
@@ -410,7 +416,7 @@ let rec evaluate_expr :
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx) es in
-    forward_empty_error_list es
+    propagate_empty_error_list es
     @@ fun es ->
     Marked.mark m
       (EStruct
@@ -421,7 +427,7 @@ let rec evaluate_expr :
            name;
          })
   | EStructAccess { e; name = s; field } -> (
-    forward_empty_error (evaluate_expr ctx e)
+    propagate_empty_error (evaluate_expr ctx e)
     @@ fun e ->
     match Marked.unmark e with
     | EStruct { fields = es; name } -> (
@@ -454,10 +460,10 @@ let rec evaluate_expr :
         (Expr.format ctx ~debug:true)
         e size)
   | EInj { e; name; cons } ->
-    forward_empty_error (evaluate_expr ctx e)
+    propagate_empty_error (evaluate_expr ctx e)
     @@ fun e -> Marked.mark m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
-    forward_empty_error (evaluate_expr ctx e)
+    propagate_empty_error (evaluate_expr ctx e)
     @@ fun e ->
     match Marked.unmark e with
     | EInj { e = e1; cons; name = name' } ->
@@ -504,7 +510,7 @@ let rec evaluate_expr :
         "There is a conflict between multiple valid consequences for assigning \
          the same variable.")
   | EIfThenElse { cond; etrue; efalse } -> (
-    forward_empty_error (evaluate_expr ctx cond)
+    propagate_empty_error (evaluate_expr ctx cond)
     @@ fun cond ->
     match Marked.unmark cond with
     | ELit (LBool true) -> evaluate_expr ctx etrue
@@ -514,7 +520,7 @@ let rec evaluate_expr :
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
-    forward_empty_error_list (List.map (evaluate_expr ctx) es)
+    propagate_empty_error_list (List.map (evaluate_expr ctx) es)
     @@ fun es -> Marked.mark m (EArray es)
   | EEmptyError -> Marked.same_mark_as EEmptyError e
   | EErrorOnEmpty e' -> (
@@ -525,7 +531,7 @@ let rec evaluate_expr :
          applied in this situation)"
     | e -> e)
   | EAssert e' ->
-    forward_empty_error (evaluate_expr ctx e') (fun e ->
+    propagate_empty_error (evaluate_expr ctx e') (fun e ->
         match Marked.unmark e with
         | ELit (LBool true) -> Marked.mark m (ELit LUnit)
         | ELit (LBool false) -> (
