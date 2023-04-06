@@ -342,7 +342,7 @@ let translate
     =
   match t with
   | ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | And
-    | Or | Xor ) as op ->
+    | Or | Xor | HandleDefault | HandleDefaultOpt ) as op ->
     op
   | (Log _ | Length | Eq | Map | Concat | Filter | Reduce | Fold) as op -> op
   | ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
@@ -355,7 +355,7 @@ let translate
     | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
     | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
     | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
-    | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefault | HandleDefaultOpt ) as op ->
+    | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ) as op ->
     op
 
 let monomorphic_type ((op : monomorphic t), pos) =
