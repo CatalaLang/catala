@@ -359,6 +359,11 @@ let info =
            specified by the $(b,-s) option assuming no additional external \
            inputs." );
       `I
+        ( "$(b,Intepret_Lcalc)",
+          "Runs the interpreter on the lcalc pass on the Catala program, \
+           executing the scope specified by the $(b,-s) option assuming no \
+           additional external inputs." );
+      `I
         ( "$(b,Typecheck)",
           "Parses and typechecks a Catala program, without interpreting it." );
       `I
