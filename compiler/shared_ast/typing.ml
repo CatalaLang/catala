@@ -110,8 +110,7 @@ let rec format_typ
   | TStruct s -> Format.fprintf fmt "%a" A.StructName.format_t s
   | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format_t e
   | TOption t ->
-    Format.fprintf fmt "@[<hov 2>(%a)@ %s@]" format_typ_with_parens t
-      "ffeoption"
+    Format.fprintf fmt "@[<hov 2>(%a)@ %s@]" format_typ_with_parens t "eoption"
   | TArrow ([t1], t2) ->
     Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]" format_typ_with_parens t1
       format_typ t2
