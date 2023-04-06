@@ -185,13 +185,6 @@ let rec translate_typ (tau : typ) : typ =
 let translate_typ (tau : typ) : typ =
   Marked.same_mark_as (TOption (translate_typ tau)) tau
 
-let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
-  let new_ = (Var.Map.find x ctx).var in
-
-  (* Cli.debug_format "before: %a after: %a" Print.var_debug x Print.var_debug
-     new_; *)
-  new_
-
 let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
 
 (** The function [e' = trans ctx e] actually do the translation between dexpr
@@ -211,6 +204,13 @@ type 'a info_pure = {
   is_scope : bool;
   var : 'a Ast.expr Var.t;
 }
+
+let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
+  let new_ = (Var.Map.find x ctx).var in
+
+  (* Cli.debug_format "before: %a after: %a" Print.var_debug x Print.var_debug
+     new_; *)
+  new_
 
 let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   let m = Marked.get_mark e in
