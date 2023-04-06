@@ -364,15 +364,47 @@ code précité, le cas échéant adaptées selon les dispositions de l'article 2
 peuvent être modifiées par décret.
 
 ```catala
-# D'après L860-3 CCH, les habitants de Saint-Pierre et Miquelon n'ont
-# droit qu'à l'allocation logement et pas à l'aide au logement. Donc on
-# ne modifie que le champ d'application CalculAllocationLogement.
-champ d'application CalculAllocationLogement:
-  exception définition aide_finale_formule sous condition
+déclaration montée_en_charge_saint_pierre_miquelon contenu argent dépend de
+  aide_finale contenu argent,
+  résidence contenu Collectivité,
+  date_courante contenu date
+égal à
+  si
     résidence sous forme SaintPierreEtMiquelon et
     date_courante >= |2022-01-01| et
     date_courante <= |2025-12-31|
-  conséquence égal à
-    sous_calcul_traitement.aide_finale_formule *
-      (décimal de (2026 - accès_année de date_courante) / 8,0)
+  alors
+    aide_finale * (décimal de (2026 - accès_année de date_courante) / 8,0)
+  sinon
+    aide_finale
+
+# D'après L860-3 CCH, les habitants de Saint-Pierre et Miquelon n'ont
+# droit qu'à l'allocation logement et pas à l'aide au logement. Donc on
+# ne modifie que les champs d'applications relatifs à l'allocation logement,
+# dans les trois secteurs. À l'exception du secteur locatif où le calcul de
+# l'allocation logement passe par le barème de l'aide personnalisée au logement,
+# et où il faut donc modifier le champ d'application afférent.
+champ d'application CalculAidePersonnaliséeLogementLocatif:
+  définition traitement_aide_finale de aide_finale
+  état montée_en_charge_saint_pierre_miquelon
+  égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    montée_en_charge_saint_pierre_miquelon de
+      aide_finale, résidence, date_courante
+
+champ d'application CalculAllocationLogementFoyer:
+  définition traitement_aide_finale de aide_finale
+  état montée_en_charge_saint_pierre_miquelon
+  égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    montée_en_charge_saint_pierre_miquelon de
+      aide_finale, résidence, date_courante
+
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition traitement_aide_finale de aide_finale
+  état montée_en_charge_saint_pierre_miquelon
+  égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    montée_en_charge_saint_pierre_miquelon de
+      aide_finale, résidence, date_courante
 ```

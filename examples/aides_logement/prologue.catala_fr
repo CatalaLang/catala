@@ -555,6 +555,8 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
     dépend de aide_finale contenu argent
     état diminué
     état minoration_forfaitaire
+    # TODO juridique: emplacement de la modulation Saint-Pierre-et-Miquelon?
+    état montée_en_charge_saint_pierre_miquelon
     état contributions_sociales_arrondi
     état réduction_loyer_solidarité
     état montant_minimal
@@ -804,9 +806,25 @@ déclaration champ d'application CalculAllocationLogementLocatif:
   calcul_apl_locatif champ d'application CalculAidePersonnaliséeLogementLocatif
 
   résultat aide_finale_formule contenu argent
-
   résultat traitement_aide_finale contenu argent
     dépend de aide_finale contenu argent
+  résultat montant_forfaitaire_charges_d823_16 contenu argent
+  résultat plafond_loyer_d823_16_2 contenu argent
+  résultat participation_minimale contenu argent
+  résultat taux_composition_familiale contenu décimal
+  résultat participation_personnelle contenu argent
+
+champ d'application CalculAllocationLogementLocatif:
+  définition montant_forfaitaire_charges_d823_16 égal à
+    calcul_apl_locatif.montant_forfaitaire_charges_d823_16
+  définition plafond_loyer_d823_16_2 égal à
+    calcul_apl_locatif.plafond_loyer_d823_16_2
+  définition participation_minimale égal à
+    calcul_apl_locatif.participation_minimale
+  définition taux_composition_familiale égal à
+    calcul_apl_locatif.taux_composition_familiale
+  définition participation_personnelle égal à
+    calcul_apl_locatif.participation_personnelle
 ```
 
 ### Secteur accession à la propriété
@@ -873,6 +891,8 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
     dépend de aide_finale contenu argent
     état minoration_forfaitaire
     état dépense_nette_minimale
+    # TODO juridique: emplacement de la modulation Saint-Pierre-et-Miquelon?
+    état montée_en_charge_saint_pierre_miquelon
     état contributions_sociales_arrondi
     état montant_minimal
 
@@ -951,6 +971,8 @@ déclaration champ d'application CalculAllocationLogementFoyer:
     état minoration_forfaitaire
     état dépense_nette_minimale
     état redevance
+    # TODO juridique: emplacement de la modulation Saint-Pierre-et-Miquelon?
+    état montée_en_charge_saint_pierre_miquelon
     état contributions_sociales_arrondi
     état montant_minimal
 
