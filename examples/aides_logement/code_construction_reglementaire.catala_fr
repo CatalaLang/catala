@@ -120,15 +120,10 @@ les personnes vivant habituellement au foyer.
 # Ici "conjoint" veut implicitement dire également "concubin" car on
 # a vu que les deux cas étaient gérés de la même manière précédemment.
 # Interprétation confirmée par DGALN/DHUP/FE4 le 25/05/2022.
-champ d'application RessourcesAidesPersonnelleLogement:
-  définition ressources_prises_en_compte égal à
-    ressources_demandeur +
-    ressources_conjoint +
-    ressources_personnes_vivant_habituellement_foyer
-
-  définition ressources_personnes_vivant_habituellement_foyer égal à
-    somme argent de personne.ressources pour
-      personne parmi personnes_vivant_habituellement_foyer
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 Sont considérées comme vivant habituellement au foyer les personnes y ayant
@@ -138,19 +133,21 @@ qui y résident encore au moment de la demande de l'aide ou du réexamen du
 droit à celle-ci.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  assertion pour tout personne parmi personnes_vivant_habituellement_foyer on a
-    personne.durée_résidence_durant_période_r_822_3_1_supérieure_à_6_mois
-  # Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
-  # des différentes périodes mentionnées et en forçant l'utilisateur à bien
-  # remplir toutes ses périodes de résidence mais cela rendrait le formulaire
-  # plus lourd et ne correspondrait peut-être pas au besoin d'un système expert
-  # comme celui utilisé à la CNAF. On pourrait également laisser l'utilisateur
-  # spécifier une durée en jours mais cela aurait deux inconvénients :
-  # premièrement c'est une intrusion dans la vie privée du potentiel
-  # bénéficiaire (cette information serait nécéssaire en cas de contrôle mais
-  # pas dans tous les cas), et deuxièmement la comparaison d'un nombre de jours
-  # avec "6 mois" est computationellement ambiguë.
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+
+# Ici on pourrait coder ça de manière beaucoup plus précise en tenant compte
+# des différentes périodes mentionnées et en forçant l'utilisateur à bien
+# remplir toutes ses périodes de résidence mais cela rendrait le formulaire
+# plus lourd et ne correspondrait peut-être pas au besoin d'un système expert
+# comme celui utilisé à la CNAF. On pourrait également laisser l'utilisateur
+# spécifier une durée en jours mais cela aurait deux inconvénients :
+# premièrement c'est une intrusion dans la vie privée du potentiel
+# bénéficiaire (cette information serait nécéssaire en cas de contrôle mais
+# pas dans tous les cas), et deuxièmement la comparaison d'un nombre de jours
+# avec "6 mois" est computationellement ambiguë.
 ```
 
 NOTA :
@@ -405,18 +402,10 @@ des allocations familiales en vigueur à la date de la demande ou du réexamen
 du droit.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  définition abattement_r_822_7 égal à
-    si demandeur_exerce_activité_rémunérée et
-      conjoint_exerce_activité_rémunérée et
-      (ressources_demandeur + ressources_conjoint) >=
-       base_mensuelle_allocations_familiales.montant * 12,0
-    alors
-      montant_forfaitaire_r_822_7
-    sinon 0€
-
-  définition base_mensuelle_allocations_familiales.date_courante égal à
-    date_demande_ou_reexamen_droit
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 Le montant de cet abattement est fixé par arrêté des ministres chargés du
@@ -458,12 +447,10 @@ charges de loyer supplémentaires correspondant à ce logement, il est procédé
 à un abattement forfaitaire sur ses ressources ou sur celles du ménage.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  définition abattement_r_822_8 égal à
-    selon paiement_logement_distinct_professionnel sous forme
-    -- OuiAvecLoyerOuCharges de loyer_ou_charges:
-      montant_forfaitaire_r_822_8
-    -- PaiementLogementDistinctProfessionnel.Non: 0€
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 L'abattement est appliqué à compter du premier jour du mois civil suivant celui
@@ -520,16 +507,10 @@ il est opéré sur ses ressources un abattement de :
 2° 1 350 euros dès trois personnes à charge.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  définition abattement_r_822_10 égal à
-    soit abattement égal à
-      si nombre de personnes_à_charge = 0 alors 0 €
-      sinon (si nombre de personnes_à_charge <= 2 alors 901 €
-      sinon 1 350 €)
-    dans selon situation_familiale sous forme
-    -- Célibataire: abattement
-    -- CélibataireSéparéDeFait: abattement
-    -- n'importe quel: 0 €
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 ######## Article R822-11 | LEGIARTI000041419384
@@ -849,13 +830,10 @@ d'une bourse de l'enseignement supérieur qui n'est pas assujettie à l'impôt
 sur le revenu.
 
 ```catala
-champ d'application RessourcesAidesPersonnelleLogement:
-  exception définition ressources_prises_en_compte sous condition
-     (mode_occupation sous forme Locataire ou
-      mode_occupation sous forme RésidentLogementFoyer) et
-     condition_âge_bourse_enseignement_supérieur et
-     demandeur_poursuit_des_études
-  conséquence égal à ressources_forfaitaires_r822_20
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 
 # Le montant minoré sera défini plus tard, et donc constituera une exception
 # au cas de base de ressources_forfaitaires_r822_20
@@ -923,8 +901,10 @@ de la construction et de l’habitation, à compter du mois de mai 2021.
 Le montant prévu au premier alinéa de l'article L. 822-5 est fixé à 30 000 euros.
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
-  définition seuil_l822_5_patrimoine égal à 30 000 €
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet alinéa et des précédents et de ceux auxquels il
+# se réfère pour correctement évaluer leur montant.
 ```
 
 Il est appliqué à la somme de la valeur du patrimoine mobilier financier et de
@@ -938,12 +918,10 @@ le revenu au titre des revenus nets catégoriels mentionnés à l'article
 R. 822-4 est pris en compte pour le calcul de l'aide.
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
-  étiquette r822_22_3 exception l822_5_1
-  définition patrimoine_pris_en_compte sous condition
-    patrimoine_total_demandeur >= seuil_l822_5_patrimoine
-  conséquence égal à
-    demandeur.patrimoine.ne_produisant_pas_revenu_période_r822_3_3_r822_4
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet alinéa et des précédents et de ceux auxquels il
+# se réfère pour correctement évaluer leur montant.
 ```
 
 Ce patrimoine est considéré comme procurant un revenu annuel égal à 50 % de
@@ -1031,18 +1009,19 @@ plus.
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
+  définition nombre_personnes_logement égal à
+    (selon ménage.situation_familiale sous forme
+    -- Célibataire: 1
+    -- Mariés: 2
+    -- Pacsés: 2
+    -- Concubins: 2
+    -- CélibataireSéparéDeFait: 1
+    -- ConcubinageDontSéparéDeFait: 2) +
+    ménage.nombre_autres_occupants_logement +
+    nombre de ménage.personnes_à_charge
+
+  étiquette base
   règle condition_logement_surface sous condition
-    soit nombre_personnes_logement égal à
-      (selon ménage.situation_familiale sous forme
-      -- Célibataire: 1
-      -- Mariés: 2
-      -- Pacsés: 2
-      -- Concubins: 2
-      -- CélibataireSéparéDeFait: 1
-      -- ConcubinageDontSéparéDeFait: 2) +
-      ménage.nombre_autres_occupants_logement +
-      nombre de ménage.personnes_à_charge
-    dans
     soit condition_logement_surface_minimale_sans_seuil_m_carrés égal à
       (selon ménage.situation_familiale sous forme
       -- Célibataire: 9
@@ -1104,10 +1083,10 @@ décembre 2000 relative à la solidarité et au renouvellement urbain.
 
 La personne de nationalité étrangère qui demande à bénéficier des aides
 personnelles au logement justifie, en outre, de la régularité de son séjour
-par la production d'un des titres de séjour ou documents prévus à l'article
-D. 512-1 du code de la sécurité sociale.
+par la production d'un des titres de séjour ou documents prévus à l' article
+D. 512-1 du code de la sécurité sociale .
 
-NOTA:
+NOTA :
 
 Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
 dispositions entrent en vigueur le 1er janvier 2023.
@@ -1145,13 +1124,29 @@ l'article L. 823-2 du présent code ;
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement:
+  # L'âge limite de 21 ans établi ici vient écraser la valeur de l'âge limite
+  # prévue par L512-3 du CSS et définie par défaut par R512-2 du CSS.
+  définition prestations_familiales.âge_l512_3_2 égal à 21 an
+
+  étiquette r823_4_enfants
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant:
-      (résultat de VérificationÂgeSupérieurÀ avec
-        { -- date_naissance: enfant.date_de_naissance
-          -- date_courante: date_courante
-          -- années: 21 an }).r
+      # Pour être considéré à charge pour les aides personnelles au logement,
+      # l'enfant doit en plus d'avoir moins de 21 ans mais aussi selon le
+      # 7e alinéa de L823-1 être éligible aux prestations familiales.
+      prestations_familiales.droit_ouvert de
+        EnfantPrestationsFamiliales {
+        -- identifiant: enfant.identifiant
+        -- obligation_scolaire: enfant.obligation_scolaire
+        -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
+        -- date_de_naissance: enfant.date_de_naissance
+        -- a_déjà_ouvert_droit_aux_allocations_familiales:
+          enfant.a_déjà_ouvert_droit_aux_allocations_familiales
+        -- bénéficie_titre_personnel_aide_personnelle_logement:
+          enfant.
+            bénéficie_titre_personnel_aide_personnelle_logement
+      }
     -- AutrePersonneÀCharge de parent: faux
   conséquence rempli
 ```
@@ -1180,17 +1175,19 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
         parent.ressources <=
           plafond_individuel_l815_9_sécu * 1,25 et
         (
-          # VERIF: parent.date_naissance + âge_l351_8_1_sécu est ambiguë, à détecter
+          # VERIF: parent.date_naissance + âge_l351_8_1_sécu est ambiguë,
+          # à détecter
           (parent.date_naissance +
             âge_l351_8_1_sécu <= date_courante ou
               (parent.titulaire_allocation_personne_âgée et
                (résultat de VérificationÂgeInférieurOuÉgalÀ avec
                 { -- date_naissance: parent.date_naissance
                   -- date_courante: date_courante
-                  -- années: 65 an }).r
+                  -- années: 65 an }).est_inférieur_ou_égal
               )
           ) ou
-          # VERIF: parent.date_naissance + âge_l161_17_2_sécu est ambiguë, à détecter
+          # VERIF: parent.date_naissance + âge_l161_17_2_sécu est ambiguë,
+          # à détecter
           (parent.date_naissance +
             âge_l161_17_2_sécu <= date_courante et
               parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
@@ -1221,7 +1218,9 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
    selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
       -- AutrePersonneÀCharge de parent:
-        # Pas besoin de préciser parenté car inclusif ici
+        (parent.parenté sous forme Ascendant ou
+        parent.parenté sous forme Descendant ou
+        parent.parenté sous forme CollatéralDeuxièmeTroisièmeDegré) et
         parent.incapacité_80_pourcent_ou_restriction_emploi et
         parent.ressources <=
           plafond_individuel_l815_9_sécu * 1,25
@@ -1436,7 +1435,7 @@ champ d'application CalculAidePersonnaliséeLogement:
       Traitement_formule_aide_finale.traitement_aide_finale de arg)
 ```
 
-```catala-metadata
+```catala
   # Maintenant que nous avons déterminé comment calculer l'aide finale
   # en fonction du mode d'occupation, il nous faut donner à chacun des modes
   # de calcul les paramètres qu'il attend.
@@ -1465,6 +1464,7 @@ champ d'application CalculAidePersonnaliséeLogement:
                      bailleur.réduction_loyer_solidarité_perçue
                  -- n'importe quel: 0€)
           -- logement_meublé_d842_2: location.logement_meublé_d842_2
+          -- résidence: résidence
         }
       dans Traitement_formule_aide_finale {
         -- aide_finale_formule:
@@ -1526,10 +1526,11 @@ champ d'application CalculAidePersonnaliséeLogement:
 
 champ d'application CalculAllocationLogement:
   définition sous_calcul_traitement égal à
-    selon mode_occupation sous forme
-    -- Locataire de location:
+    selon catégorie_calcul_apl sous forme
+    -- Location de location:
       (soit traitement_formule égal à
         résultat de CalculAllocationLogementLocatif avec {
+          -- résidence: résidence
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
           -- zone: zone
@@ -1559,43 +1560,12 @@ champ d'application CalculAllocationLogement:
             CalculAllocationLogementLocatif.
               traitement_aide_finale
       })
-    -- SousLocataire de location: # Identique à Locataire
-      (soit traitement_formule égal à
-        résultat de CalculAllocationLogementLocatif avec {
-          -- ressources_ménage_arrondies: ressources_ménage
-          -- nombre_personnes_à_charge: nombre_personnes_à_charge
-          -- zone: zone
-          -- date_courante: date_courante
-          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
-          -- loyer_principal: location.loyer_principal
-          -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
-              location.bénéficiaire_aide_adulte_ou_enfant_handicapés
-          -- logement_est_chambre: location.logement_est_chambre
-          -- colocation: location.colocation
-          -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers:
-              location.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
-          -- type_aide: type_aide
-          -- réduction_loyer_solidarité:
-              (selon location.bailleur sous forme
-                 -- BailleurSocial de bailleur:
-                     bailleur.réduction_loyer_solidarité_perçue
-                 -- n'importe quel: 0€)
-          -- logement_meublé_d842_2: location.logement_meublé_d842_2
-          -- changement_logement_d842_4: location.changement_logement_d842_4
-        }
-      dans Traitement_formule_aide_finale {
-        -- aide_finale_formule:
-          traitement_formule.
-            CalculAllocationLogementLocatif.aide_finale_formule
-        -- traitement_aide_finale:
-          traitement_formule.
-            CalculAllocationLogementLocatif.traitement_aide_finale
-      })
-    -- RésidentLogementFoyer de logement_foyer_:
+    -- LogementFoyer de logement_foyer_:
       (soit traitement_formule égal à
         résultat de CalculAllocationLogementFoyer avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- résidence: résidence
           -- zone: zone
           -- date_courante: date_courante
           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
@@ -1612,39 +1582,16 @@ champ d'application CalculAllocationLogement:
           traitement_formule.
             CalculAllocationLogementFoyer.traitement_aide_finale
       })
-    -- AccessionPropriétéLocalUsageExclusifHabitation de propriétaire:
+    -- AccessionPropriété de propriétaire:
       (soit traitement_formule égal à
          résultat de CalculAllocationLogementAccessionPropriété avec {
            -- ressources_ménage_arrondies: ressources_ménage
            -- nombre_personnes_à_charge: nombre_personnes_à_charge
            -- zone: zone
-           -- date_courante: date_courante
-           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
-           -- mensualité_principale: propriétaire.mensualité_principale
-           -- charges_mensuelles_prêt: propriétaire.charges_mensuelles_prêt
-           -- type_travaux_logement: propriétaire.type_travaux_logement_r842_5
-           -- date_signature_prêt: propriétaire.prêt.date_signature
-           -- local_habité_première_fois_bénéficiaire:
-             propriétaire.local_habité_première_fois_bénéficiaire
-           -- date_entrée_logement: propriétaire.date_entrée_logement
-           -- copropriété: propriétaire.copropriété
-           -- situation_r822_11_13_17: propriétaire.situation_r822_11_13_17
-         }
-      dans Traitement_formule_aide_finale {
-        -- aide_finale_formule:
-          traitement_formule.
-            CalculAllocationLogementAccessionPropriété.aide_finale_formule
-        -- traitement_aide_finale:
-          traitement_formule.
-            CalculAllocationLogementAccessionPropriété.traitement_aide_finale
-      })
-    -- LocationAccession de propriétaire:
-      # Identique à AccessionPropriétéLocalUsageExclusifHabitation
-      (soit traitement_formule égal à
-         résultat de CalculAllocationLogementAccessionPropriété avec {
-           -- ressources_ménage_arrondies: ressources_ménage
-           -- nombre_personnes_à_charge: nombre_personnes_à_charge
-           -- zone: zone
+           -- résidence: résidence
+        -- opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État:
+          propriétaire.
+            opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
            -- date_courante: date_courante
            -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
            -- mensualité_principale: propriétaire.mensualité_principale
@@ -1978,11 +1925,25 @@ champ d'application CalculAidePersonnaliséeLogementLocatif:
 à la section 2 du chapitre II du présent titre et arrondies à la centaine d'euros supérieure ;
 
 ```catala
-champ d'application CalculAidePersonnaliséeLogement:
-  définition ressources_ménage état avec_arrondi égal à
+déclaration arrondi_centaine_supérieure contenu argent
+  dépend de ressources_ménage contenu argent
+  égal à
     # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
     # exemples pour vous en convaincre, dont 100 et 150.
     arrondi de ((ressources_ménage * 1%) + 0,49€) * 100,0
+
+# Ici nous arrondissons le montant des ressources pour tous les modes
+# de calcul et pour l'APL et l'AL. En effet, chaque mode de calcul
+# pour l'APL et l'AL prévoient le même arrondi des ressources du ménage.
+# Si jamais cela change, il faudra complexifier le code.
+
+champ d'application CalculAidePersonnaliséeLogement:
+  définition ressources_ménage état avec_arrondi égal à
+    arrondi_centaine_supérieure de ressources_ménage
+
+champ d'application CalculAllocationLogement:
+  définition ressources_ménage état avec_arrondi égal à
+    arrondi_centaine_supérieure de ressources_ménage
 ```
 
 5° “ R0 ” est un abattement forfaitaire appliqué aux ressources du ménage. Il est fixé
@@ -2116,10 +2077,12 @@ de la sécurité sociale et de l'agriculture.
 ```catala
 champ d'application ÉligibilitéPrimeDeDéménagement:
   définition montant_prime_déménagement égal à
-    si dépenses_justifiées_réellement_engagées <= plafond_d823_22 alors
-      dépenses_justifiées_réellement_engagées
-    sinon
-      plafond_d823_22
+    si éligibilité alors
+      si dépenses_justifiées_réellement_engagées <= plafond_d823_22 alors
+        dépenses_justifiées_réellement_engagées
+      sinon
+        plafond_d823_22
+    sinon 0€
 ```
 
 ###### Section 3 : Recouvrement des sommes indûment versées
@@ -3922,23 +3885,28 @@ majoration par personne à charge supplémentaire	              0,5
 
 ```catala
 champ d'application CalculNombrePartLogementFoyer:
-  définition n_nombre_parts_d832_25 égal à
+  définition n_nombre_parts_d832_25_base égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 1,4
       -- Couple: 1,8
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       2,5
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       3,0
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       3,7
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon # si nombre_personnes_à_charge = 4 alors
       4,3
-    sinon
-      ( 4,3 + (0,5 * (décimal de
-        (nombre_personnes_à_charge - 4))))
-    ))))
+
+  étiquette d832_25_1
+  définition n_nombre_parts_d832_25_majoration égal à
+    si nombre_personnes_à_charge > 4 alors
+      0,5 * (décimal de (nombre_personnes_à_charge - 4))
+    sinon 0,0
+
+  définition n_nombre_parts_d832_25 égal à
+    n_nombre_parts_d832_25_base + n_nombre_parts_d832_25_majoration
 
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition calcul_nombre_parts.nombre_personnes_à_charge égal à
@@ -3949,6 +3917,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
     condition_2_du_832_25
   définition n_nombre_parts_d832_25 égal à
     calcul_nombre_parts.n_nombre_parts_d832_25
+
 ```
 
 2°
@@ -4008,25 +3977,29 @@ majoration par personne à charge supplémentaire	             0,5
 
 ```catala
 champ d'application CalculNombrePartLogementFoyer:
-  exception définition n_nombre_parts_d832_25 sous condition
+  exception définition n_nombre_parts_d832_25_base sous condition
     condition_2_du_832_25
   conséquence égal à
     si nombre_personnes_à_charge = 0 alors
       selon situation_familiale_calcul_apl sous forme
       -- PersonneSeule: 1,2
       -- Couple: 1,5
-    sinon (si nombre_personnes_à_charge = 1 alors
+    sinon si nombre_personnes_à_charge = 1 alors
       2,5
-    sinon (si nombre_personnes_à_charge = 2 alors
+    sinon si nombre_personnes_à_charge = 2 alors
       3,0
-    sinon (si nombre_personnes_à_charge = 3 alors
+    sinon si nombre_personnes_à_charge = 3 alors
       3,7
-    sinon (si nombre_personnes_à_charge = 4 alors
+    sinon # si nombre_personnes_à_charge = 4 alors
       4,3
-    sinon
-      ( 4,3 + (0,5 * (décimal de
-        (nombre_personnes_à_charge - 4))))
-    ))))
+
+  étiquette d832_25_2 exception d832_25_1
+  définition n_nombre_parts_d832_25_majoration sous condition
+    condition_2_du_832_25
+  conséquence égal à
+    si nombre_personnes_à_charge > 4 alors
+      0,5 * (décimal de (nombre_personnes_à_charge - 4))
+    sinon 0,0
 ```
 
 ######## Article D832-26 | LEGIARTI000038878708
@@ -4200,9 +4173,45 @@ au calcul de l'allocation de logement versée en secteur locatif, sous réserve 
 des articles D. 842-2 et D. 842-4.
 
 ```catala
-# Rien à formaliser ici, voir le prologue sur la déclaration du
-# champ d'application de calcul des allocations logement qui appelle
-# directement le champ d'application de calcul de l'APL en secteur locatif.
+# Ici nous branchons le calcul de l'AL en secteur locatif sur le calcul de
+# l'APL en secteur locatif.
+champ d'application CalculAllocationLogementLocatif:
+  définition calcul_apl_locatif.loyer_principal égal à
+    loyer_principal
+  définition calcul_apl_locatif.ressources_ménage_arrondies égal à
+    ressources_ménage_arrondies
+  définition calcul_apl_locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés
+  égal à
+    bénéficiaire_aide_adulte_ou_enfant_handicapés
+  définition calcul_apl_locatif.date_courante égal à
+    date_courante
+  définition calcul_apl_locatif.nombre_personnes_à_charge égal à
+    nombre_personnes_à_charge
+  définition calcul_apl_locatif.situation_familiale_calcul_apl égal à
+    situation_familiale_calcul_apl
+  définition calcul_apl_locatif.zone égal à
+    zone
+  définition calcul_apl_locatif.logement_est_chambre égal à
+    logement_est_chambre
+  définition
+    calcul_apl_locatif.
+      âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  égal à
+    âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
+  définition calcul_apl_locatif.type_aide égal à
+    type_aide
+  définition calcul_apl_locatif.colocation égal à
+    colocation
+  définition calcul_apl_locatif.réduction_loyer_solidarité égal à
+    réduction_loyer_solidarité
+  définition calcul_apl_locatif.logement_meublé_d842_2 égal à
+    logement_meublé_d842_2
+  définition calcul_apl_locatif.résidence égal à résidence
+
+
+  définition aide_finale_formule égal à calcul_apl_locatif.aide_finale_formule
+  définition traitement_aide_finale de aide_finale égal à
+    calcul_apl_locatif.traitement_aide_finale de aide_finale
 ```
 
 ####### Article D842-2 | LEGIARTI000038878685
@@ -4409,13 +4418,6 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   # foyer prenne bien le 2° du D832-25 et non pas le 1°.
   définition calcul_apl_logement_foyer.condition_2_du_832_25 égal à
     vrai
-  # Attention ! Le calcul de K dépend également du nombre de parts N, qui
-  # est différent selon que l'on soit en secteur accession-propriété ou
-  # en secteur logement-foyer. Ici, nous sommes en secteur accession
-  # propriété donc il faut que le nombre de parts pris en compte pour le calcul
-  # soit le nombre de parts accession-propriété.
-  définition calcul_apl_logement_foyer.n_nombre_parts_d832_25 égal à
-    calcul_nombre_parts.n_nombre_parts_d832_11
 
   définition coefficient_prise_en_charge égal à
     calcul_apl_logement_foyer.coefficient_prise_en_charge_d832_25
@@ -4575,7 +4577,8 @@ l'article D. 842-7 a été établi.
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
   définition plafond_mensualité_d842_6 égal à
-    calcul_plafond_mensualité_d842_6 de date_signature_prêt
+    calcul_plafond_mensualité_d842_6 de
+      date_signature_prêt, nombre_personnes_à_charge
 ```
 
 Le plafond ainsi retenu ne pourra, en aucun cas, être inférieur à celui applicable au
@@ -4595,10 +4598,12 @@ champ d'application CalculAllocationLogementAccessionPropriété:
     local_habité_première_fois_bénéficiaire
   conséquence égal à
     soit plafond_signature égal à
-      calcul_plafond_mensualité_d842_6 de date_signature_prêt
+      calcul_plafond_mensualité_d842_6 de
+        date_signature_prêt, nombre_personnes_à_charge
     dans
     soit plafond_entrée égal à
-      calcul_plafond_mensualité_d842_6 de date_entrée_logement
+      calcul_plafond_mensualité_d842_6 de
+        date_entrée_logement, nombre_personnes_à_charge
     dans
     si
       plafond_signature < plafond_entrée
@@ -4677,11 +4682,15 @@ par arrêté.
 
 ```catala
 champ d'application CalculAllocationLogementAccessionPropriété:
-   exception définition seuil_minimal_dépense_nette_minimale sous condition
-      (type_travaux_logement sous forme TypeTravauxLogementR842_5.PasDeTravaux
+   règle condition_d842_11_3 sous condition
+     (type_travaux_logement sous forme TypeTravauxLogementR842_5.PasDeTravaux
         ou type_travaux_logement sous forme ObjectifDécenceLogement ou
         type_travaux_logement sous forme AgrandirOuRendreHabitableD331_63) et
         date_signature_prêt >= |1999-07-01|
+   conséquence rempli
+
+   exception définition seuil_minimal_dépense_nette_minimale sous condition
+      condition_d842_11_3
    conséquence égal à
       ressources_ménage_arrondies * coefficient_d842_11
 ```
@@ -4814,14 +4823,6 @@ champ d'application CalculAllocationLogementFoyer:
 
   définition coefficient_prise_en_charge égal à
     calcul_apl_logement_foyer.coefficient_prise_en_charge_d832_25
-
-champ d'application CalculAllocationLogement:
-  # TODO informatique: mieux gérer où on fait l'arrondi des ressources parce
-  # que là par exemple c'est pas explicitement précisé dans la loi.
-  définition ressources_ménage état avec_arrondi égal à
-    # Cette formule arrondit à la centaine d'euros supérieure. Essayez quelques
-    # exemples pour vous en convaincre, dont 100 et 150.
-    arrondi de ((ressources_ménage * 1%) + 0,49€) * 100,0
 ```
 
 3° " L " est l'équivalence de loyer prise en compte, déterminée selon les dispositions
@@ -4994,3 +4995,1657 @@ champ d'application CalculAllocationLogementFoyer:
 
 Les arrêtés prévus à la présente section sont pris par les ministres chargés
 du logement, du budget, de la sécurité sociale, et de l'agriculture.
+
+##### Chapitre III : Procédure de conservation et de versement des allocations de logement en cas de non-décence constatée des logements
+
+```catala
+# Nous choisissons pour le moment de ne pas formaliser ce chapitre car il
+# n'affecte pas l'éligibilité et le montant du ménage aux aides au logement.
+# Cependant, il contient des informations importantes pour la gestion du
+# versement des aides au logement donc il faudrait idéalement le formaliser.
+```
+
+###### Article R843-1 | LEGIARTI000038878645
+
+Lorsque le logement ne répond pas aux caractéristiques de décence mentionnées à
+l'article R. 822-24 ou lorsque le propriétaire n'a pas produit l'attestation
+mentionnée à l'article R. 823-2 , l'allocation de logement peut être accordée, à
+titre dérogatoire, par l'organisme payeur :
+
+1° Aux personnes logées en hôtel meublé ou établissement assimilé, pour une durée
+d'un an. L'organisme payeur doit en informer son conseil d'administration et le
+préfet. Le préfet désigne alors, dans le cadre du plan local d'action pour le
+logement et l'hébergement des personnes défavorisées mentionné aux articles 2 et
+suivants de la loi n° 90-449 du 31 mai 1990 visant à la mise en œuvre du droit au
+logement, un organisme privé ou public aux fins de proposer au propriétaire une
+solution adaptée d'amélioration du logement ou à l'allocataire une solution de
+relogement correspondant à ses besoins et à ses possibilités.
+
+Cette dérogation peut être prorogée, pour six mois, par le conseil d'administration
+de l'organisme payeur, si les travaux de mise aux normes, bien que décidés, n'ont
+pas encore pu être achevés à l'issue de la première année ou si la solution de
+relogement, bien qu'acceptée par l'allocataire, n'a pas encore pris effet dans le
+même délai.
+
+Le préfet doit également être informé du refus d'accorder l'allocation de logement
+à titre dérogatoire ;
+
+2° Aux personnes mentionnées à l'article R. 842-5 , pour une durée de dix-huit
+mois renouvelable une fois. L'organisme payeur doit en informer son conseil
+d'administration et le préfet.
+
+Il en informe également le comité responsable du plan local d'action pour le
+logement et l'hébergement des personnes défavorisées afin que ce dernier examine
+avec l'allocataire une solution adaptée d'amélioration du logement ou une solution
+de relogement.
+
+```catala
+# Cet article décrit la manière dont une perte de décence du logement peut être
+# gérée par le bailleur dans un cadre temporaire. Cependant cela n'affecte
+# pas l'éligibilité et le montant du ménage aux aides au logement donc nous
+# le considérons hors du champ de notre calculette.
+```
+
+###### Article R843-2 | LEGIARTI000038878643
+
+Le délai mentionné au premier alinéa de l'article L. 843-1 est fixé à dix-huit mois.
+
+Les délais mentionnés aux premiers alinéas des articles L. 843-3 et L. 843-4 sont
+fixés à six mois.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R843-3 | LEGIARTI000038878641
+
+Pour l'application de l' article 20-1 de la loi n° 89-462 du 6 juillet 1989 tendant
+à améliorer les rapports locatifs et portant modification de la loi n° 86-1290 du
+23 décembre 1986 , l'information du propriétaire par l'organisme payeur sur son
+obligation de mise en conformité du logement, dont le locataire est également
+destinataire, tient lieu de demande de mise en conformité par le locataire, dans le
+cas où ce dernier saisit la commission départementale de conciliation.
+
+L'information du locataire reproduit les dispositions de ce même article et précise
+l'adresse de la commission départementale de conciliation.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R843-4 | LEGIARTI000044636874
+
+L'organisme payeur informe le propriétaire de l'existence d'aides publiques et des
+lieux d'information pour réaliser les travaux de mise en conformité du logement.
+
+Dans le cas d'une mise en conformité relative à la performance énergétique du
+logement, le propriétaire établit que le logement a été mis en conformité en
+présentant à l'organisme payeur le diagnostic de performance énergétique mentionnée
+au troisième alinéa de l'article R. 823-2.
+
+Dès que le constat de mise en conformité du logement est établi par l'organisme
+payeur ou par un organisme dûment habilité par ce dernier, le montant de l'allocation
+de logement conservé par l'organisme payeur est versé au propriétaire.
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions entrent en vigueur le 1er janvier 2023.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R843-5 | LEGIARTI000038878637
+
+Les organismes mentionnés à l'article L. 843-1 sont habilités, au vu de leur
+expertise professionnelle, par convention conclue avec l'organisme payeur.
+
+L'organisme payeur ne peut habiliter un organisme de droit privé que si celui-ci
+est en règle au regard de ses obligations fiscales et sociales et qu'il n'a pas
+fait l'objet de condamnation pénale définitive en rapport avec son activité depuis
+au moins cinq ans.
+
+L'habilitation ne porte que sur les logements pour lesquels l'organisme payeur verse
+une allocation de logement.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R843-6 | LEGIARTI000038878635
+
+Les cas, mentionnés à l'article L. 843-3 , dans lesquels l'allocation de logement
+peut être maintenue et conservée sont ceux où :
+
+1° Le propriétaire du logement apporte la preuve auprès de l'organisme payeur qu'il
+a engagé les travaux de mise en conformité en vue d'un achèvement dans un délai de
+six mois ; le renouvellement de ce délai de six mois ne peut être accordé que si le
+propriétaire apporte la preuve que la réalisation des travaux nécessite un délai
+supérieur ou que le retard pris dans leur avancement ne lui est pas imputable ;
+
+2° Le locataire du logement a engagé une action en justice toujours en cours fondée
+sur la méconnaissance par le bailleur de l' article 6 de la loi n° 89-462 du 6
+juillet 1989 tendant à améliorer les rapports locatifs et portant modification de la
+loi n° 86-1290 du 23 décembre 1986 ;
+
+3° L'allocation de logement hors charges constitue plus de la moitié du dernier loyer
+brut hors charges connu de l'organisme payeur ; à l'issue du délai de six mois, un
+renouvellement de six mois ne peut être accordé que si l'allocataire apporte la
+preuve qu'il n'était manifestement pas en mesure d'entreprendre les démarches
+prévues au 2° ou au 5° au cours du délai précédent ;
+
+4° L'allocataire est en situation d'impayé de loyer au sens de l'article R. 824-1 et
+bénéficie du maintien de l'allocation de logement au titre de l'article L. 824-2 ;
+
+5° Le locataire du logement apporte la preuve soit qu'il a accompli des actes
+positifs et récents en vue de trouver un nouveau logement ou qu'il a saisi la
+commission de médiation prévue à l'article L. 441-2-3 , soit qu'il n'était
+manifestement pas en mesure de trouver un logement ; à l'issue du délai de six mois,
+un renouvellement de six mois ne peut être accordé que si l'allocataire apporte la
+preuve qu'il n'était manifestement pas en mesure de trouver un logement au cours du
+délai précédent.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R843-7 | LEGIARTI000038878633
+
+Lorsque l'allocataire fait simultanément l'objet de la procédure de conservation de
+l'allocation de logement prévue aux articles L. 843-1 à L. 843-4 et de la procédure
+prévue aux articles R. 844-1 ou R. 844-2 lorsque le logement est surpeuplé au regard
+de sa superficie :
+
+1° Si le logement n'est toujours pas décent à l'expiration de la procédure de
+conservation de l'allocation de logement, l'allocation est suspendue, même si la
+période de bénéfice dérogatoire de l'allocation de logement au titre du surpeuplement
+n'est pas expirée ;
+
+2° Si le logement est toujours surpeuplé au regard de sa superficie à l'expiration
+de la période de bénéfice dérogatoire de l'allocation de logement à ce titre,
+l'allocation est suspendue, même si la procédure de conservation de l'allocation de
+logement prévue aux articles L. 843-1 à L. 843-4 est toujours en cours.
+
+Le bénéfice de l'allocation de logement au titre des articles R. 844-1 et R. 844-2
+ne fait pas obstacle à sa conservation par l'organisme payeur telle que prévue aux
+articles L. 843-1 à L. 843-4 pour les sommes dues pendant la période de conservation.
+
+Dans tous les cas, l'organisme payeur informe le bailleur de la suspension de
+l'allocation de logement.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R843-8 | LEGIARTI000038878631
+
+Lorsque l'allocataire fait l'objet soit de la procédure relative à la non-décence du
+logement prévue à l'article L. 843-1 , soit de celle relative au surpeuplement du
+logement prévue aux articles R. 844-1 et R. 844-2, l'allocation de logement est
+maintenue, dès lors que l'allocataire fait également l'objet de la procédure
+relative aux impayés de dépenses de logement prévue au chapitre IV du titre II du
+présent livre et jusqu'à l'achèvement de cette dernière. Le maintien de l'allocation
+de logement ne fait pas obstacle à sa conservation par l'organisme payeur prévue à
+l'article L. 843-1, pour les sommes dues pendant la période de conservation.
+
+A l'achèvement de la procédure relative aux impayés, si les conditions de peuplement
+et de décence ne sont toujours pas respectées et si les délais de la procédure
+prévue aux articles L. 843-1 à L. 843-3 ou de celle prévue aux articles R. 844-1 et
+R. 844-2 sont expirés, le versement de l'allocation de logement est suspendu.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+##### Chapitre IV : Conditions de peuplement
+
+###### Article R844-1 | LEGIARTI000038878627
+
+Pour les logements autres que les logements-foyers, lorsque la condition de superficie
+mentionnée à l'article R. 822-25 n'est pas respectée au moment de la demande,
+l'allocation de logement peut être accordée pour une durée de deux ans, à titre
+exceptionnel, par décision de la caisse d'allocations familiales ou de la caisse de
+mutualité sociale agricole concernée. Le conseil d'administration de l'organisme
+payeur et le préfet sont informés de cette décision.
+
+En cas de refus de dérogation, le préfet désigne, dans le cadre du plan local
+d'action pour le logement et l'hébergement des personnes défavorisées mentionné aux
+articles 2 et suivants de la loi n° 90-449 du 31 mai 1990 visant à mettre en œuvre
+le droit au logement, un organisme privé ou public aux fins de proposer à l'allocataire
+une solution de relogement correspondant à ses besoins et à ses possibilités.
+
+La décision mentionnée au premier alinéa peut être prorogée par décision du conseil
+d'administration de l'organisme payeur, par période de deux ans renouvelable, après
+enquête sociale et au vu d'une attestation motivée du préfet certifiant que
+l'allocataire ne peut être logé conformément aux conditions fixées à l'article
+R. 822-25.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R844-2 | LEGIARTI000038878625
+
+Si un logement devient surpeuplé par suite d'une naissance ou de la prise en charge
+d'un enfant, d'un ascendant ou d'un collatéral de deuxième ou de troisième degré,
+les allocations sont maintenues, à titre dérogatoire, pendant une durée de deux ans.
+
+Cette dérogation peut être prolongée, sur décision de l'organisme payeur, dans les
+conditions prévues au premier alinéa de l'article R. 844-1 , par période de deux ans
+renouvelable, après enquête sociale et au vu d'une attestation motivée du préfet
+certifiant que l'allocataire ne peut être logé conformément aux conditions fixées à
+l'article R. 822-25 .
+
+En cas de refus de dérogation, le deuxième alinéa de l'article R. 844-1 est applicable.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R844-3 | LEGIARTI000038878623
+
+Les changements dans les conditions de peuplement des locaux doivent être déclarés
+dans le délai d'un mois par l'allocataire.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R844-4 | LEGIARTI000038878621
+
+La condition de superficie prévue à l'article R. 822-25 est réputée remplie pour les
+personnes âgées ou handicapées qui occupent un logement aménagé de manière à
+constituer une unité d'habitation autonome et situé dans un foyer doté de services
+collectifs, à l'exception des personnes résidant dans un établissement d'hébergement
+pour personnes âgées dépendantes ou accueillies dans les unités et centres de soins
+de longue durée mentionnés à l'article L. 841-3 .
+
+Ces dernières doivent disposer d'une chambre d'au moins neuf mètres carrés pour une
+personne seule et de seize mètres carrés pour deux personnes.
+
+Le droit à l'allocation de logement n'est pas ouvert si la chambre est occupée par
+plus de deux personnes.
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  étiquette r_844_4 exception base
+  règle condition_logement_surface sous condition
+    ménage.personnes_âgées_handicapées_foyer_r844_4 et
+    ménage.logement.surface_m_carrés >=
+      (si nombre_personnes_logement = 1 alors 9 sinon 16)
+  conséquence rempli
+
+  exception r_844_4
+  règle condition_logement_surface sous condition
+    ménage.personnes_âgées_handicapées_foyer_r844_4 et
+    nombre_personnes_logement > 2
+  conséquence non rempli
+```
+
+###### Article R844-5 | LEGIARTI000038878619
+
+Les caractéristiques des locaux affectés aux personnes accueillies en application des
+articles L. 441-1 à L. 443-10 du code de l'action sociale et des familles sont celles
+fixées par les articles R. 822-24 et R. 822-25 qui sont compatibles avec les
+contraintes liées à l'âge ou au handicap de ces personnes.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+#### Titre V : Contrôles, lutte contre la fraude et sanctions
+
+```catala
+# Hors du champ de la calculette.
+```
+
+#### Titre VI : Disposition particulières à l'outre-mer
+
+##### Capitre I : Guadeloupe, Guyane, Martinique, La Réunion et Mayotte
+
+###### Article R861-1 | LEGIARTI000038878601
+
+Pour l'application du présent livre en Guadeloupe, en Guyane, en Martinique, à La Réunion et à
+Mayotte, un logement-foyer s'entend d'un établissement destiné au logement collectif, à titre
+de résidence principale, de personnes dans des immeubles comportant à la fois des locaux
+privatifs, meublés ou non, et des locaux communs affectés à la vie collective.
+
+```catala
+# Cet article redéfinit L633-1 en éliminant la distinction avec les logements-
+# foyer "résidence sociale", etc. Rien à coder à priori puisque cela veut
+# juste dire que les logements-foyers d'outre mer ne pourront pas cocher la
+# case "résidence sociale" dans les outre-mer.
+```
+
+###### Article D861-4 | LEGIARTI000038878593
+
+Les arrêtés relatifs aux allocations de logement prévus à l'article D. 823-19 sont également
+pris par le ministre chargé de l'outre-mer.
+
+```catala
+# Rien à coder.
+```
+
+###### Article R861-5 | LEGIARTI000041419283
+
+Pour leur application à Mayotte :
+
+1° Pour l'application à Mayotte de l'article R. 822-3, les mots : “ prises en compte par la
+déclaration sociale nominative définie à l'article L. 133-5-3 du code de la sécurité sociale ”
+sont remplacés par les mots : “ prises en compte par les déclarations mentionnées à l'article
+87 A du code général des impôts ”
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+2° L'article R. 822-6 est ainsi modifié :
+
+a) Au premier alinéa, les mots : " l'article L. 815-9 du code de la sécurité sociale " sont
+remplacés par les mots : " l'article 28 de l'ordonnance n° 2002-411 du 27 mars 2002 relative à
+la protection sanitaire et sociale à Mayotte " ;
+
+b) Au troisième alinéa, les mots : " par l'article L. 161-17-2 du code de la sécurité sociale "
+sont remplacés par les mots : " par le premier alinéa de l'article 6 de la même ordonnance "
+et les mots : " l'allocation de solidarité aux personnes âgées " sont remplacés par les mots :
+" l'allocation spéciale pour les personnes âgées prévue par l'article 28 de la même
+ordonnance " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+3° L'article R. 822-25 est complété par un alinéa ainsi rédigé :
+
+" Toutefois, lorsqu'en cours de droit, le logement ne répond plus à ces normes de peuplement,
+l'allocation de logement est maintenue pour une durée d'un an, à condition que la surface
+habitable globale soit d'au moins treize mètres carrés, augmentée de six mètres carrés par
+personne en plus, dans la limite de cinquante-quatre mètres carrés pour neuf personnes et plus. " ;
+
+```catala
+# Nous choississons ici de ne pas coder informatiquement ces dispositions
+# transitoires que nous laissons pour l'instant hors du champ de notre
+# calculette.
+```
+
+4° Au dernier alinéa de l'article R. 823-2 , les mots : " prévus à l'article D. 512-1 du code
+de la sécurité sociale " sont remplacés par les mots : " prévus à l'article 14 du décret
+n° 2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+5° L'article R. 823-4 est ainsi modifié :
+
+a) Au troisième alinéa, les mots : " prévu à l'article L. 815-9 du code de la sécurité sociale
+" sont remplacés par les mots : " prévu à l'article 28 de l'ordonnance n° 2002-411 du 27 mars
+2002 relative à la protection sanitaire et sociale à Mayotte " ;
+
+b) Au quatrième alinéa, les mots : " par le 1° de l'article L. 351-8 du code de la sécurité
+sociale " sont remplacés par les mots : " par le second alinéa de l'article 6 de l'ordonnance
+n° 2002-411 du 27 mars 2002 relative à la protection sanitaire et sociale à Mayotte " ;
+
+c) Au cinquième alinéa, les mots : " prévu par l'article L. 161-17-2 du code de la sécurité
+sociale " sont remplacés par les mots : " prévu par le premier alinéa de l'article 6 de la
+même ordonnance " et les mots : " des articles L. 161-19, L. 351-8 ou L. 643-3 du même code
+" sont remplacés par les mots : " de l'article L. 161-19 du code de la sécurité sociale ainsi
+que des articles 12 et 23 de la même ordonnance " ;
+
+d) A la fin du sixième alinéa, les mots : " prévu à l'article L. 815-9 du code de la sécurité
+sociale " sont remplacés par les mots : " prévu à l'article 28 de l'ordonnance n° 2002-411 du
+27 mars 2002 relative à la protection sanitaire et sociale à Mayotte " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+6° Pour l'application à Mayotte de l'article R. 823-6-1, les mots : “ définie à l'article
+L. 841-1 du code de la sécurité sociale et l'allocation aux adultes handicapés définie à
+l'article L. 821-1 du même code ” sont remplacés par les mots : “ définie au premier alinéa
+de l'article 1er de l'ordonnance n° 2016-160 du 18 février 2016 portant adaptation de la prime
+d'activité au Département de Mayotte et l'allocation aux adultes handicapés définie à
+l'article 35 de l'ordonnance n° 2002-411 du 27 mars 2002 relative à la protection sanitaire et
+sociale à Mayotte. ”
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+7° A la fin de l'article R. 823-23 , les mots : " à l'article L. 553-2 du code de la sécurité
+sociale. " sont remplacés par les mots : " à l'article 13 de l'ordonnance du 7 février 2002
+relative à l'extension et la généralisation des prestations familiales et à la protection
+sociale dans la collectivité territoriale de Mayotte. " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+8° L'article R. 823-24 est remplacé par les dispositions suivantes :
+
+" Art. R. 823-24.-Les versements indus de prestations sont récupérés comme en matière de
+prestations familiales, conformément aux dispositions des articles 5 à 5-6 du décret
+n° 2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte et du I de
+l'article 5 du décret n° 2011-2100 du 30 décembre 2011 relatif aux prestations familiales dans
+le Département de Mayotte. "
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+NOTA : Se reporter aux conditions d'application prévues à l'article 25 du décret n° 2019-1574
+du 30 décembre 2019. Conformément à l'article 1 du décret n° 2020-451 du 20 avril 2020
+l'article susvisé a été modifié : Ces dispositions sont applicables au calcul des droits,
+d'une part, à l'aide personnalisée au logement prévue pour les accédants à la propriété par
+l'article L. 831-1 du code de la construction et de l'habitation, d'autre part, aux autres
+aides personnelles au logement prévues par le même code, à compter des mois respectifs fixés
+par arrêté des ministres en charge du logement, de la santé et du budget et, au plus tard, du
+1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions sont applicables au calcul
+des droits à l’aide personnelle au logement à compter du mois de janvier 2021 ou, pour le
+calcul des droits à l’aide personnalisée au logement prévue pour les accédants à la propriété
+par l’article L. 831-1 du code de la construction et de l’habitation, à compter du mois de mai
+2021.
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  définition date_entrée_vigueur_différée_cch égal à |2021-01-01|
+
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
+  définition éligibilité_commune.date_entrée_vigueur_différée_cch sous condition
+    ménage.logement.mode_occupation sous forme
+      AccessionPropriétéLocalUsageExclusifHabitation
+  conséquence égal à
+    |2021-05-01|
+```
+
+###### Article D861-6 | LEGIARTI000038878589
+
+Pour son application à Mayotte, à la dernière phrase du huitième alinéa de l'article
+D. 823-16 , les mots : " est bénéficiaire de l'allocation aux adultes handicapés prévue à
+l'article L. 821-1 du code de la sécurité sociale ou de l'allocation d'éducation de l'enfant
+handicapé prévue à l'article L. 541-1 du même code " sont remplacés par les mots : " est
+bénéficiaire de l'allocation aux adultes handicapés ou de l'allocation d'éducation de
+l'enfant handicapé prévues à l'article 35 de l'ordonnance du 27 mars 2002 relative à la
+protection sanitaire et sociale à Mayotte et à l'article 10-1 de l'ordonnance du 7 février
+2002 relative à l'extension et la généralisation des prestations familiales et à la protection
+sociale dans la collectivité départementale de Mayotte ".
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+###### Article D861-7 | LEGIARTI000044634615
+
+La section 2 du chapitre III du titre II du présent livre n'est pas applicable à Mayotte.
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces dispositions
+s'appliquent aux contributions et aux prestations dues à compter du 1er janvier 2022.
+
+```catala
+champ d'application ÉligibilitéPrimeDeDéménagement sous condition
+  date_courante >= |2022-01-01| :
+  exception règle éligibilité sous condition
+    ménage.résidence sous forme Mayotte
+  conséquence non rempli
+```
+
+##### Section 2 : Allocations de logement
+
+###### Article D861-8 | LEGIARTI000038878583
+
+Pour leur application en Guadeloupe, en Guyane, en Martinique, à La Réunion et à Mayotte :
+
+1° A l'article D. 842-6 , pour le calcul du nombre de parts " N " intervenant dans le
+coefficient de prise en charge " K ", la majoration pour personne à charge mentionnée au d
+du 2° de l'article D. 832-25 est limitée à six enfants ;
+
+```catala
+# Ici nous reprenons les chiffres de D832-25, à prendre en compte lorsque
+# ceux-ci seront modifiés
+champ d'application CalculNombrePartLogementFoyer:
+  exception d832_25_2
+  définition n_nombre_parts_d832_25_majoration sous condition
+    limitation_majoration_personnes_à_charge et
+    nombre_personnes_à_charge > 6
+  conséquence égal à
+      1,0
+
+# Ci-dessus, nous avons modifié le calcul de CalculNombrePartLogementFoyer
+# lorsque la "limitation_majoration_personnes_à_charge" est activée. Mais il
+# nous faut maintenant activer cette "limitation_majoration_personnes_à_charge"
+# dans les bons cas ! Pour cela, puisque CalculNombrePartLogementFoyer
+# est appelé depuis CalculAidePersonnaliséeLogementFoyer, il nous faut déclarer
+# dans CalculAidePersonnaliséeLogementFoyer une condition
+# "limitation_majoration_personnes_à_charge" similaire qui déclenche celle de
+# CalculNombrePartLogementFoyer. C'est ce que nous faisons ci-dessous.
+champ d'application CalculAidePersonnaliséeLogementFoyer:
+  règle
+    calcul_nombre_parts.limitation_majoration_personnes_à_charge
+  sous condition
+    limitation_majoration_personnes_à_charge
+  conséquence rempli
+
+# Maintenant que nous avons défini notre point d'entrée dans
+# CalculAidePersonnaliséeLogementFoyer, nous pouvons taper dedans depuis
+# CalculAllocationLogementAccessionPropriété à la manière de D842-6.
+# C'est chose faite ci-dessous.
+champ d'application CalculAllocationLogementAccessionPropriété:
+  règle calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge
+  sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Guyane: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- n'importe quel: faux
+  conséquence rempli
+```
+
+2° Les dispositions du troisième alinéa de l'article D. 842-11 et du 1° de l'article
+D. 842-12 ne sont pas applicables aux opérations de logements évolutifs sociaux ou de
+logements très sociaux, en accession à la propriété aidée par l'Etat ;
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+   exception règle condition_d842_11_3 sous condition
+    (selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Guyane: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- n'importe quel: faux) et
+    opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+   conséquence non rempli
+```
+
+3° Les arrêtés relatifs aux allocations de logement prévus aux articles D. 842-13 et
+D. 842-18 sont également pris par le ministre chargé de l'outre-mer ;
+
+```catala
+# Rien à coder ici.interne
+```
+
+4° A l'article D. 842-15 , pour le calcul du nombre de parts " N " intervenant dans le
+coefficient de prise en charge " K ", la majoration pour personne à charge mentionnée au d
+du 2° de l'article D. 832-25 est limitée à six enfants.
+
+```catala
+champ d'application CalculAllocationLogementFoyer:
+  règle calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge
+  sous condition
+    selon résidence sous forme
+    -- Guadeloupe: vrai
+    -- Guyane: vrai
+    -- Martinique: vrai
+    -- LaRéunion: vrai
+    -- Mayotte: vrai
+    -- n'importe quel: faux
+  conséquence rempli
+```
+
+###### Article D861-9 | LEGIARTI000038878581
+
+L'âge limite pour l'ouverture du droit à l'allocation de logement sociale prévu par les
+dispositions du dernier alinéa de l'article L. 861-6 est fixé à vingt-deux ans.
+
+```catala
+# Le dernier alinéa de L861-6 introduit une restriction supplémentaire pour
+# la prise en compte des enfants à charge : après l'obligation scolaire,
+# les enfants sont considérés comme à charge jusqu'à un certain âge et
+# s'ils suivent des études ou assimilé. L'âge limite après obligation scolaire
+# existe déjà en Métropole, il est prévu par L512-3 du CCS mais ici on le
+# redéfini pour être à 22 ans, sachant qu'il est déjà redéfini pour être à 21
+# ans par R823-4 CCH. Petite subtilité supplémentaire: ici le D861-9 nous
+# dit que cette âge limite de 22 ans ne s'applique que pour l'allocation
+# logement alors que R823-4 est une disposition commune à l'AL et à l'APL.
+# Or dans les DROM il n'y a pas d'APL, seulement l'AL, donc ici nous pouvons
+# modifier directement l'éligibilité commune aux AL et aux APL pour éviter
+# du code compliqué qui ne s'appliquerait qu'aux AL.
+champ d'application ÉligibilitéAidesPersonnelleLogement:
+  exception définition prestations_familiales.âge_l512_3_2 sous condition
+    (selon ménage.résidence sous forme
+      -- Guadeloupe: vrai
+      -- Guyane: vrai
+      -- Martinique: vrai
+      -- LaRéunion: vrai
+      -- Mayotte: vrai
+      -- n'importe quel: faux)
+  conséquence égal à 22 an
+```
+
+###### Article D861-10 | LEGIARTI000038878579
+
+Pour son application à Mayotte, le 3° de l'article D. 842-16 est ainsi modifié :
+
+1° Les mots : " par l'article L. 161-17-2 du code de la sécurité sociale " sont remplacés
+par les mots : " par le premier alinéa de l'article 6 de l'ordonnance n° 2002-411 du 27 mars
+2002 relative à la protection sanitaire et sociale à Mayotte " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+2° Les mots : " l'allocation mentionnée à l'article L. 815-1 du code de la sécurité sociale "
+sont remplacés par les mots : " l'allocation spéciale pour les personnes âgées prévue par
+l'article 28 de la même ordonnance ".
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+###### Article D861-11 | LEGIARTI000038878577
+
+Les dispositions du chapitre III du titre IV du présent livre et de l'article R. 844-2 ne
+sont pas applicables à Mayotte.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+#### Chapitre II : Saint-Barthélemy et Saint-Martin
+
+###### Article R862-1 | LEGIARTI000038878573
+
+Pour l'application du présent livre à Saint-Barthélemy et à Saint-Martin :
+
+1° La gestion des aides personnelles au logement est assurée :
+
+a) A Saint-Martin, dans les conditions prévues par le deuxième alinéa de l'article L. 752-1
+du code de la sécurité sociale ;
+b) A Saint-Barthélemy, dans les conditions prévues par le troisième alinéa du même article ;
+
+2° Sauf lorsqu'il en est disposé autrement, les références au code général des impôts sont
+remplacées par les références aux règles applicables localement en matière fiscale ayant le
+même objet ;
+
+3° Les logements-foyers mentionnés à l'article L. 633-1 s'entendent des établissements
+destinés au logement collectif, à titre de résidence principale, de personnes dans des
+immeubles comportant à la fois des locaux privatifs, meublés ou non, et des locaux communs
+ affectés à la vie collective.
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+##### Section I : Dispositions communes aux aides personnelles au logement
+
+###### Article R862-2 | LEGIARTI000041419269
+
+Pour leur application à Saint-Barthélemy et à Saint-Martin :
+
+1° L'article R. 822-24 est remplacé par les dispositions suivantes :
+" Art. R. 822-24.-Pour le versement de l'aide personnelle au logement, les caractéristiques
+de décence que doit remplir le logement sont celles prévues par le décret n° 2002-120 du 30
+janvier 2002 relatif aux caractéristiques du logement décent. " ;
+
+```catala
+# Cette disposition remplace la phrase originelle de R822-4 par une phrase
+# ayant srictement le même sens mais formulée un peu différemment...
+# Rien à faire pour nous.
+```
+
+2° Le deuxième alinéa de l'article R. 823-4 est remplacé par les dispositions suivantes :
+" 1° Les enfants de moins de vingt-deux ans et considérés comme enfants à charge au sens des
+1° et 2° de l'article L. 512-3 du code de la sécurité sociale et de l'article L. 823-2 du
+présent code " ;
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= date_entrée_vigueur_différée_cch:
+
+  exception définition prestations_familiales.âge_l512_3_2 sous condition
+    selon ménage.résidence sous forme
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux
+  conséquence égal à 22 an
+```
+
+3° Au 2° de l'article R. 823-11 , les mots : " définies au I de l'article L. 521-2 du
+présent code " sont remplacés par les mots : " prévues par la réglementation applicable
+localement " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+4° Le quatrième alinéa de l'article R. 824-7 est ainsi modifié :
+a) Après les mots : " fonds départemental de solidarité pour le logement ", sont insérés les
+mots : " ou un organisme à vocation analogue institué par la réglementation applicable
+localement " ;
+b) Les mots : " mentionné à l'article 6 de la loi n° 90-449 du 31 mai 1990 visant à la mise
+en œuvre du droit au logement " sont supprimés ; 5° Au second alinéa de l'article R. 824-32 ,
+les mots : " mentionné à l'article 3 de la loi n° 90-449 du 31 mai 1990 visant à la mise en
+œuvre du droit au logement, " sont remplacés par les mots : ", s'il existe localement,  "   .
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+NOTA :
+
+Se reporter aux conditions d'application prévues à l'article 25 du décret n° 2019-1574
+du 30 décembre 2019. Conformément à l'article 1 du décret n° 2020-451 du 20 avril 2020
+l'article susvisé a été modifié :
+Ces dispositions sont applicables au calcul des droits, d'une part, à l'aide personnalisée au
+logement prévue pour les accédants à la propriété par l'article L. 831-1 du code de la
+construction et de l'habitation, d'autre part, aux autres aides personnelles au logement
+prévues par le même code, à compter des mois respectifs fixés par arrêté des ministres en
+charge du logement, de la santé et du budget et, au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article 25 du
+décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions sont applicables au
+calcul des droits à l’aide personnelle au logement à compter du mois de janvier 2021 ou, pour
+le calcul des droits à l’aide personnalisée au logement prévue pour les accédants à la
+propriété par l’article L. 831-1 du code de la construction et de l’habitation, à compter du
+mois de mai 2021.
+
+```catala
+# NOTA similaire à R861-5, voir cet article pour l'encodage de la date
+# d'entrée en vigueur différée.
+```
+
+###### Article R862-3 | LEGIARTI000039621265
+
+L'article R. 824-30 n'est pas applicable à Saint-Barthélemy et à Saint-Martin.
+
+```catala
+# Concerne les impayés de loyer, hors du champ de notre calculette.
+```
+
+###### Article R862-4 | LEGIARTI000041419262
+
+I.-Pour l'application, à Saint-Martin et à Saint-Barthélemy, de l'article D. 822-21 :
+
+1° Les mots : “ défini à l' article 17-1 de la loi n° 89-462 du 6 juillet 1989 tendant à
+améliorer les rapports locatifs et portant modification de la loi n° 86-1290 du 23 décembre
+1986 ” sont remplacés par les mots : “ applicable localement ” ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+2° Pour l'application de ce même article, à défaut d'indice spécifique à la collectivité, il
+est fait application de celui en vigueur en métropole.
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+II.-Les arrêtés relatifs aux allocations de logement prévus à l'article D. 823-19 sont
+également pris par le ministre chargé de l'outre-mer.
+
+NOTA : Se reporter aux conditions d'application prévues à l'article 25 du décret
+n° 2019-1574 du 30 décembre 2019. Conformément à l'article 1 du décret n° 2020-451 du
+20 avril 2020 l'article susvisé a été modifié : Ces dispositions sont applicables au calcul
+des droits, d'une part, à l'aide personnalisée au logement prévue pour les accédants à la
+propriété par l'article L. 831-1 du code de la construction et de l'habitation, d'autre part,
+aux autres aides personnelles au logement prévues par le même code, à compter des mois
+respectifs fixés par arrêté des ministres en charge du logement, de la santé et du budget et,
+au plus tard, du 1er janvier 2021.
+
+Aux termes de l'article 2 du décret n° 2020-1816 du 29 décembre 2020, l'article 25 du
+décret n° 2019-1574 du 30 décembre 2019 a été modifié : Ces dispositions sont applicables au
+calcul des droits à l’aide personnelle au logement à compter du mois de janvier 2021 ou, pour
+le calcul des droits à l’aide personnalisée au logement prévue pour les accédants à la
+propriété par l’article L. 831-1 du code de la construction et de l’habitation, à compter
+du mois de mai 2021.
+
+```catala
+# NOTA similaire à R861-5, voir cet article pour l'encodage de la date
+# d'entrée en vigueur différée.
+```
+
+##### Section 2 : Aide personnalisée au logement
+
+###### Article R862-5 | LEGIARTI000038878561
+
+Pour leur application à Saint-Barthélemy et à Saint-Martin :
+
+1° Au 3° de l'article R. 831-1 , les mots : " prévues par la loi n° 84-595 du 12 juillet
+1984 définissant la location-accession à la propriété immobilière " sont remplacés par les
+mots : " prévues par la réglementation applicable localement en matière de location-accession
+à la propriété immobilière " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+2° A l'article R. 832-22 , les mots : " dans les conditions prévues à la section 7 du
+chapitre III du titre V du livre III " sont remplacés par les mots : " dans les conditions
+prévues par la règlementation locale ".
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+###### Article D862-6 | LEGIARTI000038878559
+
+Pour leur application à Saint-Barthélemy et à Saint-Martin :
+
+1° L'article D. 832-2 est ainsi modifié :
+
+a) Au deuxième alinéa, les mots : " prévus aux articles L. 353-20 et L. 442-8-1 " sont
+remplacés par les mots : " prévus par la réglementation applicable localement " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+b) Le quatrième alinéa est abrogé ;
+
+2° A l'article D. 832-3 , les mots : " les sociétés faisant l'objet des dispositions des
+articles L. 212-1 à L. 212-13 et L. 213-1 à L. 213-5 " sont remplacés par les mots :
+" les sociétés civiles constituées en vue de la vente d'immeubles, les sociétés constituées
+en vue de l'attribution d'immeubles aux associés par fractions divises et les sociétés
+coopératives de construction " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+3° Pour le calcul de l'équivalence de loyer et de charges locatives minimale prévu au 3° de
+l'article D. 832-24 , les articles R. 353-156 à R. 353-160 du présent code sont applicables à
+Saint-Barthélemy et à Saint-Martin.
+
+```catala
+# Les articles R. 353-156 à R. 353-160 parlent de la fraction de la redevance
+# en logement-foyer comptée pour le barème des aides au logement. Ici on nous
+# dit qu'à Saint-Barthélemy les règles de la métropole s'appliquent aussi,
+# rien à coder.
+```
+
+##### Section III : Allocations de logement
+
+###### Article D862-7 | LEGIARTI000038878555
+
+Pour leur application à Saint-Barthélemy et à Saint-Martin :
+
+1° A l'article D. 842-4 , les mots : " en application de l'article L. 522-1 " sont remplacés
+par les mots : " en application de la réglementation applicable localement " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+2° Aux articles D. 842-6 et D. 842-15 , pour le calcul du nombre de parts " N " intervenant
+dans le coefficient de prise en charge " K ", la majoration pour personne à charge mentionnée
+au d du 2° de l'article D. 832-25 est limitée à six enfants ;
+
+```catala
+# Dispositif déjà codé dans D861-8, ici on l'active succintement.
+champ d'application CalculAllocationLogementAccessionPropriété:
+  règle calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge
+  sous condition
+    selon résidence sous forme
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux
+  conséquence rempli
+```
+
+3° Les dispositions du troisième alinéa de l'article D. 842-11 et du 1° de l'article
+D. 842-12 ne sont pas applicables aux opérations de logements évolutifs sociaux ou de
+logements très sociaux, en accession à la propriété aidée par l'Etat ;
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété:
+   exception règle condition_d842_11_3 sous condition
+    (selon résidence sous forme
+    -- SaintBarthélemy: vrai
+    -- SaintMartin: vrai
+    -- n'importe quel: faux) et
+    opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+   conséquence non rempli
+```
+
+4° Les arrêtés relatifs aux allocations de logement prévus aux articles D. 842-13 et
+D. 842-18 sont également pris par le ministre chargé de l'outre-mer.
+
+###### Article R862-8 | LEGIARTI000038878553
+
+Pour leur application à Saint-Barthélemy et à Saint-Martin :
+
+1° L'article R. 843-1 est ainsi modifié :
+
+a) Le troisième alinéa est abrogé ;
+
+a) Aux deuxième, cinquième et septième alinéas, après les mots : " le préfet " sont insérés
+les mots : " et le président du conseil territorial " ;
+
+c) Au dernier alinéa, après les mots : " le comité responsable du plan local d'action pour le
+logement et l'hébergement des personnes défavorisées " sont insérés les mots :
+", s'il existe, " ;
+
+```catala
+# Cet article décrit la manière dont une perte de décence du logement peut être
+# gérée par le bailleur dans un cadre temporaire. Cependant cela n'affecte
+# pas l'éligibilité et le montant du ménage aux aides au logement donc nous
+# le considérons hors du champ de notre calculette.
+```
+
+2° L'article R. 843-6 est ainsi modifié :
+
+a) Au 2°, les mots : " de l'article 6 de la loi n° 89-462 du 6 juillet 1989 tendant à
+améliorer les rapports locatifs et portant modification de la loi n° 86-1290 du 23 décembre
+1986 " sont remplacés par les mots : " des conditions de décence du logement " ;
+
+b) Au 5°, les mots : " ou qu'il a saisi la commission de médiation prévue à l'article
+L. 441-2-3 " sont remplacés par les mots : " ou qu'il a saisi une commission de médiation
+prévue par la réglementation applicable localement ".
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+###### Article R862-9 | LEGIARTI000038878551
+
+L'article R. 843-3 et le deuxième alinéa de l'article R. 844-1 ne sont pas applicables à
+Saint-Barthélemy et à Saint-Martin.
+
+```catala
+# Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
+# au logement donc nous le considérons hors du champ de notre calculette.
+```
+
+#### Chapitre III : Saint-Pierre-et-Miquelon
+
+###### Article R863-1 | LEGIARTI000044637052
+
+Pour l'application du présent livre à Saint-Pierre-et-Miquelon :
+
+1° La gestion des aides personnelles au logement est confiée à la caisse de prévoyance
+sociale de Saint-Pierre-et-Miquelon ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+2° Un “ logement-foyer ” s'entend d'un établissement destiné au logement collectif, à
+titre de résidence principale, de personnes dans des immeubles comportant à la fois des
+locaux privatifs meublés ou non, et des locaux communs affectés à la vie collective.
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+##### Section I : Fonds national d'aide au logement
+
+```catala
+# Rien à coder.
+```
+
+##### Section II : Dispositions communes aux aides personnelles au logement
+
+###### Sous-section I : Principes généraux
+
+####### Article R863-3 | LEGIARTI000044636779
+
+Les dispositions du titre II du présent livre ne sont pas applicables à
+Saint-Pierre-et-Miquelon en ce qui concerne l'aide personnalisée au logement mentionnée
+au 1° de l'article L. 821-1.
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+```catala
+# Redite de L860-3, rien à coder.
+```
+
+###### Sous-section II : Conditions générales d'attribution
+
+####### Article R863-4 | LEGIARTI000044636782
+
+Pour leur application à Saint-Pierre-et-Miquelon :
+
+1° A l'article R. 822-2, les mots : “ la période mentionnée au 1° de l'article R. 822-3 ”
+sont remplacés par les mots : “ l'année civile ” ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+2° L'article R. 822-3 est remplacé par les dispositions suivantes :
+“ Art. R. 822-3.-Les ressources prises en compte pour l'établissement des aides
+personnelles au logement sont celles perçues pendant l'année civile de référence.
+
+“ L'année civile de référence est l'avant-dernière année précédant la période de
+paiement. ” ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+3° L'article R. 822-4 est remplacé par les dispositions suivantes :
+
+“ Art. R. 822-4.-I.-Les ressources prises en compte s'entendent du total des revenus
+nets catégoriels retenus pour l'établissement de l'impôt sur le revenu, des revenus
+taxés à un taux proportionnel ou soumis à un prélèvement libératoire de l'impôt sur
+le revenu ainsi que des revenus perçus hors de Saint-Pierre-et-Miquelon ou versés par
+une organisation internationale.
+
+“ Sont également pris en compte :
+
+“ 1° Après application des déductions correspondant à celles mentionnées au 2 de
+l'article 56 et au 8 de l'article 79 du code local des impôts, les indemnités
+journalières mentionnées au 1° de l'article 27 du décret n° 57-245 du 24 février 1957 ;
+
+“ 2° Les rémunérations liées aux heures supplémentaires ou assimilées mentionnées à
+l'article 52 quater du code local des impôts, après application de déductions calculées
+selon les mêmes règles que celles mentionnées au 2 de l'article 56 et au 8 de l'article
+79 du même code.
+
+“ II.-Sont déduits du décompte des ressources :
+
+“ 1° Les créances alimentaires mentionnées au 3° du b du 2 de l'article 75 du code local
+des impôts ;
+
+“ 2° L'abattement mentionné à l'article 77 du code local des impôts pour
+les personnes nées avant le 1er janvier 1931 et pour les personnes invalides.
+
+“ III.-Ne sont pas déduits du décompte des ressources les déficits constatés au cours
+d'une année antérieure à celle de la période de référence définie à l'article R. 822-3
+et qui font l'objet d'un report, en vertu des dispositions de l'article 75 du code local
+des impôts.
+
+“ IV.-Ne sont pas pris en compte les arrérages des rentes viagères constituées en
+faveur d'une personne handicapée, mentionnés au g du 2 de l'article 75 du code local des
+impôts. ” ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+4° L'article R. 822-5 n'est pas applicable à Saint-Pierre-et-Miquelon ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+5° Au 2° l'article R. 822-6, après les mots : “ l'article L. 161-17-2 du code de la
+sécurité sociale ”, sont insérés les mots : “ dans sa rédaction résultant du b du 1° de
+l'article 5 de la loi n° 87-563 du 17 juillet 1987 portant réforme du régime d'assurance
+vieillesse applicable à Saint-Pierre-et-Miquelon ” ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+6° A l'article R. 822-7, les mots : “ au 1° de ” sont remplacés par le mot : “ à ” ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+7° L'article R. 822-18 n'est pas applicable à Saint-Pierre-et-Miquelon ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+```
+
+8° A l'article R. 822-22 :
+
+a) Les mots : “ au 3° de ” sont remplacés par le mot : “ à ” ;
+
+b) Le 2° est remplacé par les dispositions suivantes :
+
+“ 2° Pour le patrimoine immobilier, du loyer moyen annuel brut observé sur ce type de
+bien. ” ;
+
+```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet alinéa et des précédents et de ceux auxquels il
+# se réfère pour correctement évaluer leur montant.
+```
+
+9° L'article R. 822-24 est remplacé par les dispositions suivantes :
+
+“ Art. R. 822-24.-Pour le versement de l'aide personnelle au logement, les
+caractéristiques de décence que doit remplir le logement sont celles prévues aux
+dispositions du décret n° 2002-120 du 30 janvier 2002 relatif aux caractéristiques du
+logement décent pris pour l'application de l'article 187 de la loi n° 2000-1208 du 13
+décembre 2000 relative à la solidarité et au renouvellement urbain.
+
+```catala
+# Décence du logement déjà prise en compte dans L822-9
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+####### Article D 863-5 | LEGIARTI000044636784
+
+Pour leur application à Saint-Pierre-et-Miquelon, les dispositions de l'article
+D. 822-21 sont remplacées par les dispositions suivantes :
+
+“ Art. D. 822-21.-Les montants mentionnés à l'article R. 822-20 sont fixés par arrêté
+des ministres chargés du logement, du budget, de la sécurité sociale et de l'outre-mer.
+Ils évoluent, le 1er janvier de chaque année, comme l'indice de référence des loyers
+applicable localement. Ils sont arrondis à la centaine d'euro la plus proche.
+
+“ A défaut d'indice spécifique à la collectivité, il est fait application de celui en
+vigueur en métropole.
+
+```catala
+# Cet article régit la manière dont les montants forfaitaires de ressources
+# évoluent d'année en année mais nous ne cherchons pas à formaliser cela
+# dans ce calculateur.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+###### Sous-section III : Modalités de liquidation et de versement
+
+####### Article R863-6 | LEGIARTI000044636786
+
+Pour leur application à Saint-Pierre-et-Miquelon :
+
+1° L'article R. 823-1 est remplacé par les dispositions suivantes :
+
+“ Art. R. 823-1-Les aides personnelles au logement sont liquidées et payées par la
+Caisse de prévoyance sociale de Saint-Pierre-et-Miquelon pour les bénéficiaires résidant
+à Saint-Pierre-et-Miquelon. ” ;
+
+```catala
+# Pas pertinent pour le calcul du montant.
+```
+
+2° A l'article R. 823-2, le mot : “ agriculture ” est remplacé par le mot :
+“ outre-mer ” ;
+
+
+```catala
+# Pas pertinent pour le calcul du montant.
+```
+
+3° Le 1° et 2° de l'article R. 823-4 sont remplacés par les dispositions suivantes :
+
+“ 1° Les enfants de moins de vingt et un ans et considérés comme à charge au sens des
+1° et 2° de l'article L. 512-3 du code de la sécurité sociale dans leur rédaction
+résultant du 2° de l'article 11 de l'ordonnance n° 77-1102 du 26 septembre 1977 portant
+extension et adaptation au département de Saint-Pierre-et-Miquelon de diverses
+dispositions relatives aux affaires sociales et de l'article L. 823-2 du présent code ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+# Attention : ici on redit 21 ans en dur comme l'âge de la métropole mais si
+# R823-4 change il faut bien penser à mettre à jour ici aussi.
+```
+
+“ 2° Les ascendants du bénéficiaire ou de son conjoint dont les ressources déterminées
+dans les conditions prévues aux articles R. 822-3 à R. 822-6 n'excèdent pas le plafond
+individuel prévu à l'article L. 815-9 du code de la sécurité sociale, en vigueur au 31
+décembre de l'année de référence multiplié par 1,25 :
+
+“ a) Ayant au moins l'âge prévu par l'article L. 351-8 du code de la sécurité sociale
+dans sa rédaction résultant du a du 3° de l'article 5 de la loi n° 87-563 du 17 juillet
+1987 portant réforme du régime d'assurance vieillesse applicable à
+Saint-Pierre-et-Miquelon ou, s'ils sont titulaires de l'allocation de solidarité aux
+personnes âgées, soixante-cinq ans ;
+
+“ b) Ayant au moins l'âge prévu par l'article L. 161-17-2 du code de la sécurité sociale
+dans sa rédaction résultant du b du 1° de l'article 5 de la loi n° 87-563 mentionnée
+précédemment et bénéficiaires de l'article L. 161-19 et de l'article L. 351-8 dans sa
+rédaction résultant du même article 5 ; ”
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+4° L'article R. 823-6 est remplacé par les dispositions suivantes :
+
+“ Art. R. 823-6.-Les aides personnelles au logement sont calculées au 1er janvier de
+chaque année, sous réserve des cas prévus aux articles R. 822-7 à R. 822-17, R. 823-7,
+R. 823-10 à R. 823-14 ainsi que, le cas échéant R. 832-9.
+
+“ Elles sont calculées sur la base du loyer effectivement payé pour le mois de juillet
+de l'année précédente ou, en cas d'accession à la propriété, sur la base de la mensualité
+acquittée au titre des charges.
+
+“ Elles sont versées soit pendant une période de douze mois débutant le 1er janvier,
+soit à compter de l'ouverture du droit jusqu'au 31 décembre suivant. Dans ce dernier cas,
+elles sont calculées et servies proportionnellement au nombre de mois pendant lesquels
+le droit est ouvert. ” ;
+
+```catala
+# Les délais d'examen des demandes définis dans cet article ne sont pas
+# nécessairement pertinents à formaliser pour le moment.
+```
+
+5° L'article R. 823-6-1 n'est pas applicable à Saint-Pierre-et-Miquelon ;
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+6° L'article R. 823-8 est complété par les mots : “ et s'il y a lieu les accords
+particuliers prévus à l'article L. 812-3 ” ;
+
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+7° L'article R. 823-11 est remplacé par les dispositions suivantes :
+
+“ Art. R. 823-11.-Par dérogation à l'article R. 823-10, l'aide est due à compter du
+premier jour du mois civil au cours duquel les conditions d'ouverture du droit sont
+réunies aux personnes dont le logement a fait l'objet d'un arrêté d'insalubrité ou de
+péril lorsqu'elles reprennent le paiement du loyer ou de toute autre somme versée en
+contrepartie de l'occupation de ce logement ou lorsqu'elles sont relogées. ” ;
+
+```catala
+# Pas pertinent pour le moment.
+# Mais d'autres modes d'occupation peuvent peut-être être ajoutés?
+```
+
+8° A l'article R. 823-23, après les mots : “ article L. 553-2 du code de la sécurité
+sociale ”, sont ajoutés les mots : “ dans sa rédaction résultant du c du 13° de
+l'article 11 de l'ordonnance n° 77-1102 du 26 septembre 1977 portant extension et
+adaptation au département de Saint-Pierre-et-Miquelon de diverses dispositions relatives
+aux affaires sociales. ” ;
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+9° L'article R. 823-24 est remplacé par les dispositions suivantes :
+
+“ Art. R. 823-24.-Les dispositions des articles D. 553-1 et D. 553-2 du code de la
+sécurité sociale sont applicables au recouvrement des indus.
+
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022 sous réserve des dispositions de l'article 7 dudit décret.
+
+####### Article D863-7 | LEGIARTI000044636789
+
+Pour leur application à Saint-Pierre-et-Miquelon :
+
+1° L'article D. 823-9 est remplacé par les dispositions suivantes :
+
+“ Art. D. 823-9.-Les modalités de liquidation et de versement des aides personnelles au
+logement sont fixées :
+
+“ 1° Pour les ménages occupant un logement dont ils sont propriétaires, ou pour lequel
+ils sont titulaires d'un contrat de location-accession, par les règles figurant aux
+articles R. 842-5 et D. 842-6 à D. 842-13 ;
+
+“ 2° Pour les autres ménages, par les règles communes figurant aux articles D. 823-16 à
+D. 823-19 et par les règles particulières figurant aux articles D. 842-1 à D. 842-4. ” ;
+
+
+```catala
+# Ici, l'effet de cette modification est d'imposer le mode de calcul du
+# secteur locatif à tous les logements-foyer de Saint-Pierre et Miquelon, qui
+# sont inclus dans "pour les autres ménages du 2°".
+# On ne code que l'effet sur le calcul de l'allocation logement car au titre
+# de L860-3 les Saint-Pierre-et-Miquelonnais n'ont pas droit à l'aide
+# personnalisée au logement.
+
+champ d'application CalculAllocationLogement sous condition
+  résidence sous forme SaintPierreEtMiquelon:
+
+  exception définition sous_calcul_traitement égal à
+    selon catégorie_calcul_apl sous forme
+    -- LogementFoyer de logement_foyer_:
+      (soit traitement_formule égal à
+        résultat de CalculAllocationLogementLocatif avec {
+          -- résidence: résidence
+          -- ressources_ménage_arrondies: ressources_ménage
+          -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- zone: zone
+          -- date_courante: date_courante
+          -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+          # Nous assimilons la redevance au loyer pour le calcul
+          -- loyer_principal: logement_foyer_.redevance
+          -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
+              logement_foyer_.bénéficiaire_aide_adulte_ou_enfant_handicapés
+          # TODO juridique: est-ce qu'on applique le barème spécial chambre
+          # systématiquement pour les personnes résidant en logement-foyer
+          # à Saint-Pierre-et-Miquelon ?
+          -- logement_est_chambre: vrai
+          # TODO juridique: examiner si dans ce cas on considère qu'une personne
+          # habitant en logement-foyer n'est pas en colocation au sens du
+          # secteur locatif.
+          -- colocation: faux
+          # Ce cas prévu à l'article 8 de l'arrêté du 27 septembre 2019 n'est
+          # pas possible pour un hébergement en logement-foyer.
+          -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
+          -- type_aide: type_aide
+          # D'après l'article L442-2-1 du CCH la réduction de loyer de
+          # solidarité est liée à la nature du logement et exclut explicitement
+          # les logements-foyer. Donc ici 0 € de RLS.
+          -- réduction_loyer_solidarité: 0 €
+          -- logement_meublé_d842_2: logement_foyer_.logement_meublé_d842_2
+          -- changement_logement_d842_4: PasDeChangement
+        }
+      dans Traitement_formule_aide_finale {
+        -- aide_finale_formule:
+          traitement_formule.aide_finale_formule
+        -- traitement_aide_finale:
+          traitement_formule.
+            CalculAllocationLogementLocatif.traitement_aide_finale
+      })
+    # Les deux premiers cas ne se déclenchent pas dans cette exception donc
+    # nous renvoyons des valeurs nulles qui ne seront jamais utilisées.
+    -- AccessionPropriété:
+      Traitement_formule_aide_finale {
+        -- aide_finale_formule: 0€
+        -- traitement_aide_finale: traitement_nul_tout_le_temps
+    }
+    -- Location: Traitement_formule_aide_finale {
+        -- aide_finale_formule: 0€
+        -- traitement_aide_finale: traitement_nul_tout_le_temps
+    }
+
+déclaration traitement_nul_tout_le_temps contenu argent
+  dépend de aide_finale contenu argent égal à 0 €
+```
+
+2° Au 5° de l'article D. 823-17, les mots : “ en fonction de l'évolution de l'indice des
+prix à la consommation des ménages hors tabac. Cette évolution est appréciée entre le
+1er octobre de l'avant-dernière année précédant la revalorisation et le 1er octobre de
+l'année précédant la revalorisation. ” sont remplacés par les mots : “ selon l'évolution
+annuelle du dernier indice des prix à la consommation des ménages hors tabac en vigueur
+localement et connu à la date du 1er novembre. ” ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+3° A l'article D. 823-19, le mot : “ agriculture ” est remplacé par le mot :
+“ outre-mer ” ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+4° L'article D. 823-25 est remplacé par les dispositions suivantes :
+
+“ Art. D. 823-25.-Les organismes payeurs sont autorisés à abandonner la mise en
+recouvrement des sommes indûment payées, pour un montant en deçà de 0,68 % du plafond
+mensuel de sécurité sociale en vigueur, arrondi à l'euro supérieur. ”
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+####### Article D863-8 | LEGIARTI000044636791
+
+La section 2 du chapitre III du titre II du présent livre n'est pas applicable à
+Saint-Pierre-et-Miquelon.
+
+```catala
+# Redite de L863-2, rien à coder.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+###### Sous-section IV : Impayés de dépenses de logement
+
+####### Article R863-9 | LEGIARTI000044636793
+
+Pour leur application à Saint-Pierre-et-Miquelon :
+
+1° A l'article R. 824-7 :
+
+a) Au quatrième alinéa, les mots : “ mentionné à l'article 6 de loi n° 90-449 du 31 mai
+1990 visant à la mise en œuvre du droit au logement ” sont remplacés par les mots :
+“, ou l'organisme local à vocation équivalente ” ;
+
+b) Au sixième alinéa, les mots : “ tout autre ” sont remplacés par le mot : “ l'” et les
+mots : “ à vocation analogue ” sont remplacés par les mots : “ local équivalent ” ;
+
+2° A l'article R. 824-11, après les mots : “ commission de coordination des actions de
+prévention des expulsions locatives ”, sont insérés les mots : “ ou une structure locale
+équivalente ” ;
+
+3° A l'article R. 824-23 la référence : “ L. 712-1 ” est remplacée par la référence :
+“ L. 771-10 ” ;
+
+4° A l'article R. 824-29 les mots “, notamment dans le cas prévu au V de l'article 24 de
+la loi n° 89-462 du 6 juillet 1989 tendant à améliorer les rapports locatifs et portant
+modification de la loi n° 86-1290 du 23 décembre 1986 ” ne sont pas applicables ;
+
+5° L'article R. 824-30 n'est pas applicable à Saint-Pierre-et-Miquelon ;
+
+6° Le second alinéa de l'article R. 824-32 est remplacé par les dispositions suivantes :
+
+“ Dans ce cas, l'établissement bancaire est substitué au bailleur, l'échéance de prêt
+au loyer et le dispositif local en charge de la lutte contre les impayés dans le domaine
+de l'accession est substitué à la commission de coordination des actions de prévention
+des expulsions locatives. ”
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+####### Article D863-10 | LEGIARTI000044636795
+
+Pour son application à Saint-Pierre-et-Miquelon, à l'article D. 824-15, après les mots
+: “ l'article L. 442-8-2 ”, sont ajoutés les mots : “ ou des dispositions locales
+équivalentes ”.
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+###### Sous-section V : Contentieux
+
+```catala
+# Rien à coder.
+```
+
+##### Section III : Aide personnalisée au logement
+
+###### Article R863-12 | LEGIARTI000044636799
+
+Les dispositions du titre III du présent livre ne sont pas applicables à
+Saint-Pierre-et-Miquelon.
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+```catala
+# Redite de L860-3, rien à coder ici.
+```
+
+##### Section IV : Allocations de logement
+
+###### Article R863-13 | LEGIARTI000044636801
+
+Pour leur application à Saint-Pierre-et-Miquelon :
+
+1° A l'article R. 842-5, les mots : “ imposées pour le bénéfice des prêts conventionnés
+mentionnés à l'article D. 331-63 ” sont remplacés par les mots : “ en vigueur localement
+pour le bénéfice des aides accordées pour les travaux concourant à l'aménagement à usage
+de logement de locaux non destinés à l'habitation ou à l'agrandissement de logements
+existants ” ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+2° L'article R. 843-1 est remplacé par les dispositions suivantes :
+
+“ Art. R. 843-1.-Lorsque le logement ne répond pas aux caractéristiques de décence
+mentionnées à l'article R. 822-24 ou lorsque le propriétaire n'a pas produit
+l'attestation mentionnée à l'article R. 823-2, l'allocation de logement peut être
+accordée, à titre dérogatoire, par l'organisme payeur :
+
+“ 1° Aux personnes logées en hôtel meublé ou établissement assimilé, pour une durée
+d'un an. L'organisme payeur doit en informer son conseil d'administration, le préfet et
+le président du conseil territorial.
+
+“ L'autorité territorialement compétente désigne alors un organisme privé ou public aux
+fins de proposer au propriétaire une solution adaptée d'amélioration du logement ou à
+l'allocataire une solution de relogement correspondant à ses besoins et à ses
+possibilités.
+
+“ Cette dérogation peut être prorogée, pour six mois, par le conseil d'administration
+de l'organisme payeur, si les travaux de mise aux normes, bien que décidés, n'ont pas
+encore pu être achevés à l'issue de la première année ou si la solution de relogement,
+bien qu'acceptée par l'allocataire, n'a pas encore pris effet dans le même délai.
+
+“ Le préfet ainsi que le président du conseil territorial sont également informés du
+refus d'accorder l'allocation de logement à titre dérogatoire ;
+
+“ 2° Aux personnes mentionnées à l'article R. 842-5, pour une durée de dix-huit mois
+renouvelable une fois.
+
+“ L'organisme payeur doit en informer son conseil d'administration, le préfet et le
+président du conseil territorial.
+
+“ Ces derniers examinent avec l'allocataire une solution adaptée d'amélioration du
+logement ou une solution de relogement. ”
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+###### Article D863-14 | LEGIARTI000044970228
+
+Pour leur application à Saint-Pierre-et-Miquelon :
+
+1° A l'article D. 842-4, les mots : “en application de l'article L. 522-1” sont
+remplacés par les mots : “en application de la règlementation applicable localement” ;
+
+2° A l'article D. 842-13, les mots : “et de l'agriculture” sont remplacés par les mots :
+“et de l'outre-mer”.
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+###### Article D863-15 | LEGIARTI000044970240
+
+Les articles D. 842-15 à D. 842-18 ne sont pas applicables à Saint-Pierre-et-Miquelon.
+
+```catala
+# Les articles D842-15 à D842-18 concernent les modalités de calcul de
+# l'allocation de logement pour les logements-foyers, mais nous savions
+# déjà depuis D863-7 qu'il faut utiliser les règles du secteur locatif
+# au lieu des règles du secteur logement-foyer à Saint-Pierre-et-Miquelon.
+# Voir le code Catala de D863-7 pour l'implémentation.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.
+
+###### Article D863-16 | LEGIARTI000044970258
+
+Les articles R. 842-14, R. 843-2 à R. 843-8 ne sont pas applicables à
+Saint-Pierre-et-Miquelon.
+
+```catala
+# Pas pertinent pour le moment.
+```
+
+NOTA : Conformément à l'article 6 du décret n° 2021-1750 du 21 décembre 2021, ces
+dispositions s'appliquent aux contributions et aux prestations dues à compter du 1er
+janvier 2022.

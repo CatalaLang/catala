@@ -229,6 +229,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     (* this is to be used with monad_bind. *)
     let _, body = Bindlib.unmbind binder in
     trans ctx body
+
   | EAbs { binder; tys } ->
     (* Every functions of type [a -> b] are translated to a function of type [a
        -> option b] *)

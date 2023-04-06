@@ -4,6 +4,10 @@
 déclaration champ d'application BaseMensuelleAllocationsFamiliales:
   entrée date_courante contenu date
   résultat montant contenu argent
+champ d'application BaseMensuelleAllocationsFamiliales:
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2019-04-01|
 ```
 
 ## Instruction ministérielle N°DSS/SD2B/2019/65 du 25 mars 2019 relative à la revalorisation au 1er avril 2019 des prestations familiales servies en métropole
@@ -79,7 +83,6 @@ de 414,81 € au 1er avril 2021 à 422,28 € au 1er avril 2022.
 champ d'application BaseMensuelleAllocationsFamiliales :
   définition montant
   sous condition
-    date_courante >= |2022-04-01| et
-    date_courante < |2023-04-01|
+    date_courante >= |2022-04-01|
   conséquence égal à 422,28 €
 ```

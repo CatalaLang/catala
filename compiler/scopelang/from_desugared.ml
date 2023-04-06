@@ -93,8 +93,11 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
       with Not_found ->
         (* Should not happen after disambiguation *)
         Errors.raise_spanned_error (Expr.mark_pos m)
-          "Field %s does not belong to structure %a" field StructName.format_t
-          name
+          "Field %a does not belong to structure %a"
+          (Cli.format_with_style [ANSITerminal.yellow])
+          ("\"" ^ field ^ "\"")
+          (Cli.format_with_style [ANSITerminal.yellow])
+          (Format.asprintf "\"%a\"" StructName.format_t name)
     in
     Expr.estructaccess e' field name m
   | ETuple es -> Expr.etuple (List.map (translate_expr ctx) es) m
@@ -122,8 +125,8 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
          args ScopeVar.Map.empty)
       m
   | ELit
-      (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
-       | LDuration _ ) as l) ->
+      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
+      l) ->
     Expr.elit l m
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
@@ -161,6 +164,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
       (translate_expr ctx efalse)
       m
   | EArray args -> Expr.earray (List.map (translate_expr ctx) args) m
+  | EEmptyError -> Expr.eemptyerror m
   | EErrorOnEmpty e1 -> Expr.eerroronempty (translate_expr ctx e1) m
 
 (** {1 Rule tree construction} *)
@@ -294,8 +298,7 @@ let rec rule_tree_to_expr
          (translate_and_unbox_list base_just_list)
          (translate_and_unbox_list base_cons_list))
       (Expr.elit (LBool false) emark)
-      (Expr.elit LEmptyError emark)
-      emark
+      (Expr.eemptyerror emark) emark
   in
   let exceptions =
     List.map
@@ -392,7 +395,7 @@ let translate_def
        caller. *)
   then
     let m = Untyped { pos = Desugared.Ast.ScopeDef.get_position def_info } in
-    let empty_error = Expr.elit LEmptyError m in
+    let empty_error = Expr.eemptyerror m in
     match params with
     | Some (ps, _) ->
       let labels, tys = List.split ps in

@@ -214,7 +214,7 @@ let handle_type_error ctx e t1 t2 =
     (Cli.format_with_style [ANSITerminal.blue; ANSITerminal.Bold])
     "-->" t2_s ()
 
-let lit_type (type a) (lit : a A.glit) : naked_typ =
+let lit_type (lit : A.lit) : naked_typ =
   match lit with
   | LBool _ -> TLit TBool
   | LInt _ -> TLit TInt
@@ -223,7 +223,6 @@ let lit_type (type a) (lit : a A.glit) : naked_typ =
   | LDate _ -> TLit TDate
   | LDuration _ -> TLit TDuration
   | LUnit -> TLit TUnit
-  | LEmptyError -> TAny (Any.fresh ())
 
 (** [op_type] and [resolve_overload] are a bit similar, and work on disjoint
     sets of operators. However, their assumptions are different so we keep the
@@ -473,18 +472,27 @@ and typecheck_expr_top_down :
           try A.IdentName.Map.find field ctx.ctx_struct_fields
           with Not_found ->
             Errors.raise_spanned_error context_mark.pos
-              "Field %s does not belong to structure %a (no structure defines \
+              "Field %a does not belong to structure %a (no structure defines \
                it)"
-              field A.StructName.format_t name
+              (Cli.format_with_style [ANSITerminal.yellow])
+              ("\"" ^ field ^ "\"")
+              (Cli.format_with_style [ANSITerminal.yellow])
+              (Format.asprintf "\"%a\"" A.StructName.format_t name)
         in
         try A.StructName.Map.find name candidate_structs
         with Not_found ->
           Errors.raise_spanned_error context_mark.pos
-            "Field %s does not belong to structure %a, but to %a" field
-            A.StructName.format_t name
+            "Field %a does not belong to structure %a, but to %a"
+            (Cli.format_with_style [ANSITerminal.yellow])
+            ("\"" ^ field ^ "\"")
+            (Cli.format_with_style [ANSITerminal.yellow])
+            (Format.asprintf "\"%a\"" A.StructName.format_t name)
             (Format.pp_print_list
                ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
-               A.StructName.format_t)
+               (fun fmt s_name ->
+                 Format.fprintf fmt "%a"
+                   (Cli.format_with_style [ANSITerminal.yellow])
+                   (Format.asprintf "\"%a\"" A.StructName.format_t s_name)))
             (List.map fst (A.StructName.Map.bindings candidate_structs))
       in
       A.StructField.Map.find field str
@@ -788,6 +796,7 @@ and typecheck_expr_top_down :
         e1
     in
     Expr.eassert e1' mark
+  | A.EEmptyError -> Expr.eemptyerror (ty_mark (TAny (Any.fresh ())))
   | A.EErrorOnEmpty e1 ->
     let e1' = typecheck_expr_top_down ~leave_unresolved ctx env tau e1 in
     Expr.eerroronempty e1' context_mark

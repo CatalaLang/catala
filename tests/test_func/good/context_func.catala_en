@@ -17,6 +17,13 @@ scope B:
 
 ```catala-test-inline
 $ catala Scopelang -s B
+[WARNING] In scope "A", the variable "f" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_func/good/context_func.catala_en:5.10-11:
+└─┐
+5 │   context f content integer depends on x content integer
+  │           ‾
+  └─ Test
 let scope B (b: bool|input) =
   let a.f : integer → integer =
     λ (x: integer) → ⟨b && x >! 0 ⊢ x -! 1⟩;
@@ -25,6 +32,13 @@ let scope B (b: bool|input) =
 
 ```catala-test-inline
 $ catala Dcalc -s A
+[WARNING] In scope "A", the variable "f" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_func/good/context_func.catala_en:5.10-11:
+└─┐
+5 │   context f content integer depends on x content integer
+  │           ‾
+  └─ Test
 let A =
   λ (A_in: A_in {"f_in": integer → integer}) →
     let f : integer → integer = A_in."f_in" in
@@ -36,6 +50,13 @@ let A =
 
 ```catala-test-inline
 $ catala Dcalc -s B
+[WARNING] In scope "A", the variable "f" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_func/good/context_func.catala_en:5.10-11:
+└─┐
+5 │   context f content integer depends on x content integer
+  │           ‾
+  └─ Test
 let B =
   λ (B_in: B_in {"b_in": bool}) →
     let b : bool = B_in."b_in" in

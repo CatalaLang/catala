@@ -39,9 +39,6 @@ let driver source_file (options : Cli.options) : int =
     (match source_file with
     | Pos.FileName f -> filename := f
     | Contents c -> Cli.contents := c);
-    (match options.max_prec_digits with
-    | None -> ()
-    | Some i -> Cli.max_prec_digits := i);
     let l =
       match options.language with
       | Some l -> l
@@ -174,6 +171,8 @@ let driver source_file (options : Cli.options) : int =
       let prgm = Desugared.From_surface.translate_program ctxt prgm in
       Cli.debug_print "Disambiguating...";
       let prgm = Desugared.Disambiguate.program prgm in
+      Cli.debug_print "Linting...";
+      Desugared.Linting.lint_program prgm;
       Cli.debug_print "Collecting rules...";
       let prgm = Scopelang.From_desugared.translate_program prgm in
       match backend with

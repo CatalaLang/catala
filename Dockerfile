@@ -1,6 +1,6 @@
 # Stage 1: setup an opam switch with all dependencies installed
 # (only depends on the opam files)
-FROM ocamlpro/ocaml:4.14-2023-02-26 AS dev-build-context
+FROM ocamlpro/ocaml:4.14-2023-04-02 AS dev-build-context
 
 # pandoc is not in alpine stable yet, install it manually with an explicit repository
 RUN sudo apk add pandoc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/

@@ -84,6 +84,6 @@ $ catala Interpret -t -s HousingComputation
                  let result1 : RentComputation {"f": integer → integer} =
                    RentComputation { "f"=
                      λ (param0: integer) → result."f" param0 } in
-                 if true then result1 else ∅ ."f" x⟩
+                 if true then result1 else result1."f" x⟩
 [RESULT] result = 3
 ```

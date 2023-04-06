@@ -22,7 +22,7 @@ module Runtime = Runtime_ocaml.Runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 
-let format_lit (fmt : Format.formatter) (l : L.lit Marked.pos) : unit =
+let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
   match Marked.unmark l with
   | LBool true -> Format.pp_print_string fmt "True"
   | LBool false -> Format.pp_print_string fmt "False"

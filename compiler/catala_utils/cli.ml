@@ -89,6 +89,7 @@ let style_flag = ref true
 (* Max number of digits to show for decimal results *)
 let max_prec_digits = ref 20
 let trace_flag = ref false
+let disable_warnings_flag = ref false
 let optimize_flag = ref false
 let disable_counterexamples = ref false
 let avoid_exceptions_flag = ref false
@@ -138,19 +139,26 @@ let trace_opt =
           "Displays a trace of the interpreter's computation or generates \
            logging instructions in translate programs.")
 
+let disable_warnings_opt =
+  Arg.(
+    value
+    & flag
+    & info ["disable_warnings"]
+        ~doc:"Disable all the warnings emitted by the compiler.")
+
 let avoid_exceptions =
   Arg.(
     value
     & flag
     & info ["avoid_exceptions"]
-        ~doc:"Compiles the default calculus without exceptions")
+        ~doc:"Compiles the default calculus without exceptions.")
 
 let closure_conversion =
   Arg.(
     value
     & flag
     & info ["closure_conversion"]
-        ~doc:"Performs closure conversion on the lambda calculus")
+        ~doc:"Performs closure conversion on the lambda calculus.")
 
 let wrap_weaved_output =
   Arg.(
@@ -246,6 +254,7 @@ type options = {
   language : string option;
   max_prec_digits : int option;
   trace : bool;
+  disable_warnings : bool;
   disable_counterexamples : bool;
   optimize : bool;
   ex_scope : string option;
@@ -266,6 +275,7 @@ let options =
       plugins_dirs
       language
       max_prec_digits
+      disable_warnings
       trace
       disable_counterexamples
       optimize
@@ -281,6 +291,7 @@ let options =
       plugins_dirs;
       language;
       max_prec_digits;
+      disable_warnings;
       trace;
       disable_counterexamples;
       optimize;
@@ -302,6 +313,7 @@ let options =
     $ plugins_dirs
     $ language
     $ max_prec_digits_opt
+    $ disable_warnings_opt
     $ trace_opt
     $ disable_counterexamples_opt
     $ optimize
@@ -318,6 +330,10 @@ let set_option_globals options : unit =
      | Always -> true
      | Never -> false
      | Auto -> Unix.isatty Unix.stdout);
+  (match options.max_prec_digits with
+  | None -> ()
+  | Some i -> max_prec_digits := i);
+  disable_warnings_flag := options.disable_warnings;
   trace_flag := options.trace;
   optimize_flag := options.optimize;
   disable_counterexamples := options.disable_counterexamples;
@@ -501,7 +517,11 @@ let error_format (format : ('a, Format.formatter, unit) format) =
   Format.eprintf ("%s" ^^ format ^^ "\n%!") (error_marker ())
 
 let warning_print (format : ('a, out_channel, unit) format) =
-  Printf.printf ("%s" ^^ format ^^ "\n%!") (warning_marker ())
+  if !disable_warnings_flag then Printf.ifprintf stdout format
+  else Printf.printf ("%s" ^^ format ^^ "\n%!") (warning_marker ())
+
+let warning_format (format : ('a, Format.formatter, unit) format) =
+  Format.printf ("%s" ^^ format ^^ "\n%!") (warning_marker ())
 
 let warning_format (format : ('a, Format.formatter, unit) format) =
   Format.printf ("%s" ^^ format ^^ "\n%!") (warning_marker ())

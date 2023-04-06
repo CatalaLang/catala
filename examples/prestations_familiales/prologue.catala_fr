@@ -5,13 +5,6 @@ prestations familiales, il est nécessaire de définir les structures de donnée
 informatiques qui modélisent la situation dont parlent ces textes législatifs.
 
 ```catala-metadata
-déclaration énumération PriseEnChargeEnfant :
-  -- GardeAlternéePartageAllocations
-  -- GardeAlternéeAllocataireUnique
-  -- EffectiveEtPermanente
-  -- ServicesSociauxAllocationVerséeÀLaFamille
-  -- ServicesSociauxAllocationVerséeAuxServicesSociaux
-
 déclaration énumération SituationObligationScolaire:
   -- Avant
   -- Pendant
@@ -22,31 +15,22 @@ déclaration structure EnfantPrestationsFamiliales :
   donnée obligation_scolaire contenu SituationObligationScolaire
   donnée rémuneration_mensuelle contenu argent
   donnée date_de_naissance contenu date
-  donnée prise_en_charge contenu PriseEnChargeEnfant
   donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
   donnée bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
 
-déclaration énumération ÉlémentPrestationsFamiliales:
-  -- PrestationAccueilJeuneEnfant
-  -- AllocationsFamiliales
-  -- ComplémentFamilial
-  -- AllocationLogement
-  -- AllocationÉducationEnfantHandicapé
-  -- AllocationSoutienFamilial
-  -- AllocationRentréeScolaire
-  -- AllocationJournalièrePresenceParentale
-
 déclaration champ d'application ÉligibilitéPrestationsFamiliales:
+  entrée date_courante contenu date
+  entrée résidence contenu Collectivité
+
+  interne plafond_l512_3_2 contenu argent
+
+  contexte résultat âge_l512_3_2 contenu durée
   résultat droit_ouvert condition
     dépend de enfant contenu EnfantPrestationsFamiliales
   résultat conditions_hors_âge condition
     dépend de enfant contenu EnfantPrestationsFamiliales
-  interne plafond_l512_3_2 contenu argent
-  résultat âge_l512_3_2 contenu durée
   résultat régime_outre_mer_l751_1 condition
-  entrée date_courante contenu date
-  entrée prestation_courante contenu ÉlémentPrestationsFamiliales
-  entrée résidence contenu Collectivité
+
   smic champ d'application Smic
 
 champ d'application ÉligibilitéPrestationsFamiliales:

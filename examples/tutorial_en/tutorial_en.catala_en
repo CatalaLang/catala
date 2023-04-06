@@ -581,6 +581,7 @@ declaration scope Test5:
   output income_tax content money
 
 scope Test5:
+  definition normal_income_tax_computation_applies equals true
   definition individual equals Individual {
     -- income: $7,000
     -- number_of_children: 7
@@ -592,7 +593,7 @@ scope Test5:
     else $0 # Insert some other modes of computation here
 ```
 
-Here the `NewIncomeTaxComputationFixed of` syntax triggers a call of the scope
+Here the `output of NewIncomeTaxComputationFixed with` syntax triggers a call of the scope
 while setting its input variable `individual`; then the "dot" syntax is used to
 recover its `income_tax` output field.
 
@@ -953,7 +954,7 @@ declaration round_up_100
     content money
     depends on money_amount content money
   equals
-    (money_amount / 100.0 + $0.49) * 100.0
+    round of (money_amount / 100.0 + $0.49) * 100.0
     # The explanation is still needed, but it doesn't clutter the current scope
     # This definition could even be put in the Prelude
 
@@ -983,7 +984,7 @@ scope IncludeInGrossIncome:
     # That's basically the definition of "excess of"
 ```
 
-### A. With a two-argument function
+### B. With a two-argument function
 
 ```catala
 declaration excess

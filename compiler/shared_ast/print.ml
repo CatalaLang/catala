@@ -127,11 +127,10 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" typ t1
   | TAny -> base_type fmt "any"
 
-let lit (type a) (fmt : Format.formatter) (l : a glit) : unit =
+let lit (fmt : Format.formatter) (l : lit) : unit =
   match l with
   | LBool b -> lit_style fmt (string_of_bool b)
   | LInt i -> lit_style fmt (Runtime.integer_to_string i)
-  | LEmptyError -> lit_style fmt "∅ "
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
@@ -387,6 +386,7 @@ let rec expr_aux :
            expr)
         excepts punctuation "|" expr just punctuation "⊢" expr cons punctuation
         "⟩"
+  | EEmptyError -> lit_style fmt "∅ "
   | EErrorOnEmpty e' ->
     Format.fprintf fmt "%a@ %a" op_style "error_empty" with_parens e'
   | EAssert e' ->

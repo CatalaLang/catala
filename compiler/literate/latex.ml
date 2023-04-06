@@ -196,7 +196,7 @@ let code_block ~meta lang fmt (code, pos) =
     let contents = String.concat "" ["```catala\n"; code; "```"] in
     File.with_temp_file "catala_latex_pygments" "in" ~contents
     @@ fun temp_file_in ->
-    call_pygmentize ~lang ["-f"; "latex"; "-O"; "nowrap=true"; temp_file_in]
+    call_pygmentize ~lang ["-f"; "latex"; "-O"; "nowrap=True"; temp_file_in]
   in
   Format.fprintf fmt
     {latex|\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=%d,stepnumber=1,label={\hspace*{\fill}\texttt{%s}}%s]|latex}
@@ -246,7 +246,7 @@ let rec law_structure_to_latex
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
     let start_line = Pos.get_start_line (Marked.get_mark c) - 1 in
-    let filename = Filename.basename (Pos.get_file (Marked.get_mark c)) in
+    let filename = Pos.get_file (Marked.get_mark c) in
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
     update_lines_of_code c;
@@ -259,7 +259,7 @@ let rec law_structure_to_latex
       | Pl -> "Metadane"
     in
     let start_line = Pos.get_start_line (Marked.get_mark c) + 1 in
-    let filename = Filename.basename (Pos.get_file (Marked.get_mark c)) in
+    let filename = Pos.get_file (Marked.get_mark c) in
     let block_content = Marked.unmark c in
     check_exceeding_lines start_line filename block_content;
     update_lines_of_code c;

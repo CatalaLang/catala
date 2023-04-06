@@ -1,10 +1,11 @@
 #!python3
 
 from datetime import date
-from src.aides_logement import ModeOccupation_Code, Nationalite_Code, PrestationRecue_Code, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TypeBailleur_Code, ZoneDHabitation_Code
+from src.aides_logement import ModeOccupation_Code, Nationalite_Code, PrestationRecue_Code, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TypeBailleur_Code, ZoneDHabitation_Code, Nationalite
+from src.aides_logement import Collectivite_Code as Collectivite_Code_APL
 from src.allocations_familiales import PriseEnCharge_Code, Collectivite_Code, SituationObligationScolaire
 from src.api import EnfantAPL, InfosLocation, aides_logement, allocations_familiales, Enfant
-from catala.runtime import LogEvent, LogEventCode, reset_log, retrieve_log
+from catala.runtime import LogEvent, LogEventCode, reset_log, retrieve_log, Unit
 import timeit
 import argparse
 from typing import List, Any
@@ -36,21 +37,21 @@ def call_allocations_familiales() -> float:
 
 def call_aides_logement() -> float:
     return aides_logement(
+        residence=Collectivite_Code_APL.Metropole,
         date_courante=date(2022, 5, 1),
         ressources_menage_prises_en_compte=11_500,
         date_naissance_demandeur=date(1992, 1, 1),
-        nationalite_demandeur=Nationalite_Code.Francaise,
-        patrimoine_produisant_revenu=0,
-        patrimoine_ne_produisant_pas_revenu=0,
+        nationalite_demandeur=Nationalite(
+            code=Nationalite_Code.Francaise, value=Unit()),
         personne_hebergee_centre_soins=False,
         personne_rattache_foyer_fiscal_parent_ifi=False,
         nombre_autres_occupants_logement_hors_menage=0,
         enfant_a_naitre_apres_quatrieme_mois_grossesse=False,
+        personnes_agees_handicapees_foyer_r844_4=False,
         situation_familiale=SituationFamiliale_Code.Concubins,
         date_mariage=None,
         prestations_recues=[],
         residence_principale=True,
-        logement_est_maison_de_retraite=False,
         surface_logement_m_carres=65,
         zone=ZoneDHabitation_Code.Zone2,
         parts_logement_propriete_famille=None,
@@ -60,20 +61,26 @@ def call_aides_logement() -> float:
         personnes_a_charge=[
             EnfantAPL(
                 identifiant=1,
+                etudes_apprentissage_stage_formation_pro_impossibilite_travail=False,
                 beneficie_titre_personnel_aide_personnelle_logement=False,
                 a_deja_ouvert_droit_aux_allocations_familiales=True,
                 date_de_naissance=date(2015, 1, 1),
                 remuneration_mensuelle=0,
+                nationalite=Nationalite(
+                    code=Nationalite_Code.Francaise, value=Unit()),
                 obligation_scolaire=SituationObligationScolaire_Code.Pendant,
                 situation_garde_alternee=SituationGardeAlternee_Code.PasDeGardeAlternee,
                 coefficient_garde_alternee=None
             ),
             EnfantAPL(
                 identifiant=2,
+                etudes_apprentissage_stage_formation_pro_impossibilite_travail=False,
                 beneficie_titre_personnel_aide_personnelle_logement=False,
                 a_deja_ouvert_droit_aux_allocations_familiales=True,
                 date_de_naissance=date(2016, 1, 1),
                 remuneration_mensuelle=0,
+                nationalite=Nationalite(
+                    code=Nationalite_Code.Francaise, value=Unit()),
                 obligation_scolaire=SituationObligationScolaire_Code.Pendant,
                 situation_garde_alternee=SituationGardeAlternee_Code.PasDeGardeAlternee,
                 coefficient_garde_alternee=None)
@@ -90,8 +97,9 @@ def call_aides_logement() -> float:
             type_bailleur=TypeBailleur_Code.BailleurPrive,
             bailleur_conventionne=None,
             reduction_loyer_solidarite=None
-        )
-
+        ),
+        magistrat_fonctionnaire_centre_interets_materiels_familiaux_hors_mayotte=False,
+        est_non_salarie_agricole_l781_8_l_781_46_code_rural=False
     )
 
 

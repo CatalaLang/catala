@@ -349,71 +349,76 @@ champ d'application Test14:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test1
+$ catala Typecheck
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Interpret -s Test1 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test2
+$ catala Interpret -s Test2 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test3
+$ catala Interpret -s Test3 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test4
+$ catala Interpret -s Test4 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test5
+$ catala Interpret -s Test5 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test6
+$ catala Interpret -s Test6 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test7
+$ catala Interpret -s Test7 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test8
+$ catala Interpret -s Test8 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test9
+$ catala Interpret -s Test9 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test10
+$ catala Interpret -s Test10 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test11
+$ catala Interpret -s Test11 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test12
+$ catala Interpret -s Test12 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test13
+$ catala Interpret -s Test13 --disable_warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test13
+$ catala Interpret -s Test13 --disable_warnings
 [RESULT] Computation successful!
 ```

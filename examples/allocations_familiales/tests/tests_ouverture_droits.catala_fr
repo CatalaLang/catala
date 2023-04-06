@@ -53,7 +53,6 @@ déclaration champ d'application Test1:
 
 champ d'application Test1:
   définition f.date_courante égal à |2020-05-01|
-  définition f.prestation_courante égal à AllocationsFamiliales
   définition f.résidence égal à Métropole
   assertion (f.droit_ouvert de données.enfant1)
   assertion (non (f.droit_ouvert de données.enfant2))
@@ -62,6 +61,6 @@ champ d'application Test1:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test1
+$ catala Interpret -s Test1 --disable_warnings
 [RESULT] Computation successful!
 ```

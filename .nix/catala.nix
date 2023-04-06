@@ -11,6 +11,7 @@
 , js_of_ocaml-ppx
 , menhir
 , menhirLib
+, ocaml-crunch
 , ocamlgraph
 , pkgs
 , ppx_deriving
@@ -50,6 +51,7 @@ buildDunePackage {
     js_of_ocaml
     js_of_ocaml-ppx
     menhirLib
+    ocaml-crunch
     ocamlgraph
     pkgs.z3
     ppx_deriving

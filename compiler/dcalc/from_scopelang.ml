@@ -204,8 +204,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
   match Marked.unmark e with
   | EVar v -> Expr.evar (Var.Map.find v ctx.local_vars) m
   | ELit
-      (( LBool _ | LEmptyError | LInt _ | LRat _ | LMoney _ | LUnit | LDate _
-       | LDuration _ ) as l) ->
+      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
+      l) ->
     Expr.elit l m
   | EStruct { name; fields } ->
     let fields = StructField.Map.map (translate_expr ctx) fields in
@@ -257,7 +257,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
           let expr =
             match str_field, expr with
             | Some { scope_input_io = Desugared.Ast.Reentrant, _; _ }, None ->
-              Some (Expr.unbox (Expr.elit LEmptyError (mark_tany m pos)))
+              Some (Expr.unbox (Expr.eemptyerror (mark_tany m pos)))
             | _ -> expr
           in
           match str_field, expr with
@@ -398,7 +398,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
        enclosed in the log because it might get optimized by a compiler later
        down the chain. *)
     (* if_then_else_returned = if log true then result_eta_expanded else
-       emptyError *)
+       result_eta_expanded *)
     let if_then_else_returned =
       Expr.eifthenelse
         (tag_with_log_entry
@@ -409,11 +409,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
            PosRecordIfTrueBool direct_output_info)
         (Expr.make_var result_eta_expanded_var
            (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
-        (Expr.box
-           (Marked.mark
-              (Expr.with_ty m
-                 (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
-              (ELit LEmptyError)))
+        (Expr.make_var result_eta_expanded_var
+           (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e)))
         (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
     in
     (* let result_var = calling_expr in let result_eta_expanded_var =
@@ -564,6 +561,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
   | EOp { op = Add_dat_dur _; tys } ->
     Expr.eop (Add_dat_dur ctx.date_rounding) tys m
   | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
+  | EEmptyError -> Expr.eemptyerror m
   | EErrorOnEmpty e' -> Expr.eerroronempty (translate_expr ctx e') m
   | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
 

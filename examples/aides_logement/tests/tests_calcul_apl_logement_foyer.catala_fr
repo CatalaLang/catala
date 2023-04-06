@@ -30,6 +30,7 @@ déclaration champ d'application CasTest2 :
   résultat montant contenu argent
 
 champ d'application CasTest2:
+  définition calcul.résidence égal à Métropole
   définition calcul.date_conventionnement égal à |2022-01-01|
   définition calcul.type_logement_foyer égal à TypeLogementFoyer.Autre
   définition calcul.redevance égal à 360 €
@@ -127,31 +128,31 @@ champ d'application CasTest5:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest1
+$ catala Interpret -s CasTest1 --disable_warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 12.06 €
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest2
+$ catala Interpret -s CasTest2 --disable_warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 23.12 €
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest3
+$ catala Interpret -s CasTest3 --disable_warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 154.78 €
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest4
+$ catala Interpret -s CasTest4 --disable_warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 154.78 €
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest5
+$ catala Interpret -s CasTest5 --disable_warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 129.65 €
 ```

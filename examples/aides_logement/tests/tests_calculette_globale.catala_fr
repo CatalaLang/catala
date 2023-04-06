@@ -3,6 +3,7 @@
 # Tests
 
 ```catala
+# TODO juridique: test à vérifier
 déclaration champ d'application Exemple1 :
   calculette champ d'application CalculetteAidesAuLogementGardeAlternée
   résultat éligibilité contenu booléen
@@ -22,19 +23,19 @@ champ d'application Exemple1 :
    -- personnes_à_charge: [
      EnfantÀCharge contenu (EnfantÀCharge {
        -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-       -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
-       -- âge : 19
        -- identifiant: 0
+       -- nationalité: Française
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2003-01-01|
+       -- études_apprentissage_stage_formation_pro_impossibilité_travail: vrai
        -- rémuneration_mensuelle: 0€
        -- obligation_scolaire: Après
-       -- situation_garde_alternée: GardeAlternéeCoefficientPriseEnCharge contenu 0,5
+       -- situation_garde_alternée: GardeAlternéeCoefficientPriseEnCharge contenu 0,7
      }); EnfantÀCharge contenu (EnfantÀCharge {
        -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-       -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
-       -- âge : 11
        -- identifiant: 1
+       -- nationalité: Française
+       -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2011-01-01|
        -- rémuneration_mensuelle: 0€
@@ -42,9 +43,9 @@ champ d'application Exemple1 :
        -- situation_garde_alternée: PasDeGardeAlternée
      }); EnfantÀCharge contenu (EnfantÀCharge {
        -- bénéficie_titre_personnel_aide_personnelle_logement : faux
-       -- prise_en_charge : PriseEnCharge.EffectiveEtPermanente
-       -- âge : 8
        -- identifiant: 2
+       -- nationalité: Française
+       -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2014-01-01|
        -- rémuneration_mensuelle: 0€
@@ -52,55 +53,47 @@ champ d'application Exemple1 :
        -- situation_garde_alternée: PasDeGardeAlternée
      })]
    -- logement: Logement {
-     -- zone: Zone1
-     -- résidence_principale : vrai
-     -- est_ehpad_ou_maison_autonomie_l313_12_asf : faux
-     -- mode_occupation : Locataire contenu (Location {
-       -- bailleur: Bailleur {
-         -- type_bailleur: BailleurPrivé
-         -- respecte_convention_titre_V: vrai
-         -- respecte_convention_titre_II: vrai
-         -- construit_amélioré_conditions_l831_1_4: faux
-         -- acquisition_aides_état_prêt_titre_II_ou_livre_III: faux
-
-       }
+      -- zone: Zone1
+      -- résidence_principale : vrai
+      -- mode_occupation : Locataire contenu (Location {
+      -- loyer_principal: 1700 €
+      -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
+      -- logement_est_chambre: faux
+      -- colocation: faux
+      -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
+      -- logement_meublé_d842_2: faux
+      -- changement_logement_d842_4: PasDeChangement
+      -- bailleur: BailleurSocial contenu (ConventionBailleurSocial{
+          -- conventionné_livre_III_titre_V_chap_III: vrai
+          -- réduction_loyer_solidarité_perçue: 0 €
+        })
      })
      -- propriétaire : ParentOuAutre.Autre
      -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
      -- usufruit : ParentOuAutre.Autre
      -- logement_decent_l89_462 : vrai
      -- surface_m_carrés : 80
-     -- est_ancien_l831_2 : faux
-     -- situé_commune_déséquilibre_l831_2 : faux
    }
    -- nombre_autres_occupants_logement: 1
    -- condition_rattaché_foyer_fiscal_parent_ifi: faux
-   -- nombre_enfants_à_naître_après_troisième_mois_grossesse: 0
    -- enfant_à_naître_après_quatrième_mois_grossesse: faux
-   -- date_naissance_troisième_enfant_ou_dernier_si_plus :
-     PlusDeTroisEnfants contenu (DateDeNaissance contenu |2014-09-15|)
+   -- personnes_âgées_handicapées_foyer_r844_4: faux
+   -- résidence :Métropole
   }
   définition calculette.demandeur égal à Demandeur {
+    -- est_non_salarié_agricole_l781_8_l_781_46_code_rural: faux
+    -- magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte: faux
     -- personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale: faux
-    -- satisfait_conditions_l512_2_code_sécurité_sociale : vrai
-    -- age_demandeur : 52
     -- date_naissance : |1970-05-02|
     -- nationalité : Française
-    -- patrimoine : Patrimoine {
-      -- produisant_revenu_période_r822_3_3_r822_4: 0€
-      -- ne_produisant_pas_revenu_période_r822_3_3_r822_4: 0€
-      }
     }
-  définition calculette.informations_calcul égal à
-    InfosLocatif contenu (InformationsCalculAPLLocatif {
-      -- loyer_principal: 1700 €
-      -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
-      -- logement_est_chambre: faux
-      -- colocation: faux
-      -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
-      -- réduction_loyer_solidarité: 0€
-      -- logement_meublé_d842_2: faux
-      -- changement_logement_d842_4: PasDeChangement
-    })
   définition calculette.ressources_ménage_prises_en_compte égal à 20 000 €
+```
+
+
+```catala-test-inline
+$ catala Interpret -s Exemple1
+[RESULT] Computation successful! Results:
+[RESULT] montant_versé = 246.23 €
+[RESULT] éligibilité = true
 ```

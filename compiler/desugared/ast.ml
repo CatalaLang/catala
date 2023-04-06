@@ -145,7 +145,7 @@ let empty_rule
     (parameters : (Uid.MarkedString.info * typ) list Marked.pos option) : rule =
   {
     rule_just = Expr.box (ELit (LBool false), Untyped { pos });
-    rule_cons = Expr.box (ELit LEmptyError, Untyped { pos });
+    rule_cons = Expr.box (EEmptyError, Untyped { pos });
     rule_parameter =
       Option.map
         (Marked.map_under_mark
@@ -247,3 +247,28 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
       in
       add_locs acc locs)
     def ScopeDefMap.empty
+
+let fold_exprs ~(f : 'a -> expr -> 'a) ~(init : 'a) (p : program) : 'a =
+  let acc =
+    ScopeName.Map.fold
+      (fun _ scope acc ->
+        let acc =
+          ScopeDefMap.fold
+            (fun _ scope_def acc ->
+              RuleName.Map.fold
+                (fun _ rule acc ->
+                  f
+                    (f acc (Expr.unbox rule.rule_just))
+                    (Expr.unbox rule.rule_cons))
+                scope_def.scope_def_rules acc)
+            scope.scope_defs acc
+        in
+        let acc =
+          List.fold_left
+            (fun acc assertion -> f acc (Expr.unbox assertion))
+            acc scope.scope_assertions
+        in
+        acc)
+      p.program_scopes init
+  in
+  TopdefName.Map.fold (fun _ (e, _) acc -> f acc e) p.program_topdefs acc

@@ -49,7 +49,7 @@ val etupleaccess :
   ('a, 't) boxed_gexpr -> int -> int -> 't -> ('a any, 't) boxed_gexpr
 
 val earray : ('a, 't) boxed_gexpr list -> 't -> ('a any, 't) boxed_gexpr
-val elit : 'a glit -> 't -> ('a any, 't) boxed_gexpr
+val elit : lit -> 't -> ('a any, 't) boxed_gexpr
 
 val eabs :
   (('a, 't) naked_gexpr, ('a, 't) gexpr) Bindlib.mbinder Bindlib.box ->
@@ -81,6 +81,8 @@ val eifthenelse :
   ('a, 't) boxed_gexpr ->
   't ->
   ('a any, 't) boxed_gexpr
+
+val eemptyerror : 't -> (([< all > `DefaultTerms ] as 'a), 't) boxed_gexpr
 
 val eerroronempty :
   ('a, 't) boxed_gexpr ->
@@ -199,6 +201,30 @@ val map :
         f e
     ]} *)
 
+val map_raw :
+  f:(('a, 'm1) gexpr -> ('b, 'm2) boxed_gexpr) ->
+  fop:('a Op.t -> 'b Op.t) ->
+  floc:('a glocation -> 'b glocation) ->
+  (('a, 'b, 'm1) base_gexpr, 'm2) Marked.t ->
+  ('b, 'm2) boxed_gexpr
+(** Lower-level version of shallow [map] that can be used for transforming the
+    type of the AST. See [Lcalc.Compile_without_exceptions] for an example. The
+    structure is like this:
+
+    {[
+      let rec translate = function
+        | SpecificCase e -> TargetCase (translate e)
+        | (All | Other | Common | Cases) as e -> map_raw ~f:translate e
+    ]}
+
+    This function makes it very concise to transform only certain nodes of the
+    AST.
+
+    The [e] parameter passed to [map_raw] here needs to have only the common
+    cases in its shallow type, but can still contain any node from the starting
+    AST deeper inside: this is where the second type parameter to [base_gexpr]
+    becomes useful. *)
+
 val map_top_down :
   f:(('a, 't1) gexpr -> (('a, 't1) naked_gexpr, 't2) Marked.t) ->
   ('a, 't1) gexpr ->
@@ -212,9 +238,9 @@ val map_marks : f:('t1 -> 't2) -> ('a, 't1) gexpr -> ('a, 't2) boxed_gexpr
 val shallow_fold :
   (('a, 't) gexpr -> 'acc -> 'acc) -> ('a, 't) gexpr -> 'acc -> 'acc
 (** Applies a function on all sub-terms of the given expression. Does not
-    recurse, and doesn't open binders. Useful as helper for recursive calls
-    within traversal functions. This can be used to compute free variables with
-    e.g.:
+    recurse. It opens binders unless you avoid sending binders to the function
+    like the example below. Useful as helper for recursive calls within
+    traversal functions. This can be used to compute free variables with e.g.:
 
     {[
       let rec free_vars = function
@@ -257,14 +283,15 @@ val make_abs :
   ('a, 'm mark) boxed_gexpr ->
   typ list ->
   Pos.t ->
-  ('a, 'm mark) boxed_gexpr
+  ('a any, 'm mark) boxed_gexpr
 
 val make_app :
+
   ?decl_ctx:decl_ctx option ->
   ('a any, 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr list ->
   Pos.t ->
-  ('a, 'm mark) boxed_gexpr
+  ('a any, 'm mark) boxed_gexpr
 
 val empty_thunked_term :
   'm mark -> ([< all > `DefaultTerms ], 'm mark) boxed_gexpr
@@ -275,7 +302,7 @@ val make_let_in :
   ('a, 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr ->
   Pos.t ->
-  ('a, 'm mark) boxed_gexpr
+  ('a any, 'm mark) boxed_gexpr
 
 val make_multiple_let_in :
   ('a, 'm mark) gexpr Var.vars ->
@@ -283,7 +310,7 @@ val make_multiple_let_in :
   ('a, 'm mark) boxed_gexpr list ->
   ('a, 'm mark) boxed_gexpr ->
   Pos.t ->
-  ('a, 'm mark) boxed_gexpr
+  ('a any, 'm mark) boxed_gexpr
 
 val make_default :
   ('a, 't) boxed_gexpr list ->
@@ -325,8 +352,8 @@ val format :
 
 (** {2 Analysis and tests} *)
 
-val equal_lit : 'a glit -> 'a glit -> bool
-val compare_lit : 'a glit -> 'a glit -> int
+val equal_lit : lit -> lit -> bool
+val compare_lit : lit -> lit -> int
 val equal_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> bool
 val compare_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> int
 

@@ -14,6 +14,13 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
+[WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
+
+┌─⯈ tests/test_default/bad/empty_with_rules.catala_en:5.10-11:
+└─┐
+5 │   context x content integer
+  │           ‾
+  └─ Article
 [ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
 
 ┌─⯈ tests/test_default/bad/empty_with_rules.catala_en:5.10-11:

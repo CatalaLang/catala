@@ -29,7 +29,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
   let e = Expr.map ~f:(partial_evaluation ctx) e in
   let mark = Marked.get_mark e in
   (* Then reduce the parent node *)
-  let reduce e =
+  let reduce (e : 'm expr) =
     (* Todo: improve the handling of eapp(log,elit) cases here, it obfuscates
        the matches and the log calls are not preserved, which would be a good
        property *)
@@ -102,9 +102,7 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct :) *)
       let excepts =
-        List.filter
-          (fun except -> Marked.unmark except <> ELit LEmptyError)
-          excepts
+        List.filter (fun except -> Marked.unmark except <> EEmptyError) excepts
         (* we can discard the exceptions that are always empty error *)
       in
       let value_except_count =

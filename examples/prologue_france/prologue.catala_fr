@@ -1,4 +1,9 @@
 ```catala-metadata
+# Cette catégorisation des collectivités d'outre-mer est pour l'instant plate
+# mais on pourrait la subdiviser plus finement selon les conseils du guide
+# de légistique du Conseil d'État. En effet les articles 73 et 74 de la
+# Constitution établissent deux régimes différents pour les collectivités
+# d'outre-mer.
 déclaration énumération Collectivité :
   -- Guadeloupe
   -- Guyane
@@ -14,19 +19,20 @@ déclaration champ d'application VérificationÂgeInférieurOuÉgalÀ:
   entrée date_naissance contenu date
   entrée date_courante contenu date
   entrée années contenu durée
-  résultat r contenu booléen
+  résultat est_inférieur_ou_égal contenu booléen
 
 champ d'application VérificationÂgeInférieurOuÉgalÀ:
-  définition r égal à date_naissance + années <= date_courante
+  définition est_inférieur_ou_égal égal à
+    date_naissance + années <= date_courante
   date arrondi croissant
 
 déclaration champ d'application VérificationÂgeSupérieurÀ:
   entrée date_naissance contenu date
   entrée date_courante contenu date
   entrée années contenu durée
-  résultat r contenu booléen
+  résultat est_supérieur contenu booléen
 
 champ d'application VérificationÂgeSupérieurÀ:
-  définition r égal à date_naissance + années > date_courante
+  définition est_supérieur égal à date_naissance + années > date_courante
   date arrondi croissant
 ```

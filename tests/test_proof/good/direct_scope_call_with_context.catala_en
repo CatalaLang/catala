@@ -1,0 +1,21 @@
+```catala
+declaration scope SubFoo:
+  context x content integer
+  output y content integer
+
+declaration scope Foo:
+  output z content integer
+
+scope SubFoo:
+  definition x equals 1
+  definition y equals x + x
+
+scope Foo:
+  definition z equals
+     (output of SubFoo with {}).y
+```
+
+```catala-test-inline
+$ catala Proof -s Foo
+[RESULT] No errors found during the proof mode run.
+```
