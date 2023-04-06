@@ -46,7 +46,7 @@ let propagate_empty_error_list elist f =
 let log_indent = ref 0
 
 (** {1 Evaluation} *)
-
+(* TODO: we should provide a generic way to print logs, that work across the different backends: python, ocaml, javascript, and interpreter *)
 let print_log ctx entry infos pos e =
   if !Cli.trace_flag then
     match entry with
