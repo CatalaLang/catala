@@ -272,7 +272,7 @@ let var_debug fmt v =
 let var fmt v = Format.pp_print_string fmt (Bindlib.name_of v)
 
 let needs_parens (type a) (e : (a, _) gexpr) : bool =
-  match Marked.unmark e with _ -> true
+  match Marked.unmark e with EAbs _ | EStruct _ -> true | _ -> false
 
 let rec expr_aux :
     type a.
