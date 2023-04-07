@@ -180,7 +180,8 @@ type rule_tree =
     priorities declared between rules *)
 let def_map_to_tree
     (def_info : Desugared.Ast.ScopeDef.t)
-    (def : Desugared.Ast.rule RuleName.Map.t) : rule_tree list =
+    (def : Desugared.Ast.rule RuleName.Map.t) :
+    rule_tree list * Desugared.Dependency.ExceptionsDependencies.t =
   let exc_graph = Desugared.Dependency.build_exceptions_graph def def_info in
   Desugared.Dependency.check_for_exception_cycle def exc_graph;
   (* we start by the base cases: they are the vertices which have no
@@ -207,7 +208,7 @@ let def_map_to_tree
     | [] -> Leaf base_case_as_rule_list
     | _ -> Node (List.map build_tree exceptions, base_case_as_rule_list)
   in
-  List.map build_tree base_cases
+  List.map build_tree base_cases, exc_graph
 
 (** From the {!type: rule_tree}, builds an {!constructor: Dcalc.EDefault}
     expression in the scope language. The [~toplevel] parameter is used to know
@@ -342,9 +343,10 @@ let translate_def
     (typ : typ)
     (io : Desugared.Ast.io)
     ~(is_cond : bool)
-    ~(is_subscope_var : bool) : untyped Ast.expr boxed =
+    ~(is_subscope_var : bool) :
+    untyped Ast.expr boxed * Desugared.Dependency.ExceptionsDependencies.t =
   (* Here, we have to transform this list of rules into a default tree. *)
-  let top_list = def_map_to_tree def_info def in
+  let top_list, exc_graph = def_map_to_tree def_info def in
   let is_input =
     match Marked.unmark io.Desugared.Ast.io_input with
     | OnlyInput -> true
@@ -397,34 +399,37 @@ let translate_def
     match params with
     | Some (ps, _) ->
       let labels, tys = List.split ps in
-      Expr.make_abs
-        (Array.of_list
-           (List.map (fun lbl -> Var.make (Marked.unmark lbl)) labels))
-        empty_error tys (Expr.mark_pos m)
-    | _ -> empty_error
+      ( Expr.make_abs
+          (Array.of_list
+             (List.map (fun lbl -> Var.make (Marked.unmark lbl)) labels))
+          empty_error tys (Expr.mark_pos m),
+        exc_graph )
+    | _ -> empty_error, exc_graph
   else
-    rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant ctx
-      (Desugared.Ast.ScopeDef.get_position def_info)
-      (Option.map
-         (fun (ps, _) ->
-           (List.map (fun (lbl, _) -> Var.make (Marked.unmark lbl))) ps)
-         params)
-      (match top_list, top_value with
-      | [], None ->
-        (* In this case, there are no rules to define the expression and no
-           default value so we put an empty rule. *)
-        Leaf [Desugared.Ast.empty_rule (Marked.get_mark typ) params]
-      | [], Some top_value ->
-        (* In this case, there are no rules to define the expression but a
-           default value so we put it. *)
-        Leaf [top_value]
-      | _, Some top_value ->
-        (* When there are rules + a default value, we put the rules as
-           exceptions to the default value *)
-        Node (top_list, [top_value])
-      | [top_tree], None -> top_tree
-      | _, None ->
-        Node (top_list, [Desugared.Ast.empty_rule (Marked.get_mark typ) params]))
+    ( rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant ctx
+        (Desugared.Ast.ScopeDef.get_position def_info)
+        (Option.map
+           (fun (ps, _) ->
+             (List.map (fun (lbl, _) -> Var.make (Marked.unmark lbl))) ps)
+           params)
+        (match top_list, top_value with
+        | [], None ->
+          (* In this case, there are no rules to define the expression and no
+             default value so we put an empty rule. *)
+          Leaf [Desugared.Ast.empty_rule (Marked.get_mark typ) params]
+        | [], Some top_value ->
+          (* In this case, there are no rules to define the expression but a
+             default value so we put it. *)
+          Leaf [top_value]
+        | _, Some top_value ->
+          (* When there are rules + a default value, we put the rules as
+             exceptions to the default value *)
+          Node (top_list, [top_value])
+        | [top_tree], None -> top_tree
+        | _, None ->
+          Node
+            (top_list, [Desugared.Ast.empty_rule (Marked.get_mark typ) params])),
+      exc_graph )
 
 let translate_rule ctx (scope : Desugared.Ast.scope) = function
   | Desugared.Dependency.Vertex.Var (var, state) -> (
@@ -449,10 +454,10 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
              (RuleName.Map.bindings var_def))
         "It is impossible to give a definition to a scope variable tagged as \
          input."
-    | OnlyInput -> []
+    | OnlyInput -> [], DesugaredVarName.Map.empty
     (* we do not provide any definition for an input-only variable *)
     | _ ->
-      let expr_def =
+      let expr_def, exc_graph =
         translate_def ctx
           (Desugared.Ast.ScopeDef.Var (var, state))
           var_def var_params var_typ scope_def.Desugared.Ast.scope_def_io
@@ -464,15 +469,18 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
         | States states, Some state -> List.assoc state states
         | _ -> failwith "should not happen"
       in
-      [
-        Ast.Definition
-          ( ( ScopelangScopeVar
-                (scope_var, Marked.get_mark (ScopeVar.get_info scope_var)),
-              Marked.get_mark (ScopeVar.get_info scope_var) ),
-            var_typ,
-            scope_def.Desugared.Ast.scope_def_io,
-            Expr.unbox expr_def );
-      ])
+      ( [
+          Ast.Definition
+            ( ( ScopelangScopeVar
+                  (scope_var, Marked.get_mark (ScopeVar.get_info scope_var)),
+                Marked.get_mark (ScopeVar.get_info scope_var) ),
+              var_typ,
+              scope_def.Desugared.Ast.scope_def_io,
+              Expr.unbox expr_def );
+        ],
+        DesugaredVarName.Map.singleton
+          (DesugaredVarName.ScopeVar (var, state))
+          exc_graph ))
   | Desugared.Dependency.Vertex.SubScope sub_scope_index ->
     (* Before calling the sub_scope, we need to include all the re-definitions
        of subscope parameters*)
@@ -539,7 +547,7 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
             | _ -> ());
             (* Now that all is good, we can proceed with translating this
                redefinition to a proper Scopelang term. *)
-            let expr_def =
+            let expr_def, exc_graph =
               translate_def ctx def_key def scope_def.D.scope_def_parameters
                 def_typ scope_def.Desugared.Ast.scope_def_io ~is_cond
                 ~is_subscope_var:true
@@ -548,40 +556,53 @@ let translate_rule ctx (scope : Desugared.Ast.scope) = function
               SubScopeName.Map.find sub_scope_index scope.scope_sub_scopes
             in
             let var_pos = Desugared.Ast.ScopeDef.get_position def_key in
-            Ast.Definition
-              ( ( SubScopeVar
-                    ( subscop_real_name,
-                      (sub_scope_index, var_pos),
-                      match
-                        ScopeVar.Map.find sub_scope_var ctx.scope_var_mapping
-                      with
-                      | WholeVar v -> v, var_pos
-                      | States states ->
-                        (* When defining a sub-scope variable, we always define
-                           its first state in the sub-scope. *)
-                        snd (List.hd states), var_pos ),
-                  var_pos ),
-                def_typ,
-                scope_def.Desugared.Ast.scope_def_io,
-                Expr.unbox expr_def ))
+            ( Ast.Definition
+                ( ( SubScopeVar
+                      ( subscop_real_name,
+                        (sub_scope_index, var_pos),
+                        match
+                          ScopeVar.Map.find sub_scope_var ctx.scope_var_mapping
+                        with
+                        | WholeVar v -> v, var_pos
+                        | States states ->
+                          (* When defining a sub-scope variable, we always
+                             define its first state in the sub-scope. *)
+                          snd (List.hd states), var_pos ),
+                    var_pos ),
+                  def_typ,
+                  scope_def.Desugared.Ast.scope_def_io,
+                  Expr.unbox expr_def ),
+              (exc_graph, sub_scope_var) ))
         sub_scope_vars_redefs_candidates
     in
-    let sub_scope_vars_redefs =
+    let sub_scope_vars_redefs_and_exc_graphs =
       List.map snd (Desugared.Ast.ScopeDefMap.bindings sub_scope_vars_redefs)
     in
-    sub_scope_vars_redefs
-    @ [
-        Ast.Call
-          ( sub_scope,
-            sub_scope_index,
-            Untyped
-              { pos = Marked.get_mark (SubScopeName.get_info sub_scope_index) }
-          );
-      ]
+    let sub_scope_vars_redefs =
+      List.map fst sub_scope_vars_redefs_and_exc_graphs
+    in
+    ( sub_scope_vars_redefs
+      @ [
+          Ast.Call
+            ( sub_scope,
+              sub_scope_index,
+              Untyped
+                {
+                  pos = Marked.get_mark (SubScopeName.get_info sub_scope_index);
+                } );
+        ],
+      List.fold_left
+        (fun exc_graphs (new_exc_graph, subscope_var) ->
+          DesugaredVarName.Map.add
+            (DesugaredVarName.SubScopeVar (sub_scope_index, subscope_var))
+            new_exc_graph exc_graphs)
+        DesugaredVarName.Map.empty
+        (List.map snd sub_scope_vars_redefs_and_exc_graphs) )
 
 (** Translates a scope *)
 let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
-    untyped Ast.scope_decl =
+    untyped Ast.scope_decl
+    * Desugared.Dependency.ExceptionsDependencies.t DesugaredVarName.Map.t =
   let scope_dependencies =
     Desugared.Dependency.build_scope_dependencies scope
   in
@@ -589,8 +610,18 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
   let scope_ordering =
     Desugared.Dependency.correct_computation_ordering scope_dependencies
   in
-  let scope_decl_rules =
-    List.flatten (List.map (translate_rule ctx scope) scope_ordering)
+  let scope_decl_rules, exceptions_graphs =
+    List.fold_left
+      (fun (scope_decl_rules, exceptions_graphs) scope_def_key ->
+        let new_rules, new_exceptions_graphs =
+          translate_rule ctx scope scope_def_key
+        in
+        ( scope_decl_rules @ new_rules,
+          DesugaredVarName.Map.union
+            (fun _ _ _ -> assert false (* there should not be key conflicts *))
+            new_exceptions_graphs exceptions_graphs ))
+      ([], DesugaredVarName.Map.empty)
+      scope_ordering
   in
   (* Then, after having computed all the scopes variables, we add the
      assertions. TODO: the assertions should be interleaved with the
@@ -641,17 +672,20 @@ let translate_scope (ctx : ctx) (scope : Desugared.Ast.scope) :
       scope.scope_vars ScopeVar.Map.empty
   in
   let pos = Marked.get_mark (ScopeName.get_info scope.scope_uid) in
-  {
-    Ast.scope_decl_name = scope.scope_uid;
-    Ast.scope_decl_rules;
-    Ast.scope_sig;
-    Ast.scope_mark = Untyped { pos };
-    Ast.scope_options = scope.scope_options;
-  }
+  ( {
+      Ast.scope_decl_name = scope.scope_uid;
+      Ast.scope_decl_rules;
+      Ast.scope_sig;
+      Ast.scope_mark = Untyped { pos };
+      Ast.scope_options = scope.scope_options;
+    },
+    exceptions_graphs )
 
 (** {1 API} *)
 
-let translate_program (pgrm : Desugared.Ast.program) : untyped Ast.program =
+let translate_program (pgrm : Desugared.Ast.program) :
+    untyped Ast.program
+    * Desugared.Dependency.ExceptionsDependencies.t DesugaredVarName.Map.t =
   (* First we give mappings to all the locations between Desugared and This
      involves creating a new Scopelang scope variable for every state of a
      Desugared variable. *)
@@ -706,12 +740,25 @@ let translate_program (pgrm : Desugared.Ast.program) : untyped Ast.program =
         { out_str with out_struct_fields })
       pgrm.Desugared.Ast.program_ctx.ctx_scopes
   in
-  {
-    Ast.program_topdefs =
-      TopdefName.Map.map
-        (fun (e, ty) -> Expr.unbox (translate_expr ctx e), ty)
-        pgrm.program_topdefs;
-    Ast.program_scopes =
-      ScopeName.Map.map (translate_scope ctx) pgrm.program_scopes;
-    program_ctx = { pgrm.program_ctx with ctx_scopes };
-  }
+  let new_program_scopes, exceptions_graphs =
+    ScopeName.Map.fold
+      (fun scope_name scope (new_program_scopes, exceptions_graph) ->
+        let new_program_scope, new_exceptions_graphs =
+          translate_scope ctx scope
+        in
+        ( ScopeName.Map.add scope_name new_program_scope new_program_scopes,
+          DesugaredVarName.Map.union
+            (fun _ _ _ -> assert false (* key conflicts should not happen*))
+            new_exceptions_graphs exceptions_graph ))
+      pgrm.program_scopes
+      (ScopeName.Map.empty, DesugaredVarName.Map.empty)
+  in
+  ( {
+      Ast.program_topdefs =
+        TopdefName.Map.map
+          (fun (e, ty) -> Expr.unbox (translate_expr ctx e), ty)
+          pgrm.program_topdefs;
+      Ast.program_scopes = new_program_scopes;
+      program_ctx = { pgrm.program_ctx with ctx_scopes };
+    },
+    exceptions_graphs )

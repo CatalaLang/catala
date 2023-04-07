@@ -45,6 +45,58 @@ module SubScopeName = Uid.Gen ()
 module StateName = Uid.Gen ()
 
 (** {1 Abstract syntax tree} *)
+module DesugaredVarName : sig
+  type t =
+    | ScopeVar of ScopeVar.t * StateName.t option
+    | SubScopeVar of SubScopeName.t * ScopeVar.t
+
+  val hash : t -> int
+  val compare : t -> t -> int
+  val equal : t -> t -> bool
+
+  module Map : Map.S with type key = t
+  module Set : Set.S with type elt = t
+end = struct
+  module Ordering = struct
+    type t =
+      | ScopeVar of ScopeVar.t * StateName.t option
+      | SubScopeVar of SubScopeName.t * ScopeVar.t
+
+    let hash x =
+      match x with
+      | ScopeVar (x, None) -> ScopeVar.hash x
+      | ScopeVar (x, Some sx) ->
+        Int.logxor (ScopeVar.hash x) (StateName.hash sx)
+      | SubScopeVar (x, y) -> Int.logxor (SubScopeName.hash x) (ScopeVar.hash y)
+
+    let compare x y =
+      match x, y with
+      | ScopeVar (x, xst), ScopeVar (y, yst) -> (
+        match ScopeVar.compare x y with
+        | 0 -> Option.compare StateName.compare xst yst
+        | n -> n)
+      | SubScopeVar (x, xv), SubScopeVar (y, yv) -> (
+        match SubScopeName.compare x y with
+        | 0 -> ScopeVar.compare xv yv
+        | n -> n)
+      | ScopeVar _, _ -> -1
+      | _, ScopeVar _ -> 1
+      | SubScopeVar _, _ -> .
+      | _, SubScopeVar _ -> .
+
+    let equal x y =
+      match x, y with
+      | ScopeVar (x, sx), ScopeVar (y, sy) ->
+        ScopeVar.equal x y && Option.equal StateName.equal sx sy
+      | SubScopeVar (x, xv), SubScopeVar (y, yv) ->
+        SubScopeName.equal x y && ScopeVar.equal xv yv
+      | (ScopeVar _ | SubScopeVar _), _ -> false
+  end
+
+  include Ordering
+  module Map = Map.Make (Ordering)
+  module Set = Set.Make (Ordering)
+end
 
 (** Define a common base type for the expressions in most passes of the compiler *)
 

@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   and social benefits computation rules. Copyright (C) 2023 Inria, contributor:
    Denis Merigoux <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,12 +14,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Translation from {!module: Desugared.Ast} to {!module: Scopelang.Ast} *)
+open Shared_ast
 
-val translate_program :
-  Desugared.Ast.program ->
-  Shared_ast.untyped Ast.program
-  * Desugared.Dependency.ExceptionsDependencies.t
-    Shared_ast.DesugaredVarName.Map.t
-(** This functions returns the translated program as well as all the graphs of
-    exceptions inferred for each scope variable of the program. *)
+let print_exceptions_graph
+    (var : DesugaredVarName.t)
+    (g : Dependency.ExceptionsDependencies.t) =
+  assert false
