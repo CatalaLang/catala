@@ -360,13 +360,9 @@ let driver source_file (options : Cli.options) : int =
                   (Shared_ast.Print.scope ~debug:options.debug prgm.decl_ctx)
                   (scope_uid, Shared_ast.Program.get_scope_body prgm scope_uid)
               else
-                let prgrm_lcalc_expr =
-                  Shared_ast.Expr.unbox
-                    (Shared_ast.Program.to_expr prgm scope_uid)
-                in
                 Format.fprintf fmt "%a\n"
-                  (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
-                  prgrm_lcalc_expr
+                  (Shared_ast.Print.program ~debug:options.debug)
+                  prgm
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
               match backend with
               | `OCaml ->

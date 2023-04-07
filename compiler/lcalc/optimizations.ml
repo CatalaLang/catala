@@ -182,7 +182,8 @@ let rec fix_opti
   assert (maxiter >= 0);
   let p' = ListLabels.fold_left ~init:p fs ~f:(fun p f -> f p) in
 
-  if Program.equal p' p then p' else fix_opti ~fs p' ~maxiter:(maxiter - 1)
+  if (* Program.equal p' p *) maxiter = 0 then p'
+  else fix_opti ~fs p' ~maxiter:(maxiter - 1)
 
 (** the function [lift_optim f p] apply the expression transformation [f] all
     expression of the program [p]. *)

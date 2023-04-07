@@ -85,19 +85,15 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " op_style "*")
          typ)
       ts
-  | TStruct s -> (
-    match ctx with
-    | None -> Format.fprintf fmt "@[<hov 2>%a@]" StructName.format_t s
-    | Some ctx ->
-      Format.fprintf fmt "@[<hov 2> %a%a%a%a@]" punctuation "{"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
-           (fun fmt (field, mty) ->
-             Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
-               StructField.format_t field punctuation "\"" punctuation ":" typ
-               mty))
-        (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs))
-        punctuation "}_" StructName.format_t s)
+  | TStruct s ->
+    (* match ctx with | None -> *)
+    Format.fprintf fmt "@[<hov 2>%a@]" StructName.format_t s
+    (* | Some ctx -> Format.fprintf fmt "@[<hov 2> %a%a%a%a@]" punctuation "{"
+       (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ "
+       punctuation ";") (fun fmt (field, mty) -> Format.fprintf fmt "%a%a%a%a@
+       %a" punctuation "\"" StructField.format_t field punctuation "\""
+       punctuation ":" typ mty)) (StructField.Map.bindings (StructName.Map.find
+       s ctx.ctx_structs)) punctuation "}_" StructName.format_t s *)
   | TEnum e -> (
     match ctx with
     | None -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format_t e
@@ -496,47 +492,44 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
   let x, body = Bindlib.unbind body in
 
   let _ =
-    Format.pp_open_hbox fmt ();
-    keyword fmt "let scope";
-    Format.pp_print_space fmt ();
-    ScopeName.format_t fmt n;
-    Format.pp_print_space fmt ();
-    punctuation fmt "(";
-    (if debug then var_debug else var) fmt x;
-    punctuation fmt ":";
-    Format.pp_print_space fmt ();
-    (if debug then typ_debug else typ ctx) fmt input_typ;
-    punctuation fmt ")";
-    punctuation fmt ":";
-    Format.pp_print_space fmt ();
-    (if debug then typ_debug else typ ctx) fmt output_typ;
-    Format.pp_print_space fmt ();
-    punctuation fmt "=";
+    Format.pp_open_vbox fmt 2;
     let _ =
-      Format.pp_open_vbox fmt 2;
-      Format.pp_print_cut fmt ();
-      Format.pp_print_cut fmt ();
-      let _ =
-        Format.pp_open_vbox fmt 2;
-        scope_body_expr ~debug ctx fmt body;
-        Format.pp_close_box fmt ()
-      in
+      Format.pp_open_hbox fmt ();
+      keyword fmt "let scope";
+      Format.pp_print_space fmt ();
+      ScopeName.format_t fmt n;
+      Format.pp_print_space fmt ();
+      punctuation fmt "(";
+      (if debug then var_debug else var) fmt x;
+      punctuation fmt ":";
+      Format.pp_print_space fmt ();
+      (if debug then typ_debug else typ ctx) fmt input_typ;
+      punctuation fmt ")";
+      punctuation fmt ":";
+      Format.pp_print_space fmt ();
+      (if debug then typ_debug else typ ctx) fmt output_typ;
+      Format.pp_print_space fmt ();
+      punctuation fmt "=";
       Format.pp_close_box fmt ()
     in
+
+    Format.pp_print_cut fmt ();
+
+    scope_body_expr ~debug ctx fmt body;
     Format.pp_close_box fmt ()
   in
-  Format.pp_force_newline fmt ()
+  ()
 
 let enum
     ?(debug = false)
     decl_ctx
     fmt
     ((n, c) : EnumName.t * typ EnumConstructor.Map.t) =
-  Format.fprintf fmt "@[<hov 0> %a %a %a@;%a@]" keyword "type" EnumName.format_t
-    n punctuation "="
+  Format.fprintf fmt "@[<h 0>%a %a %a@;%a@]" keyword "type" EnumName.format_t n
+    punctuation "="
     (fun fmt b ->
       ListLabels.iter b ~f:(fun (n, ty) ->
-          Format.fprintf fmt "@[%a %a %a %a@]@;" punctuation "|"
+          Format.fprintf fmt "@[<hov2> %a %a %a %a@]@;" punctuation "|"
             EnumConstructor.format_t n keyword "of"
             (if debug then typ_debug else typ decl_ctx)
             ty))
@@ -547,12 +540,12 @@ let struct_
     decl_ctx
     fmt
     ((n, c) : StructName.t * typ StructField.Map.t) =
-  Format.fprintf fmt "@[<hov 0> %a %a %a@;%a%a%a@]" keyword "type"
-    StructName.format_t n punctuation "=" punctuation "{"
+  Format.fprintf fmt "@[<hv 0>@[<hv 2>@[<h>%a %a %a@;%a@]@;%a@]%a@]@;" keyword
+    "type" StructName.format_t n punctuation "=" punctuation "{"
     (fun fmt b ->
       ListLabels.iter b ~f:(fun (n, ty) ->
-          Format.fprintf fmt "@[%a%a %a%a@]@;" StructField.format_t n keyword
-            ":"
+          Format.fprintf fmt "@[<h 2>%a%a %a%a@]@ " StructField.format_t n
+            keyword ":"
             (if debug then typ_debug else typ decl_ctx)
             ty punctuation ";"))
     (StructField.Map.bindings c)
