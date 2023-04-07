@@ -86,6 +86,7 @@ let rec hoist_context_free_closures :
     [{ name = closure_var; closure = e }], Expr.make_var closure_var m
   | EApp _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_context_free_closures ctx) e
+  | _ -> .
  [@@warning "-32"]
 
 (** Returns the expression with closed closures and the set of free variables
@@ -237,6 +238,7 @@ let rec transform_closures_expr :
       Expr.make_let_in code_env_var
         (TAny, Expr.pos e)
         new_e1 call_expr (Expr.pos e) )
+  | _ -> .
 
 (* Here I have to reimplement Scope.map_exprs_in_lets because I'm changing the
    type *)

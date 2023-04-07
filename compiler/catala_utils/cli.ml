@@ -29,7 +29,8 @@ type backend_option_builtin =
   | `Lcalc
   | `Dcalc
   | `Scopelang
-  | `Proof ]
+  | `Proof
+  | `Interpret_Lcalc ]
 
 type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
 
@@ -42,6 +43,7 @@ let language_code =
 
 let backend_option_to_string = function
   | `Interpret -> "Interpret"
+  | `Interpret_Lcalc -> "Interpret_Lcalc"
   | `Makefile -> "Makefile"
   | `OCaml -> "Ocaml"
   | `Scopelang -> "Scopelang"
@@ -58,6 +60,7 @@ let backend_option_to_string = function
 let backend_option_of_string backend =
   match String.lowercase_ascii backend with
   | "interpret" -> `Interpret
+  | "interpret_lcalc" -> `Interpret_Lcalc
   | "makefile" -> `Makefile
   | "ocaml" -> `OCaml
   | "scopelang" -> `Scopelang
@@ -355,6 +358,11 @@ let info =
           "Runs the interpreter on the Catala program, executing the scope \
            specified by the $(b,-s) option assuming no additional external \
            inputs." );
+      `I
+        ( "$(b,Intepret_Lcalc)",
+          "Runs the interpreter on the lcalc pass on the Catala program, \
+           executing the scope specified by the $(b,-s) option assuming no \
+           additional external inputs." );
       `I
         ( "$(b,Typecheck)",
           "Parses and typechecks a Catala program, without interpreting it." );
