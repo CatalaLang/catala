@@ -99,7 +99,7 @@ let print_exceptions_graph
     (Format.asprintf "\"%a\"" ScopeName.format_t scope);
   Dependency.ExceptionsDependencies.iter_vertex
     (fun ex ->
-      Cli.result_format "Group of definitions with label %a:\n%a"
+      Cli.result_format "Definitions with label %a:\n%a"
         (Cli.format_with_style [ANSITerminal.yellow])
         (Format.asprintf "\"%a\"" LabelName.format_t
            ex.Dependency.ExceptionVertex.label)
@@ -112,6 +112,6 @@ let print_exceptions_graph
   let tree = build_exception_tree g in
   Cli.result_format "The exception tree structure is as follows:\n\n%a"
     (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
        (fun fmt tree -> format_exception_tree fmt tree))
     tree
