@@ -238,8 +238,8 @@ let operator_to_string : type a. a Op.t -> string =
   | Eq_dur_dur -> "=^"
   | Eq_dat_dat -> "=@"
   | Fold -> "fold"
-  | HandleDefault -> "handledefault"
-  | HandleDefaultOpt -> "handledefault_opt"
+  | HandleDefault -> "handle_default"
+  | HandleDefaultOpt -> "handle_default_opt"
 
 let operator : type a. Format.formatter -> a Op.t -> unit =
  fun fmt op ->
