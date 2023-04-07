@@ -82,5 +82,5 @@ let equal p p' =
          ScopeName.equal s s'
          &&
          let e1 = Expr.unbox @@ to_expr p s in
-         let e2 = Expr.unbox @@ to_expr p s' in
+         let e2 = Expr.unbox @@ to_expr p' s in
          Expr.equal e1 e2)
