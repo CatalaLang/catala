@@ -73,12 +73,12 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
       (Marked.get_mark e)
   | EDefault { excepts; just; cons } ->
     translate_default ctx excepts just cons (Marked.get_mark e)
-  | ( ELit _ | EApp _ | EOp _ | EArray _ | EVar _ | EAbs _ | EIfThenElse _
-    | ETuple _ | ETupleAccess _ | EInj _ | EAssert _ | EStruct _
-    | EStructAccess _ | EMatch _ ) as e ->
-    Expr.map_raw ~fop:Operator.translate
-      ~floc:(function _ -> .)
-      ~f:(translate_expr ctx) (Marked.mark m e)
+  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
+  | ( ELit _ | EApp _ | EArray _ | EVar _ | EAbs _ | EIfThenElse _ | ETuple _
+    | ETupleAccess _ | EInj _ | EAssert _ | EStruct _ | EStructAccess _
+    | EMatch _ ) as e ->
+    Expr.map ~f:(translate_expr ctx) (Marked.mark m e)
+  | _ -> .
 
 let rec translate_scope_lets
     (decl_ctx : decl_ctx)

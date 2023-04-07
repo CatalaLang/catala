@@ -23,3 +23,4 @@ module Scope = Scope
 module Program = Program
 module Print = Print
 module Typing = Typing
+module Interpreter = Interpreter
