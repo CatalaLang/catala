@@ -325,10 +325,8 @@ let driver source_file (options : Cli.options) : int =
               end
               else Shared_ast.Program.untype prgm
             in
-            let prgm =
-              Shared_ast.Program.untype
-              @@ Shared_ast.Typing.program ~leave_unresolved:false prgm
-            in
+            (* let prgm = Shared_ast.Program.untype @@ Shared_ast.Typing.program
+               ~leave_unresolved:false prgm in *)
             let prgm =
               if options.closure_conversion then (
                 if not options.avoid_exceptions then

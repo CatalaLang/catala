@@ -172,6 +172,9 @@ let rec peephole_expr (e : 'm expr) : 'm expr boxed =
       m
   | _ -> visitor_map peephole_expr e
 
+(** The function [fix_opti ~maxiter ~fs p] tries to apply [fs] optimizations to
+    [p]. It stops after [max_iter] iterations have been reach, or if the program
+    didn't changed between two versions. *)
 let rec fix_opti
     ?(maxiter = 5)
     ~(fs : ('m program -> 'm program) list)

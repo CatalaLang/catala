@@ -361,10 +361,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       [f'; monad_return ~mark (trans ctx init); trans ctx l]
       ~mark
   | EApp { f = EOp { op = Op.Map; tys }, opmark; args = [f; l] } ->
-    (* The function f should have type b -> a -> a. Hence, its translation has
-       type [b] -> [a] -> option [a]. But we need a function of type option [b]
-       -> option [a] -> option [a] for the type checking of fold. Hence, we
-       "iota-expand" the function as follows: [λ x y. bindm x y. [f] x y] *)
+    (* todo *)
     let x1 = Var.make "x1" in
     let f' =
       monad_bind_cont ~mark
@@ -392,10 +389,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       [f'; trans ctx l]
       ~mark
   | EApp { f = EOp { op = Op.Filter; tys }, opmark; args = [f; l] } ->
-    (* The function f should have type b -> a -> a. Hence, its translation has
-       type [b] -> [a] -> option [a]. But we need a function of type option [b]
-       -> option [a] -> option [a] for the type checking of fold. Hence, we
-       "iota-expand" the function as follows: [λ x y. bindm x y. [f] x y] *)
+    (* todo *)
     let x1 = Var.make "x1" in
     let f' =
       monad_bind_cont ~mark
