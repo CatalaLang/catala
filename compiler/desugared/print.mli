@@ -15,5 +15,8 @@
    the License. *)
 
 val print_exceptions_graph :
-  Shared_ast.DesugaredVarName.t -> Dependency.ExceptionsDependencies.t -> unit
+  Shared_ast.ScopeName.t ->
+  Shared_ast.DesugaredVarName.t ->
+  Dependency.ExceptionsDependencies.t ->
+  unit
 (** Prints the exception graph of a variable to the terminal *)

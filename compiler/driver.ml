@@ -165,9 +165,9 @@ let driver source_file (options : Cli.options) : int =
           match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
           | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
           | _ ->
-            Errors.raise_error "There is no scope \"%a\" inside the program."
+            Errors.raise_error "There is no scope %a inside the program."
               (Cli.format_with_style [ANSITerminal.yellow])
-              name)
+              ("\"" ^ name ^ "\""))
       in
       (* This uid is a Desugared identifier *)
       let variable_uid =
@@ -201,24 +201,25 @@ let driver source_file (options : Cli.options) : int =
               (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
           with
           | None ->
-            Errors.raise_error "Variable \"%a\" not found inside scope \"%a\""
+            Errors.raise_error "Variable %a not found inside scope %a"
               (Cli.format_with_style [ANSITerminal.yellow])
-              name
+              ("\"" ^ name ^ "\"")
               (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "%a" Shared_ast.ScopeName.format_t scope_uid)
+              (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t scope_uid)
           | Some
               (Desugared.Name_resolution.SubScope
                 (subscope_var_name, subscope_name)) -> (
             match second_part with
             | None ->
               Errors.raise_error
-                "Subscope \"%a\" of scope \"%a\" cannot be selected by itself, \
-                 please add \".<var>\" where <var> is a subscope variable."
+                "Subscope %a of scope %a cannot be selected by itself, please \
+                 add \".<var>\" where <var> is a subscope variable."
                 (Cli.format_with_style [ANSITerminal.yellow])
-                (Format.asprintf "%a" Shared_ast.SubScopeName.format_t
+                (Format.asprintf "\"%a\"" Shared_ast.SubScopeName.format_t
                    subscope_var_name)
                 (Cli.format_with_style [ANSITerminal.yellow])
-                (Format.asprintf "%a" Shared_ast.ScopeName.format_t scope_uid)
+                (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t
+                   scope_uid)
             | Some second_part -> (
               match
                 Shared_ast.IdentName.Map.find_opt second_part
@@ -230,16 +231,16 @@ let driver source_file (options : Cli.options) : int =
                   (Shared_ast.DesugaredVarName.SubScopeVar (subscope_var_name, v))
               | _ ->
                 Errors.raise_error
-                  "Var \"%a\" of subscope \"%a\" in scope \"%a\" does not \
-                   exist, please check your command line arguments."
+                  "Var %a of subscope %a in scope %a does not exist, please \
+                   check your command line arguments."
                   (Cli.format_with_style [ANSITerminal.yellow])
-                  second_part
+                  ("\"" ^ second_part ^ "\"")
                   (Cli.format_with_style [ANSITerminal.yellow])
-                  (Format.asprintf "%a" Shared_ast.SubScopeName.format_t
+                  (Format.asprintf "\"%a\"" Shared_ast.SubScopeName.format_t
                      subscope_var_name)
                   (Cli.format_with_style [ANSITerminal.yellow])
-                  (Format.asprintf "%a" Shared_ast.ScopeName.format_t scope_uid)
-              ))
+                  (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t
+                     scope_uid)))
           | Some (Desugared.Name_resolution.ScopeVar v) ->
             Some
               (Shared_ast.DesugaredVarName.ScopeVar
@@ -256,15 +257,14 @@ let driver source_file (options : Cli.options) : int =
                        | Some state -> state
                        | None ->
                          Errors.raise_error
-                           "State \"%a\" is not found for variable \"%a\" of \
-                            scope \"%a\""
+                           "State %a is not found for variable %a of scope %a"
                            (Cli.format_with_style [ANSITerminal.yellow])
-                           second_part
+                           ("\"" ^ second_part ^ "\"")
                            (Cli.format_with_style [ANSITerminal.yellow])
-                           first_part
+                           ("\"" ^ first_part ^ "\"")
                            (Cli.format_with_style [ANSITerminal.yellow])
-                           (Format.asprintf "%a" Shared_ast.ScopeName.format_t
-                              scope_uid))
+                           (Format.asprintf "\"%a\""
+                              Shared_ast.ScopeName.format_t scope_uid))
                      second_part )))
       in
       Cli.debug_print "Desugaring...";
@@ -286,7 +286,7 @@ let driver source_file (options : Cli.options) : int =
             Errors.raise_error
               "Please provide a scope variable to analyze with the -v option."
         in
-        Desugared.Print.print_exceptions_graph variable_uid
+        Desugared.Print.print_exceptions_graph scope_uid variable_uid
           (Shared_ast.DesugaredVarName.Map.find variable_uid exceptions_graphs)
       | `Scopelang ->
         let _output_file, with_output = get_output_format () in

@@ -195,14 +195,15 @@ let def_map_to_tree
         else base_cases)
       exc_graph []
   in
-  let rec build_tree (base_cases : RuleName.Set.t) : rule_tree =
+  let rec build_tree (base_cases : Desugared.Dependency.ExceptionVertex.t) :
+      rule_tree =
     let exceptions =
       Desugared.Dependency.ExceptionsDependencies.pred exc_graph base_cases
     in
     let base_case_as_rule_list =
       List.map
-        (fun r -> RuleName.Map.find r def)
-        (RuleName.Set.elements base_cases)
+        (fun (r, _) -> RuleName.Map.find r def)
+        (RuleName.Map.bindings base_cases.rules)
     in
     match exceptions with
     | [] -> Leaf base_case_as_rule_list

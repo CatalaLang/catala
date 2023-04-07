@@ -53,6 +53,7 @@ module DesugaredVarName : sig
   val hash : t -> int
   val compare : t -> t -> int
   val equal : t -> t -> bool
+  val format : Format.formatter -> t -> unit
 
   module Map : Map.S with type key = t
   module Set : Set.S with type elt = t
@@ -91,6 +92,14 @@ end = struct
       | SubScopeVar (x, xv), SubScopeVar (y, yv) ->
         SubScopeName.equal x y && ScopeVar.equal xv yv
       | (ScopeVar _ | SubScopeVar _), _ -> false
+
+    let format fmt x =
+      match x with
+      | ScopeVar (v, None) -> ScopeVar.format_t fmt v
+      | ScopeVar (v, Some st) ->
+        Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t st
+      | SubScopeVar (ss, v) ->
+        Format.fprintf fmt "%a.%a" SubScopeName.format_t ss ScopeVar.format_t v
   end
 
   include Ordering
