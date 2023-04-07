@@ -27,6 +27,7 @@ let _ =
              disable_counterexamples = false;
              optimize = false;
              ex_scope = Some (Js.to_string scope);
+             ex_variable = None;
              output_file = None;
              print_only_law = false;
            }
