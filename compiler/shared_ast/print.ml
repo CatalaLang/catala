@@ -467,8 +467,7 @@ let rec scope_body_expr ?(debug = false) ctx fmt b : unit =
         _;
       } ->
     let x, next = Bindlib.unbind scope_let_next in
-    Format.fprintf fmt "@[<hov 2>%a %a %a %a %a %a@; %a @;%a @]@,%a" keyword
-      "let"
+    Format.fprintf fmt "@[<hov 2>%a %a %a %a %a %a@;%a@;%a @]@,%a" keyword "let"
       (scope_let_kind ~debug ctx)
       kind
       (if debug then var_debug else var)
