@@ -229,7 +229,6 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     (* this is to be used with monad_bind. *)
     let _, body = Bindlib.unmbind binder in
     trans ctx body
-
   | EAbs { binder; tys } ->
     (* Every functions of type [a -> b] are translated to a function of type [a
        -> option b] *)
@@ -256,14 +255,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (Expr.eop Op.HandleDefaultOpt [TAny, pos; TAny, pos; TAny, pos] m')
       [Expr.earray excepts' m; just'; cons']
       pos
-  | ELit l -> begin
-    match l with
-    | LEmptyError -> monad_empty ~mark
-    (* gadts cannot infer l is in fact lcalc glit. Hence, we explicit it. *)
-    | (LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
-      l ->
-      monad_return ~mark (Expr.elit l m)
-  end
+  | ELit l -> monad_return ~mark (Expr.elit l m)
+  | EEmptyError -> monad_empty ~mark
   | EErrorOnEmpty arg ->
     let arg' = trans ctx arg in
     monad_eoe arg' ~mark ~toplevel:false

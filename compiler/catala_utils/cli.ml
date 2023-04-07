@@ -523,9 +523,6 @@ let warning_print (format : ('a, out_channel, unit) format) =
 let warning_format (format : ('a, Format.formatter, unit) format) =
   Format.printf ("%s" ^^ format ^^ "\n%!") (warning_marker ())
 
-let warning_format (format : ('a, Format.formatter, unit) format) =
-  Format.printf ("%s" ^^ format ^^ "\n%!") (warning_marker ())
-
 let result_print (format : ('a, out_channel, unit) format) =
   Printf.printf ("%s" ^^ format ^^ "\n%!") (result_marker ())
 

@@ -138,10 +138,9 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
                     args = [(ELit (LBool false), _)];
                   } ),
               _ ) ) ->
-          ELit LEmptyError
+          EEmptyError
         | [], just ->
-          EIfThenElse
-            { cond = just; etrue = cons; efalse = ELit LEmptyError, mark }
+          EIfThenElse { cond = just; etrue = cons; efalse = EEmptyError, mark }
         | excepts, just -> EDefault { excepts; just; cons })
     | EIfThenElse
         {

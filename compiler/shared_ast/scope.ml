@@ -214,28 +214,36 @@ let format_scope_body ?(debug = false) ctx fmt (n, l) : unit =
 
   let var, body = Bindlib.unbind scope_body_expr in
 
-  Format.pp_open_hbox fmt ();
-  Print.keyword fmt "let scope";
-  Format.pp_print_space fmt ();
-  ScopeName.format_t fmt n;
-  Format.pp_print_space fmt ();
-  Print.punctuation fmt "(";
-  (if debug then Print.var_debug else Print.var) fmt var;
-  Print.punctuation fmt ":";
-  Format.pp_print_space fmt ();
-  (if debug then Print.typ_debug else Print.typ ctx) fmt input_typ;
-  Print.punctuation fmt ")";
-  Print.punctuation fmt ":";
-  Format.pp_print_space fmt ();
-  (if debug then Print.typ_debug else Print.typ ctx) fmt output_typ;
-  Format.pp_print_space fmt ();
-  Print.punctuation fmt "=";
-  Format.pp_print_cut fmt ();
-  Format.pp_force_newline fmt ();
-  Format.pp_open_vbox fmt 2;
-  (format_scope_body_expr ~debug ctx) fmt body;
-  Format.pp_close_box fmt ();
-  Format.pp_close_box fmt ();
+  let _ =
+    Format.pp_open_hbox fmt ();
+    Print.keyword fmt "let scope";
+    Format.pp_print_space fmt ();
+    ScopeName.format_t fmt n;
+    Format.pp_print_space fmt ();
+    Print.punctuation fmt "(";
+    (if debug then Print.var_debug else Print.var) fmt var;
+    Print.punctuation fmt ":";
+    Format.pp_print_space fmt ();
+    (if debug then Print.typ_debug else Print.typ ctx) fmt input_typ;
+    Print.punctuation fmt ")";
+    Print.punctuation fmt ":";
+    Format.pp_print_space fmt ();
+    (if debug then Print.typ_debug else Print.typ ctx) fmt output_typ;
+    Format.pp_print_space fmt ();
+    Print.punctuation fmt "=";
+    let _ =
+      Format.pp_open_vbox fmt 2;
+      Format.pp_print_cut fmt ();
+      Format.pp_print_cut fmt ();
+      let _ =
+        Format.pp_open_vbox fmt 2;
+        (format_scope_body_expr ~debug ctx) fmt body;
+        Format.pp_close_box fmt ()
+      in
+      Format.pp_close_box fmt ()
+    in
+    Format.pp_close_box fmt ()
+  in
   Format.pp_force_newline fmt ()
 
 let format_by_expr
