@@ -412,15 +412,36 @@ let rec expr_aux :
       StructField.format_t field punctuation "\""
   | EInj { e; cons; _ } ->
     Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons with_parens e
+  | EMatch { e; cases; name }
+    when name = Definitions.option_enum
+         &&
+         match EnumConstructor.Map.find_opt Definitions.none_constr cases with
+         | Some (EAbs { binder; _ }, _) -> (
+           let _, body = Bindlib.unmbind binder in
+           match body with
+           | EInj { name; cons; _ }, _ ->
+             EnumName.equal name Definitions.option_enum
+             && EnumConstructor.equal cons Definitions.none_constr
+           | _ -> false)
+         | _ -> false -> (
+    match EnumConstructor.Map.find Definitions.some_constr cases with
+    | EAbs { binder; tys = [tau] }, _ ->
+      let[@warning "-8"] [| x |], body = Bindlib.unmbind binder in
+
+      Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@ %a@ %a@]@\n%a" keyword
+        "let*" var x punctuation ":" (typ ctx) tau punctuation "=" expr e
+        keyword "in" expr body
+    | _ -> assert false)
   | EMatch { e; cases; _ } ->
-    Format.fprintf fmt "@[<v 0>@[<hov 2>%a@ %a@]@ %a@ %a@]" keyword "match" expr
-      e keyword "with"
+    Format.fprintf fmt "@[<v 0>@[<hov 2>%a@ %a@]@ %a@ %a@ %a@]" keyword "match"
+      expr e keyword "with"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt (cons_name, case_expr) ->
            Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
              enum_constructor cons_name punctuation "→" expr case_expr))
       (EnumConstructor.Map.bindings cases)
+      keyword "end"
   | EScopeCall { scope; args } ->
     Format.pp_open_hovbox fmt 2;
     ScopeName.format_t fmt scope;
