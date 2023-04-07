@@ -57,3 +57,13 @@ val expr_debug :
   unit
 
 val typ_debug : Format.formatter -> typ -> unit
+
+val scope :
+  ?debug:bool ->
+  decl_ctx ->
+  Format.formatter ->
+  ScopeName.t * ('a, 'm mark) gexpr scope_body ->
+  unit
+
+val program :
+  ?debug:bool -> Format.formatter -> ('a, 'm mark) gexpr program -> unit

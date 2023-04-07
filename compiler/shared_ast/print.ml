@@ -448,3 +448,153 @@ let typ_debug = typ None
 let typ ctx = typ (Some ctx)
 let expr_debug ?debug = expr_aux ?debug None Bindlib.empty_ctxt
 let expr ?debug ctx = expr_aux ?debug (Some ctx) Bindlib.empty_ctxt
+
+let scope_let_kind ?(debug = true) _ctx fmt k =
+  let _ = debug in
+  match k with
+  | DestructuringInputStruct -> keyword fmt "get"
+  | ScopeVarDefinition -> keyword fmt "set"
+  | SubScopeVarDefinition -> keyword fmt "sub_set"
+  | CallingSubScope -> keyword fmt "call"
+  | DestructuringSubScopeResults -> keyword fmt "sub_get"
+  | Assertion -> keyword fmt "assert"
+
+let rec scope_body_expr ?(debug = false) ctx fmt b : unit =
+  match b with
+  | Result e -> Format.fprintf fmt "%a %a" keyword "return" (expr ~debug ctx) e
+  | ScopeLet
+      {
+        scope_let_kind = kind;
+        scope_let_typ;
+        scope_let_expr;
+        scope_let_next;
+        _;
+      } ->
+    let x, next = Bindlib.unbind scope_let_next in
+    Format.fprintf fmt "@[<hov 2>%a %a %a %a %a %a@; %a @;%a @]@,%a" keyword
+      "let"
+      (scope_let_kind ~debug ctx)
+      kind
+      (if debug then var_debug else var)
+      x punctuation ":" (typ ctx) scope_let_typ punctuation "="
+      (expr ~debug ctx) scope_let_expr keyword "in"
+      (scope_body_expr ~debug ctx)
+      next
+
+let scope_body ?(debug = false) ctx fmt (n, l) : unit =
+  let {
+    scope_body_input_struct;
+    scope_body_output_struct;
+    scope_body_expr = body;
+  } =
+    l
+  in
+
+  let input_typ = TStruct scope_body_input_struct, Pos.no_pos in
+  let output_typ = TStruct scope_body_output_struct, Pos.no_pos in
+
+  let x, body = Bindlib.unbind body in
+
+  let _ =
+    Format.pp_open_hbox fmt ();
+    keyword fmt "let scope";
+    Format.pp_print_space fmt ();
+    ScopeName.format_t fmt n;
+    Format.pp_print_space fmt ();
+    punctuation fmt "(";
+    (if debug then var_debug else var) fmt x;
+    punctuation fmt ":";
+    Format.pp_print_space fmt ();
+    (if debug then typ_debug else typ ctx) fmt input_typ;
+    punctuation fmt ")";
+    punctuation fmt ":";
+    Format.pp_print_space fmt ();
+    (if debug then typ_debug else typ ctx) fmt output_typ;
+    Format.pp_print_space fmt ();
+    punctuation fmt "=";
+    let _ =
+      Format.pp_open_vbox fmt 2;
+      Format.pp_print_cut fmt ();
+      Format.pp_print_cut fmt ();
+      let _ =
+        Format.pp_open_vbox fmt 2;
+        scope_body_expr ~debug ctx fmt body;
+        Format.pp_close_box fmt ()
+      in
+      Format.pp_close_box fmt ()
+    in
+    Format.pp_close_box fmt ()
+  in
+  Format.pp_force_newline fmt ()
+
+let enum
+    ?(debug = false)
+    decl_ctx
+    fmt
+    ((n, c) : EnumName.t * typ EnumConstructor.Map.t) =
+  Format.fprintf fmt "@[<hov 0> %a %a %a@;%a@]" keyword "type" EnumName.format_t
+    n punctuation "="
+    (fun fmt b ->
+      ListLabels.iter b ~f:(fun (n, ty) ->
+          Format.fprintf fmt "@[%a %a %a %a@]@;" punctuation "|"
+            EnumConstructor.format_t n keyword "of"
+            (if debug then typ_debug else typ decl_ctx)
+            ty))
+    (EnumConstructor.Map.bindings c)
+
+let struct_
+    ?(debug = false)
+    decl_ctx
+    fmt
+    ((n, c) : StructName.t * typ StructField.Map.t) =
+  Format.fprintf fmt "@[<hov 0> %a %a %a@;%a%a%a@]" keyword "type"
+    StructName.format_t n punctuation "=" punctuation "{"
+    (fun fmt b ->
+      ListLabels.iter b ~f:(fun (n, ty) ->
+          Format.fprintf fmt "@[%a%a %a%a@]@;" StructField.format_t n keyword
+            ":"
+            (if debug then typ_debug else typ decl_ctx)
+            ty punctuation ";"))
+    (StructField.Map.bindings c)
+    punctuation "}"
+
+let decl_ctx ?(debug = false) decl_ctx (fmt : Format.formatter) (ctx : decl_ctx)
+    : unit =
+  let { ctx_enums; ctx_structs; _ } = ctx in
+
+  Format.fprintf fmt "@[<v>%a@;@;%a@] @;"
+    (Format.pp_print_list ~pp_sep:Format.pp_print_cut (enum ~debug decl_ctx))
+    (EnumName.Map.bindings ctx_enums)
+    (Format.pp_print_list ~pp_sep:Format.pp_print_cut (struct_ ~debug decl_ctx))
+    (StructName.Map.bindings ctx_structs)
+
+let scope
+    ?(debug : bool = false)
+    (ctx : decl_ctx)
+    (fmt : Format.formatter)
+    ((n, s) : ScopeName.t * 'm scope_body) : unit =
+  scope_body ~debug ctx fmt (n, s)
+
+let code_item ?(debug = false) decl_ctx fmt c =
+  match c with
+  | ScopeDef (n, b) -> scope ~debug decl_ctx fmt (n, b)
+  | Topdef (n, ty, e) ->
+    Format.fprintf fmt "@[%a %a %a %a %a %a @]" keyword "let topval"
+      TopdefName.format_t n op_style ":" (typ decl_ctx) ty op_style "="
+      (expr ~debug decl_ctx) e
+
+let rec code_item_list ?(debug = false) decl_ctx fmt c =
+  match c with
+  | Nil -> ()
+  | Cons (c, b) ->
+    let _x, cl = Bindlib.unbind b in
+
+    Format.fprintf fmt "%a @.%a"
+      (code_item ~debug decl_ctx)
+      c
+      (code_item_list ~debug decl_ctx)
+      cl
+
+let program ?(debug = false) fmt p =
+  decl_ctx ~debug p.decl_ctx fmt p.decl_ctx;
+  code_item_list ~debug p.decl_ctx fmt p.code_items

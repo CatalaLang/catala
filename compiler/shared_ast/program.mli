@@ -45,6 +45,3 @@ val equal :
   (([< dcalc | lcalc ], _) gexpr as 'e) program ->
   (([< dcalc | lcalc ], _) gexpr as 'e) program ->
   bool
-
-val format :
-  ?debug:bool -> Format.formatter -> ('a any, 'm mark) gexpr program -> unit

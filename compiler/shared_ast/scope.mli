@@ -111,36 +111,6 @@ val get_body_mark : (_, 'm mark) gexpr scope_body -> 'm mark
 
 (** {2 Conversions} *)
 
-val format :
-  ?debug:bool (** [true] for debug printing *) ->
-  ?byexpr:bool
-    (** [true] to convert to an expression and then print. [false] to print the
-        actual term. *) ->
-  decl_ctx ->
-  Format.formatter ->
-  ScopeName.t * 'e scope_body ->
-  unit
-
-val code_item_format :
-  ?debug:bool ->
-  ?byexpr:bool
-    (** [true] to convert to an expression and then print. [false] to print the
-        actual term. *) ->
-  decl_ctx ->
-  Format.formatter ->
-  ('a any, 'm mark) gexpr code_item ->
-  unit
-
-val code_item_list_format :
-  ?debug:bool ->
-  ?byexpr:bool
-    (** [true] to convert to an expression and then print. [false] to print the
-        actual term. *) ->
-  decl_ctx ->
-  Format.formatter ->
-  ('a any, 'm mark) gexpr code_item_list ->
-  unit
-
 val to_expr :
   decl_ctx ->
   ('a any, 'm mark) gexpr scope_body ->

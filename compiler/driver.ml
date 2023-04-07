@@ -229,7 +229,7 @@ let driver source_file (options : Cli.options) : int =
           @@ fun fmt ->
           if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
-              (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
+              (Shared_ast.Print.scope ~debug:options.debug prgm.decl_ctx)
               ( scope_uid,
                 Option.get
                   (Shared_ast.Scope.fold_left ~init:None
@@ -357,7 +357,7 @@ let driver source_file (options : Cli.options) : int =
               @@ fun fmt ->
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
-                  (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
+                  (Shared_ast.Print.scope ~debug:options.debug prgm.decl_ctx)
                   (scope_uid, Shared_ast.Program.get_scope_body prgm scope_uid)
               else
                 let prgrm_lcalc_expr =
