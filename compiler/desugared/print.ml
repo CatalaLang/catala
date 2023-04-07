@@ -23,7 +23,7 @@ type exception_tree =
 
 open Format
 
-(* Credits for this printing code: Jean-Christophe Filiâtre, *)
+(* Original credits for this printing code: Jean-Christophe Filiâtre *)
 let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
   let blue s =
     Format.asprintf "%a" (Cli.format_with_style [ANSITerminal.blue]) s
@@ -59,6 +59,8 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
     | s :: sons ->
       pp_print_string fmt (blue start);
       print_node (pref ^ "| ") s;
+      pp_force_newline fmt ();
+      pp_print_string fmt (blue (pref ^ " │"));
       pp_force_newline fmt ();
       pp_print_string fmt (blue pref);
       print_sons pref "├──" sons
