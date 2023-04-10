@@ -20,6 +20,14 @@
  (modules json_schema)
  (libraries catala.driver))
 
+(library
+ (name concolic)
+ (public_name catala.plugins.concolic)
+ (synopsis
+  "Alternative python backend that produces instrumented code ready for systematic test generation via concolic execution")
+ (modules concolic)
+ (libraries catala.driver))
+
 (documentation
  (package catala)
  (mld_files plugins))

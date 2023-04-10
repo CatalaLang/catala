@@ -56,3 +56,42 @@ $ catala Interpret -s TestSection132_2
 $ catala Interpret -s TestSection132_3
 [RESULT] Computation successful!
 ```
+
+
+```catala
+declaration scope FuzzSection132Property:
+  section_132 scope QualifiedEmployeeDiscount
+  input customer_price content money
+  input employee_price content money
+  input aggregate_cost content money
+  output employee_discount content money
+  output gross_profit_percentage content decimal
+  output qualified_employee_discount content money
+
+scope FuzzSection132Property:
+  definition section_132.customer_price equals customer_price
+  definition section_132.employee_price equals employee_price
+  definition section_132.aggregate_cost equals aggregate_cost
+  definition section_132.discount_type equals Property
+  definition employee_discount equals section_132.employee_discount
+  definition gross_profit_percentage equals section_132.gross_profit_percentage
+  definition qualified_employee_discount equals section_132.qualified_employee_discount
+
+```
+
+```catala
+declaration scope FuzzSection132Services:
+  section_132 scope QualifiedEmployeeDiscount
+  input customer_price content money
+  input employee_price content money
+  output employee_discount content money
+  output qualified_employee_discount content money
+
+scope FuzzSection132Services:
+  definition section_132.customer_price equals customer_price
+  definition section_132.employee_price equals employee_price
+  definition section_132.discount_type equals Services
+  definition employee_discount equals section_132.employee_discount
+  definition qualified_employee_discount equals section_132.qualified_employee_discount
+
+```

@@ -1,0 +1,5 @@
+(rule
+ (target concolic.py)
+ (mode promote)
+ (action
+  (copy src/catala/%{target} %{target})))

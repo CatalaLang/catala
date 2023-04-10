@@ -174,3 +174,35 @@ $ catala Interpret -s Test5 --disable_warnings
 $ catala Interpret -s Test6 --disable_warnings
 [RESULT] Computation successful!
 ```
+
+```catala
+
+####################### Fuzzing Section121SinglePerson #########################
+
+declaration scope FuzzSection121SinglePerson:
+  scope121a scope Section121SinglePerson
+  input sale_date content date
+  input gain content money
+  input ownership_begin content date
+  input ownership_end content date
+  input usage_begin content date
+  input usage_end content date
+  output requirements_met condition
+  output exclusion content money
+
+
+scope FuzzSection121SinglePerson:
+  definition scope121a.date_of_sale_or_exchange equals sale_date
+  definition scope121a.gain_from_sale_or_exchange_of_property equals gain
+  definition scope121a.property_ownage equals [Period {
+    -- begin: ownership_begin
+    -- end: ownership_end
+  }]
+  definition scope121a.property_usage_as_principal_residence equals [Period {
+    -- begin: usage_begin
+    -- end: usage_end
+  }]
+  definition scope121a.other_section_121a_sale equals NoOtherSaleWhereSection121aApplied
+  definition requirements_met equals scope121a.requirements_met
+  definition exclusion equals scope121a.income_excluded_from_gross_income
+```
