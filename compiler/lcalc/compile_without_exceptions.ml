@@ -260,25 +260,32 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   | EErrorOnEmpty arg ->
     let arg' = trans ctx arg in
     monad_eoe arg' ~mark ~toplevel:false
-  | EApp { f = (EVar ff, _) as f; args } ->
+  | EApp { f = EVar scope, _; args = [(EStruct { fields; name }, _)] }
+    when (Var.Map.find scope ctx).is_scope ->
+    (* Scopes are encoded as functions that can take option arguments, and
+       always return (or raise panic exceptions like AssertionFailed,
+       NoValueProvided or Conflict) an structure that can contain optionnal
+       elements. Hence, to call a scope, we don't need to use the monad bind. *)
+    monad_return ~mark
+      (Expr.eapp
+         (Expr.evar (trans_var ctx scope) mark)
+         [
+           Expr.estruct name
+             (StructField.MapLabels.map fields ~f:(trans ctx))
+             mark;
+         ]
+         mark)
+  | EApp { f = (EVar ff, _) as f; args } when not (Var.Map.find ff ctx).is_scope
+    ->
     (* INVARIANT: functions are always encoded using this function.
 
        As every functions of type [a -> b] but top-level scopes are built using
-       this function, returning a function of type [a -> b option], it is
-       required to use [monad_mbind].
-
-       For scope, the resulting type is [a -> b]. Hence, we have a different
-       encoding using [monad_mmap]. *)
-    if (Var.Map.find ff ctx).is_scope then
-      let f_var = Var.make "fff" in
-      monad_bind_var ~mark
-        (monad_mmap (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
-        f_var (trans ctx f)
-    else
-      let f_var = Var.make "fff" in
-      monad_bind_var ~mark
-        (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
-        f_var (trans ctx f)
+       this function, returning a function of type [a -> b option], hence, we
+       should use [monad_mbind]. *)
+    let f_var = Var.make "fff" in
+    monad_bind_var ~mark
+      (monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
+      f_var (trans ctx f)
   | EApp { f = (EStructAccess _, _) as f; args } ->
     (* This occurs when calling a subscope function. The same encoding as the
        one for [EApp (Var _) _] if the variable is not a scope works. *)
