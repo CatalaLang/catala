@@ -24,12 +24,12 @@ scope B:
 $ catala Dcalc -s B
 let B =
   λ (B_in: B_in {}) →
-    let a.a : unit → integer = λ (_: unit) → ∅  in
+    let a.a : unit → integer = λ (_: unit) → ∅ in
     let a.b : integer = error_empty ⟨true ⊢ 2⟩ in
-    let result : A {"c": integer} = A (A_in { "a_in"= a.a; "b_in"= a.b }) in
+    let result : A {"c": integer} = A {A_in "a_in" = a.a; "b_in" = a.b} in
     let a.c : integer = result."c" in
-    let _ : unit = assert (error_empty a.c = 1) in
-    B {  }
+    let _ : unit = assert (error_empty (a.c = 1)) in
+    {B}
 ```
 
 ```catala-test-inline

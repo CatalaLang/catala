@@ -33,13 +33,14 @@ scope B:
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
 [RESULT] x =
-           [S { "id"= 0; "income"= $0.00 }; S { "id"= 1; "income"= $9.00 };
-             S { "id"= 2; "income"= $5.20 }]
+           [ {S "id" = 0; "income" = $0.00};
+             {S "id" = 1; "income" = $9.00};
+             {S "id" = 2; "income" = $5.20} ]
 ```
 
 ```catala-test-inline
 $ catala Interpret -s B
 [RESULT] Computation successful! Results:
-[RESULT] argmax = S { "id"= 1; "income"= $9.00 }
-[RESULT] argmin = S { "id"= 0; "income"= $0.00 }
+[RESULT] argmax = {S "id" = 1; "income" = $9.00}
+[RESULT] argmin = {S "id" = 0; "income" = $0.00}
 ```
