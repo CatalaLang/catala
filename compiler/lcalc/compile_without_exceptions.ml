@@ -525,6 +525,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     Errors.raise_spanned_error (Expr.pos e)
       "Internal Error: found an EOp that does not satisfy the invariants when \
        translating Dcalc to Lcalc without exceptions."
+  | ELocation _ -> .
 
 (** Now we have translated expression, we still need to translate the statements
     (scope_let_list) and then scopes. This is pretty much straightforward. *)

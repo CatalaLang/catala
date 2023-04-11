@@ -340,6 +340,53 @@ let rec evaluate_operator
     ELit (LBool (o_eq_dat_dat x y))
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (protect o_eq_dur_dur x y))
+  | HandleDefaultOpt, [(EArray exps, _); (juststification, _); (conclusion, _)]
+    -> (
+    let valid_exceptions =
+      ListLabels.filter exps ~f:(function
+        | EInj { name; cons; _ }, _
+          when EnumName.equal name Definitions.option_enum
+               && EnumConstructor.equal cons Definitions.some_constr ->
+          true
+        | EInj { name; cons; _ }, _
+          when EnumName.equal name Definitions.option_enum
+               && EnumConstructor.equal cons Definitions.none_constr ->
+          false
+        | _ -> err ())
+    in
+
+    match valid_exceptions with
+    | [] -> (
+      match juststification with
+      | EInj { name; cons; e = ELit (LBool true), _ }
+        when EnumName.equal name Definitions.option_enum
+             && EnumConstructor.equal cons Definitions.some_constr ->
+        conclusion
+      | EInj { name; cons; e = (ELit (LBool false), _) as e }
+        when EnumName.equal name Definitions.option_enum
+             && EnumConstructor.equal cons Definitions.some_constr ->
+        EInj
+          {
+            name = Definitions.option_enum;
+            cons = Definitions.none_constr;
+            e = Marked.same_mark_as (ELit LUnit) e;
+          }
+      | EInj { name; cons; e }
+        when EnumName.equal name Definitions.option_enum
+             && EnumConstructor.equal cons Definitions.none_constr ->
+        EInj
+          {
+            name = Definitions.option_enum;
+            cons = Definitions.none_constr;
+            e = Marked.same_mark_as (ELit LUnit) e;
+          }
+      | _ -> err ())
+    | [((EInj { cons; name; _ } as e), _)]
+      when EnumName.equal name Definitions.option_enum
+           && EnumConstructor.equal cons Definitions.some_constr ->
+      e
+    | [_] -> err ()
+    | _ -> raise (CatalaException ConflictError))
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
       | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
       | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
@@ -350,7 +397,8 @@ let rec evaluate_operator
       | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
       | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
       | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
-      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ),
+      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefault | HandleDefaultOpt
+        ),
       _ ) ->
     err ()
 
