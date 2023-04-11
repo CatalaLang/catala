@@ -274,7 +274,6 @@ val make_abs :
   ('a any, 'm mark) boxed_gexpr
 
 val make_app :
-
   ?decl_ctx:decl_ctx option ->
   ('a any, 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr list ->
@@ -283,6 +282,17 @@ val make_app :
 
 val empty_thunked_term :
   'm mark -> ([< all > `DefaultTerms ], 'm mark) boxed_gexpr
+
+val thunk_term :
+  (([< all ] as 'a), 'b mark) boxed_gexpr ->
+  'b mark ->
+  ('a, 'b mark) boxed_gexpr
+
+(* val unthunk_term : (([< all ] as 'a), Pos.t) boxed_gexpr -> 'b mark -> ('a,
+   Pos.t) boxed_gexpr *)
+
+val unthunk_term_nobox :
+  (([< all ] as 'a), 'm mark) gexpr -> 'm mark -> ('a, 'm mark) gexpr
 
 val make_let_in :
   ('a, 'm mark) gexpr Var.t ->

@@ -253,7 +253,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let m' = match m with Typed m -> Typed { m with ty = TAny, pos } in
     Expr.make_app
       (Expr.eop Op.HandleDefaultOpt [TAny, pos; TAny, pos; TAny, pos] m')
-      [Expr.earray excepts' m; just'; cons']
+      [Expr.earray excepts' m; Expr.thunk_term just' m; Expr.thunk_term cons' m]
       pos
   | ELit l -> monad_return ~mark (Expr.elit l m)
   | EEmptyError -> monad_empty ~mark

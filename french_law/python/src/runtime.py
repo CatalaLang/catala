@@ -618,8 +618,8 @@ def handle_default(
 def handle_default_opt(
     pos: SourcePosition,
     exceptions: List[Optional[Any]],
-    just: Callable[[Unit],Optional[bool]],
-    cons: Callable[[Unit],Optional[Alpha]]
+    just: Optional[bool],
+    cons: Optional[Alpha]
 ) -> Optional[Alpha]:
     acc: Optional[Alpha] = None
     for exception in exceptions:
@@ -630,12 +630,11 @@ def handle_default_opt(
         elif not (acc is None) and not (exception is None):
             raise ConflictError(pos)
     if acc is None:
-        b = just(Unit())
-        if b is None:
+        if just is None:
             return None
         else:
-            if b:
-                return cons(Unit())
+            if just:
+                return cons
             else:
                 return None
     else:

@@ -26,7 +26,6 @@ type date [@@deriving yojson]
 type duration [@@deriving yojson]
 type date_rounding = Dates_calc.Dates.date_rounding
 
-
 type source_position = {
   filename : string;
   start_line : int;
@@ -278,8 +277,8 @@ val handle_default :
 val handle_default_opt :
   source_position ->
   'a eoption array ->
-  bool eoption ->
-  'a eoption ->
+  (unit -> bool eoption) ->
+  (unit -> 'a eoption) ->
   'a eoption
 (** @raise ConflictError *)
 

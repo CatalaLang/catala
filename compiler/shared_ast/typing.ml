@@ -256,7 +256,8 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Marked.pos) :
     | Length -> [array any] @-> it
     | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
     | HandleDefaultOpt ->
-      [array (option any); option bt; option any] @-> option any
+      [array (option any); [ut] @-> option bt; [ut] @-> option any]
+      @-> option any
   in
   Lazy.force ty
 

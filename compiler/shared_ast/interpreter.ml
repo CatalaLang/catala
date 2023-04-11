@@ -340,8 +340,7 @@ let rec evaluate_operator
     ELit (LBool (o_eq_dat_dat x y))
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (protect o_eq_dur_dur x y))
-  | HandleDefaultOpt, [(EArray exps, _); (juststification, _); (conclusion, _)]
-    -> (
+  | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
         | EInj { name; cons; _ }, _
@@ -357,11 +356,14 @@ let rec evaluate_operator
 
     match valid_exceptions with
     | [] -> (
-      match juststification with
+      match
+        Marked.unmark
+          (evaluate_expr ctx (Expr.unthunk_term_nobox justification m))
+      with
       | EInj { name; cons; e = ELit (LBool true), _ }
         when EnumName.equal name Definitions.option_enum
              && EnumConstructor.equal cons Definitions.some_constr ->
-        conclusion
+        Marked.unmark (evaluate_expr ctx (Expr.unthunk_term_nobox conclusion m))
       | EInj { name; cons; e = (ELit (LBool false), _) as e }
         when EnumName.equal name Definitions.option_enum
              && EnumConstructor.equal cons Definitions.some_constr ->
@@ -454,7 +456,7 @@ let rec evaluate_expr :
             | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat
             | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat
             | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat
-            | Eq_dur_dur ) as op;
+            | Eq_dur_dur | HandleDefault | HandleDefaultOpt ) as op;
           _;
         } ->
       evaluate_operator evaluate_expr ctx op m args

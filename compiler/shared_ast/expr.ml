@@ -753,10 +753,18 @@ let make_app ?(decl_ctx = None) e args pos =
   in
   eapp e args mark
 
-let empty_thunked_term mark =
+let thunk_term term mark =
   let silent = Var.make "_" in
   let pos = mark_pos mark in
-  make_abs [| silent |] (Bindlib.box EEmptyError, mark) [TLit TUnit, pos] pos
+  make_abs [| silent |] term [TLit TUnit, pos] pos
+
+let empty_thunked_term mark = thunk_term (Bindlib.box EEmptyError, mark) mark
+
+(* let unthunk_term term mark = let pos = mark_pos mark in make_app term [elit
+   LUnit mark] pos *)
+
+let unthunk_term_nobox term mark =
+  Marked.mark mark (EApp { f = term; args = [ELit LUnit, mark] })
 
 let make_let_in x tau e1 e2 mpos =
   make_app (make_abs [| x |] e2 [tau] mpos) [e1] (pos e2)
