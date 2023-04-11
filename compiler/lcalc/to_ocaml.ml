@@ -388,6 +388,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       format_with_parens body format_exception
       (exn, Expr.pos e)
       format_with_parens handler
+  | _ -> .
 
 let format_struct_embedding
     (fmt : Format.formatter)

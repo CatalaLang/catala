@@ -786,6 +786,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
         ] )
   | EEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
   | EErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
+  | _ -> .
 
 (** [create_z3unit] creates a Z3 sort and expression corresponding to the unit
     type and value respectively. Concretely, we represent unit as a tuple with 0

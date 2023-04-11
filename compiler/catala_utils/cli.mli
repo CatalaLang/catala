@@ -22,6 +22,7 @@ type backend_option_builtin =
   | `Makefile
   | `Html
   | `Interpret
+  | `Interpret_Lcalc
   | `Typecheck
   | `OCaml
   | `Python

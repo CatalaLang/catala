@@ -139,8 +139,9 @@ let driver source_file (options : Cli.options) : int =
               Literate.Html.wrap_html prgm.Surface.Ast.program_source_files
                 language fmt (fun fmt -> weave_output fmt prgm)
           else weave_output fmt prgm)
-    | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
-      | `Scopelang | `Proof | `DcalcInvariants | `Plugin _ ) as backend -> (
+    | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
+      | `Lcalc | `Dcalc | `Scopelang | `Proof | `DcalcInvariants | `Plugin _ )
+      as backend -> (
       Cli.debug_print "Name resolution...";
       let ctxt = Desugared.Name_resolution.form_context prgm in
       let scope_uid =
@@ -189,8 +190,9 @@ let driver source_file (options : Cli.options) : int =
           Format.fprintf fmt "%a\n"
             (Scopelang.Print.program ~debug:options.debug)
             prgm
-      | ( `Interpret | `Typecheck | `OCaml | `Python | `Scalc | `Lcalc | `Dcalc
-        | `Proof | `DcalcInvariants | `Plugin _ ) as backend -> (
+      | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
+        | `Lcalc | `Dcalc | `Proof | `DcalcInvariants | `Plugin _ ) as backend
+        -> (
         Cli.debug_print "Typechecking...";
         let type_ordering =
           Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
@@ -247,8 +249,8 @@ let driver source_file (options : Cli.options) : int =
             Format.fprintf fmt "%a\n"
               (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
               prgrm_dcalc_expr
-        | ( `Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof
-          | `DcalcInvariants | `Plugin _ ) as backend -> (
+        | ( `Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _
+          | `Interpret_Lcalc | `DcalcInvariants ) as backend -> (
           Cli.debug_print "Typechecking again...";
           let prgm =
             try Shared_ast.Typing.program ~leave_unresolved:false prgm
@@ -288,11 +290,8 @@ let driver source_file (options : Cli.options) : int =
             else raise (Errors.raise_error "Invariant invalid")
           | `Interpret ->
             Cli.debug_print "Starting interpretation...";
-            let prgrm_dcalc_expr =
-              Shared_ast.Expr.unbox (Shared_ast.Program.to_expr prgm scope_uid)
-            in
             let results =
-              Dcalc.Interpreter.interpret_program prgm.decl_ctx prgrm_dcalc_expr
+              Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
             in
             let results =
               List.sort
@@ -308,7 +307,8 @@ let driver source_file (options : Cli.options) : int =
                   (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
                   result)
               results
-          | (`OCaml | `Python | `Lcalc | `Scalc | `Plugin _) as backend -> (
+          | (`OCaml | `Interpret_Lcalc | `Python | `Lcalc | `Scalc | `Plugin _)
+            as backend -> (
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm =
               if options.avoid_exceptions then
@@ -363,6 +363,25 @@ let driver source_file (options : Cli.options) : int =
                 Format.fprintf fmt "%a\n"
                   (Shared_ast.Print.program ~debug:options.debug)
                   prgm
+            | `Interpret_Lcalc ->
+              Cli.debug_print "Starting interpretation...";
+              let results =
+                Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
+              in
+              let results =
+                List.sort
+                  (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
+                  results
+              in
+              Cli.debug_print "End of interpretation";
+              Cli.result_print "Computation successful!%s"
+                (if List.length results > 0 then " Results:" else "");
+              List.iter
+                (fun ((var, _), result) ->
+                  Cli.result_format "@[<hov 2>%s@ =@ %a@]" var
+                    (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
+                    result)
+                results
             | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
               match backend with
               | `OCaml ->

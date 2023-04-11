@@ -11,7 +11,6 @@
 , js_of_ocaml-ppx
 , menhir
 , menhirLib
-, ocaml-crunch
 , ocamlgraph
 , pkgs
 , ppx_deriving
@@ -24,6 +23,7 @@
 , z3
 , zarith
 , zarith_stubs_js
+, ocaml-crunch
 , cohttp-lwt-unix
 , ppx_expect
 }:

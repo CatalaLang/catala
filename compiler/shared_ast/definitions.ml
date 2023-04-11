@@ -320,7 +320,11 @@ and ('a, 'b, 't) base_gexpr =
       args : ('a, 't) gexpr list;
     }
       -> ('a, [< all ], 't) base_gexpr
-  | EOp : { op : 'a operator; tys : typ list } -> ('a, [< all ], 't) base_gexpr
+  | EOp : {
+      op : 'b operator;
+      tys : typ list;
+    }
+      -> ('a, ([< all ] as 'b), 't) base_gexpr
   | EArray : ('a, 't) gexpr list -> ('a, [< all ], 't) base_gexpr
   | EVar : ('a, 't) naked_gexpr Bindlib.var -> ('a, _, 't) base_gexpr
   | EAbs : {
@@ -359,7 +363,7 @@ and ('a, 'b, 't) base_gexpr =
     }
       -> ('a, [< all ], 't) base_gexpr
   (* Early stages *)
-  | ELocation : 'a glocation -> ('a, [< all > `ExplicitScopes ], 't) base_gexpr
+  | ELocation : 'b glocation -> ('a, ([< all ] as 'b), 't) base_gexpr
   | EScopeCall : {
       scope : ScopeName.t;
       args : ('a, 't) gexpr ScopeVar.Map.t;

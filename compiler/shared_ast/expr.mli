@@ -97,9 +97,7 @@ val ecatch :
   (([< all > `Exceptions ] as 'a), 't) boxed_gexpr
 
 val eraise : except -> 't -> ([< all > `Exceptions ], 't) boxed_gexpr
-
-val elocation :
-  'a glocation -> 't -> (([< all > `ExplicitScopes ] as 'a), 't) boxed_gexpr
+val elocation : 'a glocation -> 't -> (([< all ] as 'a), 't) boxed_gexpr
 
 val estruct :
   StructName.t ->
@@ -181,15 +179,14 @@ val untype : ('a, 'm mark) gexpr -> ('a, untyped mark) boxed_gexpr
 (** {2 Traversal functions} *)
 
 val map :
-  f:(('a, 't1) gexpr -> ('a, 't2) boxed_gexpr) ->
-  (('a, 't1) naked_gexpr, 't2) Marked.t ->
-  ('a, 't2) boxed_gexpr
+  f:(('a, 'm1) gexpr -> ('b, 'm2) boxed_gexpr) ->
+  (('a, 'b, 'm1) base_gexpr, 'm2) Marked.t ->
+  ('b, 'm2) boxed_gexpr
 (** Shallow mapping on expressions (non recursive): applies the given function
     to all sub-terms of the given expression, and rebuilds the node.
 
-    When applying a map transform to an expression, this avoids expliciting all
-    cases that remain unchanged. For instance, if you want to remove all errors
-    on empty, you can write
+    This function makes it very concise to transform only certain nodes of the
+    AST. For instance, if you want to remove all errors on empty, you can write
 
     {[
       let remove_error_empty e =
@@ -199,30 +196,21 @@ val map :
           | _ -> Expr.map ~f e
         in
         f e
-    ]} *)
+    ]}
 
-val map_raw :
-  f:(('a, 'm1) gexpr -> ('b, 'm2) boxed_gexpr) ->
-  fop:('a Op.t -> 'b Op.t) ->
-  floc:('a glocation -> 'b glocation) ->
-  (('a, 'b, 'm1) base_gexpr, 'm2) Marked.t ->
-  ('b, 'm2) boxed_gexpr
-(** Lower-level version of shallow [map] that can be used for transforming the
-    type of the AST. See [Lcalc.Compile_without_exceptions] for an example. The
-    structure is like this:
+    This can even be used to translate between different kinds of ASTs: see
+    [Lcalc.Compile_without_exceptions] for an example. The structure is like
+    this:
 
     {[
       let rec translate = function
         | SpecificCase e -> TargetCase (translate e)
-        | (All | Other | Common | Cases) as e -> map_raw ~f:translate e
+        | (All | Other | Common | Cases) as e -> Expr.map ~f:translate e
     ]}
 
-    This function makes it very concise to transform only certain nodes of the
-    AST.
-
-    The [e] parameter passed to [map_raw] here needs to have only the common
-    cases in its shallow type, but can still contain any node from the starting
-    AST deeper inside: this is where the second type parameter to [base_gexpr]
+    The [e] parameter passed to [map] here needs to have only the common cases
+    in its shallow type, but can still contain any node from the starting AST
+    deeper inside: this is where the second type parameter to [base_gexpr]
     becomes useful. *)
 
 val map_top_down :
@@ -338,6 +326,9 @@ val make_tuple :
 
 (** {2 Transformations} *)
 
+val skip_wrappers : ('a, 'm) gexpr -> ('a, 'm) gexpr
+(** Removes surface logging calls and [EErrorOnEmpty] nodes. Shallow function *)
+
 val remove_logging_calls :
   (([< all > `Polymorphic ] as 'a), 't) gexpr -> ('a, 't) boxed_gexpr
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
@@ -356,6 +347,8 @@ val equal_lit : lit -> lit -> bool
 val compare_lit : lit -> lit -> int
 val equal_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> bool
 val compare_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> int
+val equal_except : except -> except -> bool
+val compare_except : except -> except -> int
 
 val equal : ('a, 't) gexpr -> ('a, 't) gexpr -> bool
 (** Determines if two expressions are equal, omitting their position information *)
