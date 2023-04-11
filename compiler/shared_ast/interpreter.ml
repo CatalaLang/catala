@@ -621,6 +621,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       StructField.Map.map
         (fun ty ->
           match Marked.unmark ty with
+          | TOption _ ->
+            Format.printf "input_typ: %a@." Print.typ_debug ty;
+            (Expr.einj (Expr.elit LUnit mark_e) Definitions.none_constr
+               Definitions.option_enum mark_e
+              : (_, _) boxed_gexpr)
           | _ ->
             Errors.raise_spanned_error (Marked.get_mark ty)
               "This scope needs input arguments to be executed. But the Catala \
