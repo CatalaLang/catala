@@ -289,7 +289,7 @@ let driver source_file (options : Cli.options) : int =
             if result then Cli.debug_format "Finished checking invariants"
             else raise (Errors.raise_error "Invariant invalid")
           | `Interpret ->
-            Cli.debug_print "Starting interpretation...";
+            Cli.debug_print "Starting interpretation (dcalc)...";
             let results =
               Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
             in
@@ -364,7 +364,7 @@ let driver source_file (options : Cli.options) : int =
                   (Shared_ast.Print.program ~debug:options.debug)
                   prgm
             | `Interpret_Lcalc ->
-              Cli.debug_print "Starting interpretation...";
+              Cli.debug_print "Starting interpretation (lcalc)...";
               let results =
                 Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
               in
