@@ -1,0 +1,11 @@
+## Article
+
+```catala
+declaration scope S:
+  context output a content boolean
+
+scope S:
+   definition a equals
+    let a equals true in
+    a
+```

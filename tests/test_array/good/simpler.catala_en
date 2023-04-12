@@ -1,0 +1,11 @@
+## Article
+
+```catala
+declaration scope A:
+   output x content collection integer
+   output w content boolean
+
+scope A:
+   definition x equals [0; 4+5; 8*8]
+   definition w equals for all m among x we have m > 0
+```

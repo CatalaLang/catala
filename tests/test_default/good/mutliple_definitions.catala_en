@@ -1,0 +1,16 @@
+```catala
+declaration scope A:
+  output w content integer
+
+scope A:
+  definition w equals 3
+
+scope A:
+  definition w equals 3
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] w = 3
+```
