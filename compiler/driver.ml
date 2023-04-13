@@ -289,6 +289,13 @@ let driver source_file (options : Cli.options) : int =
                   (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
                   result)
               results
+          | `Plugin (Plugin.Dcalc p) ->
+            let output_file, _ = get_output_format ~ext:p.Plugin.extension () in
+            Cli.debug_print "Compiling program through backend \"%s\"..."
+              p.Plugin.name;
+            p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
+              (Shared_ast.Program.untype prgm)
+              type_ordering
           | (`OCaml | `Interpret_Lcalc | `Python | `Lcalc | `Scalc | `Plugin _)
             as backend -> (
             Cli.debug_print "Compiling program into lambda calculus...";
@@ -375,6 +382,7 @@ let driver source_file (options : Cli.options) : int =
                 Cli.debug_print "Writing to %s..."
                   (Option.value ~default:"stdout" output_file);
                 Lcalc.To_ocaml.format_program fmt prgm type_ordering
+              | `Plugin (Plugin.Dcalc _) -> assert false
               | `Plugin (Plugin.Lcalc p) ->
                 let output_file, _ =
                   get_output_format ~ext:p.Plugin.extension ()
@@ -411,7 +419,7 @@ let driver source_file (options : Cli.options) : int =
                   with_output
                   @@ fun fmt ->
                   Scalc.To_python.format_program fmt prgm type_ordering
-                | `Plugin (Plugin.Lcalc _) -> assert false
+                | `Plugin (Plugin.Dcalc _ | Plugin.Lcalc _) -> assert false
                 | `Plugin (Plugin.Scalc p) ->
                   let output_file, _ = get_output ~ext:p.Plugin.extension () in
                   Cli.debug_print "Compiling program through backend \"%s\"..."
