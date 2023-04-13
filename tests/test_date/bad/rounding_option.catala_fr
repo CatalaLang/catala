@@ -12,6 +12,9 @@ champ d'application Test:
 
 ```catala-test-inline
 $ catala Interpret -s Test
+catala: internal error, uncaught exception:
+        Dates_calc.Dates.AmbiguousComputation
+        
 [WARNING] In scope "Test", the variable "ambiguité" is never used anywhere; maybe it's unnecessary?
 
 ┌─⯈ tests/test_date/bad/rounding_option.catala_fr:5.11-20:
@@ -19,8 +22,5 @@ $ catala Interpret -s Test
 5 │   contexte ambiguité contenu booléen
   │            ‾‾‾‾‾‾‾‾‾
 
-catala: internal error, uncaught exception:
-        Dates_calc.Dates.AmbiguousComputation
-        
 #return code 125#
 ```

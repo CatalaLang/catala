@@ -24,7 +24,7 @@ scope B:
 ```catala-test-inline
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
-[RESULT] x = [0; 9; 64]
+[RESULT] x = [ 0; 9; 64 ]
 ```
 
 ```catala-test-inline

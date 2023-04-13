@@ -20,12 +20,15 @@ let S =
       let f1 : ((bool), integer) → integer =
         λ (env: (bool)) (y: integer) →
           let x1 : bool = env.0 in
-          if x1 then y else -! y in
-      (f1, (x)) in
+          if x1 then y else -! y
+      in
+      (f1, (x))
+    in
     let z : integer =
       let code_and_env : (((bool), integer) → integer * (bool)) = f in
       let code : ((bool), integer) → integer = code_and_env.0 in
       let env : (bool) = code_and_env.1 in
-      code env -1 in
-    S { "z"= z }
+      code env, -1
+    in
+    {S "z" = z}
 ```

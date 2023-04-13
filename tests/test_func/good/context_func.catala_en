@@ -43,9 +43,10 @@ let A =
   λ (A_in: A_in {"f_in": integer → integer}) →
     let f : integer → integer = A_in."f_in" in
     let f1 : integer → integer =
-      λ (x: integer) → error_empty
-        ⟨f x | true ⊢ ⟨true ⊢ x +! 1⟩⟩ in
-    A {  }
+      λ (x: integer) →
+        error_empty ⟨ f x | true ⊢ ⟨true ⊢ x +! 1⟩ ⟩
+    in
+    {A}
 ```
 
 ```catala-test-inline
@@ -61,7 +62,8 @@ let B =
   λ (B_in: B_in {"b_in": bool}) →
     let b : bool = B_in."b_in" in
     let a.f : integer → integer =
-      λ (x: integer) → ⟨b && x >! 0 ⊢ x -! 1⟩ in
-    let result : A {} = A (A_in { "f_in"= a.f }) in
-    B {  }
+      λ (x: integer) → ⟨b && x >! 0 ⊢ x -! 1⟩
+    in
+    let result : A {} = A {A_in "f_in" = a.f} in
+    {B}
 ```
