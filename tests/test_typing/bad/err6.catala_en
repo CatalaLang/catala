@@ -33,17 +33,17 @@ $ catala ocaml
 --> integer
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_typing/bad/err6.catala_en:20.26-29:
+┌─⯈ tests/test_typing/bad/err6.catala_en:20.13-18:
 └──┐
 20 │   definition sub.x equals 44.
-   │                           ‾‾‾
+   │              ‾‾‾‾‾
 
 
 Type decimal coming from expression:
-┌─⯈ tests/test_typing/bad/err6.catala_en:20.26-29:
+┌─⯈ tests/test_typing/bad/err6.catala_en:20.13-18:
 └──┐
 20 │   definition sub.x equals 44.
-   │                           ‾‾‾
+   │              ‾‾‾‾‾
 
 
 Type integer coming from expression:

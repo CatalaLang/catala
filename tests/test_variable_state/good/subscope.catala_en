@@ -34,9 +34,9 @@ scope B:
 $ catala Scopelang -s A
 let scope A (foo_bar: integer|context) (foo_baz: integer|internal)
   (foo_fizz: integer|internal|output) =
-  let foo_bar : integer = reentrant or by default ⟨true ⊢ 1⟩;
-  let foo_baz : integer = ⟨true ⊢ foo_bar +! 1⟩;
-  let foo_fizz : integer = ⟨true ⊢ foo_baz +! 1⟩
+  let foo_bar : integer = reentrant or by default 1;
+  let foo_baz : integer = foo_bar +! 1;
+  let foo_fizz : integer = foo_baz +! 1
 ```
 
 ```catala-test-inline

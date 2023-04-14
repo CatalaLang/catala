@@ -23,7 +23,7 @@ scope S:
 $ catala Interpret -s S
 [RESULT] Computation successful! Results:
 [RESULT] a = 1946.5744
-[RESULT] b = {A "y" = true; "z" = 2091.}
+[RESULT] b = { "y" = true; "z" = 2091.}_A
 ```
 
 ## Test toplevel function defs

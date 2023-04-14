@@ -38,7 +38,8 @@ scope B:
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
 [RESULT] t =
-           {T "a" = {S "x" = 0; "y" = false}; "b" = {S "x" = 1; "y" = true}}
+           { "a" = { "x" = 0; "y" = false}_S; "b" = { "x" = 1; "y" = true}_S
+           }_T
 ```
 
 ```catala-test-inline
@@ -46,5 +47,6 @@ $ catala Interpret -s B
 [RESULT] Computation successful! Results:
 [RESULT] out = 1
 [RESULT] t =
-           {T "a" = {S "x" = 0; "y" = false}; "b" = {S "x" = 1; "y" = true}}
+           { "a" = { "x" = 0; "y" = false}_S; "b" = { "x" = 1; "y" = true}_S
+           }_T
 ```

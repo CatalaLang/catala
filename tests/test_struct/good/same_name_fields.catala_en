@@ -26,6 +26,6 @@ $ catala Interpret -s A
   │                       ‾‾‾
   └─ Article
 [RESULT] Computation successful! Results:
-[RESULT] x = {Foo "f" = 1}
+[RESULT] x = { "f" = 1}_Foo
 [RESULT] y = 1
 ```
