@@ -219,34 +219,34 @@ open Monad
     put option expressions. Hence, the transformation simply reduce [unit -> 'a]
     into ['a option] recursivly. There is no polymorphism inside catala. *)
 
-(** In the general case, we use the [trans_typ] function to put [TAny] and then
-    ask the typing algorithm to reinfer all the types. However, this is not
-    sufficient as the typing inference need at least input and output types.
-    Those a generated using the [translate_typ] function, that build TOptions
+(** In the general case, we use the [trans_typ_to_any] function to put [TAny]
+    and then ask the typing algorithm to reinfer all the types. However, this is
+    not sufficient as the typing inference need at least input and output types.
+    Those a generated using the [trans_typ_keep] function, that build TOptions
     where needed. *)
-let trans_typ (tau : typ) : typ = Marked.same_mark_as TAny tau
+let trans_typ_to_any (tau : typ) : typ = Marked.same_mark_as TAny tau
 
-let rec translate_typ (tau : typ) : typ =
+let rec trans_typ_keep (tau : typ) : typ =
   let m = Marked.get_mark tau in
   (Fun.flip Marked.same_mark_as)
     tau
     begin
       match Marked.unmark tau with
       | TLit l -> TLit l
-      | TTuple ts -> TTuple (List.map translate_typ ts)
+      | TTuple ts -> TTuple (List.map trans_typ_keep ts)
       | TStruct s -> TStruct s
       | TEnum en -> TEnum en
       | TOption _ -> assert false
       | TAny -> TAny
       | TArray ts ->
-        TArray (TOption (translate_typ ts), m) (* catala is not polymorphic *)
-      | TArrow ([(TLit TUnit, _)], t2) -> Marked.unmark (translate_typ t2)
+        TArray (TOption (trans_typ_keep ts), m) (* catala is not polymorphic *)
+      | TArrow ([(TLit TUnit, _)], t2) -> Marked.unmark (trans_typ_keep t2)
       | TArrow (t1, t2) ->
-        TArrow (List.map translate_typ t1, (TOption (translate_typ t2), m))
+        TArrow (List.map trans_typ_keep t1, (TOption (trans_typ_keep t2), m))
     end
 
-let translate_typ (tau : typ) : typ =
-  Marked.same_mark_as (TOption (translate_typ tau)) tau
+let trans_typ_keep (tau : typ) : typ =
+  Marked.same_mark_as (TOption (trans_typ_keep tau)) tau
 
 let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
 
@@ -257,7 +257,7 @@ let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
     We also keep [is_scope] to indicate if a variable come from a top-level
     scope definition. This is used when applying functions as described below.
     Finally, the following invariant it kept by the application of the function
-    if [e] is of type [a], then the result should be of type [translate_typ a].
+    if [e] is of type [a], then the result should be of type [trans_typ_keep a].
     For literals, this mean that a expression of type [money] will be of type
     [money option]. We rely on later optimization to shorten the size of the
     generated code. *)
@@ -631,7 +631,7 @@ let rec trans_scope_let ctx s =
       (fun scope_let_expr scope_let_next ->
         {
           scope_let_kind = SubScopeVarDefinition;
-          scope_let_typ = trans_typ scope_let_typ;
+          scope_let_typ = trans_typ_to_any scope_let_typ;
           scope_let_expr;
           scope_let_next;
           scope_let_pos;
@@ -664,7 +664,7 @@ let rec trans_scope_let ctx s =
       (fun scope_let_expr scope_let_next ->
         {
           scope_let_kind = SubScopeVarDefinition;
-          scope_let_typ = trans_typ scope_let_typ;
+          scope_let_typ = trans_typ_to_any scope_let_typ;
           scope_let_expr;
           scope_let_next;
           scope_let_pos;
@@ -700,7 +700,7 @@ let rec trans_scope_let ctx s =
       (fun scope_let_expr scope_let_next ->
         {
           scope_let_kind = SubScopeVarDefinition;
-          scope_let_typ = trans_typ scope_let_typ;
+          scope_let_typ = trans_typ_to_any scope_let_typ;
           scope_let_expr;
           scope_let_next;
           scope_let_pos;
@@ -748,7 +748,7 @@ let rec trans_scope_let ctx s =
       (fun scope_let_expr scope_let_next ->
         {
           scope_let_kind;
-          scope_let_typ = trans_typ scope_let_typ;
+          scope_let_typ = trans_typ_to_any scope_let_typ;
           scope_let_expr;
           scope_let_next;
           scope_let_pos;
@@ -809,7 +809,7 @@ let rec trans_code_items ctx c :
       let e = Expr.Box.lift @@ trans ctx e in
       (* TODO: need to add an error_on_empty *)
       Bindlib.box_apply2
-        (fun next e -> Cons (Topdef (name, trans_typ typ, e), next))
+        (fun next e -> Cons (Topdef (name, trans_typ_to_any typ, e), next))
         next e
     | ScopeDef (name, body) ->
       let next =
@@ -845,10 +845,10 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       ctx_structs =
         prgm.decl_ctx.ctx_structs
         |> StructName.Map.mapi (fun _n str ->
-               StructField.Map.map translate_typ str
+               StructField.Map.map trans_typ_keep str
                (* Cli.debug_print @@ Format.asprintf "Input type: %a" (Print.typ
                   decl_ctx) tau; Cli.debug_print @@ Format.asprintf "Output
-                  type: %a" (Print.typ decl_ctx) (translate_typ tau); *));
+                  type: %a" (Print.typ decl_ctx) (trans_typ_keep tau); *));
     }
   in
 
