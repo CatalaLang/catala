@@ -23,6 +23,10 @@ open Ast
     constructions injectors. Implemented to simplify the monadic encoding of
     catala
 
+    [match E x with | E y -> e1] = [e1\[y |-> x\]]
+
+    [match e with | A y -> y | B y -> B y] = [e]
+
     * iota2_expr: optimization regarding nested matches arguments. Implemented
     simplify the monadic encoding of catala
 
