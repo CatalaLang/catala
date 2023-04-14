@@ -29,6 +29,10 @@ val check_invariant : string * invariant_expr -> typed program -> bool
 (** Expression invariants are then lifted toward program invariants using
     catala's utility combinators using the [check invariant] function. *)
 
+val check_all_invariants : typed program -> bool
+(** Check all invariants. Return true if all the invariants are correct. Print
+    errors messages for each unsucessfull invariants. *)
+
 val invariant_default_no_arrow : unit -> string * invariant_expr
 (** [invariant_default_no_arrow] check no default term has a function type. *)
 

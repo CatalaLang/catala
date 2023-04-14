@@ -262,17 +262,7 @@ let driver source_file (options : Cli.options) : int =
           in
           if !Cli.check_invariants_flag then (
             Cli.debug_format "Checking invariants";
-            let open Dcalc.Invariants in
-            let result =
-              List.fold_left ( && ) true
-                [
-                  check_invariant (invariant_default_no_arrow ()) prgm;
-                  check_invariant (invariant_no_partial_evaluation ()) prgm;
-                  check_invariant (invariant_no_return_a_function ()) prgm;
-                  check_invariant (invariant_app_inversion ()) prgm;
-                  check_invariant (invariant_match_inversion ()) prgm;
-                ]
-            in
+            let result = Dcalc.Invariants.check_all_invariants prgm in
 
             if result then Cli.debug_format "Finished checking invariants"
             else raise (Errors.raise_error "Invariant invalid"));
@@ -323,8 +313,6 @@ let driver source_file (options : Cli.options) : int =
               end
               else Shared_ast.Program.untype prgm
             in
-            (* let prgm = Shared_ast.Program.untype @@ Shared_ast.Typing.program
-               ~leave_unresolved:false prgm in *)
             let prgm =
               if options.closure_conversion then (
                 if not options.avoid_exceptions then

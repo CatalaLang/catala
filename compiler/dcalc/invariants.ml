@@ -123,3 +123,13 @@ let invariant_match_inversion () : string * invariant_expr =
         then Pass
         else Fail
       | _ -> Ignore )
+
+let check_all_invariants prgm =
+  List.fold_left ( && ) true
+    [
+      check_invariant (invariant_default_no_arrow ()) prgm;
+      check_invariant (invariant_no_partial_evaluation ()) prgm;
+      check_invariant (invariant_no_return_a_function ()) prgm;
+      check_invariant (invariant_app_inversion ()) prgm;
+      check_invariant (invariant_match_inversion ()) prgm;
+    ]
