@@ -43,7 +43,7 @@ $ catala Interpret -t -s HousingComputation
      7 │   definition f of x equals (output of RentComputation).f of x
        │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     
-[LOG]     ≔  RentComputation.direct.output: { "f" = λ (param0: integer) → { "f" = λ (x: integer) → error_empty ⟨true ⊢ (λ (x1: integer) → error_empty ⟨true ⊢ x1 +! 1⟩) (x +! 1)⟩ }_RentComputation."f" param0 }_RentComputation
+[LOG]     ≔  RentComputation.direct.output: { "f" = λ (param0: integer) → { "f" = λ (x: integer) → error_empty ⟨true ⊢ ⟨ ⟨true ⊢ (λ (x1: integer) → error_empty ⟨true ⊢ ⟨ ⟨true ⊢ x1 +! 1⟩ | false ⊢ ∅ ⟩⟩) (x +! 1)⟩ | false ⊢ ∅ ⟩⟩ }_RentComputation."f" param0 }_RentComputation
 [LOG]   ←  RentComputation.direct
 [LOG]   →  RentComputation.f
 [LOG]     ≔  RentComputation.f.input0: 1
@@ -73,24 +73,32 @@ $ catala Interpret -t -s HousingComputation
            λ (x: integer) →
              error_empty
                ⟨true ⊢
-                 (let result : RentComputation =
-                    (λ (RentComputation_in: RentComputation_in) →
-                       let g : integer → integer =
-                         λ (x1: integer) →
-                           error_empty ⟨true ⊢ x1 +! 1⟩
-                       in
-                       let f : integer → integer =
-                         λ (x1: integer) →
-                           error_empty ⟨true ⊢ g (x1 +! 1)⟩
-                       in
-                       { "f" = f}_RentComputation)
-                      {}_RentComputation_in
-                  in
-                  let result1 : RentComputation =
-                    { "f" = λ (param0: integer) → result."f" param0
-                    }_RentComputation
-                  in
-                  if true then result1 else result1)."f"
-                   x⟩
+                 ⟨ ⟨true ⊢
+                       (let result : RentComputation =
+                          (λ (RentComputation_in: RentComputation_in) →
+                             let g : integer → integer =
+                               λ (x1: integer) →
+                                 error_empty
+                                   ⟨true ⊢
+                                     ⟨ ⟨true ⊢ x1 +! 1⟩
+                                     | false ⊢ ∅ ⟩⟩
+                             in
+                             let f : integer → integer =
+                               λ (x1: integer) →
+                                 error_empty
+                                   ⟨true ⊢
+                                     ⟨ ⟨true ⊢ g (x1 +! 1)⟩
+                                     | false ⊢ ∅ ⟩⟩
+                             in
+                             { "f" = f}_RentComputation)
+                            {}_RentComputation_in
+                        in
+                        let result1 : RentComputation =
+                          { "f" = λ (param0: integer) → result."f" param0
+                          }_RentComputation
+                        in
+                        if true then result1 else result1)."f"
+                         x⟩
+                 | false ⊢ ∅ ⟩⟩
 [RESULT] result = 3
 ```
