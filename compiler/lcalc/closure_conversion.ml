@@ -333,6 +333,8 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
               (Expr.Box.lift new_expr) ))
       ~varf:(fun v -> v)
       (Var.Set.empty, p.decl_ctx)
+      (* TODO: handle_default and handle_default_opt are now operators and not
+         variables. *)
       p.code_items
   in
   Bindlib.box_apply
