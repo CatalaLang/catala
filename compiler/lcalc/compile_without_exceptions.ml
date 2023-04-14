@@ -253,6 +253,15 @@ let trans_typ_keep (tau : typ) : typ =
 
 let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
 
+type 'a info_pure = {
+  info_pure : bool;
+  is_scope : bool;
+  var : 'a Ast.expr Var.t;
+}
+
+let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
+  (Var.Map.find x ctx).var
+
 (** The function [e' = trans ctx e] actually do the translation between dexpr
     and lexpr. The context link every free variables of the [e] expression to a
     new lcalc variable [var], and some information [info_pure] on whenever the
@@ -264,15 +273,6 @@ let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
     For literals, this mean that a expression of type [money] will be of type
     [money option]. We rely on later optimization to shorten the size of the
     generated code. *)
-
-type 'a info_pure = {
-  info_pure : bool;
-  is_scope : bool;
-  var : 'a Ast.expr Var.t;
-}
-
-let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
-  (Var.Map.find x ctx).var
 
 let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   let m = Marked.get_mark e in
@@ -369,7 +369,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     in
     monad_bind_var (trans ctx' body) var' (trans ctx arg) ~mark
   | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
-    Errors.raise_error
+    Errors.raise_internal_error
       "Parameter trace is incompatible with parameter avoid_exceptions: some \
        tracing logs were added while they are not supported."
   (* Encoding of Fold, Filter, Map and Reduce is non trivial because we don't
@@ -379,8 +379,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
        type [b] -> [a] -> option [a]. But we need a function of type option [b]
        -> option [a] -> option [a] for the type checking of fold. Hence, we
        "iota-expand" the function as follows: [λ x y. bindm x y. [f] x y] *)
-    let x1 = Var.make "x1" in
-    let x2 = Var.make "x2" in
+    let x1 = Var.make "f" in
+    let x2 = Var.make "init" in
     let f' =
       monad_bind_cont ~mark
         (fun f ->
@@ -425,8 +425,10 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       [f'; monad_return ~mark (trans ctx init); trans ctx l]
       ~mark
   | EApp { f = EOp { op = Op.Map; tys }, opmark; args = [f; l] } ->
-    (* todo *)
-    let x1 = Var.make "x1" in
+    (* The funtion $f$ has type $a -> option b$, but Map needs a function of
+       type $a -> b$, hence we need to transform $f$ into a function of type $a
+       option -> option b$. *)
+    let x1 = Var.make "f" in
     let f' =
       monad_bind_cont ~mark
         (fun f ->
@@ -453,8 +455,11 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       [f'; trans ctx l]
       ~mark
   | EApp { f = EOp { op = Op.Filter; tys }, opmark; args = [f; l] } ->
-    (* todo *)
-    let x1 = Var.make "x1" in
+    (* The function $f$ has type $a -> bool option$ while the filter operator
+       requires an function of type $a option -> bool$. Hence we need to modify
+       $f$ by first matching the input, and second using the error_on_empty on
+       the result.*)
+    let x1 = Var.make "p" in
     let f' =
       monad_bind_cont ~mark
         (fun f ->
@@ -531,8 +536,6 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
              mark))
       (List.map (trans ctx) args)
   | EStruct { name; fields } ->
-    (* TODO: since ocaml is determinisitc, the fields will always be enumerated
-       in the same order on the fields. *)
     let fields_name, fields = List.split (StructField.Map.bindings fields) in
     monad_mbind_cont
       (fun xs ->
@@ -545,19 +548,12 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (List.map (trans ctx) fields)
       ~mark
   | EIfThenElse { cond; etrue; efalse } ->
-    (* As discussed previously, there is two different encoding of the if then
-       else. The first one is to consider it as if it is an operator. Hence, if
-       one of the branches is an EmptyError, then it propagate to the final
-       result of the expression. The second one is [<<|cond |- a >, <|not cond
-       |- b>| false :- empty>]. This is indeed redondant with exising default
-       terms. I provide here the two possible semantics translation. *)
-    (* semantic one: *)
-    (* monad_bind_cont ~mark (fun cond -> monad_bind_cont (fun etrue ->
-       monad_bind_cont ~mark (fun efalse -> Expr.eifthenelse (Expr.evar cond m)
-       (Expr.evar etrue m) (Expr.evar efalse m) m) (trans ctx efalse)) (trans
-       ctx etrue) ~mark) (trans ctx cond) *)
-
-    (* semantic two: *)
+    (* There is two different encoding of the if then else. The first one is to
+       consider it as if it is an operator. Hence, if one of the branches is an
+       EmptyError, then it propagate to the final result of the expression. The
+       second one is [<<|cond |- a >, <|not cond |- b>| false :- empty>]. The
+       second semantics is redondant with exising default terms, but is the one
+       decided by the compiler. *)
     monad_bind_cont ~mark
       (fun cond ->
         Expr.eifthenelse (Expr.evar cond mark) (trans ctx etrue)
@@ -726,8 +722,8 @@ let rec trans_scope_let ctx s =
       Var.Map.add next_var
         (match scope_let_kind with
         | DestructuringInputStruct -> (
-          (* todo: we keep the old separation for further optimization while
-             building the terms. *)
+          (* note for future: we keep this useless match for distinguishing
+             further optimization while building the terms. *)
           match Marked.unmark scope_let_typ with
           | TArrow ([(TLit TUnit, _)], _) ->
             { info_pure = false; is_scope = false; var = next_var' }
@@ -808,7 +804,8 @@ let rec trans_code_items ctx c :
              next)
       in
       let e = Expr.Box.lift @@ trans ctx e in
-      (* TODO: need to add an error_on_empty *)
+      (* Invariant: We suppose there is no default in toplevel def, hence we
+         don't need to add an error_on_empty *)
       Bindlib.box_apply2
         (fun next e -> Cons (Topdef (name, trans_typ_to_any typ, e), next))
         next e
@@ -827,11 +824,6 @@ let rec trans_code_items ctx c :
         next body)
 
 let translate_program (prgm : typed D.program) : untyped A.program =
-  (* let inputs_structs = Scope.fold_left prgm.code_items ~init:[] ~f:(fun acc
-     def _ -> match def with | ScopeDef (_, body) ->
-     body.scope_body_input_struct :: acc | Topdef _ -> acc) in *)
-  (* Cli.debug_print @@ Format.asprintf "List of structs to modify: [%a]"
-     (Format.pp_print_list D.StructName.format_t) inputs_structs; *)
   let decl_ctx =
     {
       prgm.decl_ctx with
@@ -846,10 +838,7 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       ctx_structs =
         prgm.decl_ctx.ctx_structs
         |> StructName.Map.mapi (fun _n str ->
-               StructField.Map.map trans_typ_keep str
-               (* Cli.debug_print @@ Format.asprintf "Input type: %a" (Print.typ
-                  decl_ctx) tau; Cli.debug_print @@ Format.asprintf "Output
-                  type: %a" (Print.typ decl_ctx) (trans_typ_keep tau); *));
+               StructField.Map.map trans_typ_keep str);
     }
   in
 
