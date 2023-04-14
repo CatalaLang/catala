@@ -26,7 +26,7 @@ scope B:
 ```catala-test-inline
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
-[RESULT] x = [$0.00; $9.00; $5.20]
+[RESULT] x = [ $0.00; $9.00; $5.20 ]
 ```
 
 ```catala-test-inline
