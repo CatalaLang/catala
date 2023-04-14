@@ -523,7 +523,7 @@ let error_print format =
   Format.eprintf ("%a" ^^ format ^^ "@\n") error_marker ()
 
 let error_format (format : ('a, Format.formatter, unit) format) =
-  Format.eprintf ("%s" ^^ format ^^ "\n%!") (error_marker ())
+  Format.printf ("%a" ^^ format ^^ "\n%!") error_marker ()
 
 let warning_print format =
   if !disable_warnings_flag then Format.ifprintf Format.std_formatter format
