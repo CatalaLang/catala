@@ -190,9 +190,7 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
     || String.begins_with_uppercase (Bindlib.name_of v)
   then Format.pp_print_string fmt lowercase_name
   else if lowercase_name = "_" then Format.pp_print_string fmt lowercase_name
-  else (
-    Cli.debug_print "lowercase_name: %s " lowercase_name;
-    Format.fprintf fmt "%s_" lowercase_name)
+  else Format.fprintf fmt "%s_" lowercase_name
 
 let needs_parens (e : 'm expr) : bool =
   match Marked.unmark e with

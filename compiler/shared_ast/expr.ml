@@ -760,9 +760,6 @@ let thunk_term term mark =
 
 let empty_thunked_term mark = thunk_term (Bindlib.box EEmptyError, mark) mark
 
-(* let unthunk_term term mark = let pos = mark_pos mark in make_app term [elit
-   LUnit mark] pos *)
-
 let unthunk_term_nobox term mark =
   Marked.mark mark (EApp { f = term; args = [ELit LUnit, mark] })
 
