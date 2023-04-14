@@ -31,3 +31,73 @@ val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
 val option_enum_config : typ EnumConstructor.Map.t
+
+val monad_return :
+  mark:'m mark ->
+  (([< all ] as 'a), 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr
+
+val monad_empty : mark:'m mark -> (([< all ] as 'a), 'm mark) boxed_gexpr
+
+val monad_bind_var :
+  mark:'m mark ->
+  (([< all ] as 'a), 'm mark) boxed_gexpr ->
+  ('a, 'm mark) gexpr Var.t ->
+  ('a, 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr
+
+val monad_bind :
+  mark:'m mark ->
+  (([< all ] as 'a), 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr
+
+val monad_bind_cont :
+  mark:'m mark ->
+  ((([< all ] as 'a), 'm mark) gexpr Var.t -> ('a, 'm mark) boxed_gexpr) ->
+  ('a, 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr
+
+val monad_mbind_mvar :
+  mark:'m mark ->
+  (([< all ] as 'a), 'm mark) boxed_gexpr ->
+  ('a, 'm mark) gexpr Var.t list ->
+  ('a, 'm mark) boxed_gexpr list ->
+  ('a, 'm mark) boxed_gexpr
+
+val monad_mbind :
+  mark:'m mark ->
+  (([< all ] as 'a), 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr list ->
+  ('a, 'm mark) boxed_gexpr
+
+val monad_mbind_cont :
+  mark:'m mark ->
+  ((([< all ] as 'a), 'm mark) gexpr Var.t list -> ('a, 'm mark) boxed_gexpr) ->
+  ('a, 'm mark) boxed_gexpr list ->
+  ('a, 'm mark) boxed_gexpr
+
+val monad_eoe :
+  mark:'a mark ->
+  ?toplevel:bool ->
+  (([< all > `Exceptions ] as 'b), 'a mark) boxed_gexpr ->
+  ('b, 'a mark) boxed_gexpr
+
+val monad_map :
+  mark:'m mark ->
+  (([< all ] as 'a), 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr
+
+val monad_mmap_mvar :
+  mark:'m mark ->
+  (([< all ] as 'a), 'm mark) boxed_gexpr ->
+  ('a, 'm mark) gexpr Var.t list ->
+  ('a, 'm mark) boxed_gexpr list ->
+  ('a, 'm mark) boxed_gexpr
+
+val monad_mmap :
+  mark:'m mark ->
+  (([< all ] as 'a), 'm mark) boxed_gexpr ->
+  ('a, 'm mark) boxed_gexpr list ->
+  ('a, 'm mark) boxed_gexpr
