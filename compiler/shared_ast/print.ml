@@ -85,33 +85,8 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " op_style "*")
          typ)
       ts
-  | TStruct s -> (
-    match ctx with
-    | None -> Format.fprintf fmt "@[<hov 2>%a@]" StructName.format_t s
-    | Some ctx ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format_t s
-        punctuation "{"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
-           (fun fmt (field, mty) ->
-             Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
-               StructField.format_t field punctuation "\"" punctuation ":" typ
-               mty))
-        (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs))
-        punctuation "}")
-  | TEnum e -> (
-    match ctx with
-    | None -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format_t e
-    | Some ctx ->
-      Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" EnumName.format_t e punctuation
-        "["
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " punctuation "|")
-           (fun fmt (case, mty) ->
-             Format.fprintf fmt "%a%a@ %a" enum_constructor case punctuation ":"
-               typ mty))
-        (EnumConstructor.Map.bindings (EnumName.Map.find e ctx.ctx_enums))
-        punctuation "]")
+  | TStruct s -> Format.fprintf fmt "@[<hov 2>%a@]" StructName.format_t s
+  | TEnum e -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format_t e
   | TOption t -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ t
   | TArrow ([t1], t2) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" typ_with_parens t1 op_style "→"
