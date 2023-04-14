@@ -16,57 +16,11 @@
 
 (* An integer number of cents *)
 type money = Z.t
-
-let money_of_yojson x = x |> string_of_yojson |> Z.of_string
-let yojson_of_money x = x |> Z.to_string |> yojson_of_string
-
 type integer = Z.t
-
-let integer_of_yojson x = x |> string_of_yojson |> Z.of_string
-let yojson_of_integer x = x |> Z.to_string |> yojson_of_string
-
 type decimal = Q.t
-
-let decimal_of_yojson x = x |> string_of_yojson |> Q.of_string
-let yojson_of_decimal x = x |> Q.to_string |> yojson_of_string
-
-type fake_date = { year : int; month : int; day : int } [@@deriving yojson]
 type date = Dates_calc.Dates.date
 type date_rounding = Dates_calc.Dates.date_rounding
-
-let date_of_yojson x =
-  let { year; month; day } = fake_date_of_yojson x in
-  Dates_calc.Dates.make_date ~year ~month ~day
-
-let yojson_of_date date =
-  let year, month, day = Dates_calc.Dates.date_to_ymd date in
-  yojson_of_fake_date { year; month; day }
-
 type duration = Dates_calc.Dates.period
-
-let duration_of_yojson x =
-  let { year = years; month = months; day = days } = fake_date_of_yojson x in
-  Dates_calc.Dates.make_period ~years ~months ~days
-
-let yojson_of_duration duration =
-  let year, month, day = Dates_calc.Dates.period_to_ymds duration in
-  yojson_of_fake_date { year; month; day }
-
-let _ = date_of_yojson
-let _ = decimal_of_yojson
-let _ = duration_of_yojson
-let _ = fake_date_of_yojson
-let _ = integer_of_yojson
-let _ = money_of_yojson
-let _ = string_of_yojson
-let _ = yojson_of_date
-let _ = yojson_of_decimal
-let _ = yojson_of_duration
-let _ = yojson_of_fake_date
-let _ = yojson_of_integer
-let _ = yojson_of_money
-let _ = yojson_of_string
-
 type 'a eoption = ENone of unit | ESome of 'a
 
 type source_position = {

@@ -19,11 +19,11 @@
 
 (** {1 Types} *)
 
-type money [@@deriving yojson]
-type integer [@@deriving yojson]
-type decimal [@@deriving yojson]
-type date [@@deriving yojson]
-type duration [@@deriving yojson]
+type money
+type integer
+type decimal
+type date
+type duration
 type date_rounding = Dates_calc.Dates.date_rounding
 
 type source_position = {
@@ -34,7 +34,6 @@ type source_position = {
   end_column : int;
   law_headings : string list;
 }
-[@@deriving yojson_of]
 
 type 'a eoption = ENone of unit | ESome of 'a
 
