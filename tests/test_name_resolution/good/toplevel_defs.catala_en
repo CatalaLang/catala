@@ -460,11 +460,20 @@ def s2(s2_in:S2In):
                         decimal_of_string("100."))
                 def temp_a_5(_:Unit):
                     return True
-                return handle_default([], temp_a_5, temp_a_4)
-            return handle_default([temp_a_3], temp_a_2, temp_a_1)
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [], temp_a_5,
+                                      temp_a_4)
+            return handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [temp_a_3], temp_a_2,
+                                  temp_a_1)
         def temp_a_6(_:Unit):
             return True
-        temp_a_7 = handle_default([], temp_a_6, temp_a)
+        temp_a_7 = handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [], temp_a_6, temp_a)
     except EmptyError:
         temp_a_7 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
@@ -488,11 +497,20 @@ def s3(s3_in:S3In):
                               decimal_of_string("55.")))
                 def temp_a_13(_:Unit):
                     return True
-                return handle_default([], temp_a_13, temp_a_12)
-            return handle_default([temp_a_11], temp_a_10, temp_a_9)
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [], temp_a_13,
+                                      temp_a_12)
+            return handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [temp_a_11], temp_a_10,
+                                  temp_a_9)
         def temp_a_14(_:Unit):
             return True
-        temp_a_15 = handle_default([], temp_a_14, temp_a_8)
+        temp_a_15 = handle_default(SourcePosition(filename="", start_line=0,
+                                   start_column=1, end_line=0, end_column=1,
+                                   law_headings=[]), [], temp_a_14, temp_a_8)
     except EmptyError:
         temp_a_15 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
@@ -514,11 +532,21 @@ def s4(s4_in:S4In):
                     return (glob5_1 + decimal_of_string("1."))
                 def temp_a_21(_:Unit):
                     return True
-                return handle_default([], temp_a_21, temp_a_20)
-            return handle_default([temp_a_19], temp_a_18, temp_a_17)
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [], temp_a_21,
+                                      temp_a_20)
+            return handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [temp_a_19], temp_a_18,
+                                  temp_a_17)
         def temp_a_22(_:Unit):
             return True
-        temp_a_23 = handle_default([], temp_a_22, temp_a_16)
+        temp_a_23 = handle_default(SourcePosition(filename="", start_line=0,
+                                   start_column=1, end_line=0, end_column=1,
+                                   law_headings=[]), [], temp_a_22,
+                                   temp_a_16)
     except EmptyError:
         temp_a_23 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
@@ -540,11 +568,21 @@ def s(s_in:SIn):
                     return (glob1 * glob1)
                 def temp_a_29(_:Unit):
                     return True
-                return handle_default([], temp_a_29, temp_a_28)
-            return handle_default([temp_a_27], temp_a_26, temp_a_25)
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [], temp_a_29,
+                                      temp_a_28)
+            return handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [temp_a_27], temp_a_26,
+                                  temp_a_25)
         def temp_a_30(_:Unit):
             return True
-        temp_a_31 = handle_default([], temp_a_30, temp_a_24)
+        temp_a_31 = handle_default(SourcePosition(filename="", start_line=0,
+                                   start_column=1, end_line=0, end_column=1,
+                                   law_headings=[]), [], temp_a_30,
+                                   temp_a_24)
     except EmptyError:
         temp_a_31 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
@@ -563,11 +601,20 @@ def s(s_in:SIn):
                     return glob2
                 def temp_b_5(_:Unit):
                     return True
-                return handle_default([], temp_b_5, temp_b_4)
-            return handle_default([temp_b_3], temp_b_2, temp_b_1)
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [], temp_b_5,
+                                      temp_b_4)
+            return handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [temp_b_3], temp_b_2,
+                                  temp_b_1)
         def temp_b_6(_:Unit):
             return True
-        temp_b_7 = handle_default([], temp_b_6, temp_b)
+        temp_b_7 = handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [], temp_b_6, temp_b)
     except EmptyError:
         temp_b_7 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
