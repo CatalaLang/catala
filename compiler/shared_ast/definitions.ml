@@ -256,8 +256,8 @@ module Op = struct
     (* ternary *)
     (* * polymorphic *)
     | Fold : [> `Polymorphic ] t
-    | HandleDefault : [> `Polymorphic] t
-    | HandleDefaultOpt : [> `Polymorphic] t
+    | HandleDefault : [> `Polymorphic ] t
+    | HandleDefaultOpt : [> `Polymorphic ] t
 end
 
 type 'a operator = 'a Op.t
