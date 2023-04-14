@@ -243,11 +243,12 @@ let%expect_test _ =
 
       [%expect
         {|
-    before=match A (x) with
-             | A → λ (x: any) → C (x)
-             | B → λ (x: any) → D (x) end
+    before=match (A x)
+           with
+           | A → (λ (x: any) → C x)
+           | B → (λ (x: any) → D x)
     after=C
-    (x)
+    x
     |}])
 
 let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
@@ -307,11 +308,14 @@ let%expect_test _ =
       [%expect
         {|
    before=match
-            match 1 with
-              | A → λ (x: any) → A (20)
-              | B → λ (x: any) → B (B (x)) end with
-            | A → λ (x: any) → C (x)
-            | B → λ (x: any) → D (x) end
-   after=match 1 with
-           | A → λ (x: any) → C (20)
-           | B → λ (x: any) → D (B (x)) end |}])
+            (match 1
+             with
+             | A → (λ (x: any) → A 20)
+             | B → (λ (x: any) → B B x))
+          with
+          | A → (λ (x: any) → C x)
+          | B → (λ (x: any) → D x)
+   after=match 1
+         with
+         | A → (λ (x: any) → C 20)
+         | B → (λ (x: any) → D B x) |}])
