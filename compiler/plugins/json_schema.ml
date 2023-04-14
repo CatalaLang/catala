@@ -22,7 +22,6 @@ let extension = "_schema.json"
 
 open Catala_utils
 open Shared_ast
-open Lcalc.Ast
 open Lcalc.To_ocaml
 module D = Dcalc.Ast
 
@@ -46,17 +45,6 @@ module To_json = struct
       |> to_camel_case
     in
     Format.fprintf fmt "%s" s
-
-  let rec find_scope_def (target_name : string) :
-      'm expr code_item_list -> (ScopeName.t * 'm expr scope_body) option =
-    function
-    | Nil -> None
-    | Cons (ScopeDef (name, body), _)
-      when String.equal target_name (Marked.unmark (ScopeName.get_info name)) ->
-      Some (name, body)
-    | Cons (_, next_bind) ->
-      let _, next_scope = Bindlib.unbind next_bind in
-      find_scope_def target_name next_scope
 
   let fmt_tlit fmt (tlit : typ_lit) =
     match tlit with
@@ -203,31 +191,29 @@ module To_json = struct
 
   let format_program
       (fmt : Format.formatter)
-      (scope : string)
+      (scope : ScopeName.t)
       (prgm : 'm Lcalc.Ast.program) =
-    match find_scope_def scope prgm.code_items with
-    | None -> Cli.error_print "Internal error: scope '%s' not found." scope
-    | Some scope_def ->
-      Cli.call_unstyled (fun _ ->
-          Format.fprintf fmt
-            "{@[<hov 2>@\n\
-             \"type\": \"object\",@\n\
-             \"@[<hov 2>definitions\": {%a@]@\n\
-             },@\n\
-             \"@[<hov 2>properties\": {@\n\
-             %a@]@\n\
-             }@]@\n\
-             }"
-            (fmt_definitions prgm.decl_ctx)
-            scope_def
-            (fmt_struct_properties prgm.decl_ctx)
-            (snd scope_def).scope_body_input_struct)
+    let scope_body = Program.get_scope_body prgm scope in
+    Cli.call_unstyled (fun _ ->
+        Format.fprintf fmt
+          "{@[<hov 2>@\n\
+           \"type\": \"object\",@\n\
+           \"@[<hov 2>definitions\": {%a@]@\n\
+           },@\n\
+           \"@[<hov 2>properties\": {@\n\
+           %a@]@\n\
+           }@]@\n\
+           }"
+          (fmt_definitions prgm.decl_ctx)
+          (scope, scope_body)
+          (fmt_struct_properties prgm.decl_ctx)
+          scope_body.scope_body_input_struct)
 end
 
 let apply
     ~(source_file : Pos.input_file)
     ~(output_file : string option)
-    ~(scope : string option)
+    ~(scope : Shared_ast.ScopeName.t option)
     (prgm : 'm Lcalc.Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) =
   ignore source_file;
@@ -236,9 +222,9 @@ let apply
   | Some s ->
     File.with_formatter_of_opt_file output_file (fun fmt ->
         Cli.debug_print
-          "Writing JSON schema corresponding to the scope '%s' to the file \
+          "Writing JSON schema corresponding to the scope '%a' to the file \
            %s..."
-          s
+          ScopeName.format_t s
           (Option.value ~default:"stdout" output_file);
         To_json.format_program fmt s prgm)
   | None -> Cli.error_print "A scope must be specified for the plugin: %s" name

@@ -191,15 +191,14 @@ let rec evaluate_operator
     EArray
       (List.map
          (fun e' ->
-           evaluate_expr ctx (Marked.same_mark_as (EApp { f; args = [e'] }) e'))
+           evaluate_expr (Marked.same_mark_as (EApp { f; args = [e'] }) e'))
          es)
   | Reduce, [_; default; (EArray [], _)] -> Marked.unmark default
   | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
     Marked.unmark
       (List.fold_left
          (fun acc x ->
-           evaluate_expr ctx
-             (Marked.same_mark_as (EApp { f; args = [acc; x] }) f))
+           evaluate_expr (Marked.same_mark_as (EApp { f; args = [acc; x] }) f))
          x0 xn)
   | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
   | Filter, [f; (EArray es, _)] ->
@@ -207,8 +206,7 @@ let rec evaluate_operator
       (List.filter
          (fun e' ->
            match
-             evaluate_expr ctx
-               (Marked.same_mark_as (EApp { f; args = [e'] }) e')
+             evaluate_expr (Marked.same_mark_as (EApp { f; args = [e'] }) e')
            with
            | ELit (LBool b), _ -> b
            | _ ->
@@ -221,8 +219,7 @@ let rec evaluate_operator
     Marked.unmark
       (List.fold_left
          (fun acc e' ->
-           evaluate_expr ctx
-             (Marked.same_mark_as (EApp { f; args = [acc; e'] }) e'))
+           evaluate_expr (Marked.same_mark_as (EApp { f; args = [acc; e'] }) e'))
          init es)
   | (Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce), _ -> err ()
   | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
@@ -409,7 +406,7 @@ let rec evaluate_expr :
             | Eq_dur_dur ) as op;
           _;
         } ->
-      evaluate_operator evaluate_expr ctx op m args
+      evaluate_operator (evaluate_expr ctx) ctx op m args
     | _ ->
       Errors.raise_spanned_error pos
         "function has not been reduced to a lambda at evaluation (should not \

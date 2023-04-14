@@ -21,7 +21,7 @@ open Catala_utils
 type 'ast plugin_apply_fun_typ =
   source_file:Pos.input_file ->
   output_file:string option ->
-  scope:string option ->
+  scope:Shared_ast.ScopeName.t option ->
   'ast ->
   Scopelang.Dependency.TVertex.t list ->
   unit

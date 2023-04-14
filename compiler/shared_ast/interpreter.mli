@@ -20,6 +20,18 @@
 open Catala_utils
 open Definitions
 
+val evaluate_operator :
+  ((([< all ] as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr) ->
+  decl_ctx ->
+  [< dcalc | lcalc > `Monomorphic `Polymorphic `Resolved ] operator ->
+  'm mark ->
+  ('a, 'm mark) gexpr list ->
+  ('a, 'm mark) gexpr
+(** Evaluates the result of applying the given operator to the given arguments,
+    which are expected to be already reduced to values. The first argument is
+    used to evaluate expressions and called when reducing e.g. the [map]
+    operator. *)
+
 val evaluate_expr :
   decl_ctx -> (([< dcalc | lcalc ] as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)

@@ -293,7 +293,11 @@ let driver source_file (options : Cli.options) : int =
             let output_file, _ = get_output_format ~ext:p.Plugin.extension () in
             Cli.debug_print "Compiling program through backend \"%s\"..."
               p.Plugin.name;
-            p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
+            p.Plugin.apply ~source_file ~output_file
+              ~scope:
+                (match options.ex_scope with
+                | None -> None
+                | Some _ -> Some scope_uid)
               (Shared_ast.Program.untype prgm)
               type_ordering
           | (`OCaml | `Interpret_Lcalc | `Python | `Lcalc | `Scalc | `Plugin _)
@@ -389,7 +393,11 @@ let driver source_file (options : Cli.options) : int =
                 in
                 Cli.debug_print "Compiling program through backend \"%s\"..."
                   p.Plugin.name;
-                p.Plugin.apply ~source_file ~output_file ~scope:options.ex_scope
+                p.Plugin.apply ~source_file ~output_file
+                  ~scope:
+                    (match options.ex_scope with
+                    | None -> None
+                    | Some _ -> Some scope_uid)
                   prgm type_ordering
               | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
                 let prgm = Scalc.From_lcalc.translate_program prgm in
@@ -427,7 +435,11 @@ let driver source_file (options : Cli.options) : int =
                   Cli.debug_print "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
                   p.Plugin.apply ~source_file ~output_file
-                    ~scope:options.ex_scope prgm type_ordering)))))));
+                    ~scope:
+                      (match options.ex_scope with
+                      | None -> None
+                      | Some _ -> Some scope_uid)
+                    prgm type_ordering)))))));
     0
   with
   | Errors.StructuredError (msg, pos) ->
