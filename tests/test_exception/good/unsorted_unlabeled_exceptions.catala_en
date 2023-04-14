@@ -23,3 +23,9 @@ $ catala Interpret -s A
 [RESULT] x = 1
 [RESULT] y = 2
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] x = ESome 1
+[RESULT] y = ESome 2
+```

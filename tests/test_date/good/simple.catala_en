@@ -19,3 +19,10 @@ $ catala Interpret -s A
 [RESULT] y = 2002-09-30
 [RESULT] z = [0 years, 0 months, 5937 days]
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] x = ESome 2019-01-01
+[RESULT] y = ESome 2002-09-30
+[RESULT] z = ESome [0 years, 0 months, 5937 days]
+```

@@ -15,3 +15,8 @@ $ catala Interpret -s S
 [RESULT] Computation successful! Results:
 [RESULT] a = true
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome true
+```

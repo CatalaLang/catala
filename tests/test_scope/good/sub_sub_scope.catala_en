@@ -48,3 +48,19 @@ $ catala Interpret -s C
 [RESULT] Computation successful! Results:
 [RESULT] z = 2
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] u = ESome true
+[RESULT] x = ESome 0
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] y = ESome 1
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s C --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] z = ESome 2
+```

@@ -57,3 +57,9 @@ let scope TestBool (foo: bool|context|output) (bar: integer|context|output) =
       ⟨ ⟨bar >=! 0 ⊢ true⟩, ⟨bar <! 0 ⊢ false⟩
       | false ⊢ ∅ ⟩⟩
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s TestBool --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] bar = ESome 1
+[RESULT] foo = ESome true
+```

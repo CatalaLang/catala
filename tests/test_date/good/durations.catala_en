@@ -34,3 +34,14 @@ $ catala Interpret -s A
 [RESULT] z2 = true
 [RESULT] z3 = [0 years, 0 months, 5937 days]
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] m = ESome [0 years, 0 months, 11874 days]
+[RESULT] m2 = ESome [0 years, 6 months, 0 days]
+[RESULT] x = ESome 2019-01-01
+[RESULT] y = ESome 2002-09-30
+[RESULT] z = ESome true
+[RESULT] z2 = ESome true
+[RESULT] z3 = ESome [0 years, 0 months, 5937 days]
+```

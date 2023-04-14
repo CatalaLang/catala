@@ -13,3 +13,8 @@ $ catala Interpret -s TestBool
 [RESULT] Computation successful! Results:
 [RESULT] foo = true
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s TestBool --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] foo = ESome true
+```

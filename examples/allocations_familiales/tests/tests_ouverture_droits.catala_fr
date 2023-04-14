@@ -64,3 +64,7 @@ champ d'application Test1:
 $ catala Interpret -s Test1 --disable_warnings
 [RESULT] Computation successful!
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s Test1 --avoid_exceptions --optimize
+[RESULT] Computation successful!
+```

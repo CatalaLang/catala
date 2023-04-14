@@ -624,3 +624,24 @@ def s(s_in:SIn):
     b = temp_b_7
     return S(a = a_3, b = b)
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome 1946.5744
+[RESULT] b = ESome { "y" = ESome true; "z" = ESome 2091.}_A
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S2 --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome 154.
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S3 --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome 2480.
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S4 --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome 6001.
+```

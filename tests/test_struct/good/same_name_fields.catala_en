@@ -29,3 +29,16 @@ $ catala Interpret -s A
 [RESULT] x = { "f" = 1}_Foo
 [RESULT] y = 1
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[WARNING] The structure "Bar" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/good/same_name_fields.catala_en:7.22-25:
+└─┐
+7 │ declaration structure Bar:
+  │                       ‾‾‾
+  └─ Article
+[RESULT] Computation successful! Results:
+[RESULT] x = ESome { "f" = ESome 1}_Foo
+[RESULT] y = ESome 1
+```

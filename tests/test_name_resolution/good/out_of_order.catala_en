@@ -24,3 +24,11 @@ $ catala Interpret -s S
 [RESULT] a = { "x" = 0; "y" = { "y" = true; "z" = 0.}_B}_A
 [RESULT] b = { "y" = true; "z" = 0.}_B
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome
+           { "x" = ESome 0; "y" = ESome { "y" = ESome true; "z" = ESome 0.}_B
+           }_A
+[RESULT] b = ESome { "y" = ESome true; "z" = ESome 0.}_B
+```

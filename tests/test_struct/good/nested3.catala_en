@@ -50,3 +50,24 @@ $ catala Interpret -s B
            { "a" = { "x" = 0; "y" = false}_S; "b" = { "x" = 1; "y" = true}_S
            }_T
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] t = ESome
+           {
+             
+             "a" = ESome { "x" = ESome 0; "y" = ESome false}_S;
+             "b" = ESome { "x" = ESome 1; "y" = ESome true}_S
+           }_T
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] out = ESome 1
+[RESULT] t = ESome
+           {
+             
+             "a" = ESome { "x" = ESome 0; "y" = ESome false}_S;
+             "b" = ESome { "x" = ESome 1; "y" = ESome true}_S
+           }_T
+```
