@@ -288,9 +288,6 @@ val thunk_term :
   'b mark ->
   ('a, 'b mark) boxed_gexpr
 
-(* val unthunk_term : (([< all ] as 'a), Pos.t) boxed_gexpr -> 'b mark -> ('a,
-   Pos.t) boxed_gexpr *)
-
 val unthunk_term_nobox :
   (([< all ] as 'a), 'm mark) gexpr -> 'm mark -> ('a, 'm mark) gexpr
 
