@@ -40,7 +40,7 @@ let tag_with_log_entry
     Expr.eapp
       (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] (Marked.get_mark e))
       [e] (Marked.get_mark e)
-  else Expr.eapp (Expr.eid (Marked.get_mark e)) [e] (Marked.get_mark e)
+  else e
 
 let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     untyped Ast.expr boxed =

@@ -783,10 +783,6 @@ let make_default_unboxed excepts just cons =
     | _ -> None
   in
   match excepts, bool_value just, cons with
-  | [], Some true, cons -> Marked.unmark cons
-  | excepts, Some true, (EDefault { excepts = []; just; cons }, _) ->
-    EDefault { excepts; just; cons }
-  | [except], Some false, _ -> Marked.unmark except
   | excepts, _, cons -> EDefault { excepts; just; cons }
 
 let make_default exceptions just cons =
