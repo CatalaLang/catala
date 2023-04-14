@@ -11,6 +11,8 @@ scope Foo:
 ```catala-test-inline
 $ catala Lcalc -s Foo
 let scope Foo (Foo_in: Foo_in): Foo =
-  let set bar : integer = try 0 with EmptyError -> raise NoValueProvided in
+  let set bar : integer =
+    try handle_default [  ], (λ (_: unit) → true), (λ (_: unit) → 0)
+    with EmptyError -> raise NoValueProvided in
   return { "bar" = bar}_Foo
 ```

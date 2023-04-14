@@ -42,7 +42,8 @@ $ catala Dcalc -s A
 let scope A (A_in: A_in): A =
   let get f : integer → integer = A_in."f_in" in
   let set f : integer → integer =
-    λ (x: integer) → error_empty ⟨ f x | true ⊢ x +! 1 ⟩ in
+    λ (x: integer) →
+      error_empty ⟨ f x | true ⊢ ⟨true ⊢ x +! 1⟩ ⟩ in
   return {}_A
 ```
 

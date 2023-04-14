@@ -24,7 +24,7 @@ scope B:
 $ catala Dcalc -s B
 let scope B (B_in: B_in): B =
   let sub_set a.a : unit → integer = λ (_: unit) → ∅ in
-  let sub_set a.b : integer = error_empty 2 in
+  let sub_set a.b : integer = error_empty ⟨true ⊢ 2⟩ in
   let call result : A = A { "a_in" = a.a; "b_in" = a.b}_A_in in
   let sub_get a.c : integer = result."c" in
   let assert _ : unit = assert (error_empty (a.c = 1)) in

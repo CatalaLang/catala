@@ -50,48 +50,44 @@ end
 
 let scope_a (scope_a_in: ScopeAIn.t) : ScopeA.t =
   let a_: unit -> bool = scope_a_in.ScopeAIn.a_in in
-  let a_: bool = (
+  let a_: bool =
     try
       (handle_default
-         {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
-           start_line=5; start_column=18; end_line=5; end_column=19;
-           law_headings=["Article"]} ([|(fun (_: unit) -> a_ ())|])
-         (fun (_: unit) -> true)
+         {filename = ""; start_line=0; start_column=1;
+           end_line=0; end_column=1; law_headings=[]}
+         ([|(fun (_: unit) -> a_ ())|]) (fun (_: unit) -> true)
          (fun (_: unit) ->
             handle_default
-              {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
-                start_line=5; start_column=18; end_line=5; end_column=19;
-                law_headings=["Article"]} ([||]) (fun (_: unit) -> true)
-              (fun (_: unit) -> true)))
+              {filename = ""; start_line=0; start_column=1;
+                end_line=0; end_column=1; law_headings=[]} ([||])
+              (fun (_: unit) -> true) (fun (_: unit) -> true)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
         start_line=5; start_column=18; end_line=5; end_column=19;
-        law_headings=["Article"]}))) in
+        law_headings=["Article"]})) in
   {ScopeA.a = a_}
 
 let scope_b (scope_b_in: ScopeBIn.t) : ScopeB.t =
   let a_: unit -> bool = scope_b_in.ScopeBIn.a_in in
-  let scope_a_dot_a_: unit -> bool = fun (_: unit) -> (raise EmptyError) in
-  let result_: ScopeA.t = ((scope_a) ({ScopeAIn.a_in = scope_a_dot_a_})) in
+  let scope_a_dot_a_: unit -> bool = fun (_: unit) -> raise EmptyError in
+  let result_: ScopeA.t = scope_a ({ScopeAIn.a_in = scope_a_dot_a_}) in
   let scope_a_dot_a_: bool = result_.ScopeA.a in
-  let a_: bool = (
+  let a_: bool =
     try
       (handle_default
-         {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
-           start_line=8; start_column=11; end_line=8; end_column=12;
-           law_headings=["Article"]} ([|(fun (_: unit) -> a_ ())|])
-         (fun (_: unit) -> true)
+         {filename = ""; start_line=0; start_column=1;
+           end_line=0; end_column=1; law_headings=[]}
+         ([|(fun (_: unit) -> a_ ())|]) (fun (_: unit) -> true)
          (fun (_: unit) ->
             handle_default
-              {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
-                start_line=8; start_column=11; end_line=8; end_column=12;
-                law_headings=["Article"]} ([||]) (fun (_: unit) -> true)
-              (fun (_: unit) -> scope_a_dot_a_)))
+              {filename = ""; start_line=0; start_column=1;
+                end_line=0; end_column=1; law_headings=[]} ([||])
+              (fun (_: unit) -> true) (fun (_: unit) -> scope_a_dot_a_)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
         start_line=8; start_column=11; end_line=8; end_column=12;
-        law_headings=["Article"]}))) in
+        law_headings=["Article"]})) in
   ()
 ```
