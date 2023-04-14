@@ -14,3 +14,8 @@ declaration scope S:
   output z content collection Structure
   output a content decimal
 ```
+
+```catala-test-inline
+$ catala Typecheck --disable_warning
+[RESULT] Typechecking successful!
+```

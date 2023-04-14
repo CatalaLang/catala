@@ -1,7 +1,7 @@
 ```catala
 declaration scope HousingComputation:
-  output f1 content integer depends on integer
-  output f2 content integer depends on integer
+  output f1 content integer depends on (x content integer)
+  output f2 content integer depends on (x content integer)
   output result content integer
 
 scope HousingComputation:
@@ -11,12 +11,91 @@ scope HousingComputation:
   definition result equals f2 of 1
 
 declaration scope RentComputation:
-  internal g content integer depends on integer
-  output f1 content integer depends on integer
-  output f2 content integer depends on integer
+  internal g content integer depends on (x content integer)
+  output f1 content integer depends on (x content integer)
+  output f2 content integer depends on (x content integer)
 
 scope RentComputation:
   definition g of x equals x + 1
   definition f1 of x equals g of (x + 1)
   definition f2 of x equals g of (x + 1)
+```
+
+
+```catala-test-inline
+$ catala Interpret -s RentComputation
+[RESULT] Computation successful! Results:
+[RESULT] f1 =
+           λ (x: integer) →
+             error_empty
+               ⟨true ⊢
+                 ⟨ ⟨true ⊢
+                       let x1 : integer = x +! 1 in
+                       error_empty
+                         ⟨true ⊢
+                           ⟨ ⟨true ⊢ x1 +! 1⟩ | false ⊢ ∅ ⟩⟩⟩
+                 | false ⊢ ∅ ⟩⟩
+[RESULT] f2 =
+           λ (x: integer) →
+             error_empty
+               ⟨true ⊢
+                 ⟨ ⟨true ⊢
+                       let x1 : integer = x +! 1 in
+                       error_empty
+                         ⟨true ⊢
+                           ⟨ ⟨true ⊢ x1 +! 1⟩ | false ⊢ ∅ ⟩⟩⟩
+                 | false ⊢ ∅ ⟩⟩
+```
+
+```catala-test-inline
+$ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] f1 = ESome
+           (λ (x: integer) → ESome
+              match
+                (handle_default_opt
+                   [ match
+                       (ESome
+                        (λ (x1: integer) → ESome
+                           match
+                             (handle_default_opt
+                                [ ESome (x1 +! 1) ],
+                                (λ (_: unit) → ESome false),
+                                (λ (_: unit) → ENone ()))
+                           with
+                           | ENone →
+                             (λ (x2: any) → raise NoValueProvided)
+                           | ESome → (λ (x2: any) → x2)))
+                     with
+                     | ENone → (λ (_: unit) → ENone _)
+                     | ESome → (λ (fff: any) → fff (x +! 1)) ],
+                   (λ (_: unit) → ESome false),
+                   (λ (_: unit) → ENone ()))
+              with
+              | ENone → (λ (x1: any) → raise NoValueProvided)
+              | ESome → (λ (x1: any) → x1))
+[RESULT] f2 = ESome
+           (λ (x: integer) → ESome
+              match
+                (handle_default_opt
+                   [ match
+                       (ESome
+                        (λ (x1: integer) → ESome
+                           match
+                             (handle_default_opt
+                                [ ESome (x1 +! 1) ],
+                                (λ (_: unit) → ESome false),
+                                (λ (_: unit) → ENone ()))
+                           with
+                           | ENone →
+                             (λ (x2: any) → raise NoValueProvided)
+                           | ESome → (λ (x2: any) → x2)))
+                     with
+                     | ENone → (λ (_: unit) → ENone _)
+                     | ESome → (λ (fff: any) → fff (x +! 1)) ],
+                   (λ (_: unit) → ESome false),
+                   (λ (_: unit) → ENone ()))
+              with
+              | ENone → (λ (x1: any) → raise NoValueProvided)
+              | ESome → (λ (x1: any) → x1))
 ```
