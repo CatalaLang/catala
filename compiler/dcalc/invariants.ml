@@ -20,45 +20,43 @@ open Catala_utils
 
 type invariant_status = Fail | Pass | Ignore
 type invariant_expr = typed expr -> invariant_status
-type state = { result : bool; total : int; ok : int }
-
-let state_init = { result = true; total = 0; ok = 0 }
-
-let state_join s1 s2 =
-  {
-    result = s1.result && s2.result;
-    total = s1.total + s2.total;
-    ok = s1.ok + s2.ok;
-  }
 
 let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
+  (* TODO: add a Program.fold_exprs to get rid of the reference 0:-)? *)
   let result = ref true in
   let name, inv = inv in
-
-  let state =
-    Program.fold_left_exprs p ~init:state_init ~f:(fun state e ->
+  let _ = name in
+  let total = ref 0 in
+  let ok = ref 0 in
+  let p' =
+    Program.map_exprs p ~varf:Fun.id ~f:(fun e ->
+        (* let currente = e in *)
         let rec f e =
           let r =
             match inv e with
-            | Ignore -> state
+            | Ignore -> true
             | Fail ->
               Cli.error_format "%s failed in %s.\n\n %a" name
                 (Pos.to_string_short (Expr.pos e))
                 (Print.expr ~debug:true p.decl_ctx)
                 e;
-              { state with result = false; total = state.total + 1 }
-            | Pass -> { state with total = state.total + 1; ok = state.ok + 1 }
+              incr total;
+              false
+            | Pass ->
+              incr ok;
+              incr total;
+              true
           in
-          Expr.map_gather e ~join:state_join ~acc:r ~f
+          Expr.map_gather e ~acc:r ~join:( && ) ~f
         in
-        let state, _ = f e in
 
-        state)
+        let res, e' = f e in
+        result := res && !result;
+        e')
   in
-
-  Cli.result_print "Invariant %s\n   checked. result: [%d/%d]" name state.ok
-    state.total;
-  state.result
+  assert (Bindlib.free_vars p' = Bindlib.empty_ctxt);
+  Cli.result_print "Invariant %s\n   checked. result: [%d/%d]" name !ok !total;
+  !result
 
 (* Structural invariant: no default can have as type A -> B *)
 let invariant_default_no_arrow () : string * invariant_expr =
