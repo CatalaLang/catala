@@ -272,11 +272,7 @@ type 'a info_pure = {
 }
 
 let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
-  let new_ = (Var.Map.find x ctx).var in
-
-  (* Cli.debug_format "before: %a after: %a" Print.var_debug x Print.var_debug
-     new_; *)
-  new_
+  (Var.Map.find x ctx).var
 
 let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   let m = Marked.get_mark e in
@@ -289,6 +285,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       monad_return (Expr.evar (trans_var ctx x) m) ~mark
     else Expr.evar (trans_var ctx x) m
   | EApp { f = EVar v, _; args = [(ELit LUnit, _)] } ->
+    (* As users cannot write thunks, it is obligatory added by the compiler.
+       Hence we can safely remove those. *)
     assert (not (Var.Map.find v ctx).info_pure);
     Expr.evar (trans_var ctx v) m
   | EAbs { binder; tys = [(TLit TUnit, _)] } ->
