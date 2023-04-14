@@ -26,6 +26,7 @@ let _ =
              disable_warnings = true;
              disable_counterexamples = false;
              optimize = false;
+             check_invariants = false;
              ex_scope = Some (Js.to_string scope);
              output_file = None;
              print_only_law = false;

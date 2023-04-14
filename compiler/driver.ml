@@ -140,8 +140,7 @@ let driver source_file (options : Cli.options) : int =
                 language fmt (fun fmt -> weave_output fmt prgm)
           else weave_output fmt prgm)
     | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
-      | `Lcalc | `Dcalc | `Scopelang | `Proof | `DcalcInvariants | `Plugin _ )
-      as backend -> (
+      | `Lcalc | `Dcalc | `Scopelang | `Proof | `Plugin _ ) as backend -> (
       Cli.debug_print "Name resolution...";
       let ctxt = Desugared.Name_resolution.form_context prgm in
       let scope_uid =
@@ -191,8 +190,7 @@ let driver source_file (options : Cli.options) : int =
             (Scopelang.Print.program ~debug:options.debug)
             prgm
       | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
-        | `Lcalc | `Dcalc | `Proof | `DcalcInvariants | `Plugin _ ) as backend
-        -> (
+        | `Lcalc | `Dcalc | `Proof | `Plugin _ ) as backend -> (
         Cli.debug_print "Typechecking...";
         let type_ordering =
           Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
@@ -250,7 +248,7 @@ let driver source_file (options : Cli.options) : int =
               (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
               prgrm_dcalc_expr
         | ( `Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _
-          | `Interpret_Lcalc | `DcalcInvariants ) as backend -> (
+          | `Interpret_Lcalc ) as backend -> (
           Cli.debug_print "Typechecking again...";
           let prgm =
             try Shared_ast.Typing.program ~leave_unresolved:false prgm
@@ -262,17 +260,7 @@ let driver source_file (options : Cli.options) : int =
               in
               raise (Errors.StructuredError (msg, details))
           in
-          match backend with
-          | `Proof ->
-            let vcs =
-              Verification.Conditions.generate_verification_conditions prgm
-                (match options.ex_scope with
-                | None -> None
-                | Some _ -> Some scope_uid)
-            in
-
-            Verification.Solver.solve_vc prgm.decl_ctx vcs
-          | `DcalcInvariants ->
+          if !Cli.check_invariants_flag then (
             Cli.debug_format "Checking invariants";
             let open Dcalc.Invariants in
             let result =
@@ -287,7 +275,17 @@ let driver source_file (options : Cli.options) : int =
             in
 
             if result then Cli.debug_format "Finished checking invariants"
-            else raise (Errors.raise_error "Invariant invalid")
+            else raise (Errors.raise_error "Invariant invalid"));
+          match backend with
+          | `Proof ->
+            let vcs =
+              Verification.Conditions.generate_verification_conditions prgm
+                (match options.ex_scope with
+                | None -> None
+                | Some _ -> Some scope_uid)
+            in
+
+            Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `Interpret ->
             Cli.debug_print "Starting interpretation (dcalc)...";
             let results =

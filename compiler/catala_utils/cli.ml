@@ -30,7 +30,6 @@ type backend_option_builtin =
   | `Dcalc
   | `Scopelang
   | `Proof
-  | `DcalcInvariants
   | `Interpret_Lcalc ]
 
 type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
@@ -56,7 +55,6 @@ let backend_option_to_string = function
   | `Typecheck -> "Typecheck"
   | `Scalc -> "Scalc"
   | `Lcalc -> "Lcalc"
-  | `DcalcInvariants -> "invariants"
   | `Plugin s -> s
 
 let backend_option_of_string backend =
@@ -74,7 +72,6 @@ let backend_option_of_string backend =
   | "typecheck" -> `Typecheck
   | "scalc" -> `Scalc
   | "lcalc" -> `Lcalc
-  | "invariants" -> `DcalcInvariants
   | s -> `Plugin s
 
 (** Source files to be compiled *)
@@ -96,6 +93,7 @@ let disable_warnings_flag = ref false
 let optimize_flag = ref false
 let disable_counterexamples = ref false
 let avoid_exceptions_flag = ref false
+let check_invariants_flag = ref false
 
 open Cmdliner
 
@@ -148,6 +146,12 @@ let disable_warnings_opt =
     & flag
     & info ["disable_warnings"]
         ~doc:"Disable all the warnings emitted by the compiler.")
+
+let check_invariants_opt =
+  Arg.(
+    value
+    & flag
+    & info ["check_invariants"] ~doc:"Check structural invariants on the AST.")
 
 let avoid_exceptions =
   Arg.(
@@ -259,6 +263,7 @@ type options = {
   trace : bool;
   disable_warnings : bool;
   disable_counterexamples : bool;
+  check_invariants : bool;
   optimize : bool;
   ex_scope : string option;
   output_file : string option;
@@ -282,6 +287,7 @@ let options =
       trace
       disable_counterexamples
       optimize
+      check_invariants
       ex_scope
       output_file
       print_only_law : options =
@@ -298,6 +304,7 @@ let options =
       trace;
       disable_counterexamples;
       optimize;
+      check_invariants;
       ex_scope;
       output_file;
       closure_conversion;
@@ -320,6 +327,7 @@ let options =
     $ trace_opt
     $ disable_counterexamples_opt
     $ optimize
+    $ check_invariants_opt
     $ ex_scope
     $ output
     $ print_only_law)
@@ -339,6 +347,7 @@ let set_option_globals options : unit =
   disable_warnings_flag := options.disable_warnings;
   trace_flag := options.trace;
   optimize_flag := options.optimize;
+  check_invariants_flag := options.check_invariants;
   disable_counterexamples := options.disable_counterexamples;
   avoid_exceptions_flag := options.avoid_exceptions
 
