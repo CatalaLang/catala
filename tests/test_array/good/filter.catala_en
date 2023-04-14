@@ -14,3 +14,30 @@ declaration scope B:
 scope B:
    definition y equals m among a.x such that m >= $4.95
 ```
+
+
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] x = [ $0.00; $9.00; $5.20 ]
+```
+
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] x = ESome [ ESome $0.00; ESome $9.00; ESome $5.20 ]
+```
+
+
+
+```catala-test-inline
+$ catala Interpret -s B
+[RESULT] Computation successful! Results:
+[RESULT] y = [ $9.00; $5.20 ]
+```
+
+```catala-test-inline
+$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] y = ESome [ ESome $9.00; ESome $5.20 ]
+```
