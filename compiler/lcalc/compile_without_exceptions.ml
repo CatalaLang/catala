@@ -236,7 +236,10 @@ let rec trans_typ_keep (tau : typ) : typ =
       | TTuple ts -> TTuple (List.map trans_typ_keep ts)
       | TStruct s -> TStruct s
       | TEnum en -> TEnum en
-      | TOption _ -> assert false
+      | TOption _ ->
+        Errors.raise_internal_error
+          "The type option should not appear before the dcalc -> lcalc \
+           translation step."
       | TAny -> TAny
       | TArray ts ->
         TArray (TOption (trans_typ_keep ts), m) (* catala is not polymorphic *)
