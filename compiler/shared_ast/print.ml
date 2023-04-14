@@ -488,8 +488,8 @@ let rec expr_aux :
     Format.fprintf fmt "%a%a%a%a%a" (lhs expr) e punctuation "." punctuation
       "\"" IdentName.format_t field punctuation "\""
   | EStruct { name; fields } ->
-    Format.fprintf fmt "@[<hv 0>@[<hv 2>%a%a@,@[<hv 0>%a@]@]@,%a@]" punctuation
-      "{" StructName.format_t name
+    Format.fprintf fmt "@[<hv 0>@[<hv 2>%a@,@[<hv 0>%a@]@]@,%a%a@]" punctuation
+      "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> punctuation fmt ";")
          (fun fmt (field_name, field_expr) ->
@@ -497,7 +497,7 @@ let rec expr_aux :
              StructField.format_t field_name punctuation "\"" punctuation "="
              (lhs expr) field_expr))
       (StructField.Map.bindings fields)
-      punctuation "}"
+      punctuation "}_" StructName.format_t name
   | EStructAccess { e; field; _ } ->
     Format.fprintf fmt "%a%a%a%a%a" (lhs expr) e punctuation "." punctuation
       "\"" StructField.format_t field punctuation "\""
