@@ -202,7 +202,7 @@ end = struct
                  [TAny, Expr.mark_pos mark]
                  mark );
              (* | None x -> raise NoValueProvided *)
-             Ast.some_constr, Expr.eid mark (* | Some x -> x*);
+             Ast.some_constr, Expr.fun_id mark (* | Some x -> x*);
            ])
     in
     if toplevel then Expr.ematch arg Ast.option_enum cases mark

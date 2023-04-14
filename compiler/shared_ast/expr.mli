@@ -139,7 +139,7 @@ val escopecall :
   't ->
   (([< all > `ExplicitScopes ] as 'a), 't) boxed_gexpr
 
-val eid : 'm mark -> ('a any, 'm mark) boxed_gexpr
+val fun_id : 'm mark -> ('a any, 'm mark) boxed_gexpr
 
 (** Manipulation of marks *)
 

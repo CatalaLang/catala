@@ -148,7 +148,7 @@ let mark_pos (type m) (m : m mark) : Pos.t =
 let pos (type m) (x : ('a, m mark) Marked.t) : Pos.t =
   mark_pos (Marked.get_mark x)
 
-let eid mark : ('a any, 'm mark) boxed_gexpr =
+let fun_id mark : ('a any, 'm mark) boxed_gexpr =
   let x = Var.make "x" in
   eabs (bind [| x |] (evar x mark)) [TAny, mark_pos mark] mark
 
