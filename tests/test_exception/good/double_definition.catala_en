@@ -12,8 +12,22 @@ scope Foo:
 
 ```catala-test-inline
 $ catala Scopelang -s Foo
+[WARNING] These definitions have identical justifications and consequences; is it a mistake?
+
+┌─⯈ tests/test_exception/good/double_definition.catala_en:9.2-14:
+└─┐
+9 │   definition x equals 1
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Foo
+
+┌─⯈ tests/test_exception/good/double_definition.catala_en:8.2-14:
+└─┐
+8 │   definition x equals 1
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Foo
 let scope Foo (x: integer|internal|output) =
-  let x : integer = ⟨⟨true ⊢ 1⟩, ⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩
+  let x : integer =
+    ⟨ ⟨true ⊢ 1⟩, ⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩
 ```
 
 In Scopelang we have what looks like conflicting exceptions. But after
@@ -24,9 +38,24 @@ Dcalc translation below.
 
 ```catala-test-inline
 $ catala Dcalc -s Foo
+[WARNING] These definitions have identical justifications and consequences; is it a mistake?
+
+┌─⯈ tests/test_exception/good/double_definition.catala_en:9.2-14:
+└─┐
+9 │   definition x equals 1
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Foo
+
+┌─⯈ tests/test_exception/good/double_definition.catala_en:8.2-14:
+└─┐
+8 │   definition x equals 1
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Foo
 let Foo =
   λ (Foo_in: Foo_in {}) →
-    let x : integer = error_empty
-      ⟨⟨⟨true ⊢ 1⟩ | true ⊢ 1⟩ | false ⊢ ∅ ⟩ in
-    Foo { "x"= x }
+    let x : integer =
+      error_empty
+        ⟨ ⟨ ⟨true ⊢ 1⟩ | true ⊢ 1 ⟩ | false ⊢ ∅ ⟩
+    in
+    {Foo "x" = x}
 ```

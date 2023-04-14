@@ -44,6 +44,62 @@ let detect_empty_definitions (p : program) : unit =
         scope.scope_defs)
     p.program_scopes
 
+(* To detect rules that have the same justification and conclusion, we create a
+   set data structure with an appropriate comparison function *)
+module RuleExpressionsMap = Map.Make (struct
+  type t = rule
+
+  let compare x y =
+    let xj, xj_mark = x.rule_just in
+    let yj, yj_mark = y.rule_just in
+    let just =
+      Bindlib.unbox
+        (Bindlib.box_apply2
+           (fun xj yj -> Expr.compare (xj, xj_mark) (yj, yj_mark))
+           xj yj)
+    in
+    if just = 0 then
+      let xc, xc_mark = x.rule_cons in
+      let yc, yc_mark = y.rule_cons in
+      Bindlib.unbox
+        (Bindlib.box_apply2
+           (fun xc yc -> Expr.compare (xc, xc_mark) (yc, yc_mark))
+           xc yc)
+    else just
+end)
+
+let detect_identical_rules (p : program) : unit =
+  ScopeName.Map.iter
+    (fun _ scope ->
+      ScopeDefMap.iter
+        (fun _ scope_def ->
+          let rules_seen =
+            RuleName.Map.fold
+              (fun _ rule rules_seen ->
+                RuleExpressionsMap.update rule
+                  (fun l ->
+                    let x =
+                      ( None,
+                        Pos.overwrite_law_info
+                          (snd (RuleName.get_info rule.rule_id))
+                          (Pos.get_law_info (Expr.pos rule.rule_just)) )
+                    in
+                    match l with None -> Some [x] | Some l -> Some (x :: l))
+                  rules_seen)
+              scope_def.scope_def_rules RuleExpressionsMap.empty
+          in
+          RuleExpressionsMap.iter
+            (fun _ pos ->
+              if List.length pos > 1 then
+                Errors.format_multispanned_warning pos
+                  "These %s have identical justifications and consequences; is \
+                   it a mistake?"
+                  (if scope_def.scope_def_is_condition then "rules"
+                  else "definitions"))
+            rules_seen)
+        scope.scope_defs)
+    p.program_scopes
+
 let detect_unused_scope_vars (p : program) : unit =
   let used_scope_vars =
     Ast.fold_exprs
@@ -200,4 +256,5 @@ let lint_program (p : program) : unit =
   detect_empty_definitions p;
   detect_unused_scope_vars p;
   detect_unused_struct_fields p;
-  detect_unused_enum_constructors p
+  detect_unused_enum_constructors p;
+  detect_identical_rules p

@@ -3600,7 +3600,7 @@ Couple sans enfant                  2,99%
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
   exception base définition taux_composition_familiale sous condition
     (selon résidence sous forme
     -- Guadeloupe: vrai

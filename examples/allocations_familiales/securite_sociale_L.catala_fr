@@ -116,7 +116,7 @@ champ d'application AllocationsFamiliales :
 
   règle droit_ouvert_forfaitaire de enfant sous condition
     # nombre_enfants_alinéa_2_l521_3 sera défini dans l'article R521-3
-    (nombre de enfants_à_charge >= nombre_enfants_alinéa_2_l521_3) et
+    (nombre de enfants_à_charge >= nombre_enfants_alinéa_2_l521_1) et
     # Puisqu'un enfant ne garde un âge donné que pour une période d'un an,
     # cette condition assure que l'allocation ne peut être distribuée que pour
     # un an.
