@@ -68,6 +68,40 @@ module Box = struct
   module LiftScopeVars = Bindlib.Lift (ScopeVar.Map)
 
   let lift_scope_vars = LiftScopeVars.lift_box
+
+  module Ren = struct
+    module Set = Set.Make (String)
+
+    type ctxt = Set.t
+
+    let skip_constant_binders = true
+    let reset_context_for_closed_terms = true
+    let constant_binder_name = None
+    let empty_ctxt = Set.empty
+    let reserve_name n s = Set.add n s
+    let new_name n s = n, Set.add n s
+  end
+
+  module Ctx = Bindlib.Ctxt (Ren)
+
+  let fv b = Ren.Set.elements (Ctx.free_vars b)
+
+  let assert_closed b =
+    match fv b with
+    | [] -> ()
+    | [h] ->
+      Errors.raise_internal_error
+        "The boxed term is not closed the variable %s is free in the global \
+         context"
+        h
+    | l ->
+      Errors.raise_internal_error
+        "The boxed term is not closed the variables %a is free in the global \
+         context"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
+           Format.pp_print_string)
+        l
 end
 
 let bind vars e = Bindlib.bind_mvar vars (Box.lift e)

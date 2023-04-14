@@ -844,7 +844,7 @@ let translate_program (prgm : typed D.program) : untyped A.program =
 
   let code_items = trans_code_items Var.Map.empty prgm.code_items in
 
-  Bindlib_ext.assert_closed code_items;
+  Expr.Box.assert_closed code_items;
 
   (* program is closed here. *)
   let code_items = Bindlib.unbox code_items in

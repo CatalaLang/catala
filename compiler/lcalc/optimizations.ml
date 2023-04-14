@@ -189,7 +189,7 @@ let rec fix_opti
     expression of the program [p]. *)
 let lift_optim f p =
   let code_items = Scope.map_exprs ~f ~varf:(fun v -> v) p.code_items in
-  Bindlib_ext.assert_closed code_items;
+  Expr.Box.assert_closed code_items;
   let prgm = { p with code_items = Bindlib.unbox code_items } in
   prgm
 
