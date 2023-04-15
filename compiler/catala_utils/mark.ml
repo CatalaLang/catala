@@ -20,7 +20,8 @@ type 'a pos = ('a, Pos.t) ed
 
 let add m e = e, m
 let remove (x, _) = x
-let get (_, x) = x
+let get (_, m) = m
+let set m (x, _) = x, m
 let map f (x, m) = f x, m
 let map_mark f (a, m) = a, f m
 let copy (_, m) x = x, m

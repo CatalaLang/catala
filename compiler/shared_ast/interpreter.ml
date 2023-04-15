@@ -176,8 +176,11 @@ let rec evaluate_operator
                    (Print.expr ()) arg),
               Expr.pos arg ))
           args)
-      "Operator applied to the wrong arguments\n\
-       (should not happen if the term was well-typed)"
+      "Operator %a applied to the wrong arguments\n\
+       (should not happen if the term was well-typed)%a"
+      (Print.operator ~debug:true)
+      op Expr.format
+      (EApp { f = EOp { op; tys = [] }, m; args }, m)
   in
   propagate_empty_error_list args
   @@ fun args ->

@@ -28,6 +28,7 @@ type 'a pos = ('a, Pos.t) ed
 val add : 'm -> 'a -> ('a, 'm) ed
 val remove : ('a, 'm) ed -> 'a
 val get : ('a, 'm) ed -> 'm
+val set : 'm -> ('a, _) ed -> ('a, 'm) ed
 val map : ('a -> 'b) -> ('a, 'm) ed -> ('b, 'm) ed
 val map_mark : ('m1 -> 'm2) -> ('a, 'm1) ed -> ('a, 'm2) ed
 val copy : ('b, 'm) ed -> 'a -> ('a, 'm) ed

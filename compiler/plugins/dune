@@ -26,7 +26,17 @@
  (synopsis
   "Catala plugin that implements a different, experimental interpreter, featuring lazy and partial evaluation")
  (modules lazy_interp)
- (libraries shared_ast catala.driver))
+ (flags (-linkall))
+ (libraries shared_ast catala.driver ocamlgraph))
+
+(library
+ (name explain)
+ (public_name catala.plugins.explain)
+ (synopsis
+  "Experiments for the explanation of computations: generates a graph of the formulas that are used for a given execution of a scope")
+ (modules explain)
+ (flags (-linkall))
+ (libraries shared_ast catala.driver ocamlgraph))
 
 (library
  (name modules)

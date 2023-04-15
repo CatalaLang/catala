@@ -502,7 +502,7 @@ let rec expr_aux :
       (pp_color_string (List.hd colors))
       ")"
   | EArray es ->
-    Format.fprintf fmt "@[<hv 2>%a %a@] %a" punctuation "["
+    Format.fprintf fmt "@[<hov 2>%a %a@] %a" punctuation "["
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
          (fun fmt e -> lhs exprc fmt e))

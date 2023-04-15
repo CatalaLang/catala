@@ -26,7 +26,8 @@ type 'e vars = ('a, 't) naked_gexpr Bindlib.mvar constraint 'e = ('a, 't) gexpr
 
 val make : string -> 'e t
 val compare : 'e t -> 'e t -> int
-val eq : 'e t -> 'e t -> bool
+val equal : 'e t -> 'e t -> bool
+val hash : 'e t -> int
 
 val translate : 'e1 t -> 'e2 t
 (** Needed when converting from one AST type to another. See the note of caution
@@ -49,6 +50,7 @@ module Set : sig
   val of_list : 'e var list -> 'e t
   val elements : 'e t -> 'e var list
   val diff : 'e t -> 'e t -> 'e t
+  val iter : ('e var -> unit) -> 'e t -> unit
 end
 
 (** Wrapper over [Map.S] but with a type variable for the AST type parameters.
