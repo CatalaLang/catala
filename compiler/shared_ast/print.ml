@@ -444,10 +444,20 @@ let rec expr_aux :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (rhs exprc))
       args
-  | EIfThenElse { cond; etrue; efalse } ->
-    Format.fprintf fmt
-      "@[<hv 0>@[<hv 2>%a@ %a@]@ @[<hv 2>%a@ %a@]@ @[<hv 2>%a@ %a@]@]" keyword
-      "if" expr cond keyword "then" expr etrue keyword "else" (rhs exprc) efalse
+  | EIfThenElse _ ->
+    Format.pp_open_hvbox fmt 0;
+    let rec pr els fmt = function
+      | EIfThenElse { cond; etrue; efalse }, _ ->
+        Format.fprintf fmt
+          "@[<hv 2>%a@ %a@]@ @[<hv 2>%a@ %a@]@ %a@]"
+          keyword (if els then "else if" else "if")
+          expr cond keyword "then" expr etrue
+          (pr true) efalse
+      | e ->
+        Format.fprintf fmt "@[<hv 2>%a@ %a@]" keyword "else" (rhs exprc) e
+    in
+    pr false fmt e;
+    Format.pp_close_box fmt ()
   | EOp { op; _ } -> operator fmt op
   | EDefault { excepts; just; cons } ->
     if List.length excepts = 0 then
