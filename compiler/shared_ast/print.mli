@@ -23,7 +23,11 @@ open Definitions
 
 val base_type : Format.formatter -> string -> unit
 val keyword : Format.formatter -> string -> unit
+
 val punctuation : Format.formatter -> string -> unit
+(** The argument is assumed to be 1-column wide (but can be a multi-char utf8
+    character) *)
+
 val op_style : Format.formatter -> string -> unit
 val lit_style : Format.formatter -> string -> unit
 
