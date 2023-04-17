@@ -567,11 +567,13 @@ let driver source_file (options : Cli.options) : int =
                     prgm type_ordering)))))));
     0
   with
-  | Errors.StructuredError (msg, pos) ->
+  | Errors.StructuredError (msg, pos) -> (
     let bt = Printexc.get_raw_backtrace () in
     Cli.error_print "%s" (Errors.print_structured_error msg pos);
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    -1
+    match options.message_format with
+    | Human -> -1
+    | EditorParsable -> 0 (* editors don't suffer a non-zero return code *))
   | Sys_error msg ->
     let bt = Printexc.get_raw_backtrace () in
     Cli.error_print "System error: %s" msg;

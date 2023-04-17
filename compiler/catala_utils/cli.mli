@@ -77,6 +77,13 @@ val disable_counterexamples : bool ref
 val avoid_exceptions_flag : bool ref
 (** Avoids using [try ... with] exceptions when compiling the default calculus. *)
 
+type message_format_enum =
+  | Human
+  | EditorParsable
+      (** Format of error and warning messages output by the compiler. *)
+
+val message_format_flag : message_format_enum ref
+
 (** {2 CLI terms} *)
 
 val file : string Cmdliner.Term.t
@@ -99,6 +106,7 @@ type when_enum = Auto | Always | Never
 type options = {
   debug : bool;
   color : when_enum;
+  message_format : message_format_enum;
   wrap_weaved_output : bool;
   avoid_exceptions : bool;
   backend : string;

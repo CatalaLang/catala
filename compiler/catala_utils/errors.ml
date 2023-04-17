@@ -25,15 +25,31 @@ exception StructuredError of (string * (string option * Pos.t) list)
 
 let print_structured_error (msg : string) (pos : (string option * Pos.t) list) :
     string =
-  Printf.sprintf "%s%s%s" msg
-    (if pos = [] then "" else "\n\n")
-    (String.concat "\n\n"
-       (List.map
-          (fun (msg, pos) ->
-            Printf.sprintf "%s%s"
-              (match msg with None -> "" | Some msg -> msg ^ "\n")
-              (Pos.retrieve_loc_text pos))
-          pos))
+  match !Cli.message_format_flag with
+  | Cli.Human ->
+    Printf.sprintf "%s%s%s" msg
+      (if pos = [] then "" else "\n\n")
+      (String.concat "\n\n"
+         (List.map
+            (fun (msg, pos) ->
+              Printf.sprintf "%s%s"
+                (match msg with None -> "" | Some msg -> msg ^ "\n")
+                (Pos.retrieve_loc_text pos))
+            pos))
+  | Cli.EditorParsable ->
+    let remove_new_lines s =
+      Re.replace ~all:true (Re.compile (Re.char '\n')) ~f:(fun _ -> " | ") s
+    in
+    "\n"
+    ^ String.concat "\n"
+        (List.map
+           (fun (msg', pos) ->
+             Printf.sprintf "%s%s" (Pos.to_string_short pos)
+               (match msg' with
+               | None -> remove_new_lines msg
+               | Some msg' ->
+                 remove_new_lines msg ^ " | " ^ remove_new_lines msg'))
+           pos)
 
 (** {1 Error exception and printing} *)
 

@@ -96,15 +96,10 @@ let to_string (pos : t) : string =
 
 let to_string_short (pos : t) : string =
   let s, e = pos.code_pos in
-  if e.Lexing.pos_lnum = s.Lexing.pos_lnum then
-    Printf.sprintf "%s:%d.%d-%d:" s.Lexing.pos_fname s.Lexing.pos_lnum
-      (s.Lexing.pos_cnum - s.Lexing.pos_bol)
-      (e.Lexing.pos_cnum - e.Lexing.pos_bol)
-  else
-    Printf.sprintf "%s:%d.%d-%d.%d:" s.Lexing.pos_fname s.Lexing.pos_lnum
-      (s.Lexing.pos_cnum - s.Lexing.pos_bol)
-      e.Lexing.pos_lnum
-      (e.Lexing.pos_cnum - e.Lexing.pos_bol)
+  Printf.sprintf "%s:%d.%d-%d.%d:" s.Lexing.pos_fname s.Lexing.pos_lnum
+    (s.Lexing.pos_cnum - s.Lexing.pos_bol + 1)
+    e.Lexing.pos_lnum
+    (e.Lexing.pos_cnum - e.Lexing.pos_bol + 1)
 
 let indent_number (s : string) : int =
   try
