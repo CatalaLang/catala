@@ -28,7 +28,7 @@ scope Foo:
 $ catala interpret -s Foo
 [WARNING] The structure "Test" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_scope/good/scope_call.catala_en:2.22-26:
+┌─⯈ tests/test_scope/good/scope_call.catala_en:2.23-2.27:
 └─┐
 2 │ declaration structure Test:
   │                       ‾‾‾‾

@@ -19,7 +19,7 @@ scope A:
 $ catala Interpret -s A
 [WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_exception/bad/two_exceptions.catala_en:5.10-11:
+┌─⯈ tests/test_exception/bad/two_exceptions.catala_en:5.11-5.12:
 └─┐
 5 │   context x content integer
   │           ‾
@@ -27,14 +27,14 @@ $ catala Interpret -s A
 [ERROR] There is a conflict between multiple valid consequences for assigning the same variable.
 
 This consequence has a valid justification:
-┌─⯈ tests/test_exception/bad/two_exceptions.catala_en:12.22-23:
+┌─⯈ tests/test_exception/bad/two_exceptions.catala_en:12.23-12.24:
 └──┐
 12 │   definition x equals 1
    │                       ‾
    └─ Test
 
 This consequence has a valid justification:
-┌─⯈ tests/test_exception/bad/two_exceptions.catala_en:15.22-23:
+┌─⯈ tests/test_exception/bad/two_exceptions.catala_en:15.23-15.24:
 └──┐
 15 │   definition x equals 2
    │                       ‾

@@ -10,13 +10,13 @@ scope S1:
 $ catala typecheck -s S1
 [ERROR] Please add parentheses to explicit which of these operators should be applied first
 
-┌─⯈ tests/test_arithmetic/bad/logical_prio.catala_en:6.27-30:
+┌─⯈ tests/test_arithmetic/bad/logical_prio.catala_en:6.28-6.31:
 └─┐
 6 │   definition o equals true and (false and true and true) or false
   │                            ‾‾‾
 
 
-┌─⯈ tests/test_arithmetic/bad/logical_prio.catala_en:6.57-59:
+┌─⯈ tests/test_arithmetic/bad/logical_prio.catala_en:6.58-6.60:
 └─┐
 6 │   definition o equals true and (false and true and true) or false
   │                                                          ‾‾

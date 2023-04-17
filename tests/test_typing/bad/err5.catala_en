@@ -17,21 +17,21 @@ $ catala Typecheck
 --> Structure
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_typing/bad/err5.catala_en:8.4-8:
+┌─⯈ tests/test_typing/bad/err5.catala_en:8.5-8.9:
 └─┐
 8 │     1040
   │     ‾‾‾‾
 
 
 Type integer coming from expression:
-┌─⯈ tests/test_typing/bad/err5.catala_en:8.4-8:
+┌─⯈ tests/test_typing/bad/err5.catala_en:8.5-8.9:
 └─┐
 8 │     1040
   │     ‾‾‾‾
 
 
 Type Structure coming from expression:
-┌─⯈ tests/test_typing/bad/err5.catala_en:6.4-45:
+┌─⯈ tests/test_typing/bad/err5.catala_en:6.5-6.46:
 └─┐
 6 │     Structure { -- i: 3 -- e: Int content x };
   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

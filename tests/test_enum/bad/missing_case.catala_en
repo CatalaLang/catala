@@ -20,21 +20,21 @@ scope A:
 $ catala Interpret -s A
 [WARNING] In scope "A", the variable "out" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_enum/bad/missing_case.catala_en:11.10-13:
+┌─⯈ tests/test_enum/bad/missing_case.catala_en:11.11-11.14:
 └──┐
 11 │   context out content boolean
    │           ‾‾‾
    └─ Article
 [WARNING] The constructor "Case3" of enumeration "E" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_enum/bad/missing_case.catala_en:7.5-10:
+┌─⯈ tests/test_enum/bad/missing_case.catala_en:7.6-7.11:
 └─┐
 7 │   -- Case3
   │      ‾‾‾‾‾
   └─ Article
 [ERROR] The constructor Case3 of enum E is missing from this pattern matching
 
-┌─⯈ tests/test_enum/bad/missing_case.catala_en:14.24-16.21:
+┌─⯈ tests/test_enum/bad/missing_case.catala_en:14.25-16.22:
 └──┐
 14 │   definition out equals match e with pattern
    │                         ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

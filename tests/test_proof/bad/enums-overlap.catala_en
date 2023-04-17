@@ -25,20 +25,20 @@ scope A:
 $ catala Proof --disable_counterexamples 
 [WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:15.10-11:
+┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:15.11-15.12:
 └──┐
 15 │   context x content integer
    │           ‾
    └─ Test
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:7.6-7:
+┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:7.7-7.8:
 └─┐
 7 │    -- C content boolean
   │       ‾
   └─ Test
 [ERROR] [A.x] At least two exceptions overlap for this variable:
-┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:15.10-11:
+┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:15.11-15.12:
 └──┐
 15 │   context x content integer
    │           ‾

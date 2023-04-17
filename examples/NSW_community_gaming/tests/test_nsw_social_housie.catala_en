@@ -33,14 +33,14 @@ Message: expected either 'condition', or 'content' followed by the expected vari
 Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 
 Last good token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.11-11.20:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
@@ -77,14 +77,14 @@ Message: expected either 'condition', or 'content' followed by the expected vari
 Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 
 Last good token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.11-11.20:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
@@ -121,14 +121,14 @@ Message: expected either 'condition', or 'content' followed by the expected vari
 Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 
 Last good token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.11-11.20:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
@@ -167,14 +167,14 @@ Message: expected either 'condition', or 'content' followed by the expected vari
 Autosuggestion: did you mean "content", or maybe "condition"?
 
 Error token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.20-25:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 
 Last good token:
-┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.10-19:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.11-11.20:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾

@@ -16,14 +16,14 @@ scope A:
 $ catala Typecheck 
 [ERROR] This identifier is not a state declared for variable foo.
 
-┌─⯈ tests/test_variable_state/bad/unknown_state.catala_en:12.23-27:
+┌─⯈ tests/test_variable_state/bad/unknown_state.catala_en:12.24-12.28:
 └──┐
 12 │   definition foo state basz equals foo + 1
    │                        ‾‾‾‾
    └─ Test
 
 Variable declaration:
-┌─⯈ tests/test_variable_state/bad/unknown_state.catala_en:5.9-12:
+┌─⯈ tests/test_variable_state/bad/unknown_state.catala_en:5.10-5.13:
 └─┐
 5 │   output foo content integer
   │          ‾‾‾

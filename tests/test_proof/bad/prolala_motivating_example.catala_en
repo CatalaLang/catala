@@ -125,7 +125,7 @@ scope Amount:
 $ catala Proof --disable_counterexamples 
 [WARNING] In scope "Amount", the variable "amount" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:60.10-16:
+┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:60.11-60.17:
 └──┐
 60 │   context amount content integer
    │           ‾‾‾‾‾‾
@@ -133,14 +133,14 @@ $ catala Proof --disable_counterexamples
     └─ Amount
 [WARNING] In scope "Amount", the variable "correct_amount" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:61.10-24:
+┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:61.11-61.25:
 └──┐
 61 │   context correct_amount content integer
    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └┬ ProLaLa 2022 Super Cash Bonus
     └─ Amount
 [ERROR] [Amount.amount] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:60.10-16:
+┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:60.11-60.17:
 └──┐
 60 │   context amount content integer
    │           ‾‾‾‾‾‾
@@ -148,7 +148,7 @@ $ catala Proof --disable_counterexamples
     └─ Amount
 Counterexample generation is disabled so none was generated.
 [ERROR] [Eligibility.is_eligible] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:11.9-20:
+┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:11.10-11.21:
 └──┐
 11 │   output is_eligible content boolean
    │          ‾‾‾‾‾‾‾‾‾‾‾
@@ -156,7 +156,7 @@ Counterexample generation is disabled so none was generated.
     └─ Eligibility
 Counterexample generation is disabled so none was generated.
 [ERROR] [Eligibility.is_eligible] At least two exceptions overlap for this variable:
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:11.9-20:
+┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:11.10-11.21:
 └──┐
 11 │   output is_eligible content boolean
    │          ‾‾‾‾‾‾‾‾‾‾‾
