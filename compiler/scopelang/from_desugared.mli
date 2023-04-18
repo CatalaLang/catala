@@ -16,9 +16,15 @@
 
 (** Translation from {!module: Desugared.Ast} to {!module: Scopelang.Ast} *)
 
+val build_exceptions_graph :
+  Desugared.Ast.program ->
+  Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t
+(** This function builds all the exceptions dependency graphs for all variables
+    of all scopes. *)
+
 val translate_program :
   Desugared.Ast.program ->
+  Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t ->
   Shared_ast.untyped Ast.program
-  * Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t
 (** This functions returns the translated program as well as all the graphs of
     exceptions inferred for each scope variable of the program. *)

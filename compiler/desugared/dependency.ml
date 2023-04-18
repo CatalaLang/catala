@@ -365,7 +365,8 @@ let build_exceptions_graph
                  pass at the surface AST level that fills the law info on
                  positions only does it for positions inside expressions, the
                  visitor in [surface/fill_positions.ml] does not go into the
-                 info of [RuleName.t], etc.*)
+                 info of [RuleName.t], etc. Related issue:
+                 https://github.com/CatalaLang/catala/issues/194 *)
               Pos.overwrite_law_info
                 (snd (RuleName.get_info rule.rule_id))
                 (Pos.get_law_info (Expr.pos rule.rule_just))

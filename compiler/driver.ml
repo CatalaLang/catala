@@ -275,8 +275,11 @@ let driver source_file (options : Cli.options) : int =
       Cli.debug_print "Linting...";
       Desugared.Linting.lint_program prgm;
       Cli.debug_print "Collecting rules...";
-      let prgm, exceptions_graphs =
-        Scopelang.From_desugared.translate_program prgm
+      let exceptions_graphs =
+        Scopelang.From_desugared.build_exceptions_graph prgm
+      in
+      let prgm =
+        Scopelang.From_desugared.translate_program prgm exceptions_graphs
       in
       match backend with
       | `Exceptions ->
