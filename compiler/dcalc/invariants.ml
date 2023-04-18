@@ -22,7 +22,8 @@ type invariant_status = Fail | Pass | Ignore
 type invariant_expr = typed expr -> invariant_status
 
 let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
-  (* TODO: add a Program.fold_exprs to get rid of the reference 0:-)? *)
+  (* TODO: add a Program.fold_left_map_exprs to get rid of the mutable
+     reference *)
   let result = ref true in
   let name, inv = inv in
   let _ = name in

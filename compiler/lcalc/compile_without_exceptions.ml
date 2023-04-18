@@ -159,7 +159,8 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
   | EEmptyError -> Ast.monad_empty ~mark
   | EErrorOnEmpty arg ->
     let arg' = trans ctx arg in
-    Ast.monad_eoe arg' ~mark ~toplevel:false
+    Ast.monad_error_on_empty arg' ~mark ~toplevel:false
+      ~var_name:ctx.ctx_context_name
   | EApp { f = EVar scope, _; args = [(EStruct { fields; name }, _)] }
     when (Var.Map.find scope ctx.ctx_vars).is_scope ->
     (* Scopes are encoded as functions that can take option arguments, and
@@ -184,14 +185,18 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
        use [Ast.monad_mbind]. *)
     let f_var = Var.make ctx.ctx_context_name in
     Ast.monad_bind_var ~mark
-      (Ast.monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
+      (Ast.monad_mbind ~var_name:ctx.ctx_context_name (Expr.evar f_var mark)
+         (List.map (trans ctx) args)
+         ~mark)
       f_var (trans ctx f)
   | EApp { f = (EStructAccess _, _) as f; args } ->
     (* This occurs when calling a subscope function. The same encoding as the
        one for [EApp (Var _) _] if the variable is not a scope works. *)
     let f_var = Var.make ctx.ctx_context_name in
     Ast.monad_bind_var ~mark
-      (Ast.monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
+      (Ast.monad_mbind ~var_name:ctx.ctx_context_name (Expr.evar f_var mark)
+         (List.map (trans ctx) args)
+         ~mark)
       f_var (trans ctx f)
   | EApp { f = EAbs { binder; _ }, _; args } ->
     (* INVARIANTS: every let have only one argument. (checked by
@@ -224,12 +229,12 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
     let x1 = Var.make "f" in
     let x2 = Var.make "init" in
     let f' =
-      Ast.monad_bind_cont ~mark
+      Ast.monad_bind_cont ~mark ~var_name:ctx.ctx_context_name
         (fun f ->
           Ast.monad_return ~mark
             (Expr.eabs
                (Expr.bind [| x1; x2 |]
-                  (Ast.monad_mbind_cont ~mark
+                  (Ast.monad_mbind_cont ~var_name:ctx.ctx_context_name ~mark
                      (fun vars ->
                        Expr.eapp (Expr.evar f m)
                          (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
@@ -239,7 +244,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
                m))
         (trans ctx f)
     in
-    Ast.monad_mbind
+    Ast.monad_mbind ~var_name:ctx.ctx_context_name
       (Expr.eop (trans_op Op.Fold) tys opmark)
       [f'; Ast.monad_return ~mark (trans ctx init); trans ctx l]
       ~mark
@@ -247,12 +252,12 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
     let x1 = Var.make "f" in
     let x2 = Var.make "init" in
     let f' =
-      Ast.monad_bind_cont ~mark
+      Ast.monad_bind_cont ~mark ~var_name:ctx.ctx_context_name
         (fun f ->
           Ast.monad_return ~mark
             (Expr.eabs
                (Expr.bind [| x1; x2 |]
-                  (Ast.monad_mbind_cont ~mark
+                  (Ast.monad_mbind_cont ~var_name:ctx.ctx_context_name ~mark
                      (fun vars ->
                        Expr.eapp (Expr.evar f m)
                          (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
@@ -262,7 +267,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
                m))
         (trans ctx f)
     in
-    Ast.monad_mbind
+    Ast.monad_mbind ~var_name:ctx.ctx_context_name
       (Expr.eop (trans_op Op.Reduce) tys opmark)
       [f'; Ast.monad_return ~mark (trans ctx init); trans ctx l]
       ~mark
@@ -272,12 +277,12 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
        option -> option b]. *)
     let x1 = Var.make "f" in
     let f' =
-      Ast.monad_bind_cont ~mark
+      Ast.monad_bind_cont ~mark ~var_name:ctx.ctx_context_name
         (fun f ->
           Ast.monad_return ~mark
             (Expr.eabs
                (Expr.bind [| x1 |]
-                  (Ast.monad_mbind_cont ~mark
+                  (Ast.monad_mbind_cont ~mark ~var_name:ctx.ctx_context_name
                      (fun vars ->
                        Expr.eapp (Expr.evar f m)
                          (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
@@ -287,7 +292,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
                m))
         (trans ctx f)
     in
-    Ast.monad_mbind_cont
+    Ast.monad_mbind_cont ~var_name:ctx.ctx_context_name
       (fun vars ->
         Ast.monad_return ~mark
           (Expr.eapp
@@ -303,13 +308,14 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
        the result. *)
     let x1 = Var.make ctx.ctx_context_name in
     let f' =
-      Ast.monad_bind_cont ~mark
+      Ast.monad_bind_cont ~mark ~var_name:ctx.ctx_context_name
         (fun f ->
           Ast.monad_return ~mark
             (Expr.eabs
                (Expr.bind [| x1 |]
-                  (Ast.monad_eoe ~toplevel:true ~mark
-                     (Ast.monad_mbind_cont ~mark
+                  (Ast.monad_error_on_empty ~toplevel:true ~mark
+                     ~var_name:ctx.ctx_context_name
+                     (Ast.monad_mbind_cont ~mark ~var_name:ctx.ctx_context_name
                         (fun vars ->
                           Expr.eapp (Expr.evar f m)
                             (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
@@ -319,7 +325,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
                m))
         (trans ctx f)
     in
-    Ast.monad_mbind_cont
+    Ast.monad_mbind_cont ~var_name:ctx.ctx_context_name
       (fun vars ->
         Ast.monad_return ~mark
           (Expr.eapp
@@ -339,7 +345,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
       Print.operator op
   | EApp { f = EOp { op; tys }, opmark; args } ->
     let res =
-      Ast.monad_mmap
+      Ast.monad_mmap ~var_name:ctx.ctx_context_name
         (Expr.eop (trans_op op) tys opmark)
         (List.map (trans ctx) args)
         ~mark
@@ -371,11 +377,11 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
             Expr.eabs binder tys m
           | _ -> assert false)
     in
-    Ast.monad_bind_cont
+    Ast.monad_bind_cont ~var_name:ctx.ctx_context_name
       (fun e -> Expr.ematch (Expr.evar e m) name cases m)
       (trans ctx e) ~mark
   | EArray args ->
-    Ast.monad_mbind_cont ~mark
+    Ast.monad_mbind_cont ~mark ~var_name:ctx.ctx_context_name
       (fun vars ->
         Ast.monad_return ~mark
           (Expr.earray
@@ -384,7 +390,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
       (List.map (trans ctx) args)
   | EStruct { name; fields } ->
     let fields_name, fields = List.split (StructField.Map.bindings fields) in
-    Ast.monad_mbind_cont
+    Ast.monad_mbind_cont ~var_name:ctx.ctx_context_name
       (fun xs ->
         let fields =
           ListLabels.fold_right2 fields_name
@@ -395,33 +401,33 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
       (List.map (trans ctx) fields)
       ~mark
   | EIfThenElse { cond; etrue; efalse } ->
-    Ast.monad_bind_cont ~mark
+    Ast.monad_bind_cont ~mark ~var_name:ctx.ctx_context_name
       (fun cond ->
         Expr.eifthenelse (Expr.evar cond mark) (trans ctx etrue)
           (trans ctx efalse) mark)
       (trans ctx cond)
   | EInj { name; cons; e } ->
-    Ast.monad_bind_cont
+    Ast.monad_bind_cont ~var_name:ctx.ctx_context_name
       (fun e ->
         Ast.monad_return ~mark (Expr.einj (Expr.evar e mark) cons name mark))
       (trans ctx e) ~mark
   | EStructAccess { name; e; field } ->
-    Ast.monad_bind_cont
+    Ast.monad_bind_cont ~var_name:ctx.ctx_context_name
       (fun e -> Expr.estructaccess (Expr.evar e mark) field name mark)
       (trans ctx e) ~mark
   | ETuple args ->
-    Ast.monad_mbind_cont
+    Ast.monad_mbind_cont ~var_name:ctx.ctx_context_name
       (fun xs ->
         Ast.monad_return ~mark
           (Expr.etuple (List.map (fun x -> Expr.evar x mark) xs) mark))
       (List.map (trans ctx) args)
       ~mark
   | ETupleAccess { e; index; size } ->
-    Ast.monad_bind_cont
+    Ast.monad_bind_cont ~var_name:ctx.ctx_context_name
       (fun e -> Expr.etupleaccess (Expr.evar e mark) index size mark)
       (trans ctx e) ~mark
   | EAssert e ->
-    Ast.monad_bind_cont
+    Ast.monad_bind_cont ~var_name:ctx.ctx_context_name
       (fun e -> Ast.monad_return ~mark (Expr.eassert (Expr.evar e mark) mark))
       (trans ctx e) ~mark
   | EApp _ ->
@@ -542,7 +548,8 @@ let rec trans_scope_let (ctx : typed ctx) (s : typed D.expr scope_let) =
     let scope_let_next = Bindlib.bind_var next_var next_body in
     let scope_let_expr =
       Expr.Box.lift
-      @@ Ast.monad_eoe ~mark ~toplevel:true
+      @@ Ast.monad_error_on_empty ~mark ~toplevel:true
+           ~var_name:ctx.ctx_context_name
            (trans { ctx with ctx_context_name = Bindlib.name_of next_var } e)
     in
     Bindlib.box_apply2

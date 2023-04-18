@@ -46,13 +46,13 @@ let monad_bind_var ~(mark : 'a mark) f x arg =
   in
   Expr.ematch arg option_enum cases mark
 
-let monad_bind ~(mark : 'a mark) f arg =
-  let x = Var.make "x" in
+let monad_bind ~(mark : 'a mark) ~(var_name : string) f arg =
+  let x = Var.make var_name in
   (* todo modify*)
   monad_bind_var f x arg ~mark
 
-let monad_bind_cont ~(mark : 'a mark) f arg =
-  let x = Var.make "x" in
+let monad_bind_cont ~(mark : 'a mark) ~(var_name : string) f arg =
+  let x = Var.make var_name in
   monad_bind_var (f x) x arg ~mark
 
 let monad_mbind_mvar ~(mark : 'a mark) f xs args =
@@ -61,17 +61,19 @@ let monad_mbind_mvar ~(mark : 'a mark) f xs args =
   ListLabels.fold_left2 xs args ~f:(monad_bind_var ~mark)
     ~init:(Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
 
-let monad_mbind ~(mark : 'a mark) f args =
+let monad_mbind ~(mark : 'a mark) ~(var_name : string) f args =
   (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _ ->
      None *)
   let vars =
-    ListLabels.mapi args ~f:(fun i _ -> Var.make (Format.sprintf "e_%i" i))
+    ListLabels.mapi args ~f:(fun i _ ->
+        Var.make (Format.sprintf "%s_%i" var_name i))
   in
   monad_mbind_mvar f vars args ~mark
 
-let monad_mbind_cont ~(mark : 'a mark) f args =
+let monad_mbind_cont ~(mark : 'a mark) ~(var_name : string) f args =
   let vars =
-    ListLabels.mapi args ~f:(fun i _ -> Var.make (Format.sprintf "e_%i" i))
+    ListLabels.mapi args ~f:(fun i _ ->
+        Var.make (Format.sprintf "%s_%i" var_name i))
   in
   ListLabels.fold_left2 vars args ~f:(monad_bind_var ~mark) ~init:(f vars)
 (* monad_mbind_mvar (f vars) vars args ~mark *)
@@ -87,23 +89,28 @@ let monad_mmap_mvar ~(mark : 'a mark) f xs args =
 
 let monad_map_var ~(mark : 'a mark) f x arg = monad_mmap_mvar f [x] [arg] ~mark
 
-let monad_map ~(mark : 'a mark) f arg =
-  let x = Var.make "x" in
+let monad_map ~(mark : 'a mark) ~(var_name : string) f arg =
+  let x = Var.make var_name in
   monad_map_var f x arg ~mark
 
-let monad_mmap ~(mark : 'a mark) f args =
+let monad_mmap ~(mark : 'a mark) ~(var_name : string) f args =
   let vars =
-    ListLabels.mapi args ~f:(fun i _ -> Var.make (Format.sprintf "e_%i" i))
+    ListLabels.mapi args ~f:(fun i _ ->
+        Var.make (Format.sprintf "%s_%i" var_name i))
   in
   monad_mmap_mvar f vars args ~mark
 
-let monad_eoe ~(mark : 'a mark) ?(toplevel = false) arg =
+let monad_error_on_empty
+    ~(mark : 'a mark)
+    ~(var_name : string)
+    ?(toplevel = false)
+    arg =
   let cases =
     EnumConstructor.Map.of_seq
       (List.to_seq
          [
            ( none_constr,
-             let x = Var.make "x" in
+             let x = Var.make var_name in
              Expr.eabs
                (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
                [TAny, Expr.mark_pos mark]

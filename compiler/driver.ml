@@ -377,11 +377,11 @@ let driver source_file (options : Cli.options) : int =
               raise (Errors.StructuredError (msg, details))
           in
           if !Cli.check_invariants_flag then (
-            Cli.debug_format "Checking invariants";
+            Cli.debug_format "Checking invariants...";
             let result = Dcalc.Invariants.check_all_invariants prgm in
-
-            if result then Cli.debug_format "Finished checking invariants"
-            else raise (Errors.raise_error "Invariant invalid"));
+            if not result then
+              raise
+                (Errors.raise_internal_error "Some Dcalc invariants are invalid"));
           match backend with
           | `Proof ->
             let vcs =

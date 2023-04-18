@@ -13,6 +13,6 @@ scope S:
 
 ```catala-test-inline
 $ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
-[ERROR] Internal Error, please report to https://github.com/CatalaLang/catala/issues: The boxed term is not closed the variables _; x is free in the global context
+[ERROR] Internal Error, please report to https://github.com/CatalaLang/catala/issues: The boxed term is not closed the variables _; f; x is free in the global context
 #return code 255#
 ```

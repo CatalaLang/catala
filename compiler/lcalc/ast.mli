@@ -25,12 +25,16 @@ and 'm expr = (lcalc, 'm mark) gexpr
 
 type 'm program = 'm expr Shared_ast.program
 
-(** {1 Language terms construction}*)
+(** {1 Option-related management}*)
+
+(** {2 Names and types}*)
 
 val option_enum : EnumName.t
 val none_constr : EnumConstructor.t
 val some_constr : EnumConstructor.t
 val option_enum_config : typ EnumConstructor.Map.t
+
+(** {2 Term building and management for the [option] monad}*)
 
 val monad_return :
   mark:'m mark ->
@@ -48,12 +52,14 @@ val monad_bind_var :
 
 val monad_bind :
   mark:'m mark ->
+  var_name:string ->
   (([< all ] as 'a), 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr
 
 val monad_bind_cont :
   mark:'m mark ->
+  var_name:string ->
   ((([< all ] as 'a), 'm mark) gexpr Var.t -> ('a, 'm mark) boxed_gexpr) ->
   ('a, 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr
@@ -67,24 +73,28 @@ val monad_mbind_mvar :
 
 val monad_mbind :
   mark:'m mark ->
+  var_name:string ->
   (([< all ] as 'a), 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr list ->
   ('a, 'm mark) boxed_gexpr
 
 val monad_mbind_cont :
   mark:'m mark ->
+  var_name:string ->
   ((([< all ] as 'a), 'm mark) gexpr Var.t list -> ('a, 'm mark) boxed_gexpr) ->
   ('a, 'm mark) boxed_gexpr list ->
   ('a, 'm mark) boxed_gexpr
 
-val monad_eoe :
+val monad_error_on_empty :
   mark:'a mark ->
+  var_name:string ->
   ?toplevel:bool ->
   (([< all > `Exceptions ] as 'b), 'a mark) boxed_gexpr ->
   ('b, 'a mark) boxed_gexpr
 
 val monad_map :
   mark:'m mark ->
+  var_name:string ->
   (([< all ] as 'a), 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr
@@ -98,6 +108,7 @@ val monad_mmap_mvar :
 
 val monad_mmap :
   mark:'m mark ->
+  var_name:string ->
   (([< all ] as 'a), 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr list ->
   ('a, 'm mark) boxed_gexpr

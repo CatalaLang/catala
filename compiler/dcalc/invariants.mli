@@ -22,32 +22,17 @@
 open Shared_ast
 open Ast
 
-type invariant_status = Fail | Pass | Ignore
-type invariant_expr = typed expr -> invariant_status
-
-val check_invariant : string * invariant_expr -> typed program -> bool
-(** Expression invariants are then lifted toward program invariants using
-    catala's utility combinators using the [check invariant] function. *)
-
 val check_all_invariants : typed program -> bool
 (** Check all invariants. Return true if all the invariants are correct. Print
-    errors messages for each unsucessfull invariants. *)
+    errors messages for each unsucessfull invariants. Here are all the
+    invariants checked:
 
-val invariant_default_no_arrow : unit -> string * invariant_expr
-(** [invariant_default_no_arrow] check no default term has a function type. *)
-
-val invariant_no_partial_evaluation : unit -> string * invariant_expr
-(** [invariant_no_partial_evaluation] check there is no partial function. *)
-
-val invariant_no_return_a_function : unit -> string * invariant_expr
-(** [invariant_no_return_a_function] check no function return a function. *)
-
-val invariant_app_inversion : unit -> string * invariant_expr
-(** [invariant_app_inversion] : if the term is an function application, then
-    there is only 5 possibility : it is a let binding, it is an operator
-    application, it is an variable application, it is a struct access function
-    application (sub-scope call), or it is a operator application with trace. *)
-
-val invariant_match_inversion : unit -> string * invariant_expr
-(** [invariant_match_inversion] : if a term is a match, then every branch is an
-    function abstraction. *)
+    - [invariant_default_no_arrow] check no default term has a function type.
+    - [invariant_no_partial_evaluation] check there is no partial function.
+    - [invariant_no_return_a_function] check no function return a function.
+    - [invariant_app_inversion] : if the term is an function application, then
+      there is only 5 possibility : it is a let binding, it is an operator
+      application, it is an variable application, it is a struct access function
+      application (sub-scope call), or it is a operator application with trace.
+    - [invariant_match_inversion] : if a term is a match, then every branch is
+      an function abstraction. *)
