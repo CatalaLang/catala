@@ -21,7 +21,7 @@ open Catala_utils
 type 'ast plugin_apply_fun_typ =
   source_file:Pos.input_file ->
   output_file:string option ->
-  scope:string option ->
+  scope:Shared_ast.ScopeName.t option ->
   'ast ->
   Scopelang.Dependency.TVertex.t list ->
   unit
@@ -33,6 +33,7 @@ type 'ast gen = {
 }
 
 type t =
+  | Dcalc of Shared_ast.untyped Dcalc.Ast.program gen
   | Lcalc of Shared_ast.untyped Lcalc.Ast.program gen
   | Scalc of Scalc.Ast.program gen
 
@@ -48,6 +49,12 @@ val load_dir : string -> unit
 (** {2 plugin-facing API} *)
 
 module PluginAPI : sig
+  val register_dcalc :
+    name:string ->
+    extension:string ->
+    Shared_ast.untyped Dcalc.Ast.program plugin_apply_fun_typ ->
+    unit
+
   val register_lcalc :
     name:string ->
     extension:string ->

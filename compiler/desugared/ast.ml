@@ -24,47 +24,52 @@ open Shared_ast
 (** Inside a scope, a definition can refer either to a scope def, or a subscope
     def *)
 module ScopeDef = struct
-  type t =
-    | Var of ScopeVar.t * StateName.t option
-    | SubScopeVar of SubScopeName.t * ScopeVar.t * Pos.t
-        (** In this case, the [ScopeVar.t] lives inside the context of the
-            subscope's original declaration *)
+  module Base = struct
+    type t =
+      | Var of ScopeVar.t * StateName.t option
+      | SubScopeVar of SubScopeName.t * ScopeVar.t * Pos.t
+          (** In this case, the [ScopeVar.t] lives inside the context of the
+              subscope's original declaration *)
 
-  let compare x y =
-    match x, y with
-    | Var (x, stx), Var (y, sty) -> (
-      match ScopeVar.compare x y with
-      | 0 -> Option.compare StateName.compare stx sty
-      | n -> n)
-    | SubScopeVar (x', x, _), SubScopeVar (y', y, _) -> (
-      match SubScopeName.compare x' y' with 0 -> ScopeVar.compare x y | n -> n)
-    | Var _, _ -> -1
-    | _, Var _ -> 1
+    let compare x y =
+      match x, y with
+      | Var (x, stx), Var (y, sty) -> (
+        match ScopeVar.compare x y with
+        | 0 -> Option.compare StateName.compare stx sty
+        | n -> n)
+      | SubScopeVar (x', x, _), SubScopeVar (y', y, _) -> (
+        match SubScopeName.compare x' y' with
+        | 0 -> ScopeVar.compare x y
+        | n -> n)
+      | Var _, _ -> -1
+      | _, Var _ -> 1
 
-  let get_position x =
-    match x with
-    | Var (x, None) -> Marked.get_mark (ScopeVar.get_info x)
-    | Var (_, Some sx) -> Marked.get_mark (StateName.get_info sx)
-    | SubScopeVar (_, _, pos) -> pos
+    let get_position x =
+      match x with
+      | Var (x, None) -> Marked.get_mark (ScopeVar.get_info x)
+      | Var (_, Some sx) -> Marked.get_mark (StateName.get_info sx)
+      | SubScopeVar (_, _, pos) -> pos
 
-  let format_t fmt x =
-    match x with
-    | Var (v, None) -> ScopeVar.format_t fmt v
-    | Var (v, Some sv) ->
-      Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
-    | SubScopeVar (s, v, _) ->
-      Format.fprintf fmt "%a.%a" SubScopeName.format_t s ScopeVar.format_t v
+    let format_t fmt x =
+      match x with
+      | Var (v, None) -> ScopeVar.format_t fmt v
+      | Var (v, Some sv) ->
+        Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
+      | SubScopeVar (s, v, _) ->
+        Format.fprintf fmt "%a.%a" SubScopeName.format_t s ScopeVar.format_t v
 
-  let hash x =
-    match x with
-    | Var (v, None) -> ScopeVar.hash v
-    | Var (v, Some sv) -> Int.logxor (ScopeVar.hash v) (StateName.hash sv)
-    | SubScopeVar (w, v, _) ->
-      Int.logxor (SubScopeName.hash w) (ScopeVar.hash v)
+    let hash x =
+      match x with
+      | Var (v, None) -> ScopeVar.hash v
+      | Var (v, Some sv) -> Int.logxor (ScopeVar.hash v) (StateName.hash sv)
+      | SubScopeVar (w, v, _) ->
+        Int.logxor (SubScopeName.hash w) (ScopeVar.hash v)
+  end
+
+  include Base
+  module Map = Map.Make (Base)
+  module Set = Set.Make (Base)
 end
-
-module ScopeDefMap : Map.S with type key = ScopeDef.t = Map.Make (ScopeDef)
-module ScopeDefSet : Set.S with type elt = ScopeDef.t = Set.Make (ScopeDef)
 
 (** {1 AST} *)
 
@@ -195,7 +200,7 @@ type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
   scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
   scope_uid : ScopeName.t;
-  scope_defs : scope_def ScopeDefMap.t;
+  scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion list;
   scope_options : catala_option Marked.pos list;
   scope_meta_assertions : meta_assertion list;
@@ -218,9 +223,9 @@ let rec locations_used e : LocationSet.t =
       (fun e -> LocationSet.union (locations_used e))
       e LocationSet.empty
 
-let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
-  let add_locs (acc : Pos.t ScopeDefMap.t) (locs : LocationSet.t) :
-      Pos.t ScopeDefMap.t =
+let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDef.Map.t =
+  let add_locs (acc : Pos.t ScopeDef.Map.t) (locs : LocationSet.t) :
+      Pos.t ScopeDef.Map.t =
     LocationSet.fold
       (fun (loc, loc_pos) acc ->
         let usage =
@@ -235,7 +240,9 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
                    Marked.get_mark sub_index ))
           | ToplevelVar _ -> None
         in
-        match usage with Some u -> ScopeDefMap.add u loc_pos acc | None -> acc)
+        match usage with
+        | Some u -> ScopeDef.Map.add u loc_pos acc
+        | None -> acc)
       locs acc
   in
   RuleName.Map.fold
@@ -246,14 +253,14 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDefMap.t =
           (locations_used (Expr.unbox rule.rule_cons))
       in
       add_locs acc locs)
-    def ScopeDefMap.empty
+    def ScopeDef.Map.empty
 
 let fold_exprs ~(f : 'a -> expr -> 'a) ~(init : 'a) (p : program) : 'a =
   let acc =
     ScopeName.Map.fold
       (fun _ scope acc ->
         let acc =
-          ScopeDefMap.fold
+          ScopeDef.Map.fold
             (fun _ scope_def acc ->
               RuleName.Map.fold
                 (fun _ rule acc ->

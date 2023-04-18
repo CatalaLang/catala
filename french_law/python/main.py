@@ -143,7 +143,7 @@ if __name__ == '__main__':
         print(timeit.timeit(benchmark_iteration_family, number=iterations))
     elif action == "bench_housing":
         iterations = 1000
-        print("Iterating {} iterations of the family benefits computation. Total time (s):".format(
+        print("Iterating {} iterations of the housing benefits computation. Total time (s):".format(
             iterations))
         print(timeit.timeit(benchmark_iteration_housing, number=iterations))
     elif action == "show_log":

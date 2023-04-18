@@ -30,10 +30,10 @@ module ScopeDef : sig
   val get_position : t -> Pos.t
   val format_t : Format.formatter -> t -> unit
   val hash : t -> int
-end
 
-module ScopeDefMap : Map.S with type key = ScopeDef.t
-module ScopeDefSet : Set.S with type elt = ScopeDef.t
+  module Map : Map.S with type key = t
+  module Set : Set.S with type elt = t
+end
 
 (** {1 AST} *)
 
@@ -118,7 +118,7 @@ type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
   scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
   scope_uid : ScopeName.t;
-  scope_defs : scope_def ScopeDefMap.t;
+  scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion list;
   scope_options : catala_option Marked.pos list;
   scope_meta_assertions : meta_assertion list;
@@ -133,7 +133,7 @@ type program = {
 (** {1 Helpers} *)
 
 val locations_used : expr -> LocationSet.t
-val free_variables : rule RuleName.Map.t -> Pos.t ScopeDefMap.t
+val free_variables : rule RuleName.Map.t -> Pos.t ScopeDef.Map.t
 
 val fold_exprs : f:('a -> expr -> 'a) -> init:'a -> program -> 'a
 (** Usage: [fold_exprs ~f ~init program] applies ~f to all the expressions

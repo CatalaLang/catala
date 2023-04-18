@@ -30,6 +30,7 @@ type backend_option_builtin =
   | `Lcalc
   | `Dcalc
   | `Scopelang
+  | `Exceptions
   | `Proof ]
 
 type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
@@ -110,6 +111,7 @@ type options = {
   check_invariants : bool;
   optimize : bool;
   ex_scope : string option;
+  ex_variable : string option;
   output_file : string option;
   closure_conversion : bool;
   print_only_law : bool;

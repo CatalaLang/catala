@@ -39,7 +39,7 @@ type scope_var_or_subscope =
 type scope_context = {
   var_idmap : scope_var_or_subscope IdentName.Map.t;
       (** All variables, including scope variables and subscopes *)
-  scope_defs_contexts : scope_def_context Ast.ScopeDefMap.t;
+  scope_defs_contexts : scope_def_context Ast.ScopeDef.Map.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes : ScopeName.Set.t;
       (** Other scopes referred to by this scope. Used for dependency analysis *)

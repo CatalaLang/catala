@@ -173,11 +173,11 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
       scope.scope_sub_scopes g
   in
   let g =
-    Ast.ScopeDefMap.fold
+    Ast.ScopeDef.Map.fold
       (fun def_key scope_def g ->
         let def = scope_def.Ast.scope_def_rules in
         let fv = Ast.free_variables def in
-        Ast.ScopeDefMap.fold
+        Ast.ScopeDef.Map.fold
           (fun fv_def fv_def_pos g ->
             match def_key, fv_def with
             | ( Ast.ScopeDef.Var (v_defined, s_defined),
@@ -244,10 +244,17 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
 (** {2 Graph declaration} *)
 
 module ExceptionVertex = struct
-  include RuleName.Set
+  type t = { rules : Pos.t RuleName.Map.t; label : LabelName.t }
+
+  let compare x y =
+    RuleName.Map.compare
+      (fun _ _ -> 0 (* we don't care about positions here*))
+      x.rules y.rules
 
   let hash (x : t) : int =
-    RuleName.Set.fold (fun r acc -> Int.logxor (RuleName.hash r) acc) x 0
+    RuleName.Map.fold
+      (fun r _ acc -> Int.logxor (RuleName.hash r) acc)
+      x.rules 0
 
   let equal x y = compare x y = 0
 end
@@ -353,9 +360,20 @@ let build_exceptions_graph
         in
         LabelName.Map.update label_of_rule
           (fun rule_set ->
+            let pos =
+              (* We have to overwrite the law info on tis position because the
+                 pass at the surface AST level that fills the law info on
+                 positions only does it for positions inside expressions, the
+                 visitor in [surface/fill_positions.ml] does not go into the
+                 info of [RuleName.t], etc. Related issue:
+                 https://github.com/CatalaLang/catala/issues/194 *)
+              Pos.overwrite_law_info
+                (snd (RuleName.get_info rule.rule_id))
+                (Pos.get_law_info (Expr.pos rule.rule_just))
+            in
             match rule_set with
-            | None -> Some (RuleName.Set.singleton rule_name)
-            | Some rule_set -> Some (RuleName.Set.add rule_name rule_set))
+            | None -> Some (RuleName.Map.singleton rule_name pos)
+            | Some rule_set -> Some (RuleName.Map.add rule_name pos rule_set))
           rule_sets)
       def LabelName.Map.empty
   in
@@ -363,7 +381,7 @@ let build_exceptions_graph
     fst
       (LabelName.Map.choose
          (LabelName.Map.filter
-            (fun _ rule_set -> RuleName.Set.mem r rule_set)
+            (fun _ rule_set -> RuleName.Map.mem r rule_set)
             label_to_rule_sets))
   in
   (* Next, we collect the exception edges between those groups of rules referred
@@ -431,7 +449,8 @@ let build_exceptions_graph
   (* We've got the vertices and the edges, let's build the graph! *)
   let g =
     LabelName.Map.fold
-      (fun _label rule_set g -> ExceptionsDependencies.add_vertex g rule_set)
+      (fun label rule_set g ->
+        ExceptionsDependencies.add_vertex g { rules = rule_set; label })
       label_to_rule_sets ExceptionsDependencies.empty
   in
   (* then we add the edges *)
@@ -439,10 +458,18 @@ let build_exceptions_graph
     List.fold_left
       (fun g edge ->
         let rule_group_from =
-          LabelName.Map.find edge.label_from label_to_rule_sets
+          {
+            ExceptionVertex.rules =
+              LabelName.Map.find edge.label_from label_to_rule_sets;
+            label = edge.label_from;
+          }
         in
         let rule_group_to =
-          LabelName.Map.find edge.label_to label_to_rule_sets
+          {
+            ExceptionVertex.rules =
+              LabelName.Map.find edge.label_to label_to_rule_sets;
+            label = edge.label_to;
+          }
         in
         let edge =
           ExceptionsDependencies.E.create rule_group_from edge.edge_positions
@@ -464,14 +491,14 @@ let check_for_exception_cycle
     let scc = List.find (fun scc -> List.length scc > 1) sccs in
     let spans =
       List.rev_map
-        (fun (vs : RuleName.Set.t) ->
-          let v = RuleName.Set.choose vs in
+        (fun (vs : ExceptionVertex.t) ->
+          let v, _ = RuleName.Map.choose vs.rules in
           let rule = RuleName.Map.find v def in
           let pos = Marked.get_mark (RuleName.get_info rule.Ast.rule_id) in
           None, pos)
         scc
     in
-    let v = RuleName.Set.choose (List.hd scc) in
+    let v, _ = RuleName.Map.choose (List.hd scc).rules in
     Errors.raise_multispanned_error spans
       "Exception cycle detected when defining %a: each of these %d exceptions \
        applies over the previous one, and the first applies over the last"
