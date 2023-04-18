@@ -69,17 +69,18 @@ $ catala Interpret -t -s HousingComputation
 [LOG] ←  HousingComputation.f
 [LOG] ≔  HousingComputation.result: 3
 [RESULT] Computation successful! Results:
-[RESULT] f =
-           λ (x: integer) →
+[RESULT] f = λ (x: integer) →
            error_empty
              ⟨true
               ⊢ (let result : RentComputation =
                    (λ (RentComputation_in: RentComputation_in) →
                     let g : integer → integer =
-                      λ (x1: integer) → error_empty ⟨true ⊢ x1 +! 1⟩
+                      λ (x1: integer) →
+                      error_empty ⟨true ⊢ x1 +! 1⟩
                     in
                     let f : integer → integer =
-                      λ (x1: integer) → error_empty ⟨true ⊢ g (x1 +! 1)⟩
+                      λ (x1: integer) →
+                      error_empty ⟨true ⊢ g (x1 +! 1)⟩
                     in
                     { RentComputation f = f; })
                      {RentComputation_in}

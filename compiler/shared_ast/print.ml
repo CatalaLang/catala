@@ -430,26 +430,33 @@ let rec expr_aux :
     punctuation fmt ".";
     Format.pp_print_int fmt index
   | ELit l -> lit fmt l
-  | EApp { f = EAbs { binder; tys }, _; args } ->
-    let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
-    let expr = exprb bnd_ctx in
-    let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
-    let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
-    Format.fprintf fmt "@[<hv 0>%a%a@]"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "")
-         (fun fmt (x, tau, arg) ->
-           Format.fprintf fmt
-             "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]@\n" keyword
-             "let" var x punctuation ":" (typ None) tau punctuation "="
-             (expr colors) arg keyword "in"))
-      xs_tau_arg (rhs expr) body
+  | EApp { f = EAbs _, _; _ } ->
+    let rec pr bnd_ctx colors fmt = function
+      | EApp { f = EAbs { binder; tys }, _; args }, _ ->
+        let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+        let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
+        let xs_tau_arg =
+          List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args
+        in
+        Format.pp_print_list
+          (fun fmt (x, tau, arg) ->
+            Format.fprintf fmt
+              "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
+              "let" var x punctuation ":" (typ None) tau punctuation "="
+              (exprc colors) arg keyword "in")
+          fmt xs_tau_arg;
+        Format.pp_print_cut fmt ();
+        rhs (pr bnd_ctx) fmt body
+      | e -> rhs (exprb bnd_ctx) fmt e
+    in
+    Format.pp_open_vbox fmt 0;
+    pr bnd_ctx colors fmt e;
+    Format.pp_close_box fmt ()
   | EAbs { binder; tys } ->
     let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
     let expr = exprb bnd_ctx in
     let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
-    Format.fprintf fmt "@[<hv0>@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a@]" punctuation
-      "λ"
+    Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun fmt (x, tau) ->
            punctuation fmt "(";
            Format.pp_open_hvbox fmt 2;
