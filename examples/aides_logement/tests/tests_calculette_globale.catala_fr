@@ -90,6 +90,75 @@ champ d'application Exemple1 :
   définition calculette.ressources_ménage_prises_en_compte égal à 20 000 €
 ```
 
+```catala
+déclaration champ d'application Exemple2 :
+  calculette champ d'application CalculetteAidesAuLogementGardeAlternée
+  résultat éligibilité contenu booléen
+  résultat montant_versé contenu argent
+
+champ d'application Exemple2 :
+  définition éligibilité égal à calculette.éligibilité
+  définition montant_versé égal à calculette.aide_finale
+  définition calculette.date_courante égal à |2023-04-01|
+  définition calculette.ménage égal à Ménage {
+   -- prestations_reçues: []
+   -- situation_familiale: Célibataire
+   -- personnes_à_charge: [
+     EnfantÀCharge contenu (EnfantÀCharge {
+       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+       -- identifiant: 0
+       -- nationalité: Française
+       -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+       -- date_de_naissance: |2008-01-01|
+       -- études_apprentissage_stage_formation_pro_impossibilité_travail: vrai
+       -- rémuneration_mensuelle: 0€
+       -- obligation_scolaire: Après
+       -- situation_garde_alternée: PasDeGardeAlternée
+     }); EnfantÀCharge contenu (EnfantÀCharge {
+       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
+       -- identifiant: 1
+       -- nationalité: Française
+       -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
+       -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
+       -- date_de_naissance: |2011-01-01|
+       -- rémuneration_mensuelle: 0€
+       -- obligation_scolaire: Pendant
+       -- situation_garde_alternée: PasDeGardeAlternée
+     })]
+   -- logement: Logement {
+      -- zone: Zone2
+      -- résidence_principale : vrai
+      -- mode_occupation : Locataire contenu (Location {
+      -- loyer_principal: 500 €
+      -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
+      -- logement_est_chambre: faux
+      -- colocation: faux
+      -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
+      -- logement_meublé_d842_2: faux
+      -- changement_logement_d842_4: PasDeChangement
+      -- bailleur: BailleurPrivé
+     })
+     -- propriétaire : ParentOuAutre.Autre
+     -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
+     -- usufruit : ParentOuAutre.Autre
+     -- logement_decent_l89_462 : vrai
+     -- surface_m_carrés : 60
+   }
+   -- nombre_autres_occupants_logement: 0
+   -- condition_rattaché_foyer_fiscal_parent_ifi: faux
+   -- enfant_à_naître_après_quatrième_mois_grossesse: faux
+   -- personnes_âgées_handicapées_foyer_r844_4: faux
+   -- résidence : SaintPierreEtMiquelon
+  }
+  définition calculette.demandeur égal à Demandeur {
+    -- est_non_salarié_agricole_l781_8_l_781_46_code_rural: faux
+    -- magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte: faux
+    -- personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale: faux
+    -- date_naissance : |1970-05-02|
+    -- nationalité : Française
+    }
+  définition calculette.ressources_ménage_prises_en_compte égal à 12 500 €
+```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple1
@@ -102,4 +171,19 @@ $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant_versé = ESome 246.23 €
 [RESULT] éligibilité = ESome true
+```
+
+```catala-test-inline
+$ catala Interpret -s Exemple2
+[RESULT] Computation successful! Results:
+[RESULT] montant_versé = 139.69 €
+[RESULT] éligibilité = true
+```
+
+
+```catala-test-inline
+$ catala Interpret -s Exemple2 --avoid_exceptions
+[RESULT] Computation successful! Results:
+[RESULT] montant_versé = 139.69 €
+[RESULT] éligibilité = true
 ```

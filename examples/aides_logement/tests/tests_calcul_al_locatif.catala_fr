@@ -118,10 +118,10 @@ champ d'application Exemple4 :
     calcul.traitement_aide_finale de calcul.aide_finale_formule
 
   assertion montant = 138,24 €
-  assertion calcul.montant_forfaitaire_charges_d823_16 = 68,84 €
+  assertion calcul.montant_forfaitaire_charges_d823_16 = 81,56 €
   assertion calcul.plafond_loyer_d823_16_2 = 424,22 €
   assertion calcul.participation_minimale = 42,99 €
-  assertion calcul.taux_composition_familiale = 2,685%
+  assertion calcul.taux_composition_familiale = 2,38%
   assertion calcul.participation_personnelle = 131,30 €
 ```
 

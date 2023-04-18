@@ -3572,7 +3572,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
 
 Les arrêtés mentionnés dans la présente section sont pris par les ministres chargés du
 logement, du budget, de la sécurité sociale et de l'agriculture.
-
+832-26
 Le zonage géographique est fixé par arrêté des ministres chargés du logement et du budget.
 
 ```catala
@@ -4626,7 +4626,7 @@ intéressés ;
 
 2° Il est fait application à chaque personne ou ménage concerné du coefficient
 " N " prévu au d du 2° de l'article D. 832-25 et de l'élément " C " prévu au 4°
- de l'article D. 842-6 correspondant à sa situation familiale.
+de l'article D. 842-6 correspondant à sa situation familiale.
 
 Les arrêtés fixant les plafonds de mensualité mentionnés au 3° de l'article
 D. 842-6 et les montants forfaitaires au titre des charges mentionnées au 4°
@@ -6361,7 +6361,9 @@ D. 823-19 et par les règles particulières figurant aux articles D. 842-1 à D.
 champ d'application CalculAllocationLogement sous condition
   résidence sous forme SaintPierreEtMiquelon:
 
-  exception définition sous_calcul_traitement égal à
+  exception définition sous_calcul_traitement sous condition
+    catégorie_calcul_apl sous forme LogementFoyer
+  conséquence égal à
     selon catégorie_calcul_apl sous forme
     -- LogementFoyer de logement_foyer_:
       (soit traitement_formule égal à
@@ -6415,7 +6417,7 @@ champ d'application CalculAllocationLogement sous condition
     }
 
 déclaration traitement_nul_tout_le_temps contenu argent
-  dépend de aide_finale contenu argent égal à 0 €
+  dépend de aide_finale contenu argent égal à 0€
 ```
 
 2° Au 5° de l'article D. 823-17, les mots : “ en fonction de l'évolution de l'indice des
