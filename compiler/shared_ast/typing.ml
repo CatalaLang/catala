@@ -458,7 +458,7 @@ and typecheck_expr_top_down :
       in
       let field =
         let candidate_structs =
-          try A.IdentName.Map.find field ctx.ctx_struct_fields
+          try A.Ident.Map.find field ctx.ctx_struct_fields
           with Not_found ->
             Message.raise_spanned_error
               (Expr.mark_pos context_mark)

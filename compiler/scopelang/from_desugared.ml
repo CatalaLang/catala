@@ -84,7 +84,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     let field =
       try
         StructName.Map.find name
-          (IdentName.Map.find field ctx.decl_ctx.ctx_struct_fields)
+          (Ident.Map.find field ctx.decl_ctx.ctx_struct_fields)
       with Not_found ->
         (* Should not happen after disambiguation *)
         Message.raise_spanned_error (Expr.mark_pos m)

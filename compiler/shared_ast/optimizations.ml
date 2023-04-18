@@ -344,7 +344,7 @@ let test_iota_reduction_1 () =
              {
                ctx_enums = EnumName.Map.empty;
                ctx_structs = StructName.Map.empty;
-               ctx_struct_fields = IdentName.Map.empty;
+               ctx_struct_fields = Ident.Map.empty;
                ctx_scopes = ScopeName.Map.empty;
              }
              (Expr.unbox matchA))))
@@ -414,7 +414,7 @@ let test_iota_reduction_2 () =
              {
                ctx_enums = EnumName.Map.empty;
                ctx_structs = StructName.Map.empty;
-               ctx_struct_fields = IdentName.Map.empty;
+               ctx_struct_fields = Ident.Map.empty;
                ctx_scopes = ScopeName.Map.empty;
              }
              (Expr.unbox matchA))))

@@ -608,7 +608,7 @@ let rec expr_aux :
   | ELocation loc -> location fmt loc
   | EDStructAccess { e; field; _ } ->
     Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation "."
-      punctuation "\"" IdentName.format_t field punctuation "\""
+      punctuation "\"" Ident.format_t field punctuation "\""
   | EStruct { name; fields } ->
     if StructField.Map.is_empty fields then (
       punctuation fmt "{";

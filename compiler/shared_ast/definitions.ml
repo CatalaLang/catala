@@ -36,7 +36,7 @@ module LabelName = Uid.Gen ()
 
 (** Used for unresolved structs/maps in desugared *)
 
-module IdentName = String
+module Ident = String
 
 (** Only used by desugared/scopelang *)
 
@@ -424,7 +424,7 @@ and ('a, 'b, 'm) base_gexpr =
   | EDStructAccess : {
       name_opt : StructName.t option;
       e : ('a, 'm) gexpr;
-      field : IdentName.t;
+      field : Ident.t;
     }
       -> ('a, < syntacticNames : yes ; .. >, 'm) base_gexpr
       (** [desugared] has ambiguous struct fields *)
@@ -549,7 +549,7 @@ type scope_out_struct = {
 type decl_ctx = {
   ctx_enums : enum_ctx;
   ctx_structs : struct_ctx;
-  ctx_struct_fields : StructField.t StructName.Map.t IdentName.Map.t;
+  ctx_struct_fields : StructField.t StructName.Map.t Ident.Map.t;
       (** needed for disambiguation (desugared -> scope) *)
   ctx_scopes : scope_out_struct ScopeName.Map.t;
 }

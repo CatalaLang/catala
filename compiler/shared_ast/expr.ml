@@ -573,7 +573,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
   | ( EDStructAccess { e = e1; field = f1; name_opt = s1 },
       EDStructAccess { e = e2; field = f2; name_opt = s2 } ) ->
-    Option.equal StructName.equal s1 s2 && IdentName.equal f1 f2 && equal e1 e2
+    Option.equal StructName.equal s1 s2 && Ident.equal f1 f2 && equal e1 e2
   | ( EStructAccess { e = e1; field = f1; name = s1 },
       EStructAccess { e = e2; field = f2; name = s2 } ) ->
     StructName.equal s1 s2 && StructField.equal f1 f2 && equal e1 e2
@@ -633,7 +633,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1},
     EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2} ->
     compare e1 e2 @@< fun () ->
-    IdentName.compare field_name1 field_name2 @@< fun () ->
+    Ident.compare field_name1 field_name2 @@< fun () ->
     Option.compare StructName.compare struct_name1 struct_name2
   | EStructAccess {e=e1; field=field_name1; name=struct_name1},
     EStructAccess {e=e2; field=field_name2; name=struct_name2} ->

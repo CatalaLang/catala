@@ -31,18 +31,18 @@ let get_scope_uid
   | None, _ ->
     let _, scope =
       try
-        Shared_ast.IdentName.Map.filter_map
+        Shared_ast.Ident.Map.filter_map
           (fun _ -> function
             | Desugared.Name_resolution.TScope (uid, _) -> Some uid
             | _ -> None)
           ctxt.typedefs
-        |> Shared_ast.IdentName.Map.choose
+        |> Shared_ast.Ident.Map.choose
       with Not_found ->
         Message.raise_error "There isn't any scope inside the program."
     in
     scope
   | Some name, _ -> (
-    match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
+    match Shared_ast.Ident.Map.find_opt name ctxt.typedefs with
     | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
     | _ ->
       Message.raise_error
@@ -75,7 +75,7 @@ let get_variable_uid
       | Some groups -> Re.Group.get groups 1, Some (Re.Group.get groups 2)
     in
     match
-      Shared_ast.IdentName.Map.find_opt first_part
+      Shared_ast.Ident.Map.find_opt first_part
         (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
     with
     | None ->
@@ -95,7 +95,7 @@ let get_variable_uid
           Shared_ast.ScopeName.format_t scope_uid
       | Some second_part -> (
         match
-          Shared_ast.IdentName.Map.find_opt second_part
+          Shared_ast.Ident.Map.find_opt second_part
             (Shared_ast.ScopeName.Map.find subscope_name ctxt.scopes).var_idmap
         with
         | Some (Desugared.Name_resolution.ScopeVar v) ->
@@ -117,7 +117,7 @@ let get_variable_uid
                (fun second_part ->
                  let var_sig = Shared_ast.ScopeVar.Map.find v ctxt.var_typs in
                  match
-                   Shared_ast.IdentName.Map.find_opt second_part
+                   Shared_ast.Ident.Map.find_opt second_part
                      var_sig.var_sig_states_idmap
                  with
                  | Some state -> state

@@ -110,7 +110,7 @@ val estruct :
 
 val edstructaccess :
   ('a, 'm) boxed_gexpr ->
-  IdentName.t ->
+  Ident.t ->
   StructName.t option ->
   'm mark ->
   ((< syntacticNames : yes ; .. > as 'a), 'm) boxed_gexpr
