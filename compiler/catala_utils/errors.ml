@@ -38,17 +38,17 @@ let print_structured_error (msg : string) (pos : (string option * Pos.t) list) :
             pos))
   | Cli.EditorParsable ->
     let remove_new_lines s =
-      Re.replace ~all:true (Re.compile (Re.char '\n')) ~f:(fun _ -> " | ") s
+      Re.replace ~all:true (Re.compile (Re.char '\n')) ~f:(fun _ -> " · ") s
     in
-    "\n"
+    remove_new_lines msg
+    ^ "\n"
     ^ String.concat "\n"
         (List.map
            (fun (msg', pos) ->
              Printf.sprintf "%s%s" (Pos.to_string_short pos)
                (match msg' with
-               | None -> remove_new_lines msg
-               | Some msg' ->
-                 remove_new_lines msg ^ " | " ^ remove_new_lines msg'))
+               | None -> ""
+               | Some msg' -> remove_new_lines msg'))
            pos)
 
 (** {1 Error exception and printing} *)

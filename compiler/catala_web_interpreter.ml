@@ -22,6 +22,7 @@ let _ =
              language = Some (Js.to_string language);
              max_prec_digits = None;
              closure_conversion = false;
+             message_format = Human;
              trace;
              disable_warnings = true;
              disable_counterexamples = false;
