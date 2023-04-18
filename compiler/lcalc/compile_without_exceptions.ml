@@ -20,29 +20,27 @@ module A = Ast
 
 (** The main idea around this pass is to compile Dcalc to Lcalc without using
     [raise EmptyError] nor [try _ with EmptyError -> _]. To do so, we use the
-    same technique as in rust or erlang to handle this kind of exceptions. Each
+    same technique as in Rust or Erlang to handle this kind of exceptions. Each
     [raise EmptyError] will be translated as [None] and each
     [try e1 with EmtpyError -> e2] as
     [match e1 with | None -> e2 | Some x -> x].
 
-    When doing this naively, this requires to add matches and Some constructor
+    When doing this naively, this requires to add matches and [Some] constructor
     everywhere. We apply here an other technique where we generate what we call
-    `hoists`. Hoists are expression whom could minimally [raise EmptyError]. For
-    instance in [let x = <e1, e2, ..., en| e_just :- e_cons> * 3 in x + 1], the
-    sub-expression [<e1, e2, ..., en| e_just :- e_cons>] can produce an empty
-    error. So we make a hoist with a new variable [y] linked to the Dcalc
-    expression [<e1, e2, ..., en| e_just :- e_cons>], and we return as the
+    `hoists`. Hoists are expressions that can minimally [raise EmptyError]. For
+    instance, in [let x = <e1, e2, ..., en | e_just :- e_cons> * 3 in x + 1],
+    the sub-expression [<e1, e2, ..., en | e_just :- e_cons>] can produce an
+    empty error. So we make a hoist with a new variable [y] linked to the Dcalc
+    expression [<e1, e2, ..., en | e_just :- e_cons>], and we return as the
     translated expression [let x = y * 3 in x + 1].
 
     The compilation process is handled by the [trans_expr] function. *)
 
 open Shared_ast
 
-(** Default-monad utilities. *)
-
 (** Start of the translation *)
 
-(** Type translating functions.
+(** {2 Type translating functions}
 
     Since positions where there is thunked expressions is exactly where we will
     put option expressions. Hence, the transformation simply reduce [unit -> 'a]
@@ -51,7 +49,7 @@ open Shared_ast
 (** In the general case, we use the [trans_typ_to_any] function to put [TAny]
     and then ask the typing algorithm to reinfer all the types. However, this is
     not sufficient as the typing inference need at least input and output types.
-    Those a generated using the [trans_typ_keep] function, that build TOptions
+    Those a generated using the [trans_typ_keep] function, that build [TOption]s
     where needed. *)
 let trans_typ_to_any (tau : typ) : typ = Marked.same_mark_as TAny tau
 
@@ -91,18 +89,19 @@ type 'a info_pure = {
 let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
   (Var.Map.find x ctx).var
 
-(** The function [e' = trans ctx e] actually do the translation between dexpr
-    and lexpr. The context link every free variables of the [e] expression to a
-    new lcalc variable [var], and some information [info_pure] on whenever the
-    variable can be an EmptyError while evaluating and hence should be matched.
-    We also keep [is_scope] to indicate if a variable come from a top-level
-    scope definition. This is used when applying functions as described below.
-    Finally, the following invariant it kept by the application of the function
-    if [e] is of type [a], then the result should be of type [trans_typ_keep a].
-    For literals, this mean that a expression of type [money] will be of type
+(** TODO: give better names to variables *)
+
+(** The function [e' = trans ctx e] actually does the translation between
+    [D.expr] and [L.expr]. The context links every free variables of the [e]
+    expression to a new lcalc variable [var], and some information [info_pure]
+    on whenever the variable can be reduced to an [EmptyError], and hence should
+    be matched. We also keep [is_scope] to indicate if a variable comes from a
+    top-level scope definition. This is used when applying functions as
+    described below. Finally, the following invariant is upheld: if [e] is of
+    type [a], then the result should be of type [trans_typ_keep a]. For
+    literals, this mean that a expression of type [money] will be of type
     [money option]. We rely on later optimization to shorten the size of the
     generated code. *)
-
 let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
   let m = Marked.get_mark e in
   let mark = m in
@@ -114,8 +113,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       Ast.monad_return (Expr.evar (trans_var ctx x) m) ~mark
     else Expr.evar (trans_var ctx x) m
   | EApp { f = EVar v, _; args = [(ELit LUnit, _)] } ->
-    (* As users cannot write thunks, it is obligatory added by the compiler.
-       Hence we can safely remove those. *)
+    (* Invariant: as users cannot write thunks, it can only come from prior
+       compilation passes. Hence we can safely remove those. *)
     assert (not (Var.Map.find v ctx).info_pure);
     Expr.evar (trans_var ctx v) m
   | EAbs { binder; tys = [(TLit TUnit, _)] } ->
@@ -123,8 +122,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let _, body = Bindlib.unmbind binder in
     trans ctx body
   | EAbs { binder; tys } ->
-    (* Every functions of type [a -> b] are translated to a function of type [a
-       -> option b] *)
+    (* Every function of type [a -> b] is translated to a function of type [a ->
+       option b] *)
     let vars, body = Bindlib.unmbind binder in
     let ctx' =
       ArrayLabels.fold_right vars ~init:ctx ~f:(fun v ->
@@ -141,8 +140,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let cons' = trans ctx cons in
 
     (* If the default term has the following type [<es: a list | just: bool |-
-       cons: a>] then resulting term will have type [handledefaultOpt (es': a
-       option list) (just': bool option) (cons': a option)] *)
+       cons: a>] then the resulting term will have type [handledefaultOpt (es':
+       a option list) (just': bool option) (cons': a option)] *)
     let m' = match m with Typed m -> Typed { m with ty = TAny, pos } in
     Expr.make_app
       (Expr.eop Op.HandleDefaultOpt [TAny, pos; TAny, pos; TAny, pos] m')
@@ -157,7 +156,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     when (Var.Map.find scope ctx).is_scope ->
     (* Scopes are encoded as functions that can take option arguments, and
        always return (or raise panic exceptions like AssertionFailed,
-       NoValueProvided or Conflict) an structure that can contain optionnal
+       NoValueProvided or Conflict) a structure that can contain optionnal
        elements. Hence, to call a scope, we don't need to use the monad bind. *)
     Ast.monad_return ~mark
       (Expr.eapp
@@ -172,9 +171,9 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     ->
     (* INVARIANT: functions are always encoded using this function.
 
-       As every functions of type [a -> b] but top-level scopes are built using
-       this function, returning a function of type [a -> b option], hence, we
-       should use [Ast.monad_mbind]. *)
+       As every function of type [a -> b] but top-level scopes is built using
+       this function, returning a function of type [a -> b option], we should
+       use [Ast.monad_mbind]. *)
     let f_var = Var.make "fff" in
     Ast.monad_bind_var ~mark
       (Ast.monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
@@ -202,7 +201,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       "Parameter trace is incompatible with parameter avoid_exceptions: some \
        tracing logs were added while they are not supported."
   (* Encoding of Fold, Filter, Map and Reduce is non trivial because we don't
-     define new monadic operator for every one of those. *)
+     define new monadic operators for every one of those. *)
   | EApp { f = EOp { op = Op.Fold; tys }, opmark; args = [f; init; l] } ->
     (* The function f should have type b -> a -> a. Hence, its translation has
        type [b] -> [a] -> option [a]. But we need a function of type option [b]
@@ -254,9 +253,9 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       [f'; Ast.monad_return ~mark (trans ctx init); trans ctx l]
       ~mark
   | EApp { f = EOp { op = Op.Map; tys }, opmark; args = [f; l] } ->
-    (* The funtion $f$ has type $a -> option b$, but Map needs a function of
-       type $a -> b$, hence we need to transform $f$ into a function of type $a
-       option -> option b$. *)
+    (* The funtion [f] has type [a -> option b], but Map needs a function of
+       type [a -> b], hence we need to transform [f] into a function of type [a
+       option -> option b]. *)
     let x1 = Var.make "f" in
     let f' =
       Ast.monad_bind_cont ~mark
@@ -284,10 +283,10 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       [f'; trans ctx l]
       ~mark
   | EApp { f = EOp { op = Op.Filter; tys }, opmark; args = [f; l] } ->
-    (* The function $f$ has type $a -> bool option$ while the filter operator
-       requires an function of type $a option -> bool$. Hence we need to modify
-       $f$ by first matching the input, and second using the error_on_empty on
-       the result.*)
+    (* The function [f] has type [a -> bool option] while the filter operator
+       requires an function of type [a option -> bool]. Hence we need to modify
+       [f] by first matching the input, and second using the error_on_empty on
+       the result. *)
     let x1 = Var.make "p" in
     let f' =
       Ast.monad_bind_cont ~mark
@@ -377,12 +376,6 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       (List.map (trans ctx) fields)
       ~mark
   | EIfThenElse { cond; etrue; efalse } ->
-    (* There is two different encoding of the if then else. The first one is to
-       consider it as if it is an operator. Hence, if one of the branches is an
-       EmptyError, then it propagate to the final result of the expression. The
-       second one is [<<|cond |- a >, <|not cond |- b>| false :- empty>]. The
-       second semantics is redondant with exising default terms, but is the one
-       decided by the compiler. *)
     Ast.monad_bind_cont ~mark
       (fun cond ->
         Expr.eifthenelse (Expr.evar cond mark) (trans ctx etrue)
@@ -633,8 +626,8 @@ let rec trans_code_items ctx c :
              next)
       in
       let e = Expr.Box.lift @@ trans ctx e in
-      (* Invariant: We suppose there is no default in toplevel def, hence we
-         don't need to add an error_on_empty *)
+      (* Invariant: We suppose there are no defaults in toplevel definitions,
+         hence we don't need to add an error_on_empty *)
       Bindlib.box_apply2
         (fun next e -> Cons (Topdef (name, trans_typ_to_any typ, e), next))
         next e
