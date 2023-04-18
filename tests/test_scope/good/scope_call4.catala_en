@@ -68,7 +68,7 @@ $ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize
                            | ESome → (λ (x2: any) → x2)))
                      with
                      | ENone → (λ (_: unit) → ENone _)
-                     | ESome → (λ (fff: any) → fff (x +! 1)) ],
+                     | ESome → (λ (f1: any) → f1 (x +! 1)) ],
                    (λ (_: unit) → ESome false),
                    (λ (_: unit) → ENone ()))
               with
@@ -92,7 +92,7 @@ $ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize
                            | ESome → (λ (x2: any) → x2)))
                      with
                      | ENone → (λ (_: unit) → ENone _)
-                     | ESome → (λ (fff: any) → fff (x +! 1)) ],
+                     | ESome → (λ (f2: any) → f2 (x +! 1)) ],
                    (λ (_: unit) → ESome false),
                    (λ (_: unit) → ENone ()))
               with

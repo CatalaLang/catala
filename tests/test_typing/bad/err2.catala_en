@@ -21,20 +21,20 @@ Error coming from typechecking the following expression:
 └──┐
 10 │   definition a equals number of (z ++ 1.1) / 2
    │                                       ‾‾‾
-   └─ return code 124#
+
 
 Type decimal coming from expression:
 ┌─⯈ tests/test_typing/bad/err2.catala_en:10.38-41:
 └──┐
 10 │   definition a equals number of (z ++ 1.1) / 2
    │                                       ‾‾‾
-   └─ return code 124#
+
 
 Type collection coming from expression:
 ┌─⯈ tests/test_typing/bad/err2.catala_en:10.35-37:
 └──┐
 10 │   definition a equals number of (z ++ 1.1) / 2
    │                                    ‾‾
-   └─ return code 124#
+
 #return code 255#
 ```

@@ -1,0 +1,16 @@
+```catala-metadata
+declaration enumeration Enum:
+  -- Int content integer
+  -- Dec content decimal
+  -- Dat content date
+
+declaration structure Structure:
+  data i content integer
+  data e content Enum
+
+declaration scope S:
+  input x content integer
+  input output y content Enum
+  output z content collection Structure
+  output a content decimal
+```
