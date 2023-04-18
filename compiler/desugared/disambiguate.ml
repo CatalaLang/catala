@@ -45,7 +45,7 @@ let rule ctx env rule =
 let scope ctx env scope =
   let env = Typing.Env.open_scope scope.scope_uid env in
   let scope_defs =
-    ScopeDefMap.map
+    ScopeDef.Map.map
       (fun def ->
         let scope_def_rules =
           (* Note: ordering in file order might be better for error reporting ?
@@ -75,7 +75,7 @@ let program prg =
     ScopeName.Map.fold
       (fun scope_name scope env ->
         let vars =
-          ScopeDefMap.fold
+          ScopeDef.Map.fold
             (fun var def vars ->
               match var with
               | Var (v, _states) -> ScopeVar.Map.add v def.scope_def_typ vars

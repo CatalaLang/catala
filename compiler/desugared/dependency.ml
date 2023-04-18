@@ -173,11 +173,11 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
       scope.scope_sub_scopes g
   in
   let g =
-    Ast.ScopeDefMap.fold
+    Ast.ScopeDef.Map.fold
       (fun def_key scope_def g ->
         let def = scope_def.Ast.scope_def_rules in
         let fv = Ast.free_variables def in
-        Ast.ScopeDefMap.fold
+        Ast.ScopeDef.Map.fold
           (fun fv_def fv_def_pos g ->
             match def_key, fv_def with
             | ( Ast.ScopeDef.Var (v_defined, s_defined),
@@ -246,7 +246,10 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
 module ExceptionVertex = struct
   type t = { rules : Pos.t RuleName.Map.t; label : LabelName.t }
 
-  let compare x y = RuleName.Map.compare compare x.rules y.rules
+  let compare x y =
+    RuleName.Map.compare
+      (fun _ _ -> 0 (* we don't care about positions here*))
+      x.rules y.rules
 
   let hash (x : t) : int =
     RuleName.Map.fold

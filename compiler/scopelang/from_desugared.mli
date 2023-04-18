@@ -19,7 +19,6 @@
 val translate_program :
   Desugared.Ast.program ->
   Shared_ast.untyped Ast.program
-  * Desugared.Dependency.ExceptionsDependencies.t
-    Shared_ast.DesugaredVarName.Map.t
+  * Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t
 (** This functions returns the translated program as well as all the graphs of
     exceptions inferred for each scope variable of the program. *)

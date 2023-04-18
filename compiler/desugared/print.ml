@@ -88,13 +88,13 @@ let build_exception_tree exc_graph =
 
 let print_exceptions_graph
     (scope : ScopeName.t)
-    (var : DesugaredVarName.t)
+    (var : Ast.ScopeDef.t)
     (g : Dependency.ExceptionsDependencies.t) =
   Cli.result_format
     "Printing the tree of exceptions for the definitions of variable %a of \
      scope %a."
     (Cli.format_with_style [ANSITerminal.yellow])
-    (Format.asprintf "\"%a\"" DesugaredVarName.format var)
+    (Format.asprintf "\"%a\"" Ast.ScopeDef.format_t var)
     (Cli.format_with_style [ANSITerminal.yellow])
     (Format.asprintf "\"%a\"" ScopeName.format_t scope);
   Dependency.ExceptionsDependencies.iter_vertex

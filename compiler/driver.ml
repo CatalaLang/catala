@@ -21,6 +21,127 @@ open Catala_utils
     string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 
+let get_scope_uid
+    (options : Cli.options)
+    (backend : Plugin.t Cli.backend_option)
+    (ctxt : Desugared.Name_resolution.context) =
+  match options.ex_scope, backend with
+  | None, `Interpret ->
+    Errors.raise_error "No scope was provided for execution."
+  | None, _ ->
+    let _, scope =
+      try
+        Shared_ast.IdentName.Map.filter_map
+          (fun _ -> function
+            | Desugared.Name_resolution.TScope (uid, _) -> Some uid
+            | _ -> None)
+          ctxt.typedefs
+        |> Shared_ast.IdentName.Map.choose
+      with Not_found ->
+        Errors.raise_error "There isn't any scope inside the program."
+    in
+    scope
+  | Some name, _ -> (
+    match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
+    | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
+    | _ ->
+      Errors.raise_error "There is no scope %a inside the program."
+        (Cli.format_with_style [ANSITerminal.yellow])
+        ("\"" ^ name ^ "\""))
+
+let get_variable_uid
+    (options : Cli.options)
+    (backend : Plugin.t Cli.backend_option)
+    (ctxt : Desugared.Name_resolution.context)
+    (scope_uid : Shared_ast.ScopeName.t) =
+  match options.ex_variable, backend with
+  | None, `Exceptions ->
+    Errors.raise_error
+      "Please specify a variable with the -v option to print its exception \
+       tree."
+  | None, _ -> None
+  | Some name, _ -> (
+    (* Sometimes the variable selected is of the form [a.b]*)
+    let first_part, second_part =
+      match
+        Re.(
+          exec_opt
+            (compile
+            @@ whole_string
+            @@ seq [group (rep1 (compl [char '.'])); char '.'; group (rep1 any)]
+            )
+            name)
+      with
+      | None -> name, None
+      | Some groups -> Re.Group.get groups 1, Some (Re.Group.get groups 2)
+    in
+    match
+      Shared_ast.IdentName.Map.find_opt first_part
+        (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
+    with
+    | None ->
+      Errors.raise_error "Variable %a not found inside scope %a"
+        (Cli.format_with_style [ANSITerminal.yellow])
+        ("\"" ^ name ^ "\"")
+        (Cli.format_with_style [ANSITerminal.yellow])
+        (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t scope_uid)
+    | Some
+        (Desugared.Name_resolution.SubScope (subscope_var_name, subscope_name))
+      -> (
+      match second_part with
+      | None ->
+        Errors.raise_error
+          "Subscope %a of scope %a cannot be selected by itself, please add \
+           \".<var>\" where <var> is a subscope variable."
+          (Cli.format_with_style [ANSITerminal.yellow])
+          (Format.asprintf "\"%a\"" Shared_ast.SubScopeName.format_t
+             subscope_var_name)
+          (Cli.format_with_style [ANSITerminal.yellow])
+          (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t scope_uid)
+      | Some second_part -> (
+        match
+          Shared_ast.IdentName.Map.find_opt second_part
+            (Shared_ast.ScopeName.Map.find subscope_name ctxt.scopes).var_idmap
+        with
+        | Some (Desugared.Name_resolution.ScopeVar v) ->
+          Some
+            (Desugared.Ast.ScopeDef.SubScopeVar
+               (subscope_var_name, v, Pos.no_pos))
+        | _ ->
+          Errors.raise_error
+            "Var %a of subscope %a in scope %a does not exist, please check \
+             your command line arguments."
+            (Cli.format_with_style [ANSITerminal.yellow])
+            ("\"" ^ second_part ^ "\"")
+            (Cli.format_with_style [ANSITerminal.yellow])
+            (Format.asprintf "\"%a\"" Shared_ast.SubScopeName.format_t
+               subscope_var_name)
+            (Cli.format_with_style [ANSITerminal.yellow])
+            (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t scope_uid)))
+    | Some (Desugared.Name_resolution.ScopeVar v) ->
+      Some
+        (Desugared.Ast.ScopeDef.Var
+           ( v,
+             Option.map
+               (fun second_part ->
+                 let var_sig = Shared_ast.ScopeVar.Map.find v ctxt.var_typs in
+                 match
+                   Shared_ast.IdentName.Map.find_opt second_part
+                     var_sig.var_sig_states_idmap
+                 with
+                 | Some state -> state
+                 | None ->
+                   Errors.raise_error
+                     "State %a is not found for variable %a of scope %a"
+                     (Cli.format_with_style [ANSITerminal.yellow])
+                     ("\"" ^ second_part ^ "\"")
+                     (Cli.format_with_style [ANSITerminal.yellow])
+                     ("\"" ^ first_part ^ "\"")
+                     (Cli.format_with_style [ANSITerminal.yellow])
+                     (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t
+                        scope_uid))
+               second_part )))
+
 (** Entry function for the executable. Returns a negative number in case of
     error. Usage: [driver source_file options]*)
 let driver source_file (options : Cli.options) : int =
@@ -144,129 +265,9 @@ let driver source_file (options : Cli.options) : int =
       backend -> (
       Cli.debug_print "Name resolution...";
       let ctxt = Desugared.Name_resolution.form_context prgm in
-      let scope_uid =
-        match options.ex_scope, backend with
-        | None, `Interpret ->
-          Errors.raise_error "No scope was provided for execution."
-        | None, _ ->
-          let _, scope =
-            try
-              Shared_ast.IdentName.Map.filter_map
-                (fun _ -> function
-                  | Desugared.Name_resolution.TScope (uid, _) -> Some uid
-                  | _ -> None)
-                ctxt.typedefs
-              |> Shared_ast.IdentName.Map.choose
-            with Not_found ->
-              Errors.raise_error "There isn't any scope inside the program."
-          in
-          scope
-        | Some name, _ -> (
-          match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
-          | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
-          | _ ->
-            Errors.raise_error "There is no scope %a inside the program."
-              (Cli.format_with_style [ANSITerminal.yellow])
-              ("\"" ^ name ^ "\""))
-      in
+      let scope_uid = get_scope_uid options backend ctxt in
       (* This uid is a Desugared identifier *)
-      let variable_uid =
-        match options.ex_variable, backend with
-        | None, `Exceptions ->
-          Errors.raise_error
-            "Please specify a variable with the -v option to print its \
-             exception tree."
-        | None, _ -> None
-        | Some name, _ -> (
-          (* Sometimes the variable selected is of the form [a.b]*)
-          let first_part, second_part =
-            match
-              Re.(
-                exec_opt
-                  (compile
-                  @@ whole_string
-                  @@ seq
-                       [
-                         group (rep1 (compl [char '.']));
-                         char '.';
-                         group (rep1 any);
-                       ])
-                  name)
-            with
-            | None -> name, None
-            | Some groups -> Re.Group.get groups 1, Some (Re.Group.get groups 2)
-          in
-          match
-            Shared_ast.IdentName.Map.find_opt first_part
-              (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
-          with
-          | None ->
-            Errors.raise_error "Variable %a not found inside scope %a"
-              (Cli.format_with_style [ANSITerminal.yellow])
-              ("\"" ^ name ^ "\"")
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t scope_uid)
-          | Some
-              (Desugared.Name_resolution.SubScope
-                (subscope_var_name, subscope_name)) -> (
-            match second_part with
-            | None ->
-              Errors.raise_error
-                "Subscope %a of scope %a cannot be selected by itself, please \
-                 add \".<var>\" where <var> is a subscope variable."
-                (Cli.format_with_style [ANSITerminal.yellow])
-                (Format.asprintf "\"%a\"" Shared_ast.SubScopeName.format_t
-                   subscope_var_name)
-                (Cli.format_with_style [ANSITerminal.yellow])
-                (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t
-                   scope_uid)
-            | Some second_part -> (
-              match
-                Shared_ast.IdentName.Map.find_opt second_part
-                  (Shared_ast.ScopeName.Map.find subscope_name ctxt.scopes)
-                    .var_idmap
-              with
-              | Some (Desugared.Name_resolution.ScopeVar v) ->
-                Some
-                  (Shared_ast.DesugaredVarName.SubScopeVar (subscope_var_name, v))
-              | _ ->
-                Errors.raise_error
-                  "Var %a of subscope %a in scope %a does not exist, please \
-                   check your command line arguments."
-                  (Cli.format_with_style [ANSITerminal.yellow])
-                  ("\"" ^ second_part ^ "\"")
-                  (Cli.format_with_style [ANSITerminal.yellow])
-                  (Format.asprintf "\"%a\"" Shared_ast.SubScopeName.format_t
-                     subscope_var_name)
-                  (Cli.format_with_style [ANSITerminal.yellow])
-                  (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t
-                     scope_uid)))
-          | Some (Desugared.Name_resolution.ScopeVar v) ->
-            Some
-              (Shared_ast.DesugaredVarName.ScopeVar
-                 ( v,
-                   Option.map
-                     (fun second_part ->
-                       let var_sig =
-                         Shared_ast.ScopeVar.Map.find v ctxt.var_typs
-                       in
-                       match
-                         Shared_ast.IdentName.Map.find_opt second_part
-                           var_sig.var_sig_states_idmap
-                       with
-                       | Some state -> state
-                       | None ->
-                         Errors.raise_error
-                           "State %a is not found for variable %a of scope %a"
-                           (Cli.format_with_style [ANSITerminal.yellow])
-                           ("\"" ^ second_part ^ "\"")
-                           (Cli.format_with_style [ANSITerminal.yellow])
-                           ("\"" ^ first_part ^ "\"")
-                           (Cli.format_with_style [ANSITerminal.yellow])
-                           (Format.asprintf "\"%a\""
-                              Shared_ast.ScopeName.format_t scope_uid))
-                     second_part )))
-      in
+      let variable_uid = get_variable_uid options backend ctxt scope_uid in
       Cli.debug_print "Desugaring...";
       let prgm = Desugared.From_surface.translate_program ctxt prgm in
       Cli.debug_print "Disambiguating...";
@@ -287,7 +288,7 @@ let driver source_file (options : Cli.options) : int =
               "Please provide a scope variable to analyze with the -v option."
         in
         Desugared.Print.print_exceptions_graph scope_uid variable_uid
-          (Shared_ast.DesugaredVarName.Map.find variable_uid exceptions_graphs)
+          (Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs)
       | `Scopelang ->
         let _output_file, with_output = get_output_format () in
         with_output
