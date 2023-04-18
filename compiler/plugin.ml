@@ -19,7 +19,7 @@ open Catala_utils
 type 'ast plugin_apply_fun_typ =
   source_file:Pos.input_file ->
   output_file:string option ->
-  scope:string option ->
+  scope:Shared_ast.ScopeName.t option ->
   'ast ->
   Scopelang.Dependency.TVertex.t list ->
   unit
@@ -31,16 +31,22 @@ type 'ast gen = {
 }
 
 type t =
+  | Dcalc of Shared_ast.untyped Dcalc.Ast.program gen
   | Lcalc of Shared_ast.untyped Lcalc.Ast.program gen
   | Scalc of Scalc.Ast.program gen
 
-let name = function Lcalc { name; _ } | Scalc { name; _ } -> name
+let name = function
+  | Dcalc { name; _ } | Lcalc { name; _ } | Scalc { name; _ } -> name
+
 let backend_plugins : (string, t) Hashtbl.t = Hashtbl.create 17
 
 let register t =
   Hashtbl.replace backend_plugins (String.lowercase_ascii (name t)) t
 
 module PluginAPI = struct
+  let register_dcalc ~name ~extension apply =
+    register (Dcalc { name; extension; apply })
+
   let register_lcalc ~name ~extension apply =
     register (Lcalc { name; extension; apply })
 

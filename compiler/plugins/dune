@@ -20,6 +20,14 @@
  (modules json_schema)
  (libraries catala.driver))
 
+(library
+ (name lazy_interpreter)
+ (public_name catala.plugins.lazy-interpreter)
+ (synopsis
+  "Catala plugin that implements a different, experimental interpreter, featuring lazy and partial evaluation")
+ (modules lazy_interp)
+ (libraries shared_ast catala.driver))
+
 (documentation
  (package catala)
  (mld_files plugins))
