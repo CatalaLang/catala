@@ -80,14 +80,16 @@ let trans_typ_keep (tau : typ) : typ =
 
 let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
 
-type 'a info_pure = {
-  info_pure : bool;
-  is_scope : bool;
-  var : 'a Ast.expr Var.t;
+type 'm var_ctx = { info_pure : bool; is_scope : bool; var : 'm Ast.expr Var.t }
+
+type 'm ctx = {
+  ctx_vars :
+    ((dcalc, 'm mark) Shared_ast__Definitions.gexpr, 'm var_ctx) Var.Map.t;
+  ctx_context_name : string;
 }
 
-let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
-  (Var.Map.find x ctx).var
+let trans_var (ctx : 'm ctx) (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
+  (Var.Map.find x ctx.ctx_vars).var
 
 (** TODO: give better names to variables *)
 
@@ -102,20 +104,21 @@ let trans_var ctx (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
     literals, this mean that a expression of type [money] will be of type
     [money option]. We rely on later optimization to shorten the size of the
     generated code. *)
-let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
+let rec trans (ctx : typed ctx) (e : typed D.expr) :
+    (lcalc, typed mark) boxed_gexpr =
   let m = Marked.get_mark e in
   let mark = m in
   let pos = Expr.pos e in
   (* Cli.debug_format "%a" (Print.expr_debug ~debug:true) e; *)
   match Marked.unmark e with
   | EVar x ->
-    if (Var.Map.find x ctx).info_pure then
+    if (Var.Map.find x ctx.ctx_vars).info_pure then
       Ast.monad_return (Expr.evar (trans_var ctx x) m) ~mark
     else Expr.evar (trans_var ctx x) m
   | EApp { f = EVar v, _; args = [(ELit LUnit, _)] } ->
     (* Invariant: as users cannot write thunks, it can only come from prior
        compilation passes. Hence we can safely remove those. *)
-    assert (not (Var.Map.find v ctx).info_pure);
+    assert (not (Var.Map.find v ctx.ctx_vars).info_pure);
     Expr.evar (trans_var ctx v) m
   | EAbs { binder; tys = [(TLit TUnit, _)] } ->
     (* this is to be used with Ast.monad_bind. *)
@@ -126,9 +129,14 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
        option b] *)
     let vars, body = Bindlib.unmbind binder in
     let ctx' =
-      ArrayLabels.fold_right vars ~init:ctx ~f:(fun v ->
-          Var.Map.add v
-            { info_pure = true; is_scope = false; var = Var.translate v })
+      ArrayLabels.fold_right vars ~init:ctx ~f:(fun v ctx ->
+          {
+            ctx with
+            ctx_vars =
+              Var.Map.add v
+                { info_pure = true; is_scope = false; var = Var.translate v }
+                ctx.ctx_vars;
+          })
     in
 
     let body' = trans ctx' body in
@@ -153,7 +161,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let arg' = trans ctx arg in
     Ast.monad_eoe arg' ~mark ~toplevel:false
   | EApp { f = EVar scope, _; args = [(EStruct { fields; name }, _)] }
-    when (Var.Map.find scope ctx).is_scope ->
+    when (Var.Map.find scope ctx.ctx_vars).is_scope ->
     (* Scopes are encoded as functions that can take option arguments, and
        always return (or raise panic exceptions like AssertionFailed,
        NoValueProvided or Conflict) a structure that can contain optionnal
@@ -167,21 +175,21 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
              mark;
          ]
          mark)
-  | EApp { f = (EVar ff, _) as f; args } when not (Var.Map.find ff ctx).is_scope
-    ->
+  | EApp { f = (EVar ff, _) as f; args }
+    when not (Var.Map.find ff ctx.ctx_vars).is_scope ->
     (* INVARIANT: functions are always encoded using this function.
 
        As every function of type [a -> b] but top-level scopes is built using
        this function, returning a function of type [a -> b option], we should
        use [Ast.monad_mbind]. *)
-    let f_var = Var.make "fff" in
+    let f_var = Var.make ctx.ctx_context_name in
     Ast.monad_bind_var ~mark
       (Ast.monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
       f_var (trans ctx f)
   | EApp { f = (EStructAccess _, _) as f; args } ->
     (* This occurs when calling a subscope function. The same encoding as the
        one for [EApp (Var _) _] if the variable is not a scope works. *)
-    let f_var = Var.make "fff" in
+    let f_var = Var.make ctx.ctx_context_name in
     Ast.monad_bind_var ~mark
       (Ast.monad_mbind (Expr.evar f_var mark) (List.map (trans ctx) args) ~mark)
       f_var (trans ctx f)
@@ -193,7 +201,13 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
     let var' = Var.translate var in
     let[@warning "-8"] [arg] = args in
     let ctx' =
-      Var.Map.add var { info_pure = true; is_scope = false; var = var' } ctx
+      {
+        ctx_vars =
+          Var.Map.add var
+            { info_pure = true; is_scope = false; var = var' }
+            ctx.ctx_vars;
+        ctx_context_name = Bindlib.name_of var;
+      }
     in
     Ast.monad_bind_var (trans ctx' body) var' (trans ctx arg) ~mark
   | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
@@ -230,8 +244,8 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
       [f'; Ast.monad_return ~mark (trans ctx init); trans ctx l]
       ~mark
   | EApp { f = EOp { op = Op.Reduce; tys }, opmark; args = [f; init; l] } ->
-    let x1 = Var.make "x1" in
-    let x2 = Var.make "x2" in
+    let x1 = Var.make "f" in
+    let x2 = Var.make "init" in
     let f' =
       Ast.monad_bind_cont ~mark
         (fun f ->
@@ -287,7 +301,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
        requires an function of type [a option -> bool]. Hence we need to modify
        [f] by first matching the input, and second using the error_on_empty on
        the result. *)
-    let x1 = Var.make "p" in
+    let x1 = Var.make ctx.ctx_context_name in
     let f' =
       Ast.monad_bind_cont ~mark
         (fun f ->
@@ -338,13 +352,18 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
           | EAbs { binder; tys } ->
             let vars, body = Bindlib.unmbind binder in
             let ctx' =
-              ArrayLabels.fold_right vars ~init:ctx ~f:(fun var ->
-                  Var.Map.add var
-                    {
-                      info_pure = true;
-                      is_scope = false;
-                      var = Var.translate var;
-                    })
+              ArrayLabels.fold_right vars ~init:ctx ~f:(fun var ctx ->
+                  {
+                    ctx with
+                    ctx_vars =
+                      Var.Map.add var
+                        {
+                          info_pure = true;
+                          is_scope = false;
+                          var = Var.translate var;
+                        }
+                        ctx.ctx_vars;
+                  })
             in
             let binder =
               Expr.bind (Array.map Var.translate vars) (trans ctx' body)
@@ -418,7 +437,7 @@ let rec trans ctx (e : 'm D.expr) : (lcalc, 'm mark) boxed_gexpr =
 
 (** Now we have translated expression, we still need to translate the statements
     (scope_let_list) and then scopes. This is pretty much straightforward. *)
-let rec trans_scope_let ctx s =
+let rec trans_scope_let (ctx : typed ctx) (s : typed D.expr scope_let) =
   match s with
   | {
    scope_let_kind = SubScopeVarDefinition;
@@ -431,21 +450,25 @@ let rec trans_scope_let ctx s =
        this thunking. *)
     let _, scope_let_expr = Bindlib.unmbind binder in
     let next_var, next_body = Bindlib.unbind scope_let_next in
-
     let next_var' = Var.translate next_var in
     let ctx' =
-      Var.Map.add next_var
-        { info_pure = false; is_scope = false; var = next_var' }
-        ctx
+      {
+        ctx with
+        ctx_vars =
+          Var.Map.add next_var
+            { info_pure = false; is_scope = false; var = next_var' }
+            ctx.ctx_vars;
+      }
     in
-
     let next_var = next_var' in
     let next_body = trans_scope_body_expr ctx' next_body in
-
     let scope_let_next = Bindlib.bind_var next_var next_body in
-
-    let scope_let_expr = Expr.Box.lift @@ trans ctx scope_let_expr in
-
+    let scope_let_expr =
+      Expr.Box.lift
+      @@ trans
+           { ctx with ctx_context_name = Bindlib.name_of next_var }
+           scope_let_expr
+    in
     Bindlib.box_apply2
       (fun scope_let_expr scope_let_next ->
         {
@@ -468,17 +491,23 @@ let rec trans_scope_let ctx s =
     let next_var, next_body = Bindlib.unbind scope_let_next in
     let next_var' = Var.translate next_var in
     let ctx' =
-      Var.Map.add next_var
-        { info_pure = false; is_scope = false; var = next_var' }
-        ctx
+      {
+        ctx with
+        ctx_vars =
+          Var.Map.add next_var
+            { info_pure = false; is_scope = false; var = next_var' }
+            ctx.ctx_vars;
+      }
     in
     let next_var = next_var' in
     let next_body = trans_scope_body_expr ctx' next_body in
-
     let scope_let_next = Bindlib.bind_var next_var next_body in
-
-    let scope_let_expr = Expr.Box.lift @@ trans ctx scope_let_expr in
-
+    let scope_let_expr =
+      Expr.Box.lift
+      @@ trans
+           { ctx with ctx_context_name = Bindlib.name_of next_var }
+           scope_let_expr
+    in
     Bindlib.box_apply2
       (fun scope_let_expr scope_let_next ->
         {
@@ -498,23 +527,24 @@ let rec trans_scope_let ctx s =
   } ->
     (* special case: regular input to the subscope *)
     let next_var, next_body = Bindlib.unbind scope_let_next in
-
     let next_var' = Var.translate next_var in
     let ctx' =
-      Var.Map.add next_var
-        { info_pure = true; is_scope = false; var = next_var' }
-        ctx
+      {
+        ctx with
+        ctx_vars =
+          Var.Map.add next_var
+            { info_pure = true; is_scope = false; var = next_var' }
+            ctx.ctx_vars;
+      }
     in
-
     let next_var = next_var' in
     let next_body = trans_scope_body_expr ctx' next_body in
-
     let scope_let_next = Bindlib.bind_var next_var next_body in
-
     let scope_let_expr =
-      Expr.Box.lift @@ Ast.monad_eoe ~mark ~toplevel:true (trans ctx e)
+      Expr.Box.lift
+      @@ Ast.monad_eoe ~mark ~toplevel:true
+           (trans { ctx with ctx_context_name = Bindlib.name_of next_var } e)
     in
-
     Bindlib.box_apply2
       (fun scope_let_expr scope_let_next ->
         {
@@ -538,31 +568,35 @@ let rec trans_scope_let ctx s =
   } ->
     (* base case *)
     let next_var, next_body = Bindlib.unbind scope_let_next in
-
     let next_var' = Var.translate next_var in
     let ctx' =
-      Var.Map.add next_var
-        (match scope_let_kind with
-        | DestructuringInputStruct -> (
-          (* note for future: we keep this useless match for distinguishing
-             further optimization while building the terms. *)
-          match Marked.unmark scope_let_typ with
-          | TArrow ([(TLit TUnit, _)], _) ->
-            { info_pure = false; is_scope = false; var = next_var' }
-          | _ -> { info_pure = false; is_scope = false; var = next_var' })
-        | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
-        | DestructuringSubScopeResults | Assertion ->
-          { info_pure = false; is_scope = false; var = next_var' })
-        ctx
+      {
+        ctx with
+        ctx_vars =
+          Var.Map.add next_var
+            (match scope_let_kind with
+            | DestructuringInputStruct -> (
+              (* note for future: we keep this useless match for distinguishing
+                 further optimization while building the terms. *)
+              match Marked.unmark scope_let_typ with
+              | TArrow ([(TLit TUnit, _)], _) ->
+                { info_pure = false; is_scope = false; var = next_var' }
+              | _ -> { info_pure = false; is_scope = false; var = next_var' })
+            | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
+            | DestructuringSubScopeResults | Assertion ->
+              { info_pure = false; is_scope = false; var = next_var' })
+            ctx.ctx_vars;
+      }
     in
-
     let next_var = next_var' in
     let next_body = trans_scope_body_expr ctx' next_body in
-
     let scope_let_next = Bindlib.bind_var next_var next_body in
-
-    let scope_let_expr = Expr.Box.lift @@ trans ctx scope_let_expr in
-
+    let scope_let_expr =
+      Expr.Box.lift
+      @@ trans
+           { ctx with ctx_context_name = Bindlib.name_of next_var }
+           scope_let_expr
+    in
     Bindlib.box_apply2
       (fun scope_let_expr scope_let_next ->
         {
@@ -593,14 +627,19 @@ and trans_scope_body_expr ctx s :
     Bindlib.box_apply (fun s -> ScopeLet s) (trans_scope_let ctx s)
 
 let trans_scope_body
-    ctx
-    { scope_body_input_struct; scope_body_output_struct; scope_body_expr } =
+    (ctx : typed ctx)
+    ({ scope_body_input_struct; scope_body_output_struct; scope_body_expr } :
+      typed D.expr scope_body) =
   let var, body = Bindlib.unbind scope_body_expr in
   let body =
     trans_scope_body_expr
-      (Var.Map.add var
-         { info_pure = true; is_scope = false; var = Var.translate var }
-         ctx)
+      {
+        ctx_vars =
+          Var.Map.add var
+            { info_pure = true; is_scope = false; var = Var.translate var }
+            ctx.ctx_vars;
+        ctx_context_name = Bindlib.name_of var;
+      }
       body
   in
   let binder = Bindlib.bind_var (Var.translate var) body in
@@ -609,7 +648,7 @@ let trans_scope_body
       { scope_body_input_struct; scope_body_output_struct; scope_body_expr })
     binder
 
-let rec trans_code_items ctx c :
+let rec trans_code_items (ctx : typed ctx) (c : typed D.expr code_item_list) :
     (lcalc, typed mark) gexpr code_item_list Bindlib.box =
   match c with
   | Nil -> Bindlib.box Nil
@@ -620,9 +659,17 @@ let rec trans_code_items ctx c :
       let next =
         Bindlib.bind_var (Var.translate var)
           (trans_code_items
-             (Var.Map.add var
-                { info_pure = false; is_scope = false; var = Var.translate var }
-                ctx)
+             {
+               ctx_vars =
+                 Var.Map.add var
+                   {
+                     info_pure = false;
+                     is_scope = false;
+                     var = Var.translate var;
+                   }
+                   ctx.ctx_vars;
+               ctx_context_name = fst (TopdefName.get_info name);
+             }
              next)
       in
       let e = Expr.Box.lift @@ trans ctx e in
@@ -635,9 +682,17 @@ let rec trans_code_items ctx c :
       let next =
         Bindlib.bind_var (Var.translate var)
           (trans_code_items
-             (Var.Map.add var
-                { info_pure = true; is_scope = true; var = Var.translate var }
-                ctx)
+             {
+               ctx_vars =
+                 Var.Map.add var
+                   {
+                     info_pure = true;
+                     is_scope = true;
+                     var = Var.translate var;
+                   }
+                   ctx.ctx_vars;
+               ctx_context_name = fst (ScopeName.get_info name);
+             }
              next)
       in
       let body = trans_scope_body ctx body in
@@ -664,7 +719,11 @@ let translate_program (prgm : typed D.program) : untyped A.program =
     }
   in
 
-  let code_items = trans_code_items Var.Map.empty prgm.code_items in
+  let code_items =
+    trans_code_items
+      { ctx_vars = Var.Map.empty; ctx_context_name = "" }
+      prgm.code_items
+  in
 
   Expr.Box.assert_closed code_items;
 
