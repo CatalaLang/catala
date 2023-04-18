@@ -85,7 +85,8 @@ déclaration champ d'application AllocationsFamiliales:
   interne enfants_à_charge_droit_ouvert_prestation_familiale
     contenu collection Enfant
   interne prise_en_compte contenu PriseEnCompte dépend de enfant contenu Enfant
-  résultat versement contenu VersementAllocations dépend de enfant contenu Enfant
+  résultat versement contenu VersementAllocations
+    dépend de enfant contenu Enfant
 
   résultat montant_versé contenu argent
 

@@ -39,7 +39,7 @@ type scope_var_or_subscope =
 type scope_context = {
   var_idmap : scope_var_or_subscope IdentName.Map.t;
       (** All variables, including scope variables and subscopes *)
-  scope_defs_contexts : scope_def_context Ast.ScopeDefMap.t;
+  scope_defs_contexts : scope_def_context Ast.ScopeDef.Map.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
   sub_scopes : ScopeName.Set.t;
       (** Other scopes referred to by this scope. Used for dependency analysis *)
@@ -624,7 +624,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
         ScopeName.Map.add scope_uid
           {
             var_idmap = IdentName.Map.empty;
-            scope_defs_contexts = Ast.ScopeDefMap.empty;
+            scope_defs_contexts = Ast.ScopeDef.Map.empty;
             sub_scopes = ScopeName.Set.empty;
           }
           ctxt.scopes;
@@ -853,7 +853,7 @@ let process_definition
               {
                 s_ctxt with
                 scope_defs_contexts =
-                  Ast.ScopeDefMap.update def_key
+                  Ast.ScopeDef.Map.update def_key
                     (fun def_key_ctx ->
                       Some
                         (update_def_key_ctx d

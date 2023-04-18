@@ -1019,7 +1019,7 @@ let process_def
       (Marked.get_mark def.definition_name)
   in
   let scope_def_ctxt =
-    Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts
+    Ast.ScopeDef.Map.find def_key scope_ctxt.scope_defs_contexts
   in
   (* We add to the name resolution context the name of the parameter variable *)
   let new_ctxt, param_uids =
@@ -1028,7 +1028,7 @@ let process_def
       def
   in
   let scope_updated =
-    let scope_def = Ast.ScopeDefMap.find def_key scope.scope_defs in
+    let scope_def = Ast.ScopeDef.Map.find def_key scope.scope_defs in
     let rule_name = def.definition_id in
     let label_situation =
       match def.definition_label with
@@ -1075,7 +1075,7 @@ let process_def
     in
     {
       scope with
-      scope_defs = Ast.ScopeDefMap.add def_key scope_def scope.scope_defs;
+      scope_defs = Ast.ScopeDef.Map.add def_key scope_def scope.scope_defs;
     }
   in
   {
@@ -1204,7 +1204,7 @@ let check_unlabeled_exception
       (* should not happen *)
     in
     let scope_def_ctxt =
-      Ast.ScopeDefMap.find def_key scope_ctxt.scope_defs_contexts
+      Ast.ScopeDef.Map.find def_key scope_ctxt.scope_defs_contexts
     in
     match exception_to with
     | Surface.Ast.NotAnException | Surface.Ast.ExceptionToLabel _ -> ()
@@ -1296,7 +1296,7 @@ let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
 let init_scope_defs
     (ctxt : Name_resolution.context)
     (scope_idmap : Name_resolution.scope_var_or_subscope IdentName.Map.t) :
-    Ast.scope_def Ast.ScopeDefMap.t =
+    Ast.scope_def Ast.ScopeDef.Map.t =
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
   let add_def _ v scope_def_map =
@@ -1306,7 +1306,7 @@ let init_scope_defs
       match v_sig.var_sig_states_list with
       | [] ->
         let def_key = Ast.ScopeDef.Var (v, None) in
-        Ast.ScopeDefMap.add def_key
+        Ast.ScopeDef.Map.add def_key
           {
             Ast.scope_def_rules = RuleName.Map.empty;
             Ast.scope_def_typ = v_sig.var_sig_typ;
@@ -1344,7 +1344,7 @@ let init_scope_defs
                      { io_input; io_output });
                 }
               in
-              Ast.ScopeDefMap.add def_key def acc, i + 1)
+              Ast.ScopeDef.Map.add def_key def acc, i + 1)
             (scope_def_map, 0) states
         in
         scope_def)
@@ -1364,7 +1364,7 @@ let init_scope_defs
               Ast.ScopeDef.SubScopeVar
                 (v0, v, Marked.get_mark (ScopeVar.get_info v))
             in
-            Ast.ScopeDefMap.add def_key
+            Ast.ScopeDef.Map.add def_key
               {
                 Ast.scope_def_rules = RuleName.Map.empty;
                 Ast.scope_def_typ = v_sig.var_sig_typ;
@@ -1375,7 +1375,7 @@ let init_scope_defs
               scope_def_map)
         sub_scope_def.Name_resolution.var_idmap scope_def_map
   in
-  IdentName.Map.fold add_def scope_idmap Ast.ScopeDefMap.empty
+  IdentName.Map.fold add_def scope_idmap Ast.ScopeDef.Map.empty
 
 (** Main function of this module *)
 let translate_program

@@ -22,6 +22,7 @@ type backend_option_builtin =
   | `Makefile
   | `Html
   | `Interpret
+  | `Interpret_Lcalc
   | `Typecheck
   | `OCaml
   | `Python
@@ -29,8 +30,8 @@ type backend_option_builtin =
   | `Lcalc
   | `Dcalc
   | `Scopelang
-  | `Proof
-  | `Interpret_Lcalc ]
+  | `Exceptions
+  | `Proof ]
 
 type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
 
@@ -55,6 +56,7 @@ let backend_option_to_string = function
   | `Typecheck -> "Typecheck"
   | `Scalc -> "Scalc"
   | `Lcalc -> "Lcalc"
+  | `Exceptions -> "Exceptions"
   | `Plugin s -> s
 
 let backend_option_of_string backend =
@@ -72,6 +74,7 @@ let backend_option_of_string backend =
   | "typecheck" -> `Typecheck
   | "scalc" -> `Scalc
   | "lcalc" -> `Lcalc
+  | "exceptions" -> `Exceptions
   | s -> `Plugin s
 
 (** Source files to be compiled *)
@@ -234,6 +237,12 @@ let ex_scope =
     & opt (some string) None
     & info ["s"; "scope"] ~docv:"SCOPE" ~doc:"Scope to be focused on.")
 
+let ex_variable =
+  Arg.(
+    value
+    & opt (some string) None
+    & info ["v"; "variable"] ~docv:"VARIABLE" ~doc:"Variable to be focused on.")
+
 let output =
   Arg.(
     value
@@ -258,6 +267,7 @@ type options = {
   disable_counterexamples : bool;
   optimize : bool;
   ex_scope : string option;
+  ex_variable : string option;
   output_file : string option;
   closure_conversion : bool;
   print_only_law : bool;
@@ -280,6 +290,7 @@ let options =
       disable_counterexamples
       optimize
       ex_scope
+      ex_variable
       output_file
       print_only_law : options =
     {
@@ -296,6 +307,7 @@ let options =
       disable_counterexamples;
       optimize;
       ex_scope;
+      ex_variable;
       output_file;
       closure_conversion;
       print_only_law;
@@ -318,6 +330,7 @@ let options =
     $ disable_counterexamples_opt
     $ optimize
     $ ex_scope
+    $ ex_variable
     $ output
     $ print_only_law)
 
@@ -402,6 +415,13 @@ let info =
           "Prints a debugging verbatim of the statement calculus intermediate \
            representation of the Catala program. Use the $(b,-s) option to \
            restrict the output to a particular scope." );
+      `I
+        ( "$(b,Exceptions)",
+          "Prints the exception tree for the definitions of a particular \
+           variable, for debugging purposes. Use the $(b,-s) option to select \
+           the scope and the $(b,-v) option to select the variable. Use \
+           foo.bar to access state bar of variable foo or variable bar of \
+           subscope foo." );
       `I
         ( "$(b,pygmentize)",
           "This special command is a wrapper around the $(b,pygmentize) \
