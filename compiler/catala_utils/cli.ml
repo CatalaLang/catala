@@ -490,7 +490,7 @@ let time_marker ppf () =
     format_with_style
       [ANSITerminal.Bold; ANSITerminal.black]
       ppf
-      (Printf.sprintf "[TIME] %.0fms@\n" delta)
+      (Format.sprintf "[TIME] %.0fms@\n" delta)
 
 (** Prints [\[DEBUG\]] in purple on the terminal standard output *)
 let debug_marker ppf () =

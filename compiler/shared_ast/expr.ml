@@ -779,9 +779,8 @@ let make_app ?(decl_ctx = None) e args pos =
             match decl_ctx with
             | None -> assert false
             | Some decl_ctx ->
-              Errors.raise_error
-                "INTERNAL ERROR: wrong type: found %a while expecting either \
-                 an Arrow or Any"
+              Errors.raise_internal_error
+                "wrong type: found %a while expecting either an Arrow or Any"
                 (Print.typ decl_ctx) fty.ty)))
       (List.map Marked.get_mark (e :: args))
   in

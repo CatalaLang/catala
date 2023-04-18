@@ -36,7 +36,7 @@ $ catala Interpret -s CasTest1 --disable_warnings
 [RESULT] montant = 76.38 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest1 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s CasTest1 --avoid_exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = ESome 76.38 €
 ```

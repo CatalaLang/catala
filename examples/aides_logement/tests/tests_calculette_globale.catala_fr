@@ -98,7 +98,7 @@ $ catala Interpret -s Exemple1
 [RESULT] éligibilité = true
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant_versé = ESome 246.23 €
 [RESULT] éligibilité = ESome true

@@ -74,6 +74,7 @@ let to_expr p main_scope =
   res
 
 let equal p p' =
+  (* TODO: include toplevel definitions in this program comparison. *)
   let ss = all_scopes p.code_items in
   let ss' = all_scopes p'.code_items in
 

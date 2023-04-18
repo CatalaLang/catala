@@ -157,27 +157,27 @@ $ catala Interpret -s CasTest5 --disable_warnings
 [RESULT] montant = 129.65 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest1 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s CasTest1 --avoid_exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = ESome 12.06 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest2 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s CasTest2 --avoid_exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = ESome 23.12 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest3 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s CasTest3 --avoid_exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = ESome 154.78 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest4 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s CasTest4 --avoid_exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = ESome 154.78 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest5 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s CasTest5 --avoid_exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = ESome 129.65 €
 ```

@@ -423,58 +423,58 @@ $ catala Interpret -s Test13 --disable_warnings
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test1 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test1 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test2 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test2 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test3 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test3 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test4 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test4 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test5 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test5 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test6 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test6 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test7 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test7 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test8 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test8 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test9 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test9 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test10 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test10 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test11 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test11 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test12 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test12 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test13 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test13 --avoid_exceptions
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test13 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Test13 --avoid_exceptions
 [RESULT] Computation successful!
 ```
