@@ -32,6 +32,7 @@ val rebox : ('a any, 'm) gexpr -> ('a, 'm) boxed_gexpr
 (** Rebuild the whole term, re-binding all variables and exposing free variables *)
 
 val evar : ('a, 'm) gexpr Var.t -> 'm mark -> ('a, 'm) boxed_gexpr
+val eexternal : Qident.t -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 val bind :
   ('a, 'm) gexpr Var.t array ->
@@ -141,6 +142,13 @@ val escopecall :
   ('a, 'm) boxed_gexpr ScopeVar.Map.t ->
   'm mark ->
   ((< explicitScopes : yes ; .. > as 'a), 'm) boxed_gexpr
+
+val ecustom :
+  Obj.t ->
+  Type.t list ->
+  Type.t ->
+  'm mark ->
+  (< custom : Definitions.yes ; .. >, 'm) boxed_gexpr
 
 val fun_id : 'm mark -> ('a any, 'm) boxed_gexpr
 

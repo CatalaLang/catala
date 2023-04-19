@@ -74,9 +74,9 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
   | EDefault { excepts; just; cons } ->
     translate_default ctx excepts just cons (Mark.get e)
   | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
-  | ( ELit _ | EApp _ | EArray _ | EVar _ | EAbs _ | EIfThenElse _ | ETuple _
-    | ETupleAccess _ | EInj _ | EAssert _ | EStruct _ | EStructAccess _
-    | EMatch _ ) as e ->
+  | ( ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _ | EIfThenElse _
+    | ETuple _ | ETupleAccess _ | EInj _ | EAssert _ | EStruct _
+    | EStructAccess _ | EMatch _ ) as e ->
     Expr.map ~f:(translate_expr ctx) (Mark.add m e)
   | _ -> .
 

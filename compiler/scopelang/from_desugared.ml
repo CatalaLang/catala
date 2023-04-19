@@ -46,6 +46,17 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     untyped Ast.expr boxed =
   let m = Mark.get e in
   match Mark.remove e with
+  | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
+  | EAbs { binder; tys } ->
+    let vars, body = Bindlib.unmbind binder in
+    let new_vars = Array.map (fun var -> Var.make (Bindlib.name_of var)) vars in
+    let ctx =
+      List.fold_left2
+        (fun ctx var new_var ->
+          { ctx with var_mapping = Var.Map.add var new_var ctx.var_mapping })
+        ctx (Array.to_list vars) (Array.to_list new_vars)
+    in
+    Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) tys m
   | ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
     (* When referring to a subscope variable in an expression, we are referring
        to the output, hence we take the last state. *)
@@ -70,9 +81,6 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
          | States states -> Mark.copy s_var (List.assoc state states)))
       m
   | ELocation (ToplevelVar v) -> Expr.elocation (ToplevelVar v) m
-  | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
-  | EStruct { name; fields } ->
-    Expr.estruct name (StructField.Map.map (translate_expr ctx) fields) m
   | EDStructAccess { name_opt = None; _ } ->
     (* Note: this could only happen if disambiguation was disabled. If we want
        to support it, we should still allow this case when the field has only
@@ -93,14 +101,6 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
           field StructName.format_t name
     in
     Expr.estructaccess e' field name m
-  | ETuple es -> Expr.etuple (List.map (translate_expr ctx) es) m
-  | ETupleAccess { e; index; size } ->
-    Expr.etupleaccess (translate_expr ctx e) index size m
-  | EInj { e; cons; name } -> Expr.einj (translate_expr ctx e) cons name m
-  | EMatch { e; name; cases } ->
-    Expr.ematch (translate_expr ctx e) name
-      (EnumConstructor.Map.map (translate_expr ctx) cases)
-      m
   | EScopeCall { scope; args } ->
     Expr.escopecall scope
       (ScopeVar.Map.fold
@@ -117,20 +117,6 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
            ScopeVar.Map.add v' (translate_expr ctx e) args')
          args ScopeVar.Map.empty)
       m
-  | ELit
-      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
-      l) ->
-    Expr.elit l m
-  | EAbs { binder; tys } ->
-    let vars, body = Bindlib.unmbind binder in
-    let new_vars = Array.map (fun var -> Var.make (Bindlib.name_of var)) vars in
-    let ctx =
-      List.fold_left2
-        (fun ctx var new_var ->
-          { ctx with var_mapping = Var.Map.add var new_var ctx.var_mapping })
-        ctx (Array.to_list vars) (Array.to_list new_vars)
-    in
-    Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) tys m
   | EApp { f = EOp { op; tys }, m1; args } ->
     let args = List.map (translate_expr ctx) args in
     Operator.kind_dispatch op
@@ -144,19 +130,10 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
         | op, `Reversed ->
           Expr.eapp (Expr.eop op (List.rev tys) m1) (List.rev args) m)
   | EOp _ -> assert false (* Only allowed within [EApp] *)
-  | EApp { f; args } ->
-    Expr.eapp (translate_expr ctx f) (List.map (translate_expr ctx) args) m
-  | EDefault { excepts; just; cons } ->
-    Expr.edefault
-      (List.map (translate_expr ctx) excepts)
-      (translate_expr ctx just) (translate_expr ctx cons) m
-  | EIfThenElse { cond; etrue; efalse } ->
-    Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
-      (translate_expr ctx efalse)
-      m
-  | EArray args -> Expr.earray (List.map (translate_expr ctx) args) m
-  | EEmptyError -> Expr.eemptyerror m
-  | EErrorOnEmpty e1 -> Expr.eerroronempty (translate_expr ctx e1) m
+  | ( EStruct _ | ETuple _ | ETupleAccess _ | EInj _ | EMatch _ | ELit _
+    | EApp _ | EDefault _ | EIfThenElse _ | EArray _ | EEmptyError
+    | EErrorOnEmpty _ | EExternal _ ) as e ->
+    Expr.map ~f:(translate_expr ctx) (e, m)
 
 (** {1 Rule tree construction} *)
 

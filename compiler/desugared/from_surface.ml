@@ -360,8 +360,9 @@ let rec translate_expr
         | None ->
           Name_resolution.raise_unknown_identifier
             "for a local, scope-wide or global variable" (x, pos))))
-  | Ident (_path, _x) ->
-    Message.raise_spanned_error pos "Qualified paths are not supported yet"
+  | Surface.Ast.Ident (path, x) ->
+    let path = List.map Mark.remove path in
+    Expr.eexternal (path, Mark.remove x) emark
   | Dotted (e, ((path, x), _ppos)) -> (
     match path, Mark.remove e with
     | [], Ident ([], (y, _))
@@ -1044,8 +1045,8 @@ let process_def
           ExceptionToRule (name, pos))
       | ExceptionToLabel label_str -> (
         try
-          let label_id = Ident.Map.find (Mark.remove label_str)
-              scope_def_ctxt.label_idmap
+          let label_id =
+            Ident.Map.find (Mark.remove label_str) scope_def_ctxt.label_idmap
           in
           ExceptionToLabel (label_id, Mark.get label_str)
         with Not_found ->
@@ -1412,6 +1413,7 @@ let translate_program
           })
         ctxt.Name_resolution.scopes
     in
+    let translate_type t = Name_resolution.process_type ctxt t in
     {
       Ast.program_ctx =
         {
@@ -1426,6 +1428,19 @@ let translate_program
                 | _ -> acc)
               ctxt.Name_resolution.typedefs ScopeName.Map.empty;
           ctx_struct_fields = ctxt.Name_resolution.field_idmap;
+          ctx_modules =
+            List.fold_left
+              (fun map (path, def) ->
+                match def with
+                | ( Surface.Ast.Topdef
+                    {topdef_name; topdef_type; _},
+                    _pos ) ->
+                  Qident.Map.add (path, Mark.remove topdef_name) (translate_type topdef_type) map
+                | (ScopeDecl _ | StructDecl _ | EnumDecl _), _ (* as e *) ->
+                  map
+                  (* assert false (\* TODO *\) *)
+                | ScopeUse _, _ -> assert false)
+              Qident.Map.empty prgm.Surface.Ast.program_interfaces;
         };
       Ast.program_topdefs = TopdefName.Map.empty;
       Ast.program_scopes;

@@ -129,6 +129,9 @@ let get_variable_uid
                      scope_uid)
                second_part )))
 
+let modname_of_file f = (* Fixme: make this more robust *)
+  String.capitalize_ascii Filename.(basename (remove_extension f))
+
 (** Entry function for the executable. Returns a negative number in case of
     error. Usage: [driver source_file options]*)
 let driver source_file (options : Cli.options) : int =
@@ -189,6 +192,24 @@ let driver source_file (options : Cli.options) : int =
       Surface.Parser_driver.parse_top_level_file source_file language
     in
     let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
+    let prgm =
+      (* FIXME: WIP placeholder *)
+      match Sys.getenv_opt "CATALA_INTF" with
+      | None | Some "" -> prgm
+      | Some str ->
+        let files = String.split_on_char ',' str in
+        List.fold_left
+          (fun prgm f ->
+            let lang =
+              Option.value ~default:Cli.En
+              @@ Option.bind
+                   (List.assoc_opt (Filename.extension f) extensions)
+                   (fun l -> List.assoc_opt l Cli.languages)
+            in
+             let modname = modname_of_file f in
+            Surface.Parser_driver.add_interface (FileName f) lang [modname] prgm)
+          prgm files
+    in
     let get_output ?ext =
       File.get_out_channel ~source_file ~output_file:options.output_file ?ext
     in
@@ -490,7 +511,14 @@ let driver source_file (options : Cli.options) : int =
                 Message.emit_debug "Compiling program into OCaml...";
                 Message.emit_debug "Writing to %s..."
                   (Option.value ~default:"stdout" output_file);
-                Lcalc.To_ocaml.format_program fmt prgm type_ordering
+                let modname =
+                  match source_file with
+                  (* FIXME: WIP placeholder *)
+                  | FileName n ->
+                    Some (modname_of_file n)
+                  | _ -> None
+                in
+                Lcalc.To_ocaml.format_program fmt ?modname prgm type_ordering
               | `Plugin (Plugin.Dcalc _) -> assert false
               | `Plugin (Plugin.Lcalc p) ->
                 let output_file, _ =

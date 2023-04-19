@@ -379,6 +379,7 @@ module Precedence = struct
     | EOp _ -> Contained
     | EArray _ -> Contained
     | EVar _ -> Contained
+    | EExternal _ -> Contained
     | EAbs _ -> Abs
     | EIfThenElse _ -> Contained
     | EStruct _ -> Contained
@@ -395,6 +396,7 @@ module Precedence = struct
     | EErrorOnEmpty _ -> App
     | ERaise _ -> App
     | ECatch _ -> App
+    | ECustom _ -> Contained
 
   let needs_parens ~context ?(rhs = false) e =
     match expr context, expr e with
@@ -461,6 +463,7 @@ let rec expr_aux :
   let rhs ex = paren ~rhs:true ex in
   match Mark.remove e with
   | EVar v -> var fmt v
+  | EExternal eref -> Qident.format fmt eref
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" punctuation "("
       (Format.pp_print_list
@@ -665,6 +668,7 @@ let rec expr_aux :
     Format.pp_close_box fmt ();
     punctuation fmt "}";
     Format.pp_close_box fmt ()
+  | ECustom _ -> Format.pp_print_string fmt "<obj>"
 
 let rec colors =
   let open Ocolor_types in

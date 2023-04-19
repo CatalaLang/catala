@@ -209,6 +209,7 @@ let rec lazy_eval :
       | (ELit (LBool false), _), _ ->
         error e "Assert failure (%a)" Expr.format e
       | _ -> error e "Invalid assertion condition %a" Expr.format e)
+  | EExternal _, _ -> assert false (* todo *)
   | _ -> .
 
 let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :

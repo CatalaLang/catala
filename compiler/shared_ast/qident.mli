@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   and social benefits computation rules. Copyright (C) 2023 Inria, contributor:
    Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,15 +14,23 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-include Definitions
-module Var = Var
-module Qident = Qident
-module Type = Type
-module Operator = Operator
-module Expr = Expr
-module Scope = Scope
-module Program = Program
-module Print = Print
-module Typing = Typing
-module Interpreter = Interpreter
-module Optimizations = Optimizations
+(** This module defines module names and path accesses, used to refer to
+    separate compilation units. *)
+
+type modname = string
+(** Expected to be a uident *)
+
+type ident = string
+(** Expected to be a lident *)
+
+type path = modname list
+type t = path * ident
+
+val compare_path : path -> path -> int
+val equal_path : path -> path -> bool
+val compare : t -> t -> int
+val equal : t -> t -> bool
+val format : Format.formatter -> t -> unit
+
+module Set : Set.S with type elt = t
+module Map : Map.S with type key = t

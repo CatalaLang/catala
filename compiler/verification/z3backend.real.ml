@@ -656,6 +656,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
          of a match. It actually corresponds to applying an accessor to an enum,
          the corresponding Z3 expression was previously stored in the context *)
       ctx, e)
+  | EExternal _ -> failwith "[Z3 encoding] EExternal unsupported"
   | EStruct _ -> failwith "[Z3 encoding] EStruct unsupported"
   | EStructAccess { e; field; name } ->
     let ctx, z3_struct = find_or_create_struct ctx name in

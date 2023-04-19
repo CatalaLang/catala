@@ -157,7 +157,6 @@ val get_scope : context -> Ident.t Mark.pos -> ScopeName.t
 
 val process_type : context -> Surface.Ast.typ -> typ
 (** Convert a surface base type to an AST type *)
-(* Note: should probably be moved to a different module *)
 
 (** {1 API} *)
 

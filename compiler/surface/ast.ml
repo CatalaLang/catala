@@ -869,6 +869,8 @@ type law_structure =
       }]
 
 type program = {
+  program_interfaces :
+    ((Shared_ast.Qident.path[@opaque]) * code_item Mark.pos) list;
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
 }

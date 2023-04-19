@@ -56,8 +56,13 @@ module StateName = Uid.Gen ()
 (** These types allow to select the features present in any given expression
     type *)
 
-type yes = private Yes
-type no = |
+type yes = Yes
+
+type no =
+  | No
+      (** Phantom types used in the definitions below. We don't make them
+          abstract, because the typer needs to know that their intersection is
+          empty. *)
 
 type desugared =
   < monomorphic : yes
@@ -71,7 +76,8 @@ type desugared =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
-  ; exceptions : no >
+  ; exceptions : no
+  ; custom : no >
 
 type scopelang =
   < monomorphic : yes
@@ -85,7 +91,8 @@ type scopelang =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
-  ; exceptions : no >
+  ; exceptions : no
+  ; custom : no >
 
 type dcalc =
   < monomorphic : yes
@@ -99,7 +106,8 @@ type dcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : yes
-  ; exceptions : no >
+  ; exceptions : no
+  ; custom : no >
 
 type lcalc =
   < monomorphic : yes
@@ -113,7 +121,8 @@ type lcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : no
-  ; exceptions : yes >
+  ; exceptions : yes
+  ; custom : no >
 
 type 'a any = < .. > as 'a
 (** ['a any] is 'a, but adds the constraint that it should be restricted to
@@ -131,7 +140,8 @@ type ('a, 'b) dcalc_lcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : 'a
-  ; exceptions : 'b >
+  ; exceptions : 'b
+  ; custom : no >
 (** This type regroups Dcalc and Lcalc ASTs. *)
 
 (** {2 Types} *)
@@ -379,6 +389,7 @@ and ('a, 'b, 'm) base_gexpr =
       -> ('a, (< .. > as 'b), 'm) base_gexpr
   | EArray : ('a, 'm) gexpr list -> ('a, < .. >, 'm) base_gexpr
   | EVar : ('a, 'm) naked_gexpr Bindlib.var -> ('a, _, 'm) base_gexpr
+  | EExternal : Qident.t -> ('a, < .. >, 't) base_gexpr
   | EAbs : {
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
       tys : typ list;
@@ -456,6 +467,16 @@ and ('a, 'b, 'm) base_gexpr =
       handler : ('a, 'm) gexpr;
     }
       -> ('a, < exceptions : yes ; .. >, 'm) base_gexpr
+  (* Only used during evaluation *)
+  | ECustom : {
+      obj : Obj.t;
+      targs : typ list;
+      tret : typ;
+    }
+      -> ('a, < custom : yes ; .. >, 't) base_gexpr
+      (** A function of the given type, as a runtime OCaml object. The specified
+          types for arguments and result must be the Catala types corresponding
+          to the runtime types of the function. *)
 
 (** Useful for errors and printing, for example *)
 type any_expr = AnyExpr : ('a, _) gexpr -> any_expr
@@ -552,6 +573,7 @@ type decl_ctx = {
   ctx_struct_fields : StructField.t StructName.Map.t Ident.Map.t;
       (** needed for disambiguation (desugared -> scope) *)
   ctx_scopes : scope_out_struct ScopeName.Map.t;
+  ctx_modules : typ Qident.Map.t;
 }
 
 type 'e program = { decl_ctx : decl_ctx; code_items : 'e code_item_list }

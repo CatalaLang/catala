@@ -38,7 +38,8 @@ let rec hoist_context_free_closures :
   let m = Mark.get e in
   match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _ | EVar _ ->
+  | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _ | EVar _
+  | EExternal _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_context_free_closures ctx) e
   | EMatch { e; cases; name } ->
     let collected_closures, new_e = (hoist_context_free_closures ctx) e in
@@ -98,7 +99,8 @@ let rec transform_closures_expr :
   let m = Mark.get e in
   match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _ ->
+  | ELit _ | EExternal _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _
+  | ECatch _ ->
     Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union
       ~f:(transform_closures_expr ctx)
       e

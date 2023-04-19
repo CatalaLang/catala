@@ -385,3 +385,21 @@ module Oper : sig
 end
 
 include module type of Oper
+
+(** Modules API *)
+
+type hash = string
+
+val register_module : string -> (string * Obj.t) list -> hash -> unit
+(** Registers a module by the given name defining the given bindings. Required
+    for evaluation to be able to access the given values. The last argument is
+    expected to be a hash of the source file and the Catala version, and will in
+    time be used to ensure that the module and the interface are in sync *)
+
+val check_module : string -> hash -> bool
+(** Returns [true] if it has been registered with the correct hash, [false] if
+    there is a hash mismatch.
+
+    @raise Not_found if the module does not exist at all *)
+
+val lookup_value : string list * string -> Obj.t

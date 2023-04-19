@@ -23,6 +23,21 @@ open Definitions
 open Op
 module Runtime = Runtime_ocaml.Runtime
 
+type features =
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; resolvedNames : yes
+  ; scopeVarStates : no
+  ; scopeVarSimpl : no
+  ; explicitScopes : no
+  ; assertions : yes >
+
+type ('d, 'e, 'c) astk =
+  < features ; defaultTerms : 'd ; exceptions : 'e ; custom : 'c >
+
 (** {1 Helpers} *)
 
 let is_empty_error : type a. (a, 'm) gexpr -> bool =
@@ -375,10 +390,226 @@ let rec evaluate_operator
       _ ) ->
     err ()
 
+(* /S\ dark magic here. This relies both on internals of [Lcalc.to_ocaml] *and*
+   of the OCaml runtime *)
+let rec runtime_to_val :
+    (decl_ctx -> ('a, 'm) gexpr -> ('a, 'm) gexpr) ->
+    decl_ctx ->
+    'm mark ->
+    typ ->
+    Obj.t ->
+    (((_, _, yes) astk as 'a), 'm) gexpr =
+ fun eval_expr ctx m ty o ->
+  let m = Expr.map_ty (fun _ -> ty) m in
+  match Mark.remove ty with
+  | TLit TBool -> ELit (LBool (Obj.obj o)), m
+  | TLit TUnit -> ELit LUnit, m
+  | TLit TInt -> ELit (LInt (Obj.obj o)), m
+  | TLit TRat -> ELit (LRat (Obj.obj o)), m
+  | TLit TMoney -> ELit (LMoney (Obj.obj o)), m
+  | TLit TDate -> ELit (LDate (Obj.obj o)), m
+  | TLit TDuration -> ELit (LDuration (Obj.obj o)), m
+  | TTuple ts ->
+    ( ETuple
+        (List.map2
+           (runtime_to_val eval_expr ctx m)
+           ts
+           (Array.to_list (Obj.obj o))),
+      m )
+  | TStruct name ->
+    StructName.Map.find name ctx.ctx_structs
+    |> StructField.Map.to_seq
+    |> Seq.map2
+         (fun o (fld, ty) -> fld, runtime_to_val eval_expr ctx m ty o)
+         (Array.to_seq (Obj.obj o))
+    |> StructField.Map.of_seq
+    |> fun fields -> EStruct { name; fields }, m
+  | TEnum name ->
+    (* we only use non-constant constructors of arity 1, which allows us to
+       always use the tag directly (ordered as declared in the constr map), and
+       the field 0 *)
+    let cons, ty =
+      List.nth
+        (EnumConstructor.Map.bindings (EnumName.Map.find name ctx.ctx_enums))
+        (Obj.tag o - Obj.first_non_constant_constructor_tag)
+    in
+    let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
+    EInj { name; cons; e }, m
+  | TOption _ty -> assert false
+  | TArray ty ->
+    ( EArray
+        (List.map
+           (runtime_to_val eval_expr ctx m ty)
+           (Array.to_list (Obj.obj o))),
+      m )
+  | TArrow (targs, tret) -> ECustom { obj = o; targs; tret }, m
+  | TAny -> assert false
+
+and val_to_runtime :
+    (decl_ctx -> ('a, 'm) gexpr -> ('a, 'm) gexpr) ->
+    decl_ctx ->
+    typ ->
+    ('b, 'm) gexpr ->
+    Obj.t =
+ fun eval_expr ctx ty v ->
+  match Mark.remove ty, Mark.remove v with
+  | TLit TBool, ELit (LBool b) -> Obj.repr b
+  | TLit TUnit, ELit LUnit -> Obj.repr ()
+  | TLit TInt, ELit (LInt i) -> Obj.repr i
+  | TLit TRat, ELit (LRat r) -> Obj.repr r
+  | TLit TMoney, ELit (LMoney m) -> Obj.repr m
+  | TLit TDate, ELit (LDate t) -> Obj.repr t
+  | TLit TDuration, ELit (LDuration d) -> Obj.repr d
+  | TTuple ts, ETuple es ->
+    List.map2 (val_to_runtime eval_expr ctx) ts es |> Array.of_list |> Obj.repr
+  | TStruct name1, EStruct { name; fields } ->
+    assert (StructName.equal name name1);
+    let fld_tys = StructName.Map.find name ctx.ctx_structs in
+    Seq.map2
+      (fun (_, ty) (_, v) -> val_to_runtime eval_expr ctx ty v)
+      (StructField.Map.to_seq fld_tys)
+      (StructField.Map.to_seq fields)
+    |> Array.of_seq
+    |> Obj.repr
+  | TEnum name1, EInj { name; cons; e } ->
+    assert (EnumName.equal name name1);
+    let rec find_tag n = function
+      | [] -> assert false
+      | (c, ty) :: _ when EnumConstructor.equal c cons -> n, ty
+      | _ :: r -> find_tag (n + 1) r
+    in
+    let tag, ty =
+      find_tag Obj.first_non_constant_constructor_tag
+        (EnumConstructor.Map.bindings (EnumName.Map.find name ctx.ctx_enums))
+    in
+    let o = Obj.with_tag tag (Obj.repr (Some ())) in
+    Obj.set_field o 0 (val_to_runtime eval_expr ctx ty e);
+    o
+  | TOption _ty, _ -> assert false
+  | TArray ty, EArray es ->
+    Array.of_list (List.map (val_to_runtime eval_expr ctx ty) es) |> Obj.repr
+  | TArrow (targs, tret), _ ->
+    let m = Mark.get v in
+    (* we want stg like [fun args -> val_to_runtime (eval_expr ctx (EApp (v,
+       args)))] but in curried form *)
+    let rec curry acc = function
+      | [] ->
+        let args = List.rev acc in
+        val_to_runtime eval_expr ctx tret
+          (eval_expr ctx (EApp { f = v; args }, m))
+      | targ :: targs ->
+        Obj.repr (fun x ->
+            curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
+    in
+    curry [] targs
+  | _ -> assert false
+
+(* let f e = (e : (< .. > as 'a, 't) gexpr :> (< custom : _; 'a; .. >, 't) gexpr ) 
+ * 
+ * let f (type a) ((e: (< custom: a; .. >, 't) naked_gexpr), t) =
+ *   if false then ECustom { obj = Obj.repr (); targs = []; tret = (TLit TUnit, Pos.no_pos) }, t
+ *   else e, t *)
+(* let rec add_custom: (< .. >
+ *   type a b . (a, b, 't) base_gexpr * 't -> (< custom: yes; ..  >, 't) gexpr
+ *   = function
+ *     | ECustom _, _ as e -> Expr.box e
+ *     | (ELit _
+ *       | EApp _
+ *       | EOp _
+ *       | EArray _
+ *       | EVar _
+ *       | EExternal _
+ *       | EAbs _
+ *       | EIfThenElse _
+ *       | ETuple _
+ *       | ETupleAccess _
+ *       | EInj _
+ *       | EAssert _
+ *       | EDefault _
+ *       | EEmptyError
+ *       | EErrorOnEmpty _
+ *       | ECatch _
+ *       | ERaise _
+ *       | ELocation _
+ *       | EStruct _
+ *       | EDStructAccess _
+ *       | EStructAccess _
+ *       | EMatch _
+ *       | EScopeCall _), _
+ *       as e
+ *       -> Expr.map ~f:add_custom e
+ * 
+ *   ;;
+ *   fun e ->
+ *   if false then
+ *     Expr.box
+ *       (ECustom { obj = Obj.repr (); targs = []; tret = (TLit TUnit, Pos.no_pos) },
+ *        Marked.get_mark e)
+ *   else *)
+
+(* type ('a, 'b) has_custom = < custom: 'a; .. > as 'b
+ * 
+ * let f (type b) (e: ((_, b) has_custom, 't) naked_gexpr) : ((yes, b) has_custom, 't) naked_gexpr = match e with
+ *   | EEmptyError when false ->
+ *     ECustom { obj = Obj.repr (); targs = []; tret = (TLit TUnit, Pos.no_pos) }
+ *   | ECustom _ as e -> e
+ *   | EOp _ as e -> e
+ *   | ELocation _ as e -> e
+ *   | ELit _ as e -> e
+ *   | EApp _ as e -> e
+ *   | EArray _ as e -> e
+ *   | EVar _ as e -> e
+ *   | EExternal _ as e -> e
+ *   | EAbs _ as e -> e
+ *   | EIfThenElse _ as e -> e
+ *   | ETuple _ as e -> e
+ *   | ETupleAccess _ as e -> e
+ *   | EInj _ as e -> e
+ *   | EAssert _ as e -> e
+ *   | EDefault _ as e -> e
+ *   | EEmptyError as e -> e
+ *   | EErrorOnEmpty _ as e -> e
+ *   | ECatch _ as e -> e
+ *   | ERaise _ as e -> e
+ *   | EStruct _ as e -> e
+ *   | EDStructAccess _ as e -> e
+ *   | EStructAccess _ as e -> e
+ *   | EMatch _ as e -> e
+ *   | EScopeCall _ as e -> e *)
+
+(* let rec add_custom:
+ *   type c d e.
+ *   (< features; defaultTerms: d; exceptions: e; custom : c >, 't) gexpr ->
+ *   (< features; defaultTerms: d; exceptions: e; custom : yes >, 't) gexpr boxed
+ *   = function
+ *   (\* Obj.magic (Expr.box e) *\)
+ *   (\* | EEmptyError, m when false ->
+ *    *   Expr.box (ECustom { obj = Obj.repr (); targs = []; tret = (TLit TUnit, Pos.no_pos) }, m) *\)
+ *   | (EDefault _ | EEmptyError | EErrorOnEmpty _), _ as e ->
+ *     Expr.map ~f:add_custom
+ *       (e : (< features; defaultTerms: yes; exceptions: e; custom : c >, 't) gexpr)
+ *   | (ECatch _ | ERaise _), _ as e -> Expr.map ~f:add_custom e
+ *   | ECustom _, _ -> assert false
+ *   | (EOp _
+ *   | ELocation _
+ *   | ELit _
+ *   | EApp _
+ *   | EArray _
+ *   | EVar _
+ *   | EExternal _
+ *   | EAbs _
+ *   | EIfThenElse _
+ *   | ETuple _
+ *   | ETupleAccess _
+ *   | EInj _
+ *   | EAssert _
+ *   | EStruct _
+ *   | EStructAccess _
+ *   | EMatch _), _ as e -> Expr.map ~f:add_custom e *)
+
 let rec evaluate_expr :
-    type a b.
-    decl_ctx -> ((a, b) dcalc_lcalc, 'm) gexpr -> ((a, b) dcalc_lcalc, 'm) gexpr
-    =
+    type d e.
+    decl_ctx -> ((d, e, yes) astk, 't) gexpr -> ((d, e, yes) astk, 't) gexpr =
  fun ctx e ->
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
@@ -387,6 +618,14 @@ let rec evaluate_expr :
     Message.raise_spanned_error pos
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
+  | EExternal qid -> (
+    match Qident.Map.find_opt qid ctx.ctx_modules with
+    | None ->
+      Message.raise_spanned_error pos "Reference to %a could not be resolved"
+        Qident.format qid
+    | Some ty ->
+      let o = Runtime.lookup_value qid in
+      runtime_to_val evaluate_expr ctx m ty o)
   | EApp { f = e1; args } -> (
     let e1 = evaluate_expr ctx e1 in
     let args = List.map (evaluate_expr ctx) args in
@@ -403,11 +642,23 @@ let rec evaluate_expr :
           (Bindlib.mbinder_arity binder)
           (List.length args)
     | EOp { op; _ } -> evaluate_operator (evaluate_expr ctx) op m args
+    | ECustom { obj; targs; tret } ->
+      (* Applies the arguments one by one to the curried form *)
+      List.fold_left2
+        (fun fobj targ arg ->
+           (Obj.obj fobj : Obj.t -> Obj.t)
+             (val_to_runtime evaluate_expr ctx targ arg))
+        obj targs args
+      |> Obj.obj
+      |> fun o -> runtime_to_val evaluate_expr ctx m tret o
     | _ ->
       Message.raise_spanned_error pos
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
-  | (EAbs _ | ELit _ | EOp _) as e -> Mark.add m e (* these are values *)
+  | EAbs { binder; tys } -> Expr.unbox (Expr.eabs (Bindlib.box binder) tys m)
+  | ELit _ as e -> Mark.add m e
+  | EOp { op; tys } -> Expr.unbox (Expr.eop (Operator.translate op) tys m)
+  (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx) es in
@@ -514,6 +765,7 @@ let rec evaluate_expr :
           Message.raise_spanned_error (Expr.pos e')
             "Expected a boolean literal for the result of this assertion \
              (should not happen if the term was well-typed)")
+  | ECustom _ -> e
   | EEmptyError -> Mark.copy e EEmptyError
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx e' with
@@ -551,6 +803,142 @@ let rec evaluate_expr :
     with CatalaException caught when Expr.equal_except caught exn ->
       evaluate_expr ctx handler)
   | _ -> .
+
+(* type ('kind,'a,'b,'c,'d,'e,'f,'g,'h,'i,'k,'l,'m) astrec = {
+ *   monomorphic : 'a
+ * ; polymorphic : 'b 
+ * ; overloaded : 'c
+ * ; resolved : 'd
+ * ; syntacticNames : 'e
+ * ; resolvedNames : 'f
+ * ; scopeVarStates : 'g
+ * ; scopeVarSimpl : 'h
+ * ; explicitScopes : 'i
+ * ; assertions : 'j
+ * ; defaultTerms : 'k
+ * ; exceptions : 'l
+ * ; custom : 'm 
+ * }
+ * constraint 'kind = <
+ *   monomorphic : 'a
+ * ; polymorphic : 'b
+ * ; overloaded : 'c
+ * ; resolved : 'd
+ * ; syntacticNames : 'e
+ * ; resolvedNames : 'f
+ * ; scopeVarStates : 'g
+ * ; scopeVarSimpl : 'h
+ * ; explicitScopes : 'i
+ * ; assertions : 'j
+ * ; defaultTerms : 'k
+ * ; exceptions : 'l
+ * ; custom : 'm >
+ * 
+ * type ('kind,'a,'b,'c,'d,'e,'f,'g,'h,'i,'k,'l,'m) astrec2 =
+ *     Astrec:
+ *       { monomorphic : 'a
+ *       ; polymorphic : 'b
+ *       ; overloaded : 'c
+ *       ; resolved : 'd
+ *       ; syntacticNames : 'e
+ *       ; resolvedNames : 'f
+ *       ; scopeVarStates : 'g
+ *       ; scopeVarSimpl : 'h
+ *       ; explicitScopes : 'i
+ *       ; assertions : 'j
+ *       ; defaultTerms : 'k
+ *       ; exceptions : 'l
+ *       ; custom : 'm }
+ *       ->
+ *       (< monomorphic : 'a
+ *        ; polymorphic : 'b
+ *        ; overloaded : 'c
+ *        ; resolved : 'd
+ *        ; syntacticNames : 'e
+ *        ; resolvedNames : 'f
+ *        ; scopeVarStates : 'g
+ *        ; scopeVarSimpl : 'h
+ *        ; explicitScopes : 'i
+ *        ; assertions : 'j
+ *        ; defaultTerms : 'k
+ *        ; exceptions : 'l
+ *        ; custom : 'm >,
+ *        'a,'b,'c,'d,'e,'f,'g,'h,'i,'k,'l,'m) astrec2
+ * 
+ * let customise
+ *     (type x a b c d e f g h i j k l m)
+ *     (ty: ('kind,a,b,c,d,e,f,g,h,i,k,l,m) astrec2)
+ *     (e: (x, 't) gexpr)
+ *   : ('kind, 't) gexpr =
+ *   match ty, e with
+ *   | Astrec { custom = Yes; _ }, (ECustom _, _ as e) -> (e: ('kind, 't) gexpr)
+ *   | Astrec { custom = No; _ }, (ECustom _, _) -> invalid_arg "Bad AST cast"
+ *   | EOp {op;tys}, m -> Expr.eop (Operator.translate op) tys m
+ *   | EDefault _, _ as e -> Expr.map ~f e
+ *   | EEmptyError, _ as e -> Expr.map ~f e
+ *   | EErrorOnEmpty _, _ as e -> Expr.map ~f e
+ *   | ECatch _, _ as e -> Expr.map ~f e
+ *   | ERaise _, _ as e -> Expr.map ~f e
+ *   | (EAssert _
+ *     | ELit _
+ *     | EApp _
+ *     | EArray _
+ *     | EVar _
+ *     | EExternal _
+ *     | EAbs _
+ *     | EIfThenElse _
+ *     | ETuple _
+ *     | ETupleAccess _
+ *     | EInj _
+ *     | EStruct _
+ *     | EStructAccess _
+ *     | EMatch _), _ as e -> Expr.map ~f e
+ *   | _ -> . *)
+
+(* Typing shenanigan to add custom terms to the AST type. This is an identity
+   and could be optimised into [Obj.magic]. *)
+let addcustom e =
+  let rec f :
+      type c d e.
+      ((d, e, c) astk, 't) gexpr -> ((d, e, yes) astk, 't) gexpr boxed =
+    function
+    | (ECustom _, _) as e -> Expr.map ~f e
+    | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
+    | (EDefault _, _) as e -> Expr.map ~f e
+    | (EEmptyError, _) as e -> Expr.map ~f e
+    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (ECatch _, _) as e -> Expr.map ~f e
+    | (ERaise _, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _
+        | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
+        | EStructAccess _ | EMatch _ ),
+        _ ) as e ->
+      Expr.map ~f e
+    | _ -> .
+  in
+  Expr.unbox (f e)
+
+let delcustom e =
+  let rec f :
+      type c d e.
+      ((d, e, c) astk, 't) gexpr -> ((d, e, no) astk, 't) gexpr boxed = function
+    | ECustom _, _ -> invalid_arg "Custom term remaining in evaluated term"
+    | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
+    | (EDefault _, _) as e -> Expr.map ~f e
+    | (EEmptyError, _) as e -> Expr.map ~f e
+    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | (ECatch _, _) as e -> Expr.map ~f e
+    | (ERaise _, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _
+        | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
+        | EStructAccess _ | EMatch _ ),
+        _ ) as e ->
+      Expr.map ~f e
+    | _ -> .
+  in
+  Expr.unbox (f e)
+
+let evaluate_expr ctx e = delcustom (evaluate_expr ctx (addcustom e))
 
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
@@ -601,11 +989,24 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
+let dynload_modules () =
+  (* FIXME: WIP placeholder ; also, each file should be loaded only once *)
+  match Sys.getenv_opt "CATALA_INTF" with
+  | None | Some "" -> ()
+  | Some str ->
+    let files = String.split_on_char ',' str in
+    List.iter
+      (fun f ->
+         let mlf = Filename.remove_extension f ^ ".cmxs" in
+         Dynlink.loadfile mlf)
+      files
+
 (** {1 API} *)
 let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
+  dynload_modules ();
   match evaluate_expr p.decl_ctx e with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
