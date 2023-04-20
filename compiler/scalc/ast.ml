@@ -25,7 +25,9 @@ let dead_value = VarName.fresh ("dead_value", Pos.no_pos)
 let handle_default = FuncName.fresh ("handle_default", Pos.no_pos)
 let handle_default_opt = FuncName.fresh ("handle_default_opt", Pos.no_pos)
 
-type operator = [ `Monomorphic | `Polymorphic | `Resolved ] Shared_ast.operator
+type operator =
+  < overloaded : no ; monomorphic : yes ; polymorphic : yes ; resolved : yes >
+  Shared_ast.operator
 
 type expr = naked_expr Marked.pos
 

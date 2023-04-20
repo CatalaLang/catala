@@ -242,7 +242,7 @@ let operator_to_string : type a. a Op.t -> string =
   | Eq_dat_dat -> "=@"
   | Fold -> "fold"
 
-let operator : type a. Format.formatter -> a Op.t -> unit =
+let operator : type a. Format.formatter -> a operator -> unit =
  fun fmt op ->
   let open Op in
   match op with
