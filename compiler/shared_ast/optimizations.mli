@@ -28,3 +28,8 @@ val optimize_expr :
 val optimize_program :
   (('a, 'b) dcalc_lcalc, 'm mark) gexpr program ->
   (('a, 'b) dcalc_lcalc, 'm mark) gexpr program
+
+(** {1 Tests}*)
+
+val test_iota_reduction_1 : unit -> unit
+val test_iota_reduction_2 : unit -> unit

@@ -13,6 +13,29 @@ scope S:
 
 ```catala-test-inline
 $ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
-[ERROR] Internal Error, please report to https://github.com/CatalaLang/catala/issues: The boxed term is not closed the variables _; f; x is free in the global context
+[ERROR] Error during typechecking, incompatible types:
+--> (<any> * <any>)
+--> unit → (<any>) eoption
+
+Error coming from typechecking the following expression:
+┌─⯈ tests/test_func/good/closure_conversion.catala_en:5.11-12:
+└─┐
+5 │   internal f content integer depends on y content integer
+  │            ‾
+  └─ Article
+
+Type (<any> * <any>) coming from expression:
+┌─⯈ tests/test_func/good/closure_conversion.catala_en:5.11-12:
+└─┐
+5 │   internal f content integer depends on y content integer
+  │            ‾
+  └─ Article
+
+Type unit → (<any>) eoption coming from expression:
+┌─⯈ tests/test_func/good/closure_conversion.catala_en:5.11-12:
+└─┐
+5 │   internal f content integer depends on y content integer
+  │            ‾
+  └─ Article
 #return code 255#
 ```

@@ -25,6 +25,39 @@ type ('a, 'b, 'm) optimizations_ctx = {
   decl_ctx : decl_ctx;
 }
 
+let all_match_cases_are_id_fun cases n =
+  EnumConstructor.MapLabels.for_all cases ~f:(fun i case ->
+      match Marked.unmark case with
+      | EAbs { binder; _ } -> (
+        let var, body = Bindlib.unmbind binder in
+        (* because of invariant [invariant_match], the arity is always one. *)
+        let[@warning "-8"] [| var |] = var in
+        match Marked.unmark body with
+        | EInj { cons = i'; name = n'; e = EVar x, _ } ->
+          EnumConstructor.equal i i'
+          && EnumName.equal n n'
+          && Bindlib.eq_vars x var
+        | EInj { cons = i'; name = n'; e = ELit LUnit, _ } ->
+          (* since unit is the only value of type unit. We don't need to check
+             the equality. *)
+          EnumConstructor.equal i i' && EnumName.equal n n'
+        | _ -> false)
+      | _ ->
+        (* because of invariant [invariant_match], there is always some EAbs in
+           each cases. *)
+        assert false)
+
+let all_match_cases_map_to_same_constructor cases n =
+  EnumConstructor.MapLabels.for_all cases ~f:(fun i case ->
+      match Marked.unmark case with
+      | EAbs { binder; _ } -> (
+        let _, body = Bindlib.unmbind binder in
+        match Marked.unmark body with
+        | EInj { cons = i'; name = n'; _ } ->
+          EnumConstructor.equal i i' && EnumName.equal n n'
+        | _ -> false)
+      | _ -> assert false)
+
 let rec optimize_expr :
     type a b.
     (a, b, 'm) optimizations_ctx ->
@@ -95,10 +128,55 @@ let rec optimize_expr :
       | (ELit (LBool false), _), _ | _, (ELit (LBool false), _) ->
         ELit (LBool false)
       | _ -> EApp { f = op; args = [e1; e2] })
-    | EMatch { e = EInj { e; name = name1; cons }, _; cases; name }
-      when EnumName.equal name name1 ->
-      (* iota reduction *)
-      EApp { f = EnumConstructor.Map.find cons cases; args = [e] }
+    | EMatch { e = EInj { e = e'; cons; name = n' }, _; cases; name = n }
+    (* iota-reduction *)
+      when EnumName.equal n n' -> (
+      (* match E x with | E y -> e1 = e1[y |-> x]*)
+      match Marked.unmark @@ EnumConstructor.Map.find cons cases with
+      (* holds because of invariant_match_inversion *)
+      | EAbs { binder; _ } ->
+        Marked.unmark
+          (Bindlib.msubst binder ([e'] |> List.map fst |> Array.of_list))
+      | _ -> assert false)
+    | EMatch { e = e'; cases; name = n } when all_match_cases_are_id_fun cases n
+      ->
+      (* iota-reduction when the match is equivalent to an identity function *)
+      Marked.unmark e'
+    | EMatch
+        {
+          e = EMatch { e = arg; cases = cases1; name = n1 }, _;
+          cases = cases2;
+          name = n2;
+        }
+      when false
+           (* TODO: this case is buggy because of the box/unbox manipulation, it
+              should be fixed before removing this [false] value*)
+           && n1 = n2
+           && all_match_cases_map_to_same_constructor cases1 n1 ->
+      (* iota-reduction when the matched expression is itself a match of the
+         same enum mapping all constructors to themselves *)
+      let cases =
+        EnumConstructor.MapLabels.merge cases1 cases2 ~f:(fun _i o1 o2 ->
+            match o1, o2 with
+            | Some b1, Some e2 -> (
+              match Marked.unmark b1, Marked.unmark e2 with
+              | EAbs { binder = b1; _ }, EAbs { binder = b2; tys } -> (
+                let v1, e1 = Bindlib.unmbind b1 in
+                let[@warning "-8"] [| v1 |] = v1 in
+                match Marked.unmark e1 with
+                | EInj { e = e1; _ } ->
+                  Some
+                    (Expr.unbox
+                       (Expr.make_abs [| v1 |]
+                          (Expr.box
+                             (Bindlib.msubst b2
+                                ([e1] |> List.map fst |> Array.of_list)))
+                          tys (Expr.pos e2)))
+                | _ -> assert false)
+              | _ -> assert false)
+            | _ -> assert false)
+      in
+      EMatch { e = arg; cases; name = n1 }
     | EApp { f = EAbs { binder; _ }, _; args } ->
       (* beta reduction *)
       Marked.unmark (Bindlib.msubst binder (List.map fst args |> Array.of_list))
@@ -206,6 +284,22 @@ let rec optimize_expr :
         (* note: this last call eliminates the condition & might skip log calls
            as well *)
       else (* btrue = bfalse *) ELit (LBool btrue)
+    | EApp { f = EOp { op = Op.Fold; _ }, _; args = [_f; init; (EArray [], _)] }
+      ->
+      (*reduces a fold with an empty list *)
+      Marked.unmark init
+    | EApp
+        { f = EOp { op = Op.Fold; _ }, _; args = [f; init; (EArray [e'], _)] }
+      ->
+      (* reduces a fold with one element *)
+      EApp { f; args = [init; e'] }
+    | ECatch { body; exn; handler } -> (
+      (* peephole exception catching reductions *)
+      match Marked.unmark body, Marked.unmark handler with
+      | ERaise exn', ERaise exn'' when exn' = exn && exn = exn'' -> ERaise exn
+      | ERaise exn', _ when exn' = exn -> Marked.unmark handler
+      | _, ERaise exn' when exn' = exn -> Marked.unmark body
+      | _ -> ECatch { body; exn; handler })
     | e -> e
   in
   Expr.Box.app1 e reduce mark
@@ -218,3 +312,120 @@ let optimize_expr
 let optimize_program (p : 'm program) : 'm program =
   Bindlib.unbox
     (Program.map_exprs ~f:(optimize_expr p.decl_ctx) ~varf:(fun v -> v) p)
+
+let test_iota_reduction_1 () =
+  Cli.call_unstyled (fun _ ->
+      let x = Var.make "x" in
+      let enumT = EnumName.fresh ("t", Pos.no_pos) in
+      let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
+      let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
+      let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
+      let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
+      let nomark = Untyped { pos = Pos.no_pos } in
+      let injA = Expr.einj (Expr.evar x nomark) consA enumT nomark in
+      let injC = Expr.einj (Expr.evar x nomark) consC enumT nomark in
+      let injD = Expr.einj (Expr.evar x nomark) consD enumT nomark in
+      let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
+        EnumConstructor.Map.of_seq
+        @@ List.to_seq
+        @@ [
+             consA, Expr.eabs (Expr.bind [| x |] injC) [TAny, Pos.no_pos] nomark;
+             consB, Expr.eabs (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark;
+           ]
+      in
+      let matchA = Expr.ematch injA enumT cases nomark in
+      Alcotest.(check string)
+        "same string"
+        "before=match (A x)\n\
+        \       with\n\
+        \       | A → (λ (x: any) → C x)\n\
+        \       | B → (λ (x: any) → D x)\n\
+         after=C\n\
+         x"
+        (Format.asprintf "before=%a\nafter=%a"
+           (Print.expr_debug ~debug:false)
+           (Expr.unbox matchA)
+           (Print.expr_debug ~debug:false)
+           (Expr.unbox
+              (optimize_expr
+                 {
+                   ctx_enums = EnumName.Map.empty;
+                   ctx_structs = StructName.Map.empty;
+                   ctx_struct_fields = IdentName.Map.empty;
+                   ctx_scopes = ScopeName.Map.empty;
+                 }
+                 (Expr.unbox matchA)))))
+
+let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
+  EnumConstructor.Map.of_seq
+  @@ List.to_seq
+  @@ ListLabels.map l ~f:(fun (cons, f) ->
+         let var = Var.make "x" in
+         ( cons,
+           Expr.eabs
+             (Expr.bind [| var |] (f var))
+             [TAny, Pos.no_pos]
+             (Untyped { pos = Pos.no_pos }) ))
+
+let test_iota_reduction_2 () =
+  Cli.call_unstyled (fun _ ->
+      let enumT = EnumName.fresh ("t", Pos.no_pos) in
+      let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
+      let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
+      let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
+      let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
+
+      let nomark = Untyped { pos = Pos.no_pos } in
+
+      let num n = Expr.elit (LInt (Runtime.integer_of_int n)) nomark in
+
+      let injAe e = Expr.einj e consA enumT nomark in
+      let injBe e = Expr.einj e consB enumT nomark in
+      let injCe e = Expr.einj e consC enumT nomark in
+      let injDe e = Expr.einj e consD enumT nomark in
+
+      (* let injA x = injAe (Expr.evar x nomark) in *)
+      let injB x = injBe (Expr.evar x nomark) in
+      let injC x = injCe (Expr.evar x nomark) in
+      let injD x = injDe (Expr.evar x nomark) in
+
+      let matchA =
+        Expr.ematch
+          (Expr.ematch (num 1) enumT
+             (cases_of_list
+                [
+                  (consB, fun x -> injBe (injB x));
+                  (consA, fun _x -> injAe (num 20));
+                ])
+             nomark)
+          enumT
+          (cases_of_list [consA, injC; consB, injD])
+          nomark
+      in
+      Alcotest.(check string)
+        "same string "
+        "before=match\n\
+        \         (match 1\n\
+        \          with\n\
+        \          | A → (λ (x: any) → A 20)\n\
+        \          | B → (λ (x: any) → B B x))\n\
+        \       with\n\
+        \       | A → (λ (x: any) → C x)\n\
+        \       | B → (λ (x: any) → D x)\n\
+         after=match 1\n\
+        \      with\n\
+        \      | A → (λ (x: any) → C 20)\n\
+        \      | B → (λ (x: any) → D B x)\n"
+        (Format.asprintf "before=@[%a@]@.after=%a@."
+           (Print.expr_debug ~debug:false)
+           (Expr.unbox matchA)
+           (Print.expr_debug ~debug:false)
+           (Expr.unbox
+              (optimize_expr
+                 {
+                   ctx_enums = EnumName.Map.empty;
+                   ctx_structs = StructName.Map.empty;
+                   ctx_struct_fields = IdentName.Map.empty;
+                   ctx_scopes = ScopeName.Map.empty;
+                 }
+                 (Expr.unbox matchA)))))

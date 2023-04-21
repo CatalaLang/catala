@@ -436,7 +436,7 @@ let driver source_file (options : Cli.options) : int =
             let prgm =
               if options.optimize then begin
                 Cli.debug_print "Optimizing lambda calculus...";
-                Lcalc.Optimizations.optimize_program prgm
+                Shared_ast.Optimizations.optimize_program prgm
               end
               else Shared_ast.Program.untype prgm
             in
@@ -452,7 +452,7 @@ let driver source_file (options : Cli.options) : int =
                 let prgm =
                   if options.optimize then (
                     Cli.debug_print "Optimizing lambda calculus...";
-                    Lcalc.Optimizations.optimize_program prgm)
+                    Shared_ast.Optimizations.optimize_program prgm)
                   else prgm
                 in
                 Cli.debug_print "Retyping lambda calculus...";
