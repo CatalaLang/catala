@@ -318,13 +318,13 @@ val make_default :
     while avoiding redundant nested constructions. The position is extracted
     from [just] by default.
 
-    Note that, due to the simplifications taking place, the result might not be
-    of the form [EDefault]:
+    Note that some simplifications take place here, even though all of them
+    return an [EDefault] term:
 
-    - [<true :- x>] is rewritten as [x]
     - [<ex | true :- def>], when [def] is a default term [<j :- c>] without
       exceptions, is collapsed into [<ex | def>]
-    - [<ex | false :- _>], when [ex] is a single exception, is rewritten as [ex] *)
+    - [<ex | false :- _>], when [ex] is a single exception of the form
+      [EDefault], is rewritten as [ex] *)
 
 val make_tuple :
   ('a any, 'm mark) boxed_gexpr list -> 'm mark -> ('a, 'm mark) boxed_gexpr
