@@ -205,23 +205,18 @@ let optimize_program (p : 'm program) : untyped program =
            lift_optim peephole_expr;
          ])
 
-let%expect_test _ =
+let test_lcalc_optims1 () =
   Cli.call_unstyled (fun _ ->
       let x = Var.make "x" in
-
       let enumT = EnumName.fresh ("t", Pos.no_pos) in
       let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
       let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
       let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
       let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
-
       let nomark = Untyped { pos = Pos.no_pos } in
-
       let injA = Expr.einj (Expr.evar x nomark) consA enumT nomark in
-      (* let injB = Expr.einj (Expr.evar x nomark) consB enumT nomark in *)
       let injC = Expr.einj (Expr.evar x nomark) consC enumT nomark in
       let injD = Expr.einj (Expr.evar x nomark) consD enumT nomark in
-
       let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
         EnumConstructor.Map.of_seq
         @@ List.to_seq
@@ -230,26 +225,20 @@ let%expect_test _ =
              consB, Expr.eabs (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark;
            ]
       in
-
       let matchA = Expr.ematch injA enumT cases nomark in
-
-      Format.printf "before=%a\n"
-        (Print.expr_debug ~debug:false)
-        (Expr.unbox matchA);
-      Format.print_flush ();
-      Format.printf "after=%a\n"
-        (Print.expr_debug ~debug:false)
-        (Expr.unbox (iota_expr (Expr.unbox matchA)));
-
-      [%expect
-        {|
-    before=match (A x)
-           with
-           | A → (λ (x: any) → C x)
-           | B → (λ (x: any) → D x)
-    after=C
-    x
-    |}])
+      Alcotest.(check string)
+        "same string"
+        "before=match (A x)\n\
+        \       with\n\
+        \       | A → (λ (x: any) → C x)\n\
+        \       | B → (λ (x: any) → D x)\n\
+         after=C\n\
+         x"
+        (Format.asprintf "before=%a\nafter=%a"
+           (Print.expr_debug ~debug:false)
+           (Expr.unbox matchA)
+           (Print.expr_debug ~debug:false)
+           (Expr.unbox (iota_expr (Expr.unbox matchA)))))
 
 let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
   EnumConstructor.Map.of_seq
@@ -262,7 +251,7 @@ let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
              [TAny, Pos.no_pos]
              (Untyped { pos = Pos.no_pos }) ))
 
-let%expect_test _ =
+let test_lcalc_optims2 () =
   Cli.call_unstyled (fun _ ->
       let enumT = EnumName.fresh ("t", Pos.no_pos) in
       let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
@@ -297,25 +286,22 @@ let%expect_test _ =
           (cases_of_list [consA, injC; consB, injD])
           nomark
       in
-
-      Format.printf "before=@[%a@]@."
-        (Print.expr_debug ~debug:false)
-        (Expr.unbox matchA);
-      Format.printf "after=%a@."
-        (Print.expr_debug ~debug:false)
-        (Expr.unbox (iota2_expr (Expr.unbox matchA)));
-
-      [%expect
-        {|
-   before=match
-            (match 1
-             with
-             | A → (λ (x: any) → A 20)
-             | B → (λ (x: any) → B B x))
-          with
-          | A → (λ (x: any) → C x)
-          | B → (λ (x: any) → D x)
-   after=match 1
-         with
-         | A → (λ (x: any) → C 20)
-         | B → (λ (x: any) → D B x) |}])
+      Alcotest.(check string)
+        "same string "
+        "before=match\n\
+        \         (match 1\n\
+        \          with\n\
+        \          | A → (λ (x: any) → A 20)\n\
+        \          | B → (λ (x: any) → B B x))\n\
+        \       with\n\
+        \       | A → (λ (x: any) → C x)\n\
+        \       | B → (λ (x: any) → D x)\n\
+         after=match 1\n\
+        \      with\n\
+        \      | A → (λ (x: any) → C 20)\n\
+        \      | B → (λ (x: any) → D B x)\n"
+        (Format.asprintf "before=@[%a@]@.after=%a@."
+           (Print.expr_debug ~debug:false)
+           (Expr.unbox matchA)
+           (Print.expr_debug ~debug:false)
+           (Expr.unbox (iota2_expr (Expr.unbox matchA)))))

@@ -25,7 +25,6 @@
 , zarith_stubs_js
 , ocaml-crunch
 , cohttp-lwt-unix
-, ppx_expect
 }:
 
 buildDunePackage {
@@ -63,7 +62,6 @@ buildDunePackage {
     zarith
     zarith_stubs_js
     cohttp-lwt-unix
-    ppx_expect
   ];
 
   # Currently there is no unit tests in catala and Cram tests are handled by clerk

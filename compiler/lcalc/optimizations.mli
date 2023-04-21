@@ -43,3 +43,8 @@ open Ast
 val optimize_program : 'm program -> Shared_ast.untyped program
 (** Warning/todo: no effort was yet made to ensure correct propagation of type
     annotations in the typed case *)
+
+(**{1 Tests}*)
+
+val test_lcalc_optims2 : unit -> unit
+val test_lcalc_optims1 : unit -> unit

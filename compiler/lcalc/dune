@@ -1,10 +1,9 @@
 (library
  (name lcalc)
  (public_name catala.lcalc)
- (libraries bindlib ubase dcalc scopelang catala.runtime_ocaml)
- (inline_tests)
+ (libraries bindlib ubase dcalc scopelang catala.runtime_ocaml alcotest)
  (preprocess
-  (pps visitors.ppx ppx_expect)))
+  (pps visitors.ppx)))
 
 (documentation
  (package catala)
