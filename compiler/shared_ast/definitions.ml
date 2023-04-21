@@ -56,57 +56,83 @@ module StateName = Uid.Gen ()
 (** These types allow to select the features present in any given expression
     type *)
 
-type op_kind = [ `Monomorphic | `Polymorphic | `Overloaded | `Resolved ]
-
-type all_ast_features =
-  [ `SyntacticNames
-  | `ResolvedNames
-  | `ScopeVarStates
-  | `ScopeVarSimpl
-  | `ExplicitScopes
-  | `Assertions
-  | `DefaultTerms
-  | `Exceptions ]
-
-type all = [ all_ast_features | op_kind ]
+type yes = private Yes
+type no = |
 
 type desugared =
-  [ `Monomorphic
-  | `Polymorphic
-  | `Overloaded
-  | `SyntacticNames
-  | `ExplicitScopes
-  | `ScopeVarStates
-  | `DefaultTerms ]
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : yes
+  ; resolved : no
+  ; syntacticNames : yes
+  ; resolvedNames : no
+  ; scopeVarStates : yes
+  ; scopeVarSimpl : no
+  ; explicitScopes : yes
+  ; assertions : no
+  ; defaultTerms : yes
+  ; exceptions : no >
 
 type scopelang =
-  [ `Monomorphic
-  | `Polymorphic
-  | `Resolved
-  | `ResolvedNames
-  | `ExplicitScopes
-  | `ScopeVarSimpl
-  | `DefaultTerms ]
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; resolvedNames : yes
+  ; scopeVarStates : no
+  ; scopeVarSimpl : yes
+  ; explicitScopes : yes
+  ; assertions : no
+  ; defaultTerms : yes
+  ; exceptions : no >
 
 type dcalc =
-  [ `Monomorphic
-  | `Polymorphic
-  | `Resolved
-  | `ResolvedNames
-  | `Assertions
-  | `DefaultTerms ]
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; resolvedNames : yes
+  ; scopeVarStates : no
+  ; scopeVarSimpl : no
+  ; explicitScopes : no
+  ; assertions : yes
+  ; defaultTerms : yes
+  ; exceptions : no >
 
 type lcalc =
-  [ `Monomorphic
-  | `Polymorphic
-  | `Resolved
-  | `ResolvedNames
-  | `Assertions
-  | `Exceptions ]
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; resolvedNames : yes
+  ; scopeVarStates : no
+  ; scopeVarSimpl : no
+  ; explicitScopes : no
+  ; assertions : yes
+  ; defaultTerms : no
+  ; exceptions : yes >
 
-type 'a any = [< all ] as 'a
+type 'a any = < .. > as 'a
 (** ['a any] is 'a, but adds the constraint that it should be restricted to
     valid AST kinds *)
+
+type ('a, 'b) dcalc_lcalc =
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; resolvedNames : yes
+  ; scopeVarStates : no
+  ; scopeVarSimpl : no
+  ; explicitScopes : no
+  ; assertions : yes
+  ; defaultTerms : 'a
+  ; exceptions : 'b >
+(** This type regroups Dcalc and Lcalc ASTs. *)
 
 (** {2 Types} *)
 
@@ -141,123 +167,121 @@ type log_entry =
 module Op = struct
   (** Classification of operators on how they should be typed *)
 
-  type 'a any = [> op_kind ] as 'a
-
-  type monomorphic = [ `Monomorphic ]
+  type monomorphic = < monomorphic : yes >
   (** Operands and return types of the operator are fixed *)
 
-  type polymorphic = [ `Polymorphic ]
+  type polymorphic = < polymorphic : yes >
   (** The operator is truly polymorphic: it's the same runtime function that may
       work on multiple types. We require that resolving the argument types from
       right to left trivially resolves all type variables declared in the
       operator type. *)
 
-  type overloaded = [ `Overloaded ]
+  type overloaded = < overloaded : yes >
   (** The operator is ambiguous and requires the types of its arguments to be
       known before it can be typed, using a pre-defined table *)
 
-  type resolved = [ `Resolved ]
+  type resolved = < resolved : yes >
   (** Explicit monomorphic versions of the overloaded operators *)
 
   type _ t =
     (* unary *)
     (* * monomorphic *)
-    | Not : [> `Monomorphic ] t
-    | GetDay : [> `Monomorphic ] t
-    | GetMonth : [> `Monomorphic ] t
-    | GetYear : [> `Monomorphic ] t
-    | FirstDayOfMonth : [> `Monomorphic ] t
-    | LastDayOfMonth : [> `Monomorphic ] t
+    | Not : < monomorphic ; .. > t
+    | GetDay : < monomorphic ; .. > t
+    | GetMonth : < monomorphic ; .. > t
+    | GetYear : < monomorphic ; .. > t
+    | FirstDayOfMonth : < monomorphic ; .. > t
+    | LastDayOfMonth : < monomorphic ; .. > t
     (* * polymorphic *)
-    | Length : [> `Polymorphic ] t
-    | Log : log_entry * Uid.MarkedString.info list -> [> `Polymorphic ] t
+    | Length : < polymorphic ; .. > t
+    | Log : log_entry * Uid.MarkedString.info list -> < polymorphic ; .. > t
     (* * overloaded *)
-    | Minus : [> `Overloaded ] t
-    | Minus_int : [> `Resolved ] t
-    | Minus_rat : [> `Resolved ] t
-    | Minus_mon : [> `Resolved ] t
-    | Minus_dur : [> `Resolved ] t
-    | ToRat : [> `Overloaded ] t
-    | ToRat_int : [> `Resolved ] t
-    | ToRat_mon : [> `Resolved ] t
-    | ToMoney : [> `Overloaded ] t
-    | ToMoney_rat : [> `Resolved ] t
-    | Round : [> `Overloaded ] t
-    | Round_rat : [> `Resolved ] t
-    | Round_mon : [> `Resolved ] t
+    | Minus : < overloaded ; .. > t
+    | Minus_int : < resolved ; .. > t
+    | Minus_rat : < resolved ; .. > t
+    | Minus_mon : < resolved ; .. > t
+    | Minus_dur : < resolved ; .. > t
+    | ToRat : < overloaded ; .. > t
+    | ToRat_int : < resolved ; .. > t
+    | ToRat_mon : < resolved ; .. > t
+    | ToMoney : < overloaded ; .. > t
+    | ToMoney_rat : < resolved ; .. > t
+    | Round : < overloaded ; .. > t
+    | Round_rat : < resolved ; .. > t
+    | Round_mon : < resolved ; .. > t
     (* binary *)
     (* * monomorphic *)
-    | And : [> `Monomorphic ] t
-    | Or : [> `Monomorphic ] t
-    | Xor : [> `Monomorphic ] t
+    | And : < monomorphic ; .. > t
+    | Or : < monomorphic ; .. > t
+    | Xor : < monomorphic ; .. > t
     (* * polymorphic *)
-    | Eq : [> `Polymorphic ] t
-    | Map : [> `Polymorphic ] t
-    | Concat : [> `Polymorphic ] t
-    | Filter : [> `Polymorphic ] t
-    | Reduce : [> `Polymorphic ] t
+    | Eq : < polymorphic ; .. > t
+    | Map : < polymorphic ; .. > t
+    | Concat : < polymorphic ; .. > t
+    | Filter : < polymorphic ; .. > t
+    | Reduce : < polymorphic ; .. > t
     (* * overloaded *)
-    | Add : [> `Overloaded ] t
-    | Add_int_int : [> `Resolved ] t
-    | Add_rat_rat : [> `Resolved ] t
-    | Add_mon_mon : [> `Resolved ] t
-    | Add_dat_dur : date_rounding -> [> `Resolved ] t
-    | Add_dur_dur : [> `Resolved ] t
-    | Sub : [> `Overloaded ] t
-    | Sub_int_int : [> `Resolved ] t
-    | Sub_rat_rat : [> `Resolved ] t
-    | Sub_mon_mon : [> `Resolved ] t
-    | Sub_dat_dat : [> `Resolved ] t
-    | Sub_dat_dur : [> `Resolved ] t
-    | Sub_dur_dur : [> `Resolved ] t
-    | Mult : [> `Overloaded ] t
-    | Mult_int_int : [> `Resolved ] t
-    | Mult_rat_rat : [> `Resolved ] t
-    | Mult_mon_rat : [> `Resolved ] t
-    | Mult_dur_int : [> `Resolved ] t
-    | Div : [> `Overloaded ] t
-    | Div_int_int : [> `Resolved ] t
-    | Div_rat_rat : [> `Resolved ] t
-    | Div_mon_rat : [> `Resolved ] t
-    | Div_mon_mon : [> `Resolved ] t
-    | Div_dur_dur : [> `Resolved ] t
-    | Lt : [> `Overloaded ] t
-    | Lt_int_int : [> `Resolved ] t
-    | Lt_rat_rat : [> `Resolved ] t
-    | Lt_mon_mon : [> `Resolved ] t
-    | Lt_dat_dat : [> `Resolved ] t
-    | Lt_dur_dur : [> `Resolved ] t
-    | Lte : [> `Overloaded ] t
-    | Lte_int_int : [> `Resolved ] t
-    | Lte_rat_rat : [> `Resolved ] t
-    | Lte_mon_mon : [> `Resolved ] t
-    | Lte_dat_dat : [> `Resolved ] t
-    | Lte_dur_dur : [> `Resolved ] t
-    | Gt : [> `Overloaded ] t
-    | Gt_int_int : [> `Resolved ] t
-    | Gt_rat_rat : [> `Resolved ] t
-    | Gt_mon_mon : [> `Resolved ] t
-    | Gt_dat_dat : [> `Resolved ] t
-    | Gt_dur_dur : [> `Resolved ] t
-    | Gte : [> `Overloaded ] t
-    | Gte_int_int : [> `Resolved ] t
-    | Gte_rat_rat : [> `Resolved ] t
-    | Gte_mon_mon : [> `Resolved ] t
-    | Gte_dat_dat : [> `Resolved ] t
-    | Gte_dur_dur : [> `Resolved ] t
+    | Add : < overloaded ; .. > t
+    | Add_int_int : < resolved ; .. > t
+    | Add_rat_rat : < resolved ; .. > t
+    | Add_mon_mon : < resolved ; .. > t
+    | Add_dat_dur : date_rounding -> < resolved ; .. > t
+    | Add_dur_dur : < resolved ; .. > t
+    | Sub : < overloaded ; .. > t
+    | Sub_int_int : < resolved ; .. > t
+    | Sub_rat_rat : < resolved ; .. > t
+    | Sub_mon_mon : < resolved ; .. > t
+    | Sub_dat_dat : < resolved ; .. > t
+    | Sub_dat_dur : < resolved ; .. > t
+    | Sub_dur_dur : < resolved ; .. > t
+    | Mult : < overloaded ; .. > t
+    | Mult_int_int : < resolved ; .. > t
+    | Mult_rat_rat : < resolved ; .. > t
+    | Mult_mon_rat : < resolved ; .. > t
+    | Mult_dur_int : < resolved ; .. > t
+    | Div : < overloaded ; .. > t
+    | Div_int_int : < resolved ; .. > t
+    | Div_rat_rat : < resolved ; .. > t
+    | Div_mon_rat : < resolved ; .. > t
+    | Div_mon_mon : < resolved ; .. > t
+    | Div_dur_dur : < resolved ; .. > t
+    | Lt : < overloaded ; .. > t
+    | Lt_int_int : < resolved ; .. > t
+    | Lt_rat_rat : < resolved ; .. > t
+    | Lt_mon_mon : < resolved ; .. > t
+    | Lt_dat_dat : < resolved ; .. > t
+    | Lt_dur_dur : < resolved ; .. > t
+    | Lte : < overloaded ; .. > t
+    | Lte_int_int : < resolved ; .. > t
+    | Lte_rat_rat : < resolved ; .. > t
+    | Lte_mon_mon : < resolved ; .. > t
+    | Lte_dat_dat : < resolved ; .. > t
+    | Lte_dur_dur : < resolved ; .. > t
+    | Gt : < overloaded ; .. > t
+    | Gt_int_int : < resolved ; .. > t
+    | Gt_rat_rat : < resolved ; .. > t
+    | Gt_mon_mon : < resolved ; .. > t
+    | Gt_dat_dat : < resolved ; .. > t
+    | Gt_dur_dur : < resolved ; .. > t
+    | Gte : < overloaded ; .. > t
+    | Gte_int_int : < resolved ; .. > t
+    | Gte_rat_rat : < resolved ; .. > t
+    | Gte_mon_mon : < resolved ; .. > t
+    | Gte_dat_dat : < resolved ; .. > t
+    | Gte_dur_dur : < resolved ; .. > t
     (* Todo: Eq is not an overload at the moment, but it should be one. The
        trick is that it needs generation of specific code for arrays, every
        struct and enum: operators [Eq_structs of StructName.t], etc. *)
-    | Eq_int_int : [> `Resolved ] t
-    | Eq_rat_rat : [> `Resolved ] t
-    | Eq_mon_mon : [> `Resolved ] t
-    | Eq_dur_dur : [> `Resolved ] t
-    | Eq_dat_dat : [> `Resolved ] t
+    | Eq_int_int : < resolved ; .. > t
+    | Eq_rat_rat : < resolved ; .. > t
+    | Eq_mon_mon : < resolved ; .. > t
+    | Eq_dur_dur : < resolved ; .. > t
+    | Eq_dat_dat : < resolved ; .. > t
     (* ternary *)
     (* * polymorphic *)
-    | Fold : [> `Polymorphic ] t
-    | HandleDefault : [> `Polymorphic ] t
-    | HandleDefaultOpt : [> `Polymorphic ] t
+    | Fold : < polymorphic ; .. > t
+    | HandleDefault : < polymorphic ; .. > t
+    | HandleDefaultOpt : < polymorphic ; .. > t
 end
 
 type 'a operator = 'a Op.t
@@ -282,12 +306,16 @@ type lit =
 type 'a glocation =
   | DesugaredScopeVar :
       ScopeVar.t Marked.pos * StateName.t option
-      -> [> `ScopeVarStates ] glocation
-  | ScopelangScopeVar : ScopeVar.t Marked.pos -> [> `ScopeVarSimpl ] glocation
+      -> < scopeVarStates : yes ; .. > glocation
+  | ScopelangScopeVar :
+      ScopeVar.t Marked.pos
+      -> < scopeVarSimpl : yes ; .. > glocation
   | SubScopeVar :
       ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
-      -> [> `ExplicitScopes ] glocation
-  | ToplevelVar : TopdefName.t Marked.pos -> [> `ExplicitScopes ] glocation
+      -> < explicitScopes : yes ; .. > glocation
+  | ToplevelVar :
+      TopdefName.t Marked.pos
+      -> < explicitScopes : yes ; .. > glocation
 
 type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Marked.t
 
@@ -314,96 +342,96 @@ and ('a, 't) naked_gexpr = ('a, 'a, 't) base_gexpr
 
 and ('a, 'b, 't) base_gexpr =
   (* Constructors common to all ASTs *)
-  | ELit : lit -> ('a, [< all ], 't) base_gexpr
+  | ELit : lit -> ('a, < .. >, 't) base_gexpr
   | EApp : {
       f : ('a, 't) gexpr;
       args : ('a, 't) gexpr list;
     }
-      -> ('a, [< all ], 't) base_gexpr
+      -> ('a, < .. >, 't) base_gexpr
   | EOp : {
       op : 'b operator;
       tys : typ list;
     }
-      -> ('a, ([< all ] as 'b), 't) base_gexpr
-  | EArray : ('a, 't) gexpr list -> ('a, [< all ], 't) base_gexpr
+      -> ('a, (< .. > as 'b), 't) base_gexpr
+  | EArray : ('a, 't) gexpr list -> ('a, < .. >, 't) base_gexpr
   | EVar : ('a, 't) naked_gexpr Bindlib.var -> ('a, _, 't) base_gexpr
   | EAbs : {
       binder : (('a, 'a, 't) base_gexpr, ('a, 't) gexpr) Bindlib.mbinder;
       tys : typ list;
     }
-      -> ('a, [< all ], 't) base_gexpr
+      -> ('a, < .. >, 't) base_gexpr
   | EIfThenElse : {
       cond : ('a, 't) gexpr;
       etrue : ('a, 't) gexpr;
       efalse : ('a, 't) gexpr;
     }
-      -> ('a, [< all ], 't) base_gexpr
+      -> ('a, < .. >, 't) base_gexpr
   | EStruct : {
       name : StructName.t;
       fields : ('a, 't) gexpr StructField.Map.t;
     }
-      -> ('a, [< all ], 't) base_gexpr
+      -> ('a, < .. >, 't) base_gexpr
   | EInj : {
       name : EnumName.t;
       e : ('a, 't) gexpr;
       cons : EnumConstructor.t;
     }
-      -> ('a, [< all ], 't) base_gexpr
+      -> ('a, < .. >, 't) base_gexpr
   | EMatch : {
       name : EnumName.t;
       e : ('a, 't) gexpr;
       cases : ('a, 't) gexpr EnumConstructor.Map.t;
     }
-      -> ('a, [< all ], 't) base_gexpr
-  | ETuple : ('a, 't) gexpr list -> ('a, [< all ], 't) base_gexpr
+      -> ('a, < .. >, 't) base_gexpr
+  | ETuple : ('a, 't) gexpr list -> ('a, < .. >, 't) base_gexpr
   | ETupleAccess : {
       e : ('a, 't) gexpr;
       index : int;
       size : int;
     }
-      -> ('a, [< all ], 't) base_gexpr
+      -> ('a, < .. >, 't) base_gexpr
   (* Early stages *)
-  | ELocation : 'b glocation -> ('a, ([< all ] as 'b), 't) base_gexpr
+  | ELocation : 'b glocation -> ('a, (< .. > as 'b), 't) base_gexpr
   | EScopeCall : {
       scope : ScopeName.t;
       args : ('a, 't) gexpr ScopeVar.Map.t;
     }
-      -> ('a, [< all > `ExplicitScopes ], 't) base_gexpr
+      -> ('a, < explicitScopes : yes ; .. >, 't) base_gexpr
   | EDStructAccess : {
       name_opt : StructName.t option;
       e : ('a, 't) gexpr;
       field : IdentName.t;
     }
-      -> ('a, [< all > `SyntacticNames ], 't) base_gexpr
+      -> ('a, < syntacticNames : yes ; .. >, 't) base_gexpr
       (** [desugared] has ambiguous struct fields *)
   | EStructAccess : {
       name : StructName.t;
       e : ('a, 't) gexpr;
       field : StructField.t;
     }
-      -> ('a, [< all > `ResolvedNames ], 't) base_gexpr
+      -> ('a, < resolvedNames : yes ; .. >, 't) base_gexpr
       (** Resolved struct/enums, after [desugared] *)
   (* Lambda-like *)
-  | EAssert : ('a, 't) gexpr -> ('a, [< all > `Assertions ], 't) base_gexpr
+  | EAssert : ('a, 't) gexpr -> ('a, < assertions : yes ; .. >, 't) base_gexpr
   (* Default terms *)
   | EDefault : {
       excepts : ('a, 't) gexpr list;
       just : ('a, 't) gexpr;
       cons : ('a, 't) gexpr;
     }
-      -> ('a, [< all > `DefaultTerms ], 't) base_gexpr
-  | EEmptyError : ('a, [< all > `DefaultTerms ], 't) base_gexpr
+      -> ('a, < defaultTerms : yes ; .. >, 't) base_gexpr
+  | EEmptyError : ('a, < defaultTerms : yes ; .. >, 't) base_gexpr
   | EErrorOnEmpty :
       ('a, 't) gexpr
-      -> ('a, [< all > `DefaultTerms ], 't) base_gexpr
+      -> ('a, < defaultTerms : yes ; .. >, 't) base_gexpr
   (* Lambda calculus with exceptions *)
-  | ERaise : except -> ('a, [< all > `Exceptions ], 't) base_gexpr
+  | ERaise : except -> ('a, < exceptions : yes ; .. >, 't) base_gexpr
   | ECatch : {
       body : ('a, 't) gexpr;
       exn : except;
       handler : ('a, 't) gexpr;
     }
-      -> ('a, [< all > `Exceptions ], 't) base_gexpr
+      -> ('a, < exceptions : yes ; .. >, 't) base_gexpr
 
 let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
 let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)

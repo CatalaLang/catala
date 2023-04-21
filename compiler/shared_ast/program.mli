@@ -42,6 +42,4 @@ val to_expr : ((_ any, _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
     function. *)
 
 val equal :
-  (([< dcalc | lcalc ], _) gexpr as 'e) program ->
-  (([< dcalc | lcalc ], _) gexpr as 'e) program ->
-  bool
+  (('a any, _) gexpr as 'e) program -> (('a any, _) gexpr as 'e) program -> bool

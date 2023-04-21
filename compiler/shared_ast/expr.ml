@@ -290,8 +290,7 @@ let rec map_top_down ~f e = map ~f:(map_top_down ~f) (f e)
 let map_marks ~f e =
   map_top_down ~f:(fun e -> Marked.(mark (f (get_mark e)) (unmark e))) e
 
-(* Folds the given function on the direct children of the given expression. Does
-   not open binders. *)
+(* Folds the given function on the direct children of the given expression. *)
 let shallow_fold
     (type a)
     (f : (a, 'm) gexpr -> 'acc -> 'acc)

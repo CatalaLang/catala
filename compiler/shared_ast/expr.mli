@@ -64,16 +64,18 @@ val eapp :
   ('a any, 't) boxed_gexpr
 
 val eassert :
-  ('a, 't) boxed_gexpr -> 't -> (([< all > `Assertions ] as 'a), 't) boxed_gexpr
+  ('a, 't) boxed_gexpr ->
+  't ->
+  ((< assertions : yes ; .. > as 'a), 't) boxed_gexpr
 
-val eop : 'a operator -> typ list -> 't -> (([< all ] as 'a), 't) boxed_gexpr
+val eop : 'a operator -> typ list -> 't -> ('a any, 't) boxed_gexpr
 
 val edefault :
   ('a, 't) boxed_gexpr list ->
   ('a, 't) boxed_gexpr ->
   ('a, 't) boxed_gexpr ->
   't ->
-  (([< all > `DefaultTerms ] as 'a), 't) boxed_gexpr
+  ((< defaultTerms : yes ; .. > as 'a), 't) boxed_gexpr
 
 val eifthenelse :
   ('a, 't) boxed_gexpr ->
@@ -82,22 +84,22 @@ val eifthenelse :
   't ->
   ('a any, 't) boxed_gexpr
 
-val eemptyerror : 't -> (([< all > `DefaultTerms ] as 'a), 't) boxed_gexpr
+val eemptyerror : 't -> ((< defaultTerms : yes ; .. > as 'a), 't) boxed_gexpr
 
 val eerroronempty :
   ('a, 't) boxed_gexpr ->
   't ->
-  (([< all > `DefaultTerms ] as 'a), 't) boxed_gexpr
+  ((< defaultTerms : yes ; .. > as 'a), 't) boxed_gexpr
 
 val ecatch :
   ('a, 't) boxed_gexpr ->
   except ->
   ('a, 't) boxed_gexpr ->
   't ->
-  (([< all > `Exceptions ] as 'a), 't) boxed_gexpr
+  ((< exceptions : yes ; .. > as 'a), 't) boxed_gexpr
 
-val eraise : except -> 't -> ([< all > `Exceptions ], 't) boxed_gexpr
-val elocation : 'a glocation -> 't -> (([< all ] as 'a), 't) boxed_gexpr
+val eraise : except -> 't -> (< exceptions : yes ; .. >, 't) boxed_gexpr
+val elocation : 'a glocation -> 't -> ((< .. > as 'a), 't) boxed_gexpr
 
 val estruct :
   StructName.t ->
@@ -110,14 +112,14 @@ val edstructaccess :
   IdentName.t ->
   StructName.t option ->
   't ->
-  (([< all > `SyntacticNames ] as 'a), 't) boxed_gexpr
+  ((< syntacticNames : yes ; .. > as 'a), 't) boxed_gexpr
 
 val estructaccess :
   ('a, 't) boxed_gexpr ->
   StructField.t ->
   StructName.t ->
   't ->
-  (([< all > `ResolvedNames ] as 'a), 't) boxed_gexpr
+  ((< resolvedNames : yes ; .. > as 'a), 't) boxed_gexpr
 
 val einj :
   ('a, 't) boxed_gexpr ->
@@ -137,7 +139,7 @@ val escopecall :
   ScopeName.t ->
   ('a, 't) boxed_gexpr ScopeVar.Map.t ->
   't ->
-  (([< all > `ExplicitScopes ] as 'a), 't) boxed_gexpr
+  ((< explicitScopes : yes ; .. > as 'a), 't) boxed_gexpr
 
 val fun_id : 'm mark -> ('a any, 'm mark) boxed_gexpr
 
@@ -281,15 +283,13 @@ val make_app :
   ('a any, 'm mark) boxed_gexpr
 
 val empty_thunked_term :
-  'm mark -> ([< all > `DefaultTerms ], 'm mark) boxed_gexpr
+  'm mark -> (< defaultTerms : yes ; .. >, 'm mark) boxed_gexpr
 
 val thunk_term :
-  (([< all ] as 'a), 'b mark) boxed_gexpr ->
-  'b mark ->
-  ('a, 'b mark) boxed_gexpr
+  ('a any, 'b mark) boxed_gexpr -> 'b mark -> ('a, 'b mark) boxed_gexpr
 
 val unthunk_term_nobox :
-  (([< all ] as 'a), 'm mark) gexpr -> 'm mark -> ('a, 'm mark) gexpr
+  ('a any, 'm mark) gexpr -> 'm mark -> ('a, 'm mark) gexpr
 
 val make_let_in :
   ('a, 'm mark) gexpr Var.t ->
@@ -312,7 +312,7 @@ val make_default :
   ('a, 't) boxed_gexpr ->
   ('a, 't) boxed_gexpr ->
   't ->
-  (([< all > `Polymorphic `DefaultTerms ] as 'a), 't) boxed_gexpr
+  ((< polymorphic : yes ; defaultTerms : yes ; .. > as 'a), 't) boxed_gexpr
 (** [make_default ?pos exceptions just cons] builds a term semantically
     equivalent to [<exceptions | just :- cons>] (the [EDefault] constructor)
     while avoiding redundant nested constructions. The position is extracted
@@ -337,7 +337,7 @@ val skip_wrappers : ('a, 'm) gexpr -> ('a, 'm) gexpr
 (** Removes surface logging calls and [EErrorOnEmpty] nodes. Shallow function *)
 
 val remove_logging_calls :
-  (([< all > `Polymorphic ] as 'a), 't) gexpr -> ('a, 't) boxed_gexpr
+  ((< polymorphic : yes ; .. > as 'a), 't) gexpr -> ('a, 't) boxed_gexpr
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
 

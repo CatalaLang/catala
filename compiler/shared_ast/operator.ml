@@ -306,10 +306,10 @@ let equal t1 t2 = compare t1 t2 = 0
 
 let kind_dispatch :
     type a.
-    polymorphic:([> polymorphic ] t -> 'b) ->
-    monomorphic:([> monomorphic ] t -> 'b) ->
-    ?overloaded:([> overloaded ] t -> 'b) ->
-    ?resolved:([> resolved ] t -> 'b) ->
+    polymorphic:(< polymorphic : yes ; .. > t -> 'b) ->
+    monomorphic:(< monomorphic : yes ; .. > t -> 'b) ->
+    ?overloaded:(< overloaded : yes ; .. > t -> 'b) ->
+    ?resolved:(< resolved : yes ; .. > t -> 'b) ->
     a t ->
     'b =
  fun ~polymorphic ~monomorphic ?(overloaded = fun _ -> assert false)
@@ -338,26 +338,29 @@ let kind_dispatch :
     resolved op
 
 type 'a no_overloads =
-  [< all_ast_features | `Monomorphic | `Polymorphic | `Resolved ] as 'a
+  < overloaded : no
+  ; monomorphic : yes
+  ; polymorphic : yes
+  ; resolved : yes
+  ; .. >
+  as
+  'a
 
-let translate (t : [> `Monomorphic | `Polymorphic | `Resolved ] no_overloads t)
-    =
+let translate (t : 'a no_overloads t) : 'b no_overloads t =
   match t with
   | ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | And
-    | Or | Xor | HandleDefault | HandleDefaultOpt ) as op ->
-    op
-  | (Log _ | Length | Eq | Map | Concat | Filter | Reduce | Fold) as op -> op
-  | ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
-    | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
-    | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
-    | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
-    | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int | Div_rat_rat
-    | Div_mon_mon | Div_mon_rat | Div_dur_dur | Lt_int_int | Lt_rat_rat
-    | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat
-    | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
-    | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
-    | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
-    | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ) as op ->
+    | Or | Xor | HandleDefault | HandleDefaultOpt | Log _ | Length | Eq | Map
+    | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat | Minus_mon
+    | Minus_dur | ToRat_int | ToRat_mon | ToMoney_rat | Round_rat | Round_mon
+    | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
+    | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+    | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int
+    | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur
+    | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur
+    | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur
+    | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur
+    | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur
+    | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ) as op ->
     op
 
 let monomorphic_type ((op : monomorphic t), pos) =
@@ -448,8 +451,8 @@ let resolved_type ((op : resolved t), pos) =
   in
   TArrow (List.map (fun tau -> TLit tau, pos) args, (TLit ret, pos)), pos
 
-let resolve_overload_aux (op : [< overloaded ] t) (operands : typ_lit list) :
-    [> resolved ] t * [ `Straight | `Reversed ] =
+let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
+    < resolved : yes ; .. > t * [ `Straight | `Reversed ] =
   match op, operands with
   | Minus, [TInt] -> Minus_int, `Straight
   | Minus, [TRat] -> Minus_rat, `Straight
@@ -509,7 +512,7 @@ let resolve_overload_aux (op : [< overloaded ] t) (operands : typ_lit list) :
     raise Not_found
 
 let resolve_overload ctx (op : overloaded t Marked.pos) (operands : typ list) :
-    [> resolved ] t * [ `Straight | `Reversed ] =
+    < resolved : yes ; .. > t * [ `Straight | `Reversed ] =
   try
     let operands =
       List.map
