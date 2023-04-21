@@ -549,9 +549,13 @@ let debug_format (format : ('a, Format.formatter, unit) format) =
   else Format.ifprintf Format.std_formatter format
 
 let error_print format =
+  Format.print_flush ();
+  (* Flushes previous warnings *)
   Format.eprintf ("%a" ^^ format ^^ "@\n") error_marker ()
 
 let error_format (format : ('a, Format.formatter, unit) format) =
+  Format.print_flush ();
+  (* Flushes previous warnings *)
   Format.printf ("%a" ^^ format ^^ "\n%!") error_marker ()
 
 let warning_print format =
