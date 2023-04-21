@@ -129,14 +129,14 @@ champ d'application Exemple2 :
       -- zone: Zone2
       -- résidence_principale : vrai
       -- mode_occupation : Locataire contenu (Location {
-      -- loyer_principal: 500 €
-      -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
-      -- logement_est_chambre: faux
-      -- colocation: faux
-      -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
-      -- logement_meublé_d842_2: faux
-      -- changement_logement_d842_4: PasDeChangement
-      -- bailleur: BailleurPrivé
+        -- loyer_principal: 500 €
+        -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
+        -- logement_est_chambre: faux
+        -- colocation: faux
+        -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
+        -- logement_meublé_d842_2: faux
+        -- changement_logement_d842_4: PasDeChangement
+        -- bailleur: BailleurPrivé
      })
      -- propriétaire : ParentOuAutre.Autre
      -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
@@ -176,7 +176,7 @@ $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 ```catala-test-inline
 $ catala Interpret -s Exemple2
 [RESULT] Computation successful! Results:
-[RESULT] montant_versé = 139.69 €
+[RESULT] montant_versé = 137.69 €
 [RESULT] éligibilité = true
 ```
 

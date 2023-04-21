@@ -117,12 +117,12 @@ champ d'application Exemple4 :
   définition montant égal à
     calcul.traitement_aide_finale de calcul.aide_finale_formule
 
-  assertion montant = 138,24 €
   assertion calcul.montant_forfaitaire_charges_d823_16 = 81,56 €
   assertion calcul.plafond_loyer_d823_16_2 = 424,22 €
   assertion calcul.participation_minimale = 42,99 €
   assertion calcul.taux_composition_familiale = 2,38%
   assertion calcul.participation_personnelle = 131,30 €
+  assertion montant = 137,69 €
 ```
 
 ```catala-test-inline
@@ -158,7 +158,7 @@ $ catala Interpret -s Exemple3 --disable_warnings
 ```catala-test-inline
 $ catala Interpret -s Exemple4 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = 138,24 €
+[RESULT] montant = 137.69 €
 ```
 
 ```catala-test-inline
