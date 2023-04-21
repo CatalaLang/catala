@@ -62,7 +62,6 @@ def call_aides_logement() -> float:
             EnfantAPL(
                 identifiant=1,
                 etudes_apprentissage_stage_formation_pro_impossibilite_travail=False,
-                beneficie_titre_personnel_aide_personnelle_logement=False,
                 a_deja_ouvert_droit_aux_allocations_familiales=True,
                 date_de_naissance=date(2015, 1, 1),
                 remuneration_mensuelle=0,
@@ -75,7 +74,6 @@ def call_aides_logement() -> float:
             EnfantAPL(
                 identifiant=2,
                 etudes_apprentissage_stage_formation_pro_impossibilite_travail=False,
-                beneficie_titre_personnel_aide_personnelle_logement=False,
                 a_deja_ouvert_droit_aux_allocations_familiales=True,
                 date_de_naissance=date(2016, 1, 1),
                 remuneration_mensuelle=0,

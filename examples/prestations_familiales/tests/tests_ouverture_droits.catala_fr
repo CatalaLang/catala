@@ -16,7 +16,6 @@ champ d'application Données:
     -- date_de_naissance: |2007-01-01|
     -- rémuneration_mensuelle: 0€
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
-    -- bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant2 égal à EnfantPrestationsFamiliales {
     -- identifiant: 2
@@ -24,7 +23,6 @@ champ d'application Données:
     -- date_de_naissance: |2003-01-01|
     -- rémuneration_mensuelle: 1000€
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
-    -- bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant3 égal à EnfantPrestationsFamiliales {
     -- identifiant: 3
@@ -32,7 +30,6 @@ champ d'application Données:
     -- date_de_naissance: |2003-01-01|
     -- rémuneration_mensuelle: 400€
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
-    -- bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
   définition enfant4 égal à EnfantPrestationsFamiliales {
     -- identifiant: 4
@@ -40,7 +37,6 @@ champ d'application Données:
     -- date_de_naissance: |1999-01-01|
     -- rémuneration_mensuelle: 0€
     -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
-    -- bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
 
 déclaration champ d'application Test1:

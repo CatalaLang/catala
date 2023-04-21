@@ -94,7 +94,6 @@ function run_computation_AL(log) {
         {
           "kind": "EnfantACharge",
           "payload": {
-            "beneficieTitrePersonnelAidePersonnelleLogement": false,
             "aDejaOuvertDroitAuxAllocationsFamiliales": true,
             "remunerationMensuelle": 0,
             "nationalite": {
@@ -117,7 +116,6 @@ function run_computation_AL(log) {
         {
           "kind": "EnfantACharge",
           "payload": {
-            "beneficieTitrePersonnelAidePersonnelleLogement": false,
             "aDejaOuvertDroitAuxAllocationsFamiliales": true,
             "remunerationMensuelle": 0,
             "nationalite": {

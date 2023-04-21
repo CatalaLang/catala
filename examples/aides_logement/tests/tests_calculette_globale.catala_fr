@@ -22,7 +22,6 @@ champ d'application Exemple1 :
    -- situation_familiale: Mariés contenu |2010-11-26|
    -- personnes_à_charge: [
      EnfantÀCharge contenu (EnfantÀCharge {
-       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- identifiant: 0
        -- nationalité: Française
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
@@ -32,7 +31,6 @@ champ d'application Exemple1 :
        -- obligation_scolaire: Après
        -- situation_garde_alternée: GardeAlternéeCoefficientPriseEnCharge contenu 0,7
      }); EnfantÀCharge contenu (EnfantÀCharge {
-       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- identifiant: 1
        -- nationalité: Française
        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
@@ -42,7 +40,6 @@ champ d'application Exemple1 :
        -- obligation_scolaire: Pendant
        -- situation_garde_alternée: PasDeGardeAlternée
      }); EnfantÀCharge contenu (EnfantÀCharge {
-       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- identifiant: 2
        -- nationalité: Française
        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
@@ -105,7 +102,6 @@ champ d'application Exemple2 :
    -- situation_familiale: Célibataire
    -- personnes_à_charge: [
      EnfantÀCharge contenu (EnfantÀCharge {
-       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- identifiant: 0
        -- nationalité: Française
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
@@ -115,7 +111,6 @@ champ d'application Exemple2 :
        -- obligation_scolaire: Après
        -- situation_garde_alternée: PasDeGardeAlternée
      }); EnfantÀCharge contenu (EnfantÀCharge {
-       -- bénéficie_titre_personnel_aide_personnelle_logement : faux
        -- identifiant: 1
        -- nationalité: Française
        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
