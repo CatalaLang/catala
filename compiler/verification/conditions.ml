@@ -351,7 +351,8 @@ let rec generate_verification_conditions_scope_body_expr
         let vc_confl = generate_vc_must_not_return_conflict ctx e in
         let vc_confl =
           if !Cli.optimize_flag then
-            Expr.unbox (Optimizations.optimize_expr ctx.decl vc_confl)
+            Expr.unbox
+              (Shared_ast.Optimizations.optimize_expr ctx.decl vc_confl)
           else vc_confl
         in
         let vc_list =
@@ -373,7 +374,8 @@ let rec generate_verification_conditions_scope_body_expr
             let vc_empty = generate_vc_must_not_return_empty ctx e in
             let vc_empty =
               if !Cli.optimize_flag then
-                Expr.unbox (Optimizations.optimize_expr ctx.decl vc_empty)
+                Expr.unbox
+                  (Shared_ast.Optimizations.optimize_expr ctx.decl vc_empty)
               else vc_empty
             in
             {

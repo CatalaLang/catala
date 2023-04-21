@@ -15,21 +15,27 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 open Catala_utils
-open Shared_ast
-open Ast
+open Definitions
 
-type partial_evaluation_ctx = {
-  var_values : (typed expr, typed expr) Var.Map.t;
+type ('a, 'b, 'm) optimizations_ctx = {
+  var_values :
+    ( (('a, 'b) dcalc_lcalc, 'm mark) gexpr,
+      (('a, 'b) dcalc_lcalc, 'm mark) gexpr )
+    Var.Map.t;
   decl_ctx : decl_ctx;
 }
 
-let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
-    (dcalc, 'm mark) boxed_gexpr =
+let rec optimize_expr :
+    type a b.
+    (a, b, 'm) optimizations_ctx ->
+    ((a, b) dcalc_lcalc, 'm mark) gexpr ->
+    ((a, b) dcalc_lcalc, 'm mark) boxed_gexpr =
+ fun ctx e ->
   (* We proceed bottom-up, first apply on the subterms *)
-  let e = Expr.map ~f:(partial_evaluation ctx) e in
+  let e = Expr.map ~f:(optimize_expr ctx) e in
   let mark = Marked.get_mark e in
   (* Then reduce the parent node *)
-  let reduce (e : 'm expr) =
+  let reduce (e : ((a, b) dcalc_lcalc, 'm mark) gexpr) =
     (* Todo: improve the handling of eapp(log,elit) cases here, it obfuscates
        the matches and the log calls are not preserved, which would be a good
        property *)
@@ -204,14 +210,11 @@ let rec partial_evaluation (ctx : partial_evaluation_ctx) (e : 'm expr) :
   in
   Expr.Box.app1 e reduce mark
 
-let optimize_expr (decl_ctx : decl_ctx) (e : 'm expr) =
-  partial_evaluation { var_values = Var.Map.empty; decl_ctx } e
+let optimize_expr
+    (decl_ctx : decl_ctx)
+    (e : (('a, 'b) dcalc_lcalc, 'm mark) gexpr) =
+  optimize_expr { var_values = Var.Map.empty; decl_ctx } e
 
 let optimize_program (p : 'm program) : 'm program =
   Bindlib.unbox
-    (Program.map_exprs
-       ~f:
-         (partial_evaluation
-            { var_values = Var.Map.empty; decl_ctx = p.decl_ctx })
-       ~varf:(fun v -> v)
-       p)
+    (Program.map_exprs ~f:(optimize_expr p.decl_ctx) ~varf:(fun v -> v) p)

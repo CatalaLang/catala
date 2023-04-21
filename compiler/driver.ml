@@ -318,7 +318,7 @@ let driver source_file (options : Cli.options) : int =
         let prgm =
           if options.optimize then begin
             Cli.debug_print "Optimizing default calculus...";
-            Dcalc.Optimizations.optimize_program prgm
+            Shared_ast.Optimizations.optimize_program prgm
           end
           else prgm
         in
