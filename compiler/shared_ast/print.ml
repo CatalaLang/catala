@@ -536,8 +536,7 @@ let typ ctx = typ (Some ctx)
 let expr_debug ?debug = expr_aux ?debug None Bindlib.empty_ctxt
 let expr ?debug ctx = expr_aux ?debug (Some ctx) Bindlib.empty_ctxt
 
-let scope_let_kind ?(debug = true) _ctx fmt k =
-  let _ = debug in
+let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   match k with
   | DestructuringInputStruct -> keyword fmt "get"
   | ScopeVarDefinition -> keyword fmt "set"

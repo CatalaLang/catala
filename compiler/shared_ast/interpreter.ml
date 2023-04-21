@@ -341,13 +341,8 @@ let rec evaluate_operator
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
         | EInj { name; cons; _ }, _
-          when EnumName.equal name Definitions.option_enum
-               && EnumConstructor.equal cons Definitions.some_constr ->
-          true
-        | EInj { name; cons; _ }, _
-          when EnumName.equal name Definitions.option_enum
-               && EnumConstructor.equal cons Definitions.none_constr ->
-          false
+          when EnumName.equal name Definitions.option_enum ->
+          EnumConstructor.equal cons Definitions.some_constr
         | _ -> err ())
     in
 

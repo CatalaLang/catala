@@ -213,7 +213,9 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Eq_mon_mon, Eq_mon_mon
   | Eq_dat_dat, Eq_dat_dat
   | Eq_dur_dur, Eq_dur_dur
-  | Fold, Fold |HandleDefault, HandleDefault | HandleDefaultOpt, HandleDefaultOpt -> 0
+  | Fold, Fold
+  | HandleDefault, HandleDefault
+  | HandleDefaultOpt, HandleDefaultOpt -> 0
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
   | GetDay, _ -> -1 | _, GetDay -> 1

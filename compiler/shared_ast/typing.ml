@@ -526,26 +526,23 @@ and typecheck_expr_top_down :
     in
     Expr.estructaccess e_struct' field name mark
   | A.EInj { name; cons; e = e_enum }
-    when Definitions.EnumName.compare name Definitions.option_enum = 0
-         && Definitions.EnumConstructor.compare cons Definitions.some_constr = 0
-    ->
-    let cell_type = unionfind (TAny (Any.fresh ())) in
-    let mark = mark_with_tau_and_unify (unionfind (TOption cell_type)) in
-    let e_enum' =
-      typecheck_expr_top_down ~leave_unresolved ctx env cell_type e_enum
-    in
-    Expr.einj e_enum' cons name mark
-  | A.EInj { name; cons; e = e_enum }
-    when Definitions.EnumName.compare name Definitions.option_enum = 0
-         && Definitions.EnumConstructor.compare cons Definitions.none_constr = 0
-    ->
-    let cell_type = unionfind (TAny (Any.fresh ())) in
-    let mark = mark_with_tau_and_unify (unionfind (TOption cell_type)) in
-    let e_enum' =
-      typecheck_expr_top_down ~leave_unresolved ctx env (unionfind (TLit TUnit))
-        e_enum
-    in
-    Expr.einj e_enum' cons name mark
+    when Definitions.EnumName.equal name Definitions.option_enum ->
+    if Definitions.EnumConstructor.equal cons Definitions.some_constr then
+      let cell_type = unionfind (TAny (Any.fresh ())) in
+      let mark = mark_with_tau_and_unify (unionfind (TOption cell_type)) in
+      let e_enum' =
+        typecheck_expr_top_down ~leave_unresolved ctx env cell_type e_enum
+      in
+      Expr.einj e_enum' cons name mark
+    else
+      (* None constructor *)
+      let cell_type = unionfind (TAny (Any.fresh ())) in
+      let mark = mark_with_tau_and_unify (unionfind (TOption cell_type)) in
+      let e_enum' =
+        typecheck_expr_top_down ~leave_unresolved ctx env
+          (unionfind (TLit TUnit)) e_enum
+      in
+      Expr.einj e_enum' cons name mark
   | A.EInj { name; cons; e = e_enum } ->
     let mark = mark_with_tau_and_unify (unionfind (TEnum name)) in
     let e_enum' =

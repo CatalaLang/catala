@@ -385,28 +385,16 @@ let allocation_familiales_avril2008 (allocation_familiales_avril2008_in: Allocat
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                           start_line=78; start_column=14;
-                           end_line=78; end_column=41;
-                           law_headings=["Article R521-1";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets en Conseil d'Etat";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) -> duration_of_numbers (16) (0) (0)))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+              start_line=78; start_column=14; end_line=78; end_column=41;
+              law_headings=["Article R521-1";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets en Conseil d'Etat";
+                             "Code de la sécurité sociale"]} true))
+         (fun (_: unit) -> duration_of_numbers (16) (0) (0)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -424,51 +412,37 @@ let enfant_le_plus_age (enfant_le_plus_age_in: EnfantLePlusAgeIn.t) : EnfantLePl
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=12; start_column=14; end_line=12; end_column=25;
+              law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=12; start_column=14;
-                           end_line=12; end_column=25;
-                           law_headings=["Règles diverses"; "Épilogue"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_reduce
-                           (fun (potentiel_plus_age_1_: Enfant.t)
-                              (potentiel_plus_age_2_: Enfant.t) ->
-                               if
-                                (o_lt_dat_dat
-                                   (let potentiel_plus_age_ : Enfant.t =
-                                      potentiel_plus_age_1_
-                                   in
-                                   (potentiel_plus_age_.Enfant.date_de_naissance))
-                                   (let potentiel_plus_age_ : Enfant.t =
-                                      potentiel_plus_age_2_
-                                   in
-                                   (potentiel_plus_age_.Enfant.date_de_naissance)))
-                                then potentiel_plus_age_1_ else
-                                potentiel_plus_age_2_)
-                           ({Enfant.identifiant = (integer_of_string "-1");
-                               Enfant.obligation_scolaire =
-                                 (SituationObligationScolaire.Pendant ());
-                               Enfant.remuneration_mensuelle =
-                                 (money_of_cents_string "0");
-                               Enfant.date_de_naissance =
-                                 (date_of_numbers (2999) (12) (31));
-                               Enfant.prise_en_charge =
-                                 (PriseEnCharge.EffectiveEtPermanente ());
-                               Enfant.a_deja_ouvert_droit_aux_allocations_familiales =
-                                 false;
-                               Enfant.beneficie_titre_personnel_aide_personnelle_logement =
-                                 false}) enfants_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_reduce
+              (fun (potentiel_plus_age_1_: Enfant.t)
+                 (potentiel_plus_age_2_: Enfant.t) ->
+                  if
+                   (o_lt_dat_dat
+                      (let potentiel_plus_age_ : Enfant.t =
+                         potentiel_plus_age_1_
+                      in
+                      (potentiel_plus_age_.Enfant.date_de_naissance))
+                      (let potentiel_plus_age_ : Enfant.t =
+                         potentiel_plus_age_2_
+                      in
+                      (potentiel_plus_age_.Enfant.date_de_naissance))) then
+                   potentiel_plus_age_1_ else potentiel_plus_age_2_)
+              ({Enfant.identifiant = (integer_of_string "-1");
+                  Enfant.obligation_scolaire =
+                    (SituationObligationScolaire.Pendant ());
+                  Enfant.remuneration_mensuelle = (money_of_cents_string "0");
+                  Enfant.date_de_naissance =
+                    (date_of_numbers (2999) (12) (31));
+                  Enfant.prise_en_charge =
+                    (PriseEnCharge.EffectiveEtPermanente ());
+                  Enfant.a_deja_ouvert_droit_aux_allocations_familiales =
+                    false;
+                  Enfant.beneficie_titre_personnel_aide_personnelle_logement =
+                    false}) enfants_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -488,27 +462,15 @@ let verification_age_inferieur_ou_egal_a (verification_age_inferieur_ou_egal_a_i
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
+              start_line=25; start_column=14; end_line=25; end_column=35;
+              law_headings=["Prologue";
+                             "Montant du salaire minimum de croissance"]}
+            true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
-                           start_line=25; start_column=14;
-                           end_line=25; end_column=35;
-                           law_headings=["Prologue";
-                                          "Montant du salaire minimum de croissance"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_lte_dat_dat
-                           (o_add_dat_dur RoundUp date_naissance_ annees_)
-                           date_courante_))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))
+            o_lte_dat_dat (o_add_dat_dur RoundUp date_naissance_ annees_)
+              date_courante_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
@@ -527,27 +489,15 @@ let verification_age_superieur_a (verification_age_superieur_a_in: VerificationA
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
+              start_line=36; start_column=14; end_line=36; end_column=27;
+              law_headings=["Prologue";
+                             "Montant du salaire minimum de croissance"]}
+            true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
-                           start_line=36; start_column=14;
-                           end_line=36; end_column=27;
-                           law_headings=["Prologue";
-                                          "Montant du salaire minimum de croissance"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_gt_dat_dat
-                           (o_add_dat_dur RoundUp date_naissance_ annees_)
-                           date_courante_))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))
+            o_gt_dat_dat (o_add_dat_dur RoundUp date_naissance_ annees_)
+              date_courante_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/../smic/../prologue_france/prologue.catala_fr";
@@ -1134,28 +1084,16 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                           start_line=21; start_column=14;
-                           end_line=21; end_column=26;
-                           law_headings=["Article R512-2";
-                                          "Chapitre 2 : Champ d'application.";
-                                          "Titre 1 : Champ d'application - Généralités";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets en Conseil d'Etat";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) -> duration_of_numbers (20) (0) (0)))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+              start_line=21; start_column=14; end_line=21; end_column=26;
+              law_headings=["Article R512-2";
+                             "Chapitre 2 : Champ d'application.";
+                             "Titre 1 : Champ d'application - Généralités";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets en Conseil d'Etat";
+                             "Code de la sécurité sociale"]} true))
+         (fun (_: unit) -> duration_of_numbers (20) (0) (0)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -1168,24 +1106,12 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/prologue.catala_fr";
-                           start_line=59; start_column=14;
-                           end_line=59; end_column=32;
-                           law_headings=["Prestations familiales";
-                                          "Champs d'applications";
-                                          "Prologue"]} true))
-                      (fun (_: unit) -> date_courante_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/prologue.catala_fr";
+              start_line=59; start_column=14; end_line=59; end_column=32;
+              law_headings=["Prestations familiales";
+                             "Champs d'applications"; "Prologue"]} true))
+         (fun (_: unit) -> date_courante_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -1198,24 +1124,12 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/prologue.catala_fr";
-                           start_line=58; start_column=14;
-                           end_line=58; end_column=28;
-                           law_headings=["Prestations familiales";
-                                          "Champs d'applications";
-                                          "Prologue"]} true))
-                      (fun (_: unit) -> residence_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/prologue.catala_fr";
+              start_line=58; start_column=14; end_line=58; end_column=28;
+              law_headings=["Prestations familiales";
+                             "Champs d'applications"; "Prologue"]} true))
+         (fun (_: unit) -> residence_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -1238,66 +1152,34 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                handle_default
                  {filename = ""; start_line=0; start_column=1;
                    end_line=0; end_column=1; law_headings=[]} ([||])
-                 (fun (_: unit) -> true)
-                 (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                                   start_line=357; start_column=5;
-                                   end_line=362; end_column=30;
-                                   law_headings=["Article L751-1";
-                                                  "Chapitre 1er : Généralités";
-                                                  "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
-                                                  "Livre 7 : Régimes divers - Dispositions diverses";
-                                                  "Partie législative";
-                                                  "Code de la sécurité sociale"]}
-                                 (o_or
-                                    (o_eq residence_
-                                       (Collectivite.Guadeloupe ()))
-                                    (o_or
-                                       (o_eq residence_
-                                          (Collectivite.Guyane ()))
-                                       (o_or
-                                          (o_eq residence_
-                                             (Collectivite.Martinique ()))
-                                          (o_or
-                                             (o_eq residence_
-                                                (Collectivite.LaReunion ()))
-                                             (o_or
-                                                (o_eq residence_
-                                                   (Collectivite.SaintBarthelemy
-                                                      ()))
-                                                (o_eq residence_
-                                                   (Collectivite.SaintMartin
-                                                      ())))))))))
-                              (fun (_: unit) -> true))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/prologue.catala_fr";
-                           start_line=52; start_column=12;
-                           end_line=52; end_column=35;
-                           law_headings=["Prestations familiales";
-                                          "Champs d'applications";
-                                          "Prologue"]} true))
-                      (fun (_: unit) -> false))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                      start_line=357; start_column=5;
+                      end_line=362; end_column=30;
+                      law_headings=["Article L751-1";
+                                     "Chapitre 1er : Généralités";
+                                     "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
+                                     "Livre 7 : Régimes divers - Dispositions diverses";
+                                     "Partie législative";
+                                     "Code de la sécurité sociale"]}
+                    (o_or (o_eq residence_ (Collectivite.Guadeloupe ()))
+                       (o_or (o_eq residence_ (Collectivite.Guyane ()))
+                          (o_or
+                             (o_eq residence_ (Collectivite.Martinique ()))
+                             (o_or
+                                (o_eq residence_ (Collectivite.LaReunion ()))
+                                (o_or
+                                   (o_eq residence_
+                                      (Collectivite.SaintBarthelemy ()))
+                                   (o_eq residence_
+                                      (Collectivite.SaintMartin ())))))))))
+                 (fun (_: unit) -> true))|])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/prologue.catala_fr";
+              start_line=52; start_column=12; end_line=52; end_column=35;
+              law_headings=["Prestations familiales";
+                             "Champs d'applications"; "Prologue"]} true))
+         (fun (_: unit) -> false))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -1314,60 +1196,35 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                handle_default
                  {filename = ""; start_line=0; start_column=1;
                    end_line=0; end_column=1; law_headings=[]} ([||])
-                 (fun (_: unit) -> true)
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                      start_line=215; start_column=18;
+                      end_line=215; end_column=41;
+                      law_headings=["Article R755-0-2";
+                                     "Chapitre 5 : Prestations familiales et prestations assimilées";
+                                     "Titre 5 : Départements d'outre-mer";
+                                     "Livre 7 : Régimes divers - Dispositions diverses";
+                                     "Partie réglementaire - Décrets en Conseil d'Etat";
+                                     "Code de la sécurité sociale"]}
+                    regime_outre_mer_l751_1_))
                  (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                                   start_line=215; start_column=18;
-                                   end_line=215; end_column=41;
-                                   law_headings=["Article R755-0-2";
-                                                  "Chapitre 5 : Prestations familiales et prestations assimilées";
-                                                  "Titre 5 : Départements d'outre-mer";
-                                                  "Livre 7 : Régimes divers - Dispositions diverses";
-                                                  "Partie réglementaire - Décrets en Conseil d'Etat";
-                                                  "Code de la sécurité sociale"]}
-                                 regime_outre_mer_l751_1_))
-                              (fun (_: unit) ->
-                                 o_mult_mon_rat
-                                   (o_mult_mon_rat smic_dot_brut_horaire_
-                                      (decimal_of_string "0.55"))
-                                   (decimal_of_string "169.")))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
+                    o_mult_mon_rat
+                      (o_mult_mon_rat smic_dot_brut_horaire_
+                         (decimal_of_string "0.55"))
+                      (decimal_of_string "169.")))|])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+              start_line=31; start_column=14; end_line=31; end_column=30;
+              law_headings=["Article R512-2";
+                             "Chapitre 2 : Champ d'application.";
+                             "Titre 1 : Champ d'application - Généralités";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets en Conseil d'Etat";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                           start_line=31; start_column=14;
-                           end_line=31; end_column=30;
-                           law_headings=["Article R512-2";
-                                          "Chapitre 2 : Champ d'application.";
-                                          "Titre 1 : Champ d'application - Généralités";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets en Conseil d'Etat";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_mult_mon_rat
-                           (o_mult_mon_rat smic_dot_brut_horaire_
-                              (decimal_of_string "0.55"))
-                           (decimal_of_string "169.")))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_mult_mon_rat
+              (o_mult_mon_rat smic_dot_brut_horaire_
+                 (decimal_of_string "0.55")) (decimal_of_string "169.")))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -1385,81 +1242,50 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                   handle_default
                     {filename = ""; start_line=0; start_column=1;
                       end_line=0; end_column=1; law_headings=[]} ([||])
-                    (fun (_: unit) -> true)
-                    (fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]}
-                         ([|(fun (_: unit) ->
-                               handle_default
-                                 {filename = ""; start_line=0;
-                                   start_column=1; end_line=0; end_column=1;
-                                   law_headings=[]} ([||])
-                                 (fun (_: unit) -> (log_decision_taken
-                                    {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                                      start_line=68; start_column=5;
-                                      end_line=71; end_column=56;
-                                      law_headings=["Article L512-3";
-                                                     "Chapitre 2 : Champ d'application";
-                                                     "Titre 1 : Champ d'application - Généralités";
-                                                     "Livre 5 : Prestations familiales et prestations assimilées";
-                                                     "Partie législative";
-                                                     "Code de la sécurité sociale"]}
-                                    (o_and
-                                       (o_or
-                                          (match
-                                             (enfant_.Enfant.obligation_scolaire)
-                                           with
-                                           | SituationObligationScolaire.Avant _ ->
-                                               true
-                                           | SituationObligationScolaire.Pendant _ ->
-                                               false
-                                           | SituationObligationScolaire.Apres _ ->
-                                               false)
-                                          (o_or
-                                             (match
-                                                (enfant_.Enfant.obligation_scolaire)
-                                              with
-                                              | SituationObligationScolaire.Avant _ ->
-                                                  false
-                                              | SituationObligationScolaire.Pendant _ ->
-                                                  true
-                                              | SituationObligationScolaire.Apres _ ->
-                                                  false)
-                                             (match
-                                                (enfant_.Enfant.obligation_scolaire)
-                                              with
-                                              | SituationObligationScolaire.Avant _ ->
-                                                  false
-                                              | SituationObligationScolaire.Pendant _ ->
-                                                  false
-                                              | SituationObligationScolaire.Apres _ ->
-                                                  true)))
-                                       (o_lte_mon_mon
-                                          (enfant_.Enfant.remuneration_mensuelle)
-                                          plafond_l512_3_2_))))
-                                 (fun (_: unit) -> true))|])
-                         (fun (_: unit) -> false)
-                         (fun (_: unit) -> raise EmptyError)))|])
-            (fun (_: unit) -> true)
-            (fun (_: unit) ->
-               handle_default
-                 {filename = ""; start_line=0; start_column=1;
-                   end_line=0; end_column=1; law_headings=[]}
-                 ([|(fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]} (
-                         [||])
-                         (fun (_: unit) -> (log_decision_taken
-                            {filename = "examples/allocations_familiales/prologue.catala_fr";
-                              start_line=49; start_column=12;
-                              end_line=49; end_column=31;
-                              law_headings=["Prestations familiales";
-                                             "Champs d'applications";
-                                             "Prologue"]} true))
-                         (fun (_: unit) -> false))|])
-                 (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+                    (fun (_: unit) -> (log_decision_taken
+                       {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                         start_line=68; start_column=5;
+                         end_line=71; end_column=56;
+                         law_headings=["Article L512-3";
+                                        "Chapitre 2 : Champ d'application";
+                                        "Titre 1 : Champ d'application - Généralités";
+                                        "Livre 5 : Prestations familiales et prestations assimilées";
+                                        "Partie législative";
+                                        "Code de la sécurité sociale"]}
+                       (o_and
+                          (o_or
+                             (match (enfant_.Enfant.obligation_scolaire)
+                              with
+                              | SituationObligationScolaire.Avant _ -> true
+                              | SituationObligationScolaire.Pendant _ ->
+                                  false
+                              | SituationObligationScolaire.Apres _ -> false)
+                             (o_or
+                                (match (enfant_.Enfant.obligation_scolaire)
+                                 with
+                                 | SituationObligationScolaire.Avant _ ->
+                                     false
+                                 | SituationObligationScolaire.Pendant _ ->
+                                     true
+                                 | SituationObligationScolaire.Apres _ ->
+                                     false)
+                                (match (enfant_.Enfant.obligation_scolaire)
+                                 with
+                                 | SituationObligationScolaire.Avant _ ->
+                                     false
+                                 | SituationObligationScolaire.Pendant _ ->
+                                     false
+                                 | SituationObligationScolaire.Apres _ ->
+                                     true)))
+                          (o_lte_mon_mon
+                             (enfant_.Enfant.remuneration_mensuelle)
+                             plafond_l512_3_2_)))) (fun (_: unit) -> true))|])
+            (fun (_: unit) -> (log_decision_taken
+               {filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line=49; start_column=12; end_line=49; end_column=31;
+                 law_headings=["Prestations familiales";
+                                "Champs d'applications"; "Prologue"]} true))
+            (fun (_: unit) -> false))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -1481,35 +1307,21 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                           handle_default
                             {filename = ""; start_line=0; start_column=1;
                               end_line=0; end_column=1; law_headings=
-                              []} ([||]) (fun (_: unit) -> true)
-                            (fun (_: unit) ->
-                               handle_default
-                                 {filename = ""; start_line=0;
-                                   start_column=1; end_line=0; end_column=1;
-                                   law_headings=[]}
-                                 ([|(fun (_: unit) ->
-                                       handle_default
-                                         {filename = ""; start_line=0;
-                                           start_column=1;
-                                           end_line=0; end_column=1;
-                                           law_headings=[]} ([||])
-                                         (fun (_: unit) ->
-                                            (log_decision_taken
-                                            {filename = "examples/allocations_familiales/autres_codes.catala_fr";
-                                              start_line=24; start_column=5;
-                                              end_line=24; end_column=63;
-                                              law_headings=["Article L821-3";
-                                                             "Sous-section 1 : Aides personnelles au logement";
-                                                             "Section 2 : Règles de non-cumul";
-                                                             "Chapitre Ier : Principes généraux";
-                                                             "Titre II : Dispositions communes aux aides personnelles au logement";
-                                                             "Livre VIII : Aides personnelles au logement";
-                                                             "Partie législative";
-                                                             "Code de la construction et de l'habitation"]}
-                                            (enfant_.Enfant.beneficie_titre_personnel_aide_personnelle_logement)))
-                                         (fun (_: unit) -> false))|])
-                                 (fun (_: unit) -> false)
-                                 (fun (_: unit) -> raise EmptyError)))|])
+                              []} ([||])
+                            (fun (_: unit) -> (log_decision_taken
+                               {filename = "examples/allocations_familiales/autres_codes.catala_fr";
+                                 start_line=24; start_column=5;
+                                 end_line=24; end_column=63;
+                                 law_headings=["Article L821-3";
+                                                "Sous-section 1 : Aides personnelles au logement";
+                                                "Section 2 : Règles de non-cumul";
+                                                "Chapitre Ier : Principes généraux";
+                                                "Titre II : Dispositions communes aux aides personnelles au logement";
+                                                "Livre VIII : Aides personnelles au logement";
+                                                "Partie législative";
+                                                "Code de la construction et de l'habitation"]}
+                               (enfant_.Enfant.beneficie_titre_personnel_aide_personnelle_logement)))
+                            (fun (_: unit) -> false))|])
                     (fun (_: unit) -> true)
                     (fun (_: unit) ->
                        handle_default
@@ -1588,25 +1400,12 @@ let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t
                                             false)))) (fun (_: unit) -> true))|])
                          (fun (_: unit) -> false)
                          (fun (_: unit) -> raise EmptyError)))|])
-            (fun (_: unit) -> true)
-            (fun (_: unit) ->
-               handle_default
-                 {filename = ""; start_line=0; start_column=1;
-                   end_line=0; end_column=1; law_headings=[]}
-                 ([|(fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]} (
-                         [||])
-                         (fun (_: unit) -> (log_decision_taken
-                            {filename = "examples/allocations_familiales/prologue.catala_fr";
-                              start_line=48; start_column=12;
-                              end_line=48; end_column=24;
-                              law_headings=["Prestations familiales";
-                                             "Champs d'applications";
-                                             "Prologue"]} true))
-                         (fun (_: unit) -> false))|])
-                 (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            (fun (_: unit) -> (log_decision_taken
+               {filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line=48; start_column=12; end_line=48; end_column=24;
+                 law_headings=["Prestations familiales";
+                                "Champs d'applications"; "Prologue"]} true))
+            (fun (_: unit) -> false))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2020,24 +1819,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/prologue.catala_fr";
-                           start_line=155; start_column=14;
-                           end_line=155; end_column=32;
-                           law_headings=["Allocations familiales";
-                                          "Champs d'applications";
-                                          "Prologue"]} true))
-                      (fun (_: unit) -> date_courante_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/prologue.catala_fr";
+              start_line=155; start_column=14; end_line=155; end_column=32;
+              law_headings=["Allocations familiales";
+                             "Champs d'applications"; "Prologue"]} true))
+         (fun (_: unit) -> date_courante_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2059,24 +1846,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/prologue.catala_fr";
-                           start_line=151; start_column=14;
-                           end_line=151; end_column=50;
-                           law_headings=["Allocations familiales";
-                                          "Champs d'applications";
-                                          "Prologue"]} true))
-                      (fun (_: unit) -> date_courante_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/prologue.catala_fr";
+              start_line=151; start_column=14; end_line=151; end_column=50;
+              law_headings=["Allocations familiales";
+                             "Champs d'applications"; "Prologue"]} true))
+         (fun (_: unit) -> date_courante_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2090,24 +1865,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/prologue.catala_fr";
-                           start_line=153; start_column=14;
-                           end_line=153; end_column=46;
-                           law_headings=["Allocations familiales";
-                                          "Champs d'applications";
-                                          "Prologue"]} true))
-                      (fun (_: unit) -> residence_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/prologue.catala_fr";
+              start_line=153; start_column=14; end_line=153; end_column=46;
+              law_headings=["Allocations familiales";
+                             "Champs d'applications"; "Prologue"]} true))
+         (fun (_: unit) -> residence_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2134,22 +1897,11 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=33; start_column=14;
-                           end_line=33; end_column=40;
-                           law_headings=["Règles diverses"; "Épilogue"]}
-                         true)) (fun (_: unit) -> enfants_a_charge_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=33; start_column=14; end_line=33; end_column=40;
+              law_headings=["Règles diverses"; "Épilogue"]} true))
+         (fun (_: unit) -> enfants_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -2173,58 +1925,33 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                   handle_default
                     {filename = ""; start_line=0; start_column=1;
                       end_line=0; end_column=1; law_headings=[]} ([||])
-                    (fun (_: unit) -> true)
+                    (fun (_: unit) -> (log_decision_taken
+                       {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                         start_line=83; start_column=19;
+                         end_line=83; end_column=67;
+                         law_headings=["Article R521-1";
+                                        "Chapitre 1er : Allocations familiales";
+                                        "Titre 2 : Prestations générales d'entretien";
+                                        "Livre 5 : Prestations familiales et prestations assimilées";
+                                        "Partie réglementaire - Décrets en Conseil d'Etat";
+                                        "Code de la sécurité sociale"]}
+                       (o_lte_dat_dat
+                          (o_add_dat_dur AbortOnRound
+                             (enfant_.Enfant.date_de_naissance)
+                             (duration_of_numbers (11) (0) (0)))
+                          (date_of_numbers (2008) (4) (30)))))
                     (fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]}
-                         ([|(fun (_: unit) ->
-                               handle_default
-                                 {filename = ""; start_line=0;
-                                   start_column=1; end_line=0; end_column=1;
-                                   law_headings=[]} ([||])
-                                 (fun (_: unit) -> (log_decision_taken
-                                    {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                                      start_line=83; start_column=19;
-                                      end_line=83; end_column=67;
-                                      law_headings=["Article R521-1";
-                                                     "Chapitre 1er : Allocations familiales";
-                                                     "Titre 2 : Prestations générales d'entretien";
-                                                     "Livre 5 : Prestations familiales et prestations assimilées";
-                                                     "Partie réglementaire - Décrets en Conseil d'Etat";
-                                                     "Code de la sécurité sociale"]}
-                                    (o_lte_dat_dat
-                                       (o_add_dat_dur AbortOnRound
-                                          (enfant_.Enfant.date_de_naissance)
-                                          (duration_of_numbers (11) (0) (0)))
-                                       (date_of_numbers (2008) (4) (30)))))
-                                 (fun (_: unit) ->
-                                    version_avril_2008_dot_age_minimum_alinea_1_l521_3_))|])
-                         (fun (_: unit) -> false)
-                         (fun (_: unit) -> raise EmptyError)))|])
-            (fun (_: unit) -> true)
-            (fun (_: unit) ->
-               handle_default
-                 {filename = ""; start_line=0; start_column=1;
-                   end_line=0; end_column=1; law_headings=[]}
-                 ([|(fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]} (
-                         [||])
-                         (fun (_: unit) -> (log_decision_taken
-                            {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                              start_line=56; start_column=14;
-                              end_line=56; end_column=41;
-                              law_headings=["Article R521-1";
-                                             "Chapitre 1er : Allocations familiales";
-                                             "Titre 2 : Prestations générales d'entretien";
-                                             "Livre 5 : Prestations familiales et prestations assimilées";
-                                             "Partie réglementaire - Décrets en Conseil d'Etat";
-                                             "Code de la sécurité sociale"]}
-                            true))
-                         (fun (_: unit) -> duration_of_numbers (14) (0) (0)))|])
-                 (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+                       version_avril_2008_dot_age_minimum_alinea_1_l521_3_))|])
+            (fun (_: unit) -> (log_decision_taken
+               {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 start_line=56; start_column=14; end_line=56; end_column=41;
+                 law_headings=["Article R521-1";
+                                "Chapitre 1er : Allocations familiales";
+                                "Titre 2 : Prestations générales d'entretien";
+                                "Livre 5 : Prestations familiales et prestations assimilées";
+                                "Partie réglementaire - Décrets en Conseil d'Etat";
+                                "Code de la sécurité sociale"]} true))
+            (fun (_: unit) -> duration_of_numbers (14) (0) (0)))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2239,40 +1966,27 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+              start_line=75; start_column=14; end_line=75; end_column=64;
+              law_headings=["Article L512-3";
+                             "Chapitre 2 : Champ d'application";
+                             "Titre 1 : Champ d'application - Généralités";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie législative";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                           start_line=75; start_column=14;
-                           end_line=75; end_column=64;
-                           law_headings=["Article L512-3";
-                                          "Chapitre 2 : Champ d'application";
-                                          "Titre 1 : Champ d'application - Généralités";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie législative";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_filter
-                           (fun (enfant_: Enfant.t) -> (log_end_call
-                              ["PrestationsFamiliales"; "droit_ouvert"]
-                              ((log_variable_definition
-                              ["PrestationsFamiliales"; "droit_ouvert";
-                                "output"] (embed_bool) ((log_begin_call
-                              ["PrestationsFamiliales"; "droit_ouvert"]
-                              prestations_familiales_dot_droit_ouvert_)
-                              ((log_variable_definition
-                              ["PrestationsFamiliales"; "droit_ouvert";
-                                "input0"] (embed_enfant) enfant_)))))))
-                           enfants_a_charge_))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))
+            o_filter
+              (fun (enfant_: Enfant.t) -> (log_end_call
+                 ["PrestationsFamiliales"; "droit_ouvert"]
+                 ((log_variable_definition
+                 ["PrestationsFamiliales"; "droit_ouvert"; "output"]
+                 (embed_bool) ((log_begin_call
+                 ["PrestationsFamiliales"; "droit_ouvert"]
+                 prestations_familiales_dot_droit_ouvert_)
+                 ((log_variable_definition
+                 ["PrestationsFamiliales"; "droit_ouvert"; "input0"]
+                 (embed_enfant) enfant_))))))) enfants_a_charge_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2286,25 +2000,12 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
          (handle_default
             {filename = ""; start_line=0; start_column=1;
               end_line=0; end_column=1; law_headings=[]} ([||])
-            (fun (_: unit) -> true)
+            (fun (_: unit) -> (log_decision_taken
+               {filename = "examples/allocations_familiales/epilogue.catala_fr";
+                 start_line=34; start_column=14; end_line=34; end_column=36;
+                 law_headings=["Règles diverses"; "Épilogue"]} true))
             (fun (_: unit) ->
-               handle_default
-                 {filename = ""; start_line=0; start_column=1;
-                   end_line=0; end_column=1; law_headings=[]}
-                 ([|(fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]} (
-                         [||])
-                         (fun (_: unit) -> (log_decision_taken
-                            {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                              start_line=34; start_column=14;
-                              end_line=34; end_column=36;
-                              law_headings=["Règles diverses"; "Épilogue"]}
-                            true))
-                         (fun (_: unit) ->
-                            o_eq enfant_le_plus_age_dot_le_plus_age_ enfant_))|])
-                 (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+               o_eq enfant_le_plus_age_dot_le_plus_age_ enfant_))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2425,33 +2126,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                             enfants_a_charge_droit_ouvert_prestation_familiale_)))))|])
                       (fun (_: unit) -> false)
                       (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+              start_line=314; start_column=14; end_line=314; end_column=31;
+              law_headings=["Article D521-3";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets simples";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                           start_line=314; start_column=14;
-                           end_line=314; end_column=31;
-                           law_headings=["Article D521-3";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets simples";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_add_mon_mon (money_of_cents_string "7830000")
-                           (o_mult_mon_rat (money_of_cents_string "559500")
-                              (o_torat_int
-                                 (o_length
-                                    enfants_a_charge_droit_ouvert_prestation_familiale_)))))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_add_mon_mon (money_of_cents_string "7830000")
+              (o_mult_mon_rat (money_of_cents_string "559500")
+                 (o_torat_int
+                    (o_length
+                       enfants_a_charge_droit_ouvert_prestation_familiale_)))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2572,33 +2261,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                             enfants_a_charge_droit_ouvert_prestation_familiale_)))))|])
                       (fun (_: unit) -> false)
                       (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+              start_line=304; start_column=14; end_line=304; end_column=30;
+              law_headings=["Article D521-3";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets simples";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                           start_line=304; start_column=14;
-                           end_line=304; end_column=30;
-                           law_headings=["Article D521-3";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets simples";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_add_mon_mon (money_of_cents_string "5595000")
-                           (o_mult_mon_rat (money_of_cents_string "559500")
-                              (o_torat_int
-                                 (o_length
-                                    enfants_a_charge_droit_ouvert_prestation_familiale_)))))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_add_mon_mon (money_of_cents_string "5595000")
+              (o_mult_mon_rat (money_of_cents_string "559500")
+                 (o_torat_int
+                    (o_length
+                       enfants_a_charge_droit_ouvert_prestation_familiale_)))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2619,74 +2296,36 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                        handle_default
                          {filename = ""; start_line=0; start_column=1;
                            end_line=0; end_column=1; law_headings=[]} (
-                         [||]) (fun (_: unit) -> true)
-                         (fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []}
-                              ([|(fun (_: unit) ->
-                                    handle_default
-                                      {filename = ""; start_line=0;
-                                        start_column=1;
-                                        end_line=0; end_column=1;
-                                        law_headings=[]} ([||])
-                                      (fun (_: unit) -> (log_decision_taken
-                                         {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                                           start_line=429; start_column=5;
-                                           end_line=430; end_column=71;
-                                           law_headings=["Article L755-12";
-                                                          "Chapitre 5 : Prestations familiales et prestations assimilées";
-                                                          "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
-                                                          "Livre 7 : Régimes divers - Dispositions diverses";
-                                                          "Partie législative";
-                                                          "Code de la sécurité sociale"]}
-                                         (o_and
-                                            prestations_familiales_dot_regime_outre_mer_l751_1_
-                                            (o_eq
-                                               (o_length
-                                                  enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                               (integer_of_string "1")))))
-                                      (fun (_: unit) -> false))|])
-                              (fun (_: unit) -> false)
-                              (fun (_: unit) -> raise EmptyError)))|])
-                 (fun (_: unit) -> true)
-                 (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                                   start_line=31; start_column=9;
-                                   end_line=31; end_column=32;
-                                   law_headings=["Règles diverses";
-                                                  "Épilogue"]} true))
-                              (fun (_: unit) -> true))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/prologue.catala_fr";
-                           start_line=128; start_column=11;
-                           end_line=128; end_column=34;
-                           law_headings=["Allocations familiales";
-                                          "Champs d'applications";
-                                          "Prologue"]} true))
-                      (fun (_: unit) -> false))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))
+                         [||])
+                         (fun (_: unit) -> (log_decision_taken
+                            {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                              start_line=429; start_column=5;
+                              end_line=430; end_column=71;
+                              law_headings=["Article L755-12";
+                                             "Chapitre 5 : Prestations familiales et prestations assimilées";
+                                             "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
+                                             "Livre 7 : Régimes divers - Dispositions diverses";
+                                             "Partie législative";
+                                             "Code de la sécurité sociale"]}
+                            (o_and
+                               prestations_familiales_dot_regime_outre_mer_l751_1_
+                               (o_eq
+                                  (o_length
+                                     enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                  (integer_of_string "1")))))
+                         (fun (_: unit) -> false))|])
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/epilogue.catala_fr";
+                      start_line=31; start_column=9;
+                      end_line=31; end_column=32;
+                      law_headings=["Règles diverses"; "Épilogue"]} true))
+                 (fun (_: unit) -> true))|])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/prologue.catala_fr";
+              start_line=128; start_column=11; end_line=128; end_column=34;
+              law_headings=["Allocations familiales";
+                             "Champs d'applications"; "Prologue"]} true))
+         (fun (_: unit) -> false))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2708,110 +2347,69 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                           handle_default
                             {filename = ""; start_line=0; start_column=1;
                               end_line=0; end_column=1; law_headings=
-                              []} ([||]) (fun (_: unit) -> true)
-                            (fun (_: unit) ->
-                               handle_default
-                                 {filename = ""; start_line=0;
-                                   start_column=1; end_line=0; end_column=1;
-                                   law_headings=[]}
-                                 ([|(fun (_: unit) ->
-                                       handle_default
-                                         {filename = ""; start_line=0;
-                                           start_column=1;
-                                           end_line=0; end_column=1;
-                                           law_headings=[]} ([||])
-                                         (fun (_: unit) ->
-                                            (log_decision_taken
-                                            {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                                              start_line=423; start_column=6;
-                                              end_line=424; end_column=72;
-                                              law_headings=["Article L755-12";
-                                                             "Chapitre 5 : Prestations familiales et prestations assimilées";
-                                                             "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
-                                                             "Livre 7 : Régimes divers - Dispositions diverses";
-                                                             "Partie législative";
-                                                             "Code de la sécurité sociale"]}
-                                            (o_and
-                                               prestations_familiales_dot_regime_outre_mer_l751_1_
-                                               (o_eq
-                                                  (o_length
-                                                     enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                                  (integer_of_string "1")))))
-                                         (fun (_: unit) -> false))|])
-                                 (fun (_: unit) -> false)
-                                 (fun (_: unit) -> raise EmptyError)))|])
-                    (fun (_: unit) -> true)
-                    (fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]}
-                         ([|(fun (_: unit) ->
-                               handle_default
-                                 {filename = ""; start_line=0;
-                                   start_column=1; end_line=0; end_column=1;
-                                   law_headings=[]} ([||])
-                                 (fun (_: unit) -> (log_decision_taken
-                                    {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                                      start_line=119; start_column=5;
-                                      end_line=126; end_column=59;
-                                      law_headings=["Article L521-1";
-                                                     "Chapitre 1er : Allocations familiales";
-                                                     "Titre 2 : Prestations générales d'entretien";
-                                                     "Livre 5 : Prestations familiales et prestations assimilées";
-                                                     "Partie législative";
-                                                     "Code de la sécurité sociale"]}
-                                    (o_and
-                                       (o_gte_int_int
-                                          (o_length enfants_a_charge_)
-                                          nombre_enfants_alinea_2_l521_3_)
-                                       (o_and
-                                          (o_lt_dur_dur
-                                             (o_sub_dat_dat
-                                                (o_add_dat_dur AbortOnRound
-                                                   (enfant_.Enfant.date_de_naissance)
-                                                   prestations_familiales_dot_age_l512_3_2_)
-                                                date_courante_)
-                                             (duration_of_numbers (0) (0) (365)))
-                                          (o_and
-                                             (enfant_.Enfant.a_deja_ouvert_droit_aux_allocations_familiales)
-                                             ((log_end_call
-                                             ["PrestationsFamiliales";
-                                               "conditions_hors_âge"]
-                                             ((log_variable_definition
-                                             ["PrestationsFamiliales";
-                                               "conditions_hors_âge";
-                                               "output"] (embed_bool)
-                                             ((log_begin_call
-                                             ["PrestationsFamiliales";
-                                               "conditions_hors_âge"]
-                                             prestations_familiales_dot_conditions_hors_age_)
-                                             ((log_variable_definition
-                                             ["PrestationsFamiliales";
-                                               "conditions_hors_âge";
-                                               "input0"] (embed_enfant)
-                                             enfant_))))))))))))
-                                 (fun (_: unit) -> true))|])
-                         (fun (_: unit) -> false)
-                         (fun (_: unit) -> raise EmptyError)))|])
-            (fun (_: unit) -> true)
-            (fun (_: unit) ->
-               handle_default
-                 {filename = ""; start_line=0; start_column=1;
-                   end_line=0; end_column=1; law_headings=[]}
-                 ([|(fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]} (
-                         [||])
-                         (fun (_: unit) -> (log_decision_taken
-                            {filename = "examples/allocations_familiales/prologue.catala_fr";
-                              start_line=111; start_column=11;
-                              end_line=111; end_column=35;
-                              law_headings=["Allocations familiales";
-                                             "Champs d'applications";
-                                             "Prologue"]} true))
-                         (fun (_: unit) -> false))|])
-                 (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+                              []} ([||])
+                            (fun (_: unit) -> (log_decision_taken
+                               {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                 start_line=423; start_column=6;
+                                 end_line=424; end_column=72;
+                                 law_headings=["Article L755-12";
+                                                "Chapitre 5 : Prestations familiales et prestations assimilées";
+                                                "Titre 5 : Dispositions particulières à la Guadeloupe, à la Guyane, à la Martinique, à La Réunion, à Saint-Barthélemy et à Saint-Martin";
+                                                "Livre 7 : Régimes divers - Dispositions diverses";
+                                                "Partie législative";
+                                                "Code de la sécurité sociale"]}
+                               (o_and
+                                  prestations_familiales_dot_regime_outre_mer_l751_1_
+                                  (o_eq
+                                     (o_length
+                                        enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                     (integer_of_string "1")))))
+                            (fun (_: unit) -> false))|])
+                    (fun (_: unit) -> (log_decision_taken
+                       {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                         start_line=119; start_column=5;
+                         end_line=126; end_column=59;
+                         law_headings=["Article L521-1";
+                                        "Chapitre 1er : Allocations familiales";
+                                        "Titre 2 : Prestations générales d'entretien";
+                                        "Livre 5 : Prestations familiales et prestations assimilées";
+                                        "Partie législative";
+                                        "Code de la sécurité sociale"]}
+                       (o_and
+                          (o_gte_int_int (o_length enfants_a_charge_)
+                             nombre_enfants_alinea_2_l521_3_)
+                          (o_and
+                             (o_lt_dur_dur
+                                (o_sub_dat_dat
+                                   (o_add_dat_dur AbortOnRound
+                                      (enfant_.Enfant.date_de_naissance)
+                                      prestations_familiales_dot_age_l512_3_2_)
+                                   date_courante_)
+                                (duration_of_numbers (0) (0) (365)))
+                             (o_and
+                                (enfant_.Enfant.a_deja_ouvert_droit_aux_allocations_familiales)
+                                ((log_end_call
+                                ["PrestationsFamiliales";
+                                  "conditions_hors_âge"]
+                                ((log_variable_definition
+                                ["PrestationsFamiliales";
+                                  "conditions_hors_âge"; "output"]
+                                (embed_bool) ((log_begin_call
+                                ["PrestationsFamiliales";
+                                  "conditions_hors_âge"]
+                                prestations_familiales_dot_conditions_hors_age_)
+                                ((log_variable_definition
+                                ["PrestationsFamiliales";
+                                  "conditions_hors_âge"; "input0"]
+                                (embed_enfant) enfant_))))))))))))
+                    (fun (_: unit) -> true))|])
+            (fun (_: unit) -> (log_decision_taken
+               {filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line=111; start_column=11;
+                 end_line=111; end_column=35;
+                 law_headings=["Allocations familiales";
+                                "Champs d'applications"; "Prologue"]} true))
+            (fun (_: unit) -> false))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -2826,39 +2424,28 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
+              start_line=195; start_column=14; end_line=195; end_column=67;
+              law_headings=["Article 7";
+                             "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
+                             "Dispositions spéciales relatives à Mayotte"]}
+            true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
-                           start_line=195; start_column=14;
-                           end_line=195; end_column=67;
-                           law_headings=["Article 7";
-                                          "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
-                                          "Dispositions spéciales relatives à Mayotte"]}
-                         true))
-                      (fun (_: unit) ->
-                          if
-                           (o_gt_int_int
-                              (o_length
-                                 enfants_a_charge_droit_ouvert_prestation_familiale_)
-                              (integer_of_string "3")) then
-                           (o_mult_mon_rat
-                              (o_mult_mon_rat bmaf_dot_montant_
-                                 (decimal_of_string "0.0463"))
-                              (o_torat_int
-                                 (o_sub_int_int
-                                    (o_length
-                                       enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                    (integer_of_string "3")))) else
-                           (money_of_cents_string "0")))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+             if
+              (o_gt_int_int
+                 (o_length
+                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                 (integer_of_string "3")) then
+              (o_mult_mon_rat
+                 (o_mult_mon_rat bmaf_dot_montant_
+                    (decimal_of_string "0.0463"))
+                 (o_torat_int
+                    (o_sub_int_int
+                       (o_length
+                          enfants_a_charge_droit_ouvert_prestation_familiale_)
+                       (integer_of_string "3")))) else
+              (money_of_cents_string "0")))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3173,33 +2760,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                    (money_of_cents_string "0")))|])
                       (fun (_: unit) -> false)
                       (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
+              start_line=186; start_column=14; end_line=186; end_column=59;
+              law_headings=["Article 7";
+                             "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
+                             "Dispositions spéciales relatives à Mayotte"]}
+            true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
-                           start_line=186; start_column=14;
-                           end_line=186; end_column=59;
-                           law_headings=["Article 7";
-                                          "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
-                                          "Dispositions spéciales relatives à Mayotte"]}
-                         true))
-                      (fun (_: unit) ->
-                          if
-                           (o_gt_int_int
-                              (o_length
-                                 enfants_a_charge_droit_ouvert_prestation_familiale_)
-                              (integer_of_string "2")) then
-                           (o_mult_mon_rat bmaf_dot_montant_
-                              (decimal_of_string "0.16")) else
-                           (money_of_cents_string "0")))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+             if
+              (o_gt_int_int
+                 (o_length
+                    enfants_a_charge_droit_ouvert_prestation_familiale_)
+                 (integer_of_string "2")) then
+              (o_mult_mon_rat bmaf_dot_montant_ (decimal_of_string "0.16"))
+              else (money_of_cents_string "0")))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3212,31 +2787,18 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+              start_line=160; start_column=14; end_line=160; end_column=34;
+              law_headings=["Article R521-3";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets en Conseil d'Etat";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                           start_line=160; start_column=14;
-                           end_line=160; end_column=34;
-                           law_headings=["Article R521-3";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets en Conseil d'Etat";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_torat_int
-                           (o_length
-                              enfants_a_charge_droit_ouvert_prestation_familiale_)))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_torat_int
+              (o_length enfants_a_charge_droit_ouvert_prestation_familiale_)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3249,55 +2811,35 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+              start_line=142; start_column=14; end_line=142; end_column=34;
+              law_headings=["Article R521-3";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets en Conseil d'Etat";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                           start_line=142; start_column=14;
-                           end_line=142; end_column=34;
-                           law_headings=["Article R521-3";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets en Conseil d'Etat";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_reduce
-                           (fun (sum1_: decimal) (sum2_: decimal) ->
-                              o_add_rat_rat sum1_ sum2_)
-                           (decimal_of_string "0.")
-                           (o_map
-                              (fun (enfant_: Enfant.t) ->
-                                 match ((log_end_call
-                                   ["AllocationsFamiliales";
-                                     "prise_en_compte"]
-                                   ((log_variable_definition
-                                   ["AllocationsFamiliales";
-                                     "prise_en_compte"; "output"]
-                                   (embed_prise_en_compte) ((log_begin_call
-                                   ["AllocationsFamiliales";
-                                     "prise_en_compte"] prise_en_compte_)
-                                   ((log_variable_definition
-                                   ["AllocationsFamiliales";
-                                     "prise_en_compte"; "input0"]
-                                   (embed_enfant) enfant_)))))))
-                                 with
-                                 | PriseEnCompte.Complete _ ->
-                                     (decimal_of_string "1.")
-                                 | PriseEnCompte.Partagee _ ->
-                                     (decimal_of_string "0.5")
-                                 | PriseEnCompte.Zero _ ->
-                                     (decimal_of_string "0."))
-                              enfants_a_charge_droit_ouvert_prestation_familiale_)))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_reduce
+              (fun (sum1_: decimal) (sum2_: decimal) ->
+                 o_add_rat_rat sum1_ sum2_) (decimal_of_string "0.")
+              (o_map
+                 (fun (enfant_: Enfant.t) ->
+                    match ((log_end_call
+                      ["AllocationsFamiliales"; "prise_en_compte"]
+                      ((log_variable_definition
+                      ["AllocationsFamiliales"; "prise_en_compte"; "output"]
+                      (embed_prise_en_compte) ((log_begin_call
+                      ["AllocationsFamiliales"; "prise_en_compte"]
+                      prise_en_compte_) ((log_variable_definition
+                      ["AllocationsFamiliales"; "prise_en_compte"; "input0"]
+                      (embed_enfant) enfant_)))))))
+                    with
+                    | PriseEnCompte.Complete _ -> (decimal_of_string "1.")
+                    | PriseEnCompte.Partagee _ -> (decimal_of_string "0.5")
+                    | PriseEnCompte.Zero _ -> (decimal_of_string "0."))
+                 enfants_a_charge_droit_ouvert_prestation_familiale_)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3692,91 +3234,56 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                            else (money_of_cents_string "0")))|])
                               (fun (_: unit) -> false)
                               (fun (_: unit) -> raise EmptyError)))|])
-                 (fun (_: unit) -> true)
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
+                      start_line=167; start_column=14;
+                      end_line=167; end_column=49;
+                      law_headings=["Article 7";
+                                     "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
+                                     "Dispositions spéciales relatives à Mayotte"]}
+                    (o_eq residence_ (Collectivite.Mayotte ()))))
                  (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
-                                   start_line=167; start_column=14;
-                                   end_line=167; end_column=49;
-                                   law_headings=["Article 7";
-                                                  "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
-                                                  "Dispositions spéciales relatives à Mayotte"]}
-                                 (o_eq residence_ (Collectivite.Mayotte ()))))
-                              (fun (_: unit) ->
-                                  if
-                                   (o_gt_int_int
-                                      (o_length
-                                         enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                      (integer_of_string "0")) then
-                                   (o_mult_mon_rat bmaf_dot_montant_
-                                      (decimal_of_string "0.0588")) else
-                                   (money_of_cents_string "0")))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)));
+                     if
+                      (o_gt_int_int
+                         (o_length
+                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                         (integer_of_string "0")) then
+                      (o_mult_mon_rat bmaf_dot_montant_
+                         (decimal_of_string "0.0588")) else
+                      (money_of_cents_string "0")));
             (fun (_: unit) ->
                handle_default
                  {filename = ""; start_line=0; start_column=1;
                    end_line=0; end_column=1; law_headings=[]} ([||])
-                 (fun (_: unit) -> true)
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                      start_line=365; start_column=5;
+                      end_line=366; end_column=71;
+                      law_headings=["Article D755-5";
+                                     "Chapitre 5 : Prestations familiales et prestations assimilées";
+                                     "Titre 5 : Départements d'outre-mer";
+                                     "Livre 7 : Régimes divers - Dispositions diverses";
+                                     "Partie réglementaire - Décrets simples";
+                                     "Code de la sécurité sociale"]}
+                    (o_and
+                       prestations_familiales_dot_regime_outre_mer_l751_1_
+                       (o_eq
+                          (o_length
+                             enfants_a_charge_droit_ouvert_prestation_familiale_)
+                          (integer_of_string "1")))))
                  (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                                   start_line=365; start_column=5;
-                                   end_line=366; end_column=71;
-                                   law_headings=["Article D755-5";
-                                                  "Chapitre 5 : Prestations familiales et prestations assimilées";
-                                                  "Titre 5 : Départements d'outre-mer";
-                                                  "Livre 7 : Régimes divers - Dispositions diverses";
-                                                  "Partie réglementaire - Décrets simples";
-                                                  "Code de la sécurité sociale"]}
-                                 (o_and
-                                    prestations_familiales_dot_regime_outre_mer_l751_1_
-                                    (o_eq
-                                       (o_length
-                                          enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                       (integer_of_string "1")))))
-                              (fun (_: unit) ->
-                                 o_mult_mon_rat bmaf_dot_montant_
-                                   (decimal_of_string "0.0588")))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                           start_line=362; start_column=29;
-                           end_line=362; end_column=64;
-                           law_headings=["Article D755-5";
-                                          "Chapitre 5 : Prestations familiales et prestations assimilées";
-                                          "Titre 5 : Départements d'outre-mer";
-                                          "Livre 7 : Régimes divers - Dispositions diverses";
-                                          "Partie réglementaire - Décrets simples";
-                                          "Code de la sécurité sociale"]}
-                         true)) (fun (_: unit) -> money_of_cents_string "0"))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+                    o_mult_mon_rat bmaf_dot_montant_
+                      (decimal_of_string "0.0588")))|])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+              start_line=362; start_column=29; end_line=362; end_column=64;
+              law_headings=["Article D755-5";
+                             "Chapitre 5 : Prestations familiales et prestations assimilées";
+                             "Titre 5 : Départements d'outre-mer";
+                             "Livre 7 : Régimes divers - Dispositions diverses";
+                             "Partie réglementaire - Décrets simples";
+                             "Code de la sécurité sociale"]} true))
+         (fun (_: unit) -> money_of_cents_string "0"))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3853,51 +3360,26 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       (fun (_: unit) -> true))|])
                               (fun (_: unit) -> false)
                               (fun (_: unit) -> raise EmptyError)))|])
-                 (fun (_: unit) -> true)
-                 (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                                   start_line=101; start_column=5;
-                                   end_line=101; end_column=70;
-                                   law_headings=["Article L521-1";
-                                                  "Chapitre 1er : Allocations familiales";
-                                                  "Titre 2 : Prestations générales d'entretien";
-                                                  "Livre 5 : Prestations familiales et prestations assimilées";
-                                                  "Partie législative";
-                                                  "Code de la sécurité sociale"]}
-                                 (o_gte_int_int
-                                    (o_length
-                                       enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                    (integer_of_string "2"))))
-                              (fun (_: unit) -> true))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/prologue.catala_fr";
-                           start_line=94; start_column=11;
-                           end_line=94; end_column=28;
-                           law_headings=["Allocations familiales";
-                                          "Champs d'applications";
-                                          "Prologue"]} true))
-                      (fun (_: unit) -> false))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                      start_line=101; start_column=5;
+                      end_line=101; end_column=70;
+                      law_headings=["Article L521-1";
+                                     "Chapitre 1er : Allocations familiales";
+                                     "Titre 2 : Prestations générales d'entretien";
+                                     "Livre 5 : Prestations familiales et prestations assimilées";
+                                     "Partie législative";
+                                     "Code de la sécurité sociale"]}
+                    (o_gte_int_int
+                       (o_length
+                          enfants_a_charge_droit_ouvert_prestation_familiale_)
+                       (integer_of_string "2")))) (fun (_: unit) -> true))|])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/prologue.catala_fr";
+              start_line=94; start_column=11; end_line=94; end_column=28;
+              law_headings=["Allocations familiales";
+                             "Champs d'applications"; "Prologue"]} true))
+         (fun (_: unit) -> false))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -3919,137 +3401,92 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                           handle_default
                             {filename = ""; start_line=0; start_column=1;
                               end_line=0; end_column=1; law_headings=
-                              []} ([||]) (fun (_: unit) -> true)
-                            (fun (_: unit) ->
-                               handle_default
-                                 {filename = ""; start_line=0;
-                                   start_column=1; end_line=0; end_column=1;
-                                   law_headings=[]}
-                                 ([|(fun (_: unit) ->
-                                       handle_default
-                                         {filename = ""; start_line=0;
-                                           start_column=1;
-                                           end_line=0; end_column=1;
-                                           law_headings=[]} ([||])
-                                         (fun (_: unit) ->
-                                            (log_decision_taken
-                                            {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                                              start_line=315; start_column=5;
-                                              end_line=318; end_column=21;
-                                              law_headings=["Article L521-3";
-                                                             "Chapitre 1er : Allocations familiales";
-                                                             "Titre 2 : Prestations générales d'entretien";
-                                                             "Livre 5 : Prestations familiales et prestations assimilées";
-                                                             "Partie législative";
-                                                             "Code de la sécurité sociale"]}
-                                            (o_and
-                                               (o_gte_int_int
-                                                  (o_length
-                                                     enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                                  nombre_enfants_alinea_2_l521_3_)
-                                               (o_lte_dat_dat
-                                                  (o_add_dat_dur AbortOnRound
-                                                     (enfant_.Enfant.date_de_naissance)
-                                                     ((log_end_call
-                                                     ["AllocationsFamiliales";
-                                                       "âge_minimum_alinéa_1_l521_3"]
-                                                     ((log_variable_definition
-                                                     ["AllocationsFamiliales";
-                                                       "âge_minimum_alinéa_1_l521_3";
-                                                       "output"]
-                                                     (embed_duration)
-                                                     ((log_begin_call
-                                                     ["AllocationsFamiliales";
-                                                       "âge_minimum_alinéa_1_l521_3"]
-                                                     age_minimum_alinea_1_l521_3_)
-                                                     ((log_variable_definition
-                                                     ["AllocationsFamiliales";
-                                                       "âge_minimum_alinéa_1_l521_3";
-                                                       "input0"]
-                                                     (embed_enfant)
-                                                     enfant_))))))))
-                                                  date_courante_))))
-                                         (fun (_: unit) -> true))|])
-                                 (fun (_: unit) -> false)
-                                 (fun (_: unit) -> raise EmptyError)))|])
-                    (fun (_: unit) -> true)
-                    (fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]}
-                         ([|(fun (_: unit) ->
-                               handle_default
-                                 {filename = ""; start_line=0;
-                                   start_column=1; end_line=0; end_column=1;
-                                   law_headings=[]} ([||])
-                                 (fun (_: unit) -> (log_decision_taken
-                                    {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                                      start_line=300; start_column=5;
-                                      end_line=302; end_column=21;
-                                      law_headings=["Article L521-3";
-                                                     "Chapitre 1er : Allocations familiales";
-                                                     "Titre 2 : Prestations générales d'entretien";
-                                                     "Livre 5 : Prestations familiales et prestations assimilées";
-                                                     "Partie législative";
-                                                     "Code de la sécurité sociale"]}
-                                    (o_and
-                                       (o_not ((log_end_call
-                                          ["AllocationsFamiliales";
-                                            "est_enfant_le_plus_âgé"]
-                                          ((log_variable_definition
-                                          ["AllocationsFamiliales";
-                                            "est_enfant_le_plus_âgé";
-                                            "output"] (embed_bool)
-                                          ((log_begin_call
-                                          ["AllocationsFamiliales";
-                                            "est_enfant_le_plus_âgé"]
-                                          est_enfant_le_plus_age_)
-                                          ((log_variable_definition
-                                          ["AllocationsFamiliales";
-                                            "est_enfant_le_plus_âgé";
-                                            "input0"] (embed_enfant)
-                                          enfant_))))))))
-                                       (o_lte_dat_dat
-                                          (o_add_dat_dur AbortOnRound
-                                             (enfant_.Enfant.date_de_naissance)
-                                             ((log_end_call
-                                             ["AllocationsFamiliales";
-                                               "âge_minimum_alinéa_1_l521_3"]
-                                             ((log_variable_definition
-                                             ["AllocationsFamiliales";
-                                               "âge_minimum_alinéa_1_l521_3";
-                                               "output"] (embed_duration)
-                                             ((log_begin_call
-                                             ["AllocationsFamiliales";
-                                               "âge_minimum_alinéa_1_l521_3"]
-                                             age_minimum_alinea_1_l521_3_)
-                                             ((log_variable_definition
-                                             ["AllocationsFamiliales";
-                                               "âge_minimum_alinéa_1_l521_3";
-                                               "input0"] (embed_enfant)
-                                             enfant_)))))))) date_courante_))))
-                                 (fun (_: unit) -> true))|])
-                         (fun (_: unit) -> false)
-                         (fun (_: unit) -> raise EmptyError)))|])
-            (fun (_: unit) -> true)
-            (fun (_: unit) ->
-               handle_default
-                 {filename = ""; start_line=0; start_column=1;
-                   end_line=0; end_column=1; law_headings=[]}
-                 ([|(fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]} (
-                         [||])
-                         (fun (_: unit) -> (log_decision_taken
-                            {filename = "examples/allocations_familiales/prologue.catala_fr";
-                              start_line=117; start_column=11;
-                              end_line=117; end_column=34;
-                              law_headings=["Allocations familiales";
-                                             "Champs d'applications";
-                                             "Prologue"]} true))
-                         (fun (_: unit) -> false))|])
-                 (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+                              []} ([||])
+                            (fun (_: unit) -> (log_decision_taken
+                               {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                 start_line=315; start_column=5;
+                                 end_line=318; end_column=21;
+                                 law_headings=["Article L521-3";
+                                                "Chapitre 1er : Allocations familiales";
+                                                "Titre 2 : Prestations générales d'entretien";
+                                                "Livre 5 : Prestations familiales et prestations assimilées";
+                                                "Partie législative";
+                                                "Code de la sécurité sociale"]}
+                               (o_and
+                                  (o_gte_int_int
+                                     (o_length
+                                        enfants_a_charge_droit_ouvert_prestation_familiale_)
+                                     nombre_enfants_alinea_2_l521_3_)
+                                  (o_lte_dat_dat
+                                     (o_add_dat_dur AbortOnRound
+                                        (enfant_.Enfant.date_de_naissance)
+                                        ((log_end_call
+                                        ["AllocationsFamiliales";
+                                          "âge_minimum_alinéa_1_l521_3"]
+                                        ((log_variable_definition
+                                        ["AllocationsFamiliales";
+                                          "âge_minimum_alinéa_1_l521_3";
+                                          "output"] (embed_duration)
+                                        ((log_begin_call
+                                        ["AllocationsFamiliales";
+                                          "âge_minimum_alinéa_1_l521_3"]
+                                        age_minimum_alinea_1_l521_3_)
+                                        ((log_variable_definition
+                                        ["AllocationsFamiliales";
+                                          "âge_minimum_alinéa_1_l521_3";
+                                          "input0"] (embed_enfant)
+                                        enfant_)))))))) date_courante_))))
+                            (fun (_: unit) -> true))|])
+                    (fun (_: unit) -> (log_decision_taken
+                       {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                         start_line=300; start_column=5;
+                         end_line=302; end_column=21;
+                         law_headings=["Article L521-3";
+                                        "Chapitre 1er : Allocations familiales";
+                                        "Titre 2 : Prestations générales d'entretien";
+                                        "Livre 5 : Prestations familiales et prestations assimilées";
+                                        "Partie législative";
+                                        "Code de la sécurité sociale"]}
+                       (o_and
+                          (o_not ((log_end_call
+                             ["AllocationsFamiliales";
+                               "est_enfant_le_plus_âgé"]
+                             ((log_variable_definition
+                             ["AllocationsFamiliales";
+                               "est_enfant_le_plus_âgé"; "output"]
+                             (embed_bool) ((log_begin_call
+                             ["AllocationsFamiliales";
+                               "est_enfant_le_plus_âgé"]
+                             est_enfant_le_plus_age_)
+                             ((log_variable_definition
+                             ["AllocationsFamiliales";
+                               "est_enfant_le_plus_âgé"; "input0"]
+                             (embed_enfant) enfant_))))))))
+                          (o_lte_dat_dat
+                             (o_add_dat_dur AbortOnRound
+                                (enfant_.Enfant.date_de_naissance)
+                                ((log_end_call
+                                ["AllocationsFamiliales";
+                                  "âge_minimum_alinéa_1_l521_3"]
+                                ((log_variable_definition
+                                ["AllocationsFamiliales";
+                                  "âge_minimum_alinéa_1_l521_3"; "output"]
+                                (embed_duration) ((log_begin_call
+                                ["AllocationsFamiliales";
+                                  "âge_minimum_alinéa_1_l521_3"]
+                                age_minimum_alinea_1_l521_3_)
+                                ((log_variable_definition
+                                ["AllocationsFamiliales";
+                                  "âge_minimum_alinéa_1_l521_3"; "input0"]
+                                (embed_enfant) enfant_)))))))) date_courante_))))
+                    (fun (_: unit) -> true))|])
+            (fun (_: unit) -> (log_decision_taken
+               {filename = "examples/allocations_familiales/prologue.catala_fr";
+                 start_line=117; start_column=11;
+                 end_line=117; end_column=34;
+                 law_headings=["Allocations familiales";
+                                "Champs d'applications"; "Prologue"]} true))
+            (fun (_: unit) -> false))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4136,29 +3573,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                          (decimal_of_string "12."))))|])
                          (fun (_: unit) -> false)
                          (fun (_: unit) -> raise EmptyError)))|])
-            (fun (_: unit) -> true)
-            (fun (_: unit) ->
-               handle_default
-                 {filename = ""; start_line=0; start_column=1;
-                   end_line=0; end_column=1; law_headings=[]}
-                 ([|(fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]} (
-                         [||])
-                         (fun (_: unit) -> (log_decision_taken
-                            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                              start_line=181; start_column=14;
-                              end_line=181; end_column=34;
-                              law_headings=["Article D521-1";
-                                             "Chapitre 1er : Allocations familiales";
-                                             "Titre 2 : Prestations générales d'entretien";
-                                             "Livre 5 : Prestations familiales et prestations assimilées";
-                                             "Partie réglementaire - Décrets simples";
-                                             "Code de la sécurité sociale"]}
-                            true))
-                         (fun (_: unit) -> money_of_cents_string "0"))|])
-                 (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            (fun (_: unit) -> (log_decision_taken
+               {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 start_line=181; start_column=14;
+                 end_line=181; end_column=34;
+                 law_headings=["Article D521-1";
+                                "Chapitre 1er : Allocations familiales";
+                                "Titre 2 : Prestations générales d'entretien";
+                                "Livre 5 : Prestations familiales et prestations assimilées";
+                                "Partie réglementaire - Décrets simples";
+                                "Code de la sécurité sociale"]} true))
+            (fun (_: unit) -> money_of_cents_string "0"))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4680,35 +4105,23 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                            else (money_of_cents_string "0")))|])
                               (fun (_: unit) -> false)
                               (fun (_: unit) -> raise EmptyError)))|])
-                 (fun (_: unit) -> true)
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
+                      start_line=177; start_column=14;
+                      end_line=177; end_column=50;
+                      law_headings=["Article 7";
+                                     "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
+                                     "Dispositions spéciales relatives à Mayotte"]}
+                    (o_eq residence_ (Collectivite.Mayotte ()))))
                  (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/decrets_divers.catala_fr";
-                                   start_line=177; start_column=14;
-                                   end_line=177; end_column=50;
-                                   law_headings=["Article 7";
-                                                  "Décret n°2002-423 du 29 mars 2002 relatif aux prestations familiales à Mayotte";
-                                                  "Dispositions spéciales relatives à Mayotte"]}
-                                 (o_eq residence_ (Collectivite.Mayotte ()))))
-                              (fun (_: unit) ->
-                                  if
-                                   (o_gt_int_int
-                                      (o_length
-                                         enfants_a_charge_droit_ouvert_prestation_familiale_)
-                                      (integer_of_string "1")) then
-                                   (o_mult_mon_rat bmaf_dot_montant_
-                                      (decimal_of_string "0.32")) else
-                                   (money_of_cents_string "0")))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)))|])
+                     if
+                      (o_gt_int_int
+                         (o_length
+                            enfants_a_charge_droit_ouvert_prestation_familiale_)
+                         (integer_of_string "1")) then
+                      (o_mult_mon_rat bmaf_dot_montant_
+                         (decimal_of_string "0.32")) else
+                      (money_of_cents_string "0")))|])
          (fun (_: unit) -> true)
          (fun (_: unit) ->
             handle_default
@@ -4805,34 +4218,19 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+              start_line=128; start_column=14; end_line=128; end_column=41;
+              law_headings=["Article R521-3";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets en Conseil d'Etat";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                           start_line=128; start_column=14;
-                           end_line=128; end_column=41;
-                           law_headings=["Article R521-3";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets en Conseil d'Etat";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                          if
-                           (o_eq nombre_total_enfants_
-                              (decimal_of_string "0.")) then
-                           (decimal_of_string "0.") else
-                           (o_div_rat_rat nombre_moyen_enfants_
-                              nombre_total_enfants_)))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+             if (o_eq nombre_total_enfants_ (decimal_of_string "0.")) then
+              (decimal_of_string "0.") else
+              (o_div_rat_rat nombre_moyen_enfants_ nombre_total_enfants_)))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -4995,48 +4393,34 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+              start_line=199; start_column=14; end_line=199; end_column=39;
+              law_headings=["Article D521-2";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets simples";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                           start_line=199; start_column=14;
-                           end_line=199; end_column=39;
-                           law_headings=["Article D521-2";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets simples";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_mult_mon_rat montant_verse_forfaitaire_par_enfant_
-                           (o_torat_int
-                              (o_length
-                                 (o_filter
-                                    (fun (enfant_: Enfant.t) -> (log_end_call
-                                       ["AllocationsFamiliales";
-                                         "droit_ouvert_forfaitaire"]
-                                       ((log_variable_definition
-                                       ["AllocationsFamiliales";
-                                         "droit_ouvert_forfaitaire";
-                                         "output"] (embed_bool)
-                                       ((log_begin_call
-                                       ["AllocationsFamiliales";
-                                         "droit_ouvert_forfaitaire"]
-                                       droit_ouvert_forfaitaire_)
-                                       ((log_variable_definition
-                                       ["AllocationsFamiliales";
-                                         "droit_ouvert_forfaitaire";
-                                         "input0"] (embed_enfant)
-                                       enfant_))))))) enfants_a_charge_)))))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_mult_mon_rat montant_verse_forfaitaire_par_enfant_
+              (o_torat_int
+                 (o_length
+                    (o_filter
+                       (fun (enfant_: Enfant.t) -> (log_end_call
+                          ["AllocationsFamiliales";
+                            "droit_ouvert_forfaitaire"]
+                          ((log_variable_definition
+                          ["AllocationsFamiliales";
+                            "droit_ouvert_forfaitaire"; "output"]
+                          (embed_bool) ((log_begin_call
+                          ["AllocationsFamiliales";
+                            "droit_ouvert_forfaitaire"]
+                          droit_ouvert_forfaitaire_)
+                          ((log_variable_definition
+                          ["AllocationsFamiliales";
+                            "droit_ouvert_forfaitaire"; "input0"]
+                          (embed_enfant) enfant_))))))) enfants_a_charge_)))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5104,30 +4488,18 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                    montant_initial_base_quatrieme_enfant_et_plus_mayotte_))|])
                       (fun (_: unit) -> false)
                       (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+              start_line=18; start_column=14; end_line=18; end_column=34;
+              law_headings=["Article D521-1";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets simples";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                           start_line=18; start_column=14;
-                           end_line=18; end_column=34;
-                           law_headings=["Article D521-1";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets simples";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_add_mon_mon montant_initial_base_deuxieme_enfant_
-                           montant_initial_base_troisieme_enfant_et_plus_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_add_mon_mon montant_initial_base_deuxieme_enfant_
+              montant_initial_base_troisieme_enfant_et_plus_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5246,42 +4618,29 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       (decimal_of_string "0.0567")))|])
                          (fun (_: unit) -> false)
                          (fun (_: unit) -> raise EmptyError)))|])
-            (fun (_: unit) -> true)
-            (fun (_: unit) ->
-               handle_default
-                 {filename = ""; start_line=0; start_column=1;
-                   end_line=0; end_column=1; law_headings=[]}
-                 ([|(fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]} (
-                         [||])
-                         (fun (_: unit) -> (log_decision_taken
-                            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                              start_line=22; start_column=14;
-                              end_line=22; end_column=40;
-                              law_headings=["Article D521-1";
-                                             "Chapitre 1er : Allocations familiales";
-                                             "Titre 2 : Prestations générales d'entretien";
-                                             "Livre 5 : Prestations familiales et prestations assimilées";
-                                             "Partie réglementaire - Décrets simples";
-                                             "Code de la sécurité sociale"]}
-                            true))
-                         (fun (_: unit) -> (log_end_call
-                            ["AllocationsFamiliales";
-                              "montant_initial_métropole_majoration"]
-                            ((log_variable_definition
-                            ["AllocationsFamiliales";
-                              "montant_initial_métropole_majoration";
-                              "output"] (embed_money) ((log_begin_call
-                            ["AllocationsFamiliales";
-                              "montant_initial_métropole_majoration"]
-                            montant_initial_metropole_majoration_)
-                            ((log_variable_definition
-                            ["AllocationsFamiliales";
-                              "montant_initial_métropole_majoration";
-                              "input0"] (embed_enfant) enfant_))))))))|])
-                 (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            (fun (_: unit) -> (log_decision_taken
+               {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+                 start_line=22; start_column=14; end_line=22; end_column=40;
+                 law_headings=["Article D521-1";
+                                "Chapitre 1er : Allocations familiales";
+                                "Titre 2 : Prestations générales d'entretien";
+                                "Livre 5 : Prestations familiales et prestations assimilées";
+                                "Partie réglementaire - Décrets simples";
+                                "Code de la sécurité sociale"]} true))
+            (fun (_: unit) -> (log_end_call
+               ["AllocationsFamiliales";
+                 "montant_initial_métropole_majoration"]
+               ((log_variable_definition
+               ["AllocationsFamiliales";
+                 "montant_initial_métropole_majoration"; "output"]
+               (embed_money) ((log_begin_call
+               ["AllocationsFamiliales";
+                 "montant_initial_métropole_majoration"]
+               montant_initial_metropole_majoration_)
+               ((log_variable_definition
+               ["AllocationsFamiliales";
+                 "montant_initial_métropole_majoration"; "input0"]
+               (embed_enfant) enfant_))))))))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5372,27 +4731,16 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
                                       (decimal_of_string "12."))))|])
                       (fun (_: unit) -> false)
                       (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                           start_line=286; start_column=14;
-                           end_line=286; end_column=55;
-                           law_headings=["Article D521-2";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets simples";
-                                          "Code de la sécurité sociale"]}
-                         true)) (fun (_: unit) -> money_of_cents_string "0"))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+              start_line=286; start_column=14; end_line=286; end_column=55;
+              law_headings=["Article D521-2";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets simples";
+                             "Code de la sécurité sociale"]} true))
+         (fun (_: unit) -> money_of_cents_string "0"))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5406,30 +4754,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+              start_line=125; start_column=14; end_line=125; end_column=46;
+              law_headings=["Article R521-3";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets en Conseil d'Etat";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                           start_line=125; start_column=14;
-                           end_line=125; end_column=46;
-                           law_headings=["Article R521-3";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets en Conseil d'Etat";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_mult_mon_rat montant_initial_base_
-                           rapport_enfants_total_moyen_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_mult_mon_rat montant_initial_base_ rapport_enfants_total_moyen_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5444,60 +4779,38 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
          (handle_default
             {filename = ""; start_line=0; start_column=1;
               end_line=0; end_column=1; law_headings=[]} ([||])
-            (fun (_: unit) -> true)
+            (fun (_: unit) -> (log_decision_taken
+               {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
+                 start_line=186; start_column=5; end_line=186; end_column=43;
+                 law_headings=["Article R521-4";
+                                "Chapitre 1er : Allocations familiales";
+                                "Titre 2 : Prestations générales d'entretien";
+                                "Livre 5 : Prestations familiales et prestations assimilées";
+                                "Partie réglementaire - Décrets en Conseil d'Etat";
+                                "Code de la sécurité sociale"]} true))
             (fun (_: unit) ->
-               handle_default
-                 {filename = ""; start_line=0; start_column=1;
-                   end_line=0; end_column=1; law_headings=[]}
-                 ([|(fun (_: unit) ->
-                       handle_default
-                         {filename = ""; start_line=0; start_column=1;
-                           end_line=0; end_column=1; law_headings=[]} (
-                         [||])
-                         (fun (_: unit) -> (log_decision_taken
-                            {filename = "examples/allocations_familiales/securite_sociale_R.catala_fr";
-                              start_line=186; start_column=5;
-                              end_line=186; end_column=43;
-                              law_headings=["Article R521-4";
-                                             "Chapitre 1er : Allocations familiales";
-                                             "Titre 2 : Prestations générales d'entretien";
-                                             "Livre 5 : Prestations familiales et prestations assimilées";
-                                             "Partie réglementaire - Décrets en Conseil d'Etat";
-                                             "Code de la sécurité sociale"]}
-                            true))
-                         (fun (_: unit) ->
-                            o_mult_mon_rat ((log_end_call
-                              ["AllocationsFamiliales";
-                                "montant_initial_majoration"]
-                              ((log_variable_definition
-                              ["AllocationsFamiliales";
-                                "montant_initial_majoration"; "output"]
-                              (embed_money) ((log_begin_call
-                              ["AllocationsFamiliales";
-                                "montant_initial_majoration"]
-                              montant_initial_majoration_)
-                              ((log_variable_definition
-                              ["AllocationsFamiliales";
-                                "montant_initial_majoration"; "input0"]
-                              (embed_enfant) enfant_)))))))
-                              (match ((log_end_call
-                                 ["AllocationsFamiliales"; "prise_en_compte"]
-                                 ((log_variable_definition
-                                 ["AllocationsFamiliales"; "prise_en_compte";
-                                   "output"] (embed_prise_en_compte)
-                                 ((log_begin_call
-                                 ["AllocationsFamiliales"; "prise_en_compte"]
-                                 prise_en_compte_) ((log_variable_definition
-                                 ["AllocationsFamiliales"; "prise_en_compte";
-                                   "input0"] (embed_enfant) enfant_)))))))
-                               with
-                               | PriseEnCompte.Complete _ ->
-                                   (decimal_of_string "1.")
-                               | PriseEnCompte.Partagee _ ->
-                                   (decimal_of_string "0.5")
-                               | PriseEnCompte.Zero _ ->
-                                   (decimal_of_string "0."))))|])
-                 (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+               o_mult_mon_rat ((log_end_call
+                 ["AllocationsFamiliales"; "montant_initial_majoration"]
+                 ((log_variable_definition
+                 ["AllocationsFamiliales"; "montant_initial_majoration";
+                   "output"] (embed_money) ((log_begin_call
+                 ["AllocationsFamiliales"; "montant_initial_majoration"]
+                 montant_initial_majoration_) ((log_variable_definition
+                 ["AllocationsFamiliales"; "montant_initial_majoration";
+                   "input0"] (embed_enfant) enfant_)))))))
+                 (match ((log_end_call
+                    ["AllocationsFamiliales"; "prise_en_compte"]
+                    ((log_variable_definition
+                    ["AllocationsFamiliales"; "prise_en_compte"; "output"]
+                    (embed_prise_en_compte) ((log_begin_call
+                    ["AllocationsFamiliales"; "prise_en_compte"]
+                    prise_en_compte_) ((log_variable_definition
+                    ["AllocationsFamiliales"; "prise_en_compte"; "input0"]
+                    (embed_enfant) enfant_)))))))
+                  with
+                  | PriseEnCompte.Complete _ -> (decimal_of_string "1.")
+                  | PriseEnCompte.Partagee _ -> (decimal_of_string "0.5")
+                  | PriseEnCompte.Zero _ -> (decimal_of_string "0."))))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5510,26 +4823,13 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=37; start_column=14; end_line=37; end_column=32;
+              law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=37; start_column=14;
-                           end_line=37; end_column=32;
-                           law_headings=["Règles diverses"; "Épilogue"]}
-                         true))
-                      (fun (_: unit) ->
-                          if droit_ouvert_base_ then
-                           montant_avec_garde_alternee_base_ else
-                           (money_of_cents_string "0")))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+             if droit_ouvert_base_ then montant_avec_garde_alternee_base_
+              else (money_of_cents_string "0")))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5542,46 +4842,31 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=39; start_column=14; end_line=39; end_column=38;
+              law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=39; start_column=14;
-                           end_line=39; end_column=38;
-                           law_headings=["Règles diverses"; "Épilogue"]}
-                         true))
-                      (fun (_: unit) ->
-                          if droit_ouvert_base_ then
-                           (o_reduce
-                              (fun (sum1_: money) (sum2_: money) ->
-                                 o_add_mon_mon sum1_ sum2_)
-                              (money_of_cents_string "0")
-                              (o_map
-                                 (fun (enfant_: Enfant.t) -> (log_end_call
-                                    ["AllocationsFamiliales";
-                                      "montant_avec_garde_alternée_majoration"]
-                                    ((log_variable_definition
-                                    ["AllocationsFamiliales";
-                                      "montant_avec_garde_alternée_majoration";
-                                      "output"] (embed_money)
-                                    ((log_begin_call
-                                    ["AllocationsFamiliales";
-                                      "montant_avec_garde_alternée_majoration"]
-                                    montant_avec_garde_alternee_majoration_)
-                                    ((log_variable_definition
-                                    ["AllocationsFamiliales";
-                                      "montant_avec_garde_alternée_majoration";
-                                      "input0"] (embed_enfant) enfant_)))))))
-                                 enfants_a_charge_)) else
-                           (money_of_cents_string "0")))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+             if droit_ouvert_base_ then
+              (o_reduce
+                 (fun (sum1_: money) (sum2_: money) ->
+                    o_add_mon_mon sum1_ sum2_) (money_of_cents_string "0")
+                 (o_map
+                    (fun (enfant_: Enfant.t) -> (log_end_call
+                       ["AllocationsFamiliales";
+                         "montant_avec_garde_alternée_majoration"]
+                       ((log_variable_definition
+                       ["AllocationsFamiliales";
+                         "montant_avec_garde_alternée_majoration"; "output"]
+                       (embed_money) ((log_begin_call
+                       ["AllocationsFamiliales";
+                         "montant_avec_garde_alternée_majoration"]
+                       montant_avec_garde_alternee_majoration_)
+                       ((log_variable_definition
+                       ["AllocationsFamiliales";
+                         "montant_avec_garde_alternée_majoration"; "input0"]
+                       (embed_enfant) enfant_))))))) enfants_a_charge_)) else
+              (money_of_cents_string "0")))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5595,30 +4880,17 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+              start_line=189; start_column=14; end_line=189; end_column=61;
+              law_headings=["Article D521-1";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets simples";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                           start_line=189; start_column=14;
-                           end_line=189; end_column=61;
-                           law_headings=["Article D521-1";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets simples";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                         o_add_mon_mon montant_verse_base_
-                           montant_verse_majoration_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+            o_add_mon_mon montant_verse_base_ montant_verse_majoration_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5632,44 +4904,28 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
+              start_line=183; start_column=14; end_line=183; end_column=62;
+              law_headings=["Article D521-1";
+                             "Chapitre 1er : Allocations familiales";
+                             "Titre 2 : Prestations générales d'entretien";
+                             "Livre 5 : Prestations familiales et prestations assimilées";
+                             "Partie réglementaire - Décrets simples";
+                             "Code de la sécurité sociale"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/securite_sociale_D.catala_fr";
-                           start_line=183; start_column=14;
-                           end_line=183; end_column=62;
-                           law_headings=["Article D521-1";
-                                          "Chapitre 1er : Allocations familiales";
-                                          "Titre 2 : Prestations générales d'entretien";
-                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                          "Partie réglementaire - Décrets simples";
-                                          "Code de la sécurité sociale"]}
-                         true))
-                      (fun (_: unit) ->
-                          if droit_ouvert_complement_ then
-                           ((log_end_call
-                             ["AllocationsFamiliales";
-                               "complément_dégressif"]
-                             ((log_variable_definition
-                             ["AllocationsFamiliales";
-                               "complément_dégressif"; "output"]
-                             (embed_money) ((log_begin_call
-                             ["AllocationsFamiliales";
-                               "complément_dégressif"]
-                             complement_degressif_) ((log_variable_definition
-                             ["AllocationsFamiliales";
-                               "complément_dégressif"; "input0"]
-                             (embed_money)
-                             montant_base_complement_pour_base_et_majoration_)))))))
-                           else (money_of_cents_string "0")))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+             if droit_ouvert_complement_ then
+              ((log_end_call
+                ["AllocationsFamiliales"; "complément_dégressif"]
+                ((log_variable_definition
+                ["AllocationsFamiliales"; "complément_dégressif"; "output"]
+                (embed_money) ((log_begin_call
+                ["AllocationsFamiliales"; "complément_dégressif"]
+                complement_degressif_) ((log_variable_definition
+                ["AllocationsFamiliales"; "complément_dégressif"; "input0"]
+                (embed_money)
+                montant_base_complement_pour_base_et_majoration_))))))) else
+              (money_of_cents_string "0")))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5682,33 +4938,21 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=45; start_column=14; end_line=45; end_column=27;
+              law_headings=["Règles diverses"; "Épilogue"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=45; start_column=14;
-                           end_line=45; end_column=27;
-                           law_headings=["Règles diverses"; "Épilogue"]}
-                         true))
-                      (fun (_: unit) ->
-                          if droit_ouvert_base_ then
-                           (o_add_mon_mon
-                              (o_add_mon_mon
-                                 (o_add_mon_mon
-                                    (o_add_mon_mon montant_verse_base_
-                                       montant_verse_majoration_)
-                                    montant_verse_forfaitaire_)
-                                 montant_verse_complement_pour_base_et_majoration_)
-                              montant_verse_complement_pour_forfaitaire_)
-                           else (money_of_cents_string "0")))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+             if droit_ouvert_base_ then
+              (o_add_mon_mon
+                 (o_add_mon_mon
+                    (o_add_mon_mon
+                       (o_add_mon_mon montant_verse_base_
+                          montant_verse_majoration_)
+                       montant_verse_forfaitaire_)
+                    montant_verse_complement_pour_base_et_majoration_)
+                 montant_verse_complement_pour_forfaitaire_) else
+              (money_of_cents_string "0")))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/prologue.catala_fr";
@@ -5761,58 +5005,42 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=117; start_column=14; end_line=117; end_column=30;
+              law_headings=["Article L131-1"; "Interface du programme";
+                             "Épilogue"]} true))
          (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=117; start_column=14;
-                           end_line=117; end_column=30;
-                           law_headings=["Article L131-1";
-                                          "Interface du programme";
-                                          "Épilogue"]} true))
-                      (fun (_: unit) ->
-                         o_map
-                           (fun (enfant_: EnfantEntree.t) ->
-                              {Enfant.identifiant =
-                                 (enfant_.EnfantEntree.d_identifiant);
-                                 Enfant.obligation_scolaire =
-                                   ( if
-                                      (o_gte_dat_dat
-                                         (o_add_dat_dur AbortOnRound
-                                            (enfant_.EnfantEntree.d_date_de_naissance)
-                                            (duration_of_numbers (3) (0) (0)))
-                                         i_date_courante_) then
-                                      (SituationObligationScolaire.Avant ())
-                                      else
-                                      ( if
-                                         (o_gte_dat_dat
-                                            (o_add_dat_dur AbortOnRound
-                                               (enfant_.EnfantEntree.d_date_de_naissance)
-                                               (duration_of_numbers (16) (0) (0)))
-                                            i_date_courante_) then
-                                         (SituationObligationScolaire.Pendant
-                                            ()) else
-                                         (SituationObligationScolaire.Apres
-                                            ())));
-                                 Enfant.remuneration_mensuelle =
-                                   (enfant_.EnfantEntree.d_remuneration_mensuelle);
-                                 Enfant.date_de_naissance =
-                                   (enfant_.EnfantEntree.d_date_de_naissance);
-                                 Enfant.prise_en_charge =
-                                   (enfant_.EnfantEntree.d_prise_en_charge);
-                                 Enfant.a_deja_ouvert_droit_aux_allocations_familiales =
-                                   (enfant_.EnfantEntree.d_a_deja_ouvert_droit_aux_allocations_familiales);
-                                 Enfant.beneficie_titre_personnel_aide_personnelle_logement =
-                                   (enfant_.EnfantEntree.d_beneficie_titre_personnel_aide_personnelle_logement)})
-                           i_enfants_))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))
+            o_map
+              (fun (enfant_: EnfantEntree.t) ->
+                 {Enfant.identifiant = (enfant_.EnfantEntree.d_identifiant);
+                    Enfant.obligation_scolaire =
+                      ( if
+                         (o_gte_dat_dat
+                            (o_add_dat_dur AbortOnRound
+                               (enfant_.EnfantEntree.d_date_de_naissance)
+                               (duration_of_numbers (3) (0) (0)))
+                            i_date_courante_) then
+                         (SituationObligationScolaire.Avant ()) else
+                         ( if
+                            (o_gte_dat_dat
+                               (o_add_dat_dur AbortOnRound
+                                  (enfant_.EnfantEntree.d_date_de_naissance)
+                                  (duration_of_numbers (16) (0) (0)))
+                               i_date_courante_) then
+                            (SituationObligationScolaire.Pendant ()) else
+                            (SituationObligationScolaire.Apres ())));
+                    Enfant.remuneration_mensuelle =
+                      (enfant_.EnfantEntree.d_remuneration_mensuelle);
+                    Enfant.date_de_naissance =
+                      (enfant_.EnfantEntree.d_date_de_naissance);
+                    Enfant.prise_en_charge =
+                      (enfant_.EnfantEntree.d_prise_en_charge);
+                    Enfant.a_deja_ouvert_droit_aux_allocations_familiales =
+                      (enfant_.EnfantEntree.d_a_deja_ouvert_droit_aux_allocations_familiales);
+                    Enfant.beneficie_titre_personnel_aide_personnelle_logement =
+                      (enfant_.EnfantEntree.d_beneficie_titre_personnel_aide_personnelle_logement)})
+              i_enfants_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -5830,43 +5058,18 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
                handle_default
                  {filename = ""; start_line=0; start_column=1;
                    end_line=0; end_column=1; law_headings=[]} ([||])
-                 (fun (_: unit) -> true)
-                 (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                                   start_line=93; start_column=18;
-                                   end_line=93; end_column=67;
-                                   law_headings=["Interface du programme";
-                                                  "Épilogue"]}
-                                 i_personne_charge_effective_permanente_est_parent_))
-                              (fun (_: unit) -> true))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=92; start_column=5;
-                           end_line=92; end_column=75;
-                           law_headings=["Interface du programme";
-                                          "Épilogue"]} true))
-                      (fun (_: unit) -> false))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))))
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/epilogue.catala_fr";
+                      start_line=93; start_column=18;
+                      end_line=93; end_column=67;
+                      law_headings=["Interface du programme"; "Épilogue"]}
+                    i_personne_charge_effective_permanente_est_parent_))
+                 (fun (_: unit) -> true))|])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=92; start_column=5; end_line=92; end_column=75;
+              law_headings=["Interface du programme"; "Épilogue"]} true))
+         (fun (_: unit) -> false))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -5884,43 +5087,18 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
                handle_default
                  {filename = ""; start_line=0; start_column=1;
                    end_line=0; end_column=1; law_headings=[]} ([||])
-                 (fun (_: unit) -> true)
-                 (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                                   start_line=97; start_column=18;
-                                   end_line=97; end_column=72;
-                                   law_headings=["Interface du programme";
-                                                  "Épilogue"]}
-                                 i_personne_charge_effective_permanente_remplit_titre__i_))
-                              (fun (_: unit) -> true))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=96; start_column=5;
-                           end_line=96; end_column=80;
-                           law_headings=["Interface du programme";
-                                          "Épilogue"]} true))
-                      (fun (_: unit) -> false))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))))
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/epilogue.catala_fr";
+                      start_line=97; start_column=18;
+                      end_line=97; end_column=72;
+                      law_headings=["Interface du programme"; "Épilogue"]}
+                    i_personne_charge_effective_permanente_remplit_titre__i_))
+                 (fun (_: unit) -> true))|])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=96; start_column=5; end_line=96; end_column=80;
+              law_headings=["Interface du programme"; "Épilogue"]} true))
+         (fun (_: unit) -> false))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -5933,23 +5111,11 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=88; start_column=14;
-                           end_line=88; end_column=54;
-                           law_headings=["Interface du programme";
-                                          "Épilogue"]} true))
-                      (fun (_: unit) -> i_ressources_menage_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=88; start_column=14; end_line=88; end_column=54;
+              law_headings=["Interface du programme"; "Épilogue"]} true))
+         (fun (_: unit) -> i_ressources_menage_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -5962,23 +5128,11 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=89; start_column=14;
-                           end_line=89; end_column=46;
-                           law_headings=["Interface du programme";
-                                          "Épilogue"]} true))
-                      (fun (_: unit) -> i_residence_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=89; start_column=14; end_line=89; end_column=46;
+              law_headings=["Interface du programme"; "Épilogue"]} true))
+         (fun (_: unit) -> i_residence_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -5991,23 +5145,11 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=86; start_column=14;
-                           end_line=86; end_column=50;
-                           law_headings=["Interface du programme";
-                                          "Épilogue"]} true))
-                      (fun (_: unit) -> i_date_courante_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=86; start_column=14; end_line=86; end_column=50;
+              law_headings=["Interface du programme"; "Épilogue"]} true))
+         (fun (_: unit) -> i_date_courante_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -6021,23 +5163,11 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=87; start_column=14;
-                           end_line=87; end_column=53;
-                           law_headings=["Interface du programme";
-                                          "Épilogue"]} true))
-                      (fun (_: unit) -> enfants_a_charge_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=87; start_column=14; end_line=87; end_column=53;
+              law_headings=["Interface du programme"; "Épilogue"]} true))
+         (fun (_: unit) -> enfants_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -6055,43 +5185,18 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
                handle_default
                  {filename = ""; start_line=0; start_column=1;
                    end_line=0; end_column=1; law_headings=[]} ([||])
-                 (fun (_: unit) -> true)
-                 (fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]}
-                      ([|(fun (_: unit) ->
-                            handle_default
-                              {filename = ""; start_line=0; start_column=1;
-                                end_line=0; end_column=1; law_headings=
-                                []} ([||])
-                              (fun (_: unit) -> (log_decision_taken
-                                 {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                                   start_line=101; start_column=18;
-                                   end_line=101; end_column=64;
-                                   law_headings=["Interface du programme";
-                                                  "Épilogue"]}
-                                 i_avait_enfant_a_charge_avant_1er_janvier_2012_))
-                              (fun (_: unit) -> true))|])
-                      (fun (_: unit) -> false)
-                      (fun (_: unit) -> raise EmptyError)))|])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=100; start_column=5;
-                           end_line=100; end_column=72;
-                           law_headings=["Interface du programme";
-                                          "Épilogue"]} true))
-                      (fun (_: unit) -> false))|]) (fun (_: unit) -> false)
-              (fun (_: unit) -> raise EmptyError)))))
+                 (fun (_: unit) -> (log_decision_taken
+                    {filename = "examples/allocations_familiales/epilogue.catala_fr";
+                      start_line=101; start_column=18;
+                      end_line=101; end_column=64;
+                      law_headings=["Interface du programme"; "Épilogue"]}
+                    i_avait_enfant_a_charge_avant_1er_janvier_2012_))
+                 (fun (_: unit) -> true))|])
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=100; start_column=5; end_line=100; end_column=72;
+              law_headings=["Interface du programme"; "Épilogue"]} true))
+         (fun (_: unit) -> false))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";
@@ -6125,24 +5230,11 @@ let interface_allocations_familiales (interface_allocations_familiales_in: Inter
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true)
-         (fun (_: unit) ->
-            handle_default
-              {filename = ""; start_line=0; start_column=1;
-                end_line=0; end_column=1; law_headings=[]}
-              ([|(fun (_: unit) ->
-                    handle_default
-                      {filename = ""; start_line=0; start_column=1;
-                        end_line=0; end_column=1; law_headings=[]} ([||])
-                      (fun (_: unit) -> (log_decision_taken
-                         {filename = "examples/allocations_familiales/epilogue.catala_fr";
-                           start_line=90; start_column=14;
-                           end_line=90; end_column=29;
-                           law_headings=["Interface du programme";
-                                          "Épilogue"]} true))
-                      (fun (_: unit) ->
-                         allocations_familiales_dot_montant_verse_))|])
-              (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
+         (fun (_: unit) -> (log_decision_taken
+            {filename = "examples/allocations_familiales/epilogue.catala_fr";
+              start_line=90; start_column=14; end_line=90; end_column=29;
+              law_headings=["Interface du programme"; "Épilogue"]} true))
+         (fun (_: unit) -> allocations_familiales_dot_montant_verse_))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/allocations_familiales/epilogue.catala_fr";

@@ -36,77 +36,79 @@ val option_enum_config : typ EnumConstructor.Map.t
 
 (** {2 Term building and management for the [option] monad}*)
 
-val monad_return :
-  mark:'m mark -> ('a any, 'm mark) boxed_gexpr -> ('a, 'm mark) boxed_gexpr
+module OptionMonad : sig
+  val return :
+    mark:'m mark -> ('a any, 'm mark) boxed_gexpr -> ('a, 'm mark) boxed_gexpr
 
-val monad_empty : mark:'m mark -> ('a any, 'm mark) boxed_gexpr
+  val empty : mark:'m mark -> ('a any, 'm mark) boxed_gexpr
 
-val monad_bind_var :
-  mark:'m mark ->
-  ('a any, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) gexpr Var.t ->
-  ('a, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) boxed_gexpr
+  val bind_var :
+    mark:'m mark ->
+    ('a any, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) gexpr Var.t ->
+    ('a, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) boxed_gexpr
 
-val monad_bind :
-  mark:'m mark ->
-  var_name:string ->
-  ('a any, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) boxed_gexpr
+  val bind :
+    mark:'m mark ->
+    var_name:string ->
+    ('a any, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) boxed_gexpr
 
-val monad_bind_cont :
-  mark:'m mark ->
-  var_name:string ->
-  (('a any, 'm mark) gexpr Var.t -> ('a, 'm mark) boxed_gexpr) ->
-  ('a, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) boxed_gexpr
+  val bind_cont :
+    mark:'m mark ->
+    var_name:string ->
+    (('a any, 'm mark) gexpr Var.t -> ('a, 'm mark) boxed_gexpr) ->
+    ('a, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) boxed_gexpr
 
-val monad_mbind_mvar :
-  mark:'m mark ->
-  ('a any, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) gexpr Var.t list ->
-  ('a, 'm mark) boxed_gexpr list ->
-  ('a, 'm mark) boxed_gexpr
+  val mbind_mvar :
+    mark:'m mark ->
+    ('a any, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) gexpr Var.t list ->
+    ('a, 'm mark) boxed_gexpr list ->
+    ('a, 'm mark) boxed_gexpr
 
-val monad_mbind :
-  mark:'m mark ->
-  var_name:string ->
-  ('a any, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) boxed_gexpr list ->
-  ('a, 'm mark) boxed_gexpr
+  val mbind :
+    mark:'m mark ->
+    var_name:string ->
+    ('a any, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) boxed_gexpr list ->
+    ('a, 'm mark) boxed_gexpr
 
-val monad_mbind_cont :
-  mark:'m mark ->
-  var_name:string ->
-  (('a any, 'm mark) gexpr Var.t list -> ('a, 'm mark) boxed_gexpr) ->
-  ('a, 'm mark) boxed_gexpr list ->
-  ('a, 'm mark) boxed_gexpr
+  val mbind_cont :
+    mark:'m mark ->
+    var_name:string ->
+    (('a any, 'm mark) gexpr Var.t list -> ('a, 'm mark) boxed_gexpr) ->
+    ('a, 'm mark) boxed_gexpr list ->
+    ('a, 'm mark) boxed_gexpr
 
-val monad_error_on_empty :
-  mark:'m mark ->
-  var_name:string ->
-  ?toplevel:bool ->
-  ((< exceptions : yes ; .. > as 'a), 'm mark) boxed_gexpr ->
-  ('a, 'm mark) boxed_gexpr
+  val error_on_empty :
+    mark:'m mark ->
+    var_name:string ->
+    ?toplevel:bool ->
+    ((< exceptions : yes ; .. > as 'a), 'm mark) boxed_gexpr ->
+    ('a, 'm mark) boxed_gexpr
 
-val monad_map :
-  mark:'m mark ->
-  var_name:string ->
-  ((< exceptions : no ; .. > as 'a), 'm mark) boxed_gexpr ->
-  ('a, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) boxed_gexpr
+  val map :
+    mark:'m mark ->
+    var_name:string ->
+    ((< exceptions : no ; .. > as 'a), 'm mark) boxed_gexpr ->
+    ('a, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) boxed_gexpr
 
-val monad_mmap_mvar :
-  mark:'m mark ->
-  ('a any, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) gexpr Var.t list ->
-  ('a, 'm mark) boxed_gexpr list ->
-  ('a, 'm mark) boxed_gexpr
+  val mmap_mvar :
+    mark:'m mark ->
+    ('a any, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) gexpr Var.t list ->
+    ('a, 'm mark) boxed_gexpr list ->
+    ('a, 'm mark) boxed_gexpr
 
-val monad_mmap :
-  mark:'m mark ->
-  var_name:string ->
-  ('a any, 'm mark) boxed_gexpr ->
-  ('a, 'm mark) boxed_gexpr list ->
-  ('a, 'm mark) boxed_gexpr
+  val mmap :
+    mark:'m mark ->
+    var_name:string ->
+    ('a any, 'm mark) boxed_gexpr ->
+    ('a, 'm mark) boxed_gexpr list ->
+    ('a, 'm mark) boxed_gexpr
+end

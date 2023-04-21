@@ -154,7 +154,7 @@ let driver source_file (options : Cli.options) : int =
         | exception Sys_error _ -> ())
       options.plugins_dirs;
     Cli.set_option_globals options;
-    Printexc.record_backtrace options.debug;
+    if options.debug then Printexc.record_backtrace true;
     Cli.debug_print "Reading files...";
     let filename = ref "" in
     (match source_file with
@@ -426,6 +426,10 @@ let driver source_file (options : Cli.options) : int =
             as backend -> (
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm =
+              if options.trace && options.avoid_exceptions then
+                Errors.raise_error
+                  "Option --avoid_exceptions is not compatible with option \
+                   --trace";
               if options.avoid_exceptions then
                 Shared_ast.Program.untype
                 @@ Lcalc.Compile_without_exceptions.translate_program prgm

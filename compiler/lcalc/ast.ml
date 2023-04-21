@@ -21,103 +21,105 @@ and 'm expr = (lcalc, 'm mark) gexpr
 
 type 'm program = 'm expr Shared_ast.program
 
-let monad_return ~(mark : 'a mark) e = Expr.einj e some_constr option_enum mark
+module OptionMonad = struct
+  let return ~(mark : 'a mark) e = Expr.einj e some_constr option_enum mark
 
-let monad_empty ~(mark : 'a mark) =
-  Expr.einj (Expr.elit LUnit mark) none_constr option_enum mark
+  let empty ~(mark : 'a mark) =
+    Expr.einj (Expr.elit LUnit mark) none_constr option_enum mark
 
-let monad_bind_var ~(mark : 'a mark) f x arg =
-  let cases =
-    EnumConstructor.Map.of_seq
-      (List.to_seq
-         [
-           ( none_constr,
-             let x = Var.make "_" in
-             Expr.eabs
-               (Expr.bind [| x |]
-                  (Expr.einj (Expr.evar x mark) none_constr option_enum mark))
-               [TLit TUnit, Expr.mark_pos mark]
-               mark );
-           (* | None x -> None x *)
-           ( some_constr,
-             Expr.eabs (Expr.bind [| x |] f) [TAny, Expr.mark_pos mark] mark )
-           (*| Some x -> f (where f contains x as a free variable) *);
-         ])
-  in
-  Expr.ematch arg option_enum cases mark
+  let bind_var ~(mark : 'a mark) f x arg =
+    let cases =
+      EnumConstructor.Map.of_seq
+        (List.to_seq
+           [
+             ( none_constr,
+               let x = Var.make "_" in
+               Expr.eabs
+                 (Expr.bind [| x |]
+                    (Expr.einj (Expr.evar x mark) none_constr option_enum mark))
+                 [TLit TUnit, Expr.mark_pos mark]
+                 mark );
+             (* | None x -> None x *)
+             ( some_constr,
+               Expr.eabs (Expr.bind [| x |] f) [TAny, Expr.mark_pos mark] mark )
+             (*| Some x -> f (where f contains x as a free variable) *);
+           ])
+    in
+    Expr.ematch arg option_enum cases mark
 
-let monad_bind ~(mark : 'a mark) ~(var_name : string) f arg =
-  let x = Var.make var_name in
-  (* todo modify*)
-  monad_bind_var f x arg ~mark
+  let bind ~(mark : 'a mark) ~(var_name : string) f arg =
+    let x = Var.make var_name in
+    (* todo modify*)
+    bind_var f x arg ~mark
 
-let monad_bind_cont ~(mark : 'a mark) ~(var_name : string) f arg =
-  let x = Var.make var_name in
-  monad_bind_var (f x) x arg ~mark
+  let bind_cont ~(mark : 'a mark) ~(var_name : string) f arg =
+    let x = Var.make var_name in
+    bind_var (f x) x arg ~mark
 
-let monad_mbind_mvar ~(mark : 'a mark) f xs args =
-  (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _ ->
-     None *)
-  ListLabels.fold_left2 xs args ~f:(monad_bind_var ~mark)
-    ~init:(Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
+  let mbind_mvar ~(mark : 'a mark) f xs args =
+    (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _
+       -> None *)
+    ListLabels.fold_left2 xs args ~f:(bind_var ~mark)
+      ~init:(Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
 
-let monad_mbind ~(mark : 'a mark) ~(var_name : string) f args =
-  (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _ ->
-     None *)
-  let vars =
-    ListLabels.mapi args ~f:(fun i _ ->
-        Var.make (Format.sprintf "%s_%i" var_name i))
-  in
-  monad_mbind_mvar f vars args ~mark
+  let mbind ~(mark : 'a mark) ~(var_name : string) f args =
+    (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _
+       -> None *)
+    let vars =
+      ListLabels.mapi args ~f:(fun i _ ->
+          Var.make (Format.sprintf "%s_%i" var_name i))
+    in
+    mbind_mvar f vars args ~mark
 
-let monad_mbind_cont ~(mark : 'a mark) ~(var_name : string) f args =
-  let vars =
-    ListLabels.mapi args ~f:(fun i _ ->
-        Var.make (Format.sprintf "%s_%i" var_name i))
-  in
-  ListLabels.fold_left2 vars args ~f:(monad_bind_var ~mark) ~init:(f vars)
-(* monad_mbind_mvar (f vars) vars args ~mark *)
+  let mbind_cont ~(mark : 'a mark) ~(var_name : string) f args =
+    let vars =
+      ListLabels.mapi args ~f:(fun i _ ->
+          Var.make (Format.sprintf "%s_%i" var_name i))
+    in
+    ListLabels.fold_left2 vars args ~f:(bind_var ~mark) ~init:(f vars)
+  (* mbind_mvar (f vars) vars args ~mark *)
 
-let monad_mmap_mvar ~(mark : 'a mark) f xs args =
-  (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _ ->
-     None *)
-  ListLabels.fold_left2 xs args ~f:(monad_bind_var ~mark)
-    ~init:
-      (Expr.einj
-         (Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
-         some_constr option_enum mark)
+  let mmap_mvar ~(mark : 'a mark) f xs args =
+    (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _
+       -> None *)
+    ListLabels.fold_left2 xs args ~f:(bind_var ~mark)
+      ~init:
+        (Expr.einj
+           (Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
+           some_constr option_enum mark)
 
-let monad_map_var ~(mark : 'a mark) f x arg = monad_mmap_mvar f [x] [arg] ~mark
+  let map_var ~(mark : 'a mark) f x arg = mmap_mvar f [x] [arg] ~mark
 
-let monad_map ~(mark : 'a mark) ~(var_name : string) f arg =
-  let x = Var.make var_name in
-  monad_map_var f x arg ~mark
+  let map ~(mark : 'a mark) ~(var_name : string) f arg =
+    let x = Var.make var_name in
+    map_var f x arg ~mark
 
-let monad_mmap ~(mark : 'a mark) ~(var_name : string) f args =
-  let vars =
-    ListLabels.mapi args ~f:(fun i _ ->
-        Var.make (Format.sprintf "%s_%i" var_name i))
-  in
-  monad_mmap_mvar f vars args ~mark
+  let mmap ~(mark : 'a mark) ~(var_name : string) f args =
+    let vars =
+      ListLabels.mapi args ~f:(fun i _ ->
+          Var.make (Format.sprintf "%s_%i" var_name i))
+    in
+    mmap_mvar f vars args ~mark
 
-let monad_error_on_empty
-    ~(mark : 'a mark)
-    ~(var_name : string)
-    ?(toplevel = false)
-    arg =
-  let cases =
-    EnumConstructor.Map.of_seq
-      (List.to_seq
-         [
-           ( none_constr,
-             let x = Var.make var_name in
-             Expr.eabs
-               (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
-               [TAny, Expr.mark_pos mark]
-               mark );
-           (* | None x -> raise NoValueProvided *)
-           some_constr, Expr.fun_id mark (* | Some x -> x*);
-         ])
-  in
-  if toplevel then Expr.ematch arg option_enum cases mark
-  else monad_return ~mark (Expr.ematch arg option_enum cases mark)
+  let error_on_empty
+      ~(mark : 'a mark)
+      ~(var_name : string)
+      ?(toplevel = false)
+      arg =
+    let cases =
+      EnumConstructor.Map.of_seq
+        (List.to_seq
+           [
+             ( none_constr,
+               let x = Var.make var_name in
+               Expr.eabs
+                 (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
+                 [TAny, Expr.mark_pos mark]
+                 mark );
+             (* | None x -> raise NoValueProvided *)
+             some_constr, Expr.fun_id mark (* | Some x -> x*);
+           ])
+    in
+    if toplevel then Expr.ematch arg option_enum cases mark
+    else return ~mark (Expr.ematch arg option_enum cases mark)
+end
