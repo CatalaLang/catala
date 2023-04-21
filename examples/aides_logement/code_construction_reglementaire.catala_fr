@@ -1143,9 +1143,6 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
         -- date_de_naissance: enfant.date_de_naissance
         -- a_déjà_ouvert_droit_aux_allocations_familiales:
           enfant.a_déjà_ouvert_droit_aux_allocations_familiales
-        -- bénéficie_titre_personnel_aide_personnelle_logement:
-          enfant.
-            bénéficie_titre_personnel_aide_personnelle_logement
       }
     -- AutrePersonneÀCharge de parent: faux
   conséquence rempli

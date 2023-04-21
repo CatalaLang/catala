@@ -177,8 +177,6 @@ déclaration énumération SituationGardeAlternée:
 déclaration structure EnfantÀCharge:
   donnée identifiant contenu entier
   donnée nationalité contenu Nationalité
-  donnée bénéficie_titre_personnel_aide_personnelle_logement
-    contenu booléen
   donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
   donnée date_de_naissance contenu date
   donnée rémuneration_mensuelle contenu argent

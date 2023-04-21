@@ -16,7 +16,6 @@ déclaration structure EnfantPrestationsFamiliales :
   donnée rémuneration_mensuelle contenu argent
   donnée date_de_naissance contenu date
   donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
-  donnée bénéficie_titre_personnel_aide_personnelle_logement contenu booléen
 
 déclaration champ d'application ÉligibilitéPrestationsFamiliales:
   entrée date_courante contenu date

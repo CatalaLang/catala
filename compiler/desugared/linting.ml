@@ -134,6 +134,9 @@ let detect_unused_scope_vars (p : program) : unit =
     p.program_scopes
 
 let detect_unused_struct_fields (p : program) : unit =
+  (* TODO: this analysis should be finer grained: a false negative is if the
+     field is used to define itself, for passing data around but that never gets
+     really used or defined. *)
   let struct_fields_used =
     Ast.fold_exprs
       ~f:(fun struct_fields_used e ->
