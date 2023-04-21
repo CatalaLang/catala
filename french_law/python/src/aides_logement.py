@@ -9377,7 +9377,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
             def temp_calcul_plafond_mensualite_d832_10_3_1(_:Unit):
                 raise EmptyError
             def temp_calcul_plafond_mensualite_d832_10_3_2(_:Unit):
-                return True
+                return False
             def temp_calcul_plafond_mensualite_d832_10_3_3(_:Unit):
                 def temp_calcul_plafond_mensualite_d832_10_3_4(_:Unit):
                     raise EmptyError
@@ -26595,67 +26595,63 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
     try:
         try:
             def temp_eligibilite_l841_2(_:Unit):
+                return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
+                    Unit())
+            def temp_eligibilite_l841_2_1(_:Unit):
                 match_arg_706 = menage_2.logement.mode_occupation
                 if match_arg_706.code == ModeOccupation_Code.Locataire:
                     _ = match_arg_706.value
-                    temp_eligibilite_l841_2_1 = False
+                    return False
                 elif match_arg_706.code == ModeOccupation_Code.ResidentLogementFoyer:
                     _ = match_arg_706.value
-                    temp_eligibilite_l841_2_1 = False
+                    return False
                 elif match_arg_706.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
                     proprietaire_9 = match_arg_706.value
-                    temp_eligibilite_l841_2_1 = (proprietaire_9.pret.date_signature >
+                    return (proprietaire_9.pret.date_signature >
                         date_of_numbers(2017,12,31))
                 elif match_arg_706.code == ModeOccupation_Code.SousLocataire:
                     _ = match_arg_706.value
-                    temp_eligibilite_l841_2_1 = False
+                    return False
                 elif match_arg_706.code == ModeOccupation_Code.LocationAccession:
                     _ = match_arg_706.value
-                    temp_eligibilite_l841_2_1 = False
-                if temp_eligibilite_l841_2_1:
-                    return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
-                        Unit())
-                else:
-                    raise EmptyError
+                    return False
             def temp_eligibilite_l841_2_2(_:Unit):
-                return True
-            def temp_eligibilite_l841_2_3(_:Unit):
                 if demandeur_2.personne_hebergee_centre_soin_l_L162_22_3_securite_sociale:
                     return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale,
                         Unit())
                 else:
                     raise EmptyError
-            def temp_eligibilite_l841_2_4(_:Unit):
+            def temp_eligibilite_l841_2_3(_:Unit):
                 try:
                     match_arg_707 = menage_2.residence
                     if match_arg_707.code == Collectivite_Code.Guadeloupe:
                         _ = match_arg_707.value
-                        temp_eligibilite_l841_2_5 = False
+                        temp_eligibilite_l841_2_4 = False
                     elif match_arg_707.code == Collectivite_Code.Guyane:
                         _ = match_arg_707.value
-                        temp_eligibilite_l841_2_5 = False
+                        temp_eligibilite_l841_2_4 = False
                     elif match_arg_707.code == Collectivite_Code.Martinique:
                         _ = match_arg_707.value
-                        temp_eligibilite_l841_2_5 = False
+                        temp_eligibilite_l841_2_4 = False
                     elif match_arg_707.code == Collectivite_Code.LaReunion:
                         _ = match_arg_707.value
-                        temp_eligibilite_l841_2_5 = False
+                        temp_eligibilite_l841_2_4 = False
                     elif match_arg_707.code == Collectivite_Code.SaintBarthelemy:
                         _ = match_arg_707.value
-                        temp_eligibilite_l841_2_5 = False
+                        temp_eligibilite_l841_2_4 = False
                     elif match_arg_707.code == Collectivite_Code.SaintMartin:
                         _ = match_arg_707.value
-                        temp_eligibilite_l841_2_5 = False
+                        temp_eligibilite_l841_2_4 = False
                     elif match_arg_707.code == Collectivite_Code.Metropole:
                         _ = match_arg_707.value
-                        temp_eligibilite_l841_2_5 = False
+                        temp_eligibilite_l841_2_4 = False
                     elif match_arg_707.code == Collectivite_Code.SaintPierreEtMiquelon:
                         _ = match_arg_707.value
-                        temp_eligibilite_l841_2_5 = False
+                        temp_eligibilite_l841_2_4 = False
                     elif match_arg_707.code == Collectivite_Code.Mayotte:
                         _ = match_arg_707.value
-                        temp_eligibilite_l841_2_5 = True
-                    if (temp_eligibilite_l841_2_5 and
+                        temp_eligibilite_l841_2_4 = True
+                    if (temp_eligibilite_l841_2_4 and
                         demandeur_2.magistrat_fonctionnaire_centre_interets_materiels_familiaux_hors_mayotte):
                         return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
                             Unit())
@@ -26665,96 +26661,96 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                     match_arg_708 = menage_2.logement.mode_occupation
                     if match_arg_708.code == ModeOccupation_Code.Locataire:
                         _ = match_arg_708.value
-                        temp_eligibilite_l841_2_6 = False
+                        temp_eligibilite_l841_2_5 = False
                     elif match_arg_708.code == ModeOccupation_Code.ResidentLogementFoyer:
                         _ = match_arg_708.value
-                        temp_eligibilite_l841_2_6 = False
+                        temp_eligibilite_l841_2_5 = False
                     elif match_arg_708.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
                         proprietaire_10 = match_arg_708.value
                         match_arg_709 = proprietaire_10.pret.accord_financement_representant_Etat_outre_mer
                         if match_arg_709.code == AccordFinancementRepresentantEtatOutreMer_Code.Accord:
                             date_accord = match_arg_709.value
-                            temp_eligibilite_l841_2_7 = (date_accord <=
+                            temp_eligibilite_l841_2_6 = (date_accord <=
                                 date_of_numbers(2018,12,31))
                         elif match_arg_709.code == AccordFinancementRepresentantEtatOutreMer_Code.PasdAccord:
                             _ = match_arg_709.value
-                            temp_eligibilite_l841_2_7 = False
-                        temp_eligibilite_l841_2_6 = ((proprietaire_10.pret.date_signature >
+                            temp_eligibilite_l841_2_6 = False
+                        temp_eligibilite_l841_2_5 = ((proprietaire_10.pret.date_signature >
                             date_of_numbers(2017,12,31)) or
                             ((proprietaire_10.pret.date_signature >
                             date_of_numbers(2019,12,31)) and
-                            temp_eligibilite_l841_2_7))
+                            temp_eligibilite_l841_2_6))
                     elif match_arg_708.code == ModeOccupation_Code.SousLocataire:
                         _ = match_arg_708.value
-                        temp_eligibilite_l841_2_6 = False
+                        temp_eligibilite_l841_2_5 = False
                     elif match_arg_708.code == ModeOccupation_Code.LocationAccession:
                         _ = match_arg_708.value
-                        temp_eligibilite_l841_2_6 = False
+                        temp_eligibilite_l841_2_5 = False
                     match_arg_710 = menage_2.residence
                     if match_arg_710.code == Collectivite_Code.Guadeloupe:
                         _ = match_arg_710.value
-                        temp_eligibilite_l841_2_8 = True
+                        temp_eligibilite_l841_2_7 = True
                     elif match_arg_710.code == Collectivite_Code.Guyane:
                         _ = match_arg_710.value
-                        temp_eligibilite_l841_2_8 = True
+                        temp_eligibilite_l841_2_7 = True
                     elif match_arg_710.code == Collectivite_Code.Martinique:
                         _ = match_arg_710.value
-                        temp_eligibilite_l841_2_8 = True
+                        temp_eligibilite_l841_2_7 = True
                     elif match_arg_710.code == Collectivite_Code.LaReunion:
                         _ = match_arg_710.value
-                        temp_eligibilite_l841_2_8 = True
+                        temp_eligibilite_l841_2_7 = True
                     elif match_arg_710.code == Collectivite_Code.SaintBarthelemy:
                         _ = match_arg_710.value
-                        temp_eligibilite_l841_2_8 = False
+                        temp_eligibilite_l841_2_7 = False
                     elif match_arg_710.code == Collectivite_Code.SaintMartin:
                         _ = match_arg_710.value
-                        temp_eligibilite_l841_2_8 = False
+                        temp_eligibilite_l841_2_7 = False
                     elif match_arg_710.code == Collectivite_Code.Metropole:
                         _ = match_arg_710.value
-                        temp_eligibilite_l841_2_8 = False
+                        temp_eligibilite_l841_2_7 = False
                     elif match_arg_710.code == Collectivite_Code.SaintPierreEtMiquelon:
                         _ = match_arg_710.value
-                        temp_eligibilite_l841_2_8 = False
+                        temp_eligibilite_l841_2_7 = False
                     elif match_arg_710.code == Collectivite_Code.Mayotte:
                         _ = match_arg_710.value
-                        temp_eligibilite_l841_2_8 = True
-                    if (temp_eligibilite_l841_2_8 and
-                        temp_eligibilite_l841_2_6):
+                        temp_eligibilite_l841_2_7 = True
+                    if (temp_eligibilite_l841_2_7 and
+                        temp_eligibilite_l841_2_5):
                         return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
                             Unit())
                     else:
                         raise EmptyError
-            temp_eligibilite_l841_2_9 = handle_default(SourcePosition(filename="",
+            temp_eligibilite_l841_2_8 = handle_default(SourcePosition(filename="",
                                                        start_line=0,
                                                        start_column=1,
                                                        end_line=0, end_column=1,
-                                                       law_headings=[]), [temp_eligibilite_l841_2_4,
-                                                       temp_eligibilite_l841_2_3],
-                                                       temp_eligibilite_l841_2_2,
+                                                       law_headings=[]), [temp_eligibilite_l841_2_3,
+                                                       temp_eligibilite_l841_2_2],
+                                                       temp_eligibilite_l841_2_1,
                                                        temp_eligibilite_l841_2)
         except EmptyError:
             if ((eligibilite_dispositions_communes ==
                 TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
                 Unit())) or
                 beneficie_aide_personnalisee_logement):
-                temp_eligibilite_l841_2_9 = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
+                temp_eligibilite_l841_2_8 = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
                     Unit())
             else:
                 if eligibilite_allocation_logement_familiale:
-                    temp_eligibilite_l841_2_9 = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale,
+                    temp_eligibilite_l841_2_8 = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale,
                         Unit())
                 else:
-                    temp_eligibilite_l841_2_9 = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale,
+                    temp_eligibilite_l841_2_8 = TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale,
                         Unit())
     except EmptyError:
-        temp_eligibilite_l841_2_9 = dead_value
+        temp_eligibilite_l841_2_8 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=424, start_column=10,
                                              end_line=424, end_column=16,
                                              law_headings=["Éligibilité aux allocations de logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
-    eligibilite_l841_2 = temp_eligibilite_l841_2_9
+    eligibilite_l841_2 = temp_eligibilite_l841_2_8
     return EligibiliteAllocationLogement(eligibilite = eligibilite_l841_2,
         nombre_personnes_a_charge_prises_en_compte = nombre_personnes_a_charge_prises_en_compte_1,
         coefficents_enfants_garde_alternee_pris_en_compte = coefficents_enfants_garde_alternee_pris_en_compte_1)
