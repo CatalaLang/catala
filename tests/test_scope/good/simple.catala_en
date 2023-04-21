@@ -12,19 +12,7 @@ scope Foo:
 $ catala Lcalc -s Foo
 let scope Foo (Foo_in: Foo_in): Foo =
   let set bar : integer =
-    try
-      handle_default
-        [  ],
-        (λ (_: unit) → true),
-        (λ (_: unit) →
-           handle_default
-             [ λ (_1: unit) →
-                 handle_default
-                   [  ],
-                   (λ (_2: unit) → true),
-                   (λ (_2: unit) → 0) ],
-             (λ (_1: unit) → false),
-             (λ (_1: unit) → raise EmptyError))
+    try handle_default [  ], (λ (_: unit) → true), (λ (_: unit) → 0)
     with EmptyError -> raise NoValueProvided in
   return { "bar" = bar}_Foo
 ```

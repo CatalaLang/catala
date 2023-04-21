@@ -26,8 +26,7 @@ $ catala Scopelang -s B
   └─ Test
 let scope B (b: bool|input) =
   let a.f : integer → integer =
-    λ (x: integer) →
-      ⟨true ⊢ ⟨ ⟨b && x >! 0 ⊢ x -! 1⟩ | false ⊢ ∅ ⟩⟩;
+    λ (x: integer) → ⟨b && x >! 0 ⊢ x -! 1⟩;
   call A[a]
 ```
 
@@ -44,11 +43,7 @@ let scope A (A_in: A_in): A =
   let get f : integer → integer = A_in."f_in" in
   let set f : integer → integer =
     λ (x: integer) →
-      error_empty
-        ⟨ f x
-        | true
-          ⊢ ⟨true ⊢ ⟨ ⟨true ⊢ x +! 1⟩ | false ⊢ ∅ ⟩⟩ ⟩
-    in
+      error_empty ⟨ f x | true ⊢ ⟨true ⊢ x +! 1⟩ ⟩ in
   return {}_A
 ```
 
@@ -64,8 +59,7 @@ $ catala Dcalc -s B
 let scope B (B_in: B_in): B =
   let get b : bool = B_in."b_in" in
   let sub_set a.f : integer → integer =
-    λ (x: integer) →
-      ⟨true ⊢ ⟨ ⟨b && x >! 0 ⊢ x -! 1⟩ | false ⊢ ∅ ⟩⟩ in
+    λ (x: integer) → ⟨b && x >! 0 ⊢ x -! 1⟩ in
   let call result : A = A { "f_in" = a.f}_A_in in
   return {}_B
 ```

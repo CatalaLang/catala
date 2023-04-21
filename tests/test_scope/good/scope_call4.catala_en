@@ -29,22 +29,14 @@ $ catala Interpret -s RentComputation
            λ (x: integer) →
              error_empty
                ⟨true ⊢
-                 ⟨ ⟨true ⊢
-                       let x1 : integer = x +! 1 in
-                       error_empty
-                         ⟨true ⊢
-                           ⟨ ⟨true ⊢ x1 +! 1⟩ | false ⊢ ∅ ⟩⟩⟩
-                 | false ⊢ ∅ ⟩⟩
+                 let x1 : integer = x +! 1 in
+                 error_empty ⟨true ⊢ x1 +! 1⟩⟩
 [RESULT] f2 =
            λ (x: integer) →
              error_empty
                ⟨true ⊢
-                 ⟨ ⟨true ⊢
-                       let x1 : integer = x +! 1 in
-                       error_empty
-                         ⟨true ⊢
-                           ⟨ ⟨true ⊢ x1 +! 1⟩ | false ⊢ ∅ ⟩⟩⟩
-                 | false ⊢ ∅ ⟩⟩
+                 let x1 : integer = x +! 1 in
+                 error_empty ⟨true ⊢ x1 +! 1⟩⟩
 ```
 
 ```catala-test-inline
@@ -53,48 +45,20 @@ $ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize
 [RESULT] f1 = ESome
            (λ (x: integer) → ESome
               match
-                (handle_default_opt
-                   [ match
-                       (ESome
-                        (λ (x1: integer) → ESome
-                           match
-                             (handle_default_opt
-                                [ ESome (x1 +! 1) ],
-                                (λ (_: unit) → ESome false),
-                                (λ (_: unit) → ENone ()))
-                           with
-                           | ENone →
-                             (λ (g: any) → raise NoValueProvided)
-                           | ESome → (λ (x2: any) → x2)))
-                     with
-                     | ENone → (λ (_: unit) → ENone _)
-                     | ESome → (λ (f1: any) → f1 (x +! 1)) ],
-                   (λ (_: unit) → ESome false),
-                   (λ (_: unit) → ENone ()))
+                (match (ESome (λ (x1: integer) → ESome (x1 +! 1)))
+                 with
+                 | ENone → (λ (_: unit) → ENone _)
+                 | ESome → (λ (f1: any) → f1 (x +! 1)))
               with
               | ENone → (λ (f1: any) → raise NoValueProvided)
               | ESome → (λ (x1: any) → x1))
 [RESULT] f2 = ESome
            (λ (x: integer) → ESome
               match
-                (handle_default_opt
-                   [ match
-                       (ESome
-                        (λ (x1: integer) → ESome
-                           match
-                             (handle_default_opt
-                                [ ESome (x1 +! 1) ],
-                                (λ (_: unit) → ESome false),
-                                (λ (_: unit) → ENone ()))
-                           with
-                           | ENone →
-                             (λ (g: any) → raise NoValueProvided)
-                           | ESome → (λ (x2: any) → x2)))
-                     with
-                     | ENone → (λ (_: unit) → ENone _)
-                     | ESome → (λ (f2: any) → f2 (x +! 1)) ],
-                   (λ (_: unit) → ESome false),
-                   (λ (_: unit) → ENone ()))
+                (match (ESome (λ (x1: integer) → ESome (x1 +! 1)))
+                 with
+                 | ENone → (λ (_: unit) → ENone _)
+                 | ESome → (λ (f2: any) → f2 (x +! 1)))
               with
               | ENone → (λ (f2: any) → raise NoValueProvided)
               | ESome → (λ (x1: any) → x1))
