@@ -762,7 +762,7 @@ let make_abs xs e taus pos =
   in
   eabs (bind xs e) taus mark
 
-let make_app ?(decl_ctx = None) e args pos =
+let make_app e args pos =
   let mark =
     fold_marks
       (fun _ -> pos)
@@ -774,13 +774,10 @@ let make_app ?(decl_ctx = None) e args pos =
             assert (Type.unifiable_list tx' (List.map (fun x -> x.ty) argtys));
             tr
           | TAny -> fty.ty
-          | _ -> (
-            match decl_ctx with
-            | None -> assert false
-            | Some decl_ctx ->
-              Errors.raise_internal_error
-                "wrong type: found %a while expecting either an Arrow or Any"
-                (Print.typ decl_ctx) fty.ty)))
+          | _ ->
+            Errors.raise_internal_error
+              "wrong type: found %a while expecting either an Arrow or Any"
+              Print.typ_debug fty.ty))
       (List.map Marked.get_mark (e :: args))
   in
   eapp e args mark

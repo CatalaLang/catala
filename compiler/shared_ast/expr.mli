@@ -276,7 +276,6 @@ val make_abs :
   ('a any, 'm mark) boxed_gexpr
 
 val make_app :
-  ?decl_ctx:decl_ctx option ->
   ('a any, 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr list ->
   Pos.t ->
