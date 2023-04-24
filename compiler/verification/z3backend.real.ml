@@ -772,18 +772,13 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
   | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
-    (* Encode this as (e_if ==> e_then) /\ (not e_if ==> e_else) *)
+    (* We rely on Z3's native encoding for ite to encode this node. There might
+       be some interesting optimization in the future about when to split this
+       node/bubble up the if_then_else, but this is left as future work *)
     let ctx, z3_if = translate_expr ctx e_if in
     let ctx, z3_then = translate_expr ctx e_then in
     let ctx, z3_else = translate_expr ctx e_else in
-    ( ctx,
-      Boolean.mk_and ctx.ctx_z3
-        [
-          Boolean.mk_implies ctx.ctx_z3 z3_if z3_then;
-          Boolean.mk_implies ctx.ctx_z3
-            (Boolean.mk_not ctx.ctx_z3 z3_if)
-            z3_else;
-        ] )
+    ctx, Boolean.mk_ite ctx.ctx_z3 z3_if z3_then z3_else
   | EEmptyError -> failwith "[Z3 encoding] LEmptyError literals not supported"
   | EErrorOnEmpty _ -> failwith "[Z3 encoding] ErrorOnEmpty unsupported"
   | _ -> .
