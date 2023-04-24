@@ -26,13 +26,7 @@ module A = Ast
     [match e1 with | None -> e2 | Some x -> x].
 
     When doing this naively, this requires to add matches and [Some] constructor
-    everywhere. We apply here an other technique where we generate what we call
-    `hoists`. Hoists are expressions that can minimally [raise EmptyError]. For
-    instance, in [let x = <e1, e2, ..., en | e_just :- e_cons> * 3 in x + 1],
-    the sub-expression [<e1, e2, ..., en | e_just :- e_cons>] can produce an
-    empty error. So we make a hoist with a new variable [y] linked to the Dcalc
-    expression [<e1, e2, ..., en | e_just :- e_cons>], and we return as the
-    translated expression [let x = y * 3 in x + 1].
+    everywhere. We apply optimizations to remove the additional constructors.
 
     The compilation process is handled by the [trans_expr] function. *)
 
