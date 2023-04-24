@@ -28,8 +28,8 @@ scope S:
 ```catala-test-inline
 $ catala Interpret -s S
 [RESULT] Computation successful! Results:
-[RESULT] a = {A "x" = -2.; "y" = {B "y" = false; "z" = -1.}}
-[RESULT] b = {B "y" = true; "z" = 42.}
+[RESULT] a = { "x" = -2.; "y" = { "y" = false; "z" = -1.}_B}_A
+[RESULT] b = { "y" = true; "z" = 42.}_B
 ```
 
 ## Check scope of let-in vs scope variable
@@ -49,4 +49,20 @@ scope S2:
 $ catala Interpret -s S2
 [RESULT] Computation successful! Results:
 [RESULT] y = 1
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome
+           {
+             
+             "x" = ESome -2.;
+             "y" = ESome { "y" = ESome false; "z" = ESome -1.}_B
+           }_A
+[RESULT] b = ESome { "y" = ESome true; "z" = ESome 42.}_B
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S2 --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] y = ESome 1
 ```

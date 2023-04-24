@@ -13,11 +13,8 @@ scope TestBool:
 
 ```catala-test-inline
 $ catala Dcalc 
-let TestBool :
-    TestBool_in {"foo_in": unit → bool; "bar_in": unit → integer} →
-      TestBool {"foo": bool; "bar": integer} =
-  λ (TestBool_in: TestBool_in {"foo_in": unit → bool; "bar_in":
-                     unit → integer}) →
+let TestBool : TestBool_in → TestBool =
+  λ (TestBool_in: TestBool_in) →
     let foo : unit → bool = TestBool_in."foo_in" in
     let bar : unit → integer = TestBool_in."bar_in" in
     let bar1 : integer =
@@ -27,10 +24,11 @@ let TestBool :
       error_empty
         ⟨ foo ()
         | true
-          ⊢ ⟨ ⟨bar1 >=! 0 ⊢ true⟩, ⟨bar1 <! 0 ⊢ false⟩
-              | false ⊢ ∅ ⟩ ⟩
+          ⊢ ⟨true ⊢
+                ⟨ ⟨bar1 >=! 0 ⊢ true⟩, ⟨bar1 <! 0 ⊢ false⟩
+                | false ⊢ ∅ ⟩⟩ ⟩
     in
-    {TestBool "foo" = foo1; "bar" = bar1}
+    { "foo" = foo1; "bar" = bar1}_TestBool
 in
 TestBool
 ```
@@ -52,6 +50,13 @@ struct TestBool = {
 let scope TestBool (foo: bool|context|output) (bar: integer|context|output) =
   let bar : integer = reentrant or by default ⟨true ⊢ 1⟩;
   let foo : bool = reentrant or by default
-    ⟨ ⟨bar >=! 0 ⊢ true⟩, ⟨bar <! 0 ⊢ false⟩
-    | false ⊢ ∅ ⟩
+    ⟨true ⊢
+      ⟨ ⟨bar >=! 0 ⊢ true⟩, ⟨bar <! 0 ⊢ false⟩
+      | false ⊢ ∅ ⟩⟩
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s TestBool --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] bar = ESome 1
+[RESULT] foo = ESome true
 ```

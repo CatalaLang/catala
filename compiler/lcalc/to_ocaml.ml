@@ -190,9 +190,7 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
     || String.begins_with_uppercase (Bindlib.name_of v)
   then Format.pp_print_string fmt lowercase_name
   else if lowercase_name = "_" then Format.pp_print_string fmt lowercase_name
-  else (
-    Cli.debug_print "lowercase_name: %s " lowercase_name;
-    Format.fprintf fmt "%s_" lowercase_name)
+  else Format.fprintf fmt "%s_" lowercase_name
 
 let needs_parens (e : 'm expr) : bool =
   match Marked.unmark e with
@@ -336,13 +334,15 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       format_with_parens arg1
   | EApp { f = EOp { op = Log _; _ }, _; args = [arg1] } ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp { f = EVar x, pos; args }
-    when Var.compare x (Var.translate Ast.handle_default) = 0
-         || Var.compare x (Var.translate Ast.handle_default_opt) = 0 ->
+  | EApp
+      {
+        f = EOp { op = (HandleDefault | HandleDefaultOpt) as op; _ }, pos;
+        args;
+      } ->
     Format.fprintf fmt
       "@[<hov 2>%a@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a@]"
-      format_var x
+      Print.operator op
       (Pos.get_file (Expr.mark_pos pos))
       (Pos.get_start_line (Expr.mark_pos pos))
       (Pos.get_start_column (Expr.mark_pos pos))

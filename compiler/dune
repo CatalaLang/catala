@@ -28,6 +28,11 @@
   catala.runtime_ocaml
   catala.runtime_jsoo))
 
+(executable
+ (name tests)
+ (modules tests)
+ (libraries catala.driver alcotest))
+
 (rule
  (target custom_linking.sexp)
  (mode fallback)
@@ -54,3 +59,9 @@
 (alias
  (name catala)
  (deps catala.exe))
+
+(rule
+ (alias runtest)
+ (package catala)
+ (action
+  (run ./tests.exe)))

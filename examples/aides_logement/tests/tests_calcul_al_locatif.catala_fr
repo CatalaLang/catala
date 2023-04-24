@@ -101,3 +101,13 @@ $ catala Interpret -s Exemple2 --disable_warnings
 [RESULT] montant = 352.77 €
 ```
 
+```catala-test-inline
+$ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
+[RESULT] Computation successful! Results:
+[RESULT] montant = ESome 345.73 €
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s Exemple2 --avoid_exceptions
+[RESULT] Computation successful! Results:
+[RESULT] montant = ESome 352.77 €
+```

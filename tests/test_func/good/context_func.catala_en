@@ -39,14 +39,12 @@ $ catala Dcalc -s A
 5 │   context f content integer depends on x content integer
   │           ‾
   └─ Test
-let A =
-  λ (A_in: A_in {"f_in": integer → integer}) →
-    let f : integer → integer = A_in."f_in" in
-    let f1 : integer → integer =
-      λ (x: integer) →
-        error_empty ⟨ f x | true ⊢ ⟨true ⊢ x +! 1⟩ ⟩
-    in
-    {A}
+let scope A (A_in: A_in): A =
+  let get f : integer → integer = A_in."f_in" in
+  let set f : integer → integer =
+    λ (x: integer) →
+      error_empty ⟨ f x | true ⊢ ⟨true ⊢ x +! 1⟩ ⟩ in
+  return {}_A
 ```
 
 ```catala-test-inline
@@ -58,12 +56,10 @@ $ catala Dcalc -s B
 5 │   context f content integer depends on x content integer
   │           ‾
   └─ Test
-let B =
-  λ (B_in: B_in {"b_in": bool}) →
-    let b : bool = B_in."b_in" in
-    let a.f : integer → integer =
-      λ (x: integer) → ⟨b && x >! 0 ⊢ x -! 1⟩
-    in
-    let result : A {} = A {A_in "f_in" = a.f} in
-    {B}
+let scope B (B_in: B_in): B =
+  let get b : bool = B_in."b_in" in
+  let sub_set a.f : integer → integer =
+    λ (x: integer) → ⟨b && x >! 0 ⊢ x -! 1⟩ in
+  let call result : A = A { "f_in" = a.f}_A_in in
+  return {}_B
 ```

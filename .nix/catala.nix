@@ -4,16 +4,13 @@
 , benchmark
 , bindlib
 , buildDunePackage
-, calendar
 , cmdliner
 , cppo
 , dates_calc
-, fetchFromGitHub
 , js_of_ocaml
 , js_of_ocaml-ppx
 , menhir
 , menhirLib
-, ocaml-crunch
 , ocamlgraph
 , pkgs
 , ppx_deriving
@@ -26,6 +23,8 @@
 , z3
 , zarith
 , zarith_stubs_js
+, ocaml-crunch
+, cohttp-lwt-unix
 }:
 
 buildDunePackage {
@@ -50,7 +49,6 @@ buildDunePackage {
     js_of_ocaml
     js_of_ocaml-ppx
     menhirLib
-    ocaml-crunch
     ocamlgraph
     pkgs.z3
     ppx_deriving
@@ -63,6 +61,7 @@ buildDunePackage {
     z3
     zarith
     zarith_stubs_js
+    cohttp-lwt-unix
   ];
 
   # Currently there is no unit tests in catala and Cram tests are handled by clerk

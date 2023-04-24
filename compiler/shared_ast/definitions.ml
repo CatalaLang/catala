@@ -280,6 +280,8 @@ module Op = struct
     (* ternary *)
     (* * polymorphic *)
     | Fold : < polymorphic ; .. > t
+    | HandleDefault : < polymorphic ; .. > t
+    | HandleDefaultOpt : < polymorphic ; .. > t
 end
 
 type 'a operator = 'a Op.t
@@ -430,6 +432,15 @@ and ('a, 'b, 't) base_gexpr =
       handler : ('a, 't) gexpr;
     }
       -> ('a, < exceptions : yes ; .. >, 't) base_gexpr
+
+let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
+let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)
+let some_constr : EnumConstructor.t = EnumConstructor.fresh ("ESome", Pos.no_pos)
+
+let option_enum_config : typ EnumConstructor.Map.t =
+  EnumConstructor.Map.empty
+  |> EnumConstructor.Map.add none_constr (TLit TUnit, Pos.no_pos)
+  |> EnumConstructor.Map.add some_constr (TAny, Pos.no_pos)
 
 type ('a, 't) boxed_gexpr = (('a, 't) naked_gexpr Bindlib.box, 't) Marked.t
 (** The annotation is lifted outside of the box for expressions *)

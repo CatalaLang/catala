@@ -23,7 +23,7 @@ scope S:
 $ catala Interpret -s S
 [RESULT] Computation successful! Results:
 [RESULT] a = 1946.5744
-[RESULT] b = {A "y" = true; "z" = 2091.}
+[RESULT] b = { "y" = true; "z" = 2091.}_A
 ```
 
 ## Test toplevel function defs
@@ -109,7 +109,7 @@ let glob5_6 = glob5_aux_5 ()
 
 let glob2_10 = A {"y": glob1_2 >=. 30., "z": 123. *. 17.}
 
-let S2_6 (S2_in_11: S2_in {}) =
+let S2_6 (S2_in_11: S2_in) =
   decl temp_a_13 : any;
   try:
     decl temp_a_16 : any;
@@ -118,7 +118,7 @@ let S2_6 (S2_in_11: S2_in {}) =
     decl temp_a_14 : any;
     let temp_a_14 (__15 : unit) =
       return true;
-    temp_a_13 = handle_default_1 [] temp_a_14 temp_a_16
+    temp_a_13 = handle_default [] temp_a_14 temp_a_16
   with EmptyError:
     temp_a_13 = dead_value_1;
     raise NoValueProvided;
@@ -126,7 +126,7 @@ let S2_6 (S2_in_11: S2_in {}) =
   a_12 = temp_a_13;
   return S2 {"a": a_12}
 
-let S3_7 (S3_in_18: S3_in {}) =
+let S3_7 (S3_in_18: S3_in) =
   decl temp_a_20 : any;
   try:
     decl temp_a_23 : any;
@@ -135,7 +135,7 @@ let S3_7 (S3_in_18: S3_in {}) =
     decl temp_a_21 : any;
     let temp_a_21 (__22 : unit) =
       return true;
-    temp_a_20 = handle_default_1 [] temp_a_21 temp_a_23
+    temp_a_20 = handle_default [] temp_a_21 temp_a_23
   with EmptyError:
     temp_a_20 = dead_value_1;
     raise NoValueProvided;
@@ -143,7 +143,7 @@ let S3_7 (S3_in_18: S3_in {}) =
   a_19 = temp_a_20;
   return S3 {"a": a_19}
 
-let S4_8 (S4_in_25: S4_in {}) =
+let S4_8 (S4_in_25: S4_in) =
   decl temp_a_27 : any;
   try:
     decl temp_a_30 : any;
@@ -152,7 +152,7 @@ let S4_8 (S4_in_25: S4_in {}) =
     decl temp_a_28 : any;
     let temp_a_28 (__29 : unit) =
       return true;
-    temp_a_27 = handle_default_1 [] temp_a_28 temp_a_30
+    temp_a_27 = handle_default [] temp_a_28 temp_a_30
   with EmptyError:
     temp_a_27 = dead_value_1;
     raise NoValueProvided;
@@ -160,7 +160,7 @@ let S4_8 (S4_in_25: S4_in {}) =
   a_26 = temp_a_27;
   return S4 {"a": a_26}
 
-let S_9 (S_in_32: S_in {}) =
+let S_9 (S_in_32: S_in) =
   decl temp_a_40 : any;
   try:
     decl temp_a_43 : any;
@@ -169,7 +169,7 @@ let S_9 (S_in_32: S_in {}) =
     decl temp_a_41 : any;
     let temp_a_41 (__42 : unit) =
       return true;
-    temp_a_40 = handle_default_1 [] temp_a_41 temp_a_43
+    temp_a_40 = handle_default [] temp_a_41 temp_a_43
   with EmptyError:
     temp_a_40 = dead_value_1;
     raise NoValueProvided;
@@ -183,11 +183,11 @@ let S_9 (S_in_32: S_in {}) =
     decl temp_b_36 : any;
     let temp_b_36 (__37 : unit) =
       return true;
-    temp_b_35 = handle_default_1 [] temp_b_36 temp_b_38
+    temp_b_35 = handle_default [] temp_b_36 temp_b_38
   with EmptyError:
     temp_b_35 = dead_value_1;
     raise NoValueProvided;
-  decl b_34 : A {"y": bool; "z": decimal};
+  decl b_34 : A;
   b_34 = temp_b_35;
   return S {"a": a_33, "b": b_34}
 ```
@@ -379,11 +379,9 @@ def s2(s2_in:S2In):
                 decimal_of_string("100."))
         def temp_a_1(_:Unit):
             return True
-        temp_a_2 = handle_default(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=37, start_column=10,
-                                  end_line=37, end_column=11,
-                                  law_headings=["Test toplevel function defs"]), [],
-                                  temp_a_1, temp_a)
+        temp_a_2 = handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [], temp_a_1, temp_a)
     except EmptyError:
         temp_a_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
@@ -401,11 +399,9 @@ def s3(s3_in:S3In):
                       decimal_of_string("55.")))
         def temp_a_4(_:Unit):
             return True
-        temp_a_5 = handle_default(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=57, start_column=10,
-                                  end_line=57, end_column=11,
-                                  law_headings=["Test function def with two args"]), [],
-                                  temp_a_4, temp_a_3)
+        temp_a_5 = handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [], temp_a_4, temp_a_3)
     except EmptyError:
         temp_a_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
@@ -421,11 +417,9 @@ def s4(s4_in:S4In):
             return (glob5_1 + decimal_of_string("1."))
         def temp_a_7(_:Unit):
             return True
-        temp_a_8 = handle_default(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=80, start_column=10,
-                                  end_line=80, end_column=11,
-                                  law_headings=["Test inline defs in toplevel defs"]), [],
-                                  temp_a_7, temp_a_6)
+        temp_a_8 = handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [], temp_a_7, temp_a_6)
     except EmptyError:
         temp_a_8 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
@@ -441,11 +435,9 @@ def s(s_in:SIn):
             return (glob1 * glob1)
         def temp_a_10(_:Unit):
             return True
-        temp_a_11 = handle_default(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                   start_line=7, start_column=10,
-                                   end_line=7, end_column=11,
-                                   law_headings=["Test basic toplevel values defs"]), [],
-                                   temp_a_10, temp_a_9)
+        temp_a_11 = handle_default(SourcePosition(filename="", start_line=0,
+                                   start_column=1, end_line=0, end_column=1,
+                                   law_headings=[]), [], temp_a_10, temp_a_9)
     except EmptyError:
         temp_a_11 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
@@ -458,11 +450,9 @@ def s(s_in:SIn):
             return glob2
         def temp_b_1(_:Unit):
             return True
-        temp_b_2 = handle_default(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                  start_line=8, start_column=10,
-                                  end_line=8, end_column=11,
-                                  law_headings=["Test basic toplevel values defs"]), [],
-                                  temp_b_1, temp_b)
+        temp_b_2 = handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [], temp_b_1, temp_b)
     except EmptyError:
         temp_b_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
@@ -471,4 +461,25 @@ def s(s_in:SIn):
                                              law_headings=["Test basic toplevel values defs"]))
     b = temp_b_2
     return S(a = a_3, b = b)
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome 1946.5744
+[RESULT] b = ESome { "y" = ESome true; "z" = ESome 2091.}_A
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S2 --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome 154.
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S3 --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome 2480.
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S4 --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome 6001.
 ```

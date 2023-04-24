@@ -19,3 +19,7 @@ scope Bar:
 $ catala Interpret -s Bar
 [RESULT] Computation successful!
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s Bar --avoid_exceptions --optimize
+[RESULT] Computation successful!
+```

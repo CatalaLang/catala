@@ -68,6 +68,9 @@ val max_prec_digits : int ref
 val trace_flag : bool ref
 val disable_warnings_flag : bool ref
 
+val check_invariants_flag : bool ref
+(** Check structural invariants on the AST. *)
+
 val disable_counterexamples : bool ref
 (** Disables model-generated counterexamples for proofs that fail. *)
 
@@ -80,6 +83,7 @@ val file : string Cmdliner.Term.t
 val debug : bool Cmdliner.Term.t
 val unstyled : bool Cmdliner.Term.t
 val trace_opt : bool Cmdliner.Term.t
+val check_invariants_opt : bool Cmdliner.Term.t
 val wrap_weaved_output : bool Cmdliner.Term.t
 val print_only_law : bool Cmdliner.Term.t
 val backend : string Cmdliner.Term.t
@@ -104,6 +108,7 @@ type options = {
   trace : bool;
   disable_warnings : bool;
   disable_counterexamples : bool;
+  check_invariants : bool;
   optimize : bool;
   ex_scope : string option;
   ex_variable : string option;
@@ -154,6 +159,7 @@ val add_prefix_to_each_line : string -> (int -> string) -> string
 val debug_print : ('a, Format.formatter, unit) format -> 'a
 val debug_format : ('a, Format.formatter, unit) format -> 'a
 val error_print : ('a, Format.formatter, unit) format -> 'a
+val error_format : ('a, Format.formatter, unit) format -> 'a
 val warning_print : ('a, Format.formatter, unit) format -> 'a
 val warning_format : ('a, Format.formatter, unit) format -> 'a
 val result_print : ('a, Format.formatter, unit) format -> 'a

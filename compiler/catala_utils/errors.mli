@@ -34,6 +34,10 @@ val raise_multispanned_error :
   (string option * Pos.t) list -> ('a, Format.formatter, unit, 'b) format4 -> 'a
 
 val raise_error : ('a, Format.formatter, unit, 'b) format4 -> 'a
+val raise_internal_error : ('a, Format.formatter, unit, 'b) format4 -> 'a
+
+val assert_internal_error :
+  bool -> ('a, Format.formatter, unit, unit, unit, unit) format6 -> 'a
 
 (** {1 Warning printing}*)
 

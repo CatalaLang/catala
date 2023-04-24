@@ -45,3 +45,9 @@ $ catala Interpret -s B
 [RESULT] foofoo = 4
 [RESULT] foofoofoo = 6
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] foofoo = ESome 4
+[RESULT] foofoofoo = ESome 6
+```

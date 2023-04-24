@@ -259,3 +259,8 @@ $ catala Interpret -s Exemple1 --disable_warnings
 $ catala Typecheck
 [RESULT] Typechecking successful!
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
+[RESULT] Computation successful! Results:
+[RESULT] éligible = ESome true
+```

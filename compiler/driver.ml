@@ -318,7 +318,7 @@ let driver source_file (options : Cli.options) : int =
         let prgm =
           if options.optimize then begin
             Cli.debug_print "Optimizing default calculus...";
-            Dcalc.Optimizations.optimize_program prgm
+            Shared_ast.Optimizations.optimize_program prgm
           end
           else prgm
         in
@@ -345,7 +345,7 @@ let driver source_file (options : Cli.options) : int =
           @@ fun fmt ->
           if Option.is_some options.ex_scope then
             Format.fprintf fmt "%a\n"
-              (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
+              (Shared_ast.Print.scope ~debug:options.debug prgm.decl_ctx)
               ( scope_uid,
                 Option.get
                   (Shared_ast.Scope.fold_left ~init:None
@@ -376,6 +376,12 @@ let driver source_file (options : Cli.options) : int =
               in
               raise (Errors.StructuredError (msg, details))
           in
+          if !Cli.check_invariants_flag then (
+            Cli.debug_format "Checking invariants...";
+            let result = Dcalc.Invariants.check_all_invariants prgm in
+            if not result then
+              raise
+                (Errors.raise_internal_error "Some Dcalc invariants are invalid"));
           match backend with
           | `Proof ->
             let vcs =
@@ -387,7 +393,7 @@ let driver source_file (options : Cli.options) : int =
 
             Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `Interpret ->
-            Cli.debug_print "Starting interpretation...";
+            Cli.debug_print "Starting interpretation (dcalc)...";
             let results =
               Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
             in
@@ -420,14 +426,21 @@ let driver source_file (options : Cli.options) : int =
             as backend -> (
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm =
+              if options.trace && options.avoid_exceptions then
+                Errors.raise_error
+                  "Option --avoid_exceptions is not compatible with option \
+                   --trace";
               if options.avoid_exceptions then
-                Lcalc.Compile_without_exceptions.translate_program prgm
-              else Lcalc.Compile_with_exceptions.translate_program prgm
+                Shared_ast.Program.untype
+                @@ Lcalc.Compile_without_exceptions.translate_program prgm
+              else
+                Shared_ast.Program.untype
+                @@ Lcalc.Compile_with_exceptions.translate_program prgm
             in
             let prgm =
               if options.optimize then begin
                 Cli.debug_print "Optimizing lambda calculus...";
-                Lcalc.Optimizations.optimize_program prgm
+                Shared_ast.Optimizations.optimize_program prgm
               end
               else Shared_ast.Program.untype prgm
             in
@@ -443,7 +456,7 @@ let driver source_file (options : Cli.options) : int =
                 let prgm =
                   if options.optimize then (
                     Cli.debug_print "Optimizing lambda calculus...";
-                    Lcalc.Optimizations.optimize_program prgm)
+                    Shared_ast.Optimizations.optimize_program prgm)
                   else prgm
                 in
                 Cli.debug_print "Retyping lambda calculus...";
@@ -461,18 +474,14 @@ let driver source_file (options : Cli.options) : int =
               @@ fun fmt ->
               if Option.is_some options.ex_scope then
                 Format.fprintf fmt "%a\n"
-                  (Shared_ast.Scope.format ~debug:options.debug prgm.decl_ctx)
+                  (Shared_ast.Print.scope ~debug:options.debug prgm.decl_ctx)
                   (scope_uid, Shared_ast.Program.get_scope_body prgm scope_uid)
               else
-                let prgrm_lcalc_expr =
-                  Shared_ast.Expr.unbox
-                    (Shared_ast.Program.to_expr prgm scope_uid)
-                in
                 Format.fprintf fmt "%a\n"
-                  (Shared_ast.Expr.format ~debug:options.debug prgm.decl_ctx)
-                  prgrm_lcalc_expr
+                  (Shared_ast.Print.program ~debug:options.debug)
+                  prgm
             | `Interpret_Lcalc ->
-              Cli.debug_print "Starting interpretation...";
+              Cli.debug_print "Starting interpretation (lcalc)...";
               let results =
                 Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
               in

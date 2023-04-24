@@ -141,6 +141,8 @@ val escopecall :
   't ->
   ((< explicitScopes : yes ; .. > as 'a), 't) boxed_gexpr
 
+val fun_id : 'm mark -> ('a any, 'm mark) boxed_gexpr
+
 (** Manipulation of marks *)
 
 val no_mark : 'm mark -> 'm mark
@@ -189,11 +191,11 @@ val map :
     AST. For instance, if you want to remove all errors on empty, you can write
 
     {[
-      let remove_error_empty =
+      let remove_error_empty e =
         let rec f e =
           match Marked.unmark e with
-          | ErrorOnEmpty e1 -> Expr.map f e1
-          | _ -> Expr.map f e
+          | EErrorOnEmpty e1 -> Expr.map ~f e1
+          | _ -> Expr.map ~f e
         in
         f e
     ]}
@@ -255,12 +257,10 @@ val map_gather :
     {[
       let rec rewrite e =
         match Marked.unmark e with
-        | Specific_case ->
-          Var.Set.singleton x, some_rewrite_fun e
+        | Specific_case -> Var.Set.singleton x, some_rewrite_fun e
         | _ ->
           Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:rewrite e
-    }]
-
+    ]}
 
     See [Lcalc.closure_conversion] for a real-world example. *)
 
@@ -276,13 +276,19 @@ val make_abs :
   ('a any, 'm mark) boxed_gexpr
 
 val make_app :
-  ('a, 'm mark) boxed_gexpr ->
+  ('a any, 'm mark) boxed_gexpr ->
   ('a, 'm mark) boxed_gexpr list ->
   Pos.t ->
   ('a any, 'm mark) boxed_gexpr
 
 val empty_thunked_term :
   'm mark -> (< defaultTerms : yes ; .. >, 'm mark) boxed_gexpr
+
+val thunk_term :
+  ('a any, 'b mark) boxed_gexpr -> 'b mark -> ('a, 'b mark) boxed_gexpr
+
+val unthunk_term_nobox :
+  ('a any, 'm mark) gexpr -> 'm mark -> ('a, 'm mark) gexpr
 
 val make_let_in :
   ('a, 'm mark) gexpr Var.t ->
@@ -311,13 +317,13 @@ val make_default :
     while avoiding redundant nested constructions. The position is extracted
     from [just] by default.
 
-    Note that, due to the simplifications taking place, the result might not be
-    of the form [EDefault]:
+    Note that some simplifications take place here, even though all of them
+    return an [EDefault] term:
 
-    - [<true :- x>] is rewritten as [x]
     - [<ex | true :- def>], when [def] is a default term [<j :- c>] without
       exceptions, is collapsed into [<ex | def>]
-    - [<ex | false :- _>], when [ex] is a single exception, is rewritten as [ex] *)
+    - [<ex | false :- _>], when [ex] is a single exception of the form
+      [EDefault], is rewritten as [ex] *)
 
 val make_tuple :
   ('a any, 'm mark) boxed_gexpr list -> 'm mark -> ('a, 'm mark) boxed_gexpr
@@ -430,4 +436,12 @@ module Box : sig
     ('a, 't) naked_gexpr) ->
     't ->
     ('a, 't) boxed_gexpr
+
+  val fv : 'b Bindlib.box -> string list
+  (** [fv] return the list of free variables from a boxed term. *)
+
+  val assert_closed : 'b Bindlib.box -> unit
+  (** [assert_closed b] check there is no free variables in then [b] boxed term.
+      It raises an internal error if it not the case, printing all free
+      variables. *)
 end

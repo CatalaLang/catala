@@ -36,9 +36,11 @@ let tag_with_log_entry
     (e : untyped Ast.expr boxed)
     (l : log_entry)
     (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
-  Expr.eapp
-    (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] (Marked.get_mark e))
-    [e] (Marked.get_mark e)
+  if !Cli.trace_flag then
+    Expr.eapp
+      (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] (Marked.get_mark e))
+      [e] (Marked.get_mark e)
+  else e
 
 let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     untyped Ast.expr boxed =

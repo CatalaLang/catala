@@ -24,3 +24,4 @@ module Program = Program
 module Print = Print
 module Typing = Typing
 module Interpreter = Interpreter
+module Optimizations = Optimizations

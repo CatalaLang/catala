@@ -23,8 +23,8 @@ type money
 type integer
 type decimal
 type date
-type date_rounding = Dates_calc.Dates.date_rounding
 type duration
+type date_rounding = Dates_calc.Dates.date_rounding
 
 type source_position = {
   filename : string;
@@ -34,7 +34,6 @@ type source_position = {
   end_column : int;
   law_headings : string list;
 }
-[@@deriving yojson_of]
 
 type 'a eoption = ENone of unit | ESome of 'a
 
@@ -277,8 +276,8 @@ val handle_default :
 val handle_default_opt :
   source_position ->
   'a eoption array ->
-  bool eoption ->
-  'a eoption ->
+  (unit -> bool eoption) ->
+  (unit -> 'a eoption) ->
   'a eoption
 (** @raise ConflictError *)
 

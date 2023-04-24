@@ -96,6 +96,7 @@ let disable_warnings_flag = ref false
 let optimize_flag = ref false
 let disable_counterexamples = ref false
 let avoid_exceptions_flag = ref false
+let check_invariants_flag = ref false
 
 open Cmdliner
 
@@ -148,6 +149,12 @@ let disable_warnings_opt =
     & flag
     & info ["disable_warnings"]
         ~doc:"Disable all the warnings emitted by the compiler.")
+
+let check_invariants_opt =
+  Arg.(
+    value
+    & flag
+    & info ["check_invariants"] ~doc:"Check structural invariants on the AST.")
 
 let avoid_exceptions =
   Arg.(
@@ -265,6 +272,7 @@ type options = {
   trace : bool;
   disable_warnings : bool;
   disable_counterexamples : bool;
+  check_invariants : bool;
   optimize : bool;
   ex_scope : string option;
   ex_variable : string option;
@@ -289,6 +297,7 @@ let options =
       trace
       disable_counterexamples
       optimize
+      check_invariants
       ex_scope
       ex_variable
       output_file
@@ -306,6 +315,7 @@ let options =
       trace;
       disable_counterexamples;
       optimize;
+      check_invariants;
       ex_scope;
       ex_variable;
       output_file;
@@ -329,6 +339,7 @@ let options =
     $ trace_opt
     $ disable_counterexamples_opt
     $ optimize
+    $ check_invariants_opt
     $ ex_scope
     $ ex_variable
     $ output
@@ -349,6 +360,7 @@ let set_option_globals options : unit =
   disable_warnings_flag := options.disable_warnings;
   trace_flag := options.trace;
   optimize_flag := options.optimize;
+  check_invariants_flag := options.check_invariants;
   disable_counterexamples := options.disable_counterexamples;
   avoid_exceptions_flag := options.avoid_exceptions
 
@@ -478,7 +490,7 @@ let time_marker ppf () =
     format_with_style
       [ANSITerminal.Bold; ANSITerminal.black]
       ppf
-      (Printf.sprintf "[TIME] %.0fms@\n" delta)
+      (Format.sprintf "[TIME] %.0fms@\n" delta)
 
 (** Prints [\[DEBUG\]] in purple on the terminal standard output *)
 let debug_marker ppf () =
@@ -537,7 +549,14 @@ let debug_format (format : ('a, Format.formatter, unit) format) =
   else Format.ifprintf Format.std_formatter format
 
 let error_print format =
+  Format.print_flush ();
+  (* Flushes previous warnings *)
   Format.eprintf ("%a" ^^ format ^^ "@\n") error_marker ()
+
+let error_format (format : ('a, Format.formatter, unit) format) =
+  Format.print_flush ();
+  (* Flushes previous warnings *)
+  Format.printf ("%a" ^^ format ^^ "\n%!") error_marker ()
 
 let warning_print format =
   if !disable_warnings_flag then Format.ifprintf Format.std_formatter format

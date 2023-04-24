@@ -20,527 +20,700 @@ module A = Ast
 
 (** The main idea around this pass is to compile Dcalc to Lcalc without using
     [raise EmptyError] nor [try _ with EmptyError -> _]. To do so, we use the
-    same technique as in rust or erlang to handle this kind of exceptions. Each
+    same technique as in Rust or Erlang to handle this kind of exceptions. Each
     [raise EmptyError] will be translated as [None] and each
     [try e1 with EmtpyError -> e2] as
     [match e1 with | None -> e2 | Some x -> x].
 
-    When doing this naively, this requires to add matches and Some constructor
-    everywhere. We apply here an other technique where we generate what we call
-    `hoists`. Hoists are expression whom could minimally [raise EmptyError]. For
-    instance in [let x = <e1, e2, ..., en| e_just :- e_cons> * 3 in x + 1], the
-    sub-expression [<e1, e2, ..., en| e_just :- e_cons>] can produce an empty
-    error. So we make a hoist with a new variable [y] linked to the Dcalc
-    expression [<e1, e2, ..., en| e_just :- e_cons>], and we return as the
-    translated expression [let x = y * 3 in x + 1].
+    When doing this naively, this requires to add matches and [Some] constructor
+    everywhere. We apply optimizations to remove the additional constructors.
 
-    The compilation of expressions is found in the functions
-    [translate_and_hoist ctx e] and [translate_expr ctx e]. Every
-    option-generating expression when calling [translate_and_hoist] will be
-    hoisted and later handled by the [translate_expr] function. Every other
-    cases is found in the translate_and_hoist function. *)
+    The compilation process is handled by the [trans_expr] function. *)
 
 open Shared_ast
 
-type 'm hoists = ('m A.expr, 'm D.expr) Var.Map.t
-(** Hoists definition. It represent bindings between [A.Var.t] and [D.expr]. *)
+(** Start of the translation *)
 
-type 'm info = { expr : 'm A.expr boxed; var : 'm A.expr Var.t; is_pure : bool }
-(** Information about each encontered Dcalc variable is stored inside a context
-    : what is the corresponding LCalc variable; an expression corresponding to
-    the variable build correctly using Bindlib, and a boolean `is_pure`
-    indicating whenever the variable can be an EmptyError and hence should be
-    matched (false) or if it never can be EmptyError (true). *)
-
-let pp_info (fmt : Format.formatter) (info : 'm info) =
-  Format.fprintf fmt "{var: %a; is_pure: %b}" Print.var info.var info.is_pure
-
-type 'm ctx = {
-  decl_ctx : decl_ctx;
-  vars : ('m D.expr, 'm info) Var.Map.t;
-      (** information context about variables in the current scope *)
-}
-
-let _pp_ctx (fmt : Format.formatter) (ctx : 'm ctx) =
-  let pp_binding
-      (fmt : Format.formatter)
-      ((v, info) : 'm D.expr Var.t * 'm info) =
-    Format.fprintf fmt "%a: %a" Print.var v pp_info info
-  in
-
-  let pp_bindings =
-    Format.pp_print_list
-      ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
-      pp_binding
-  in
-
-  Format.fprintf fmt "@[<2>[%a]@]" pp_bindings (Var.Map.bindings ctx.vars)
-
-(** [find ~info n ctx] is a warpper to ocaml's Map.find that handle errors in a
-    slightly better way. *)
-let find ?(info : string = "none") (n : 'm D.expr Var.t) (ctx : 'm ctx) :
-    'm info =
-  (* let _ = Format.asprintf "Searching for variable %a inside context %a"
-     Print.var n pp_ctx ctx |> Cli.debug_print in *)
-  try Var.Map.find n ctx.vars
-  with Not_found ->
-    Errors.raise_spanned_error Pos.no_pos
-      "Internal Error: Variable %a was not found in the current environment. \
-       Additional informations : %s."
-      Print.var n info
-
-(** [add_var pos var is_pure ctx] add to the context [ctx] the Dcalc variable
-    var, creating a unique corresponding variable in Lcalc, with the
-    corresponding expression, and the boolean is_pure. It is usefull for
-    debuging purposes as it printing each of the Dcalc/Lcalc variable pairs. *)
-let add_var
-    (mark : 'm mark)
-    (var : 'm D.expr Var.t)
-    (is_pure : bool)
-    (ctx : 'm ctx) : 'm ctx =
-  let new_var = Var.make (Bindlib.name_of var) in
-  let expr = Expr.make_var new_var mark in
-
-  (* Cli.debug_print @@ Format.asprintf "D.%a |-> A.%a" Print.var var Print.var
-     new_var; *)
-  {
-    ctx with
-    vars =
-      Var.Map.update var
-        (fun _ -> Some { expr; var = new_var; is_pure })
-        ctx.vars;
-  }
-
-(** [tau' = translate_typ tau] translate the a dcalc type into a lcalc type.
+(** {2 Type translating functions}
 
     Since positions where there is thunked expressions is exactly where we will
     put option expressions. Hence, the transformation simply reduce [unit -> 'a]
     into ['a option] recursivly. There is no polymorphism inside catala. *)
-let rec translate_typ (tau : typ) : typ =
+
+(** In the general case, we use the [trans_typ_to_any] function to put [TAny]
+    and then ask the typing algorithm to reinfer all the types. However, this is
+    not sufficient as the typing inference need at least input and output types.
+    Those a generated using the [trans_typ_keep] function, that build [TOption]s
+    where needed. *)
+let trans_typ_to_any (tau : typ) : typ = Marked.same_mark_as TAny tau
+
+let rec trans_typ_keep (tau : typ) : typ =
+  let m = Marked.get_mark tau in
   (Fun.flip Marked.same_mark_as)
     tau
     begin
       match Marked.unmark tau with
       | TLit l -> TLit l
-      | TTuple ts -> TTuple (List.map translate_typ ts)
+      | TTuple ts -> TTuple (List.map trans_typ_keep ts)
       | TStruct s -> TStruct s
       | TEnum en -> TEnum en
-      | TOption t -> TOption t
+      | TOption _ ->
+        Errors.raise_internal_error
+          "The type option should not appear before the dcalc -> lcalc \
+           translation step."
       | TAny -> TAny
-      | TArray ts -> TArray (translate_typ ts)
-      (* catala is not polymorphic *)
-      | TArrow ([(TLit TUnit, _)], t2) -> TOption (translate_typ t2)
-      | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
+      | TArray ts ->
+        TArray (TOption (trans_typ_keep ts), m) (* catala is not polymorphic *)
+      | TArrow ([(TLit TUnit, _)], t2) -> Marked.unmark (trans_typ_keep t2)
+      | TArrow (t1, t2) ->
+        TArrow (List.map trans_typ_keep t1, (TOption (trans_typ_keep t2), m))
     end
 
-(** [c = disjoint_union_maps cs] Compute the disjoint union of multiple maps.
-    Raises an internal error if there is two identicals keys in differnts parts. *)
-let disjoint_union_maps (pos : Pos.t) (cs : ('e, 'a) Var.Map.t list) :
-    ('e, 'a) Var.Map.t =
-  let disjoint_union =
-    Var.Map.union (fun _ _ _ ->
-        Errors.raise_spanned_error pos
-          "Internal Error: Two supposed to be disjoints maps have one shared \
-           key.")
-  in
+let trans_typ_keep (tau : typ) : typ =
+  Marked.same_mark_as (TOption (trans_typ_keep tau)) tau
 
-  List.fold_left disjoint_union Var.Map.empty cs
+let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
 
-(** [e' = translate_and_hoist ctx e ] Translate the Dcalc expression e into an
-    expression in Lcalc, given we translate each hoists correctly. It ensures
-    the equivalence between the execution of e and the execution of e' are
-    equivalent in an environement where each variable v, where (v, e_v) is in
-    hoists, has the non-empty value in e_v. *)
-let rec translate_and_hoist (ctx : 'm ctx) (e : 'm D.expr) :
-    'm A.expr boxed * 'm hoists =
-  let mark = Marked.get_mark e in
-  let pos = Expr.mark_pos mark in
+type 'm var_ctx = { info_pure : bool; is_scope : bool; var : 'm Ast.expr Var.t }
+
+type 'm ctx = {
+  ctx_vars :
+    ((dcalc, 'm mark) Shared_ast__Definitions.gexpr, 'm var_ctx) Var.Map.t;
+  ctx_context_name : string;
+}
+
+let trans_var (ctx : 'm ctx) (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
+  (Var.Map.find x ctx.ctx_vars).var
+
+(** TODO: give better names to variables *)
+
+(** The function [e' = trans ctx e] actually does the translation between
+    [D.expr] and [L.expr]. The context links every free variables of the [e]
+    expression to a new lcalc variable [var], and some information [info_pure]
+    on whenever the variable can be reduced to an [EmptyError], and hence should
+    be matched. We also keep [is_scope] to indicate if a variable comes from a
+    top-level scope definition. This is used when applying functions as
+    described below. Finally, the following invariant is upheld: if [e] is of
+    type [a], then the result should be of type [trans_typ_keep a]. For
+    literals, this mean that a expression of type [money] will be of type
+    [money option]. We rely on later optimization to shorten the size of the
+    generated code. *)
+let rec trans (ctx : typed ctx) (e : typed D.expr) :
+    (lcalc, typed mark) boxed_gexpr =
+  let m = Marked.get_mark e in
+  let mark = m in
+  let pos = Expr.pos e in
+  (* Cli.debug_format "%a" (Print.expr_debug ~debug:true) e; *)
   match Marked.unmark e with
-  (* empty-producing/using terms. We hoist those. (D.EVar in some cases,
-     EApp(D.EVar _, [ELit LUnit]), EDefault _, ELit LEmptyDefault) I'm unsure
-     about assert. *)
-  | EVar v ->
-    (* todo: for now, every unpure (such that [is_pure] is [false] in the
-       current context) is thunked, hence matched in the next case. This
-       assumption can change in the future, and this case is here for this
-       reason. *)
-    if not (find ~info:"search for a variable" v ctx).is_pure then
-      let v' = Var.make (Bindlib.name_of v) in
-      (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
-         created a variable %a to replace it" Print.var v Print.var v'; *)
-      Expr.make_var v' mark, Var.Map.singleton v' e
-    else (find ~info:"should never happen" v ctx).expr, Var.Map.empty
-  | EApp { f = EVar v, p; args = [(ELit LUnit, _)] } ->
-    if not (find ~info:"search for a variable" v ctx).is_pure then
-      let v' = Var.make (Bindlib.name_of v) in
-      (* Cli.debug_print @@ Format.asprintf "Found an unpure variable %a,
-         created a variable %a to replace it" Print.var v Print.var v'; *)
-      Expr.make_var v' mark, Var.Map.singleton v' (EVar v, p)
-    else
-      Errors.raise_spanned_error (Expr.pos e)
-        "Internal error: an pure variable was found in an unpure environment."
-  | EDefault _ ->
-    let v' = Var.make "default_term" in
-    Expr.make_var v' mark, Var.Map.singleton v' e
-  | EEmptyError ->
-    let v' = Var.make "empty_litteral" in
-    Expr.make_var v' mark, Var.Map.singleton v' e
-  (* This one is a very special case. It transform an unpure expression
-     environement to a pure expression. *)
-  | EErrorOnEmpty arg ->
-    (* [ match arg with | None -> raise NoValueProvided | Some v -> {{ v }} ] *)
-    let silent_var = Var.make "_" in
-    let x = Var.make "non_empty_argument" in
-
-    let arg' = translate_expr ctx arg in
-    let rty = Expr.maybe_ty mark in
-
-    ( A.make_matchopt_with_abs_arms arg'
-        (Expr.make_abs [| silent_var |]
-           (Expr.eraise NoValueProvided (Expr.with_ty mark rty))
-           [rty] pos)
-        (Expr.make_abs [| x |] (Expr.make_var x mark) [rty] pos),
-      Var.Map.empty )
-  (* pure terms *)
-  | ELit
-      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
-      l) ->
-    Expr.elit l mark, Var.Map.empty
-  | EIfThenElse { cond; etrue; efalse } ->
-    let cond', h1 = translate_and_hoist ctx cond in
-    let etrue', h2 = translate_and_hoist ctx etrue in
-    let efalse', h3 = translate_and_hoist ctx efalse in
-
-    let e' = Expr.eifthenelse cond' etrue' efalse' mark in
-
-    (*(* equivalent code : *) let e' = let+ cond' = cond' and+ etrue' = etrue'
-      and+ efalse' = efalse' in (A.EIfThenElse (cond', etrue', efalse'), pos)
-      in *)
-    e', disjoint_union_maps (Expr.pos e) [h1; h2; h3]
-  | EAssert e1 ->
-    (* same behavior as in the ICFP paper: if e1 is empty, then no error is
-       raised. *)
-    let e1', h1 = translate_and_hoist ctx e1 in
-    Expr.eassert e1' mark, h1
+  | EVar x ->
+    if (Var.Map.find x ctx.ctx_vars).info_pure then
+      Ast.OptionMonad.return (Expr.evar (trans_var ctx x) m) ~mark
+    else Expr.evar (trans_var ctx x) m
+  | EApp { f = EVar v, _; args = [(ELit LUnit, _)] } ->
+    (* Invariant: as users cannot write thunks, it can only come from prior
+       compilation passes. Hence we can safely remove those. *)
+    assert (not (Var.Map.find v ctx.ctx_vars).info_pure);
+    Expr.evar (trans_var ctx v) m
+  | EAbs { binder; tys = [(TLit TUnit, _)] } ->
+    (* this is to be used with Ast.OptionMonad.bind. *)
+    let _, body = Bindlib.unmbind binder in
+    trans ctx body
   | EAbs { binder; tys } ->
+    (* Every function of type [a -> b] is translated to a function of type [a ->
+       option b] *)
     let vars, body = Bindlib.unmbind binder in
-    let ctx, lc_vars =
-      ArrayLabels.fold_right vars ~init:(ctx, []) ~f:(fun var (ctx, lc_vars) ->
-          (* we suppose the invariant that when applying a function, its
-             arguments cannot be of the type "option".
-
-             The code should behave correctly in the without this assumption if
-             we put here an is_pure=false, but the types are more compilcated.
-             (unimplemented for now) *)
-          let ctx = add_var mark var true ctx in
-          let lc_var = (find var ctx).var in
-          ctx, lc_var :: lc_vars)
-    in
-    let lc_vars = Array.of_list lc_vars in
-
-    (* here we take the guess that if we cannot build the closure because one of
-       the variable is empty, then we cannot build the function. *)
-    let new_body, hoists = translate_and_hoist ctx body in
-    let new_binder = Expr.bind lc_vars new_body in
-
-    Expr.eabs new_binder (List.map translate_typ tys) mark, hoists
-  | EApp { f = e1; args } ->
-    let e1', h1 = translate_and_hoist ctx e1 in
-    let args', h_args =
-      args |> List.map (translate_and_hoist ctx) |> List.split
+    let ctx' =
+      ArrayLabels.fold_right vars ~init:ctx ~f:(fun v ctx ->
+          {
+            ctx with
+            ctx_vars =
+              Var.Map.add v
+                { info_pure = true; is_scope = false; var = Var.translate v }
+                ctx.ctx_vars;
+          })
     in
 
-    let hoists = disjoint_union_maps (Expr.pos e) (h1 :: h_args) in
-    let e' = Expr.eapp e1' args' mark in
-    e', hoists
-  | EStruct { name; fields } ->
-    let fields', h_fields =
-      StructField.Map.fold
-        (fun field e (fields, hoists) ->
-          let e, h = translate_and_hoist ctx e in
-          StructField.Map.add field e fields, h :: hoists)
-        fields
-        (StructField.Map.empty, [])
-    in
-    let hoists = disjoint_union_maps (Expr.pos e) h_fields in
-    Expr.estruct name fields' mark, hoists
-  | EStructAccess { name; e = e1; field } ->
-    let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = Expr.estructaccess e1' field name mark in
-    e1', hoists
-  | ETuple es ->
-    let hoists, es' =
-      List.fold_left_map
-        (fun hoists e ->
-          let e, h = translate_and_hoist ctx e in
-          h :: hoists, e)
-        [] es
-    in
-    Expr.etuple es' mark, disjoint_union_maps (Expr.pos e) hoists
-  | ETupleAccess { e = e1; index; size } ->
-    let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = Expr.etupleaccess e1' index size mark in
-    e1', hoists
-  | EInj { name; e = e1; cons } ->
-    let e1', hoists = translate_and_hoist ctx e1 in
-    let e1' = Expr.einj e1' cons name mark in
-    e1', hoists
-  | EMatch { name; e = e1; cases } ->
-    let e1', h1 = translate_and_hoist ctx e1 in
-    let cases', h_cases =
-      EnumConstructor.Map.fold
-        (fun cons e (cases, hoists) ->
-          let e', h = translate_and_hoist ctx e in
-          EnumConstructor.Map.add cons e' cases, h :: hoists)
-        cases
-        (EnumConstructor.Map.empty, [])
-    in
-    let hoists = disjoint_union_maps (Expr.pos e) (h1 :: h_cases) in
-    let e' = Expr.ematch e1' name cases' mark in
-    e', hoists
-  | EArray es ->
-    let es', hoists = es |> List.map (translate_and_hoist ctx) |> List.split in
-    Expr.earray es' mark, disjoint_union_maps (Expr.pos e) hoists
-  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys mark, Var.Map.empty
-  | _ -> .
+    let body' = trans ctx' body in
+    let binder' = Expr.bind (Array.map Var.translate vars) body' in
+    Ast.OptionMonad.return ~mark (Expr.eabs binder' tys m)
+  | EDefault { excepts; just; cons } ->
+    let excepts' = List.map (trans ctx) excepts in
+    let just' = trans ctx just in
+    let cons' = trans ctx cons in
 
-and translate_expr ?(append_esome = true) (ctx : 'm ctx) (e : 'm D.expr) :
-    'm A.expr boxed =
-  let e', hoists = translate_and_hoist ctx e in
-  let hoists = Var.Map.bindings hoists in
+    (* If the default term has the following type [<es: a list | just: bool |-
+       cons: a>] then the resulting term will have type [handledefaultOpt (es':
+       a option list) (just': bool option) (cons': a option)] *)
+    let m' = match m with Typed m -> Typed { m with ty = TAny, pos } in
+    Expr.make_app
+      (Expr.eop Op.HandleDefaultOpt [TAny, pos; TAny, pos; TAny, pos] m')
+      [Expr.earray excepts' m; Expr.thunk_term just' m; Expr.thunk_term cons' m]
+      pos
+  | ELit l -> Ast.OptionMonad.return ~mark (Expr.elit l m)
+  | EEmptyError -> Ast.OptionMonad.empty ~mark
+  | EErrorOnEmpty arg ->
+    let arg' = trans ctx arg in
+    Ast.OptionMonad.error_on_empty arg' ~mark ~toplevel:false
+      ~var_name:ctx.ctx_context_name
+  | EApp { f = EVar scope, _; args = [(EStruct { fields; name }, _)] }
+    when (Var.Map.find scope ctx.ctx_vars).is_scope ->
+    (* Scopes are encoded as functions that can take option arguments, and
+       always return (or raise panic exceptions like AssertionFailed,
+       NoValueProvided or Conflict) a structure that can contain optionnal
+       elements. Hence, to call a scope, we don't need to use the monad bind. *)
+    Ast.OptionMonad.return ~mark
+      (Expr.eapp
+         (Expr.evar (trans_var ctx scope) mark)
+         [
+           Expr.estruct name
+             (StructField.MapLabels.map fields ~f:(trans ctx))
+             mark;
+         ]
+         mark)
+  | EApp { f = (EVar ff, _) as f; args }
+    when not (Var.Map.find ff ctx.ctx_vars).is_scope ->
+    (* INVARIANT: functions are always encoded using this function.
 
-  let _pos = Marked.get_mark e in
-
-  (* build the hoists *)
-  (* Cli.debug_print @@ Format.asprintf "hoist for the expression: [%a]"
-     (Format.pp_print_list Print.var) (List.map fst hoists); *)
-  ListLabels.fold_left hoists
-    ~init:(if append_esome then A.make_some e' else e')
-    ~f:(fun acc (v, (hoist, mark_hoist)) ->
-      (* Cli.debug_print @@ Format.asprintf "hoist using A.%a" Print.var v; *)
-      let pos = Expr.mark_pos mark_hoist in
-      let c' : 'm A.expr boxed =
-        match hoist with
-        (* Here we have to handle only the cases appearing in hoists, as defined
-           the [translate_and_hoist] function. *)
-        | EVar v -> (find ~info:"should never happen" v ctx).expr
-        | EDefault { excepts; just; cons } ->
-          let excepts' = List.map (translate_expr ctx) excepts in
-          let just' = translate_expr ctx just in
-          let cons' = translate_expr ctx cons in
-          (* calls handle_option. *)
-          Expr.make_app
-            (Expr.make_var (Var.translate A.handle_default_opt) mark_hoist)
-            [Expr.earray excepts' mark_hoist; just'; cons']
-            pos
-        | EEmptyError -> A.make_none mark_hoist
-        | EAssert arg ->
-          let arg' = translate_expr ctx arg in
-
-          (* [ match arg with | None -> raise NoValueProvided | Some v -> assert
-             {{ v }} ] *)
-          let silent_var = Var.make "_" in
-          let x = Var.make "assertion_argument" in
-
-          A.make_matchopt_with_abs_arms arg'
-            (Expr.make_abs [| silent_var |]
-               (Expr.eraise NoValueProvided mark_hoist)
-               [TAny, Expr.mark_pos mark_hoist]
-               pos)
-            (Expr.make_abs [| x |]
-               (Expr.eassert (Expr.make_var x mark_hoist) mark_hoist)
-               [TAny, Expr.mark_pos mark_hoist]
-               pos)
-        | _ ->
-          Errors.raise_spanned_error (Expr.mark_pos mark_hoist)
-            "Internal Error: An term was found in a position where it should \
-             not be"
-      in
-
-      (* [ match {{ c' }} with | None -> None | Some {{ v }} -> {{ acc }} end
-         ] *)
-      (* Cli.debug_print @@ Format.asprintf "build matchopt using %a" Print.var
-         v; *)
-      A.make_matchopt pos v
-        (TAny, Expr.mark_pos mark_hoist)
-        c' (A.make_none mark_hoist) acc)
-
-let rec translate_scope_let (ctx : 'm ctx) (lets : 'm D.expr scope_body_expr) :
-    'm A.expr scope_body_expr Bindlib.box =
-  match lets with
-  | Result e ->
-    Bindlib.box_apply
-      (fun e -> Result e)
-      (Expr.Box.lift (translate_expr ~append_esome:false ctx e))
-  | ScopeLet
+       As every function of type [a -> b] but top-level scopes is built using
+       this function, returning a function of type [a -> b option], we should
+       use [Ast.OptionMonad.mbind]. *)
+    let f_var = Var.make ctx.ctx_context_name in
+    Ast.OptionMonad.bind_var ~mark
+      (Ast.OptionMonad.mbind ~var_name:ctx.ctx_context_name
+         (Expr.evar f_var mark)
+         (List.map (trans ctx) args)
+         ~mark)
+      f_var (trans ctx f)
+  | EApp { f = (EStructAccess _, _) as f; args } ->
+    (* This occurs when calling a subscope function. The same encoding as the
+       one for [EApp (Var _) _] if the variable is not a scope works. *)
+    let f_var = Var.make ctx.ctx_context_name in
+    Ast.OptionMonad.bind_var ~mark
+      (Ast.OptionMonad.mbind ~var_name:ctx.ctx_context_name
+         (Expr.evar f_var mark)
+         (List.map (trans ctx) args)
+         ~mark)
+      f_var (trans ctx f)
+  | EApp { f = EAbs { binder; _ }, _; args } ->
+    (* INVARIANTS: every let have only one argument. (checked by
+       invariant_let) *)
+    let var, body = Bindlib.unmbind binder in
+    let[@warning "-8"] [| var |] = var in
+    let var' = Var.translate var in
+    let[@warning "-8"] [arg] = args in
+    let ctx' =
       {
-        scope_let_kind = SubScopeVarDefinition;
-        scope_let_typ = typ;
-        scope_let_expr = EAbs { binder; _ }, emark;
-        scope_let_next = next;
-        scope_let_pos = pos;
-      } ->
+        ctx_vars =
+          Var.Map.add var
+            { info_pure = true; is_scope = false; var = var' }
+            ctx.ctx_vars;
+        ctx_context_name = Bindlib.name_of var;
+      }
+    in
+    Ast.OptionMonad.bind_var (trans ctx' body) var' (trans ctx arg) ~mark
+  | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
+    Errors.raise_internal_error
+      "Parameter trace is incompatible with parameter avoid_exceptions: some \
+       tracing logs were added while they are not supported."
+  (* Encoding of Fold, Filter, Map and Reduce is non trivial because we don't
+     define new monadic operators for every one of those. *)
+  | EApp { f = EOp { op = Op.Fold; tys }, opmark; args = [f; init; l] } ->
+    (* The function f should have type b -> a -> a. Hence, its translation has
+       type [b] -> [a] -> option [a]. But we need a function of type option [b]
+       -> option [a] -> option [a] for the type checking of fold. Hence, we
+       "iota-expand" the function as follows: [λ x y. bindm x y. [f] x y] *)
+    let x1 = Var.make "f" in
+    let x2 = Var.make "init" in
+    let f' =
+      Ast.OptionMonad.bind_cont ~mark ~var_name:ctx.ctx_context_name
+        (fun f ->
+          Ast.OptionMonad.return ~mark
+            (Expr.eabs
+               (Expr.bind [| x1; x2 |]
+                  (Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+                     ~mark
+                     (fun vars ->
+                       Expr.eapp (Expr.evar f m)
+                         (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+                         m)
+                     [Expr.evar x1 m; Expr.evar x2 m]))
+               [TAny, pos; TAny, pos]
+               m))
+        (trans ctx f)
+    in
+    Ast.OptionMonad.mbind ~var_name:ctx.ctx_context_name
+      (Expr.eop (trans_op Op.Fold) tys opmark)
+      [f'; Ast.OptionMonad.return ~mark (trans ctx init); trans ctx l]
+      ~mark
+  | EApp { f = EOp { op = Op.Reduce; tys }, opmark; args = [f; init; l] } ->
+    let x1 = Var.make "f" in
+    let x2 = Var.make "init" in
+    let f' =
+      Ast.OptionMonad.bind_cont ~mark ~var_name:ctx.ctx_context_name
+        (fun f ->
+          Ast.OptionMonad.return ~mark
+            (Expr.eabs
+               (Expr.bind [| x1; x2 |]
+                  (Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+                     ~mark
+                     (fun vars ->
+                       Expr.eapp (Expr.evar f m)
+                         (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+                         m)
+                     [Expr.evar x1 m; Expr.evar x2 m]))
+               [TAny, pos; TAny, pos]
+               m))
+        (trans ctx f)
+    in
+    Ast.OptionMonad.mbind ~var_name:ctx.ctx_context_name
+      (Expr.eop (trans_op Op.Reduce) tys opmark)
+      [f'; Ast.OptionMonad.return ~mark (trans ctx init); trans ctx l]
+      ~mark
+  | EApp { f = EOp { op = Op.Map; tys }, opmark; args = [f; l] } ->
+    (* The funtion [f] has type [a -> option b], but Map needs a function of
+       type [a -> b], hence we need to transform [f] into a function of type [a
+       option -> option b]. *)
+    let x1 = Var.make "f" in
+    let f' =
+      Ast.OptionMonad.bind_cont ~mark ~var_name:ctx.ctx_context_name
+        (fun f ->
+          Ast.OptionMonad.return ~mark
+            (Expr.eabs
+               (Expr.bind [| x1 |]
+                  (Ast.OptionMonad.mbind_cont ~mark
+                     ~var_name:ctx.ctx_context_name
+                     (fun vars ->
+                       Expr.eapp (Expr.evar f m)
+                         (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+                         m)
+                     [Expr.evar x1 m]))
+               [TAny, pos]
+               m))
+        (trans ctx f)
+    in
+    Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+      (fun vars ->
+        Ast.OptionMonad.return ~mark
+          (Expr.eapp
+             (Expr.eop (trans_op Op.Map) tys opmark)
+             (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+             mark))
+      [f'; trans ctx l]
+      ~mark
+  | EApp { f = EOp { op = Op.Filter; tys }, opmark; args = [f; l] } ->
+    (* The function [f] has type [a -> bool option] while the filter operator
+       requires an function of type [a option -> bool]. Hence we need to modify
+       [f] by first matching the input, and second using the error_on_empty on
+       the result. *)
+    let x1 = Var.make ctx.ctx_context_name in
+    let f' =
+      Ast.OptionMonad.bind_cont ~mark ~var_name:ctx.ctx_context_name
+        (fun f ->
+          Ast.OptionMonad.return ~mark
+            (Expr.eabs
+               (Expr.bind [| x1 |]
+                  (Ast.OptionMonad.error_on_empty ~toplevel:true ~mark
+                     ~var_name:ctx.ctx_context_name
+                     (Ast.OptionMonad.mbind_cont ~mark
+                        ~var_name:ctx.ctx_context_name
+                        (fun vars ->
+                          Expr.eapp (Expr.evar f m)
+                            (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+                            m)
+                        [Expr.evar x1 m])))
+               [TAny, pos]
+               m))
+        (trans ctx f)
+    in
+    Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+      (fun vars ->
+        Ast.OptionMonad.return ~mark
+          (Expr.eapp
+             (Expr.eop (trans_op Op.Filter) tys opmark)
+             (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
+             mark))
+      [f'; trans ctx l]
+      ~mark
+  | EApp { f = EOp { op = Op.Filter as op; _ }, _; _ }
+  | EApp { f = EOp { op = Op.Map as op; _ }, _; _ }
+  | EApp { f = EOp { op = Op.Fold as op; _ }, _; _ }
+  | EApp { f = EOp { op = Op.Reduce as op; _ }, _; _ } ->
+    (* Cannot happend: list operator must be fully determined *)
+    Errors.raise_internal_error
+      "List operator %a was not fully determined: some partial evaluation was \
+       found while compiling."
+      Print.operator op
+  | EApp { f = EOp { op; tys }, opmark; args } ->
+    let res =
+      Ast.OptionMonad.mmap ~var_name:ctx.ctx_context_name
+        (Expr.eop (trans_op op) tys opmark)
+        (List.map (trans ctx) args)
+        ~mark
+    in
+    res
+  | EMatch { name; e; cases } ->
+    let cases =
+      EnumConstructor.MapLabels.map cases ~f:(fun case ->
+          match Marked.unmark case with
+          | EAbs { binder; tys } ->
+            let vars, body = Bindlib.unmbind binder in
+            let ctx' =
+              ArrayLabels.fold_right vars ~init:ctx ~f:(fun var ctx ->
+                  {
+                    ctx with
+                    ctx_vars =
+                      Var.Map.add var
+                        {
+                          info_pure = true;
+                          is_scope = false;
+                          var = Var.translate var;
+                        }
+                        ctx.ctx_vars;
+                  })
+            in
+            let binder =
+              Expr.bind (Array.map Var.translate vars) (trans ctx' body)
+            in
+            Expr.eabs binder tys m
+          | _ -> assert false)
+    in
+    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+      (fun e -> Expr.ematch (Expr.evar e m) name cases m)
+      (trans ctx e) ~mark
+  | EArray args ->
+    Ast.OptionMonad.mbind_cont ~mark ~var_name:ctx.ctx_context_name
+      (fun vars ->
+        Ast.OptionMonad.return ~mark
+          (Expr.earray
+             (List.map
+                (fun v -> Ast.OptionMonad.return ~mark (Expr.evar v m))
+                vars)
+             mark))
+      (List.map (trans ctx) args)
+  | EStruct { name; fields } ->
+    let fields_name, fields = List.split (StructField.Map.bindings fields) in
+    Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+      (fun xs ->
+        let fields =
+          ListLabels.fold_right2 fields_name
+            (List.map
+               (fun x -> Ast.OptionMonad.return ~mark (Expr.evar x mark))
+               xs)
+            ~f:StructField.Map.add ~init:StructField.Map.empty
+        in
+        Ast.OptionMonad.return ~mark (Expr.estruct name fields mark))
+      (List.map (trans ctx) fields)
+      ~mark
+  | EIfThenElse { cond; etrue; efalse } ->
+    Ast.OptionMonad.bind_cont ~mark ~var_name:ctx.ctx_context_name
+      (fun cond ->
+        Expr.eifthenelse (Expr.evar cond mark) (trans ctx etrue)
+          (trans ctx efalse) mark)
+      (trans ctx cond)
+  | EInj { name; cons; e } ->
+    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+      (fun e ->
+        Ast.OptionMonad.return ~mark
+          (Expr.einj (Expr.evar e mark) cons name mark))
+      (trans ctx e) ~mark
+  | EStructAccess { name; e; field } ->
+    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+      (fun e -> Expr.estructaccess (Expr.evar e mark) field name mark)
+      (trans ctx e) ~mark
+  | ETuple args ->
+    Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+      (fun xs ->
+        Ast.OptionMonad.return ~mark
+          (Expr.etuple (List.map (fun x -> Expr.evar x mark) xs) mark))
+      (List.map (trans ctx) args)
+      ~mark
+  | ETupleAccess { e; index; size } ->
+    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+      (fun e -> Expr.etupleaccess (Expr.evar e mark) index size mark)
+      (trans ctx e) ~mark
+  | EAssert e ->
+    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+      (fun e ->
+        Ast.OptionMonad.return ~mark (Expr.eassert (Expr.evar e mark) mark))
+      (trans ctx e) ~mark
+  | EApp _ ->
+    Errors.raise_spanned_error (Expr.pos e)
+      "Internal Error: found an EApp that does not satisfy the invariants when \
+       translating Dcalc to Lcalc without exceptions."
+  (* invalid invariant *)
+  | EOp _ ->
+    Errors.raise_spanned_error (Expr.pos e)
+      "Internal Error: found an EOp that does not satisfy the invariants when \
+       translating Dcalc to Lcalc without exceptions."
+  | ELocation _ -> .
+
+(** Now we have translated expression, we still need to translate the statements
+    (scope_let_list) and then scopes. This is pretty much straightforward. *)
+let rec trans_scope_let (ctx : typed ctx) (s : typed D.expr scope_let) =
+  match s with
+  | {
+   scope_let_kind = SubScopeVarDefinition;
+   scope_let_typ = (TArrow ([(TLit TUnit, _)], _), _) as scope_let_typ;
+   scope_let_expr = EAbs { binder; _ }, _;
+   scope_let_next;
+   scope_let_pos;
+  } ->
     (* special case : the subscope variable is thunked (context i/o). We remove
        this thunking. *)
-    let _, expr = Bindlib.unmbind binder in
-
-    let var_is_pure = true in
-    let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
-    let vmark = Expr.with_ty emark ~pos typ in
-    let ctx' = add_var vmark var var_is_pure ctx in
-    let new_var = (find ~info:"variable that was just created" var ctx').var in
-    let new_next = translate_scope_let ctx' next in
-    Bindlib.box_apply2
-      (fun new_expr new_next ->
-        ScopeLet
-          {
-            scope_let_kind = SubScopeVarDefinition;
-            scope_let_typ = translate_typ typ;
-            scope_let_expr = new_expr;
-            scope_let_next = new_next;
-            scope_let_pos = pos;
-          })
-      (Expr.Box.lift (translate_expr ctx ~append_esome:false expr))
-      (Bindlib.bind_var new_var new_next)
-  | ScopeLet
+    let _, scope_let_expr = Bindlib.unmbind binder in
+    let next_var, next_body = Bindlib.unbind scope_let_next in
+    let next_var' = Var.translate next_var in
+    let ctx' =
       {
-        scope_let_kind = SubScopeVarDefinition;
-        scope_let_typ = typ;
-        scope_let_expr = (EErrorOnEmpty _, emark) as expr;
-        scope_let_next = next;
-        scope_let_pos = pos;
-      } ->
+        ctx with
+        ctx_vars =
+          Var.Map.add next_var
+            { info_pure = false; is_scope = false; var = next_var' }
+            ctx.ctx_vars;
+      }
+    in
+    let next_var = next_var' in
+    let next_body = trans_scope_body_expr ctx' next_body in
+    let scope_let_next = Bindlib.bind_var next_var next_body in
+    let scope_let_expr =
+      Expr.Box.lift
+      @@ trans
+           { ctx with ctx_context_name = Bindlib.name_of next_var }
+           scope_let_expr
+    in
+    Bindlib.box_apply2
+      (fun scope_let_expr scope_let_next ->
+        {
+          scope_let_kind = SubScopeVarDefinition;
+          scope_let_typ = trans_typ_to_any scope_let_typ;
+          scope_let_expr;
+          scope_let_next;
+          scope_let_pos;
+        })
+      scope_let_expr scope_let_next
+  | {
+   scope_let_kind = SubScopeVarDefinition;
+   scope_let_typ;
+   scope_let_expr = (EAbs _, _) as scope_let_expr;
+   scope_let_next;
+   scope_let_pos;
+  } ->
+    (* special case : the subscope variable is thunked (context i/o). We remove
+       this thunking. *)
+    let next_var, next_body = Bindlib.unbind scope_let_next in
+    let next_var' = Var.translate next_var in
+    let ctx' =
+      {
+        ctx with
+        ctx_vars =
+          Var.Map.add next_var
+            { info_pure = false; is_scope = false; var = next_var' }
+            ctx.ctx_vars;
+      }
+    in
+    let next_var = next_var' in
+    let next_body = trans_scope_body_expr ctx' next_body in
+    let scope_let_next = Bindlib.bind_var next_var next_body in
+    let scope_let_expr =
+      Expr.Box.lift
+      @@ trans
+           { ctx with ctx_context_name = Bindlib.name_of next_var }
+           scope_let_expr
+    in
+    Bindlib.box_apply2
+      (fun scope_let_expr scope_let_next ->
+        {
+          scope_let_kind = SubScopeVarDefinition;
+          scope_let_typ = trans_typ_to_any scope_let_typ;
+          scope_let_expr;
+          scope_let_next;
+          scope_let_pos;
+        })
+      scope_let_expr scope_let_next
+  | {
+   scope_let_kind = SubScopeVarDefinition;
+   scope_let_typ;
+   scope_let_expr = EErrorOnEmpty e, mark;
+   scope_let_next;
+   scope_let_pos;
+  } ->
     (* special case: regular input to the subscope *)
-    let var_is_pure = true in
-    let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
-    let vmark = Expr.with_ty emark ~pos typ in
-    let ctx' = add_var vmark var var_is_pure ctx in
-    let new_var = (find ~info:"variable that was just created" var ctx').var in
-    Bindlib.box_apply2
-      (fun new_expr new_next ->
-        ScopeLet
-          {
-            scope_let_kind = SubScopeVarDefinition;
-            scope_let_typ = translate_typ typ;
-            scope_let_expr = new_expr;
-            scope_let_next = new_next;
-            scope_let_pos = pos;
-          })
-      (Expr.Box.lift (translate_expr ctx ~append_esome:false expr))
-      (Bindlib.bind_var new_var (translate_scope_let ctx' next))
-  | ScopeLet
+    let next_var, next_body = Bindlib.unbind scope_let_next in
+    let next_var' = Var.translate next_var in
+    let ctx' =
       {
-        scope_let_kind = SubScopeVarDefinition;
-        scope_let_pos = pos;
-        scope_let_expr = expr;
-        _;
-      } ->
+        ctx with
+        ctx_vars =
+          Var.Map.add next_var
+            { info_pure = true; is_scope = false; var = next_var' }
+            ctx.ctx_vars;
+      }
+    in
+    let next_var = next_var' in
+    let next_body = trans_scope_body_expr ctx' next_body in
+    let scope_let_next = Bindlib.bind_var next_var next_body in
+    let scope_let_expr =
+      Expr.Box.lift
+      @@ Ast.OptionMonad.error_on_empty ~mark ~toplevel:true
+           ~var_name:ctx.ctx_context_name
+           (trans { ctx with ctx_context_name = Bindlib.name_of next_var } e)
+    in
+    Bindlib.box_apply2
+      (fun scope_let_expr scope_let_next ->
+        {
+          scope_let_kind = SubScopeVarDefinition;
+          scope_let_typ = trans_typ_to_any scope_let_typ;
+          scope_let_expr;
+          scope_let_next;
+          scope_let_pos;
+        })
+      scope_let_expr scope_let_next
+  | { scope_let_kind = SubScopeVarDefinition; scope_let_pos = pos; _ } ->
     Errors.raise_spanned_error pos
       "Internal Error: found an SubScopeVarDefinition that does not satisfy \
-       the invariants when translating Dcalc to Lcalc without exceptions: \
-       @[<hov 2>%a@]"
-      (Expr.format ctx.decl_ctx) expr
-  | ScopeLet
-      {
-        scope_let_kind = kind;
-        scope_let_typ = typ;
-        scope_let_expr = expr;
-        scope_let_next = next;
-        scope_let_pos = pos;
-      } ->
-    let var_is_pure =
-      match kind with
-      | DestructuringInputStruct -> (
-        (* Here, we have to distinguish between context and input variables. We
-           can do so by looking at the typ of the destructuring: if it's
-           thunked, then the variable is context. If it's not thunked, it's a
-           regular input. *)
-        match Marked.unmark typ with
-        | TArrow ([(TLit TUnit, _)], _) -> false
-        | _ -> true)
-      | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
-      | DestructuringSubScopeResults | Assertion ->
-        true
-    in
-    let var, next = Bindlib.unbind next in
-    (* Cli.debug_print @@ Format.asprintf "unbinding %a" Print.var var; *)
-    let vmark = Expr.with_ty (Marked.get_mark expr) ~pos typ in
-    let ctx' = add_var vmark var var_is_pure ctx in
-    let new_var = (find ~info:"variable that was just created" var ctx').var in
-    Bindlib.box_apply2
-      (fun new_expr new_next ->
-        ScopeLet
-          {
-            scope_let_kind = kind;
-            scope_let_typ = translate_typ typ;
-            scope_let_expr = new_expr;
-            scope_let_next = new_next;
-            scope_let_pos = pos;
-          })
-      (Expr.Box.lift (translate_expr ctx ~append_esome:false expr))
-      (Bindlib.bind_var new_var (translate_scope_let ctx' next))
-
-let translate_scope_body
-    (scope_pos : Pos.t)
-    (ctx : 'm ctx)
-    (body : 'm D.expr scope_body) : 'm A.expr scope_body Bindlib.box =
-  match body with
+       the invariants when translating Dcalc to Lcalc without exceptions."
   | {
-   scope_body_expr = result;
-   scope_body_input_struct = input_struct;
-   scope_body_output_struct = output_struct;
+   scope_let_kind;
+   scope_let_typ;
+   scope_let_expr;
+   scope_let_next;
+   scope_let_pos;
   } ->
-    let v, lets = Bindlib.unbind result in
-    let vmark =
-      let m =
-        match lets with
-        | Result e | ScopeLet { scope_let_expr = e; _ } -> Marked.get_mark e
-      in
-      Expr.map_mark (fun _ -> scope_pos) (fun ty -> ty) m
+    (* base case *)
+    let next_var, next_body = Bindlib.unbind scope_let_next in
+    let next_var' = Var.translate next_var in
+    let ctx' =
+      {
+        ctx with
+        ctx_vars =
+          Var.Map.add next_var
+            (match scope_let_kind with
+            | DestructuringInputStruct -> (
+              (* note for future: we keep this useless match for distinguishing
+                 further optimization while building the terms. *)
+              match Marked.unmark scope_let_typ with
+              | TArrow ([(TLit TUnit, _)], _) ->
+                { info_pure = false; is_scope = false; var = next_var' }
+              | _ -> { info_pure = false; is_scope = false; var = next_var' })
+            | ScopeVarDefinition | SubScopeVarDefinition | CallingSubScope
+            | DestructuringSubScopeResults | Assertion ->
+              { info_pure = false; is_scope = false; var = next_var' })
+            ctx.ctx_vars;
+      }
     in
-    let ctx' = add_var vmark v true ctx in
-    let v' = (find ~info:"variable that was just created" v ctx').var in
-    Bindlib.box_apply
-      (fun new_expr ->
+    let next_var = next_var' in
+    let next_body = trans_scope_body_expr ctx' next_body in
+    let scope_let_next = Bindlib.bind_var next_var next_body in
+    let scope_let_expr =
+      Expr.Box.lift
+      @@ trans
+           { ctx with ctx_context_name = Bindlib.name_of next_var }
+           scope_let_expr
+    in
+    Bindlib.box_apply2
+      (fun scope_let_expr scope_let_next ->
         {
-          scope_body_expr = new_expr;
-          scope_body_input_struct = input_struct;
-          scope_body_output_struct = output_struct;
+          scope_let_kind;
+          scope_let_typ = trans_typ_to_any scope_let_typ;
+          scope_let_expr;
+          scope_let_next;
+          scope_let_pos;
         })
-      (Bindlib.bind_var v' (translate_scope_let ctx' lets))
+      scope_let_expr scope_let_next
 
-let translate_code_items (ctx : 'm ctx) (scopes : 'm D.expr code_item_list) :
-    'm A.expr code_item_list Bindlib.box =
-  let _ctx, scopes =
-    Scope.fold_map
-      ~f:
-        (fun ctx var -> function
-          | Topdef (name, ty, e) ->
-            ( add_var (Marked.get_mark e) var true ctx,
-              Bindlib.box_apply
-                (fun e -> Topdef (name, ty, e))
-                (Expr.Box.lift (translate_expr ~append_esome:false ctx e)) )
-          | ScopeDef (scope_name, scope_body) ->
-            ( ctx,
-              let scope_pos = Marked.get_mark (ScopeName.get_info scope_name) in
-              Bindlib.box_apply
-                (fun body -> ScopeDef (scope_name, body))
-                (translate_scope_body scope_pos ctx scope_body) ))
-      ~varf:Var.translate ctx scopes
-  in
-  scopes
+and trans_scope_body_expr ctx s :
+    (lcalc, typed mark) gexpr scope_body_expr Bindlib.box =
+  match s with
+  | Result e -> begin
+    (* invariant : result is always in the form of a record. *)
+    match Marked.unmark e with
+    | EStruct { name; fields } ->
+      Bindlib.box_apply
+        (fun e -> Result e)
+        (Expr.Box.lift
+        @@ Expr.estruct name
+             (StructField.Map.map (trans ctx) fields)
+             (Marked.get_mark e))
+    | _ -> assert false
+  end
+  | ScopeLet s ->
+    Bindlib.box_apply (fun s -> ScopeLet s) (trans_scope_let ctx s)
 
-let translate_program (prgm : 'm D.program) : 'm A.program =
-  let inputs_structs =
-    Scope.fold_left prgm.code_items ~init:[] ~f:(fun acc def _ ->
-        match def with
-        | ScopeDef (_, body) -> body.scope_body_input_struct :: acc
-        | Topdef _ -> acc)
+let trans_scope_body
+    (ctx : typed ctx)
+    ({ scope_body_input_struct; scope_body_output_struct; scope_body_expr } :
+      typed D.expr scope_body) =
+  let var, body = Bindlib.unbind scope_body_expr in
+  let body =
+    trans_scope_body_expr
+      {
+        ctx_vars =
+          Var.Map.add var
+            { info_pure = true; is_scope = false; var = Var.translate var }
+            ctx.ctx_vars;
+        ctx_context_name = Bindlib.name_of var;
+      }
+      body
   in
-  (* Cli.debug_print @@ Format.asprintf "List of structs to modify: [%a]"
-     (Format.pp_print_list D.StructName.format_t) inputs_structs; *)
+  let binder = Bindlib.bind_var (Var.translate var) body in
+  Bindlib.box_apply
+    (fun scope_body_expr ->
+      { scope_body_input_struct; scope_body_output_struct; scope_body_expr })
+    binder
+
+let rec trans_code_items (ctx : typed ctx) (c : typed D.expr code_item_list) :
+    (lcalc, typed mark) gexpr code_item_list Bindlib.box =
+  match c with
+  | Nil -> Bindlib.box Nil
+  | Cons (c, next) -> (
+    let var, next = Bindlib.unbind next in
+    match c with
+    | Topdef (name, typ, e) ->
+      let next =
+        Bindlib.bind_var (Var.translate var)
+          (trans_code_items
+             {
+               ctx_vars =
+                 Var.Map.add var
+                   {
+                     info_pure = false;
+                     is_scope = false;
+                     var = Var.translate var;
+                   }
+                   ctx.ctx_vars;
+               ctx_context_name = fst (TopdefName.get_info name);
+             }
+             next)
+      in
+      let e = Expr.Box.lift @@ trans ctx e in
+      (* Invariant: We suppose there are no defaults in toplevel definitions,
+         hence we don't need to add an error_on_empty *)
+      Bindlib.box_apply2
+        (fun next e -> Cons (Topdef (name, trans_typ_to_any typ, e), next))
+        next e
+    | ScopeDef (name, body) ->
+      let next =
+        Bindlib.bind_var (Var.translate var)
+          (trans_code_items
+             {
+               ctx_vars =
+                 Var.Map.add var
+                   {
+                     info_pure = true;
+                     is_scope = true;
+                     var = Var.translate var;
+                   }
+                   ctx.ctx_vars;
+               ctx_context_name = fst (ScopeName.get_info name);
+             }
+             next)
+      in
+      let body = trans_scope_body ctx body in
+      Bindlib.box_apply2
+        (fun next body -> Cons (ScopeDef (name, body), next))
+        next body)
+
+let translate_program (prgm : typed D.program) : untyped A.program =
   let decl_ctx =
     {
       prgm.decl_ctx with
@@ -554,20 +727,20 @@ let translate_program (prgm : 'm D.program) : 'm A.program =
       decl_ctx with
       ctx_structs =
         prgm.decl_ctx.ctx_structs
-        |> StructName.Map.mapi (fun n str ->
-               if List.mem n inputs_structs then
-                 StructField.Map.map translate_typ str
-                 (* Cli.debug_print @@ Format.asprintf "Input type: %a"
-                    (Print.typ decl_ctx) tau; Cli.debug_print @@ Format.asprintf
-                    "Output type: %a" (Print.typ decl_ctx) (translate_typ
-                    tau); *)
-               else str);
+        |> StructName.Map.mapi (fun _n str ->
+               StructField.Map.map trans_typ_keep str);
     }
   in
 
   let code_items =
-    Bindlib.unbox
-      (translate_code_items { decl_ctx; vars = Var.Map.empty } prgm.code_items)
+    trans_code_items
+      { ctx_vars = Var.Map.empty; ctx_context_name = "" }
+      prgm.code_items
   in
 
-  { code_items; decl_ctx }
+  Expr.Box.assert_closed code_items;
+
+  (* program is closed here. *)
+  let code_items = Bindlib.unbox code_items in
+
+  Program.untype { decl_ctx; code_items }

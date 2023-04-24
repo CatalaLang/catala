@@ -111,13 +111,6 @@ val get_body_mark : (_, 'm mark) gexpr scope_body -> 'm mark
 
 (** {2 Conversions} *)
 
-val format :
-  ?debug:bool (** [true] for debug printing *) ->
-  decl_ctx ->
-  Format.formatter ->
-  ScopeName.t * 'e scope_body ->
-  unit
-
 val to_expr :
   decl_ctx ->
   ('a any, 'm mark) gexpr scope_body ->

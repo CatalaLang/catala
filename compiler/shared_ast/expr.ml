@@ -68,6 +68,40 @@ module Box = struct
   module LiftScopeVars = Bindlib.Lift (ScopeVar.Map)
 
   let lift_scope_vars = LiftScopeVars.lift_box
+
+  module Ren = struct
+    module Set = Set.Make (String)
+
+    type ctxt = Set.t
+
+    let skip_constant_binders = true
+    let reset_context_for_closed_terms = true
+    let constant_binder_name = None
+    let empty_ctxt = Set.empty
+    let reserve_name n s = Set.add n s
+    let new_name n s = n, Set.add n s
+  end
+
+  module Ctx = Bindlib.Ctxt (Ren)
+
+  let fv b = Ren.Set.elements (Ctx.free_vars b)
+
+  let assert_closed b =
+    match fv b with
+    | [] -> ()
+    | [h] ->
+      Errors.raise_internal_error
+        "The boxed term is not closed the variable %s is free in the global \
+         context"
+        h
+    | l ->
+      Errors.raise_internal_error
+        "The boxed term is not closed the variables %a is free in the global \
+         context"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.pp_print_string fmt "; ")
+           Format.pp_print_string)
+        l
 end
 
 let bind vars e = Bindlib.bind_mvar vars (Box.lift e)
@@ -147,6 +181,10 @@ let mark_pos (type m) (m : m mark) : Pos.t =
 
 let pos (type m) (x : ('a, m mark) Marked.t) : Pos.t =
   mark_pos (Marked.get_mark x)
+
+let fun_id mark : ('a any, 'm mark) boxed_gexpr =
+  let x = Var.make "x" in
+  eabs (bind [| x |] (evar x mark)) [TAny, mark_pos mark] mark
 
 let ty (_, m) : typ = match m with Typed { ty; _ } -> ty
 
@@ -736,15 +774,23 @@ let make_app e args pos =
             assert (Type.unifiable_list tx' (List.map (fun x -> x.ty) argtys));
             tr
           | TAny -> fty.ty
-          | _ -> assert false))
+          | _ ->
+            Errors.raise_internal_error
+              "wrong type: found %a while expecting either an Arrow or Any"
+              Print.typ_debug fty.ty))
       (List.map Marked.get_mark (e :: args))
   in
   eapp e args mark
 
-let empty_thunked_term mark =
+let thunk_term term mark =
   let silent = Var.make "_" in
   let pos = mark_pos mark in
-  make_abs [| silent |] (Bindlib.box EEmptyError, mark) [TLit TUnit, pos] pos
+  make_abs [| silent |] term [TLit TUnit, pos] pos
+
+let empty_thunked_term mark = thunk_term (Bindlib.box EEmptyError, mark) mark
+
+let unthunk_term_nobox term mark =
+  Marked.mark mark (EApp { f = term; args = [ELit LUnit, mark] })
 
 let make_let_in x tau e1 e2 mpos =
   make_app (make_abs [| x |] e2 [tau] mpos) [e1] (pos e2)
@@ -763,10 +809,9 @@ let make_default_unboxed excepts just cons =
     | _ -> None
   in
   match excepts, bool_value just, cons with
-  | [], Some true, cons -> Marked.unmark cons
   | excepts, Some true, (EDefault { excepts = []; just; cons }, _) ->
     EDefault { excepts; just; cons }
-  | [except], Some false, _ -> Marked.unmark except
+  | [((EDefault _, _) as except)], Some false, _ -> Marked.unmark except
   | excepts, _, cons -> EDefault { excepts; just; cons }
 
 let make_default exceptions just cons =

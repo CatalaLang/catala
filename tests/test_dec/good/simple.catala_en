@@ -19,3 +19,10 @@ $ catala Interpret -s A
 [RESULT] y = 4.368297
 [RESULT] z = 19.37795552820698775747…
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] x = ESome 84.648665
+[RESULT] y = ESome 4.368297
+[RESULT] z = ESome 19.37795552820698775747…
+```

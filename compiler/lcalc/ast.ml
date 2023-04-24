@@ -14,7 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
 include Shared_ast
 
 type 'm naked_expr = (lcalc, 'm mark) naked_gexpr
@@ -22,46 +21,105 @@ and 'm expr = (lcalc, 'm mark) gexpr
 
 type 'm program = 'm expr Shared_ast.program
 
-let option_enum : EnumName.t = EnumName.fresh ("eoption", Pos.no_pos)
-let none_constr : EnumConstructor.t = EnumConstructor.fresh ("ENone", Pos.no_pos)
-let some_constr : EnumConstructor.t = EnumConstructor.fresh ("ESome", Pos.no_pos)
+module OptionMonad = struct
+  let return ~(mark : 'a mark) e = Expr.einj e some_constr option_enum mark
 
-let option_enum_config : typ EnumConstructor.Map.t =
-  EnumConstructor.Map.empty
-  |> EnumConstructor.Map.add none_constr (TLit TUnit, Pos.no_pos)
-  |> EnumConstructor.Map.add some_constr (TAny, Pos.no_pos)
+  let empty ~(mark : 'a mark) =
+    Expr.einj (Expr.elit LUnit mark) none_constr option_enum mark
 
-(* FIXME: proper typing in all the constructors below *)
+  let bind_var ~(mark : 'a mark) f x arg =
+    let cases =
+      EnumConstructor.Map.of_seq
+        (List.to_seq
+           [
+             ( none_constr,
+               let x = Var.make "_" in
+               Expr.eabs
+                 (Expr.bind [| x |]
+                    (Expr.einj (Expr.evar x mark) none_constr option_enum mark))
+                 [TLit TUnit, Expr.mark_pos mark]
+                 mark );
+             (* | None x -> None x *)
+             ( some_constr,
+               Expr.eabs (Expr.bind [| x |] f) [TAny, Expr.mark_pos mark] mark )
+             (*| Some x -> f (where f contains x as a free variable) *);
+           ])
+    in
+    Expr.ematch arg option_enum cases mark
 
-let make_none m =
-  let tunit = TLit TUnit, Expr.mark_pos m in
-  Expr.einj (Expr.elit LUnit (Expr.with_ty m tunit)) none_constr option_enum m
+  let bind ~(mark : 'a mark) ~(var_name : string) f arg =
+    let x = Var.make var_name in
+    (* todo modify*)
+    bind_var f x arg ~mark
 
-let make_some e =
-  let m = Marked.get_mark e in
-  Expr.einj e some_constr option_enum m
+  let bind_cont ~(mark : 'a mark) ~(var_name : string) f arg =
+    let x = Var.make var_name in
+    bind_var (f x) x arg ~mark
 
-(** [make_matchopt_with_abs_arms arg e_none e_some] build an expression
-    [match arg with |None -> e_none | Some -> e_some] and requires e_some and
-    e_none to be in the form [EAbs ...].*)
-let make_matchopt_with_abs_arms arg e_none e_some =
-  let m = Marked.get_mark arg in
-  let cases =
-    EnumConstructor.Map.empty
-    |> EnumConstructor.Map.add none_constr e_none
-    |> EnumConstructor.Map.add some_constr e_some
-  in
-  Expr.ematch arg option_enum cases m
+  let mbind_mvar ~(mark : 'a mark) f xs args =
+    (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _
+       -> None *)
+    ListLabels.fold_left2 xs args ~f:(bind_var ~mark)
+      ~init:(Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
 
-(** [make_matchopt pos v tau arg e_none e_some] builds an expression
-    [match arg with | None () -> e_none | Some v -> e_some]. It binds v to
-    e_some, permitting it to be used inside the expression. There is no
-    requirements on the form of both e_some and e_none. *)
-let make_matchopt pos v tau arg e_none e_some =
-  let x = Var.make "_" in
-  make_matchopt_with_abs_arms arg
-    (Expr.make_abs [| x |] e_none [TLit TUnit, pos] pos)
-    (Expr.make_abs [| v |] e_some [tau] pos)
+  let mbind ~(mark : 'a mark) ~(var_name : string) f args =
+    (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _
+       -> None *)
+    let vars =
+      ListLabels.mapi args ~f:(fun i _ ->
+          Var.make (Format.sprintf "%s_%i" var_name i))
+    in
+    mbind_mvar f vars args ~mark
 
-let handle_default = Var.make "handle_default"
-let handle_default_opt = Var.make "handle_default_opt"
+  let mbind_cont ~(mark : 'a mark) ~(var_name : string) f args =
+    let vars =
+      ListLabels.mapi args ~f:(fun i _ ->
+          Var.make (Format.sprintf "%s_%i" var_name i))
+    in
+    ListLabels.fold_left2 vars args ~f:(bind_var ~mark) ~init:(f vars)
+  (* mbind_mvar (f vars) vars args ~mark *)
+
+  let mmap_mvar ~(mark : 'a mark) f xs args =
+    (* match e1, ..., en with | Some e1', ..., Some en' -> f (e1, ..., en) | _
+       -> None *)
+    ListLabels.fold_left2 xs args ~f:(bind_var ~mark)
+      ~init:
+        (Expr.einj
+           (Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
+           some_constr option_enum mark)
+
+  let map_var ~(mark : 'a mark) f x arg = mmap_mvar f [x] [arg] ~mark
+
+  let map ~(mark : 'a mark) ~(var_name : string) f arg =
+    let x = Var.make var_name in
+    map_var f x arg ~mark
+
+  let mmap ~(mark : 'a mark) ~(var_name : string) f args =
+    let vars =
+      ListLabels.mapi args ~f:(fun i _ ->
+          Var.make (Format.sprintf "%s_%i" var_name i))
+    in
+    mmap_mvar f vars args ~mark
+
+  let error_on_empty
+      ~(mark : 'a mark)
+      ~(var_name : string)
+      ?(toplevel = false)
+      arg =
+    let cases =
+      EnumConstructor.Map.of_seq
+        (List.to_seq
+           [
+             ( none_constr,
+               let x = Var.make var_name in
+               Expr.eabs
+                 (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
+                 [TAny, Expr.mark_pos mark]
+                 mark );
+             (* | None x -> raise NoValueProvided *)
+             some_constr, Expr.fun_id mark (* | Some x -> x*);
+           ])
+    in
+    if toplevel then Expr.ematch arg option_enum cases mark
+    else return ~mark (Expr.ematch arg option_enum cases mark)
+end

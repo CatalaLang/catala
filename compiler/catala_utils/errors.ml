@@ -48,7 +48,16 @@ let raise_multispanned_error (spans : (string option * Pos.t) list) format =
 let raise_error format =
   Format.kasprintf (fun msg -> raise (StructuredError (msg, []))) format
 
+let raise_internal_error format =
+  raise_error
+    ("Internal Error, please report to \
+      https://github.com/CatalaLang/catala/issues: "
+    ^^ format)
+
 (** {1 Warning printing}*)
+let assert_internal_error condition fmt =
+  if condition then raise_internal_error ("assertion failed: " ^^ fmt)
+  else Format.ifprintf (Format.formatter_of_out_channel stdout) fmt
 
 let format_multispanned_warning (pos : (string option * Pos.t) list) format =
   Format.kasprintf

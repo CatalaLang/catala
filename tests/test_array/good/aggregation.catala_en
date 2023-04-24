@@ -37,3 +37,16 @@ $ catala Interpret -s B
 [RESULT] y = $17.20
 [RESULT] z = 1
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] x = ESome [ ESome $0.00; ESome $9.00; ESome $5.20 ]
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] max = ESome $18.00
+[RESULT] min = ESome $5.00
+[RESULT] y = ESome $17.20
+[RESULT] z = ESome 1
+```

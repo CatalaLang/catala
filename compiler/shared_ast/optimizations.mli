@@ -15,10 +15,21 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Optimization passes for default calculus programs and expressions *)
+(** Optimization passes for default calculus and lambda calculus programs and
+    expressions *)
 
-open Shared_ast
-open Ast
+open Definitions
 
-val optimize_expr : decl_ctx -> 'm expr -> (dcalc, 'm mark) boxed_gexpr
-val optimize_program : 'm program -> 'm program
+val optimize_expr :
+  decl_ctx ->
+  (('a, 'b) dcalc_lcalc, 'm mark) gexpr ->
+  (('a, 'b) dcalc_lcalc, 'm mark) boxed_gexpr
+
+val optimize_program :
+  (('a, 'b) dcalc_lcalc, 'm mark) gexpr program ->
+  (('a, 'b) dcalc_lcalc, 'm mark) gexpr program
+
+(** {1 Tests}*)
+
+val test_iota_reduction_1 : unit -> unit
+val test_iota_reduction_2 : unit -> unit

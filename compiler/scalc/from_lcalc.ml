@@ -454,12 +454,7 @@ let translate_program (p : 'm L.program) : A.program =
                right here *)
             Var.Map.add var var_id var_dict,
             rev_items ))
-      ~init:
-        ( (if !Cli.avoid_exceptions_flag then
-           Var.Map.singleton L.handle_default_opt A.handle_default_opt
-          else Var.Map.singleton L.handle_default A.handle_default),
-          Var.Map.empty,
-          [] )
+      ~init:(Var.Map.empty, Var.Map.empty, [])
       p.code_items
   in
   { decl_ctx = p.decl_ctx; code_items = List.rev rev_items }

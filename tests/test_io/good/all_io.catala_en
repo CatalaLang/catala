@@ -19,22 +19,18 @@ scope A:
 
 ```catala-test-inline
 $ catala Dcalc -s A
-let A =
-  λ (A_in: A_in {"c_in": integer; "d_in": integer; "e_in": unit → integer;
-              "f_in": unit → integer}) →
-    let c : integer = A_in."c_in" in
-    let d : integer = A_in."d_in" in
-    let e : unit → integer = A_in."e_in" in
-    let f : unit → integer = A_in."f_in" in
-    let a : integer = error_empty ⟨true ⊢ 0⟩ in
-    let b : integer = error_empty ⟨true ⊢ a +! 1⟩ in
-    let e1 : integer =
-      error_empty ⟨ e () | true ⊢ ⟨true ⊢ b +! c +! d +! 1⟩ ⟩
-    in
-    let f1 : integer =
-      error_empty ⟨ f () | true ⊢ ⟨true ⊢ e1 +! 1⟩ ⟩
-    in
-    {A "b" = b; "d" = d; "f" = f1}
+let scope A (A_in: A_in): A =
+  let get c : integer = A_in."c_in" in
+  let get d : integer = A_in."d_in" in
+  let get e : unit → integer = A_in."e_in" in
+  let get f : unit → integer = A_in."f_in" in
+  let set a : integer = error_empty ⟨true ⊢ 0⟩ in
+  let set b : integer = error_empty ⟨true ⊢ a +! 1⟩ in
+  let set e : integer =
+    error_empty ⟨ e () | true ⊢ ⟨true ⊢ b +! c +! d +! 1⟩ ⟩ in
+  let set f : integer =
+    error_empty ⟨ f () | true ⊢ ⟨true ⊢ e +! 1⟩ ⟩ in
+  return { "b" = b; "d" = d; "f" = f}_A
 ```
 
 ```catala-test-inline

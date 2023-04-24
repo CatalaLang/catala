@@ -18,9 +18,9 @@
             clerk = ocamlPackages.clerk;
             french_law = ocamlPackages.french_law;
           };
-          defaultPackage = packages.catala;
+          defaultPackage = packages.clerk;
           devShell = pkgs.mkShell {
-            inputsFrom = [ packages.catala ];
+            inputsFrom = [ packages.clerk packages.catala ];
             buildInputs = [
               pkgs.inotify-tools
               ocamlPackages.merlin
@@ -32,6 +32,11 @@
               pkgs.groff
               pkgs.obelisk
               pkgs.ninja
+              pkgs.colordiff
+              pkgs.pandoc
+              pkgs.python3.pkgs.pygments
+              pkgs.nodejs
+              pkgs.nodePackages.npm
             ];
           };
         }

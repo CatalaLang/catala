@@ -85,33 +85,8 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " op_style "*")
          typ)
       ts
-  | TStruct s -> (
-    match ctx with
-    | None -> Format.fprintf fmt "@[<hov 2>%a@]" StructName.format_t s
-    | Some ctx ->
-      Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format_t s
-        punctuation "{"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
-           (fun fmt (field, mty) ->
-             Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\""
-               StructField.format_t field punctuation "\"" punctuation ":" typ
-               mty))
-        (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs))
-        punctuation "}")
-  | TEnum e -> (
-    match ctx with
-    | None -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format_t e
-    | Some ctx ->
-      Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" EnumName.format_t e punctuation
-        "["
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " punctuation "|")
-           (fun fmt (case, mty) ->
-             Format.fprintf fmt "%a%a@ %a" enum_constructor case punctuation ":"
-               typ mty))
-        (EnumConstructor.Map.bindings (EnumName.Map.find e ctx.ctx_enums))
-        punctuation "]")
+  | TStruct s -> Format.fprintf fmt "@[<hov 2>%a@]" StructName.format_t s
+  | TEnum e -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format_t e
   | TOption t -> Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" typ t
   | TArrow ([t1], t2) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" typ_with_parens t1 op_style "→"
@@ -241,6 +216,8 @@ let operator_to_string : type a. a Op.t -> string =
   | Eq_dur_dur -> "=^"
   | Eq_dat_dat -> "=@"
   | Fold -> "fold"
+  | HandleDefault -> "handle_default"
+  | HandleDefaultOpt -> "handle_default_opt"
 
 let operator : type a. Format.formatter -> a operator -> unit =
  fun fmt op ->
@@ -322,7 +299,9 @@ module Precedence = struct
       | Div | Div_int_int | Div_rat_rat | Div_mon_rat | Div_mon_mon
       | Div_dur_dur ->
         Op Div
-      | Map | Concat | Filter | Reduce | Fold -> App)
+      | HandleDefault | HandleDefaultOpt | Map | Concat | Filter | Reduce | Fold
+        ->
+        App)
     | EApp _ -> App
     | EOp _ -> Contained
     | EArray _ -> Contained
@@ -378,12 +357,14 @@ let rec expr_aux :
     ?debug:bool ->
     decl_ctx option ->
     Bindlib.ctxt ->
+    ANSITerminal.style list ->
     Format.formatter ->
     (a, 't) gexpr ->
     unit =
- fun ?(debug = false) ctx bnd_ctx fmt e ->
-  let exprb bnd_ctx e = expr_aux ~debug ctx bnd_ctx e in
-  let expr e = exprb bnd_ctx e in
+ fun ?(debug = false) ctx bnd_ctx colors fmt e ->
+  let exprb bnd_ctx colors e = expr_aux ~debug ctx bnd_ctx colors e in
+  let exprc colors e = exprb bnd_ctx colors e in
+  let expr e = exprc colors e in
   let var = if debug then var_debug else var in
   let rec skip_log : type a. (a, 't) gexpr -> (a, 't) gexpr = function
     | EApp { f = EOp { op = Log _; _ }, _; args = [e] }, _ when not debug ->
@@ -394,11 +375,11 @@ let rec expr_aux :
   let paren ~rhs expr fmt e1 =
     if Precedence.needs_parens ~rhs ~context:e (skip_log e1) then (
       Format.pp_open_hvbox fmt 1;
-      punctuation fmt "(";
-      expr fmt e1;
+      Cli.format_with_style [List.hd colors] fmt "(";
+      expr (List.tl colors) fmt e1;
       Format.pp_close_box fmt ();
-      punctuation fmt ")")
-    else expr fmt e1
+      Cli.format_with_style [List.hd colors] fmt ")")
+    else expr colors fmt e1
   in
   let lhs ex = paren ~rhs:false ex in
   let rhs ex = paren ~rhs:true ex in
@@ -408,16 +389,16 @@ let rec expr_aux :
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" punctuation "("
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt e -> lhs expr fmt e))
+         (fun fmt e -> lhs exprc fmt e))
       es punctuation ")"
   | EArray es ->
     Format.fprintf fmt "@[<hv 2>%a %a@] %a" punctuation "["
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-         (fun fmt e -> lhs expr fmt e))
+         (fun fmt e -> lhs exprc fmt e))
       es punctuation "]"
   | ETupleAccess { e; index; _ } ->
-    lhs expr fmt e;
+    lhs exprc fmt e;
     punctuation fmt ".";
     Format.pp_print_int fmt index
   | ELit l -> lit fmt l
@@ -433,7 +414,7 @@ let rec expr_aux :
            Format.fprintf fmt
              "@[<hv 0>@[<hv 2>@[<hov 4>%a@ %a@ %a@ %a@ %a@]@ %a@]@ %a@]@\n"
              keyword "let" var x punctuation ":" (typ ctx) tau punctuation "="
-             expr arg keyword "in"))
+             (expr colors) arg keyword "in"))
       xs_tau_arg (rhs expr) body
   | EAbs { binder; tys } ->
     let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
@@ -447,25 +428,25 @@ let rec expr_aux :
              ":" (typ ctx) tau punctuation ")"))
       xs_tau punctuation "→" (rhs expr) body
   | EApp { f = EOp { op = (Map | Filter) as op; _ }, _; args = [arg1; arg2] } ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" operator op (lhs expr) arg1
-      (rhs expr) arg2
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" operator op (lhs exprc) arg1
+      (rhs exprc) arg2
   | EApp { f = EOp { op = (And | Or) as op; _ }, _; args = [arg1; arg2] } ->
-    Format.fprintf fmt "%a@ %a %a" (lhs expr) arg1 operator op (rhs expr) arg2
+    Format.fprintf fmt "%a@ %a %a" (lhs exprc) arg1 operator op (rhs exprc) arg2
   | EApp { f = EOp { op; _ }, _; args = [arg1; arg2] } ->
-    Format.fprintf fmt "@[<hv 0>%a@ %a %a@]" (lhs expr) arg1 operator op
-      (rhs expr) arg2
+    Format.fprintf fmt "@[<hv 0>%a@ %a %a@]" (lhs exprc) arg1 operator op
+      (rhs exprc) arg2
   | EApp { f = EOp { op; _ }, _; args = [arg1] } ->
-    Format.fprintf fmt "%a %a" operator op (rhs expr) arg1
+    Format.fprintf fmt "%a %a" operator op (rhs exprc) arg1
   | EApp { f; args } ->
-    Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs expr) f
+    Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs exprc) f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (rhs expr))
+         (rhs exprc))
       args
   | EIfThenElse { cond; etrue; efalse } ->
     Format.fprintf fmt
       "@[<hv 0>@[<hv 2>%a@ %a@]@ @[<hv 2>%a@ %a@]@ @[<hv 2>%a@ %a@]@]" keyword
-      "if" expr cond keyword "then" expr etrue keyword "else" (rhs expr) efalse
+      "if" expr cond keyword "then" expr etrue keyword "else" (rhs exprc) efalse
   | EOp { op; _ } -> operator fmt op
   | EDefault { excepts; just; cons } ->
     if List.length excepts = 0 then
@@ -476,48 +457,48 @@ let rec expr_aux :
         "@[<hv 0>@[<hov 2>%a %a@]@ @[<hov 2>%a %a@ %a %a@] %a@]" punctuation "⟨"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ",")
-           (lhs expr))
+           (lhs exprc))
         excepts punctuation "|" expr just punctuation "⊢" expr cons punctuation
         "⟩"
   | EEmptyError -> lit_style fmt "∅"
   | EErrorOnEmpty e' ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" op_style "error_empty" (rhs expr) e'
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" op_style "error_empty" (rhs exprc) e'
   | EAssert e' ->
     Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation "("
-      (rhs expr) e' punctuation ")"
+      (rhs exprc) e' punctuation ")"
   | ECatch { body; exn; handler } ->
     Format.fprintf fmt "@[<hv 0>@[<hov 2>%a@ %a@]@ @[<hov 2>%a@ %a ->@ %a@]@]"
-      keyword "try" expr body keyword "with" except exn (rhs expr) handler
+      keyword "try" expr body keyword "with" except exn (rhs exprc) handler
   | ERaise exn ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except exn
   | ELocation loc -> location fmt loc
   | EDStructAccess { e; field; _ } ->
-    Format.fprintf fmt "%a%a%a%a%a" (lhs expr) e punctuation "." punctuation
+    Format.fprintf fmt "%a%a%a%a%a" (lhs exprc) e punctuation "." punctuation
       "\"" IdentName.format_t field punctuation "\""
   | EStruct { name; fields } ->
-    Format.fprintf fmt "@[<hv 0>@[<hv 2>%a%a@,@[<hv 0>%a@]@]@,%a@]" punctuation
-      "{" StructName.format_t name
+    Format.fprintf fmt "@[<hv 0>@[<hv 2>%a@,@[<hv 0>%a@]@]@,%a%a@]" punctuation
+      "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> punctuation fmt ";")
          (fun fmt (field_name, field_expr) ->
            Format.fprintf fmt "@ @[<hov 2>%a%a%a %a@ %a@]" punctuation "\""
              StructField.format_t field_name punctuation "\"" punctuation "="
-             (lhs expr) field_expr))
+             (lhs exprc) field_expr))
       (StructField.Map.bindings fields)
-      punctuation "}"
+      punctuation "}_" StructName.format_t name
   | EStructAccess { e; field; _ } ->
-    Format.fprintf fmt "%a%a%a%a%a" (lhs expr) e punctuation "." punctuation
+    Format.fprintf fmt "%a%a%a%a%a" (lhs exprc) e punctuation "." punctuation
       "\"" StructField.format_t field punctuation "\""
   | EInj { e; cons; _ } ->
-    Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons (rhs expr) e
+    Format.fprintf fmt "%a@ %a" EnumConstructor.format_t cons (rhs exprc) e
   | EMatch { e; cases; _ } ->
     Format.fprintf fmt "@[<v 0>@[<hov 2>%a@ %a@]@ %a@ %a@]" keyword "match"
-      (lhs expr) e keyword "with"
+      (lhs exprc) e keyword "with"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt (cons_name, case_expr) ->
            Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
-             enum_constructor cons_name punctuation "→" (rhs expr) case_expr))
+             enum_constructor cons_name punctuation "→" (rhs exprc) case_expr))
       (EnumConstructor.Map.bindings cases)
   | EScopeCall { scope; args } ->
     Format.pp_open_hovbox fmt 2;
@@ -531,14 +512,168 @@ let rec expr_aux :
       ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
       (fun fmt (field_name, field_expr) ->
         Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\"" ScopeVar.format_t
-          field_name punctuation "\"" punctuation "=" (rhs expr) field_expr)
+          field_name punctuation "\"" punctuation "=" (rhs exprc) field_expr)
       fmt
       (ScopeVar.Map.bindings args);
     Format.pp_close_box fmt ();
     punctuation fmt "}";
     Format.pp_close_box fmt ()
 
+let rec colors =
+  ANSITerminal.blue
+  :: ANSITerminal.cyan
+  :: ANSITerminal.green
+  :: ANSITerminal.yellow
+  :: ANSITerminal.red
+  :: ANSITerminal.magenta
+  :: colors
+
 let typ_debug = typ None
 let typ ctx = typ (Some ctx)
-let expr_debug ?debug = expr_aux ?debug None Bindlib.empty_ctxt
-let expr ?debug ctx = expr_aux ?debug (Some ctx) Bindlib.empty_ctxt
+let expr_debug ?debug = expr_aux ?debug None Bindlib.empty_ctxt colors
+let expr ?debug ctx = expr_aux ?debug (Some ctx) Bindlib.empty_ctxt colors
+
+let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
+  match k with
+  | DestructuringInputStruct -> keyword fmt "get"
+  | ScopeVarDefinition -> keyword fmt "set"
+  | SubScopeVarDefinition -> keyword fmt "sub_set"
+  | CallingSubScope -> keyword fmt "call"
+  | DestructuringSubScopeResults -> keyword fmt "sub_get"
+  | Assertion -> keyword fmt "assert"
+
+let rec scope_body_expr ?(debug = false) ctx fmt b : unit =
+  match b with
+  | Result e -> Format.fprintf fmt "%a %a" keyword "return" (expr ~debug ctx) e
+  | ScopeLet
+      {
+        scope_let_kind = kind;
+        scope_let_typ;
+        scope_let_expr;
+        scope_let_next;
+        _;
+      } ->
+    let x, next = Bindlib.unbind scope_let_next in
+    Format.fprintf fmt "@[<hov 2>%a %a %a %a %a %a@;%a@;%a @]@,%a" keyword "let"
+      (scope_let_kind ~debug ctx)
+      kind
+      (if debug then var_debug else var)
+      x punctuation ":" (typ ctx) scope_let_typ punctuation "="
+      (expr ~debug ctx) scope_let_expr keyword "in"
+      (scope_body_expr ~debug ctx)
+      next
+
+let scope_body ?(debug = false) ctx fmt (n, l) : unit =
+  let {
+    scope_body_input_struct;
+    scope_body_output_struct;
+    scope_body_expr = body;
+  } =
+    l
+  in
+
+  let input_typ = TStruct scope_body_input_struct, Pos.no_pos in
+  let output_typ = TStruct scope_body_output_struct, Pos.no_pos in
+
+  let x, body = Bindlib.unbind body in
+
+  let _ =
+    Format.pp_open_vbox fmt 2;
+    let _ =
+      Format.pp_open_hbox fmt ();
+      keyword fmt "let scope";
+      Format.pp_print_space fmt ();
+      ScopeName.format_t fmt n;
+      Format.pp_print_space fmt ();
+      punctuation fmt "(";
+      (if debug then var_debug else var) fmt x;
+      punctuation fmt ":";
+      Format.pp_print_space fmt ();
+      (if debug then typ_debug else typ ctx) fmt input_typ;
+      punctuation fmt ")";
+      punctuation fmt ":";
+      Format.pp_print_space fmt ();
+      (if debug then typ_debug else typ ctx) fmt output_typ;
+      Format.pp_print_space fmt ();
+      punctuation fmt "=";
+      Format.pp_close_box fmt ()
+    in
+
+    Format.pp_print_cut fmt ();
+
+    scope_body_expr ~debug ctx fmt body;
+    Format.pp_close_box fmt ()
+  in
+  ()
+
+let enum
+    ?(debug = false)
+    decl_ctx
+    fmt
+    ((n, c) : EnumName.t * typ EnumConstructor.Map.t) =
+  Format.fprintf fmt "@[<h 0>%a %a %a@;%a@]" keyword "type" EnumName.format_t n
+    punctuation "="
+    (fun fmt b ->
+      ListLabels.iter b ~f:(fun (n, ty) ->
+          Format.fprintf fmt "@[<hov2> %a %a %a %a@]@;" punctuation "|"
+            EnumConstructor.format_t n keyword "of"
+            (if debug then typ_debug else typ decl_ctx)
+            ty))
+    (EnumConstructor.Map.bindings c)
+
+let struct_
+    ?(debug = false)
+    decl_ctx
+    fmt
+    ((n, c) : StructName.t * typ StructField.Map.t) =
+  Format.fprintf fmt "@[<hv 0>@[<hv 2>@[<h>%a %a %a@;%a@]@;%a@]%a@]@;" keyword
+    "type" StructName.format_t n punctuation "=" punctuation "{"
+    (fun fmt b ->
+      ListLabels.iter b ~f:(fun (n, ty) ->
+          Format.fprintf fmt "@[<h 2>%a%a %a%a@]@ " StructField.format_t n
+            keyword ":"
+            (if debug then typ_debug else typ decl_ctx)
+            ty punctuation ";"))
+    (StructField.Map.bindings c)
+    punctuation "}"
+
+let decl_ctx ?(debug = false) decl_ctx (fmt : Format.formatter) (ctx : decl_ctx)
+    : unit =
+  let { ctx_enums; ctx_structs; _ } = ctx in
+
+  Format.fprintf fmt "@[<v>%a@;@;%a@] @;"
+    (Format.pp_print_list ~pp_sep:Format.pp_print_cut (enum ~debug decl_ctx))
+    (EnumName.Map.bindings ctx_enums)
+    (Format.pp_print_list ~pp_sep:Format.pp_print_cut (struct_ ~debug decl_ctx))
+    (StructName.Map.bindings ctx_structs)
+
+let scope
+    ?(debug : bool = false)
+    (ctx : decl_ctx)
+    (fmt : Format.formatter)
+    ((n, s) : ScopeName.t * 'm scope_body) : unit =
+  scope_body ~debug ctx fmt (n, s)
+
+let code_item ?(debug = false) decl_ctx fmt c =
+  match c with
+  | ScopeDef (n, b) -> scope ~debug decl_ctx fmt (n, b)
+  | Topdef (n, ty, e) ->
+    Format.fprintf fmt "@[%a %a %a %a %a %a @]" keyword "let topval"
+      TopdefName.format_t n op_style ":" (typ decl_ctx) ty op_style "="
+      (expr ~debug decl_ctx) e
+
+let rec code_item_list ?(debug = false) decl_ctx fmt c =
+  match c with
+  | Nil -> ()
+  | Cons (c, b) ->
+    let _x, cl = Bindlib.unbind b in
+
+    Format.fprintf fmt "%a @.%a"
+      (code_item ~debug decl_ctx)
+      c
+      (code_item_list ~debug decl_ctx)
+      cl
+
+let program ?(debug = false) fmt p =
+  decl_ctx ~debug p.decl_ctx fmt p.decl_ctx;
+  code_item_list ~debug p.decl_ctx fmt p.code_items

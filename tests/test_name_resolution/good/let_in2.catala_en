@@ -1,0 +1,23 @@
+## Article
+
+```catala
+declaration scope S:
+  context output a content boolean
+
+scope S:
+   definition a equals
+    let a equals true in
+    a
+```
+
+```catala-test-inline
+$ catala Interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT] a = true
+```
+
+```catala-test-inline
+$ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome true
+```

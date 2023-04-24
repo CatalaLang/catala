@@ -67,15 +67,6 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
       Errors.raise_spanned_error pos
         "Internal error: typing at this point could not be resolved"
 
-(* Checks that there are no type variables remaining *)
-let rec all_resolved ty =
-  match Marked.unmark (UnionFind.get (UnionFind.find ty)) with
-  | TAny _ -> false
-  | TLit _ | TStruct _ | TEnum _ -> true
-  | TOption t1 | TArray t1 -> all_resolved t1
-  | TArrow (t1, t2) -> List.for_all all_resolved t1 && all_resolved t2
-  | TTuple ts -> List.for_all all_resolved ts
-
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
     match Marked.unmark ty with
@@ -94,7 +85,9 @@ let rec ast_to_typ (ty : A.typ) : unionfind_typ =
 
 let typ_needs_parens (t : unionfind_typ) : bool =
   let t = UnionFind.get (UnionFind.find t) in
-  match Marked.unmark t with TArrow _ | TArray _ -> true | _ -> false
+  match Marked.unmark t with
+  | TArrow _ | TArray _ | TOption _ -> true
+  | _ -> false
 
 let rec format_typ
     (ctx : A.decl_ctx)
@@ -117,7 +110,7 @@ let rec format_typ
   | TStruct s -> Format.fprintf fmt "%a" A.StructName.format_t s
   | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format_t e
   | TOption t ->
-    Format.fprintf fmt "@[<hov 2>%a@ %s@]" format_typ_with_parens t "eoption"
+    Format.fprintf fmt "@[<hov 2>(%a)@ %s@]" format_typ_with_parens t "eoption"
   | TArrow ([t1], t2) ->
     Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]" format_typ_with_parens t1
       format_typ t2
@@ -243,8 +236,10 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Marked.pos) :
   let any = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let any2 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let bt = lazy (UnionFind.make (TLit TBool, pos)) in
+  let ut = lazy (UnionFind.make (TLit TUnit, pos)) in
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
+  let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
   let ( @-> ) x y =
     lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
   in
@@ -259,6 +254,10 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Marked.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
+    | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
+    | HandleDefaultOpt ->
+      [array (option any); [ut] @-> option bt; [ut] @-> option any]
+      @-> option any
   in
   Lazy.force ty
 
@@ -373,13 +372,13 @@ and typecheck_expr_top_down :
     | A.Typed { A.ty; _ } -> unify ctx e tau (ast_to_typ ty)
   in
   let context_mark = { uf = tau; pos = pos_e } in
-  let uf_mark uf =
+  let mark_with_tau_and_unify uf =
     (* Unify with the supplied type first, and return the mark *)
     unify ctx e uf tau;
     { uf; pos = pos_e }
   in
   let unionfind ?(pos = e) t = UnionFind.make (add_pos pos t) in
-  let ty_mark ty = uf_mark (unionfind ty) in
+  let ty_mark ty = mark_with_tau_and_unify (unionfind ty) in
   match Marked.unmark e with
   | A.ELocation loc ->
     let ty_opt =
@@ -397,7 +396,7 @@ and typecheck_expr_top_down :
         Errors.raise_spanned_error pos_e "Reference to %a not found"
           (Expr.format ctx) e
     in
-    Expr.elocation loc (uf_mark (ast_to_typ ty))
+    Expr.elocation loc (mark_with_tau_and_unify (ast_to_typ ty))
   | A.EStruct { name; fields } ->
     let mark = ty_mark (TStruct name) in
     let str_ast = A.StructName.Map.find name ctx.A.ctx_structs in
@@ -499,7 +498,7 @@ and typecheck_expr_top_down :
       in
       A.StructField.Map.find field str
     in
-    let mark = uf_mark fld_ty in
+    let mark = mark_with_tau_and_unify fld_ty in
     Expr.edstructaccess e_struct' field (Some name) mark
   | A.EStructAccess { e = e_struct; name; field } ->
     let fld_ty =
@@ -520,24 +519,67 @@ and typecheck_expr_top_down :
           "Structure %a doesn't define a field %a" A.StructName.format_t name
           A.StructField.format_t field
     in
-    let mark = uf_mark fld_ty in
+    let mark = mark_with_tau_and_unify fld_ty in
     let e_struct' =
       typecheck_expr_top_down ~leave_unresolved ctx env
         (unionfind (TStruct name)) e_struct
     in
     Expr.estructaccess e_struct' field name mark
+  | A.EInj { name; cons; e = e_enum }
+    when Definitions.EnumName.equal name Definitions.option_enum ->
+    if Definitions.EnumConstructor.equal cons Definitions.some_constr then
+      let cell_type = unionfind (TAny (Any.fresh ())) in
+      let mark = mark_with_tau_and_unify (unionfind (TOption cell_type)) in
+      let e_enum' =
+        typecheck_expr_top_down ~leave_unresolved ctx env cell_type e_enum
+      in
+      Expr.einj e_enum' cons name mark
+    else
+      (* None constructor *)
+      let cell_type = unionfind (TAny (Any.fresh ())) in
+      let mark = mark_with_tau_and_unify (unionfind (TOption cell_type)) in
+      let e_enum' =
+        typecheck_expr_top_down ~leave_unresolved ctx env
+          (unionfind (TLit TUnit)) e_enum
+      in
+      Expr.einj e_enum' cons name mark
   | A.EInj { name; cons; e = e_enum } ->
-    let mark = uf_mark (unionfind (TEnum name)) in
+    let mark = mark_with_tau_and_unify (unionfind (TEnum name)) in
     let e_enum' =
       typecheck_expr_top_down ~leave_unresolved ctx env
         (A.EnumConstructor.Map.find cons (A.EnumName.Map.find name env.enums))
         e_enum
     in
     Expr.einj e_enum' cons name mark
+  | A.EMatch { e = e1; name; cases }
+    when Definitions.EnumName.compare name Definitions.option_enum = 0 ->
+    let cell_type = unionfind ~pos:e1 (TAny (Any.fresh ())) in
+    let t_arg = unionfind ~pos:e1 (TOption cell_type) in
+    let cases_ty =
+      ListLabels.fold_right2
+        [A.none_constr; A.some_constr]
+        [unionfind ~pos:e1 (TLit TUnit); cell_type]
+        ~f:A.EnumConstructor.Map.add ~init:A.EnumConstructor.Map.empty
+    in
+    let t_ret = unionfind ~pos:e (TAny (Any.fresh ())) in
+    let mark = mark_with_tau_and_unify t_ret in
+    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env t_arg e1 in
+    let cases' =
+      A.EnumConstructor.MapLabels.merge cases cases_ty ~f:(fun _ e e_ty ->
+          match e, e_ty with
+          | Some e, Some e_ty ->
+            Some
+              (typecheck_expr_top_down ~leave_unresolved ctx env
+                 (unionfind ~pos:e (TArrow ([e_ty], t_ret)))
+                 e)
+          | _ -> assert false)
+    in
+
+    Expr.ematch e1' name cases' mark
   | A.EMatch { e = e1; name; cases } ->
     let cases_ty = A.EnumName.Map.find name ctx.A.ctx_enums in
     let t_ret = unionfind ~pos:e1 (TAny (Any.fresh ())) in
-    let mark = uf_mark t_ret in
+    let mark = mark_with_tau_and_unify t_ret in
     let e1' =
       typecheck_expr_top_down ~leave_unresolved ctx env (unionfind (TEnum name))
         e1
@@ -558,7 +600,7 @@ and typecheck_expr_top_down :
     let scope_out_struct =
       (A.ScopeName.Map.find scope ctx.ctx_scopes).out_struct_name
     in
-    let mark = uf_mark (unionfind (TStruct scope_out_struct)) in
+    let mark = mark_with_tau_and_unify (unionfind (TStruct scope_out_struct)) in
     let vars = A.ScopeName.Map.find scope env.scopes in
     let args' =
       A.ScopeVar.Map.mapi
@@ -583,11 +625,11 @@ and typecheck_expr_top_down :
         Errors.raise_spanned_error pos_e
           "Variable %s not found in the current context" (Bindlib.name_of v)
     in
-    Expr.evar (Var.translate v) (uf_mark tau')
+    Expr.evar (Var.translate v) (mark_with_tau_and_unify tau')
   | A.ELit lit -> Expr.elit lit (ty_mark (lit_type lit))
   | A.ETuple es ->
     let tys = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) es in
-    let mark = uf_mark (unionfind (TTuple tys)) in
+    let mark = mark_with_tau_and_unify (unionfind (TTuple tys)) in
     let es' =
       List.map2 (typecheck_expr_top_down ~leave_unresolved ctx env) tys es
     in
@@ -617,8 +659,7 @@ and typecheck_expr_top_down :
       let tau_args = List.map ast_to_typ t_args in
       let t_ret = unionfind (TAny (Any.fresh ())) in
       let t_func = unionfind (TArrow (tau_args, t_ret)) in
-      let mark = uf_mark t_func in
-      if not leave_unresolved then assert (List.for_all all_resolved tau_args);
+      let mark = mark_with_tau_and_unify t_func in
       let xs, body = Bindlib.unmbind binder in
       let xs' = Array.map Var.translate xs in
       let env =
@@ -703,10 +744,12 @@ and typecheck_expr_top_down :
     let tys, mark =
       Operator.kind_dispatch op
         ~polymorphic:(fun op ->
-          tys, uf_mark (polymorphic_op_type (Marked.mark pos_e op)))
+          ( tys,
+            mark_with_tau_and_unify (polymorphic_op_type (Marked.mark pos_e op))
+          ))
         ~monomorphic:(fun op ->
           let mark =
-            uf_mark
+            mark_with_tau_and_unify
               (ast_to_typ (Operator.monomorphic_type (Marked.mark pos_e op)))
           in
           List.map (typ_to_ast ~leave_unresolved) tys', mark)
@@ -717,7 +760,8 @@ and typecheck_expr_top_down :
             { uf = t_func; pos = pos_e } ))
         ~resolved:(fun op ->
           let mark =
-            uf_mark (ast_to_typ (Operator.resolved_type (Marked.mark pos_e op)))
+            mark_with_tau_and_unify
+              (ast_to_typ (Operator.resolved_type (Marked.mark pos_e op)))
           in
           List.map (typ_to_ast ~leave_unresolved) tys', mark)
     in
@@ -743,7 +787,7 @@ and typecheck_expr_top_down :
     in
     Expr.eifthenelse cond' et' ef' context_mark
   | A.EAssert e1 ->
-    let mark = uf_mark (unionfind (TLit TUnit)) in
+    let mark = mark_with_tau_and_unify (unionfind (TLit TUnit)) in
     let e1' =
       typecheck_expr_top_down ~leave_unresolved ctx env
         (unionfind ~pos:e1 (TLit TBool))
@@ -756,7 +800,7 @@ and typecheck_expr_top_down :
     Expr.eerroronempty e1' context_mark
   | A.EArray es ->
     let cell_type = unionfind (TAny (Any.fresh ())) in
-    let mark = uf_mark (unionfind (TArray cell_type)) in
+    let mark = mark_with_tau_and_unify (unionfind (TArray cell_type)) in
     let es' =
       List.map (typecheck_expr_top_down ~leave_unresolved ctx env cell_type) es
     in

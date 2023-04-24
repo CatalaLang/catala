@@ -40,3 +40,6 @@ val to_expr : ((_ any, _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
 (** Usage: [build_whole_program_expr program main_scope] builds an expression
     corresponding to the main program and returning the main scope as a
     function. *)
+
+val equal :
+  (('a any, _) gexpr as 'e) program -> (('a any, _) gexpr as 'e) program -> bool

@@ -37,3 +37,16 @@ $ catala Interpret -s B
 [RESULT] a = 42
 [RESULT] b = true
 ```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome -1
+[RESULT] a_base = ESome 1
+[RESULT] b = ESome false
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = ESome 42
+[RESULT] b = ESome true
+```

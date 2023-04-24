@@ -135,7 +135,10 @@ let tag_with_log_entry
     (l : log_entry)
     (markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
   let m = mark_tany (Marked.get_mark e) (Expr.pos e) in
-  Expr.eapp (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] m) [e] m
+
+  if !Cli.trace_flag then
+    Expr.eapp (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] m) [e] m
+  else e
 
 (* In a list of exceptions, it is normally an error if more than a single one
    apply at the same time. This relaxes this constraint slightly, allowing a
@@ -336,7 +339,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
        function and not during its definition, then we're missing the call log
        instructions of the function returned. To avoid this trap, we need to
        rebind the resulting scope output struct by eta-expanding the functions
-       to insert logging instructions*)
+       to insert logging instructions. *)
     let result_var = Var.make "result" in
     let result_eta_expanded_var = Var.make "result" in
     (* result_eta_expanded = { struct_output_function_field = lambda x -> log
@@ -581,16 +584,16 @@ let translate_rule
     let a_var = Var.make (Marked.unmark a_name) in
     let new_e = translate_expr ctx e in
     let a_expr = Expr.make_var a_var (pos_mark var_def_pos) in
+    let is_func =
+      match Marked.unmark tau with TArrow _ -> true | _ -> false
+    in
     let merged_expr =
       match Marked.unmark a_io.io_input with
       | OnlyInput -> failwith "should not happen"
       (* scopelang should not contain any definitions of input only variables *)
-      | Reentrant ->
-        merge_defaults
-          ~is_func:
-            (match Marked.unmark tau with TArrow _ -> true | _ -> false)
-          a_expr new_e
-      | NoInput -> Expr.eerroronempty new_e (pos_mark_as a_name)
+      | Reentrant -> merge_defaults ~is_func a_expr new_e
+      | NoInput ->
+        if is_func then new_e else Expr.eerroronempty new_e (pos_mark_as a_name)
     in
     let merged_expr =
       tag_with_log_entry merged_expr
