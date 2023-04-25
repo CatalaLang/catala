@@ -575,7 +575,6 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
     état montée_en_charge_saint_pierre_miquelon
     # TODO juridique et informatique: coder l'absence de CRDS à Saint-Pierre-et
     # Miquelon et peut-être ailleurs.
-    état montée_en_charge_saint_pierre_miquelon
     état contributions_sociales_arrondi
     état réduction_loyer_solidarité
     état montant_minimal
@@ -1013,7 +1012,6 @@ déclaration champ d'application CalculAllocationLogementFoyer:
     état montée_en_charge_saint_pierre_miquelon
     # TODO juridique et informatique: coder l'absence de CRDS à Saint-Pierre-et
     # Miquelon et peut-être ailleurs.
-    état montée_en_charge_saint_pierre_miquelon
     état contributions_sociales_arrondi
     état montant_minimal
 

@@ -376,7 +376,8 @@ déclaration montée_en_charge_saint_pierre_miquelon contenu argent dépend de
     date_courante >= |2022-01-01| et
     date_courante <= |2025-12-31|
   alors
-    aide_finale * (1 - (décimal de (2026 - accès_année de date_courante) / 8,0))
+    aide_finale * (1,0 - 
+      (décimal de (2026 - accès_année de date_courante) / 8,0))
   sinon
     aide_finale
 

@@ -142,7 +142,9 @@ class InfosLogementFoyer(InfosSpecifiques):
                  categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer_Code,
                  conventionne_selon_regles_drom: bool,
                  beneficiaire_aide_adulte_ou_enfant_handicapes: bool,
-                 logement_meuble_d842_2: bool):
+                 logement_meuble_d842_2: bool,
+                 logement_foyer_jeunes_travailleurs: bool):
+        self.logement_foyer_jeunes_travailleurs = logement_foyer_jeunes_travailleurs
         self.type = type
         self.remplit_conditions_r832_21 = remplit_conditions_r832_21
         self.conventionne_livre_III_titre_V_chap_III = conventionne_livre_III_titre_V_chap_III
@@ -257,6 +259,7 @@ def aides_logement(
                             ))
                     ) if isinstance(infos_specifiques, InfosLocation) else
                         (LogementFoyer(
+                            logement_foyer_jeunes_travailleurs=infos_specifiques.logement_foyer_jeunes_travailleurs,
                             type=TypeLogementFoyer(
                                 code=infos_specifiques.type, value=Unit()),
                             conventionne_selon_regles_drom=infos_specifiques.conventionne_selon_regles_drom,
