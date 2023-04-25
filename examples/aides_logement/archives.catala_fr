@@ -89,11 +89,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article
@@ -584,11 +603,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des articles
@@ -1704,11 +1742,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des articles
@@ -2774,11 +2831,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des
@@ -3315,11 +3391,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au

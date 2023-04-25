@@ -4498,7 +4498,16 @@ Majoration par personne à charge supplémentaire     -0,06 %
 # Ici bizarrerie, à la ligne pour 7 personnes on a un TF plus grand que la
 # ligne à 6 personnes alors que partout ailleurs on a une décroissance.
 # Cette bizarrerie a été introduite avec la dernière version de l'arrêté de 2019
-# (arrêté du 26 décembre 2022).
+# (arrêté du 26 décembre 2022). Une justification nous en a été donnée par
+# DGALN/DHUP/FE4 dans un mail en date du 21/04/2023 :
+# "Le calcul du TF est plus avantageux en outre-mer par rapport à la métropole.
+# Si la limite de 6 enfants a été supprimée, le barème applicable à l’outre-mer
+# n’a pas été modifié pour les six premiers enfants. Par contre, à compter du
+# 7ème enfant à charge, le barème applicable est identique à celui applicable en
+# métropole (voir l’article 14 de l’arrêté : TF pour 6 personnes à charge de
+# 1,73%, majoration par personne supplémentaire : -0,06% - TF applicable pour 7
+# personnes à charge : 1,73 – 0,06 = 1,67%). Il ne s’agit donc pas d’un
+# incohérence numérique mais d’un alignement avec le barème métropolitain."
 
 # Ici nous modifions le champ d'application
 # "CalculAidePersonnaliséeLogementLocatif" au lieu de

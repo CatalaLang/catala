@@ -244,6 +244,18 @@ déclaration énumération Nationalité:
   -- Française
   -- Étrangère contenu ConditionsÉtrangers
 
+# La répartition des communes par zones est donnée par l'arrêté du 17 mars
+# 1978 relatif au classement des communes par zones géographiques et
+# l'article 6 de l'arrêté du 5 mai 1995 relatif aux subventions de
+# l'Etat et aux prêts pour la construction, l'acquisition et
+# l'amélioration des logements locatifs aidés. Toutefois le phrasé de ces
+# articles laisse subsister une source d'incertitude quant au zonage de la
+# Guyane qui est un département d'outre mer mais qui n'est pas une île non
+# reliée au continent. D'après un mail du 21/04/2023 de DGALN/DHUP/FE4,
+# "La Guyane est bien comprise en zone II. Les territoires qui composent la zone
+# II doivent être entendus comme l’ensemble de ceux listés, auxquels s’ajoute la
+# Guyane puisque le dernier alinéa de l’article 6 exclut strictement les
+# départements d’outre-mer de la zone III."
 déclaration énumération ZoneDHabitation:
   -- Zone1
   -- Zone2
