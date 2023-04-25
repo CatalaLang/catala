@@ -294,7 +294,7 @@ champ d'application AllocationsFamiliales :
   définition nombre_enfants_alinéa_2_l521_1 égal à 3
 ```
 
-####### Article D521-3|LEGIARTI000030678079
+####### Article D521-3|LEGIARTI000044809227
 
 I.-Le plafond prévu au 1° du I des articles D. 521-1 et D. 521-2 est fixé à
 55 950 euros. Il est majoré de 5 595 euros par enfant à charge.
@@ -319,8 +319,7 @@ champ d'application AllocationsFamiliales :
 III.-Les montants des plafonds et de leur majoration respective fixés au présent
 article sont revalorisés au 1er janvier de chaque année, conformément à
 l'évolution en moyenne annuelle des prix à la consommation hors tabac de
-l'année civile de référence, par arrêté des ministres chargés de la sécurité
-sociale, du budget et de l'agriculture.
+l'année civile de référence.
 
 ```catala
 # Nota : ces montants sont en réalités remis à jour chaque année par des
@@ -335,17 +334,17 @@ sociale, du budget et de l'agriculture.
 
 ####### Article D755-5|LEGIARTI000006738575
 
-I. - Les taux servant au calcul des allocations familiales et de la majoration
+I.-Les taux servant au calcul des allocations familiales et de la majoration
 prévue à l'article L. 755-11 sont identiques à ceux mentionnés à l'article
-D. 521-1.
+D. 521-1 .
 
 ```catala
 # Pas de changement à déclarer
 ```
 
-II. - En application de l'article L. 755-11, 2e alinéa, le taux servant au
+II.-En application de l'article L. 755-11, 2e alinéa, le taux servant au
 calcul des allocations familiales servies pour un seul enfant à charge est
-fixé à 5,88 p. 100 de la base mensuelle prévue à l'article L. 755-3.
+fixé à 5,88 p. 100 de la base mensuelle prévue à l'article L. 755-3 .
 
 ```catala
 # Composantes des allocations familiales
@@ -367,7 +366,7 @@ champ d'application AllocationsFamiliales :
   conséquence égal à
     bmaf.montant * 5,88 %
 ```
-informatique
+
 La majoration des allocations familiales pour un seul enfant à charge est
 fixée à 3,69 p. 100 de la base mensuelle prévue à l'article L. 755-3 à
 partir de onze ans et à 5,67 p. 100 à partir de seize ans.
