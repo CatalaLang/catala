@@ -1476,7 +1476,10 @@ champ d'application CalculAidePersonnaliséeLogement:
         résultat de CalculAidePersonnaliséeLogementFoyer avec {
           -- ressources_ménage_arrondies: ressources_ménage
           -- nombre_personnes_à_charge: nombre_personnes_à_charge
+          -- logement_foyer_jeunes_travailleurs:
+            logement_foyer_.logement_foyer_jeunes_travailleurs
           -- zone: zone
+          -- résidence: résidence
           -- date_courante: date_courante
           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
           -- redevance: logement_foyer_.redevance
@@ -1566,6 +1569,8 @@ champ d'application CalculAllocationLogement:
           -- zone: zone
           -- date_courante: date_courante
           -- situation_familiale_calcul_apl: situation_familiale_calcul_apl
+          -- logement_foyer_jeunes_travailleurs:
+            logement_foyer_.logement_foyer_jeunes_travailleurs
           -- redevance: logement_foyer_.redevance
           -- catégorie_équivalence_loyer_d842_16:
             logement_foyer_.catégorie_équivalence_loyer_d842_16
@@ -3151,7 +3156,7 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     sinon aide_finale
 ```
 
-####### Article D832-11 | LEGIARTI000038878744
+####### Article D832-11 | LEGIARTI000047401383
 
 Le coefficient " K ", mentionné au 2° de l'article D. 832-10, est ainsi calculé selon la formule
 et les modalités suivantes :
@@ -3184,31 +3189,9 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
       coefficient_prise_en_charge_d832_10
 ```
 
-2° " R " représente la limite supérieure de l'intervalle dans lequel se situent les ressources
-du ménage, appréciées conformément aux dispositions de la section 2 du chapitre II du titre
-II du présent livre et arrondies à la centaine d'euros supérieure ;
-
-```catala
-# Pourquoi nous parle-t-on de limite supérieure d'intervalle ici ?
-# Il n'y a aucun intervalle de ressources définis à la section 2 du chapitre
-# II du présent livre. Est-ce que c'est juste redondant avec l'arrondi à la
-# centaine d'euros supérieure (intervalles de 100 €) ?
-# Réponse de DGALN/DHUP/FE4 le 25/05/2022:
-# "L’intervalle correspond bien à l’arrondi de l’assiette ressources à la
-# centaine d’euros supérieure. La rédaction, issue de la recodification,
-# est en effet une reprise peut-être maladroite et perfectible de l’ancien
-# article (avant recodification, abrogé depuis) R. 351-19 qui est plus clair
-# sur cette notion d’intervalle :
-#   « Le coefficient K, au plus égal à 0,95, est déterminé pour chaque
-#   intervalle de ressources de 100 euros en appliquant la formule suivante :
-#     K = 0,95-R/ CM x N
-#   dans laquelle :
-#     R représente la limite supérieure de l'intervalle dans lequel se situent
-#     les ressources appréciées conformément à l'article R. 351-5 ; […] »
-# La manière dont nous interprétons cette réponse est la suivante : toutes
-# ces circonvolutions autour des limites supérieures des tranches reviennent
-# bien à faire un arrondi à la centaine d'euros supérieure.
-```
+2° " R " représente les ressources du ménage, appréciées conformément aux
+dispositions de la section 2 du chapitre II du titre II du présent livre et
+arrondies à la centaine d'euros supérieure ;
 
 3° " cm " est un coefficient multiplicateur fixé par arrêté ;
 
@@ -3345,51 +3328,21 @@ champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
     sinon plafond_signature
 ```
 
-####### Article D832-15 | LEGIARTI000039621211
+####### Article D832-15 | LEGIARTI000047401375
 
 La mensualité minimale " L0 ", mentionnée au 5° de l'article D. 832-10 est calculée :
 
-1° Pour les logements construits, agrandis, aménagés à partir de locaux non destinés
-à l'habitation, acquis et améliorés, occupés par leur propriétaire ou par l'accédant
-titulaire d'un contrat de location-accession, par l'application de pourcentages à des
-tranches de ressources dont les limites inférieures et supérieures sont multipliées
-par le nombre de parts " N " défini au 4° de l'article D. 832-11. Ce résultat est
-divisé par douze. Les pourcentages et les tranches sont fixés par arrêté selon la
-date de signature du contrat de prêt ou de location-accession. Les ressources sont
-appréciées selon les modalités prévues à la section 2 du chapitre II du titre II du
-présent livre et arrondies à la centaine d'euros supérieure. Les pourcentages et le
-coefficient " N " sont appliqués à la limite supérieure de l'intervalle dans lequel
-se situent les ressources ;
+1° Pour les logements construits, agrandis, aménagés à partir de locaux non
+destinés à l'habitation, acquis et améliorés, occupés par leur propriétaire ou
+par l'accédant titulaire d'un contrat de location-accession, par l'application
+de pourcentages à des tranches de ressources, dont les limites inférieures et
+supérieures initiales sont multipliées par le nombre de parts “ N ” défini au
+4° de l'article D. 832-11, dans la limite des ressources du ménage “ R ”
+définies au 2° de l'article D. 832-11. Ce résultat est divisé par douze.
+Les pourcentages et les limites initiales des tranches sont fixés par arrêté
+selon la date de signature du contrat de prêt ou de location-accession.
 
 ```catala
-# Que veut dire la phrase "Les pourcentages
-# et le coefficient " N " sont appliqués à la limite supérieure de
-# l'intervalle dans lequel se situent les ressources" ? Parce que pour la
-# tranche la plus haute il n'y a pas de limite supérieure, donc qu'est-ce
-# qu'on fait ? Est-ce qu'on prend comme revenu la limite supérieure de
-# la tranche sauf pour la dernière ? Ambiguité.
-# Réponse de DGALN/DHUP/FE4 le 25/05/2022:
-# "Comme pour le D. 832-11, l’intervalle fait référence à l’arrondi de R à la
-#  centaine d’euros supérieure (sinon cela n’aurait effectivement pas de sens
-#  pour la dernière tranche).
-#  La précision de la notion d’intervalle apparaissait dans les articles avant
-#  recodification :
-#  - ex R. 351-21 (pour le D. 832-15)
-#  « […] Le loyer minimum L0 est déterminé pour chaque intervalle de ressources
-#    de 100 euros mentionné à l'article R. 351-19. Les pourcentages et le
-#    coefficient N prévus au premier alinéa du présent article sont appliqués
-#    à la limite supérieure de l'intervalle dans lequel se situent les
-#    ressources appréciées conformément à l'article R. 351-5. »
-#  - ex R. 351-62 (pour le D. 832-26)
-#  « […] L'équivalence de loyer et de charges minima est déterminée pour chaque
-#    intervalle de ressources de 100 euros mentionné à l'article R. 351-61.
-#    Les pourcentages et le coefficient N prévus au premier alinéa du présent
-#    article sont appliqués à la limite supérieure de l'intervalle dans lequel
-#    se situent les ressources appréciées conformément à l'article R. 351-5. »"
-# La manière dont nous interprétons cette réponse est la suivante : toutes
-# ces circonvolutions autour des limites supérieures des tranches reviennent
-# bien à faire un arrondi à la centaine d'euros supérieure.
-
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition mensualité_minimale sous condition
     type_travaux_logement sous forme TravauxPourAcquisitionD832_15_1 ou
@@ -3598,14 +3551,26 @@ travailleurs migrants et ayant fait l'objet d'une convention, prévue à l'artic
 signée avant le 1er janvier 1995.
 
 ```catala-metadata
+# Cette typologie vient restreindre la typologie de logements-foyer permettant
+# d'ouvrir droit aux aides au logement.
 déclaration énumération TypeLogementFoyer:
   -- LogementPersonnesÂgéesOuHandicapées
   -- RésidenceSociale
-  -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995
-  -- Autre # TODO juridique: confirmer la présence de ce variant autre
-           # qui correspond aux logement mentionnés au R832-21, bien que
-           # la formulation de R832-20 semble impliquer que seuls les 3
-           # variants du dessus existent.
+  -- FoyerJeunesTravailleursOuMigrantsConventionnéL353_2Avant1995
+  -- Autre
+
+# Afin de coder cette restriction nous allons définir une exception négative
+# à "condition_logement_bailleur" dans le champ d'application
+# "ÉligibilitéAidePersonnaliséeLogement" qui assurera que les logements-foyer
+# "Autre" soient bien exclus de l'éligibilité à l'APL.
+champ d'application ÉligibilitéAidePersonnaliséeLogement:
+  exception l831_1_alinea_5
+  règle condition_logement_bailleur sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- RésidentLogementFoyer de logement_foyer:
+        logement_foyer.type sous forme TypeLogementFoyer.Autre
+      -- n'importe quel: faux
+  conséquence non rempli
 ```
 
 ######## Article R832-21 | LEGIARTI000039048891
@@ -3804,7 +3769,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
     alors 0 € sinon aide_finale
 ```
 
-######## Article D832-25 | LEGIARTI000038878710
+######## Article D832-25 | LEGIARTI000047401364
 
 Le coefficient " K ", défini au 2° de l'article D. 832-24, est calculé selon la formule et
 les modalités précisées au 1° du présent article.
@@ -3817,9 +3782,9 @@ selon la formule et les modalités précisées au 2° du présent article.
 ```catala
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition condition_2_du_832_25 égal à
+    (logement_foyer_jeunes_travailleurs et
+      date_conventionnement >= |1990-09-30|) ou
     selon type_logement_foyer sous forme
-    -- FoyerJeunesTrvailleursOuMigrantsConventionnéL353_2Avant1995:
-      date_conventionnement >= |1990-09-30|
     -- RésidenceSociale:
       date_conventionnement >= |1994-12-31|
     -- n'importe quel: faux
@@ -3860,9 +3825,9 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
       coefficient_prise_en_charge_d832_25
 ```
 
-b) " R " représente la limite supérieure de l'intervalle dans lequel se situent les ressources
-du ménage, appréciées selon les modalités prévues à la section 2 du chapitre II du titre II du
-présent livre et arrondies à la centaine d'euros supérieure ;
+b) " R " représente les ressources du ménage, appréciées selon les modalités
+prévues à la section 2 du chapitre II du titre II du présent livre et arrondies
+à la centaine d'euros supérieure ;
 
 c) " r " est un coefficient fixé par arrêté ;
 
@@ -3912,6 +3877,7 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
     situation_familiale_calcul_apl
   définition calcul_nombre_parts.condition_2_du_832_25 égal à
     condition_2_du_832_25
+  définition calcul_nombre_parts.date_courante égal à date_courante
   définition n_nombre_parts_d832_25 égal à
     calcul_nombre_parts.n_nombre_parts_d832_25
 
@@ -3954,9 +3920,9 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
       coefficient_prise_en_charge_d832_25
 ```
 
-b) " R " représente la limite supérieure de l'intervalle dans lequel se situent les
-ressources du ménage, appréciées selon les modalités prévues à la section 2 du
-chapitre II du titre II du présent livre et arrondies à la centaine d'euros supérieure ;
+b) " R " représente les ressources du ménage, appréciées selon les modalités
+prévues à la section 2 du chapitre II du titre II du présent livre et arrondies
+à la centaine d'euros supérieure ;
 
 c) " cm " est un coefficient multiplicateur fixé par arrêté ;
 
@@ -3999,13 +3965,16 @@ champ d'application CalculNombrePartLogementFoyer:
     sinon 0,0
 ```
 
-######## Article D832-26 | LEGIARTI000038878708
+######## Article D832-26 | LEGIARTI000047401357
 
-L'équivalence de loyer et de charges minimale " E0 ", définie au 4° de l'article D. 832-24 ,
-est obtenue par application de pourcentages à des tranches de ressources, dont les limites
-inférieures et supérieures sont multipliées par le nombre de parts " N " défini au e du 1°
-de l'article D. 832-25. Le résultat est majoré du produit d'un montant forfaitaire par le
-nombre de parts " N ", le total étant divisé par douze.
+L'équivalence de loyer et de charges minimale “ E0 ”, définie au 4° de l'article
+D. 832-24, est obtenue par application de pourcentages à des tranches de
+ressources, dont les limites inférieures et supérieures initiales sont
+multipliées par le nombre de parts “ N ” défini au e du 1° de l'article
+D. 832-25, dans la limite des ressources du ménage “ R ” définies au b du 1°
+de l'article D. 832-25. Le résultat est majoré du produit d'un montant
+forfaitaire par le nombre de parts “ N ”, le total étant ensuite divisé
+par douze.
 
 ```catala
 # Selon un mail de DGALN/DHUP/FE4 du 19/07/2022, il nest nécessaire pour le
@@ -4056,11 +4025,14 @@ champ d'application CalculÉquivalenceLoyerMinimale:
       / 12,0)
 ```
 
-Toutefois, pour les logements-foyers de jeunes travailleurs et pour les résidences sociales
-mentionnés au deuxième alinéa de l'article D. 832-25, " E0 " est obtenue par application de
-pourcentages à des tranches de ressources dont les limites inférieures et supérieures sont
-multipliées par le nombre de parts " N " défini au d du 2° de l'article D. 832-25. Le résultat
-est majoré d'un montant forfaitaire, le total étant alors divisé par douze.
+Toutefois, pour les logements-foyers de jeunes travailleurs et pour les
+résidences sociales mentionnés au deuxième alinéa de l'article D. 832-25,
+“ E0 ” est obtenue par application de pourcentages à des tranches de ressources,
+dont les limites inférieures et supérieures initiales sont multipliées par le
+nombre de parts “ N ” défini au d du 2° de l'article D. 832-25, dans la limite
+des ressources du ménage “ R ” définies au b du 2° de l'article D. 832-25. Le
+résultat est majoré d'un montant forfaitaire, le total étant ensuite divisé par
+douze.
 
 ```catala
 champ d'application CalculÉquivalenceLoyerMinimale:
@@ -4094,13 +4066,8 @@ champ d'application CalculÉquivalenceLoyerMinimale:
       / 12,0)
 ```
 
-Les pourcentages et le coefficient " N " sont appliqués à la limite supérieure de l'intervalle
-dans lequel se situent les ressources.
-
-Les ressources sont appréciées selon les modalités prévues à la section 2 du chapitre II du
-titre II du présent livre et arrondies à la centaine d'euros supérieure.
-
-Les pourcentages, les montants forfaitaires et les bornes des tranches sont fixés par arrêté.
+Les pourcentages, les montants forfaitaires et les limites initiales des
+tranches sont fixés par arrêté.
 
 ######## Article D832-27 | LEGIARTI000038878706
 
@@ -4845,6 +4812,7 @@ champ d'application CalculAllocationLogementFoyer:
   définition calcul_nombre_parts.situation_familiale_calcul_apl égal à
    situation_familiale_calcul_apl
   définition calcul_nombre_parts.condition_2_du_832_25 égal à vrai
+  définition calcul_nombre_parts.date_courante égal à date_courante
 
   définition calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25 égal à
     calcul_nombre_parts.n_nombre_parts_d832_25
@@ -5509,7 +5477,37 @@ champ d'application ÉligibilitéPrimeDeDéménagement sous condition
 
 ##### Section 2 : Allocations de logement
 
-###### Article D861-8 | LEGIARTI000038878583
+###### Article D861-8 | LEGIARTI000047401342
+
+Pour leur application en Guadeloupe, en Guyane, en Martinique, à La Réunion et à Mayotte :
+
+1° Les dispositions du troisième alinéa de l'article D. 842-11 et du 1° de l'article
+D. 842-12 ne sont pas applicables aux opérations de logements évolutifs sociaux ou de
+logements très sociaux, en accession à la propriété aidée par l'Etat ;
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété sous condition
+  date_courante >= |2023-04-05|:
+  exception règle condition_d842_11_3 sous condition
+   (selon résidence sous forme
+   -- Guadeloupe: vrai
+   -- Guyane: vrai
+   -- Martinique: vrai
+   -- LaRéunion: vrai
+   -- Mayotte: vrai
+   -- n'importe quel: faux) et
+   opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+  conséquence non rempli
+```
+
+2° Les arrêtés relatifs aux allocations de logement prévus aux articles D. 842-13 et
+D. 842-18 sont également pris par le ministre chargé de l'outre-mer ;
+
+```catala
+# Rien à coder ici.interne
+```
+
+###### Article D861-8 | LEGIARTI000038878583 [archive]
 
 Pour leur application en Guadeloupe, en Guyane, en Martinique, à La Réunion et à Mayotte :
 
@@ -5520,7 +5518,8 @@ du 2° de l'article D. 832-25 est limitée à six enfants ;
 ```catala
 # Ici nous reprenons les chiffres de D832-25, à prendre en compte lorsque
 # ceux-ci seront modifiés
-champ d'application CalculNombrePartLogementFoyer:
+champ d'application CalculNombrePartLogementFoyer sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-04-05|:
   exception d832_25_2
   définition n_nombre_parts_d832_25_majoration sous condition
     limitation_majoration_personnes_à_charge et
@@ -5536,7 +5535,8 @@ champ d'application CalculNombrePartLogementFoyer:
 # dans CalculAidePersonnaliséeLogementFoyer une condition
 # "limitation_majoration_personnes_à_charge" similaire qui déclenche celle de
 # CalculNombrePartLogementFoyer. C'est ce que nous faisons ci-dessous.
-champ d'application CalculAidePersonnaliséeLogementFoyer:
+champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-04-05|:
   règle
     calcul_nombre_parts.limitation_majoration_personnes_à_charge
   sous condition
@@ -5547,7 +5547,8 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
 # CalculAidePersonnaliséeLogementFoyer, nous pouvons taper dedans depuis
 # CalculAllocationLogementAccessionPropriété à la manière de D842-6.
 # C'est chose faite ci-dessous.
-champ d'application CalculAllocationLogementAccessionPropriété:
+champ d'application CalculAllocationLogementAccessionPropriété sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-04-05|:
   règle calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge
   sous condition
     selon résidence sous forme
@@ -5565,17 +5566,18 @@ D. 842-12 ne sont pas applicables aux opérations de logements évolutifs sociau
 logements très sociaux, en accession à la propriété aidée par l'Etat ;
 
 ```catala
-champ d'application CalculAllocationLogementAccessionPropriété:
-   exception règle condition_d842_11_3 sous condition
-    (selon résidence sous forme
-    -- Guadeloupe: vrai
-    -- Guyane: vrai
-    -- Martinique: vrai
-    -- LaRéunion: vrai
-    -- Mayotte: vrai
-    -- n'importe quel: faux) et
-    opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
-   conséquence non rempli
+champ d'application CalculAllocationLogementAccessionPropriété sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-04-05|:
+  exception règle condition_d842_11_3 sous condition
+   (selon résidence sous forme
+   -- Guadeloupe: vrai
+   -- Guyane: vrai
+   -- Martinique: vrai
+   -- LaRéunion: vrai
+   -- Mayotte: vrai
+   -- n'importe quel: faux) et
+   opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+  conséquence non rempli
 ```
 
 3° Les arrêtés relatifs aux allocations de logement prévus aux articles D. 842-13 et
@@ -5590,7 +5592,8 @@ coefficient de prise en charge " K ", la majoration pour personne à charge ment
 du 2° de l'article D. 832-25 est limitée à six enfants.
 
 ```catala
-champ d'application CalculAllocationLogementFoyer:
+champ d'application CalculAllocationLogementFoyer sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-04-05|:
   règle calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge
   sous condition
     selon résidence sous forme
@@ -5603,24 +5606,25 @@ champ d'application CalculAllocationLogementFoyer:
   conséquence rempli
 ```
 
-###### Article D861-9 | LEGIARTI000038878581
+###### Article D861-9 | LEGIARTI000047401337
 
-L'âge limite pour l'ouverture du droit à l'allocation de logement sociale prévu par les
-dispositions du dernier alinéa de l'article L. 861-6 est fixé à vingt-deux ans.
+L'âge limite pour l'ouverture du droit à l'allocation de logement familiale
+prévu par les dispositions du dernier alinéa du 1° de l'article L. 861-6 est
+fixé à vingt-deux ans.
 
 ```catala
-# Le dernier alinéa de L861-6 introduit une restriction supplémentaire pour
-# la prise en compte des enfants à charge : après l'obligation scolaire,
-# les enfants sont considérés comme à charge jusqu'à un certain âge et
-# s'ils suivent des études ou assimilé. L'âge limite après obligation scolaire
-# existe déjà en Métropole, il est prévu par L512-3 du CCS mais ici on le
-# redéfini pour être à 22 ans, sachant qu'il est déjà redéfini pour être à 21
-# ans par R823-4 CCH. Petite subtilité supplémentaire: ici le D861-9 nous
-# dit que cette âge limite de 22 ans ne s'applique que pour l'allocation
-# logement alors que R823-4 est une disposition commune à l'AL et à l'APL.
-# Or dans les DROM il n'y a pas d'APL, seulement l'AL, donc ici nous pouvons
-# modifier directement l'éligibilité commune aux AL et aux APL pour éviter
-# du code compliqué qui ne s'appliquerait qu'aux AL.
+# Le dernier alinéa du 1° de L861-6 introduit une restriction supplémentaire
+# pour la prise en compte des enfants à charge : après l'obligation scolaire,
+# les enfants sont considérés comme à charge jusqu'à un certain âge et s'ils
+# suivent des études ou assimilé. L'âge limite après obligation scolaire existe
+# déjà en Métropole, il est prévu par L512-3 du CCS mais ici on le redéfini pour
+# être à 22 ans, sachant qu'il est déjà redéfini pour être à 21 ans par R823-4
+# CCH. Petite subtilité supplémentaire: ici le D861-9 nous dit que cette âge
+# limite de 22 ans ne s'applique que pour l'allocation logement alors que R823-4
+# est une disposition commune à l'AL et à l'APL. Or dans les DROM il n'y a pas
+# d'APL, seulement l'AL, donc ici nous pouvons modifier directement
+# l'éligibilité commune aux AL et aux APL pour éviter du code compliqué qui ne
+# s'appliquerait qu'aux AL.
 champ d'application ÉligibilitéAidesPersonnelleLogement:
   exception définition prestations_familiales.âge_l512_3_2 sous condition
     (selon ménage.résidence sous forme
@@ -5664,6 +5668,117 @@ sont pas applicables à Mayotte.
 # Cet article n'affecte pas l'éligibilité et le montant du ménage aux aides
 # au logement donc nous le considérons hors du champ de notre calculette.
 ```
+
+##### Section 3 : Aide personnalisée au logement dans les logements-foyers
+
+###### Article R861-20 | LEGIARTI000047398875
+
+Pour leur application en Guadeloupe, en Guyane, en Martinique, à La Réunion et
+à Mayotte :
+
+1° A l'article R. 832-20, le 3° n'est pas applicable ;
+
+```catala
+# Le 3° de l'article R832-20 concerne les logements-foyers accueillant, à titre
+# principal, des jeunes travailleurs ou des travailleurs migrants et ayant fait
+# l'objet d'une convention, prévue à l'article L. 353-2, signée avant le 1er
+# janvier 1995. On vient donc raffiner la condition d'exclusion de
+# "condition_logement_bailleur".
+champ d'application ÉligibilitéAidePersonnaliséeLogement sous condition
+  date_courante >= |2023-04-05| et selon ménage.résidence sous forme
+  -- Guadeloupe: vrai
+  -- Guyane: vrai
+  -- Martinique: vrai
+  -- LaRéunion: vrai
+  -- Mayotte: vrai
+  -- n'importe quel: faux:
+   exception l831_1_alinea_5
+   règle condition_logement_bailleur sous condition
+    selon ménage.logement.mode_occupation sous forme
+      -- RésidentLogementFoyer de logement_foyer:
+        logement_foyer.type sous forme
+          FoyerJeunesTravailleursOuMigrantsConventionnéL353_2Avant1995
+      -- n'importe quel: faux
+  conséquence non rempli
+```
+
+2° L'article R. 832-21 est remplacé par les dispositions suivantes :
+
+“ Art. R. 832-21.-Pour l'application du 5° de l'article L. 831-1, les
+logements-foyers doivent répondre aux conditions de décence définies au
+premier alinéa de l'article 6 de la loi n° 89-462 du 6 juillet 1989 et
+respecter l'une des conditions suivantes :
+
+“ 1° Pour les logements-foyers mis en service avant le 1er janvier 2023,
+appartenir à l'une des personnes morales mentionnées à l'article R. 372-3 ;
+
+“ 2° Pour les logements-foyers mis en service après le 1er janvier 2023,
+bénéficier de l'un des modes de financement suivants :
+
+“ a) Subventions et prêts mentionnés au chapitre II du titre VII du livre III
+ou à la section 2 du chapitre III du titre II du livre III ;
+
+“ b) Subventions accordées sur le budget du ministère chargé de la santé ou de
+la caisse nationale de solidarité pour l'autonomie représentant au moins 20 %
+du coût de la construction ou du coût des travaux d'amélioration pouvant faire
+l'objet d'une subvention ou du coût de l'opération d'acquisition-amélioration.
+” ;
+
+```catala
+# On avait fusionné toutes les conditions de R823-21 dans le booléen
+# "remplit_conditions_r832_21" donc on peut le garder. Il suffit juste de
+# préciser dans le formulaire que les conditions de R823-21 sont différentes
+# pour l'outre-mer.
+```
+
+3° A l'article R. 832-23, les mots : “ mentionné aux 2° et 3° de l'article R.
+832-20 ” sont remplacés par les mots : “ mentionné au 2° de l'article R.
+832-20. ”
+
+```catala
+# On ne cherche pas à coder pour l'instant le calcul du calendrier d'ouverture
+# des droits dans les différentes situations.
+```
+
+
+###### Article D861-21 | LEGIARTI000047399895
+
+Pour leur application en Guadeloupe, en Guyane, en Martinique, à La Réunion et
+à Mayotte :
+
+1° A l'article D. 832-25, le deuxième alinéa et le 2° ne sont pas applicables ;
+
+```catala
+champ d'application CalculAidePersonnaliséeLogementFoyer sous condition
+  date_courante >= |2023-04-05| et selon résidence sous forme
+  -- Guadeloupe: vrai
+  -- Guyane: vrai
+  -- Martinique: vrai
+  -- LaRéunion: vrai
+  -- Mayotte: vrai
+  -- n'importe quel: faux:
+  exception définition condition_2_du_832_25 égal à
+    faux
+```
+
+2° A l'article D. 832-26, le deuxième alinéa n'est pas applicable ;
+
+```catala
+# Le deuxième alinéa de D832-26 est aussi gouverné par le booléen
+# "condition_2_du_832_25" que nous avons défini au dessus.
+```
+
+3° A l'article D. 832-27, les mots : “ selon le type de logements-foyers ”
+sont supprimés ;
+
+```catala
+# Adaptation du phrasé aux règles locales mais ne porte pas conséquence
+# au calcul.
+```
+
+4° A l'article D. 832-28, les mots : “ de l'agriculture ” sont remplacés par
+les mots : “ de l'outre-mer ”.
+
 
 #### Chapitre II : Saint-Barthélemy et Saint-Martin
 
@@ -5889,7 +6004,38 @@ Saint-Barthélemy et à Saint-Martin.
 
 ##### Section III : Allocations de logement
 
-###### Article D862-7 | LEGIARTI000038878555
+###### Article D862-7 | LEGIARTI000047401319
+
+Pour leur application à Saint-Barthélemy et à Saint-Martin :
+
+1° A l'article D. 842-4 , les mots : " en application de l'article L. 522-1 " sont remplacés
+par les mots : " en application de la réglementation applicable localement " ;
+
+```catala
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+```
+
+2° Les dispositions du troisième alinéa de l'article D. 842-11 et du 1° de l'article
+D. 842-12 ne sont pas applicables aux opérations de logements évolutifs sociaux ou de
+logements très sociaux, en accession à la propriété aidée par l'Etat ;
+
+```catala
+champ d'application CalculAllocationLogementAccessionPropriété sous condition
+  date_courante >= |2023-04-05|:
+  exception règle condition_d842_11_3 sous condition
+   (selon résidence sous forme
+   -- SaintBarthélemy: vrai
+   -- SaintMartin: vrai
+   -- n'importe quel: faux) et
+   opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+  conséquence non rempli
+```
+
+3° Les arrêtés relatifs aux allocations de logement prévus aux articles D. 842-13 et
+D. 842-18 sont également pris par le ministre chargé de l'outre-mer.
+
+###### Article D862-7 | LEGIARTI000038878555 [archive]
 
 Pour leur application à Saint-Barthélemy et à Saint-Martin :
 
@@ -5907,7 +6053,8 @@ au d du 2° de l'article D. 832-25 est limitée à six enfants ;
 
 ```catala
 # Dispositif déjà codé dans D861-8, ici on l'active succintement.
-champ d'application CalculAllocationLogementAccessionPropriété:
+champ d'application CalculAllocationLogementAccessionPropriété sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-04-05|:
   règle calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge
   sous condition
     selon résidence sous forme
@@ -5922,18 +6069,20 @@ D. 842-12 ne sont pas applicables aux opérations de logements évolutifs sociau
 logements très sociaux, en accession à la propriété aidée par l'Etat ;
 
 ```catala
-champ d'application CalculAllocationLogementAccessionPropriété:
-   exception règle condition_d842_11_3 sous condition
-    (selon résidence sous forme
-    -- SaintBarthélemy: vrai
-    -- SaintMartin: vrai
-    -- n'importe quel: faux) et
-    opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
-   conséquence non rempli
+champ d'application CalculAllocationLogementAccessionPropriété sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-04-05|:
+  exception règle condition_d842_11_3 sous condition
+   (selon résidence sous forme
+   -- SaintBarthélemy: vrai
+   -- SaintMartin: vrai
+   -- n'importe quel: faux) et
+   opérations_logement_évolutifs_sociaux_accession_propriété_aidée_État
+  conséquence non rempli
 ```
 
 4° Les arrêtés relatifs aux allocations de logement prévus aux articles D. 842-13 et
 D. 842-18 sont également pris par le ministre chargé de l'outre-mer.
+
 
 ###### Article R862-8 | LEGIARTI000038878553
 
@@ -6378,6 +6527,11 @@ champ d'application CalculAllocationLogement sous condition
           # TODO juridique: est-ce qu'on applique le barème spécial chambre
           # systématiquement pour les personnes résidant en logement-foyer
           # à Saint-Pierre-et-Miquelon ?
+          # Réponse de DGALN/DHUP/FE4: "Oui, ces barèmes s’appliquent au sein
+          # d’éventuelles colocations ou chambres dans ces logements foyers sur
+          # le territoire de la collectivité territoriale de
+          # Saint-Pierre-et-Miquelon." Donc TODO informatique: il faut demander
+          # ces informations.
           -- logement_est_chambre: vrai
           # TODO juridique: examiner si dans ce cas on considère qu'une personne
           # habitant en logement-foyer n'est pas en colocation au sens du

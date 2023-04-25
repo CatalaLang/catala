@@ -116,6 +116,7 @@ déclaration structure TrancheRevenuDécimal:
 
 déclaration structure LogementFoyer:
   donnée type contenu TypeLogementFoyer
+  donnée logement_foyer_jeunes_travailleurs contenu booléen
   donnée remplit_conditions_r832_21 contenu booléen
   donnée conventionné_livre_III_titre_V_chap_III contenu booléen
   donnée conventionné_selon_règles_drom contenu booléen
@@ -565,7 +566,15 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
     dépend de aide_finale contenu argent
     état diminué
     état minoration_forfaitaire
-    # TODO juridique: emplacement de la modulation Saint-Pierre-et-Miquelon?
+    # Mail du 21/04/2023 de DGALN/DHUP/FE4:
+    # "Le calcul [de la montée en charge de Saint-Pierre et Miquelon] s’opère
+    # sur le montant final calculé de l’aide à verser à l’allocataire (qui
+    # comprend par exemple la minoration de 5 euros), comme précisé au 2° de
+    # l’article 7 du décret susvisé. J’attire toutefois votre attention sur le
+    # fait que la CRDS ne s’applique pas à Saint-Pierre-et-Miquelon."
+    état montée_en_charge_saint_pierre_miquelon
+    # TODO juridique et informatique: coder l'absence de CRDS à Saint-Pierre-et
+    # Miquelon et peut-être ailleurs.
     état montée_en_charge_saint_pierre_miquelon
     état contributions_sociales_arrondi
     état réduction_loyer_solidarité
@@ -603,6 +612,7 @@ déclaration champ d'application CalculÉquivalenceLoyerMinimale:
   résultat montant contenu argent
 
 déclaration champ d'application CalculNombrePartLogementFoyer:
+  entrée date_courante contenu date
   entrée condition_2_du_832_25 contenu booléen
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -615,6 +625,8 @@ déclaration champ d'application CalculNombrePartLogementFoyer:
   résultat n_nombre_parts_d832_25 contenu décimal
 
 déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
+  entrée résidence contenu Collectivité
+  entrée logement_foyer_jeunes_travailleurs contenu booléen
   entrée type_logement_foyer contenu TypeLogementFoyer
   entrée date_conventionnement contenu date
   entrée ressources_ménage_arrondies contenu argent
@@ -901,8 +913,15 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
     dépend de aide_finale contenu argent
     état minoration_forfaitaire
     état dépense_nette_minimale
-    # TODO juridique: emplacement de la modulation Saint-Pierre-et-Miquelon?
+    # Mail du 21/04/2023 de DGALN/DHUP/FE4:
+    # "Le calcul [de la montée en charge de Saint-Pierre et Miquelon] s’opère
+    # sur le montant final calculé de l’aide à verser à l’allocataire (qui
+    # comprend par exemple la minoration de 5 euros), comme précisé au 2° de
+    # l’article 7 du décret susvisé. J’attire toutefois votre attention sur le
+    # fait que la CRDS ne s’applique pas à Saint-Pierre-et-Miquelon."
     état montée_en_charge_saint_pierre_miquelon
+    # TODO juridique et informatique: coder l'absence de CRDS à Saint-Pierre-et
+    # Miquelon et peut-être ailleurs.
     état contributions_sociales_arrondi
     état montant_minimal
 
@@ -913,8 +932,11 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   # calculer des quantités comme si on était en logement foyer. Or il nous
   # faut donner un argument au sous-champ d'application donc on met ici une
   # valeur bidon.
+  définition calcul_apl_logement_foyer.résidence égal à résidence
   définition calcul_apl_logement_foyer.type_logement_foyer égal à
-    TypeLogementFoyer.Autre # Valeur par défaut
+    TypeLogementFoyer.RésidenceSociale # Valeur par défaut
+  définition calcul_apl_logement_foyer.logement_foyer_jeunes_travailleurs
+    égal à faux # Valeur par défaut
   définition calcul_apl_logement_foyer.date_conventionnement égal à
     |1970-01-01| # Valeur par défaut
   définition calcul_apl_logement_foyer.redevance égal à
@@ -943,6 +965,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
 ```catala-metadata
 déclaration champ d'application CalculAllocationLogementFoyer:
   entrée type_logement_foyer contenu TypeLogementFoyer
+  entrée logement_foyer_jeunes_travailleurs contenu booléen
   entrée date_conventionnement contenu date
   entrée résidence contenu Collectivité
   entrée redevance contenu argent
@@ -981,14 +1004,26 @@ déclaration champ d'application CalculAllocationLogementFoyer:
     état minoration_forfaitaire
     état dépense_nette_minimale
     état redevance
-    # TODO juridique: emplacement de la modulation Saint-Pierre-et-Miquelon?
+    # Mail du 21/04/2023 de DGALN/DHUP/FE4:
+    # "Le calcul [de la montée en charge de Saint-Pierre et Miquelon] s’opère
+    # sur le montant final calculé de l’aide à verser à l’allocataire (qui
+    # comprend par exemple la minoration de 5 euros), comme précisé au 2° de
+    # l’article 7 du décret susvisé. J’attire toutefois votre attention sur le
+    # fait que la CRDS ne s’applique pas à Saint-Pierre-et-Miquelon."
+    état montée_en_charge_saint_pierre_miquelon
+    # TODO juridique et informatique: coder l'absence de CRDS à Saint-Pierre-et
+    # Miquelon et peut-être ailleurs.
     état montée_en_charge_saint_pierre_miquelon
     état contributions_sociales_arrondi
     état montant_minimal
 
 champ d'application CalculAllocationLogementFoyer:
+  définition calcul_apl_logement_foyer.résidence égal à
+    résidence
   définition calcul_apl_logement_foyer.type_logement_foyer égal à
     type_logement_foyer
+  définition calcul_apl_logement_foyer.logement_foyer_jeunes_travailleurs égal à
+    logement_foyer_jeunes_travailleurs
   définition calcul_apl_logement_foyer.date_conventionnement égal à
     date_conventionnement
   définition calcul_apl_logement_foyer.redevance égal à

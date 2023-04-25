@@ -346,10 +346,12 @@ issues de l'article 2 du présent décret, pour les ménages bénéficiaires des
 logement à Saint-Pierre-et-Miquelon mentionnées à cet article, le montant mensuel de l'aide due au
 titre du mois de janvier 2022 jusqu'au mois de décembre 2025 est calculé selon la formule suivante :
 
-ALspm = ALt × (1 (2026-n) / 8)
+ALspm = ALt × (1 - (2026-n) / 8)
 
 ```catala
-# TODO juridique: pourquoi le "1" dans la formule ? Ça ne sert à rien.
+# Attention, la formule initiale était fausse (manque un "-" après le "1"),
+# rectifié par https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000044807163 et
+# c'est la version rectifiée que nous prenons en compte.
 ```
 
 Dans laquelle :
@@ -374,7 +376,7 @@ déclaration montée_en_charge_saint_pierre_miquelon contenu argent dépend de
     date_courante >= |2022-01-01| et
     date_courante <= |2025-12-31|
   alors
-    aide_finale * (décimal de (2026 - accès_année de date_courante) / 8,0)
+    aide_finale * (1 - (décimal de (2026 - accès_année de date_courante) / 8,0))
   sinon
     aide_finale
 
