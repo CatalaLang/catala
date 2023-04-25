@@ -83,6 +83,26 @@ de 414,81 € au 1er avril 2021 à 422,28 € au 1er avril 2022.
 champ d'application BaseMensuelleAllocationsFamiliales :
   définition montant
   sous condition
-    date_courante >= |2022-04-01|
+    date_courante >= |2022-04-01| et 
+    date_courante < |2023-04-01|
   conséquence égal à 422,28 €
+```
+
+## Instruction interministérielle N° DSS/2B/2023/41 du 24 mars 2023 relative à la revalorisation au 1er avril 2023 des prestations familiales servies en métropole, en Guadeloupe, en Guyane, en Martinique, à la Réunion, à Saint-Barthélemy, à Saint-Martin et dans le département de Mayotte
+
+Au 1er avril 2023, le coefficient de revalorisation de la base mensuelle des
+allocations familiales (BMAF) mentionné à l’article L. 551-1 du code de la
+sécurité sociale1 est fixé à 1,056 soit un taux de revalorisation de la BMAF
+de 5,6 %, déduction faite de la revalorisation anticipée de 4% entrée en
+vigueur en juillet 2022 et introduite par l’article 9 de la loi n° 2022- 1158
+du 16 août 2022 portant mesures d'urgence pour la protection du pouvoir
+d'achat. Le montant de cette base mensuelle, en pourcentage duquel sont fixées
+les prestations familiales, est donc porté à 445,93 €.
+
+```catala
+champ d'application BaseMensuelleAllocationsFamiliales :
+  définition montant
+  sous condition
+    date_courante >= |2023-04-01|
+  conséquence égal à 445,93 €
 ```
