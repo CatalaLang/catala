@@ -1512,6 +1512,7 @@ champ d'application CalculAidePersonnaliséeLogement:
            -- situation_r822_11_13_17: propriétaire.situation_r822_11_13_17
            -- type_prêt: propriétaire.prêt.type_prêt
            -- ancienneté_logement: propriétaire.ancienneté_logement
+           -- résidence: résidence
          }
       dans Traitement_formule_aide_finale {
         -- aide_finale_formule:
@@ -6524,19 +6525,15 @@ champ d'application CalculAllocationLogement sous condition
           -- loyer_principal: logement_foyer_.redevance
           -- bénéficiaire_aide_adulte_ou_enfant_handicapés:
               logement_foyer_.bénéficiaire_aide_adulte_ou_enfant_handicapés
-          # TODO juridique: est-ce qu'on applique le barème spécial chambre
+          # Est-ce qu'on applique le barème spécial chambre
           # systématiquement pour les personnes résidant en logement-foyer
-          # à Saint-Pierre-et-Miquelon ?
+          # à Saint-Pierre-et-Miquelon ou éventuellement ?
           # Réponse de DGALN/DHUP/FE4: "Oui, ces barèmes s’appliquent au sein
           # d’éventuelles colocations ou chambres dans ces logements foyers sur
           # le territoire de la collectivité territoriale de
-          # Saint-Pierre-et-Miquelon." Donc TODO informatique: il faut demander
-          # ces informations.
-          -- logement_est_chambre: vrai
-          # TODO juridique: examiner si dans ce cas on considère qu'une personne
-          # habitant en logement-foyer n'est pas en colocation au sens du
-          # secteur locatif.
-          -- colocation: faux
+          # Saint-Pierre-et-Miquelon."
+          -- logement_est_chambre: logement_foyer_.logement_est_chambre
+          -- colocation: logement_foyer_.colocation
           # Ce cas prévu à l'article 8 de l'arrêté du 27 septembre 2019 n'est
           # pas possible pour un hébergement en logement-foyer.
           -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux

@@ -127,6 +127,8 @@ déclaration structure LogementFoyer:
     CatégorieÉquivalenceLoyerAllocationLogementFoyer
   donnée bénéficiaire_aide_adulte_ou_enfant_handicapés contenu booléen
   donnée logement_meublé_d842_2 contenu booléen
+  donnée logement_est_chambre contenu booléen
+  donnée colocation contenu booléen
 
 ```
 
@@ -496,6 +498,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
 ```catala-metadata
 déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
   entrée date_courante contenu date
+  entrée lieu contenu Collectivité
 
   interne taux_crds contenu décimal
   interne exonéré_csg condition
@@ -566,21 +569,20 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
     dépend de aide_finale contenu argent
     état diminué
     état minoration_forfaitaire
-    # Mail du 21/04/2023 de DGALN/DHUP/FE4:
-    # "Le calcul [de la montée en charge de Saint-Pierre et Miquelon] s’opère
-    # sur le montant final calculé de l’aide à verser à l’allocataire (qui
-    # comprend par exemple la minoration de 5 euros), comme précisé au 2° de
-    # l’article 7 du décret susvisé. J’attire toutefois votre attention sur le
-    # fait que la CRDS ne s’applique pas à Saint-Pierre-et-Miquelon."
-    état montée_en_charge_saint_pierre_miquelon
-    # TODO juridique et informatique: coder l'absence de CRDS à Saint-Pierre-et
-    # Miquelon et peut-être ailleurs.
     état contributions_sociales_arrondi
     état réduction_loyer_solidarité
+    # Mail du 21/04/2023 de DGALN/DHUP/FE4: "Le calcul [de la montée en charge
+    # de Saint-Pierre et Miquelon] s’opère sur le montant final calculé de
+    # l’aide à verser à l’allocataire (qui comprend par exemple la minoration de
+    # 5 euros), comme précisé au 2° de l’article 7 du décret susvisé [n°
+    # 2021-1750 du 21 décembre 2021]. J’attire toutefois votre attention sur le
+    # fait que la CRDS ne s’applique pas à Saint-Pierre-et-Miquelon."
+    état montée_en_charge_saint_pierre_miquelon
     état montant_minimal
 
 champ d'application CalculAidePersonnaliséeLogementLocatif:
   définition contributions_sociales.date_courante égal à date_courante
+  définition contributions_sociales.lieu égal à résidence
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
   # pour lesquelles les textes en vigueur n'ont pas été formalisés.
   assertion date_courante >= |2020-10-01|
@@ -673,6 +675,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
 
 champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition contributions_sociales.date_courante égal à date_courante
+  définition contributions_sociales.lieu égal à résidence
   définition calcul_équivalence_loyer_minimale.date_courante égal à
     date_courante
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
@@ -706,6 +709,7 @@ déclaration champ d'application
   entrée type_prêt contenu TypePrêt
   entrée ancienneté_logement contenu NeufOuAncien
   entrée date_courante contenu date
+  entrée résidence contenu Collectivité
 
   résultat mensualité_éligible contenu argent
   résultat mensualité_minimale contenu argent
@@ -751,6 +755,7 @@ déclaration champ d'application
 
 champ d'application CalculAidePersonnaliséeLogementAccessionPropriété:
   définition contributions_sociales.date_courante égal à date_courante
+  définition contributions_sociales.lieu égal à résidence
   définition calcul_équivalence_loyer_minimale.date_courante égal à
     date_courante
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
@@ -912,16 +917,14 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
     dépend de aide_finale contenu argent
     état minoration_forfaitaire
     état dépense_nette_minimale
-    # Mail du 21/04/2023 de DGALN/DHUP/FE4:
-    # "Le calcul [de la montée en charge de Saint-Pierre et Miquelon] s’opère
-    # sur le montant final calculé de l’aide à verser à l’allocataire (qui
-    # comprend par exemple la minoration de 5 euros), comme précisé au 2° de
-    # l’article 7 du décret susvisé. J’attire toutefois votre attention sur le
+    état contributions_sociales_arrondi
+    # Mail du 21/04/2023 de DGALN/DHUP/FE4: "Le calcul [de la montée en charge
+    # de Saint-Pierre et Miquelon] s’opère sur le montant final calculé de
+    # l’aide à verser à l’allocataire (qui comprend par exemple la minoration de
+    # 5 euros), comme précisé au 2° de l’article 7 du décret susvisé [n°
+    # 2021-1750 du 21 décembre 2021]. J’attire toutefois votre attention sur le
     # fait que la CRDS ne s’applique pas à Saint-Pierre-et-Miquelon."
     état montée_en_charge_saint_pierre_miquelon
-    # TODO juridique et informatique: coder l'absence de CRDS à Saint-Pierre-et
-    # Miquelon et peut-être ailleurs.
-    état contributions_sociales_arrondi
     état montant_minimal
 
 champ d'application CalculAllocationLogementAccessionPropriété:
@@ -951,6 +954,7 @@ champ d'application CalculAllocationLogementAccessionPropriété:
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
   définition contributions_sociales.date_courante égal à date_courante
+  définition contributions_sociales.lieu égal à résidence
   définition calcul_équivalence_loyer_minimale.date_courante égal à
     date_courante
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
@@ -1003,16 +1007,14 @@ déclaration champ d'application CalculAllocationLogementFoyer:
     état minoration_forfaitaire
     état dépense_nette_minimale
     état redevance
-    # Mail du 21/04/2023 de DGALN/DHUP/FE4:
-    # "Le calcul [de la montée en charge de Saint-Pierre et Miquelon] s’opère
-    # sur le montant final calculé de l’aide à verser à l’allocataire (qui
-    # comprend par exemple la minoration de 5 euros), comme précisé au 2° de
-    # l’article 7 du décret susvisé. J’attire toutefois votre attention sur le
+    état contributions_sociales_arrondi
+    # Mail du 21/04/2023 de DGALN/DHUP/FE4: "Le calcul [de la montée en charge
+    # de Saint-Pierre et Miquelon] s’opère sur le montant final calculé de
+    # l’aide à verser à l’allocataire (qui comprend par exemple la minoration de
+    # 5 euros), comme précisé au 2° de l’article 7 du décret susvisé [n°
+    # 2021-1750 du 21 décembre 2021]. J’attire toutefois votre attention sur le
     # fait que la CRDS ne s’applique pas à Saint-Pierre-et-Miquelon."
     état montée_en_charge_saint_pierre_miquelon
-    # TODO juridique et informatique: coder l'absence de CRDS à Saint-Pierre-et
-    # Miquelon et peut-être ailleurs.
-    état contributions_sociales_arrondi
     état montant_minimal
 
 champ d'application CalculAllocationLogementFoyer:
@@ -1036,6 +1038,7 @@ champ d'application CalculAllocationLogementFoyer:
   définition calcul_apl_logement_foyer.date_courante égal à
     date_courante
   définition contributions_sociales.date_courante égal à date_courante
+  définition contributions_sociales.lieu égal à résidence
   définition calcul_équivalence_loyer_minimale.date_courante égal à
     date_courante
   # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
