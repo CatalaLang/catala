@@ -366,9 +366,29 @@ let process_data_decl
     in
     let states_idmap, states_list =
       List.fold_right
-        (fun state_id (states_idmap, states_list) ->
+        (fun state_id
+             ((states_idmap : StateName.t IdentName.Map.t), states_list) ->
+          let state_id_name = Marked.unmark state_id in
+          if IdentName.Map.mem state_id_name states_idmap then
+            Errors.raise_multispanned_error
+              [
+                ( Some
+                    (Format.asprintf "First instance of state %a:"
+                       (Cli.format_with_style [ANSITerminal.yellow])
+                       ("\"" ^ state_id_name ^ "\"")),
+                  Marked.get_mark state_id );
+                ( Some
+                    (Format.asprintf "Second instance of state %a:"
+                       (Cli.format_with_style [ANSITerminal.yellow])
+                       ("\"" ^ state_id_name ^ "\"")),
+                  Marked.get_mark
+                    (IdentName.Map.find state_id_name states_idmap
+                    |> StateName.get_info) );
+              ]
+              "There are two states with the same name for the same variable: \
+               this is ambiguous. Please change the name of either states.";
           let state_uid = StateName.fresh state_id in
-          ( IdentName.Map.add (Marked.unmark state_id) state_uid states_idmap,
+          ( IdentName.Map.add state_id_name state_uid states_idmap,
             state_uid :: states_list ))
         decl.scope_decl_context_item_states (IdentName.Map.empty, [])
     in

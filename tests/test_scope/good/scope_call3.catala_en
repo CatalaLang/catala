@@ -43,7 +43,7 @@ $ catala Interpret -t -s HousingComputation
      7 │   definition f of x equals (output of RentComputation).f of x
        │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
     
-[LOG]     ≔  RentComputation.direct.output: { "f" = λ (param0: integer) → { "f" = λ (x: integer) → error_empty ⟨true ⊢ (λ (x1: integer) → error_empty ⟨true ⊢ x1 +! 1⟩) (x +! 1)⟩ }_RentComputation."f" param0 }_RentComputation
+[LOG]     ≔  RentComputation.direct.output: { "f" = <function>}_RentComputation
 [LOG]   ←  RentComputation.direct
 [LOG]   →  RentComputation.f
 [LOG]     ≔  RentComputation.f.input0: 1
