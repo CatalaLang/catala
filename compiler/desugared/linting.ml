@@ -71,7 +71,7 @@ end)
 let detect_identical_rules (p : program) : unit =
   ScopeName.Map.iter
     (fun _ scope ->
-      ScopeDefMap.iter
+      ScopeDef.Map.iter
         (fun _ scope_def ->
           let rules_seen =
             RuleName.Map.fold
