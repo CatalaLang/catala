@@ -375,7 +375,7 @@ let rec expr_aux :
     | e -> e
   in
   let e = skip_log e in
-  let paren ~rhs expr fmt e1 =
+  let paren ~rhs ?(colors = colors) expr fmt e1 =
     if Precedence.needs_parens ~rhs ~context:e (skip_log e1) then (
       Format.pp_open_hvbox fmt 1;
       Cli.format_with_style [List.hd colors] fmt "(";
@@ -384,7 +384,8 @@ let rec expr_aux :
       Cli.format_with_style [List.hd colors] fmt ")")
     else expr colors fmt e1
   in
-  let lhs ex = paren ~rhs:false ex in
+  let default_punct color fmt s = Cli.format_with_style [color] fmt s in
+  let lhs ?(colors = colors) ex = paren ~colors ~rhs:false ex in
   let rhs ex = paren ~rhs:true ex in
   match Marked.unmark e with
   | EVar v -> var fmt v
@@ -455,15 +456,36 @@ let rec expr_aux :
   | EOp { op; _ } -> operator fmt op
   | EDefault { excepts; just; cons } ->
     if List.length excepts = 0 then
-      Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]" punctuation "⟨" expr just
-        punctuation "⊢" expr cons punctuation "⟩"
+      Format.fprintf fmt "@[<hov 2>%a%a@ %a@ %a%a@]"
+        (default_punct (List.hd colors))
+        "⟨"
+        (exprc (List.tl colors))
+        just
+        (default_punct (List.hd colors))
+        "⊢"
+        (exprc (List.tl colors))
+        cons
+        (default_punct (List.hd colors))
+        "⟩"
     else
       Format.fprintf fmt
-        "@[<hv 0>@[<hov 2>%a %a@]@ @[<hov 2>%a %a@ %a %a@] %a@]" punctuation "⟨"
+        "@[<hv 0>@[<hov 2>%a %a@]@ @[<hov 2>%a %a@ %a %a@] %a@]"
+        (default_punct (List.hd colors))
+        "⟨"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ",")
-           (lhs exprc))
-        excepts punctuation "|" expr just punctuation "⊢" expr cons punctuation
+           ~pp_sep:(fun fmt () ->
+             Format.fprintf fmt "%a@ " (default_punct (List.hd colors)) ",")
+           (lhs ~colors:(List.tl colors) exprc))
+        excepts
+        (default_punct (List.hd colors))
+        "|"
+        (exprc (List.tl colors))
+        just
+        (default_punct (List.hd colors))
+        "⊢"
+        (exprc (List.tl colors))
+        cons
+        (default_punct (List.hd colors))
         "⟩"
   | EEmptyError -> lit_style fmt "∅"
   | EErrorOnEmpty e' ->

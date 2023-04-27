@@ -702,7 +702,7 @@ des conventions régies par le chapitre III du titre V du livre III ;
 
 ```catala
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
-  étiquette l831_1_alinea_5
+  étiquette logement_foyer
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de location:
@@ -1382,7 +1382,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement sous condition
   -- LaRéunion: vrai
   -- Mayotte: vrai
   -- n'importe quel: faux):
-  exception l831_1_alinea_5
+  étiquette logement_foyer
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de location:

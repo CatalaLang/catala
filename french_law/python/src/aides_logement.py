@@ -4665,8 +4665,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_nombre_parts_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3881,
-                                             start_column=14, end_line=3881,
+                                             start_line=3882,
+                                             start_column=14, end_line=3882,
                                              end_column=47,
                                              law_headings=["Article D832-25",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -4682,8 +4682,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_nombre_parts_dot_condition_2_du_832_25 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3879,
-                                             start_column=14, end_line=3879,
+                                             start_line=3880,
+                                             start_column=14, end_line=3880,
                                              end_column=55,
                                              law_headings=["Article D832-25",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -4699,8 +4699,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_nombre_parts_dot_nombre_personnes_a_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3875,
-                                             start_column=14, end_line=3875,
+                                             start_line=3876,
+                                             start_column=14, end_line=3876,
                                              end_column=59,
                                              law_headings=["Article D832-25",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -4716,8 +4716,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3877,
-                                             start_column=14, end_line=3877,
+                                             start_line=3878,
+                                             start_column=14, end_line=3878,
                                              end_column=64,
                                              law_headings=["Article D832-25",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -4860,8 +4860,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3708,
-                                             start_column=14, end_line=3708,
+                                             start_line=3709,
+                                             start_column=14, end_line=3709,
                                              end_column=75,
                                              law_headings=["Article D832-24",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -4877,8 +4877,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3706,
-                                             start_column=14, end_line=3706,
+                                             start_line=3707,
+                                             start_column=14, end_line=3707,
                                              end_column=69,
                                              law_headings=["Article D832-24",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -4894,8 +4894,8 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=3710,
-                                             start_column=14, end_line=3710,
+                                             start_line=3711,
+                                             start_column=14, end_line=3711,
                                              end_column=70,
                                              law_headings=["Article D832-24",
                                              "Sous-Section 2 : Conditions d'octroi de l'aide personnalisée au logement aux personnes résidant dans un logement-foyer",
@@ -12816,595 +12816,21 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                              "Prologue : aides au logement"]))
     montant_forfaitaire_charges_d823_16 = temp_montant_forfaitaire_charges_d823_16_44
     try:
-        try:
-            def temp_abattement_forfaitaire_d823_17(_:Unit):
-                raise EmptyError
+        def temp_abattement_forfaitaire_d823_17(_:Unit):
             def temp_abattement_forfaitaire_d823_17_1(_:Unit):
-                return False
+                raise EmptyError
             def temp_abattement_forfaitaire_d823_17_2(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_3(_:Unit):
+                return False
+            def temp_abattement_forfaitaire_d823_17_3(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_4(_:Unit):
                     if (nombre_personnes_a_charge_4 ==
                         integer_of_string("0")):
                         match_arg_380 = situation_familiale_calcul_apl_4
                         if match_arg_380.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
                             _ = match_arg_380.value
-                            return money_of_cents_string("396000")
+                            return money_of_cents_string("458800")
                         elif match_arg_380.code == SituationFamilialeCalculAPL_Code.Couple:
                             _ = match_arg_380.value
-                            return money_of_cents_string("567300")
-                    else:
-                        if (nombre_personnes_a_charge_4 ==
-                            integer_of_string("1")):
-                            return money_of_cents_string("639600")
-                        else:
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("2")):
-                                return money_of_cents_string("684900")
-                            else:
-                                if (nombre_personnes_a_charge_4 ==
-                                    integer_of_string("3")):
-                                    return money_of_cents_string("738600")
-                                else:
-                                    if (nombre_personnes_a_charge_4 ==
-                                        integer_of_string("4")):
-                                        return money_of_cents_string("793500")
-                                    else:
-                                        if (nombre_personnes_a_charge_4 ==
-                                            integer_of_string("5")):
-                                            return money_of_cents_string("848400")
-                                        else:
-                                            return money_of_cents_string("903200")
-                def temp_abattement_forfaitaire_d823_17_4(_:Unit):
-                    match_arg_381 = residence_5
-                    if match_arg_381.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_381.value
-                        temp_abattement_forfaitaire_d823_17_5 = True
-                    elif match_arg_381.code == Collectivite_Code.Guyane:
-                        _ = match_arg_381.value
-                        temp_abattement_forfaitaire_d823_17_5 = False
-                    elif match_arg_381.code == Collectivite_Code.Martinique:
-                        _ = match_arg_381.value
-                        temp_abattement_forfaitaire_d823_17_5 = True
-                    elif match_arg_381.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_381.value
-                        temp_abattement_forfaitaire_d823_17_5 = True
-                    elif match_arg_381.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_381.value
-                        temp_abattement_forfaitaire_d823_17_5 = True
-                    elif match_arg_381.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_381.value
-                        temp_abattement_forfaitaire_d823_17_5 = True
-                    elif match_arg_381.code == Collectivite_Code.Metropole:
-                        _ = match_arg_381.value
-                        temp_abattement_forfaitaire_d823_17_5 = False
-                    elif match_arg_381.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_381.value
-                        temp_abattement_forfaitaire_d823_17_5 = False
-                    elif match_arg_381.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_381.value
-                        temp_abattement_forfaitaire_d823_17_5 = True
-                    return (((date_courante_11 >=
-                        date_of_numbers(2020,1,1)) and (date_courante_11 <
-                        date_of_numbers(2021,1,1))) and
-                        temp_abattement_forfaitaire_d823_17_5)
-                return handle_default(SourcePosition(filename="",
-                                      start_line=0, start_column=1,
-                                      end_line=0, end_column=1,
-                                      law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_4,
-                                      temp_abattement_forfaitaire_d823_17_3)
-            def temp_abattement_forfaitaire_d823_17_6(_:Unit):
-                try:
-                    try:
-                        def temp_abattement_forfaitaire_d823_17_7(_:Unit):
-                            return money_of_cents_string("758400")
-                        def temp_abattement_forfaitaire_d823_17_8(_:Unit):
-                            match_arg_382 = residence_5
-                            if match_arg_382.code == Collectivite_Code.Guadeloupe:
-                                _ = match_arg_382.value
-                                temp_abattement_forfaitaire_d823_17_9 = True
-                            elif match_arg_382.code == Collectivite_Code.Guyane:
-                                _ = match_arg_382.value
-                                temp_abattement_forfaitaire_d823_17_9 = False
-                            elif match_arg_382.code == Collectivite_Code.Martinique:
-                                _ = match_arg_382.value
-                                temp_abattement_forfaitaire_d823_17_9 = True
-                            elif match_arg_382.code == Collectivite_Code.LaReunion:
-                                _ = match_arg_382.value
-                                temp_abattement_forfaitaire_d823_17_9 = True
-                            elif match_arg_382.code == Collectivite_Code.SaintBarthelemy:
-                                _ = match_arg_382.value
-                                temp_abattement_forfaitaire_d823_17_9 = True
-                            elif match_arg_382.code == Collectivite_Code.SaintMartin:
-                                _ = match_arg_382.value
-                                temp_abattement_forfaitaire_d823_17_9 = True
-                            elif match_arg_382.code == Collectivite_Code.Metropole:
-                                _ = match_arg_382.value
-                                temp_abattement_forfaitaire_d823_17_9 = False
-                            elif match_arg_382.code == Collectivite_Code.SaintPierreEtMiquelon:
-                                _ = match_arg_382.value
-                                temp_abattement_forfaitaire_d823_17_9 = False
-                            elif match_arg_382.code == Collectivite_Code.Mayotte:
-                                _ = match_arg_382.value
-                                temp_abattement_forfaitaire_d823_17_9 = True
-                            return (((date_courante_11 >=
-                                date_of_numbers(2020,1,1)) and
-                                (date_courante_11 <
-                                date_of_numbers(2020,10,1))) and
-                                (temp_abattement_forfaitaire_d823_17_9 and
-                                (nombre_personnes_a_charge_4 ==
-                                integer_of_string("1"))))
-                        return handle_default(SourcePosition(filename="",
-                                              start_line=0, start_column=1,
-                                              end_line=0, end_column=1,
-                                              law_headings=[]), [],
-                                              temp_abattement_forfaitaire_d823_17_8,
-                                              temp_abattement_forfaitaire_d823_17_7)
-                    except EmptyError:
-                        match_arg_383 = residence_5
-                        if match_arg_383.code == Collectivite_Code.Guadeloupe:
-                            _ = match_arg_383.value
-                            temp_abattement_forfaitaire_d823_17_10 = True
-                        elif match_arg_383.code == Collectivite_Code.Guyane:
-                            _ = match_arg_383.value
-                            temp_abattement_forfaitaire_d823_17_10 = False
-                        elif match_arg_383.code == Collectivite_Code.Martinique:
-                            _ = match_arg_383.value
-                            temp_abattement_forfaitaire_d823_17_10 = True
-                        elif match_arg_383.code == Collectivite_Code.LaReunion:
-                            _ = match_arg_383.value
-                            temp_abattement_forfaitaire_d823_17_10 = True
-                        elif match_arg_383.code == Collectivite_Code.SaintBarthelemy:
-                            _ = match_arg_383.value
-                            temp_abattement_forfaitaire_d823_17_10 = True
-                        elif match_arg_383.code == Collectivite_Code.SaintMartin:
-                            _ = match_arg_383.value
-                            temp_abattement_forfaitaire_d823_17_10 = True
-                        elif match_arg_383.code == Collectivite_Code.Metropole:
-                            _ = match_arg_383.value
-                            temp_abattement_forfaitaire_d823_17_10 = False
-                        elif match_arg_383.code == Collectivite_Code.SaintPierreEtMiquelon:
-                            _ = match_arg_383.value
-                            temp_abattement_forfaitaire_d823_17_10 = False
-                        elif match_arg_383.code == Collectivite_Code.Mayotte:
-                            _ = match_arg_383.value
-                            temp_abattement_forfaitaire_d823_17_10 = True
-                        if (((date_courante_11 >=
-                            date_of_numbers(2020,10,1)) and
-                            (date_courante_11 <
-                            date_of_numbers(2021,10,1))) and
-                            (temp_abattement_forfaitaire_d823_17_10 and
-                            (nombre_personnes_a_charge_4 ==
-                            integer_of_string("1")))):
-                            return money_of_cents_string("758400")
-                        else:
-                            raise EmptyError
-                except EmptyError:
-                    match_arg_384 = residence_5
-                    if match_arg_384.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_384.value
-                        temp_abattement_forfaitaire_d823_17_11 = True
-                    elif match_arg_384.code == Collectivite_Code.Guyane:
-                        _ = match_arg_384.value
-                        temp_abattement_forfaitaire_d823_17_11 = False
-                    elif match_arg_384.code == Collectivite_Code.Martinique:
-                        _ = match_arg_384.value
-                        temp_abattement_forfaitaire_d823_17_11 = True
-                    elif match_arg_384.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_384.value
-                        temp_abattement_forfaitaire_d823_17_11 = True
-                    elif match_arg_384.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_384.value
-                        temp_abattement_forfaitaire_d823_17_11 = True
-                    elif match_arg_384.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_384.value
-                        temp_abattement_forfaitaire_d823_17_11 = True
-                    elif match_arg_384.code == Collectivite_Code.Metropole:
-                        _ = match_arg_384.value
-                        temp_abattement_forfaitaire_d823_17_11 = False
-                    elif match_arg_384.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_384.value
-                        temp_abattement_forfaitaire_d823_17_11 = False
-                    elif match_arg_384.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_384.value
-                        temp_abattement_forfaitaire_d823_17_11 = True
-                    if (((date_courante_11 >= date_of_numbers(2021,10,1)) and
-                        (date_courante_11 < date_of_numbers(2022,1,1))) and
-                        (temp_abattement_forfaitaire_d823_17_11 and
-                        (nombre_personnes_a_charge_4 ==
-                        integer_of_string("1")))):
-                        return money_of_cents_string("758400")
-                    else:
-                        raise EmptyError
-            def temp_abattement_forfaitaire_d823_17_12(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_13(_:Unit):
-                    if (nombre_personnes_a_charge_4 ==
-                        integer_of_string("0")):
-                        match_arg_385 = situation_familiale_calcul_apl_4
-                        if match_arg_385.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                            _ = match_arg_385.value
-                            return money_of_cents_string("427400")
-                        elif match_arg_385.code == SituationFamilialeCalculAPL_Code.Couple:
-                            _ = match_arg_385.value
-                            return money_of_cents_string("612200")
-                    else:
-                        if (nombre_personnes_a_charge_4 ==
-                            integer_of_string("1")):
-                            return money_of_cents_string("699000")
-                        else:
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("2")):
-                                return money_of_cents_string("743200")
-                            else:
-                                if (nombre_personnes_a_charge_4 ==
-                                    integer_of_string("3")):
-                                    return money_of_cents_string("785400")
-                                else:
-                                    if (nombre_personnes_a_charge_4 ==
-                                        integer_of_string("4")):
-                                        return money_of_cents_string("828300")
-                                    else:
-                                        if (nombre_personnes_a_charge_4 ==
-                                            integer_of_string("5")):
-                                            return money_of_cents_string("871100")
-                                        else:
-                                            return money_of_cents_string("913900")
-                def temp_abattement_forfaitaire_d823_17_14(_:Unit):
-                    match_arg_386 = residence_5
-                    if match_arg_386.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_386.value
-                        temp_abattement_forfaitaire_d823_17_15 = True
-                    elif match_arg_386.code == Collectivite_Code.Guyane:
-                        _ = match_arg_386.value
-                        temp_abattement_forfaitaire_d823_17_15 = False
-                    elif match_arg_386.code == Collectivite_Code.Martinique:
-                        _ = match_arg_386.value
-                        temp_abattement_forfaitaire_d823_17_15 = True
-                    elif match_arg_386.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_386.value
-                        temp_abattement_forfaitaire_d823_17_15 = True
-                    elif match_arg_386.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_386.value
-                        temp_abattement_forfaitaire_d823_17_15 = True
-                    elif match_arg_386.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_386.value
-                        temp_abattement_forfaitaire_d823_17_15 = True
-                    elif match_arg_386.code == Collectivite_Code.Metropole:
-                        _ = match_arg_386.value
-                        temp_abattement_forfaitaire_d823_17_15 = False
-                    elif match_arg_386.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_386.value
-                        temp_abattement_forfaitaire_d823_17_15 = False
-                    elif match_arg_386.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_386.value
-                        temp_abattement_forfaitaire_d823_17_15 = True
-                    return (((date_courante_11 >=
-                        date_of_numbers(2021,1,1)) and (date_courante_11 <
-                        date_of_numbers(2022,1,1))) and
-                        temp_abattement_forfaitaire_d823_17_15)
-                return handle_default(SourcePosition(filename="",
-                                      start_line=0, start_column=1,
-                                      end_line=0, end_column=1,
-                                      law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_14,
-                                      temp_abattement_forfaitaire_d823_17_13)
-            def temp_abattement_forfaitaire_d823_17_16(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_17(_:Unit):
-                    return money_of_cents_string("774200")
-                def temp_abattement_forfaitaire_d823_17_18(_:Unit):
-                    match_arg_387 = residence_5
-                    if match_arg_387.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_387.value
-                        temp_abattement_forfaitaire_d823_17_19 = True
-                    elif match_arg_387.code == Collectivite_Code.Guyane:
-                        _ = match_arg_387.value
-                        temp_abattement_forfaitaire_d823_17_19 = False
-                    elif match_arg_387.code == Collectivite_Code.Martinique:
-                        _ = match_arg_387.value
-                        temp_abattement_forfaitaire_d823_17_19 = True
-                    elif match_arg_387.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_387.value
-                        temp_abattement_forfaitaire_d823_17_19 = True
-                    elif match_arg_387.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_387.value
-                        temp_abattement_forfaitaire_d823_17_19 = True
-                    elif match_arg_387.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_387.value
-                        temp_abattement_forfaitaire_d823_17_19 = True
-                    elif match_arg_387.code == Collectivite_Code.Metropole:
-                        _ = match_arg_387.value
-                        temp_abattement_forfaitaire_d823_17_19 = False
-                    elif match_arg_387.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_387.value
-                        temp_abattement_forfaitaire_d823_17_19 = False
-                    elif match_arg_387.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_387.value
-                        temp_abattement_forfaitaire_d823_17_19 = True
-                    return (((date_courante_11 >=
-                        date_of_numbers(2022,1,1)) and (date_courante_11 <
-                        date_of_numbers(2022,7,1))) and
-                        (temp_abattement_forfaitaire_d823_17_19 and
-                        (nombre_personnes_a_charge_4 ==
-                        integer_of_string("1"))))
-                return handle_default(SourcePosition(filename="",
-                                      start_line=0, start_column=1,
-                                      end_line=0, end_column=1,
-                                      law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_18,
-                                      temp_abattement_forfaitaire_d823_17_17)
-            def temp_abattement_forfaitaire_d823_17_20(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_21(_:Unit):
-                    if (nombre_personnes_a_charge_4 ==
-                        integer_of_string("0")):
-                        match_arg_388 = situation_familiale_calcul_apl_4
-                        if match_arg_388.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                            _ = match_arg_388.value
-                            return money_of_cents_string("487000")
-                        elif match_arg_388.code == SituationFamilialeCalculAPL_Code.Couple:
-                            _ = match_arg_388.value
-                            return money_of_cents_string("697700")
-                    else:
-                        if (nombre_personnes_a_charge_4 ==
-                            integer_of_string("1")):
-                            return money_of_cents_string("832200")
-                        else:
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("2")):
-                                return money_of_cents_string("850900")
-                            else:
-                                if (nombre_personnes_a_charge_4 ==
-                                    integer_of_string("3")):
-                                    return money_of_cents_string("883400")
-                                else:
-                                    if (nombre_personnes_a_charge_4 ==
-                                        integer_of_string("4")):
-                                        return money_of_cents_string("916300")
-                                    else:
-                                        if (nombre_personnes_a_charge_4 ==
-                                            integer_of_string("5")):
-                                            return money_of_cents_string("948800")
-                                        else:
-                                            if (nombre_personnes_a_charge_4 ==
-                                                integer_of_string("6")):
-                                                return money_of_cents_string("981600")
-                                            else:
-                                                return (money_of_cents_string("981600") +
-                                                    (money_of_cents_string("35000") *
-                                                    decimal_of_integer((nombre_personnes_a_charge_4 -
-                                                    integer_of_string("6")))))
-                def temp_abattement_forfaitaire_d823_17_22(_:Unit):
-                    match_arg_389 = residence_5
-                    if match_arg_389.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_389.value
-                        temp_abattement_forfaitaire_d823_17_23 = False
-                    elif match_arg_389.code == Collectivite_Code.Guyane:
-                        _ = match_arg_389.value
-                        temp_abattement_forfaitaire_d823_17_23 = False
-                    elif match_arg_389.code == Collectivite_Code.Martinique:
-                        _ = match_arg_389.value
-                        temp_abattement_forfaitaire_d823_17_23 = False
-                    elif match_arg_389.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_389.value
-                        temp_abattement_forfaitaire_d823_17_23 = False
-                    elif match_arg_389.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_389.value
-                        temp_abattement_forfaitaire_d823_17_23 = False
-                    elif match_arg_389.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_389.value
-                        temp_abattement_forfaitaire_d823_17_23 = False
-                    elif match_arg_389.code == Collectivite_Code.Metropole:
-                        _ = match_arg_389.value
-                        temp_abattement_forfaitaire_d823_17_23 = False
-                    elif match_arg_389.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_389.value
-                        temp_abattement_forfaitaire_d823_17_23 = True
-                    elif match_arg_389.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_389.value
-                        temp_abattement_forfaitaire_d823_17_23 = False
-                    return (((date_courante_11 >=
-                        date_of_numbers(2022,7,1)) and (date_courante_11 <
-                        date_of_numbers(2023,1,1))) and
-                        temp_abattement_forfaitaire_d823_17_23)
-                return handle_default(SourcePosition(filename="",
-                                      start_line=0, start_column=1,
-                                      end_line=0, end_column=1,
-                                      law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_22,
-                                      temp_abattement_forfaitaire_d823_17_21)
-            def temp_abattement_forfaitaire_d823_17_24(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_25(_:Unit):
-                    return money_of_cents_string("805100")
-                def temp_abattement_forfaitaire_d823_17_26(_:Unit):
-                    match_arg_390 = residence_5
-                    if match_arg_390.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_390.value
-                        temp_abattement_forfaitaire_d823_17_27 = True
-                    elif match_arg_390.code == Collectivite_Code.Guyane:
-                        _ = match_arg_390.value
-                        temp_abattement_forfaitaire_d823_17_27 = False
-                    elif match_arg_390.code == Collectivite_Code.Martinique:
-                        _ = match_arg_390.value
-                        temp_abattement_forfaitaire_d823_17_27 = True
-                    elif match_arg_390.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_390.value
-                        temp_abattement_forfaitaire_d823_17_27 = True
-                    elif match_arg_390.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_390.value
-                        temp_abattement_forfaitaire_d823_17_27 = True
-                    elif match_arg_390.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_390.value
-                        temp_abattement_forfaitaire_d823_17_27 = True
-                    elif match_arg_390.code == Collectivite_Code.Metropole:
-                        _ = match_arg_390.value
-                        temp_abattement_forfaitaire_d823_17_27 = False
-                    elif match_arg_390.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_390.value
-                        temp_abattement_forfaitaire_d823_17_27 = False
-                    elif match_arg_390.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_390.value
-                        temp_abattement_forfaitaire_d823_17_27 = True
-                    return (((date_courante_11 >=
-                        date_of_numbers(2022,7,1)) and (date_courante_11 <
-                        date_of_numbers(2023,1,1))) and
-                        (temp_abattement_forfaitaire_d823_17_27 and
-                        (nombre_personnes_a_charge_4 ==
-                        integer_of_string("1"))))
-                return handle_default(SourcePosition(filename="",
-                                      start_line=0, start_column=1,
-                                      end_line=0, end_column=1,
-                                      law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_26,
-                                      temp_abattement_forfaitaire_d823_17_25)
-            def temp_abattement_forfaitaire_d823_17_28(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_29(_:Unit):
-                    if (nombre_personnes_a_charge_4 ==
-                        integer_of_string("0")):
-                        match_arg_391 = situation_familiale_calcul_apl_4
-                        if match_arg_391.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                            _ = match_arg_391.value
-                            return money_of_cents_string("527200")
-                        elif match_arg_391.code == SituationFamilialeCalculAPL_Code.Couple:
-                            _ = match_arg_391.value
-                            return money_of_cents_string("755200")
-                    else:
-                        if (nombre_personnes_a_charge_4 ==
-                            integer_of_string("1")):
-                            return money_of_cents_string("900800")
-                        else:
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("2")):
-                                return money_of_cents_string("921100")
-                            else:
-                                if (nombre_personnes_a_charge_4 ==
-                                    integer_of_string("3")):
-                                    return money_of_cents_string("956300")
-                                else:
-                                    if (nombre_personnes_a_charge_4 ==
-                                        integer_of_string("4")):
-                                        return money_of_cents_string("991900")
-                                    else:
-                                        if (nombre_personnes_a_charge_4 ==
-                                            integer_of_string("5")):
-                                            return money_of_cents_string("1027100")
-                                        else:
-                                            if (nombre_personnes_a_charge_4 ==
-                                                integer_of_string("6")):
-                                                return money_of_cents_string("1062600")
-                                            else:
-                                                return (money_of_cents_string("1062600") +
-                                                    (money_of_cents_string("35000") *
-                                                    decimal_of_integer((nombre_personnes_a_charge_4 -
-                                                    integer_of_string("6")))))
-                def temp_abattement_forfaitaire_d823_17_30(_:Unit):
-                    match_arg_392 = residence_5
-                    if match_arg_392.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_392.value
-                        temp_abattement_forfaitaire_d823_17_31 = False
-                    elif match_arg_392.code == Collectivite_Code.Guyane:
-                        _ = match_arg_392.value
-                        temp_abattement_forfaitaire_d823_17_31 = False
-                    elif match_arg_392.code == Collectivite_Code.Martinique:
-                        _ = match_arg_392.value
-                        temp_abattement_forfaitaire_d823_17_31 = False
-                    elif match_arg_392.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_392.value
-                        temp_abattement_forfaitaire_d823_17_31 = False
-                    elif match_arg_392.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_392.value
-                        temp_abattement_forfaitaire_d823_17_31 = False
-                    elif match_arg_392.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_392.value
-                        temp_abattement_forfaitaire_d823_17_31 = False
-                    elif match_arg_392.code == Collectivite_Code.Metropole:
-                        _ = match_arg_392.value
-                        temp_abattement_forfaitaire_d823_17_31 = False
-                    elif match_arg_392.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_392.value
-                        temp_abattement_forfaitaire_d823_17_31 = True
-                    elif match_arg_392.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_392.value
-                        temp_abattement_forfaitaire_d823_17_31 = False
-                    return ((date_courante_11 >=
-                        date_of_numbers(2023,1,1)) and
-                        temp_abattement_forfaitaire_d823_17_31)
-                return handle_default(SourcePosition(filename="",
-                                      start_line=0, start_column=1,
-                                      end_line=0, end_column=1,
-                                      law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_30,
-                                      temp_abattement_forfaitaire_d823_17_29)
-            def temp_abattement_forfaitaire_d823_17_32(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_33(_:Unit):
-                    return money_of_cents_string("818100")
-                def temp_abattement_forfaitaire_d823_17_34(_:Unit):
-                    match_arg_393 = residence_5
-                    if match_arg_393.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_35 = True
-                    elif match_arg_393.code == Collectivite_Code.Guyane:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_35 = False
-                    elif match_arg_393.code == Collectivite_Code.Martinique:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_35 = True
-                    elif match_arg_393.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_35 = True
-                    elif match_arg_393.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_35 = True
-                    elif match_arg_393.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_35 = True
-                    elif match_arg_393.code == Collectivite_Code.Metropole:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_35 = False
-                    elif match_arg_393.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_35 = False
-                    elif match_arg_393.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_35 = True
-                    return ((date_courante_11 >=
-                        date_of_numbers(2023,1,1)) and
-                        (temp_abattement_forfaitaire_d823_17_35 and
-                        (nombre_personnes_a_charge_4 ==
-                        integer_of_string("1"))))
-                return handle_default(SourcePosition(filename="",
-                                      start_line=0, start_column=1,
-                                      end_line=0, end_column=1,
-                                      law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_34,
-                                      temp_abattement_forfaitaire_d823_17_33)
-            temp_abattement_forfaitaire_d823_17_36 = handle_default(SourcePosition(filename="",
-                                                                    start_line=0,
-                                                                    start_column=1,
-                                                                    end_line=0, end_column=1,
-                                                                    law_headings=[]), [temp_abattement_forfaitaire_d823_17_32,
-                                                                    temp_abattement_forfaitaire_d823_17_28,
-                                                                    temp_abattement_forfaitaire_d823_17_24,
-                                                                    temp_abattement_forfaitaire_d823_17_20,
-                                                                    temp_abattement_forfaitaire_d823_17_16,
-                                                                    temp_abattement_forfaitaire_d823_17_12,
-                                                                    temp_abattement_forfaitaire_d823_17_6,
-                                                                    temp_abattement_forfaitaire_d823_17_2],
-                                                                    temp_abattement_forfaitaire_d823_17_1,
-                                                                    temp_abattement_forfaitaire_d823_17)
-        except EmptyError:
-            def temp_abattement_forfaitaire_d823_17_37(_:Unit):
-                raise EmptyError
-            def temp_abattement_forfaitaire_d823_17_38(_:Unit):
-                return False
-            def temp_abattement_forfaitaire_d823_17_39(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_40(_:Unit):
-                    if (nombre_personnes_a_charge_4 ==
-                        integer_of_string("0")):
-                        match_arg_394 = situation_familiale_calcul_apl_4
-                        if match_arg_394.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                            _ = match_arg_394.value
-                            return money_of_cents_string("458800")
-                        elif match_arg_394.code == SituationFamilialeCalculAPL_Code.Couple:
-                            _ = match_arg_394.value
                             return money_of_cents_string("657200")
                     else:
                         if (nombre_personnes_a_charge_4 ==
@@ -13435,7 +12861,7 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                                     (money_of_cents_string("30500") *
                                                     decimal_of_integer((nombre_personnes_a_charge_4 -
                                                     integer_of_string("6")))))
-                def temp_abattement_forfaitaire_d823_17_41(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_5(_:Unit):
                     return ((date_courante_11 <
                         date_of_numbers(2022,1,1)) and (date_courante_11 >=
                         date_of_numbers(2020,1,1)))
@@ -13443,18 +12869,18 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                       start_line=0, start_column=1,
                                       end_line=0, end_column=1,
                                       law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_41,
-                                      temp_abattement_forfaitaire_d823_17_40)
-            def temp_abattement_forfaitaire_d823_17_42(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_43(_:Unit):
+                                      temp_abattement_forfaitaire_d823_17_5,
+                                      temp_abattement_forfaitaire_d823_17_4)
+            def temp_abattement_forfaitaire_d823_17_6(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_7(_:Unit):
                     if (nombre_personnes_a_charge_4 ==
                         integer_of_string("0")):
-                        match_arg_395 = situation_familiale_calcul_apl_4
-                        if match_arg_395.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                            _ = match_arg_395.value
+                        match_arg_381 = situation_familiale_calcul_apl_4
+                        if match_arg_381.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                            _ = match_arg_381.value
                             return money_of_cents_string("468300")
-                        elif match_arg_395.code == SituationFamilialeCalculAPL_Code.Couple:
-                            _ = match_arg_395.value
+                        elif match_arg_381.code == SituationFamilialeCalculAPL_Code.Couple:
+                            _ = match_arg_381.value
                             return money_of_cents_string("670900")
                     else:
                         if (nombre_personnes_a_charge_4 ==
@@ -13484,7 +12910,7 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                                 return (money_of_cents_string("943900") +
                                                     (money_of_cents_string("31100") *
                                                     multiplicateur_majoration_r0))
-                def temp_abattement_forfaitaire_d823_17_44(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_8(_:Unit):
                     return ((date_courante_11 >=
                         date_of_numbers(2022,1,1)) and (date_courante_11 <
                         date_of_numbers(2022,7,1)))
@@ -13492,18 +12918,18 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                       start_line=0, start_column=1,
                                       end_line=0, end_column=1,
                                       law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_44,
-                                      temp_abattement_forfaitaire_d823_17_43)
-            def temp_abattement_forfaitaire_d823_17_45(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_46(_:Unit):
+                                      temp_abattement_forfaitaire_d823_17_8,
+                                      temp_abattement_forfaitaire_d823_17_7)
+            def temp_abattement_forfaitaire_d823_17_9(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_10(_:Unit):
                     if (nombre_personnes_a_charge_4 ==
                         integer_of_string("0")):
-                        match_arg_396 = situation_familiale_calcul_apl_4
-                        if match_arg_396.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                            _ = match_arg_396.value
+                        match_arg_382 = situation_familiale_calcul_apl_4
+                        if match_arg_382.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                            _ = match_arg_382.value
                             return money_of_cents_string("487000")
-                        elif match_arg_396.code == SituationFamilialeCalculAPL_Code.Couple:
-                            _ = match_arg_396.value
+                        elif match_arg_382.code == SituationFamilialeCalculAPL_Code.Couple:
+                            _ = match_arg_382.value
                             return money_of_cents_string("697700")
                     else:
                         if (nombre_personnes_a_charge_4 ==
@@ -13533,7 +12959,7 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                                 return (money_of_cents_string("981600") +
                                                     (money_of_cents_string("32300") *
                                                     multiplicateur_majoration_r0))
-                def temp_abattement_forfaitaire_d823_17_47(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_11(_:Unit):
                     return ((date_courante_11 >=
                         date_of_numbers(2022,7,1)) and (date_courante_11 <=
                         date_of_numbers(2022,12,31)))
@@ -13541,18 +12967,18 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                       start_line=0, start_column=1,
                                       end_line=0, end_column=1,
                                       law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_47,
-                                      temp_abattement_forfaitaire_d823_17_46)
-            def temp_abattement_forfaitaire_d823_17_48(_:Unit):
-                def temp_abattement_forfaitaire_d823_17_49(_:Unit):
+                                      temp_abattement_forfaitaire_d823_17_11,
+                                      temp_abattement_forfaitaire_d823_17_10)
+            def temp_abattement_forfaitaire_d823_17_12(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_13(_:Unit):
                     if (nombre_personnes_a_charge_4 ==
                         integer_of_string("0")):
-                        match_arg_397 = situation_familiale_calcul_apl_4
-                        if match_arg_397.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                            _ = match_arg_397.value
+                        match_arg_383 = situation_familiale_calcul_apl_4
+                        if match_arg_383.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                            _ = match_arg_383.value
                             return money_of_cents_string("494900")
-                        elif match_arg_397.code == SituationFamilialeCalculAPL_Code.Couple:
-                            _ = match_arg_397.value
+                        elif match_arg_383.code == SituationFamilialeCalculAPL_Code.Couple:
+                            _ = match_arg_383.value
                             return money_of_cents_string("709000")
                     else:
                         if (nombre_personnes_a_charge_4 ==
@@ -13582,26 +13008,623 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                                 return (money_of_cents_string("997500") +
                                                     (money_of_cents_string("32800") *
                                                     multiplicateur_majoration_r0))
-                def temp_abattement_forfaitaire_d823_17_50(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_14(_:Unit):
                     return (date_courante_11 >= date_of_numbers(2023,1,1))
                 return handle_default(SourcePosition(filename="",
                                       start_line=0, start_column=1,
                                       end_line=0, end_column=1,
                                       law_headings=[]), [],
-                                      temp_abattement_forfaitaire_d823_17_50,
-                                      temp_abattement_forfaitaire_d823_17_49)
-            temp_abattement_forfaitaire_d823_17_36 = handle_default(SourcePosition(filename="",
-                                                                    start_line=0,
-                                                                    start_column=1,
-                                                                    end_line=0, end_column=1,
-                                                                    law_headings=[]), [temp_abattement_forfaitaire_d823_17_48,
-                                                                    temp_abattement_forfaitaire_d823_17_45,
-                                                                    temp_abattement_forfaitaire_d823_17_42,
-                                                                    temp_abattement_forfaitaire_d823_17_39],
-                                                                    temp_abattement_forfaitaire_d823_17_38,
-                                                                    temp_abattement_forfaitaire_d823_17_37)
+                                      temp_abattement_forfaitaire_d823_17_14,
+                                      temp_abattement_forfaitaire_d823_17_13)
+            return handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [temp_abattement_forfaitaire_d823_17_12,
+                                  temp_abattement_forfaitaire_d823_17_9,
+                                  temp_abattement_forfaitaire_d823_17_6,
+                                  temp_abattement_forfaitaire_d823_17_3],
+                                  temp_abattement_forfaitaire_d823_17_2,
+                                  temp_abattement_forfaitaire_d823_17_1)
+        def temp_abattement_forfaitaire_d823_17_15(_:Unit):
+            return True
+        def temp_abattement_forfaitaire_d823_17_16(_:Unit):
+            def temp_abattement_forfaitaire_d823_17_17(_:Unit):
+                raise EmptyError
+            def temp_abattement_forfaitaire_d823_17_18(_:Unit):
+                return False
+            def temp_abattement_forfaitaire_d823_17_19(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_20(_:Unit):
+                    return money_of_cents_string("758400")
+                def temp_abattement_forfaitaire_d823_17_21(_:Unit):
+                    match_arg_384 = residence_5
+                    if match_arg_384.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_384.value
+                        temp_abattement_forfaitaire_d823_17_22 = True
+                    elif match_arg_384.code == Collectivite_Code.Guyane:
+                        _ = match_arg_384.value
+                        temp_abattement_forfaitaire_d823_17_22 = False
+                    elif match_arg_384.code == Collectivite_Code.Martinique:
+                        _ = match_arg_384.value
+                        temp_abattement_forfaitaire_d823_17_22 = True
+                    elif match_arg_384.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_384.value
+                        temp_abattement_forfaitaire_d823_17_22 = True
+                    elif match_arg_384.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_384.value
+                        temp_abattement_forfaitaire_d823_17_22 = True
+                    elif match_arg_384.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_384.value
+                        temp_abattement_forfaitaire_d823_17_22 = True
+                    elif match_arg_384.code == Collectivite_Code.Metropole:
+                        _ = match_arg_384.value
+                        temp_abattement_forfaitaire_d823_17_22 = False
+                    elif match_arg_384.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_384.value
+                        temp_abattement_forfaitaire_d823_17_22 = False
+                    elif match_arg_384.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_384.value
+                        temp_abattement_forfaitaire_d823_17_22 = True
+                    return (((date_courante_11 >=
+                        date_of_numbers(2020,1,1)) and (date_courante_11 <
+                        date_of_numbers(2020,10,1))) and
+                        (temp_abattement_forfaitaire_d823_17_22 and
+                        (nombre_personnes_a_charge_4 ==
+                        integer_of_string("1"))))
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [],
+                                      temp_abattement_forfaitaire_d823_17_21,
+                                      temp_abattement_forfaitaire_d823_17_20)
+            def temp_abattement_forfaitaire_d823_17_23(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_24(_:Unit):
+                    return money_of_cents_string("774200")
+                def temp_abattement_forfaitaire_d823_17_25(_:Unit):
+                    match_arg_385 = residence_5
+                    if match_arg_385.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_385.value
+                        temp_abattement_forfaitaire_d823_17_26 = True
+                    elif match_arg_385.code == Collectivite_Code.Guyane:
+                        _ = match_arg_385.value
+                        temp_abattement_forfaitaire_d823_17_26 = False
+                    elif match_arg_385.code == Collectivite_Code.Martinique:
+                        _ = match_arg_385.value
+                        temp_abattement_forfaitaire_d823_17_26 = True
+                    elif match_arg_385.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_385.value
+                        temp_abattement_forfaitaire_d823_17_26 = True
+                    elif match_arg_385.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_385.value
+                        temp_abattement_forfaitaire_d823_17_26 = True
+                    elif match_arg_385.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_385.value
+                        temp_abattement_forfaitaire_d823_17_26 = True
+                    elif match_arg_385.code == Collectivite_Code.Metropole:
+                        _ = match_arg_385.value
+                        temp_abattement_forfaitaire_d823_17_26 = False
+                    elif match_arg_385.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_385.value
+                        temp_abattement_forfaitaire_d823_17_26 = False
+                    elif match_arg_385.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_385.value
+                        temp_abattement_forfaitaire_d823_17_26 = True
+                    return (((date_courante_11 >=
+                        date_of_numbers(2022,1,1)) and (date_courante_11 <
+                        date_of_numbers(2022,7,1))) and
+                        (temp_abattement_forfaitaire_d823_17_26 and
+                        (nombre_personnes_a_charge_4 ==
+                        integer_of_string("1"))))
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [],
+                                      temp_abattement_forfaitaire_d823_17_25,
+                                      temp_abattement_forfaitaire_d823_17_24)
+            def temp_abattement_forfaitaire_d823_17_27(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_28(_:Unit):
+                    if (nombre_personnes_a_charge_4 ==
+                        integer_of_string("0")):
+                        match_arg_386 = situation_familiale_calcul_apl_4
+                        if match_arg_386.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                            _ = match_arg_386.value
+                            return money_of_cents_string("487000")
+                        elif match_arg_386.code == SituationFamilialeCalculAPL_Code.Couple:
+                            _ = match_arg_386.value
+                            return money_of_cents_string("697700")
+                    else:
+                        if (nombre_personnes_a_charge_4 ==
+                            integer_of_string("1")):
+                            return money_of_cents_string("832200")
+                        else:
+                            if (nombre_personnes_a_charge_4 ==
+                                integer_of_string("2")):
+                                return money_of_cents_string("850900")
+                            else:
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("3")):
+                                    return money_of_cents_string("883400")
+                                else:
+                                    if (nombre_personnes_a_charge_4 ==
+                                        integer_of_string("4")):
+                                        return money_of_cents_string("916300")
+                                    else:
+                                        if (nombre_personnes_a_charge_4 ==
+                                            integer_of_string("5")):
+                                            return money_of_cents_string("948800")
+                                        else:
+                                            if (nombre_personnes_a_charge_4 ==
+                                                integer_of_string("6")):
+                                                return money_of_cents_string("981600")
+                                            else:
+                                                return (money_of_cents_string("981600") +
+                                                    (money_of_cents_string("35000") *
+                                                    decimal_of_integer((nombre_personnes_a_charge_4 -
+                                                    integer_of_string("6")))))
+                def temp_abattement_forfaitaire_d823_17_29(_:Unit):
+                    match_arg_387 = residence_5
+                    if match_arg_387.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_387.value
+                        temp_abattement_forfaitaire_d823_17_30 = False
+                    elif match_arg_387.code == Collectivite_Code.Guyane:
+                        _ = match_arg_387.value
+                        temp_abattement_forfaitaire_d823_17_30 = False
+                    elif match_arg_387.code == Collectivite_Code.Martinique:
+                        _ = match_arg_387.value
+                        temp_abattement_forfaitaire_d823_17_30 = False
+                    elif match_arg_387.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_387.value
+                        temp_abattement_forfaitaire_d823_17_30 = False
+                    elif match_arg_387.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_387.value
+                        temp_abattement_forfaitaire_d823_17_30 = False
+                    elif match_arg_387.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_387.value
+                        temp_abattement_forfaitaire_d823_17_30 = False
+                    elif match_arg_387.code == Collectivite_Code.Metropole:
+                        _ = match_arg_387.value
+                        temp_abattement_forfaitaire_d823_17_30 = False
+                    elif match_arg_387.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_387.value
+                        temp_abattement_forfaitaire_d823_17_30 = True
+                    elif match_arg_387.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_387.value
+                        temp_abattement_forfaitaire_d823_17_30 = False
+                    return (((date_courante_11 >=
+                        date_of_numbers(2022,7,1)) and (date_courante_11 <
+                        date_of_numbers(2023,1,1))) and
+                        temp_abattement_forfaitaire_d823_17_30)
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [],
+                                      temp_abattement_forfaitaire_d823_17_29,
+                                      temp_abattement_forfaitaire_d823_17_28)
+            def temp_abattement_forfaitaire_d823_17_31(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_32(_:Unit):
+                    return money_of_cents_string("805100")
+                def temp_abattement_forfaitaire_d823_17_33(_:Unit):
+                    match_arg_388 = residence_5
+                    if match_arg_388.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_388.value
+                        temp_abattement_forfaitaire_d823_17_34 = True
+                    elif match_arg_388.code == Collectivite_Code.Guyane:
+                        _ = match_arg_388.value
+                        temp_abattement_forfaitaire_d823_17_34 = False
+                    elif match_arg_388.code == Collectivite_Code.Martinique:
+                        _ = match_arg_388.value
+                        temp_abattement_forfaitaire_d823_17_34 = True
+                    elif match_arg_388.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_388.value
+                        temp_abattement_forfaitaire_d823_17_34 = True
+                    elif match_arg_388.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_388.value
+                        temp_abattement_forfaitaire_d823_17_34 = True
+                    elif match_arg_388.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_388.value
+                        temp_abattement_forfaitaire_d823_17_34 = True
+                    elif match_arg_388.code == Collectivite_Code.Metropole:
+                        _ = match_arg_388.value
+                        temp_abattement_forfaitaire_d823_17_34 = False
+                    elif match_arg_388.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_388.value
+                        temp_abattement_forfaitaire_d823_17_34 = False
+                    elif match_arg_388.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_388.value
+                        temp_abattement_forfaitaire_d823_17_34 = True
+                    return (((date_courante_11 >=
+                        date_of_numbers(2022,7,1)) and (date_courante_11 <
+                        date_of_numbers(2023,1,1))) and
+                        (temp_abattement_forfaitaire_d823_17_34 and
+                        (nombre_personnes_a_charge_4 ==
+                        integer_of_string("1"))))
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [],
+                                      temp_abattement_forfaitaire_d823_17_33,
+                                      temp_abattement_forfaitaire_d823_17_32)
+            def temp_abattement_forfaitaire_d823_17_35(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_36(_:Unit):
+                    if (nombre_personnes_a_charge_4 ==
+                        integer_of_string("0")):
+                        match_arg_389 = situation_familiale_calcul_apl_4
+                        if match_arg_389.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                            _ = match_arg_389.value
+                            return money_of_cents_string("527200")
+                        elif match_arg_389.code == SituationFamilialeCalculAPL_Code.Couple:
+                            _ = match_arg_389.value
+                            return money_of_cents_string("755200")
+                    else:
+                        if (nombre_personnes_a_charge_4 ==
+                            integer_of_string("1")):
+                            return money_of_cents_string("900800")
+                        else:
+                            if (nombre_personnes_a_charge_4 ==
+                                integer_of_string("2")):
+                                return money_of_cents_string("921100")
+                            else:
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("3")):
+                                    return money_of_cents_string("956300")
+                                else:
+                                    if (nombre_personnes_a_charge_4 ==
+                                        integer_of_string("4")):
+                                        return money_of_cents_string("991900")
+                                    else:
+                                        if (nombre_personnes_a_charge_4 ==
+                                            integer_of_string("5")):
+                                            return money_of_cents_string("1027100")
+                                        else:
+                                            if (nombre_personnes_a_charge_4 ==
+                                                integer_of_string("6")):
+                                                return money_of_cents_string("1062600")
+                                            else:
+                                                return (money_of_cents_string("1062600") +
+                                                    (money_of_cents_string("35000") *
+                                                    decimal_of_integer((nombre_personnes_a_charge_4 -
+                                                    integer_of_string("6")))))
+                def temp_abattement_forfaitaire_d823_17_37(_:Unit):
+                    match_arg_390 = residence_5
+                    if match_arg_390.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_390.value
+                        temp_abattement_forfaitaire_d823_17_38 = False
+                    elif match_arg_390.code == Collectivite_Code.Guyane:
+                        _ = match_arg_390.value
+                        temp_abattement_forfaitaire_d823_17_38 = False
+                    elif match_arg_390.code == Collectivite_Code.Martinique:
+                        _ = match_arg_390.value
+                        temp_abattement_forfaitaire_d823_17_38 = False
+                    elif match_arg_390.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_390.value
+                        temp_abattement_forfaitaire_d823_17_38 = False
+                    elif match_arg_390.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_390.value
+                        temp_abattement_forfaitaire_d823_17_38 = False
+                    elif match_arg_390.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_390.value
+                        temp_abattement_forfaitaire_d823_17_38 = False
+                    elif match_arg_390.code == Collectivite_Code.Metropole:
+                        _ = match_arg_390.value
+                        temp_abattement_forfaitaire_d823_17_38 = False
+                    elif match_arg_390.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_390.value
+                        temp_abattement_forfaitaire_d823_17_38 = True
+                    elif match_arg_390.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_390.value
+                        temp_abattement_forfaitaire_d823_17_38 = False
+                    return ((date_courante_11 >=
+                        date_of_numbers(2023,1,1)) and
+                        temp_abattement_forfaitaire_d823_17_38)
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [],
+                                      temp_abattement_forfaitaire_d823_17_37,
+                                      temp_abattement_forfaitaire_d823_17_36)
+            def temp_abattement_forfaitaire_d823_17_39(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_40(_:Unit):
+                    return money_of_cents_string("818100")
+                def temp_abattement_forfaitaire_d823_17_41(_:Unit):
+                    match_arg_391 = residence_5
+                    if match_arg_391.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_391.value
+                        temp_abattement_forfaitaire_d823_17_42 = True
+                    elif match_arg_391.code == Collectivite_Code.Guyane:
+                        _ = match_arg_391.value
+                        temp_abattement_forfaitaire_d823_17_42 = False
+                    elif match_arg_391.code == Collectivite_Code.Martinique:
+                        _ = match_arg_391.value
+                        temp_abattement_forfaitaire_d823_17_42 = True
+                    elif match_arg_391.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_391.value
+                        temp_abattement_forfaitaire_d823_17_42 = True
+                    elif match_arg_391.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_391.value
+                        temp_abattement_forfaitaire_d823_17_42 = True
+                    elif match_arg_391.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_391.value
+                        temp_abattement_forfaitaire_d823_17_42 = True
+                    elif match_arg_391.code == Collectivite_Code.Metropole:
+                        _ = match_arg_391.value
+                        temp_abattement_forfaitaire_d823_17_42 = False
+                    elif match_arg_391.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_391.value
+                        temp_abattement_forfaitaire_d823_17_42 = False
+                    elif match_arg_391.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_391.value
+                        temp_abattement_forfaitaire_d823_17_42 = True
+                    return ((date_courante_11 >=
+                        date_of_numbers(2023,1,1)) and
+                        (temp_abattement_forfaitaire_d823_17_42 and
+                        (nombre_personnes_a_charge_4 ==
+                        integer_of_string("1"))))
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [],
+                                      temp_abattement_forfaitaire_d823_17_41,
+                                      temp_abattement_forfaitaire_d823_17_40)
+            return handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [temp_abattement_forfaitaire_d823_17_39,
+                                  temp_abattement_forfaitaire_d823_17_35,
+                                  temp_abattement_forfaitaire_d823_17_31,
+                                  temp_abattement_forfaitaire_d823_17_27,
+                                  temp_abattement_forfaitaire_d823_17_23,
+                                  temp_abattement_forfaitaire_d823_17_19],
+                                  temp_abattement_forfaitaire_d823_17_18,
+                                  temp_abattement_forfaitaire_d823_17_17)
+        def temp_abattement_forfaitaire_d823_17_43(_:Unit):
+            try:
+                try:
+                    def temp_abattement_forfaitaire_d823_17_44(_:Unit):
+                        return money_of_cents_string("758400")
+                    def temp_abattement_forfaitaire_d823_17_45(_:Unit):
+                        match_arg_392 = residence_5
+                        if match_arg_392.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_392.value
+                            temp_abattement_forfaitaire_d823_17_46 = True
+                        elif match_arg_392.code == Collectivite_Code.Guyane:
+                            _ = match_arg_392.value
+                            temp_abattement_forfaitaire_d823_17_46 = False
+                        elif match_arg_392.code == Collectivite_Code.Martinique:
+                            _ = match_arg_392.value
+                            temp_abattement_forfaitaire_d823_17_46 = True
+                        elif match_arg_392.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_392.value
+                            temp_abattement_forfaitaire_d823_17_46 = True
+                        elif match_arg_392.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_392.value
+                            temp_abattement_forfaitaire_d823_17_46 = True
+                        elif match_arg_392.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_392.value
+                            temp_abattement_forfaitaire_d823_17_46 = True
+                        elif match_arg_392.code == Collectivite_Code.Metropole:
+                            _ = match_arg_392.value
+                            temp_abattement_forfaitaire_d823_17_46 = False
+                        elif match_arg_392.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_392.value
+                            temp_abattement_forfaitaire_d823_17_46 = False
+                        elif match_arg_392.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_392.value
+                            temp_abattement_forfaitaire_d823_17_46 = True
+                        return (((date_courante_11 >=
+                            date_of_numbers(2020,10,1)) and
+                            (date_courante_11 <
+                            date_of_numbers(2021,10,1))) and
+                            (temp_abattement_forfaitaire_d823_17_46 and
+                            (nombre_personnes_a_charge_4 ==
+                            integer_of_string("1"))))
+                    return handle_default(SourcePosition(filename="",
+                                          start_line=0, start_column=1,
+                                          end_line=0, end_column=1,
+                                          law_headings=[]), [],
+                                          temp_abattement_forfaitaire_d823_17_45,
+                                          temp_abattement_forfaitaire_d823_17_44)
+                except EmptyError:
+                    match_arg_393 = residence_5
+                    if match_arg_393.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_393.value
+                        temp_abattement_forfaitaire_d823_17_47 = True
+                    elif match_arg_393.code == Collectivite_Code.Guyane:
+                        _ = match_arg_393.value
+                        temp_abattement_forfaitaire_d823_17_47 = False
+                    elif match_arg_393.code == Collectivite_Code.Martinique:
+                        _ = match_arg_393.value
+                        temp_abattement_forfaitaire_d823_17_47 = True
+                    elif match_arg_393.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_393.value
+                        temp_abattement_forfaitaire_d823_17_47 = True
+                    elif match_arg_393.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_393.value
+                        temp_abattement_forfaitaire_d823_17_47 = True
+                    elif match_arg_393.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_393.value
+                        temp_abattement_forfaitaire_d823_17_47 = True
+                    elif match_arg_393.code == Collectivite_Code.Metropole:
+                        _ = match_arg_393.value
+                        temp_abattement_forfaitaire_d823_17_47 = False
+                    elif match_arg_393.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_393.value
+                        temp_abattement_forfaitaire_d823_17_47 = False
+                    elif match_arg_393.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_393.value
+                        temp_abattement_forfaitaire_d823_17_47 = True
+                    if (((date_courante_11 >= date_of_numbers(2021,10,1)) and
+                        (date_courante_11 < date_of_numbers(2022,1,1))) and
+                        (temp_abattement_forfaitaire_d823_17_47 and
+                        (nombre_personnes_a_charge_4 ==
+                        integer_of_string("1")))):
+                        return money_of_cents_string("758400")
+                    else:
+                        raise EmptyError
+            except EmptyError:
+                def temp_abattement_forfaitaire_d823_17_48(_:Unit):
+                    raise EmptyError
+                def temp_abattement_forfaitaire_d823_17_49(_:Unit):
+                    return False
+                def temp_abattement_forfaitaire_d823_17_50(_:Unit):
+                    def temp_abattement_forfaitaire_d823_17_51(_:Unit):
+                        if (nombre_personnes_a_charge_4 ==
+                            integer_of_string("0")):
+                            match_arg_394 = situation_familiale_calcul_apl_4
+                            if match_arg_394.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                _ = match_arg_394.value
+                                return money_of_cents_string("396000")
+                            elif match_arg_394.code == SituationFamilialeCalculAPL_Code.Couple:
+                                _ = match_arg_394.value
+                                return money_of_cents_string("567300")
+                        else:
+                            if (nombre_personnes_a_charge_4 ==
+                                integer_of_string("1")):
+                                return money_of_cents_string("639600")
+                            else:
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("2")):
+                                    return money_of_cents_string("684900")
+                                else:
+                                    if (nombre_personnes_a_charge_4 ==
+                                        integer_of_string("3")):
+                                        return money_of_cents_string("738600")
+                                    else:
+                                        if (nombre_personnes_a_charge_4 ==
+                                            integer_of_string("4")):
+                                            return money_of_cents_string("793500")
+                                        else:
+                                            if (nombre_personnes_a_charge_4 ==
+                                                integer_of_string("5")):
+                                                return money_of_cents_string("848400")
+                                            else:
+                                                return money_of_cents_string("903200")
+                    def temp_abattement_forfaitaire_d823_17_52(_:Unit):
+                        match_arg_395 = residence_5
+                        if match_arg_395.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_395.value
+                            temp_abattement_forfaitaire_d823_17_53 = True
+                        elif match_arg_395.code == Collectivite_Code.Guyane:
+                            _ = match_arg_395.value
+                            temp_abattement_forfaitaire_d823_17_53 = False
+                        elif match_arg_395.code == Collectivite_Code.Martinique:
+                            _ = match_arg_395.value
+                            temp_abattement_forfaitaire_d823_17_53 = True
+                        elif match_arg_395.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_395.value
+                            temp_abattement_forfaitaire_d823_17_53 = True
+                        elif match_arg_395.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_395.value
+                            temp_abattement_forfaitaire_d823_17_53 = True
+                        elif match_arg_395.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_395.value
+                            temp_abattement_forfaitaire_d823_17_53 = True
+                        elif match_arg_395.code == Collectivite_Code.Metropole:
+                            _ = match_arg_395.value
+                            temp_abattement_forfaitaire_d823_17_53 = False
+                        elif match_arg_395.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_395.value
+                            temp_abattement_forfaitaire_d823_17_53 = False
+                        elif match_arg_395.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_395.value
+                            temp_abattement_forfaitaire_d823_17_53 = True
+                        return (((date_courante_11 >=
+                            date_of_numbers(2020,1,1)) and
+                            (date_courante_11 <
+                            date_of_numbers(2021,1,1))) and
+                            temp_abattement_forfaitaire_d823_17_53)
+                    return handle_default(SourcePosition(filename="",
+                                          start_line=0, start_column=1,
+                                          end_line=0, end_column=1,
+                                          law_headings=[]), [],
+                                          temp_abattement_forfaitaire_d823_17_52,
+                                          temp_abattement_forfaitaire_d823_17_51)
+                def temp_abattement_forfaitaire_d823_17_54(_:Unit):
+                    def temp_abattement_forfaitaire_d823_17_55(_:Unit):
+                        if (nombre_personnes_a_charge_4 ==
+                            integer_of_string("0")):
+                            match_arg_396 = situation_familiale_calcul_apl_4
+                            if match_arg_396.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                _ = match_arg_396.value
+                                return money_of_cents_string("427400")
+                            elif match_arg_396.code == SituationFamilialeCalculAPL_Code.Couple:
+                                _ = match_arg_396.value
+                                return money_of_cents_string("612200")
+                        else:
+                            if (nombre_personnes_a_charge_4 ==
+                                integer_of_string("1")):
+                                return money_of_cents_string("699000")
+                            else:
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("2")):
+                                    return money_of_cents_string("743200")
+                                else:
+                                    if (nombre_personnes_a_charge_4 ==
+                                        integer_of_string("3")):
+                                        return money_of_cents_string("785400")
+                                    else:
+                                        if (nombre_personnes_a_charge_4 ==
+                                            integer_of_string("4")):
+                                            return money_of_cents_string("828300")
+                                        else:
+                                            if (nombre_personnes_a_charge_4 ==
+                                                integer_of_string("5")):
+                                                return money_of_cents_string("871100")
+                                            else:
+                                                return money_of_cents_string("913900")
+                    def temp_abattement_forfaitaire_d823_17_56(_:Unit):
+                        match_arg_397 = residence_5
+                        if match_arg_397.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_397.value
+                            temp_abattement_forfaitaire_d823_17_57 = True
+                        elif match_arg_397.code == Collectivite_Code.Guyane:
+                            _ = match_arg_397.value
+                            temp_abattement_forfaitaire_d823_17_57 = False
+                        elif match_arg_397.code == Collectivite_Code.Martinique:
+                            _ = match_arg_397.value
+                            temp_abattement_forfaitaire_d823_17_57 = True
+                        elif match_arg_397.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_397.value
+                            temp_abattement_forfaitaire_d823_17_57 = True
+                        elif match_arg_397.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_397.value
+                            temp_abattement_forfaitaire_d823_17_57 = True
+                        elif match_arg_397.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_397.value
+                            temp_abattement_forfaitaire_d823_17_57 = True
+                        elif match_arg_397.code == Collectivite_Code.Metropole:
+                            _ = match_arg_397.value
+                            temp_abattement_forfaitaire_d823_17_57 = False
+                        elif match_arg_397.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_397.value
+                            temp_abattement_forfaitaire_d823_17_57 = False
+                        elif match_arg_397.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_397.value
+                            temp_abattement_forfaitaire_d823_17_57 = True
+                        return (((date_courante_11 >=
+                            date_of_numbers(2021,1,1)) and
+                            (date_courante_11 <
+                            date_of_numbers(2022,1,1))) and
+                            temp_abattement_forfaitaire_d823_17_57)
+                    return handle_default(SourcePosition(filename="",
+                                          start_line=0, start_column=1,
+                                          end_line=0, end_column=1,
+                                          law_headings=[]), [],
+                                          temp_abattement_forfaitaire_d823_17_56,
+                                          temp_abattement_forfaitaire_d823_17_55)
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [temp_abattement_forfaitaire_d823_17_54,
+                                      temp_abattement_forfaitaire_d823_17_50],
+                                      temp_abattement_forfaitaire_d823_17_49,
+                                      temp_abattement_forfaitaire_d823_17_48)
+        temp_abattement_forfaitaire_d823_17_58 = handle_default(SourcePosition(filename="",
+                                                                start_line=0,
+                                                                start_column=1,
+                                                                end_line=0, end_column=1,
+                                                                law_headings=[]), [temp_abattement_forfaitaire_d823_17_43,
+                                                                temp_abattement_forfaitaire_d823_17_16],
+                                                                temp_abattement_forfaitaire_d823_17_15,
+                                                                temp_abattement_forfaitaire_d823_17)
     except EmptyError:
-        temp_abattement_forfaitaire_d823_17_36 = dead_value
+        temp_abattement_forfaitaire_d823_17_58 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=550, start_column=11,
                                              end_line=550, end_column=41,
@@ -13609,7 +13632,7 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                              "Calcul du montant de l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
-    abattement_forfaitaire_d823_17 = temp_abattement_forfaitaire_d823_17_36
+    abattement_forfaitaire_d823_17 = temp_abattement_forfaitaire_d823_17_58
     try:
         def temp_loyer_reference(_:Unit):
             raise EmptyError
@@ -15381,8 +15404,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_nombre_parts_dot_date_courante_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4816,
-                                             start_column=14, end_line=4816,
+                                             start_line=4817,
+                                             start_column=14, end_line=4817,
                                              end_column=47,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -15397,8 +15420,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_nombre_parts_dot_condition_2_du_832_25_1 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4815,
-                                             start_column=14, end_line=4815,
+                                             start_line=4816,
+                                             start_column=14, end_line=4816,
                                              end_column=55,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -15413,8 +15436,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_nombre_parts_dot_nombre_personnes_a_charge_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4811,
-                                             start_column=14, end_line=4811,
+                                             start_line=4812,
+                                             start_column=14, end_line=4812,
                                              end_column=59,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -15429,8 +15452,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4813,
-                                             start_column=14, end_line=4813,
+                                             start_line=4814,
+                                             start_column=14, end_line=4814,
                                              end_column=64,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -16164,8 +16187,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4808,
-                                             start_column=14, end_line=4808,
+                                             start_line=4809,
+                                             start_column=14, end_line=4809,
                                              end_column=75,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -16180,8 +16203,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4807,
-                                             start_column=14, end_line=4807,
+                                             start_line=4808,
+                                             start_column=14, end_line=4808,
                                              end_column=69,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -16196,8 +16219,8 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4818,
-                                             start_column=14, end_line=4818,
+                                             start_line=4819,
+                                             start_column=14, end_line=4819,
                                              end_column=70,
                                              law_headings=["Article D842-15",
                                              "Section 3 : Logements-foyers",
@@ -16849,8 +16872,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_nombre_parts_dot_nombre_personnes_a_charge_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4422,
-                                             start_column=14, end_line=4422,
+                                             start_line=4423,
+                                             start_column=14, end_line=4423,
                                              end_column=59,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -16865,8 +16888,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4424,
-                                             start_column=14, end_line=4424,
+                                             start_line=4425,
+                                             start_column=14, end_line=4425,
                                              end_column=64,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -21651,8 +21674,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4418,
-                                             start_column=14, end_line=4418,
+                                             start_line=4419,
+                                             start_column=14, end_line=4419,
                                              end_column=75,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -21667,8 +21690,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4417,
-                                             start_column=14, end_line=4417,
+                                             start_line=4418,
+                                             start_column=14, end_line=4418,
                                              end_column=69,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -21683,8 +21706,8 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
     except EmptyError:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_3 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4420,
-                                             start_column=14, end_line=4420,
+                                             start_line=4421,
+                                             start_column=14, end_line=4421,
                                              end_column=70,
                                              law_headings=["Article D842-6",
                                              "Section 2 : Accession à la propriété",
@@ -23539,8 +23562,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_loyer_principal_base = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4144,
-                                             start_column=14, end_line=4144,
+                                             start_line=4145,
+                                             start_column=14, end_line=4145,
                                              end_column=48,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23555,8 +23578,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_ressources_menage_arrondies = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4146,
-                                             start_column=14, end_line=4146,
+                                             start_line=4147,
+                                             start_column=14, end_line=4147,
                                              end_column=60,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23571,8 +23594,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4148,
-                                             start_column=14, end_line=4148,
+                                             start_line=4149,
+                                             start_column=14, end_line=4149,
                                              end_column=78,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23587,8 +23610,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_date_courante = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4151,
-                                             start_column=14, end_line=4151,
+                                             start_line=4152,
+                                             start_column=14, end_line=4152,
                                              end_column=46,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23603,8 +23626,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_nombre_personnes_a_charge = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4153,
-                                             start_column=14, end_line=4153,
+                                             start_line=4154,
+                                             start_column=14, end_line=4154,
                                              end_column=58,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23619,8 +23642,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_situation_familiale_calcul_apl = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4155,
-                                             start_column=14, end_line=4155,
+                                             start_line=4156,
+                                             start_column=14, end_line=4156,
                                              end_column=63,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23635,8 +23658,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_zone = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4157,
-                                             start_column=14, end_line=4157,
+                                             start_line=4158,
+                                             start_column=14, end_line=4158,
                                              end_column=37,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23651,8 +23674,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_logement_est_chambre = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4159,
-                                             start_column=14, end_line=4159,
+                                             start_line=4160,
+                                             start_column=14, end_line=4160,
                                              end_column=53,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23667,8 +23690,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4162, start_column=5,
-                                             end_line=4163, end_column=63,
+                                             start_line=4163, start_column=5,
+                                             end_line=4164, end_column=63,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
                                              "Chapitre 2 : Modalités de liquidation et de versement des allocations de logement",
@@ -23682,8 +23705,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_type_aide = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4166,
-                                             start_column=14, end_line=4166,
+                                             start_line=4167,
+                                             start_column=14, end_line=4167,
                                              end_column=42,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23698,8 +23721,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_colocation = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4168,
-                                             start_column=14, end_line=4168,
+                                             start_line=4169,
+                                             start_column=14, end_line=4169,
                                              end_column=43,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23714,8 +23737,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_reduction_loyer_solidarite = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4170,
-                                             start_column=14, end_line=4170,
+                                             start_line=4171,
+                                             start_column=14, end_line=4171,
                                              end_column=59,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23730,8 +23753,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_logement_meuble_d842_2 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4172,
-                                             start_column=14, end_line=4172,
+                                             start_line=4173,
+                                             start_column=14, end_line=4173,
                                              end_column=55,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -23746,8 +23769,8 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
     except EmptyError:
         temp_calcul_apl_locatif_dot_residence = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                             start_line=4174,
-                                             start_column=14, end_line=4174,
+                                             start_line=4175,
+                                             start_column=14, end_line=4175,
                                              end_column=42,
                                              law_headings=["Article D842-1",
                                              "Section 1 : Secteur locatif ordinaire",
@@ -27145,317 +27168,304 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
         def temp_condition_logement_bailleur_2(_:Unit):
             try:
                 try:
-                    try:
-                        def temp_condition_logement_bailleur_3(_:Unit):
-                            return True
-                        def temp_condition_logement_bailleur_4(_:Unit):
-                            match_arg_715 = menage_3.logement.mode_occupation
-                            if match_arg_715.code == ModeOccupation_Code.Locataire:
-                                _ = match_arg_715.value
-                                return False
-                            elif match_arg_715.code == ModeOccupation_Code.ResidentLogementFoyer:
-                                logement_foyer_2 = match_arg_715.value
-                                return logement_foyer_2.remplit_conditions_r832_21
-                            elif match_arg_715.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                                _ = match_arg_715.value
-                                return False
-                            elif match_arg_715.code == ModeOccupation_Code.SousLocataire:
-                                _ = match_arg_715.value
-                                return False
-                            elif match_arg_715.code == ModeOccupation_Code.LocationAccession:
-                                _ = match_arg_715.value
-                                return False
-                        return handle_default(SourcePosition(filename="",
-                                              start_line=0, start_column=1,
-                                              end_line=0, end_column=1,
-                                              law_headings=[]), [],
-                                              temp_condition_logement_bailleur_4,
-                                              temp_condition_logement_bailleur_3)
-                    except EmptyError:
-                        match_arg_716 = menage_3.logement.mode_occupation
-                        if match_arg_716.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_716.value
-                            temp_condition_logement_bailleur_5 = False
-                        elif match_arg_716.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            _ = match_arg_716.value
-                            temp_condition_logement_bailleur_5 = False
-                        elif match_arg_716.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            _ = match_arg_716.value
-                            temp_condition_logement_bailleur_5 = False
-                        elif match_arg_716.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_716.value
-                            temp_condition_logement_bailleur_5 = False
-                        elif match_arg_716.code == ModeOccupation_Code.LocationAccession:
-                            propriete = match_arg_716.value
-                            temp_condition_logement_bailleur_5 = caracteristiques_pret_l831_1_6(
-                                propriete.pret)
-                        if temp_condition_logement_bailleur_5:
-                            return True
-                        else:
-                            raise EmptyError
-                except EmptyError:
-                    match_arg_717 = menage_3.logement.mode_occupation
-                    if match_arg_717.code == ModeOccupation_Code.Locataire:
-                        location_3 = match_arg_717.value
-                        match_arg_718 = location_3.bailleur
-                        if match_arg_718.code == TypeBailleur_Code.BailleurSocial:
-                            convention = match_arg_718.value
-                            temp_condition_logement_bailleur_6 = convention.conventionne_livre_III_titre_V_chap_III
-                        elif match_arg_718.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
-                            convention_1 = match_arg_718.value
-                            temp_condition_logement_bailleur_6 = convention_1.conventionne_livre_III_titre_II_chap_I_sec_3
-                        elif match_arg_718.code == TypeBailleur_Code.BailleurPrive:
-                            _ = match_arg_718.value
-                            temp_condition_logement_bailleur_6 = False
-                    elif match_arg_717.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        _ = match_arg_717.value
-                        temp_condition_logement_bailleur_6 = False
-                    elif match_arg_717.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        _ = match_arg_717.value
-                        temp_condition_logement_bailleur_6 = False
-                    elif match_arg_717.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_717.value
-                        temp_condition_logement_bailleur_6 = False
-                    elif match_arg_717.code == ModeOccupation_Code.LocationAccession:
-                        _ = match_arg_717.value
-                        temp_condition_logement_bailleur_6 = False
-                    if temp_condition_logement_bailleur_6:
+                    def temp_condition_logement_bailleur_3(_:Unit):
                         return True
-                    else:
-                        raise EmptyError
-            except EmptyError:
-                match_arg_719 = menage_3.logement.mode_occupation
-                if match_arg_719.code == ModeOccupation_Code.Locataire:
-                    _ = match_arg_719.value
-                    temp_condition_logement_bailleur_7 = False
-                elif match_arg_719.code == ModeOccupation_Code.ResidentLogementFoyer:
-                    _ = match_arg_719.value
-                    temp_condition_logement_bailleur_7 = False
-                elif match_arg_719.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                    propriete_1 = match_arg_719.value
-                    temp_condition_logement_bailleur_7 = caracteristiques_pret_l831_1_1(
-                        propriete_1.pret)
-                elif match_arg_719.code == ModeOccupation_Code.SousLocataire:
-                    _ = match_arg_719.value
-                    temp_condition_logement_bailleur_7 = False
-                elif match_arg_719.code == ModeOccupation_Code.LocationAccession:
-                    _ = match_arg_719.value
-                    temp_condition_logement_bailleur_7 = False
-                if temp_condition_logement_bailleur_7:
-                    return True
-                else:
-                    raise EmptyError
-        def temp_condition_logement_bailleur_8(_:Unit):
-            try:
-                def temp_condition_logement_bailleur_9(_:Unit):
-                    raise EmptyError
-                def temp_condition_logement_bailleur_10(_:Unit):
-                    return False
-                def temp_condition_logement_bailleur_11(_:Unit):
-                    try:
-                        def temp_condition_logement_bailleur_12(_:Unit):
+                    def temp_condition_logement_bailleur_4(_:Unit):
+                        match_arg_715 = menage_3.logement.mode_occupation
+                        if match_arg_715.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_715.value
                             return False
-                        def temp_condition_logement_bailleur_13(_:Unit):
-                            match_arg_720 = menage_3.logement.mode_occupation
-                            if match_arg_720.code == ModeOccupation_Code.Locataire:
-                                _ = match_arg_720.value
-                                temp_condition_logement_bailleur_14 = False
-                            elif match_arg_720.code == ModeOccupation_Code.ResidentLogementFoyer:
-                                logement_foyer_3 = match_arg_720.value
-                                match_arg_721 = logement_foyer_3.type
-                                if match_arg_721.code == TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees:
-                                    _ = match_arg_721.value
-                                    temp_condition_logement_bailleur_14 = False
-                                elif match_arg_721.code == TypeLogementFoyer_Code.ResidenceSociale:
-                                    _ = match_arg_721.value
-                                    temp_condition_logement_bailleur_14 = False
-                                elif match_arg_721.code == TypeLogementFoyer_Code.FoyerJeunesTravailleursOuMigrantsConventionneL353_2Avant1995:
-                                    _ = match_arg_721.value
-                                    temp_condition_logement_bailleur_14 = True
-                                elif match_arg_721.code == TypeLogementFoyer_Code.Autre:
-                                    _ = match_arg_721.value
-                                    temp_condition_logement_bailleur_14 = False
-                            elif match_arg_720.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                                _ = match_arg_720.value
-                                temp_condition_logement_bailleur_14 = False
-                            elif match_arg_720.code == ModeOccupation_Code.SousLocataire:
-                                _ = match_arg_720.value
-                                temp_condition_logement_bailleur_14 = False
-                            elif match_arg_720.code == ModeOccupation_Code.LocationAccession:
-                                _ = match_arg_720.value
-                                temp_condition_logement_bailleur_14 = False
-                            match_arg_722 = menage_3.residence
-                            if match_arg_722.code == Collectivite_Code.Guadeloupe:
-                                _ = match_arg_722.value
-                                temp_condition_logement_bailleur_15 = True
-                            elif match_arg_722.code == Collectivite_Code.Guyane:
-                                _ = match_arg_722.value
-                                temp_condition_logement_bailleur_15 = True
-                            elif match_arg_722.code == Collectivite_Code.Martinique:
-                                _ = match_arg_722.value
-                                temp_condition_logement_bailleur_15 = True
-                            elif match_arg_722.code == Collectivite_Code.LaReunion:
-                                _ = match_arg_722.value
-                                temp_condition_logement_bailleur_15 = True
-                            elif match_arg_722.code == Collectivite_Code.SaintBarthelemy:
-                                _ = match_arg_722.value
-                                temp_condition_logement_bailleur_15 = False
-                            elif match_arg_722.code == Collectivite_Code.SaintMartin:
-                                _ = match_arg_722.value
-                                temp_condition_logement_bailleur_15 = False
-                            elif match_arg_722.code == Collectivite_Code.Metropole:
-                                _ = match_arg_722.value
-                                temp_condition_logement_bailleur_15 = False
-                            elif match_arg_722.code == Collectivite_Code.SaintPierreEtMiquelon:
-                                _ = match_arg_722.value
-                                temp_condition_logement_bailleur_15 = False
-                            elif match_arg_722.code == Collectivite_Code.Mayotte:
-                                _ = match_arg_722.value
-                                temp_condition_logement_bailleur_15 = True
-                            return (((date_courante_19 >=
-                                date_of_numbers(2023,4,5)) and
-                                temp_condition_logement_bailleur_15) and
-                                temp_condition_logement_bailleur_14)
-                        return handle_default(SourcePosition(filename="",
-                                              start_line=0, start_column=1,
-                                              end_line=0, end_column=1,
-                                              law_headings=[]), [],
-                                              temp_condition_logement_bailleur_13,
-                                              temp_condition_logement_bailleur_12)
-                    except EmptyError:
-                        match_arg_723 = menage_3.logement.mode_occupation
-                        if match_arg_723.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_723.value
-                            temp_condition_logement_bailleur_16 = False
-                        elif match_arg_723.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            logement_foyer_4 = match_arg_723.value
-                            match_arg_724 = logement_foyer_4.type
-                            if match_arg_724.code == TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees:
-                                _ = match_arg_724.value
-                                temp_condition_logement_bailleur_16 = False
-                            elif match_arg_724.code == TypeLogementFoyer_Code.ResidenceSociale:
-                                _ = match_arg_724.value
-                                temp_condition_logement_bailleur_16 = False
-                            elif match_arg_724.code == TypeLogementFoyer_Code.FoyerJeunesTravailleursOuMigrantsConventionneL353_2Avant1995:
-                                _ = match_arg_724.value
-                                temp_condition_logement_bailleur_16 = False
-                            elif match_arg_724.code == TypeLogementFoyer_Code.Autre:
-                                _ = match_arg_724.value
-                                temp_condition_logement_bailleur_16 = True
-                        elif match_arg_723.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            _ = match_arg_723.value
-                            temp_condition_logement_bailleur_16 = False
-                        elif match_arg_723.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_723.value
-                            temp_condition_logement_bailleur_16 = False
-                        elif match_arg_723.code == ModeOccupation_Code.LocationAccession:
-                            _ = match_arg_723.value
-                            temp_condition_logement_bailleur_16 = False
-                        if temp_condition_logement_bailleur_16:
+                        elif match_arg_715.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            _ = match_arg_715.value
                             return False
-                        else:
-                            raise EmptyError
-                def temp_condition_logement_bailleur_17(_:Unit):
-                    def temp_condition_logement_bailleur_18(_:Unit):
-                        return True
-                    def temp_condition_logement_bailleur_19(_:Unit):
-                        match_arg_725 = menage_3.logement.mode_occupation
-                        if match_arg_725.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_725.value
-                            temp_condition_logement_bailleur_20 = False
-                        elif match_arg_725.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            location_4 = match_arg_725.value
-                            temp_condition_logement_bailleur_20 = location_4.conventionne_selon_regles_drom
-                        elif match_arg_725.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            _ = match_arg_725.value
-                            temp_condition_logement_bailleur_20 = False
-                        elif match_arg_725.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_725.value
-                            temp_condition_logement_bailleur_20 = False
-                        elif match_arg_725.code == ModeOccupation_Code.LocationAccession:
-                            _ = match_arg_725.value
-                            temp_condition_logement_bailleur_20 = False
-                        match_arg_726 = menage_3.residence
-                        if match_arg_726.code == Collectivite_Code.Guadeloupe:
-                            _ = match_arg_726.value
-                            temp_condition_logement_bailleur_21 = True
-                        elif match_arg_726.code == Collectivite_Code.Guyane:
-                            _ = match_arg_726.value
-                            temp_condition_logement_bailleur_21 = True
-                        elif match_arg_726.code == Collectivite_Code.Martinique:
-                            _ = match_arg_726.value
-                            temp_condition_logement_bailleur_21 = True
-                        elif match_arg_726.code == Collectivite_Code.LaReunion:
-                            _ = match_arg_726.value
-                            temp_condition_logement_bailleur_21 = True
-                        elif match_arg_726.code == Collectivite_Code.SaintBarthelemy:
-                            _ = match_arg_726.value
-                            temp_condition_logement_bailleur_21 = False
-                        elif match_arg_726.code == Collectivite_Code.SaintMartin:
-                            _ = match_arg_726.value
-                            temp_condition_logement_bailleur_21 = False
-                        elif match_arg_726.code == Collectivite_Code.Metropole:
-                            _ = match_arg_726.value
-                            temp_condition_logement_bailleur_21 = False
-                        elif match_arg_726.code == Collectivite_Code.SaintPierreEtMiquelon:
-                            _ = match_arg_726.value
-                            temp_condition_logement_bailleur_21 = False
-                        elif match_arg_726.code == Collectivite_Code.Mayotte:
-                            _ = match_arg_726.value
-                            temp_condition_logement_bailleur_21 = True
-                        return (temp_condition_logement_bailleur_21 and
-                            temp_condition_logement_bailleur_20)
+                        elif match_arg_715.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            _ = match_arg_715.value
+                            return False
+                        elif match_arg_715.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_715.value
+                            return False
+                        elif match_arg_715.code == ModeOccupation_Code.LocationAccession:
+                            propriete = match_arg_715.value
+                            return caracteristiques_pret_l831_1_6(propriete.pret)
                     return handle_default(SourcePosition(filename="",
                                           start_line=0, start_column=1,
                                           end_line=0, end_column=1,
                                           law_headings=[]), [],
-                                          temp_condition_logement_bailleur_19,
-                                          temp_condition_logement_bailleur_18)
-                return handle_default(SourcePosition(filename="",
-                                      start_line=0, start_column=1,
-                                      end_line=0, end_column=1,
-                                      law_headings=[]), [temp_condition_logement_bailleur_17,
-                                      temp_condition_logement_bailleur_11],
-                                      temp_condition_logement_bailleur_10,
-                                      temp_condition_logement_bailleur_9)
+                                          temp_condition_logement_bailleur_4,
+                                          temp_condition_logement_bailleur_3)
+                except EmptyError:
+                    match_arg_716 = menage_3.logement.mode_occupation
+                    if match_arg_716.code == ModeOccupation_Code.Locataire:
+                        location_3 = match_arg_716.value
+                        match_arg_717 = location_3.bailleur
+                        if match_arg_717.code == TypeBailleur_Code.BailleurSocial:
+                            convention = match_arg_717.value
+                            temp_condition_logement_bailleur_5 = convention.conventionne_livre_III_titre_V_chap_III
+                        elif match_arg_717.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                            convention_1 = match_arg_717.value
+                            temp_condition_logement_bailleur_5 = convention_1.conventionne_livre_III_titre_II_chap_I_sec_3
+                        elif match_arg_717.code == TypeBailleur_Code.BailleurPrive:
+                            _ = match_arg_717.value
+                            temp_condition_logement_bailleur_5 = False
+                    elif match_arg_716.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        _ = match_arg_716.value
+                        temp_condition_logement_bailleur_5 = False
+                    elif match_arg_716.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        _ = match_arg_716.value
+                        temp_condition_logement_bailleur_5 = False
+                    elif match_arg_716.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_716.value
+                        temp_condition_logement_bailleur_5 = False
+                    elif match_arg_716.code == ModeOccupation_Code.LocationAccession:
+                        _ = match_arg_716.value
+                        temp_condition_logement_bailleur_5 = False
+                    if temp_condition_logement_bailleur_5:
+                        return True
+                    else:
+                        raise EmptyError
             except EmptyError:
-                match_arg_727 = menage_3.logement.mode_occupation
-                if match_arg_727.code == ModeOccupation_Code.Locataire:
-                    _ = match_arg_727.value
-                    temp_condition_logement_bailleur_22 = False
-                elif match_arg_727.code == ModeOccupation_Code.ResidentLogementFoyer:
-                    location_5 = match_arg_727.value
-                    temp_condition_logement_bailleur_22 = location_5.conventionne_livre_III_titre_V_chap_III
-                elif match_arg_727.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                    _ = match_arg_727.value
-                    temp_condition_logement_bailleur_22 = False
-                elif match_arg_727.code == ModeOccupation_Code.SousLocataire:
-                    _ = match_arg_727.value
-                    temp_condition_logement_bailleur_22 = False
-                elif match_arg_727.code == ModeOccupation_Code.LocationAccession:
-                    _ = match_arg_727.value
-                    temp_condition_logement_bailleur_22 = False
-                if temp_condition_logement_bailleur_22:
+                match_arg_718 = menage_3.logement.mode_occupation
+                if match_arg_718.code == ModeOccupation_Code.Locataire:
+                    _ = match_arg_718.value
+                    temp_condition_logement_bailleur_6 = False
+                elif match_arg_718.code == ModeOccupation_Code.ResidentLogementFoyer:
+                    _ = match_arg_718.value
+                    temp_condition_logement_bailleur_6 = False
+                elif match_arg_718.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                    propriete_1 = match_arg_718.value
+                    temp_condition_logement_bailleur_6 = caracteristiques_pret_l831_1_1(
+                        propriete_1.pret)
+                elif match_arg_718.code == ModeOccupation_Code.SousLocataire:
+                    _ = match_arg_718.value
+                    temp_condition_logement_bailleur_6 = False
+                elif match_arg_718.code == ModeOccupation_Code.LocationAccession:
+                    _ = match_arg_718.value
+                    temp_condition_logement_bailleur_6 = False
+                if temp_condition_logement_bailleur_6:
                     return True
                 else:
                     raise EmptyError
-        temp_condition_logement_bailleur_23 = handle_default(SourcePosition(filename="",
+        def temp_condition_logement_bailleur_7(_:Unit):
+            try:
+                try:
+                    def temp_condition_logement_bailleur_8(_:Unit):
+                        return False
+                    def temp_condition_logement_bailleur_9(_:Unit):
+                        match_arg_719 = menage_3.logement.mode_occupation
+                        if match_arg_719.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_719.value
+                            temp_condition_logement_bailleur_10 = False
+                        elif match_arg_719.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            logement_foyer_2 = match_arg_719.value
+                            match_arg_720 = logement_foyer_2.type
+                            if match_arg_720.code == TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees:
+                                _ = match_arg_720.value
+                                temp_condition_logement_bailleur_10 = False
+                            elif match_arg_720.code == TypeLogementFoyer_Code.ResidenceSociale:
+                                _ = match_arg_720.value
+                                temp_condition_logement_bailleur_10 = False
+                            elif match_arg_720.code == TypeLogementFoyer_Code.FoyerJeunesTravailleursOuMigrantsConventionneL353_2Avant1995:
+                                _ = match_arg_720.value
+                                temp_condition_logement_bailleur_10 = True
+                            elif match_arg_720.code == TypeLogementFoyer_Code.Autre:
+                                _ = match_arg_720.value
+                                temp_condition_logement_bailleur_10 = False
+                        elif match_arg_719.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            _ = match_arg_719.value
+                            temp_condition_logement_bailleur_10 = False
+                        elif match_arg_719.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_719.value
+                            temp_condition_logement_bailleur_10 = False
+                        elif match_arg_719.code == ModeOccupation_Code.LocationAccession:
+                            _ = match_arg_719.value
+                            temp_condition_logement_bailleur_10 = False
+                        match_arg_721 = menage_3.residence
+                        if match_arg_721.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_721.value
+                            temp_condition_logement_bailleur_11 = True
+                        elif match_arg_721.code == Collectivite_Code.Guyane:
+                            _ = match_arg_721.value
+                            temp_condition_logement_bailleur_11 = True
+                        elif match_arg_721.code == Collectivite_Code.Martinique:
+                            _ = match_arg_721.value
+                            temp_condition_logement_bailleur_11 = True
+                        elif match_arg_721.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_721.value
+                            temp_condition_logement_bailleur_11 = True
+                        elif match_arg_721.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_721.value
+                            temp_condition_logement_bailleur_11 = False
+                        elif match_arg_721.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_721.value
+                            temp_condition_logement_bailleur_11 = False
+                        elif match_arg_721.code == Collectivite_Code.Metropole:
+                            _ = match_arg_721.value
+                            temp_condition_logement_bailleur_11 = False
+                        elif match_arg_721.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_721.value
+                            temp_condition_logement_bailleur_11 = False
+                        elif match_arg_721.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_721.value
+                            temp_condition_logement_bailleur_11 = True
+                        return (((date_courante_19 >=
+                            date_of_numbers(2023,4,5)) and
+                            temp_condition_logement_bailleur_11) and
+                            temp_condition_logement_bailleur_10)
+                    return handle_default(SourcePosition(filename="",
+                                          start_line=0, start_column=1,
+                                          end_line=0, end_column=1,
+                                          law_headings=[]), [],
+                                          temp_condition_logement_bailleur_9,
+                                          temp_condition_logement_bailleur_8)
+                except EmptyError:
+                    match_arg_722 = menage_3.logement.mode_occupation
+                    if match_arg_722.code == ModeOccupation_Code.Locataire:
+                        _ = match_arg_722.value
+                        temp_condition_logement_bailleur_12 = False
+                    elif match_arg_722.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        logement_foyer_3 = match_arg_722.value
+                        match_arg_723 = logement_foyer_3.type
+                        if match_arg_723.code == TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees:
+                            _ = match_arg_723.value
+                            temp_condition_logement_bailleur_12 = False
+                        elif match_arg_723.code == TypeLogementFoyer_Code.ResidenceSociale:
+                            _ = match_arg_723.value
+                            temp_condition_logement_bailleur_12 = False
+                        elif match_arg_723.code == TypeLogementFoyer_Code.FoyerJeunesTravailleursOuMigrantsConventionneL353_2Avant1995:
+                            _ = match_arg_723.value
+                            temp_condition_logement_bailleur_12 = False
+                        elif match_arg_723.code == TypeLogementFoyer_Code.Autre:
+                            _ = match_arg_723.value
+                            temp_condition_logement_bailleur_12 = True
+                    elif match_arg_722.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        _ = match_arg_722.value
+                        temp_condition_logement_bailleur_12 = False
+                    elif match_arg_722.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_722.value
+                        temp_condition_logement_bailleur_12 = False
+                    elif match_arg_722.code == ModeOccupation_Code.LocationAccession:
+                        _ = match_arg_722.value
+                        temp_condition_logement_bailleur_12 = False
+                    if temp_condition_logement_bailleur_12:
+                        return False
+                    else:
+                        raise EmptyError
+            except EmptyError:
+                try:
+                    try:
+                        def temp_condition_logement_bailleur_13(_:Unit):
+                            return True
+                        def temp_condition_logement_bailleur_14(_:Unit):
+                            match_arg_724 = menage_3.logement.mode_occupation
+                            if match_arg_724.code == ModeOccupation_Code.Locataire:
+                                _ = match_arg_724.value
+                                return False
+                            elif match_arg_724.code == ModeOccupation_Code.ResidentLogementFoyer:
+                                logement_foyer_4 = match_arg_724.value
+                                return logement_foyer_4.remplit_conditions_r832_21
+                            elif match_arg_724.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                                _ = match_arg_724.value
+                                return False
+                            elif match_arg_724.code == ModeOccupation_Code.SousLocataire:
+                                _ = match_arg_724.value
+                                return False
+                            elif match_arg_724.code == ModeOccupation_Code.LocationAccession:
+                                _ = match_arg_724.value
+                                return False
+                        return handle_default(SourcePosition(filename="",
+                                              start_line=0, start_column=1,
+                                              end_line=0, end_column=1,
+                                              law_headings=[]), [],
+                                              temp_condition_logement_bailleur_14,
+                                              temp_condition_logement_bailleur_13)
+                    except EmptyError:
+                        match_arg_725 = menage_3.logement.mode_occupation
+                        if match_arg_725.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_725.value
+                            temp_condition_logement_bailleur_15 = False
+                        elif match_arg_725.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            location_4 = match_arg_725.value
+                            temp_condition_logement_bailleur_15 = location_4.conventionne_selon_regles_drom
+                        elif match_arg_725.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            _ = match_arg_725.value
+                            temp_condition_logement_bailleur_15 = False
+                        elif match_arg_725.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_725.value
+                            temp_condition_logement_bailleur_15 = False
+                        elif match_arg_725.code == ModeOccupation_Code.LocationAccession:
+                            _ = match_arg_725.value
+                            temp_condition_logement_bailleur_15 = False
+                        match_arg_726 = menage_3.residence
+                        if match_arg_726.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_726.value
+                            temp_condition_logement_bailleur_16 = True
+                        elif match_arg_726.code == Collectivite_Code.Guyane:
+                            _ = match_arg_726.value
+                            temp_condition_logement_bailleur_16 = True
+                        elif match_arg_726.code == Collectivite_Code.Martinique:
+                            _ = match_arg_726.value
+                            temp_condition_logement_bailleur_16 = True
+                        elif match_arg_726.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_726.value
+                            temp_condition_logement_bailleur_16 = True
+                        elif match_arg_726.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_726.value
+                            temp_condition_logement_bailleur_16 = False
+                        elif match_arg_726.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_726.value
+                            temp_condition_logement_bailleur_16 = False
+                        elif match_arg_726.code == Collectivite_Code.Metropole:
+                            _ = match_arg_726.value
+                            temp_condition_logement_bailleur_16 = False
+                        elif match_arg_726.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_726.value
+                            temp_condition_logement_bailleur_16 = False
+                        elif match_arg_726.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_726.value
+                            temp_condition_logement_bailleur_16 = True
+                        if (temp_condition_logement_bailleur_16 and
+                            temp_condition_logement_bailleur_15):
+                            return True
+                        else:
+                            raise EmptyError
+                except EmptyError:
+                    match_arg_727 = menage_3.logement.mode_occupation
+                    if match_arg_727.code == ModeOccupation_Code.Locataire:
+                        _ = match_arg_727.value
+                        temp_condition_logement_bailleur_17 = False
+                    elif match_arg_727.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        location_5 = match_arg_727.value
+                        temp_condition_logement_bailleur_17 = location_5.conventionne_livre_III_titre_V_chap_III
+                    elif match_arg_727.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        _ = match_arg_727.value
+                        temp_condition_logement_bailleur_17 = False
+                    elif match_arg_727.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_727.value
+                        temp_condition_logement_bailleur_17 = False
+                    elif match_arg_727.code == ModeOccupation_Code.LocationAccession:
+                        _ = match_arg_727.value
+                        temp_condition_logement_bailleur_17 = False
+                    if temp_condition_logement_bailleur_17:
+                        return True
+                    else:
+                        raise EmptyError
+        temp_condition_logement_bailleur_18 = handle_default(SourcePosition(filename="",
                                                              start_line=0,
                                                              start_column=1,
                                                              end_line=0, end_column=1,
-                                                             law_headings=[]), [temp_condition_logement_bailleur_8,
+                                                             law_headings=[]), [temp_condition_logement_bailleur_7,
                                                              temp_condition_logement_bailleur_2],
                                                              temp_condition_logement_bailleur_1,
                                                              temp_condition_logement_bailleur)
     except EmptyError:
-        temp_condition_logement_bailleur_23 = dead_value
+        temp_condition_logement_bailleur_18 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/prologue.catala_fr",
                                              start_line=381, start_column=11,
                                              end_line=381, end_column=38,
                                              law_headings=["Éligibilité à l'aide personnalisée au logement",
                                              "Déclarations des champs d'application",
                                              "Prologue : aides au logement"]))
-    condition_logement_bailleur = temp_condition_logement_bailleur_23
+    condition_logement_bailleur = temp_condition_logement_bailleur_18
     try:
         temp_coefficents_enfants_garde_alternee_pris_en_compte_4 = eligibilite_commune_dot_coefficents_enfants_garde_alternee_pris_en_compte_1
     except EmptyError:
@@ -27749,9 +27759,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_89 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6546,
+                                                             start_line=6547,
                                                              start_column=42,
-                                                             end_line=6546,
+                                                             end_line=6547,
                                                              end_column=57,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27765,9 +27775,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_90 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6518,
+                                                             start_line=6519,
                                                              start_column=25,
-                                                             end_line=6518,
+                                                             end_line=6519,
                                                              end_column=34,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27781,9 +27791,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_91 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6545,
+                                                             start_line=6546,
                                                              start_column=38,
-                                                             end_line=6545,
+                                                             end_line=6546,
                                                              end_column=76,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27797,9 +27807,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_92 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6544,
+                                                             start_line=6545,
                                                              start_column=42,
-                                                             end_line=6544,
+                                                             end_line=6545,
                                                              end_column=45,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27813,9 +27823,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_93 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6536,
+                                                             start_line=6537,
                                                              start_column=26,
-                                                             end_line=6536,
+                                                             end_line=6537,
                                                              end_column=52,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27829,9 +27839,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_94 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6540,
+                                                             start_line=6541,
                                                              start_column=25,
-                                                             end_line=6540,
+                                                             end_line=6541,
                                                              end_column=34,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27845,9 +27855,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_95 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6539,
+                                                             start_line=6540,
                                                              start_column=72,
-                                                             end_line=6539,
+                                                             end_line=6540,
                                                              end_column=76,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27861,9 +27871,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_96 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6535,
+                                                             start_line=6536,
                                                              start_column=36,
-                                                             end_line=6535,
+                                                             end_line=6536,
                                                              end_column=72,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27877,9 +27887,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_97 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6521,
+                                                             start_line=6522,
                                                              start_column=20,
-                                                             end_line=6521,
+                                                             end_line=6522,
                                                              end_column=24,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27893,9 +27903,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_98 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6523,
+                                                             start_line=6524,
                                                              start_column=46,
-                                                             end_line=6523,
+                                                             end_line=6524,
                                                              end_column=76,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27909,9 +27919,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_99 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6520,
+                                                             start_line=6521,
                                                              start_column=41,
-                                                             end_line=6520,
+                                                             end_line=6521,
                                                              end_column=66,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27925,9 +27935,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_100 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6522,
+                                                             start_line=6523,
                                                              start_column=29,
-                                                             end_line=6522,
+                                                             end_line=6523,
                                                              end_column=42,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27941,9 +27951,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_101 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6527,
+                                                             start_line=6528,
                                                              start_column=15,
-                                                             end_line=6527,
+                                                             end_line=6528,
                                                              end_column=76,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27957,9 +27967,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_102 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6519,
+                                                             start_line=6520,
                                                              start_column=43,
-                                                             end_line=6519,
+                                                             end_line=6520,
                                                              end_column=60,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27973,9 +27983,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     except EmptyError:
                         temp_sous_calcul_traitement_103 = dead_value
                         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                             start_line=6525,
+                                                             start_line=6526,
                                                              start_column=31,
-                                                             end_line=6525,
+                                                             end_line=6526,
                                                              end_column=56,
                                                              law_headings=["Article D863-7",
                                                              "Sous-section III : Modalités de liquidation et de versement",
@@ -27990,9 +28000,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_105 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6525,
+                                                                 start_line=6526,
                                                                  start_column=31,
-                                                                 end_line=6525,
+                                                                 end_line=6526,
                                                                  end_column=56,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28006,9 +28016,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_106 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6519,
+                                                                 start_line=6520,
                                                                  start_column=43,
-                                                                 end_line=6519,
+                                                                 end_line=6520,
                                                                  end_column=60,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28022,9 +28032,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_107 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6527,
+                                                                 start_line=6528,
                                                                  start_column=15,
-                                                                 end_line=6527,
+                                                                 end_line=6528,
                                                                  end_column=76,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28038,9 +28048,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_108 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6522,
+                                                                 start_line=6523,
                                                                  start_column=29,
-                                                                 end_line=6522,
+                                                                 end_line=6523,
                                                                  end_column=42,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28054,9 +28064,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_109 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6520,
+                                                                 start_line=6521,
                                                                  start_column=41,
-                                                                 end_line=6520,
+                                                                 end_line=6521,
                                                                  end_column=66,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28070,9 +28080,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_110 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6523,
+                                                                 start_line=6524,
                                                                  start_column=46,
-                                                                 end_line=6523,
+                                                                 end_line=6524,
                                                                  end_column=76,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28086,9 +28096,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_111 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6521,
+                                                                 start_line=6522,
                                                                  start_column=20,
-                                                                 end_line=6521,
+                                                                 end_line=6522,
                                                                  end_column=24,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28102,9 +28112,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_112 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6535,
+                                                                 start_line=6536,
                                                                  start_column=36,
-                                                                 end_line=6535,
+                                                                 end_line=6536,
                                                                  end_column=72,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28118,9 +28128,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_113 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6539,
+                                                                 start_line=6540,
                                                                  start_column=72,
-                                                                 end_line=6539,
+                                                                 end_line=6540,
                                                                  end_column=76,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28134,9 +28144,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_114 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6540,
+                                                                 start_line=6541,
                                                                  start_column=25,
-                                                                 end_line=6540,
+                                                                 end_line=6541,
                                                                  end_column=34,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28150,9 +28160,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_115 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6536,
+                                                                 start_line=6537,
                                                                  start_column=26,
-                                                                 end_line=6536,
+                                                                 end_line=6537,
                                                                  end_column=52,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28166,9 +28176,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_116 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6544,
+                                                                 start_line=6545,
                                                                  start_column=42,
-                                                                 end_line=6544,
+                                                                 end_line=6545,
                                                                  end_column=45,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28182,9 +28192,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_117 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6545,
+                                                                 start_line=6546,
                                                                  start_column=38,
-                                                                 end_line=6545,
+                                                                 end_line=6546,
                                                                  end_column=76,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28198,9 +28208,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_118 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6518,
+                                                                 start_line=6519,
                                                                  start_column=25,
-                                                                 end_line=6518,
+                                                                 end_line=6519,
                                                                  end_column=34,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",
@@ -28215,9 +28225,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         except EmptyError:
                             temp_sous_calcul_traitement_119 = dead_value
                             raise NoValueProvided(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
-                                                                 start_line=6546,
+                                                                 start_line=6547,
                                                                  start_column=42,
-                                                                 end_line=6546,
+                                                                 end_line=6547,
                                                                  end_column=57,
                                                                  law_headings=["Article D863-7",
                                                                  "Sous-section III : Modalités de liquidation et de versement",

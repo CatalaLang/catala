@@ -3565,7 +3565,7 @@ déclaration énumération TypeLogementFoyer:
 # "ÉligibilitéAidePersonnaliséeLogement" qui assurera que les logements-foyer
 # "Autre" soient bien exclus de l'éligibilité à l'APL.
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
-  exception l831_1_alinea_5
+  exception logement_foyer
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de logement_foyer:
@@ -3624,6 +3624,7 @@ remplacée par la convention prévue au III de l'article R. 353-159 .
 
 ```catala
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
+  étiquette logement_foyer
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de logement_foyer:
@@ -5693,7 +5694,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement sous condition
   -- LaRéunion: vrai
   -- Mayotte: vrai
   -- n'importe quel: faux:
-   exception l831_1_alinea_5
+   exception logement_foyer
    règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de logement_foyer:
