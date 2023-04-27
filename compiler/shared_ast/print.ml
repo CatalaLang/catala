@@ -354,6 +354,7 @@ end
 
 let rec expr_aux :
     type a.
+    ?hide_function_body:bool ->
     ?debug:bool ->
     decl_ctx option ->
     Bindlib.ctxt ->
@@ -361,8 +362,10 @@ let rec expr_aux :
     Format.formatter ->
     (a, 't) gexpr ->
     unit =
- fun ?(debug = false) ctx bnd_ctx colors fmt e ->
-  let exprb bnd_ctx colors e = expr_aux ~debug ctx bnd_ctx colors e in
+ fun ?(hide_function_body = false) ?(debug = false) ctx bnd_ctx colors fmt e ->
+  let exprb bnd_ctx colors e =
+    expr_aux ~hide_function_body ~debug ctx bnd_ctx colors e
+  in
   let exprc colors e = exprb bnd_ctx colors e in
   let expr e = exprc colors e in
   let var = if debug then var_debug else var in
@@ -417,16 +420,18 @@ let rec expr_aux :
              (expr colors) arg keyword "in"))
       xs_tau_arg (rhs expr) body
   | EAbs { binder; tys } ->
-    let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
-    let expr = exprb bnd_ctx in
-    let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
-    Format.fprintf fmt "@[<hov 2>%a @[<hov 2>%a@] %a@ %a@]" punctuation "λ"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-         (fun fmt (x, tau) ->
-           Format.fprintf fmt "%a%a%a %a%a" punctuation "(" var x punctuation
-             ":" (typ ctx) tau punctuation ")"))
-      xs_tau punctuation "→" (rhs expr) body
+    if hide_function_body then Format.fprintf fmt "%a" op_style "<function>"
+    else
+      let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+      let expr = exprb bnd_ctx in
+      let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
+      Format.fprintf fmt "@[<hov 2>%a @[<hov 2>%a@] %a@ %a@]" punctuation "λ"
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+           (fun fmt (x, tau) ->
+             Format.fprintf fmt "%a%a%a %a%a" punctuation "(" var x punctuation
+               ":" (typ ctx) tau punctuation ")"))
+        xs_tau punctuation "→" (rhs expr) body
   | EApp { f = EOp { op = (Map | Filter) as op; _ }, _; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" operator op (lhs exprc) arg1
       (rhs exprc) arg2
@@ -531,7 +536,9 @@ let rec colors =
 let typ_debug = typ None
 let typ ctx = typ (Some ctx)
 let expr_debug ?debug = expr_aux ?debug None Bindlib.empty_ctxt colors
-let expr ?debug ctx = expr_aux ?debug (Some ctx) Bindlib.empty_ctxt colors
+
+let expr ?hide_function_body ?debug ctx =
+  expr_aux ?hide_function_body ?debug (Some ctx) Bindlib.empty_ctxt colors
 
 let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   match k with

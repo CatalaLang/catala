@@ -713,7 +713,8 @@ let remove_logging_calls e =
   in
   f e
 
-let format ?debug decl_ctx ppf e = Print.expr ?debug decl_ctx ppf e
+let format ?hide_function_body ?debug decl_ctx ppf e =
+  Print.expr ?hide_function_body ?debug decl_ctx ppf e
 
 let rec size : type a. (a, 't) gexpr -> int =
  fun e ->

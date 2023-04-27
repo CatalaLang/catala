@@ -341,6 +341,8 @@ val remove_logging_calls :
     their argument. *)
 
 val format :
+  ?hide_function_body:bool
+    (** if [true], prints "<function>" for [EAbs] nodes *) ->
   ?debug:bool (** [true] for debug printing *) ->
   decl_ctx ->
   Format.formatter ->

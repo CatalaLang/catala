@@ -42,6 +42,8 @@ val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
 
 val expr :
+  ?hide_function_body:bool
+    (** if [true], prints "<function>" for [EAbs] nodes *) ->
   ?debug:bool (** [true] for debug printing *) ->
   decl_ctx ->
   Format.formatter ->
