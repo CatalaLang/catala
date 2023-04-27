@@ -1877,7 +1877,17 @@ pour un ménage ayant un enfant à charge, est remplacée par " 7 584 euros " ;
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
-  exception métropole
+  # Normalement la règle suivante aurait du être une exception à l'étiquette
+  # "métropole".Cependant, la version de l'article 47 de l'arrêté du 27
+  # septembre 2019 en vigueur du 1er janvier 2021 au 31 décembre 2021 prévoit
+  # également dans le cas de l'outre-mer un remplacement du tableau des valeurs
+  # de R0 de l'article 15. Cependant pour faire exister cette règle plus précise
+  # valable uniquement fin 2021, nous la codons ici comme une exception au
+  # tableau de l'article 47 afin d'éviter le conflit entre deux règles qui
+  # s'activent en même temps.
+  # TODO juridique: savoir pourquoi ces deux règles qui entrent en conflit sur
+  # la valeur de R0 dans ce cas: 6990 € ou 7584 € ?
+  exception article_47
   définition abattement_forfaitaire_d823_17
   sous condition
     (selon résidence sous forme
@@ -2966,7 +2976,17 @@ code, pour un ménage ayant un enfant à charge, est remplacée par " 7 584 euro
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
-  exception métropole
+  # Normalement la règle suivante aurait du être une exception à l'étiquette
+  # "métropole". Cependant, la version de l'article 47 de l'arrêté du 27
+  # septembre 2019 en vigueur du 1er janvier 2020 au 31 décembre 2020 prévoit
+  # également dans le cas de l'outre-mer un remplacement du tableau des valeurs
+  # de R0 de l'article 15. Cependant pour faire exister cette règle plus précise valable
+  # uniquement fin 2020, nous la codons ici comme une exception au tableau de
+  # l'article 47 afin d'éviter le conflit entre deux règles qui s'activent en
+  # même temps.
+  # TODO juridique: savoir pourquoi ces deux règles qui entrent en conflit sur
+  # la valeur de R0 dans ce cas: 6396 € ou 7584 €?
+  exception article_47
   définition abattement_forfaitaire_d823_17
   sous condition
     (selon résidence sous forme
@@ -3263,6 +3283,7 @@ Personne seule ou couple ayant :
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-01-01| et date_courante < |2022-01-01|:
+  étiquette article_47
   exception métropole
   définition abattement_forfaitaire_d823_17 sous condition
     selon résidence sous forme
@@ -3796,6 +3817,7 @@ dispositions sont applicables pour les prestations dues à compter du 1er janvie
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2020-01-01| et date_courante < |2021-01-01|:
+  étiquette article_47
   exception métropole
   définition abattement_forfaitaire_d823_17 sous condition
     selon résidence sous forme
