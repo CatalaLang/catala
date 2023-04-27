@@ -171,7 +171,7 @@ $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 ```catala-test-inline
 $ catala Interpret -s Exemple2
 [RESULT] Computation successful! Results:
-[RESULT] montant_versé = 230.15 €
+[RESULT] montant_versé = 230.63 €
 [RESULT] éligibilité = true
 ```
 

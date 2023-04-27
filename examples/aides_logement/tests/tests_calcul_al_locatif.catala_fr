@@ -122,7 +122,7 @@ champ d'application Exemple4 :
   assertion calcul.participation_minimale = 42,99 €
   assertion calcul.taux_composition_familiale = 2,38%
   assertion calcul.participation_personnelle = 131,30 €
-  assertion montant = 230,15 €
+  assertion montant = 230,63 €
 ```
 
 ```catala-test-inline
@@ -158,7 +158,7 @@ $ catala Interpret -s Exemple3 --disable_warnings
 ```catala-test-inline
 $ catala Interpret -s Exemple4 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = 230.15 €
+[RESULT] montant = 230.63 €
 ```
 
 ```catala-test-inline

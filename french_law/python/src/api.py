@@ -142,6 +142,8 @@ class InfosLogementFoyer(InfosSpecifiques):
                  categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer_Code,
                  conventionne_selon_regles_drom: bool,
                  beneficiaire_aide_adulte_ou_enfant_handicapes: bool,
+                 logement_est_chambre: bool,
+                 colocation: bool,
                  logement_meuble_d842_2: bool,
                  logement_foyer_jeunes_travailleurs: bool):
         self.logement_foyer_jeunes_travailleurs = logement_foyer_jeunes_travailleurs
@@ -155,6 +157,8 @@ class InfosLogementFoyer(InfosSpecifiques):
         self.conventionne_selon_regles_drom = conventionne_selon_regles_drom
         self.beneficiaire_aide_adulte_ou_enfant_handicapes = beneficiaire_aide_adulte_ou_enfant_handicapes
         self.logement_meuble_d842_2 = logement_meuble_d842_2
+        self.logement_est_chambre = logement_est_chambre
+        self.colocation = colocation
 
 
 class InfosAccessionPropriete(InfosSpecifiques):
@@ -274,8 +278,9 @@ def aides_logement(
                                 infos_specifiques.redevance),
                             categorie_equivalence_loyer_d842_16=CategorieEquivalenceLoyerAllocationLogementFoyer(
                                 code=infos_specifiques.categorie_equivalence_loyer_d842_16,
-                                value=Unit()
-                            )
+                                value=Unit()),
+                            logement_est_chambre=infos_specifiques.logement_est_chambre,
+                            colocation=infos_specifiques.colocation
                         ) if isinstance(infos_specifiques, InfosLogementFoyer) else
                             (Proprietaire(
                                 mensualite_principale=money_of_units_int(

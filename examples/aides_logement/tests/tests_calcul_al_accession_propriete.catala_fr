@@ -69,7 +69,7 @@ champ d'application Exemple2:
   assertion calcul.mensualité_minimale = 296,96 €
   assertion calcul.coefficient_prise_en_charge = 0,66
   assertion calcul.aide_finale_formule = 141,99€
-  assertion montant = 85,43 €
+  assertion montant = 85,00 €
 ```
 
 ```catala-test-inline
@@ -87,7 +87,7 @@ $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 ```catala-test-inline
 $ catala Interpret -s Exemple2
 [RESULT] Computation successful! Results:
-[RESULT] montant = 85.43 €
+[RESULT] montant = 85.00 €
 ```
 
 ```catala-test-inline
