@@ -48,7 +48,6 @@ module To_json = struct
 
   let fmt_tlit fmt (tlit : typ_lit) =
     match tlit with
-    | TUnit -> Format.fprintf fmt "\"type\": \"null\",@\n\"default\": null"
     | TInt | TRat -> Format.fprintf fmt "\"type\": \"number\",@\n\"default\": 0"
     | TMoney ->
       Format.fprintf fmt
@@ -56,6 +55,10 @@ module To_json = struct
     | TBool -> Format.fprintf fmt "\"type\": \"boolean\",@\n\"default\": false"
     | TDate -> Format.fprintf fmt "\"type\": \"string\",@\n\"format\": \"date\""
     | TDuration -> failwith "TODO: tlit duration"
+    | TUnit ->
+      (* NOTE(@EmileRolley): we previously used the "null" type for unit, but it
+         is not working properly so we simply decided to remove it. *)
+      ()
 
   let rec fmt_type fmt (typ : typ) =
     match Marked.unmark typ with
