@@ -1136,7 +1136,6 @@ soins de longue durée mentionnés au 3° de l'article L. 162-22 du code de la s
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  exception accession_propriété
   # Nous considérons que L841-3 est une exception à L841-4 et non pas à
   # L841-2 (cas de base) car si L841-3 et L84164 étaient tous deux exceptions
   # de L841-2, alors il pourrait y avoir conflit entre ces deux exceptions.
@@ -1145,6 +1144,17 @@ champ d'application ÉligibilitéAllocationLogement:
   # de soin longue durée avec un prêt aidé par l'État.
   # Donc ici plutôt que d'écrire un invariant qui exclut ce cas de figure,
   # on préfère hiérarchiser entre elles les exceptions pour lever le conflit.
+  # Idem avec l'exception prévue par L861-8. Nous écrivons donc l'assertion
+  # ci-dessous pour matérialiser l'impossibilité de se retrouver dans ces
+  # situations.
+  assertion non (
+    demandeur.personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale et
+    (ménage.logement.mode_occupation sous forme
+      AccessionPropriétéLocalUsageExclusifHabitation ou
+    demandeur.
+      magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte))
+
+  exception base
   définition éligibilité état l841_2 sous condition
     demandeur.personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
   conséquence égal à

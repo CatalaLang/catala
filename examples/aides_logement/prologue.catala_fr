@@ -491,6 +491,9 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
     date_courante
   définition base_mensuelle_allocations_familiales.date_courante égal à
     date_courante
+  # Ce programme ne peut pas être utilisé avec des dates trop anciennes,
+  # pour lesquelles les textes en vigueur n'ont pas été formalisés.
+  assertion date_courante >= |2019-10-01|
 ```
 
 ### Calcul des contributions sociales s'appliquant aux aides personnelles au logement
