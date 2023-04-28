@@ -1114,7 +1114,7 @@ let process_assert
                 cond ),
           Marked.get_mark cond ))
   in
-  let ass =
+  let assertion =
     match precond with
     | Some precond ->
       Expr.eifthenelse precond ass
@@ -1122,8 +1122,17 @@ let process_assert
         (Marked.get_mark precond)
     | None -> ass
   in
+  (* The assertion name is not very relevant and should not be used in error
+     messages, it is only a reference to designate the assertion instead of its
+     expression. *)
+  let assertion_name = Ast.AssertionName.fresh ("assert", Expr.pos assertion) in
   let new_scope =
-    { scope with scope_assertions = ass :: scope.scope_assertions }
+    {
+      scope with
+      scope_assertions =
+        Ast.AssertionName.Map.add assertion_name assertion
+          scope.scope_assertions;
+    }
   in
   {
     prgm with
@@ -1410,7 +1419,7 @@ let translate_program
             Ast.scope_vars;
             scope_sub_scopes;
             scope_defs = init_scope_defs ctxt s_context.var_idmap;
-            scope_assertions = [];
+            scope_assertions = Ast.AssertionName.Map.empty;
             scope_meta_assertions = [];
             scope_options = [];
             scope_uid = s_uid;

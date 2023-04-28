@@ -289,6 +289,8 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
           new_exc_graph exc_graphs)
       Desugared.Ast.ScopeDef.Map.empty
       (List.map snd (Desugared.Ast.ScopeDef.Map.bindings sub_scope_vars_redefs))
+  | Assertion _ ->
+    Desugared.Ast.ScopeDef.Map.empty (* no exceptions for assertions *)
 
 let scope_to_exception_graphs (scope : Desugared.Ast.scope) :
     Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t =
@@ -697,6 +699,14 @@ let translate_rule
               { pos = Marked.get_mark (SubScopeName.get_info sub_scope_index) }
           );
       ]
+  | Assertion a_name ->
+    let assertion_expr =
+      Desugared.Ast.AssertionName.Map.find a_name scope.scope_assertions
+    in
+    (* we unbox here because assertions do not have free variables (at this
+       point Bindlib variables are only for fuhnction parameters)*)
+    let assertion_expr = translate_expr ctx (Expr.unbox assertion_expr) in
+    [Ast.Assertion (Expr.unbox assertion_expr)]
 
 (** Translates a scope *)
 let translate_scope
@@ -718,17 +728,6 @@ let translate_scope
         let new_rules = translate_rule ctx scope exc_graphs scope_def_key in
         scope_decl_rules @ new_rules)
       [] scope_ordering
-  in
-  (* Then, after having computed all the scopes variables, we add the
-     assertions. TODO: the assertions should be interleaved with the
-     definitions! *)
-  let scope_decl_rules =
-    scope_decl_rules
-    @ List.map
-        (fun e ->
-          let scope_e = translate_expr ctx (Expr.unbox e) in
-          Ast.Assertion (Expr.unbox scope_e))
-        scope.Desugared.Ast.scope_assertions
   in
   let scope_sig =
     ScopeVar.Map.fold

@@ -35,6 +35,8 @@ module ScopeDef : sig
   module Set : Set.S with type elt = t
 end
 
+module AssertionName : Uid.Id with type info = Uid.MarkedString.info
+
 (** {1 AST} *)
 
 (** {2 Expressions} *)
@@ -119,7 +121,7 @@ type scope = {
   scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
-  scope_assertions : assertion list;
+  scope_assertions : assertion AssertionName.Map.t;
   scope_options : catala_option Marked.pos list;
   scope_meta_assertions : meta_assertion list;
 }

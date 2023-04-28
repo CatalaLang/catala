@@ -71,6 +71,8 @@ module ScopeDef = struct
   module Set = Set.Make (Base)
 end
 
+module AssertionName = Uid.Gen ()
+
 (** {1 AST} *)
 
 type location = desugared glocation
@@ -201,7 +203,7 @@ type scope = {
   scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
-  scope_assertions : assertion list;
+  scope_assertions : assertion AssertionName.Map.t;
   scope_options : catala_option Marked.pos list;
   scope_meta_assertions : meta_assertion list;
 }
@@ -271,9 +273,9 @@ let fold_exprs ~(f : 'a -> expr -> 'a) ~(init : 'a) (p : program) : 'a =
             scope.scope_defs acc
         in
         let acc =
-          List.fold_left
-            (fun acc assertion -> f acc (Expr.unbox assertion))
-            acc scope.scope_assertions
+          AssertionName.Map.fold
+            (fun _ assertion acc -> f acc (Expr.unbox assertion))
+            scope.scope_assertions acc
         in
         acc)
       p.program_scopes init
