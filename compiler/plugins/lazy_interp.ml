@@ -84,9 +84,9 @@ let rec lazy_eval :
       let r, env1 = lazy_eval ctx env1 llevel e in
       if not (Expr.equal e r) then (
         log "@[<hv 2>{{%a =@ [%a]@ ==> [%a]}}@]" Print.var_debug v
-          (Print.expr' ~debug:true ())
+          (Print.expr ~debug:true ())
           e
-          (Print.expr' ~debug:true ())
+          (Print.expr ~debug:true ())
           r;
         v_env := r, env1);
       r, Env.join env env1
@@ -105,12 +105,12 @@ let rec lazy_eval :
           Seq.fold_left2
             (fun env1 var e ->
               log "@[<hov 2>LET %a = %a@]@ " Print.var_debug var
-                (Print.expr' ~debug:true ())
+                (Print.expr ~debug:true ())
                 e;
               Env.add var e env env1)
             env (Array.to_seq vars) (List.to_seq args)
         in
-        log "@]@[<hov 4>IN [%a]@]" (Print.expr' ~debug:true ()) body;
+        log "@]@[<hov 4>IN [%a]@]" (Print.expr ~debug:true ()) body;
         let e, env = lazy_eval ctx env llevel body in
         log "@]}";
         e, env
@@ -133,7 +133,7 @@ let rec lazy_eval :
           in
           Interpreter.evaluate_operator eval op m args, !renv
       (* fixme: this forwards eempty *)
-      | e, _ -> error e "Invalid apply on %a" Print.expr e)
+      | e, _ -> error e "Invalid apply on %a" Expr.format e)
   | (EAbs _ | ELit _ | EOp _ | EEmptyError), _ -> e0, env (* these are values *)
   | (EStruct _ | ETuple _ | EInj _ | EArray _), _ ->
     if not llevel.eval_struct then e0, env
@@ -152,14 +152,14 @@ let rec lazy_eval :
       match eval_to_value env e with
       | (EStruct { name = n; fields }, _), env when StructName.equal name n ->
         lazy_eval ctx env llevel (StructField.Map.find field fields)
-      | e, _ -> error e "Invalid field access on %a" Print.expr e)
+      | e, _ -> error e "Invalid field access on %a" Expr.format e)
   | ETupleAccess { e; index; size }, _ -> (
     if not llevel.eval_default then e0, env
     else
       match eval_to_value env e with
       | (ETuple es, _), env when List.length es = size ->
         lazy_eval ctx env llevel (List.nth es index)
-      | e, _ -> error e "Invalid tuple access on %a" Print.expr e)
+      | e, _ -> error e "Invalid tuple access on %a" Expr.format e)
   | EMatch { e; name; cases }, _ -> (
     if not llevel.eval_default then e0, env
     else
@@ -167,7 +167,7 @@ let rec lazy_eval :
       | (EInj { name = n; cons; e }, m), env when EnumName.equal name n ->
         lazy_eval ctx env llevel
           (EApp { f = EnumConstructor.Map.find cons cases; args = [e] }, m)
-      | e, _ -> error e "Invalid match argument %a" Print.expr e)
+      | e, _ -> error e "Invalid match argument %a" Expr.format e)
   | EDefault { excepts; just; cons }, m -> (
     let excs =
       List.filter_map
@@ -182,9 +182,9 @@ let rec lazy_eval :
       match eval_to_value env just with
       | (ELit (LBool true), _), _ -> lazy_eval ctx env llevel cons
       | (ELit (LBool false), _), _ -> (EEmptyError, m), env
-      | e, _ -> error e "Invalid exception justification %a" Print.expr e)
+      | e, _ -> error e "Invalid exception justification %a" Expr.format e)
     | [(e, env)] ->
-      log "@[<hov 5>EVAL %a@]" Print.expr e;
+      log "@[<hov 5>EVAL %a@]" Expr.format e;
       lazy_eval ctx env llevel e
     | _ :: _ :: _ ->
       Errors.raise_multispanned_error
@@ -195,20 +195,21 @@ let rec lazy_eval :
     match eval_to_value env cond with
     | (ELit (LBool true), _), _ -> lazy_eval ctx env llevel etrue
     | (ELit (LBool false), _), _ -> lazy_eval ctx env llevel efalse
-    | e, _ -> error e "Invalid condition %a" Print.expr e)
+    | e, _ -> error e "Invalid condition %a" Expr.format e)
   | EErrorOnEmpty e, _ -> (
     match eval_to_value env e ~eval_default:false with
     | ((EEmptyError, _) as e'), _ ->
       (* This does _not_ match the eager semantics ! *)
-      error e' "This value is undefined %a" Print.expr e
+      error e' "This value is undefined %a" Expr.format e
     | e, env -> lazy_eval ctx env llevel e)
   | EAssert e, m -> (
     if noassert then (ELit LUnit, m), env
     else
       match eval_to_value env e with
       | (ELit (LBool true), m), env -> (ELit LUnit, m), env
-      | (ELit (LBool false), _), _ -> error e "Assert failure (%a)" Print.expr e
-      | _ -> error e "Invalid assertion condition %a" Print.expr e)
+      | (ELit (LBool false), _), _ ->
+        error e "Assert failure (%a)" Expr.format e
+      | _ -> error e "Invalid assertion condition %a" Expr.format e)
   | _ -> .
 
 let interpret_program
@@ -229,7 +230,7 @@ let interpret_program
   let { contents = e, env } = Env.find scope_v all_env in
   let e = Expr.unbox (Expr.remove_logging_calls e) in
   log "=====================";
-  log "%a" (Print.expr' ~debug:true ()) e;
+  log "%a" (Print.expr ~debug:true ()) e;
   log "=====================";
   let m = Marked.get_mark e in
   let application_arg =
@@ -267,6 +268,6 @@ let apply ~source_file ~output_file ~scope prg _type_ordering =
   ignore output_file;
   let fmt = Format.std_formatter in
   let result_expr, _env = interpret_program prg scope in
-  Print.expr fmt result_expr
+  Expr.format fmt result_expr
 
 let () = Driver.Plugin.register_dcalc ~name ~extension apply

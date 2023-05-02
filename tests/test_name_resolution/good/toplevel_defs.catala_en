@@ -109,7 +109,7 @@ let glob5_6 = glob5_aux_5 ()
 
 let glob2_10 = A {"y": glob1_2 >= 30., "z": 123. * 17.}
 
-let S2_6 (S2_in_11: S2_in {}) =
+let S2_6 (S2_in_11: S2_in) =
   decl temp_a_13 : any;
   try:
     decl temp_a_16 : any;
@@ -126,7 +126,7 @@ let S2_6 (S2_in_11: S2_in {}) =
   a_12 = temp_a_13;
   return S2 {"a": a_12}
 
-let S3_7 (S3_in_18: S3_in {}) =
+let S3_7 (S3_in_18: S3_in) =
   decl temp_a_20 : any;
   try:
     decl temp_a_23 : any;
@@ -143,7 +143,7 @@ let S3_7 (S3_in_18: S3_in {}) =
   a_19 = temp_a_20;
   return S3 {"a": a_19}
 
-let S4_8 (S4_in_25: S4_in {}) =
+let S4_8 (S4_in_25: S4_in) =
   decl temp_a_27 : any;
   try:
     decl temp_a_30 : any;
@@ -160,7 +160,7 @@ let S4_8 (S4_in_25: S4_in {}) =
   a_26 = temp_a_27;
   return S4 {"a": a_26}
 
-let S_9 (S_in_32: S_in {}) =
+let S_9 (S_in_32: S_in) =
   decl temp_a_40 : any;
   try:
     decl temp_a_43 : any;

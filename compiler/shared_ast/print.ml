@@ -93,15 +93,20 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
     match ctx with
     | None -> StructName.format_t fmt s
     | Some ctx ->
-      Format.fprintf fmt "@[<hv 2>%a@ %a%a%a@]" StructName.format_t s
-        punctuation "{"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
-           (fun fmt (field, mty) ->
-             Format.fprintf fmt "%a%a@ %a" struct_field field punctuation ":"
-               typ mty))
-        (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs))
-        punctuation "}")
+      let fields = StructName.Map.find s ctx.ctx_structs in
+      if StructField.Map.is_empty fields then StructName.format_t fmt s
+      else
+        Format.fprintf fmt "@[<hv 2>%a %a@,%a@;<0 -2>%a@]" StructName.format_t s
+          punctuation "{"
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () ->
+               punctuation fmt ";";
+               Format.pp_print_space fmt ())
+             (fun fmt (field_name, field_typ) ->
+               Format.fprintf fmt "@[<hv 2>%a%a@ %a@]" struct_field field_name
+                 punctuation ":" typ field_typ))
+          (StructField.Map.bindings fields)
+          punctuation "}")
   | TEnum e -> (
     match ctx with
     | None -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format_t e
@@ -650,10 +655,8 @@ let rec colors =
 let typ_debug = typ None
 let typ ctx = typ (Some ctx)
 
-let expr' ?(debug = !Cli.debug_flag) () ppf e =
+let expr ?(debug = !Cli.debug_flag) () ppf e =
   expr_aux ~debug Bindlib.empty_ctxt colors ppf e
-
-let expr ppf e = expr' ~debug:false () ppf e
 
 let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   match k with
@@ -664,9 +667,10 @@ let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   | DestructuringSubScopeResults -> keyword fmt "sub_get"
   | Assertion -> keyword fmt "assert"
 
-let rec scope_body_expr ?(debug = false) ctx fmt b : unit =
+let[@ocamlformat "disable"] rec
+  scope_body_expr ?(debug = false) ctx fmt b : unit =
   match b with
-  | Result e -> Format.fprintf fmt "%a %a" keyword "return" (expr' ~debug ()) e
+  | Result e -> Format.fprintf fmt "%a %a" keyword "return" (expr ~debug ()) e
   | ScopeLet
       {
         scope_let_kind = kind;
@@ -676,14 +680,17 @@ let rec scope_body_expr ?(debug = false) ctx fmt b : unit =
         _;
       } ->
     let x, next = Bindlib.unbind scope_let_next in
-    Format.fprintf fmt "@[<hov 2>%a %a %a %a %a %a@;%a@;%a @]@,%a" keyword "let"
-      (scope_let_kind ~debug ctx)
-      kind
-      (if debug then var_debug else var)
-      x punctuation ":" (typ ctx) scope_let_typ punctuation "="
-      (expr' ~debug ()) scope_let_expr keyword "in"
-      (scope_body_expr ~debug ctx)
-      next
+    Format.fprintf fmt
+      "@[<hv 2>@[<hov 4>%a %a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]@,%a"
+      keyword "let"
+      (scope_let_kind ~debug ctx) kind
+      (if debug then var_debug else var) x
+      punctuation ":"
+      (typ ctx) scope_let_typ
+      punctuation "="
+      (expr ~debug ()) scope_let_expr
+      keyword "in"
+      (scope_body_expr ~debug ctx) next
 
 let scope_body ?(debug = false) ctx fmt (n, l) : unit =
   let {
@@ -699,23 +706,36 @@ let scope_body ?(debug = false) ctx fmt (n, l) : unit =
 
   let x, body = Bindlib.unbind body in
 
-  let _ =
+  let () =
     Format.pp_open_vbox fmt 2;
-    let _ =
-      Format.pp_open_hbox fmt ();
-      keyword fmt "let scope";
-      Format.pp_print_space fmt ();
-      ScopeName.format_t fmt n;
+    let () =
+      Format.pp_open_hvbox fmt 2;
+      let () =
+        Format.pp_open_hovbox fmt 4;
+        keyword fmt "let scope";
+        Format.pp_print_space fmt ();
+        ScopeName.format_t fmt n;
+        Format.pp_close_box fmt ()
+      in
       Format.pp_print_space fmt ();
       punctuation fmt "(";
-      (if debug then var_debug else var) fmt x;
+      let () =
+        Format.pp_open_hvbox fmt 2;
+        (if debug then var_debug else var) fmt x;
+        punctuation fmt ":";
+        Format.pp_print_space fmt ();
+        (if debug then typ_debug else typ ctx) fmt input_typ;
+        punctuation fmt ")";
+        Format.pp_close_box fmt ()
+      in
+      Format.pp_print_cut fmt ();
       punctuation fmt ":";
-      Format.pp_print_space fmt ();
-      (if debug then typ_debug else typ ctx) fmt input_typ;
-      punctuation fmt ")";
-      punctuation fmt ":";
-      Format.pp_print_space fmt ();
-      (if debug then typ_debug else typ ctx) fmt output_typ;
+      Format.pp_print_string fmt " ";
+      let () =
+        Format.pp_open_hvbox fmt 2;
+        (if debug then typ_debug else typ ctx) fmt output_typ;
+        Format.pp_close_box fmt ()
+      in
       Format.pp_print_space fmt ();
       punctuation fmt "=";
       Format.pp_close_box fmt ()
@@ -774,7 +794,9 @@ let scope
     (ctx : decl_ctx)
     (fmt : Format.formatter)
     ((n, s) : ScopeName.t * 'm scope_body) : unit =
-  scope_body ~debug ctx fmt (n, s)
+  Format.pp_open_vbox fmt 0;
+  scope_body ~debug ctx fmt (n, s);
+  Format.pp_close_box fmt ()
 
 let code_item ?(debug = false) decl_ctx fmt c =
   match c with
@@ -782,7 +804,7 @@ let code_item ?(debug = false) decl_ctx fmt c =
   | Topdef (n, ty, e) ->
     Format.fprintf fmt "@[%a %a %a %a %a %a @]" keyword "let topval"
       TopdefName.format_t n op_style ":" (typ decl_ctx) ty op_style "="
-      (expr' ~debug ()) e
+      (expr ~debug ()) e
 
 let rec code_item_list ?(debug = false) decl_ctx fmt c =
   match c with

@@ -22,7 +22,7 @@ scope B:
 
 ```catala-test-inline
 $ catala Dcalc -s B
-let scope B (B_in: B_in {}): B {} =
+let scope B (B_in: B_in): B =
   let sub_set a.a : unit → integer = λ (_: unit) → ∅ in
   let sub_set a.b : integer = error_empty ⟨true ⊢ 2⟩ in
   let call result : A {c: integer} = A { A_in a_in = a.a; b_in = a.b; } in

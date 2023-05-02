@@ -60,7 +60,7 @@ let print_log entry infos pos e =
         (match Marked.unmark e with
         | EAbs _ -> Cli.with_style [ANSITerminal.green] "<function>"
         | _ ->
-          let expr_str = Format.asprintf "%a" (Expr.format ()) e in
+          let expr_str = Format.asprintf "%a" (Print.expr ()) e in
           let expr_str =
             Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
               ~subst:(fun _ -> " ")
@@ -164,7 +164,7 @@ let rec evaluate_operator
           (fun i arg ->
             ( Some
                 (Format.asprintf "Argument n°%d, value %a" (i + 1)
-                   (Expr.format ()) arg),
+                   (Print.expr ()) arg),
               Expr.pos arg ))
           args)
       "Operator applied to the wrong arguments\n\
@@ -458,7 +458,7 @@ let rec evaluate_expr :
       Errors.raise_spanned_error (Expr.pos e)
         "The expression %a should be a struct %a but is not (should not happen \
          if the term was well-typed)"
-        (Expr.format ()) e StructName.format_t s)
+        (Print.expr ()) e StructName.format_t s)
   | ETuple es -> Marked.mark m (ETuple (List.map (evaluate_expr ctx) es))
   | ETupleAccess { e = e1; index; size } -> (
     match evaluate_expr ctx e1 with
@@ -467,7 +467,7 @@ let rec evaluate_expr :
       Errors.raise_spanned_error (Expr.pos e)
         "The expression %a was expected to be a tuple of size %d (should not \
          happen if the term was well-typed)"
-        (Expr.format ()) e size)
+        (Print.expr ()) e size)
   | EInj { e; name; cons } ->
     propagate_empty_error (evaluate_expr ctx e)
     @@ fun e -> Marked.mark m (EInj { e; name; cons })
@@ -520,11 +520,11 @@ let rec evaluate_expr :
                 args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
               } ->
             Errors.raise_spanned_error (Expr.pos e')
-              "Assertion failed: %a %a %a" (Expr.format ()) e1
+              "Assertion failed: %a %a %a" (Print.expr ()) e1
               (Print.operator ~debug:!Cli.debug_flag)
-              op (Expr.format ()) e2
+              op (Print.expr ()) e2
           | _ ->
-            Cli.debug_format "%a" (Expr.format ()) e';
+            Cli.debug_format "%a" (Print.expr ()) e';
             Errors.raise_spanned_error (Expr.mark_pos m) "Assertion failed")
         | _ ->
           Errors.raise_spanned_error (Expr.pos e')

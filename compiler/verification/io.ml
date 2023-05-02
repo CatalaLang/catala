@@ -138,7 +138,7 @@ module MakeBackendIO (B : Backend) = struct
     | Some counterexample -> "\n" ^ counterexample
 
   let encode_and_check_vc
-      (decl_ctx : decl_ctx)
+      (_decl_ctx : decl_ctx)
       (vc : Conditions.verification_condition * vc_encoding_result) : bool =
     let vc, z3_vc = vc in
 
@@ -154,7 +154,7 @@ module MakeBackendIO (B : Backend) = struct
       | Conditions.NoEmptyError ->
         "the variable definition never to return an empty error"
       | NoOverlappingExceptions -> "no two exceptions to ever overlap")
-      (Expr.format ()) vc.vc_guard (Expr.format ()) vc.vc_asserts;
+      (Print.expr ()) vc.vc_guard (Print.expr ()) vc.vc_asserts;
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (

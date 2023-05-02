@@ -139,7 +139,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
         "Internal error: this expression does not have the structure expected \
          by the VC generator:\n\
          %a"
-        (Expr.format ()) e)
+        (Print.expr ()) e)
   | EErrorOnEmpty d ->
     d (* input subscope variables and non-input scope variable *)
   | _ ->
@@ -147,7 +147,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
       "Internal error: this expression does not have the structure expected by \
        the VC generator:\n\
        %a"
-      (Expr.format ()) e
+      (Print.expr ()) e
 
 (** {1 Verification conditions generator}*)
 
@@ -332,7 +332,7 @@ let rec generate_verification_conditions_scope_body_expr
             "Internal error: this assertion does not have the structure \
              expected by the VC generator:\n\
              %a"
-            (Expr.format ()) e)
+            (Print.expr ()) e)
       | DestructuringInputStruct ->
         { ctx with input_vars = scope_let_var :: ctx.input_vars }, [], []
       | ScopeVarDefinition | SubScopeVarDefinition ->

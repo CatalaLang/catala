@@ -44,9 +44,8 @@ val log_entry : Format.formatter -> log_entry -> unit
 val except : Format.formatter -> except -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
-val expr : Format.formatter -> ('a, 'm mark) gexpr -> unit
 
-val expr' :
+val expr :
   ?debug:bool -> unit -> Format.formatter -> ('a, 'm mark) gexpr -> unit
 (** Same as [expr], but with a debug flag that defaults to [!Cli.debug_flag] *)
 

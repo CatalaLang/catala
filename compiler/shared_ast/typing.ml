@@ -394,7 +394,7 @@ and typecheck_expr_top_down :
       | Some ty -> ty
       | None ->
         Errors.raise_spanned_error pos_e "Reference to %a not found"
-          (Expr.format ()) e
+          (Print.expr ()) e
     in
     Expr.elocation loc (mark_with_tau_and_unify (ast_to_typ ty))
   | A.EStruct { name; fields } ->

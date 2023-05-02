@@ -103,7 +103,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
   let m = Marked.get_mark e in
   let mark = m in
   let pos = Expr.pos e in
-  (* Cli.debug_format "%a" (Print.expr_debug ~debug:true) e; *)
+  (* Cli.debug_format "%a" (Print.expr ~debug:true ()) e; *)
   match Marked.unmark e with
   | EVar x ->
     if (Var.Map.find x ctx.ctx_vars).info_pure then

@@ -718,7 +718,7 @@ let remove_logging_calls e =
   in
   f e
 
-let format ?debug () ppf e = Print.expr' ?debug () ppf e
+let format ppf e = Print.expr ~debug:false () ppf e
 
 let rec size : type a. (a, 't) gexpr -> int =
  fun e ->
