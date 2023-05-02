@@ -508,6 +508,23 @@ let verification_age_superieur_a (verification_age_superieur_a_in: VerificationA
 let smic (smic_in: SmicIn.t) : Smic.t =
   let date_courante_: date = smic_in.SmicIn.date_courante_in in
   let residence_: Collectivite.t = smic_in.SmicIn.residence_in in
+  let _: unit = if (
+                  try
+                    (o_gte_dat_dat date_courante_
+                       (date_of_numbers (2019) (1) (1)))
+                  with
+                  EmptyError -> (raise (NoValueProvided
+                    {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                      start_line=16; start_column=13;
+                      end_line=16; end_column=42;
+                      law_headings=["Prologue";
+                                     "Montant du salaire minimum de croissance"]})))
+                  then () else
+                  raise (AssertionFailed {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
+                                           start_line=16; start_column=13;
+                                           end_line=16; end_column=42;
+                                           law_headings=["Prologue";
+                                                          "Montant du salaire minimum de croissance"]}) in
   let brut_horaire_: money = (log_variable_definition
     ["Smic"; "brut_horaire"] (embed_money) (
     try
@@ -959,27 +976,25 @@ let smic (smic_in: SmicIn.t) : Smic.t =
       {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
         start_line=11; start_column=12; end_line=11; end_column=24;
         law_headings=["Prologue"; "Montant du salaire minimum de croissance"]})))) in
-  let _: unit = if (
-                  try
-                    (o_gte_dat_dat date_courante_
-                       (date_of_numbers (2019) (1) (1)))
-                  with
-                  EmptyError -> (raise (NoValueProvided
-                    {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                      start_line=16; start_column=13;
-                      end_line=16; end_column=42;
-                      law_headings=["Prologue";
-                                     "Montant du salaire minimum de croissance"]})))
-                  then () else
-                  raise (AssertionFailed {filename = "examples/allocations_familiales/../smic/smic.catala_fr";
-                                           start_line=16; start_column=13;
-                                           end_line=16; end_column=42;
-                                           law_headings=["Prologue";
-                                                          "Montant du salaire minimum de croissance"]}) in
   {Smic.brut_horaire = brut_horaire_}
 
 let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales_in: BaseMensuelleAllocationsFamilialesIn.t) : BaseMensuelleAllocationsFamiliales.t =
   let date_courante_: date = base_mensuelle_allocations_familiales_in.BaseMensuelleAllocationsFamilialesIn.date_courante_in in
+  let _: unit = if (
+                  try
+                    (o_gte_dat_dat date_courante_
+                       (date_of_numbers (2019) (4) (1)))
+                  with
+                  EmptyError -> (raise (NoValueProvided
+                    {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                      start_line=10; start_column=13;
+                      end_line=10; end_column=42;
+                      law_headings=["Montant de la base mensuelle des allocations familiales"]})))
+                  then () else
+                  raise (AssertionFailed {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
+                                           start_line=10; start_column=13;
+                                           end_line=10; end_column=42;
+                                           law_headings=["Montant de la base mensuelle des allocations familiales"]}) in
   let montant_: money = (log_variable_definition
     ["BaseMensuelleAllocationsFamiliales"; "montant"] (embed_money) (
     try
@@ -1074,21 +1089,6 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
       {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
         start_line=6; start_column=12; end_line=6; end_column=19;
         law_headings=["Montant de la base mensuelle des allocations familiales"]})))) in
-  let _: unit = if (
-                  try
-                    (o_gte_dat_dat date_courante_
-                       (date_of_numbers (2019) (4) (1)))
-                  with
-                  EmptyError -> (raise (NoValueProvided
-                    {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                      start_line=10; start_column=13;
-                      end_line=10; end_column=42;
-                      law_headings=["Montant de la base mensuelle des allocations familiales"]})))
-                  then () else
-                  raise (AssertionFailed {filename = "examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr";
-                                           start_line=10; start_column=13;
-                                           end_line=10; end_column=42;
-                                           law_headings=["Montant de la base mensuelle des allocations familiales"]}) in
   {BaseMensuelleAllocationsFamiliales.montant = montant_}
 
 let prestations_familiales (prestations_familiales_in: PrestationsFamilialesIn.t) : PrestationsFamiliales.t =
@@ -1824,6 +1824,34 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
       "AllocationFamilialesAvril2008"] allocation_familiales_avril2008)
     (()))) in
   let version_avril_2008_dot_age_minimum_alinea_1_l521_3_: duration = result_.AllocationFamilialesAvril2008.age_minimum_alinea_1_l521_3 in
+  let _: unit = if (
+                  try
+                    (o_or personne_charge_effective_permanente_est_parent_
+                       (o_and
+                          (o_not
+                             personne_charge_effective_permanente_est_parent_)
+                          personne_charge_effective_permanente_remplit_titre__i_))
+                  with
+                  EmptyError -> (raise (NoValueProvided
+                    {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                      start_line=249; start_column=5;
+                      end_line=253; end_column=6;
+                      law_headings=["Article L521-2";
+                                     "Chapitre 1er : Allocations familiales";
+                                     "Titre 2 : Prestations générales d'entretien";
+                                     "Livre 5 : Prestations familiales et prestations assimilées";
+                                     "Partie législative";
+                                     "Code de la sécurité sociale"]})))
+                  then () else
+                  raise (AssertionFailed {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
+                                           start_line=249; start_column=5;
+                                           end_line=253; end_column=6;
+                                           law_headings=["Article L521-2";
+                                                          "Chapitre 1er : Allocations familiales";
+                                                          "Titre 2 : Prestations générales d'entretien";
+                                                          "Livre 5 : Prestations familiales et prestations assimilées";
+                                                          "Partie législative";
+                                                          "Code de la sécurité sociale"]}) in
   let bmaf_dot_date_courante_: date = 
     try ((log_variable_definition
       ["AllocationsFamiliales"; "bmaf.date_courante"] (embed_date)
@@ -4970,34 +4998,6 @@ let allocations_familiales (allocations_familiales_in: AllocationsFamilialesIn.t
         start_line=91; start_column=12; end_line=91; end_column=25;
         law_headings=["Allocations familiales"; "Champs d'applications";
                        "Prologue"]})))) in
-  let _: unit = if (
-                  try
-                    (o_or personne_charge_effective_permanente_est_parent_
-                       (o_and
-                          (o_not
-                             personne_charge_effective_permanente_est_parent_)
-                          personne_charge_effective_permanente_remplit_titre__i_))
-                  with
-                  EmptyError -> (raise (NoValueProvided
-                    {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                      start_line=249; start_column=5;
-                      end_line=253; end_column=6;
-                      law_headings=["Article L521-2";
-                                     "Chapitre 1er : Allocations familiales";
-                                     "Titre 2 : Prestations générales d'entretien";
-                                     "Livre 5 : Prestations familiales et prestations assimilées";
-                                     "Partie législative";
-                                     "Code de la sécurité sociale"]})))
-                  then () else
-                  raise (AssertionFailed {filename = "examples/allocations_familiales/securite_sociale_L.catala_fr";
-                                           start_line=249; start_column=5;
-                                           end_line=253; end_column=6;
-                                           law_headings=["Article L521-2";
-                                                          "Chapitre 1er : Allocations familiales";
-                                                          "Titre 2 : Prestations générales d'entretien";
-                                                          "Livre 5 : Prestations familiales et prestations assimilées";
-                                                          "Partie législative";
-                                                          "Code de la sécurité sociale"]}) in
   {AllocationsFamiliales.versement = versement_;
      AllocationsFamiliales.montant_verse = montant_verse_}
 

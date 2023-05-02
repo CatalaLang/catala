@@ -626,6 +626,21 @@ def smic(smic_in:SmicIn):
     date_courante_2 = smic_in.date_courante_in
     residence = smic_in.residence_in
     try:
+        temp__ = (date_courante_2 >= date_of_numbers(2019,1,1))
+    except EmptyError:
+        temp__ = dead_value
+        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/../smic/smic.catala_fr",
+                                             start_line=16, start_column=13,
+                                             end_line=16, end_column=42,
+                                             law_headings=["Prologue",
+                                             "Montant du salaire minimum de croissance"]))
+    if not (temp__):
+        raise AssertionFailure(SourcePosition(filename="examples/allocations_familiales/../smic/smic.catala_fr",
+                                              start_line=16, start_column=13,
+                                              end_line=16, end_column=42,
+                                              law_headings=["Prologue",
+                                                           "Montant du salaire minimum de croissance"]))
+    try:
         def temp_brut_horaire(_:Unit):
             raise EmptyError
         def temp_brut_horaire_1(_:Unit):
@@ -907,25 +922,23 @@ def smic(smic_in:SmicIn):
                                              law_headings=["Prologue",
                                              "Montant du salaire minimum de croissance"]))
     brut_horaire = temp_brut_horaire_44
-    try:
-        temp__ = (date_courante_2 >= date_of_numbers(2019,1,1))
-    except EmptyError:
-        temp__ = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/../smic/smic.catala_fr",
-                                             start_line=16, start_column=13,
-                                             end_line=16, end_column=42,
-                                             law_headings=["Prologue",
-                                             "Montant du salaire minimum de croissance"]))
-    if not (temp__):
-        raise AssertionFailure(SourcePosition(filename="examples/allocations_familiales/../smic/smic.catala_fr",
-                                              start_line=16, start_column=13,
-                                              end_line=16, end_column=42,
-                                              law_headings=["Prologue",
-                                                           "Montant du salaire minimum de croissance"]))
     return Smic(brut_horaire = brut_horaire)
 
 def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_in:BaseMensuelleAllocationsFamilialesIn):
     date_courante_3 = base_mensuelle_allocations_familiales_in.date_courante_in
+    try:
+        temp___1 = (date_courante_3 >= date_of_numbers(2019,4,1))
+    except EmptyError:
+        temp___1 = dead_value
+        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr",
+                                             start_line=10, start_column=13,
+                                             end_line=10, end_column=42,
+                                             law_headings=["Montant de la base mensuelle des allocations familiales"]))
+    if not (temp___1):
+        raise AssertionFailure(SourcePosition(filename="examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr",
+                                              start_line=10, start_column=13,
+                                              end_line=10, end_column=42,
+                                              law_headings=["Montant de la base mensuelle des allocations familiales"]))
     try:
         def temp_montant(_:Unit):
             raise EmptyError
@@ -994,19 +1007,6 @@ def base_mensuelle_allocations_familiales(base_mensuelle_allocations_familiales_
                                              end_line=6, end_column=19,
                                              law_headings=["Montant de la base mensuelle des allocations familiales"]))
     montant = temp_montant_17
-    try:
-        temp___1 = (date_courante_3 >= date_of_numbers(2019,4,1))
-    except EmptyError:
-        temp___1 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr",
-                                             start_line=10, start_column=13,
-                                             end_line=10, end_column=42,
-                                             law_headings=["Montant de la base mensuelle des allocations familiales"]))
-    if not (temp___1):
-        raise AssertionFailure(SourcePosition(filename="examples/allocations_familiales/../base_mensuelle_allocations_familiales/bmaf.catala_fr",
-                                              start_line=10, start_column=13,
-                                              end_line=10, end_column=42,
-                                              law_headings=["Montant de la base mensuelle des allocations familiales"]))
     return BaseMensuelleAllocationsFamiliales(montant = montant)
 
 def prestations_familiales(prestations_familiales_in:PrestationsFamilialesIn):
@@ -1569,6 +1569,31 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
     nombre_enfants_alinea_2_l521_1 = temp_nombre_enfants_alinea_2_l521_1
     result_1 = allocation_familiales_avril2008(AllocationFamilialesAvril2008In())
     version_avril_2008_dot_age_minimum_alinea_1_l521_3 = result_1.age_minimum_alinea_1_l521_3
+    try:
+        temp___2 = (personne_charge_effective_permanente_est_parent or
+            (not personne_charge_effective_permanente_est_parent and
+            personne_charge_effective_permanente_remplit_titre__i))
+    except EmptyError:
+        temp___2 = dead_value
+        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/securite_sociale_L.catala_fr",
+                                             start_line=249, start_column=5,
+                                             end_line=253, end_column=6,
+                                             law_headings=["Article L521-2",
+                                             "Chapitre 1er : Allocations familiales",
+                                             "Titre 2 : Prestations générales d'entretien",
+                                             "Livre 5 : Prestations familiales et prestations assimilées",
+                                             "Partie législative",
+                                             "Code de la sécurité sociale"]))
+    if not (temp___2):
+        raise AssertionFailure(SourcePosition(filename="examples/allocations_familiales/securite_sociale_L.catala_fr",
+                                              start_line=249, start_column=5,
+                                              end_line=253, end_column=6,
+                                              law_headings=["Article L521-2",
+                                                           "Chapitre 1er : Allocations familiales",
+                                                           "Titre 2 : Prestations générales d'entretien",
+                                                           "Livre 5 : Prestations familiales et prestations assimilées",
+                                                           "Partie législative",
+                                                           "Code de la sécurité sociale"]))
     try:
         temp_bmaf_dot_date_courante = date_courante_5
     except EmptyError:
@@ -3475,31 +3500,6 @@ def allocations_familiales(allocations_familiales_in:AllocationsFamilialesIn):
                                              "Champs d'applications",
                                              "Prologue"]))
     montant_verse = temp_montant_verse
-    try:
-        temp___2 = (personne_charge_effective_permanente_est_parent or
-            (not personne_charge_effective_permanente_est_parent and
-            personne_charge_effective_permanente_remplit_titre__i))
-    except EmptyError:
-        temp___2 = dead_value
-        raise NoValueProvided(SourcePosition(filename="examples/allocations_familiales/securite_sociale_L.catala_fr",
-                                             start_line=249, start_column=5,
-                                             end_line=253, end_column=6,
-                                             law_headings=["Article L521-2",
-                                             "Chapitre 1er : Allocations familiales",
-                                             "Titre 2 : Prestations générales d'entretien",
-                                             "Livre 5 : Prestations familiales et prestations assimilées",
-                                             "Partie législative",
-                                             "Code de la sécurité sociale"]))
-    if not (temp___2):
-        raise AssertionFailure(SourcePosition(filename="examples/allocations_familiales/securite_sociale_L.catala_fr",
-                                              start_line=249, start_column=5,
-                                              end_line=253, end_column=6,
-                                              law_headings=["Article L521-2",
-                                                           "Chapitre 1er : Allocations familiales",
-                                                           "Titre 2 : Prestations générales d'entretien",
-                                                           "Livre 5 : Prestations familiales et prestations assimilées",
-                                                           "Partie législative",
-                                                           "Code de la sécurité sociale"]))
     return AllocationsFamiliales(versement = versement,
         montant_verse = montant_verse)
 
