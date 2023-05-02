@@ -31,6 +31,12 @@ val punctuation : Format.formatter -> string -> unit
 val op_style : Format.formatter -> string -> unit
 val lit_style : Format.formatter -> string -> unit
 
+(** {1 Some basic stringifiers} *)
+
+val operator_to_string : 'a operator -> string
+(** Prints the operator symbols with kind suffixes, as expected by the OCaml
+    backend (e.g. "+^", "+$", etc.) *)
+
 (** {1 Formatters} *)
 
 val uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
