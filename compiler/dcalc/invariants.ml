@@ -39,8 +39,7 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
             | Fail ->
               Cli.error_format "%s failed in %s.\n\n %a" name
                 (Pos.to_string_short (Expr.pos e))
-                (Print.expr ~debug:true p.decl_ctx)
-                e;
+                (Print.expr' ()) e;
               incr total;
               false
             | Pass ->

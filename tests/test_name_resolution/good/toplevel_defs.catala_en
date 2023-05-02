@@ -93,28 +93,28 @@ $ catala Interpret -s S4
 $ catala scalc
 let glob1_2 = 44.12
 
-let glob3_3 (x_3: money) = return to_rat_mon x_3 +. 10.
+let glob3_3 (x_3: money) = return to_rat x_3 + 10.
 
-let glob4_4 (x_4: money) (y_5: decimal) = return to_rat_mon x_4 *. y_5 +. 10.
+let glob4_4 (x_4: money) (y_5: decimal) = return to_rat x_4 * y_5 + 10.
 
 let glob5_aux_5 =
   decl glob5_7 : any;
   let glob5_7 (x_8 : decimal) =
     decl y_9 : decimal;
     y_9 = 1000.;
-    return x_8 *. y_9;
-  return glob5_7 to_rat_int 2 *. 3.
+    return x_8 * y_9;
+  return glob5_7 to_rat 2 * 3.
 
 let glob5_6 = glob5_aux_5 ()
 
-let glob2_10 = A {"y": glob1_2 >=. 30., "z": 123. *. 17.}
+let glob2_10 = A {"y": glob1_2 >= 30., "z": 123. * 17.}
 
 let S2_6 (S2_in_11: S2_in {}) =
   decl temp_a_13 : any;
   try:
     decl temp_a_16 : any;
     let temp_a_16 (__17 : unit) =
-      return glob3_3 $44.00 +. 100.;
+      return glob3_3 $44.00 + 100.;
     decl temp_a_14 : any;
     let temp_a_14 (__15 : unit) =
       return true;
@@ -131,7 +131,7 @@ let S3_7 (S3_in_18: S3_in {}) =
   try:
     decl temp_a_23 : any;
     let temp_a_23 (__24 : unit) =
-      return 50. +. glob4_4 $44.00 55.;
+      return 50. + glob4_4 $44.00 55.;
     decl temp_a_21 : any;
     let temp_a_21 (__22 : unit) =
       return true;
@@ -148,7 +148,7 @@ let S4_8 (S4_in_25: S4_in {}) =
   try:
     decl temp_a_30 : any;
     let temp_a_30 (__31 : unit) =
-      return glob5_6 +. 1.;
+      return glob5_6 + 1.;
     decl temp_a_28 : any;
     let temp_a_28 (__29 : unit) =
       return true;
@@ -165,7 +165,7 @@ let S_9 (S_in_32: S_in {}) =
   try:
     decl temp_a_43 : any;
     let temp_a_43 (__44 : unit) =
-      return glob1_2 *. glob1_2;
+      return glob1_2 * glob1_2;
     decl temp_a_41 : any;
     let temp_a_41 (__42 : unit) =
       return true;

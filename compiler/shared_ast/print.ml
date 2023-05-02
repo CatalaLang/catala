@@ -247,8 +247,50 @@ let operator_to_string : type a. a Op.t -> string =
   | HandleDefault -> "handle_default"
   | HandleDefaultOpt -> "handle_default_opt"
 
-let operator : type a. Format.formatter -> a operator -> unit =
- fun fmt op ->
+let operator_to_shorter_string : type a. a Op.t -> string =
+  let open Op in
+  function
+  | Not -> "~"
+  | Length -> "length"
+  | GetDay -> "get_day"
+  | GetMonth -> "get_month"
+  | GetYear -> "get_year"
+  | FirstDayOfMonth -> "first_day_of_month"
+  | LastDayOfMonth -> "last_day_of_month"
+  | ToRat_int | ToRat_mon | ToRat -> "to_rat"
+  | ToMoney_rat | ToMoney -> "to_mon"
+  | Round_rat | Round_mon | Round -> "round"
+  | Log _ -> "Log"
+  | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"
+  | And -> "&&"
+  | Or -> "||"
+  | Xor -> "xor"
+  | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq -> "="
+  | Map -> "map"
+  | Reduce -> "reduce"
+  | Concat -> "++"
+  | Filter -> "filter"
+  | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Add
+    ->
+    "+"
+  | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+  | Sub_dur_dur | Sub ->
+    "-"
+  | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Mult -> "*"
+  | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur | Div ->
+    "/"
+  | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dur_dur | Lt_dat_dat | Lt -> "<"
+  | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dur_dur | Lte_dat_dat | Lte ->
+    "<="
+  | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dur_dur | Gt_dat_dat | Gt -> ">"
+  | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dur_dur | Gte_dat_dat | Gte ->
+    ">="
+  | Fold -> "fold"
+  | HandleDefault -> "handle_default"
+  | HandleDefaultOpt -> "handle_default_opt"
+
+let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
+ fun ?(debug = true) fmt op ->
   let open Op in
   match op with
   | Log (entry, infos) ->
@@ -263,7 +305,9 @@ let operator : type a. Format.formatter -> a operator -> unit =
       infos
       (Cli.format_with_style [ANSITerminal.blue])
       "}"
-  | op -> Format.fprintf fmt "%a" op_style (operator_to_string op)
+  | op ->
+    op_style fmt
+      (if debug then operator_to_string op else operator_to_shorter_string op)
 
 let except (fmt : Format.formatter) (exn : except) : unit =
   op_style fmt
@@ -382,15 +426,14 @@ end
 
 let rec expr_aux :
     type a.
-    ?debug:bool ->
-    decl_ctx option ->
+    debug:bool ->
     Bindlib.ctxt ->
     ANSITerminal.style list ->
     Format.formatter ->
     (a, 't) gexpr ->
     unit =
- fun ?(debug = false) ctx bnd_ctx colors fmt e ->
-  let exprb bnd_ctx colors e = expr_aux ~debug ctx bnd_ctx colors e in
+ fun ~debug bnd_ctx colors fmt e ->
+  let exprb bnd_ctx colors e = expr_aux ~debug bnd_ctx colors e in
   let exprc colors e = exprb bnd_ctx colors e in
   let expr e = exprc colors e in
   let var = if debug then var_debug else var in
@@ -468,8 +511,10 @@ let rec expr_aux :
            punctuation fmt ")"))
       xs_tau punctuation "→" (rhs expr) body
   | EApp { f = EOp { op = (Map | Filter) as op; _ }, _; args = [arg1; arg2] } ->
-    Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
-      (rhs exprc) arg2
+    Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" (operator ~debug) op (lhs exprc)
+      arg1 (rhs exprc) arg2
+  | EApp { f = EOp { op = Log _ as op; _ }, _; args = [arg1] } ->
+    Format.fprintf fmt "@[<hv 0>%a@ %a@]" (operator ~debug) op (rhs exprc) arg1
   | EApp { f = EOp { op = op0; _ }, _; args = [_; _] } ->
     let prec = Precedence.expr e in
     let rec pr colors fmt = function
@@ -479,7 +524,7 @@ let rec expr_aux :
         | Op (And | Or | Mul | Add | Div | Sub) -> lhs pr fmt arg1
         | _ -> lhs exprc fmt arg1);
         Format.pp_print_space fmt ();
-        operator fmt op;
+        (operator ~debug) fmt op;
         Format.pp_print_char fmt ' ';
         match prec with
         | Op (And | Or | Mul | Add) -> rhs pr fmt arg2
@@ -490,7 +535,7 @@ let rec expr_aux :
     pr colors fmt e;
     Format.pp_close_box fmt ()
   | EApp { f = EOp { op; _ }, _; args = [arg1] } ->
-    Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op (rhs exprc) arg1
+    Format.fprintf fmt "@[<hv 2>%a@ %a@]" (operator ~debug) op (rhs exprc) arg1
   | EApp { f; args } ->
     Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs exprc) f
       (Format.pp_print_list
@@ -508,7 +553,7 @@ let rec expr_aux :
     Format.pp_open_hvbox fmt 0;
     pr false fmt e;
     Format.pp_close_box fmt ()
-  | EOp { op; _ } -> operator fmt op
+  | EOp { op; _ } -> operator ~debug fmt op
   | EDefault { excepts; just; cons } ->
     if List.length excepts = 0 then
       Format.fprintf fmt "@[<hv 1>%a%a@ %a %a%a@]" punctuation "⟨" expr just
@@ -604,8 +649,11 @@ let rec colors =
 
 let typ_debug = typ None
 let typ ctx = typ (Some ctx)
-let expr_debug ?debug = expr_aux ?debug None Bindlib.empty_ctxt colors
-let expr ?debug ctx = expr_aux ?debug (Some ctx) Bindlib.empty_ctxt colors
+
+let expr' ?(debug = !Cli.debug_flag) () ppf e =
+  expr_aux ~debug Bindlib.empty_ctxt colors ppf e
+
+let expr ppf e = expr' ~debug:false () ppf e
 
 let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   match k with
@@ -618,7 +666,7 @@ let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
 
 let rec scope_body_expr ?(debug = false) ctx fmt b : unit =
   match b with
-  | Result e -> Format.fprintf fmt "%a %a" keyword "return" (expr ~debug ctx) e
+  | Result e -> Format.fprintf fmt "%a %a" keyword "return" (expr' ~debug ()) e
   | ScopeLet
       {
         scope_let_kind = kind;
@@ -633,7 +681,7 @@ let rec scope_body_expr ?(debug = false) ctx fmt b : unit =
       kind
       (if debug then var_debug else var)
       x punctuation ":" (typ ctx) scope_let_typ punctuation "="
-      (expr ~debug ctx) scope_let_expr keyword "in"
+      (expr' ~debug ()) scope_let_expr keyword "in"
       (scope_body_expr ~debug ctx)
       next
 
@@ -734,7 +782,7 @@ let code_item ?(debug = false) decl_ctx fmt c =
   | Topdef (n, ty, e) ->
     Format.fprintf fmt "@[%a %a %a %a %a %a @]" keyword "let topval"
       TopdefName.format_t n op_style ":" (typ decl_ctx) ty op_style "="
-      (expr ~debug decl_ctx) e
+      (expr' ~debug ()) e
 
 let rec code_item_list ?(debug = false) decl_ctx fmt c =
   match c with

@@ -39,9 +39,9 @@ let scope S (x: integer|internal|output) =
             (λ (i_1: integer) (i_2: integer) →
              if
                (let i : integer = i_1 in
-                to_rat_int ((2 -! i) *! (2 -! i)))
-               <. let i : integer = i_2 in
-                  to_rat_int ((2 -! i) *! (2 -! i))
+                to_rat ((2 - i) * (2 - i)))
+               < let i : integer = i_2 in
+                 to_rat ((2 - i) * (2 - i))
              then i_1
              else i_2),
             42,
@@ -49,33 +49,33 @@ let scope S (x: integer|internal|output) =
          = 2;
   assert (reduce
             (λ (max1: decimal) (max2: decimal) →
-             if max1 >. max2 then max1 else max2),
+             if max1 > max2 then max1 else max2),
             10.,
-            map (λ (i: integer) → to_rat_int i) [ 1; 2; 3 ])
+            map (λ (i: integer) → to_rat i) [ 1; 2; 3 ])
          = 3.;
   assert (reduce
             (λ (max1: integer) (max2: integer) →
-             if max1 >! max2 then max1 else max2),
+             if max1 > max2 then max1 else max2),
             10,
             [ 1; 2; 3 ])
          = 3;
-  assert (length filter (λ (i: integer) → i >=! 2) [ 1; 2; 3 ]) = 2;
+  assert (length filter (λ (i: integer) → i >= 2) [ 1; 2; 3 ]) = 2;
   assert (length [ 1; 2; 3 ]) = 3;
   assert (reduce
-            (λ (sum1: integer) (sum2: integer) → sum1 +! sum2),
+            (λ (sum1: integer) (sum2: integer) → sum1 + sum2),
             0,
-            map (λ (i: integer) → i +! 2) [ 1; 2; 3 ])
+            map (λ (i: integer) → i + 2) [ 1; 2; 3 ])
          = 12;
   assert (reduce
-            (λ (sum1: integer) (sum2: integer) → sum1 +! sum2),
+            (λ (sum1: integer) (sum2: integer) → sum1 + sum2),
             0,
             [ 1; 2; 3 ])
          = 6;
-  assert (map (λ (i: integer) → i +! 2)
-            filter (λ (i: integer) → i >! 2) [ 1; 2; 3 ])
+  assert (map (λ (i: integer) → i + 2)
+            filter (λ (i: integer) → i > 2) [ 1; 2; 3 ])
          = [ 5 ];
-  assert (filter (λ (i: integer) → i >=! 2) [ 1; 2; 3 ]) = [ 2; 3 ];
-  assert (map (λ (i: integer) → i +! 2) [ 1; 2; 3 ]) = [ 3; 4; 5 ]
+  assert (filter (λ (i: integer) → i >= 2) [ 1; 2; 3 ]) = [ 2; 3 ];
+  assert (map (λ (i: integer) → i + 2) [ 1; 2; 3 ]) = [ 3; 4; 5 ]
 ```
 
 ```catala-test-inline

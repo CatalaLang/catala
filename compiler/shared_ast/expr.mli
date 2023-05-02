@@ -342,7 +342,7 @@ val remove_logging_calls :
 
 val format :
   ?debug:bool (** [true] for debug printing *) ->
-  decl_ctx ->
+  unit ->
   Format.formatter ->
   (_, _ mark) gexpr ->
   unit
