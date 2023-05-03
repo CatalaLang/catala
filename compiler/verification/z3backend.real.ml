@@ -433,8 +433,7 @@ let rec translate_op :
  fun ctx op args ->
   let ill_formed () =
     Format.kasprintf failwith
-      "[Z3 encoding] Ill-formed operator application: %a"
-      (Shared_ast.Expr.format ctx.ctx_decl)
+      "[Z3 encoding] Ill-formed operator application: %a" Shared_ast.Expr.format
       (Shared_ast.Expr.eapp
          (Shared_ast.Expr.eop op [] (Untyped { pos = Pos.no_pos }))
          (List.map Shared_ast.Expr.untype args)

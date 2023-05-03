@@ -536,11 +536,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | EArray es1, EArray es2 -> equal_list es1 es2
   | ELit l1, ELit l2 -> l1 = l2
   | EAbs { binder = b1; tys = tys1 }, EAbs { binder = b2; tys = tys2 } ->
-    Type.equal_list tys1 tys2
-    &&
-    let vars1, body1 = Bindlib.unmbind b1 in
-    let body2 = Bindlib.msubst b2 (Array.map (fun x -> EVar x) vars1) in
-    equal body1 body2
+    Type.equal_list tys1 tys2 && Bindlib.eq_mbinder equal b1 b2
   | EApp { f = e1; args = args1 }, EApp { f = e2; args = args2 } ->
     equal e1 e2 && equal_list args1 args2
   | EAssert e1, EAssert e2 -> equal e1 e2
@@ -702,18 +698,27 @@ let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
 
 let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
   | EApp { f = EOp { op = Log _; _ }, _; args = [e] }, _ -> skip_wrappers e
+  | EApp { f = EApp { f = EOp { op = Log _; _ }, _; args = [f] }, _; args }, m
+    ->
+    skip_wrappers (EApp { f; args }, m)
   | EErrorOnEmpty e, _ -> skip_wrappers e
+  | EDefault { excepts = []; just = ELit (LBool true), _; cons = e }, _ ->
+    skip_wrappers e
   | e -> e
 
 let remove_logging_calls e =
   let rec f e =
-    match Marked.unmark e with
-    | EApp { f = EOp { op = Log _; _ }, _; args = [arg] } -> map ~f arg
-    | _ -> map ~f e
+    let e, m = map ~f e in
+    ( Bindlib.box_apply
+        (function
+          | EApp { f = EOp { op = Log _; _ }, _; args = [(arg, _)] } -> arg
+          | e -> e)
+        e,
+      m )
   in
   f e
 
-let format ?debug decl_ctx ppf e = Print.expr ?debug decl_ctx ppf e
+let format ppf e = Print.expr ~debug:false () ppf e
 
 let rec size : type a. (a, 't) gexpr -> int =
  fun e ->

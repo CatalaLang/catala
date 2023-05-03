@@ -22,7 +22,6 @@ open Definitions
 
 val evaluate_operator :
   ((((_, _) dcalc_lcalc as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr) ->
-  decl_ctx ->
   'a operator ->
   'm mark ->
   ('a, 'm mark) gexpr list ->

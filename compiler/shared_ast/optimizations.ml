@@ -342,10 +342,8 @@ let test_iota_reduction_1 () =
         \       | B → (λ (x: any) → D x)\n\
          after=C\n\
          x"
-        (Format.asprintf "before=%a\nafter=%a"
-           (Print.expr_debug ~debug:false)
-           (Expr.unbox matchA)
-           (Print.expr_debug ~debug:false)
+        (Format.asprintf "before=%a\nafter=%a" Expr.format (Expr.unbox matchA)
+           Expr.format
            (Expr.unbox
               (optimize_expr
                  {
@@ -416,10 +414,8 @@ let test_iota_reduction_2 () =
         \      with\n\
         \      | A → (λ (x: any) → C 20)\n\
         \      | B → (λ (x: any) → D B x)\n"
-        (Format.asprintf "before=@[%a@]@.after=%a@."
-           (Print.expr_debug ~debug:false)
-           (Expr.unbox matchA)
-           (Print.expr_debug ~debug:false)
+        (Format.asprintf "before=@[%a@]@.after=%a@." Expr.format
+           (Expr.unbox matchA) Expr.format
            (Expr.unbox
               (optimize_expr
                  {
