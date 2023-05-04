@@ -119,28 +119,46 @@ module Rule = struct
   let compare r1 r2 =
     match r1.rule_parameter, r2.rule_parameter with
     | None, None -> (
-      let j1 = Expr.unbox r1.rule_just in
-      let j2 = Expr.unbox r2.rule_just in
-      match Expr.compare j1 j2 with
+      let j1, j1m = r1.rule_just in
+      let j2, j2m = r2.rule_just in
+      match
+        Bindlib.unbox
+          (Bindlib.box_apply2
+             (fun j1 j2 -> Expr.compare (j1, j1m) (j2, j2m))
+             j1 j2)
+      with
       | 0 ->
-        let c1 = Expr.unbox r1.rule_cons in
-        let c2 = Expr.unbox r2.rule_cons in
-        Expr.compare c1 c2
+        let c1, c1m = r1.rule_cons in
+        let c2, c2m = r2.rule_cons in
+        Bindlib.unbox
+          (Bindlib.box_apply2
+             (fun c1 c2 -> Expr.compare (c1, c1m) (c2, c2m))
+             c1 c2)
       | n -> n)
     | Some (l1, _), Some (l2, _) ->
       ListLabels.compare l1 l2 ~cmp:(fun ((v1, _), t1) ((v2, _), t2) ->
           match Type.compare t1 t2 with
           | 0 -> (
             let open Bindlib in
-            let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_just)) in
-            let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_just)) in
-            let _, j1, j2 = unbind2 b1 b2 in
-            match Expr.compare j1 j2 with
+            let b1 = bind_var v1 (Expr.Box.lift r1.rule_just) in
+            let b2 = bind_var v2 (Expr.Box.lift r2.rule_just) in
+            match
+              Bindlib.unbox
+                (Bindlib.box_apply2
+                   (fun b1 b2 ->
+                     let _, j1, j2 = unbind2 b1 b2 in
+                     Expr.compare j1 j2)
+                   b1 b2)
+            with
             | 0 ->
-              let b1 = unbox (bind_var v1 (Expr.Box.lift r1.rule_cons)) in
-              let b2 = unbox (bind_var v2 (Expr.Box.lift r2.rule_cons)) in
-              let _, c1, c2 = unbind2 b1 b2 in
-              Expr.compare c1 c2
+              let b1 = bind_var v1 (Expr.Box.lift r1.rule_cons) in
+              let b2 = bind_var v2 (Expr.Box.lift r2.rule_cons) in
+              Bindlib.unbox
+                (Bindlib.box_apply2
+                   (fun b1 b2 ->
+                     let _, c1, c2 = unbind2 b1 b2 in
+                     Expr.compare c1 c2)
+                   b1 b2)
             | n -> n)
           | n -> n)
     | None, Some _ -> -1

@@ -66,7 +66,7 @@ module Vertex = struct
       ScopeVar.equal x y && Option.equal StateName.equal sx sy
     | SubScope x, SubScope y -> SubScopeName.equal x y
     | Assertion a, Assertion b -> Ast.AssertionName.equal a b
-    | _, _ -> false
+    | (Var _ | SubScope _ | Assertion _), _ -> false
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     match x with

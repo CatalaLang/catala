@@ -460,7 +460,9 @@ let rec expr_aux :
       Cli.format_with_style [List.hd colors] fmt ")")
     else expr colors fmt e1
   in
-  let default_punct color fmt s = Cli.format_with_style [color] fmt s in
+  let default_punct color fmt s =
+    Format.pp_print_as fmt 1 (Cli.with_style [color] "%s" s)
+  in
   let lhs ?(colors = colors) ex = paren ~colors ~rhs:false ex in
   let rhs ex = paren ~rhs:true ex in
   match Marked.unmark e with

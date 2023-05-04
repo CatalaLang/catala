@@ -47,7 +47,11 @@ val to_string : t -> string
 val to_string_short : t -> string
 (** Formats a position like this:
 
-    {v <file>;<start_line>:<start_col>--<end_line>:<end_col> v} *)
+    {v <file>;<start_line>:<start_col>--<end_line>:<end_col> v}
+
+    This function is compliant with the
+    {{:https://www.gnu.org/prep/standards/standards.html#Errors} GNU coding
+    standards}. *)
 
 val retrieve_loc_text : t -> string
 (** Open the file corresponding to the position and retrieves the text concerned
