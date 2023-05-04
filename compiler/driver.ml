@@ -569,7 +569,7 @@ let driver source_file (options : Cli.options) : int =
   with
   | Errors.StructuredError (msg, pos) ->
     let bt = Printexc.get_raw_backtrace () in
-    Cli.error_print "%s" (Errors.print_structured_error msg pos);
+    Errors.print_structured_error msg pos;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
   | Sys_error msg ->

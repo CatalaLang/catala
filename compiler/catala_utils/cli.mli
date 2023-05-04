@@ -79,8 +79,7 @@ val avoid_exceptions_flag : bool ref
 
 type message_format_enum =
   | Human
-  | EditorParsable
-      (** Format of error and warning messages output by the compiler. *)
+  | GNU  (** Format of error and warning messages output by the compiler. *)
 
 val message_format_flag : message_format_enum ref
 

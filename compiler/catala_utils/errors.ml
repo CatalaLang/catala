@@ -23,11 +23,14 @@ exception StructuredError of (string * (string option * Pos.t) list)
     secondary positions related to the error, each carrying an optional
     secondary message to describe what is pointed by the position. *)
 
-let print_structured_error (msg : string) (pos : (string option * Pos.t) list) :
-    string =
+let print_structured_error
+    ?(is_warning : bool = false)
+    (msg : string)
+    (pos : (string option * Pos.t) list) : unit =
   match !Cli.message_format_flag with
   | Cli.Human ->
-    Printf.sprintf "%s%s%s" msg
+    (if is_warning then Cli.warning_print else Cli.error_print)
+      "%s%s%s" msg
       (if pos = [] then "" else "\n\n")
       (String.concat "\n\n"
          (List.map
@@ -36,20 +39,42 @@ let print_structured_error (msg : string) (pos : (string option * Pos.t) list) :
                 (match msg with None -> "" | Some msg -> msg ^ "\n")
                 (Pos.retrieve_loc_text pos))
             pos))
-  | Cli.EditorParsable ->
+  | Cli.GNU ->
     let remove_new_lines s =
-      Re.replace ~all:true (Re.compile (Re.char '\n')) ~f:(fun _ -> " · ") s
+      Re.replace ~all:true
+        (Re.compile (Re.seq [Re.char '\n'; Re.rep Re.blank]))
+        ~f:(fun _ -> " ")
+        s
     in
-    remove_new_lines msg
-    ^ "\n"
-    ^ String.concat "\n"
-        (List.map
-           (fun (msg', pos) ->
-             Printf.sprintf "%s%s" (Pos.to_string_short pos)
-               (match msg' with
-               | None -> ""
-               | Some msg' -> remove_new_lines msg'))
-           pos)
+    let severity =
+      Format.asprintf "%a"
+        (if is_warning then Cli.warning_marker else Cli.error_marker)
+        ()
+    in
+    (* The top message doesn't come with a position, which is not something the
+       GNU standard allows. So we look the position list and put the top message
+       everywhere there is not a more precise message. If we can'r find a
+       position without a more precise message, we just take the first position
+       in the list to pair with the message. *)
+    (if is_warning then Format.printf else Format.eprintf)
+      "%s%s\n"
+      (if pos != [] && List.for_all (fun (msg', _) -> Option.is_some msg') pos
+      then
+       Format.asprintf "%a: %s %s\n"
+         (Cli.format_with_style [ANSITerminal.blue])
+         (Pos.to_string_short (snd (List.hd pos)))
+         severity (remove_new_lines msg)
+      else "")
+      (String.concat "\n"
+         (List.map
+            (fun (msg', pos) ->
+              Format.asprintf "%a: %s %s"
+                (Cli.format_with_style [ANSITerminal.blue])
+                (Pos.to_string_short pos) severity
+                (match msg' with
+                | None -> remove_new_lines msg
+                | Some msg' -> remove_new_lines msg'))
+            pos))
 
 (** {1 Error exception and printing} *)
 
@@ -77,7 +102,7 @@ let assert_internal_error condition fmt =
 
 let format_multispanned_warning (pos : (string option * Pos.t) list) format =
   Format.kasprintf
-    (fun msg -> Cli.warning_print "%s" (print_structured_error msg pos))
+    (fun msg -> print_structured_error ~is_warning:true msg pos)
     format
 
 let format_spanned_warning ?(span_msg : string option) (span : Pos.t) format =

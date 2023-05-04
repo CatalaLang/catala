@@ -98,7 +98,7 @@ let disable_counterexamples = ref false
 let avoid_exceptions_flag = ref false
 let check_invariants_flag = ref false
 
-type message_format_enum = Human | EditorParsable
+type message_format_enum = Human | GNU
 
 let message_format_flag = ref Human
 
@@ -126,19 +126,18 @@ let color =
           "Allow output of colored and styled text. If set to $(i,auto), \
            enabled when the standard output is to a terminal.")
 
-let message_format_opt = Arg.enum ["human", Human; "editor", EditorParsable]
+let message_format_opt = Arg.enum ["human", Human; "gnu", GNU]
 
 let message_format =
   Arg.(
     value
-    & opt ~vopt:Human message_format_opt Human
+    & opt message_format_opt Human
     & info ["message_format"]
         ~doc:
           "Selects the format of error and warning messages emitted by the \
            compiler. If set to $(i,human), the messages will be nicely \
-           displayed and meant to be read by a human. If set to $(i, editor), \
-           the messages will be rendered in a way that is easily parsable by \
-           IDEs.")
+           displayed and meant to be read by a human. If set to $(i, gnu), the \
+           messages will be rendered according to the GNU coding standards.")
 
 let unstyled =
   Arg.(
