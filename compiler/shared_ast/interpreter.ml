@@ -49,7 +49,7 @@ let log_indent = ref 0
    different backends: python, ocaml, javascript, and interpreter *)
 
 (** {1 Evaluation} *)
-let print_log ctx entry infos pos e =
+let print_log entry infos pos e =
   if !Cli.trace_flag then
     match entry with
     | VarDef _ ->
@@ -58,9 +58,7 @@ let print_log ctx entry infos pos e =
       Cli.log_format "%*s%a %a: %s" (!log_indent * 2) "" Print.log_entry entry
         Print.uid_list infos
         (let expr_str =
-           Format.asprintf "%a"
-             (Expr.format ctx ~hide_function_body:true ~debug:false)
-             e
+           Format.asprintf "%a" (Print.expr ~hide_function_body:true ()) e
          in
          let expr_str =
            Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
@@ -90,7 +88,7 @@ exception CatalaException of except
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
    builtin equality function instead of this. *)
-let handle_eq evaluate_operator ctx pos e1 e2 =
+let handle_eq evaluate_operator pos e1 e2 =
   let open Runtime.Oper in
   match e1, e2 with
   | ELit LUnit, ELit LUnit -> true
@@ -104,7 +102,7 @@ let handle_eq evaluate_operator ctx pos e1 e2 =
     try
       List.for_all2
         (fun e1 e2 ->
-          match Marked.unmark (evaluate_operator ctx Eq pos [e1; e2]) with
+          match Marked.unmark (evaluate_operator Eq pos [e1; e2]) with
           | ELit (LBool b) -> b
           | _ -> assert false
           (* should not happen *))
@@ -114,7 +112,7 @@ let handle_eq evaluate_operator ctx pos e1 e2 =
     StructName.equal s1 s2
     && StructField.Map.equal
          (fun e1 e2 ->
-           match Marked.unmark (evaluate_operator ctx Eq pos [e1; e2]) with
+           match Marked.unmark (evaluate_operator Eq pos [e1; e2]) with
            | ELit (LBool b) -> b
            | _ -> assert false
            (* should not happen *))
@@ -125,7 +123,7 @@ let handle_eq evaluate_operator ctx pos e1 e2 =
       EnumName.equal en1 en2
       && EnumConstructor.equal i1 i2
       &&
-      match Marked.unmark (evaluate_operator ctx Eq pos [e1; e2]) with
+      match Marked.unmark (evaluate_operator Eq pos [e1; e2]) with
       | ELit (LBool b) -> b
       | _ -> assert false
       (* should not happen *)
@@ -135,7 +133,6 @@ let handle_eq evaluate_operator ctx pos e1 e2 =
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 let rec evaluate_operator
     evaluate_expr
-    ctx
     (op : < overloaded : no ; .. > operator)
     m
     args =
@@ -166,8 +163,7 @@ let rec evaluate_operator
           (fun i arg ->
             ( Some
                 (Format.asprintf "Argument n°%d, value %a" (i + 1)
-                   (Expr.format ctx ~debug:true)
-                   arg),
+                   (Print.expr ()) arg),
               Expr.pos arg ))
           args)
       "Operator applied to the wrong arguments\n\
@@ -182,10 +178,10 @@ let rec evaluate_operator
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
   | Log (entry, infos), [e'] ->
-    print_log ctx entry infos pos e';
+    print_log entry infos pos e';
     Marked.unmark e'
   | Eq, [(e1, _); (e2, _)] ->
-    ELit (LBool (handle_eq (evaluate_operator evaluate_expr) ctx m e1 e2))
+    ELit (LBool (handle_eq (evaluate_operator evaluate_expr) m e1 e2))
   | Map, [f; (EArray es, _)] ->
     EArray
       (List.map
@@ -421,7 +417,7 @@ let rec evaluate_expr :
           "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | EOp { op; _ } -> evaluate_operator (evaluate_expr ctx) ctx op m args
+    | EOp { op; _ } -> evaluate_operator (evaluate_expr ctx) op m args
     | _ ->
       Errors.raise_spanned_error pos
         "function has not been reduced to a lambda at evaluation (should not \
@@ -461,8 +457,7 @@ let rec evaluate_expr :
       Errors.raise_spanned_error (Expr.pos e)
         "The expression %a should be a struct %a but is not (should not happen \
          if the term was well-typed)"
-        (Expr.format ctx ~debug:true)
-        e StructName.format_t s)
+        (Print.expr ()) e StructName.format_t s)
   | ETuple es -> Marked.mark m (ETuple (List.map (evaluate_expr ctx) es))
   | ETupleAccess { e = e1; index; size } -> (
     match evaluate_expr ctx e1 with
@@ -471,8 +466,7 @@ let rec evaluate_expr :
       Errors.raise_spanned_error (Expr.pos e)
         "The expression %a was expected to be a tuple of size %d (should not \
          happen if the term was well-typed)"
-        (Expr.format ctx ~debug:true)
-        e size)
+        (Print.expr ()) e size)
   | EInj { e; name; cons } ->
     propagate_empty_error (evaluate_expr ctx e)
     @@ fun e -> Marked.mark m (EInj { e; name; cons })
@@ -525,13 +519,11 @@ let rec evaluate_expr :
                 args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
               } ->
             Errors.raise_spanned_error (Expr.pos e')
-              "Assertion failed: %a %a %a"
-              (Expr.format ctx ~debug:false)
-              e1 Print.operator op
-              (Expr.format ctx ~debug:false)
-              e2
+              "Assertion failed: %a %a %a" (Print.expr ()) e1
+              (Print.operator ~debug:!Cli.debug_flag)
+              op (Print.expr ()) e2
           | _ ->
-            Cli.debug_format "%a" (Expr.format ctx) e';
+            Cli.debug_format "%a" (Print.expr ()) e';
             Errors.raise_spanned_error (Expr.mark_pos m) "Assertion failed")
         | _ ->
           Errors.raise_spanned_error (Expr.pos e')

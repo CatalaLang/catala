@@ -48,7 +48,7 @@ let enum
            (Print.typ ctx) typ))
     (EnumConstructor.Map.bindings cases)
 
-let scope ?(debug = false) ctx fmt (name, decl) =
+let scope ?debug ctx fmt (name, decl) =
   Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
     Print.keyword "let" Print.keyword "scope" ScopeName.format_t name
     (Format.pp_print_list ~pp_sep:Format.pp_print_space
@@ -77,7 +77,7 @@ let scope ?(debug = false) ctx fmt (name, decl) =
              (Print.typ ctx) typ Print.punctuation "="
              (fun fmt e ->
                match Marked.unmark loc with
-               | SubScopeVar _ | ToplevelVar _ -> Print.expr ctx fmt e
+               | SubScopeVar _ | ToplevelVar _ -> Print.expr () fmt e
                | ScopelangScopeVar v -> (
                  match
                    Marked.unmark
@@ -86,12 +86,12 @@ let scope ?(debug = false) ctx fmt (name, decl) =
                  with
                  | Reentrant ->
                    Format.fprintf fmt "%a@ %a" Print.op_style
-                     "reentrant or by default" (Print.expr ~debug ctx) e
-                 | _ -> Format.fprintf fmt "%a" (Print.expr ~debug ctx) e))
+                     "reentrant or by default" (Print.expr ?debug ()) e
+                 | _ -> Format.fprintf fmt "%a" (Print.expr ?debug ()) e))
              e
          | Assertion e ->
            Format.fprintf fmt "%a %a" Print.keyword "assert"
-             (Print.expr ~debug ctx) e
+             (Print.expr ?debug ()) e
          | Call (scope_name, subscope_name, _) ->
            Format.fprintf fmt "%a %a%a%a%a" Print.keyword "call"
              ScopeName.format_t scope_name Print.punctuation "["
@@ -113,7 +113,7 @@ let print_topdef ctx ppf name (e, ty) =
     Format.pp_close_box ppf ()
   in
   Format.pp_print_cut ppf ();
-  Print.expr ctx ppf e;
+  Print.expr () ppf e;
   Format.pp_close_box ppf ()
 
 let program ?(debug : bool = false) (fmt : Format.formatter) (p : 'm program) :

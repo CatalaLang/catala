@@ -340,9 +340,9 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
         args;
       } ->
     Format.fprintf fmt
-      "@[<hov 2>%a@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
+      "@[<hov 2>%s@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a@]"
-      Print.operator op
+      (Print.operator_to_string op)
       (Pos.get_file (Expr.mark_pos pos))
       (Pos.get_start_line (Expr.mark_pos pos))
       (Pos.get_start_column (Expr.mark_pos pos))

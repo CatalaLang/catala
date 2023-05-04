@@ -340,14 +340,9 @@ val remove_logging_calls :
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
 
-val format :
-  ?hide_function_body:bool
-    (** if [true], prints "<function>" for [EAbs] nodes *) ->
-  ?debug:bool (** [true] for debug printing *) ->
-  decl_ctx ->
-  Format.formatter ->
-  (_, _ mark) gexpr ->
-  unit
+val format : Format.formatter -> ('a, 'm mark) gexpr -> unit
+(** Simple printing without debug, use [Print.expr ()] instead to follow the
+    command-line debug setting *)
 
 (** {2 Analysis and tests} *)
 

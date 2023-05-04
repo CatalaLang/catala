@@ -1,5 +1,9 @@
 # Building and installing the Catala language
 
+> Hint: you can find pre-built nightly binaries on [this
+> page](https://catalalang.github.io/catala/). The following will guide you
+> through compiling and installing from source.
+
 ## Requirements
 
 ### With Docker
@@ -9,13 +13,20 @@ to build a Docker image with all the dependencies required to build the Catala c
 
 Start by installing Docker: https://docs.docker.com/get-docker/
 
-Then build the Docker image:
+Then build the Docker image. From the root of this repository, run:
 
-    docker build . --target dev-build-context -t catala
+    docker build . -t catala
 
-Finally, start a shell inside a new container created from the newly built image:
+(Note: this may take a while, since it will check all targets and run all
+tests.) Finally, start a shell inside a new container created from the newly
+built image:
 
     docker run -it --name catala catala
+
+The generated binaries will be in `~/catala/_build/install/default`. Get started
+by running:
+
+    ./_build/install/default/bin/catala --help
 
 ### With nix
 

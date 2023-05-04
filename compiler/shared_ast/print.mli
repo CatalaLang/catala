@@ -23,9 +23,19 @@ open Definitions
 
 val base_type : Format.formatter -> string -> unit
 val keyword : Format.formatter -> string -> unit
+
 val punctuation : Format.formatter -> string -> unit
+(** The argument is assumed to be 1-column wide (but can be a multi-char utf8
+    character) *)
+
 val op_style : Format.formatter -> string -> unit
 val lit_style : Format.formatter -> string -> unit
+
+(** {1 Some basic stringifiers} *)
+
+val operator_to_string : 'a operator -> string
+(** Prints the operator symbols with kind suffixes, as expected by the OCaml
+    backend (e.g. "+^", "+$", etc.) *)
 
 (** {1 Formatters} *)
 
@@ -35,28 +45,23 @@ val tlit : Format.formatter -> typ_lit -> unit
 val location : Format.formatter -> 'a glocation -> unit
 val typ : decl_ctx -> Format.formatter -> typ -> unit
 val lit : Format.formatter -> lit -> unit
-val operator : Format.formatter -> 'a operator -> unit
+val operator : ?debug:bool -> Format.formatter -> 'a operator -> unit
 val log_entry : Format.formatter -> log_entry -> unit
 val except : Format.formatter -> except -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
 
 val expr :
-  ?hide_function_body:bool
-    (** if [true], prints "<function>" for [EAbs] nodes *) ->
-  ?debug:bool (** [true] for debug printing *) ->
-  decl_ctx ->
+  ?hide_function_body:bool ->
+  ?debug:bool ->
+  unit ->
   Format.formatter ->
   ('a, 'm mark) gexpr ->
   unit
+(** Same as [expr], but with a debug flag that defaults to [!Cli.debug_flag]. If
+    [~hide_function_body:true], prints "<function>" for [EAbs] nodes *)
 
 (** {1 Debugging versions that don't require a context} *)
-
-val expr_debug :
-  ?debug:bool (** [true] for debug printing *) ->
-  Format.formatter ->
-  ('a, 'm mark) gexpr ->
-  unit
 
 val typ_debug : Format.formatter -> typ -> unit
 

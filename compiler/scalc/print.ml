@@ -68,16 +68,16 @@ let rec format_expr
       format_expr e
   | ELit l -> Print.lit fmt l
   | EApp ((EOp ((Map | Filter) as op), _), [arg1; arg2]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" Print.operator op
+    Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1 format_with_parens arg2
   | EApp ((EOp op, _), [arg1; arg2]) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
-      Print.operator op format_with_parens arg2
+      (Print.operator ~debug) op format_with_parens arg2
   | EApp ((EOp (Log _), _), [arg1]) when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
   | EApp ((EOp op, _), [arg1]) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.operator op format_with_parens
-      arg1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
+      format_with_parens arg1
   | EApp (f, []) -> Format.fprintf fmt "@[<hov 2>%a@ ()@]" format_expr f
   | EApp (f, args) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
@@ -85,7 +85,7 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EOp op -> Format.fprintf fmt "%a" Print.operator op
+  | EOp op -> Print.operator ~debug fmt op
 
 let rec format_statement
     (decl_ctx : decl_ctx)

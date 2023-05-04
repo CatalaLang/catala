@@ -533,7 +533,8 @@ let resolve_overload ctx (op : overloaded t Marked.pos) (operands : typ list) :
                     (Print.typ ctx) ty),
                Marked.get_mark ty ))
            operands)
-      "I don't know how to apply operator %a on types %a" Print.operator
+      "I don't know how to apply operator %a on types %a"
+      (Print.operator ~debug:true)
       (Marked.unmark op)
       (Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.fprintf ppf " and@ ")

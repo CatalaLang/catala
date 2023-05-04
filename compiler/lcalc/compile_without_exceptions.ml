@@ -103,7 +103,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
   let m = Marked.get_mark e in
   let mark = m in
   let pos = Expr.pos e in
-  (* Cli.debug_format "%a" (Print.expr_debug ~debug:true) e; *)
+  (* Cli.debug_format "%a" (Print.expr ~debug:true ()) e; *)
   match Marked.unmark e with
   | EVar x ->
     if (Var.Map.find x ctx.ctx_vars).info_pure then
@@ -342,7 +342,8 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
     Errors.raise_internal_error
       "List operator %a was not fully determined: some partial evaluation was \
        found while compiling."
-      Print.operator op
+      (Print.operator ~debug:false)
+      op
   | EApp { f = EOp { op; tys }, opmark; args } ->
     let res =
       Ast.OptionMonad.mmap ~var_name:ctx.ctx_context_name

@@ -20,12 +20,12 @@ scope A:
 ```catala-test-inline
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
-[RESULT] s = { "x" = 1; "y" = 2}_S
+[RESULT] s = { S x = 1; y = 2; }
 [RESULT] z = 3
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] s = ESome { "x" = ESome 1; "y" = ESome 2}_S
+[RESULT] s = ESome { S x = ESome 1; y = ESome 2; }
 [RESULT] z = ESome 3
 ```

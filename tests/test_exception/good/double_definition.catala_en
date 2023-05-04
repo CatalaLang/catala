@@ -51,10 +51,11 @@ $ catala Dcalc -s Foo
 8 │   definition x equals 1
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
   └─ Foo
-let scope Foo (Foo_in: Foo_in): Foo =
+let scope Foo (Foo_in: Foo_in): Foo {x: integer} =
   let set x : integer =
     error_empty
-      ⟨true ⊢
-        ⟨ ⟨ ⟨true ⊢ 1⟩ | true ⊢ 1 ⟩ | false ⊢ ∅ ⟩⟩ in
-  return { "x" = x}_Foo
+      ⟨true
+       ⊢ ⟨ ⟨ ⟨true ⊢ 1⟩ | true ⊢ 1 ⟩ | false ⊢ ∅ ⟩⟩
+  in
+  return { Foo x = x; }
 ```
