@@ -38,9 +38,7 @@ let scope A
   let set e : integer =
     error_empty ⟨ e () | true ⊢ ⟨true ⊢ b + c + d + 1⟩ ⟩
   in
-  let set f : integer =
-    error_empty ⟨ f () | true ⊢ ⟨true ⊢ e + 1⟩ ⟩
-  in
+  let set f : integer = error_empty ⟨ f () | true ⊢ ⟨true ⊢ e + 1⟩ ⟩ in
   return { A b = b; d = d; f = f; }
 ```
 

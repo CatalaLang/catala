@@ -26,8 +26,7 @@ $ catala Scopelang -s Foo
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
   └─ Foo
 let scope Foo (x: integer|internal|output) =
-  let x : integer =
-    ⟨true ⊢ ⟨ ⟨true ⊢ 1⟩, ⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩⟩
+  let x : integer = ⟨true ⊢ ⟨ ⟨true ⊢ 1⟩, ⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩⟩
 ```
 
 In Scopelang we have what looks like conflicting exceptions. But after
@@ -53,9 +52,7 @@ $ catala Dcalc -s Foo
   └─ Foo
 let scope Foo (Foo_in: Foo_in): Foo {x: integer} =
   let set x : integer =
-    error_empty
-      ⟨true
-       ⊢ ⟨ ⟨ ⟨true ⊢ 1⟩ | true ⊢ 1 ⟩ | false ⊢ ∅ ⟩⟩
+    error_empty ⟨true ⊢ ⟨ ⟨ ⟨true ⊢ 1⟩ | true ⊢ 1 ⟩ | false ⊢ ∅ ⟩⟩
   in
   return { Foo x = x; }
 ```
