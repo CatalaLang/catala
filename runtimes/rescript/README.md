@@ -12,8 +12,6 @@ yarn add @catala-lang/rescript-catala
 
 ```
 # in this dir
-yarn
-yarn build
 yarn link
 
 # in the project to use the lib

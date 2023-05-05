@@ -20,7 +20,7 @@
     "catala",
     "runtime"
   ],
-  "devDependencies": {
+  "dependencies": {
     "decco": "^1.6.0",
     "rescript": "^10.1.4"
   }
