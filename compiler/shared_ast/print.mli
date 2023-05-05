@@ -52,8 +52,14 @@ val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
 
 val expr :
-  ?debug:bool -> unit -> Format.formatter -> ('a, 'm mark) gexpr -> unit
-(** Same as [expr], but with a debug flag that defaults to [!Cli.debug_flag] *)
+  ?hide_function_body:bool ->
+  ?debug:bool ->
+  unit ->
+  Format.formatter ->
+  ('a, 'm mark) gexpr ->
+  unit
+(** Same as [expr], but with a debug flag that defaults to [!Cli.debug_flag]. If
+    [~hide_function_body:true], prints "<function>" for [EAbs] nodes *)
 
 (** {1 Debugging versions that don't require a context} *)
 

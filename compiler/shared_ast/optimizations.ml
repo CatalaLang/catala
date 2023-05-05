@@ -223,8 +223,6 @@ let rec optimize_expr :
                   } ),
               _ ) ) ->
           EEmptyError
-        | [], just ->
-          EIfThenElse { cond = just; etrue = cons; efalse = EEmptyError, mark }
         | excepts, just -> EDefault { excepts; just; cons })
     | EIfThenElse
         {

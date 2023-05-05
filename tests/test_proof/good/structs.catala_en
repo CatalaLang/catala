@@ -22,7 +22,7 @@ scope A:
 $ catala Proof --disable_counterexamples 
 [WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/good/structs.catala_en:13.10-11:
+┌─⯈ tests/test_proof/good/structs.catala_en:13.11-13.12:
 └──┐
 13 │   context x content integer
    │           ‾

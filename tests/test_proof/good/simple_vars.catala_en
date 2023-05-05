@@ -18,7 +18,7 @@ scope A:
 $ catala Proof --disable_counterexamples 
 [WARNING] In scope "A", the variable "z" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/good/simple_vars.catala_en:7.10-11:
+┌─⯈ tests/test_proof/good/simple_vars.catala_en:7.11-7.12:
 └─┐
 7 │   context z content integer
   │           ‾

@@ -89,11 +89,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article
@@ -493,8 +512,10 @@ pas assujettie à l'impôt sur le revenu, le montant forfaitaire de ressources e
 pour la location et à 4 900 euros pour la résidence en logement-foyer.
 
 ```catala
-# TODO informatique et juridique: traduire cet article qui vient définir
-# ressources_forfaitaires_r822_20
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
 ```
 
 NOTA :
@@ -582,11 +603,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des articles
@@ -932,11 +972,11 @@ personnelles au logement en secteur locatif.
 # Article 42 seuil de versement : valeurs identiques à partir du
 # 1er janvier 2023 à celles de l'article 12 donc rien à coder.
 
-# TODO juridique : l'article 43 parle de l'équivalence loyer en secteur
-# logement-foyer mais il n'existe pas de quantité équivalente en secteur
-# locatif! Comment donc appliquer la règle de prendre les valeurs du chapitre
-# III pour l'application du chapitre VII dans ce cas ?
-# Idem pour l'article 44 et et le montant minimal de dépense nette de loyer.
+# L'article 43 parle de l'équivalence loyer en secteur
+# logement-foyer mais à Saint-Pierre-et-Miquelon on calcule le secteur
+# logement-foyer avec la formule du secteur locatif, ici pas besoin de prendre
+# en compte. Idem pour l'article 44 et et le montant minimal de dépense nette
+# de loyer.
 ```
 
 NOTA : Conformément à l’article 2 de l’arrêté du 20 décembre 2021 (NOR : LOGL2134477A), ces dispositions sont
@@ -1702,11 +1742,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des articles
@@ -1818,7 +1877,17 @@ pour un ménage ayant un enfant à charge, est remplacée par " 7 584 euros " ;
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-10-01|  et date_courante < |2022-01-01|:
-  exception métropole
+  # Normalement la règle suivante aurait du être une exception à l'étiquette
+  # "métropole".Cependant, la version de l'article 47 de l'arrêté du 27
+  # septembre 2019 en vigueur du 1er janvier 2021 au 31 décembre 2021 prévoit
+  # également dans le cas de l'outre-mer un remplacement du tableau des valeurs
+  # de R0 de l'article 15. Cependant pour faire exister cette règle plus précise
+  # valable uniquement fin 2021, nous la codons ici comme une exception au
+  # tableau de l'article 47 afin d'éviter le conflit entre deux règles qui
+  # s'activent en même temps.
+  # TODO juridique: savoir pourquoi ces deux règles qui entrent en conflit sur
+  # la valeur de R0 dans ce cas: 6990 € ou 7584 € ?
+  exception article_47
   définition abattement_forfaitaire_d823_17
   sous condition
     (selon résidence sous forme
@@ -2414,7 +2483,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
 Composition du foyer	           Montant
 -------------------------------- -------
 Bénéficiaire isolé               26,99
-Couple sans personne à charge	 53,99
+Couple sans personne à charge	   53,99
 Majoration par personne à charge 12,24
 
 ```catala
@@ -2772,11 +2841,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au 4° des
@@ -2888,7 +2976,17 @@ code, pour un ménage ayant un enfant à charge, est remplacée par " 7 584 euro
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
-  exception métropole
+  # Normalement la règle suivante aurait du être une exception à l'étiquette
+  # "métropole". Cependant, la version de l'article 47 de l'arrêté du 27
+  # septembre 2019 en vigueur du 1er janvier 2020 au 31 décembre 2020 prévoit
+  # également dans le cas de l'outre-mer un remplacement du tableau des valeurs
+  # de R0 de l'article 15. Cependant pour faire exister cette règle plus précise valable
+  # uniquement fin 2020, nous la codons ici comme une exception au tableau de
+  # l'article 47 afin d'éviter le conflit entre deux règles qui s'activent en
+  # même temps.
+  # TODO juridique: savoir pourquoi ces deux règles qui entrent en conflit sur
+  # la valeur de R0 dans ce cas: 6396 € ou 7584 €?
+  exception article_47
   définition abattement_forfaitaire_d823_17
   sous condition
     (selon résidence sous forme
@@ -3050,6 +3148,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
 visé au 3° de l'article D. 823-17 du même code, sont remplacées par les valeurs suivantes :
 
 VALEURS DE TF
+
 Bénéficiaires                     TF
 --------------------------------- -----
 Isolé                             2,81%
@@ -3109,6 +3208,11 @@ assujettie à l'impôt sur le revenu, le montant minimal de ressources est fixé
 location et à 4 900 euros pour la résidence en logement-foyer.
 
 ```catala
+# Nous choissisons par manque de ressources (sic) de développement de laisser
+# le calcul des ressources à l'utilisateur du programme qui devra suivre
+# les instructions de cet article et de ceux auxquels il se réfère pour
+# correctement évaluer leur montant.
+#
 # Modifications non subsantielles mais qui peuvent améliorer la compréhension et
 # la précision des dispositions par rapport à la version initiale.
 # TODO informatique et juridique: traduire cet article qui vient définir
@@ -3179,6 +3283,7 @@ Personne seule ou couple ayant :
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2021-01-01| et date_courante < |2022-01-01|:
+  étiquette article_47
   exception métropole
   définition abattement_forfaitaire_d823_17 sous condition
     selon résidence sous forme
@@ -3307,11 +3412,30 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- n'importe quel: faux) et
     nombre_personnes_à_charge >= 6
   conséquence égal à 5,0
-# TODO juridique: demander à DGALN/DHUP si cette limitation à 6 personnes à
-# charge s'applique également aux exceptions à l'article 7 que sont les
-# articles 8 et 16 de l'arrêté pour les chambres et la colocation.
-# Ici nous avons choisi de faire appliquer la limitation à tous les cas
-# y compris les chambres et la colocation.
+# Cette limitation à 6 personnes à charge s'applique également aux exceptions à
+# l'article 7 que sont les articles 8 et 16 de l'arrêté pour les chambres et la
+# colocation. Cependant le barème chambre ne dépend pas du nombre de personnes à
+# charge donc rien à faire. Par contre dans l'article 16 il faut bien appliquer
+# la limitation, ce qui est fait de la manière qu'à l'article 7 via l'emploi de
+# la variable "multiplicateur_majoration_plafond_loyer_d823_16_2". Ceci nous a
+# été confirmé par un mail du 21/04/2023 de DGALN/DHUP/FE4 :
+# "Il convient de ne pas faire de lecture trop extensive des textes, il est en
+# effet factuellement impossible de loger sept ou huit personnes dans une simple
+# chambre. De plus l’article 8 de l’arrêté, relatif aux chambres, précise que le
+# barème applicable est identique quelle que soit la taille de la famille et est
+# basé sur celui applicable à une personne isolée.
+# Concernant la colocation, il convient de faire une lecture groupée de l’arrêté
+# :
+# - Le 1° de l’article 46 précisait que la majoration était limitée à six
+#   personnes à charge et selon les termes du a) cette majoration impactait les
+#   loyers plafonds dont les valeurs sont fixées à l’article 7 de l’arrêté.
+#   L’article 7 était donc applicable dans la limite de six personnes à charge
+#   et pas au-delà.
+# - L’article 16 qui concerne la colocation précise que les loyers plafonds
+#   applicables représentent 75% de ceux fixés à l’article 7.
+# De fait, le plafonnement applicable à la colocation (article 16) découle de
+# l’article 7 et était limité à six personnes à charge par le a) du 1° de
+# l’article 46."
 ```
 
 b) Les montants forfaitaires au titre des charges visés au 3° de l'article D. 823-16, au
@@ -3586,6 +3710,7 @@ champ d'application CalculAllocationLogementAccessionPropriété
 visé au 3° de l'article D. 823-17 du même code, sont remplacées par les valeurs suivantes :
 
 VALEURS DE TF
+
 Bénéficiaires                       TF
 ----------------------------------- -----
 Isolé                               2,81%
@@ -3600,7 +3725,7 @@ Couple sans enfant                  2,99%
 
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
-  sous condition date_courante >= |2020-10-01| et date_courante < |2021-10-01|:
+  sous condition date_courante >= |2020-01-01| et date_courante < |2020-10-01|:
   exception base définition taux_composition_familiale sous condition
     (selon résidence sous forme
     -- Guadeloupe: vrai
@@ -3657,11 +3782,15 @@ selon la formule suivante :
 " R0 (Mayotte) N = R0 (Mayotte) N-1 + R0 (DOM) N-1 - R0 (Mayotte) N-1 / 2022 - (N - 1) "
 
 dans laquelle :
+
 - " N " est l'année d'augmentation.
+
 - " R0 (Mayotte) N " est le forfait applicable à Mayotte pour un type de ménage donné en année
 " N " avant revalorisation éventuelle.
+
 - " R0 (Mayotte) N-1 " est le forfait applicable à Mayotte pour ce même type de ménage à la veille
 de l'augmentation.
+
 - " R0 (DOM) N-1 " est le forfait applicable en Guadeloupe, en Guyane, en Martinique, à La Réunion,
 à Saint-Barthélemy et à Saint-Martin à la veille de l'augmentation.
 
@@ -3688,6 +3817,7 @@ dispositions sont applicables pour les prestations dues à compter du 1er janvie
 ```catala
 champ d'application CalculAidePersonnaliséeLogementLocatif
   sous condition date_courante >= |2020-01-01| et date_courante < |2021-01-01|:
+  étiquette article_47
   exception métropole
   définition abattement_forfaitaire_d823_17 sous condition
     selon résidence sous forme
@@ -3697,8 +3827,8 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- Mayotte: vrai
     -- SaintBarthélemy: vrai
     -- SaintMartin: vrai
-    # TODO juridique: vérifier qu'au 1er octobre 2021 cet article ne
-    # s'appliquait pas à Saint-Pierre et Miquelon
+    # Au 1er octobre 2021 cet article ne s'appliquait pas à Saint-Pierre et
+    # Miquelon car il n'y avait pas d'APL à Saint-Pierre et Miquelon cette date.
     -- n'importe quel: faux
   conséquence égal à
     si nombre_personnes_à_charge = 0 alors

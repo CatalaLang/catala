@@ -346,10 +346,12 @@ issues de l'article 2 du présent décret, pour les ménages bénéficiaires des
 logement à Saint-Pierre-et-Miquelon mentionnées à cet article, le montant mensuel de l'aide due au
 titre du mois de janvier 2022 jusqu'au mois de décembre 2025 est calculé selon la formule suivante :
 
-ALspm = ALt × (1 (2026-n) / 8)
+ALspm = ALt × (1 - (2026-n) / 8)
 
 ```catala
-# TODO juridique: pourquoi le "1" dans la formule ? Ça ne sert à rien.
+# Attention, la formule initiale était fausse (manque un "-" après le "1"),
+# rectifié par https://www.legifrance.gouv.fr/jorf/id/JORFTEXT000044807163 et
+# c'est la version rectifiée que nous prenons en compte.
 ```
 
 Dans laquelle :
@@ -364,15 +366,156 @@ code précité, le cas échéant adaptées selon les dispositions de l'article 2
 peuvent être modifiées par décret.
 
 ```catala
-# D'après L860-3 CCH, les habitants de Saint-Pierre et Miquelon n'ont
-# droit qu'à l'allocation logement et pas à l'aide au logement. Donc on
-# ne modifie que le champ d'application CalculAllocationLogement.
-champ d'application CalculAllocationLogement:
-  exception définition aide_finale_formule sous condition
+déclaration montée_en_charge_saint_pierre_miquelon contenu argent dépend de
+  aide_finale contenu argent,
+  résidence contenu Collectivité,
+  date_courante contenu date
+égal à
+  si
     résidence sous forme SaintPierreEtMiquelon et
     date_courante >= |2022-01-01| et
     date_courante <= |2025-12-31|
-  conséquence égal à
-    sous_calcul_traitement.aide_finale_formule *
-      (décimal de (2026 - accès_année de date_courante) / 8,0)
+  alors
+    aide_finale * (1,0 -
+      (décimal de (2026 - accès_année de date_courante) / 8,0))
+  sinon
+    aide_finale
+
+# D'après L860-3 CCH, les habitants de Saint-Pierre et Miquelon n'ont
+# droit qu'à l'allocation logement et pas à l'aide au logement. Donc on
+# ne modifie que les champs d'applications relatifs à l'allocation logement,
+# dans les trois secteurs. À l'exception du secteur locatif où le calcul de
+# l'allocation logement passe par le barème de l'aide personnalisée au logement,
+# et où il faut donc modifier le champ d'application afférent.
+champ d'application CalculAidePersonnaliséeLogementLocatif:
+  définition traitement_aide_finale de aide_finale
+  état montée_en_charge_saint_pierre_miquelon
+  égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    montée_en_charge_saint_pierre_miquelon de
+      aide_finale, résidence, date_courante
+
+champ d'application CalculAllocationLogementFoyer:
+  définition traitement_aide_finale de aide_finale
+  état montée_en_charge_saint_pierre_miquelon
+  égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    montée_en_charge_saint_pierre_miquelon de
+      aide_finale, résidence, date_courante
+
+champ d'application CalculAllocationLogementAccessionPropriété:
+  définition traitement_aide_finale de aide_finale
+  état montée_en_charge_saint_pierre_miquelon
+  égal à
+    soit aide_finale égal à traitement_aide_finale de aide_finale dans
+    montée_en_charge_saint_pierre_miquelon de
+      aide_finale, résidence, date_courante
 ```
+
+# Code général des collectivités territoriales
+
+## Partie législative
+
+### Sixième partie : collectivités d'outre-mer régies par l'article 74 de la constitution
+
+#### Livre IV : Saint-Pierre-et-Miquelon
+
+##### Titre Ier : Dispositions générales
+
+###### Chapitre IV : Compétences
+
+####### Article LO6414-1 | LEGIARTI000006394300
+
+I. – La collectivité exerce les compétences dévolues par les lois et
+règlements en vigueur aux départements et aux régions, à l'exception de celles
+relatives :
+
+1° A la construction et à l'entretien général et technique ainsi qu'au
+fonctionnement des collèges et des lycées, à l'accueil, à la restauration et à
+l'hébergement dans ces établissements, au recrutement et à la gestion des
+personnels techniciens et ouvriers de service exerçant ces missions dans les
+collèges et les lycées ;
+
+2° A la construction, à l'aménagement, à l'entretien et à la gestion de la
+voirie classée en route nationale ;
+
+3° A la lutte contre les maladies vectorielles ;
+
+4° A la police de la circulation sur le domaine de la collectivité ;
+
+5° Aux bibliothèques régionales et bibliothèques de prêt départementales ;
+
+6° Au financement des moyens des services d'incendie et de secours.
+
+II. – La collectivité fixe les règles applicables dans les matières suivantes
+:
+
+1° Impôts, droits et taxes ; cadastre ;
+
+```catala
+# Ceci signifie que la collectivité de Saint-Pierre-et-Miquelon fixe les
+# règles d'imposition des aides au logement. En l'occurrence, elle choisit
+# de ne pas l'imposer avec un équivalent de la CRDS. Information confirmée par
+# mail de DGALN/DHUP/FE4 du 21/04/2023: "J’attire toutefois votre attention
+# sur le fait que la CRDS ne s’applique pas à Saint-Pierre-et-Miquelon."
+# En ce qui concerne Saint-Barthélémy et Saint-Martin, les collectivités
+# exercent une compétence en matière d’impôts (respectivement article LO 6214-3
+# du CGCT I° 1 et article LO 6314-3 du CGCT I° 1) “sans préjudice des règles
+# fixées par l’Etat, pour Saint-Barthélemy, en matière de cotisations sociales
+# et des autres prélèvements destinés au financement de la protection sociale et
+# à l’amortissement de la dette sociale.” (respectivement article LO 6214-4 du
+# CGCT III et article LO 6314-4 du CGCT III). La CRDS s’applique donc bien à
+# Saint-Martin et Saint-Barthélémy, pas besoin de coder d'exception pour ces
+# territoires.
+champ d'application ContributionsSocialesAidesPersonnelleLogement:
+  exception définition montant de aide_finale sous condition
+    date_courante >= |2007-02-22| et
+    lieu sous forme SaintPierreEtMiquelon
+  conséquence égal à 0 €
+```
+
+2° Régime douanier, à l'exclusion des prohibitions à l'importation et à
+l'exportation qui relèvent de l'ordre public et des engagements internationaux
+de la France et des règles relatives à la recherche, à la constatation des
+infractions pénales et à la procédure contentieuse ;
+
+3° Urbanisme ; construction ; habitation ; logement ;
+
+4° Création et organisation des services et des établissements publics de la
+collectivité.
+
+Par dérogation au 3°, les autorités de l'Etat délivrent, dans le cadre de la
+réglementation applicable à Saint-Pierre-et-Miquelon et après avis du conseil
+exécutif, les autorisations ou actes relatifs à l'utilisation et à
+l'occupation du sol concernant les constructions, installations ou travaux
+réalisés pour le compte de l'Etat et ses établissements publics.
+
+III. – Dans les conditions prévues à l'article LO 6461-3 , la collectivité peut
+édicter des peines contraventionnelles destinées à réprimer les infractions
+pénales aux règles qu'elle édicte dans les matières mentionnées au II.
+
+IV. – Dans les conditions prévues à l'article LO 6461-5 , la collectivité peut
+adapter les lois et règlements en vigueur localement.
+
+V. – 1. Une convention entre l'Etat et la collectivité détermine, aux fins
+notamment d'éviter les doubles impositions et de prévenir l'évasion fiscale,
+les obligations de la collectivité en matière de communication d'informations
+à des fins fiscales. La collectivité transmet à l'Etat toute information utile
+pour l'application de sa réglementation relative aux impôts, droits et taxes,
+ainsi que pour l'exécution des clauses d'échange de renseignements prévues par
+les conventions fiscales conclues par la France avec d'autres Etats ou
+territoires.
+
+2. Sans préjudice de l'exercice par la collectivité de sa compétence en
+   matière d'impôts, droits et taxes, l'Etat peut instituer des taxes
+   destinées à être perçues à l'occasion de l'exercice des missions d'intérêt
+   général qui lui incombent dans le cadre de ses compétences.
+
+Une convention conclue entre l'Etat et la collectivité précise les modalités
+d'application du présent 2 afin de déterminer les modalités de recouvrement et
+de gestion des recettes destinées au financement de la sécurité aérienne.
+
+VI. – La réglementation particulière à Saint-Pierre-et-Miquelon relative au
+contrôle sanitaire, vétérinaire et phytosanitaire et au fonctionnement des
+stations de quarantaine animale ne peut être modifiée qu'après avis du conseil
+territorial.

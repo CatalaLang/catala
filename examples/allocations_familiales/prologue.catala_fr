@@ -142,6 +142,7 @@ déclaration champ d'application AllocationsFamiliales:
   interne âge_minimum_alinéa_1_l521_3 contenu durée
     dépend de enfant contenu Enfant
   interne nombre_enfants_alinéa_2_l521_3 contenu entier
+  interne nombre_enfants_alinéa_2_l521_1 contenu entier
   interne est_enfant_le_plus_âgé contenu booléen
     dépend de enfant contenu Enfant
   interne plafond_I_d521_3 contenu argent

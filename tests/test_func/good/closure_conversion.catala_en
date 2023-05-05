@@ -15,7 +15,7 @@ scope S:
 $ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
 [ERROR] Variable x not found in the current context
 
-┌─⯈ tests/test_func/good/closure_conversion.catala_en:5.11-12:
+┌─⯈ tests/test_func/good/closure_conversion.catala_en:5.12-5.13:
 └─┐
 5 │   internal f content integer depends on y content integer
   │            ‾

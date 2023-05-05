@@ -16,13 +16,13 @@ scope A:
 $ catala Proof --disable_counterexamples 
 [WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/bad/dates_simple-empty.catala_en:6.10-11:
+┌─⯈ tests/test_proof/bad/dates_simple-empty.catala_en:6.11-6.12:
 └─┐
 6 │   context y content boolean
   │           ‾
   └─ Test
 [ERROR] [A.y] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/dates_simple-empty.catala_en:6.10-11:
+┌─⯈ tests/test_proof/bad/dates_simple-empty.catala_en:6.11-6.12:
 └─┐
 6 │   context y content boolean
   │           ‾

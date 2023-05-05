@@ -17,6 +17,7 @@ champ d'application Exemple1:
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.date_courante égal à |2021-09-15|
+  définition calcul.résidence égal à Métropole
   définition calcul.type_prêt égal à D331_63_64
 
   définition calcul.type_travaux_logement égal à
@@ -52,6 +53,7 @@ champ d'application Exemple2:
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.date_courante égal à |2021-09-15|
+  définition calcul.résidence égal à Métropole
   définition calcul.type_prêt égal à D331_63_64
 
   définition calcul.type_travaux_logement égal à
@@ -85,6 +87,7 @@ champ d'application Exemple3:
   définition calcul.ressources_ménage_arrondies égal à 18 000 €
   définition calcul.date_signature_prêt égal à |2017-12-15|
   définition calcul.zone égal à Zone2
+  définition calcul.résidence égal à Métropole
   définition calcul.mensualité_principale égal à 650 €
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
@@ -120,6 +123,7 @@ champ d'application Exemple4:
   définition calcul.date_signature_prêt égal à |2019-12-02|
   définition calcul.zone égal à Zone3
   définition calcul.mensualité_principale égal à 495 €
+  définition calcul.résidence égal à Métropole
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.date_courante égal à |2022-05-01|

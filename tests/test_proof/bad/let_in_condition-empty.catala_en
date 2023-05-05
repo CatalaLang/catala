@@ -15,13 +15,13 @@ scope A:
 $ catala Proof --disable_counterexamples
 [WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/bad/let_in_condition-empty.catala_en:5.10-11:
+┌─⯈ tests/test_proof/bad/let_in_condition-empty.catala_en:5.11-5.12:
 └─┐
 5 │   context x content boolean
   │           ‾
   └─ Test
 [ERROR] [A.x] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/let_in_condition-empty.catala_en:5.10-11:
+┌─⯈ tests/test_proof/bad/let_in_condition-empty.catala_en:5.11-5.12:
 └─┐
 5 │   context x content boolean
   │           ‾

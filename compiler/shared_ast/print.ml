@@ -431,14 +431,17 @@ end
 
 let rec expr_aux :
     type a.
+    hide_function_body:bool ->
     debug:bool ->
     Bindlib.ctxt ->
     ANSITerminal.style list ->
     Format.formatter ->
     (a, 't) gexpr ->
     unit =
- fun ~debug bnd_ctx colors fmt e ->
-  let exprb bnd_ctx colors e = expr_aux ~debug bnd_ctx colors e in
+ fun ~hide_function_body ~debug bnd_ctx colors fmt e ->
+  let exprb bnd_ctx colors e =
+    expr_aux ~hide_function_body ~debug bnd_ctx colors e
+  in
   let exprc colors e = exprb bnd_ctx colors e in
   let expr e = exprc colors e in
   let var = if debug then var_debug else var in
@@ -448,7 +451,7 @@ let rec expr_aux :
     | e -> e
   in
   let e = skip_log e in
-  let paren ~rhs expr fmt e1 =
+  let paren ~rhs ?(colors = colors) expr fmt e1 =
     if Precedence.needs_parens ~rhs ~context:e (skip_log e1) then (
       Format.pp_open_hvbox fmt 1;
       Cli.format_with_style [List.hd colors] fmt "(";
@@ -457,7 +460,10 @@ let rec expr_aux :
       Cli.format_with_style [List.hd colors] fmt ")")
     else expr colors fmt e1
   in
-  let lhs ex = paren ~rhs:false ex in
+  let default_punct color fmt s =
+    Format.pp_print_as fmt 1 (Cli.with_style [color] "%s" s)
+  in
+  let lhs ?(colors = colors) ex = paren ~colors ~rhs:false ex in
   let rhs ex = paren ~rhs:true ex in
   match Marked.unmark e with
   | EVar v -> var fmt v
@@ -501,20 +507,22 @@ let rec expr_aux :
     pr bnd_ctx colors fmt e;
     Format.pp_close_box fmt ()
   | EAbs { binder; tys } ->
-    let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
-    let expr = exprb bnd_ctx in
-    let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
-    Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
-      (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun fmt (x, tau) ->
-           punctuation fmt "(";
-           Format.pp_open_hvbox fmt 2;
-           var fmt x;
-           punctuation fmt ":";
-           Format.pp_print_space fmt ();
-           typ None fmt tau;
-           Format.pp_close_box fmt ();
-           punctuation fmt ")"))
-      xs_tau punctuation "→" (rhs expr) body
+    if hide_function_body then Format.fprintf fmt "%a" op_style "<function>"
+    else
+      let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+      let expr = exprb bnd_ctx in
+      let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
+      Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun fmt (x, tau) ->
+             punctuation fmt "(";
+             Format.pp_open_hvbox fmt 2;
+             var fmt x;
+             punctuation fmt ":";
+             Format.pp_print_space fmt ();
+             typ None fmt tau;
+             Format.pp_close_box fmt ();
+             punctuation fmt ")"))
+        xs_tau punctuation "→" (rhs expr) body
   | EApp { f = EOp { op = (Map | Filter) as op; _ }, _; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" (operator ~debug) op (lhs exprc)
       arg1 (rhs exprc) arg2
@@ -561,15 +569,36 @@ let rec expr_aux :
   | EOp { op; _ } -> operator ~debug fmt op
   | EDefault { excepts; just; cons } ->
     if List.length excepts = 0 then
-      Format.fprintf fmt "@[<hv 1>%a%a@ %a %a%a@]" punctuation "⟨" expr just
-        punctuation "⊢" expr cons punctuation "⟩"
+      Format.fprintf fmt "@[<hv 1>%a%a@ %a %a%a@]"
+        (default_punct (List.hd colors))
+        "⟨"
+        (exprc (List.tl colors))
+        just
+        (default_punct (List.hd colors))
+        "⊢"
+        (exprc (List.tl colors))
+        cons
+        (default_punct (List.hd colors))
+        "⟩"
     else
       Format.fprintf fmt
-        "@[<hv 0>@[<hov 2>%a %a@]@ @[<hov 2>%a %a@ %a %a@] %a@]" punctuation "⟨"
+        "@[<hv 0>@[<hov 2>%a %a@]@ @[<hov 2>%a %a@ %a %a@] %a@]"
+        (default_punct (List.hd colors))
+        "⟨"
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ",")
-           (lhs exprc))
-        excepts punctuation "|" expr just punctuation "⊢" expr cons punctuation
+           ~pp_sep:(fun fmt () ->
+             Format.fprintf fmt "%a@ " (default_punct (List.hd colors)) ",")
+           (lhs ~colors:(List.tl colors) exprc))
+        excepts
+        (default_punct (List.hd colors))
+        "|"
+        (exprc (List.tl colors))
+        just
+        (default_punct (List.hd colors))
+        "⊢"
+        (exprc (List.tl colors))
+        cons
+        (default_punct (List.hd colors))
         "⟩"
   | EEmptyError -> lit_style fmt "∅"
   | EErrorOnEmpty e' ->
@@ -655,8 +684,8 @@ let rec colors =
 let typ_debug = typ None
 let typ ctx = typ (Some ctx)
 
-let expr ?(debug = !Cli.debug_flag) () ppf e =
-  expr_aux ~debug Bindlib.empty_ctxt colors ppf e
+let expr ?(hide_function_body = false) ?(debug = !Cli.debug_flag) () ppf e =
+  expr_aux ~hide_function_body ~debug Bindlib.empty_ctxt colors ppf e
 
 let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   match k with

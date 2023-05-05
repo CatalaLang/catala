@@ -56,7 +56,9 @@ let scope ctx env scope =
         { def with scope_def_rules })
       scope.scope_defs
   in
-  let scope_assertions = List.map (expr ctx env) scope.scope_assertions in
+  let scope_assertions =
+    AssertionName.Map.map (expr ctx env) scope.scope_assertions
+  in
   { scope with scope_defs; scope_assertions }
 
 let program prg =

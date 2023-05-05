@@ -98,6 +98,10 @@ let disable_counterexamples = ref false
 let avoid_exceptions_flag = ref false
 let check_invariants_flag = ref false
 
+type message_format_enum = Human | GNU
+
+let message_format_flag = ref Human
+
 open Cmdliner
 
 let file =
@@ -121,6 +125,19 @@ let color =
         ~doc:
           "Allow output of colored and styled text. If set to $(i,auto), \
            enabled when the standard output is to a terminal.")
+
+let message_format_opt = Arg.enum ["human", Human; "gnu", GNU]
+
+let message_format =
+  Arg.(
+    value
+    & opt message_format_opt Human
+    & info ["message_format"]
+        ~doc:
+          "Selects the format of error and warning messages emitted by the \
+           compiler. If set to $(i,human), the messages will be nicely \
+           displayed and meant to be read by a human. If set to $(i, gnu), the \
+           messages will be rendered according to the GNU coding standards.")
 
 let unstyled =
   Arg.(
@@ -263,6 +280,7 @@ let output =
 type options = {
   debug : bool;
   color : when_enum;
+  message_format : message_format_enum;
   wrap_weaved_output : bool;
   avoid_exceptions : bool;
   backend : string;
@@ -285,6 +303,7 @@ let options =
   let make
       debug
       color
+      message_format
       unstyled
       wrap_weaved_output
       avoid_exceptions
@@ -305,6 +324,7 @@ let options =
     {
       debug;
       color = (if unstyled then Never else color);
+      message_format;
       wrap_weaved_output;
       avoid_exceptions;
       backend;
@@ -327,6 +347,7 @@ let options =
     const make
     $ debug
     $ color
+    $ message_format
     $ unstyled
     $ wrap_weaved_output
     $ avoid_exceptions
@@ -362,7 +383,8 @@ let set_option_globals options : unit =
   optimize_flag := options.optimize;
   check_invariants_flag := options.check_invariants;
   disable_counterexamples := options.disable_counterexamples;
-  avoid_exceptions_flag := options.avoid_exceptions
+  avoid_exceptions_flag := options.avoid_exceptions;
+  message_format_flag := options.message_format
 
 let version = "0.8.0"
 

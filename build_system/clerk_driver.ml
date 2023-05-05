@@ -970,7 +970,7 @@ let driver
       Cli.error_print "The command \"%s\" is unknown to clerk." command;
       return_err
   with Errors.StructuredError (msg, pos) ->
-    Cli.error_print "%s" (Errors.print_structured_error msg pos);
+    Errors.print_structured_error msg pos;
     return_err
 
 let main () = exit (Cmdliner.Cmd.eval' (Cmdliner.Cmd.v info (clerk_t driver)))

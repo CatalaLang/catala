@@ -17,7 +17,7 @@ scope B:
 $ catala Typecheck
 [WARNING] In scope "A", the variable "a" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_io/bad/using_non_output.catala_en:5.11-12:
+┌─⯈ tests/test_io/bad/using_non_output.catala_en:5.12-5.13:
 └─┐
 5 │   internal a content integer
   │            ‾
@@ -25,21 +25,21 @@ $ catala Typecheck
 [ERROR] The variable a.a cannot be used here, as it is not part of subscope a's results. Maybe you forgot to qualify it as an output?
 
 Incriminated variable usage:
-┌─⯈ tests/test_io/bad/using_non_output.catala_en:14.12-15:
+┌─⯈ tests/test_io/bad/using_non_output.catala_en:14.13-14.16:
 └──┐
 14 │   assertion a.a = 0
    │             ‾‾‾
    └─ Test
 
 Incriminated subscope variable declaration:
-┌─⯈ tests/test_io/bad/using_non_output.catala_en:5.11-12:
+┌─⯈ tests/test_io/bad/using_non_output.catala_en:5.12-5.13:
 └─┐
 5 │   internal a content integer
   │            ‾
   └─ Test
 
 Incriminated subscope declaration:
-┌─⯈ tests/test_io/bad/using_non_output.catala_en:8.2-3:
+┌─⯈ tests/test_io/bad/using_non_output.catala_en:8.3-8.4:
 └─┐
 8 │   a scope A
   │   ‾

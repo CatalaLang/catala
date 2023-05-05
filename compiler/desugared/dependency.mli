@@ -37,6 +37,7 @@ module Vertex : sig
   type t =
     | Var of Shared_ast.ScopeVar.t * Shared_ast.StateName.t option
     | SubScope of Shared_ast.SubScopeName.t
+    | Assertion of Ast.AssertionName.t
 
   val format_t : Format.formatter -> t -> unit
   val info : t -> Uid.MarkedString.info

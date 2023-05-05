@@ -17,7 +17,7 @@ catala: internal error, uncaught exception:
         
 [WARNING] In scope "Test", the variable "ambiguous" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_date/bad/rounding_option.catala_en:5.10-19:
+┌─⯈ tests/test_date/bad/rounding_option.catala_en:5.11-5.20:
 └─┐
 5 │   context ambiguous content boolean
   │           ‾‾‾‾‾‾‾‾‾

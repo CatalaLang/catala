@@ -11,7 +11,7 @@ scope A:
 $ catala Typecheck 
 [WARNING] In scope "A", the variable "a" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_io/bad/redefining_input.catala_en:5.8-9:
+┌─⯈ tests/test_io/bad/redefining_input.catala_en:5.9-5.10:
 └─┐
 5 │   input a content integer
   │         ‾
@@ -19,14 +19,14 @@ $ catala Typecheck
 [ERROR] It is impossible to give a definition to a scope variable tagged as input.
 
 Incriminated variable:
-┌─⯈ tests/test_io/bad/redefining_input.catala_en:5.8-9:
+┌─⯈ tests/test_io/bad/redefining_input.catala_en:5.9-5.10:
 └─┐
 5 │   input a content integer
   │         ‾
   └─ Test
 
 Incriminated variable definition:
-┌─⯈ tests/test_io/bad/redefining_input.catala_en:8.2-14:
+┌─⯈ tests/test_io/bad/redefining_input.catala_en:8.3-8.15:
 └─┐
 8 │   definition a equals 0
   │   ‾‾‾‾‾‾‾‾‾‾‾‾

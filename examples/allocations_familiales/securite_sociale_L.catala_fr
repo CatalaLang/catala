@@ -8,7 +8,7 @@
 
 ##### Chapitre 1er : Liste des prestations
 
-###### Article L511-1|LEGIARTI000038834530
+###### Article L511-1 | LEGIARTI000041979747
 
 Les prestations familiales comprennent :
 
@@ -26,17 +26,22 @@ Les prestations familiales comprennent :
 
 7°) l'allocation de rentrée scolaire ;
 
-8°) (Abrogé) ;
+8°) L'allocation forfaitaire versée en cas de décès d'un enfant ;
 
 9°) l'allocation journalière de présence parentale.
 
-```catala
-# Voir l'énumération ÉlémentPrestationsFamiliale
-```
+NOTA : 
+
+Conformément au IV de l’article 5 de la loi n° 2020-692 du 8 juin 2020,
+ces dispositions entrent en vigueur à une date fixée par décret, et au plus
+tard à compter du 1er janvier 2022, au titre des enfants dont le décès
+intervient à compter de cette date. Se reporter aux dispositions du V du même
+article en ce qui concerne le versement d'une l'allocation forfaitaire
+transitoire.
 
 ##### Chapitre 2 : Champ d'application
 
-###### Article L512-3|LEGIARTI000038834523
+###### Article L512-3|LEGIARTI000041979743
 
 Sous réserve des règles particulières à chaque prestation,
 ouvre droit aux prestations familiales :
@@ -87,6 +92,19 @@ peut être différent de celui mentionné au 2° du présent article.
 # cet âge autre part que pour Complément Familial ou AllocationLogement.
 ```
 
+Pour l'attribution de l'allocation forfaitaire versée en cas de décès d'un
+enfant prévue à l'article L. 545-1, l'âge limite retenu peut être différent de
+celui fixé en application du 2° du présent article et la condition relative à
+la rémunération de l'enfant n'est pas exigée. 
+
+NOTA : 
+
+Conformément au IV de l’article 5 de la loi n° 2020-692 du 8 juin 2020, ces
+dispositions entrent en vigueur à une date fixée par décret, et au plus tard à
+compter du 1er janvier 2022, au titre des enfants dont le décès intervient à
+compter de cette date. Se reporter aux dispositions du V du même article en ce
+qui concerne le versement d'une l'allocation forfaitaire transitoire.
+
 #### Titre 2 : Prestations générales d'entretien
 
 ##### Chapitre 1er : Allocations familiales
@@ -116,7 +134,7 @@ champ d'application AllocationsFamiliales :
 
   règle droit_ouvert_forfaitaire de enfant sous condition
     # nombre_enfants_alinéa_2_l521_3 sera défini dans l'article R521-3
-    (nombre de enfants_à_charge >= nombre_enfants_alinéa_2_l521_3) et
+    (nombre de enfants_à_charge >= nombre_enfants_alinéa_2_l521_1) et
     # Puisqu'un enfant ne garde un âge donné que pour une période d'un an,
     # cette condition assure que l'allocation ne peut être distribuée que pour
     # un an.
@@ -174,7 +192,7 @@ champ d'application AllocationsFamiliales :
   assertion fixé montant_versé_complément par décret
 ```
 
-###### Article L521-2|LEGIARTI000006743210
+###### Article L521-2|LEGIARTI000039099826
 
 Les allocations sont versées à la personne qui assume, dans quelques conditions
 que ce soit, la charge effective et permanente de l'enfant.
@@ -240,13 +258,12 @@ allocations familiales continuent d'être évaluées en tenant compte à la fois
 des enfants présents au foyer et du ou des enfants confiés au service de
 l'aide sociale à l'enfance. La part des allocations familiales dues à la
 famille pour cet enfant est versée à ce service. Toutefois, le juge peut
-décider, d'office ou sur saisine du président du conseil général, à la
-suite d'une mesure prise en application des articles 375-3 et 375-5 du code
-civil ou des articles 15,16,16 bis et 28 de l' ordonnance n° 45-174 du 2
-février 1945 relative à l'enfance délinquante, de maintenir le versement
-des allocations à la famille, lorsque celle-ci participe à la prise en
-charge morale ou matérielle de l'enfant ou en vue de faciliter le retour
-de l'enfant dans son foyer.
+décider, d'office ou sur saisine du président du conseil général, à la suite
+d'une mesure prise en application des articles 375-3 et 375-5 du code civil ou
+à l'article L. 323-1 du code de la justice pénale des mineurs, de maintenir le
+versement des allocations à la famille, lorsque celle-ci participe à la prise
+en charge morale ou matérielle de l'enfant ou en vue de faciliter le retour de
+l'enfant dans son foyer.
 
 ```catala
 champ d'application AllocationsFamiliales :
@@ -287,6 +304,14 @@ d) enfants confiés à un service public, à une institution privée, à un part
 # Ce programme ne cherche pas à formaliser les détails pour lesquels un enfant
 # est confié à un service social.
 ```
+
+NOTA : 
+
+Se reporter aux conditions d'application prévues à l'article 10 de
+l'ordonnance n° 2019-950 du 11 septembre 2019. Conformément à l'article 25 de
+la loi n°2020-734, l'ordonnance n°2019-950 entre en vigueur le 31 mars 2021.
+Cette date a été reportée au 30 septembre 2021 par l'article 2 de la loi n°
+2021-218 du 26 février 2021.
 
 ###### Article L521-3|LEGIARTI000006743289
 
@@ -365,11 +390,12 @@ champ d'application PrestationsFamiliales :
 
 ##### Chapitre 5 : Prestations familiales et prestations assimilées
 
-###### Article L755-3|LEGIARTI000033728786
+###### Article L755-3|LEGIARTI000041979722
 
-Les dispositions des articles L. 512-1 à L. 512-4 , L. 513-1 , L. 521-2 ,
-L. 552-1 , L. 553-1 , L. 553-2 , L. 553-4 , L. 582-1 , L. 582-2 , L. 583-3
-et L. 583-5 sont applicables aux collectivités mentionnées à l'article L. 751-1 .
+Les dispositions des articles L. 512-1 à L. 512-4 , L. 513-1 , L. 521-2 , L.
+552-1 , L. 552-7 , L. 553-1 , L. 553-2 , L. 553-4 , L. 582-1 , L. 582-2 , L.
+583-3 et L. 583-5 sont applicables aux collectivités mentionnées à l'article
+L. 751-1 .
 
 La base de calcul des prestations familiales est la même que celle qui est
 fixée en application de l'article L. 551-1 .
@@ -378,11 +404,18 @@ fixée en application de l'article L. 551-1 .
 # Aucun changement dans le code, puisque les articles restent applicables
 ```
 
+NOTA : 
+
+Conformément au IV de l’article 4 de la loi n° 2020-692 du 8 juin 2020, ces
+dispositions entrent en vigueur à une date fixée par décret, et au plus tard
+le 1er janvier 2022, pour les décès intervenant à compter de cette date.
+
+
 ###### Article L755-11|LEGIARTI000031323803
 
 Les conditions d'attribution des allocations familiales et de leurs majorations
 fixées par les articles L. 521-1 et L. 521-3 sont applicables dans les
-collectivités mentionnées à l'article L. 751-1.
+collectivités mentionnées à l'article L. 751-1 .
 
 ```catala
 # Aucun changement dans le code, puisque les articles restent applicables

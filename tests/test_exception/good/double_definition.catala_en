@@ -1,0 +1,58 @@
+## Foo
+
+```catala
+declaration scope Foo:
+  output x content integer
+
+scope Foo:
+  definition x equals 1
+  definition x equals 1
+
+```
+
+```catala-test-inline
+$ catala Scopelang -s Foo
+[WARNING] These definitions have identical justifications and consequences; is it a mistake?
+
+┌─⯈ tests/test_exception/good/double_definition.catala_en:9.3-9.15:
+└─┐
+9 │   definition x equals 1
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Foo
+
+┌─⯈ tests/test_exception/good/double_definition.catala_en:8.3-8.15:
+└─┐
+8 │   definition x equals 1
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Foo
+let scope Foo (x: integer|internal|output) =
+  let x : integer = ⟨true ⊢ ⟨ ⟨true ⊢ 1⟩, ⟨true ⊢ 1⟩ | false ⊢ ∅ ⟩⟩
+```
+
+In Scopelang we have what looks like conflicting exceptions. But after
+discussions related in https://github.com/CatalaLang/catala/issues/208, we
+have decided to relax this behavior when translating to Dcalc because the
+consequences of the conflicting exceptions are the same. Hence the
+Dcalc translation below.
+
+```catala-test-inline
+$ catala Dcalc -s Foo
+[WARNING] These definitions have identical justifications and consequences; is it a mistake?
+
+┌─⯈ tests/test_exception/good/double_definition.catala_en:9.3-9.15:
+└─┐
+9 │   definition x equals 1
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Foo
+
+┌─⯈ tests/test_exception/good/double_definition.catala_en:8.3-8.15:
+└─┐
+8 │   definition x equals 1
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+  └─ Foo
+let scope Foo (Foo_in: Foo_in): Foo {x: integer} =
+  let set x : integer =
+    error_empty ⟨true ⊢ ⟨ ⟨ ⟨true ⊢ 1⟩ | true ⊢ 1 ⟩ | false ⊢ ∅ ⟩⟩
+  in
+  return { Foo x = x; }
+```

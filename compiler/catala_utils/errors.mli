@@ -23,7 +23,9 @@ exception StructuredError of (string * (string option * Pos.t) list)
     secondary positions related to the error, each carrying an optional
     secondary message to describe what is pointed by the position. *)
 
-val print_structured_error : string -> (string option * Pos.t) list -> string
+val print_structured_error :
+  ?is_warning:bool -> string -> (string option * Pos.t) list -> unit
+(** Emits error or warning if [is_warning] is set to [true]. *)
 
 (** {1 Error exception and printing} *)
 

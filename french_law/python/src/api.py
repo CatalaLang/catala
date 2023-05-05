@@ -66,7 +66,7 @@ class PersonneAChargeAPL(ABC):
 
 
 class EnfantAPL(PersonneAChargeAPL):
-    def __init__(self, identifiant: int, beneficie_titre_personnel_aide_personnelle_logement: bool,
+    def __init__(self, identifiant: int,
                  a_deja_ouvert_droit_aux_allocations_familiales: bool,
                  date_de_naissance: datetime.date,
                  remuneration_mensuelle: int,
@@ -76,7 +76,6 @@ class EnfantAPL(PersonneAChargeAPL):
                  nationalite: Nationalite,
                  etudes_apprentissage_stage_formation_pro_impossibilite_travail: bool):
         self.identifiant = identifiant
-        self.beneficie_titre_personnel_aide_personnelle_logement = beneficie_titre_personnel_aide_personnelle_logement
         self.a_deja_ouvert_droit_aux_allocations_familiales = a_deja_ouvert_droit_aux_allocations_familiales
         self.date_de_naissance = date_de_naissance,
         self.remuneration_mensuelle = remuneration_mensuelle
@@ -143,7 +142,11 @@ class InfosLogementFoyer(InfosSpecifiques):
                  categorie_equivalence_loyer_d842_16: CategorieEquivalenceLoyerAllocationLogementFoyer_Code,
                  conventionne_selon_regles_drom: bool,
                  beneficiaire_aide_adulte_ou_enfant_handicapes: bool,
-                 logement_meuble_d842_2: bool):
+                 logement_est_chambre: bool,
+                 colocation: bool,
+                 logement_meuble_d842_2: bool,
+                 logement_foyer_jeunes_travailleurs: bool):
+        self.logement_foyer_jeunes_travailleurs = logement_foyer_jeunes_travailleurs
         self.type = type
         self.remplit_conditions_r832_21 = remplit_conditions_r832_21
         self.conventionne_livre_III_titre_V_chap_III = conventionne_livre_III_titre_V_chap_III
@@ -154,6 +157,8 @@ class InfosLogementFoyer(InfosSpecifiques):
         self.conventionne_selon_regles_drom = conventionne_selon_regles_drom
         self.beneficiaire_aide_adulte_ou_enfant_handicapes = beneficiaire_aide_adulte_ou_enfant_handicapes
         self.logement_meuble_d842_2 = logement_meuble_d842_2
+        self.logement_est_chambre = logement_est_chambre
+        self.colocation = colocation
 
 
 class InfosAccessionPropriete(InfosSpecifiques):
@@ -258,6 +263,7 @@ def aides_logement(
                             ))
                     ) if isinstance(infos_specifiques, InfosLocation) else
                         (LogementFoyer(
+                            logement_foyer_jeunes_travailleurs=infos_specifiques.logement_foyer_jeunes_travailleurs,
                             type=TypeLogementFoyer(
                                 code=infos_specifiques.type, value=Unit()),
                             conventionne_selon_regles_drom=infos_specifiques.conventionne_selon_regles_drom,
@@ -272,8 +278,9 @@ def aides_logement(
                                 infos_specifiques.redevance),
                             categorie_equivalence_loyer_d842_16=CategorieEquivalenceLoyerAllocationLogementFoyer(
                                 code=infos_specifiques.categorie_equivalence_loyer_d842_16,
-                                value=Unit()
-                            )
+                                value=Unit()),
+                            logement_est_chambre=infos_specifiques.logement_est_chambre,
+                            colocation=infos_specifiques.colocation
                         ) if isinstance(infos_specifiques, InfosLogementFoyer) else
                             (Proprietaire(
                                 mensualite_principale=money_of_units_int(
@@ -335,7 +342,6 @@ def aides_logement(
                                      etudes_apprentissage_stage_formation_pro_impossibilite_travail=personne_a_charge.etudes_apprentissage_stage_formation_pro_impossibilite_travail,
                                      identifiant=integer_of_int(
                                          personne_a_charge.identifiant),
-                                     beneficie_titre_personnel_aide_personnelle_logement=personne_a_charge.beneficie_titre_personnel_aide_personnelle_logement,
                                      a_deja_ouvert_droit_aux_allocations_familiales=personne_a_charge.a_deja_ouvert_droit_aux_allocations_familiales,
                                      date_de_naissance=date_of_datetime(
                                          personne_a_charge.date_de_naissance[0]),

@@ -13,6 +13,7 @@ depends: [
   "re" {>= "1.9.0"}
   "cohttp-lwt-unix" {>= "5.0.0"}
   "cohttp" {>= "5.0.0"}
+  "lwt_ssl" {>= "1.2.0"}
   "tls" {>= "0.15.3"}
   "catala" {= version}
   "odoc" {with-doc}

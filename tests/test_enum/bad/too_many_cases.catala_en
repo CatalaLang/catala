@@ -25,7 +25,7 @@ scope A:
 $ catala Interpret -s A
 [ERROR] This case matches a constructor of enumeration E but previous case were matching constructors of enumeration F
 
-┌─⯈ tests/test_enum/bad/too_many_cases.catala_en:21.7-12:
+┌─⯈ tests/test_enum/bad/too_many_cases.catala_en:21.8-21.13:
 └──┐
 21 │     -- Case4 : true
    │        ‾‾‾‾‾

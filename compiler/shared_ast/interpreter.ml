@@ -57,16 +57,15 @@ let print_log entry infos pos e =
          formatted in one pass, without going through intermediate "%s" *)
       Cli.log_format "%*s%a %a: %s" (!log_indent * 2) "" Print.log_entry entry
         Print.uid_list infos
-        (match Marked.unmark e with
-        | EAbs _ -> Cli.with_style [ANSITerminal.green] "<function>"
-        | _ ->
-          let expr_str = Format.asprintf "%a" (Print.expr ()) e in
-          let expr_str =
-            Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-              ~subst:(fun _ -> " ")
-              expr_str
-          in
-          Cli.with_style [ANSITerminal.green] "%s" expr_str)
+        (let expr_str =
+           Format.asprintf "%a" (Print.expr ~hide_function_body:true ()) e
+         in
+         let expr_str =
+           Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+             ~subst:(fun _ -> " ")
+             expr_str
+         in
+         Cli.with_style [ANSITerminal.green] "%s" expr_str)
     | PosRecordIfTrueBool -> (
       match pos <> Pos.no_pos, Marked.unmark e with
       | true, ELit (LBool true) ->

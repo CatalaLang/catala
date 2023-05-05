@@ -702,7 +702,7 @@ des conventions régies par le chapitre III du titre V du livre III ;
 
 ```catala
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
-  étiquette l831_1_alinea_5
+  étiquette logement_foyer
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de location:
@@ -927,9 +927,6 @@ champ d'application ÉligibilitéAllocationLogement:
           -- date_de_naissance: enfant.date_de_naissance
           -- a_déjà_ouvert_droit_aux_allocations_familiales:
             enfant.a_déjà_ouvert_droit_aux_allocations_familiales
-          -- bénéficie_titre_personnel_aide_personnelle_logement:
-            enfant.
-              bénéficie_titre_personnel_aide_personnelle_logement
           }))
     = 1
   conséquence rempli
@@ -954,9 +951,6 @@ champ d'application ÉligibilitéAllocationLogement:
           -- date_de_naissance: enfant.date_de_naissance
           -- a_déjà_ouvert_droit_aux_allocations_familiales:
             enfant.a_déjà_ouvert_droit_aux_allocations_familiales
-          -- bénéficie_titre_personnel_aide_personnelle_logement:
-            enfant.
-              bénéficie_titre_personnel_aide_personnelle_logement
           })))
       = 0
     et
@@ -1142,7 +1136,6 @@ soins de longue durée mentionnés au 3° de l'article L. 162-22 du code de la s
 
 ```catala
 champ d'application ÉligibilitéAllocationLogement:
-  exception accession_propriété
   # Nous considérons que L841-3 est une exception à L841-4 et non pas à
   # L841-2 (cas de base) car si L841-3 et L84164 étaient tous deux exceptions
   # de L841-2, alors il pourrait y avoir conflit entre ces deux exceptions.
@@ -1151,6 +1144,17 @@ champ d'application ÉligibilitéAllocationLogement:
   # de soin longue durée avec un prêt aidé par l'État.
   # Donc ici plutôt que d'écrire un invariant qui exclut ce cas de figure,
   # on préfère hiérarchiser entre elles les exceptions pour lever le conflit.
+  # Idem avec l'exception prévue par L861-8. Nous écrivons donc l'assertion
+  # ci-dessous pour matérialiser l'impossibilité de se retrouver dans ces
+  # situations.
+  assertion non (
+    demandeur.personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale et
+    (ménage.logement.mode_occupation sous forme
+      AccessionPropriétéLocalUsageExclusifHabitation ou
+    demandeur.
+      magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte))
+
+  exception base
   définition éligibilité état l841_2 sous condition
     demandeur.personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale
   conséquence égal à
@@ -1388,7 +1392,7 @@ champ d'application ÉligibilitéAidePersonnaliséeLogement sous condition
   -- LaRéunion: vrai
   -- Mayotte: vrai
   -- n'importe quel: faux):
-  exception l831_1_alinea_5
+  étiquette logement_foyer
   règle condition_logement_bailleur sous condition
     selon ménage.logement.mode_occupation sous forme
       -- RésidentLogementFoyer de location:
@@ -1419,9 +1423,9 @@ champ d'application ÉligibilitéAllocationLogement sous condition
   -- Mayotte: vrai
   -- n'importe quel: faux):
 
-  règle l_841_1_1_applicable non rempli
-  règle l_841_1_2_applicable non rempli
-  règle l_841_1_6_applicable non rempli
+  exception règle l_841_1_1_applicable non rempli
+  exception règle l_841_1_2_applicable non rempli
+  exception règle l_841_1_6_applicable non rempli
   # Nous désactivons seulement les 1°, 2° et 6° sans faire la renumérotation
   # qui semble ne concerner que les b) et c) suivants (à prendre en compte
   # dans le code correspondant).
@@ -1469,9 +1473,6 @@ champ d'application ÉligibilitéAllocationLogement sous condition
           -- date_de_naissance: enfant.date_de_naissance
           -- a_déjà_ouvert_droit_aux_allocations_familiales:
             enfant.a_déjà_ouvert_droit_aux_allocations_familiales
-          -- bénéficie_titre_personnel_aide_personnelle_logement:
-            enfant.
-              bénéficie_titre_personnel_aide_personnelle_logement
           }))
     >= 1
   conséquence rempli
@@ -1480,7 +1481,7 @@ champ d'application ÉligibilitéAllocationLogement sous condition
 " 5° Aux personnes mentionnées aux articles L. 781-8 et L. 781-46 du code rural
 et de la pêche maritime ;
 
-```catala
+```catala règle l_841_1_6_applicable
 # Les personnes mentionnées aux articles L. 781-8 et L. 781-46 du code rural
 # et de la pêche maritime sont les non-salariés agricoles.
 champ d'application ÉligibilitéAllocationLogement sous condition
@@ -1726,9 +1727,9 @@ champ d'application ÉligibilitéAllocationLogement sous condition
   -- SaintMartin: vrai
   -- n'importe quel: faux):
 
-  règle l_841_1_1_applicable non rempli
-  règle l_841_1_2_applicable non rempli
-  règle l_841_1_6_applicable non rempli
+  exception règle l_841_1_1_applicable non rempli
+  exception règle l_841_1_2_applicable non rempli
+  exception règle l_841_1_6_applicable non rempli
   # Nous désactivons seulement les 1°, 2° et 6° sans faire la renumérotation
   # qui semble ne concerner que les b) et c) suivants (à prendre en compte
   # dans le code correspondant).
@@ -1761,9 +1762,6 @@ champ d'application ÉligibilitéAllocationLogement sous condition
           -- date_de_naissance: enfant.date_de_naissance
           -- a_déjà_ouvert_droit_aux_allocations_familiales:
             enfant.a_déjà_ouvert_droit_aux_allocations_familiales
-          -- bénéficie_titre_personnel_aide_personnelle_logement:
-            enfant.
-              bénéficie_titre_personnel_aide_personnelle_logement
           }))
     >= 1
   conséquence rempli

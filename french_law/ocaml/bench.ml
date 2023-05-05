@@ -155,7 +155,6 @@ let aides_logement_input :
             [
               Law_source.Aides_logement.PersonneACharge.EnfantACharge
                 {
-                  beneficie_titre_personnel_aide_personnelle_logement = false;
                   a_deja_ouvert_droit_aux_allocations_familiales = true;
                   nationalite =
                     Law_source.Aides_logement.Nationalite.Francaise ();
@@ -175,7 +174,6 @@ let aides_logement_input :
                 };
               Law_source.Aides_logement.PersonneACharge.EnfantACharge
                 {
-                  beneficie_titre_personnel_aide_personnelle_logement = false;
                   a_deja_ouvert_droit_aux_allocations_familiales = true;
                   remuneration_mensuelle = Runtime.money_of_units_int 0;
                   obligation_scolaire =

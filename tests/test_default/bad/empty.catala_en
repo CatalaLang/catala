@@ -13,21 +13,21 @@ scope A:
 $ catala Interpret -s A
 [WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_default/bad/empty.catala_en:5.10-11:
+┌─⯈ tests/test_default/bad/empty.catala_en:5.11-5.12:
 └─┐
 5 │   context x content integer
   │           ‾
   └─ Article
 [WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_default/bad/empty.catala_en:6.10-11:
+┌─⯈ tests/test_default/bad/empty.catala_en:6.11-6.12:
 └─┐
 6 │   context y content boolean
   │           ‾
   └─ Article
 [ERROR] This variable evaluated to an empty term (no rule that defined it applied in this situation)
 
-┌─⯈ tests/test_default/bad/empty.catala_en:6.10-11:
+┌─⯈ tests/test_default/bad/empty.catala_en:6.11-6.12:
 └─┐
 6 │   context y content boolean
   │           ‾

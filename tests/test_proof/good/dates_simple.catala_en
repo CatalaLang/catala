@@ -2,8 +2,8 @@
 
 ```catala
 declaration scope A:
-  context x content date
-  context y content boolean
+  internal x content date
+  output y content boolean
 
 scope A:
   definition x equals |2022-01-16|
@@ -14,13 +14,6 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Proof --disable_counterexamples 
-[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_proof/good/dates_simple.catala_en:6.10-11:
-└─┐
-6 │   context y content boolean
-  │           ‾
-  └─ Test
+$ catala Proof --disable_counterexamples
 [RESULT] No errors found during the proof mode run.
 ```

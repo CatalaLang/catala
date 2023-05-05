@@ -22,14 +22,14 @@ scope A:
 $ catala Interpret -s A
 [WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:5.10-11:
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:5.11-5.12:
 └─┐
 5 │   context x content integer
   │           ‾
   └─ Test
 [ERROR] Exception cycle detected when defining x: each of these 3 exceptions applies over the previous one, and the first applies over the last
 
-┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:8.2-10.14:
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:8.3-10.15:
 └──┐
  8 │   label base_x
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
@@ -39,7 +39,7 @@ $ catala Interpret -s A
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
 
 
-┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:12.2-14.14:
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:12.3-14.15:
 └──┐
 12 │   label exception_x
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -49,7 +49,7 @@ $ catala Interpret -s A
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
 
 
-┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:16.2-18.14:
+┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:16.3-18.15:
 └──┐
 16 │   label exception_exception_x
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

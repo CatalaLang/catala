@@ -19,7 +19,7 @@ scope ScopeB:
 $ catala OCaml -O
 [WARNING] In scope "ScopeB", the variable "a" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_scope/good/191_fix_record_name_confusion.catala_en:8.10-11:
+┌─⯈ tests/test_scope/good/191_fix_record_name_confusion.catala_en:8.11-8.12:
 └─┐
 8 │   context a content boolean
   │           ‾

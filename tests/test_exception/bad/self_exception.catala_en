@@ -14,14 +14,14 @@ scope A:
 $ catala Interpret -s A
 [WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_exception/bad/self_exception.catala_en:5.10-11:
+┌─⯈ tests/test_exception/bad/self_exception.catala_en:5.11-5.12:
 └─┐
 5 │   context y content integer
   │           ‾
   └─ Test
 [ERROR] Cannot define rule as an exception to itself
 
-┌─⯈ tests/test_exception/bad/self_exception.catala_en:9.12-18:
+┌─⯈ tests/test_exception/bad/self_exception.catala_en:9.13-9.19:
 └─┐
 9 │   exception base_y
   │             ‾‾‾‾‾‾

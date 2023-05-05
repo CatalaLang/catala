@@ -33,13 +33,17 @@ open Shared_ast
 
     Indeed, during interpretation, subscopes are executed atomically. *)
 module Vertex = struct
-  type t = Var of ScopeVar.t * StateName.t option | SubScope of SubScopeName.t
+  type t =
+    | Var of ScopeVar.t * StateName.t option
+    | SubScope of SubScopeName.t
+    | Assertion of Ast.AssertionName.t
 
   let hash x =
     match x with
     | Var (x, None) -> ScopeVar.hash x
     | Var (x, Some sx) -> Int.logxor (ScopeVar.hash x) (StateName.hash sx)
     | SubScope x -> SubScopeName.hash x
+    | Assertion a -> Ast.AssertionName.hash a
 
   let compare x y =
     match x, y with
@@ -48,8 +52,11 @@ module Vertex = struct
       | 0 -> Option.compare StateName.compare xst yst
       | n -> n)
     | SubScope x, SubScope y -> SubScopeName.compare x y
+    | Assertion a, Assertion b -> Ast.AssertionName.compare a b
     | Var _, _ -> -1
     | _, Var _ -> 1
+    | SubScope _, Assertion _ -> -1
+    | Assertion _, SubScope _ -> 1
     | SubScope _, _ -> .
     | _, SubScope _ -> .
 
@@ -58,7 +65,8 @@ module Vertex = struct
     | Var (x, sx), Var (y, sy) ->
       ScopeVar.equal x y && Option.equal StateName.equal sx sy
     | SubScope x, SubScope y -> SubScopeName.equal x y
-    | (Var _ | SubScope _), _ -> false
+    | Assertion a, Assertion b -> Ast.AssertionName.equal a b
+    | (Var _ | SubScope _ | Assertion _), _ -> false
 
   let format_t (fmt : Format.formatter) (x : t) : unit =
     match x with
@@ -66,11 +74,13 @@ module Vertex = struct
     | Var (v, Some sv) ->
       Format.fprintf fmt "%a@%a" ScopeVar.format_t v StateName.format_t sv
     | SubScope v -> SubScopeName.format_t fmt v
+    | Assertion a -> Ast.AssertionName.format_t fmt a
 
   let info = function
     | Var (v, None) -> ScopeVar.get_info v
     | Var (_, Some sv) -> StateName.get_info sv
     | SubScope v -> SubScopeName.get_info v
+    | Assertion a -> Ast.AssertionName.get_info a
 end
 
 (** On the edges, the label is the position of the expression responsible for
@@ -173,6 +183,12 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
       scope.scope_sub_scopes g
   in
   let g =
+    Ast.AssertionName.Map.fold
+      (fun a _ g -> ScopeDependencies.add_vertex g (Vertex.Assertion a))
+      scope.scope_assertions g
+  in
+  (* then add the edges *)
+  let g =
     Ast.ScopeDef.Map.fold
       (fun def_key scope_def g ->
         let def = scope_def.Ast.scope_def_rules in
@@ -236,6 +252,33 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
               ScopeDependencies.add_edge_e g edge)
           fv g)
       scope.scope_defs g
+  in
+  let g =
+    Ast.AssertionName.Map.fold
+      (fun a_name a g ->
+        let used_vars = Ast.locations_used (Expr.unbox a) in
+        Ast.LocationSet.fold
+          (fun used_var g ->
+            let edge_from =
+              match Marked.unmark used_var with
+              | DesugaredScopeVar (v, s) ->
+                Some (Vertex.Var (Marked.unmark v, s))
+              | SubScopeVar (_, subscope_name, _) ->
+                Some (Vertex.SubScope (Marked.unmark subscope_name))
+              | ToplevelVar _ -> None
+              (* we don't add this dependency because toplevel definitions are
+                 outside the scope *)
+            in
+            match edge_from with
+            | None -> g
+            | Some edge_from ->
+              let edge =
+                ScopeDependencies.E.create edge_from (Expr.pos a)
+                  (Vertex.Assertion a_name)
+              in
+              ScopeDependencies.add_edge_e g edge)
+          used_vars g)
+      scope.scope_assertions g
   in
   g
 

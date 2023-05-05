@@ -35,7 +35,7 @@ scope Money:
 $ catala Interpret -s Dec
 [WARNING] In scope "Int", the variable "i" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:7.10-11:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:7.11-7.12:
 └─┐
 7 │   context i content decimal
   │           ‾
@@ -43,7 +43,7 @@ $ catala Interpret -s Dec
    └─ with integers
 [WARNING] In scope "Dec", the variable "i" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:17.10-11:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:17.11-17.12:
 └──┐
 17 │   context i content decimal
    │           ‾
@@ -51,7 +51,7 @@ $ catala Interpret -s Dec
     └─ with decimals
 [WARNING] In scope "Money", the variable "i" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:27.10-11:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:27.11-27.12:
 └──┐
 27 │   context i content decimal
    │           ‾
@@ -60,7 +60,7 @@ $ catala Interpret -s Dec
 [ERROR] division by zero at runtime
 
 The division operator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.22-29:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.23-20.30:
 └──┐
 20 │   definition i equals 1. / 0.
    │                       ‾‾‾‾‾‾‾
@@ -68,7 +68,7 @@ The division operator:
     └─ with decimals
 
 The null denominator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.27-29:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.28-20.30:
 └──┐
 20 │   definition i equals 1. / 0.
    │                            ‾‾
@@ -81,7 +81,7 @@ The null denominator:
 $ catala Interpret -s Int
 [WARNING] In scope "Int", the variable "i" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:7.10-11:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:7.11-7.12:
 └─┐
 7 │   context i content decimal
   │           ‾
@@ -89,7 +89,7 @@ $ catala Interpret -s Int
    └─ with integers
 [WARNING] In scope "Dec", the variable "i" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:17.10-11:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:17.11-17.12:
 └──┐
 17 │   context i content decimal
    │           ‾
@@ -97,7 +97,7 @@ $ catala Interpret -s Int
     └─ with decimals
 [WARNING] In scope "Money", the variable "i" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:27.10-11:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:27.11-27.12:
 └──┐
 27 │   context i content decimal
    │           ‾
@@ -106,7 +106,7 @@ $ catala Interpret -s Int
 [ERROR] division by zero at runtime
 
 The division operator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.22-27:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.23-10.28:
 └──┐
 10 │   definition i equals 1 / 0
    │                       ‾‾‾‾‾
@@ -114,7 +114,7 @@ The division operator:
     └─ with integers
 
 The null denominator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.26-27:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.27-10.28:
 └──┐
 10 │   definition i equals 1 / 0
    │                           ‾
@@ -127,7 +127,7 @@ The null denominator:
 $ catala Interpret -s Money
 [WARNING] In scope "Int", the variable "i" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:7.10-11:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:7.11-7.12:
 └─┐
 7 │   context i content decimal
   │           ‾
@@ -135,7 +135,7 @@ $ catala Interpret -s Money
    └─ with integers
 [WARNING] In scope "Dec", the variable "i" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:17.10-11:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:17.11-17.12:
 └──┐
 17 │   context i content decimal
    │           ‾
@@ -143,7 +143,7 @@ $ catala Interpret -s Money
     └─ with decimals
 [WARNING] In scope "Money", the variable "i" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:27.10-11:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:27.11-27.12:
 └──┐
 27 │   context i content decimal
    │           ‾
@@ -152,7 +152,7 @@ $ catala Interpret -s Money
 [ERROR] division by zero at runtime
 
 The division operator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.22-34:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.23-30.35:
 └──┐
 30 │   definition i equals $10.0 / $0.0
    │                       ‾‾‾‾‾‾‾‾‾‾‾‾
@@ -160,7 +160,7 @@ The division operator:
     └─ with money
 
 The null denominator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.30-34:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.31-30.35:
 └──┐
 30 │   definition i equals $10.0 / $0.0
    │                               ‾‾‾‾

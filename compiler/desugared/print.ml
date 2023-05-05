@@ -50,7 +50,7 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
         print_node (pref' ^ " ") t'
       | _ ->
         pp_print_string fmt (blue "──");
-        print_sons pref' "┬──" sons
+        print_sons pref' "─┬──" sons
   and print_sons pref start = function
     | [] -> assert false
     | [s] ->
@@ -63,7 +63,7 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
       pp_print_string fmt (blue (pref ^ " │"));
       pp_force_newline fmt ();
       pp_print_string fmt (blue pref);
-      print_sons pref "├──" sons
+      print_sons pref " ├──" sons
   in
   print_node "" t
 
