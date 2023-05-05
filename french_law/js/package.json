@@ -1,6 +1,6 @@
 {
   "name": "@catala-lang/french-law",
-  "version": "0.5.0-a.1",
+  "version": "0.5.1",
   "description": "Library of computations defined by French legislative texts, extract from Catala programs (https://catala-lang.org)",
   "main": "index.js",
   "dependencies": {
@@ -17,9 +17,14 @@
     "url": "git+https://github.com/CatalaLang/catala.git"
   },
   "keywords": [
+    "ReScript",
+    "JavaScript",
     "law"
   ],
-  "author": "Denis Merigoux",
+  "contributors": [
+    "Denis Merigoux",
+    "Emile Rolley <emile.rolley@tuta.io>"
+  ],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/CatalaLang/catala/issues"
