@@ -26,6 +26,9 @@ rsync $BUILD/catala.html $1/
 rsync $BUILD/clerk.html $1/
 rsync $BUILD/catala_legifrance.html $1/
 
-rsync $BUILD/french_law/js/french_law.js $1/french_law.js
+# NOTE(@EmileRolley): the french_law.js is accessible through:
+# https://www.npmjs.com/package/@catala-lang/french-law
+# no need to copy it here.
+# rsync $BUILD/french_law/js/french_law.js $1/french_law.js
 rsync $BUILD/examples/allocations_familiales/allocations_familiales_schema.json $1/
 rsync $BUILD/examples/aides_logement/aides_logement_schema.json $1/
