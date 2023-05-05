@@ -1,7 +1,7 @@
-# Javascript French Law Library
+# [`@catala-lang/french-law`](https://www.npmjs.com/package/@catala-lang/french-law?activeTab=readme) ![npm][npm]
 
 This folder contains a ready-to-use Javascript library featuring French public
-algorithms coded up in Catala.
+algorithms coded up in Catala and the corresponding ReScript wrapper.
 
 ## Generating the source files
 
@@ -22,11 +22,20 @@ make build_french_law_library_js
 
 ## API description
 
-The `french_law.js` library exposes:
+The `./src/french_law.js` library exposes:
 
 - an [event manager](#the-event-manager)
 - a list of [API functions](#api-functions)
 - a list of fully exposed [sub-libraries](#sub-libraries)
+
+### ReScript
+
+The ReScript API is essentialy the same that the JS one within the
+`CatalaFrenchLaw` top module.
+
+Example of project using the ReScript wrapper:
+
+* [`catala-website`](https://github.com/CatalaLang/catala-website)
 
 ### The event manager
 
@@ -137,3 +146,6 @@ var allocationsFamiliales = frenchLaw.AllocationsFamilialesLib
 // corresponding to the file: `../ocaml/law_source/aides_logement_api_web.ml
 var aidesLogement = frenchLaw.AidesLogementLib
 ```
+
+
+[npm]: https://img.shields.io/npm/v/@catala-lang/french-law

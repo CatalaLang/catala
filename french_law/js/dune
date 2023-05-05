@@ -1,4 +1,4 @@
 (rule
  (mode promote)
  (action
-  (copy ../ocaml/api_web.bc.js french_law.js)))
+  (copy ../ocaml/api_web.bc.js ./src/french_law.js)))
