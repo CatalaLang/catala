@@ -1,6 +1,6 @@
 {
   "name": "@catala-lang/rescript-catala",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "ReScript wrapper for the Catala runtime",
   "scripts": {
     "clean": "rescript clean",
@@ -23,5 +23,8 @@
   "dependencies": {
     "decco": "^1.6.0",
     "rescript": "^10.1.4"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
