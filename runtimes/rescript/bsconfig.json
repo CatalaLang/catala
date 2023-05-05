@@ -1,0 +1,24 @@
+{
+  "name": "@catala-lang/rescript-catala",
+  "sources": [
+    {
+      "dir": "src",
+      "subdir": true
+    }
+  ],
+  "package-specs": [
+    {
+      "module": "es6",
+      "in-source": true
+    }
+  ],
+  "suffix": ".bs.js",
+  "refmt": 3,
+  "jsx": { "version": 4, "mode": "classic" },
+  "bs-dependencies": [
+    "decco"
+  ],
+  "ppx-flags": [
+    "decco/ppx"
+  ]
+}
