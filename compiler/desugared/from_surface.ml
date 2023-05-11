@@ -1253,10 +1253,11 @@ let process_topdef
   let translate_typ t = Name_resolution.process_type ctxt t in
   let translate_tbase (tbase, m) = translate_typ (Base tbase, m) in
   let typ = translate_typ def.S.topdef_type in
-  let expr =
-    match def.S.topdef_args with
-    | None -> translate_expr None None ctxt def.S.topdef_expr
-    | Some (args, _) ->
+  let expr_opt =
+    match def.S.topdef_expr, def.S.topdef_args with
+    | None, _ -> None
+    | Some e, None -> Some (Expr.unbox (translate_expr None None ctxt e))
+    | Some e, Some (args, _) ->
       let ctxt, args_tys =
         List.fold_left_map
           (fun ctxt ((lbl, pos), ty) ->
@@ -1264,19 +1265,42 @@ let process_topdef
             ctxt, ((v, pos), ty))
           ctxt args
       in
-      let body = translate_expr None None ctxt def.S.topdef_expr in
+      let body = translate_expr None None ctxt e in
       let args, tys = List.split args_tys in
-      Expr.make_abs
-        (Array.of_list (List.map Mark.remove args))
-        body
-        (List.map translate_tbase tys)
+      let e =
+        Expr.make_abs
+          (Array.of_list (List.map Mark.remove args))
+          body
+          (List.map translate_tbase tys)
         (Mark.get def.S.topdef_name)
+      in
+      Some (Expr.unbox e)
   in
-  {
-    prgm with
-    Ast.program_topdefs =
-      TopdefName.Map.add id (Expr.unbox expr, typ) prgm.Ast.program_topdefs;
-  }
+  let program_topdefs =
+    TopdefName.Map.update id (fun def0 ->
+        match def0, expr_opt with
+        | None, eopt -> Some (eopt, typ)
+        | Some (eopt0, ty0), eopt ->
+          let err msg =
+            Messages.raise_multispanned_error
+              [None, Mark.get ty0;
+               None, Mark.get typ]
+              (msg ^^ " for %a")
+              TopdefName.format_t id
+          in
+          if not (Type.equal ty0 typ) then
+            err "Conflicting type definitions"
+          else
+            match eopt0, eopt with
+            | None, None ->
+              err "Multiple declarations"
+            | Some _, Some _ ->
+              err "Multiple definitions"
+            | Some e, None -> Some (Some e, typ)
+            | None, Some e -> Some (Some e, ty0))
+      prgm.Ast.program_topdefs
+  in
+  { prgm with Ast.program_topdefs }
 
 let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
   {

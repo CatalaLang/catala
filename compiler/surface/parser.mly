@@ -658,14 +658,17 @@ let code_item :=
 | DECLARATION ; name = lident ;
   CONTENT ; ty = addpos(typ) ;
   args = depends_stance ;
-  DEFINED_AS ; e = expression ; {
+  topdef_expr = option(opt_def) ; {
   Topdef {
     topdef_name = name;
     topdef_args = args;
     topdef_type = type_from_args args ty;
-    topdef_expr = e;
+    topdef_expr;
   }
 }
+
+let opt_def ==
+| DEFINED_AS; e = expression; <>
 
 let code :=
 | code = list(addpos(code_item)) ; <>

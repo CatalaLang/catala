@@ -802,18 +802,25 @@ let translate_program
         { out_str with out_struct_fields })
       pgrm.Desugared.Ast.program_ctx.ctx_scopes
   in
-  let new_program_scopes =
+  let program_scopes =
     ScopeName.Map.fold
       (fun scope_name scope new_program_scopes ->
         let new_program_scope = translate_scope ctx scope exc_graphs in
         ScopeName.Map.add scope_name new_program_scope new_program_scopes)
       pgrm.program_scopes ScopeName.Map.empty
   in
-  {
-    Ast.program_topdefs =
-      TopdefName.Map.map
-        (fun (e, ty) -> Expr.unbox (translate_expr ctx e), ty)
-        pgrm.program_topdefs;
-    Ast.program_scopes = new_program_scopes;
+  let program_topdefs =
+    TopdefName.Map.mapi
+      (fun id -> function
+         | (Some e, ty) -> Expr.unbox (translate_expr ctx e), ty
+         | (None, (_, pos)) ->
+           Messages.raise_spanned_error pos
+             "No definition found for %a"
+             TopdefName.format_t id)
+      pgrm.program_topdefs
+  in
+  { Ast.
+    program_topdefs;
+    program_scopes;
     program_ctx = { pgrm.program_ctx with ctx_scopes };
   }

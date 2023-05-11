@@ -550,7 +550,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     Expr.evar v m
   | EOp { op = Add_dat_dur _; tys } ->
     Expr.eop (Add_dat_dur ctx.date_rounding) tys m
-  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m 
+  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
   | (EVar _ | EAbs _ | ELit _ | EExternal _ | EStruct _ | EStructAccess _ | ETuple _
     | ETupleAccess _ | EInj _ | EEmptyError | EErrorOnEmpty _ | EArray _
     | EIfThenElse _ ) as e ->

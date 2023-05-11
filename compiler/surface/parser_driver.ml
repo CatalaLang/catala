@@ -338,11 +338,9 @@ and expand_includes
     }
     commands
 
-(** {1 API} *)
+(** {2 Handling interfaces} *)
 
-let ext_id = "__external__"
-
-let add_interface source_file language path program =
+let get_interface program =
   let rec filter acc = function
     | Ast.LawInclude _ -> acc
     | Ast.LawHeading (_, str) -> List.fold_left filter acc str
@@ -352,29 +350,40 @@ let add_interface source_file language path program =
         (fun acc -> function
           | Ast.ScopeUse _, _ -> acc
           | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
-            (path, e) :: acc
+            e :: acc
           | Ast.Topdef def, m ->
-            ( path,
-              ( Ast.Topdef
-                  { def with topdef_expr = Ast.Ident ([], (ext_id, m)), m },
-                m ) )
+            ( Ast.Topdef { def with topdef_expr = None },
+              m )
             :: acc)
         acc code
     | Ast.CodeBlock (_, _, false) ->
       (* Non-metadata blocks are ignored *)
       acc
   in
-  let program_interfaces =
-    List.fold_left filter program.Ast.program_interfaces
-      (parse_source_file source_file language).Ast.program_items
+  List.fold_left filter [] program.Ast.program_items
+
+let qualify_interface path code_items =
+  List.map (fun item -> path, item) code_items
+
+(** {1 API} *)
+
+let add_interface source_file language path program =
+  let interface =
+    parse_source_file source_file language
+    |> get_interface
+    |> qualify_interface path
   in
-  { program with Ast.program_interfaces }
+  { program with Ast.program_interfaces =
+                   List.append interface program.Ast.program_interfaces
+  }
 
 let parse_top_level_file
     (source_file : Pos.input_file)
     (language : Cli.backend_lang) : Ast.program =
   let program = parse_source_file source_file language in
+  let interface = get_interface program in
   {
     program with
     Ast.program_items = law_struct_list_to_tree program.Ast.program_items;
+    Ast.program_interfaces = qualify_interface [] interface;
   }

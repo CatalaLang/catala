@@ -70,7 +70,9 @@ let program prg =
   in
   let program_topdefs =
     TopdefName.Map.map
-      (fun (e, ty) -> Expr.unbox (expr prg.program_ctx env (Expr.box e)), ty)
+      (function
+        | (Some e, ty) -> Some (Expr.unbox (expr prg.program_ctx env (Expr.box e))), ty
+        | None, ty -> None, ty)
       prg.program_topdefs
   in
   let env =
