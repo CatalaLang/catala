@@ -3,7 +3,10 @@
 *.md linguist-documentation
 *.hints linguist-generated
 
-french_law/js/french_law.js binary linguist-generated
+french_law/js/src/french_law.js binary linguist-generated
+
+**/package-lock.json linguist-generated
+**/yarn.lock linguist-generated
 
 french_law/ocaml/law_source/allocations_familiales.ml binary linguist-generated
 french_law/ocaml/law_source/allocations_familiales_api_web.ml binary linguist-generated
