@@ -22,13 +22,13 @@ let fill_pos_with_legislative_info (p : Ast.program) : Ast.program =
       inherit [_] Ast.program_map as super
 
       method! visit_pos f env x =
-        f env (Marked.unmark x), Pos.overwrite_law_info (Marked.get_mark x) env
+        f env (Mark.remove x), Pos.overwrite_law_info (Mark.get x) env
 
       method! visit_LawHeading
           (env : string list)
           (heading : Ast.law_heading)
           (children : Ast.law_structure list) =
-        let env = Marked.unmark heading.law_heading_name :: env in
+        let env = Mark.remove heading.law_heading_name :: env in
         Ast.LawHeading
           ( super#visit_law_heading env heading,
             List.map (fun child -> super#visit_law_structure env child) children

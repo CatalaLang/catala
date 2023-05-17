@@ -61,7 +61,7 @@ module To_json = struct
       ()
 
   let rec fmt_type fmt (typ : typ) =
-    match Marked.unmark typ with
+    match Mark.remove typ with
     | TLit tlit -> fmt_tlit fmt tlit
     | TStruct sname ->
       Format.fprintf fmt "\"$ref\": \"#/definitions/%a\"" format_struct_name
@@ -95,7 +95,7 @@ module To_json = struct
       (fmt : Format.formatter)
       ((_scope_name, scope_body) : ScopeName.t * 'e scope_body) =
     let get_name t =
-      match Marked.unmark t with
+      match Mark.remove t with
       | TStruct sname -> Format.asprintf "%a" format_struct_name sname
       | TEnum ename -> Format.asprintf "%a" format_enum_name ename
       | _ -> failwith "unreachable: only structs and enums are collected."
@@ -103,7 +103,7 @@ module To_json = struct
     let rec collect_required_type_defs_from_scope_input
         (input_struct : StructName.t) : typ list =
       let rec collect (acc : typ list) (t : typ) : typ list =
-        match Marked.unmark t with
+        match Mark.remove t with
         | TStruct s ->
           (* Scope's input is a struct. *)
           (t :: acc) @ collect_required_type_defs_from_scope_input s
@@ -169,7 +169,7 @@ module To_json = struct
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
          (fun fmt typ ->
-           match Marked.unmark typ with
+           match Mark.remove typ with
            | TStruct sname ->
              Format.fprintf fmt
                "@[<hov 2>\"%a\": {@\n\

@@ -53,9 +53,9 @@ let check_article_expiration
       Cli.warning_print
         "%s %s has expired! Its expiration date is %s according to \
          LégiFrance.%s"
-        (Marked.unmark law_heading.Surface.Ast.law_heading_name)
+        (Mark.remove law_heading.Surface.Ast.law_heading_name)
         (Pos.to_string
-           (Marked.get_mark law_heading.Surface.Ast.law_heading_name))
+           (Mark.get law_heading.Surface.Ast.law_heading_name))
         (Date.print_tm legifrance_expiration_date)
         (match new_version with
         | None -> ""

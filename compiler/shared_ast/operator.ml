@@ -513,35 +513,34 @@ let resolve_overload_aux (op : overloaded t) (operands : typ_lit list) :
       _ ) ->
     raise Not_found
 
-let resolve_overload ctx (op : overloaded t Marked.pos) (operands : typ list) :
+let resolve_overload ctx (op : overloaded t Mark.pos) (operands : typ list) :
     < resolved : yes ; .. > t * [ `Straight | `Reversed ] =
   try
     let operands =
       List.map
         (fun t ->
-          match Marked.unmark t with TLit tl -> tl | _ -> raise Not_found)
+          match Mark.remove t with TLit tl -> tl | _ -> raise Not_found)
         operands
     in
-    resolve_overload_aux (Marked.unmark op) operands
+    resolve_overload_aux (Mark.remove op) operands
   with Not_found ->
     Errors.raise_multispanned_error
-      ((None, Marked.get_mark op)
+      ((None, Mark.get op)
       :: List.map
            (fun ty ->
              ( Some
                  (Format.asprintf "Type %a coming from expression:"
                     (Print.typ ctx) ty),
-               Marked.get_mark ty ))
+               Mark.get ty ))
            operands)
       "I don't know how to apply operator %a on types %a"
       (Print.operator ~debug:true)
-      (Marked.unmark op)
+      (Mark.remove op)
       (Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.fprintf ppf " and@ ")
          (Print.typ ctx))
       operands
 
-let overload_type ctx (op : overloaded t Marked.pos) (operands : typ list) : typ
-    =
+let overload_type ctx (op : overloaded t Mark.pos) (operands : typ list) : typ =
   let rop = fst (resolve_overload ctx op operands) in
-  resolved_type (Marked.same_mark_as rop op)
+  resolved_type (Mark.copy op rop)

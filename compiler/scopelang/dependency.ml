@@ -96,8 +96,7 @@ let rule_used_defs = function
        walking through all exprs again *)
     expr_used_defs e
   | Ast.Call (subscope, subindex, _) ->
-    VMap.singleton (Scope subscope)
-      (Marked.get_mark (SubScopeName.get_info subindex))
+    VMap.singleton (Scope subscope) (Mark.get (SubScopeName.get_info subindex))
 
 let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
   let g = SDependencies.empty in
@@ -117,7 +116,7 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
         let used_defs = expr_used_defs expr in
         if VMap.mem (Topdef glo_name) used_defs then
           Errors.raise_spanned_error
-            (Marked.get_mark (TopdefName.get_info glo_name))
+            (Mark.get (TopdefName.get_info glo_name))
             "The Topdef %a has a definition that refers to itself, which is \
              forbidden since Catala does not provide recursion"
             TopdefName.format_t glo_name;
@@ -135,7 +134,7 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
           let used_defs = rule_used_defs rule in
           if VMap.mem (Scope scope_name) used_defs then
             Errors.raise_spanned_error
-              (Marked.get_mark (ScopeName.get_info scope.Ast.scope_decl_name))
+              (Mark.get (ScopeName.get_info scope.Ast.scope_decl_name))
               "The scope %a is calling into itself as a subscope, which is \
                forbidden since Catala does not provide recursion"
               ScopeName.format_t scope.Ast.scope_decl_name;
@@ -250,7 +249,7 @@ module TSCC = Graph.Components.Make (TDependencies)
 (** Tarjan's stongly connected components algorithm, provided by OCamlGraph *)
 
 let rec get_structs_or_enums_in_type (t : typ) : TVertexSet.t =
-  match Marked.unmark t with
+  match Mark.remove t with
   | TStruct s -> TVertexSet.singleton (TVertex.Struct s)
   | TEnum e -> TVertexSet.singleton (TVertex.Enum e)
   | TArrow (t1, t2) ->
@@ -280,14 +279,12 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
             TVertexSet.fold
               (fun used g ->
                 if TVertex.equal used def then
-                  Errors.raise_spanned_error (Marked.get_mark typ)
+                  Errors.raise_spanned_error (Mark.get typ)
                     "The type %a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
                     TVertex.format_t used
                 else
-                  let edge =
-                    TDependencies.E.create used (Marked.get_mark typ) def
-                  in
+                  let edge = TDependencies.E.create used (Mark.get typ) def in
                   TDependencies.add_edge_e g edge)
               used g)
           fields g)
@@ -304,14 +301,12 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
             TVertexSet.fold
               (fun used g ->
                 if TVertex.equal used def then
-                  Errors.raise_spanned_error (Marked.get_mark typ)
+                  Errors.raise_spanned_error (Mark.get typ)
                     "The type %a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
                     TVertex.format_t used
                 else
-                  let edge =
-                    TDependencies.E.create used (Marked.get_mark typ) def
-                  in
+                  let edge = TDependencies.E.create used (Mark.get typ) def in
                   TDependencies.add_edge_e g edge)
               used g)
           cases g)
@@ -340,8 +335,7 @@ let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) : TVertex.t list
             in
             let succ_str = Format.asprintf "%a" TVertex.format_t succ in
             [
-              ( Some ("Cycle type " ^ var_str ^ ", declared:"),
-                Marked.get_mark var_info );
+              Some ("Cycle type " ^ var_str ^ ", declared:"), Mark.get var_info;
               ( Some
                   ("Used here in the definition of another cycle type "
                   ^ succ_str

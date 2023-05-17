@@ -23,9 +23,7 @@ open Shared_ast
 
 (** {1 Name resolution context} *)
 
-type unique_rulename =
-  | Ambiguous of Pos.t list
-  | Unique of RuleName.t Marked.pos
+type unique_rulename = Ambiguous of Pos.t list | Unique of RuleName.t Mark.pos
 
 type scope_def_context = {
   default_exception_rulename : unique_rulename option;
@@ -56,7 +54,7 @@ type var_sig = {
   var_sig_typ : typ;
   var_sig_is_condition : bool;
   var_sig_parameters :
-    (Uid.MarkedString.info * Shared_ast.typ) list Marked.pos option;
+    (Uid.MarkedString.info * Shared_ast.typ) list Mark.pos option;
   var_sig_io : Surface.Ast.scope_decl_context_io;
   var_sig_states_idmap : StateName.t IdentName.Map.t;
   var_sig_states_list : StateName.t list;
@@ -101,10 +99,9 @@ let raise_unsupported_feature (msg : string) (pos : Pos.t) =
 
 (** Function to call whenever an identifier used somewhere has not been declared
     in the program previously *)
-let raise_unknown_identifier (msg : string) (ident : IdentName.t Marked.pos) =
-  Errors.raise_spanned_error (Marked.get_mark ident)
-    "\"%s\": unknown identifier %s"
-    (Cli.with_style [ANSITerminal.yellow] "%s" (Marked.unmark ident))
+let raise_unknown_identifier (msg : string) (ident : IdentName.t Mark.pos) =
+  Errors.raise_spanned_error (Mark.get ident) "\"%s\": unknown identifier %s"
+    (Cli.with_style [ANSITerminal.yellow] "%s" (Mark.remove ident))
     msg
 
 (** Gets the type associated to an uid *)
@@ -122,7 +119,7 @@ let get_var_io (ctxt : context) (uid : ScopeVar.t) :
 let get_var_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
-    ((x, pos) : IdentName.t Marked.pos) : ScopeVar.t =
+    ((x, pos) : IdentName.t Mark.pos) : ScopeVar.t =
   let scope = ScopeName.Map.find scope_uid ctxt.scopes in
   match IdentName.Map.find_opt x scope.var_idmap with
   | Some (ScopeVar uid) -> uid
@@ -135,7 +132,7 @@ let get_var_uid
 let get_subscope_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
-    ((y, pos) : IdentName.t Marked.pos) : SubScopeName.t =
+    ((y, pos) : IdentName.t Mark.pos) : SubScopeName.t =
   let scope = ScopeName.Map.find scope_uid ctxt.scopes in
   match IdentName.Map.find_opt y scope.var_idmap with
   | Some (SubScope (sub_uid, _sub_id)) -> sub_uid
@@ -171,7 +168,7 @@ let get_def_typ (ctxt : context) (def : Ast.ScopeDef.t) : typ =
 
 (** Retrieves the type of a scope definition from the context *)
 let get_params (ctxt : context) (def : Ast.ScopeDef.t) :
-    (Uid.MarkedString.info * typ) list Marked.pos option =
+    (Uid.MarkedString.info * typ) list Mark.pos option =
   match def with
   | Ast.ScopeDef.SubScopeVar (_, x, _)
   (* we don't need to look at the subscope prefix because [x] is already the uid
@@ -188,60 +185,60 @@ let is_def_cond (ctxt : context) (def : Ast.ScopeDef.t) : bool =
     is_var_cond ctxt x
 
 let get_enum ctxt id =
-  match IdentName.Map.find (Marked.unmark id) ctxt.typedefs with
+  match IdentName.Map.find (Mark.remove id) ctxt.typedefs with
   | TEnum id -> id
   | TStruct sid ->
     Errors.raise_multispanned_error
       [
-        None, Marked.get_mark id;
-        Some "Structure defined at", Marked.get_mark (StructName.get_info sid);
+        None, Mark.get id;
+        Some "Structure defined at", Mark.get (StructName.get_info sid);
       ]
       "Expecting an enum, but found a structure"
   | TScope (sid, _) ->
     Errors.raise_multispanned_error
       [
-        None, Marked.get_mark id;
-        Some "Scope defined at", Marked.get_mark (ScopeName.get_info sid);
+        None, Mark.get id;
+        Some "Scope defined at", Mark.get (ScopeName.get_info sid);
       ]
       "Expecting an enum, but found a scope"
   | exception Not_found ->
-    Errors.raise_spanned_error (Marked.get_mark id) "No enum named %s found"
-      (Marked.unmark id)
+    Errors.raise_spanned_error (Mark.get id) "No enum named %s found"
+      (Mark.remove id)
 
 let get_struct ctxt id =
-  match IdentName.Map.find (Marked.unmark id) ctxt.typedefs with
+  match IdentName.Map.find (Mark.remove id) ctxt.typedefs with
   | TStruct id | TScope (_, { out_struct_name = id; _ }) -> id
   | TEnum eid ->
     Errors.raise_multispanned_error
       [
-        None, Marked.get_mark id;
-        Some "Enum defined at", Marked.get_mark (EnumName.get_info eid);
+        None, Mark.get id;
+        Some "Enum defined at", Mark.get (EnumName.get_info eid);
       ]
       "Expecting an struct, but found an enum"
   | exception Not_found ->
-    Errors.raise_spanned_error (Marked.get_mark id) "No struct named %s found"
-      (Marked.unmark id)
+    Errors.raise_spanned_error (Mark.get id) "No struct named %s found"
+      (Mark.remove id)
 
 let get_scope ctxt id =
-  match IdentName.Map.find (Marked.unmark id) ctxt.typedefs with
+  match IdentName.Map.find (Mark.remove id) ctxt.typedefs with
   | TScope (id, _) -> id
   | TEnum eid ->
     Errors.raise_multispanned_error
       [
-        None, Marked.get_mark id;
-        Some "Enum defined at", Marked.get_mark (EnumName.get_info eid);
+        None, Mark.get id;
+        Some "Enum defined at", Mark.get (EnumName.get_info eid);
       ]
       "Expecting an scope, but found an enum"
   | TStruct sid ->
     Errors.raise_multispanned_error
       [
-        None, Marked.get_mark id;
-        Some "Structure defined at", Marked.get_mark (StructName.get_info sid);
+        None, Mark.get id;
+        Some "Structure defined at", Mark.get (StructName.get_info sid);
       ]
       "Expecting an scope, but found a structure"
   | exception Not_found ->
-    Errors.raise_spanned_error (Marked.get_mark id) "No scope named %s found"
-      (Marked.unmark id)
+    Errors.raise_spanned_error (Mark.get id) "No scope named %s found"
+      (Mark.remove id)
 
 (** {1 Declarations pass} *)
 
@@ -261,7 +258,7 @@ let process_subscope_decl
       | SubScope (ssc, _) -> SubScopeName.get_info ssc
     in
     Errors.raise_multispanned_error
-      [Some "first use", Marked.get_mark info; Some "second use", s_pos]
+      [Some "first use", Mark.get info; Some "second use", s_pos]
       "Subscope name \"%a\" already used"
       (Cli.format_with_style [ANSITerminal.yellow])
       subscope
@@ -293,13 +290,12 @@ let is_type_cond ((typ, _) : Surface.Ast.typ) =
 (** Process a basic type (all types except function types) *)
 let rec process_base_typ
     (ctxt : context)
-    ((typ, typ_pos) : Surface.Ast.base_typ Marked.pos) : typ =
+    ((typ, typ_pos) : Surface.Ast.base_typ Mark.pos) : typ =
   match typ with
   | Surface.Ast.Condition -> TLit TBool, typ_pos
   | Surface.Ast.Data (Surface.Ast.Collection t) ->
     ( TArray
-        (process_base_typ ctxt
-           (Surface.Ast.Data (Marked.unmark t), Marked.get_mark t)),
+        (process_base_typ ctxt (Surface.Ast.Data (Mark.remove t), Mark.get t)),
       typ_pos )
   | Surface.Ast.Data (Surface.Ast.Primitive prim) -> (
     match prim with
@@ -352,7 +348,7 @@ let process_data_decl
       | SubScope (ssc, _) -> SubScopeName.get_info ssc
     in
     Errors.raise_multispanned_error
-      [Some "First use:", Marked.get_mark info; Some "Second use:", pos]
+      [Some "First use:", Mark.get info; Some "Second use:", pos]
       "Variable name \"%a\" already used"
       (Cli.format_with_style [ANSITerminal.yellow])
       name
@@ -368,7 +364,7 @@ let process_data_decl
       List.fold_right
         (fun state_id
              ((states_idmap : StateName.t IdentName.Map.t), states_list) ->
-          let state_id_name = Marked.unmark state_id in
+          let state_id_name = Mark.remove state_id in
           if IdentName.Map.mem state_id_name states_idmap then
             Errors.raise_multispanned_error
               [
@@ -376,12 +372,12 @@ let process_data_decl
                     (Format.asprintf "First instance of state %a:"
                        (Cli.format_with_style [ANSITerminal.yellow])
                        ("\"" ^ state_id_name ^ "\"")),
-                  Marked.get_mark state_id );
+                  Mark.get state_id );
                 ( Some
                     (Format.asprintf "Second instance of state %a:"
                        (Cli.format_with_style [ANSITerminal.yellow])
                        ("\"" ^ state_id_name ^ "\"")),
-                  Marked.get_mark
+                  Mark.get
                     (IdentName.Map.find state_id_name states_idmap
                     |> StateName.get_info) );
               ]
@@ -394,8 +390,7 @@ let process_data_decl
     in
     let var_sig_parameters =
       Option.map
-        (Marked.map_under_mark
-           (List.map (fun (lbl, typ) -> lbl, process_type ctxt typ)))
+        (Mark.map (List.map (fun (lbl, typ) -> lbl, process_type ctxt typ)))
         decl.scope_decl_context_item_parameters
     in
     {
@@ -433,10 +428,10 @@ let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
   let s_uid = get_struct ctxt sdecl.struct_decl_name in
   if sdecl.struct_decl_fields = [] then
     Errors.raise_spanned_error
-      (Marked.get_mark sdecl.struct_decl_name)
+      (Mark.get sdecl.struct_decl_name)
       "The struct %s does not have any fields; give it some for Catala to be \
        able to accept it."
-      (Marked.unmark sdecl.struct_decl_name);
+      (Mark.remove sdecl.struct_decl_name);
   List.fold_left
     (fun ctxt (fdecl, _) ->
       let f_uid = StructField.fresh fdecl.Surface.Ast.struct_decl_field_name in
@@ -445,7 +440,7 @@ let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
           ctxt with
           field_idmap =
             IdentName.Map.update
-              (Marked.unmark fdecl.Surface.Ast.struct_decl_field_name)
+              (Mark.remove fdecl.Surface.Ast.struct_decl_field_name)
               (fun uids ->
                 match uids with
                 | None -> Some (StructName.Map.singleton s_uid f_uid)
@@ -478,10 +473,10 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
   let e_uid = get_enum ctxt edecl.enum_decl_name in
   if List.length edecl.enum_decl_cases = 0 then
     Errors.raise_spanned_error
-      (Marked.get_mark edecl.enum_decl_name)
+      (Mark.get edecl.enum_decl_name)
       "The enum %s does not have any cases; give it some for Catala to be able \
        to accept it."
-      (Marked.unmark edecl.enum_decl_name);
+      (Mark.remove edecl.enum_decl_name);
   List.fold_left
     (fun ctxt (cdecl, cdecl_pos) ->
       let c_uid = EnumConstructor.fresh cdecl.Surface.Ast.enum_decl_case_name in
@@ -490,7 +485,7 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
           ctxt with
           constructor_idmap =
             IdentName.Map.update
-              (Marked.unmark cdecl.Surface.Ast.enum_decl_case_name)
+              (Mark.remove cdecl.Surface.Ast.enum_decl_case_name)
               (fun uids ->
                 match uids with
                 | None -> Some (EnumName.Map.singleton e_uid c_uid)
@@ -531,21 +526,21 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
   let scope_uid = get_scope ctxt decl.scope_decl_name in
   let ctxt =
     List.fold_left
-      (fun ctxt item -> process_item_decl scope_uid ctxt (Marked.unmark item))
+      (fun ctxt item -> process_item_decl scope_uid ctxt (Mark.remove item))
       ctxt decl.scope_decl_context
   in
   (* Add an implicit struct def for the scope output type *)
   let output_fields =
     List.fold_right
       (fun item acc ->
-        match Marked.unmark item with
+        match Mark.remove item with
         | Surface.Ast.ContextData
             ({
                scope_decl_context_item_attribute =
                  { scope_decl_context_io_output = true, _; _ };
                _;
              } as data) ->
-          Marked.mark (Marked.get_mark item)
+          Mark.add (Mark.get item)
             {
               Surface.Ast.struct_decl_field_name =
                 data.scope_decl_context_item_name;
@@ -592,7 +587,7 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
     in
     let typedefs =
       IdentName.Map.update
-        (Marked.unmark decl.scope_decl_name)
+        (Mark.remove decl.scope_decl_name)
         (function
           | Some (TScope (scope, { out_struct_name; _ })) ->
             Some (TScope (scope, { out_struct_name; out_struct_fields }))
@@ -607,19 +602,16 @@ let typedef_info = function
   | TScope (s, _) -> ScopeName.get_info s
 
 (** Process the names of all declaration items *)
-let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
-    : context =
+let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
+    context =
   let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
     Errors.raise_multispanned_error
-      [
-        Some "First definition:", Marked.get_mark use;
-        Some "Second definition:", pos;
-      ]
+      [Some "First definition:", Mark.get use; Some "Second definition:", pos]
       "%s name \"%a\" already defined" msg
       (Cli.format_with_style [ANSITerminal.yellow])
       name
   in
-  match Marked.unmark item with
+  match Mark.remove item with
   | ScopeDecl decl ->
     let name, pos = decl.scope_decl_name in
     (* Checks if the name is already used *)
@@ -660,7 +652,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
       ctxt with
       typedefs =
         IdentName.Map.add
-          (Marked.unmark sdecl.struct_decl_name)
+          (Mark.remove sdecl.struct_decl_name)
           (TStruct s_uid) ctxt.typedefs;
     }
   | EnumDecl edecl ->
@@ -674,7 +666,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
       ctxt with
       typedefs =
         IdentName.Map.add
-          (Marked.unmark edecl.enum_decl_name)
+          (Mark.remove edecl.enum_decl_name)
           (TEnum e_uid) ctxt.typedefs;
     }
   | ScopeUse _ -> ctxt
@@ -689,9 +681,9 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
     { ctxt with topdefs = IdentName.Map.add name uid ctxt.topdefs }
 
 (** Process a code item that is a declaration *)
-let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
-    : context =
-  match Marked.unmark item with
+let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
+    context =
+  match Mark.remove item with
   | ScopeDecl decl -> process_scope_decl ctxt decl
   | StructDecl sdecl -> process_struct_decl ctxt sdecl
   | EnumDecl edecl -> process_enum_decl ctxt edecl
@@ -702,7 +694,7 @@ let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
 let process_code_block
     (ctxt : context)
     (block : Surface.Ast.code_block)
-    (process_item : context -> Surface.Ast.code_item Marked.pos -> context) :
+    (process_item : context -> Surface.Ast.code_item Mark.pos -> context) :
     context =
   List.fold_left (fun ctxt decl -> process_item ctxt decl) ctxt block
 
@@ -710,7 +702,7 @@ let process_code_block
 let rec process_law_structure
     (ctxt : context)
     (s : Surface.Ast.law_structure)
-    (process_item : context -> Surface.Ast.code_item Marked.pos -> context) :
+    (process_item : context -> Surface.Ast.code_item Mark.pos -> context) :
     context =
   match s with
   | Surface.Ast.LawHeading (_, children) ->
@@ -725,7 +717,7 @@ let rec process_law_structure
 
 let get_def_key
     (name : Surface.Ast.scope_var)
-    (state : Surface.Ast.lident Marked.pos option)
+    (state : Surface.Ast.lident Mark.pos option)
     (scope_uid : ScopeName.t)
     (ctxt : context)
     (pos : Pos.t) : Ast.ScopeDef.t =
@@ -740,14 +732,13 @@ let get_def_key
         | Some state -> (
           try
             Some
-              (IdentName.Map.find (Marked.unmark state)
+              (IdentName.Map.find (Mark.remove state)
                  var_sig.var_sig_states_idmap)
           with Not_found ->
             Errors.raise_multispanned_error
               [
-                None, Marked.get_mark state;
-                ( Some "Variable declaration:",
-                  Marked.get_mark (ScopeVar.get_info x_uid) );
+                None, Mark.get state;
+                Some "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
               ]
               "This identifier is not a state declared for variable %a."
               ScopeVar.format_t x_uid)
@@ -755,9 +746,8 @@ let get_def_key
           if not (IdentName.Map.is_empty var_sig.var_sig_states_idmap) then
             Errors.raise_multispanned_error
               [
-                None, Marked.get_mark x;
-                ( Some "Variable declaration:",
-                  Marked.get_mark (ScopeVar.get_info x_uid) );
+                None, Mark.get x;
+                Some "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
               ]
               "This definition does not indicate which state has to be \
                considered for variable %a."
@@ -765,15 +755,15 @@ let get_def_key
           else None )
   | [y; x] ->
     let (subscope_uid, subscope_real_uid) : SubScopeName.t * ScopeName.t =
-      match IdentName.Map.find_opt (Marked.unmark y) scope_ctxt.var_idmap with
+      match IdentName.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
       | Some (SubScope (v, u)) -> v, u
       | Some _ ->
         Errors.raise_spanned_error pos
           "Invalid access to input variable, %a is not a subscope"
-          Print.lit_style (Marked.unmark y)
+          Print.lit_style (Mark.remove y)
       | None ->
         Errors.raise_spanned_error pos "No definition found for subscope %a"
-          Print.lit_style (Marked.unmark y)
+          Print.lit_style (Mark.remove y)
     in
     let x_uid = get_var_uid subscope_real_uid ctxt x in
     Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)
@@ -793,7 +783,7 @@ let update_def_key_ctx
     | None -> def_key_ctx
     | Some label ->
       let new_label_idmap =
-        IdentName.Map.update (Marked.unmark label)
+        IdentName.Map.update (Mark.remove label)
           (fun existing_label ->
             match existing_label with
             | Some existing_label -> Some existing_label
@@ -818,7 +808,7 @@ let update_def_key_ctx
         default_exception_rulename =
           Some
             (Ambiguous
-               ([Marked.get_mark d.definition_name]
+               ([Mark.get d.definition_name]
                @
                match old with Ambiguous old -> old | Unique (_, pos) -> [pos]));
       }
@@ -831,7 +821,7 @@ let update_def_key_ctx
         {
           def_key_ctx with
           default_exception_rulename =
-            Some (Ambiguous [Marked.get_mark d.definition_name]);
+            Some (Ambiguous [Mark.get d.definition_name]);
         }
       (* This is a possible default definition for this key. We create and store
          a fresh rulename *)
@@ -839,7 +829,7 @@ let update_def_key_ctx
         {
           def_key_ctx with
           default_exception_rulename =
-            Some (Unique (d.definition_id, Marked.get_mark d.definition_name));
+            Some (Unique (d.definition_id, Mark.get d.definition_name));
         }))
 
 let empty_def_key_ctx =
@@ -862,9 +852,9 @@ let process_definition
         (fun (s_ctxt : scope_context option) ->
           let def_key =
             get_def_key
-              (Marked.unmark d.definition_name)
+              (Mark.remove d.definition_name)
               d.definition_state s_name ctxt
-              (Marked.get_mark d.definition_name)
+              (Mark.get d.definition_name)
           in
           match s_ctxt with
           | None -> assert false (* should not happen *)
@@ -886,8 +876,8 @@ let process_definition
 let process_scope_use_item
     (s_name : ScopeName.t)
     (ctxt : context)
-    (sitem : Surface.Ast.scope_use_item Marked.pos) : context =
-  match Marked.unmark sitem with
+    (sitem : Surface.Ast.scope_use_item Mark.pos) : context =
+  match Mark.remove sitem with
   | Rule r -> process_definition ctxt s_name (Surface.Ast.rule_to_def r)
   | Definition d -> process_definition ctxt s_name d
   | _ -> ctxt
@@ -897,24 +887,24 @@ let process_scope_use (ctxt : context) (suse : Surface.Ast.scope_use) : context
   let s_name =
     match
       IdentName.Map.find_opt
-        (Marked.unmark suse.Surface.Ast.scope_use_name)
+        (Mark.remove suse.Surface.Ast.scope_use_name)
         ctxt.typedefs
     with
     | Some (TScope (sn, _)) -> sn
     | _ ->
       Errors.raise_spanned_error
-        (Marked.get_mark suse.Surface.Ast.scope_use_name)
+        (Mark.get suse.Surface.Ast.scope_use_name)
         "\"%a\": this scope has not been declared anywhere, is it a typo?"
         (Cli.format_with_style [ANSITerminal.yellow])
-        (Marked.unmark suse.Surface.Ast.scope_use_name)
+        (Mark.remove suse.Surface.Ast.scope_use_name)
   in
   List.fold_left
     (process_scope_use_item s_name)
     ctxt suse.Surface.Ast.scope_use_items
 
-let process_use_item (ctxt : context) (item : Surface.Ast.code_item Marked.pos)
-    : context =
-  match Marked.unmark item with
+let process_use_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
+    context =
+  match Mark.remove item with
   | ScopeDecl _ | StructDecl _ | EnumDecl _ | Topdef _ -> ctxt
   | ScopeUse suse -> process_scope_use ctxt suse
 

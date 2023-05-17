@@ -36,7 +36,7 @@ type verification_condition = {
       (** A conjunction of all assertions in scope of this VC. * This expression
           should have type [bool] *)
   vc_scope : ScopeName.t;
-  vc_variable : typed Dcalc.Ast.expr Var.t Marked.pos;
+  vc_variable : typed Dcalc.Ast.expr Var.t Mark.pos;
 }
 
 val generate_verification_conditions :

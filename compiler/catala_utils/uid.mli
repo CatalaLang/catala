@@ -30,7 +30,7 @@ module type Info = sig
   (** Comparison disregards position *)
 end
 
-module MarkedString : Info with type info = string Marked.pos
+module MarkedString : Info with type info = string Mark.pos
 (** The only kind of information carried in Catala identifiers is the original
     string of the identifier annotated with the position where it is declared or
     used. *)

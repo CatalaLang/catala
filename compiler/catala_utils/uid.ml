@@ -69,12 +69,12 @@ module Make (X : Info) () : Id with type info = X.info = struct
 end
 
 module MarkedString = struct
-  type info = string Marked.pos
+  type info = string Mark.pos
 
   let to_string (s, _) = s
   let format fmt i = Format.pp_print_string fmt (to_string i)
-  let equal i1 i2 = String.equal (Marked.unmark i1) (Marked.unmark i2)
-  let compare i1 i2 = String.compare (Marked.unmark i1) (Marked.unmark i2)
+  let equal = Mark.equal String.equal
+  let compare = Mark.compare String.compare
 end
 
 module Gen () = Make (MarkedString) ()

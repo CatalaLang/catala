@@ -232,7 +232,7 @@ let interpret_program
   log "=====================";
   log "%a" (Print.expr ~debug:true ()) e;
   log "=====================";
-  let m = Marked.get_mark e in
+  let m = Mark.get e in
   let application_arg =
     Expr.estruct scope_arg_struct
       (StructField.Map.map

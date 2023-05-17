@@ -64,7 +64,7 @@ module To_jsoo = struct
       if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
       else Format.fprintf fmt "%a" format_typ t
     in
-    match Marked.unmark typ with
+    match Mark.remove typ with
     | TLit l -> Format.fprintf fmt "%a" format_tlit l
     | TStruct s -> Format.fprintf fmt "%a Js.t" format_struct_name s
     | TTuple _ ->
@@ -85,7 +85,7 @@ module To_jsoo = struct
         t1 format_typ_with_parens t2
 
   let rec format_typ_to_jsoo fmt typ =
-    match Marked.unmark typ with
+    match Mark.remove typ with
     | TLit TBool -> Format.fprintf fmt "Js.bool"
     | TLit TInt -> Format.fprintf fmt "integer_to_int"
     | TLit TRat -> Format.fprintf fmt "Js.number_of_float %@%@ decimal_to_float"
@@ -101,7 +101,7 @@ module To_jsoo = struct
     | _ -> Format.fprintf fmt ""
 
   let rec format_typ_of_jsoo fmt typ =
-    match Marked.unmark typ with
+    match Mark.remove typ with
     | TLit TBool -> Format.fprintf fmt "Js.to_bool"
     | TLit TInt -> Format.fprintf fmt "integer_of_int"
     | TLit TRat -> Format.fprintf fmt "decimal_of_float %@%@ Js.float_of_number"
@@ -140,7 +140,7 @@ module To_jsoo = struct
       (fmt : Format.formatter)
       (ctx : decl_ctx) : unit =
     let format_prop_or_meth fmt (struct_field_type : typ) =
-      match Marked.unmark struct_field_type with
+      match Mark.remove struct_field_type with
       | TArrow _ -> Format.fprintf fmt "Js.meth"
       | _ -> Format.fprintf fmt "Js.readonly_prop"
     in
@@ -154,7 +154,7 @@ module To_jsoo = struct
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (struct_field, struct_field_type) ->
-               match Marked.unmark struct_field_type with
+               match Mark.remove struct_field_type with
                | TArrow (t1, t2) ->
                  let args_names =
                    ListLabels.mapi t1 ~f:(fun i _ ->
@@ -185,7 +185,7 @@ module To_jsoo = struct
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
              (fun fmt (struct_field, struct_field_type) ->
-               match Marked.unmark struct_field_type with
+               match Mark.remove struct_field_type with
                | TArrow _ ->
                  Format.fprintf fmt
                    "%a = failwith \"The function '%a' translation isn't yet \
@@ -246,7 +246,7 @@ module To_jsoo = struct
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (cname, typ) ->
-               match Marked.unmark typ with
+               match Mark.remove typ with
                | TTuple _ ->
                  Cli.error_print
                    "Tuples aren't supported yet in the conversion to JS"
@@ -271,7 +271,7 @@ module To_jsoo = struct
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (cname, typ) ->
-               match Marked.unmark typ with
+               match Mark.remove typ with
                | TTuple _ ->
                  Cli.error_print
                    "Tuples aren't yet supported in the conversion to JS..."

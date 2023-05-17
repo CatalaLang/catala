@@ -35,8 +35,8 @@ let find_enum (en : EnumName.t) (ctx : decl_ctx) : typ EnumConstructor.Map.t =
       "Internal Error: Enumeration %s was not found in the current environment."
       en_name
 
-let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
-  match Marked.unmark l with
+let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
+  match Mark.remove l with
   | LBool b -> Print.lit fmt (LBool b)
   | LInt i ->
     Format.fprintf fmt "integer_of_string@ \"%s\"" (Runtime.integer_to_string i)
@@ -132,7 +132,7 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
        (String.to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
 
 let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit =
-  match Marked.unmark ty with
+  match Mark.remove ty with
   | TLit TUnit -> Format.fprintf fmt "embed_unit"
   | TLit TBool -> Format.fprintf fmt "embed_bool"
   | TLit TInt -> Format.fprintf fmt "embed_integer"
@@ -146,14 +146,14 @@ let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit =
   | _ -> Format.fprintf fmt "unembeddable"
 
 let typ_needs_parens (e : typ) : bool =
-  match Marked.unmark e with TArrow _ | TArray _ -> true | _ -> false
+  match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
 
 let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
-  match Marked.unmark typ with
+  match Mark.remove typ with
   | TLit l -> Format.fprintf fmt "%a" Print.tlit l
   | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
@@ -193,17 +193,17 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
   else Format.fprintf fmt "%s_" lowercase_name
 
 let needs_parens (e : 'm expr) : bool =
-  match Marked.unmark e with
+  match Mark.remove e with
   | EApp { f = EAbs _, _; _ }
   | ELit (LBool _ | LUnit)
   | EVar _ | ETuple _ | EOp _ ->
     false
   | _ -> true
 
-let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
-  match Marked.unmark exc with
+let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
+  match Mark.remove exc with
   | ConflictError ->
-    let pos = Marked.get_mark exc in
+    let pos = Mark.get exc in
     Format.fprintf fmt
       "(ConflictError@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
@@ -213,7 +213,7 @@ let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
   | EmptyError -> Format.fprintf fmt "EmptyError"
   | Crash -> Format.fprintf fmt "Crash"
   | NoValueProvided ->
-    let pos = Marked.get_mark exc in
+    let pos = Mark.get exc in
     Format.fprintf fmt
       "(NoValueProvided@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
@@ -228,7 +228,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     if needs_parens e then Format.fprintf fmt "(%a)" format_expr e
     else Format.fprintf fmt "%a" format_expr e
   in
-  match Marked.unmark e with
+  match Mark.remove e with
   | EVar v -> Format.fprintf fmt "%a" format_var v
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
@@ -274,7 +274,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
            Format.fprintf fmt "@[<hov 2>%a.%a %a@]" format_to_module_name
              (`Ename name) format_enum_cons_name c
              (fun fmt e ->
-               match Marked.unmark e with
+               match Mark.remove e with
                | EAbs { binder; _ } ->
                  let xs, body = Bindlib.unmbind binder in
                  Format.fprintf fmt "%a ->@ %a"
@@ -286,7 +286,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
                (* should not happen *))
              e))
       (EnumConstructor.Map.bindings cases)
-  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.mark (Expr.pos e) l)
+  | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.add (Expr.pos e) l)
   | EApp { f = EAbs { binder; tys }, _; args } ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in

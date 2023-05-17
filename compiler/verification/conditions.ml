@@ -113,7 +113,7 @@ let half_product (l1 : 'a list) (l2 : 'b list) : ('a * 'b) list =
     and have a clean verification condition generator that only runs on [e1] *)
 let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
     typed expr =
-  match Marked.unmark e with
+  match Mark.remove e with
   | EErrorOnEmpty
       ( EDefault
           {
@@ -132,7 +132,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
   | EAbs { binder; _ } -> (
     (* context scope variables *)
     let _, body = Bindlib.unmbind binder in
-    match Marked.unmark body with
+    match Mark.remove body with
     | EErrorOnEmpty e -> e
     | _ ->
       Errors.raise_spanned_error (Expr.pos e)
@@ -157,7 +157,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
     expression. *)
 let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
     vc_return =
-  match Marked.unmark e with
+  match Mark.remove e with
   | EAbs { binder; _ } ->
     (* Hot take: for a function never to return an empty error when called, it
        has to do so whatever its input. So we universally quantify over the
@@ -189,20 +189,20 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                         translation preventing any default terms to appear in
                         justifications.*)
                      etrue = vc_just_expr;
-                     efalse = ELit (LBool false), Marked.get_mark e;
+                     efalse = ELit (LBool false), Mark.get e;
                    },
-                 Marked.get_mark e ));
+                 Mark.get e ));
             ]
-            (Marked.get_mark e);
+            (Mark.get e);
         ])
-      (Marked.get_mark e)
-  | EEmptyError -> Marked.same_mark_as (ELit (LBool false)) e
+      (Mark.get e)
+  | EEmptyError -> Mark.copy e (ELit (LBool false))
   | EVar _
   (* Per default calculus semantics, you cannot call a function with an argument
      that evaluates to the empty error. Thus, all variable evaluate to
      non-empty-error terms. *)
   | ELit _ | EOp _ ->
-    Marked.same_mark_as (ELit (LBool true)) e
+    Mark.copy e (ELit (LBool true))
   | EApp { f; args } ->
     (* Invariant: For the [EApp] case, we assume here that function calls never
        return empty error, which implies all functions have been checked never
@@ -212,11 +212,11 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
       :: List.flatten
            (List.map
               (fun arg ->
-                match Marked.unmark arg with
+                match Mark.remove arg with
                 | EStruct { fields; _ } ->
                   List.map
                     (fun (_, field) ->
-                      match Marked.unmark field with
+                      match Mark.remove field with
                       | EAbs { binder; tys = [(TLit TUnit, _)] } -> (
                         (* Invariant: when calling a function with a thunked
                            emptyerror, this means we're in a direct scope call
@@ -226,9 +226,8 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                            never return empty error so the thunked emptyerror
                            can be ignored *)
                         let _vars, body = Bindlib.unmbind binder in
-                        match Marked.unmark body with
-                        | EEmptyError ->
-                          Marked.same_mark_as (ELit (LBool true)) field
+                        match Mark.remove body with
+                        | EEmptyError -> Mark.copy field (ELit (LBool true))
                         | _ ->
                           (* same as basic [EAbs case]*)
                           generate_vc_must_not_return_empty ctx field)
@@ -236,13 +235,13 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                     (StructField.Map.bindings fields)
                 | _ -> [generate_vc_must_not_return_empty ctx arg])
               args))
-      (Marked.get_mark e)
+      (Mark.get e)
   | _ ->
     conjunction
       (Expr.shallow_fold
          (fun e acc -> generate_vc_must_not_return_empty ctx e :: acc)
          e [])
-      (Marked.get_mark e)
+      (Mark.get e)
 
 (** [generate_vc_must_not_return_conflict e] returns the dcalc boolean
     expression [b] such that if [b] is true, then [e] will never return a
@@ -252,11 +251,11 @@ let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
     vc_return =
   (* See the code of [generate_vc_must_not_return_empty] for a list of
      invariants on which this function relies on. *)
-  match Marked.unmark e with
+  match Mark.remove e with
   | EAbs { binder; _ } ->
     let _vars, body = Bindlib.unmbind binder in
     (generate_vc_must_not_return_conflict ctx) body
-  | EVar _ | ELit _ | EOp _ -> Marked.same_mark_as (ELit (LBool true)) e
+  | EVar _ | ELit _ | EOp _ -> Mark.copy e (ELit (LBool true))
   | EDefault { excepts; just; cons } ->
     (* <e1 ... en | ejust :- econs > never returns conflict if and only if: -
        neither e1 nor ... nor en nor ejust nor econs return conflict - there is
@@ -271,24 +270,24 @@ let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
                     generate_vc_must_not_return_empty ctx e1;
                     generate_vc_must_not_return_empty ctx e2;
                   ]
-                  (Marked.get_mark e))
+                  (Mark.get e))
               (half_product excepts excepts))
-           (Marked.get_mark e))
-        (Marked.get_mark e)
+           (Mark.get e))
+        (Mark.get e)
     in
     let others =
       List.map
         (generate_vc_must_not_return_conflict ctx)
         (just :: cons :: excepts)
     in
-    let out = conjunction (quadratic :: others) (Marked.get_mark e) in
+    let out = conjunction (quadratic :: others) (Mark.get e) in
     out
   | _ ->
     conjunction
       (Expr.shallow_fold
          (fun e acc -> generate_vc_must_not_return_conflict ctx e :: acc)
          e [])
-      (Marked.get_mark e)
+      (Mark.get e)
 
 (** {1 Interface}*)
 
@@ -302,10 +301,10 @@ type verification_condition = {
      assertion *)
   vc_asserts : typed expr;
   vc_scope : ScopeName.t;
-  vc_variable : typed expr Var.t Marked.pos;
+  vc_variable : typed expr Var.t Mark.pos;
 }
 
-let trivial_assert e = Marked.same_mark_as (ELit (LBool true)) e
+let trivial_assert e = Mark.copy e (ELit (LBool true))
 
 let rec generate_verification_conditions_scope_body_expr
     (ctx : ctx)
@@ -323,7 +322,7 @@ let rec generate_verification_conditions_scope_body_expr
         let e =
           Expr.unbox (Expr.remove_logging_calls scope_let.scope_let_expr)
         in
-        match Marked.unmark e with
+        match Mark.remove e with
         | EAssert e ->
           let e = match_and_ignore_outer_reentrant_default ctx e in
           ctx, [], [e]
@@ -355,7 +354,7 @@ let rec generate_verification_conditions_scope_body_expr
         let vc_list =
           [
             {
-              vc_guard = Marked.same_mark_as (Marked.unmark vc_confl) e;
+              vc_guard = Mark.copy e (Mark.remove vc_confl);
               vc_kind = NoOverlappingExceptions;
               (* Placeholder until we add all assertions in scope once
                * we finished traversing it *)
@@ -376,7 +375,7 @@ let rec generate_verification_conditions_scope_body_expr
               else vc_empty
             in
             {
-              vc_guard = Marked.same_mark_as (Marked.unmark vc_empty) e;
+              vc_guard = Mark.copy e (Mark.remove vc_empty);
               vc_kind = NoEmptyError;
               vc_asserts = trivial_assert e;
               vc_scope = ctx.current_scope_name;
@@ -440,10 +439,7 @@ let generate_verification_conditions_code_items
             let combined_assert =
               conjunction_exprs asserts
                 (Typed
-                   {
-                     pos = Pos.no_pos;
-                     ty = Marked.mark Pos.no_pos (TLit TBool);
-                   })
+                   { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
             in
             List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
           else []
@@ -463,7 +459,7 @@ let generate_verification_conditions (p : 'm program) (s : ScopeName.t option) :
       let to_str vc =
         Format.asprintf "%s.%s"
           (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-          (Bindlib.name_of (Marked.unmark vc.vc_variable))
+          (Bindlib.name_of (Mark.remove vc.vc_variable))
       in
       String.compare (to_str vc1) (to_str vc2))
     vcs

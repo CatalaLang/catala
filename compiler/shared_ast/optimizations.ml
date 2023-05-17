@@ -27,12 +27,12 @@ type ('a, 'b, 'm) optimizations_ctx = {
 
 let all_match_cases_are_id_fun cases n =
   EnumConstructor.MapLabels.for_all cases ~f:(fun i case ->
-      match Marked.unmark case with
+      match Mark.remove case with
       | EAbs { binder; _ } -> (
         let var, body = Bindlib.unmbind binder in
         (* because of invariant [invariant_match], the arity is always one. *)
         let[@warning "-8"] [| var |] = var in
-        match Marked.unmark body with
+        match Mark.remove body with
         | EInj { cons = i'; name = n'; e = EVar x, _ } ->
           EnumConstructor.equal i i'
           && EnumName.equal n n'
@@ -49,10 +49,10 @@ let all_match_cases_are_id_fun cases n =
 
 let all_match_cases_map_to_same_constructor cases n =
   EnumConstructor.MapLabels.for_all cases ~f:(fun i case ->
-      match Marked.unmark case with
+      match Mark.remove case with
       | EAbs { binder; _ } -> (
         let _, body = Bindlib.unmbind binder in
-        match Marked.unmark body with
+        match Mark.remove body with
         | EInj { cons = i'; name = n'; _ } ->
           EnumConstructor.equal i i' && EnumName.equal n n'
         | _ -> false)
@@ -66,13 +66,13 @@ let rec optimize_expr :
  fun ctx e ->
   (* We proceed bottom-up, first apply on the subterms *)
   let e = Expr.map ~f:(optimize_expr ctx) e in
-  let mark = Marked.get_mark e in
+  let mark = Mark.get e in
   (* Then reduce the parent node *)
   let reduce (e : ((a, b) dcalc_lcalc, 'm mark) gexpr) =
     (* Todo: improve the handling of eapp(log,elit) cases here, it obfuscates
        the matches and the log calls are not preserved, which would be a good
        property *)
-    match Marked.unmark e with
+    match Mark.remove e with
     | EApp
         {
           f =
@@ -105,7 +105,7 @@ let rec optimize_expr :
       (* reduction of logical or *)
       match e1, e2 with
       | (ELit (LBool false), _), new_e | new_e, (ELit (LBool false), _) ->
-        Marked.unmark new_e
+        Mark.remove new_e
       | (ELit (LBool true), _), _ | _, (ELit (LBool true), _) ->
         ELit (LBool true)
       | _ -> EApp { f = op; args = [e1; e2] })
@@ -124,7 +124,7 @@ let rec optimize_expr :
       (* reduction of logical and *)
       match e1, e2 with
       | (ELit (LBool true), _), new_e | new_e, (ELit (LBool true), _) ->
-        Marked.unmark new_e
+        Mark.remove new_e
       | (ELit (LBool false), _), _ | _, (ELit (LBool false), _) ->
         ELit (LBool false)
       | _ -> EApp { f = op; args = [e1; e2] })
@@ -132,16 +132,16 @@ let rec optimize_expr :
     (* iota-reduction *)
       when EnumName.equal n n' -> (
       (* match E x with | E y -> e1 = e1[y |-> x]*)
-      match Marked.unmark @@ EnumConstructor.Map.find cons cases with
+      match Mark.remove @@ EnumConstructor.Map.find cons cases with
       (* holds because of invariant_match_inversion *)
       | EAbs { binder; _ } ->
-        Marked.unmark
+        Mark.remove
           (Bindlib.msubst binder ([e'] |> List.map fst |> Array.of_list))
       | _ -> assert false)
     | EMatch { e = e'; cases; name = n } when all_match_cases_are_id_fun cases n
       ->
       (* iota-reduction when the match is equivalent to an identity function *)
-      Marked.unmark e'
+      Mark.remove e'
     | EMatch
         {
           e = EMatch { e = arg; cases = cases1; name = n1 }, _;
@@ -159,11 +159,11 @@ let rec optimize_expr :
         EnumConstructor.MapLabels.merge cases1 cases2 ~f:(fun _i o1 o2 ->
             match o1, o2 with
             | Some b1, Some e2 -> (
-              match Marked.unmark b1, Marked.unmark e2 with
+              match Mark.remove b1, Mark.remove e2 with
               | EAbs { binder = b1; _ }, EAbs { binder = b2; tys } -> (
                 let v1, e1 = Bindlib.unmbind b1 in
                 let[@warning "-8"] [| v1 |] = v1 in
-                match Marked.unmark e1 with
+                match Mark.remove e1 with
                 | EInj { e = e1; _ } ->
                   Some
                     (Expr.unbox
@@ -179,14 +179,14 @@ let rec optimize_expr :
       EMatch { e = arg; cases; name = n1 }
     | EApp { f = EAbs { binder; _ }, _; args } ->
       (* beta reduction *)
-      Marked.unmark (Bindlib.msubst binder (List.map fst args |> Array.of_list))
+      Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when name = name1 ->
-      Marked.unmark (StructField.Map.find field fields)
+      Mark.remove (StructField.Map.find field fields)
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct :) *)
       let excepts =
-        List.filter (fun except -> Marked.unmark except <> EEmptyError) excepts
+        List.filter (fun except -> Mark.remove except <> EEmptyError) excepts
         (* we can discard the exceptions that are always empty error *)
       in
       let value_except_count =
@@ -198,13 +198,13 @@ let rec optimize_expr :
         (* at this point we know a conflict error will be triggered so we just
            feed the expression to the interpreter that will print the beautiful
            right error message *)
-        Marked.unmark (Interpreter.evaluate_expr ctx.decl_ctx e)
+        Mark.remove (Interpreter.evaluate_expr ctx.decl_ctx e)
       else
         match excepts, just with
         | [except], _ when Expr.is_value except ->
           (* if there is only one exception and it is a non-empty value it is
              always chosen *)
-          Marked.unmark except
+          Mark.remove except
         | ( [],
             ( ( ELit (LBool true)
               | EApp
@@ -213,7 +213,7 @@ let rec optimize_expr :
                     args = [(ELit (LBool true), _)];
                   } ),
               _ ) ) ->
-          Marked.unmark cons
+          Mark.remove cons
         | ( [],
             ( ( ELit (LBool false)
               | EApp
@@ -237,7 +237,7 @@ let rec optimize_expr :
           etrue;
           _;
         } ->
-      Marked.unmark etrue
+      Mark.remove etrue
     | EIfThenElse
         {
           cond =
@@ -251,7 +251,7 @@ let rec optimize_expr :
           efalse;
           _;
         } ->
-      Marked.unmark efalse
+      Mark.remove efalse
     | EIfThenElse
         {
           cond;
@@ -272,7 +272,7 @@ let rec optimize_expr :
                   } ),
               _ );
         } ->
-      if btrue && not bfalse then Marked.unmark cond
+      if btrue && not bfalse then Mark.remove cond
       else if (not btrue) && bfalse then
         EApp
           {
@@ -285,7 +285,7 @@ let rec optimize_expr :
     | EApp { f = EOp { op = Op.Fold; _ }, _; args = [_f; init; (EArray [], _)] }
       ->
       (*reduces a fold with an empty list *)
-      Marked.unmark init
+      Mark.remove init
     | EApp
         { f = EOp { op = Op.Fold; _ }, _; args = [f; init; (EArray [e'], _)] }
       ->
@@ -293,10 +293,10 @@ let rec optimize_expr :
       EApp { f; args = [init; e'] }
     | ECatch { body; exn; handler } -> (
       (* peephole exception catching reductions *)
-      match Marked.unmark body, Marked.unmark handler with
+      match Mark.remove body, Mark.remove handler with
       | ERaise exn', ERaise exn'' when exn' = exn && exn = exn'' -> ERaise exn
-      | ERaise exn', _ when exn' = exn -> Marked.unmark handler
-      | _, ERaise exn' when exn' = exn -> Marked.unmark body
+      | ERaise exn', _ when exn' = exn -> Mark.remove handler
+      | _, ERaise exn' when exn' = exn -> Mark.remove body
       | _ -> ECatch { body; exn; handler })
     | e -> e
   in

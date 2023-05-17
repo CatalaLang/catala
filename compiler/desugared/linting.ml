@@ -29,7 +29,7 @@ let detect_empty_definitions (p : program) : unit =
             && RuleName.Map.is_empty scope_def.scope_def_rules
             && (not scope_def.scope_def_is_condition)
             &&
-            match Marked.unmark scope_def.scope_def_io.io_input with
+            match Mark.remove scope_def.scope_def_io.io_input with
             | Ast.NoInput -> true
             | _ -> false
           then
@@ -105,9 +105,9 @@ let detect_unused_scope_vars (p : program) : unit =
     Ast.fold_exprs
       ~f:(fun used_scope_vars e ->
         let rec used_scope_vars_expr e used_scope_vars =
-          match Marked.unmark e with
+          match Mark.remove e with
           | ELocation (DesugaredScopeVar (v, _)) ->
-            ScopeVar.Set.add (Marked.unmark v) used_scope_vars
+            ScopeVar.Set.add (Mark.remove v) used_scope_vars
           | _ -> Expr.shallow_fold used_scope_vars_expr e used_scope_vars
         in
         used_scope_vars_expr e used_scope_vars)
@@ -120,7 +120,7 @@ let detect_unused_scope_vars (p : program) : unit =
           match scope_def_key with
           | ScopeDef.Var (v, _)
             when (not (ScopeVar.Set.mem v used_scope_vars))
-                 && not (Marked.unmark scope_def.scope_def_io.io_output) ->
+                 && not (Mark.remove scope_def.scope_def_io.io_output) ->
             Errors.format_spanned_warning
               (ScopeDef.get_position scope_def_key)
               "In scope %a, the variable %a is never used anywhere; maybe it's \
@@ -141,7 +141,7 @@ let detect_unused_struct_fields (p : program) : unit =
     Ast.fold_exprs
       ~f:(fun struct_fields_used e ->
         let rec structs_fields_used_expr e struct_fields_used =
-          match Marked.unmark e with
+          match Mark.remove e with
           | EDStructAccess { name_opt = Some name; e = e_struct; field } ->
             let field =
               StructName.Map.find name
@@ -206,7 +206,7 @@ let detect_unused_enum_constructors (p : program) : unit =
     Ast.fold_exprs
       ~f:(fun enum_constructors_used e ->
         let rec enum_constructors_used_expr e enum_constructors_used =
-          match Marked.unmark e with
+          match Mark.remove e with
           | EInj { name = _; e = e_enum; cons } ->
             EnumConstructor.Set.add cons
               (enum_constructors_used_expr e_enum enum_constructors_used)

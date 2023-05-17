@@ -45,14 +45,13 @@ open Shared_ast
     not sufficient as the typing inference need at least input and output types.
     Those a generated using the [trans_typ_keep] function, that build [TOption]s
     where needed. *)
-let trans_typ_to_any (tau : typ) : typ = Marked.same_mark_as TAny tau
+let trans_typ_to_any (tau : typ) : typ = Mark.copy tau TAny
 
 let rec trans_typ_keep (tau : typ) : typ =
-  let m = Marked.get_mark tau in
-  (Fun.flip Marked.same_mark_as)
-    tau
+  let m = Mark.get tau in
+  Mark.copy tau
     begin
-      match Marked.unmark tau with
+      match Mark.remove tau with
       | TLit l -> TLit l
       | TTuple ts -> TTuple (List.map trans_typ_keep ts)
       | TStruct s -> TStruct s
@@ -64,13 +63,13 @@ let rec trans_typ_keep (tau : typ) : typ =
       | TAny -> TAny
       | TArray ts ->
         TArray (TOption (trans_typ_keep ts), m) (* catala is not polymorphic *)
-      | TArrow ([(TLit TUnit, _)], t2) -> Marked.unmark (trans_typ_keep t2)
+      | TArrow ([(TLit TUnit, _)], t2) -> Mark.remove (trans_typ_keep t2)
       | TArrow (t1, t2) ->
         TArrow (List.map trans_typ_keep t1, (TOption (trans_typ_keep t2), m))
     end
 
 let trans_typ_keep (tau : typ) : typ =
-  Marked.same_mark_as (TOption (trans_typ_keep tau)) tau
+  Mark.copy tau (TOption (trans_typ_keep tau))
 
 let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
 
@@ -100,11 +99,11 @@ let trans_var (ctx : 'm ctx) (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
     generated code. *)
 let rec trans (ctx : typed ctx) (e : typed D.expr) :
     (lcalc, typed mark) boxed_gexpr =
-  let m = Marked.get_mark e in
+  let m = Mark.get e in
   let mark = m in
   let pos = Expr.pos e in
   (* Cli.debug_format "%a" (Print.expr ~debug:true ()) e; *)
-  match Marked.unmark e with
+  match Mark.remove e with
   | EVar x ->
     if (Var.Map.find x ctx.ctx_vars).info_pure then
       Ast.OptionMonad.return (Expr.evar (trans_var ctx x) m) ~mark
@@ -355,7 +354,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) :
   | EMatch { name; e; cases } ->
     let cases =
       EnumConstructor.MapLabels.map cases ~f:(fun case ->
-          match Marked.unmark case with
+          match Mark.remove case with
           | EAbs { binder; tys } ->
             let vars, body = Bindlib.unmbind binder in
             let ctx' =
@@ -592,7 +591,7 @@ let rec trans_scope_let (ctx : typed ctx) (s : typed D.expr scope_let) =
             | DestructuringInputStruct -> (
               (* note for future: we keep this useless match for distinguishing
                  further optimization while building the terms. *)
-              match Marked.unmark scope_let_typ with
+              match Mark.remove scope_let_typ with
               | TArrow ([(TLit TUnit, _)], _) ->
                 { info_pure = false; is_scope = false; var = next_var' }
               | _ -> { info_pure = false; is_scope = false; var = next_var' })
@@ -627,14 +626,14 @@ and trans_scope_body_expr ctx s :
   match s with
   | Result e -> begin
     (* invariant : result is always in the form of a record. *)
-    match Marked.unmark e with
+    match Mark.remove e with
     | EStruct { name; fields } ->
       Bindlib.box_apply
         (fun e -> Result e)
         (Expr.Box.lift
         @@ Expr.estruct name
              (StructField.Map.map (trans ctx) fields)
-             (Marked.get_mark e))
+             (Mark.get e))
     | _ -> assert false
   end
   | ScopeLet s ->

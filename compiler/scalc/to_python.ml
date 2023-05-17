@@ -22,8 +22,8 @@ module Runtime = Runtime_ocaml.Runtime
 module D = Dcalc.Ast
 module L = Lcalc.Ast
 
-let format_lit (fmt : Format.formatter) (l : lit Marked.pos) : unit =
-  match Marked.unmark l with
+let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
+  match Mark.remove l with
   | LBool true -> Format.pp_print_string fmt "True"
   | LBool false -> Format.pp_print_string fmt "False"
   | LInt i ->
@@ -49,8 +49,8 @@ let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
   | EndCall -> Format.fprintf fmt "%s" "← "
   | PosRecordIfTrueBool -> Format.pp_print_string fmt "☛ "
 
-let format_op (fmt : Format.formatter) (op : operator Marked.pos) : unit =
-  match Marked.unmark op with
+let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
+  match Mark.remove op with
   | Log (entry, infos) -> assert false
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
     Format.pp_print_string fmt "-"
@@ -157,7 +157,7 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
        (String.to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
 
 let typ_needs_parens (e : typ) : bool =
-  match Marked.unmark e with TArrow _ | TArray _ -> true | _ -> false
+  match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
 
 let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   let format_typ = format_typ in
@@ -165,7 +165,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
     else Format.fprintf fmt "%a" format_typ t
   in
-  match Marked.unmark typ with
+  match Mark.remove typ with
   | TLit TUnit -> Format.fprintf fmt "Unit"
   | TLit TMoney -> Format.fprintf fmt "Money"
   | TLit TInt -> Format.fprintf fmt "Integer"
@@ -213,7 +213,7 @@ module IntMap = Map.Make (Int)
 let string_counter_map : int IntMap.t StringMap.t ref = ref StringMap.empty
 
 let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
-  let v_str = Marked.unmark (VarName.get_info v) in
+  let v_str = Mark.remove (VarName.get_info v) in
   let hash = VarName.hash v in
   let local_id =
     match StringMap.find_opt v_str !string_counter_map with
@@ -244,20 +244,20 @@ let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
   else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
-  let v_str = Marked.unmark (FuncName.get_info v) in
+  let v_str = Mark.remove (FuncName.get_info v) in
   format_name_cleaned fmt v_str
 
 let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
   Format.fprintf fmt "%a_%s" VarName.format_t v (string_of_int (VarName.hash v))
 
 let needs_parens (e : expr) : bool =
-  match Marked.unmark e with
+  match Mark.remove e with
   | ELit (LBool _ | LUnit) | EVar _ | EOp _ -> false
   | _ -> true
 
-let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
-  let pos = Marked.get_mark exc in
-  match Marked.unmark exc with
+let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
+  let pos = Mark.get exc in
+  match Mark.remove exc with
   | ConflictError ->
     Format.fprintf fmt
       "ConflictError(@[<hov 0>SourcePosition(@[<hov 0>filename=\"%s\",@ \
@@ -279,7 +279,7 @@ let format_exception (fmt : Format.formatter) (exc : except Marked.pos) : unit =
 
 let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     unit =
-  match Marked.unmark e with
+  match Mark.remove e with
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
   | EStruct (es, s) ->
@@ -314,7 +314,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
-  | ELit l -> Format.fprintf fmt "%a" format_lit (Marked.same_mark_as l e)
+  | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
   | EApp ((EOp ((Map | Filter) as op), _), [arg1; arg2]) ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1 (format_expression ctx) arg2
@@ -387,21 +387,21 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
 let rec format_statement
     (ctx : decl_ctx)
     (fmt : Format.formatter)
-    (s : stmt Marked.pos) : unit =
-  match Marked.unmark s with
+    (s : stmt Mark.pos) : unit =
+  match Mark.remove s with
   | SInnerFuncDef (name, { func_params; func_body }) ->
     Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_var
-      (Marked.unmark name)
+      (Mark.remove name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
          (fun fmt (var, typ) ->
-           Format.fprintf fmt "%a:%a" format_var (Marked.unmark var) format_typ
+           Format.fprintf fmt "%a:%a" format_var (Mark.remove var) format_typ
              typ))
       func_params (format_block ctx) func_body
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
   | SLocalDef (v, e) ->
-    Format.fprintf fmt "@[<hov 4>%a = %a@]" format_var (Marked.unmark v)
+    Format.fprintf fmt "@[<hov 4>%a = %a@]" format_var (Mark.remove v)
       (format_expression ctx) e
   | STryExcept (try_b, except, catch_b) ->
     Format.fprintf fmt "@[<hov 4>try:@\n%a@]@\n@[<hov 4>except %a:@\n%a@]"
@@ -409,7 +409,7 @@ let rec format_statement
       (format_block ctx) catch_b
   | SRaise except ->
     Format.fprintf fmt "@[<hov 4>raise %a@]" format_exception
-      (except, Marked.get_mark s)
+      (except, Mark.get s)
   | SIfThenElse (cond, b1, b2) ->
     Format.fprintf fmt "@[<hov 4>if %a:@\n%a@]@\n@[<hov 4>else:@\n%a@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
@@ -447,16 +447,16 @@ let rec format_statement
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx)
-      (e1, Marked.get_mark s)
+      (e1, Mark.get s)
   | SAssert e1 ->
-    let pos = Marked.get_mark s in
+    let pos = Mark.get s in
     Format.fprintf fmt
       "@[<hov 4>if not (%a):@\n\
        raise AssertionFailure(@[<hov 0>SourcePosition(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
        end_column=%d,@ law_headings=@[<hv>%a@])@])@]@]"
       (format_expression ctx)
-      (e1, Marked.get_mark s)
+      (e1, Mark.get s)
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
@@ -466,7 +466,7 @@ and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
     (format_statement ctx) fmt
     (List.filter
-       (fun s -> match Marked.unmark s with SLocalDecl _ -> false | _ -> true)
+       (fun s -> match Mark.remove s with SLocalDecl _ -> false | _ -> true)
        b)
 
 let format_ctx
@@ -625,7 +625,7 @@ let format_program
                (Format.pp_print_list
                   ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
                   (fun fmt (var, typ) ->
-                    Format.fprintf fmt "%a:%a" format_var (Marked.unmark var)
+                    Format.fprintf fmt "%a:%a" format_var (Mark.remove var)
                       format_typ typ))
                func_params (format_block p.decl_ctx) func_body))
         p.code_items)

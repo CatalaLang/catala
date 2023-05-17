@@ -18,7 +18,7 @@ open Catala_utils
 open Definitions
 
 let typ_needs_parens (ty : typ) : bool =
-  match Marked.unmark ty with TArrow _ | TArray _ -> true | _ -> false
+  match Mark.remove ty with TArrow _ | TArray _ -> true | _ -> false
 
 let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
     unit =
@@ -26,7 +26,7 @@ let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
     ~pp_sep:(fun fmt () -> Format.pp_print_char fmt '.')
     (fun fmt info ->
       Cli.format_with_style
-        (if String.begins_with_uppercase (Marked.unmark info) then
+        (if String.begins_with_uppercase (Mark.remove info) then
          [ANSITerminal.red]
         else [])
         fmt
@@ -61,12 +61,12 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
 
 let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
-  | DesugaredScopeVar (v, _st) -> ScopeVar.format_t fmt (Marked.unmark v)
-  | ScopelangScopeVar v -> ScopeVar.format_t fmt (Marked.unmark v)
+  | DesugaredScopeVar (v, _st) -> ScopeVar.format_t fmt (Mark.remove v)
+  | ScopelangScopeVar v -> ScopeVar.format_t fmt (Mark.remove v)
   | SubScopeVar (_, subindex, subvar) ->
-    Format.fprintf fmt "%a.%a" SubScopeName.format_t (Marked.unmark subindex)
-      ScopeVar.format_t (Marked.unmark subvar)
-  | ToplevelVar v -> TopdefName.format_t fmt (Marked.unmark v)
+    Format.fprintf fmt "%a.%a" SubScopeName.format_t (Mark.remove subindex)
+      ScopeVar.format_t (Mark.remove subvar)
+  | ToplevelVar v -> TopdefName.format_t fmt (Mark.remove v)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
   Cli.format_with_style [ANSITerminal.magenta] fmt
@@ -81,7 +81,7 @@ let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
   let typ_with_parens (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then Format.fprintf fmt "(%a)" typ t else typ fmt t
   in
-  match Marked.unmark ty with
+  match Mark.remove ty with
   | TLit l -> tlit fmt l
   | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
@@ -341,7 +341,7 @@ module Precedence = struct
 
   let expr : type a. (a, 't) gexpr -> t =
    fun e ->
-    match Marked.unmark e with
+    match Mark.remove e with
     | ELit _ -> Contained (* Todo: unop if < 0 *)
     | EApp { f = EOp { op; _ }, _; _ } -> (
       match op with
@@ -465,7 +465,7 @@ let rec expr_aux :
   in
   let lhs ?(colors = colors) ex = paren ~colors ~rhs:false ex in
   let rhs ex = paren ~rhs:true ex in
-  match Marked.unmark e with
+  match Mark.remove e with
   | EVar v -> var fmt v
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" punctuation "("

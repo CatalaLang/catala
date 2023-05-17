@@ -31,8 +31,8 @@ let lines_of_code = ref 0
 let update_lines_of_code c =
   lines_of_code :=
     !lines_of_code
-    + Pos.get_end_line (Marked.get_mark c)
-    - Pos.get_start_line (Marked.get_mark c)
+    + Pos.get_end_line (Mark.get c)
+    - Pos.get_start_line (Mark.get c)
     - 1
 
 (** Espaces various LaTeX-sensitive characters *)
@@ -225,7 +225,7 @@ let rec law_structure_to_latex
       | 6 -> "subsubsubsubsubsubsection"
       | 7 -> "paragraph"
       | _ -> "subparagraph")
-      (pre_latexify (Marked.unmark heading.law_heading_name));
+      (pre_latexify (Mark.remove heading.law_heading_name));
     Format.pp_print_list
       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
       (law_structure_to_latex language print_only_law)
@@ -245,9 +245,9 @@ let rec law_structure_to_latex
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
-    let start_line = Pos.get_start_line (Marked.get_mark c) - 1 in
-    let filename = Pos.get_file (Marked.get_mark c) in
-    let block_content = Marked.unmark c in
+    let start_line = Pos.get_start_line (Mark.get c) - 1 in
+    let filename = Pos.get_file (Mark.get c) in
+    let block_content = Mark.remove c in
     check_exceeding_lines start_line filename block_content;
     update_lines_of_code c;
     code_block ~meta:false language fmt c
@@ -258,9 +258,9 @@ let rec law_structure_to_latex
       | En -> "Metadata"
       | Pl -> "Metadane"
     in
-    let start_line = Pos.get_start_line (Marked.get_mark c) + 1 in
-    let filename = Pos.get_file (Marked.get_mark c) in
-    let block_content = Marked.unmark c in
+    let start_line = Pos.get_start_line (Mark.get c) + 1 in
+    let filename = Pos.get_file (Mark.get c) in
+    let block_content = Mark.remove c in
     check_exceeding_lines start_line filename block_content;
     update_lines_of_code c;
     Format.fprintf fmt

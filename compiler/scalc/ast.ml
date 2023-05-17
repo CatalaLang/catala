@@ -29,7 +29,7 @@ type operator =
   < overloaded : no ; monomorphic : yes ; polymorphic : yes ; resolved : yes >
   Shared_ast.operator
 
-type expr = naked_expr Marked.pos
+type expr = naked_expr Mark.pos
 
 and naked_expr =
   | EVar : VarName.t -> naked_expr
@@ -43,9 +43,9 @@ and naked_expr =
   | EOp : operator -> naked_expr
 
 type stmt =
-  | SInnerFuncDef of VarName.t Marked.pos * func
-  | SLocalDecl of VarName.t Marked.pos * typ
-  | SLocalDef of VarName.t Marked.pos * expr
+  | SInnerFuncDef of VarName.t Mark.pos * func
+  | SLocalDecl of VarName.t Mark.pos * typ
+  | SLocalDef of VarName.t Mark.pos * expr
   | STryExcept of block * except * block
   | SRaise of except
   | SIfThenElse of expr * block * block
@@ -58,12 +58,8 @@ type stmt =
   | SReturn of naked_expr
   | SAssert of naked_expr
 
-and block = stmt Marked.pos list
-
-and func = {
-  func_params : (VarName.t Marked.pos * typ) list;
-  func_body : block;
-}
+and block = stmt Mark.pos list
+and func = { func_params : (VarName.t Mark.pos * typ) list; func_body : block }
 
 type scope_body = {
   scope_body_name : ScopeName.t;

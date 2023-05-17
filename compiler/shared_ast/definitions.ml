@@ -138,7 +138,7 @@ type ('a, 'b) dcalc_lcalc =
 
 type typ_lit = TBool | TUnit | TInt | TRat | TMoney | TDate | TDuration
 
-type typ = naked_typ Marked.pos
+type typ = naked_typ Mark.pos
 
 and naked_typ =
   | TLit of typ_lit
@@ -305,19 +305,19 @@ type lit =
 (** Locations are handled differently in [desugared] and [scopelang] *)
 type 'a glocation =
   | DesugaredScopeVar :
-      ScopeVar.t Marked.pos * StateName.t option
+      ScopeVar.t Mark.pos * StateName.t option
       -> < scopeVarStates : yes ; .. > glocation
   | ScopelangScopeVar :
-      ScopeVar.t Marked.pos
+      ScopeVar.t Mark.pos
       -> < scopeVarSimpl : yes ; .. > glocation
   | SubScopeVar :
-      ScopeName.t * SubScopeName.t Marked.pos * ScopeVar.t Marked.pos
+      ScopeName.t * SubScopeName.t Mark.pos * ScopeVar.t Mark.pos
       -> < explicitScopes : yes ; .. > glocation
   | ToplevelVar :
-      TopdefName.t Marked.pos
+      TopdefName.t Mark.pos
       -> < explicitScopes : yes ; .. > glocation
 
-type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Marked.t
+type ('a, 't) gexpr = (('a, 't) naked_gexpr, 't) Mark.ed
 
 and ('a, 't) naked_gexpr = ('a, 'a, 't) base_gexpr
 (** General expressions: groups all expression cases of the different ASTs, and
@@ -436,7 +436,7 @@ and ('a, 'b, 't) base_gexpr =
 (* Useful for errors and printing, for example *)
 (* type any_expr = AnyExpr : ('a, _ mark) gexpr -> any_expr *)
 
-type ('a, 't) boxed_gexpr = (('a, 't) naked_gexpr Bindlib.box, 't) Marked.t
+type ('a, 't) boxed_gexpr = (('a, 't) naked_gexpr Bindlib.box, 't) Mark.ed
 (** The annotation is lifted outside of the box for expressions *)
 
 type 'e boxed = ('a, 't) boxed_gexpr constraint 'e = ('a, 't) gexpr

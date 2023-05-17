@@ -99,11 +99,10 @@ let wrap_html
 
 (** Performs syntax highlighting on a piece of code by using Pygments and the
     special Catala lexer. *)
-let pygmentize_code (c : string Marked.pos) (lang : C.backend_lang) : string =
-  C.debug_print "Pygmenting the code chunk %s"
-    (Pos.to_string (Marked.get_mark c));
+let pygmentize_code (c : string Mark.pos) (lang : C.backend_lang) : string =
+  C.debug_print "Pygmenting the code chunk %s" (Pos.to_string (Mark.get c));
   let output =
-    File.with_temp_file "catala_html_pygments" "in" ~contents:(Marked.unmark c)
+    File.with_temp_file "catala_html_pygments" "in" ~contents:(Mark.remove c)
     @@ fun temp_file_in ->
     call_pygmentize ~lang
       [
@@ -111,9 +110,9 @@ let pygmentize_code (c : string Marked.pos) (lang : C.backend_lang) : string =
         "html";
         "-O";
         "anchorlinenos=True,lineanchors="
-        ^ String.to_ascii (Pos.get_file (Marked.get_mark c))
+        ^ String.to_ascii (Pos.get_file (Mark.get c))
         ^ ",linenos=table,linenostart="
-        ^ string_of_int (Pos.get_start_line (Marked.get_mark c));
+        ^ string_of_int (Pos.get_start_line (Mark.get c));
         temp_file_in;
       ]
   in
@@ -141,9 +140,9 @@ let rec law_structure_to_html
     let t = pre_html t in
     if t = "" then () else Format.fprintf fmt "<div class='law-text'>%s</div>" t
   | A.CodeBlock (_, c, metadata) when not print_only_law ->
-    let start_line = Pos.get_start_line (Marked.get_mark c) - 1 in
-    let filename = Pos.get_file (Marked.get_mark c) in
-    let block_content = Marked.unmark c in
+    let start_line = Pos.get_start_line (Mark.get c) - 1 in
+    let filename = Pos.get_file (Mark.get c) in
+    let block_content = Mark.remove c in
     check_exceeding_lines start_line filename block_content;
     Format.fprintf fmt
       "<div class='code-wrapper%s catala-code'>\n\
@@ -151,9 +150,9 @@ let rec law_structure_to_html
        %s\n\
        </div>"
       (if metadata then " code-metadata" else "")
-      (Pos.get_file (Marked.get_mark c))
+      (Pos.get_file (Mark.get c))
       (pygmentize_code
-         (Marked.same_mark_as ("```catala\n" ^ Marked.unmark c ^ "```") c)
+         (Mark.copy c ("```catala\n" ^ Mark.remove c ^ "```"))
          language)
   | A.CodeBlock _ -> ()
   | A.LawHeading (heading, children) ->
@@ -165,7 +164,7 @@ let rec law_structure_to_html
          practicable. *)
       h_number = 2
     in
-    let h_name = Marked.unmark heading.law_heading_name in
+    let h_name = Mark.remove heading.law_heading_name in
     let complete_headings = parents_headings @ [h_name] in
     let id = complete_headings |> String.concat "-" |> sanitize_html_href in
     let fmt_details_open fmt () =
@@ -213,7 +212,7 @@ let rec fmt_toc
        (fun fmt item ->
          match item with
          | A.LawHeading (heading, childs) ->
-           let h_name = Marked.unmark heading.law_heading_name in
+           let h_name = Mark.remove heading.law_heading_name in
            let complete_headings = parents_headings @ [h_name] in
            let id =
              complete_headings |> String.concat "-" |> sanitize_html_href

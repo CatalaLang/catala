@@ -46,8 +46,8 @@ module ScopeDef = struct
 
     let get_position x =
       match x with
-      | Var (x, None) -> Marked.get_mark (ScopeVar.get_info x)
-      | Var (_, Some sx) -> Marked.get_mark (StateName.get_info sx)
+      | Var (x, None) -> Mark.get (ScopeVar.get_info x)
+      | Var (_, Some sx) -> Mark.get (StateName.get_info sx)
       | SubScopeVar (_, _, pos) -> pos
 
     let format_t fmt x =
@@ -77,9 +77,8 @@ module AssertionName = Uid.Gen ()
 
 type location = desugared glocation
 
-module LocationSet : Set.S with type elt = location Marked.pos =
-Set.Make (struct
-  type t = location Marked.pos
+module LocationSet : Set.S with type elt = location Mark.pos = Set.Make (struct
+  type t = location Mark.pos
 
   let compare = Expr.compare_location
 end)
@@ -93,20 +92,20 @@ module ExprMap = Map.Make (struct
 end)
 
 type io_input = NoInput | OnlyInput | Reentrant
-type io = { io_output : bool Marked.pos; io_input : io_input Marked.pos }
+type io = { io_output : bool Mark.pos; io_input : io_input Mark.pos }
 
 type exception_situation =
   | BaseCase
-  | ExceptionToLabel of LabelName.t Marked.pos
-  | ExceptionToRule of RuleName.t Marked.pos
+  | ExceptionToLabel of LabelName.t Mark.pos
+  | ExceptionToRule of RuleName.t Mark.pos
 
-type label_situation = ExplicitlyLabeled of LabelName.t Marked.pos | Unlabeled
+type label_situation = ExplicitlyLabeled of LabelName.t Mark.pos | Unlabeled
 
 type rule = {
   rule_id : RuleName.t;
   rule_just : expr boxed;
   rule_cons : expr boxed;
-  rule_parameter : (expr Var.t Marked.pos * typ) list Marked.pos option;
+  rule_parameter : (expr Var.t Mark.pos * typ) list Mark.pos option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -167,14 +166,13 @@ end
 
 let empty_rule
     (pos : Pos.t)
-    (parameters : (Uid.MarkedString.info * typ) list Marked.pos option) : rule =
+    (parameters : (Uid.MarkedString.info * typ) list Mark.pos option) : rule =
   {
     rule_just = Expr.box (ELit (LBool false), Untyped { pos });
     rule_cons = Expr.box (EEmptyError, Untyped { pos });
     rule_parameter =
       Option.map
-        (Marked.map_under_mark
-           (List.map (fun (lbl, typ) -> Marked.map_under_mark Var.make lbl, typ)))
+        (Mark.map (List.map (fun (lbl, typ) -> Mark.map Var.make lbl, typ)))
         parameters;
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("empty", pos);
@@ -183,14 +181,13 @@ let empty_rule
 
 let always_false_rule
     (pos : Pos.t)
-    (parameters : (Uid.MarkedString.info * typ) list Marked.pos option) : rule =
+    (parameters : (Uid.MarkedString.info * typ) list Mark.pos option) : rule =
   {
     rule_just = Expr.box (ELit (LBool true), Untyped { pos });
     rule_cons = Expr.box (ELit (LBool false), Untyped { pos });
     rule_parameter =
       Option.map
-        (Marked.map_under_mark
-           (List.map (fun (lbl, typ) -> Marked.map_under_mark Var.make lbl, typ)))
+        (Mark.map (List.map (fun (lbl, typ) -> Mark.map Var.make lbl, typ)))
         parameters;
     rule_exception = BaseCase;
     rule_id = RuleName.fresh ("always_false", pos);
@@ -203,13 +200,13 @@ type reference_typ = Decree | Law
 type catala_option = DateRounding of variation_typ
 
 type meta_assertion =
-  | FixedBy of reference_typ Marked.pos
-  | VariesWith of unit * variation_typ Marked.pos option
+  | FixedBy of reference_typ Mark.pos
+  | VariesWith of unit * variation_typ Mark.pos option
 
 type scope_def = {
   scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
-  scope_def_parameters : (Uid.MarkedString.info * typ) list Marked.pos option;
+  scope_def_parameters : (Uid.MarkedString.info * typ) list Mark.pos option;
   scope_def_is_condition : bool;
   scope_def_io : io;
 }
@@ -222,7 +219,7 @@ type scope = {
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion AssertionName.Map.t;
-  scope_options : catala_option Marked.pos list;
+  scope_options : catala_option Mark.pos list;
   scope_meta_assertions : meta_assertion list;
 }
 
@@ -250,14 +247,11 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDef.Map.t =
       (fun (loc, loc_pos) acc ->
         let usage =
           match loc with
-          | DesugaredScopeVar (v, st) ->
-            Some (ScopeDef.Var (Marked.unmark v, st))
+          | DesugaredScopeVar (v, st) -> Some (ScopeDef.Var (Mark.remove v, st))
           | SubScopeVar (_, sub_index, sub_var) ->
             Some
               (ScopeDef.SubScopeVar
-                 ( Marked.unmark sub_index,
-                   Marked.unmark sub_var,
-                   Marked.get_mark sub_index ))
+                 (Mark.remove sub_index, Mark.remove sub_var, Mark.get sub_index))
           | ToplevelVar _ -> None
         in
         match usage with

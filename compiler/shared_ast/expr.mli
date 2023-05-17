@@ -180,16 +180,16 @@ val option_enum_config : typ EnumConstructor.Map.t
 
 (** Manipulation of marked expressions *)
 
-val pos : ('a, 'm mark) Marked.t -> Pos.t
-val ty : ('e, typed mark) Marked.t -> typ
-val set_ty : typ -> ('a, 'm mark) Marked.t -> ('a, typed mark) Marked.t
+val pos : ('a, 'm mark) Mark.ed -> Pos.t
+val ty : ('e, typed mark) Mark.ed -> typ
+val set_ty : typ -> ('a, 'm mark) Mark.ed -> ('a, typed mark) Mark.ed
 val untype : ('a, 'm mark) gexpr -> ('a, untyped mark) boxed_gexpr
 
 (** {2 Traversal functions} *)
 
 val map :
   f:(('a, 'm1) gexpr -> ('b, 'm2) boxed_gexpr) ->
-  (('a, 'b, 'm1) base_gexpr, 'm2) Marked.t ->
+  (('a, 'b, 'm1) base_gexpr, 'm2) Mark.ed ->
   ('b, 'm2) boxed_gexpr
 (** Shallow mapping on expressions (non recursive): applies the given function
     to all sub-terms of the given expression, and rebuilds the node.
@@ -200,7 +200,7 @@ val map :
     {[
       let remove_error_empty e =
         let rec f e =
-          match Marked.unmark e with
+          match Mark.remove e with
           | EErrorOnEmpty e1 -> Expr.map ~f e1
           | _ -> Expr.map ~f e
         in
@@ -223,7 +223,7 @@ val map :
     becomes useful. *)
 
 val map_top_down :
-  f:(('a, 't1) gexpr -> (('a, 't1) naked_gexpr, 't2) Marked.t) ->
+  f:(('a, 't1) gexpr -> (('a, 't1) naked_gexpr, 't2) Mark.ed) ->
   ('a, 't1) gexpr ->
   ('a, 't2) boxed_gexpr
 (** Recursively applies [f] to the nodes of the expression tree. The type
@@ -253,7 +253,7 @@ val map_gather :
   acc:'acc ->
   join:('acc -> 'acc -> 'acc) ->
   f:(('a, 't1) gexpr -> 'acc * ('a, 't2) boxed_gexpr) ->
-  (('a, 't1) naked_gexpr, 't2) Marked.t ->
+  (('a, 't1) naked_gexpr, 't2) Mark.ed ->
   'acc * ('a, 't2) boxed_gexpr
 (** Shallow mapping similar to [map], but additionally allows to gather an
     accumulator bottom-up. [acc] is the accumulator value returned on terminal
@@ -263,7 +263,7 @@ val map_gather :
 
     {[
       let rec rewrite e =
-        match Marked.unmark e with
+        match Mark.remove e with
         | Specific_case -> Var.Set.singleton x, some_rewrite_fun e
         | _ ->
           Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union ~f:rewrite e
@@ -355,8 +355,8 @@ val format : Format.formatter -> ('a, 'm mark) gexpr -> unit
 
 val equal_lit : lit -> lit -> bool
 val compare_lit : lit -> lit -> int
-val equal_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> bool
-val compare_location : 'a glocation Marked.pos -> 'a glocation Marked.pos -> int
+val equal_location : 'a glocation Mark.pos -> 'a glocation Mark.pos -> bool
+val compare_location : 'a glocation Mark.pos -> 'a glocation Mark.pos -> int
 val equal_except : except -> except -> bool
 val compare_except : except -> except -> int
 

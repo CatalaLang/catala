@@ -28,16 +28,15 @@ type 'm ctx = {
   globally_bound_vars : 'm expr Var.Set.t;
 }
 
-let tys_as_tanys tys =
-  List.map (fun x -> Marked.map_under_mark (fun _ -> TAny) x) tys
+let tys_as_tanys tys = List.map (fun x -> Mark.map (fun _ -> TAny) x) tys
 
 type 'm hoisted_closure = { name : 'm expr Var.t; closure : 'm expr }
 
 let rec hoist_context_free_closures :
     type m. m ctx -> m expr -> m hoisted_closure list * m expr boxed =
  fun ctx e ->
-  let m = Marked.get_mark e in
-  match Marked.unmark e with
+  let m = Mark.get e in
+  match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
   | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _ | EVar _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_context_free_closures ctx) e
@@ -48,7 +47,7 @@ let rec hoist_context_free_closures :
     let collected_closures, new_cases =
       EnumConstructor.Map.fold
         (fun cons e1 (collected_closures, new_cases) ->
-          match Marked.unmark e1 with
+          match Mark.remove e1 with
           | EAbs { binder; tys } ->
             let vars, body = Bindlib.unmbind binder in
             let new_collected_closures, new_body =
@@ -57,7 +56,7 @@ let rec hoist_context_free_closures :
             let new_binder = Expr.bind vars new_body in
             ( collected_closures @ new_collected_closures,
               EnumConstructor.Map.add cons
-                (Expr.eabs new_binder tys (Marked.get_mark e1))
+                (Expr.eabs new_binder tys (Mark.get e1))
                 new_cases )
           | _ -> failwith "should not happen")
         cases
@@ -96,8 +95,8 @@ let rec hoist_context_free_closures :
 let rec transform_closures_expr :
     type m. m ctx -> m expr -> m expr Var.Set.t * m expr boxed =
  fun ctx e ->
-  let m = Marked.get_mark e in
-  match Marked.unmark e with
+  let m = Mark.get e in
+  match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
   | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _ ->
     Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union
@@ -114,14 +113,14 @@ let rec transform_closures_expr :
     let free_vars, new_cases =
       EnumConstructor.Map.fold
         (fun cons e1 (free_vars, new_cases) ->
-          match Marked.unmark e1 with
+          match Mark.remove e1 with
           | EAbs { binder; tys } ->
             let vars, body = Bindlib.unmbind binder in
             let new_free_vars, new_body = (transform_closures_expr ctx) body in
             let new_binder = Expr.bind vars new_body in
             ( Var.Set.union free_vars new_free_vars,
               EnumConstructor.Map.add cons
-                (Expr.eabs new_binder tys (Marked.get_mark e1))
+                (Expr.eabs new_binder tys (Mark.get e1))
                 new_cases )
           | _ -> failwith "should not happen")
         cases
@@ -220,7 +219,7 @@ let rec transform_closures_expr :
         args (free_vars, [])
     in
     let call_expr =
-      let m1 = Marked.get_mark e1 in
+      let m1 = Mark.get e1 in
       Expr.make_let_in code_var
         (TAny, Expr.pos e)
         (Expr.etupleaccess (Bindlib.box_var code_env_var, m1) 0 2 m)
@@ -257,7 +256,7 @@ let closure_conversion_scope_let ctx scope_body_expr =
               scope_let with
               scope_let_next;
               scope_let_expr;
-              scope_let_typ = Marked.same_mark_as TAny scope_let.scope_let_typ;
+              scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
             })
         (Bindlib.bind_var var_next acc)
         (Expr.Box.lift new_scope_let_expr))
@@ -283,7 +282,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
           let ctx =
             {
               decl_ctx = p.decl_ctx;
-              name_context = Marked.unmark (ScopeName.get_info name);
+              name_context = Mark.remove (ScopeName.get_info name);
               globally_bound_vars = toplevel_vars;
             }
           in
@@ -300,9 +299,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
                that a later re-typing phase can infer them. *)
             let replace_type_with_any s =
               Some
-                (StructField.Map.map
-                   (fun t -> Marked.same_mark_as TAny t)
-                   (Option.get s))
+                (StructField.Map.map (fun t -> Mark.copy t TAny) (Option.get s))
             in
             {
               decl_ctx with
@@ -322,7 +319,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
           let ctx =
             {
               decl_ctx = p.decl_ctx;
-              name_context = Marked.unmark (TopdefName.get_info name);
+              name_context = Mark.remove (TopdefName.get_info name);
               globally_bound_vars = toplevel_vars;
             }
           in
