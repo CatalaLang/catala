@@ -526,8 +526,8 @@ and typecheck_expr_top_down :
     in
     Expr.estructaccess e_struct' field name mark
   | A.EInj { name; cons; e = e_enum }
-    when Definitions.EnumName.equal name Definitions.option_enum ->
-    if Definitions.EnumConstructor.equal cons Definitions.some_constr then
+    when Definitions.EnumName.equal name Expr.option_enum ->
+    if Definitions.EnumConstructor.equal cons Expr.some_constr then
       let cell_type = unionfind (TAny (Any.fresh ())) in
       let mark = mark_with_tau_and_unify (unionfind (TOption cell_type)) in
       let e_enum' =
@@ -552,12 +552,12 @@ and typecheck_expr_top_down :
     in
     Expr.einj e_enum' cons name mark
   | A.EMatch { e = e1; name; cases }
-    when Definitions.EnumName.compare name Definitions.option_enum = 0 ->
+    when Definitions.EnumName.equal name Expr.option_enum ->
     let cell_type = unionfind ~pos:e1 (TAny (Any.fresh ())) in
     let t_arg = unionfind ~pos:e1 (TOption cell_type) in
     let cases_ty =
       ListLabels.fold_right2
-        [A.none_constr; A.some_constr]
+        [Expr.none_constr; Expr.some_constr]
         [unionfind ~pos:e1 (TLit TUnit); cell_type]
         ~f:A.EnumConstructor.Map.add ~init:A.EnumConstructor.Map.empty
     in

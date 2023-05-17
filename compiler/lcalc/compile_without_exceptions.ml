@@ -720,7 +720,7 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       prgm.decl_ctx with
       ctx_enums =
         prgm.decl_ctx.ctx_enums
-        |> EnumName.Map.add A.option_enum A.option_enum_config;
+        |> EnumName.Map.add Expr.option_enum Expr.option_enum_config;
     }
   in
   let decl_ctx =

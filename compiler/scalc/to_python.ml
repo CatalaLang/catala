@@ -295,13 +295,13 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
   | EInj (_, cons, e_name)
-    when EnumName.compare e_name L.option_enum = 0
-         && EnumConstructor.compare cons L.none_constr = 0 ->
+    when EnumName.equal e_name Expr.option_enum
+         && EnumConstructor.equal cons Expr.none_constr ->
     (* We translate the option type with an overloading by Python's [None] *)
     Format.fprintf fmt "None"
   | EInj (e, cons, e_name)
-    when EnumName.compare e_name L.option_enum = 0
-         && EnumConstructor.compare cons L.some_constr = 0 ->
+    when EnumName.equal e_name Expr.option_enum
+         && EnumConstructor.equal cons Expr.some_constr ->
     (* We translate the option type with an overloading by Python's [None] *)
     format_expression ctx fmt e
   | EInj (e, cons, enum_name) ->
@@ -414,7 +414,7 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 4>if %a:@\n%a@]@\n@[<hov 4>else:@\n%a@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
   | SSwitch (e1, e_name, [(case_none, _); (case_some, case_some_var)])
-    when EnumName.compare e_name L.option_enum = 0 ->
+    when EnumName.equal e_name Expr.option_enum ->
     (* We translate the option type with an overloading by Python's [None] *)
     let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
     Format.fprintf fmt

@@ -72,7 +72,7 @@ module To_jsoo = struct
       Format.fprintf fmt "Js.Unsafe.any_js_array Js.t "
     | TOption t ->
       Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
-        format_enum_name Lcalc.Ast.option_enum
+        format_enum_name Expr.option_enum
     | TEnum e -> Format.fprintf fmt "%a Js.t" format_enum_name e
     | TArray t1 ->
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1

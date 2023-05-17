@@ -164,7 +164,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TStruct s -> Format.fprintf fmt "%a.t" format_to_module_name (`Sname s)
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
-      format_enum_name Ast.option_enum
+      format_enum_name Expr.option_enum
   | TEnum e -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a@]"

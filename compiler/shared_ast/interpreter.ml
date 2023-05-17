@@ -335,9 +335,8 @@ let rec evaluate_operator
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
-        | EInj { name; cons; _ }, _
-          when EnumName.equal name Definitions.option_enum ->
-          EnumConstructor.equal cons Definitions.some_constr
+        | EInj { name; cons; _ }, _ when EnumName.equal name Expr.option_enum ->
+          EnumConstructor.equal cons Expr.some_constr
         | _ -> err ())
     in
 
@@ -347,31 +346,31 @@ let rec evaluate_operator
         Marked.unmark (evaluate_expr (Expr.unthunk_term_nobox justification m))
       with
       | EInj { name; cons; e = ELit (LBool true), _ }
-        when EnumName.equal name Definitions.option_enum
-             && EnumConstructor.equal cons Definitions.some_constr ->
+        when EnumName.equal name Expr.option_enum
+             && EnumConstructor.equal cons Expr.some_constr ->
         Marked.unmark (evaluate_expr (Expr.unthunk_term_nobox conclusion m))
       | EInj { name; cons; e = (ELit (LBool false), _) as e }
-        when EnumName.equal name Definitions.option_enum
-             && EnumConstructor.equal cons Definitions.some_constr ->
+        when EnumName.equal name Expr.option_enum
+             && EnumConstructor.equal cons Expr.some_constr ->
         EInj
           {
-            name = Definitions.option_enum;
-            cons = Definitions.none_constr;
+            name = Expr.option_enum;
+            cons = Expr.none_constr;
             e = Marked.same_mark_as (ELit LUnit) e;
           }
       | EInj { name; cons; e }
-        when EnumName.equal name Definitions.option_enum
-             && EnumConstructor.equal cons Definitions.none_constr ->
+        when EnumName.equal name Expr.option_enum
+             && EnumConstructor.equal cons Expr.none_constr ->
         EInj
           {
-            name = Definitions.option_enum;
-            cons = Definitions.none_constr;
+            name = Expr.option_enum;
+            cons = Expr.none_constr;
             e = Marked.same_mark_as (ELit LUnit) e;
           }
       | _ -> err ())
     | [((EInj { cons; name; _ } as e), _)]
-      when EnumName.equal name Definitions.option_enum
-           && EnumConstructor.equal cons Definitions.some_constr ->
+      when EnumName.equal name Expr.option_enum
+           && EnumConstructor.equal cons Expr.some_constr ->
       e
     | [_] -> err ()
     | _ -> raise (CatalaException ConflictError))
@@ -584,8 +583,8 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         (fun ty ->
           match Marked.unmark ty with
           | TOption _ ->
-            (Expr.einj (Expr.elit LUnit mark_e) Definitions.none_constr
-               Definitions.option_enum mark_e
+            (Expr.einj (Expr.elit LUnit mark_e) Expr.none_constr
+               Expr.option_enum mark_e
               : (_, _) boxed_gexpr)
           | _ ->
             Errors.raise_spanned_error (Marked.get_mark ty)

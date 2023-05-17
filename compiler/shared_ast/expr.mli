@@ -143,7 +143,7 @@ val escopecall :
 
 val fun_id : 'm mark -> ('a any, 'm mark) boxed_gexpr
 
-(** Manipulation of marks *)
+(** {2 Manipulation of marks} *)
 
 val no_mark : 'm mark -> 'm mark
 val mark_pos : 'm mark -> Pos.t
@@ -170,6 +170,13 @@ val fold_marks :
 val maybe_ty : ?typ:naked_typ -> 'm mark -> typ
 (** Returns the corresponding type on a typed expr, or [typ] (defaulting to
     [TAny]) at the current position on an untyped one *)
+
+(** {2 Predefined types} *)
+
+val option_enum : EnumName.t
+val none_constr : EnumConstructor.t
+val some_constr : EnumConstructor.t
+val option_enum_config : typ EnumConstructor.Map.t
 
 (** Manipulation of marked expressions *)
 

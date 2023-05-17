@@ -240,6 +240,16 @@ let with_ty (type m) (m : m mark) ?pos (ty : typ) : m mark =
 let maybe_ty (type m) ?(typ = TAny) (m : m mark) : typ =
   match m with Untyped { pos } -> Marked.mark pos typ | Typed { ty; _ } -> ty
 
+(* - Predefined types (option) - *)
+
+let option_enum = EnumName.fresh ("eoption", Pos.no_pos)
+let none_constr = EnumConstructor.fresh ("ENone", Pos.no_pos)
+let some_constr = EnumConstructor.fresh ("ESome", Pos.no_pos)
+
+let option_enum_config =
+  EnumConstructor.Map.singleton none_constr (TLit TUnit, Pos.no_pos)
+  |> EnumConstructor.Map.add some_constr (TAny, Pos.no_pos)
+
 (* - Traversal functions - *)
 
 (* shallow map *)

@@ -27,13 +27,6 @@ type 'm program = 'm expr Shared_ast.program
 
 (** {1 Option-related management}*)
 
-(** {2 Names and types}*)
-
-val option_enum : EnumName.t
-val none_constr : EnumConstructor.t
-val some_constr : EnumConstructor.t
-val option_enum_config : typ EnumConstructor.Map.t
-
 (** {2 Term building and management for the [option] monad}*)
 
 module OptionMonad : sig
