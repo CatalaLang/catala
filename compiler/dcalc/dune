@@ -9,9 +9,7 @@
   ubase
   catala.runtime_ocaml
   shared_ast
-  scopelang)
- (preprocess
-  (pps visitors.ppx)))
+  scopelang))
 
 (documentation
  (package catala)
