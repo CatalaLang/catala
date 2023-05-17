@@ -20,8 +20,8 @@ open Shared_ast
 
 (** {1 Abstract syntax tree} *)
 
-type 'm naked_expr = (lcalc, 'm mark) naked_gexpr
-and 'm expr = (lcalc, 'm mark) gexpr
+type 'm naked_expr = (lcalc, 'm) naked_gexpr
+and 'm expr = (lcalc, 'm) gexpr
 
 type 'm program = 'm expr Shared_ast.program
 
@@ -30,78 +30,76 @@ type 'm program = 'm expr Shared_ast.program
 (** {2 Term building and management for the [option] monad}*)
 
 module OptionMonad : sig
-  val return :
-    mark:'m mark -> ('a any, 'm mark) boxed_gexpr -> ('a, 'm mark) boxed_gexpr
-
-  val empty : mark:'m mark -> ('a any, 'm mark) boxed_gexpr
+  val return : mark:'m mark -> ('a any, 'm) boxed_gexpr -> ('a, 'm) boxed_gexpr
+  val empty : mark:'m mark -> ('a any, 'm) boxed_gexpr
 
   val bind_var :
     mark:'m mark ->
-    ('a any, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) gexpr Var.t ->
-    ('a, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) boxed_gexpr
+    ('a any, 'm) boxed_gexpr ->
+    ('a, 'm) gexpr Var.t ->
+    ('a, 'm) boxed_gexpr ->
+    ('a, 'm) boxed_gexpr
 
   val bind :
     mark:'m mark ->
     var_name:string ->
-    ('a any, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) boxed_gexpr
+    ('a any, 'm) boxed_gexpr ->
+    ('a, 'm) boxed_gexpr ->
+    ('a, 'm) boxed_gexpr
 
   val bind_cont :
     mark:'m mark ->
     var_name:string ->
-    (('a any, 'm mark) gexpr Var.t -> ('a, 'm mark) boxed_gexpr) ->
-    ('a, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) boxed_gexpr
+    (('a any, 'm) gexpr Var.t -> ('a, 'm) boxed_gexpr) ->
+    ('a, 'm) boxed_gexpr ->
+    ('a, 'm) boxed_gexpr
 
   val mbind_mvar :
     mark:'m mark ->
-    ('a any, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) gexpr Var.t list ->
-    ('a, 'm mark) boxed_gexpr list ->
-    ('a, 'm mark) boxed_gexpr
+    ('a any, 'm) boxed_gexpr ->
+    ('a, 'm) gexpr Var.t list ->
+    ('a, 'm) boxed_gexpr list ->
+    ('a, 'm) boxed_gexpr
 
   val mbind :
     mark:'m mark ->
     var_name:string ->
-    ('a any, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) boxed_gexpr list ->
-    ('a, 'm mark) boxed_gexpr
+    ('a any, 'm) boxed_gexpr ->
+    ('a, 'm) boxed_gexpr list ->
+    ('a, 'm) boxed_gexpr
 
   val mbind_cont :
     mark:'m mark ->
     var_name:string ->
-    (('a any, 'm mark) gexpr Var.t list -> ('a, 'm mark) boxed_gexpr) ->
-    ('a, 'm mark) boxed_gexpr list ->
-    ('a, 'm mark) boxed_gexpr
+    (('a any, 'm) gexpr Var.t list -> ('a, 'm) boxed_gexpr) ->
+    ('a, 'm) boxed_gexpr list ->
+    ('a, 'm) boxed_gexpr
 
   val error_on_empty :
     mark:'m mark ->
     var_name:string ->
     ?toplevel:bool ->
-    ((< exceptions : yes ; .. > as 'a), 'm mark) boxed_gexpr ->
-    ('a, 'm mark) boxed_gexpr
+    ((< exceptions : yes ; .. > as 'a), 'm) boxed_gexpr ->
+    ('a, 'm) boxed_gexpr
 
   val map :
     mark:'m mark ->
     var_name:string ->
-    ((< exceptions : no ; .. > as 'a), 'm mark) boxed_gexpr ->
-    ('a, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) boxed_gexpr
+    ((< exceptions : no ; .. > as 'a), 'm) boxed_gexpr ->
+    ('a, 'm) boxed_gexpr ->
+    ('a, 'm) boxed_gexpr
 
   val mmap_mvar :
     mark:'m mark ->
-    ('a any, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) gexpr Var.t list ->
-    ('a, 'm mark) boxed_gexpr list ->
-    ('a, 'm mark) boxed_gexpr
+    ('a any, 'm) boxed_gexpr ->
+    ('a, 'm) gexpr Var.t list ->
+    ('a, 'm) boxed_gexpr list ->
+    ('a, 'm) boxed_gexpr
 
   val mmap :
     mark:'m mark ->
     var_name:string ->
-    ('a any, 'm mark) boxed_gexpr ->
-    ('a, 'm mark) boxed_gexpr list ->
-    ('a, 'm mark) boxed_gexpr
+    ('a any, 'm) boxed_gexpr ->
+    ('a, 'm) boxed_gexpr list ->
+    ('a, 'm) boxed_gexpr
 end

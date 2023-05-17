@@ -19,8 +19,8 @@ open Definitions
 
 type ('a, 'b, 'm) optimizations_ctx = {
   var_values :
-    ( (('a, 'b) dcalc_lcalc, 'm mark) gexpr,
-      (('a, 'b) dcalc_lcalc, 'm mark) gexpr )
+    ( (('a, 'b) dcalc_lcalc, 'm) gexpr,
+      (('a, 'b) dcalc_lcalc, 'm) gexpr )
     Var.Map.t;
   decl_ctx : decl_ctx;
 }
@@ -61,14 +61,14 @@ let all_match_cases_map_to_same_constructor cases n =
 let rec optimize_expr :
     type a b.
     (a, b, 'm) optimizations_ctx ->
-    ((a, b) dcalc_lcalc, 'm mark) gexpr ->
-    ((a, b) dcalc_lcalc, 'm mark) boxed_gexpr =
+    ((a, b) dcalc_lcalc, 'm) gexpr ->
+    ((a, b) dcalc_lcalc, 'm) boxed_gexpr =
  fun ctx e ->
   (* We proceed bottom-up, first apply on the subterms *)
   let e = Expr.map ~f:(optimize_expr ctx) e in
   let mark = Mark.get e in
   (* Then reduce the parent node *)
-  let reduce (e : ((a, b) dcalc_lcalc, 'm mark) gexpr) =
+  let reduce (e : ((a, b) dcalc_lcalc, 'm) gexpr) =
     (* Todo: improve the handling of eapp(log,elit) cases here, it obfuscates
        the matches and the log calls are not preserved, which would be a good
        property *)
@@ -302,9 +302,7 @@ let rec optimize_expr :
   in
   Expr.Box.app1 e reduce mark
 
-let optimize_expr
-    (decl_ctx : decl_ctx)
-    (e : (('a, 'b) dcalc_lcalc, 'm mark) gexpr) =
+let optimize_expr (decl_ctx : decl_ctx) (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) =
   optimize_expr { var_values = Var.Map.empty; decl_ctx } e
 
 let optimize_program (p : 'm program) : 'm program =

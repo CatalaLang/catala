@@ -27,7 +27,7 @@ module LocationSet : Set.S with type elt = location Mark.pos
 
 (** {1 Abstract syntax tree} *)
 
-type 'm expr = (scopelang, 'm mark) gexpr
+type 'm expr = (scopelang, 'm) gexpr
 
 val locations_used : 'm expr -> LocationSet.t
 

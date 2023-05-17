@@ -168,8 +168,8 @@ let build_typ_from_sig
 
 type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 
-let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm mark) :
-    'e boxed =
+let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm) : 'e boxed
+    =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
   let body_expr = unfold_body_expr ctx body_expr in
   Expr.make_abs [| var |] body_expr

@@ -40,8 +40,7 @@ let get_scope_body { code_items; _ } scope =
   | None -> raise Not_found
   | Some body -> body
 
-let untype : 'm. ('a, 'm mark) gexpr program -> ('a, untyped mark) gexpr program
-    =
+let untype : 'm. ('a, 'm) gexpr program -> ('a, untyped) gexpr program =
  fun prg -> Bindlib.unbox (map_exprs ~f:Expr.untype ~varf:Var.translate prg)
 
 let rec find_scope name vars = function

@@ -17,7 +17,7 @@
 
 open Shared_ast
 
-type 'm naked_expr = (dcalc, 'm mark) naked_gexpr
-and 'm expr = (dcalc, 'm mark) gexpr
+type 'm naked_expr = (dcalc, 'm) naked_gexpr
+and 'm expr = (dcalc, 'm) gexpr
 
 type 'm program = 'm expr Shared_ast.program

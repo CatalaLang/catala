@@ -65,7 +65,7 @@ let mark_tany m pos = Expr.with_ty m (Mark.add pos TAny) ~pos
 
 (* Expression argument is used as a type witness, its type and positions aren't
    used *)
-let pos_mark_mk (type a m) (e : (a, m mark) gexpr) :
+let pos_mark_mk (type a m) (e : (a, m) gexpr) :
     (Pos.t -> m mark) * ((_, Pos.t) Mark.ed -> m mark) =
   let pos_mark pos =
     Expr.map_mark (fun _ -> pos) (fun _ -> TAny, pos) (Mark.get e)
@@ -75,8 +75,8 @@ let pos_mark_mk (type a m) (e : (a, m mark) gexpr) :
 
 let merge_defaults
     ~(is_func : bool)
-    (caller : (dcalc, 'm mark) boxed_gexpr)
-    (callee : (dcalc, 'm mark) boxed_gexpr) : (dcalc, 'm mark) boxed_gexpr =
+    (caller : (dcalc, 'm) boxed_gexpr)
+    (callee : (dcalc, 'm) boxed_gexpr) : (dcalc, 'm) boxed_gexpr =
   (* the merging of the two defaults, from the reentrant caller and the callee,
      is straightfoward in the general case and a little subtler when the
      variable being defined is a function. *)
@@ -92,7 +92,7 @@ let merge_defaults
         let pos = Expr.mark_pos m in
         Expr.make_app caller
           (List.map2
-             (fun (var : (dcalc, 'm mark) naked_gexpr Bindlib.var) ty ->
+             (fun (var : (dcalc, 'm) naked_gexpr Bindlib.var) ty ->
                Expr.evar var
                  (* we have to correctly propagate types when doing this
                     rewriting *)

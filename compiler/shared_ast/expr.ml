@@ -174,24 +174,25 @@ let escopecall scope args mark =
 let no_mark : type m. m mark -> m mark = function
   | Untyped _ -> Untyped { pos = Pos.no_pos }
   | Typed _ -> Typed { pos = Pos.no_pos; ty = Mark.add Pos.no_pos TAny }
+  | Custom { custom; pos = _ } -> Custom { pos = Pos.no_pos; custom }
 
 let mark_pos (type m) (m : m mark) : Pos.t =
-  match m with Untyped { pos } | Typed { pos; _ } -> pos
+  match m with Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos
 
-let pos (type m) (x : ('a, m mark) Mark.ed) : Pos.t = mark_pos (Mark.get x)
+let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Mark.get x)
 
-let fun_id mark : ('a any, 'm mark) boxed_gexpr =
+let fun_id mark : ('a any, 'm) boxed_gexpr =
   let x = Var.make "x" in
   eabs (bind [| x |] (evar x mark)) [TAny, mark_pos mark] mark
 
 let ty (_, m) : typ = match m with Typed { ty; _ } -> ty
 
-let set_ty (type m) (ty : typ) (x : ('a, m mark) Mark.ed) :
-    ('a, typed mark) Mark.ed =
+let set_ty (type m) (ty : typ) (x : ('a, m) marked) : ('a, typed) marked =
   Mark.add
     (match Mark.get x with
     | Untyped { pos } -> Typed { pos; ty }
-    | Typed m -> Typed { m with ty })
+    | Typed m -> Typed { m with ty }
+    | Custom { pos; _ } -> Typed { pos; ty })
     (Mark.remove x)
 
 let map_mark (type m) (pos_f : Pos.t -> Pos.t) (ty_f : typ -> typ) (m : m mark)
@@ -199,6 +200,7 @@ let map_mark (type m) (pos_f : Pos.t -> Pos.t) (ty_f : typ -> typ) (m : m mark)
   match m with
   | Untyped { pos } -> Untyped { pos = pos_f pos }
   | Typed { pos; ty } -> Typed { pos = pos_f pos; ty = ty_f ty }
+  | Custom { pos; custom } -> Custom { pos = pos_f pos; custom }
 
 let map_mark2
     (type m)
@@ -209,6 +211,7 @@ let map_mark2
   match m1, m2 with
   | Untyped m1, Untyped m2 -> Untyped { pos = pos_f m1.pos m2.pos }
   | Typed m1, Typed m2 -> Typed { pos = pos_f m1.pos m2.pos; ty = ty_f m1 m2 }
+  | Custom _, Custom _ -> invalid_arg "map_mark2"
 
 let fold_marks
     (type m)
@@ -225,6 +228,7 @@ let fold_marks
         pos = pos_f (List.map (function Typed { pos; _ } -> pos) ms);
         ty = ty_f (List.map (function Typed m -> m) ms);
       }
+  | Custom _ :: _ -> invalid_arg "map_mark2"
 
 let with_pos (type m) (pos : Pos.t) (m : m mark) : m mark =
   map_mark (fun _ -> pos) (fun ty -> ty) m
@@ -236,7 +240,9 @@ let with_ty (type m) (m : m mark) ?pos (ty : typ) : m mark =
   map_mark (fun default -> Option.value pos ~default) (fun _ -> ty) m
 
 let maybe_ty (type m) ?(typ = TAny) (m : m mark) : typ =
-  match m with Untyped { pos } -> Mark.add pos typ | Typed { ty; _ } -> ty
+  match m with
+  | Untyped { pos } | Custom { pos; _ } -> Mark.add pos typ
+  | Typed { ty; _ } -> ty
 
 (* - Predefined types (option) - *)
 
@@ -254,7 +260,7 @@ let option_enum_config =
 let map
     (type a b)
     ~(f : (a, 'm1) gexpr -> (b, 'm2) boxed_gexpr)
-    (e : ((a, b, 'm1) base_gexpr, 'm2) Mark.ed) : (b, 'm2) boxed_gexpr =
+    (e : ((a, b, 'm1) base_gexpr, 'm2) marked) : (b, 'm2) boxed_gexpr =
   let m = Mark.get e in
   match Mark.remove e with
   | ELit l -> elit l m
@@ -294,9 +300,7 @@ let map
     escopecall scope fields m
 
 let rec map_top_down ~f e = map ~f:(map_top_down ~f) (f e)
-
-let map_marks ~f e =
-  map_top_down ~f:(Mark.map_mark f) e
+let map_marks ~f e = map_top_down ~f:(Mark.map_mark f) e
 
 (* Folds the given function on the direct children of the given expression. *)
 let shallow_fold
@@ -333,7 +337,7 @@ let map_gather
     ~(acc : 'acc)
     ~(join : 'acc -> 'acc -> 'acc)
     ~(f : (a, 'm1) gexpr -> 'acc * (a, 'm2) boxed_gexpr)
-    (e : ((a, 'm1) naked_gexpr, 'm2) Mark.ed) : 'acc * (a, 'm2) boxed_gexpr =
+    (e : ((a, 'm1) naked_gexpr, 'm2) marked) : 'acc * (a, 'm2) boxed_gexpr =
   let m = Mark.get e in
   let lfoldmap es =
     let acc, r_es =

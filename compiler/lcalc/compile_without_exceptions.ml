@@ -76,8 +76,7 @@ let trans_op : dcalc Op.t -> lcalc Op.t = Operator.translate
 type 'm var_ctx = { info_pure : bool; is_scope : bool; var : 'm Ast.expr Var.t }
 
 type 'm ctx = {
-  ctx_vars :
-    ((dcalc, 'm mark) Shared_ast__Definitions.gexpr, 'm var_ctx) Var.Map.t;
+  ctx_vars : ((dcalc, 'm) gexpr, 'm var_ctx) Var.Map.t;
   ctx_context_name : string;
 }
 
@@ -97,8 +96,8 @@ let trans_var (ctx : 'm ctx) (x : 'm D.expr Var.t) : 'm Ast.expr Var.t =
     literals, this mean that a expression of type [money] will be of type
     [money option]. We rely on later optimization to shorten the size of the
     generated code. *)
-let rec trans (ctx : typed ctx) (e : typed D.expr) :
-    (lcalc, typed mark) boxed_gexpr =
+let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
+    =
   let m = Mark.get e in
   let mark = m in
   let pos = Expr.pos e in
@@ -622,7 +621,7 @@ let rec trans_scope_let (ctx : typed ctx) (s : typed D.expr scope_let) =
       scope_let_expr scope_let_next
 
 and trans_scope_body_expr ctx s :
-    (lcalc, typed mark) gexpr scope_body_expr Bindlib.box =
+    (lcalc, typed) gexpr scope_body_expr Bindlib.box =
   match s with
   | Result e -> begin
     (* invariant : result is always in the form of a record. *)
@@ -662,7 +661,7 @@ let trans_scope_body
     binder
 
 let rec trans_code_items (ctx : typed ctx) (c : typed D.expr code_item_list) :
-    (lcalc, typed mark) gexpr code_item_list Bindlib.box =
+    (lcalc, typed) gexpr code_item_list Bindlib.box =
   match c with
   | Nil -> Bindlib.box Nil
   | Cons (c, next) -> (

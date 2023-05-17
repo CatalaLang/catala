@@ -83,7 +83,7 @@ module LocationSet : Set.S with type elt = location Mark.pos = Set.Make (struct
   let compare = Expr.compare_location
 end)
 
-type expr = (desugared, untyped mark) gexpr
+type expr = (desugared, untyped) gexpr
 
 module ExprMap = Map.Make (struct
   type t = expr

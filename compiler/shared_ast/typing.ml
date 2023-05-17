@@ -130,13 +130,11 @@ let rec format_typ
 
 exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
-type mark = { pos : Pos.t; uf : unionfind_typ }
-
 (** Raises an error if unification cannot be performed. The position annotation
     of the second [unionfind_typ] argument is propagated (unless it is [TAny]). *)
 let rec unify
     (ctx : A.decl_ctx)
-    (e : ('a, 'm A.mark) A.gexpr) (* used for error context *)
+    (e : ('a, 'm) A.gexpr) (* used for error context *)
     (t1 : unionfind_typ)
     (t2 : unionfind_typ) : unit =
   let unify = unify ctx in
@@ -172,14 +170,9 @@ let rec unify
        (fun t1 t2 -> match Mark.remove t2 with TAny _ -> t1 | _ -> t2)
        t1 t2
 
-let handle_type_error ctx e t1 t2 =
+let handle_type_error ctx (A.AnyExpr e) t1 t2 =
   (* TODO: if we get weird error messages, then it means that we should use the
      persistent version of the union-find data structure. *)
-  let pos =
-    match e with
-    | A.AnyExpr e -> (
-      match Mark.get e with A.Untyped { pos } -> pos | Typed { pos; _ } -> pos)
-  in
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   let t1_pos = Mark.get t1_repr in
@@ -204,7 +197,7 @@ let handle_type_error ctx e t1 t2 =
       ( Some
           (Format.asprintf
              "Error coming from typechecking the following expression:"),
-        pos );
+        Expr.pos e );
       Some (Format.asprintf "Type %a coming from expression:" t1_s ()), t1_pos;
       Some (Format.asprintf "Type %a coming from expression:" t2_s ()), t2_pos;
     ]
@@ -336,16 +329,18 @@ module Env = struct
 end
 
 let add_pos e ty = Mark.add (Expr.pos e) ty
-let ty (_, { uf; _ }) = uf
+
+let ty : (_, unionfind_typ A.custom) A.marked -> unionfind_typ =
+ fun (_, A.Custom { A.custom; _ }) -> custom
 
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up :
     type a m.
     leave_unresolved:bool ->
     A.decl_ctx ->
-    (a, m A.mark) A.gexpr Env.t ->
-    (a, m A.mark) A.gexpr ->
-    (a, mark) A.boxed_gexpr =
+    (a, m) A.gexpr Env.t ->
+    (a, m) A.gexpr ->
+    (a, unionfind_typ A.custom) A.boxed_gexpr =
  fun ~leave_unresolved ctx env e ->
   typecheck_expr_top_down ~leave_unresolved ctx env
     (UnionFind.make (add_pos e (TAny (Any.fresh ()))))
@@ -356,10 +351,10 @@ and typecheck_expr_top_down :
     type a m.
     leave_unresolved:bool ->
     A.decl_ctx ->
-    (a, m A.mark) A.gexpr Env.t ->
+    (a, m) A.gexpr Env.t ->
     unionfind_typ ->
-    (a, m A.mark) A.gexpr ->
-    (a, mark) A.boxed_gexpr =
+    (a, m) A.gexpr ->
+    (a, unionfind_typ A.custom) A.boxed_gexpr =
  fun ~leave_unresolved ctx env tau e ->
   (* Cli.debug_format "Propagating type %a for naked_expr %a" (format_typ ctx)
      tau (Expr.format ctx) e; *)
@@ -370,12 +365,13 @@ and typecheck_expr_top_down :
     match Mark.get e with
     | A.Untyped _ | A.Typed { A.ty = A.TAny, _; _ } -> ()
     | A.Typed { A.ty; _ } -> unify ctx e tau (ast_to_typ ty)
+    | A.Custom _ -> assert false
   in
-  let context_mark = { uf = tau; pos = pos_e } in
+  let context_mark = A.Custom { A.custom = tau; pos = pos_e } in
   let mark_with_tau_and_unify uf =
     (* Unify with the supplied type first, and return the mark *)
     unify ctx e uf tau;
-    { uf; pos = pos_e }
+    A.Custom { A.custom = uf; pos = pos_e }
   in
   let unionfind ?(pos = e) t = UnionFind.make (add_pos pos t) in
   let ty_mark ty = mark_with_tau_and_unify (unionfind ty) in
@@ -472,7 +468,8 @@ and typecheck_expr_top_down :
         let candidate_structs =
           try A.IdentName.Map.find field ctx.ctx_struct_fields
           with Not_found ->
-            Errors.raise_spanned_error context_mark.pos
+            Errors.raise_spanned_error
+              (Expr.mark_pos context_mark)
               "Field %a does not belong to structure %a (no structure defines \
                it)"
               (Cli.format_with_style [ANSITerminal.yellow])
@@ -482,7 +479,8 @@ and typecheck_expr_top_down :
         in
         try A.StructName.Map.find name candidate_structs
         with Not_found ->
-          Errors.raise_spanned_error context_mark.pos
+          Errors.raise_spanned_error
+            (Expr.mark_pos context_mark)
             "Field %a does not belong to structure %a, but to %a"
             (Cli.format_with_style [ANSITerminal.yellow])
             ("\"" ^ field ^ "\"")
@@ -755,7 +753,7 @@ and typecheck_expr_top_down :
           unify ctx e t_ret
             (resolve_overload_ret_type ~leave_unresolved ctx e op tys');
           ( List.map (typ_to_ast ~leave_unresolved) tys',
-            { uf = t_func; pos = pos_e } ))
+            A.Custom { A.custom = t_func; pos = pos_e } ))
         ~resolved:(fun op ->
           let mark =
             mark_with_tau_and_unify
@@ -818,7 +816,7 @@ let wrap_expr ctx f e =
 
 (** {1 API} *)
 
-let get_ty_mark ~leave_unresolved { uf; pos } =
+let get_ty_mark ~leave_unresolved (A.Custom { A.custom = uf; pos }) =
   A.Typed { ty = typ_to_ast ~leave_unresolved uf; pos }
 
 let expr_raw
@@ -827,7 +825,7 @@ let expr_raw
     (ctx : A.decl_ctx)
     ?(env = Env.empty ctx)
     ?(typ : A.typ option)
-    (e : (a, 'm) A.gexpr) : (a, mark) A.gexpr =
+    (e : (a, 'm) A.gexpr) : (a, unionfind_typ A.custom) A.gexpr =
   let fty =
     match typ with
     | None -> typecheck_expr_bottom_up ~leave_unresolved ctx env
@@ -838,7 +836,7 @@ let expr_raw
 
 let check_expr ~leave_unresolved ctx ?env ?typ e =
   Expr.map_marks
-    ~f:(fun { pos; _ } -> A.Untyped { pos })
+    ~f:(fun (Custom { pos; _ }) -> A.Untyped { pos })
     (expr_raw ctx ~leave_unresolved ?env ?typ e)
 
 (* Infer the type of an expression *)
@@ -922,7 +920,7 @@ let rec scopes ~leave_unresolved ctx env = function
           Bindlib.box_apply (fun body -> A.ScopeDef (name, body)) body_e )
       | A.Topdef (name, typ, e) ->
         let e' = expr_raw ~leave_unresolved ctx ~env ~typ e in
-        let uf = (Mark.get e').uf in
+        let (A.Custom { custom = uf; _ }) = Mark.get e' in
         let e' = Expr.map_marks ~f:(get_ty_mark ~leave_unresolved) e' in
         ( Env.add var uf env,
           Bindlib.box_apply

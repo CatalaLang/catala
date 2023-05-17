@@ -54,8 +54,7 @@ let check_article_expiration
         "%s %s has expired! Its expiration date is %s according to \
          LégiFrance.%s"
         (Mark.remove law_heading.Surface.Ast.law_heading_name)
-        (Pos.to_string
-           (Mark.get law_heading.Surface.Ast.law_heading_name))
+        (Pos.to_string (Mark.get law_heading.Surface.Ast.law_heading_name))
         (Date.print_tm legifrance_expiration_date)
         (match new_version with
         | None -> ""

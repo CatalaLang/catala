@@ -25,7 +25,7 @@ module LocationSet : Set.S with type elt = location Mark.pos = Set.Make (struct
   let compare = Expr.compare_location
 end)
 
-type 'm expr = (scopelang, 'm mark) gexpr
+type 'm expr = (scopelang, 'm) gexpr
 
 let rec locations_used (e : 'm expr) : LocationSet.t =
   match e with

@@ -16,8 +16,8 @@
 
 open Shared_ast
 
-type 'm naked_expr = (lcalc, 'm mark) naked_gexpr
-and 'm expr = (lcalc, 'm mark) gexpr
+type 'm naked_expr = (lcalc, 'm) naked_gexpr
+and 'm expr = (lcalc, 'm) gexpr
 
 type 'm program = 'm expr Shared_ast.program
 

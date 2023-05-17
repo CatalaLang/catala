@@ -41,7 +41,7 @@ module AssertionName : Uid.Id with type info = Uid.MarkedString.info
 
 (** {2 Expressions} *)
 
-type expr = (desugared, untyped mark) gexpr
+type expr = (desugared, untyped) gexpr
 (** See {!type:Shared_ast.naked_gexpr} for the complete definition *)
 
 type location = desugared glocation

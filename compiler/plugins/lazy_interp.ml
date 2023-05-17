@@ -37,8 +37,7 @@ let value_level = { eval_struct = false; eval_op = true; eval_default = true }
 
 module Env = struct
   type 'm t =
-    | Env of
-        ((dcalc, 'm mark) gexpr, ((dcalc, 'm mark) gexpr * 'm t) ref) Var.Map.t
+    | Env of ((dcalc, 'm) gexpr, ((dcalc, 'm) gexpr * 'm t) ref) Var.Map.t
 
   let find v (Env t) = Var.Map.find v t
   let add v e e_env (Env t) = Env (Var.Map.add v (ref (e, e_env)) t)
@@ -62,8 +61,8 @@ let rec lazy_eval :
     decl_ctx ->
     'm Env.t ->
     laziness_level ->
-    (dcalc, 'm mark) gexpr ->
-    (dcalc, 'm mark) gexpr * 'm Env.t =
+    (dcalc, 'm) gexpr ->
+    (dcalc, 'm) gexpr * 'm Env.t =
  fun ctx env llevel e0 ->
   let eval_to_value ?(eval_default = true) env e =
     lazy_eval ctx env { value_level with eval_default } e
@@ -212,9 +211,8 @@ let rec lazy_eval :
       | _ -> error e "Invalid assertion condition %a" Expr.format e)
   | _ -> .
 
-let interpret_program
-    (prg : ('dcalc, 'm mark) gexpr program)
-    (scope : ScopeName.t) : ('t, 'm mark) gexpr * 'm Env.t =
+let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
+    ('t, 'm) gexpr * 'm Env.t =
   let ctx = prg.decl_ctx in
   let all_env, scopes =
     Scope.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
