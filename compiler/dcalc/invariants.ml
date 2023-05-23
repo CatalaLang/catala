@@ -62,9 +62,9 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
 let invariant_default_no_arrow () : string * invariant_expr =
   ( __FUNCTION__,
     fun e ->
-      match Marked.unmark e with
+      match Mark.remove e with
       | EDefault _ -> begin
-        match Marked.unmark (Expr.ty e) with TArrow _ -> Fail | _ -> Pass
+        match Mark.remove (Expr.ty e) with TArrow _ -> Fail | _ -> Pass
       end
       | _ -> Ignore )
 
@@ -72,11 +72,11 @@ let invariant_default_no_arrow () : string * invariant_expr =
 let invariant_no_partial_evaluation () : string * invariant_expr =
   ( __FUNCTION__,
     fun e ->
-      match Marked.unmark e with
+      match Mark.remove e with
       | EApp { f = EOp { op = Op.Log _; _ }, _; _ } ->
         (* logs are differents. *) Pass
       | EApp _ -> begin
-        match Marked.unmark (Expr.ty e) with TArrow _ -> Fail | _ -> Pass
+        match Mark.remove (Expr.ty e) with TArrow _ -> Fail | _ -> Pass
       end
       | _ -> Ignore )
 
@@ -84,9 +84,9 @@ let invariant_no_partial_evaluation () : string * invariant_expr =
 let invariant_no_return_a_function () : string * invariant_expr =
   ( __FUNCTION__,
     fun e ->
-      match Marked.unmark e with
+      match Mark.remove e with
       | EAbs _ -> begin
-        match Marked.unmark (Expr.ty e) with
+        match Mark.remove (Expr.ty e) with
         | TArrow (_, (TArrow _, _)) -> Fail
         | _ -> Pass
       end
@@ -95,7 +95,7 @@ let invariant_no_return_a_function () : string * invariant_expr =
 let invariant_app_inversion () : string * invariant_expr =
   ( __FUNCTION__,
     fun e ->
-      match Marked.unmark e with
+      match Mark.remove e with
       | EApp { f = EOp _, _; _ } -> Pass
       | EApp { f = EAbs { binder; _ }, _; args } ->
         if Bindlib.mbinder_arity binder = 1 && List.length args = 1 then Pass
@@ -111,12 +111,12 @@ let invariant_app_inversion () : string * invariant_expr =
 let invariant_match_inversion () : string * invariant_expr =
   ( __FUNCTION__,
     fun e ->
-      match Marked.unmark e with
+      match Mark.remove e with
       | EMatch { cases; _ } ->
         if
           EnumConstructor.Map.for_all
             (fun _ case ->
-              match Marked.unmark case with
+              match Mark.remove case with
               | EAbs { binder; _ } -> Bindlib.mbinder_arity binder = 1
               | _ -> false)
             cases

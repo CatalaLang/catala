@@ -31,5 +31,4 @@ let format_primitive_typ (fmt : Format.formatter) (t : primitive_typ) : unit =
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.pp_print_char fmt '.')
          (fun fmt (uid, _pos) -> Format.pp_print_string fmt uid))
-      path
-      (Marked.unmark constructor)
+      path (Mark.remove constructor)

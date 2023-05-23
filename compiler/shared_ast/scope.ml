@@ -50,8 +50,7 @@ let map_exprs_in_lets :
               scope_let_next;
               scope_let_expr;
               scope_let_typ =
-                (if reset_types then
-                 Marked.same_mark_as TAny scope_let.scope_let_typ
+                (if reset_types then Mark.copy scope_let.scope_let_typ TAny
                 else scope_let.scope_let_typ);
             })
         (Bindlib.bind_var (varf var_next) acc)
@@ -134,8 +133,8 @@ let rec get_body_expr_mark = function
     let _, e = Bindlib.unbind sl.scope_let_next in
     get_body_expr_mark e
   | Result e ->
-    let m = Marked.get_mark e in
-    Expr.with_ty m (Marked.mark (Expr.mark_pos m) TAny)
+    let m = Mark.get e in
+    Expr.with_ty m (Mark.add (Expr.mark_pos m) TAny)
 
 let get_body_mark scope_body =
   let _, e = Bindlib.unbind scope_body.scope_body_expr in
@@ -163,14 +162,14 @@ let build_typ_from_sig
     (scope_input_struct_name : StructName.t)
     (scope_return_struct_name : StructName.t)
     (pos : Pos.t) : typ =
-  let input_typ = Marked.mark pos (TStruct scope_input_struct_name) in
-  let result_typ = Marked.mark pos (TStruct scope_return_struct_name) in
-  Marked.mark pos (TArrow ([input_typ], result_typ))
+  let input_typ = Mark.add pos (TStruct scope_input_struct_name) in
+  let result_typ = Mark.add pos (TStruct scope_return_struct_name) in
+  Mark.add pos (TArrow ([input_typ], result_typ))
 
 type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 
-let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm mark) :
-    'e boxed =
+let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm) : 'e boxed
+    =
   let var, body_expr = Bindlib.unbind body.scope_body_expr in
   let body_expr = unfold_body_expr ctx body_expr in
   Expr.make_abs [| var |] body_expr
@@ -192,7 +191,7 @@ let rec unfold
     let typ, expr, pos, is_main =
       match item with
       | ScopeDef (name, body) ->
-        let pos = Marked.get_mark (ScopeName.get_info name) in
+        let pos = Mark.get (ScopeName.get_info name) in
         let body_mark = get_body_mark body in
         let is_main =
           match main_scope with
@@ -206,7 +205,7 @@ let rec unfold
         let expr = to_expr ctx body body_mark in
         typ, expr, pos, is_main
       | Topdef (name, typ, expr) ->
-        let pos = Marked.get_mark (TopdefName.get_info name) in
+        let pos = Mark.get (TopdefName.get_info name) in
         typ, Expr.rebox expr, pos, false
     in
     let main_scope = if is_main then ScopeVar var else main_scope in

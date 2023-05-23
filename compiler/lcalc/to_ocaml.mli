@@ -33,7 +33,7 @@ val format_struct_field_name :
 
 val format_to_module_name :
   Format.formatter -> [< `Ename of EnumName.t | `Sname of StructName.t ] -> unit
-(* * val format_lit : Format.formatter -> lit Marked.pos -> unit * val
+(* * val format_lit : Format.formatter -> lit Mark.pos -> unit * val
    format_uid_list : Format.formatter -> Uid.MarkedString.info list -> unit *)
 
 val format_var : Format.formatter -> 'm Var.t -> unit

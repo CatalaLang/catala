@@ -26,7 +26,7 @@ module Runtime = Runtime_ocaml.Runtime
 (** {1 Helpers} *)
 
 let is_empty_error : type a. (a, 'm) gexpr -> bool =
- fun e -> match Marked.unmark e with EEmptyError -> true | _ -> false
+ fun e -> match Mark.remove e with EEmptyError -> true | _ -> false
 
 (** [e' = propagate_empty_error e f] return [EEmptyError] if [e] is
     [EEmptyError], else it apply [f] on not-empty term [e]. *)
@@ -67,7 +67,7 @@ let print_log entry infos pos e =
          in
          Cli.with_style [ANSITerminal.green] "%s" expr_str)
     | PosRecordIfTrueBool -> (
-      match pos <> Pos.no_pos, Marked.unmark e with
+      match pos <> Pos.no_pos, Mark.remove e with
       | true, ELit (LBool true) ->
         Cli.log_format "%*s%a%s:\n%s" (!log_indent * 2) "" Print.log_entry entry
           (Cli.with_style [ANSITerminal.green] "Definition applied")
@@ -102,7 +102,7 @@ let handle_eq evaluate_operator pos e1 e2 =
     try
       List.for_all2
         (fun e1 e2 ->
-          match Marked.unmark (evaluate_operator Eq pos [e1; e2]) with
+          match Mark.remove (evaluate_operator Eq pos [e1; e2]) with
           | ELit (LBool b) -> b
           | _ -> assert false
           (* should not happen *))
@@ -112,7 +112,7 @@ let handle_eq evaluate_operator pos e1 e2 =
     StructName.equal s1 s2
     && StructField.Map.equal
          (fun e1 e2 ->
-           match Marked.unmark (evaluate_operator Eq pos [e1; e2]) with
+           match Mark.remove (evaluate_operator Eq pos [e1; e2]) with
            | ELit (LBool b) -> b
            | _ -> assert false
            (* should not happen *))
@@ -123,7 +123,7 @@ let handle_eq evaluate_operator pos e1 e2 =
       EnumName.equal en1 en2
       && EnumConstructor.equal i1 i2
       &&
-      match Marked.unmark (evaluate_operator Eq pos [e1; e2]) with
+      match Mark.remove (evaluate_operator Eq pos [e1; e2]) with
       | ELit (LBool b) -> b
       | _ -> assert false
       (* should not happen *)
@@ -172,37 +172,34 @@ let rec evaluate_operator
   propagate_empty_error_list args
   @@ fun args ->
   let open Runtime.Oper in
-  Marked.mark m
+  Mark.add m
   @@
   match op, args with
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
   | Log (entry, infos), [e'] ->
     print_log entry infos pos e';
-    Marked.unmark e'
+    Mark.remove e'
   | Eq, [(e1, _); (e2, _)] ->
     ELit (LBool (handle_eq (evaluate_operator evaluate_expr) m e1 e2))
   | Map, [f; (EArray es, _)] ->
     EArray
       (List.map
-         (fun e' ->
-           evaluate_expr (Marked.same_mark_as (EApp { f; args = [e'] }) e'))
+         (fun e' -> evaluate_expr (Mark.copy e' (EApp { f; args = [e'] })))
          es)
-  | Reduce, [_; default; (EArray [], _)] -> Marked.unmark default
+  | Reduce, [_; default; (EArray [], _)] -> Mark.remove default
   | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
-    Marked.unmark
+    Mark.remove
       (List.fold_left
          (fun acc x ->
-           evaluate_expr (Marked.same_mark_as (EApp { f; args = [acc; x] }) f))
+           evaluate_expr (Mark.copy f (EApp { f; args = [acc; x] })))
          x0 xn)
   | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
   | Filter, [f; (EArray es, _)] ->
     EArray
       (List.filter
          (fun e' ->
-           match
-             evaluate_expr (Marked.same_mark_as (EApp { f; args = [e'] }) e')
-           with
+           match evaluate_expr (Mark.copy e' (EApp { f; args = [e'] })) with
            | ELit (LBool b), _ -> b
            | _ ->
              Errors.raise_spanned_error
@@ -211,10 +208,10 @@ let rec evaluate_operator
                 (should not happen if the term was well-typed)")
          es)
   | Fold, [f; init; (EArray es, _)] ->
-    Marked.unmark
+    Mark.remove
       (List.fold_left
          (fun acc e' ->
-           evaluate_expr (Marked.same_mark_as (EApp { f; args = [acc; e'] }) e'))
+           evaluate_expr (Mark.copy e' (EApp { f; args = [acc; e'] })))
          init es)
   | (Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce), _ -> err ()
   | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
@@ -335,43 +332,42 @@ let rec evaluate_operator
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
-        | EInj { name; cons; _ }, _
-          when EnumName.equal name Definitions.option_enum ->
-          EnumConstructor.equal cons Definitions.some_constr
+        | EInj { name; cons; _ }, _ when EnumName.equal name Expr.option_enum ->
+          EnumConstructor.equal cons Expr.some_constr
         | _ -> err ())
     in
 
     match valid_exceptions with
     | [] -> (
       match
-        Marked.unmark (evaluate_expr (Expr.unthunk_term_nobox justification m))
+        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox justification m))
       with
       | EInj { name; cons; e = ELit (LBool true), _ }
-        when EnumName.equal name Definitions.option_enum
-             && EnumConstructor.equal cons Definitions.some_constr ->
-        Marked.unmark (evaluate_expr (Expr.unthunk_term_nobox conclusion m))
+        when EnumName.equal name Expr.option_enum
+             && EnumConstructor.equal cons Expr.some_constr ->
+        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox conclusion m))
       | EInj { name; cons; e = (ELit (LBool false), _) as e }
-        when EnumName.equal name Definitions.option_enum
-             && EnumConstructor.equal cons Definitions.some_constr ->
+        when EnumName.equal name Expr.option_enum
+             && EnumConstructor.equal cons Expr.some_constr ->
         EInj
           {
-            name = Definitions.option_enum;
-            cons = Definitions.none_constr;
-            e = Marked.same_mark_as (ELit LUnit) e;
+            name = Expr.option_enum;
+            cons = Expr.none_constr;
+            e = Mark.copy e (ELit LUnit);
           }
       | EInj { name; cons; e }
-        when EnumName.equal name Definitions.option_enum
-             && EnumConstructor.equal cons Definitions.none_constr ->
+        when EnumName.equal name Expr.option_enum
+             && EnumConstructor.equal cons Expr.none_constr ->
         EInj
           {
-            name = Definitions.option_enum;
-            cons = Definitions.none_constr;
-            e = Marked.same_mark_as (ELit LUnit) e;
+            name = Expr.option_enum;
+            cons = Expr.none_constr;
+            e = Mark.copy e (ELit LUnit);
           }
       | _ -> err ())
     | [((EInj { cons; name; _ } as e), _)]
-      when EnumName.equal name Definitions.option_enum
-           && EnumConstructor.equal cons Definitions.some_constr ->
+      when EnumName.equal name Expr.option_enum
+           && EnumConstructor.equal cons Expr.some_constr ->
       e
     | [_] -> err ()
     | _ -> raise (CatalaException ConflictError))
@@ -395,9 +391,9 @@ let rec evaluate_expr :
     decl_ctx -> ((a, b) dcalc_lcalc, 'm) gexpr -> ((a, b) dcalc_lcalc, 'm) gexpr
     =
  fun ctx e ->
-  let m = Marked.get_mark e in
+  let m = Mark.get e in
   let pos = Expr.mark_pos m in
-  match Marked.unmark e with
+  match Mark.remove e with
   | EVar _ ->
     Errors.raise_spanned_error pos
       "free variable found at evaluation (should not happen if term was \
@@ -407,11 +403,11 @@ let rec evaluate_expr :
     let args = List.map (evaluate_expr ctx) args in
     propagate_empty_error e1
     @@ fun e1 ->
-    match Marked.unmark e1 with
+    match Mark.remove e1 with
     | EAbs { binder; _ } ->
       if Bindlib.mbinder_arity binder = List.length args then
         evaluate_expr ctx
-          (Bindlib.msubst binder (Array.of_list (List.map Marked.unmark args)))
+          (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
       else
         Errors.raise_spanned_error pos
           "wrong function call, expected %d arguments, got %d"
@@ -422,13 +418,13 @@ let rec evaluate_expr :
       Errors.raise_spanned_error pos
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
-  | (EAbs _ | ELit _ | EOp _) as e -> Marked.mark m e (* these are values *)
+  | (EAbs _ | ELit _ | EOp _) as e -> Mark.add m e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx) es in
     propagate_empty_error_list es
     @@ fun es ->
-    Marked.mark m
+    Mark.add m
       (EStruct
          {
            fields =
@@ -439,7 +435,7 @@ let rec evaluate_expr :
   | EStructAccess { e; name = s; field } -> (
     propagate_empty_error (evaluate_expr ctx e)
     @@ fun e ->
-    match Marked.unmark e with
+    match Mark.remove e with
     | EStruct { fields = es; name } -> (
       if not (StructName.equal s name) then
         Errors.raise_multispanned_error
@@ -458,7 +454,7 @@ let rec evaluate_expr :
         "The expression %a should be a struct %a but is not (should not happen \
          if the term was well-typed)"
         (Print.expr ()) e StructName.format_t s)
-  | ETuple es -> Marked.mark m (ETuple (List.map (evaluate_expr ctx) es))
+  | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx) es))
   | ETupleAccess { e = e1; index; size } -> (
     match evaluate_expr ctx e1 with
     | ETuple es, _ when List.length es = size -> List.nth es index
@@ -469,11 +465,11 @@ let rec evaluate_expr :
         (Print.expr ()) e size)
   | EInj { e; name; cons } ->
     propagate_empty_error (evaluate_expr ctx e)
-    @@ fun e -> Marked.mark m (EInj { e; name; cons })
+    @@ fun e -> Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
     propagate_empty_error (evaluate_expr ctx e)
     @@ fun e ->
-    match Marked.unmark e with
+    match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
         Errors.raise_multispanned_error
@@ -488,7 +484,7 @@ let rec evaluate_expr :
             "sum type index error (should not happen if the term was \
              well-typed)"
       in
-      let new_e = Marked.mark m (EApp { f = es_n; args = [e1] }) in
+      let new_e = Mark.add m (EApp { f = es_n; args = [e1] }) in
       evaluate_expr ctx new_e
     | _ ->
       Errors.raise_spanned_error (Expr.pos e)
@@ -497,7 +493,7 @@ let rec evaluate_expr :
   | EIfThenElse { cond; etrue; efalse } -> (
     propagate_empty_error (evaluate_expr ctx cond)
     @@ fun cond ->
-    match Marked.unmark cond with
+    match Mark.remove cond with
     | ELit (LBool true) -> evaluate_expr ctx etrue
     | ELit (LBool false) -> evaluate_expr ctx efalse
     | _ ->
@@ -506,13 +502,13 @@ let rec evaluate_expr :
          not happen if the term was well-typed)")
   | EArray es ->
     propagate_empty_error_list (List.map (evaluate_expr ctx) es)
-    @@ fun es -> Marked.mark m (EArray es)
+    @@ fun es -> Mark.add m (EArray es)
   | EAssert e' ->
     propagate_empty_error (evaluate_expr ctx e') (fun e ->
-        match Marked.unmark e with
-        | ELit (LBool true) -> Marked.mark m (ELit LUnit)
+        match Mark.remove e with
+        | ELit (LBool true) -> Mark.add m (ELit LUnit)
         | ELit (LBool false) -> (
-          match Marked.unmark (Expr.skip_wrappers e') with
+          match Mark.remove (Expr.skip_wrappers e') with
           | EApp
               {
                 f = EOp { op; _ }, _;
@@ -529,7 +525,7 @@ let rec evaluate_expr :
           Errors.raise_spanned_error (Expr.pos e')
             "Expected a boolean literal for the result of this assertion \
              (should not happen if the term was well-typed)")
-  | EEmptyError -> Marked.same_mark_as EEmptyError e
+  | EEmptyError -> Mark.copy e EEmptyError
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx e' with
     | EEmptyError, _ ->
@@ -543,10 +539,10 @@ let rec evaluate_expr :
     match List.length excepts - empty_count with
     | 0 -> (
       let just = evaluate_expr ctx just in
-      match Marked.unmark just with
-      | EEmptyError -> Marked.mark m EEmptyError
+      match Mark.remove just with
+      | EEmptyError -> Mark.add m EEmptyError
       | ELit (LBool true) -> evaluate_expr ctx cons
-      | ELit (LBool false) -> Marked.same_mark_as EEmptyError e
+      | ELit (LBool false) -> Mark.copy e EEmptyError
       | _ ->
         Errors.raise_spanned_error (Expr.pos e)
           "Default justification has not been reduced to a boolean at \
@@ -582,13 +578,13 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     let application_term =
       StructField.Map.map
         (fun ty ->
-          match Marked.unmark ty with
+          match Mark.remove ty with
           | TOption _ ->
-            (Expr.einj (Expr.elit LUnit mark_e) Definitions.none_constr
-               Definitions.option_enum mark_e
+            (Expr.einj (Expr.elit LUnit mark_e) Expr.none_constr
+               Expr.option_enum mark_e
               : (_, _) boxed_gexpr)
           | _ ->
-            Errors.raise_spanned_error (Marked.get_mark ty)
+            Errors.raise_spanned_error (Mark.get ty)
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
@@ -601,7 +597,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         [Expr.estruct s_in application_term mark_e]
         (Expr.pos e)
     in
-    match Marked.unmark (evaluate_expr ctx (Expr.unbox to_interpret)) with
+    match Mark.remove (evaluate_expr ctx (Expr.unbox to_interpret)) with
     | EStruct { fields; _ } ->
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
@@ -632,14 +628,14 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     let application_term =
       StructField.Map.map
         (fun ty ->
-          match Marked.unmark ty with
+          match Mark.remove ty with
           | TArrow (ty_in, ty_out) ->
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
               (Bindlib.box EEmptyError, Expr.with_ty mark_e ty_out)
               ty_in (Expr.mark_pos mark_e)
           | _ ->
-            Errors.raise_spanned_error (Marked.get_mark ty)
+            Errors.raise_spanned_error (Mark.get ty)
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
@@ -652,7 +648,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         [Expr.estruct s_in application_term mark_e]
         (Expr.pos e)
     in
-    match Marked.unmark (evaluate_expr ctx (Expr.unbox to_interpret)) with
+    match Mark.remove (evaluate_expr ctx (Expr.unbox to_interpret)) with
     | EStruct { fields; _ } ->
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)

@@ -260,11 +260,10 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
         Ast.LocationSet.fold
           (fun used_var g ->
             let edge_from =
-              match Marked.unmark used_var with
-              | DesugaredScopeVar (v, s) ->
-                Some (Vertex.Var (Marked.unmark v, s))
+              match Mark.remove used_var with
+              | DesugaredScopeVar (v, s) -> Some (Vertex.Var (Mark.remove v, s))
               | SubScopeVar (_, subscope_name, _) ->
-                Some (Vertex.SubScope (Marked.unmark subscope_name))
+                Some (Vertex.SubScope (Mark.remove subscope_name))
               | ToplevelVar _ -> None
               (* we don't add this dependency because toplevel definitions are
                  outside the scope *)
@@ -353,7 +352,7 @@ let build_exceptions_graph
           | None ->
             RuleName.Map.add rule_to
               (LabelName.fresh
-                 ( "exception_to_" ^ Marked.unmark (RuleName.get_info rule_to),
+                 ( "exception_to_" ^ Mark.remove (RuleName.get_info rule_to),
                    Pos.no_pos ))
               exception_to_rule_implicit_labels)
         | _ -> exception_to_rule_implicit_labels)
@@ -377,7 +376,7 @@ let build_exceptions_graph
           | None ->
             LabelName.Map.add label_to
               (LabelName.fresh
-                 ( "exception_to_" ^ Marked.unmark (LabelName.get_info label_to),
+                 ( "exception_to_" ^ Mark.remove (LabelName.get_info label_to),
                    Pos.no_pos ))
               exception_to_label_implicit_labels)
         | _ -> exception_to_label_implicit_labels)
@@ -537,7 +536,7 @@ let check_for_exception_cycle
         (fun (vs : ExceptionVertex.t) ->
           let v, _ = RuleName.Map.choose vs.rules in
           let rule = RuleName.Map.find v def in
-          let pos = Marked.get_mark (RuleName.get_info rule.Ast.rule_id) in
+          let pos = Mark.get (RuleName.get_info rule.Ast.rule_id) in
           None, pos)
         scc
     in

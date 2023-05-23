@@ -14,38 +14,40 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-include Shared_ast
+open Shared_ast
 
-type 'm naked_expr = (lcalc, 'm mark) naked_gexpr
-and 'm expr = (lcalc, 'm mark) gexpr
+type 'm naked_expr = (lcalc, 'm) naked_gexpr
+and 'm expr = (lcalc, 'm) gexpr
 
 type 'm program = 'm expr Shared_ast.program
 
 module OptionMonad = struct
-  let return ~(mark : 'a mark) e = Expr.einj e some_constr option_enum mark
+  let return ~(mark : 'a mark) e =
+    Expr.einj e Expr.some_constr Expr.option_enum mark
 
   let empty ~(mark : 'a mark) =
-    Expr.einj (Expr.elit LUnit mark) none_constr option_enum mark
+    Expr.einj (Expr.elit LUnit mark) Expr.none_constr Expr.option_enum mark
 
   let bind_var ~(mark : 'a mark) f x arg =
     let cases =
       EnumConstructor.Map.of_seq
         (List.to_seq
            [
-             ( none_constr,
+             ( Expr.none_constr,
                let x = Var.make "_" in
                Expr.eabs
                  (Expr.bind [| x |]
-                    (Expr.einj (Expr.evar x mark) none_constr option_enum mark))
+                    (Expr.einj (Expr.evar x mark) Expr.none_constr
+                       Expr.option_enum mark))
                  [TLit TUnit, Expr.mark_pos mark]
                  mark );
              (* | None x -> None x *)
-             ( some_constr,
+             ( Expr.some_constr,
                Expr.eabs (Expr.bind [| x |] f) [TAny, Expr.mark_pos mark] mark )
              (*| Some x -> f (where f contains x as a free variable) *);
            ])
     in
-    Expr.ematch arg option_enum cases mark
+    Expr.ematch arg Expr.option_enum cases mark
 
   let bind ~(mark : 'a mark) ~(var_name : string) f arg =
     let x = Var.make var_name in
@@ -86,7 +88,7 @@ module OptionMonad = struct
       ~init:
         (Expr.einj
            (Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
-           some_constr option_enum mark)
+           Expr.some_constr Expr.option_enum mark)
 
   let map_var ~(mark : 'a mark) f x arg = mmap_mvar f [x] [arg] ~mark
 
@@ -110,16 +112,16 @@ module OptionMonad = struct
       EnumConstructor.Map.of_seq
         (List.to_seq
            [
-             ( none_constr,
+             ( Expr.none_constr,
                let x = Var.make var_name in
                Expr.eabs
                  (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
                  [TAny, Expr.mark_pos mark]
                  mark );
              (* | None x -> raise NoValueProvided *)
-             some_constr, Expr.fun_id mark (* | Some x -> x*);
+             Expr.some_constr, Expr.fun_id mark (* | Some x -> x*);
            ])
     in
-    if toplevel then Expr.ematch arg option_enum cases mark
-    else return ~mark (Expr.ematch arg option_enum cases mark)
+    if toplevel then Expr.ematch arg Expr.option_enum cases mark
+    else return ~mark (Expr.ematch arg Expr.option_enum cases mark)
 end

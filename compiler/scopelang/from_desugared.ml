@@ -38,41 +38,36 @@ let tag_with_log_entry
     (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
   if !Cli.trace_flag then
     Expr.eapp
-      (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] (Marked.get_mark e))
-      [e] (Marked.get_mark e)
+      (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] (Mark.get e))
+      [e] (Mark.get e)
   else e
 
 let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     untyped Ast.expr boxed =
-  let m = Marked.get_mark e in
-  match Marked.unmark e with
+  let m = Mark.get e in
+  match Mark.remove e with
   | ELocation (SubScopeVar (s_name, ss_name, s_var)) ->
     (* When referring to a subscope variable in an expression, we are referring
        to the output, hence we take the last state. *)
     let new_s_var =
-      match ScopeVar.Map.find (Marked.unmark s_var) ctx.scope_var_mapping with
-      | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
-      | States states ->
-        Marked.same_mark_as (snd (List.hd (List.rev states))) s_var
+      match ScopeVar.Map.find (Mark.remove s_var) ctx.scope_var_mapping with
+      | WholeVar new_s_var -> Mark.copy s_var new_s_var
+      | States states -> Mark.copy s_var (snd (List.hd (List.rev states)))
     in
     Expr.elocation (SubScopeVar (s_name, ss_name, new_s_var)) m
   | ELocation (DesugaredScopeVar (s_var, None)) ->
     Expr.elocation
       (ScopelangScopeVar
-         (match
-            ScopeVar.Map.find (Marked.unmark s_var) ctx.scope_var_mapping
-          with
-         | WholeVar new_s_var -> Marked.same_mark_as new_s_var s_var
+         (match ScopeVar.Map.find (Mark.remove s_var) ctx.scope_var_mapping with
+         | WholeVar new_s_var -> Mark.copy s_var new_s_var
          | States _ -> failwith "should not happen"))
       m
   | ELocation (DesugaredScopeVar (s_var, Some state)) ->
     Expr.elocation
       (ScopelangScopeVar
-         (match
-            ScopeVar.Map.find (Marked.unmark s_var) ctx.scope_var_mapping
-          with
+         (match ScopeVar.Map.find (Mark.remove s_var) ctx.scope_var_mapping with
          | WholeVar _ -> failwith "should not happen"
-         | States states -> Marked.same_mark_as (List.assoc state states) s_var))
+         | States states -> Mark.copy s_var (List.assoc state states)))
       m
   | ELocation (ToplevelVar v) -> Expr.elocation (ToplevelVar v) m
   | EVar v -> Expr.evar (Var.Map.find v ctx.var_mapping) m
@@ -145,9 +140,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
       ~polymorphic:(fun op -> Expr.eapp (Expr.eop op tys m1) args m)
       ~overloaded:(fun op ->
         match
-          Operator.resolve_overload ctx.decl_ctx
-            (Marked.mark (Expr.pos e) op)
-            tys
+          Operator.resolve_overload ctx.decl_ctx (Mark.add (Expr.pos e) op) tys
         with
         | op, `Straight -> Expr.eapp (Expr.eop op tys m1) args m
         | op, `Reversed ->
@@ -196,15 +189,15 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
         scope.scope_defs
     in
     let var_def = scope_def.D.scope_def_rules in
-    match Marked.unmark scope_def.Desugared.Ast.scope_def_io.io_input with
+    match Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input with
     | OnlyInput when not (RuleName.Map.is_empty var_def) ->
       (* If the variable is tagged as input, then it shall not be redefined. *)
       Errors.raise_multispanned_error
-        ((Some "Incriminated variable:", Marked.get_mark (ScopeVar.get_info var))
+        ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
         :: List.map
              (fun (rule, _) ->
                ( Some "Incriminated variable definition:",
-                 Marked.get_mark (RuleName.get_info rule) ))
+                 Mark.get (RuleName.get_info rule) ))
              (RuleName.Map.bindings var_def))
         "It is impossible to give a definition to a scope variable tagged as \
          input."
@@ -230,7 +223,7 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
                not visible in the input of the subscope *)
             && not
                  ((match
-                     Marked.unmark scope_def.Desugared.Ast.scope_def_io.io_input
+                     Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input
                    with
                   | Desugared.Ast.NoInput -> true
                   | _ -> false)
@@ -249,18 +242,18 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
                we have to check that this redefinition is allowed with respect
                to the io parameters of that subscope variable. *)
             (match
-               Marked.unmark scope_def.Desugared.Ast.scope_def_io.io_input
+               Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input
              with
             | Desugared.Ast.NoInput ->
               Errors.raise_multispanned_error
                 (( Some "Incriminated subscope:",
-                   Marked.get_mark (SubScopeName.get_info sscope) )
+                   Mark.get (SubScopeName.get_info sscope) )
                 :: ( Some "Incriminated variable:",
-                     Marked.get_mark (ScopeVar.get_info sub_scope_var) )
+                     Mark.get (ScopeVar.get_info sub_scope_var) )
                 :: List.map
                      (fun (rule, _) ->
                        ( Some "Incriminated subscope variable definition:",
-                         Marked.get_mark (RuleName.get_info rule) ))
+                         Mark.get (RuleName.get_info rule) ))
                      (RuleName.Map.bindings def))
                 "It is impossible to give a definition to a subscope variable \
                  not tagged as input or context."
@@ -270,7 +263,7 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
               Errors.raise_multispanned_error
                 [
                   ( Some "Incriminated subscope:",
-                    Marked.get_mark (SubScopeName.get_info sscope) );
+                    Mark.get (SubScopeName.get_info sscope) );
                   Some "Incriminated variable:", pos;
                 ]
                 "This subscope variable is a mandatory input but no definition \
@@ -375,10 +368,10 @@ let rec rule_tree_to_expr
     match params, rule.Desugared.Ast.rule_parameter with
     | Some new_params, Some (old_params_with_types, _) ->
       let old_params, _ = List.split old_params_with_types in
-      let old_params = Array.of_list (List.map Marked.unmark old_params) in
+      let old_params = Array.of_list (List.map Mark.remove old_params) in
       let new_params = Array.of_list new_params in
-      let binder = Bindlib.bind_mvar old_params (Marked.unmark e) in
-      Marked.mark (Marked.get_mark e)
+      let binder = Bindlib.bind_mvar old_params (Mark.remove e) in
+      Mark.add (Mark.get e)
       @@ Bindlib.box_apply2
            (fun binder new_param -> Bindlib.msubst binder new_param)
            binder
@@ -483,7 +476,7 @@ let translate_def
     (ctx : ctx)
     (def_info : Desugared.Ast.ScopeDef.t)
     (def : Desugared.Ast.rule RuleName.Map.t)
-    (params : (Uid.MarkedString.info * typ) list Marked.pos option)
+    (params : (Uid.MarkedString.info * typ) list Mark.pos option)
     (typ : typ)
     (io : Desugared.Ast.io)
     (exc_graph : Desugared.Dependency.ExceptionsDependencies.t) :
@@ -491,12 +484,12 @@ let translate_def
   (* Here, we have to transform this list of rules into a default tree. *)
   let top_list = def_map_to_tree def exc_graph in
   let is_input =
-    match Marked.unmark io.Desugared.Ast.io_input with
+    match Mark.remove io.Desugared.Ast.io_input with
     | OnlyInput -> true
     | _ -> false
   in
   let is_reentrant =
-    match Marked.unmark io.Desugared.Ast.io_input with
+    match Mark.remove io.Desugared.Ast.io_input with
     | Reentrant -> true
     | _ -> false
   in
@@ -544,7 +537,7 @@ let translate_def
       let labels, tys = List.split ps in
       Expr.make_abs
         (Array.of_list
-           (List.map (fun lbl -> Var.make (Marked.unmark lbl)) labels))
+           (List.map (fun lbl -> Var.make (Mark.remove lbl)) labels))
         empty_error tys (Expr.mark_pos m)
     | _ -> empty_error
   else
@@ -552,13 +545,13 @@ let translate_def
       (Desugared.Ast.ScopeDef.get_position def_info)
       (Option.map
          (fun (ps, _) ->
-           (List.map (fun (lbl, _) -> Var.make (Marked.unmark lbl))) ps)
+           (List.map (fun (lbl, _) -> Var.make (Mark.remove lbl))) ps)
          params)
       (match top_list, top_value with
       | [], None ->
         (* In this case, there are no rules to define the expression and no
            default value so we put an empty rule. *)
-        Leaf [Desugared.Ast.empty_rule (Marked.get_mark typ) params]
+        Leaf [Desugared.Ast.empty_rule (Mark.get typ) params]
       | [], Some top_value ->
         (* In this case, there are no rules to define the expression but a
            default value so we put it. *)
@@ -569,7 +562,7 @@ let translate_def
         Node (top_list, [top_value])
       | [top_tree], None -> top_tree
       | _, None ->
-        Node (top_list, [Desugared.Ast.empty_rule (Marked.get_mark typ) params]))
+        Node (top_list, [Desugared.Ast.empty_rule (Mark.get typ) params]))
 
 let translate_rule
     ctx
@@ -587,7 +580,7 @@ let translate_rule
     let var_params = scope_def.D.scope_def_parameters in
     let var_typ = scope_def.D.scope_def_typ in
     let is_cond = scope_def.D.scope_def_is_condition in
-    match Marked.unmark scope_def.Desugared.Ast.scope_def_io.io_input with
+    match Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input with
     | OnlyInput when not (RuleName.Map.is_empty var_def) ->
       assert false (* error already raised *)
     | OnlyInput -> []
@@ -609,8 +602,8 @@ let translate_rule
       [
         Ast.Definition
           ( ( ScopelangScopeVar
-                (scope_var, Marked.get_mark (ScopeVar.get_info scope_var)),
-              Marked.get_mark (ScopeVar.get_info scope_var) ),
+                (scope_var, Mark.get (ScopeVar.get_info scope_var)),
+              Mark.get (ScopeVar.get_info scope_var) ),
             var_typ,
             scope_def.Desugared.Ast.scope_def_io,
             Expr.unbox expr_def );
@@ -632,7 +625,7 @@ let translate_rule
                not visible in the input of the subscope *)
             && not
                  ((match
-                     Marked.unmark scope_def.Desugared.Ast.scope_def_io.io_input
+                     Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input
                    with
                   | Desugared.Ast.NoInput -> true
                   | _ -> false)
@@ -652,7 +645,7 @@ let translate_rule
                we have to check that this redefinition is allowed with respect
                to the io parameters of that subscope variable. *)
             (match
-               Marked.unmark scope_def.Desugared.Ast.scope_def_io.io_input
+               Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input
              with
             | Desugared.Ast.NoInput -> assert false (* error already raised *)
             | OnlyInput when RuleName.Map.is_empty def && not is_cond ->
@@ -695,8 +688,7 @@ let translate_rule
         Ast.Call
           ( sub_scope,
             sub_scope_index,
-            Untyped
-              { pos = Marked.get_mark (SubScopeName.get_info sub_scope_index) }
+            Untyped { pos = Mark.get (SubScopeName.get_info sub_scope_index) }
           );
       ]
   | Assertion a_name ->
@@ -766,7 +758,7 @@ let translate_scope
             acc states)
       scope.scope_vars ScopeVar.Map.empty
   in
-  let pos = Marked.get_mark (ScopeName.get_info scope.scope_uid) in
+  let pos = Mark.get (ScopeName.get_info scope.scope_uid) in
   {
     Ast.scope_decl_name = scope.scope_uid;
     Ast.scope_decl_rules;
@@ -801,8 +793,7 @@ let translate_program
                 let var_prefix = var_name ^ "_" in
                 let state_var state =
                   ScopeVar.fresh
-                    (Marked.map_under_mark (( ^ ) var_prefix)
-                       (StateName.get_info state))
+                    (Mark.map (( ^ ) var_prefix) (StateName.get_info state))
                 in
                 States (List.map (fun state -> state, state_var state) states)
             in

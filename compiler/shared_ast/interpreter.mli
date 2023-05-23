@@ -21,11 +21,11 @@ open Catala_utils
 open Definitions
 
 val evaluate_operator :
-  ((((_, _) dcalc_lcalc as 'a), 'm mark) gexpr -> ('a, 'm mark) gexpr) ->
+  ((((_, _) dcalc_lcalc as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator ->
   'm mark ->
-  ('a, 'm mark) gexpr list ->
-  ('a, 'm mark) gexpr
+  ('a, 'm) gexpr list ->
+  ('a, 'm) gexpr
 (** Evaluates the result of applying the given operator to the given arguments,
     which are expected to be already reduced to values. The first argument is
     used to evaluate expressions and called when reducing e.g. the [map]
@@ -33,23 +33,23 @@ val evaluate_operator :
 
 val evaluate_expr :
   decl_ctx ->
-  (('a, 'b) dcalc_lcalc, 'm mark) gexpr ->
-  (('a, 'b) dcalc_lcalc, 'm mark) gexpr
+  (('a, 'b) dcalc_lcalc, 'm) gexpr ->
+  (('a, 'b) dcalc_lcalc, 'm) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program_dcalc :
-  (dcalc, 'm mark) gexpr program ->
+  (dcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * (dcalc, 'm mark) gexpr) list
+  (Uid.MarkedString.info * (dcalc, 'm) gexpr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
 
 val interpret_program_lcalc :
-  (lcalc, 'm mark) gexpr program ->
+  (lcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * (lcalc, 'm mark) gexpr) list
+  (Uid.MarkedString.info * (lcalc, 'm) gexpr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all

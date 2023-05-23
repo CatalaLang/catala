@@ -56,11 +56,11 @@ let scope ?debug ctx fmt (name, decl) =
          Format.fprintf fmt "%a%a%a %a%a%a%a%a" Print.punctuation "("
            ScopeVar.format_t scope_var Print.punctuation ":" (Print.typ ctx) typ
            Print.punctuation "|" Print.keyword
-           (match Marked.unmark vis.Desugared.Ast.io_input with
+           (match Mark.remove vis.Desugared.Ast.io_input with
            | NoInput -> "internal"
            | OnlyInput -> "input"
            | Reentrant -> "context")
-           (if Marked.unmark vis.Desugared.Ast.io_output then fun fmt () ->
+           (if Mark.remove vis.Desugared.Ast.io_output then fun fmt () ->
             Format.fprintf fmt "%a@,%a" Print.punctuation "|" Print.keyword
               "output"
            else fun fmt () -> Format.fprintf fmt "@<0>")
@@ -73,15 +73,15 @@ let scope ?debug ctx fmt (name, decl) =
          match rule with
          | Definition (loc, typ, _, e) ->
            Format.fprintf fmt "@[<hov 2>%a %a %a %a %a@ %a@]" Print.keyword
-             "let" Print.location (Marked.unmark loc) Print.punctuation ":"
+             "let" Print.location (Mark.remove loc) Print.punctuation ":"
              (Print.typ ctx) typ Print.punctuation "="
              (fun fmt e ->
-               match Marked.unmark loc with
+               match Mark.remove loc with
                | SubScopeVar _ | ToplevelVar _ -> Print.expr () fmt e
                | ScopelangScopeVar v -> (
                  match
-                   Marked.unmark
-                     (snd (ScopeVar.Map.find (Marked.unmark v) decl.scope_sig))
+                   Mark.remove
+                     (snd (ScopeVar.Map.find (Mark.remove v) decl.scope_sig))
                        .io_input
                  with
                  | Reentrant ->

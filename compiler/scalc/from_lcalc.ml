@@ -31,7 +31,7 @@ type 'm ctxt = {
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
 let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
-  match Marked.unmark expr with
+  match Mark.remove expr with
   | EVar v ->
     let local_var =
       try A.EVar (Var.Map.find v ctxt.var_dict)
@@ -97,7 +97,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
           (match ctxt.inside_definition_of with
           | None -> ctxt.context_name
           | Some v ->
-            let v = Marked.unmark (A.VarName.get_info v) in
+            let v = Mark.remove (A.VarName.get_info v) in
             let tmp_rex = Re.Pcre.regexp "^temp_" in
             if Re.Pcre.pmatch ~rex:tmp_rex v then v else "temp_" ^ v),
           Expr.pos expr )
@@ -106,7 +106,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       {
         ctxt with
         inside_definition_of = Some tmp_var;
-        context_name = Marked.unmark (A.VarName.get_info tmp_var);
+        context_name = Mark.remove (A.VarName.get_info tmp_var);
       }
     in
     let tmp_stmts = translate_statements ctxt expr in
@@ -116,11 +116,11 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       (A.EVar tmp_var, Expr.pos expr) )
 
 and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
-  match Marked.unmark block_expr with
+  match Mark.remove block_expr with
   | EAssert e ->
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
-    e_stmts @ [A.SAssert (Marked.unmark new_e), Expr.pos block_expr]
+    e_stmts @ [A.SAssert (Mark.remove new_e), Expr.pos block_expr]
   | EApp { f = EAbs { binder; tys }, binder_mark; args } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
@@ -157,9 +157,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           let ctxt =
             {
               ctxt with
-              inside_definition_of = Some (Marked.unmark x);
-              context_name =
-                Marked.unmark (A.VarName.get_info (Marked.unmark x));
+              inside_definition_of = Some (Mark.remove x);
+              context_name = Mark.remove (A.VarName.get_info (Mark.remove x));
             }
           in
           let arg_stmts, new_arg = translate_expr ctxt arg in
@@ -209,7 +208,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let new_cases =
       EnumConstructor.Map.fold
         (fun _ arg new_args ->
-          match Marked.unmark arg with
+          match Mark.remove arg with
           | EAbs { binder; _ } ->
             let vars, body = Bindlib.unmbind binder in
             assert (Array.length vars = 1);
@@ -264,8 +263,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     | _ ->
       [
         ( (match ctxt.inside_definition_of with
-          | None -> A.SReturn (Marked.unmark new_e)
-          | Some x -> A.SLocalDef (Marked.same_mark_as x new_e, new_e)),
+          | None -> A.SReturn (Mark.remove new_e)
+          | Some x -> A.SLocalDef (Mark.copy new_e x, new_e)),
           Expr.pos block_expr );
       ])
 
@@ -284,11 +283,11 @@ let rec translate_scope_body_expr
           func_dict;
           var_dict;
           inside_definition_of = None;
-          context_name = Marked.unmark (ScopeName.get_info scope_name);
+          context_name = Mark.remove (ScopeName.get_info scope_name);
         }
         e
     in
-    block @ [A.SReturn (Marked.unmark new_e), Marked.get_mark new_e]
+    block @ [A.SReturn (Mark.remove new_e), Mark.get new_e]
   | ScopeLet scope_let ->
     let let_var, scope_let_next = Bindlib.unbind scope_let.scope_let_next in
     let let_var_id =
@@ -303,7 +302,7 @@ let rec translate_scope_body_expr
           func_dict;
           var_dict;
           inside_definition_of = Some let_var_id;
-          context_name = Marked.unmark (ScopeName.get_info scope_name);
+          context_name = Mark.remove (ScopeName.get_info scope_name);
         }
         scope_let.scope_let_expr
     | _ ->
@@ -314,7 +313,7 @@ let rec translate_scope_body_expr
             func_dict;
             var_dict;
             inside_definition_of = Some let_var_id;
-            context_name = Marked.unmark (ScopeName.get_info scope_name);
+            context_name = Mark.remove (ScopeName.get_info scope_name);
           }
           scope_let.scope_let_expr
       in
@@ -338,7 +337,7 @@ let translate_program (p : 'm L.program) : A.program =
           let scope_input_var, scope_body_expr =
             Bindlib.unbind body.scope_body_expr
           in
-          let input_pos = Marked.get_mark (ScopeName.get_info name) in
+          let input_pos = Mark.get (ScopeName.get_info name) in
           let scope_input_var_id =
             A.VarName.fresh (Bindlib.name_of scope_input_var, input_pos)
           in
@@ -375,7 +374,7 @@ let translate_program (p : 'm L.program) : A.program =
           let args_id =
             List.map2
               (fun v ty ->
-                let pos = Marked.get_mark ty in
+                let pos = Mark.get ty in
                 (A.VarName.fresh (Bindlib.name_of v, pos), pos), ty)
               args abs.tys
           in
@@ -389,13 +388,13 @@ let translate_program (p : 'm L.program) : A.program =
                     (fun map arg ((id, _), _) -> Var.Map.add arg id map)
                     var_dict args args_id;
                 inside_definition_of = None;
-                context_name = Marked.unmark (TopdefName.get_info name);
+                context_name = Mark.remove (TopdefName.get_info name);
               }
             in
             translate_expr ctxt expr
           in
           let body_block =
-            block @ [A.SReturn (Marked.unmark expr), Marked.get_mark expr]
+            block @ [A.SReturn (Mark.remove expr), Mark.get expr]
           in
           ( Var.Map.add var func_id func_dict,
             var_dict,
@@ -415,7 +414,7 @@ let translate_program (p : 'm L.program) : A.program =
                 decl_ctx = p.decl_ctx;
                 var_dict;
                 inside_definition_of = None;
-                context_name = Marked.unmark (TopdefName.get_info name);
+                context_name = Mark.remove (TopdefName.get_info name);
               }
             in
             translate_expr ctxt expr
@@ -426,7 +425,7 @@ let translate_program (p : 'm L.program) : A.program =
             match block with
             | [] -> A.SVar { var = var_id; expr } :: rev_items
             | block ->
-              let pos = Marked.get_mark expr in
+              let pos = Mark.get expr in
               let func_id =
                 A.FuncName.fresh (Bindlib.name_of var ^ "_aux", pos)
               in
@@ -440,11 +439,7 @@ let translate_program (p : 'm L.program) : A.program =
                        {
                          A.func_params = [];
                          A.func_body =
-                           block
-                           @ [
-                               ( A.SReturn (Marked.unmark expr),
-                                 Marked.get_mark expr );
-                             ];
+                           block @ [A.SReturn (Mark.remove expr), Mark.get expr];
                        };
                    }
               :: rev_items

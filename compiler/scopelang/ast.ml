@@ -19,14 +19,13 @@ open Shared_ast
 
 type location = scopelang glocation
 
-module LocationSet : Set.S with type elt = location Marked.pos =
-Set.Make (struct
-  type t = location Marked.pos
+module LocationSet : Set.S with type elt = location Mark.pos = Set.Make (struct
+  type t = location Mark.pos
 
   let compare = Expr.compare_location
 end)
 
-type 'm expr = (scopelang, 'm mark) gexpr
+type 'm expr = (scopelang, 'm) gexpr
 
 let rec locations_used (e : 'm expr) : LocationSet.t =
   match e with
@@ -40,7 +39,7 @@ let rec locations_used (e : 'm expr) : LocationSet.t =
       e LocationSet.empty
 
 type 'm rule =
-  | Definition of location Marked.pos * typ * Desugared.Ast.io * 'm expr
+  | Definition of location Mark.pos * typ * Desugared.Ast.io * 'm expr
   | Assertion of 'm expr
   | Call of ScopeName.t * SubScopeName.t * 'm mark
 
@@ -49,7 +48,7 @@ type 'm scope_decl = {
   scope_sig : (typ * Desugared.Ast.io) ScopeVar.Map.t;
   scope_decl_rules : 'm rule list;
   scope_mark : 'm mark;
-  scope_options : Desugared.Ast.catala_option Marked.pos list;
+  scope_options : Desugared.Ast.catala_option Mark.pos list;
 }
 
 type 'm program = {
@@ -63,12 +62,12 @@ let type_rule decl_ctx env = function
     let expr' = Typing.expr ~leave_unresolved:false decl_ctx ~env ~typ expr in
     Definition (loc, typ, io, Expr.unbox expr')
   | Assertion expr ->
-    let typ = Marked.mark (Expr.pos expr) (TLit TBool) in
+    let typ = Mark.add (Expr.pos expr) (TLit TBool) in
     let expr' = Typing.expr ~leave_unresolved:false decl_ctx ~env ~typ expr in
     Assertion (Expr.unbox expr')
   | Call (sc_name, ssc_name, m) ->
     let pos = Expr.mark_pos m in
-    Call (sc_name, ssc_name, Typed { pos; ty = Marked.mark pos TAny })
+    Call (sc_name, ssc_name, Typed { pos; ty = Mark.add pos TAny })
 
 let type_program (prg : 'm program) : typed program =
   let typing_env =
@@ -107,10 +106,8 @@ let type_program (prg : 'm program) : typed program =
             scope_decl.scope_decl_rules
         in
         let scope_mark =
-          let pos =
-            Marked.get_mark (ScopeName.get_info scope_decl.scope_decl_name)
-          in
-          Typed { pos; ty = Marked.mark pos TAny }
+          let pos = Mark.get (ScopeName.get_info scope_decl.scope_decl_name) in
+          Typed { pos; ty = Mark.add pos TAny }
         in
         { scope_decl with scope_decl_rules; scope_mark })
       prg.program_scopes

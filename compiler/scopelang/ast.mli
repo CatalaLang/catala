@@ -23,16 +23,16 @@ open Shared_ast
 
 type location = scopelang glocation
 
-module LocationSet : Set.S with type elt = location Marked.pos
+module LocationSet : Set.S with type elt = location Mark.pos
 
 (** {1 Abstract syntax tree} *)
 
-type 'm expr = (scopelang, 'm mark) gexpr
+type 'm expr = (scopelang, 'm) gexpr
 
 val locations_used : 'm expr -> LocationSet.t
 
 type 'm rule =
-  | Definition of location Marked.pos * typ * Desugared.Ast.io * 'm expr
+  | Definition of location Mark.pos * typ * Desugared.Ast.io * 'm expr
   | Assertion of 'm expr
   | Call of ScopeName.t * SubScopeName.t * 'm mark
 
@@ -41,7 +41,7 @@ type 'm scope_decl = {
   scope_sig : (typ * Desugared.Ast.io) ScopeVar.Map.t;
   scope_decl_rules : 'm rule list;
   scope_mark : 'm mark;
-  scope_options : Desugared.Ast.catala_option Marked.pos list;
+  scope_options : Desugared.Ast.catala_option Mark.pos list;
 }
 
 type 'm program = {

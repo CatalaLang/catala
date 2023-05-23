@@ -34,7 +34,7 @@ val fold_right_exprs :
 val get_scope_body :
   ((_ any, 't) gexpr as 'e) program -> ScopeName.t -> 'e scope_body
 
-val untype : ('a any, _ mark) gexpr program -> ('a, untyped mark) gexpr program
+val untype : ('a any, _) gexpr program -> ('a, untyped) gexpr program
 
 val to_expr : ((_ any, _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
 (** Usage: [build_whole_program_expr program main_scope] builds an expression

@@ -47,42 +47,42 @@ end>
 (* Types of all rules, in order. Without this, Menhir type errors are nearly
    impossible to debug because of inlining *)
 
-%type<Ast.uident Marked.pos> addpos(UIDENT)
+%type<Ast.uident Mark.pos> addpos(UIDENT)
 %type<Pos.t> pos(CONDITION)
 %type<Ast.primitive_typ> primitive_typ
 %type<Ast.base_typ_data> typ_data
 %type<Ast.base_typ> typ
-%type<Ast.uident Marked.pos> uident
-%type<Ast.lident Marked.pos> lident
+%type<Ast.uident Mark.pos> uident
+%type<Ast.lident Mark.pos> lident
 %type<Ast.scope_var> scope_var
-%type<Ast.path * Ast.uident Marked.pos> quident
-%type<Ast.path * Ast.lident Marked.pos> qlident
+%type<Ast.path * Ast.uident Mark.pos> quident
+%type<Ast.path * Ast.lident Mark.pos> qlident
 %type<Ast.expression> expression
 %type<Ast.naked_expression> naked_expression
-%type<Ast.lident Marked.pos * expression> struct_content_field
+%type<Ast.lident Mark.pos * expression> struct_content_field
 %type<Ast.naked_expression> struct_or_enum_inject
 %type<Ast.literal_number> num_literal
 %type<Ast.literal_unit> unit_literal
 %type<Ast.literal> literal
-%type<(Ast.lident Marked.pos * expression) list> scope_call_args
+%type<(Ast.lident Mark.pos * expression) list> scope_call_args
 %type<bool> minmax
 %type<Ast.unop> unop
 %type<Ast.binop> binop
 %type<Ast.match_case_pattern> constructor_binding
 %type<Ast.match_case> match_arm
 %type<Ast.expression> condition_consequence
-%type<Ast.scope_var Marked.pos * Ast.lident Marked.pos list Marked.pos option> rule_expr
+%type<Ast.scope_var Mark.pos * Ast.lident Mark.pos list Mark.pos option> rule_expr
 %type<bool> rule_consequence
 %type<Ast.rule> rule
-%type<Ast.lident Marked.pos list> definition_parameters
-%type<Ast.lident Marked.pos> label
-%type<Ast.lident Marked.pos> state
+%type<Ast.lident Mark.pos list> definition_parameters
+%type<Ast.lident Mark.pos> label
+%type<Ast.lident Mark.pos> state
 %type<Ast.exception_to> exception_to
 %type<Ast.definition> definition
 %type<Ast.variation_typ> variation_type
 %type<Ast.scope_use_item> assertion
-%type<Ast.scope_use_item Marked.pos> scope_item
-%type<Ast.lident Marked.pos * Ast.base_typ Marked.pos> struct_scope_base
+%type<Ast.scope_use_item Mark.pos> scope_item
+%type<Ast.lident Mark.pos * Ast.base_typ Mark.pos> struct_scope_base
 %type<Ast.struct_decl_field> struct_scope
 %type<Ast.io_input> scope_decl_item_attribute_input
 %type<bool> scope_decl_item_attribute_output
@@ -91,7 +91,7 @@ end>
 %type<Ast.enum_decl_case> enum_decl_line
 %type<Ast.code_item> code_item
 %type<Ast.code_block> code
-%type<Ast.code_block * string Marked.pos> metadata_block
+%type<Ast.code_block * string Mark.pos> metadata_block
 %type<Ast.law_heading> law_heading
 %type<string> law_text
 %type<Ast.law_structure> source_file_item
@@ -157,7 +157,7 @@ let expression :=
 
 let naked_expression ==
 | id = addpos(LIDENT) ; {
-  match Localisation.lex_builtin (Marked.unmark id) with
+  match Localisation.lex_builtin (Mark.remove id) with
   | Some b -> Builtin b
   | None -> Ident ([], id)
 }
@@ -204,7 +204,7 @@ let naked_expression ==
 } %prec apply
 | SUM ; typ = addpos(primitive_typ) ;
   OF ; coll = expression ; {
-  CollectionOp (AggregateSum { typ = Marked.unmark typ }, coll)
+  CollectionOp (AggregateSum { typ = Mark.remove typ }, coll)
 } %prec apply
 | f = expression ;
   FOR ; i = lident ;
@@ -392,14 +392,14 @@ let rule :=
   cond = option(condition_consequence) ;
   consequence = addpos(rule_consequence) ; {
   let (name, params_applied) = name_and_param in
-  let cons : bool Marked.pos = consequence in
+  let cons : bool Mark.pos = consequence in
   let rule_exception = match except with
     | None -> NotAnException
-    | Some x -> Marked.unmark x
+    | Some x -> Mark.remove x
   in
   let pos_start =
-    match label with Some l -> Marked.get_mark l
-    | None -> match except with Some e -> Marked.get_mark e
+    match label with Some l -> Mark.get l
+    | None -> match except with Some e -> Mark.get e
     | None -> pos_rule
   in
   {
@@ -409,8 +409,8 @@ let rule :=
     rule_condition = cond;
     rule_name = name;
     rule_id = Shared_ast.RuleName.fresh
-      (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
-       Pos.join pos_start (Marked.get_mark name));
+      (String.concat "." (List.map (fun i -> Mark.remove i) (Mark.remove name)),
+       Pos.join pos_start (Mark.get name));
     rule_consequence = cons;
     rule_state = state;
   }
@@ -460,8 +460,8 @@ let definition :=
     definition_condition = cond;
     definition_id =
       Shared_ast.RuleName.fresh
-        (String.concat "." (List.map (fun i -> Marked.unmark i) (Marked.unmark name)),
-         Pos.join pos_start (Marked.get_mark name));
+        (String.concat "." (List.map (fun i -> Mark.remove i) (Mark.remove name)),
+         Pos.join pos_start (Mark.get name));
     definition_expr = e;
     definition_state = state;
   }
@@ -490,10 +490,10 @@ let assertion :=
 
 let scope_item :=
 | r = rule ; {
-  Rule r, Marked.get_mark (Shared_ast.RuleName.get_info r.rule_id)
+  Rule r, Mark.get (Shared_ast.RuleName.get_info r.rule_id)
 }
 | d = definition ; {
-  Definition d, Marked.get_mark (Shared_ast.RuleName.get_info d.definition_id)
+  Definition d, Mark.get (Shared_ast.RuleName.get_info d.definition_id)
 }
 | ASSERTION ; contents = addpos(assertion) ; <>
 | DATE ; i = LIDENT ; v = addpos(variation_type) ;
@@ -501,7 +501,7 @@ let scope_item :=
     (* Round is a builtin, we need to check which one it is *)
     match Localisation.lex_builtin i with
     | Some Round ->
-       DateRounding(v), Marked.get_mark v
+       DateRounding(v), Mark.get v
     | _ -> 
          Errors.raise_spanned_error
            (Pos.from_lpos $loc(i))
@@ -567,7 +567,7 @@ let scope_decl_item :=
   scope_decl_context_item_attribute = attr;
   scope_decl_context_item_parameters =
     Option.map
-      (Marked.map_under_mark
+      (Mark.map
          (List.map (fun (lbl, (base_t, m)) -> lbl, (Base base_t, m))))
       args_typ;
   scope_decl_context_item_typ = type_from_args args_typ t;
@@ -594,7 +594,7 @@ let scope_decl_item :=
     scope_decl_context_item_attribute = attr;
     scope_decl_context_item_parameters =
       Option.map
-        (Marked.map_under_mark
+        (Mark.map
            (List.map (fun (lbl, (base_t, m)) -> lbl, (Base base_t, m))))
         args;
     scope_decl_context_item_typ =

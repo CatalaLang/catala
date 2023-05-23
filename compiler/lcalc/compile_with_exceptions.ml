@@ -27,7 +27,7 @@ type 'm ctx = unit
 let thunk_expr (type m) (e : m A.expr boxed) : m A.expr boxed =
   let dummy_var = Var.make "_" in
   let pos = Expr.pos e in
-  let arg_t = Marked.mark pos (TLit TUnit) in
+  let arg_t = Mark.add pos (TLit TUnit) in
   Expr.make_abs [| dummy_var |] e [arg_t] pos
 
 let translate_var : 'm D.expr Var.t -> 'm A.expr Var.t = Var.translate
@@ -57,8 +57,8 @@ let rec translate_default
   exceptions
 
 and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
-  let m = Marked.get_mark e in
-  match Marked.unmark e with
+  let m = Mark.get e in
+  match Mark.remove e with
   | EEmptyError -> Expr.eraise EmptyError m
   | EErrorOnEmpty arg ->
     Expr.ecatch (translate_expr ctx arg) EmptyError
@@ -68,16 +68,16 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
     (* FIXME: bad place to rely on a global flag *)
     Expr.ecatch (translate_expr ctx exn) EmptyError
       (Expr.eifthenelse (translate_expr ctx just) (translate_expr ctx cons)
-         (Expr.eraise EmptyError (Marked.get_mark e))
-         (Marked.get_mark e))
-      (Marked.get_mark e)
+         (Expr.eraise EmptyError (Mark.get e))
+         (Mark.get e))
+      (Mark.get e)
   | EDefault { excepts; just; cons } ->
-    translate_default ctx excepts just cons (Marked.get_mark e)
+    translate_default ctx excepts just cons (Mark.get e)
   | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
   | ( ELit _ | EApp _ | EArray _ | EVar _ | EAbs _ | EIfThenElse _ | ETuple _
     | ETupleAccess _ | EInj _ | EAssert _ | EStruct _ | EStructAccess _
     | EMatch _ ) as e ->
-    Expr.map ~f:(translate_expr ctx) (Marked.mark m e)
+    Expr.map ~f:(translate_expr ctx) (Mark.add m e)
   | _ -> .
 
 let rec translate_scope_lets

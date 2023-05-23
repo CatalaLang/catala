@@ -23,7 +23,7 @@ let equal_tlit l1 l2 = l1 = l2
 let compare_tlit l1 l2 = Stdlib.compare l1 l2
 
 let rec equal ty1 ty2 =
-  match Marked.unmark ty1, Marked.unmark ty2 with
+  match Mark.remove ty1, Mark.remove ty2 with
   | TLit l1, TLit l2 -> equal_tlit l1 l2
   | TTuple tys1, TTuple tys2 -> equal_list tys1 tys2
   | TStruct n1, TStruct n2 -> StructName.equal n1 n2
@@ -42,7 +42,7 @@ and equal_list tys1 tys2 =
 
 (* Similar to [equal], but allows TAny holes *)
 let rec unifiable ty1 ty2 =
-  match Marked.unmark ty1, Marked.unmark ty2 with
+  match Mark.remove ty1, Mark.remove ty2 with
   | TAny, _ | _, TAny -> true
   | TLit l1, TLit l2 -> equal_tlit l1 l2
   | TTuple tys1, TTuple tys2 -> unifiable_list tys1 tys2
@@ -60,7 +60,7 @@ and unifiable_list tys1 tys2 =
   try List.for_all2 unifiable tys1 tys2 with Invalid_argument _ -> false
 
 let rec compare ty1 ty2 =
-  match Marked.unmark ty1, Marked.unmark ty2 with
+  match Mark.remove ty1, Mark.remove ty2 with
   | TLit l1, TLit l2 -> compare_tlit l1 l2
   | TTuple tys1, TTuple tys2 -> List.compare compare tys1 tys2
   | TStruct n1, TStruct n2 -> StructName.compare n1 n2

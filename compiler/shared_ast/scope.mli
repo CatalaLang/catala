@@ -107,15 +107,12 @@ val map_exprs :
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
-val get_body_mark : (_, 'm mark) gexpr scope_body -> 'm mark
+val get_body_mark : (_, 'm) gexpr scope_body -> 'm mark
 
 (** {2 Conversions} *)
 
 val to_expr :
-  decl_ctx ->
-  ('a any, 'm mark) gexpr scope_body ->
-  'm mark ->
-  ('a, 'm mark) boxed_gexpr
+  decl_ctx -> ('a any, 'm) gexpr scope_body -> 'm mark -> ('a, 'm) boxed_gexpr
 (** Usage: [to_expr ctx body scope_position] where [scope_position] corresponds
     to the line of the scope declaration for instance. *)
 
@@ -123,7 +120,7 @@ type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 
 val unfold :
   decl_ctx ->
-  ((_, 'm mark) gexpr as 'e) code_item_list ->
+  ((_, 'm) gexpr as 'e) code_item_list ->
   'm mark ->
   'e scope_name_or_var ->
   'e boxed

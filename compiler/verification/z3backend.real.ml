@@ -159,12 +159,12 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     | TDuration -> Format.asprintf "%s days" (Expr.to_string e)
   in
 
-  match Marked.unmark ty with
+  match Mark.remove ty with
   | TLit ty -> print_lit ty
   | TStruct name ->
     let s = StructName.Map.find name ctx.ctx_decl.ctx_structs in
     let get_fieldname (fn : StructField.t) : string =
-      Marked.unmark (StructField.get_info fn)
+      Mark.remove (StructField.get_info fn)
     in
     let fields =
       List.map2
@@ -178,7 +178,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     let fields_str = String.concat " " fields in
 
     Format.asprintf "%s { %s }"
-      (Marked.unmark (StructName.get_info name))
+      (Mark.remove (StructName.get_info name))
       fields_str
   | TTuple _ ->
     failwith "[Z3 model]: Pretty-printing of unnamed structs not supported"
@@ -193,7 +193,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
       List.find
         (fun (ctr, _) ->
           (* FIXME: don't match on strings *)
-          String.equal fd_name (Marked.unmark (EnumConstructor.get_info ctr)))
+          String.equal fd_name (Mark.remove (EnumConstructor.get_info ctr)))
         (EnumConstructor.Map.bindings enum_ctrs)
     in
 
@@ -289,8 +289,8 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
   (* Creates a Z3 constructor corresponding to the Catala constructor [c] *)
   let create_constructor (name : EnumConstructor.t) (ty : typ) (ctx : context) :
       context * Datatype.Constructor.constructor =
-    let name = Marked.unmark (EnumConstructor.get_info name) in
-    let ctx, arg_z3_ty = translate_typ ctx (Marked.unmark ty) in
+    let name = Mark.remove (EnumConstructor.get_info name) in
+    let ctx, arg_z3_ty = translate_typ ctx (Mark.remove ty) in
 
     (* The mk_constructor_s Z3 function is not so well documented. From my
        understanding, its argument are: - a string corresponding to the name of
@@ -324,7 +324,7 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
     in
     let z3_enum =
       Datatype.mk_sort_s ctx.ctx_z3
-        (Marked.unmark (EnumName.get_info enum))
+        (Mark.remove (EnumName.get_info enum))
         (List.rev z3_ctrs)
     in
     add_z3enum enum z3_enum ctx, z3_enum
@@ -338,19 +338,19 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
   match StructName.Map.find_opt s ctx.ctx_z3structs with
   | Some s -> ctx, s
   | None ->
-    let s_name = Marked.unmark (StructName.get_info s) in
+    let s_name = Mark.remove (StructName.get_info s) in
     let fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
     let z3_fieldnames =
       List.map
         (fun f ->
-          Marked.unmark (StructField.get_info (fst f))
+          Mark.remove (StructField.get_info (fst f))
           |> Symbol.mk_string ctx.ctx_z3)
         (StructField.Map.bindings fields)
     in
     let ctx, z3_fieldtypes_rev =
       StructField.Map.fold
         (fun _ ty (ctx, ftypes) ->
-          let ctx, ftype = translate_typ ctx (Marked.unmark ty) in
+          let ctx, ftype = translate_typ ctx (Mark.remove ty) in
           ctx, ftype :: ftypes)
         fields (ctx, [])
     in
@@ -403,12 +403,12 @@ let find_or_create_funcdecl (ctx : context) (v : typed expr Var.t) (ty : typ) :
   match Var.Map.find_opt v ctx.ctx_funcdecl with
   | Some fd -> ctx, fd
   | None -> (
-    match Marked.unmark ty with
+    match Mark.remove ty with
     | TArrow (t1, t2) ->
       let ctx, z3_t1 =
-        List.fold_left_map translate_typ ctx (List.map Marked.unmark t1)
+        List.fold_left_map translate_typ ctx (List.map Mark.remove t1)
       in
-      let ctx, z3_t2 = translate_typ ctx (Marked.unmark t2) in
+      let ctx, z3_t2 = translate_typ ctx (Mark.remove t2) in
       let name = unique_name v in
       let fd = FuncDecl.mk_func_decl_s ctx.ctx_z3 name z3_t1 z3_t2 in
       let ctx = add_funcdecl v fd ctx in
@@ -611,7 +611,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
       (ctx : context)
       (e : 'm expr * FuncDecl.func_decl list) : context * Expr.expr =
     let e, accessors = e in
-    match Marked.unmark e with
+    match Mark.remove e with
     | EAbs { binder; _ } ->
       (* Create a fresh Catala variable to substitue and obtain the body *)
       let fresh_v = Var.make "arm!tmp" in
@@ -630,18 +630,18 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     | _ -> failwith "[Z3 encoding] : Arms branches inside VCs should be lambdas"
   in
 
-  match Marked.unmark vc with
+  match Mark.remove vc with
   | EVar v -> (
     match Var.Map.find_opt v ctx.ctx_z3matchsubsts with
     | None ->
       (* We are in the standard case, where this is a true Catala variable *)
-      let (Typed { ty = t; _ }) = Marked.get_mark vc in
+      let (Typed { ty = t; _ }) = Mark.get vc in
       let name = unique_name v in
       let ctx = add_z3var name v t ctx in
-      let ctx, ty = translate_typ ctx (Marked.unmark t) in
+      let ctx, ty = translate_typ ctx (Mark.remove t) in
       let z3_var = Expr.mk_const_s ctx.ctx_z3 name ty in
       let ctx =
-        match Marked.unmark t with
+        match Mark.remove t with
         (* If we are creating a new array, we need to log that its length is
            greater than 0 *)
         | TArray _ ->
@@ -708,8 +708,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
        will be fresh, and thus will not clash in Z3 *)
     let fresh_v = Var.make "z3!match_tmp" in
     let name = unique_name fresh_v in
-    let (Typed { ty = match_ty; _ }) = Marked.get_mark vc in
-    let ctx, z3_ty = translate_typ ctx (Marked.unmark match_ty) in
+    let (Typed { ty = match_ty; _ }) = Mark.get vc in
+    let ctx, z3_ty = translate_typ ctx (Mark.remove match_ty) in
     let z3_var = Expr.mk_const_s ctx.ctx_z3 name z3_ty in
 
     let ctx, z3_enum = find_or_create_enum ctx enum in
@@ -740,10 +740,10 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | ELit l -> ctx, translate_lit ctx l
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
   | EApp { f = head; args } -> (
-    match Marked.unmark head with
+    match Mark.remove head with
     | EOp { op; _ } -> translate_op ctx op args
     | EVar v ->
-      let (Typed { ty = f_ty; _ }) = Marked.get_mark head in
+      let (Typed { ty = f_ty; _ }) = Mark.get head in
       let ctx, fd = find_or_create_funcdecl ctx v f_ty in
       (* Fold_right to preserve the order of the arguments: The head argument is
          appended at the head *)
@@ -761,7 +761,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
         failwith "[Z3 encoding] EAbs not supported beyond let_in"
       else
         let arg = List.hd args in
-        let expr = Bindlib.msubst binder [| Marked.unmark arg |] in
+        let expr = Bindlib.msubst binder [| Mark.remove arg |] in
         translate_expr ctx expr
     | _ ->
       failwith

@@ -39,7 +39,7 @@ let rec format_expr
         Print.punctuation ")"
     else Format.fprintf fmt "%a" format_expr e
   in
-  match Marked.unmark e with
+  match Mark.remove e with
   | EVar v -> Format.fprintf fmt "%a" format_var_name v
   | EFunc v -> Format.fprintf fmt "%a" format_func_name v
   | EStruct (es, s) ->
@@ -91,12 +91,12 @@ let rec format_statement
     (decl_ctx : decl_ctx)
     ?(debug : bool = false)
     (fmt : Format.formatter)
-    (stmt : stmt Marked.pos) : unit =
+    (stmt : stmt Mark.pos) : unit =
   if debug then () else ();
-  match Marked.unmark stmt with
+  match Mark.remove stmt with
   | SInnerFuncDef (name, func) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Print.keyword
-      "let" format_var_name (Marked.unmark name)
+      "let" format_var_name (Mark.remove name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt ((name, _), typ) ->
@@ -108,11 +108,11 @@ let rec format_statement
       func.func_body
   | SLocalDecl (name, typ) ->
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
-      format_var_name (Marked.unmark name) Print.punctuation ":"
+      format_var_name (Mark.remove name) Print.punctuation ":"
       (Print.typ decl_ctx) typ
   | SLocalDef (name, naked_expr) ->
-    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_var_name
-      (Marked.unmark name) Print.punctuation "="
+    Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_var_name (Mark.remove name)
+      Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
   | STryExcept (b_try, except, b_with) ->
@@ -137,11 +137,11 @@ let rec format_statement
   | SReturn ret ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "return"
       (format_expr decl_ctx ~debug)
-      (ret, Marked.get_mark stmt)
+      (ret, Mark.get stmt)
   | SAssert naked_expr ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "assert"
       (format_expr decl_ctx ~debug)
-      (naked_expr, Marked.get_mark stmt)
+      (naked_expr, Mark.get stmt)
   | SSwitch (e_switch, enum, arms) ->
     Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@]%a" Print.keyword "switch"
       (format_expr decl_ctx ~debug)
@@ -186,7 +186,7 @@ let format_item decl_ctx ?debug ppf def =
       format_func_name ppf var;
       Format.pp_print_list
         (fun ppf (arg, ty) ->
-          Format.fprintf ppf "@ (%a: %a)" format_var_name (Marked.unmark arg)
+          Format.fprintf ppf "@ (%a: %a)" format_var_name (Mark.remove arg)
             (Print.typ decl_ctx) ty)
         ppf func.func_params;
       Print.punctuation ppf " =";

@@ -65,10 +65,10 @@ val translate : 'a no_overloads t -> 'b no_overloads t
 
 (** {2 Getting the types of operators} *)
 
-val monomorphic_type : monomorphic t Marked.pos -> typ
-val resolved_type : resolved t Marked.pos -> typ
+val monomorphic_type : monomorphic t Mark.pos -> typ
+val resolved_type : resolved t Mark.pos -> typ
 
-val overload_type : decl_ctx -> overloaded t Marked.pos -> typ list -> typ
+val overload_type : decl_ctx -> overloaded t Mark.pos -> typ list -> typ
 (** The type for typing overloads is different since the types of the operands
     are required in advance.
 
@@ -81,7 +81,7 @@ val overload_type : decl_ctx -> overloaded t Marked.pos -> typ list -> typ
 
 val resolve_overload :
   decl_ctx ->
-  overloaded t Marked.pos ->
+  overloaded t Mark.pos ->
   typ list ->
   < resolved : yes ; .. > t * [ `Straight | `Reversed ]
 (** Some overloads are sugar for an operation with reversed operands, e.g.

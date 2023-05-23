@@ -56,7 +56,7 @@ val expr :
   ?debug:bool ->
   unit ->
   Format.formatter ->
-  ('a, 'm mark) gexpr ->
+  ('a, 'm) gexpr ->
   unit
 (** Same as [expr], but with a debug flag that defaults to [!Cli.debug_flag]. If
     [~hide_function_body:true], prints "<function>" for [EAbs] nodes *)
@@ -69,8 +69,7 @@ val scope :
   ?debug:bool ->
   decl_ctx ->
   Format.formatter ->
-  ScopeName.t * ('a, 'm mark) gexpr scope_body ->
+  ScopeName.t * ('a, 'm) gexpr scope_body ->
   unit
 
-val program :
-  ?debug:bool -> Format.formatter -> ('a, 'm mark) gexpr program -> unit
+val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit

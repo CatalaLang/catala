@@ -41,28 +41,28 @@ module AssertionName : Uid.Id with type info = Uid.MarkedString.info
 
 (** {2 Expressions} *)
 
-type expr = (desugared, untyped mark) gexpr
+type expr = (desugared, untyped) gexpr
 (** See {!type:Shared_ast.naked_gexpr} for the complete definition *)
 
 type location = desugared glocation
 
-module LocationSet : Set.S with type elt = location Marked.pos
+module LocationSet : Set.S with type elt = location Mark.pos
 module ExprMap : Map.S with type key = expr
 
 (** {2 Rules and scopes}*)
 
 type exception_situation =
   | BaseCase
-  | ExceptionToLabel of LabelName.t Marked.pos
-  | ExceptionToRule of RuleName.t Marked.pos
+  | ExceptionToLabel of LabelName.t Mark.pos
+  | ExceptionToRule of RuleName.t Mark.pos
 
-type label_situation = ExplicitlyLabeled of LabelName.t Marked.pos | Unlabeled
+type label_situation = ExplicitlyLabeled of LabelName.t Mark.pos | Unlabeled
 
 type rule = {
   rule_id : RuleName.t;
   rule_just : expr boxed;
   rule_cons : expr boxed;
-  rule_parameter : (expr Var.t Marked.pos * typ) list Marked.pos option;
+  rule_parameter : (expr Var.t Mark.pos * typ) list Mark.pos option;
   rule_exception : exception_situation;
   rule_label : label_situation;
 }
@@ -70,10 +70,10 @@ type rule = {
 module Rule : Set.OrderedType with type t = rule
 
 val empty_rule :
-  Pos.t -> (Uid.MarkedString.info * typ) list Marked.pos option -> rule
+  Pos.t -> (Uid.MarkedString.info * typ) list Mark.pos option -> rule
 
 val always_false_rule :
-  Pos.t -> (Uid.MarkedString.info * typ) list Marked.pos option -> rule
+  Pos.t -> (Uid.MarkedString.info * typ) list Mark.pos option -> rule
 
 type assertion = expr boxed
 type variation_typ = Increasing | Decreasing
@@ -81,8 +81,8 @@ type reference_typ = Decree | Law
 type catala_option = DateRounding of variation_typ
 
 type meta_assertion =
-  | FixedBy of reference_typ Marked.pos
-  | VariesWith of unit * variation_typ Marked.pos option
+  | FixedBy of reference_typ Mark.pos
+  | VariesWith of unit * variation_typ Mark.pos option
 
 (** This type characterizes the three levels of visibility for a given scope
     variable with regards to the scope's input and possible redefinitions inside
@@ -99,9 +99,9 @@ type io_input =
           caller as they appear in the input. *)
 
 type io = {
-  io_output : bool Marked.pos;
+  io_output : bool Mark.pos;
       (** [true] is present in the output of the scope. *)
-  io_input : io_input Marked.pos;
+  io_input : io_input Mark.pos;
 }
 (** Characterization of the input/output status of a scope variable. *)
 
@@ -109,7 +109,7 @@ type scope_def = {
   scope_def_rules : rule RuleName.Map.t;
   scope_def_typ : typ;
   scope_def_parameters :
-    (Uid.MarkedString.info * Shared_ast.typ) list Marked.pos option;
+    (Uid.MarkedString.info * Shared_ast.typ) list Mark.pos option;
   scope_def_is_condition : bool;
   scope_def_io : io;
 }
@@ -122,7 +122,7 @@ type scope = {
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion AssertionName.Map.t;
-  scope_options : catala_option Marked.pos list;
+  scope_options : catala_option Mark.pos list;
   scope_meta_assertions : meta_assertion list;
 }
 

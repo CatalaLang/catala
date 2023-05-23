@@ -22,12 +22,12 @@ open Definitions
 
 val optimize_expr :
   decl_ctx ->
-  (('a, 'b) dcalc_lcalc, 'm mark) gexpr ->
-  (('a, 'b) dcalc_lcalc, 'm mark) boxed_gexpr
+  (('a, 'b) dcalc_lcalc, 'm) gexpr ->
+  (('a, 'b) dcalc_lcalc, 'm) boxed_gexpr
 
 val optimize_program :
-  (('a, 'b) dcalc_lcalc, 'm mark) gexpr program ->
-  (('a, 'b) dcalc_lcalc, 'm mark) gexpr program
+  (('a, 'b) dcalc_lcalc, 'm) gexpr program ->
+  (('a, 'b) dcalc_lcalc, 'm) gexpr program
 
 (** {1 Tests}*)
 
