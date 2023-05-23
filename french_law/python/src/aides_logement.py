@@ -4695,7 +4695,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_date_courante = temp_calcul_nombre_parts_dot_date_courante
     try:
         temp_calcul_nombre_parts_dot_condition_2_du_832_25 = condition_2_du_832_25_3
@@ -4712,7 +4712,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_condition_2_du_832_25 = temp_calcul_nombre_parts_dot_condition_2_du_832_25
     try:
         temp_calcul_nombre_parts_dot_nombre_personnes_a_charge = nombre_personnes_a_charge_2
@@ -4729,7 +4729,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_nombre_personnes_a_charge = temp_calcul_nombre_parts_dot_nombre_personnes_a_charge
     try:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl = situation_familiale_calcul_apl_2
@@ -4746,7 +4746,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_situation_familiale_calcul_apl = temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl
     def temp_calcul_nombre_parts_dot_limitation_majoration_personnes_a_charge(_:Unit):
         def temp_calcul_nombre_parts_dot_limitation_majoration_personnes_a_charge_1(_:Unit):
@@ -4890,7 +4890,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies = temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies
     try:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25 = condition_2_du_832_25_3
@@ -4907,7 +4907,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25 = temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25
     try:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25 = n_nombre_parts_d832_25_3
@@ -4924,7 +4924,7 @@ def calcul_aide_personnalisee_logement_foyer(calcul_aide_personnalisee_logement_
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25 = temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25
     result_2 = calcul_equivalence_loyer_minimale(CalculEquivalenceLoyerMinimaleIn(date_courante_in = calcul_equivalence_loyer_minimale_dot_date_courante,
                                                  ressources_menage_arrondies_in = calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies,
@@ -5178,7 +5178,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_nombre_personnes_a_charge_1 = temp_calcul_nombre_parts_dot_nombre_personnes_a_charge_1
     try:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_1 = situation_familiale_calcul_apl_3
@@ -5194,7 +5194,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_situation_familiale_calcul_apl_1 = temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_1
     result_3 = calcul_nombre_parts_accession_propriete(CalculNombrePartsAccessionProprieteIn(nombre_personnes_a_charge_in = calcul_nombre_parts_dot_nombre_personnes_a_charge_1,
                                                        situation_familiale_calcul_apl_in = calcul_nombre_parts_dot_situation_familiale_calcul_apl_1))
@@ -9705,7 +9705,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_1 = temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_1
     try:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_1 = False
@@ -9721,7 +9721,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_1 = temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_1
     try:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_1 = n_nombre_parts_d832_11_1
@@ -9737,7 +9737,7 @@ def calcul_aide_personnalisee_logement_accession_propriete(calcul_aide_personnal
                                              "Titre III : Aide personnalisée au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_1 = temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_1
     result_5 = calcul_equivalence_loyer_minimale(CalculEquivalenceLoyerMinimaleIn(date_courante_in = calcul_equivalence_loyer_minimale_dot_date_courante_1,
                                                  ressources_menage_arrondies_in = calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_1,
@@ -14689,7 +14689,7 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     if not (temp___10):
         raise AssertionFailure(SourcePosition(filename="examples/aides_logement/code_construction_reglementaire.catala_fr",
                                               start_line=1816,
@@ -14702,7 +14702,7 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                                            "Titre II : Dispositions communes aux aides personnelles au logement",
                                                            "Livre VIII : Aides personnelles au logement",
                                                            "Partie réglementaire",
-                                                           "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                           "Code de la construction et de l'habitation"]))
     def temp_traitement_aide_finale_diminue(aide_finale_11:Money):
         try:
             try:
@@ -15432,7 +15432,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_date_courante_1 = temp_calcul_nombre_parts_dot_date_courante_1
     try:
         temp_calcul_nombre_parts_dot_condition_2_du_832_25_1 = True
@@ -15448,7 +15448,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_condition_2_du_832_25_1 = temp_calcul_nombre_parts_dot_condition_2_du_832_25_1
     try:
         temp_calcul_nombre_parts_dot_nombre_personnes_a_charge_2 = nombre_personnes_a_charge_5
@@ -15464,7 +15464,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_nombre_personnes_a_charge_2 = temp_calcul_nombre_parts_dot_nombre_personnes_a_charge_2
     try:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_2 = situation_familiale_calcul_apl_5
@@ -15480,7 +15480,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_situation_familiale_calcul_apl_2 = temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_2
     def temp_calcul_nombre_parts_dot_limitation_majoration_personnes_a_charge_3(_:Unit):
         raise EmptyError
@@ -16215,7 +16215,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_2 = temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_2
     try:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_2 = True
@@ -16231,7 +16231,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_2 = temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_2
     try:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_2 = calcul_nombre_parts_dot_n_nombre_parts_d832_25_1
@@ -16247,7 +16247,7 @@ def calcul_allocation_logement_foyer(calcul_allocation_logement_foyer_in:CalculA
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_2 = temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_2
     result_11 = calcul_equivalence_loyer_minimale(CalculEquivalenceLoyerMinimaleIn(date_courante_in = calcul_equivalence_loyer_minimale_dot_date_courante_2,
                                                   ressources_menage_arrondies_in = calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_2,
@@ -16881,7 +16881,7 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_nombre_personnes_a_charge_3 = temp_calcul_nombre_parts_dot_nombre_personnes_a_charge_3
     try:
         temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_3 = situation_familiale_calcul_apl_6
@@ -16897,7 +16897,7 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_nombre_parts_dot_situation_familiale_calcul_apl_3 = temp_calcul_nombre_parts_dot_situation_familiale_calcul_apl_3
     result_12 = calcul_nombre_parts_accession_propriete(CalculNombrePartsAccessionProprieteIn(nombre_personnes_a_charge_in = calcul_nombre_parts_dot_nombre_personnes_a_charge_3,
                                                         situation_familiale_calcul_apl_in = calcul_nombre_parts_dot_situation_familiale_calcul_apl_3))
@@ -21719,7 +21719,7 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_3 = temp_calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_3
     try:
         temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_3 = True
@@ -21735,7 +21735,7 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_3 = temp_calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_3
     try:
         temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_3 = calcul_nombre_parts_dot_n_nombre_parts_d832_11_1
@@ -21751,7 +21751,7 @@ def calcul_allocation_logement_accession_propriete(calcul_allocation_logement_ac
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_3 = temp_calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_3
     result_14 = calcul_equivalence_loyer_minimale(CalculEquivalenceLoyerMinimaleIn(date_courante_in = calcul_equivalence_loyer_minimale_dot_date_courante_3,
                                                   ressources_menage_arrondies_in = calcul_equivalence_loyer_minimale_dot_ressources_menage_arrondies_3,
@@ -23144,7 +23144,7 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                                                                  "Titre II : Dispositions communes aux aides personnelles au logement",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_condition_2_r823_4_4 = date_courante_14
                         except EmptyError:
@@ -23160,7 +23160,7 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                                                                  "Titre II : Dispositions communes aux aides personnelles au logement",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_condition_2_r823_4_5 = duration_of_numbers(65,0,0)
                         except EmptyError:
@@ -23176,7 +23176,7 @@ def eligibilite_aides_personnelle_logement(eligibilite_aides_personnelle_logemen
                                                                  "Titre II : Dispositions communes aux aides personnelles au logement",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         return ((parent.parente ==
                             Parente(Parente_Code.Ascendant, Unit())) and
                             ((parent.ressources <=
@@ -23571,7 +23571,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_loyer_principal_base = temp_calcul_apl_locatif_dot_loyer_principal_base
     try:
         temp_calcul_apl_locatif_dot_ressources_menage_arrondies = ressources_menage_arrondies_5
@@ -23587,7 +23587,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_ressources_menage_arrondies = temp_calcul_apl_locatif_dot_ressources_menage_arrondies
     try:
         temp_calcul_apl_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = beneficiaire_aide_adulte_ou_enfant_handicapes_1
@@ -23603,7 +23603,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes = temp_calcul_apl_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes
     try:
         temp_calcul_apl_locatif_dot_date_courante = date_courante_15
@@ -23619,7 +23619,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_date_courante = temp_calcul_apl_locatif_dot_date_courante
     try:
         temp_calcul_apl_locatif_dot_nombre_personnes_a_charge = nombre_personnes_a_charge_10
@@ -23635,7 +23635,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_nombre_personnes_a_charge = temp_calcul_apl_locatif_dot_nombre_personnes_a_charge
     try:
         temp_calcul_apl_locatif_dot_situation_familiale_calcul_apl = situation_familiale_calcul_apl_7
@@ -23651,7 +23651,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_situation_familiale_calcul_apl = temp_calcul_apl_locatif_dot_situation_familiale_calcul_apl
     try:
         temp_calcul_apl_locatif_dot_zone = zone_5
@@ -23667,7 +23667,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_zone = temp_calcul_apl_locatif_dot_zone
     try:
         temp_calcul_apl_locatif_dot_logement_est_chambre = logement_est_chambre_1
@@ -23683,7 +23683,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_logement_est_chambre = temp_calcul_apl_locatif_dot_logement_est_chambre
     try:
         temp_calcul_apl_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = agees_ou_handicap_adultes_hebergees_onereux_particuliers_1
@@ -23698,7 +23698,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers = temp_calcul_apl_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers
     try:
         temp_calcul_apl_locatif_dot_type_aide = type_aide_1
@@ -23714,7 +23714,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_type_aide = temp_calcul_apl_locatif_dot_type_aide
     try:
         temp_calcul_apl_locatif_dot_colocation = colocation_1
@@ -23730,7 +23730,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_colocation = temp_calcul_apl_locatif_dot_colocation
     try:
         temp_calcul_apl_locatif_dot_reduction_loyer_solidarite = reduction_loyer_solidarite_1
@@ -23746,7 +23746,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_reduction_loyer_solidarite = temp_calcul_apl_locatif_dot_reduction_loyer_solidarite
     try:
         temp_calcul_apl_locatif_dot_logement_meuble_d842_2 = logement_meuble_d842_2_1
@@ -23762,7 +23762,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_logement_meuble_d842_2 = temp_calcul_apl_locatif_dot_logement_meuble_d842_2
     try:
         temp_calcul_apl_locatif_dot_residence = residence_8
@@ -23778,7 +23778,7 @@ def calcul_allocation_logement_locatif(calcul_allocation_logement_locatif_in:Cal
                                              "Titre IV : Allocations de Logement",
                                              "Livre VIII : Aides personnelles au logement",
                                              "Partie réglementaire",
-                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                             "Code de la construction et de l'habitation"]))
     calcul_apl_locatif_dot_residence = temp_calcul_apl_locatif_dot_residence
     result_18 = calcul_aide_personnalisee_logement_locatif(CalculAidePersonnaliseeLogementLocatifIn(loyer_principal_base_in = calcul_apl_locatif_dot_loyer_principal_base,
                                                            ressources_menage_arrondies_in = calcul_apl_locatif_dot_ressources_menage_arrondies,
@@ -24044,7 +24044,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_1 = location_2.logement_meuble_d842_2
             except EmptyError:
@@ -24060,7 +24060,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 match_arg_663 = location_2.bailleur
                 if match_arg_663.code == TypeBailleur_Code.BailleurSocial:
@@ -24085,7 +24085,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_3 = location_2.colocation
             except EmptyError:
@@ -24101,7 +24101,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_4 = type_aide_2
             except EmptyError:
@@ -24117,7 +24117,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_5 = location_2.agees_ou_handicap_adultes_hebergees_onereux_particuliers
             except EmptyError:
@@ -24133,7 +24133,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_6 = location_2.logement_est_chambre
             except EmptyError:
@@ -24149,7 +24149,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_7 = zone_6
             except EmptyError:
@@ -24165,7 +24165,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_8 = situation_familiale_calcul_apl_8
             except EmptyError:
@@ -24181,7 +24181,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_9 = nombre_personnes_a_charge_11
             except EmptyError:
@@ -24197,7 +24197,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_10 = date_courante_16
             except EmptyError:
@@ -24213,7 +24213,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_11 = location_2.beneficiaire_aide_adulte_ou_enfant_handicapes
             except EmptyError:
@@ -24229,7 +24229,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_12 = ressources_menage_avec_arrondi
             except EmptyError:
@@ -24245,7 +24245,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_13 = location_2.loyer_principal
             except EmptyError:
@@ -24261,7 +24261,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             def temp_sous_calcul_traitement_14(param0:Money):
                 try:
                     temp_sous_calcul_traitement_15 = location_2.loyer_principal
@@ -24278,7 +24278,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_16 = ressources_menage_avec_arrondi
                 except EmptyError:
@@ -24294,7 +24294,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_17 = location_2.beneficiaire_aide_adulte_ou_enfant_handicapes
                 except EmptyError:
@@ -24310,7 +24310,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_18 = date_courante_16
                 except EmptyError:
@@ -24326,7 +24326,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_19 = nombre_personnes_a_charge_11
                 except EmptyError:
@@ -24342,7 +24342,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_20 = situation_familiale_calcul_apl_8
                 except EmptyError:
@@ -24358,7 +24358,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_21 = zone_6
                 except EmptyError:
@@ -24374,7 +24374,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_22 = location_2.logement_est_chambre
                 except EmptyError:
@@ -24390,7 +24390,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_23 = location_2.agees_ou_handicap_adultes_hebergees_onereux_particuliers
                 except EmptyError:
@@ -24406,7 +24406,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_24 = type_aide_2
                 except EmptyError:
@@ -24422,7 +24422,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_25 = location_2.colocation
                 except EmptyError:
@@ -24438,7 +24438,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     match_arg_664 = location_2.bailleur
                     if match_arg_664.code == TypeBailleur_Code.BailleurSocial:
@@ -24463,7 +24463,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_27 = location_2.logement_meuble_d842_2
                 except EmptyError:
@@ -24479,7 +24479,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_28 = residence_9
                 except EmptyError:
@@ -24495,7 +24495,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 return calcul_aide_personnalisee_logement_locatif(CalculAidePersonnaliseeLogementLocatifIn(loyer_principal_base_in = temp_sous_calcul_traitement_15,
                                                                   ressources_menage_arrondies_in = temp_sous_calcul_traitement_16,
                                                                   beneficiaire_aide_adulte_ou_enfant_handicapes_in = temp_sous_calcul_traitement_17,
@@ -24544,7 +24544,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_31 = date_courante_16
             except EmptyError:
@@ -24560,7 +24560,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_32 = proprietaire_2.anciennete_logement
             except EmptyError:
@@ -24576,7 +24576,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_33 = proprietaire_2.pret.type_pret
             except EmptyError:
@@ -24592,7 +24592,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_34 = zone_6
             except EmptyError:
@@ -24608,7 +24608,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_35 = proprietaire_2.situation_r822_11_13_17
             except EmptyError:
@@ -24624,7 +24624,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_36 = proprietaire_2.copropriete
             except EmptyError:
@@ -24640,7 +24640,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_37 = proprietaire_2.date_entree_logement
             except EmptyError:
@@ -24656,7 +24656,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_38 = proprietaire_2.local_habite_premiere_fois_beneficiaire
             except EmptyError:
@@ -24672,7 +24672,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_39 = proprietaire_2.pret.date_signature
             except EmptyError:
@@ -24688,7 +24688,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_40 = proprietaire_2.type_travaux_logement_d832_15
             except EmptyError:
@@ -24704,7 +24704,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_41 = situation_familiale_calcul_apl_8
             except EmptyError:
@@ -24720,7 +24720,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_42 = nombre_personnes_a_charge_11
             except EmptyError:
@@ -24736,7 +24736,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_43 = ressources_menage_avec_arrondi
             except EmptyError:
@@ -24752,7 +24752,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_44 = proprietaire_2.mensualite_principale
             except EmptyError:
@@ -24768,7 +24768,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             def temp_sous_calcul_traitement_45(param0_1:Money):
                 try:
                     temp_sous_calcul_traitement_46 = proprietaire_2.mensualite_principale
@@ -24785,7 +24785,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_47 = ressources_menage_avec_arrondi
                 except EmptyError:
@@ -24801,7 +24801,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_48 = nombre_personnes_a_charge_11
                 except EmptyError:
@@ -24817,7 +24817,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_49 = situation_familiale_calcul_apl_8
                 except EmptyError:
@@ -24833,7 +24833,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_50 = proprietaire_2.type_travaux_logement_d832_15
                 except EmptyError:
@@ -24849,7 +24849,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_51 = proprietaire_2.pret.date_signature
                 except EmptyError:
@@ -24865,7 +24865,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_52 = proprietaire_2.local_habite_premiere_fois_beneficiaire
                 except EmptyError:
@@ -24881,7 +24881,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_53 = proprietaire_2.date_entree_logement
                 except EmptyError:
@@ -24897,7 +24897,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_54 = proprietaire_2.copropriete
                 except EmptyError:
@@ -24913,7 +24913,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_55 = proprietaire_2.situation_r822_11_13_17
                 except EmptyError:
@@ -24929,7 +24929,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_56 = zone_6
                 except EmptyError:
@@ -24945,7 +24945,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_57 = proprietaire_2.pret.type_pret
                 except EmptyError:
@@ -24961,7 +24961,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_58 = proprietaire_2.anciennete_logement
                 except EmptyError:
@@ -24977,7 +24977,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_59 = date_courante_16
                 except EmptyError:
@@ -24993,7 +24993,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_60 = residence_9
                 except EmptyError:
@@ -25009,7 +25009,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 return calcul_aide_personnalisee_logement_accession_propriete(
                     CalculAidePersonnaliseeLogementAccessionProprieteIn(mensualite_principale_in = temp_sous_calcul_traitement_46,
                     ressources_menage_arrondies_in = temp_sous_calcul_traitement_47,
@@ -25067,7 +25067,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_65 = date_courante_16
             except EmptyError:
@@ -25083,7 +25083,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_66 = zone_6
             except EmptyError:
@@ -25099,7 +25099,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_67 = situation_familiale_calcul_apl_8
             except EmptyError:
@@ -25115,7 +25115,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_68 = nombre_personnes_a_charge_11
             except EmptyError:
@@ -25131,7 +25131,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_69 = ressources_menage_avec_arrondi
             except EmptyError:
@@ -25147,7 +25147,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_70 = logement_foyer_.date_conventionnement
             except EmptyError:
@@ -25163,7 +25163,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_71 = logement_foyer_.type
             except EmptyError:
@@ -25179,7 +25179,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_72 = logement_foyer_.logement_foyer_jeunes_travailleurs
             except EmptyError:
@@ -25195,7 +25195,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             try:
                 temp_sous_calcul_traitement_73 = residence_9
             except EmptyError:
@@ -25211,7 +25211,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                      "Titre II : Dispositions communes aux aides personnelles au logement",
                                                      "Livre VIII : Aides personnelles au logement",
                                                      "Partie réglementaire",
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                     "Code de la construction et de l'habitation"]))
             def temp_sous_calcul_traitement_74(param0_2:Money):
                 try:
                     temp_sous_calcul_traitement_75 = residence_9
@@ -25228,7 +25228,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_76 = logement_foyer_.logement_foyer_jeunes_travailleurs
                 except EmptyError:
@@ -25244,7 +25244,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_77 = logement_foyer_.type
                 except EmptyError:
@@ -25260,7 +25260,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_78 = logement_foyer_.date_conventionnement
                 except EmptyError:
@@ -25276,7 +25276,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_79 = ressources_menage_avec_arrondi
                 except EmptyError:
@@ -25292,7 +25292,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_80 = nombre_personnes_a_charge_11
                 except EmptyError:
@@ -25308,7 +25308,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_81 = situation_familiale_calcul_apl_8
                 except EmptyError:
@@ -25324,7 +25324,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_82 = zone_6
                 except EmptyError:
@@ -25340,7 +25340,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_83 = date_courante_16
                 except EmptyError:
@@ -25356,7 +25356,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_84 = logement_foyer_.redevance
                 except EmptyError:
@@ -25372,7 +25372,7 @@ def calcul_aide_personnalisee_logement(calcul_aide_personnalisee_logement_in:Cal
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 def temp_sous_calcul_traitement_85(_:Unit):
                     raise EmptyError
                 def temp_sous_calcul_traitement_86(_:Unit):
@@ -26520,140 +26520,177 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                 try:
                                     try:
                                         try:
-                                            def temp_eligibilite_allocation_logement_familiale(_:Unit):
-                                                return True
-                                            def temp_eligibilite_allocation_logement_familiale_1(_:Unit):
-                                                match_arg_693 = menage_2.residence
-                                                if match_arg_693.code == Collectivite_Code.Guadeloupe:
-                                                    _ = match_arg_693.value
-                                                    temp_eligibilite_allocation_logement_familiale_2 = False
-                                                elif match_arg_693.code == Collectivite_Code.Guyane:
-                                                    _ = match_arg_693.value
-                                                    temp_eligibilite_allocation_logement_familiale_2 = False
-                                                elif match_arg_693.code == Collectivite_Code.Martinique:
-                                                    _ = match_arg_693.value
-                                                    temp_eligibilite_allocation_logement_familiale_2 = False
-                                                elif match_arg_693.code == Collectivite_Code.LaReunion:
-                                                    _ = match_arg_693.value
-                                                    temp_eligibilite_allocation_logement_familiale_2 = False
-                                                elif match_arg_693.code == Collectivite_Code.SaintBarthelemy:
-                                                    _ = match_arg_693.value
-                                                    temp_eligibilite_allocation_logement_familiale_2 = True
-                                                elif match_arg_693.code == Collectivite_Code.SaintMartin:
-                                                    _ = match_arg_693.value
-                                                    temp_eligibilite_allocation_logement_familiale_2 = True
-                                                elif match_arg_693.code == Collectivite_Code.Metropole:
-                                                    _ = match_arg_693.value
-                                                    temp_eligibilite_allocation_logement_familiale_2 = False
-                                                elif match_arg_693.code == Collectivite_Code.SaintPierreEtMiquelon:
-                                                    _ = match_arg_693.value
-                                                    temp_eligibilite_allocation_logement_familiale_2 = False
-                                                elif match_arg_693.code == Collectivite_Code.Mayotte:
-                                                    _ = match_arg_693.value
-                                                    temp_eligibilite_allocation_logement_familiale_2 = False
-                                                return (temp_eligibilite_allocation_logement_familiale_2 and
-                                                    demandeur_2.est_non_salarie_agricole_l781_8_l_781_46_code_rural)
-                                            temp_eligibilite_allocation_logement_familiale_3 = handle_default(
-                                                SourcePosition(filename="",
-                                                start_line=0, start_column=1,
-                                                end_line=0, end_column=1,
-                                                law_headings=[]), [],
-                                                temp_eligibilite_allocation_logement_familiale_1,
-                                                temp_eligibilite_allocation_logement_familiale)
+                                            try:
+                                                def temp_eligibilite_allocation_logement_familiale(_:Unit):
+                                                    return True
+                                                def temp_eligibilite_allocation_logement_familiale_1(_:Unit):
+                                                    match_arg_693 = menage_2.residence
+                                                    if match_arg_693.code == Collectivite_Code.Guadeloupe:
+                                                        _ = match_arg_693.value
+                                                        temp_eligibilite_allocation_logement_familiale_2 = False
+                                                    elif match_arg_693.code == Collectivite_Code.Guyane:
+                                                        _ = match_arg_693.value
+                                                        temp_eligibilite_allocation_logement_familiale_2 = False
+                                                    elif match_arg_693.code == Collectivite_Code.Martinique:
+                                                        _ = match_arg_693.value
+                                                        temp_eligibilite_allocation_logement_familiale_2 = False
+                                                    elif match_arg_693.code == Collectivite_Code.LaReunion:
+                                                        _ = match_arg_693.value
+                                                        temp_eligibilite_allocation_logement_familiale_2 = False
+                                                    elif match_arg_693.code == Collectivite_Code.SaintBarthelemy:
+                                                        _ = match_arg_693.value
+                                                        temp_eligibilite_allocation_logement_familiale_2 = True
+                                                    elif match_arg_693.code == Collectivite_Code.SaintMartin:
+                                                        _ = match_arg_693.value
+                                                        temp_eligibilite_allocation_logement_familiale_2 = True
+                                                    elif match_arg_693.code == Collectivite_Code.Metropole:
+                                                        _ = match_arg_693.value
+                                                        temp_eligibilite_allocation_logement_familiale_2 = False
+                                                    elif match_arg_693.code == Collectivite_Code.SaintPierreEtMiquelon:
+                                                        _ = match_arg_693.value
+                                                        temp_eligibilite_allocation_logement_familiale_2 = False
+                                                    elif match_arg_693.code == Collectivite_Code.Mayotte:
+                                                        _ = match_arg_693.value
+                                                        temp_eligibilite_allocation_logement_familiale_2 = False
+                                                    return (temp_eligibilite_allocation_logement_familiale_2 and
+                                                        demandeur_2.est_non_salarie_agricole_l781_8_l_781_46_code_rural)
+                                                temp_eligibilite_allocation_logement_familiale_3 = handle_default(
+                                                    SourcePosition(filename="",
+                                                    start_line=0,
+                                                    start_column=1,
+                                                    end_line=0, end_column=1,
+                                                    law_headings=[]), [],
+                                                    temp_eligibilite_allocation_logement_familiale_1,
+                                                    temp_eligibilite_allocation_logement_familiale)
+                                            except EmptyError:
+                                                def temp_eligibilite_allocation_logement_familiale_4(personne_a_charge_8:PersonneACharge):
+                                                    match_arg_694 = personne_a_charge_8
+                                                    if match_arg_694.code == PersonneACharge_Code.EnfantACharge:
+                                                        enfant_10 = match_arg_694.value
+                                                        return prestations_familiales_dot_droit_ouvert_1(
+                                                            EnfantPrestationsFamiliales(identifiant = enfant_10.identifiant,
+                                                            obligation_scolaire = enfant_10.obligation_scolaire,
+                                                            remuneration_mensuelle = enfant_10.remuneration_mensuelle,
+                                                            date_de_naissance = enfant_10.date_de_naissance,
+                                                            a_deja_ouvert_droit_aux_allocations_familiales = enfant_10.a_deja_ouvert_droit_aux_allocations_familiales))
+                                                    elif match_arg_694.code == PersonneACharge_Code.AutrePersonneACharge:
+                                                        _ = match_arg_694.value
+                                                        return False
+                                                match_arg_695 = menage_2.residence
+                                                if match_arg_695.code == Collectivite_Code.Guadeloupe:
+                                                    _ = match_arg_695.value
+                                                    temp_eligibilite_allocation_logement_familiale_5 = False
+                                                elif match_arg_695.code == Collectivite_Code.Guyane:
+                                                    _ = match_arg_695.value
+                                                    temp_eligibilite_allocation_logement_familiale_5 = False
+                                                elif match_arg_695.code == Collectivite_Code.Martinique:
+                                                    _ = match_arg_695.value
+                                                    temp_eligibilite_allocation_logement_familiale_5 = False
+                                                elif match_arg_695.code == Collectivite_Code.LaReunion:
+                                                    _ = match_arg_695.value
+                                                    temp_eligibilite_allocation_logement_familiale_5 = False
+                                                elif match_arg_695.code == Collectivite_Code.SaintBarthelemy:
+                                                    _ = match_arg_695.value
+                                                    temp_eligibilite_allocation_logement_familiale_5 = True
+                                                elif match_arg_695.code == Collectivite_Code.SaintMartin:
+                                                    _ = match_arg_695.value
+                                                    temp_eligibilite_allocation_logement_familiale_5 = True
+                                                elif match_arg_695.code == Collectivite_Code.Metropole:
+                                                    _ = match_arg_695.value
+                                                    temp_eligibilite_allocation_logement_familiale_5 = False
+                                                elif match_arg_695.code == Collectivite_Code.SaintPierreEtMiquelon:
+                                                    _ = match_arg_695.value
+                                                    temp_eligibilite_allocation_logement_familiale_5 = False
+                                                elif match_arg_695.code == Collectivite_Code.Mayotte:
+                                                    _ = match_arg_695.value
+                                                    temp_eligibilite_allocation_logement_familiale_5 = False
+                                                if (temp_eligibilite_allocation_logement_familiale_5 and
+                                                    (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_4,
+                                                    menage_2.personnes_a_charge)) >=
+                                                    integer_of_string("1"))):
+                                                    temp_eligibilite_allocation_logement_familiale_3 = True
+                                                else:
+                                                    temp_eligibilite_allocation_logement_familiale_3 = dead_value
+                                                    raise EmptyError
                                         except EmptyError:
-                                            def temp_eligibilite_allocation_logement_familiale_4(personne_a_charge_8:PersonneACharge):
-                                                match_arg_694 = personne_a_charge_8
-                                                if match_arg_694.code == PersonneACharge_Code.EnfantACharge:
-                                                    enfant_10 = match_arg_694.value
-                                                    return prestations_familiales_dot_droit_ouvert_1(
-                                                        EnfantPrestationsFamiliales(identifiant = enfant_10.identifiant,
-                                                        obligation_scolaire = enfant_10.obligation_scolaire,
-                                                        remuneration_mensuelle = enfant_10.remuneration_mensuelle,
-                                                        date_de_naissance = enfant_10.date_de_naissance,
-                                                        a_deja_ouvert_droit_aux_allocations_familiales = enfant_10.a_deja_ouvert_droit_aux_allocations_familiales))
-                                                elif match_arg_694.code == PersonneACharge_Code.AutrePersonneACharge:
-                                                    _ = match_arg_694.value
-                                                    return False
-                                            match_arg_695 = menage_2.residence
-                                            if match_arg_695.code == Collectivite_Code.Guadeloupe:
-                                                _ = match_arg_695.value
-                                                temp_eligibilite_allocation_logement_familiale_5 = False
-                                            elif match_arg_695.code == Collectivite_Code.Guyane:
-                                                _ = match_arg_695.value
-                                                temp_eligibilite_allocation_logement_familiale_5 = False
-                                            elif match_arg_695.code == Collectivite_Code.Martinique:
-                                                _ = match_arg_695.value
-                                                temp_eligibilite_allocation_logement_familiale_5 = False
-                                            elif match_arg_695.code == Collectivite_Code.LaReunion:
-                                                _ = match_arg_695.value
-                                                temp_eligibilite_allocation_logement_familiale_5 = False
-                                            elif match_arg_695.code == Collectivite_Code.SaintBarthelemy:
-                                                _ = match_arg_695.value
-                                                temp_eligibilite_allocation_logement_familiale_5 = True
-                                            elif match_arg_695.code == Collectivite_Code.SaintMartin:
-                                                _ = match_arg_695.value
-                                                temp_eligibilite_allocation_logement_familiale_5 = True
-                                            elif match_arg_695.code == Collectivite_Code.Metropole:
-                                                _ = match_arg_695.value
-                                                temp_eligibilite_allocation_logement_familiale_5 = False
-                                            elif match_arg_695.code == Collectivite_Code.SaintPierreEtMiquelon:
-                                                _ = match_arg_695.value
-                                                temp_eligibilite_allocation_logement_familiale_5 = False
-                                            elif match_arg_695.code == Collectivite_Code.Mayotte:
-                                                _ = match_arg_695.value
-                                                temp_eligibilite_allocation_logement_familiale_5 = False
-                                            if (temp_eligibilite_allocation_logement_familiale_5 and
-                                                (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_4,
-                                                menage_2.personnes_a_charge)) >=
-                                                integer_of_string("1"))):
+                                            match_arg_696 = menage_2.residence
+                                            if match_arg_696.code == Collectivite_Code.Guadeloupe:
+                                                _ = match_arg_696.value
+                                                temp_eligibilite_allocation_logement_familiale_6 = True
+                                            elif match_arg_696.code == Collectivite_Code.Guyane:
+                                                _ = match_arg_696.value
+                                                temp_eligibilite_allocation_logement_familiale_6 = True
+                                            elif match_arg_696.code == Collectivite_Code.Martinique:
+                                                _ = match_arg_696.value
+                                                temp_eligibilite_allocation_logement_familiale_6 = True
+                                            elif match_arg_696.code == Collectivite_Code.LaReunion:
+                                                _ = match_arg_696.value
+                                                temp_eligibilite_allocation_logement_familiale_6 = True
+                                            elif match_arg_696.code == Collectivite_Code.SaintBarthelemy:
+                                                _ = match_arg_696.value
+                                                temp_eligibilite_allocation_logement_familiale_6 = False
+                                            elif match_arg_696.code == Collectivite_Code.SaintMartin:
+                                                _ = match_arg_696.value
+                                                temp_eligibilite_allocation_logement_familiale_6 = False
+                                            elif match_arg_696.code == Collectivite_Code.Metropole:
+                                                _ = match_arg_696.value
+                                                temp_eligibilite_allocation_logement_familiale_6 = False
+                                            elif match_arg_696.code == Collectivite_Code.SaintPierreEtMiquelon:
+                                                _ = match_arg_696.value
+                                                temp_eligibilite_allocation_logement_familiale_6 = False
+                                            elif match_arg_696.code == Collectivite_Code.Mayotte:
+                                                _ = match_arg_696.value
+                                                temp_eligibilite_allocation_logement_familiale_6 = True
+                                            if (temp_eligibilite_allocation_logement_familiale_6 and
+                                                demandeur_2.est_non_salarie_agricole_l781_8_l_781_46_code_rural):
                                                 temp_eligibilite_allocation_logement_familiale_3 = True
                                             else:
                                                 temp_eligibilite_allocation_logement_familiale_3 = dead_value
                                                 raise EmptyError
                                     except EmptyError:
-                                        def temp_eligibilite_allocation_logement_familiale_6(personne_a_charge_9:PersonneACharge):
-                                            match_arg_696 = personne_a_charge_9
-                                            if match_arg_696.code == PersonneACharge_Code.EnfantACharge:
-                                                enfant_11 = match_arg_696.value
+                                        def temp_eligibilite_allocation_logement_familiale_7(personne_a_charge_9:PersonneACharge):
+                                            match_arg_697 = personne_a_charge_9
+                                            if match_arg_697.code == PersonneACharge_Code.EnfantACharge:
+                                                enfant_11 = match_arg_697.value
                                                 return prestations_familiales_dot_droit_ouvert_1(
                                                     EnfantPrestationsFamiliales(identifiant = enfant_11.identifiant,
                                                     obligation_scolaire = enfant_11.obligation_scolaire,
                                                     remuneration_mensuelle = enfant_11.remuneration_mensuelle,
                                                     date_de_naissance = enfant_11.date_de_naissance,
                                                     a_deja_ouvert_droit_aux_allocations_familiales = enfant_11.a_deja_ouvert_droit_aux_allocations_familiales))
-                                            elif match_arg_696.code == PersonneACharge_Code.AutrePersonneACharge:
-                                                _ = match_arg_696.value
+                                            elif match_arg_697.code == PersonneACharge_Code.AutrePersonneACharge:
+                                                _ = match_arg_697.value
                                                 return False
-                                        match_arg_697 = menage_2.residence
-                                        if match_arg_697.code == Collectivite_Code.Guadeloupe:
-                                            _ = match_arg_697.value
-                                            temp_eligibilite_allocation_logement_familiale_7 = True
-                                        elif match_arg_697.code == Collectivite_Code.Guyane:
-                                            _ = match_arg_697.value
-                                            temp_eligibilite_allocation_logement_familiale_7 = True
-                                        elif match_arg_697.code == Collectivite_Code.Martinique:
-                                            _ = match_arg_697.value
-                                            temp_eligibilite_allocation_logement_familiale_7 = True
-                                        elif match_arg_697.code == Collectivite_Code.LaReunion:
-                                            _ = match_arg_697.value
-                                            temp_eligibilite_allocation_logement_familiale_7 = True
-                                        elif match_arg_697.code == Collectivite_Code.SaintBarthelemy:
-                                            _ = match_arg_697.value
-                                            temp_eligibilite_allocation_logement_familiale_7 = False
-                                        elif match_arg_697.code == Collectivite_Code.SaintMartin:
-                                            _ = match_arg_697.value
-                                            temp_eligibilite_allocation_logement_familiale_7 = False
-                                        elif match_arg_697.code == Collectivite_Code.Metropole:
-                                            _ = match_arg_697.value
-                                            temp_eligibilite_allocation_logement_familiale_7 = False
-                                        elif match_arg_697.code == Collectivite_Code.SaintPierreEtMiquelon:
-                                            _ = match_arg_697.value
-                                            temp_eligibilite_allocation_logement_familiale_7 = False
-                                        elif match_arg_697.code == Collectivite_Code.Mayotte:
-                                            _ = match_arg_697.value
-                                            temp_eligibilite_allocation_logement_familiale_7 = True
-                                        if (temp_eligibilite_allocation_logement_familiale_7 and
-                                            (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_6,
+                                        match_arg_698 = menage_2.residence
+                                        if match_arg_698.code == Collectivite_Code.Guadeloupe:
+                                            _ = match_arg_698.value
+                                            temp_eligibilite_allocation_logement_familiale_8 = True
+                                        elif match_arg_698.code == Collectivite_Code.Guyane:
+                                            _ = match_arg_698.value
+                                            temp_eligibilite_allocation_logement_familiale_8 = True
+                                        elif match_arg_698.code == Collectivite_Code.Martinique:
+                                            _ = match_arg_698.value
+                                            temp_eligibilite_allocation_logement_familiale_8 = True
+                                        elif match_arg_698.code == Collectivite_Code.LaReunion:
+                                            _ = match_arg_698.value
+                                            temp_eligibilite_allocation_logement_familiale_8 = True
+                                        elif match_arg_698.code == Collectivite_Code.SaintBarthelemy:
+                                            _ = match_arg_698.value
+                                            temp_eligibilite_allocation_logement_familiale_8 = False
+                                        elif match_arg_698.code == Collectivite_Code.SaintMartin:
+                                            _ = match_arg_698.value
+                                            temp_eligibilite_allocation_logement_familiale_8 = False
+                                        elif match_arg_698.code == Collectivite_Code.Metropole:
+                                            _ = match_arg_698.value
+                                            temp_eligibilite_allocation_logement_familiale_8 = False
+                                        elif match_arg_698.code == Collectivite_Code.SaintPierreEtMiquelon:
+                                            _ = match_arg_698.value
+                                            temp_eligibilite_allocation_logement_familiale_8 = False
+                                        elif match_arg_698.code == Collectivite_Code.Mayotte:
+                                            _ = match_arg_698.value
+                                            temp_eligibilite_allocation_logement_familiale_8 = True
+                                        if (temp_eligibilite_allocation_logement_familiale_8 and
+                                            (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_7,
                                             menage_2.personnes_a_charge)) >=
                                             integer_of_string("1"))):
                                             temp_eligibilite_allocation_logement_familiale_3 = True
@@ -26661,44 +26698,44 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                             temp_eligibilite_allocation_logement_familiale_3 = dead_value
                                             raise EmptyError
                                 except EmptyError:
-                                    match_arg_698 = menage_2.situation_familiale
-                                    if match_arg_698.code == SituationFamiliale_Code.Celibataire:
-                                        _ = match_arg_698.value
-                                        temp_eligibilite_allocation_logement_familiale_8 = ((list_length(menage_2.personnes_a_charge) ==
+                                    match_arg_699 = menage_2.situation_familiale
+                                    if match_arg_699.code == SituationFamiliale_Code.Celibataire:
+                                        _ = match_arg_699.value
+                                        temp_eligibilite_allocation_logement_familiale_9 = ((list_length(menage_2.personnes_a_charge) ==
                                             integer_of_string("0")) and
                                             menage_2.enfant_a_naitre_apres_quatrieme_mois_grossesse)
-                                    elif match_arg_698.code == SituationFamiliale_Code.Maries:
-                                        _ = match_arg_698.value
-                                        temp_eligibilite_allocation_logement_familiale_8 = False
-                                    elif match_arg_698.code == SituationFamiliale_Code.Pacses:
-                                        _ = match_arg_698.value
-                                        temp_eligibilite_allocation_logement_familiale_8 = False
-                                    elif match_arg_698.code == SituationFamiliale_Code.Concubins:
-                                        _ = match_arg_698.value
-                                        temp_eligibilite_allocation_logement_familiale_8 = False
-                                    elif match_arg_698.code == SituationFamiliale_Code.CelibataireSepareDeFait:
-                                        _ = match_arg_698.value
-                                        temp_eligibilite_allocation_logement_familiale_8 = False
-                                    elif match_arg_698.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
-                                        _ = match_arg_698.value
-                                        temp_eligibilite_allocation_logement_familiale_8 = False
+                                    elif match_arg_699.code == SituationFamiliale_Code.Maries:
+                                        _ = match_arg_699.value
+                                        temp_eligibilite_allocation_logement_familiale_9 = False
+                                    elif match_arg_699.code == SituationFamiliale_Code.Pacses:
+                                        _ = match_arg_699.value
+                                        temp_eligibilite_allocation_logement_familiale_9 = False
+                                    elif match_arg_699.code == SituationFamiliale_Code.Concubins:
+                                        _ = match_arg_699.value
+                                        temp_eligibilite_allocation_logement_familiale_9 = False
+                                    elif match_arg_699.code == SituationFamiliale_Code.CelibataireSepareDeFait:
+                                        _ = match_arg_699.value
+                                        temp_eligibilite_allocation_logement_familiale_9 = False
+                                    elif match_arg_699.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
+                                        _ = match_arg_699.value
+                                        temp_eligibilite_allocation_logement_familiale_9 = False
                                     if (l_841_1_6_applicable and
-                                        temp_eligibilite_allocation_logement_familiale_8):
+                                        temp_eligibilite_allocation_logement_familiale_9):
                                         temp_eligibilite_allocation_logement_familiale_3 = True
                                     else:
                                         temp_eligibilite_allocation_logement_familiale_3 = dead_value
                                         raise EmptyError
                             except EmptyError:
-                                def temp_eligibilite_allocation_logement_familiale_9(personne_a_charge_10:PersonneACharge):
-                                    match_arg_699 = personne_a_charge_10
-                                    if match_arg_699.code == PersonneACharge_Code.EnfantACharge:
-                                        enfant_12 = match_arg_699.value
+                                def temp_eligibilite_allocation_logement_familiale_10(personne_a_charge_10:PersonneACharge):
+                                    match_arg_700 = personne_a_charge_10
+                                    if match_arg_700.code == PersonneACharge_Code.EnfantACharge:
+                                        enfant_12 = match_arg_700.value
                                         return False
-                                    elif match_arg_699.code == PersonneACharge_Code.AutrePersonneACharge:
-                                        parent_3 = match_arg_699.value
+                                    elif match_arg_700.code == PersonneACharge_Code.AutrePersonneACharge:
+                                        parent_3 = match_arg_700.value
                                         return (parent_3.ascendant_descendant_collateral_deuxieme_troisieme_degre and
                                             parent_3.incapacite_80_pourcent_ou_restriction_emploi)
-                                if (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_9,
+                                if (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_10,
                                     menage_2.personnes_a_charge)) >=
                                     integer_of_string("1")):
                                     temp_eligibilite_allocation_logement_familiale_3 = True
@@ -26706,10 +26743,10 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                     temp_eligibilite_allocation_logement_familiale_3 = dead_value
                                     raise EmptyError
                         except EmptyError:
-                            def temp_eligibilite_allocation_logement_familiale_10(personne_a_charge_11:PersonneACharge):
+                            def temp_eligibilite_allocation_logement_familiale_11(personne_a_charge_11:PersonneACharge):
                                 return eligibilite_commune_dot_condition_2_r823_4(
                                     personne_a_charge_11)
-                            if (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_10,
+                            if (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_11,
                                 menage_2.personnes_a_charge)) >=
                                 integer_of_string("1")):
                                 temp_eligibilite_allocation_logement_familiale_3 = True
@@ -26717,63 +26754,63 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                 temp_eligibilite_allocation_logement_familiale_3 = dead_value
                                 raise EmptyError
                     except EmptyError:
-                        match_arg_700 = menage_2.situation_familiale
-                        if match_arg_700.code == SituationFamiliale_Code.Celibataire:
-                            _ = match_arg_700.value
-                            temp_eligibilite_allocation_logement_familiale_11 = False
-                        elif match_arg_700.code == SituationFamiliale_Code.Maries:
-                            date_mariage = match_arg_700.value
-                            temp_eligibilite_allocation_logement_familiale_11 = (date_courante_18 <=
+                        match_arg_701 = menage_2.situation_familiale
+                        if match_arg_701.code == SituationFamiliale_Code.Celibataire:
+                            _ = match_arg_701.value
+                            temp_eligibilite_allocation_logement_familiale_12 = False
+                        elif match_arg_701.code == SituationFamiliale_Code.Maries:
+                            date_mariage = match_arg_701.value
+                            temp_eligibilite_allocation_logement_familiale_12 = (date_courante_18 <=
                                 (date_mariage + duree_l841_1_3))
-                        elif match_arg_700.code == SituationFamiliale_Code.Pacses:
-                            _ = match_arg_700.value
-                            temp_eligibilite_allocation_logement_familiale_11 = False
-                        elif match_arg_700.code == SituationFamiliale_Code.Concubins:
-                            _ = match_arg_700.value
-                            temp_eligibilite_allocation_logement_familiale_11 = False
-                        elif match_arg_700.code == SituationFamiliale_Code.CelibataireSepareDeFait:
-                            _ = match_arg_700.value
-                            temp_eligibilite_allocation_logement_familiale_11 = False
-                        elif match_arg_700.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
-                            _ = match_arg_700.value
-                            temp_eligibilite_allocation_logement_familiale_11 = False
-                        def temp_eligibilite_allocation_logement_familiale_12(personne_a_charge_12:PersonneACharge):
-                            match_arg_701 = personne_a_charge_12
-                            if match_arg_701.code == PersonneACharge_Code.EnfantACharge:
-                                enfant_13 = match_arg_701.value
+                        elif match_arg_701.code == SituationFamiliale_Code.Pacses:
+                            _ = match_arg_701.value
+                            temp_eligibilite_allocation_logement_familiale_12 = False
+                        elif match_arg_701.code == SituationFamiliale_Code.Concubins:
+                            _ = match_arg_701.value
+                            temp_eligibilite_allocation_logement_familiale_12 = False
+                        elif match_arg_701.code == SituationFamiliale_Code.CelibataireSepareDeFait:
+                            _ = match_arg_701.value
+                            temp_eligibilite_allocation_logement_familiale_12 = False
+                        elif match_arg_701.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
+                            _ = match_arg_701.value
+                            temp_eligibilite_allocation_logement_familiale_12 = False
+                        def temp_eligibilite_allocation_logement_familiale_13(personne_a_charge_12:PersonneACharge):
+                            match_arg_702 = personne_a_charge_12
+                            if match_arg_702.code == PersonneACharge_Code.EnfantACharge:
+                                enfant_13 = match_arg_702.value
                                 return not prestations_familiales_dot_droit_ouvert_1(
                                     EnfantPrestationsFamiliales(identifiant = enfant_13.identifiant,
                                     obligation_scolaire = enfant_13.obligation_scolaire,
                                     remuneration_mensuelle = enfant_13.remuneration_mensuelle,
                                     date_de_naissance = enfant_13.date_de_naissance,
                                     a_deja_ouvert_droit_aux_allocations_familiales = enfant_13.a_deja_ouvert_droit_aux_allocations_familiales))
-                            elif match_arg_701.code == PersonneACharge_Code.AutrePersonneACharge:
-                                _ = match_arg_701.value
+                            elif match_arg_702.code == PersonneACharge_Code.AutrePersonneACharge:
+                                _ = match_arg_702.value
                                 return False
-                        if ((list_length(list_filter(temp_eligibilite_allocation_logement_familiale_12,
+                        if ((list_length(list_filter(temp_eligibilite_allocation_logement_familiale_13,
                             menage_2.personnes_a_charge)) ==
                             integer_of_string("0")) and
-                            temp_eligibilite_allocation_logement_familiale_11):
+                            temp_eligibilite_allocation_logement_familiale_12):
                             temp_eligibilite_allocation_logement_familiale_3 = True
                         else:
                             temp_eligibilite_allocation_logement_familiale_3 = dead_value
                             raise EmptyError
                 except EmptyError:
-                    def temp_eligibilite_allocation_logement_familiale_13(personne_a_charge_13:PersonneACharge):
-                        match_arg_702 = personne_a_charge_13
-                        if match_arg_702.code == PersonneACharge_Code.EnfantACharge:
-                            enfant_14 = match_arg_702.value
+                    def temp_eligibilite_allocation_logement_familiale_14(personne_a_charge_13:PersonneACharge):
+                        match_arg_703 = personne_a_charge_13
+                        if match_arg_703.code == PersonneACharge_Code.EnfantACharge:
+                            enfant_14 = match_arg_703.value
                             return prestations_familiales_dot_droit_ouvert_1(
                                 EnfantPrestationsFamiliales(identifiant = enfant_14.identifiant,
                                 obligation_scolaire = enfant_14.obligation_scolaire,
                                 remuneration_mensuelle = enfant_14.remuneration_mensuelle,
                                 date_de_naissance = enfant_14.date_de_naissance,
                                 a_deja_ouvert_droit_aux_allocations_familiales = enfant_14.a_deja_ouvert_droit_aux_allocations_familiales))
-                        elif match_arg_702.code == PersonneACharge_Code.AutrePersonneACharge:
-                            _ = match_arg_702.value
+                        elif match_arg_703.code == PersonneACharge_Code.AutrePersonneACharge:
+                            _ = match_arg_703.value
                             return False
                     if (l_841_1_2_applicable and
-                        (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_13,
+                        (list_length(list_filter(temp_eligibilite_allocation_logement_familiale_14,
                         menage_2.personnes_a_charge)) ==
                         integer_of_string("1"))):
                         temp_eligibilite_allocation_logement_familiale_3 = True
@@ -26781,7 +26818,7 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                         temp_eligibilite_allocation_logement_familiale_3 = dead_value
                         raise EmptyError
             except EmptyError:
-                def temp_eligibilite_allocation_logement_familiale_14(acc:bool, prestation:PrestationRecue):
+                def temp_eligibilite_allocation_logement_familiale_15(acc:bool, prestation:PrestationRecue):
                     return (acc or ((prestation ==
                         PrestationRecue(PrestationRecue_Code.AllocationsFamiliales,
                         Unit())) or ((prestation ==
@@ -26792,7 +26829,7 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                         PrestationRecue(PrestationRecue_Code.AllocationSoutienEnfantHandicape,
                         Unit()))))))
                 if (l_841_1_1_applicable and
-                    list_fold_left(temp_eligibilite_allocation_logement_familiale_14,
+                    list_fold_left(temp_eligibilite_allocation_logement_familiale_15,
                                    False, menage_2.prestations_recues)):
                     temp_eligibilite_allocation_logement_familiale_3 = True
                 else:
@@ -26844,33 +26881,33 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                         return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
                             Unit())
                     def temp_eligibilite_l841_2_7(_:Unit):
-                        match_arg_703 = menage_2.residence
-                        if match_arg_703.code == Collectivite_Code.Guadeloupe:
-                            _ = match_arg_703.value
+                        match_arg_704 = menage_2.residence
+                        if match_arg_704.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_704.value
                             temp_eligibilite_l841_2_8 = False
-                        elif match_arg_703.code == Collectivite_Code.Guyane:
-                            _ = match_arg_703.value
+                        elif match_arg_704.code == Collectivite_Code.Guyane:
+                            _ = match_arg_704.value
                             temp_eligibilite_l841_2_8 = False
-                        elif match_arg_703.code == Collectivite_Code.Martinique:
-                            _ = match_arg_703.value
+                        elif match_arg_704.code == Collectivite_Code.Martinique:
+                            _ = match_arg_704.value
                             temp_eligibilite_l841_2_8 = False
-                        elif match_arg_703.code == Collectivite_Code.LaReunion:
-                            _ = match_arg_703.value
+                        elif match_arg_704.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_704.value
                             temp_eligibilite_l841_2_8 = False
-                        elif match_arg_703.code == Collectivite_Code.SaintBarthelemy:
-                            _ = match_arg_703.value
+                        elif match_arg_704.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_704.value
                             temp_eligibilite_l841_2_8 = False
-                        elif match_arg_703.code == Collectivite_Code.SaintMartin:
-                            _ = match_arg_703.value
+                        elif match_arg_704.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_704.value
                             temp_eligibilite_l841_2_8 = False
-                        elif match_arg_703.code == Collectivite_Code.Metropole:
-                            _ = match_arg_703.value
+                        elif match_arg_704.code == Collectivite_Code.Metropole:
+                            _ = match_arg_704.value
                             temp_eligibilite_l841_2_8 = False
-                        elif match_arg_703.code == Collectivite_Code.SaintPierreEtMiquelon:
-                            _ = match_arg_703.value
+                        elif match_arg_704.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_704.value
                             temp_eligibilite_l841_2_8 = False
-                        elif match_arg_703.code == Collectivite_Code.Mayotte:
-                            _ = match_arg_703.value
+                        elif match_arg_704.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_704.value
                             temp_eligibilite_l841_2_8 = True
                         return (temp_eligibilite_l841_2_8 and
                             demandeur_2.magistrat_fonctionnaire_centre_interets_materiels_familiaux_hors_mayotte)
@@ -26881,61 +26918,61 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                                           temp_eligibilite_l841_2_7,
                                           temp_eligibilite_l841_2_6)
                 except EmptyError:
-                    match_arg_704 = menage_2.logement.mode_occupation
-                    if match_arg_704.code == ModeOccupation_Code.Locataire:
-                        _ = match_arg_704.value
+                    match_arg_705 = menage_2.logement.mode_occupation
+                    if match_arg_705.code == ModeOccupation_Code.Locataire:
+                        _ = match_arg_705.value
                         temp_eligibilite_l841_2_9 = False
-                    elif match_arg_704.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        _ = match_arg_704.value
+                    elif match_arg_705.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        _ = match_arg_705.value
                         temp_eligibilite_l841_2_9 = False
-                    elif match_arg_704.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        proprietaire_6 = match_arg_704.value
-                        match_arg_705 = proprietaire_6.pret.accord_financement_representant_Etat_outre_mer
-                        if match_arg_705.code == AccordFinancementRepresentantEtatOutreMer_Code.Accord:
-                            date_accord = match_arg_705.value
+                    elif match_arg_705.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        proprietaire_6 = match_arg_705.value
+                        match_arg_706 = proprietaire_6.pret.accord_financement_representant_Etat_outre_mer
+                        if match_arg_706.code == AccordFinancementRepresentantEtatOutreMer_Code.Accord:
+                            date_accord = match_arg_706.value
                             temp_eligibilite_l841_2_10 = (date_accord <=
                                 date_of_numbers(2018,12,31))
-                        elif match_arg_705.code == AccordFinancementRepresentantEtatOutreMer_Code.PasdAccord:
-                            _ = match_arg_705.value
+                        elif match_arg_706.code == AccordFinancementRepresentantEtatOutreMer_Code.PasdAccord:
+                            _ = match_arg_706.value
                             temp_eligibilite_l841_2_10 = False
                         temp_eligibilite_l841_2_9 = ((proprietaire_6.pret.date_signature >
                             date_of_numbers(2017,12,31)) or
                             ((proprietaire_6.pret.date_signature >
                             date_of_numbers(2019,12,31)) and
                             temp_eligibilite_l841_2_10))
-                    elif match_arg_704.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_704.value
+                    elif match_arg_705.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_705.value
                         temp_eligibilite_l841_2_9 = False
-                    elif match_arg_704.code == ModeOccupation_Code.LocationAccession:
-                        _ = match_arg_704.value
+                    elif match_arg_705.code == ModeOccupation_Code.LocationAccession:
+                        _ = match_arg_705.value
                         temp_eligibilite_l841_2_9 = False
-                    match_arg_706 = menage_2.residence
-                    if match_arg_706.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_706.value
+                    match_arg_707 = menage_2.residence
+                    if match_arg_707.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_707.value
                         temp_eligibilite_l841_2_11 = True
-                    elif match_arg_706.code == Collectivite_Code.Guyane:
-                        _ = match_arg_706.value
+                    elif match_arg_707.code == Collectivite_Code.Guyane:
+                        _ = match_arg_707.value
                         temp_eligibilite_l841_2_11 = True
-                    elif match_arg_706.code == Collectivite_Code.Martinique:
-                        _ = match_arg_706.value
+                    elif match_arg_707.code == Collectivite_Code.Martinique:
+                        _ = match_arg_707.value
                         temp_eligibilite_l841_2_11 = True
-                    elif match_arg_706.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_706.value
+                    elif match_arg_707.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_707.value
                         temp_eligibilite_l841_2_11 = True
-                    elif match_arg_706.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_706.value
+                    elif match_arg_707.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_707.value
                         temp_eligibilite_l841_2_11 = False
-                    elif match_arg_706.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_706.value
+                    elif match_arg_707.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_707.value
                         temp_eligibilite_l841_2_11 = False
-                    elif match_arg_706.code == Collectivite_Code.Metropole:
-                        _ = match_arg_706.value
+                    elif match_arg_707.code == Collectivite_Code.Metropole:
+                        _ = match_arg_707.value
                         temp_eligibilite_l841_2_11 = False
-                    elif match_arg_706.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_706.value
+                    elif match_arg_707.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_707.value
                         temp_eligibilite_l841_2_11 = False
-                    elif match_arg_706.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_706.value
+                    elif match_arg_707.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_707.value
                         temp_eligibilite_l841_2_11 = True
                     if (temp_eligibilite_l841_2_11 and
                         temp_eligibilite_l841_2_9):
@@ -26944,22 +26981,22 @@ def eligibilite_allocation_logement(eligibilite_allocation_logement_in:Eligibili
                     else:
                         raise EmptyError
             except EmptyError:
-                match_arg_707 = menage_2.logement.mode_occupation
-                if match_arg_707.code == ModeOccupation_Code.Locataire:
-                    _ = match_arg_707.value
+                match_arg_708 = menage_2.logement.mode_occupation
+                if match_arg_708.code == ModeOccupation_Code.Locataire:
+                    _ = match_arg_708.value
                     temp_eligibilite_l841_2_12 = False
-                elif match_arg_707.code == ModeOccupation_Code.ResidentLogementFoyer:
-                    _ = match_arg_707.value
+                elif match_arg_708.code == ModeOccupation_Code.ResidentLogementFoyer:
+                    _ = match_arg_708.value
                     temp_eligibilite_l841_2_12 = False
-                elif match_arg_707.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                    proprietaire_7 = match_arg_707.value
+                elif match_arg_708.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                    proprietaire_7 = match_arg_708.value
                     temp_eligibilite_l841_2_12 = (proprietaire_7.pret.date_signature >
                         date_of_numbers(2017,12,31))
-                elif match_arg_707.code == ModeOccupation_Code.SousLocataire:
-                    _ = match_arg_707.value
+                elif match_arg_708.code == ModeOccupation_Code.SousLocataire:
+                    _ = match_arg_708.value
                     temp_eligibilite_l841_2_12 = False
-                elif match_arg_707.code == ModeOccupation_Code.LocationAccession:
-                    _ = match_arg_707.value
+                elif match_arg_708.code == ModeOccupation_Code.LocationAccession:
+                    _ = match_arg_708.value
                     temp_eligibilite_l841_2_12 = False
                 if temp_eligibilite_l841_2_12:
                     return TypeEligibiliteAllocationLogement(TypeEligibiliteAllocationLogement_Code.PasEligible,
@@ -26998,44 +27035,44 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                     def temp_caracteristiques_pret_l831_1_1_1(_:Unit):
                         return True
                     def temp_caracteristiques_pret_l831_1_1_2(_:Unit):
-                        match_arg_708 = pret.type_pret
-                        if match_arg_708.code == TypePret_Code.D331_32:
-                            _ = match_arg_708.value
-                            temp_caracteristiques_pret_l831_1_1_3 = False
-                        elif match_arg_708.code == TypePret_Code.D331_63_64:
-                            _ = match_arg_708.value
-                            temp_caracteristiques_pret_l831_1_1_3 = False
-                        elif match_arg_708.code == TypePret_Code.D331_59_8:
-                            _ = match_arg_708.value
-                            temp_caracteristiques_pret_l831_1_1_3 = False
-                        elif match_arg_708.code == TypePret_Code.D331_76_1:
-                            _ = match_arg_708.value
-                            temp_caracteristiques_pret_l831_1_1_3 = True
-                        elif match_arg_708.code == TypePret_Code.Autre:
-                            _ = match_arg_708.value
-                            temp_caracteristiques_pret_l831_1_1_3 = False
                         match_arg_709 = pret.type_pret
                         if match_arg_709.code == TypePret_Code.D331_32:
                             _ = match_arg_709.value
-                            temp_caracteristiques_pret_l831_1_1_4 = False
+                            temp_caracteristiques_pret_l831_1_1_3 = False
                         elif match_arg_709.code == TypePret_Code.D331_63_64:
                             _ = match_arg_709.value
-                            temp_caracteristiques_pret_l831_1_1_4 = False
+                            temp_caracteristiques_pret_l831_1_1_3 = False
                         elif match_arg_709.code == TypePret_Code.D331_59_8:
                             _ = match_arg_709.value
-                            temp_caracteristiques_pret_l831_1_1_4 = True
+                            temp_caracteristiques_pret_l831_1_1_3 = False
                         elif match_arg_709.code == TypePret_Code.D331_76_1:
                             _ = match_arg_709.value
-                            temp_caracteristiques_pret_l831_1_1_4 = False
+                            temp_caracteristiques_pret_l831_1_1_3 = True
                         elif match_arg_709.code == TypePret_Code.Autre:
                             _ = match_arg_709.value
+                            temp_caracteristiques_pret_l831_1_1_3 = False
+                        match_arg_710 = pret.type_pret
+                        if match_arg_710.code == TypePret_Code.D331_32:
+                            _ = match_arg_710.value
                             temp_caracteristiques_pret_l831_1_1_4 = False
-                        match_arg_710 = pret.titulaire_pret
-                        if match_arg_710.code == TitulairePret_Code.Demandeur:
+                        elif match_arg_710.code == TypePret_Code.D331_63_64:
                             _ = match_arg_710.value
+                            temp_caracteristiques_pret_l831_1_1_4 = False
+                        elif match_arg_710.code == TypePret_Code.D331_59_8:
+                            _ = match_arg_710.value
+                            temp_caracteristiques_pret_l831_1_1_4 = True
+                        elif match_arg_710.code == TypePret_Code.D331_76_1:
+                            _ = match_arg_710.value
+                            temp_caracteristiques_pret_l831_1_1_4 = False
+                        elif match_arg_710.code == TypePret_Code.Autre:
+                            _ = match_arg_710.value
+                            temp_caracteristiques_pret_l831_1_1_4 = False
+                        match_arg_711 = pret.titulaire_pret
+                        if match_arg_711.code == TitulairePret_Code.Demandeur:
+                            _ = match_arg_711.value
                             temp_caracteristiques_pret_l831_1_1_5 = False
-                        elif match_arg_710.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
-                            _ = match_arg_710.value
+                        elif match_arg_711.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
+                            _ = match_arg_711.value
                             temp_caracteristiques_pret_l831_1_1_5 = True
                         return (temp_caracteristiques_pret_l831_1_1_5 and
                             (temp_caracteristiques_pret_l831_1_1_4 or
@@ -27047,44 +27084,44 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                           temp_caracteristiques_pret_l831_1_1_2,
                                           temp_caracteristiques_pret_l831_1_1_1)
                 except EmptyError:
-                    match_arg_711 = pret.type_pret
-                    if match_arg_711.code == TypePret_Code.D331_32:
-                        _ = match_arg_711.value
-                        temp_caracteristiques_pret_l831_1_1_6 = False
-                    elif match_arg_711.code == TypePret_Code.D331_63_64:
-                        _ = match_arg_711.value
-                        temp_caracteristiques_pret_l831_1_1_6 = True
-                    elif match_arg_711.code == TypePret_Code.D331_59_8:
-                        _ = match_arg_711.value
-                        temp_caracteristiques_pret_l831_1_1_6 = False
-                    elif match_arg_711.code == TypePret_Code.D331_76_1:
-                        _ = match_arg_711.value
-                        temp_caracteristiques_pret_l831_1_1_6 = False
-                    elif match_arg_711.code == TypePret_Code.Autre:
-                        _ = match_arg_711.value
-                        temp_caracteristiques_pret_l831_1_1_6 = False
                     match_arg_712 = pret.type_pret
                     if match_arg_712.code == TypePret_Code.D331_32:
                         _ = match_arg_712.value
-                        temp_caracteristiques_pret_l831_1_1_7 = True
+                        temp_caracteristiques_pret_l831_1_1_6 = False
                     elif match_arg_712.code == TypePret_Code.D331_63_64:
                         _ = match_arg_712.value
-                        temp_caracteristiques_pret_l831_1_1_7 = False
+                        temp_caracteristiques_pret_l831_1_1_6 = True
                     elif match_arg_712.code == TypePret_Code.D331_59_8:
                         _ = match_arg_712.value
-                        temp_caracteristiques_pret_l831_1_1_7 = False
+                        temp_caracteristiques_pret_l831_1_1_6 = False
                     elif match_arg_712.code == TypePret_Code.D331_76_1:
                         _ = match_arg_712.value
-                        temp_caracteristiques_pret_l831_1_1_7 = False
+                        temp_caracteristiques_pret_l831_1_1_6 = False
                     elif match_arg_712.code == TypePret_Code.Autre:
                         _ = match_arg_712.value
+                        temp_caracteristiques_pret_l831_1_1_6 = False
+                    match_arg_713 = pret.type_pret
+                    if match_arg_713.code == TypePret_Code.D331_32:
+                        _ = match_arg_713.value
+                        temp_caracteristiques_pret_l831_1_1_7 = True
+                    elif match_arg_713.code == TypePret_Code.D331_63_64:
+                        _ = match_arg_713.value
                         temp_caracteristiques_pret_l831_1_1_7 = False
-                    match_arg_713 = pret.titulaire_pret
-                    if match_arg_713.code == TitulairePret_Code.Demandeur:
+                    elif match_arg_713.code == TypePret_Code.D331_59_8:
                         _ = match_arg_713.value
+                        temp_caracteristiques_pret_l831_1_1_7 = False
+                    elif match_arg_713.code == TypePret_Code.D331_76_1:
+                        _ = match_arg_713.value
+                        temp_caracteristiques_pret_l831_1_1_7 = False
+                    elif match_arg_713.code == TypePret_Code.Autre:
+                        _ = match_arg_713.value
+                        temp_caracteristiques_pret_l831_1_1_7 = False
+                    match_arg_714 = pret.titulaire_pret
+                    if match_arg_714.code == TitulairePret_Code.Demandeur:
+                        _ = match_arg_714.value
                         temp_caracteristiques_pret_l831_1_1_8 = True
-                    elif match_arg_713.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
-                        _ = match_arg_713.value
+                    elif match_arg_714.code == TitulairePret_Code.VendeurQuandDemandeurAContratLocationAccession:
+                        _ = match_arg_714.value
                         temp_caracteristiques_pret_l831_1_1_8 = False
                     if (temp_caracteristiques_pret_l831_1_1_8 and
                         (temp_caracteristiques_pret_l831_1_1_7 or
@@ -27158,21 +27195,21 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
         def temp_eligibilite_commune_dot_date_entree_vigueur_differee_cch_2(_:Unit):
             return date_of_numbers(2021,5,1)
         def temp_eligibilite_commune_dot_date_entree_vigueur_differee_cch_3(_:Unit):
-            match_arg_714 = menage_3.logement.mode_occupation
-            if match_arg_714.code == ModeOccupation_Code.Locataire:
-                _ = match_arg_714.value
+            match_arg_715 = menage_3.logement.mode_occupation
+            if match_arg_715.code == ModeOccupation_Code.Locataire:
+                _ = match_arg_715.value
                 return False
-            elif match_arg_714.code == ModeOccupation_Code.ResidentLogementFoyer:
-                _ = match_arg_714.value
+            elif match_arg_715.code == ModeOccupation_Code.ResidentLogementFoyer:
+                _ = match_arg_715.value
                 return False
-            elif match_arg_714.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                _ = match_arg_714.value
+            elif match_arg_715.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                _ = match_arg_715.value
                 return True
-            elif match_arg_714.code == ModeOccupation_Code.SousLocataire:
-                _ = match_arg_714.value
+            elif match_arg_715.code == ModeOccupation_Code.SousLocataire:
+                _ = match_arg_715.value
                 return False
-            elif match_arg_714.code == ModeOccupation_Code.LocationAccession:
-                _ = match_arg_714.value
+            elif match_arg_715.code == ModeOccupation_Code.LocationAccession:
+                _ = match_arg_715.value
                 return False
         return handle_default(SourcePosition(filename="", start_line=0,
                               start_column=1, end_line=0, end_column=1,
@@ -27196,15 +27233,15 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
             def temp_logement_situe_commune_desequilibre_l831_2(_:Unit):
                 return True
             def temp_logement_situe_commune_desequilibre_l831_2_1(_:Unit):
-                match_arg_715 = menage_3.logement.zone
-                if match_arg_715.code == ZoneDHabitation_Code.Zone1:
-                    _ = match_arg_715.value
+                match_arg_716 = menage_3.logement.zone
+                if match_arg_716.code == ZoneDHabitation_Code.Zone1:
+                    _ = match_arg_716.value
                     temp_logement_situe_commune_desequilibre_l831_2_2 = False
-                elif match_arg_715.code == ZoneDHabitation_Code.Zone2:
-                    _ = match_arg_715.value
+                elif match_arg_716.code == ZoneDHabitation_Code.Zone2:
+                    _ = match_arg_716.value
                     temp_logement_situe_commune_desequilibre_l831_2_2 = False
-                elif match_arg_715.code == ZoneDHabitation_Code.Zone3:
-                    _ = match_arg_715.value
+                elif match_arg_716.code == ZoneDHabitation_Code.Zone3:
+                    _ = match_arg_716.value
                     temp_logement_situe_commune_desequilibre_l831_2_2 = True
                 return ((date_courante_19 >= date_of_numbers(2019,10,1)) and
                     temp_logement_situe_commune_desequilibre_l831_2_2)
@@ -27235,21 +27272,21 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                     def temp_condition_logement_bailleur_3(_:Unit):
                         return True
                     def temp_condition_logement_bailleur_4(_:Unit):
-                        match_arg_716 = menage_3.logement.mode_occupation
-                        if match_arg_716.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_716.value
+                        match_arg_717 = menage_3.logement.mode_occupation
+                        if match_arg_717.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_717.value
                             return False
-                        elif match_arg_716.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            _ = match_arg_716.value
+                        elif match_arg_717.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            _ = match_arg_717.value
                             return False
-                        elif match_arg_716.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            _ = match_arg_716.value
+                        elif match_arg_717.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            _ = match_arg_717.value
                             return False
-                        elif match_arg_716.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_716.value
+                        elif match_arg_717.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_717.value
                             return False
-                        elif match_arg_716.code == ModeOccupation_Code.LocationAccession:
-                            propriete = match_arg_716.value
+                        elif match_arg_717.code == ModeOccupation_Code.LocationAccession:
+                            propriete = match_arg_717.value
                             return caracteristiques_pret_l831_1_6(propriete.pret)
                     return handle_default(SourcePosition(filename="",
                                           start_line=0, start_column=1,
@@ -27258,52 +27295,52 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                           temp_condition_logement_bailleur_4,
                                           temp_condition_logement_bailleur_3)
                 except EmptyError:
-                    match_arg_717 = menage_3.logement.mode_occupation
-                    if match_arg_717.code == ModeOccupation_Code.Locataire:
-                        location_3 = match_arg_717.value
-                        match_arg_718 = location_3.bailleur
-                        if match_arg_718.code == TypeBailleur_Code.BailleurSocial:
-                            convention = match_arg_718.value
+                    match_arg_718 = menage_3.logement.mode_occupation
+                    if match_arg_718.code == ModeOccupation_Code.Locataire:
+                        location_3 = match_arg_718.value
+                        match_arg_719 = location_3.bailleur
+                        if match_arg_719.code == TypeBailleur_Code.BailleurSocial:
+                            convention = match_arg_719.value
                             temp_condition_logement_bailleur_5 = convention.conventionne_livre_III_titre_V_chap_III
-                        elif match_arg_718.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
-                            convention_1 = match_arg_718.value
+                        elif match_arg_719.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                            convention_1 = match_arg_719.value
                             temp_condition_logement_bailleur_5 = convention_1.conventionne_livre_III_titre_II_chap_I_sec_3
-                        elif match_arg_718.code == TypeBailleur_Code.BailleurPrive:
-                            _ = match_arg_718.value
+                        elif match_arg_719.code == TypeBailleur_Code.BailleurPrive:
+                            _ = match_arg_719.value
                             temp_condition_logement_bailleur_5 = False
-                    elif match_arg_717.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        _ = match_arg_717.value
+                    elif match_arg_718.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        _ = match_arg_718.value
                         temp_condition_logement_bailleur_5 = False
-                    elif match_arg_717.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        _ = match_arg_717.value
+                    elif match_arg_718.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        _ = match_arg_718.value
                         temp_condition_logement_bailleur_5 = False
-                    elif match_arg_717.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_717.value
+                    elif match_arg_718.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_718.value
                         temp_condition_logement_bailleur_5 = False
-                    elif match_arg_717.code == ModeOccupation_Code.LocationAccession:
-                        _ = match_arg_717.value
+                    elif match_arg_718.code == ModeOccupation_Code.LocationAccession:
+                        _ = match_arg_718.value
                         temp_condition_logement_bailleur_5 = False
                     if temp_condition_logement_bailleur_5:
                         return True
                     else:
                         raise EmptyError
             except EmptyError:
-                match_arg_719 = menage_3.logement.mode_occupation
-                if match_arg_719.code == ModeOccupation_Code.Locataire:
-                    _ = match_arg_719.value
+                match_arg_720 = menage_3.logement.mode_occupation
+                if match_arg_720.code == ModeOccupation_Code.Locataire:
+                    _ = match_arg_720.value
                     temp_condition_logement_bailleur_6 = False
-                elif match_arg_719.code == ModeOccupation_Code.ResidentLogementFoyer:
-                    _ = match_arg_719.value
+                elif match_arg_720.code == ModeOccupation_Code.ResidentLogementFoyer:
+                    _ = match_arg_720.value
                     temp_condition_logement_bailleur_6 = False
-                elif match_arg_719.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                    propriete_1 = match_arg_719.value
+                elif match_arg_720.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                    propriete_1 = match_arg_720.value
                     temp_condition_logement_bailleur_6 = caracteristiques_pret_l831_1_1(
                         propriete_1.pret)
-                elif match_arg_719.code == ModeOccupation_Code.SousLocataire:
-                    _ = match_arg_719.value
+                elif match_arg_720.code == ModeOccupation_Code.SousLocataire:
+                    _ = match_arg_720.value
                     temp_condition_logement_bailleur_6 = False
-                elif match_arg_719.code == ModeOccupation_Code.LocationAccession:
-                    _ = match_arg_719.value
+                elif match_arg_720.code == ModeOccupation_Code.LocationAccession:
+                    _ = match_arg_720.value
                     temp_condition_logement_bailleur_6 = False
                 if temp_condition_logement_bailleur_6:
                     return True
@@ -27315,61 +27352,61 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                     def temp_condition_logement_bailleur_8(_:Unit):
                         return False
                     def temp_condition_logement_bailleur_9(_:Unit):
-                        match_arg_720 = menage_3.logement.mode_occupation
-                        if match_arg_720.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_720.value
+                        match_arg_721 = menage_3.logement.mode_occupation
+                        if match_arg_721.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_721.value
                             temp_condition_logement_bailleur_10 = False
-                        elif match_arg_720.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            logement_foyer_2 = match_arg_720.value
-                            match_arg_721 = logement_foyer_2.type
-                            if match_arg_721.code == TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees:
-                                _ = match_arg_721.value
+                        elif match_arg_721.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            logement_foyer_2 = match_arg_721.value
+                            match_arg_722 = logement_foyer_2.type
+                            if match_arg_722.code == TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees:
+                                _ = match_arg_722.value
                                 temp_condition_logement_bailleur_10 = False
-                            elif match_arg_721.code == TypeLogementFoyer_Code.ResidenceSociale:
-                                _ = match_arg_721.value
+                            elif match_arg_722.code == TypeLogementFoyer_Code.ResidenceSociale:
+                                _ = match_arg_722.value
                                 temp_condition_logement_bailleur_10 = False
-                            elif match_arg_721.code == TypeLogementFoyer_Code.FoyerJeunesTravailleursOuMigrantsConventionneL353_2Avant1995:
-                                _ = match_arg_721.value
+                            elif match_arg_722.code == TypeLogementFoyer_Code.FoyerJeunesTravailleursOuMigrantsConventionneL353_2Avant1995:
+                                _ = match_arg_722.value
                                 temp_condition_logement_bailleur_10 = True
-                            elif match_arg_721.code == TypeLogementFoyer_Code.Autre:
-                                _ = match_arg_721.value
+                            elif match_arg_722.code == TypeLogementFoyer_Code.Autre:
+                                _ = match_arg_722.value
                                 temp_condition_logement_bailleur_10 = False
-                        elif match_arg_720.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            _ = match_arg_720.value
+                        elif match_arg_721.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            _ = match_arg_721.value
                             temp_condition_logement_bailleur_10 = False
-                        elif match_arg_720.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_720.value
+                        elif match_arg_721.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_721.value
                             temp_condition_logement_bailleur_10 = False
-                        elif match_arg_720.code == ModeOccupation_Code.LocationAccession:
-                            _ = match_arg_720.value
+                        elif match_arg_721.code == ModeOccupation_Code.LocationAccession:
+                            _ = match_arg_721.value
                             temp_condition_logement_bailleur_10 = False
-                        match_arg_722 = menage_3.residence
-                        if match_arg_722.code == Collectivite_Code.Guadeloupe:
-                            _ = match_arg_722.value
+                        match_arg_723 = menage_3.residence
+                        if match_arg_723.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_723.value
                             temp_condition_logement_bailleur_11 = True
-                        elif match_arg_722.code == Collectivite_Code.Guyane:
-                            _ = match_arg_722.value
+                        elif match_arg_723.code == Collectivite_Code.Guyane:
+                            _ = match_arg_723.value
                             temp_condition_logement_bailleur_11 = True
-                        elif match_arg_722.code == Collectivite_Code.Martinique:
-                            _ = match_arg_722.value
+                        elif match_arg_723.code == Collectivite_Code.Martinique:
+                            _ = match_arg_723.value
                             temp_condition_logement_bailleur_11 = True
-                        elif match_arg_722.code == Collectivite_Code.LaReunion:
-                            _ = match_arg_722.value
+                        elif match_arg_723.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_723.value
                             temp_condition_logement_bailleur_11 = True
-                        elif match_arg_722.code == Collectivite_Code.SaintBarthelemy:
-                            _ = match_arg_722.value
+                        elif match_arg_723.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_723.value
                             temp_condition_logement_bailleur_11 = False
-                        elif match_arg_722.code == Collectivite_Code.SaintMartin:
-                            _ = match_arg_722.value
+                        elif match_arg_723.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_723.value
                             temp_condition_logement_bailleur_11 = False
-                        elif match_arg_722.code == Collectivite_Code.Metropole:
-                            _ = match_arg_722.value
+                        elif match_arg_723.code == Collectivite_Code.Metropole:
+                            _ = match_arg_723.value
                             temp_condition_logement_bailleur_11 = False
-                        elif match_arg_722.code == Collectivite_Code.SaintPierreEtMiquelon:
-                            _ = match_arg_722.value
+                        elif match_arg_723.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_723.value
                             temp_condition_logement_bailleur_11 = False
-                        elif match_arg_722.code == Collectivite_Code.Mayotte:
-                            _ = match_arg_722.value
+                        elif match_arg_723.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_723.value
                             temp_condition_logement_bailleur_11 = True
                         return (((date_courante_19 >=
                             date_of_numbers(2023,4,5)) and
@@ -27382,33 +27419,33 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                           temp_condition_logement_bailleur_9,
                                           temp_condition_logement_bailleur_8)
                 except EmptyError:
-                    match_arg_723 = menage_3.logement.mode_occupation
-                    if match_arg_723.code == ModeOccupation_Code.Locataire:
-                        _ = match_arg_723.value
+                    match_arg_724 = menage_3.logement.mode_occupation
+                    if match_arg_724.code == ModeOccupation_Code.Locataire:
+                        _ = match_arg_724.value
                         temp_condition_logement_bailleur_12 = False
-                    elif match_arg_723.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        logement_foyer_3 = match_arg_723.value
-                        match_arg_724 = logement_foyer_3.type
-                        if match_arg_724.code == TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees:
-                            _ = match_arg_724.value
+                    elif match_arg_724.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        logement_foyer_3 = match_arg_724.value
+                        match_arg_725 = logement_foyer_3.type
+                        if match_arg_725.code == TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees:
+                            _ = match_arg_725.value
                             temp_condition_logement_bailleur_12 = False
-                        elif match_arg_724.code == TypeLogementFoyer_Code.ResidenceSociale:
-                            _ = match_arg_724.value
+                        elif match_arg_725.code == TypeLogementFoyer_Code.ResidenceSociale:
+                            _ = match_arg_725.value
                             temp_condition_logement_bailleur_12 = False
-                        elif match_arg_724.code == TypeLogementFoyer_Code.FoyerJeunesTravailleursOuMigrantsConventionneL353_2Avant1995:
-                            _ = match_arg_724.value
+                        elif match_arg_725.code == TypeLogementFoyer_Code.FoyerJeunesTravailleursOuMigrantsConventionneL353_2Avant1995:
+                            _ = match_arg_725.value
                             temp_condition_logement_bailleur_12 = False
-                        elif match_arg_724.code == TypeLogementFoyer_Code.Autre:
-                            _ = match_arg_724.value
+                        elif match_arg_725.code == TypeLogementFoyer_Code.Autre:
+                            _ = match_arg_725.value
                             temp_condition_logement_bailleur_12 = True
-                    elif match_arg_723.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        _ = match_arg_723.value
+                    elif match_arg_724.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        _ = match_arg_724.value
                         temp_condition_logement_bailleur_12 = False
-                    elif match_arg_723.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_723.value
+                    elif match_arg_724.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_724.value
                         temp_condition_logement_bailleur_12 = False
-                    elif match_arg_723.code == ModeOccupation_Code.LocationAccession:
-                        _ = match_arg_723.value
+                    elif match_arg_724.code == ModeOccupation_Code.LocationAccession:
+                        _ = match_arg_724.value
                         temp_condition_logement_bailleur_12 = False
                     if temp_condition_logement_bailleur_12:
                         return False
@@ -27420,21 +27457,21 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                         def temp_condition_logement_bailleur_13(_:Unit):
                             return True
                         def temp_condition_logement_bailleur_14(_:Unit):
-                            match_arg_725 = menage_3.logement.mode_occupation
-                            if match_arg_725.code == ModeOccupation_Code.Locataire:
-                                _ = match_arg_725.value
+                            match_arg_726 = menage_3.logement.mode_occupation
+                            if match_arg_726.code == ModeOccupation_Code.Locataire:
+                                _ = match_arg_726.value
                                 return False
-                            elif match_arg_725.code == ModeOccupation_Code.ResidentLogementFoyer:
-                                logement_foyer_4 = match_arg_725.value
+                            elif match_arg_726.code == ModeOccupation_Code.ResidentLogementFoyer:
+                                logement_foyer_4 = match_arg_726.value
                                 return logement_foyer_4.remplit_conditions_r832_21
-                            elif match_arg_725.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                                _ = match_arg_725.value
+                            elif match_arg_726.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                                _ = match_arg_726.value
                                 return False
-                            elif match_arg_725.code == ModeOccupation_Code.SousLocataire:
-                                _ = match_arg_725.value
+                            elif match_arg_726.code == ModeOccupation_Code.SousLocataire:
+                                _ = match_arg_726.value
                                 return False
-                            elif match_arg_725.code == ModeOccupation_Code.LocationAccession:
-                                _ = match_arg_725.value
+                            elif match_arg_726.code == ModeOccupation_Code.LocationAccession:
+                                _ = match_arg_726.value
                                 return False
                         return handle_default(SourcePosition(filename="",
                                               start_line=0, start_column=1,
@@ -27443,49 +27480,49 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                               temp_condition_logement_bailleur_14,
                                               temp_condition_logement_bailleur_13)
                     except EmptyError:
-                        match_arg_726 = menage_3.logement.mode_occupation
-                        if match_arg_726.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_726.value
+                        match_arg_727 = menage_3.logement.mode_occupation
+                        if match_arg_727.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_727.value
                             temp_condition_logement_bailleur_15 = False
-                        elif match_arg_726.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            location_4 = match_arg_726.value
+                        elif match_arg_727.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            location_4 = match_arg_727.value
                             temp_condition_logement_bailleur_15 = location_4.conventionne_selon_regles_drom
-                        elif match_arg_726.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            _ = match_arg_726.value
+                        elif match_arg_727.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            _ = match_arg_727.value
                             temp_condition_logement_bailleur_15 = False
-                        elif match_arg_726.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_726.value
+                        elif match_arg_727.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_727.value
                             temp_condition_logement_bailleur_15 = False
-                        elif match_arg_726.code == ModeOccupation_Code.LocationAccession:
-                            _ = match_arg_726.value
+                        elif match_arg_727.code == ModeOccupation_Code.LocationAccession:
+                            _ = match_arg_727.value
                             temp_condition_logement_bailleur_15 = False
-                        match_arg_727 = menage_3.residence
-                        if match_arg_727.code == Collectivite_Code.Guadeloupe:
-                            _ = match_arg_727.value
+                        match_arg_728 = menage_3.residence
+                        if match_arg_728.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_728.value
                             temp_condition_logement_bailleur_16 = True
-                        elif match_arg_727.code == Collectivite_Code.Guyane:
-                            _ = match_arg_727.value
+                        elif match_arg_728.code == Collectivite_Code.Guyane:
+                            _ = match_arg_728.value
                             temp_condition_logement_bailleur_16 = True
-                        elif match_arg_727.code == Collectivite_Code.Martinique:
-                            _ = match_arg_727.value
+                        elif match_arg_728.code == Collectivite_Code.Martinique:
+                            _ = match_arg_728.value
                             temp_condition_logement_bailleur_16 = True
-                        elif match_arg_727.code == Collectivite_Code.LaReunion:
-                            _ = match_arg_727.value
+                        elif match_arg_728.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_728.value
                             temp_condition_logement_bailleur_16 = True
-                        elif match_arg_727.code == Collectivite_Code.SaintBarthelemy:
-                            _ = match_arg_727.value
+                        elif match_arg_728.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_728.value
                             temp_condition_logement_bailleur_16 = False
-                        elif match_arg_727.code == Collectivite_Code.SaintMartin:
-                            _ = match_arg_727.value
+                        elif match_arg_728.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_728.value
                             temp_condition_logement_bailleur_16 = False
-                        elif match_arg_727.code == Collectivite_Code.Metropole:
-                            _ = match_arg_727.value
+                        elif match_arg_728.code == Collectivite_Code.Metropole:
+                            _ = match_arg_728.value
                             temp_condition_logement_bailleur_16 = False
-                        elif match_arg_727.code == Collectivite_Code.SaintPierreEtMiquelon:
-                            _ = match_arg_727.value
+                        elif match_arg_728.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_728.value
                             temp_condition_logement_bailleur_16 = False
-                        elif match_arg_727.code == Collectivite_Code.Mayotte:
-                            _ = match_arg_727.value
+                        elif match_arg_728.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_728.value
                             temp_condition_logement_bailleur_16 = True
                         if (temp_condition_logement_bailleur_16 and
                             temp_condition_logement_bailleur_15):
@@ -27493,21 +27530,21 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                         else:
                             raise EmptyError
                 except EmptyError:
-                    match_arg_728 = menage_3.logement.mode_occupation
-                    if match_arg_728.code == ModeOccupation_Code.Locataire:
-                        _ = match_arg_728.value
+                    match_arg_729 = menage_3.logement.mode_occupation
+                    if match_arg_729.code == ModeOccupation_Code.Locataire:
+                        _ = match_arg_729.value
                         temp_condition_logement_bailleur_17 = False
-                    elif match_arg_728.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        location_5 = match_arg_728.value
+                    elif match_arg_729.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        location_5 = match_arg_729.value
                         temp_condition_logement_bailleur_17 = location_5.conventionne_livre_III_titre_V_chap_III
-                    elif match_arg_728.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        _ = match_arg_728.value
+                    elif match_arg_729.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        _ = match_arg_729.value
                         temp_condition_logement_bailleur_17 = False
-                    elif match_arg_728.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_728.value
+                    elif match_arg_729.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_729.value
                         temp_condition_logement_bailleur_17 = False
-                    elif match_arg_728.code == ModeOccupation_Code.LocationAccession:
-                        _ = match_arg_728.value
+                    elif match_arg_729.code == ModeOccupation_Code.LocationAccession:
+                        _ = match_arg_729.value
                         temp_condition_logement_bailleur_17 = False
                     if temp_condition_logement_bailleur_17:
                         return True
@@ -27559,21 +27596,21 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                     def temp_condition_logement_pret(_:Unit):
                         return True
                     def temp_condition_logement_pret_1(_:Unit):
-                        match_arg_729 = menage_3.logement.mode_occupation
-                        if match_arg_729.code == ModeOccupation_Code.Locataire:
-                            _ = match_arg_729.value
+                        match_arg_730 = menage_3.logement.mode_occupation
+                        if match_arg_730.code == ModeOccupation_Code.Locataire:
+                            _ = match_arg_730.value
                             return False
-                        elif match_arg_729.code == ModeOccupation_Code.ResidentLogementFoyer:
-                            _ = match_arg_729.value
+                        elif match_arg_730.code == ModeOccupation_Code.ResidentLogementFoyer:
+                            _ = match_arg_730.value
                             return False
-                        elif match_arg_729.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                            propriete_2 = match_arg_729.value
-                            match_arg_730 = propriete_2.anciennete_logement
-                            if match_arg_730.code == NeufOuAncien_Code.Neuf:
-                                _ = match_arg_730.value
+                        elif match_arg_730.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                            propriete_2 = match_arg_730.value
+                            match_arg_731 = propriete_2.anciennete_logement
+                            if match_arg_731.code == NeufOuAncien_Code.Neuf:
+                                _ = match_arg_731.value
                                 temp_condition_logement_pret_2 = False
-                            elif match_arg_730.code == NeufOuAncien_Code.Ancien:
-                                _ = match_arg_730.value
+                            elif match_arg_731.code == NeufOuAncien_Code.Ancien:
+                                _ = match_arg_731.value
                                 temp_condition_logement_pret_2 = True
                             return ((propriete_2.pret.date_signature >=
                                 date_of_numbers(2018,1,1)) and
@@ -27581,17 +27618,17 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                 date_of_numbers(2020,1,1)) and
                                 (temp_condition_logement_pret_2 and
                                 logement_situe_commune_desequilibre_l831_2)))
-                        elif match_arg_729.code == ModeOccupation_Code.SousLocataire:
-                            _ = match_arg_729.value
+                        elif match_arg_730.code == ModeOccupation_Code.SousLocataire:
+                            _ = match_arg_730.value
                             return False
-                        elif match_arg_729.code == ModeOccupation_Code.LocationAccession:
-                            propriete_3 = match_arg_729.value
-                            match_arg_731 = propriete_3.anciennete_logement
-                            if match_arg_731.code == NeufOuAncien_Code.Neuf:
-                                _ = match_arg_731.value
+                        elif match_arg_730.code == ModeOccupation_Code.LocationAccession:
+                            propriete_3 = match_arg_730.value
+                            match_arg_732 = propriete_3.anciennete_logement
+                            if match_arg_732.code == NeufOuAncien_Code.Neuf:
+                                _ = match_arg_732.value
                                 temp_condition_logement_pret_3 = False
-                            elif match_arg_731.code == NeufOuAncien_Code.Ancien:
-                                _ = match_arg_731.value
+                            elif match_arg_732.code == NeufOuAncien_Code.Ancien:
+                                _ = match_arg_732.value
                                 temp_condition_logement_pret_3 = True
                             return ((propriete_3.pret.date_signature >=
                                 date_of_numbers(2018,1,1)) and
@@ -27607,22 +27644,22 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                                                                     temp_condition_logement_pret_1,
                                                                     temp_condition_logement_pret)
                 except EmptyError:
-                    match_arg_732 = menage_3.logement.mode_occupation
-                    if match_arg_732.code == ModeOccupation_Code.Locataire:
-                        _ = match_arg_732.value
+                    match_arg_733 = menage_3.logement.mode_occupation
+                    if match_arg_733.code == ModeOccupation_Code.Locataire:
+                        _ = match_arg_733.value
                         temp_condition_logement_pret_5 = False
-                    elif match_arg_732.code == ModeOccupation_Code.ResidentLogementFoyer:
-                        _ = match_arg_732.value
+                    elif match_arg_733.code == ModeOccupation_Code.ResidentLogementFoyer:
+                        _ = match_arg_733.value
                         temp_condition_logement_pret_5 = False
-                    elif match_arg_732.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-                        propriete_4 = match_arg_732.value
+                    elif match_arg_733.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+                        propriete_4 = match_arg_733.value
                         temp_condition_logement_pret_5 = (propriete_4.pret.date_signature >=
                             date_of_numbers(2017,12,31))
-                    elif match_arg_732.code == ModeOccupation_Code.SousLocataire:
-                        _ = match_arg_732.value
+                    elif match_arg_733.code == ModeOccupation_Code.SousLocataire:
+                        _ = match_arg_733.value
                         temp_condition_logement_pret_5 = False
-                    elif match_arg_732.code == ModeOccupation_Code.LocationAccession:
-                        propriete_5 = match_arg_732.value
+                    elif match_arg_733.code == ModeOccupation_Code.LocationAccession:
+                        propriete_5 = match_arg_733.value
                         temp_condition_logement_pret_5 = (propriete_5.pret.date_signature >=
                             date_of_numbers(2017,12,31))
                     if temp_condition_logement_pret_5:
@@ -27649,33 +27686,33 @@ def eligibilite_aide_personnalisee_logement(eligibilite_aide_personnalisee_logem
                 def temp_eligibilite_9(_:Unit):
                     return False
                 def temp_eligibilite_10(_:Unit):
-                    match_arg_733 = menage_3.residence
-                    if match_arg_733.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_733.value
+                    match_arg_734 = menage_3.residence
+                    if match_arg_734.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_734.value
                         temp_eligibilite_11 = False
-                    elif match_arg_733.code == Collectivite_Code.Guyane:
-                        _ = match_arg_733.value
+                    elif match_arg_734.code == Collectivite_Code.Guyane:
+                        _ = match_arg_734.value
                         temp_eligibilite_11 = False
-                    elif match_arg_733.code == Collectivite_Code.Martinique:
-                        _ = match_arg_733.value
+                    elif match_arg_734.code == Collectivite_Code.Martinique:
+                        _ = match_arg_734.value
                         temp_eligibilite_11 = False
-                    elif match_arg_733.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_733.value
+                    elif match_arg_734.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_734.value
                         temp_eligibilite_11 = False
-                    elif match_arg_733.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_733.value
+                    elif match_arg_734.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_734.value
                         temp_eligibilite_11 = False
-                    elif match_arg_733.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_733.value
+                    elif match_arg_734.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_734.value
                         temp_eligibilite_11 = False
-                    elif match_arg_733.code == Collectivite_Code.Metropole:
-                        _ = match_arg_733.value
+                    elif match_arg_734.code == Collectivite_Code.Metropole:
+                        _ = match_arg_734.value
                         temp_eligibilite_11 = False
-                    elif match_arg_733.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_733.value
+                    elif match_arg_734.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_734.value
                         temp_eligibilite_11 = True
-                    elif match_arg_733.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_733.value
+                    elif match_arg_734.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_734.value
                         temp_eligibilite_11 = False
                     return ((date_courante_19 >=
                         date_of_numbers(2021,1,1)) and temp_eligibilite_11)
@@ -27720,25 +27757,25 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
     type_aide_3 = calcul_allocation_logement_in.type_aide_in
     residence_10 = calcul_allocation_logement_in.residence_in
     try:
-        match_arg_734 = mode_occupation_2
-        if match_arg_734.code == ModeOccupation_Code.Locataire:
-            location_6 = match_arg_734.value
+        match_arg_735 = mode_occupation_2
+        if match_arg_735.code == ModeOccupation_Code.Locataire:
+            location_6 = match_arg_735.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.Location,
                 location_6)
-        elif match_arg_734.code == ModeOccupation_Code.ResidentLogementFoyer:
-            logementfoyer_1 = match_arg_734.value
+        elif match_arg_735.code == ModeOccupation_Code.ResidentLogementFoyer:
+            logementfoyer_1 = match_arg_735.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.LogementFoyer,
                 logementfoyer_1)
-        elif match_arg_734.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
-            proprietaire_8 = match_arg_734.value
+        elif match_arg_735.code == ModeOccupation_Code.AccessionProprieteLocalUsageExclusifHabitation:
+            proprietaire_8 = match_arg_735.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.AccessionPropriete,
                 proprietaire_8)
-        elif match_arg_734.code == ModeOccupation_Code.SousLocataire:
-            location_7 = match_arg_734.value
+        elif match_arg_735.code == ModeOccupation_Code.SousLocataire:
+            location_7 = match_arg_735.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.Location,
                 location_7)
-        elif match_arg_734.code == ModeOccupation_Code.LocationAccession:
-            proprietaire_9 = match_arg_734.value
+        elif match_arg_735.code == ModeOccupation_Code.LocationAccession:
+            proprietaire_9 = match_arg_735.value
             temp_categorie_calcul_apl_1 = CategorieCalculAPL(CategorieCalculAPL_Code.AccessionPropriete,
                 proprietaire_9)
     except EmptyError:
@@ -27767,29 +27804,29 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                              "Prologue : aides au logement"]))
     ressources_menage_avec_arrondi_1 = temp_ressources_menage_avec_arrondi_1
     try:
-        match_arg_735 = situation_familiale_1
-        if match_arg_735.code == SituationFamiliale_Code.Celibataire:
-            _ = match_arg_735.value
+        match_arg_736 = situation_familiale_1
+        if match_arg_736.code == SituationFamiliale_Code.Celibataire:
+            _ = match_arg_736.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.PersonneSeule,
                 Unit())
-        elif match_arg_735.code == SituationFamiliale_Code.Maries:
-            _ = match_arg_735.value
+        elif match_arg_736.code == SituationFamiliale_Code.Maries:
+            _ = match_arg_736.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.Couple,
                 Unit())
-        elif match_arg_735.code == SituationFamiliale_Code.Pacses:
-            _ = match_arg_735.value
+        elif match_arg_736.code == SituationFamiliale_Code.Pacses:
+            _ = match_arg_736.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.Couple,
                 Unit())
-        elif match_arg_735.code == SituationFamiliale_Code.Concubins:
-            _ = match_arg_735.value
+        elif match_arg_736.code == SituationFamiliale_Code.Concubins:
+            _ = match_arg_736.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.Couple,
                 Unit())
-        elif match_arg_735.code == SituationFamiliale_Code.CelibataireSepareDeFait:
-            _ = match_arg_735.value
+        elif match_arg_736.code == SituationFamiliale_Code.CelibataireSepareDeFait:
+            _ = match_arg_736.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.PersonneSeule,
                 Unit())
-        elif match_arg_735.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
-            _ = match_arg_735.value
+        elif match_arg_736.code == SituationFamiliale_Code.ConcubinageDontSepareDeFait:
+            _ = match_arg_736.value
             temp_situation_familiale_calcul_apl_1 = SituationFamilialeCalculAPL(SituationFamilialeCalculAPL_Code.Couple,
                 Unit())
     except EmptyError:
@@ -27806,17 +27843,17 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
     try:
         try:
             def temp_sous_calcul_traitement_88(_:Unit):
-                match_arg_736 = categorie_calcul_apl_1
-                if match_arg_736.code == CategorieCalculAPL_Code.Location:
-                    _ = match_arg_736.value
+                match_arg_737 = categorie_calcul_apl_1
+                if match_arg_737.code == CategorieCalculAPL_Code.Location:
+                    _ = match_arg_737.value
                     return TraitementFormuleAideFinale(aide_finale_formule = money_of_cents_string("0"),
                         traitement_aide_finale = traitement_nul_tout_le_temps)
-                elif match_arg_736.code == CategorieCalculAPL_Code.AccessionPropriete:
-                    _ = match_arg_736.value
+                elif match_arg_737.code == CategorieCalculAPL_Code.AccessionPropriete:
+                    _ = match_arg_737.value
                     return TraitementFormuleAideFinale(aide_finale_formule = money_of_cents_string("0"),
                         traitement_aide_finale = traitement_nul_tout_le_temps)
-                elif match_arg_736.code == CategorieCalculAPL_Code.LogementFoyer:
-                    logement_foyer__1 = match_arg_736.value
+                elif match_arg_737.code == CategorieCalculAPL_Code.LogementFoyer:
+                    logement_foyer__1 = match_arg_737.value
                     try:
                         temp_sous_calcul_traitement_89 = ChangementLogementD8424(ChangementLogementD8424_Code.PasDeChangement,
                             Unit())
@@ -27833,7 +27870,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_90 = residence_10
                     except EmptyError:
@@ -27849,7 +27886,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_91 = logement_foyer__1.logement_meuble_d842_2
                     except EmptyError:
@@ -27865,7 +27902,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_92 = money_of_cents_string("0")
                     except EmptyError:
@@ -27881,7 +27918,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_93 = logement_foyer__1.colocation
                     except EmptyError:
@@ -27897,7 +27934,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_94 = type_aide_3
                     except EmptyError:
@@ -27913,7 +27950,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_95 = False
                     except EmptyError:
@@ -27929,7 +27966,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_96 = logement_foyer__1.logement_est_chambre
                     except EmptyError:
@@ -27945,7 +27982,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_97 = zone_7
                     except EmptyError:
@@ -27961,7 +27998,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_98 = situation_familiale_calcul_apl_9
                     except EmptyError:
@@ -27977,7 +28014,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_99 = nombre_personnes_a_charge_12
                     except EmptyError:
@@ -27993,7 +28030,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_100 = date_courante_20
                     except EmptyError:
@@ -28009,7 +28046,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_101 = logement_foyer__1.beneficiaire_aide_adulte_ou_enfant_handicapes
                     except EmptyError:
@@ -28025,7 +28062,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_102 = ressources_menage_avec_arrondi_1
                     except EmptyError:
@@ -28041,7 +28078,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_103 = logement_foyer__1.redevance
                     except EmptyError:
@@ -28057,7 +28094,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Chapitre III : Saint-Pierre-et-Miquelon",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     def temp_sous_calcul_traitement_104(param0_3:Money):
                         try:
                             temp_sous_calcul_traitement_105 = logement_foyer__1.redevance
@@ -28074,7 +28111,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_106 = ressources_menage_avec_arrondi_1
                         except EmptyError:
@@ -28090,7 +28127,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_107 = logement_foyer__1.beneficiaire_aide_adulte_ou_enfant_handicapes
                         except EmptyError:
@@ -28106,7 +28143,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_108 = date_courante_20
                         except EmptyError:
@@ -28122,7 +28159,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_109 = nombre_personnes_a_charge_12
                         except EmptyError:
@@ -28138,7 +28175,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_110 = situation_familiale_calcul_apl_9
                         except EmptyError:
@@ -28154,7 +28191,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_111 = zone_7
                         except EmptyError:
@@ -28170,7 +28207,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_112 = logement_foyer__1.logement_est_chambre
                         except EmptyError:
@@ -28186,7 +28223,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_113 = False
                         except EmptyError:
@@ -28202,7 +28239,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_114 = type_aide_3
                         except EmptyError:
@@ -28218,7 +28255,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_115 = logement_foyer__1.colocation
                         except EmptyError:
@@ -28234,7 +28271,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_116 = money_of_cents_string("0")
                         except EmptyError:
@@ -28250,7 +28287,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_117 = logement_foyer__1.logement_meuble_d842_2
                         except EmptyError:
@@ -28266,7 +28303,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_118 = residence_10
                         except EmptyError:
@@ -28282,7 +28319,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         try:
                             temp_sous_calcul_traitement_119 = ChangementLogementD8424(ChangementLogementD8424_Code.PasDeChangement,
                                 Unit())
@@ -28299,7 +28336,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                                  "Chapitre III : Saint-Pierre-et-Miquelon",
                                                                  "Livre VIII : Aides personnelles au logement",
                                                                  "Partie réglementaire",
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                                 "Code de la construction et de l'habitation"]))
                         return calcul_allocation_logement_locatif(CalculAllocationLogementLocatifIn(loyer_principal_in = temp_sous_calcul_traitement_105,
                                                                   ressources_menage_arrondies_in = temp_sous_calcul_traitement_106,
                                                                   beneficiaire_aide_adulte_ou_enfant_handicapes_in = temp_sous_calcul_traitement_107,
@@ -28334,43 +28371,43 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                         changement_logement_d842_4_in = temp_sous_calcul_traitement_89)).aide_finale_formule,
                         traitement_aide_finale = temp_sous_calcul_traitement_104)
             def temp_sous_calcul_traitement_120(_:Unit):
-                match_arg_737 = categorie_calcul_apl_1
-                if match_arg_737.code == CategorieCalculAPL_Code.Location:
-                    _ = match_arg_737.value
+                match_arg_738 = categorie_calcul_apl_1
+                if match_arg_738.code == CategorieCalculAPL_Code.Location:
+                    _ = match_arg_738.value
                     temp_sous_calcul_traitement_121 = False
-                elif match_arg_737.code == CategorieCalculAPL_Code.AccessionPropriete:
-                    _ = match_arg_737.value
+                elif match_arg_738.code == CategorieCalculAPL_Code.AccessionPropriete:
+                    _ = match_arg_738.value
                     temp_sous_calcul_traitement_121 = False
-                elif match_arg_737.code == CategorieCalculAPL_Code.LogementFoyer:
-                    _ = match_arg_737.value
+                elif match_arg_738.code == CategorieCalculAPL_Code.LogementFoyer:
+                    _ = match_arg_738.value
                     temp_sous_calcul_traitement_121 = True
-                match_arg_738 = residence_10
-                if match_arg_738.code == Collectivite_Code.Guadeloupe:
-                    _ = match_arg_738.value
+                match_arg_739 = residence_10
+                if match_arg_739.code == Collectivite_Code.Guadeloupe:
+                    _ = match_arg_739.value
                     temp_sous_calcul_traitement_122 = False
-                elif match_arg_738.code == Collectivite_Code.Guyane:
-                    _ = match_arg_738.value
+                elif match_arg_739.code == Collectivite_Code.Guyane:
+                    _ = match_arg_739.value
                     temp_sous_calcul_traitement_122 = False
-                elif match_arg_738.code == Collectivite_Code.Martinique:
-                    _ = match_arg_738.value
+                elif match_arg_739.code == Collectivite_Code.Martinique:
+                    _ = match_arg_739.value
                     temp_sous_calcul_traitement_122 = False
-                elif match_arg_738.code == Collectivite_Code.LaReunion:
-                    _ = match_arg_738.value
+                elif match_arg_739.code == Collectivite_Code.LaReunion:
+                    _ = match_arg_739.value
                     temp_sous_calcul_traitement_122 = False
-                elif match_arg_738.code == Collectivite_Code.SaintBarthelemy:
-                    _ = match_arg_738.value
+                elif match_arg_739.code == Collectivite_Code.SaintBarthelemy:
+                    _ = match_arg_739.value
                     temp_sous_calcul_traitement_122 = False
-                elif match_arg_738.code == Collectivite_Code.SaintMartin:
-                    _ = match_arg_738.value
+                elif match_arg_739.code == Collectivite_Code.SaintMartin:
+                    _ = match_arg_739.value
                     temp_sous_calcul_traitement_122 = False
-                elif match_arg_738.code == Collectivite_Code.Metropole:
-                    _ = match_arg_738.value
+                elif match_arg_739.code == Collectivite_Code.Metropole:
+                    _ = match_arg_739.value
                     temp_sous_calcul_traitement_122 = False
-                elif match_arg_738.code == Collectivite_Code.SaintPierreEtMiquelon:
-                    _ = match_arg_738.value
+                elif match_arg_739.code == Collectivite_Code.SaintPierreEtMiquelon:
+                    _ = match_arg_739.value
                     temp_sous_calcul_traitement_122 = True
-                elif match_arg_738.code == Collectivite_Code.Mayotte:
-                    _ = match_arg_738.value
+                elif match_arg_739.code == Collectivite_Code.Mayotte:
+                    _ = match_arg_739.value
                     temp_sous_calcul_traitement_122 = False
                 return (temp_sous_calcul_traitement_122 and
                     temp_sous_calcul_traitement_121)
@@ -28382,9 +28419,9 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              temp_sous_calcul_traitement_120,
                                                              temp_sous_calcul_traitement_88)
         except EmptyError:
-            match_arg_739 = categorie_calcul_apl_1
-            if match_arg_739.code == CategorieCalculAPL_Code.Location:
-                location_8 = match_arg_739.value
+            match_arg_740 = categorie_calcul_apl_1
+            if match_arg_740.code == CategorieCalculAPL_Code.Location:
+                location_8 = match_arg_740.value
                 try:
                     temp_sous_calcul_traitement_124 = location_8.changement_logement_d842_4
                 except EmptyError:
@@ -28400,7 +28437,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_125 = residence_10
                 except EmptyError:
@@ -28416,7 +28453,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_126 = location_8.logement_meuble_d842_2
                 except EmptyError:
@@ -28432,17 +28469,17 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
-                    match_arg_740 = location_8.bailleur
-                    if match_arg_740.code == TypeBailleur_Code.BailleurSocial:
-                        bailleur_2 = match_arg_740.value
+                    match_arg_741 = location_8.bailleur
+                    if match_arg_741.code == TypeBailleur_Code.BailleurSocial:
+                        bailleur_2 = match_arg_741.value
                         temp_sous_calcul_traitement_127 = bailleur_2.reduction_loyer_solidarite_percue
-                    elif match_arg_740.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
-                        _ = match_arg_740.value
+                    elif match_arg_741.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                        _ = match_arg_741.value
                         temp_sous_calcul_traitement_127 = money_of_cents_string("0")
-                    elif match_arg_740.code == TypeBailleur_Code.BailleurPrive:
-                        _ = match_arg_740.value
+                    elif match_arg_741.code == TypeBailleur_Code.BailleurPrive:
+                        _ = match_arg_741.value
                         temp_sous_calcul_traitement_127 = money_of_cents_string("0")
                 except EmptyError:
                     temp_sous_calcul_traitement_127 = dead_value
@@ -28457,7 +28494,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_128 = location_8.colocation
                 except EmptyError:
@@ -28473,7 +28510,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_129 = type_aide_3
                 except EmptyError:
@@ -28489,7 +28526,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_130 = location_8.agees_ou_handicap_adultes_hebergees_onereux_particuliers
                 except EmptyError:
@@ -28505,7 +28542,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_131 = location_8.logement_est_chambre
                 except EmptyError:
@@ -28521,7 +28558,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_132 = zone_7
                 except EmptyError:
@@ -28537,7 +28574,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_133 = situation_familiale_calcul_apl_9
                 except EmptyError:
@@ -28553,7 +28590,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_134 = nombre_personnes_a_charge_12
                 except EmptyError:
@@ -28569,7 +28606,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_135 = date_courante_20
                 except EmptyError:
@@ -28585,7 +28622,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_136 = location_8.beneficiaire_aide_adulte_ou_enfant_handicapes
                 except EmptyError:
@@ -28601,7 +28638,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_137 = ressources_menage_avec_arrondi_1
                 except EmptyError:
@@ -28617,7 +28654,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_138 = location_8.loyer_principal
                 except EmptyError:
@@ -28633,7 +28670,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 def temp_sous_calcul_traitement_139(param0_4:Money):
                     try:
                         temp_sous_calcul_traitement_140 = location_8.loyer_principal
@@ -28650,7 +28687,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_141 = ressources_menage_avec_arrondi_1
                     except EmptyError:
@@ -28666,7 +28703,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_142 = location_8.beneficiaire_aide_adulte_ou_enfant_handicapes
                     except EmptyError:
@@ -28682,7 +28719,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_143 = date_courante_20
                     except EmptyError:
@@ -28698,7 +28735,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_144 = nombre_personnes_a_charge_12
                     except EmptyError:
@@ -28714,7 +28751,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_145 = situation_familiale_calcul_apl_9
                     except EmptyError:
@@ -28730,7 +28767,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_146 = zone_7
                     except EmptyError:
@@ -28746,7 +28783,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_147 = location_8.logement_est_chambre
                     except EmptyError:
@@ -28762,7 +28799,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_148 = location_8.agees_ou_handicap_adultes_hebergees_onereux_particuliers
                     except EmptyError:
@@ -28778,7 +28815,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_149 = type_aide_3
                     except EmptyError:
@@ -28794,7 +28831,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_150 = location_8.colocation
                     except EmptyError:
@@ -28810,17 +28847,17 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
-                        match_arg_741 = location_8.bailleur
-                        if match_arg_741.code == TypeBailleur_Code.BailleurSocial:
-                            bailleur_3 = match_arg_741.value
+                        match_arg_742 = location_8.bailleur
+                        if match_arg_742.code == TypeBailleur_Code.BailleurSocial:
+                            bailleur_3 = match_arg_742.value
                             temp_sous_calcul_traitement_151 = bailleur_3.reduction_loyer_solidarite_percue
-                        elif match_arg_741.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
-                            _ = match_arg_741.value
+                        elif match_arg_742.code == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial:
+                            _ = match_arg_742.value
                             temp_sous_calcul_traitement_151 = money_of_cents_string("0")
-                        elif match_arg_741.code == TypeBailleur_Code.BailleurPrive:
-                            _ = match_arg_741.value
+                        elif match_arg_742.code == TypeBailleur_Code.BailleurPrive:
+                            _ = match_arg_742.value
                             temp_sous_calcul_traitement_151 = money_of_cents_string("0")
                     except EmptyError:
                         temp_sous_calcul_traitement_151 = dead_value
@@ -28835,7 +28872,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_152 = location_8.logement_meuble_d842_2
                     except EmptyError:
@@ -28851,7 +28888,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_153 = residence_10
                     except EmptyError:
@@ -28867,7 +28904,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_154 = location_8.changement_logement_d842_4
                     except EmptyError:
@@ -28883,7 +28920,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     return calcul_allocation_logement_locatif(CalculAllocationLogementLocatifIn(loyer_principal_in = temp_sous_calcul_traitement_140,
                                                               ressources_menage_arrondies_in = temp_sous_calcul_traitement_141,
                                                               beneficiaire_aide_adulte_ou_enfant_handicapes_in = temp_sous_calcul_traitement_142,
@@ -28917,8 +28954,8 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     residence_in = temp_sous_calcul_traitement_125,
                     changement_logement_d842_4_in = temp_sous_calcul_traitement_124)).aide_finale_formule,
                     traitement_aide_finale = temp_sous_calcul_traitement_139)
-            elif match_arg_739.code == CategorieCalculAPL_Code.AccessionPropriete:
-                proprietaire_10 = match_arg_739.value
+            elif match_arg_740.code == CategorieCalculAPL_Code.AccessionPropriete:
+                proprietaire_10 = match_arg_740.value
                 try:
                     temp_sous_calcul_traitement_155 = proprietaire_10.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat
                 except EmptyError:
@@ -28934,7 +28971,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_156 = proprietaire_10.copropriete
                 except EmptyError:
@@ -28950,7 +28987,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_157 = proprietaire_10.charges_mensuelles_pret
                 except EmptyError:
@@ -28966,7 +29003,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_158 = proprietaire_10.date_entree_logement
                 except EmptyError:
@@ -28982,7 +29019,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_159 = proprietaire_10.local_habite_premiere_fois_beneficiaire
                 except EmptyError:
@@ -28998,7 +29035,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_160 = proprietaire_10.type_travaux_logement_r842_5
                 except EmptyError:
@@ -29014,7 +29051,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_161 = proprietaire_10.pret.date_signature
                 except EmptyError:
@@ -29030,7 +29067,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_162 = proprietaire_10.situation_r822_11_13_17
                 except EmptyError:
@@ -29046,7 +29083,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_163 = proprietaire_10.mensualite_principale
                 except EmptyError:
@@ -29062,7 +29099,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_164 = date_courante_20
                 except EmptyError:
@@ -29078,7 +29115,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_165 = residence_10
                 except EmptyError:
@@ -29094,7 +29131,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_166 = zone_7
                 except EmptyError:
@@ -29110,7 +29147,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_167 = situation_familiale_calcul_apl_9
                 except EmptyError:
@@ -29126,7 +29163,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_168 = nombre_personnes_a_charge_12
                 except EmptyError:
@@ -29142,7 +29179,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_169 = ressources_menage_avec_arrondi_1
                 except EmptyError:
@@ -29158,7 +29195,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 def temp_sous_calcul_traitement_170(param0_5:Money):
                     try:
                         temp_sous_calcul_traitement_171 = ressources_menage_avec_arrondi_1
@@ -29175,7 +29212,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_172 = nombre_personnes_a_charge_12
                     except EmptyError:
@@ -29191,7 +29228,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_173 = situation_familiale_calcul_apl_9
                     except EmptyError:
@@ -29207,7 +29244,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_174 = zone_7
                     except EmptyError:
@@ -29223,7 +29260,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_175 = residence_10
                     except EmptyError:
@@ -29239,7 +29276,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_176 = date_courante_20
                     except EmptyError:
@@ -29255,7 +29292,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_177 = proprietaire_10.mensualite_principale
                     except EmptyError:
@@ -29271,7 +29308,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_178 = proprietaire_10.situation_r822_11_13_17
                     except EmptyError:
@@ -29287,7 +29324,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_179 = proprietaire_10.pret.date_signature
                     except EmptyError:
@@ -29303,7 +29340,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_180 = proprietaire_10.type_travaux_logement_r842_5
                     except EmptyError:
@@ -29319,7 +29356,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_181 = proprietaire_10.local_habite_premiere_fois_beneficiaire
                     except EmptyError:
@@ -29335,7 +29372,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_182 = proprietaire_10.date_entree_logement
                     except EmptyError:
@@ -29351,7 +29388,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_183 = proprietaire_10.charges_mensuelles_pret
                     except EmptyError:
@@ -29367,7 +29404,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_184 = proprietaire_10.copropriete
                     except EmptyError:
@@ -29383,7 +29420,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_185 = proprietaire_10.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat
                     except EmptyError:
@@ -29399,7 +29436,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     return calcul_allocation_logement_accession_propriete(
                         CalculAllocationLogementAccessionProprieteIn(ressources_menage_arrondies_base_in = temp_sous_calcul_traitement_171,
                         nombre_personnes_a_charge_in = temp_sous_calcul_traitement_172,
@@ -29434,8 +29471,8 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                     copropriete_in = temp_sous_calcul_traitement_156,
                     operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat_in = temp_sous_calcul_traitement_155)).aide_finale_formule,
                     traitement_aide_finale = temp_sous_calcul_traitement_170)
-            elif match_arg_739.code == CategorieCalculAPL_Code.LogementFoyer:
-                logement_foyer__2 = match_arg_739.value
+            elif match_arg_740.code == CategorieCalculAPL_Code.LogementFoyer:
+                logement_foyer__2 = match_arg_740.value
                 try:
                     temp_sous_calcul_traitement_186 = logement_foyer__2.categorie_equivalence_loyer_d842_16
                 except EmptyError:
@@ -29451,7 +29488,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_187 = date_courante_20
                 except EmptyError:
@@ -29467,7 +29504,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_188 = zone_7
                 except EmptyError:
@@ -29483,7 +29520,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_189 = situation_familiale_calcul_apl_9
                 except EmptyError:
@@ -29499,7 +29536,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_190 = nombre_personnes_a_charge_12
                 except EmptyError:
@@ -29515,7 +29552,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_191 = ressources_menage_avec_arrondi_1
                 except EmptyError:
@@ -29531,7 +29568,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_192 = logement_foyer__2.redevance
                 except EmptyError:
@@ -29547,7 +29584,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_193 = residence_10
                 except EmptyError:
@@ -29563,7 +29600,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_194 = logement_foyer__2.date_conventionnement
                 except EmptyError:
@@ -29579,7 +29616,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_195 = logement_foyer__2.logement_foyer_jeunes_travailleurs
                 except EmptyError:
@@ -29595,7 +29632,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 try:
                     temp_sous_calcul_traitement_196 = logement_foyer__2.type
                 except EmptyError:
@@ -29611,7 +29648,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                          "Titre II : Dispositions communes aux aides personnelles au logement",
                                                          "Livre VIII : Aides personnelles au logement",
                                                          "Partie réglementaire",
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                         "Code de la construction et de l'habitation"]))
                 def temp_sous_calcul_traitement_197(param0_6:Money):
                     try:
                         temp_sous_calcul_traitement_198 = logement_foyer__2.type
@@ -29628,7 +29665,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_199 = logement_foyer__2.logement_foyer_jeunes_travailleurs
                     except EmptyError:
@@ -29644,7 +29681,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_200 = logement_foyer__2.date_conventionnement
                     except EmptyError:
@@ -29660,7 +29697,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_201 = residence_10
                     except EmptyError:
@@ -29676,7 +29713,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_202 = logement_foyer__2.redevance
                     except EmptyError:
@@ -29692,7 +29729,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_203 = ressources_menage_avec_arrondi_1
                     except EmptyError:
@@ -29708,7 +29745,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_204 = nombre_personnes_a_charge_12
                     except EmptyError:
@@ -29724,7 +29761,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_205 = situation_familiale_calcul_apl_9
                     except EmptyError:
@@ -29740,7 +29777,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_206 = zone_7
                     except EmptyError:
@@ -29756,7 +29793,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_207 = date_courante_20
                     except EmptyError:
@@ -29772,7 +29809,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     try:
                         temp_sous_calcul_traitement_208 = logement_foyer__2.categorie_equivalence_loyer_d842_16
                     except EmptyError:
@@ -29788,7 +29825,7 @@ def calcul_allocation_logement(calcul_allocation_logement_in:CalculAllocationLog
                                                              "Titre II : Dispositions communes aux aides personnelles au logement",
                                                              "Livre VIII : Aides personnelles au logement",
                                                              "Partie réglementaire",
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]))
+                                                             "Code de la construction et de l'habitation"]))
                     return calcul_allocation_logement_foyer(CalculAllocationLogementFoyerIn(type_logement_foyer_in = temp_sous_calcul_traitement_198,
                                                             logement_foyer_jeunes_travailleurs_in = temp_sous_calcul_traitement_199,
                                                             date_conventionnement_in = temp_sous_calcul_traitement_200,
@@ -30033,17 +30070,17 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                                              "Prologue : aides au logement"]))
     calcul_allocation_logement_dot_date_courante = temp_calcul_allocation_logement_dot_date_courante
     try:
-        match_arg_742 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-        if match_arg_742.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
-            _ = match_arg_742.value
+        match_arg_743 = eligibilite_allocation_logement_dot_eligibilite_l841_2
+        if match_arg_743.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
+            _ = match_arg_743.value
             temp_calcul_allocation_logement_dot_type_aide = TypeAidesPersonnelleLogement(TypeAidesPersonnelleLogement_Code.AllocationLogementSociale,
                 Unit())
-        elif match_arg_742.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
-            _ = match_arg_742.value
+        elif match_arg_743.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+            _ = match_arg_743.value
             temp_calcul_allocation_logement_dot_type_aide = TypeAidesPersonnelleLogement(TypeAidesPersonnelleLogement_Code.AllocationLogementFamiliale,
                 Unit())
-        elif match_arg_742.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
-            _ = match_arg_742.value
+        elif match_arg_743.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
+            _ = match_arg_743.value
             temp_calcul_allocation_logement_dot_type_aide = TypeAidesPersonnelleLogement(TypeAidesPersonnelleLogement_Code.AllocationLogementSociale,
                 Unit())
     except EmptyError:
@@ -30203,15 +30240,15 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
                                              "Prologue : aides au logement"]))
     coefficents_enfants_garde_alternee_pris_en_compte_3 = temp_coefficents_enfants_garde_alternee_pris_en_compte_5
     try:
-        match_arg_743 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-        if match_arg_743.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
-            _ = match_arg_743.value
+        match_arg_744 = eligibilite_allocation_logement_dot_eligibilite_l841_2
+        if match_arg_744.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
+            _ = match_arg_744.value
             temp_eligibilite_13 = False
-        elif match_arg_743.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
-            _ = match_arg_743.value
+        elif match_arg_744.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+            _ = match_arg_744.value
             temp_eligibilite_13 = True
-        elif match_arg_743.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
-            _ = match_arg_743.value
+        elif match_arg_744.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
+            _ = match_arg_744.value
             temp_eligibilite_13 = True
         temp_eligibilite_14 = (eligibilite_aide_personnalisee_logement_dot_eligibilite or
             temp_eligibilite_13)
@@ -30230,15 +30267,15 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
             if not eligibilite_3:
                 return aide_finale_29
             else:
-                match_arg_744 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-                if match_arg_744.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
-                    _ = match_arg_744.value
+                match_arg_745 = eligibilite_allocation_logement_dot_eligibilite_l841_2
+                if match_arg_745.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
+                    _ = match_arg_745.value
                     temp_traitement_aide_finale_6 = True
-                elif match_arg_744.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
-                    _ = match_arg_744.value
+                elif match_arg_745.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+                    _ = match_arg_745.value
                     temp_traitement_aide_finale_6 = False
-                elif match_arg_744.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
-                    _ = match_arg_744.value
+                elif match_arg_745.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
+                    _ = match_arg_745.value
                     temp_traitement_aide_finale_6 = False
                 if (eligibilite_aide_personnalisee_logement_dot_eligibilite and
                     not temp_traitement_aide_finale_6):
@@ -30272,15 +30309,15 @@ def calculette_aides_au_logement(calculette_aides_au_logement_in:CalculetteAides
         if not eligibilite_3:
             temp_aide_finale_formule_10 = money_of_cents_string("0")
         else:
-            match_arg_745 = eligibilite_allocation_logement_dot_eligibilite_l841_2
-            if match_arg_745.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
-                _ = match_arg_745.value
+            match_arg_746 = eligibilite_allocation_logement_dot_eligibilite_l841_2
+            if match_arg_746.code == TypeEligibiliteAllocationLogement_Code.PasEligible:
+                _ = match_arg_746.value
                 temp_aide_finale_formule_11 = True
-            elif match_arg_745.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
-                _ = match_arg_745.value
+            elif match_arg_746.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementFamiliale:
+                _ = match_arg_746.value
                 temp_aide_finale_formule_11 = False
-            elif match_arg_745.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
-                _ = match_arg_745.value
+            elif match_arg_746.code == TypeEligibiliteAllocationLogement_Code.AllocationLogementSociale:
+                _ = match_arg_746.value
                 temp_aide_finale_formule_11 = False
             if (eligibilite_aide_personnalisee_logement_dot_eligibilite and
                 not temp_aide_finale_formule_11):
@@ -30318,18 +30355,18 @@ def calculette_aides_au_logement_garde_alternee(calculette_aides_au_logement_gar
     ressources_menage_prises_en_compte_1 = calculette_aides_au_logement_garde_alternee_in.ressources_menage_prises_en_compte_in
     try:
         def temp_menage_sans_enfants_garde_alternee(personne_a_charge_14:PersonneACharge):
-            match_arg_746 = personne_a_charge_14
-            if match_arg_746.code == PersonneACharge_Code.EnfantACharge:
-                enfant_15 = match_arg_746.value
-                match_arg_747 = enfant_15.situation_garde_alternee
-                if match_arg_747.code == SituationGardeAlternee_Code.PasDeGardeAlternee:
-                    _ = match_arg_747.value
+            match_arg_747 = personne_a_charge_14
+            if match_arg_747.code == PersonneACharge_Code.EnfantACharge:
+                enfant_15 = match_arg_747.value
+                match_arg_748 = enfant_15.situation_garde_alternee
+                if match_arg_748.code == SituationGardeAlternee_Code.PasDeGardeAlternee:
+                    _ = match_arg_748.value
                     return True
-                elif match_arg_747.code == SituationGardeAlternee_Code.GardeAlterneeCoefficientPriseEnCharge:
-                    _ = match_arg_747.value
+                elif match_arg_748.code == SituationGardeAlternee_Code.GardeAlterneeCoefficientPriseEnCharge:
+                    _ = match_arg_748.value
                     return False
-            elif match_arg_746.code == PersonneACharge_Code.AutrePersonneACharge:
-                _ = match_arg_746.value
+            elif match_arg_747.code == PersonneACharge_Code.AutrePersonneACharge:
+                _ = match_arg_747.value
                 return True
         temp_menage_sans_enfants_garde_alternee_1 = Menage(prestations_recues = menage_5.prestations_recues,
             logement = menage_5.logement,

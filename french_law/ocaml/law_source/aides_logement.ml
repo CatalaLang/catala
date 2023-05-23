@@ -2347,7 +2347,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_map
@@ -2396,7 +2396,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                                      "Titre III : Aide personnalisée au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     condition_2_du_832_25_))
                  (fun (_: unit) ->
                     (let ressources_menage_arrondies_ : decimal =
@@ -2454,7 +2454,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             (let ressources_menage_arrondies_ : decimal =
@@ -2568,7 +2568,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                                      "Titre III : Aide personnalisée au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     condition_2_du_832_25_))
                  (fun (_: unit) ->
                      if
@@ -2602,7 +2602,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if (o_eq nombre_personnes_a_charge_ (integer_of_string "0"))
@@ -2655,7 +2655,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                                              "Titre VI : Disposition particulières à l'outre-mer";
                                              "Livre VIII : Aides personnelles au logement";
                                              "Partie réglementaire";
-                                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                                             "Code de la construction et de l'habitation"]}
                             (o_and
                                (o_and
                                   (o_gte_dat_dat date_courante_
@@ -2678,7 +2678,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                                      "Titre III : Aide personnalisée au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     condition_2_du_832_25_))
                  (fun (_: unit) ->
                      if
@@ -2699,7 +2699,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if
@@ -2735,7 +2735,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_add_rat_rat n_nombre_parts_d832_25_base_
@@ -2770,7 +2770,7 @@ let calcul_nombre_parts_accession_propriete (calcul_nombre_parts_accession_propr
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if (o_eq nombre_personnes_a_charge_ (integer_of_string "0"))
@@ -2985,7 +2985,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             match mode_occupation_
@@ -3038,7 +3038,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                                   "Titre II : Dispositions communes aux aides personnelles au logement";
                                                   "Livre VIII : Aides personnelles au logement";
                                                   "Partie réglementaire";
-                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                  "Code de la construction et de l'habitation"]}
                                  (match mode_occupation_impaye_
                                   with
                                   | ModeOccupationImpaye.ImpayeLoyer _ ->
@@ -3055,7 +3055,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (match mode_occupation_impaye_
                           with
                           | ModeOccupationImpaye.ImpayeLoyer _ -> true
@@ -3095,7 +3095,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (match mode_occupation_impaye_
                           with
                           | ModeOccupationImpaye.ImpayeLoyer _ -> true
@@ -3124,7 +3124,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (match mode_occupation_impaye_
                           with
                           | ModeOccupationImpaye.ImpayeLoyer _ -> false
@@ -3176,7 +3176,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (o_and
                             (match mode_occupation_impaye_
                              with
@@ -3212,7 +3212,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (o_and
                             (match mode_occupation_impaye_
                              with
@@ -3248,7 +3248,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (o_and
                             (match mode_occupation_impaye_
                              with
@@ -3285,7 +3285,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (o_and
                             (match mode_occupation_impaye_
                              with
@@ -3346,7 +3346,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                                   "Titre II : Dispositions communes aux aides personnelles au logement";
                                                   "Livre VIII : Aides personnelles au logement";
                                                   "Partie réglementaire";
-                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                  "Code de la construction et de l'habitation"]}
                                  (match mode_occupation_impaye_
                                   with
                                   | ModeOccupationImpaye.ImpayeLoyer _ ->
@@ -3368,7 +3368,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (match mode_occupation_impaye_
                           with
                           | ModeOccupationImpaye.ImpayeLoyer _ -> true
@@ -4630,7 +4630,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                           "Titre VI : Disposition particulières à l'outre-mer";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (o_and
                             (o_gte_dat_dat date_courante_
                                (date_of_numbers (2023) (4) (5)))
@@ -4657,7 +4657,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                   "Titre III : Aide personnalisée au logement";
                                   "Livre VIII : Aides personnelles au logement";
                                   "Partie réglementaire";
-                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                  "Code de la construction et de l'habitation"]}
                  true))
               (fun (_: unit) ->
                  o_or
@@ -4701,7 +4701,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                 if
@@ -4735,7 +4735,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if
@@ -4766,7 +4766,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> date_courante_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -4779,7 +4779,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_condition_2_du_832_25_: bool = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
@@ -4797,7 +4797,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> condition_2_du_832_25_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -4810,7 +4810,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_nombre_personnes_a_charge_: integer = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
@@ -4828,7 +4828,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> nombre_personnes_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -4841,7 +4841,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
@@ -4860,7 +4860,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> situation_familiale_calcul_apl_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -4873,7 +4873,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_limitation_majoration_personnes_a_charge_: 
     unit -> bool = fun (_: unit) -> (log_variable_definition
                      ["CalculAidePersonnaliséeLogementFoyer";
@@ -4892,7 +4892,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                             "Titre VI : Disposition particulières à l'outre-mer";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "et de la pêche maritime sont les non-salariés agricoles."]}
+                                            "Code de la construction et de l'habitation"]}
                            (o_and
                               (o_and
                                  (o_gte_dat_dat date_courante_
@@ -4986,7 +4986,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                o_sub_mon_mon equivalence_loyer_eligible_
@@ -5023,7 +5023,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                   "Titre III : Aide personnalisée au logement";
                                   "Livre VIII : Aides personnelles au logement";
                                   "Partie réglementaire";
-                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                  "Code de la construction et de l'habitation"]}
                  true))
               (fun (_: unit) ->
                  calcul_nombre_parts_dot_n_nombre_parts_d832_25_)))
@@ -5054,7 +5054,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let depense_nette_minimale_ : money = ((log_end_call
@@ -5126,7 +5126,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> ressources_menage_arrondies_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -5139,7 +5139,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_: bool = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
@@ -5158,7 +5158,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> condition_2_du_832_25_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -5171,7 +5171,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_: decimal = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
@@ -5190,7 +5190,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> n_nombre_parts_d832_25_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -5203,7 +5203,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let result_: CalculEquivalenceLoyerMinimale.t = (log_end_call
     ["CalculAidePersonnaliséeLogementFoyer";
       "calcul_équivalence_loyer_minimale";
@@ -5242,7 +5242,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                      "Titre III : Aide personnalisée au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     condition_2_du_832_25_))
                  (fun (_: unit) ->
                     o_sub_rat_rat (decimal_of_string "0.9")
@@ -5259,7 +5259,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             (let denominateur_ : money =
@@ -5302,7 +5302,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -5363,7 +5363,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> calcul_equivalence_loyer_minimale_dot_montant_))
     with
@@ -5396,7 +5396,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                      "Titre III : Aide personnalisée au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     condition_2_du_832_25_))
                  (fun (_: unit) ->
                     o_div_rat_rat
@@ -5417,7 +5417,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_div_rat_rat
@@ -5454,7 +5454,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -5524,7 +5524,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                      "Titre III : Aide personnalisée au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     condition_2_du_832_25_))
                  (fun (_: unit) ->
                      if
@@ -5543,7 +5543,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if
@@ -5578,7 +5578,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -5623,7 +5623,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             (let aide_finale_ : money =
@@ -5717,7 +5717,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> nombre_personnes_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -5729,7 +5729,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
@@ -5747,7 +5747,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> situation_familiale_calcul_apl_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -5759,7 +5759,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let result_: CalculNombrePartsAccessionPropriete.t = (log_end_call
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
       "calcul_nombre_parts"; "CalculNombrePartsAccessionPropriété"]
@@ -11394,7 +11394,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> calcul_nombre_parts_dot_n_nombre_parts_d832_11_))
     with
@@ -11426,7 +11426,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                      "Titre III : Aide personnalisée au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     situation_r822_11_13_17_))
                  (fun (_: unit) -> ressources_menage_arrondies_))|])
          (fun (_: unit) -> (log_decision_taken
@@ -11438,7 +11438,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if
@@ -11474,7 +11474,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                 if
@@ -11513,7 +11513,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                         "Titre III : Aide personnalisée au logement";
                                         "Livre VIII : Aides personnelles au logement";
                                         "Partie réglementaire";
-                                        "et de la pêche maritime sont les non-salariés agricoles."]}
+                                        "Code de la construction et de l'habitation"]}
                        (o_gte_dat_dat date_signature_pret_
                           (date_of_numbers (1999) (6) (30)))))
                     (fun (_: unit) ->
@@ -11531,7 +11531,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                o_sub_mon_mon mensualite_principale_ allocation_mensuelle_))
@@ -11564,7 +11564,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                      "Titre III : Aide personnalisée au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     local_habite_premiere_fois_beneficiaire_))
                  (fun (_: unit) ->
                     (let plafond_signature_ : money = ((log_end_call
@@ -11608,7 +11608,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> (log_end_call
             ["CalculAidePersonnaliséeLogementAccessionPropriété";
@@ -11671,7 +11671,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> ressources_menage_arrondies_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -11683,7 +11683,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_: bool = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
@@ -11701,7 +11701,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> false))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -11713,7 +11713,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_: decimal = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
@@ -11731,7 +11731,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> n_nombre_parts_d832_11_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -11743,7 +11743,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Titre III : Aide personnalisée au logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let result_: CalculEquivalenceLoyerMinimale.t = (log_end_call
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
       "calcul_équivalence_loyer_minimale";
@@ -11776,7 +11776,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_sub_rat_rat (decimal_of_string "0.95")
@@ -11809,7 +11809,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let depense_nette_minimale_ : money = ((log_end_call
@@ -11956,7 +11956,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                           "Titre III : Aide personnalisée au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (o_or
                             (match type_travaux_logement_
                              with
@@ -12028,7 +12028,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                           "Titre III : Aide personnalisée au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (match type_travaux_logement_
                           with
                           | TypeTravauxLogementD83215.TravauxPourAcquisitionD832_15_1 _ ->
@@ -12063,7 +12063,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_div_rat_rat
@@ -12099,7 +12099,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -12159,7 +12159,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if
@@ -12191,7 +12191,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if
@@ -12225,7 +12225,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -12289,7 +12289,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                              "Titre III : Aide personnalisée au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             (let aide_finale_ : money =
@@ -12328,7 +12328,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                 "Titre III : Aide personnalisée au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -12818,7 +12818,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> decimal_of_string "0.98"))
     with
     EmptyError -> (raise (NoValueProvided
@@ -13034,7 +13034,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if logement_meuble_d842_2_ then
@@ -17946,7 +17946,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if
@@ -17978,7 +17978,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                      "Titre II : Dispositions communes aux aides personnelles au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]})))
+                                     "Code de la construction et de l'habitation"]})))
                   then () else
                   raise (AssertionFailed {filename = "examples/aides_logement/code_construction_reglementaire.catala_fr";
                                            start_line=1816; start_column=13;
@@ -17990,7 +17990,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                                           "Livre VIII : Aides personnelles au logement";
                                                           "Partie réglementaire";
-                                                          "et de la pêche maritime sont les non-salariés agricoles."]}) in
+                                                          "Code de la construction et de l'habitation"]}) in
   let traitement_aide_finale_diminue_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
       "traitement_aide_finale_diminué"] (unembeddable)
@@ -18014,7 +18014,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                         "Titre II : Dispositions communes aux aides personnelles au logement";
                                         "Livre VIII : Aides personnelles au logement";
                                         "Partie réglementaire";
-                                        "et de la pêche maritime sont les non-salariés agricoles."]}
+                                        "Code de la construction et de l'habitation"]}
                        beneficiaire_aide_adulte_ou_enfant_handicapes_))
                     (fun (_: unit) -> aide_finale_))|])
             (fun (_: unit) -> (log_decision_taken
@@ -18028,7 +18028,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                 "Titre II : Dispositions communes aux aides personnelles au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                 if
@@ -18273,7 +18273,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                 "Titre II : Dispositions communes aux aides personnelles au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -18482,7 +18482,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                 "Titre II : Dispositions communes aux aides personnelles au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -18688,7 +18688,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_add_rat_rat taux_composition_familiale_
@@ -18761,7 +18761,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             (let participation_ressources_ : money =
@@ -18804,7 +18804,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                 "Titre II : Dispositions communes aux aides personnelles au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -18849,7 +18849,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             (let aide_finale_ : money =
@@ -19198,7 +19198,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> true))) in
   let calcul_apl_logement_foyer_dot_limitation_majoration_personnes_a_charge_: 
     unit -> bool = fun (_: unit) -> (log_variable_definition
@@ -19218,7 +19218,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                             "Titre VI : Disposition particulières à l'outre-mer";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "et de la pêche maritime sont les non-salariés agricoles."]}
+                                            "Code de la construction et de l'habitation"]}
                            (o_and
                               (o_and
                                  (o_gte_dat_dat date_courante_
@@ -19301,7 +19301,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> date_courante_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -19312,7 +19312,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_condition_2_du_832_25_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
@@ -19329,7 +19329,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> true))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -19340,7 +19340,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_nombre_personnes_a_charge_: integer = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
@@ -19357,7 +19357,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> nombre_personnes_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -19368,7 +19368,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
@@ -19386,7 +19386,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> situation_familiale_calcul_apl_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -19397,7 +19397,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_limitation_majoration_personnes_a_charge_: 
     unit -> bool = fun (_: unit) -> (log_variable_definition
                      ["CalculAllocationLogementFoyer";
@@ -20240,7 +20240,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_))
@@ -20289,7 +20289,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> ressources_menage_arrondies_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -20300,7 +20300,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
@@ -20318,7 +20318,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> true))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -20329,7 +20329,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_: decimal = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
@@ -20347,7 +20347,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> calcul_nombre_parts_dot_n_nombre_parts_d832_25_))))
     with
@@ -20359,7 +20359,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let result_: CalculEquivalenceLoyerMinimale.t = (log_end_call
     ["CalculAllocationLogementFoyer"; "calcul_équivalence_loyer_minimale";
       "CalculÉquivalenceLoyerMinimale"] ((log_begin_call
@@ -20769,7 +20769,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                 if
@@ -20800,7 +20800,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> calcul_equivalence_loyer_minimale_dot_montant_))
     with
@@ -20828,7 +20828,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                o_sub_mon_mon
@@ -20856,7 +20856,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_mult_mon_rat
@@ -20889,7 +20889,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                 if
@@ -20945,7 +20945,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -21008,7 +21008,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -21053,7 +21053,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -21160,7 +21160,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -21252,7 +21252,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> nombre_personnes_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -21264,7 +21264,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_nombre_parts_dot_situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
@@ -21282,7 +21282,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> situation_familiale_calcul_apl_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -21294,7 +21294,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let result_: CalculNombrePartsAccessionPropriete.t = (log_end_call
     ["CalculAllocationLogementAccessionPropriété"; "calcul_nombre_parts";
       "CalculNombrePartsAccessionPropriété"] ((log_begin_call
@@ -21912,7 +21912,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                                     "Chapitre II : Saint-Barthélemy et Saint-Martin";
                                                                     "Livre VIII : Aides personnelles au logement";
                                                                     "Partie réglementaire";
-                                                                    "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                    "Code de la construction et de l'habitation"]}
                                                                  (o_and
                                                                     (
                                                                     o_and
@@ -21970,7 +21970,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                              "Chapitre II : Saint-Barthélemy et Saint-Martin";
                                                              "Livre VIII : Aides personnelles au logement";
                                                              "Partie réglementaire";
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                             "Code de la construction et de l'habitation"]}
                                                          (o_and
                                                             (o_gte_dat_dat
                                                                date_courante_
@@ -22010,7 +22010,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                                   "Titre VI : Disposition particulières à l'outre-mer";
                                                                   "Livre VIII : Aides personnelles au logement";
                                                                   "Partie réglementaire";
-                                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                  "Code de la construction et de l'habitation"]}
                                                  (o_and
                                                     (o_and
                                                        (o_gte_dat_dat
@@ -22051,7 +22051,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                           "Titre VI : Disposition particulières à l'outre-mer";
                                                           "Livre VIII : Aides personnelles au logement";
                                                           "Partie réglementaire";
-                                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                          "Code de la construction et de l'habitation"]}
                                          (o_and
                                             (o_gte_dat_dat date_courante_
                                                (date_of_numbers (2023) (4) (5)))
@@ -22090,7 +22090,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                      "Titre IV : Allocations de Logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     (o_and
                        (o_or
                           (match type_travaux_logement_
@@ -26993,7 +26993,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                           "Titre IV : Allocations de Logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (o_or
                             (o_and
                                (o_gte_dat_dat date_signature_pret_
@@ -27052,7 +27052,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                           "Titre IV : Allocations de Logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (o_and
                             (o_gt_dat_dat date_signature_pret_
                                (date_of_numbers (1994) (9) (30)))
@@ -27093,7 +27093,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                 if
@@ -27307,7 +27307,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                o_sub_mon_mon
@@ -27341,7 +27341,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                      "Titre IV : Allocations de Logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     situation_r822_11_13_17_))
                  (fun (_: unit) -> ressources_menage_arrondies_base_))|])
          (fun (_: unit) -> (log_decision_taken
@@ -27353,7 +27353,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if
@@ -27830,7 +27830,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> ressources_menage_arrondies_seuil_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -27842,7 +27842,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_equivalence_loyer_minimale_dot_condition_2_du_832_25_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
@@ -27860,7 +27860,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> true))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -27872,7 +27872,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_equivalence_loyer_minimale_dot_n_nombre_parts_d832_25_: decimal = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
@@ -27890,7 +27890,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> calcul_nombre_parts_dot_n_nombre_parts_d832_11_))))
     with
@@ -27903,7 +27903,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let result_: CalculEquivalenceLoyerMinimale.t = (log_end_call
     ["CalculAllocationLogementAccessionPropriété";
       "calcul_équivalence_loyer_minimale";
@@ -28151,7 +28151,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> true))) in
   let calcul_apl_logement_foyer_dot_limitation_majoration_personnes_a_charge_: 
     unit -> bool = fun (_: unit) -> (log_variable_definition
@@ -28190,7 +28190,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                                  "Chapitre II : Saint-Barthélemy et Saint-Martin";
                                                                  "Livre VIII : Aides personnelles au logement";
                                                                  "Partie réglementaire";
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                 "Code de la construction et de l'habitation"]}
                                                 (o_and
                                                    (o_and
                                                       (o_gte_dat_dat
@@ -28229,7 +28229,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                          "Titre VI : Disposition particulières à l'outre-mer";
                                                          "Livre VIII : Aides personnelles au logement";
                                                          "Partie réglementaire";
-                                                         "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                         "Code de la construction et de l'habitation"]}
                                         (o_and
                                            (o_and
                                               (o_gte_dat_dat date_courante_
@@ -28326,7 +28326,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                      "Titre IV : Allocations de Logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     condition_d842_11_3_))
                  (fun (_: unit) ->
                     o_mult_mon_rat ressources_menage_arrondies_seuil_
@@ -28340,7 +28340,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> montant_forfaitaire_d842_11_))
     with
     EmptyError -> (raise (NoValueProvided
@@ -28370,7 +28370,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                      "Titre IV : Allocations de Logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     local_habite_premiere_fois_beneficiaire_))
                  (fun (_: unit) ->
                     (let plafond_signature_ : money = ((log_end_call
@@ -28420,7 +28420,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> (log_end_call
             ["CalculAllocationLogementAccessionPropriété";
@@ -28461,7 +28461,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> calcul_equivalence_loyer_minimale_dot_montant_))
     with
@@ -28487,7 +28487,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             calcul_apl_logement_foyer_dot_coefficient_prise_en_charge_d832_25_seuil_))
@@ -28516,7 +28516,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let depense_nette_minimale_ : money = ((log_end_call
@@ -28561,7 +28561,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if
@@ -28592,7 +28592,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -28651,7 +28651,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_mult_mon_rat
@@ -28684,7 +28684,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -28791,7 +28791,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (let aide_finale_ : money = ((log_end_call
@@ -28858,7 +28858,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                   "Titre VI : Disposition particulières à l'outre-mer";
                                   "Livre VIII : Aides personnelles au logement";
                                   "Partie réglementaire";
-                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                  "Code de la construction et de l'habitation"]}
                  true)) (fun (_: unit) -> date_of_numbers (2021) (1) (1))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -28883,7 +28883,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> decimal_of_string "0.1"))
     with
     EmptyError -> (raise (NoValueProvided
@@ -28908,7 +28908,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> decimal_of_string "0.1"))
     with
     EmptyError -> (raise (NoValueProvided
@@ -28969,7 +28969,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_add_int_int
@@ -29687,7 +29687,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                     "Chapitre II : Saint-Barthélemy et Saint-Martin";
                                                                     "Livre VIII : Aides personnelles au logement";
                                                                     "Partie réglementaire";
-                                                                    "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                    "Code de la construction et de l'habitation"]}
                                                                     (o_and
                                                                     (o_gte_dat_dat
                                                                     date_courante_
@@ -29738,7 +29738,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                     "Titre VI : Disposition particulières à l'outre-mer";
                                                                     "Livre VIII : Aides personnelles au logement";
                                                                     "Partie réglementaire";
-                                                                    "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                    "Code de la construction et de l'habitation"]}
                                                                     (match
                                                                     (menage_.Menage.residence)
                                                                     with
@@ -29793,7 +29793,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                     "Titre II : Dispositions communes aux aides personnelles au logement";
                                                                     "Livre VIII : Aides personnelles au logement";
                                                                     "Partie réglementaire";
-                                                                    "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                    "Code de la construction et de l'habitation"]}
                                                                     true))
                                                                     (fun
                                                                     (_: unit) ->
@@ -30010,7 +30010,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                           "Titre IV : Allocations de Logement";
                                                           "Livre VIII : Aides personnelles au logement";
                                                           "Partie réglementaire";
-                                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                          "Code de la construction et de l'habitation"]}
                                          (o_and
                                             (menage_.Menage.personnes_agees_handicapees_foyer_r844_4)
                                             (o_gt_int_int
@@ -30026,7 +30026,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                   "Titre IV : Allocations de Logement";
                                                   "Livre VIII : Aides personnelles au logement";
                                                   "Partie réglementaire";
-                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                  "Code de la construction et de l'habitation"]}
                                  (o_and
                                     (menage_.Menage.personnes_agees_handicapees_foyer_r844_4)
                                     (o_gte_int_int
@@ -30047,7 +30047,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                           "Titre II : Dispositions communes aux aides personnelles au logement";
                                           "Livre VIII : Aides personnelles au logement";
                                           "Partie réglementaire";
-                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                          "Code de la construction et de l'habitation"]}
                          (let
                             condition_logement_surface_minimale_sans_seuil_m_carres_
                             : integer =
@@ -30270,7 +30270,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                         "Titre II : Dispositions communes aux aides personnelles au logement";
                                         "Livre VIII : Aides personnelles au logement";
                                         "Partie réglementaire";
-                                        "et de la pêche maritime sont les non-salariés agricoles."]}
+                                        "Code de la construction et de l'habitation"]}
                        (match personne_a_charge_
                         with
                         | PersonneACharge.EnfantACharge enfant_ -> false
@@ -30320,7 +30320,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                     "Titre II : Dispositions communes aux aides personnelles au logement";
                                                                     "Livre VIII : Aides personnelles au logement";
                                                                     "Partie réglementaire";
-                                                                    "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                                    "Code de la construction et de l'habitation"]})));
                                                    VerificationAgeInferieurOuEgalAIn.date_courante_in =
                                                      (try date_courante_ with
                                                      EmptyError -> (raise
@@ -30336,7 +30336,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                            "Titre II : Dispositions communes aux aides personnelles au logement";
                                                            "Livre VIII : Aides personnelles au logement";
                                                            "Partie réglementaire";
-                                                           "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                           "Code de la construction et de l'habitation"]})));
                                                    VerificationAgeInferieurOuEgalAIn.annees_in =
                                                      (
                                                      try
@@ -30355,7 +30355,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                            "Titre II : Dispositions communes aux aides personnelles au logement";
                                                            "Livre VIII : Aides personnelles au logement";
                                                            "Partie réglementaire";
-                                                           "et de la pêche maritime sont les non-salariés agricoles."]})))}))))
+                                                           "Code de la construction et de l'habitation"]})))}))))
                                            in
                                            (let result_ :
                                               VerificationAgeInferieurOuEgalA.t
@@ -30382,7 +30382,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                  "Titre II : Dispositions communes aux aides personnelles au logement";
                                                                  "Livre VIII : Aides personnelles au logement";
                                                                  "Partie réglementaire";
-                                                                 "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                 "Code de la construction et de l'habitation"]}
                                                 true)) then result_ else
                                               result_))))))).VerificationAgeInferieurOuEgalA.est_inferieur_ou_egal)))
                                      (o_and
@@ -30469,7 +30469,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                 "Titre II : Dispositions communes aux aides personnelles au logement";
                                                 "Livre VIII : Aides personnelles au logement";
                                                 "Partie réglementaire";
-                                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                "Code de la construction et de l'habitation"]}
                                (match personne_a_charge_
                                 with
                                 | PersonneACharge.EnfantACharge enfant_ ->
@@ -30517,7 +30517,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                         "Titre II : Dispositions communes aux aides personnelles au logement";
                                         "Livre VIII : Aides personnelles au logement";
                                         "Partie réglementaire";
-                                        "et de la pêche maritime sont les non-salariés agricoles."]}
+                                        "Code de la construction et de l'habitation"]}
                        ((log_end_call
                        ["ÉligibilitéAidesPersonnelleLogement";
                          "condition_2_r823_4"] ((log_variable_definition
@@ -30574,7 +30574,10 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                               end_line=1816; end_column=34;
                                                               law_headings=
                                                               ["Article L862-3";
-                                                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                "Titre VI : Dispositions particulières à l'outre-mer";
+                                                                "Livre VIII : Aides personnelles au logement";
+                                                                "Partie législative";
+                                                                "Code de la construction et de l'habitation"]}
                                                             (o_and
                                                                (match
                                                                   (menage_.Menage.residence)
@@ -30632,7 +30635,13 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                       start_line=1544;
                                                       start_column=5;
                                                       end_line=1550; end_column=34;
-                                                      law_headings=["et de la pêche maritime sont les non-salariés agricoles."]}
+                                                      law_headings=["Article L861-6";
+                                                                    "Section 4 : Allocations de logement";
+                                                                    "Chapitre Ier : Guadeloupe, Guyane, Martinique, La Réunion et Mayotte";
+                                                                    "Titre VI : Dispositions particulières à l'outre-mer";
+                                                                    "Livre VIII : Aides personnelles au logement";
+                                                                    "Partie législative";
+                                                                    "Code de la construction et de l'habitation"]}
                                                     (o_and
                                                        (match
                                                           (menage_.Menage.residence)
@@ -30718,7 +30727,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                         "Titre II : Dispositions communes aux aides personnelles au logement";
                                         "Livre VIII : Aides personnelles au logement";
                                         "Partie réglementaire";
-                                        "et de la pêche maritime sont les non-salariés agricoles."]}
+                                        "Code de la construction et de l'habitation"]}
                        (match personne_a_charge_
                         with
                         | PersonneACharge.EnfantACharge enfant_ ->
@@ -30779,7 +30788,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             o_filter
@@ -30916,7 +30925,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> loyer_principal_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -30928,7 +30937,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_ressources_menage_arrondies_: money = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
@@ -30945,7 +30954,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> ressources_menage_arrondies_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -30957,7 +30966,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_beneficiaire_aide_adulte_ou_enfant_handicapes_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
@@ -30975,7 +30984,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> beneficiaire_aide_adulte_ou_enfant_handicapes_))))
     with
@@ -30988,7 +30997,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.date_courante"]
@@ -31005,7 +31014,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> date_courante_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31017,7 +31026,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_nombre_personnes_a_charge_: integer = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
@@ -31034,7 +31043,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> nombre_personnes_a_charge_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31046,7 +31055,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
@@ -31064,7 +31073,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> situation_familiale_calcul_apl_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31076,7 +31085,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_zone_: ZoneDHabitation.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.zone"]
@@ -31093,7 +31102,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> zone_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31105,7 +31114,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_logement_est_chambre_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
@@ -31122,7 +31131,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> logement_est_chambre_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31134,7 +31143,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_agees_ou_handicap_adultes_hebergees_onereux_particuliers_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
@@ -31152,7 +31161,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             agees_ou_handicap_adultes_hebergees_onereux_particuliers_))))
@@ -31166,7 +31175,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_type_aide_: TypeAidesPersonnelleLogement.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.type_aide"]
@@ -31183,7 +31192,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> type_aide_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31195,7 +31204,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_colocation_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.colocation"]
@@ -31212,7 +31221,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> colocation_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31224,7 +31233,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_reduction_loyer_solidarite_: money = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
@@ -31241,7 +31250,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> reduction_loyer_solidarite_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31253,7 +31262,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_logement_meuble_d842_2_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
@@ -31270,7 +31279,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> logement_meuble_d842_2_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31282,7 +31291,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let calcul_apl_locatif_dot_residence_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.résidence"]
@@ -31299,7 +31308,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> residence_))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -31311,7 +31320,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Titre IV : Allocations de Logement";
                        "Livre VIII : Aides personnelles au logement";
                        "Partie réglementaire";
-                       "et de la pêche maritime sont les non-salariés agricoles."]})) in
+                       "Code de la construction et de l'habitation"]})) in
   let result_: CalculAidePersonnaliseeLogementLocatif.t = (log_end_call
     ["CalculAllocationLogementLocatif"; "calcul_apl_locatif";
       "CalculAidePersonnaliséeLogementLocatif"] ((log_begin_call
@@ -31482,7 +31491,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                                         "Titre IV : Allocations de Logement";
                                         "Livre VIII : Aides personnelles au logement";
                                         "Partie réglementaire";
-                                        "et de la pêche maritime sont les non-salariés agricoles."]}
+                                        "Code de la construction et de l'habitation"]}
                        (match changement_logement_d842_4_
                         with
                         | ChangementLogementD8424.Changement infos_ ->
@@ -31500,7 +31509,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                                 "Titre IV : Allocations de Logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) -> (log_end_call
                ["CalculAidePersonnaliséeLogementLocatif";
@@ -31544,7 +31553,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                                      "Titre IV : Allocations de Logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     (match changement_logement_d842_4_
                      with
                      | ChangementLogementD8424.Changement infos_ ->
@@ -31570,7 +31579,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) -> calcul_apl_locatif_dot_aide_finale_formule_))
     with
@@ -31619,7 +31628,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             match mode_occupation_
@@ -31659,7 +31668,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             arrondi_centaine_superieure_ ressources_menage_sans_arrondi_))
@@ -31724,7 +31733,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             match categorie_calcul_apl_
@@ -31752,7 +31761,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                              "Titre II : Dispositions communes aux aides personnelles au logement";
                                              "Livre VIII : Aides personnelles au logement";
                                              "Partie réglementaire";
-                                             "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                             "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.ressources_menage_arrondies_in =
                             (try ressources_menage_avec_arrondi_ with
                             EmptyError -> (raise (NoValueProvided
@@ -31765,7 +31774,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.beneficiaire_aide_adulte_ou_enfant_handicapes_in =
                             (
                             try
@@ -31781,7 +31790,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.date_courante_in =
                             (try date_courante_ with
                             EmptyError -> (raise (NoValueProvided
@@ -31794,7 +31803,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.nombre_personnes_a_charge_in =
                             (try nombre_personnes_a_charge_ with
                             EmptyError -> (raise (NoValueProvided
@@ -31807,7 +31816,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.situation_familiale_calcul_apl_in =
                             (try situation_familiale_calcul_apl_ with
                             EmptyError -> (raise (NoValueProvided
@@ -31820,7 +31829,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.zone_in =
                             (try zone_ with
                             EmptyError -> (raise (NoValueProvided
@@ -31833,7 +31842,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.logement_est_chambre_in =
                             (
                             try (location_.Location.logement_est_chambre)
@@ -31848,7 +31857,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in =
                             (
                             try
@@ -31864,7 +31873,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.type_aide_in =
                             (try type_aide_ with
                             EmptyError -> (raise (NoValueProvided
@@ -31877,7 +31886,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.colocation_in =
                             (try (location_.Location.colocation) with
                             EmptyError -> (raise (NoValueProvided
@@ -31890,7 +31899,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.reduction_loyer_solidarite_in =
                             (
                             try
@@ -31913,7 +31922,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.logement_meuble_d842_2_in =
                             (
                             try (location_.Location.logement_meuble_d842_2)
@@ -31928,7 +31937,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementLocatifIn.residence_in =
                             (try residence_ with
                             EmptyError -> (raise (NoValueProvided
@@ -31941,7 +31950,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})))}))))
+                                               "Code de la construction et de l'habitation"]})))}))))
                    in
                    (let result_ : CalculAidePersonnaliseeLogementLocatif.t =
                       ({CalculAidePersonnaliseeLogementLocatif.montant_forfaitaire_charges_d823_16 =
@@ -31989,7 +31998,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                          "Titre II : Dispositions communes aux aides personnelles au logement";
                                          "Livre VIII : Aides personnelles au logement";
                                          "Partie réglementaire";
-                                         "et de la pêche maritime sont les non-salariés agricoles."]}
+                                         "Code de la construction et de l'habitation"]}
                         true)) then result_ else result_)))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
@@ -32024,7 +32033,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                              "Titre II : Dispositions communes aux aides personnelles au logement";
                                              "Livre VIII : Aides personnelles au logement";
                                              "Partie réglementaire";
-                                             "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                             "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.ressources_menage_arrondies_in =
                             (try ressources_menage_avec_arrondi_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32037,7 +32046,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.nombre_personnes_a_charge_in =
                             (try nombre_personnes_a_charge_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32050,7 +32059,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.situation_familiale_calcul_apl_in =
                             (try situation_familiale_calcul_apl_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32063,7 +32072,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.type_travaux_logement_in =
                             (
                             try
@@ -32079,7 +32088,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.date_signature_pret_in =
                             (
                             try
@@ -32095,7 +32104,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.local_habite_premiere_fois_beneficiaire_in =
                             (
                             try
@@ -32111,7 +32120,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.date_entree_logement_in =
                             (
                             try
@@ -32127,7 +32136,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.copropriete_in =
                             (
                             try (proprietaire_.Proprietaire.copropriete) with
@@ -32141,7 +32150,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.situation_r822_11_13_17_in =
                             (
                             try
@@ -32157,7 +32166,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.zone_in =
                             (try zone_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32170,7 +32179,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.type_pret_in =
                             (
                             try
@@ -32186,7 +32195,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.anciennete_logement_in =
                             (
                             try
@@ -32202,7 +32211,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.date_courante_in =
                             (try date_courante_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32215,7 +32224,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementAccessionProprieteIn.residence_in =
                             (try residence_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32228,7 +32237,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})))}))))
+                                               "Code de la construction et de l'habitation"]})))}))))
                    in
                    (let result_ :
                       CalculAidePersonnaliseeLogementAccessionPropriete.t =
@@ -32273,7 +32282,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                          "Titre II : Dispositions communes aux aides personnelles au logement";
                                          "Livre VIII : Aides personnelles au logement";
                                          "Partie réglementaire";
-                                         "et de la pêche maritime sont les non-salariés agricoles."]}
+                                         "Code de la construction et de l'habitation"]}
                         true)) then result_ else result_)))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
@@ -32303,7 +32312,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                              "Titre II : Dispositions communes aux aides personnelles au logement";
                                              "Livre VIII : Aides personnelles au logement";
                                              "Partie réglementaire";
-                                             "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                             "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.logement_foyer_jeunes_travailleurs_in =
                             (
                             try
@@ -32319,7 +32328,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.type_logement_foyer_in =
                             (
                             try (logement_foyer__.LogementFoyer.type_user)
@@ -32334,7 +32343,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.date_conventionnement_in =
                             (
                             try
@@ -32350,7 +32359,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.ressources_menage_arrondies_in =
                             (try ressources_menage_avec_arrondi_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32363,7 +32372,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.nombre_personnes_a_charge_in =
                             (try nombre_personnes_a_charge_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32376,7 +32385,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.situation_familiale_calcul_apl_in =
                             (try situation_familiale_calcul_apl_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32389,7 +32398,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.zone_in = (
                             try zone_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32402,7 +32411,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.date_courante_in =
                             (try date_courante_ with
                             EmptyError -> (raise (NoValueProvided
@@ -32415,7 +32424,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.redevance_in =
                             (
                             try (logement_foyer__.LogementFoyer.redevance)
@@ -32430,7 +32439,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAidePersonnaliseeLogementFoyerIn.condition_2_du_832_25_in =
                             (fun (_: unit) -> raise EmptyError);
                           CalculAidePersonnaliseeLogementFoyerIn.limitation_majoration_personnes_a_charge_in =
@@ -32488,7 +32497,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                          "Titre II : Dispositions communes aux aides personnelles au logement";
                                          "Livre VIII : Aides personnelles au logement";
                                          "Partie réglementaire";
-                                         "et de la pêche maritime sont les non-salariés agricoles."]}
+                                         "Code de la construction et de l'habitation"]}
                         true)) then result_ else result_)))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
@@ -32521,7 +32530,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                 "Titre II : Dispositions communes aux aides personnelles au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (sous_calcul_traitement_.TraitementFormuleAideFinale.traitement_aide_finale)
@@ -32550,7 +32559,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             sous_calcul_traitement_.TraitementFormuleAideFinale.aide_finale_formule))
@@ -32589,7 +32598,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> duration_of_numbers (0) (6) (0)))
     with
     EmptyError -> (raise (NoValueProvided
@@ -32619,7 +32628,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                                      "Titre II : Dispositions communes aux aides personnelles au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     (o_gte_int_int
                        (o_add_int_int
                           (o_length
@@ -32823,7 +32832,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                                      "Titre II : Dispositions communes aux aides personnelles au logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     (match
                        (informations_.InformationsPrimeDeDemenagement.date_naissance_troisieme_enfant_ou_dernier_si_plus)
                      with
@@ -32965,7 +32974,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                                                              "Titre VI : Disposition particulières à l'outre-mer";
                                                              "Livre VIII : Aides personnelles au logement";
                                                              "Partie réglementaire";
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                             "Code de la construction et de l'habitation"]}
                                                          (o_and
                                                             (o_gte_dat_dat
                                                                date_courante_
@@ -33001,7 +33010,10 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                                                    law_headings=["Article L863-2";
                                                                   "Section 2 : Dispositions communes aux aides applicables à Saint-Pierre-et-Miquelon";
                                                                   "Chapitre III : Saint-Pierre-et-Miquelon";
-                                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                  "Titre VI : Dispositions particulières à l'outre-mer";
+                                                                  "Livre VIII : Aides personnelles au logement";
+                                                                  "Partie législative";
+                                                                  "Code de la construction et de l'habitation"]}
                                                  (o_and
                                                     (o_gte_dat_dat
                                                        date_courante_
@@ -33107,7 +33119,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
              if eligibilite_ then
@@ -33146,7 +33158,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true)) (fun (_: unit) -> duration_of_numbers (5) (0) (0)))
     with
     EmptyError -> (raise (NoValueProvided
@@ -33263,7 +33275,10 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                    start_column=19;
                                                    end_line=1732; end_column=39;
                                                    law_headings=["Article L862-3";
-                                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                  "Titre VI : Dispositions particulières à l'outre-mer";
+                                                                  "Livre VIII : Aides personnelles au logement";
+                                                                  "Partie législative";
+                                                                  "Code de la construction et de l'habitation"]}
                                                  (match
                                                     (menage_.Menage.residence)
                                                   with
@@ -33379,7 +33394,10 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                    start_column=19;
                                                    end_line=1731; end_column=39;
                                                    law_headings=["Article L862-3";
-                                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                  "Titre VI : Dispositions particulières à l'outre-mer";
+                                                                  "Livre VIII : Aides personnelles au logement";
+                                                                  "Partie législative";
+                                                                  "Code de la construction et de l'habitation"]}
                                                  (match
                                                     (menage_.Menage.residence)
                                                   with
@@ -33495,7 +33513,10 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                    start_column=19;
                                                    end_line=1730; end_column=39;
                                                    law_headings=["Article L862-3";
-                                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                  "Titre VI : Dispositions particulières à l'outre-mer";
+                                                                  "Livre VIII : Aides personnelles au logement";
+                                                                  "Partie législative";
+                                                                  "Code de la construction et de l'habitation"]}
                                                  (match
                                                     (menage_.Menage.residence)
                                                   with
@@ -33625,7 +33646,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                              "Titre IV : Allocations de Logement";
                                                              "Livre VIII : Aides personnelles au logement";
                                                              "Partie réglementaire";
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                             "Code de la construction et de l'habitation"]}
                                                          (match
                                                             ((menage_.Menage.logement).Logement.mode_occupation)
                                                           with
@@ -33670,7 +33691,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                   "Titre IV : Allocations de Logement";
                                                                   "Livre VIII : Aides personnelles au logement";
                                                                   "Partie réglementaire";
-                                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                  "Code de la construction et de l'habitation"]}
                                                  (match
                                                     ((menage_.Menage.logement).Logement.mode_occupation)
                                                   with
@@ -33713,7 +33734,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                           "Titre IV : Allocations de Logement";
                                                           "Livre VIII : Aides personnelles au logement";
                                                           "Partie réglementaire";
-                                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                          "Code de la construction et de l'habitation"]}
                                          (match
                                             ((menage_.Menage.logement).Logement.mode_occupation)
                                           with
@@ -33770,7 +33791,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                      "Titre IV : Allocations de Logement";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     (match
                        ((menage_.Menage.logement).Logement.mode_occupation)
                      with
@@ -33915,7 +33936,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                             "Titre IV : Allocations de Logement";
                                             "Livre VIII : Aides personnelles au logement";
                                             "Partie réglementaire";
-                                            "et de la pêche maritime sont les non-salariés agricoles."]}
+                                            "Code de la construction et de l'habitation"]}
                            (match
                               ((menage_.Menage.logement).Logement.mode_occupation)
                             with
@@ -33943,7 +33964,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                              "Titre IV : Allocations de Logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             (match ((menage_.Menage.logement).Logement.mode_occupation)
              with
              | ModeOccupation.Locataire _ -> false
@@ -34146,6 +34167,16 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     end_line=0; end_column=1;
                                                                     law_headings=
                                                                     []}
+                                                                    ([|(
+                                                                    fun
+                                                                    (_: unit) ->
+                                                                    handle_default
+                                                                    {filename = "";
+                                                                    start_line=0;
+                                                                    start_column=1;
+                                                                    end_line=0; end_column=1;
+                                                                    law_headings=
+                                                                    []}
                                                                     ([||])
                                                                     (fun
                                                                     (_: unit) ->
@@ -34156,7 +34187,10 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     end_line=1784; end_column=66;
                                                                     law_headings=
                                                                     ["Article L862-3";
-                                                                    "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                    "Titre VI : Dispositions particulières à l'outre-mer";
+                                                                    "Livre VIII : Aides personnelles au logement";
+                                                                    "Partie législative";
+                                                                    "Code de la construction et de l'habitation"]}
                                                                     (o_and
                                                                     (match
                                                                     (menage_.Menage.residence)
@@ -34201,7 +34235,10 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     end_line=1766; end_column=9;
                                                                     law_headings=
                                                                     ["Article L862-3";
-                                                                    "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                    "Titre VI : Dispositions particulières à l'outre-mer";
+                                                                    "Livre VIII : Aides personnelles au logement";
+                                                                    "Partie législative";
+                                                                    "Code de la construction et de l'habitation"]}
                                                                     (o_and
                                                                     (match
                                                                     (menage_.Menage.residence)
@@ -34277,6 +34314,56 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     (menage_.Menage.personnes_a_charge)))
                                                                     (integer_of_string
                                                                     "1")))))
+                                                                    (fun
+                                                                    (_: unit) ->
+                                                                    true))|])
+                                                                    (fun
+                                                                    (_: unit) ->
+                                                                    (log_decision_taken
+                                                                    {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
+                                                                    start_line=1498;
+                                                                    start_column=5;
+                                                                    end_line=1498; end_column=66;
+                                                                    law_headings=
+                                                                    ["Article L861-6";
+                                                                    "Section 4 : Allocations de logement";
+                                                                    "Chapitre Ier : Guadeloupe, Guyane, Martinique, La Réunion et Mayotte";
+                                                                    "Titre VI : Dispositions particulières à l'outre-mer";
+                                                                    "Livre VIII : Aides personnelles au logement";
+                                                                    "Partie législative";
+                                                                    "Code de la construction et de l'habitation"]}
+                                                                    (o_and
+                                                                    (match
+                                                                    (menage_.Menage.residence)
+                                                                    with
+                                                                    | 
+                                                                    Collectivite.Guadeloupe _ ->
+                                                                    true
+                                                                    | 
+                                                                    Collectivite.Guyane _ ->
+                                                                    true
+                                                                    | 
+                                                                    Collectivite.Martinique _ ->
+                                                                    true
+                                                                    | 
+                                                                    Collectivite.LaReunion _ ->
+                                                                    true
+                                                                    | 
+                                                                    Collectivite.SaintBarthelemy _ ->
+                                                                    false
+                                                                    | 
+                                                                    Collectivite.SaintMartin _ ->
+                                                                    false
+                                                                    | 
+                                                                    Collectivite.Metropole _ ->
+                                                                    false
+                                                                    | 
+                                                                    Collectivite.SaintPierreEtMiquelon _ ->
+                                                                    false
+                                                                    | 
+                                                                    Collectivite.Mayotte _ ->
+                                                                    true)
+                                                                    (demandeur_.Demandeur.est_non_salarie_agricole_l781_8_l_781_46_code_rural))))
                                                                     (fun
                                                                     (_: unit) ->
                                                                     true))|])
@@ -34701,7 +34788,12 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                       start_line=1608; start_column=5;
                                       end_line=1609; end_column=79;
                                       law_headings=["Article L861-8";
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                     "Section 4 : Allocations de logement";
+                                                     "Chapitre Ier : Guadeloupe, Guyane, Martinique, La Réunion et Mayotte";
+                                                     "Titre VI : Dispositions particulières à l'outre-mer";
+                                                     "Livre VIII : Aides personnelles au logement";
+                                                     "Partie législative";
+                                                     "Code de la construction et de l'habitation"]}
                                     (o_and
                                        (match (menage_.Menage.residence)
                                         with
@@ -34724,7 +34816,13 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                             {filename = "examples/aides_logement/code_construction_legislatif.catala_fr";
                               start_line=1574; start_column=5;
                               end_line=1583; end_column=28;
-                              law_headings=["et de la pêche maritime sont les non-salariés agricoles."]}
+                              law_headings=["Article L861-6";
+                                             "Section 4 : Allocations de logement";
+                                             "Chapitre Ier : Guadeloupe, Guyane, Martinique, La Réunion et Mayotte";
+                                             "Titre VI : Dispositions particulières à l'outre-mer";
+                                             "Livre VIII : Aides personnelles au logement";
+                                             "Partie législative";
+                                             "Code de la construction et de l'habitation"]}
                             (o_and
                                (match (menage_.Menage.residence)
                                 with
@@ -34885,7 +34983,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                              "Titre III : Aide personnalisée au logement";
                                                              "Livre VIII : Aides personnelles au logement";
                                                              "Partie réglementaire";
-                                                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                             "Code de la construction et de l'habitation"]}
                                             (o_and
                                                (match
                                                   (pret_.Pret.titulaire_pret)
@@ -34932,7 +35030,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                      "Titre III : Aide personnalisée au logement";
                                                      "Livre VIII : Aides personnelles au logement";
                                                      "Partie réglementaire";
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                     "Code de la construction et de l'habitation"]}
                                     (o_and
                                        (match (pret_.Pret.titulaire_pret)
                                         with
@@ -35084,7 +35182,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                              "Titre VI : Disposition particulières à l'outre-mer";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             (match ((menage_.Menage.logement).Logement.mode_occupation)
              with
              | ModeOccupation.Locataire _ -> false
@@ -35203,7 +35301,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                                   "Titre VI : Disposition particulières à l'outre-mer";
                                                                   "Livre VIII : Aides personnelles au logement";
                                                                   "Partie réglementaire";
-                                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                  "Code de la construction et de l'habitation"]}
                                                  (o_and
                                                     (o_and
                                                        (o_gte_dat_dat
@@ -35265,7 +35363,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                           "Titre III : Aide personnalisée au logement";
                                                           "Livre VIII : Aides personnelles au logement";
                                                           "Partie réglementaire";
-                                                          "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                          "Code de la construction et de l'habitation"]}
                                          (match
                                             ((menage_.Menage.logement).Logement.mode_occupation)
                                           with
@@ -35327,7 +35425,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                                   "Titre III : Aide personnalisée au logement";
                                                                   "Livre VIII : Aides personnelles au logement";
                                                                   "Partie réglementaire";
-                                                                  "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                                  "Code de la construction et de l'habitation"]}
                                                  (match
                                                     ((menage_.Menage.logement).Logement.mode_occupation)
                                                   with
@@ -35833,7 +35931,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             match mode_occupation_
@@ -35872,7 +35970,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             arrondi_centaine_superieure_ ressources_menage_sans_arrondi_))
@@ -35940,7 +36038,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                      "Chapitre III : Saint-Pierre-et-Miquelon";
                                      "Livre VIII : Aides personnelles au logement";
                                      "Partie réglementaire";
-                                     "et de la pêche maritime sont les non-salariés agricoles."]}
+                                     "Code de la construction et de l'habitation"]}
                     (o_and
                        (match residence_
                         with
@@ -35997,7 +36095,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                      "Chapitre III : Saint-Pierre-et-Miquelon";
                                                      "Livre VIII : Aides personnelles au logement";
                                                      "Partie réglementaire";
-                                                     "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                     "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.ressources_menage_arrondies_in =
                                     (try ressources_menage_avec_arrondi_ with
                                     EmptyError -> (raise (NoValueProvided
@@ -36010,7 +36108,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.beneficiaire_aide_adulte_ou_enfant_handicapes_in =
                                     (
                                     try
@@ -36026,7 +36124,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.date_courante_in =
                                     (try date_courante_ with
                                     EmptyError -> (raise (NoValueProvided
@@ -36039,7 +36137,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.nombre_personnes_a_charge_in =
                                     (try nombre_personnes_a_charge_ with
                                     EmptyError -> (raise (NoValueProvided
@@ -36052,7 +36150,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.situation_familiale_calcul_apl_in =
                                     (try situation_familiale_calcul_apl_ with
                                     EmptyError -> (raise (NoValueProvided
@@ -36065,7 +36163,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.zone_in =
                                     (try zone_ with
                                     EmptyError -> (raise (NoValueProvided
@@ -36078,7 +36176,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.logement_est_chambre_in =
                                     (
                                     try
@@ -36094,7 +36192,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in =
                                     (try false with
                                     EmptyError -> (raise (NoValueProvided
@@ -36107,7 +36205,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.type_aide_in =
                                     (try type_aide_ with
                                     EmptyError -> (raise (NoValueProvided
@@ -36120,7 +36218,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.colocation_in =
                                     (
                                     try
@@ -36136,7 +36234,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.reduction_loyer_solidarite_in =
                                     (try (money_of_cents_string "0") with
                                     EmptyError -> (raise (NoValueProvided
@@ -36149,7 +36247,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.logement_meuble_d842_2_in =
                                     (
                                     try
@@ -36165,7 +36263,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.residence_in =
                                     (try residence_ with
                                     EmptyError -> (raise (NoValueProvided
@@ -36178,7 +36276,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                                       "Code de la construction et de l'habitation"]})));
                                   CalculAllocationLogementLocatifIn.changement_logement_d842_4_in =
                                     (
                                     try
@@ -36195,7 +36293,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                        "Chapitre III : Saint-Pierre-et-Miquelon";
                                                        "Livre VIII : Aides personnelles au logement";
                                                        "Partie réglementaire";
-                                                       "et de la pêche maritime sont les non-salariés agricoles."]})))}))))
+                                                       "Code de la construction et de l'habitation"]})))}))))
                            in
                            (let result_ : CalculAllocationLogementLocatif.t =
                               ({CalculAllocationLogementLocatif.aide_finale_formule =
@@ -36243,7 +36341,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                  "Chapitre III : Saint-Pierre-et-Miquelon";
                                                  "Livre VIII : Aides personnelles au logement";
                                                  "Partie réglementaire";
-                                                 "et de la pêche maritime sont les non-salariés agricoles."]}
+                                                 "Code de la construction et de l'habitation"]}
                                 true)) then result_ else result_)))))))
                         in
                         ({TraitementFormuleAideFinale.aide_finale_formule =
@@ -36259,7 +36357,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             match categorie_calcul_apl_
@@ -36286,7 +36384,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                              "Titre II : Dispositions communes aux aides personnelles au logement";
                                              "Livre VIII : Aides personnelles au logement";
                                              "Partie réglementaire";
-                                             "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                             "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.ressources_menage_arrondies_in =
                             (try ressources_menage_avec_arrondi_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36299,7 +36397,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.beneficiaire_aide_adulte_ou_enfant_handicapes_in =
                             (
                             try
@@ -36315,7 +36413,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.date_courante_in =
                             (try date_courante_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36328,7 +36426,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.nombre_personnes_a_charge_in =
                             (try nombre_personnes_a_charge_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36341,7 +36439,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.situation_familiale_calcul_apl_in =
                             (try situation_familiale_calcul_apl_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36354,7 +36452,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.zone_in = (
                             try zone_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36367,7 +36465,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.logement_est_chambre_in =
                             (
                             try (location_.Location.logement_est_chambre)
@@ -36382,7 +36480,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.agees_ou_handicap_adultes_hebergees_onereux_particuliers_in =
                             (
                             try
@@ -36398,7 +36496,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.type_aide_in = (
                             try type_aide_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36411,7 +36509,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.colocation_in = (
                             try (location_.Location.colocation) with
                             EmptyError -> (raise (NoValueProvided
@@ -36424,7 +36522,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.reduction_loyer_solidarite_in =
                             (
                             try
@@ -36447,7 +36545,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.logement_meuble_d842_2_in =
                             (
                             try (location_.Location.logement_meuble_d842_2)
@@ -36462,7 +36560,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.residence_in = (
                             try residence_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36475,7 +36573,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementLocatifIn.changement_logement_d842_4_in =
                             (
                             try
@@ -36491,7 +36589,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})))}))))
+                                               "Code de la construction et de l'habitation"]})))}))))
                    in
                    (let result_ : CalculAllocationLogementLocatif.t =
                       ({CalculAllocationLogementLocatif.aide_finale_formule =
@@ -36538,7 +36636,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                          "Titre II : Dispositions communes aux aides personnelles au logement";
                                          "Livre VIII : Aides personnelles au logement";
                                          "Partie réglementaire";
-                                         "et de la pêche maritime sont les non-salariés agricoles."]}
+                                         "Code de la construction et de l'habitation"]}
                         true)) then result_ else result_)))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
@@ -36570,7 +36668,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                              "Titre II : Dispositions communes aux aides personnelles au logement";
                                              "Livre VIII : Aides personnelles au logement";
                                              "Partie réglementaire";
-                                             "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                             "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.nombre_personnes_a_charge_in =
                             (try nombre_personnes_a_charge_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36583,7 +36681,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.situation_familiale_calcul_apl_in =
                             (try situation_familiale_calcul_apl_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36596,7 +36694,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.zone_in =
                             (try zone_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36609,7 +36707,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.residence_in =
                             (try residence_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36622,7 +36720,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.date_courante_in =
                             (try date_courante_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36635,7 +36733,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.mensualite_principale_in =
                             (
                             try
@@ -36651,7 +36749,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.situation_r822_11_13_17_in =
                             (
                             try
@@ -36667,7 +36765,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.date_signature_pret_in =
                             (
                             try
@@ -36683,7 +36781,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.type_travaux_logement_in =
                             (
                             try
@@ -36699,7 +36797,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.local_habite_premiere_fois_beneficiaire_in =
                             (
                             try
@@ -36715,7 +36813,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.date_entree_logement_in =
                             (
                             try
@@ -36731,7 +36829,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.charges_mensuelles_pret_in =
                             (
                             try
@@ -36747,7 +36845,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.copropriete_in =
                             (
                             try (proprietaire_.Proprietaire.copropriete) with
@@ -36761,7 +36859,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementAccessionProprieteIn.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat_in =
                             (
                             try
@@ -36777,7 +36875,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})))}))))
+                                               "Code de la construction et de l'habitation"]})))}))))
                    in
                    (let result_ :
                       CalculAllocationLogementAccessionPropriete.t =
@@ -36822,7 +36920,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                          "Titre II : Dispositions communes aux aides personnelles au logement";
                                          "Livre VIII : Aides personnelles au logement";
                                          "Partie réglementaire";
-                                         "et de la pêche maritime sont les non-salariés agricoles."]}
+                                         "Code de la construction et de l'habitation"]}
                         true)) then result_ else result_)))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
@@ -36851,7 +36949,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                              "Titre II : Dispositions communes aux aides personnelles au logement";
                                              "Livre VIII : Aides personnelles au logement";
                                              "Partie réglementaire";
-                                             "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                             "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.logement_foyer_jeunes_travailleurs_in =
                             (
                             try
@@ -36867,7 +36965,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.date_conventionnement_in =
                             (
                             try
@@ -36883,7 +36981,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.residence_in = (
                             try residence_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36896,7 +36994,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.redevance_in = (
                             try (logement_foyer__.LogementFoyer.redevance)
                             with
@@ -36910,7 +37008,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.ressources_menage_arrondies_in =
                             (try ressources_menage_avec_arrondi_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36923,7 +37021,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.nombre_personnes_a_charge_in =
                             (try nombre_personnes_a_charge_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36936,7 +37034,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.situation_familiale_calcul_apl_in =
                             (try situation_familiale_calcul_apl_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36949,7 +37047,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.zone_in = (
                             try zone_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36962,7 +37060,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.date_courante_in =
                             (try date_courante_ with
                             EmptyError -> (raise (NoValueProvided
@@ -36975,7 +37073,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})));
+                                               "Code de la construction et de l'habitation"]})));
                           CalculAllocationLogementFoyerIn.categorie_equivalence_loyer_d842_16_in =
                             (
                             try
@@ -36991,7 +37089,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                                "Titre II : Dispositions communes aux aides personnelles au logement";
                                                "Livre VIII : Aides personnelles au logement";
                                                "Partie réglementaire";
-                                               "et de la pêche maritime sont les non-salariés agricoles."]})))}))))
+                                               "Code de la construction et de l'habitation"]})))}))))
                    in
                    (let result_ : CalculAllocationLogementFoyer.t =
                       ({CalculAllocationLogementFoyer.coefficient_prise_en_charge =
@@ -37035,7 +37133,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                          "Titre II : Dispositions communes aux aides personnelles au logement";
                                          "Livre VIII : Aides personnelles au logement";
                                          "Partie réglementaire";
-                                         "et de la pêche maritime sont les non-salariés agricoles."]}
+                                         "Code de la construction et de l'habitation"]}
                         true)) then result_ else result_)))))))
                 in
                 ({TraitementFormuleAideFinale.aide_finale_formule =
@@ -37066,7 +37164,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                 "Titre II : Dispositions communes aux aides personnelles au logement";
                                 "Livre VIII : Aides personnelles au logement";
                                 "Partie réglementaire";
-                                "et de la pêche maritime sont les non-salariés agricoles."]}
+                                "Code de la construction et de l'habitation"]}
                true))
             (fun (_: unit) ->
                (sous_calcul_traitement_.TraitementFormuleAideFinale.traitement_aide_finale)
@@ -37093,7 +37191,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                              "Titre II : Dispositions communes aux aides personnelles au logement";
                              "Livre VIII : Aides personnelles au logement";
                              "Partie réglementaire";
-                             "et de la pêche maritime sont les non-salariés agricoles."]}
+                             "Code de la construction et de l'habitation"]}
             true))
          (fun (_: unit) ->
             sous_calcul_traitement_.TraitementFormuleAideFinale.aide_finale_formule))
