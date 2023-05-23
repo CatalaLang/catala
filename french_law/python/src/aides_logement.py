@@ -13460,103 +13460,20 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                   temp_abattement_forfaitaire_d823_17_17)
         def temp_abattement_forfaitaire_d823_17_43(_:Unit):
             try:
-                try:
-                    def temp_abattement_forfaitaire_d823_17_44(_:Unit):
-                        return money_of_cents_string("758400")
-                    def temp_abattement_forfaitaire_d823_17_45(_:Unit):
-                        match_arg_392 = residence_5
-                        if match_arg_392.code == Collectivite_Code.Guadeloupe:
-                            _ = match_arg_392.value
-                            temp_abattement_forfaitaire_d823_17_46 = True
-                        elif match_arg_392.code == Collectivite_Code.Guyane:
-                            _ = match_arg_392.value
-                            temp_abattement_forfaitaire_d823_17_46 = False
-                        elif match_arg_392.code == Collectivite_Code.Martinique:
-                            _ = match_arg_392.value
-                            temp_abattement_forfaitaire_d823_17_46 = True
-                        elif match_arg_392.code == Collectivite_Code.LaReunion:
-                            _ = match_arg_392.value
-                            temp_abattement_forfaitaire_d823_17_46 = True
-                        elif match_arg_392.code == Collectivite_Code.SaintBarthelemy:
-                            _ = match_arg_392.value
-                            temp_abattement_forfaitaire_d823_17_46 = True
-                        elif match_arg_392.code == Collectivite_Code.SaintMartin:
-                            _ = match_arg_392.value
-                            temp_abattement_forfaitaire_d823_17_46 = True
-                        elif match_arg_392.code == Collectivite_Code.Metropole:
-                            _ = match_arg_392.value
-                            temp_abattement_forfaitaire_d823_17_46 = False
-                        elif match_arg_392.code == Collectivite_Code.SaintPierreEtMiquelon:
-                            _ = match_arg_392.value
-                            temp_abattement_forfaitaire_d823_17_46 = False
-                        elif match_arg_392.code == Collectivite_Code.Mayotte:
-                            _ = match_arg_392.value
-                            temp_abattement_forfaitaire_d823_17_46 = True
-                        return (((date_courante_11 >=
-                            date_of_numbers(2020,10,1)) and
-                            (date_courante_11 <
-                            date_of_numbers(2021,10,1))) and
-                            (temp_abattement_forfaitaire_d823_17_46 and
-                            (nombre_personnes_a_charge_4 ==
-                            integer_of_string("1"))))
-                    return handle_default(SourcePosition(filename="",
-                                          start_line=0, start_column=1,
-                                          end_line=0, end_column=1,
-                                          law_headings=[]), [],
-                                          temp_abattement_forfaitaire_d823_17_45,
-                                          temp_abattement_forfaitaire_d823_17_44)
-                except EmptyError:
-                    match_arg_393 = residence_5
-                    if match_arg_393.code == Collectivite_Code.Guadeloupe:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_47 = True
-                    elif match_arg_393.code == Collectivite_Code.Guyane:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_47 = False
-                    elif match_arg_393.code == Collectivite_Code.Martinique:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_47 = True
-                    elif match_arg_393.code == Collectivite_Code.LaReunion:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_47 = True
-                    elif match_arg_393.code == Collectivite_Code.SaintBarthelemy:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_47 = True
-                    elif match_arg_393.code == Collectivite_Code.SaintMartin:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_47 = True
-                    elif match_arg_393.code == Collectivite_Code.Metropole:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_47 = False
-                    elif match_arg_393.code == Collectivite_Code.SaintPierreEtMiquelon:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_47 = False
-                    elif match_arg_393.code == Collectivite_Code.Mayotte:
-                        _ = match_arg_393.value
-                        temp_abattement_forfaitaire_d823_17_47 = True
-                    if (((date_courante_11 >= date_of_numbers(2021,10,1)) and
-                        (date_courante_11 < date_of_numbers(2022,1,1))) and
-                        (temp_abattement_forfaitaire_d823_17_47 and
-                        (nombre_personnes_a_charge_4 ==
-                        integer_of_string("1")))):
-                        return money_of_cents_string("758400")
-                    else:
-                        raise EmptyError
-            except EmptyError:
-                def temp_abattement_forfaitaire_d823_17_48(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_44(_:Unit):
                     raise EmptyError
-                def temp_abattement_forfaitaire_d823_17_49(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_45(_:Unit):
                     return False
-                def temp_abattement_forfaitaire_d823_17_50(_:Unit):
-                    def temp_abattement_forfaitaire_d823_17_51(_:Unit):
+                def temp_abattement_forfaitaire_d823_17_46(_:Unit):
+                    def temp_abattement_forfaitaire_d823_17_47(_:Unit):
                         if (nombre_personnes_a_charge_4 ==
                             integer_of_string("0")):
-                            match_arg_394 = situation_familiale_calcul_apl_4
-                            if match_arg_394.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                                _ = match_arg_394.value
+                            match_arg_392 = situation_familiale_calcul_apl_4
+                            if match_arg_392.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                _ = match_arg_392.value
                                 return money_of_cents_string("396000")
-                            elif match_arg_394.code == SituationFamilialeCalculAPL_Code.Couple:
-                                _ = match_arg_394.value
+                            elif match_arg_392.code == SituationFamilialeCalculAPL_Code.Couple:
+                                _ = match_arg_392.value
                                 return money_of_cents_string("567300")
                         else:
                             if (nombre_personnes_a_charge_4 ==
@@ -13580,6 +13497,79 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                                 return money_of_cents_string("848400")
                                             else:
                                                 return money_of_cents_string("903200")
+                    def temp_abattement_forfaitaire_d823_17_48(_:Unit):
+                        match_arg_393 = residence_5
+                        if match_arg_393.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_393.value
+                            temp_abattement_forfaitaire_d823_17_49 = True
+                        elif match_arg_393.code == Collectivite_Code.Guyane:
+                            _ = match_arg_393.value
+                            temp_abattement_forfaitaire_d823_17_49 = False
+                        elif match_arg_393.code == Collectivite_Code.Martinique:
+                            _ = match_arg_393.value
+                            temp_abattement_forfaitaire_d823_17_49 = True
+                        elif match_arg_393.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_393.value
+                            temp_abattement_forfaitaire_d823_17_49 = True
+                        elif match_arg_393.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_393.value
+                            temp_abattement_forfaitaire_d823_17_49 = True
+                        elif match_arg_393.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_393.value
+                            temp_abattement_forfaitaire_d823_17_49 = True
+                        elif match_arg_393.code == Collectivite_Code.Metropole:
+                            _ = match_arg_393.value
+                            temp_abattement_forfaitaire_d823_17_49 = False
+                        elif match_arg_393.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_393.value
+                            temp_abattement_forfaitaire_d823_17_49 = False
+                        elif match_arg_393.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_393.value
+                            temp_abattement_forfaitaire_d823_17_49 = True
+                        return (((date_courante_11 >=
+                            date_of_numbers(2020,1,1)) and
+                            (date_courante_11 <
+                            date_of_numbers(2021,1,1))) and
+                            temp_abattement_forfaitaire_d823_17_49)
+                    return handle_default(SourcePosition(filename="",
+                                          start_line=0, start_column=1,
+                                          end_line=0, end_column=1,
+                                          law_headings=[]), [],
+                                          temp_abattement_forfaitaire_d823_17_48,
+                                          temp_abattement_forfaitaire_d823_17_47)
+                def temp_abattement_forfaitaire_d823_17_50(_:Unit):
+                    def temp_abattement_forfaitaire_d823_17_51(_:Unit):
+                        if (nombre_personnes_a_charge_4 ==
+                            integer_of_string("0")):
+                            match_arg_394 = situation_familiale_calcul_apl_4
+                            if match_arg_394.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
+                                _ = match_arg_394.value
+                                return money_of_cents_string("427400")
+                            elif match_arg_394.code == SituationFamilialeCalculAPL_Code.Couple:
+                                _ = match_arg_394.value
+                                return money_of_cents_string("612200")
+                        else:
+                            if (nombre_personnes_a_charge_4 ==
+                                integer_of_string("1")):
+                                return money_of_cents_string("699000")
+                            else:
+                                if (nombre_personnes_a_charge_4 ==
+                                    integer_of_string("2")):
+                                    return money_of_cents_string("743200")
+                                else:
+                                    if (nombre_personnes_a_charge_4 ==
+                                        integer_of_string("3")):
+                                        return money_of_cents_string("785400")
+                                    else:
+                                        if (nombre_personnes_a_charge_4 ==
+                                            integer_of_string("4")):
+                                            return money_of_cents_string("828300")
+                                        else:
+                                            if (nombre_personnes_a_charge_4 ==
+                                                integer_of_string("5")):
+                                                return money_of_cents_string("871100")
+                                            else:
+                                                return money_of_cents_string("913900")
                     def temp_abattement_forfaitaire_d823_17_52(_:Unit):
                         match_arg_395 = residence_5
                         if match_arg_395.code == Collectivite_Code.Guadeloupe:
@@ -13610,9 +13600,9 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                             _ = match_arg_395.value
                             temp_abattement_forfaitaire_d823_17_53 = True
                         return (((date_courante_11 >=
-                            date_of_numbers(2020,1,1)) and
+                            date_of_numbers(2021,1,1)) and
                             (date_courante_11 <
-                            date_of_numbers(2021,1,1))) and
+                            date_of_numbers(2022,1,1))) and
                             temp_abattement_forfaitaire_d823_17_53)
                     return handle_default(SourcePosition(filename="",
                                           start_line=0, start_column=1,
@@ -13620,86 +13610,96 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                                           law_headings=[]), [],
                                           temp_abattement_forfaitaire_d823_17_52,
                                           temp_abattement_forfaitaire_d823_17_51)
-                def temp_abattement_forfaitaire_d823_17_54(_:Unit):
+                return handle_default(SourcePosition(filename="",
+                                      start_line=0, start_column=1,
+                                      end_line=0, end_column=1,
+                                      law_headings=[]), [temp_abattement_forfaitaire_d823_17_50,
+                                      temp_abattement_forfaitaire_d823_17_46],
+                                      temp_abattement_forfaitaire_d823_17_45,
+                                      temp_abattement_forfaitaire_d823_17_44)
+            except EmptyError:
+                try:
+                    def temp_abattement_forfaitaire_d823_17_54(_:Unit):
+                        return money_of_cents_string("758400")
                     def temp_abattement_forfaitaire_d823_17_55(_:Unit):
-                        if (nombre_personnes_a_charge_4 ==
-                            integer_of_string("0")):
-                            match_arg_396 = situation_familiale_calcul_apl_4
-                            if match_arg_396.code == SituationFamilialeCalculAPL_Code.PersonneSeule:
-                                _ = match_arg_396.value
-                                return money_of_cents_string("427400")
-                            elif match_arg_396.code == SituationFamilialeCalculAPL_Code.Couple:
-                                _ = match_arg_396.value
-                                return money_of_cents_string("612200")
-                        else:
-                            if (nombre_personnes_a_charge_4 ==
-                                integer_of_string("1")):
-                                return money_of_cents_string("699000")
-                            else:
-                                if (nombre_personnes_a_charge_4 ==
-                                    integer_of_string("2")):
-                                    return money_of_cents_string("743200")
-                                else:
-                                    if (nombre_personnes_a_charge_4 ==
-                                        integer_of_string("3")):
-                                        return money_of_cents_string("785400")
-                                    else:
-                                        if (nombre_personnes_a_charge_4 ==
-                                            integer_of_string("4")):
-                                            return money_of_cents_string("828300")
-                                        else:
-                                            if (nombre_personnes_a_charge_4 ==
-                                                integer_of_string("5")):
-                                                return money_of_cents_string("871100")
-                                            else:
-                                                return money_of_cents_string("913900")
-                    def temp_abattement_forfaitaire_d823_17_56(_:Unit):
-                        match_arg_397 = residence_5
-                        if match_arg_397.code == Collectivite_Code.Guadeloupe:
-                            _ = match_arg_397.value
-                            temp_abattement_forfaitaire_d823_17_57 = True
-                        elif match_arg_397.code == Collectivite_Code.Guyane:
-                            _ = match_arg_397.value
-                            temp_abattement_forfaitaire_d823_17_57 = False
-                        elif match_arg_397.code == Collectivite_Code.Martinique:
-                            _ = match_arg_397.value
-                            temp_abattement_forfaitaire_d823_17_57 = True
-                        elif match_arg_397.code == Collectivite_Code.LaReunion:
-                            _ = match_arg_397.value
-                            temp_abattement_forfaitaire_d823_17_57 = True
-                        elif match_arg_397.code == Collectivite_Code.SaintBarthelemy:
-                            _ = match_arg_397.value
-                            temp_abattement_forfaitaire_d823_17_57 = True
-                        elif match_arg_397.code == Collectivite_Code.SaintMartin:
-                            _ = match_arg_397.value
-                            temp_abattement_forfaitaire_d823_17_57 = True
-                        elif match_arg_397.code == Collectivite_Code.Metropole:
-                            _ = match_arg_397.value
-                            temp_abattement_forfaitaire_d823_17_57 = False
-                        elif match_arg_397.code == Collectivite_Code.SaintPierreEtMiquelon:
-                            _ = match_arg_397.value
-                            temp_abattement_forfaitaire_d823_17_57 = False
-                        elif match_arg_397.code == Collectivite_Code.Mayotte:
-                            _ = match_arg_397.value
-                            temp_abattement_forfaitaire_d823_17_57 = True
+                        match_arg_396 = residence_5
+                        if match_arg_396.code == Collectivite_Code.Guadeloupe:
+                            _ = match_arg_396.value
+                            temp_abattement_forfaitaire_d823_17_56 = True
+                        elif match_arg_396.code == Collectivite_Code.Guyane:
+                            _ = match_arg_396.value
+                            temp_abattement_forfaitaire_d823_17_56 = False
+                        elif match_arg_396.code == Collectivite_Code.Martinique:
+                            _ = match_arg_396.value
+                            temp_abattement_forfaitaire_d823_17_56 = True
+                        elif match_arg_396.code == Collectivite_Code.LaReunion:
+                            _ = match_arg_396.value
+                            temp_abattement_forfaitaire_d823_17_56 = True
+                        elif match_arg_396.code == Collectivite_Code.SaintBarthelemy:
+                            _ = match_arg_396.value
+                            temp_abattement_forfaitaire_d823_17_56 = True
+                        elif match_arg_396.code == Collectivite_Code.SaintMartin:
+                            _ = match_arg_396.value
+                            temp_abattement_forfaitaire_d823_17_56 = True
+                        elif match_arg_396.code == Collectivite_Code.Metropole:
+                            _ = match_arg_396.value
+                            temp_abattement_forfaitaire_d823_17_56 = False
+                        elif match_arg_396.code == Collectivite_Code.SaintPierreEtMiquelon:
+                            _ = match_arg_396.value
+                            temp_abattement_forfaitaire_d823_17_56 = False
+                        elif match_arg_396.code == Collectivite_Code.Mayotte:
+                            _ = match_arg_396.value
+                            temp_abattement_forfaitaire_d823_17_56 = True
                         return (((date_courante_11 >=
-                            date_of_numbers(2021,1,1)) and
+                            date_of_numbers(2020,10,1)) and
                             (date_courante_11 <
-                            date_of_numbers(2022,1,1))) and
-                            temp_abattement_forfaitaire_d823_17_57)
+                            date_of_numbers(2021,10,1))) and
+                            (temp_abattement_forfaitaire_d823_17_56 and
+                            (nombre_personnes_a_charge_4 ==
+                            integer_of_string("1"))))
                     return handle_default(SourcePosition(filename="",
                                           start_line=0, start_column=1,
                                           end_line=0, end_column=1,
                                           law_headings=[]), [],
-                                          temp_abattement_forfaitaire_d823_17_56,
-                                          temp_abattement_forfaitaire_d823_17_55)
-                return handle_default(SourcePosition(filename="",
-                                      start_line=0, start_column=1,
-                                      end_line=0, end_column=1,
-                                      law_headings=[]), [temp_abattement_forfaitaire_d823_17_54,
-                                      temp_abattement_forfaitaire_d823_17_50],
-                                      temp_abattement_forfaitaire_d823_17_49,
-                                      temp_abattement_forfaitaire_d823_17_48)
+                                          temp_abattement_forfaitaire_d823_17_55,
+                                          temp_abattement_forfaitaire_d823_17_54)
+                except EmptyError:
+                    match_arg_397 = residence_5
+                    if match_arg_397.code == Collectivite_Code.Guadeloupe:
+                        _ = match_arg_397.value
+                        temp_abattement_forfaitaire_d823_17_57 = True
+                    elif match_arg_397.code == Collectivite_Code.Guyane:
+                        _ = match_arg_397.value
+                        temp_abattement_forfaitaire_d823_17_57 = False
+                    elif match_arg_397.code == Collectivite_Code.Martinique:
+                        _ = match_arg_397.value
+                        temp_abattement_forfaitaire_d823_17_57 = True
+                    elif match_arg_397.code == Collectivite_Code.LaReunion:
+                        _ = match_arg_397.value
+                        temp_abattement_forfaitaire_d823_17_57 = True
+                    elif match_arg_397.code == Collectivite_Code.SaintBarthelemy:
+                        _ = match_arg_397.value
+                        temp_abattement_forfaitaire_d823_17_57 = True
+                    elif match_arg_397.code == Collectivite_Code.SaintMartin:
+                        _ = match_arg_397.value
+                        temp_abattement_forfaitaire_d823_17_57 = True
+                    elif match_arg_397.code == Collectivite_Code.Metropole:
+                        _ = match_arg_397.value
+                        temp_abattement_forfaitaire_d823_17_57 = False
+                    elif match_arg_397.code == Collectivite_Code.SaintPierreEtMiquelon:
+                        _ = match_arg_397.value
+                        temp_abattement_forfaitaire_d823_17_57 = False
+                    elif match_arg_397.code == Collectivite_Code.Mayotte:
+                        _ = match_arg_397.value
+                        temp_abattement_forfaitaire_d823_17_57 = True
+                    if (((date_courante_11 >= date_of_numbers(2021,10,1)) and
+                        (date_courante_11 < date_of_numbers(2022,1,1))) and
+                        (temp_abattement_forfaitaire_d823_17_57 and
+                        (nombre_personnes_a_charge_4 ==
+                        integer_of_string("1")))):
+                        return money_of_cents_string("758400")
+                    else:
+                        raise EmptyError
         temp_abattement_forfaitaire_d823_17_58 = handle_default(SourcePosition(filename="",
                                                                 start_line=0,
                                                                 start_column=1,
