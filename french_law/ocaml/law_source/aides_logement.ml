@@ -3978,6 +3978,69 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                          (o_and
                             (o_gte_dat_dat date_courante_
                                (date_of_numbers (2023) (1) (1)))
+                            (o_and
+                               (o_lt_dat_dat date_courante_
+                                  (date_of_numbers (2023) (5) (1)))
+                               (o_or
+                                  (o_eq residence_
+                                     (Collectivite.Metropole ()))
+                                  (o_or
+                                     (o_eq residence_
+                                        (Collectivite.Guadeloupe ()))
+                                     (o_or
+                                        (o_eq residence_
+                                           (Collectivite.Guyane ()))
+                                        (o_or
+                                           (o_eq residence_
+                                              (Collectivite.Martinique ()))
+                                           (o_or
+                                              (o_eq residence_
+                                                 (Collectivite.LaReunion ()))
+                                              (o_or
+                                                 (o_eq residence_
+                                                    (Collectivite.SaintBarthelemy
+                                                       ()))
+                                                 (o_or
+                                                    (o_eq residence_
+                                                       (Collectivite.SaintMartin
+                                                          ()))
+                                                    (o_eq residence_
+                                                       (Collectivite.SaintPierreEtMiquelon
+                                                          ())))))))))))))
+                      (fun (_: unit) -> money_of_cents_string "1127"));
+                 (fun (_: unit) ->
+                    handle_default
+                      {filename = ""; start_line=0; start_column=1;
+                        end_line=0; end_column=1; law_headings=[]} ([||])
+                      (fun (_: unit) -> (log_decision_taken
+                         {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                           start_line=288; start_column=5;
+                           end_line=290; end_column=6;
+                           law_headings=["Article 1";
+                                          "Décret n° 2022-1608 du 22 décembre 2022 portant relèvement du salaire minimum de croissance";
+                                          "Montant du salaire minimum de croissance"]}
+                         (o_and
+                            (o_gte_dat_dat date_courante_
+                               (date_of_numbers (2023) (1) (1)))
+                            (o_and
+                               (o_lt_dat_dat date_courante_
+                                  (date_of_numbers (2023) (5) (1)))
+                               (o_eq residence_ (Collectivite.Mayotte ()))))))
+                      (fun (_: unit) -> money_of_cents_string "851"));
+                 (fun (_: unit) ->
+                    handle_default
+                      {filename = ""; start_line=0; start_column=1;
+                        end_line=0; end_column=1; law_headings=[]} ([||])
+                      (fun (_: unit) -> (log_decision_taken
+                         {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
+                           start_line=309; start_column=5;
+                           end_line=318; end_column=6;
+                           law_headings=["Article 2";
+                                          "Arrêté du 26 avril 2023 relatif au relèvement du salaire minimum de croissance";
+                                          "Montant du salaire minimum de croissance"]}
+                         (o_and
+                            (o_gte_dat_dat date_courante_
+                               (date_of_numbers (2023) (5) (1)))
                             (o_or
                                (o_eq residence_ (Collectivite.Metropole ()))
                                (o_or
@@ -4003,23 +4066,23 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                                                  (o_eq residence_
                                                     (Collectivite.SaintPierreEtMiquelon
                                                        ()))))))))))))
-                      (fun (_: unit) -> money_of_cents_string "1127"));
+                      (fun (_: unit) -> money_of_cents_string "1152"));
                  (fun (_: unit) ->
                     handle_default
                       {filename = ""; start_line=0; start_column=1;
                         end_line=0; end_column=1; law_headings=[]} ([||])
                       (fun (_: unit) -> (log_decision_taken
                          {filename = "examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr";
-                           start_line=288; start_column=5;
-                           end_line=290; end_column=6;
-                           law_headings=["Article 1";
-                                          "Décret n° 2022-1608 du 22 décembre 2022 portant relèvement du salaire minimum de croissance";
+                           start_line=327; start_column=5;
+                           end_line=329; end_column=6;
+                           law_headings=["Article 2";
+                                          "Arrêté du 26 avril 2023 relatif au relèvement du salaire minimum de croissance";
                                           "Montant du salaire minimum de croissance"]}
                          (o_and
                             (o_gte_dat_dat date_courante_
-                               (date_of_numbers (2023) (1) (1)))
+                               (date_of_numbers (2023) (5) (1)))
                             (o_eq residence_ (Collectivite.Mayotte ())))))
-                      (fun (_: unit) -> money_of_cents_string "851"))|])
+                      (fun (_: unit) -> money_of_cents_string "870"))|])
               (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError)))
     with
     EmptyError -> (raise (NoValueProvided

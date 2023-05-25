@@ -267,7 +267,7 @@ son montant est porté à 11,27 euros l'heure ;
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >= |2023-01-01| et (
+    date_courante >= |2023-01-01| et date_courante < |2023-05-01| et (
       (résidence = Métropole) ou
       (résidence = Guadeloupe) ou
       (résidence = Guyane) ou
@@ -285,8 +285,47 @@ champ d'application Smic :
 ```catala
 champ d'application Smic :
   définition brut_horaire sous condition
-    date_courante >= |2023-01-01| et (
+    date_courante >= |2023-01-01| et date_courante < |2023-05-01| et (
       (résidence = Mayotte)
     )
   conséquence égal à 8,51 €
+```
+
+## Arrêté du 26 avril 2023 relatif au relèvement du salaire minimum de croissance
+
+### Article 2 | JORFARTI000047495827
+
+En conséquence, à compter du 1er mai 2023, pour les catégories de travailleurs
+mentionnés à l'article L. 2211-1 du code du travail, le montant du salaire
+minimum de croissance est relevé dans les conditions ci-après :
+
+1° En métropole, en Guadeloupe, en Guyane, en Martinique, à La Réunion, à
+Saint-Barthélemy, à Saint-Martin et à Saint-Pierre-et-Miquelon, son montant
+est porté à 11,52 € l'heure ;
+
+```catala
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >= |2023-05-01| et (
+      (résidence = Métropole) ou
+      (résidence = Guadeloupe) ou
+      (résidence = Guyane) ou
+      (résidence = Martinique) ou
+      (résidence = LaRéunion) ou
+      (résidence = SaintBarthélemy) ou
+      (résidence = SaintMartin) ou
+      (résidence = SaintPierreEtMiquelon)
+    )
+  conséquence égal à 11,52 €
+```
+
+2° A Mayotte, son montant est fixé à 8,70 € l'heure.
+
+```catala
+champ d'application Smic :
+  définition brut_horaire sous condition
+    date_courante >= |2023-05-01| et (
+      (résidence = Mayotte)
+    )
+  conséquence égal à 8,70 €
 ```
