@@ -37,6 +37,27 @@ type source_position = {
 
 type 'a eoption = ENone of unit | ESome of 'a
 
+(** This type characterizes the three levels of visibility for a given scope
+    variable with regards to the scope's input and possible redefinitions inside
+    the scope. *)
+type io_input =
+  | NoInput
+      (** For an internal variable defined only in the scope, and does not
+          appear in the input. *)
+  | OnlyInput
+      (** For variables that should not be redefined in the scope, because they
+          appear in the input. *)
+  | Reentrant
+      (** For variables defined in the scope that can also be redefined by the
+          caller as they appear in the input. *)
+[@@deriving yojson_of]
+
+type io_log = {
+  io_input : io_input;
+  io_output : bool;  (** [true] if the variable is an output *)
+}
+[@@deriving yojson_of]
+
 (** {1 Exceptions} *)
 
 exception EmptyError
@@ -106,7 +127,7 @@ type information = string list [@@deriving yojson_of]
 type raw_event =
   | BeginCall of information  (** Subscope or function call. *)
   | EndCall of information  (** End of a subscope or a function call. *)
-  | VariableDefinition of information * runtime_value
+  | VariableDefinition of information * io_log * runtime_value
       (** Definition of a variable or a function argument. *)
   | DecisionTaken of source_position  (** Source code position of an event. *)
 
@@ -165,6 +186,7 @@ type event =
 and var_def = {
   pos : source_position option;
   name : information;
+  io : io_log;
   value : runtime_value;
   fun_calls : fun_call list option;
 }
@@ -193,7 +215,10 @@ end
 val reset_log : unit -> unit
 val log_begin_call : string list -> 'a -> 'a
 val log_end_call : string list -> 'a -> 'a
-val log_variable_definition : string list -> ('a -> runtime_value) -> 'a -> 'a
+
+val log_variable_definition :
+  string list -> io_log -> ('a -> runtime_value) -> 'a -> 'a
+
 val log_decision_taken : source_position -> bool -> bool
 
 (** {3 Pretty printers} *)

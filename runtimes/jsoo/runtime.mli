@@ -63,13 +63,17 @@ class type raw_event =
 
     method sourcePosition : source_position Js.t Js.optdef Js.prop
 
+    method loggedIOJson : Js.js_string Js.t Js.prop
+    (** Serialzed [Runtime_ocaml.Runtime.io_log] corresponding to a
+        `VariableDefinition` raw event. *)
+
     method loggedValueJson : Js.js_string Js.t Js.prop
     (** Serialized [Runtime_ocaml.Runtime.runtime_value] corresponding to a
-        'VariableDefinition' raw event.*)
+        'VariableDefinition' raw event. *)
   end
 
 (** Wrapper for the {!type: Runtime_ocaml.Runtime.event} -- structured log event
-    parsed from the {!raw_event} ones.*)
+    parsed from the {!raw_event} ones. *)
 class type event =
   object
     method data : Js.js_string Js.t Js.prop

@@ -1286,9 +1286,9 @@ let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
       Mark.map
         (fun io ->
           match io with
-          | Surface.Ast.Input -> OnlyInput
-          | Surface.Ast.Internal -> NoInput
-          | Surface.Ast.Context -> Reentrant)
+          | Surface.Ast.Input -> Runtime.OnlyInput
+          | Surface.Ast.Internal -> Runtime.NoInput
+          | Surface.Ast.Context -> Runtime.Reentrant)
         attr.scope_decl_context_io_input;
   }
 

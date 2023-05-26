@@ -1,6 +1,6 @@
 {
   "name": "@catala-lang/rescript-catala",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "ReScript wrapper for the Catala runtime",
   "scripts": {
     "clean": "rescript clean",

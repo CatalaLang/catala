@@ -25,7 +25,7 @@ type scope_var_ctx = {
 
 type scope_input_var_ctx = {
   scope_input_name : StructField.t;
-  scope_input_io : io_input Mark.pos;
+  scope_input_io : Runtime.io_input Mark.pos;
   scope_input_typ : naked_typ;
 }
 
@@ -191,9 +191,9 @@ let thunk_scope_arg ~is_func io_in e =
   let silent_var = Var.make "_" in
   let pos = Mark.get io_in in
   match Mark.remove io_in with
-  | NoInput -> invalid_arg "thunk_scope_arg"
-  | OnlyInput -> Expr.eerroronempty e (Mark.get e)
-  | Reentrant ->
+  | Runtime.NoInput -> invalid_arg "thunk_scope_arg"
+  | Runtime.OnlyInput -> Expr.eerroronempty e (Mark.get e)
+  | Runtime.Reentrant ->
     (* we don't need to thunk expressions that are already functions *)
     if is_func then e
     else Expr.make_abs [| silent_var |] e [TLit TUnit, pos] pos
@@ -307,7 +307,12 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     in
     let single_arg =
       tag_with_log_entry arg_struct
-        (VarDef (TStruct sc_sig.scope_sig_input_struct))
+        (VarDef
+           {
+             log_typ = TStruct sc_sig.scope_sig_input_struct;
+             log_io_output = false;
+             log_io_input = OnlyInput;
+           })
         [
           ScopeName.get_info scope;
           Mark.add (Expr.pos e) "direct";
@@ -377,14 +382,24 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
                              ~f:(fun i (param_var, t_in) ->
                                tag_with_log_entry
                                  (Expr.make_var param_var (Expr.with_ty m t_in))
-                                 (VarDef (Mark.remove t_in))
+                                 (VarDef
+                                    {
+                                      log_typ = Mark.remove t_in;
+                                      log_io_output = false;
+                                      log_io_input = OnlyInput;
+                                    })
                                  (f_markings
                                  @ [
                                      Mark.add (Expr.pos e)
                                        ("input" ^ string_of_int i);
                                    ])))
                           (Expr.with_ty m t_out))
-                       (VarDef (Mark.remove t_out))
+                       (VarDef
+                          {
+                            log_typ = Mark.remove t_out;
+                            log_io_output = true;
+                            log_io_input = NoInput;
+                          })
                        (f_markings @ [Mark.add (Expr.pos e) "output"]))
                     EndCall f_markings)
                  ts_in (Expr.pos e)
@@ -422,7 +437,12 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
          result_eta_expanded
          (tag_with_log_entry
             (tag_with_log_entry if_then_else_returned
-               (VarDef (TStruct sc_sig.scope_sig_output_struct))
+               (VarDef
+                  {
+                    log_typ = TStruct sc_sig.scope_sig_output_struct;
+                    log_io_output = true;
+                    log_io_input = NoInput;
+                  })
                direct_output_info)
             EndCall
             [ScopeName.get_info scope; Mark.add (Expr.pos e) "direct"])
@@ -486,7 +506,13 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         ~f:(fun i (new_arg, input_typ) ->
           match markings with
           | _ :: _ as m ->
-            tag_with_log_entry new_arg (VarDef input_typ)
+            tag_with_log_entry new_arg
+              (VarDef
+                 {
+                   log_typ = input_typ;
+                   log_io_output = false;
+                   log_io_input = OnlyInput;
+                 })
               (m @ [Mark.add (Expr.pos e) ("input" ^ string_of_int i)])
           | _ -> new_arg)
     in
@@ -497,7 +523,13 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
       | [] -> new_e
       | m ->
         tag_with_log_entry
-          (tag_with_log_entry new_e (VarDef output_typ)
+          (tag_with_log_entry new_e
+             (VarDef
+                {
+                  log_typ = output_typ;
+                  log_io_output = true;
+                  log_io_input = NoInput;
+                })
              (m @ [Mark.add (Expr.pos e) "output"]))
           EndCall m
     in
@@ -591,7 +623,12 @@ let translate_rule
     in
     let merged_expr =
       tag_with_log_entry merged_expr
-        (VarDef (Mark.remove tau))
+        (VarDef
+           {
+             log_typ = Mark.remove tau;
+             log_io_output = Mark.remove a_io.io_output;
+             log_io_input = Mark.remove a_io.io_input;
+           })
         [sigma_name, pos_sigma; a_name]
     in
     ( (fun next ->
@@ -628,7 +665,12 @@ let translate_rule
     let a_var = Var.make (Mark.remove a_name) in
     let new_e =
       tag_with_log_entry (translate_expr ctx e)
-        (VarDef (Mark.remove tau))
+        (VarDef
+           {
+             log_typ = Mark.remove tau;
+             log_io_output = false;
+             log_io_input = Mark.remove a_io.Desugared.Ast.io_input;
+           })
         [sigma_name, pos_sigma; a_name]
     in
     let is_func = match Mark.remove tau with TArrow _ -> true | _ -> false in

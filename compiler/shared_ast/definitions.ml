@@ -150,20 +150,6 @@ and naked_typ =
   | TArray of typ
   | TAny
 
-(** This type characterizes the three levels of visibility for a given scope
-    variable with regards to the scope's input and possible redefinitions inside
-    the scope. *)
-type io_input =
-  | NoInput
-      (** For an internal variable defined only in the scope, and does not
-          appear in the input. *)
-  | OnlyInput
-      (** For variables that should not be redefined in the scope, because they
-          appear in the input. *)
-  | Reentrant
-      (** For variables defined in the scope that can also be redefined by the
-          caller as they appear in the input. *)
-
 (** {2 Constants and operators} *)
 
 type date = Runtime.date
@@ -172,14 +158,14 @@ type duration = Runtime.duration
 
 type var_def_log = {
   log_typ : naked_typ;
-  log_io_input : io_input;
+  log_io_input : Runtime.io_input;
   log_io_output : bool;
 }
 
 type log_entry =
-  | VarDef of naked_typ
+  | VarDef of var_def_log
       (** During code generation, we need to know the type of the variable being
-          logged for embedding *)
+          logged for embedding as well as its I/O properties. *)
   | BeginCall
   | EndCall
   | PosRecordIfTrueBool

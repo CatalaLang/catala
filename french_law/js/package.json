@@ -1,6 +1,6 @@
 {
   "name": "@catala-lang/french-law",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "Library of computations defined by French legislative texts, extract from Catala programs (https://catala-lang.org)",
   "main": "index.js",
   "dependencies": {

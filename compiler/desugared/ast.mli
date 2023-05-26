@@ -87,7 +87,7 @@ type meta_assertion =
 type io = {
   io_output : bool Mark.pos;
       (** [true] is present in the output of the scope. *)
-  io_input : io_input Mark.pos;
+  io_input : Runtime.io_input Mark.pos;
 }
 (** Characterization of the input/output status of a scope variable. *)
 

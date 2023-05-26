@@ -101,6 +101,18 @@ type eventSerialized = {data: string}
 @decco.decode
 type information = list<string>
 
+@decco.decode
+type io_input =
+  | NoInput
+  | OnlyInput
+  | Reentrant
+
+@decco.decode
+type io_log = {
+  io_input: io_input,
+  io_output: bool,
+}
+
 /* Deserialized log event. */
 @decco.decode
 type rec event =
@@ -111,6 +123,7 @@ type rec event =
 and var_def = {
   pos: option<sourcePosition>,
   name: information,
+  io: io_log,
   value: LoggedValue.t,
   fun_calls: option<list<fun_call>>,
 }
