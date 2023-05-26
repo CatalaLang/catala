@@ -25,7 +25,7 @@ type scope_var_ctx = {
 
 type scope_input_var_ctx = {
   scope_input_name : StructField.t;
-  scope_input_io : Desugared.Ast.io_input Mark.pos;
+  scope_input_io : io_input Mark.pos;
   scope_input_typ : naked_typ;
 }
 
@@ -191,9 +191,9 @@ let thunk_scope_arg ~is_func io_in e =
   let silent_var = Var.make "_" in
   let pos = Mark.get io_in in
   match Mark.remove io_in with
-  | Desugared.Ast.NoInput -> invalid_arg "thunk_scope_arg"
-  | Desugared.Ast.OnlyInput -> Expr.eerroronempty e (Mark.get e)
-  | Desugared.Ast.Reentrant ->
+  | NoInput -> invalid_arg "thunk_scope_arg"
+  | OnlyInput -> Expr.eerroronempty e (Mark.get e)
+  | Reentrant ->
     (* we don't need to thunk expressions that are already functions *)
     if is_func then e
     else Expr.make_abs [| silent_var |] e [TLit TUnit, pos] pos
@@ -256,7 +256,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         (fun var_name (str_field : scope_input_var_ctx option) expr ->
           let expr =
             match str_field, expr with
-            | Some { scope_input_io = Desugared.Ast.Reentrant, _; _ }, None ->
+            | Some { scope_input_io = Reentrant, _; _ }, None ->
               Some (Expr.unbox (Expr.eemptyerror (mark_tany m pos)))
             | _ -> expr
           in

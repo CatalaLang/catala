@@ -91,7 +91,6 @@ module ExprMap = Map.Make (struct
   let compare = Expr.compare
 end)
 
-type io_input = NoInput | OnlyInput | Reentrant
 type io = { io_output : bool Mark.pos; io_input : io_input Mark.pos }
 
 type exception_situation =

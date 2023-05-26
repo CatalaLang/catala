@@ -1286,9 +1286,9 @@ let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
       Mark.map
         (fun io ->
           match io with
-          | Surface.Ast.Input -> Ast.OnlyInput
-          | Surface.Ast.Internal -> Ast.NoInput
-          | Surface.Ast.Context -> Ast.Reentrant)
+          | Surface.Ast.Input -> OnlyInput
+          | Surface.Ast.Internal -> NoInput
+          | Surface.Ast.Context -> Reentrant)
         attr.scope_decl_context_io_input;
   }
 
@@ -1333,7 +1333,7 @@ let init_scope_defs
                     (let original_io = attribute_to_io v_sig.var_sig_io in
                      let io_input =
                        if i = 0 then original_io.io_input
-                       else Ast.NoInput, Mark.get (StateName.get_info state)
+                       else NoInput, Mark.get (StateName.get_info state)
                      in
                      let io_output =
                        if i = List.length states - 1 then original_io.io_output
