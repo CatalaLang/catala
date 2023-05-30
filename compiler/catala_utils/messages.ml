@@ -44,40 +44,22 @@ let log_marker ppf () =
 
 (** All the printers below print their argument after the correct marker *)
 
-let debug_print format =
-  if !Cli.debug_flag then
-    Format.printf ("%a" ^^ format ^^ "\n%!") debug_marker ()
-  else Format.ifprintf Format.std_formatter format
-
 let debug_format (format : ('a, Format.formatter, unit) format) =
   if !Cli.debug_flag then
     Format.printf ("%a@[<hov>" ^^ format ^^ "@]@.") debug_marker ()
   else Format.ifprintf Format.std_formatter format
-
-let error_print format =
-  Format.print_flush ();
-  (* Flushes previous warnings *)
-  Format.eprintf ("%a" ^^ format ^^ "@\n") error_marker ()
 
 let error_format (format : ('a, Format.formatter, unit) format) =
   Format.print_flush ();
   (* Flushes previous warnings *)
   Format.printf ("%a" ^^ format ^^ "\n%!") error_marker ()
 
-let warning_print format =
-  if !Cli.disable_warnings_flag then Format.ifprintf Format.std_formatter format
-  else Format.printf ("%a" ^^ format ^^ "@\n") warning_marker ()
-
 let warning_format format =
-  Format.printf ("%a" ^^ format ^^ "\n%!") warning_marker ()
-
-let result_print format =
-  Format.printf ("%a" ^^ format ^^ "\n%!") result_marker ()
+  if !Cli.disable_warnings_flag then Format.ifprintf Format.std_formatter format
+  else Format.printf ("%a" ^^ format ^^ "\n%!") warning_marker ()
 
 let result_format format =
   Format.printf ("%a" ^^ format ^^ "\n%!") result_marker ()
-
-let log_print format = Format.printf ("%a" ^^ format ^^ "\n%!") log_marker ()
 
 let log_format format =
   Format.printf ("%a@[<hov>" ^^ format ^^ "@]@.") log_marker ()
@@ -105,11 +87,11 @@ let emit_content (content : Content.t) (typ : content_type) : unit =
   match !Cli.message_format_flag with
   | Cli.Human ->
     (match typ with
-    | Warning -> warning_print
-    | Error -> error_print
-    | Debug -> debug_print
-    | Log -> log_print
-    | Result -> result_print)
+    | Warning -> warning_format
+    | Error -> error_format
+    | Debug -> debug_format
+    | Log -> log_format
+    | Result -> result_format)
       "%s%s%s" msg
       (if pos = [] then "" else "\n\n")
       (String.concat "\n\n"
