@@ -525,7 +525,7 @@ let collect_all_ninja_build
     (reset_test_outputs : bool) : (string * ninja) option =
   let expected_outputs = search_for_expected_outputs tested_file in
   if expected_outputs = [] then (
-    Cli.debug_print "No expected outputs were found for test file %s"
+    Messages.emit_debug "No expected outputs were found for test file %s"
       tested_file;
     None)
   else
@@ -621,7 +621,7 @@ let run_inline_tests
     (catala_exe : string)
     (catala_opts : string list) =
   match scan_for_inline_tests file with
-  | None -> Cli.warning_print "No inline tests found in %s" file
+  | None -> Messages.emit_warning "No inline tests found in %s" file
   | Some file_tests ->
     let run oc =
       List.iter
@@ -694,7 +694,7 @@ let run_file
          (fun s -> s <> "")
          [catala_exe; catala_opts; "-s " ^ scope; "Interpret"; file])
   in
-  Cli.debug_print "Running: %s" command;
+  Messages.emit_debug "Running: %s" command;
   Sys.command command
 
 (** {1 Driver} *)
@@ -705,7 +705,7 @@ let get_catala_files_in_folder (dir : string) : string list =
       let f_is_dir =
         try Sys.is_directory f
         with Sys_error e ->
-          Cli.warning_print "skipping %s" e;
+          Messages.emit_warning "skipping %s" e;
           false
       in
       if f_is_dir then
@@ -905,7 +905,7 @@ let driver
     in
     match String.lowercase_ascii command with
     | "test" -> (
-      Cli.debug_print "building ninja rules...";
+      Messages.emit_debug "building ninja rules...";
       let ctx =
         add_test_builds
           (ninja_building_context_init (ninja_start catala_exe catala_opts))
@@ -922,7 +922,7 @@ let driver
           (fun f ->
             f
             |> Cli.with_style [ANSITerminal.magenta] "%s"
-            |> Cli.warning_print "No test case found for %s")
+            |> Messages.emit_warning "No test case found for %s")
           ctx.all_failed_names;
       if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then
         return_ok
@@ -931,7 +931,7 @@ let driver
         @@ fun nin ->
         match
           File.with_formatter_of_file nin (fun fmt ->
-              Cli.debug_print "writing %s..." nin;
+              Messages.emit_debug "writing %s..." nin;
               Nj.format fmt
                 (add_root_test_build ninja ctx.all_file_names
                    ctx.all_test_builds))
@@ -940,7 +940,7 @@ let driver
           let ninja_cmd =
             "ninja -k 0 -f " ^ nin ^ " " ^ ninja_flags ^ " test"
           in
-          Cli.debug_print "executing '%s'..." ninja_cmd;
+          Messages.emit_debug "executing '%s'..." ninja_cmd;
           Sys.command ninja_cmd
         | exception Sys_error e ->
           Cli.error_print "can not write in %s" e;

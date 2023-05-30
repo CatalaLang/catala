@@ -439,7 +439,7 @@ let apply
   ignore scope;
   File.with_formatter_of_opt_file output_file (fun fmt ->
       Cli.trace_flag := true;
-      Cli.debug_print "Writing OCaml code to %s..."
+      Messages.emit_debug "Writing OCaml code to %s..."
         (Option.value ~default:"stdout" output_file);
       To_ocaml.format_program fmt prgm type_ordering);
 
@@ -466,7 +466,7 @@ let apply
       filename_without_ext
   in
   with_formatter (fun fmt ->
-      Cli.debug_print "Writing JSOO API code to %s..."
+      Messages.emit_debug "Writing JSOO API code to %s..."
         (Option.value ~default:"stdout" jsoo_output_file);
       To_jsoo.format_program fmt module_name prgm type_ordering)
 

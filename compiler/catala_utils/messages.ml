@@ -94,7 +94,7 @@ let internal_error_prefix =
 let to_internal_error (content : message_content) : message_content =
   { content with message = internal_error_prefix ^ content.message }
 
-type content_type = Error | Warning | Debug | Log
+type content_type = Error | Warning | Debug | Log | Result
 
 let emit_content (content : message_content) (typ : content_type) : unit =
   let { message = msg; positions = pos } = content in
@@ -104,7 +104,8 @@ let emit_content (content : message_content) (typ : content_type) : unit =
     | Warning -> warning_print
     | Error -> error_print
     | Debug -> debug_print
-    | Log -> log_print)
+    | Log -> log_print
+    | Result -> result_print)
       "%s%s%s" msg
       (if pos = [] then "" else "\n\n")
       (String.concat "\n\n"
@@ -127,7 +128,8 @@ let emit_content (content : message_content) (typ : content_type) : unit =
         | Warning -> warning_marker
         | Error -> error_marker
         | Debug -> debug_marker
-        | Log -> log_marker)
+        | Log -> log_marker
+        | Result -> result_marker)
         ()
     in
     (* The top message doesn't come with a position, which is not something the
@@ -137,7 +139,7 @@ let emit_content (content : message_content) (typ : content_type) : unit =
        in the list to pair with the message. *)
     (match typ with
     | Error -> Format.eprintf
-    | Warning | Log | Debug -> Format.printf)
+    | Warning | Log | Debug | Result -> Format.printf)
       "%s%s\n"
       (if
        pos != []
@@ -221,3 +223,18 @@ let emit_spanned_warning ?(span_msg : string option) (span : Pos.t) format =
   emit_multispanned_warning [span_msg, span] format
 
 let emit_warning format = emit_multispanned_warning [] format
+
+let emit_log format =
+  Format.kasprintf
+    (fun msg -> emit_content { message = msg; positions = [] } Log)
+    format
+
+let emit_debug format =
+  Format.kasprintf
+    (fun msg -> emit_content { message = msg; positions = [] } Debug)
+    format
+
+let emit_result format =
+  Format.kasprintf
+    (fun msg -> emit_content { message = msg; positions = [] } Result)
+    format

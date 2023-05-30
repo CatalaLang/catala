@@ -59,7 +59,7 @@ let find name = Hashtbl.find backend_plugins (String.lowercase_ascii name)
 let load_file f =
   try
     Dynlink.loadfile f;
-    Cli.debug_print "Plugin %S loaded" f
+    Messages.emit_debug "Plugin %S loaded" f
   with e ->
     Messages.emit_warning "Could not load plugin %S: %s" f
       (Printexc.to_string e)

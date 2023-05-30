@@ -112,14 +112,14 @@ let check_exceeding_lines
            Uutf.String.fold_utf_8 (fun (acc : int) _ _ -> acc + 1) 0 s
          in
          if len_s > max_len then (
-           Cli.warning_print "The line %s in %s is exceeding %s characters:"
+           Messages.emit_warning "The line %s in %s is exceeding %s characters:"
              (Cli.with_style
                 ANSITerminal.[Bold; yellow]
                 "%d"
                 (start_line + i + 1))
              (Cli.with_style ANSITerminal.[Bold; magenta] "%s" filename)
              (Cli.with_style ANSITerminal.[Bold; red] "%d" max_len);
-           Cli.warning_print "%s%s" (String.sub s 0 max_len)
+           Messages.emit_warning "%s%s" (String.sub s 0 max_len)
              (Cli.with_style
                 ANSITerminal.[red]
                 "%s"

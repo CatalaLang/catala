@@ -270,7 +270,7 @@ let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
 let rec parse_source_file
     (source_file : Pos.input_file)
     (language : Cli.backend_lang) : Ast.program =
-  Cli.debug_print "Parsing %s"
+  Messages.emit_debug "Parsing %s"
     (match source_file with FileName s | Contents s -> s);
   let lexbuf, input =
     match source_file with

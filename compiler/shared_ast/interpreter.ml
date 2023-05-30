@@ -55,8 +55,8 @@ let print_log entry infos pos e =
     | VarDef _ ->
       (* TODO: this usage of Format is broken, Formatting requires that all is
          formatted in one pass, without going through intermediate "%s" *)
-      Cli.log_format "%*s%a %a: %s" (!log_indent * 2) "" Print.log_entry entry
-        Print.uid_list infos
+      Messages.emit_log "%*s%a %a: %s" (!log_indent * 2) "" Print.log_entry
+        entry Print.uid_list infos
         (let expr_str =
            Format.asprintf "%a" (Print.expr ~hide_function_body:true ()) e
          in
@@ -69,18 +69,19 @@ let print_log entry infos pos e =
     | PosRecordIfTrueBool -> (
       match pos <> Pos.no_pos, Mark.remove e with
       | true, ELit (LBool true) ->
-        Cli.log_format "%*s%a%s:\n%s" (!log_indent * 2) "" Print.log_entry entry
+        Messages.emit_log "%*s%a%s:\n%s" (!log_indent * 2) "" Print.log_entry
+          entry
           (Cli.with_style [ANSITerminal.green] "Definition applied")
           (Cli.add_prefix_to_each_line (Pos.retrieve_loc_text pos) (fun _ ->
                Format.asprintf "%*s" (!log_indent * 2) ""))
       | _ -> ())
     | BeginCall ->
-      Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
+      Messages.emit_log "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
         Print.uid_list infos;
       log_indent := !log_indent + 1
     | EndCall ->
       log_indent := !log_indent - 1;
-      Cli.log_format "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
+      Messages.emit_log "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
         Print.uid_list infos
 
 exception CatalaException of except
@@ -519,7 +520,7 @@ let rec evaluate_expr :
               (Print.operator ~debug:!Cli.debug_flag)
               op (Print.expr ()) e2
           | _ ->
-            Cli.debug_format "%a" (Print.expr ()) e';
+            Messages.emit_debug "%a" (Print.expr ()) e';
             Messages.raise_spanned_error (Expr.mark_pos m) "Assertion failed")
         | _ ->
           Messages.raise_spanned_error (Expr.pos e')

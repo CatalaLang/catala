@@ -155,7 +155,7 @@ let driver source_file (options : Cli.options) : int =
       options.plugins_dirs;
     Cli.set_option_globals options;
     if options.debug then Printexc.record_backtrace true;
-    Cli.debug_print "Reading files...";
+    Messages.emit_debug "Reading files...";
     let filename = ref "" in
     (match source_file with
     | Pos.FileName f -> filename := f
@@ -220,7 +220,7 @@ let driver source_file (options : Cli.options) : int =
             "The Makefile backend does not work if the input is not a file"
       in
       let output_file, with_output = get_output ~ext:".d" () in
-      Cli.debug_print "Writing list of dependencies to %s..."
+      Messages.emit_debug "Writing list of dependencies to %s..."
         (Option.value ~default:"stdout" output_file);
       with_output
       @@ fun oc ->
@@ -233,7 +233,7 @@ let driver source_file (options : Cli.options) : int =
         (String.concat "\\\n" prgm.program_source_files)
         (String.concat "\\\n" prgm.program_source_files)
     | (`Latex | `Html) as backend ->
-      Cli.debug_print "Weaving literate program into %s"
+      Messages.emit_debug "Weaving literate program into %s"
         (match backend with `Latex -> "LaTeX" | `Html -> "HTML");
       let output_file, with_output =
         get_output_format ()
@@ -249,7 +249,7 @@ let driver source_file (options : Cli.options) : int =
               Literate.Html.ast_to_html language
                 ~print_only_law:options.print_only_law
           in
-          Cli.debug_print "Writing to %s"
+          Messages.emit_debug "Writing to %s"
             (Option.value ~default:"stdout" output_file);
           if options.wrap_weaved_output then
             match backend with
@@ -263,18 +263,18 @@ let driver source_file (options : Cli.options) : int =
     | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
       | `Lcalc | `Dcalc | `Scopelang | `Exceptions | `Proof | `Plugin _ ) as
       backend -> (
-      Cli.debug_print "Name resolution...";
+      Messages.emit_debug "Name resolution...";
       let ctxt = Desugared.Name_resolution.form_context prgm in
       let scope_uid = get_scope_uid options backend ctxt in
       (* This uid is a Desugared identifier *)
       let variable_uid = get_variable_uid options backend ctxt scope_uid in
-      Cli.debug_print "Desugaring...";
+      Messages.emit_debug "Desugaring...";
       let prgm = Desugared.From_surface.translate_program ctxt prgm in
-      Cli.debug_print "Disambiguating...";
+      Messages.emit_debug "Disambiguating...";
       let prgm = Desugared.Disambiguate.program prgm in
-      Cli.debug_print "Linting...";
+      Messages.emit_debug "Linting...";
       Desugared.Linting.lint_program prgm;
-      Cli.debug_print "Collecting rules...";
+      Messages.emit_debug "Collecting rules...";
       let exceptions_graphs =
         Scopelang.From_desugared.build_exceptions_graph prgm
       in
@@ -307,26 +307,26 @@ let driver source_file (options : Cli.options) : int =
             prgm
       | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
         | `Lcalc | `Dcalc | `Proof | `Plugin _ ) as backend -> (
-        Cli.debug_print "Typechecking...";
+        Messages.emit_debug "Typechecking...";
         let type_ordering =
           Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
             prgm.program_ctx.ctx_enums
         in
         let prgm = Scopelang.Ast.type_program prgm in
-        Cli.debug_print "Translating to default calculus...";
+        Messages.emit_debug "Translating to default calculus...";
         let prgm = Dcalc.From_scopelang.translate_program prgm in
         let prgm =
           if options.optimize then begin
-            Cli.debug_print "Optimizing default calculus...";
+            Messages.emit_debug "Optimizing default calculus...";
             Shared_ast.Optimizations.optimize_program prgm
           end
           else prgm
         in
-        (* Cli.debug_print (Format.asprintf "Typechecking results :@\n%a"
+        (* Messages.emit_debug (Format.asprintf "Typechecking results :@\n%a"
            (Print.typ prgm.decl_ctx) typ); *)
         match backend with
         | `Typecheck ->
-          Cli.debug_print "Typechecking again...";
+          Messages.emit_debug "Typechecking again...";
           let _ =
             try Shared_ast.Typing.program prgm ~leave_unresolved:false
             with Messages.CompilerError error_content ->
@@ -335,7 +335,7 @@ let driver source_file (options : Cli.options) : int =
                    (Messages.to_internal_error error_content))
           in
           (* That's it! *)
-          Cli.result_print "Typechecking successful!"
+          Messages.emit_result "Typechecking successful!"
         | `Dcalc ->
           let _output_file, with_output = get_output_format () in
           with_output
@@ -362,7 +362,7 @@ let driver source_file (options : Cli.options) : int =
               prgrm_dcalc_expr
         | ( `Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _
           | `Interpret_Lcalc ) as backend -> (
-          Cli.debug_print "Typechecking again...";
+          Messages.emit_debug "Typechecking again...";
           let prgm =
             try Shared_ast.Typing.program ~leave_unresolved:false prgm
             with Messages.CompilerError error_content ->
@@ -371,7 +371,7 @@ let driver source_file (options : Cli.options) : int =
                    (Messages.to_internal_error error_content))
           in
           if !Cli.check_invariants_flag then (
-            Cli.debug_format "Checking invariants...";
+            Messages.emit_debug "Checking invariants...";
             let result = Dcalc.Invariants.check_all_invariants prgm in
             if not result then
               raise
@@ -388,7 +388,7 @@ let driver source_file (options : Cli.options) : int =
 
             Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `Interpret ->
-            Cli.debug_print "Starting interpretation (dcalc)...";
+            Messages.emit_debug "Starting interpretation (dcalc)...";
             let results =
               Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
             in
@@ -397,18 +397,18 @@ let driver source_file (options : Cli.options) : int =
                 (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
                 results
             in
-            Cli.debug_print "End of interpretation";
-            Cli.result_print "Computation successful!%s"
+            Messages.emit_debug "End of interpretation";
+            Messages.emit_result "Computation successful!%s"
               (if List.length results > 0 then " Results:" else "");
             List.iter
               (fun ((var, _), result) ->
-                Cli.result_format "@[<hov 2>%s@ =@ %a@]" var
+                Messages.emit_result "@[<hov 2>%s@ =@ %a@]" var
                   (Shared_ast.Print.expr ~debug:options.debug ())
                   result)
               results
           | `Plugin (Plugin.Dcalc p) ->
             let output_file, _ = get_output_format ~ext:p.Plugin.extension () in
-            Cli.debug_print "Compiling program through backend \"%s\"..."
+            Messages.emit_debug "Compiling program through backend \"%s\"..."
               p.Plugin.name;
             p.Plugin.apply ~source_file ~output_file
               ~scope:
@@ -419,7 +419,7 @@ let driver source_file (options : Cli.options) : int =
               type_ordering
           | (`OCaml | `Interpret_Lcalc | `Python | `Lcalc | `Scalc | `Plugin _)
             as backend -> (
-            Cli.debug_print "Compiling program into lambda calculus...";
+            Messages.emit_debug "Compiling program into lambda calculus...";
             let prgm =
               if options.trace && options.avoid_exceptions then
                 Messages.raise_error
@@ -434,7 +434,7 @@ let driver source_file (options : Cli.options) : int =
             in
             let prgm =
               if options.optimize then begin
-                Cli.debug_print "Optimizing lambda calculus...";
+                Messages.emit_debug "Optimizing lambda calculus...";
                 Shared_ast.Optimizations.optimize_program prgm
               end
               else Shared_ast.Program.untype prgm
@@ -445,16 +445,16 @@ let driver source_file (options : Cli.options) : int =
                   Messages.raise_error
                     "Option --avoid_exceptions must be enabled for \
                      --closure_conversion";
-                Cli.debug_print "Performing closure conversion...";
+                Messages.emit_debug "Performing closure conversion...";
                 let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
                 let prgm = Bindlib.unbox prgm in
                 let prgm =
                   if options.optimize then (
-                    Cli.debug_print "Optimizing lambda calculus...";
+                    Messages.emit_debug "Optimizing lambda calculus...";
                     Shared_ast.Optimizations.optimize_program prgm)
                   else prgm
                 in
-                Cli.debug_print "Retyping lambda calculus...";
+                Messages.emit_debug "Retyping lambda calculus...";
                 let prgm =
                   Shared_ast.Program.untype
                     (Shared_ast.Typing.program ~leave_unresolved:true prgm)
@@ -476,7 +476,7 @@ let driver source_file (options : Cli.options) : int =
                   (Shared_ast.Print.program ~debug:options.debug)
                   prgm
             | `Interpret_Lcalc ->
-              Cli.debug_print "Starting interpretation (lcalc)...";
+              Messages.emit_debug "Starting interpretation (lcalc)...";
               let results =
                 Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
               in
@@ -485,12 +485,12 @@ let driver source_file (options : Cli.options) : int =
                   (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
                   results
               in
-              Cli.debug_print "End of interpretation";
-              Cli.result_print "Computation successful!%s"
+              Messages.emit_debug "End of interpretation";
+              Messages.emit_result "Computation successful!%s"
                 (if List.length results > 0 then " Results:" else "");
               List.iter
                 (fun ((var, _), result) ->
-                  Cli.result_format "@[<hov 2>%s@ =@ %a@]" var
+                  Messages.emit_result "@[<hov 2>%s@ =@ %a@]" var
                     (Shared_ast.Print.expr ~debug:options.debug ())
                     result)
                 results
@@ -502,8 +502,8 @@ let driver source_file (options : Cli.options) : int =
                 in
                 with_output
                 @@ fun fmt ->
-                Cli.debug_print "Compiling program into OCaml...";
-                Cli.debug_print "Writing to %s..."
+                Messages.emit_debug "Compiling program into OCaml...";
+                Messages.emit_debug "Writing to %s..."
                   (Option.value ~default:"stdout" output_file);
                 Lcalc.To_ocaml.format_program fmt prgm type_ordering
               | `Plugin (Plugin.Dcalc _) -> assert false
@@ -511,8 +511,8 @@ let driver source_file (options : Cli.options) : int =
                 let output_file, _ =
                   get_output_format ~ext:p.Plugin.extension ()
                 in
-                Cli.debug_print "Compiling program through backend \"%s\"..."
-                  p.Plugin.name;
+                Messages.emit_debug
+                  "Compiling program through backend \"%s\"..." p.Plugin.name;
                 p.Plugin.apply ~source_file ~output_file
                   ~scope:
                     (match options.ex_scope with
@@ -541,8 +541,8 @@ let driver source_file (options : Cli.options) : int =
                   let output_file, with_output =
                     get_output_format ~ext:".py" ()
                   in
-                  Cli.debug_print "Compiling program into Python...";
-                  Cli.debug_print "Writing to %s..."
+                  Messages.emit_debug "Compiling program into Python...";
+                  Messages.emit_debug "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
                   with_output
                   @@ fun fmt ->
@@ -550,9 +550,9 @@ let driver source_file (options : Cli.options) : int =
                 | `Plugin (Plugin.Dcalc _ | Plugin.Lcalc _) -> assert false
                 | `Plugin (Plugin.Scalc p) ->
                   let output_file, _ = get_output ~ext:p.Plugin.extension () in
-                  Cli.debug_print "Compiling program through backend \"%s\"..."
-                    p.Plugin.name;
-                  Cli.debug_print "Writing to %s..."
+                  Messages.emit_debug
+                    "Compiling program through backend \"%s\"..." p.Plugin.name;
+                  Messages.emit_debug "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
                   p.Plugin.apply ~source_file ~output_file
                     ~scope:

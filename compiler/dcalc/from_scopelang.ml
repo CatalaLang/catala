@@ -498,7 +498,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
       | _ -> ListLabels.map new_args ~f:(fun _ -> TAny), TAny
     in
 
-    (* Cli.debug_format "new_args %d, input_typs: %d, input_typs %a"
+    (* Messages.emit_debug "new_args %d, input_typs: %d, input_typs %a"
        (List.length new_args) (List.length input_typs) (Format.pp_print_list
        Print.typ_debug) (List.map (Mark.add Pos.no_pos) input_typs); *)
     let new_args =

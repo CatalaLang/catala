@@ -224,7 +224,7 @@ let apply
   match scope with
   | Some s ->
     File.with_formatter_of_opt_file output_file (fun fmt ->
-        Cli.debug_print
+        Messages.emit_debug
           "Writing JSON schema corresponding to the scope '%a' to the file \
            %s..."
           ScopeName.format_t s

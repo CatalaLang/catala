@@ -101,7 +101,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
   let m = Mark.get e in
   let mark = m in
   let pos = Expr.pos e in
-  (* Cli.debug_format "%a" (Print.expr ~debug:true ()) e; *)
+  (* Messages.emit_debug "%a" (Print.expr ~debug:true ()) e; *)
   match Mark.remove e with
   | EVar x ->
     if (Var.Map.find x ctx.ctx_vars).info_pure then

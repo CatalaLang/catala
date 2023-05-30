@@ -49,4 +49,4 @@ let solve_vc
       true z3_vcs
   in
   if all_proven then
-    Cli.result_format "No errors found during the proof mode run."
+    Messages.emit_result "No errors found during the proof mode run."

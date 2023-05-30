@@ -138,8 +138,8 @@ let rec unify
     (t1 : unionfind_typ)
     (t2 : unionfind_typ) : unit =
   let unify = unify ctx in
-  (* Cli.debug_format "Unifying %a and %a" (format_typ ctx) t1 (format_typ ctx)
-     t2; *)
+  (* Messages.emit_debug "Unifying %a and %a" (format_typ ctx) t1 (format_typ
+     ctx) t2; *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   let raise_type_error () = raise (Type_error (A.AnyExpr e, t1, t2)) in
@@ -356,8 +356,8 @@ and typecheck_expr_top_down :
     (a, m) A.gexpr ->
     (a, unionfind_typ A.custom) A.boxed_gexpr =
  fun ~leave_unresolved ctx env tau e ->
-  (* Cli.debug_format "Propagating type %a for naked_expr %a" (format_typ ctx)
-     tau (Expr.format ctx) e; *)
+  (* Messages.emit_debug "Propagating type %a for naked_expr %a" (format_typ
+     ctx) tau (Expr.format ctx) e; *)
   let pos_e = Expr.pos e in
   let () =
     (* If there already is a type annotation on the given expr, ensure it
