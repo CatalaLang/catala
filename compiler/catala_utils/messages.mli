@@ -16,6 +16,27 @@
 
 (** Interface for emitting compiler messages *)
 
+val debug_marker : Format.formatter -> unit -> unit
+val error_marker : Format.formatter -> unit -> unit
+val warning_marker : Format.formatter -> unit -> unit
+val result_marker : Format.formatter -> unit -> unit
+val log_marker : Format.formatter -> unit -> unit
+
+(**{2 Printers}*)
+
+(** All the printers below print their argument after the correct marker *)
+
+val debug_print : ('a, Format.formatter, unit) format -> 'a
+val debug_format : ('a, Format.formatter, unit) format -> 'a
+val error_print : ('a, Format.formatter, unit) format -> 'a
+val error_format : ('a, Format.formatter, unit) format -> 'a
+val warning_print : ('a, Format.formatter, unit) format -> 'a
+val warning_format : ('a, Format.formatter, unit) format -> 'a
+val result_print : ('a, Format.formatter, unit) format -> 'a
+val result_format : ('a, Format.formatter, unit) format -> 'a
+val log_print : ('a, Format.formatter, unit) format -> 'a
+val log_format : ('a, Format.formatter, unit) format -> 'a
+
 (** {1 Message content} *)
 
 type message_content

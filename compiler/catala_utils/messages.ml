@@ -1,5 +1,87 @@
 (** Error formatting and helper functions *)
 
+(**{1 Terminal formatting}*)
+
+(**{2 Markers}*)
+
+let time : float ref = ref (Unix.gettimeofday ())
+
+let time_marker ppf () =
+  let new_time = Unix.gettimeofday () in
+  let old_time = !time in
+  time := new_time;
+  let delta = (new_time -. old_time) *. 1000. in
+  if delta > 50. then
+    Cli.format_with_style
+      [ANSITerminal.Bold; ANSITerminal.black]
+      ppf
+      (Format.sprintf "[TIME] %.0fms@\n" delta)
+
+(** Prints [\[DEBUG\]] in purple on the terminal standard output *)
+let debug_marker ppf () =
+  time_marker ppf ();
+  Cli.format_with_style [ANSITerminal.Bold; ANSITerminal.magenta] ppf "[DEBUG] "
+
+(** Prints [\[ERROR\]] in red on the terminal error output *)
+let error_marker ppf () =
+  Cli.format_with_style [ANSITerminal.Bold; ANSITerminal.red] ppf "[ERROR] "
+
+(** Prints [\[WARNING\]] in yellow on the terminal standard output *)
+let warning_marker ppf () =
+  Cli.format_with_style
+    [ANSITerminal.Bold; ANSITerminal.yellow]
+    ppf "[WARNING] "
+
+(** Prints [\[RESULT\]] in green on the terminal standard output *)
+let result_marker ppf () =
+  Cli.format_with_style [ANSITerminal.Bold; ANSITerminal.green] ppf "[RESULT] "
+
+(** Prints [\[LOG\]] in red on the terminal error output *)
+let log_marker ppf () =
+  Cli.format_with_style [ANSITerminal.Bold; ANSITerminal.black] ppf "[LOG] "
+
+(**{2 Printers}*)
+
+(** All the printers below print their argument after the correct marker *)
+
+let debug_print format =
+  if !Cli.debug_flag then
+    Format.printf ("%a" ^^ format ^^ "\n%!") debug_marker ()
+  else Format.ifprintf Format.std_formatter format
+
+let debug_format (format : ('a, Format.formatter, unit) format) =
+  if !Cli.debug_flag then
+    Format.printf ("%a@[<hov>" ^^ format ^^ "@]@.") debug_marker ()
+  else Format.ifprintf Format.std_formatter format
+
+let error_print format =
+  Format.print_flush ();
+  (* Flushes previous warnings *)
+  Format.eprintf ("%a" ^^ format ^^ "@\n") error_marker ()
+
+let error_format (format : ('a, Format.formatter, unit) format) =
+  Format.print_flush ();
+  (* Flushes previous warnings *)
+  Format.printf ("%a" ^^ format ^^ "\n%!") error_marker ()
+
+let warning_print format =
+  if !Cli.disable_warnings_flag then Format.ifprintf Format.std_formatter format
+  else Format.printf ("%a" ^^ format ^^ "@\n") warning_marker ()
+
+let warning_format format =
+  Format.printf ("%a" ^^ format ^^ "\n%!") warning_marker ()
+
+let result_print format =
+  Format.printf ("%a" ^^ format ^^ "\n%!") result_marker ()
+
+let result_format format =
+  Format.printf ("%a" ^^ format ^^ "\n%!") result_marker ()
+
+let log_print format = Format.printf ("%a" ^^ format ^^ "\n%!") log_marker ()
+
+let log_format format =
+  Format.printf ("%a@[<hov>" ^^ format ^^ "@]@.") log_marker ()
+
 (** {1 Message content} *)
 
 type message_position = { message : string option; position : Pos.t }
@@ -19,10 +101,10 @@ let emit_content (content : message_content) (typ : content_type) : unit =
   match !Cli.message_format_flag with
   | Cli.Human ->
     (match typ with
-    | Warning -> Cli.warning_print
-    | Error -> Cli.error_print
-    | Debug -> Cli.debug_print
-    | Log -> Cli.log_print)
+    | Warning -> warning_print
+    | Error -> error_print
+    | Debug -> debug_print
+    | Log -> log_print)
       "%s%s%s" msg
       (if pos = [] then "" else "\n\n")
       (String.concat "\n\n"
@@ -42,10 +124,10 @@ let emit_content (content : message_content) (typ : content_type) : unit =
     let severity =
       Format.asprintf "%a"
         (match typ with
-        | Warning -> Cli.warning_marker
-        | Error -> Cli.error_marker
-        | Debug -> Cli.debug_marker
-        | Log -> Cli.log_marker)
+        | Warning -> warning_marker
+        | Error -> error_marker
+        | Debug -> debug_marker
+        | Log -> log_marker)
         ()
     in
     (* The top message doesn't come with a position, which is not something the
