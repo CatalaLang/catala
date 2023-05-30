@@ -27,7 +27,7 @@ let get_scope_uid
     (ctxt : Desugared.Name_resolution.context) =
   match options.ex_scope, backend with
   | None, `Interpret ->
-    Errors.raise_error "No scope was provided for execution."
+    Messages.raise_error "No scope was provided for execution."
   | None, _ ->
     let _, scope =
       try
@@ -38,14 +38,14 @@ let get_scope_uid
           ctxt.typedefs
         |> Shared_ast.IdentName.Map.choose
       with Not_found ->
-        Errors.raise_error "There isn't any scope inside the program."
+        Messages.raise_error "There isn't any scope inside the program."
     in
     scope
   | Some name, _ -> (
     match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
     | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
     | _ ->
-      Errors.raise_error "There is no scope %a inside the program."
+      Messages.raise_error "There is no scope %a inside the program."
         (Cli.format_with_style [ANSITerminal.yellow])
         ("\"" ^ name ^ "\""))
 
@@ -56,7 +56,7 @@ let get_variable_uid
     (scope_uid : Shared_ast.ScopeName.t) =
   match options.ex_variable, backend with
   | None, `Exceptions ->
-    Errors.raise_error
+    Messages.raise_error
       "Please specify a variable with the -v option to print its exception \
        tree."
   | None, _ -> None
@@ -80,7 +80,7 @@ let get_variable_uid
         (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
     with
     | None ->
-      Errors.raise_error "Variable %a not found inside scope %a"
+      Messages.raise_error "Variable %a not found inside scope %a"
         (Cli.format_with_style [ANSITerminal.yellow])
         ("\"" ^ name ^ "\"")
         (Cli.format_with_style [ANSITerminal.yellow])
@@ -90,7 +90,7 @@ let get_variable_uid
       -> (
       match second_part with
       | None ->
-        Errors.raise_error
+        Messages.raise_error
           "Subscope %a of scope %a cannot be selected by itself, please add \
            \".<var>\" where <var> is a subscope variable."
           (Cli.format_with_style [ANSITerminal.yellow])
@@ -108,7 +108,7 @@ let get_variable_uid
             (Desugared.Ast.ScopeDef.SubScopeVar
                (subscope_var_name, v, Pos.no_pos))
         | _ ->
-          Errors.raise_error
+          Messages.raise_error
             "Var %a of subscope %a in scope %a does not exist, please check \
              your command line arguments."
             (Cli.format_with_style [ANSITerminal.yellow])
@@ -131,7 +131,7 @@ let get_variable_uid
                  with
                  | Some state -> state
                  | None ->
-                   Errors.raise_error
+                   Messages.raise_error
                      "State %a is not found for variable %a of scope %a"
                      (Cli.format_with_style [ANSITerminal.yellow])
                      ("\"" ^ second_part ^ "\"")
@@ -167,7 +167,7 @@ let driver source_file (options : Cli.options) : int =
         (* Try to infer the language from the intput file extension. *)
         let ext = Filename.extension !filename in
         if ext = "" then
-          Errors.raise_error
+          Messages.raise_error
             "No file extension found for the file '%s'. (Try to add one or to \
              specify the -l flag)"
             !filename;
@@ -176,7 +176,7 @@ let driver source_file (options : Cli.options) : int =
     let language =
       try List.assoc l Cli.languages
       with Not_found ->
-        Errors.raise_error
+        Messages.raise_error
           "The selected language (%s) is not supported by Catala" l
     in
     Cli.locale_lang := language;
@@ -187,7 +187,7 @@ let driver source_file (options : Cli.options) : int =
       | `Plugin s -> (
         try `Plugin (Plugin.find s)
         with Not_found ->
-          Errors.raise_error
+          Messages.raise_error
             "The selected backend (%s) is not supported by Catala, nor was a \
              plugin by this name found under %a"
             backend
@@ -216,7 +216,7 @@ let driver source_file (options : Cli.options) : int =
         match source_file with
         | FileName f -> f
         | Contents _ ->
-          Errors.raise_error
+          Messages.raise_error
             "The Makefile backend does not work if the input is not a file"
       in
       let output_file, with_output = get_output ~ext:".d" () in
@@ -287,7 +287,7 @@ let driver source_file (options : Cli.options) : int =
           match variable_uid with
           | Some variable_uid -> variable_uid
           | None ->
-            Errors.raise_error
+            Messages.raise_error
               "Please provide a scope variable to analyze with the -v option."
         in
         Desugared.Print.print_exceptions_graph scope_uid variable_uid
@@ -329,13 +329,10 @@ let driver source_file (options : Cli.options) : int =
           Cli.debug_print "Typechecking again...";
           let _ =
             try Shared_ast.Typing.program prgm ~leave_unresolved:false
-            with Errors.StructuredError (msg, details) ->
-              let msg =
-                "Typing error occured during re-typing on the 'default \
-                 calculus'. This is a bug in the Catala compiler.\n"
-                ^ msg
-              in
-              raise (Errors.StructuredError (msg, details))
+            with Messages.CompilerError error_content ->
+              raise
+                (Messages.CompilerError
+                   (Messages.to_internal_error error_content))
           in
           (* That's it! *)
           Cli.result_print "Typechecking successful!"
@@ -368,20 +365,18 @@ let driver source_file (options : Cli.options) : int =
           Cli.debug_print "Typechecking again...";
           let prgm =
             try Shared_ast.Typing.program ~leave_unresolved:false prgm
-            with Errors.StructuredError (msg, details) ->
-              let msg =
-                "Typing error occured during re-typing on the 'default \
-                 calculus'. This is a bug in the Catala compiler.\n"
-                ^ msg
-              in
-              raise (Errors.StructuredError (msg, details))
+            with Messages.CompilerError error_content ->
+              raise
+                (Messages.CompilerError
+                   (Messages.to_internal_error error_content))
           in
           if !Cli.check_invariants_flag then (
             Cli.debug_format "Checking invariants...";
             let result = Dcalc.Invariants.check_all_invariants prgm in
             if not result then
               raise
-                (Errors.raise_internal_error "Some Dcalc invariants are invalid"));
+                (Messages.raise_internal_error
+                   "Some Dcalc invariants are invalid"));
           match backend with
           | `Proof ->
             let vcs =
@@ -427,7 +422,7 @@ let driver source_file (options : Cli.options) : int =
             Cli.debug_print "Compiling program into lambda calculus...";
             let prgm =
               if options.trace && options.avoid_exceptions then
-                Errors.raise_error
+                Messages.raise_error
                   "Option --avoid_exceptions is not compatible with option \
                    --trace";
               if options.avoid_exceptions then
@@ -447,7 +442,7 @@ let driver source_file (options : Cli.options) : int =
             let prgm =
               if options.closure_conversion then (
                 if not options.avoid_exceptions then
-                  Errors.raise_error
+                  Messages.raise_error
                     "Option --avoid_exceptions must be enabled for \
                      --closure_conversion";
                 Cli.debug_print "Performing closure conversion...";
@@ -567,9 +562,9 @@ let driver source_file (options : Cli.options) : int =
                     prgm type_ordering)))))));
     0
   with
-  | Errors.StructuredError (msg, pos) ->
+  | Messages.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Errors.print_structured_error msg pos;
+    Messages.emit_content content Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
   | Sys_error msg ->

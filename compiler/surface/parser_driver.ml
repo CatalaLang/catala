@@ -111,7 +111,7 @@ let raise_parser_error
     (last_good_loc : Pos.t option)
     (token : string)
     (msg : string) : 'a =
-  Errors.raise_multispanned_error
+  Messages.raise_multispanned_error
     ((Some "Error token:", error_loc)
     ::
     (match last_good_loc with
@@ -278,7 +278,7 @@ let rec parse_source_file
       try
         let input = open_in source_file in
         Sedlexing.Utf8.from_channel input, Some input
-      with Sys_error msg -> Errors.raise_error "System error: %s" msg)
+      with Sys_error msg -> Messages.raise_error "System error: %s" msg)
     | Contents contents -> Sedlexing.Utf8.from_string contents, None
   in
   let source_file_name =

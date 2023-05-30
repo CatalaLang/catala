@@ -61,7 +61,7 @@ let load_file f =
     Dynlink.loadfile f;
     Cli.debug_print "Plugin %S loaded" f
   with e ->
-    Errors.format_warning "Could not load plugin %S: %s" f
+    Messages.emit_warning "Could not load plugin %S: %s" f
       (Printexc.to_string e)
 
 let rec load_dir d =

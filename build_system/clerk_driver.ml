@@ -237,7 +237,7 @@ let [@ocamlformat "disable"] scan_for_inline_tests (file : string)
               1
               (String.sub file_str 0 pos)
           in
-          Errors.raise_error "Bad inline-test format at %s line %d" file line
+          Messages.raise_error "Bad inline-test format at %s line %d" file line
       in
       let params =
         List.filter (( <> ) "")
@@ -305,7 +305,7 @@ let search_for_expected_outputs (file : string) : expected_output_descr list =
             match Re.Group.get_opt groups 1 with
             | Some x -> x
             | None ->
-              Errors.raise_error
+              Messages.raise_error
                 "A test declaration is missing its identifier in the file %s"
                 file
           in
@@ -969,8 +969,10 @@ let driver
     | _ ->
       Cli.error_print "The command \"%s\" is unknown to clerk." command;
       return_err
-  with Errors.StructuredError (msg, pos) ->
-    Errors.print_structured_error msg pos;
+  with Messages.CompilerError content ->
+    let bt = Printexc.get_raw_backtrace () in
+    Messages.emit_content content Error;
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     return_err
 
 let main () = exit (Cmdliner.Cmd.eval' (Cmdliner.Cmd.v info (clerk_t driver)))

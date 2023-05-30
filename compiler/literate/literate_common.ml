@@ -64,7 +64,7 @@ let get_language_extension = function
   | Pl -> "catala_pl"
 
 let raise_failed_pandoc (command : string) (error_code : int) : 'a =
-  Errors.raise_error
+  Messages.raise_error
     "Weaving failed: pandoc command \"%s\" returned with error code %d" command
     error_code
 
@@ -139,7 +139,7 @@ let call_pygmentize ?lang args =
   let cmd = "pygmentize" in
   let check_exit n =
     if n <> 0 then
-      Errors.raise_error
+      Messages.raise_error
         "Weaving failed: pygmentize command %S returned with error code %d"
         (String.concat " " (cmd :: args))
         n

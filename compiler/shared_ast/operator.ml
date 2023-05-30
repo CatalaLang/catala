@@ -538,7 +538,7 @@ let resolve_overload ctx (op : overloaded t Mark.pos) (operands : typ list) :
     in
     resolve_overload_aux (Mark.remove op) operands
   with Not_found ->
-    Errors.raise_multispanned_error
+    Messages.raise_multispanned_error
       ((None, Mark.get op)
       :: List.map
            (fun ty ->

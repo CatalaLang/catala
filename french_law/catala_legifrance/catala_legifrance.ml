@@ -260,7 +260,7 @@ let driver_lwt
   try
     if debug then Cli.debug_flag := true;
     if not (expiration || diff) then
-      Errors.raise_error
+      Messages.raise_error
         "You have to check at least something, see the list of options with \
          --help";
     let* access_token = Api.get_token client_id client_secret in
@@ -285,9 +285,9 @@ let driver_lwt
     in
     prerr_endline "0";
     Lwt.return 0
-  with Errors.StructuredError (msg, pos) ->
+  with Messages.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Errors.print_structured_error msg pos;
+    Messages.emit_content content Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     Lwt.return (-1)
 
@@ -295,9 +295,9 @@ let driver file debug diff expiration custom_date client_id client_secret =
   try
     Lwt_main.run
       (driver_lwt file debug diff expiration custom_date client_id client_secret)
-  with Errors.StructuredError (msg, pos) ->
+  with Messages.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Errors.print_structured_error msg pos;
+    Messages.emit_content content Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
 

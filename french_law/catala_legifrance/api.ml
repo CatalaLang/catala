@@ -165,7 +165,7 @@ let parse_id (id : string) : article_id =
     else if Re.execp ceta_tex id then CETATEXT
     else if Re.execp jorf_rex id then JORFARTI
     else
-      Errors.raise_error
+      Messages.raise_error
         "LégiFrance ID \"%s\" does not correspond to an ID format recognized \
          by the LégiFrance API"
         id

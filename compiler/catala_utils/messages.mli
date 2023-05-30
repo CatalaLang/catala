@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   and social benefits computation rules. Copyright (C) 2023 Inria, contributor:
    Denis Merigoux <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,20 +14,24 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Error formatting and helper functions *)
+(** Interface for emitting compiler messages *)
 
-(** {1 Error exception and printing} *)
+(** {1 Message content} *)
 
-exception StructuredError of (string * (string option * Pos.t) list)
-(** The payload of the expression is a main error message, with a list of
-    secondary positions related to the error, each carrying an optional
-    secondary message to describe what is pointed by the position. *)
+type message_content
+type content_type = Error | Warning | Debug | Log
 
-val print_structured_error :
-  ?is_warning:bool -> string -> (string option * Pos.t) list -> unit
-(** Emits error or warning if [is_warning] is set to [true]. *)
+val to_internal_error : message_content -> message_content
 
-(** {1 Error exception and printing} *)
+val emit_content : message_content -> content_type -> unit
+(** This functions emits the message according to the emission type defined by
+    [Cli.message_format_flag]. *)
+
+(** {1 Error exception} *)
+
+exception CompilerError of message_content
+
+(** {1 Common error raising} *)
 
 val raise_spanned_error :
   ?span_msg:string -> Pos.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
@@ -41,12 +45,12 @@ val raise_internal_error : ('a, Format.formatter, unit, 'b) format4 -> 'a
 val assert_internal_error :
   bool -> ('a, Format.formatter, unit, unit, unit, unit) format6 -> 'a
 
-(** {1 Warning printing}*)
+(** {1 Common warning raising}*)
 
-val format_multispanned_warning :
+val emit_multispanned_warning :
   (string option * Pos.t) list -> ('a, Format.formatter, unit) format -> 'a
 
-val format_spanned_warning :
+val emit_spanned_warning :
   ?span_msg:string -> Pos.t -> ('a, Format.formatter, unit) format -> 'a
 
-val format_warning : ('a, Format.formatter, unit) format -> 'a
+val emit_warning : ('a, Format.formatter, unit) format -> 'a
