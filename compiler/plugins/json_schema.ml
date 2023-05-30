@@ -230,6 +230,7 @@ let apply
           ScopeName.format_t s
           (Option.value ~default:"stdout" output_file);
         To_json.format_program fmt s prgm)
-  | None -> Cli.error_print "A scope must be specified for the plugin: %s" name
+  | None ->
+    Messages.raise_error "A scope must be specified for the plugin: %s" name
 
 let () = Driver.Plugin.register_lcalc ~name ~extension apply

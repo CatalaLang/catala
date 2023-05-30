@@ -121,7 +121,7 @@ let run_request (request : unit -> (string * string) Lwt.t) :
     if resp = "200 OK" then
       try body |> Yojson.Basic.from_string with
       | Yojson.Basic.Util.Type_error (msg, obj) ->
-        Cli.error_print
+        Messages.raise_error
           "Error while parsing JSON answer from API: %s\n\
            Specific JSON:\n\
            %s\n\
@@ -129,8 +129,7 @@ let run_request (request : unit -> (string * string) Lwt.t) :
            %s"
           msg
           (Yojson.Basic.to_string obj)
-          body;
-        exit (-1)
+          body
       | _ -> raise (Failure "")
     else raise (Failure "")
   in
@@ -142,11 +141,10 @@ let run_request (request : unit -> (string * string) Lwt.t) :
         Unix.sleep 2;
         Messages.emit_debug "Retrying request...";
         try_n_times (n - 1))
-      else (
-        Cli.error_print
+      else
+        Messages.raise_error
           "The API request went wrong ; status is %s and the body is\n%s" resp
-          body;
-        exit (-1))
+          body
   in
   try_n_times 5
 
@@ -191,7 +189,7 @@ let raise_article_parsing_error
     (json : Yojson.Basic.t)
     (msg : string)
     (obj : Yojson.Basic.t) =
-  Cli.error_print
+  Messages.raise_error
     "Error while manipulating JSON answer from API: %s\n\
      Specific JSON:\n\
      %s\n\
@@ -199,8 +197,7 @@ let raise_article_parsing_error
      %s"
     msg
     (Yojson.Basic.to_string obj)
-    (Yojson.Basic.to_string json);
-  exit 1
+    (Yojson.Basic.to_string json)
 
 let get_article_id (article : article) : string =
   try

@@ -84,20 +84,24 @@ let log_format format =
 
 (** {1 Message content} *)
 
-type message_position = { message : string option; position : Pos.t }
-type message_content = { message : string; positions : message_position list }
+module Content = struct
+  type position = { message : string option; position : Pos.t }
+  type t = { message : string; positions : position list }
+
+  let of_message (s : string) : t = { message = s; positions = [] }
+end
 
 let internal_error_prefix =
   "Internal Error, please report to \
    https://github.com/CatalaLang/catala/issues: "
 
-let to_internal_error (content : message_content) : message_content =
+let to_internal_error (content : Content.t) : Content.t =
   { content with message = internal_error_prefix ^ content.message }
 
 type content_type = Error | Warning | Debug | Log | Result
 
-let emit_content (content : message_content) (typ : content_type) : unit =
-  let { message = msg; positions = pos } = content in
+let emit_content (content : Content.t) (typ : content_type) : unit =
+  let { Content.message = msg; positions = pos } = content in
   match !Cli.message_format_flag with
   | Cli.Human ->
     (match typ with
@@ -110,7 +114,7 @@ let emit_content (content : message_content) (typ : content_type) : unit =
       (if pos = [] then "" else "\n\n")
       (String.concat "\n\n"
          (List.map
-            (fun (pos : message_position) ->
+            (fun (pos : Content.position) ->
               Printf.sprintf "%s%s"
                 (match pos.message with None -> "" | Some msg -> msg ^ "\n")
                 (Pos.retrieve_loc_text pos.position))
@@ -144,7 +148,7 @@ let emit_content (content : message_content) (typ : content_type) : unit =
       (if
        pos != []
        && List.for_all
-            (fun (pos' : message_position) -> Option.is_some pos'.message)
+            (fun (pos' : Content.position) -> Option.is_some pos'.message)
             pos
       then
        Format.asprintf "%a: %s %s\n"
@@ -157,7 +161,7 @@ let emit_content (content : message_content) (typ : content_type) : unit =
             (fun pos' ->
               Format.asprintf "%a: %s %s"
                 (Cli.format_with_style [ANSITerminal.blue])
-                (Pos.to_string_short pos'.position)
+                (Pos.to_string_short pos'.Content.position)
                 severity
                 (match pos'.message with
                 | None -> remove_new_lines msg
@@ -166,7 +170,7 @@ let emit_content (content : message_content) (typ : content_type) : unit =
 
 (** {1 Error exception} *)
 
-exception CompilerError of message_content
+exception CompilerError of Content.t
 
 (** {1 Error printing} *)
 
@@ -189,7 +193,9 @@ let raise_multispanned_error (spans : (string option * Pos.t) list) format =
            {
              message = msg;
              positions =
-               List.map (fun (message, position) -> { message; position }) spans;
+               List.map
+                 (fun (message, position) -> { Content.message; position })
+                 spans;
            }))
     format
 
@@ -214,7 +220,9 @@ let emit_multispanned_warning (pos : (string option * Pos.t) list) format =
         {
           message = msg;
           positions =
-            List.map (fun (msg, pos) -> { message = msg; position = pos }) pos;
+            List.map
+              (fun (msg, pos) -> { Content.message = msg; position = pos })
+              pos;
         }
         Warning)
     format

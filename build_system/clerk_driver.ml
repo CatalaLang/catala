@@ -942,9 +942,7 @@ let driver
           in
           Messages.emit_debug "executing '%s'..." ninja_cmd;
           Sys.command ninja_cmd
-        | exception Sys_error e ->
-          Cli.error_print "can not write in %s" e;
-          return_err)
+        | exception Sys_error e -> Messages.raise_error "can not write in %s" e)
     | "run" -> (
       match scope with
       | Some scope ->
@@ -955,20 +953,16 @@ let driver
         in
         if 0 <> res then return_err else return_ok
       | None ->
-        Cli.error_print "Please provide a scope to run with the -s option";
-        return_err)
+        Messages.raise_error "Please provide a scope to run with the -s option")
     | "runtest" -> (
       match files_or_folders with
       | [f] ->
         run_inline_tests ~reset:reset_test_outputs f catala_exe
           (List.filter (( <> ) "") (String.split_on_char ' ' catala_opts));
         0
-      | _ ->
-        Cli.error_print "Please specify a single catala file to test";
-        return_err)
+      | _ -> Messages.raise_error "Please specify a single catala file to test")
     | _ ->
-      Cli.error_print "The command \"%s\" is unknown to clerk." command;
-      return_err
+      Messages.raise_error "The command \"%s\" is unknown to clerk." command
   with Messages.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
     Messages.emit_content content Error;

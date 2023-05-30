@@ -569,7 +569,9 @@ let driver source_file (options : Cli.options) : int =
     -1
   | Sys_error msg ->
     let bt = Printexc.get_raw_backtrace () in
-    Cli.error_print "System error: %s" msg;
+    Messages.emit_content
+      (Messages.Content.of_message ("System error: " ^ msg))
+      Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
 

@@ -18,18 +18,23 @@
 
 (** {1 Message content} *)
 
-type message_content
+module Content : sig
+  type t
+
+  val of_message : string -> t
+end
+
+val to_internal_error : Content.t -> Content.t
+
 type content_type = Error | Warning | Debug | Log | Result
 
-val to_internal_error : message_content -> message_content
-
-val emit_content : message_content -> content_type -> unit
+val emit_content : Content.t -> content_type -> unit
 (** This functions emits the message according to the emission type defined by
     [Cli.message_format_flag]. *)
 
 (** {1 Error exception} *)
 
-exception CompilerError of message_content
+exception CompilerError of Content.t
 
 (** {1 Common error raising} *)
 

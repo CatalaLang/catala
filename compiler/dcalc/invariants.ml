@@ -37,11 +37,8 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
             match inv e with
             | Ignore -> true
             | Fail ->
-              Cli.error_format "%s failed in %s.\n\n %a" name
-                (Pos.to_string_short (Expr.pos e))
-                (Print.expr ()) e;
-              incr total;
-              false
+              Messages.raise_spanned_error (Expr.pos e) "%s failed\n\n%a" name
+                (Print.expr ()) e
             | Pass ->
               incr ok;
               incr total;

@@ -248,7 +248,7 @@ module To_jsoo = struct
              (fun fmt (cname, typ) ->
                match Mark.remove typ with
                | TTuple _ ->
-                 Cli.error_print
+                 Messages.raise_spanned_error (Mark.get typ)
                    "Tuples aren't supported yet in the conversion to JS"
                | _ ->
                  Format.fprintf fmt
@@ -273,7 +273,7 @@ module To_jsoo = struct
              (fun fmt (cname, typ) ->
                match Mark.remove typ with
                | TTuple _ ->
-                 Cli.error_print
+                 Messages.raise_spanned_error (Mark.get typ)
                    "Tuples aren't yet supported in the conversion to JS..."
                | TLit TUnit ->
                  Format.fprintf fmt "@[<hv 2>| \"%a\" ->@ %a.%a ()@]"
