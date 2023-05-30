@@ -1,2 +1,4 @@
 (documentation
  (package catala))
+
+(dirs jsoo ocaml)
