@@ -22,7 +22,7 @@ $ catala Proof --disable_counterexamples
 6 │   context y content boolean
   │           ‾
   └─ Test
-[ERROR] [A.y] At least two exceptions overlap for this variable:
+[WARNING] [A.y] At least two exceptions overlap for this variable:
 ┌─⯈ tests/test_proof/bad/dates_simple-overlap.catala_en:6.11-6.12:
 └─┐
 6 │   context y content boolean

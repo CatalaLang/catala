@@ -28,7 +28,7 @@ $ catala Proof --disable_counterexamples
 10 │   context y content integer
    │           ‾
    └─ Article
-[ERROR] [A.y] This variable might return an empty error:
+[WARNING] [A.y] This variable might return an empty error:
 ┌─⯈ tests/test_proof/bad/enums_unit-empty.catala_en:10.11-10.12:
 └──┐
 10 │   context y content integer
