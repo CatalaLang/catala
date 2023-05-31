@@ -4,7 +4,11 @@ FROM ocamlpro/ocaml:4.14-2023-04-02 AS dev-build-context
 
 # pandoc and ninja are not in alpine stable yet, install it manually with an explicit repository
 RUN sudo apk add pandoc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
-RUN sudo apk add ninja-build --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
+# In order to compiler rescript for `npm install` in french_law/js we need
+# the following dependencies (according to https://github.com/GlancingMind/rescript-alpine-docker)
+RUN apk add python
+RUN apk add g++
+RUN apk add make
 
 RUN mkdir catala
 WORKDIR catala
@@ -17,7 +21,8 @@ ENV OPAMVAR_cataladevmode=1
 ENV OPAMVAR_catalaz3mode=1
 
 # Get a switch with all the dependencies installed
-RUN opam --cli=2.1 switch create catala ocaml-system && \
+RUN opam --cli=2.1 update && \
+    opam --cli=2.1 switch create catala ocaml-system && \
     opam --cli=2.1 pin . --no-action && \
     opam --cli=2.1 install . --with-test --with-doc --depext-only && \
     opam --cli=2.1 install . --with-test --with-doc --deps-only && \
