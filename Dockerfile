@@ -6,9 +6,9 @@ FROM ocamlpro/ocaml:4.14-2023-04-02 AS dev-build-context
 RUN sudo apk add pandoc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
 # In order to compiler rescript for `npm install` in french_law/js we need
 # the following dependencies (according to https://github.com/GlancingMind/rescript-alpine-docker)
-RUN sudo apk add python --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
-RUN sudo apk add g++ --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
-RUN sudo apk add make --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
+RUN sudo apk add python3
+RUN sudo apk add g++
+RUN sudo apk add make
 
 RUN mkdir catala
 WORKDIR catala
