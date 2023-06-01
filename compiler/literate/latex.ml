@@ -21,7 +21,6 @@
 open Catala_utils
 open Literate_common
 module A = Surface.Ast
-module R = Re.Pcre
 module C = Cli
 
 (** {1 Helpers} *)
@@ -194,9 +193,31 @@ let code_block ~meta lang fmt (code, pos) =
      so we call it with "nowrap" and write the FancyVrb wrapper ourselves. *)
   let pygmentized_code =
     let contents = String.concat "" ["```catala\n"; code; "```"] in
-    File.with_temp_file "catala_latex_pygments" "in" ~contents
-    @@ fun temp_file_in ->
-    call_pygmentize ~lang ["-f"; "latex"; "-O"; "nowrap=True"; temp_file_in]
+    let output =
+      File.with_temp_file "catala_latex_pygments" "in" ~contents
+      @@ fun temp_file_in ->
+      call_pygmentize ~lang ["-f"; "latex"; "-O"; "\"nowrap\""; temp_file_in]
+    in
+    (* somehow even with the "nowrap" option on [pygmentize] still emits a
+       wrapping [Verbatim] env. So we remove it with regexp finding. *)
+    let env_rex =
+      Re.compile
+      @@ Re.seq
+           [
+             Re.char '\\';
+             Re.alt [Re.str "begin"; Re.str "end"];
+             Re.str "{Verbatim}";
+             Re.opt
+               (Re.seq
+                  [
+                    Re.char '[';
+                    Re.rep (Re.diff Re.any (Re.char ']'));
+                    Re.char ']';
+                  ]);
+             Re.char '\n';
+           ]
+    in
+    Re.replace_string env_rex ~by:"" output
   in
   Format.fprintf fmt
     {latex|\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=%d,stepnumber=1,label={\hspace*{\fill}\texttt{%s}}%s]|latex}
