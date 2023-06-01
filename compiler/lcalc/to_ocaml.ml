@@ -315,10 +315,19 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     when !Cli.trace_flag ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
       format_with_parens f format_with_parens arg
-  | EApp { f = EOp { op = Log (VarDef tau, info); _ }, _; args = [arg1] }
+  | EApp
+      { f = EOp { op = Log (VarDef var_def_info, info); _ }, _; args = [arg1] }
     when !Cli.trace_flag ->
-    Format.fprintf fmt "(log_variable_definition@ %a@ (%a)@ %a)" format_uid_list
-      info typ_embedding_name (tau, Pos.no_pos) format_with_parens arg1
+    Format.fprintf fmt
+      "(log_variable_definition@ %a@ {io_input=%s;@ io_output=%b}@ (%a)@ %a)"
+      format_uid_list info
+      (match var_def_info.log_io_input with
+      | NoInput -> "NoInput"
+      | OnlyInput -> "OnlyInput"
+      | Reentrant -> "Reentrant")
+      var_def_info.log_io_output typ_embedding_name
+      (var_def_info.log_typ, Pos.no_pos)
+      format_with_parens arg1
   | EApp { f = EOp { op = Log (PosRecordIfTrueBool, _); _ }, m; args = [arg1] }
     when !Cli.trace_flag ->
     let pos = Expr.mark_pos m in

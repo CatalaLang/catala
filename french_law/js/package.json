@@ -1,6 +1,6 @@
 {
   "name": "@catala-lang/french-law",
-  "version": "0.8.2",
+  "version": "0.8.3-b.3",
   "description": "Library of computations defined by French legislative texts, extract from Catala programs (https://catala-lang.org)",
   "main": "index.js",
   "dependencies": {
@@ -8,8 +8,14 @@
     "lodash": "^4.17.21",
     "platform": "^1.3.6"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@catala-lang/rescript-catala": "^0.8.1-b.0",
+    "rescript": "^10.1.4"
+  },
   "scripts": {
+    "clean": "rescript clean",
+    "build": "rescript build -with-deps",
+    "watch": "yarn run build -w",
     "test": "node examples.js"
   },
   "repository": {

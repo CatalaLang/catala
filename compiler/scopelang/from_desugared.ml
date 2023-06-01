@@ -225,7 +225,7 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
                  ((match
                      Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input
                    with
-                  | Desugared.Ast.NoInput -> true
+                  | NoInput -> true
                   | _ -> false)
                  && RuleName.Map.is_empty scope_def.scope_def_rules))
         scope.scope_defs
@@ -244,7 +244,7 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
             (match
                Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input
              with
-            | Desugared.Ast.NoInput ->
+            | NoInput ->
               Errors.raise_multispanned_error
                 (( Some "Incriminated subscope:",
                    Mark.get (SubScopeName.get_info sscope) )
@@ -627,7 +627,7 @@ let translate_rule
                  ((match
                      Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input
                    with
-                  | Desugared.Ast.NoInput -> true
+                  | NoInput -> true
                   | _ -> false)
                  && RuleName.Map.is_empty scope_def.scope_def_rules))
         scope.scope_defs
@@ -647,7 +647,7 @@ let translate_rule
             (match
                Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input
              with
-            | Desugared.Ast.NoInput -> assert false (* error already raised *)
+            | NoInput -> assert false (* error already raised *)
             | OnlyInput when RuleName.Map.is_empty def && not is_cond ->
               assert false (* error already raised *)
             | _ -> ());

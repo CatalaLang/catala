@@ -13,7 +13,6 @@
    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
    License for the specific language governing permissions and limitations under
    the License. *)
-[@@@warning "-32-27"]
 
 open Catala_utils
 open Shared_ast
@@ -42,16 +41,9 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
     let years, months, days = Runtime.duration_to_years_months_days d in
     Format.fprintf fmt "duration_of_numbers(%d,%d,%d)" years months days
 
-let format_log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
-  match entry with
-  | VarDef _ -> Format.pp_print_string fmt ":="
-  | BeginCall -> Format.pp_print_string fmt "→ "
-  | EndCall -> Format.fprintf fmt "%s" "← "
-  | PosRecordIfTrueBool -> Format.pp_print_string fmt "☛ "
-
 let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
-  | Log (entry, infos) -> assert false
+  | Log (_entry, _infos) -> assert false
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
     Format.pp_print_string fmt "-"
   (* Todo: use the names from [Operator.name] *)
@@ -247,14 +239,6 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   let v_str = Mark.remove (FuncName.get_info v) in
   format_name_cleaned fmt v_str
 
-let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
-  Format.fprintf fmt "%a_%s" VarName.format_t v (string_of_int (VarName.hash v))
-
-let needs_parens (e : expr) : bool =
-  match Mark.remove e with
-  | ELit (LBool _ | LUnit) | EVar _ | EOp _ -> false
-  | _ -> true
-
 let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   let pos = Mark.get exc in
   match Mark.remove exc with
@@ -325,9 +309,16 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     when !Cli.trace_flag ->
     Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
       (format_expression ctx) f (format_expression ctx) arg
-  | EApp ((EOp (Log (VarDef tau, info)), _), [arg1]) when !Cli.trace_flag ->
-    Format.fprintf fmt "log_variable_definition(%a,@ %a)" format_uid_list info
-      (format_expression ctx) arg1
+  | EApp ((EOp (Log (VarDef var_def_info, info)), _), [arg1])
+    when !Cli.trace_flag ->
+    Format.fprintf fmt
+      "log_variable_definition(%a,@ LogIO(io_input=%s,@ io_output=%b),@ %a)"
+      format_uid_list info
+      (match var_def_info.log_io_input with
+      | Runtime.NoInput -> "NoInput"
+      | Runtime.OnlyInput -> "OnlyInput"
+      | Runtime.Reentrant -> "Reentrant")
+      var_def_info.log_io_output (format_expression ctx) arg1
   | EApp ((EOp (Log (PosRecordIfTrueBool, _)), pos), [arg1])
     when !Cli.trace_flag ->
     Format.fprintf fmt
@@ -556,7 +547,7 @@ let format_ctx
         format_enum_name enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun fmt (i, enum_cons, enum_cons_type) ->
+           (fun fmt (i, enum_cons, _enum_cons_type) ->
              Format.fprintf fmt "%a = %d" format_enum_cons_name enum_cons i))
         (List.mapi
            (fun i (x, y) -> i, x, y)

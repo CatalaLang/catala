@@ -156,10 +156,16 @@ type date = Runtime.date
 type date_rounding = Runtime.date_rounding
 type duration = Runtime.duration
 
+type var_def_log = {
+  log_typ : naked_typ;
+  log_io_input : Runtime.io_input;
+  log_io_output : bool;
+}
+
 type log_entry =
-  | VarDef of naked_typ
+  | VarDef of var_def_log
       (** During code generation, we need to know the type of the variable being
-          logged for embedding *)
+          logged for embedding as well as its I/O properties. *)
   | BeginCall
   | EndCall
   | PosRecordIfTrueBool

@@ -40,7 +40,7 @@ class Integer:
         return Integer(self.value * other.value)
 
     def __truediv__(self, other: 'Integer') -> 'Decimal':
-        return Decimal (self.value) / Decimal (other.value)
+        return Decimal(self.value) / Decimal(other.value)
 
     def __neg__(self: 'Integer') -> 'Integer':
         return Integer(- self.value)
@@ -155,7 +155,7 @@ class Money:
         elif isinstance(other, Decimal):
             return self * (1. / other.value)
         else:
-          raise Exception("Dividing money and invalid obj")
+            raise Exception("Dividing money and invalid obj")
 
     def __neg__(self: 'Money') -> 'Money':
         return Money(- self.value)
@@ -200,11 +200,11 @@ class Date:
 
     def __sub__(self, other: object) -> object:
         if isinstance(other, Date):
-          return Duration(dateutil.relativedelta.relativedelta(days=(self.value - other.value).days))
+            return Duration(dateutil.relativedelta.relativedelta(days=(self.value - other.value).days))
         elif isinstance(other, Duration):
-          return Date(self.value - other.value)
+            return Date(self.value - other.value)
         else:
-          raise Exception("Substracting date and invalid obj")
+            raise Exception("Substracting date and invalid obj")
 
     def __lt__(self, other: 'Date') -> bool:
         return self.value < other.value
@@ -618,8 +618,8 @@ def handle_default(
 def handle_default_opt(
     pos: SourcePosition,
     exceptions: List[Optional[Any]],
-    just: Callable[[Unit],Optional[bool]],
-    cons: Callable[[Unit],Optional[Alpha]]
+    just: Callable[[Unit], Optional[bool]],
+    cons: Callable[[Unit], Optional[Alpha]]
 ) -> Optional[Alpha]:
     acc: Optional[Alpha] = None
     for exception in exceptions:
@@ -666,9 +666,22 @@ class LogEventCode(Enum):
     DecisionTaken = 3
 
 
+class InputIO(Enum):
+    NoInput = 0
+    OnlyInput = 1
+    Reentrant = 2
+
+
+class LogIO:
+    def __init__(self, input_io: InputIO, output_io: bool):
+        self.input_io = input_io
+        self.output_io = output_io
+
+
 class LogEvent:
-    def __init__(self, code: LogEventCode, payload: Union[List[str], SourcePosition, Tuple[List[str], Alpha]]) -> None:
+    def __init__(self, code: LogEventCode, io: Optional[LogIO], payload: Union[List[str], SourcePosition, Tuple[List[str], Alpha]]) -> None:
         self.code = code
+        self.io = io
         self.payload = payload
 
 
@@ -683,22 +696,22 @@ def retrieve_log() -> List[LogEvent]:
     return log
 
 
-def log_variable_definition(headings: List[str], value: Alpha) -> Alpha:
-    log.append(LogEvent(LogEventCode.VariableDefinition,
+def log_variable_definition(headings: List[str], io: LogIO, value: Alpha) -> Alpha:
+    log.append(LogEvent(LogEventCode.VariableDefinition, io,
                (headings, copy.deepcopy(value))))
     return value
 
 
 def log_begin_call(headings: List[str], f: Callable[[Alpha], Beta], value: Alpha) -> Beta:
-    log.append(LogEvent(LogEventCode.BeginCall, headings))
+    log.append(LogEvent(LogEventCode.BeginCall, None, headings))
     return f(value)
 
 
 def log_end_call(headings: List[str], value: Alpha) -> Alpha:
-    log.append(LogEvent(LogEventCode.EndCall, headings))
+    log.append(LogEvent(LogEventCode.EndCall, None, headings))
     return value
 
 
 def log_decision_taken(pos: SourcePosition, value: bool) -> bool:
-    log.append(LogEvent(LogEventCode.DecisionTaken, pos))
+    log.append(LogEvent(LogEventCode.DecisionTaken, None, pos))
     return value

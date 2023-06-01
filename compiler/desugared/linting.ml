@@ -30,7 +30,7 @@ let detect_empty_definitions (p : program) : unit =
             && (not scope_def.scope_def_is_condition)
             &&
             match Mark.remove scope_def.scope_def_io.io_input with
-            | Ast.NoInput -> true
+            | NoInput -> true
             | _ -> false
           then
             Errors.format_spanned_warning

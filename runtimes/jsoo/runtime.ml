@@ -32,6 +32,7 @@ class type raw_event =
     method eventType : Js.js_string Js.t Js.prop
     method information : Js.js_string Js.t Js.js_array Js.t Js.prop
     method sourcePosition : source_position Js.t Js.optdef Js.prop
+    method loggedIOJson : Js.js_string Js.t Js.prop
     method loggedValueJson : Js.js_string Js.t Js.prop
   end
 
@@ -123,13 +124,23 @@ let event_manager : event_manager Js.t =
                              (match evt with
                              | BeginCall info
                              | EndCall info
-                             | VariableDefinition (info, _) ->
+                             | VariableDefinition (info, _, _) ->
                                List.map Js.string info
                              | DecisionTaken _ -> []))
 
+                      val mutable loggedIOJson =
+                        match evt with
+                        | VariableDefinition (_, io, _) ->
+                          io
+                          |> R_ocaml.yojson_of_io_log
+                          |> Yojson.Safe.to_string
+                          |> Js.string
+                        | EndCall _ | BeginCall _ | DecisionTaken _ ->
+                          "unavailable" |> Js.string
+
                       val mutable loggedValueJson =
                         (match evt with
-                        | VariableDefinition (_, v) -> v
+                        | VariableDefinition (_, _, v) -> v
                         | EndCall _ | BeginCall _ | DecisionTaken _ ->
                           R_ocaml.unembeddable ())
                         |> R_ocaml.yojson_of_runtime_value

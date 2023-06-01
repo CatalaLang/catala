@@ -22,6 +22,8 @@ type date = Dates_calc.Dates.date
 type date_rounding = Dates_calc.Dates.date_rounding
 type duration = Dates_calc.Dates.period
 type 'a eoption = ENone of unit | ESome of 'a
+type io_input = NoInput | OnlyInput | Reentrant [@@deriving yojson_of]
+type io_log = { io_input : io_input; io_output : bool } [@@deriving yojson_of]
 
 type source_position = {
   filename : string;
@@ -202,7 +204,7 @@ type information = string list [@@deriving yojson_of]
 type raw_event =
   | BeginCall of information
   | EndCall of information
-  | VariableDefinition of information * runtime_value
+  | VariableDefinition of information * io_log * runtime_value
   | DecisionTaken of source_position
 
 type event =
@@ -218,6 +220,7 @@ type event =
 and var_def = {
   pos : source_position option;
   name : information;
+  io : io_log;
   value : runtime_value;
   fun_calls : fun_call list option;
 }
@@ -241,8 +244,8 @@ let log_end_call info x =
   log_ref := EndCall info :: !log_ref;
   x
 
-let log_variable_definition (info : string list) embed (x : 'a) =
-  log_ref := VariableDefinition (info, embed x) :: !log_ref;
+let log_variable_definition (info : string list) (io : io_log) embed (x : 'a) =
+  log_ref := VariableDefinition (info, io, embed x) :: !log_ref;
   x
 
 let log_decision_taken pos x =
@@ -368,13 +371,28 @@ module EventParser = struct
 
   let empty_ctx = { vars = VarDefMap.empty; events = []; rest = [] }
 
+  let io_log_to_string (io : io_log) : string =
+    match io.io_input, io.io_output with
+    | NoInput, false -> "internal"
+    | _ ->
+      Printf.sprintf "%s%s%s"
+        (match io.io_input with
+        | NoInput -> ""
+        | OnlyInput -> "input"
+        | Reentrant -> "reentrant")
+        (match io.io_input, io.io_output with
+        | (OnlyInput | Reentrant), true -> "/"
+        | _ -> "")
+        (if io.io_output then "output" else "")
+
   let raw_event_to_string = function
     | BeginCall name ->
       Printf.sprintf "BeginCall([ " ^ String.concat ", " name ^ " ])"
     | EndCall name ->
       Printf.sprintf "EndCall([ " ^ String.concat ", " name ^ " ])"
-    | VariableDefinition (name, value) ->
-      Printf.sprintf "VariableDefinition([ %s ], %s)" (String.concat ", " name)
+    | VariableDefinition (name, io, value) ->
+      Printf.sprintf "VariableDefinition([ %s ], %s, %s)"
+        (String.concat ", " name) (io_log_to_string io)
         (yojson_of_runtime_value value |> Yojson.Safe.to_string)
     | DecisionTaken pos ->
       Printf.sprintf "DecisionTaken(%s:%d.%d-%d.%d)" pos.filename pos.start_line
@@ -406,11 +424,11 @@ module EventParser = struct
     let rec parse_events (ctx : context) : context =
       match ctx.rest with
       | [] -> { ctx with events = ctx.events |> List.rev }
-      | VariableDefinition (name, _) :: rest when is_var_def name ->
+      | VariableDefinition (name, _, _) :: rest when is_var_def name ->
         (* VariableDefinition without position corresponds to a function
            definition which are ignored for now in structured events. *)
         parse_events { ctx with rest }
-      | DecisionTaken pos :: VariableDefinition (name, value) :: rest
+      | DecisionTaken pos :: VariableDefinition (name, io, value) :: rest
         when is_subscope_input_var_def name -> (
         match name with
         | [_; var_dot_subscope_var_name] ->
@@ -423,18 +441,19 @@ module EventParser = struct
               vars =
                 ctx.vars
                 |> VarDefMap.add var_name
-                     { pos = Some pos; name; value; fun_calls = None };
+                     { pos = Some pos; name; value; fun_calls = None; io };
               rest;
             }
         | _ ->
           failwith "unreachable due to the [is_subscope_input_var_def] test")
-      | DecisionTaken pos :: VariableDefinition (name, value) :: rest
+      | DecisionTaken pos :: VariableDefinition (name, io, value) :: rest
         when is_var_def name || is_output_var_def name ->
         parse_events
           {
             ctx with
             events =
-              VarComputation { pos = Some pos; name; value; fun_calls = None }
+              VarComputation
+                { pos = Some pos; name; value; fun_calls = None; io }
               :: ctx.events;
             rest;
           }
@@ -455,10 +474,11 @@ module EventParser = struct
         let rest, var_comp =
           let rest, fun_calls = parse_fun_calls [] (List.tl ctx.rest) in
           match rest with
-          | VariableDefinition (name, value) :: rest ->
+          | VariableDefinition (name, io, value) :: rest ->
             ( rest,
               VarComputation
-                { pos = Some pos; name; value; fun_calls = Some fun_calls } )
+                { pos = Some pos; name; value; fun_calls = Some fun_calls; io }
+            )
           | event :: _ ->
             failwith
               ("Invalid function call ([ "
@@ -502,14 +522,15 @@ module EventParser = struct
       match
         take_while
           (function
-            | VariableDefinition (name, _) -> is_input_var_def name | _ -> false)
+            | VariableDefinition (name, _, _) -> is_input_var_def name
+            | _ -> false)
           events
       with
       | inputs, BeginCall infos :: rest when is_function_call infos ->
         let fun_inputs =
           ListLabels.map inputs ~f:(function
-            | VariableDefinition (name, value) ->
-              { pos = None; name; value; fun_calls = None }
+            | VariableDefinition (name, io, value) ->
+              { pos = None; name; value; fun_calls = None; io }
             | _ -> assert false)
         in
         let rest, body, output =

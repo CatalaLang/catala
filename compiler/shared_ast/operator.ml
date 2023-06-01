@@ -112,7 +112,21 @@ let name : type a. a t -> string = function
 
 let compare_log_entries l1 l2 =
   match l1, l2 with
-  | VarDef t1, VarDef t2 -> Type.compare (t1, Pos.no_pos) (t2, Pos.no_pos)
+  | VarDef t1, VarDef t2 ->
+    let tcompare =
+      Type.compare (t1.log_typ, Pos.no_pos) (t2.log_typ, Pos.no_pos)
+    in
+    if tcompare = 0 then
+      let ocompare = Bool.compare t1.log_io_output t2.log_io_output in
+      if ocompare = 0 then
+        match t1.log_io_input, t2.log_io_input with
+        | NoInput, NoInput | OnlyInput, OnlyInput | Reentrant, Reentrant -> 0
+        | NoInput, _ -> 1
+        | _, NoInput -> -1
+        | OnlyInput, _ -> 1
+        | _, OnlyInput -> -1
+      else ocompare
+    else tcompare
   | BeginCall, BeginCall
   | EndCall, EndCall
   | PosRecordIfTrueBool, PosRecordIfTrueBool ->

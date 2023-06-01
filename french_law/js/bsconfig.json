@@ -10,6 +10,6 @@
   ],
   "suffix": ".bs.js",
   "bs-dependencies": [
-    "@catala-lang/rescript-catala"
+	"@catala-lang/rescript-catala"
   ]
 }

@@ -2065,7 +2065,7 @@ let contributions_sociales_aides_personnelle_logement (contributions_sociales_ai
   let lieu_: Collectivite.t = contributions_sociales_aides_personnelle_logement_in.ContributionsSocialesAidesPersonnelleLogementIn.lieu_in in
   let exonere_csg_: bool = (log_variable_definition
     ["ContributionsSocialesAidesPersonnelleLogement"; "exonéré_csg"]
-    (embed_bool) (
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2120,7 +2120,7 @@ let contributions_sociales_aides_personnelle_logement (contributions_sociales_ai
                                                           "Prologue : aides au logement"]}) in
   let taux_crds_: decimal = (log_variable_definition
     ["ContributionsSocialesAidesPersonnelleLogement"; "taux_crds"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2157,7 +2157,7 @@ let contributions_sociales_aides_personnelle_logement (contributions_sociales_ai
                                                           "Ordonnance n° 96-50 du 24 janvier 1996 relative au remboursement de la dette sociale"]}) in
   let montant_: money -> money = (log_variable_definition
     ["ContributionsSocialesAidesPersonnelleLogement"; "montant"]
-    (unembeddable)
+    {io_input=NoInput; io_output=true} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -2217,7 +2217,7 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
   let n_nombre_parts_d832_25_: decimal = calcul_equivalence_loyer_minimale_in.CalculEquivalenceLoyerMinimaleIn.n_nombre_parts_d832_25_in in
   let montant_forfaitaire_d832_26_: money = (log_variable_definition
     ["CalculÉquivalenceLoyerMinimale"; "montant_forfaitaire_d832_26"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2242,7 +2242,8 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                        "Prologue : aides au logement"]})))) in
   let tranches_revenus_d832_26_: TrancheRevenu.t array = (log_variable_definition
     ["CalculÉquivalenceLoyerMinimale"; "tranches_revenus_d832_26"]
-    (embed_array (embed_tranche_revenu)) (
+    {io_input=NoInput; io_output=false} (embed_array (embed_tranche_revenu))
+    (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2331,8 +2332,8 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                        "Prologue : aides au logement"]})))) in
   let tranches_revenus_d832_26_multipliees_: TrancheRevenuDecimal.t array = (log_variable_definition
     ["CalculÉquivalenceLoyerMinimale";
-      "tranches_revenus_d832_26_multipliées"]
-    (embed_array (embed_tranche_revenu_decimal)) (
+      "tranches_revenus_d832_26_multipliées"] {io_input=NoInput;
+    io_output=false} (embed_array (embed_tranche_revenu_decimal)) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2376,7 +2377,8 @@ let calcul_equivalence_loyer_minimale (calcul_equivalence_loyer_minimale_in: Cal
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
   let montant_: money = (log_variable_definition
-    ["CalculÉquivalenceLoyerMinimale"; "montant"] (embed_money) (
+    ["CalculÉquivalenceLoyerMinimale"; "montant"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2518,7 +2520,8 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
   let limitation_majoration_personnes_a_charge_: unit -> bool = calcul_nombre_part_logement_foyer_in.CalculNombrePartLogementFoyerIn.limitation_majoration_personnes_a_charge_in in
   let limitation_majoration_personnes_a_charge_: bool = (log_variable_definition
     ["CalculNombrePartLogementFoyer";
-      "limitation_majoration_personnes_à_charge"] (embed_bool) (
+      "limitation_majoration_personnes_à_charge"] {io_input=Reentrant;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2548,7 +2551,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                        "Prologue : aides au logement"]})))) in
   let n_nombre_parts_d832_25_base_: decimal = (log_variable_definition
     ["CalculNombrePartLogementFoyer"; "n_nombre_parts_d832_25_base"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2632,7 +2635,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                        "Prologue : aides au logement"]})))) in
   let n_nombre_parts_d832_25_majoration_: decimal = (log_variable_definition
     ["CalculNombrePartLogementFoyer"; "n_nombre_parts_d832_25_majoration"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2720,7 +2723,7 @@ let calcul_nombre_part_logement_foyer (calcul_nombre_part_logement_foyer_in: Cal
                        "Prologue : aides au logement"]})))) in
   let n_nombre_parts_d832_25_: decimal = (log_variable_definition
     ["CalculNombrePartLogementFoyer"; "n_nombre_parts_d832_25"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=true} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2756,7 +2759,7 @@ let calcul_nombre_parts_accession_propriete (calcul_nombre_parts_accession_propr
   let situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = calcul_nombre_parts_accession_propriete_in.CalculNombrePartsAccessionProprieteIn.situation_familiale_calcul_apl_in in
   let n_nombre_parts_d832_11_: decimal = (log_variable_definition
     ["CalculNombrePartsAccessionPropriété"; "n_nombre_parts_d832_11"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=true} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2811,7 +2814,8 @@ let calcul_nombre_parts_accession_propriete (calcul_nombre_parts_accession_propr
 let ouverture_droits_retraite (ouverture_droits_retraite_in: OuvertureDroitsRetraiteIn.t) : OuvertureDroitsRetraite.t =
   let date_naissance_assure_: date = ouverture_droits_retraite_in.OuvertureDroitsRetraiteIn.date_naissance_assure_in in
   let age_ouverture_droit_: duration = (log_variable_definition
-    ["OuvertureDroitsRetraite"; "âge_ouverture_droit"] (embed_duration) (
+    ["OuvertureDroitsRetraite"; "âge_ouverture_droit"] {io_input=NoInput;
+    io_output=true} (embed_duration) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -2970,8 +2974,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
   let depense_logement_: DepenseLogement.t = impaye_depense_logement_in.ImpayeDepenseLogementIn.depense_logement_in in
   let montant_dette_: money = impaye_depense_logement_in.ImpayeDepenseLogementIn.montant_dette_in in
   let mode_occupation_impaye_: ModeOccupationImpaye.t = (log_variable_definition
-    ["ImpayéDépenseLogement"; "mode_occupation_impayé"]
-    (embed_mode_occupation_impaye) (
+    ["ImpayéDépenseLogement"; "mode_occupation_impayé"] {io_input=NoInput;
+    io_output=false} (embed_mode_occupation_impaye) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -3008,8 +3012,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
   let depense_logement_brute_: DepenseLogement.t = (log_variable_definition
-    ["ImpayéDépenseLogement"; "dépense_logement_brute"]
-    (embed_depense_logement) (
+    ["ImpayéDépenseLogement"; "dépense_logement_brute"] {io_input=NoInput;
+    io_output=false} (embed_depense_logement) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -3070,8 +3074,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
   let depense_logement_nette_: DepenseLogement.t = (log_variable_definition
-    ["ImpayéDépenseLogement"; "dépense_logement_nette"]
-    (embed_depense_logement) (
+    ["ImpayéDépenseLogement"; "dépense_logement_nette"] {io_input=NoInput;
+    io_output=false} (embed_depense_logement) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -3152,7 +3156,7 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                        "Prologue : aides au logement"]})))) in
   let seuil_impaye_depense_de_logement_: money = (log_variable_definition
     ["ImpayéDépenseLogement"; "seuil_impayé_dépense_de_logement"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -3317,7 +3321,8 @@ let impaye_depense_logement (impaye_depense_logement_in: ImpayeDepenseLogementIn
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
   let montant_impaye_: money = (log_variable_definition
-    ["ImpayéDépenseLogement"; "montant_impayé"] (embed_money) (
+    ["ImpayéDépenseLogement"; "montant_impayé"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -3406,7 +3411,8 @@ let base_mensuelle_allocations_familiales (base_mensuelle_allocations_familiales
                                            end_line=10; end_column=42;
                                            law_headings=["Montant de la base mensuelle des allocations familiales"]}) in
   let montant_: money = (log_variable_definition
-    ["BaseMensuelleAllocationsFamiliales"; "montant"] (embed_money) (
+    ["BaseMensuelleAllocationsFamiliales"; "montant"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -3507,7 +3513,7 @@ let verification_age_inferieur_ou_egal_a (verification_age_inferieur_ou_egal_a_i
   let annees_: duration = verification_age_inferieur_ou_egal_a_in.VerificationAgeInferieurOuEgalAIn.annees_in in
   let est_inferieur_ou_egal_: bool = (log_variable_definition
     ["VérificationÂgeInférieurOuÉgalÀ"; "est_inférieur_ou_égal"]
-    (embed_bool) (
+    {io_input=NoInput; io_output=true} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -3534,7 +3540,8 @@ let verification_age_superieur_a (verification_age_superieur_a_in: VerificationA
   let date_courante_: date = verification_age_superieur_a_in.VerificationAgeSuperieurAIn.date_courante_in in
   let annees_: duration = verification_age_superieur_a_in.VerificationAgeSuperieurAIn.annees_in in
   let est_superieur_: bool = (log_variable_definition
-    ["VérificationÂgeSupérieurÀ"; "est_supérieur"] (embed_bool) (
+    ["VérificationÂgeSupérieurÀ"; "est_supérieur"] {io_input=NoInput;
+    io_output=true} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -3576,7 +3583,8 @@ let smic (smic_in: SmicIn.t) : Smic.t =
                                            law_headings=["Prologue";
                                                           "Montant du salaire minimum de croissance"]}) in
   let brut_horaire_: money = (log_variable_definition
-    ["Smic"; "brut_horaire"] (embed_money) (
+    ["Smic"; "brut_horaire"] {io_input=NoInput; io_output=true} (embed_money)
+    (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -4147,7 +4155,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let n_nombre_parts_d832_25_: unit -> decimal = calcul_aide_personnalisee_logement_foyer_in.CalculAidePersonnaliseeLogementFoyerIn.n_nombre_parts_d832_25_in in
   let limitation_majoration_personnes_a_charge_: bool = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "limitation_majoration_personnes_à_charge"] (embed_bool) (
+      "limitation_majoration_personnes_à_charge"] {io_input=Reentrant;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -4199,7 +4208,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let contributions_sociales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
-        "contributions_sociales.date_courante"] (embed_date)
+        "contributions_sociales.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -4222,7 +4232,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let contributions_sociales_dot_lieu_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
-        "contributions_sociales.lieu"] (embed_collectivite)
+        "contributions_sociales.lieu"] {io_input=OnlyInput; io_output=false}
+      (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -4255,7 +4266,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogement.montant in
   let montant_minimal_aide_d823_24_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "montant_minimal_aide_d823_24"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -4278,7 +4289,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let montant_forfaitaire_d832_24_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "montant_forfaitaire_d832_24"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -4301,7 +4312,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let plafond_equivalence_loyer_eligible_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "plafond_équivalence_loyer_éligible"] (embed_money) (
+      "plafond_équivalence_loyer_éligible"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -4646,7 +4658,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let coefficient_r_d832_25_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "coefficient_r_d832_25"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -4669,7 +4681,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let condition_2_du_832_25_: bool = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "condition_2_du_832_25"]
-    (embed_bool) (
+    {io_input=Reentrant; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -4747,7 +4759,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_minoration_forfaitaire_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "traitement_aide_finale_minoration_forfaitaire"] (unembeddable)
+      "traitement_aide_finale_minoration_forfaitaire"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -4783,7 +4796,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]})))) in
   let equivalence_loyer_eligible_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "équivalence_loyer_éligible"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -4815,7 +4828,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let calcul_nombre_parts_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
-        "calcul_nombre_parts.date_courante"] (embed_date)
+        "calcul_nombre_parts.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -4846,7 +4860,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let calcul_nombre_parts_dot_condition_2_du_832_25_: bool = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
-        "calcul_nombre_parts.condition_2_du_832_25"] (embed_bool)
+        "calcul_nombre_parts.condition_2_du_832_25"] {io_input=OnlyInput;
+      io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -4877,7 +4892,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let calcul_nombre_parts_dot_nombre_personnes_a_charge_: integer = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
-        "calcul_nombre_parts.nombre_personnes_à_charge"] (embed_integer)
+        "calcul_nombre_parts.nombre_personnes_à_charge"]
+      {io_input=OnlyInput; io_output=false} (embed_integer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -4909,6 +4925,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
         "calcul_nombre_parts.situation_familiale_calcul_apl"]
+      {io_input=OnlyInput; io_output=false}
       (embed_situation_familiale_calcul_a_p_l)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -4941,7 +4958,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     unit -> bool = fun (_: unit) -> (log_variable_definition
                      ["CalculAidePersonnaliséeLogementFoyer";
                        "calcul_nombre_parts.limitation_majoration_personnes_à_charge"]
-                     (embed_bool)
+                     {io_input=Reentrant; io_output=false} (embed_bool)
                      (handle_default
                         {filename = ""; start_line=0; start_column=1;
                           end_line=0; end_column=1; law_headings=[]} (
@@ -4982,7 +4999,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let calcul_nombre_parts_dot_n_nombre_parts_d832_25_: decimal = result_.CalculNombrePartLogementFoyer.n_nombre_parts_d832_25 in
   let montant_forfaitaire_d832_27_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "montant_forfaitaire_d832_27"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5007,7 +5024,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let coefficient_multiplicateur_d832_25_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "coefficient_multiplicateur_d832_25"] (embed_money) (
+      "coefficient_multiplicateur_d832_25"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5032,7 +5050,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let depense_nette_minimale_d832_27_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "dépense_nette_minimale_d832_27"] (unembeddable)
+      "dépense_nette_minimale_d832_27"] {io_input=NoInput; io_output=false}
+    (unembeddable)
     (fun (allocation_mensuelle_: money) -> 
        try
          (handle_default
@@ -5064,7 +5083,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]})))) in
   let n_nombre_parts_d832_25_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "n_nombre_parts_d832_25"]
-    (embed_decimal) (
+    {io_input=Reentrant; io_output=true} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5100,7 +5119,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let abattement_depense_nette_minimale_d832_27_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "abattement_dépense_nette_minimale_d832_27"] (unembeddable)
+      "abattement_dépense_nette_minimale_d832_27"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (allocation_mensuelle_: money) -> 
        try
          (handle_default
@@ -5126,13 +5146,15 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "dépense_nette_minimale_d832_27"; "output"]
-                  (embed_money) ((log_begin_call
+                  {io_input=NoInput; io_output=true} (embed_money)
+                  ((log_begin_call
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "dépense_nette_minimale_d832_27"]
                   depense_nette_minimale_d832_27_) ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "dépense_nette_minimale_d832_27"; "input0"]
-                  (embed_money) allocation_mensuelle_)))))))
+                  {io_input=OnlyInput; io_output=false} (embed_money)
+                  allocation_mensuelle_)))))))
                in
                ( if
                   (o_lte_mon_mon depense_nette_minimale_
@@ -5151,7 +5173,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let calcul_equivalence_loyer_minimale_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
-        "calcul_équivalence_loyer_minimale.date_courante"] (embed_date)
+        "calcul_équivalence_loyer_minimale.date_courante"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -5175,7 +5198,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
         "calcul_équivalence_loyer_minimale.ressources_ménage_arrondies"]
-      (embed_money)
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -5207,7 +5230,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
         "calcul_équivalence_loyer_minimale.condition_2_du_832_25"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -5239,7 +5262,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementFoyer";
         "calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25"]
-      (embed_decimal)
+      {io_input=OnlyInput; io_output=false} (embed_decimal)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -5285,7 +5308,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
   let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimale.montant in
   let coefficient_prise_en_charge_d832_25_formule_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "coefficient_prise_en_charge_d832_25_formule"] (embed_decimal) (
+      "coefficient_prise_en_charge_d832_25_formule"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5348,7 +5372,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_abattement_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "traitement_aide_finale_abattement"] (unembeddable)
+      "traitement_aide_finale_abattement"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -5374,14 +5399,16 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "traitement_aide_finale_minoration_forfaitaire"]
                   traitement_aide_finale_minoration_forfaitaire_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                (let aide_finale_ : money =
                   (o_sub_mon_mon aide_finale_ ((log_end_call
@@ -5390,14 +5417,16 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                      ((log_variable_definition
                      ["CalculAidePersonnaliséeLogementFoyer";
                        "abattement_dépense_nette_minimale_d832_27";
-                       "output"] (embed_money) ((log_begin_call
+                       "output"] {io_input=NoInput; io_output=true}
+                     (embed_money) ((log_begin_call
                      ["CalculAidePersonnaliséeLogementFoyer";
                        "abattement_dépense_nette_minimale_d832_27"]
                      abattement_depense_nette_minimale_d832_27_)
                      ((log_variable_definition
                      ["CalculAidePersonnaliséeLogementFoyer";
                        "abattement_dépense_nette_minimale_d832_27";
-                       "input0"] (embed_money) aide_finale_))))))))
+                       "input0"] {io_input=OnlyInput; io_output=false}
+                     (embed_money) aide_finale_))))))))
                in
                ( if (o_gte_mon_mon aide_finale_ (money_of_cents_string "0"))
                   then aide_finale_ else (money_of_cents_string "0"))))))
@@ -5411,7 +5440,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]})))) in
   let equivalence_loyer_minimale_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "équivalence_loyer_minimale"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5439,7 +5468,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let coefficient_prise_en_charge_d832_25_coeff_arrondi_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "coefficient_prise_en_charge_d832_25_coeff_arrondi"] (embed_decimal) (
+      "coefficient_prise_en_charge_d832_25_coeff_arrondi"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5500,7 +5530,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_contributions_sociales_arrondi_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "traitement_aide_finale_contributions_sociales_arrondi"] (unembeddable)
+      "traitement_aide_finale_contributions_sociales_arrondi"]
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -5526,25 +5557,29 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "traitement_aide_finale_abattement"; "output"]
-                  (embed_money) ((log_begin_call
+                  {io_input=NoInput; io_output=true} (embed_money)
+                  ((log_begin_call
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "traitement_aide_finale_abattement"]
                   traitement_aide_finale_abattement_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "traitement_aide_finale_abattement"; "input0"]
-                  (embed_money) aide_finale_)))))))
+                  {io_input=OnlyInput; io_output=false} (embed_money)
+                  aide_finale_)))))))
                in
                (let crds_ : money = ((log_end_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "output"] (embed_money) ((log_begin_call
+                    "montant"; "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] contributions_sociales_dot_montant_)
                   ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "input0"] (embed_money) aide_finale_)))))))
+                    "montant"; "input0"] {io_input=OnlyInput;
+                  io_output=false} (embed_money) aide_finale_)))))))
                in
                (let aide_finale_moins_crds_arrondie_ : money =
                   (o_round_mon
@@ -5567,7 +5602,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]})))) in
   let coefficient_prise_en_charge_d832_25_seuil_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "coefficient_prise_en_charge_d832_25_seuil"] (embed_decimal) (
+      "coefficient_prise_en_charge_d832_25_seuil"] {io_input=NoInput;
+    io_output=true} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5624,7 +5660,8 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_montant_minimal_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer";
-      "traitement_aide_finale_montant_minimal"] (unembeddable)
+      "traitement_aide_finale_montant_minimal"] {io_input=NoInput;
+    io_output=true} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -5650,14 +5687,16 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "traitement_aide_finale_contributions_sociales_arrondi"]
                   traitement_aide_finale_contributions_sociales_arrondi_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementFoyer";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                ( if (o_lt_mon_mon aide_finale_ montant_minimal_aide_d823_24_)
                   then (money_of_cents_string "0") else aide_finale_))))
@@ -5671,7 +5710,7 @@ let calcul_aide_personnalisee_logement_foyer (calcul_aide_personnalisee_logement
                           "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementFoyer"; "aide_finale_formule"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5742,7 +5781,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
   let residence_: Collectivite.t = calcul_aide_personnalisee_logement_accession_propriete_in.CalculAidePersonnaliseeLogementAccessionProprieteIn.residence_in in
   let taux_francs_vers_euros_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "taux_francs_vers_euros"] (embed_decimal) (
+      "taux_francs_vers_euros"] {io_input=NoInput; io_output=false}
+    (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5767,7 +5807,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
   let calcul_nombre_parts_dot_nombre_personnes_a_charge_: integer = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
-        "calcul_nombre_parts.nombre_personnes_à_charge"] (embed_integer)
+        "calcul_nombre_parts.nombre_personnes_à_charge"]
+      {io_input=OnlyInput; io_output=false} (embed_integer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -5797,6 +5838,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
         "calcul_nombre_parts.situation_familiale_calcul_apl"]
+      {io_input=OnlyInput; io_output=false}
       (embed_situation_familiale_calcul_a_p_l)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5858,7 +5900,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                                                           "Prologue : aides au logement"]}) in
   let taux_tranche_superieure_d832_15_1_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "taux_tranche_supérieure_d832_15_1"] (embed_decimal) (
+      "taux_tranche_supérieure_d832_15_1"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5881,7 +5924,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let taux_tranche_inferieure_d832_15_1_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "taux_tranche_inférieure_d832_15_1"] (embed_decimal) (
+      "taux_tranche_inférieure_d832_15_1"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5904,7 +5948,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let montant_limite_tranches_d832_15_1_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "montant_limite_tranches_d832_15_1"] (embed_money) (
+      "montant_limite_tranches_d832_15_1"] {io_input=NoInput;
+    io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5927,7 +5972,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let coefficient_multiplicateur_d832_18_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "coefficient_multiplicateur_d832_18"] (embed_decimal) (
+      "coefficient_multiplicateur_d832_18"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5950,7 +5996,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let coefficient_multiplicateur_d832_11_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "coefficient_multiplicateur_d832_11"] (embed_money) (
+      "coefficient_multiplicateur_d832_11"] {io_input=NoInput;
+    io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -5973,7 +6020,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let coefficient_multiplicateur_d832_17_3_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "coefficient_multiplicateur_d832_17_3"] (embed_decimal) (
+      "coefficient_multiplicateur_d832_17_3"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -6014,7 +6062,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let montant_minimal_aide_d832_10_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "montant_minimal_aide_d832_10"] (embed_money) (
+      "montant_minimal_aide_d832_10"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -6037,7 +6086,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let montant_forfaitaire_d832_10_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "montant_forfaitaire_d832_10"] (embed_money) (
+      "montant_forfaitaire_d832_10"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -6060,7 +6110,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let montant_forfaitaire_charges_d832_10_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "montant_forfaitaire_charges_d832_10"] (embed_money) (
+      "montant_forfaitaire_charges_d832_10"] {io_input=NoInput;
+    io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -6237,7 +6288,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
   let contributions_sociales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
-        "contributions_sociales.date_courante"] (embed_date)
+        "contributions_sociales.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -6260,7 +6312,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
   let contributions_sociales_dot_lieu_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
-        "contributions_sociales.lieu"] (embed_collectivite)
+        "contributions_sociales.lieu"] {io_input=OnlyInput; io_output=false}
+      (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -6295,7 +6348,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
   let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogement.montant in
   let calcul_plafond_mensualite_d832_10_3_: date -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "calcul_plafond_mensualité_d832_10_3"] (unembeddable)
+      "calcul_plafond_mensualité_d832_10_3"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (date_signature_pret_: date) -> 
        try
          (handle_default
@@ -11443,7 +11497,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]})))) in
   let n_nombre_parts_d832_11_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "n_nombre_parts_d832_11"] (embed_decimal) (
+      "n_nombre_parts_d832_11"] {io_input=NoInput; io_output=false}
+    (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -11470,7 +11525,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let ressources_menage_avec_d832_18_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "ressources_ménage_avec_d832_18"] (embed_money) (
+      "ressources_ménage_avec_d832_18"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -11521,7 +11577,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_minoration_forfaitaire_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "traitement_aide_finale_minoration_forfaitaire"] (unembeddable)
+      "traitement_aide_finale_minoration_forfaitaire"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -11556,7 +11613,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]})))) in
   let depense_nette_minimale_d832_10_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "dépense_nette_minimale_d832_10"] (unembeddable)
+      "dépense_nette_minimale_d832_10"] {io_input=NoInput; io_output=false}
+    (unembeddable)
     (fun (allocation_mensuelle_: money) -> 
        try
          (handle_default
@@ -11608,7 +11666,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]})))) in
   let plafond_mensualite_d832_10_3_base_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "plafond_mensualité_d832_10_3_base"] (embed_money) (
+      "plafond_mensualité_d832_10_3_base"] {io_input=NoInput;
+    io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -11636,14 +11695,16 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        ((log_variable_definition
                        ["CalculAidePersonnaliséeLogementAccessionPropriété";
                          "calcul_plafond_mensualité_d832_10_3"; "output"]
-                       (embed_money) ((log_begin_call
+                       {io_input=NoInput; io_output=true} (embed_money)
+                       ((log_begin_call
                        ["CalculAidePersonnaliséeLogementAccessionPropriété";
                          "calcul_plafond_mensualité_d832_10_3"]
                        calcul_plafond_mensualite_d832_10_3_)
                        ((log_variable_definition
                        ["CalculAidePersonnaliséeLogementAccessionPropriété";
                          "calcul_plafond_mensualité_d832_10_3"; "input0"]
-                       (embed_date) date_signature_pret_)))))))
+                       {io_input=OnlyInput; io_output=false} (embed_date)
+                       date_signature_pret_)))))))
                     in
                     (let plafond_entree_ : money = ((log_end_call
                        ["CalculAidePersonnaliséeLogementAccessionPropriété";
@@ -11651,14 +11712,16 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        ((log_variable_definition
                        ["CalculAidePersonnaliséeLogementAccessionPropriété";
                          "calcul_plafond_mensualité_d832_10_3"; "output"]
-                       (embed_money) ((log_begin_call
+                       {io_input=NoInput; io_output=true} (embed_money)
+                       ((log_begin_call
                        ["CalculAidePersonnaliséeLogementAccessionPropriété";
                          "calcul_plafond_mensualité_d832_10_3"]
                        calcul_plafond_mensualite_d832_10_3_)
                        ((log_variable_definition
                        ["CalculAidePersonnaliséeLogementAccessionPropriété";
                          "calcul_plafond_mensualité_d832_10_3"; "input0"]
-                       (embed_date) date_entree_logement_)))))))
+                       {io_input=OnlyInput; io_output=false} (embed_date)
+                       date_entree_logement_)))))))
                     in
                     ( if (o_lt_mon_mon plafond_signature_ plafond_entree_)
                        then plafond_entree_ else plafond_signature_)))))|])
@@ -11678,13 +11741,14 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
               "calcul_plafond_mensualité_d832_10_3"]
             ((log_variable_definition
             ["CalculAidePersonnaliséeLogementAccessionPropriété";
-              "calcul_plafond_mensualité_d832_10_3"; "output"] (embed_money)
-            ((log_begin_call
+              "calcul_plafond_mensualité_d832_10_3"; "output"]
+            {io_input=NoInput; io_output=true} (embed_money) ((log_begin_call
             ["CalculAidePersonnaliséeLogementAccessionPropriété";
               "calcul_plafond_mensualité_d832_10_3"]
             calcul_plafond_mensualite_d832_10_3_) ((log_variable_definition
             ["CalculAidePersonnaliséeLogementAccessionPropriété";
-              "calcul_plafond_mensualité_d832_10_3"; "input0"] (embed_date)
+              "calcul_plafond_mensualité_d832_10_3"; "input0"]
+            {io_input=OnlyInput; io_output=false} (embed_date)
             date_signature_pret_))))))))
     with
     EmptyError -> (raise (NoValueProvided
@@ -11697,7 +11761,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
   let calcul_equivalence_loyer_minimale_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
-        "calcul_équivalence_loyer_minimale.date_courante"] (embed_date)
+        "calcul_équivalence_loyer_minimale.date_courante"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -11721,7 +11786,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
         "calcul_équivalence_loyer_minimale.ressources_ménage_arrondies"]
-      (embed_money)
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -11751,7 +11816,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
         "calcul_équivalence_loyer_minimale.condition_2_du_832_25"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -11781,7 +11846,7 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementAccessionPropriété";
         "calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25"]
-      (embed_decimal)
+      {io_input=OnlyInput; io_output=false} (embed_decimal)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -11825,7 +11890,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
   let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimale.montant in
   let coefficient_prise_en_charge_d832_10_formule_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "coefficient_prise_en_charge_d832_10_formule"] (embed_decimal) (
+      "coefficient_prise_en_charge_d832_10_formule"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -11856,7 +11922,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let abattement_depense_nette_minimale_d832_10_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "abattement_dépense_nette_minimale_d832_10"] (unembeddable)
+      "abattement_dépense_nette_minimale_d832_10"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (allocation_mensuelle_: money) -> 
        try
          (handle_default
@@ -11881,13 +11948,15 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "dépense_nette_minimale_d832_10"; "output"]
-                  (embed_money) ((log_begin_call
+                  {io_input=NoInput; io_output=true} (embed_money)
+                  ((log_begin_call
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "dépense_nette_minimale_d832_10"]
                   depense_nette_minimale_d832_10_) ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "dépense_nette_minimale_d832_10"; "input0"]
-                  (embed_money) allocation_mensuelle_)))))))
+                  {io_input=OnlyInput; io_output=false} (embed_money)
+                  allocation_mensuelle_)))))))
                in
                ( if
                   (o_lte_mon_mon depense_nette_minimale_
@@ -11908,7 +11977,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]})))) in
   let plafond_mensualite_d832_10_3_coproprietaires_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "plafond_mensualité_d832_10_3_copropriétaires"] (embed_money) (
+      "plafond_mensualité_d832_10_3_copropriétaires"] {io_input=NoInput;
+    io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -11995,7 +12065,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let mensualite_minimale_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "mensualité_minimale"] (embed_money) (
+      "mensualité_minimale"] {io_input=NoInput; io_output=true}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12112,7 +12183,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let coefficient_prise_en_charge_d832_10_coeff_arrondi_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "coefficient_prise_en_charge_d832_10_coeff_arrondi"] (embed_decimal) (
+      "coefficient_prise_en_charge_d832_10_coeff_arrondi"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12146,7 +12218,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_abattement_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "traitement_aide_finale_abattement"] (unembeddable)
+      "traitement_aide_finale_abattement"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -12171,14 +12244,16 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "traitement_aide_finale_minoration_forfaitaire"]
                   traitement_aide_finale_minoration_forfaitaire_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                (let aide_finale_ : money =
                   (o_sub_mon_mon aide_finale_ ((log_end_call
@@ -12187,14 +12262,16 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                      ((log_variable_definition
                      ["CalculAidePersonnaliséeLogementAccessionPropriété";
                        "abattement_dépense_nette_minimale_d832_10";
-                       "output"] (embed_money) ((log_begin_call
+                       "output"] {io_input=NoInput; io_output=true}
+                     (embed_money) ((log_begin_call
                      ["CalculAidePersonnaliséeLogementAccessionPropriété";
                        "abattement_dépense_nette_minimale_d832_10"]
                      abattement_depense_nette_minimale_d832_10_)
                      ((log_variable_definition
                      ["CalculAidePersonnaliséeLogementAccessionPropriété";
                        "abattement_dépense_nette_minimale_d832_10";
-                       "input0"] (embed_money) aide_finale_))))))))
+                       "input0"] {io_input=OnlyInput; io_output=false}
+                     (embed_money) aide_finale_))))))))
                in
                ( if (o_gte_mon_mon aide_finale_ (money_of_cents_string "0"))
                   then aide_finale_ else (money_of_cents_string "0"))))))
@@ -12208,7 +12285,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]})))) in
   let mensualite_eligible_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "mensualité_éligible"] (embed_money) (
+      "mensualité_éligible"] {io_input=NoInput; io_output=true}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12240,7 +12318,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let coefficient_prise_en_charge_d832_10_seuil_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "coefficient_prise_en_charge_d832_10_seuil"] (embed_decimal) (
+      "coefficient_prise_en_charge_d832_10_seuil"] {io_input=NoInput;
+    io_output=true} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12272,7 +12351,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_contributions_sociales_arrondi_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "traitement_aide_finale_contributions_sociales_arrondi"] (unembeddable)
+      "traitement_aide_finale_contributions_sociales_arrondi"]
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -12297,25 +12377,29 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "traitement_aide_finale_abattement"; "output"]
-                  (embed_money) ((log_begin_call
+                  {io_input=NoInput; io_output=true} (embed_money)
+                  ((log_begin_call
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "traitement_aide_finale_abattement"]
                   traitement_aide_finale_abattement_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "traitement_aide_finale_abattement"; "input0"]
-                  (embed_money) aide_finale_)))))))
+                  {io_input=OnlyInput; io_output=false} (embed_money)
+                  aide_finale_)))))))
                in
                (let crds_ : money = ((log_end_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "output"] (embed_money) ((log_begin_call
+                    "montant"; "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] contributions_sociales_dot_montant_)
                   ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "input0"] (embed_money) aide_finale_)))))))
+                    "montant"; "input0"] {io_input=OnlyInput;
+                  io_output=false} (embed_money) aide_finale_)))))))
                in
                (let aide_finale_moins_crds_arrondie_ : money =
                   (o_round_mon
@@ -12338,7 +12422,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                           "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "aide_finale_formule"] (embed_money) (
+      "aide_finale_formule"] {io_input=NoInput; io_output=true} (embed_money)
+    (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12375,7 +12460,8 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_montant_minimal_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementAccessionPropriété";
-      "traitement_aide_finale_montant_minimal"] (unembeddable)
+      "traitement_aide_finale_montant_minimal"] {io_input=NoInput;
+    io_output=true} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -12400,14 +12486,16 @@ let calcul_aide_personnalisee_logement_accession_propriete (calcul_aide_personna
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "traitement_aide_finale_contributions_sociales_arrondi"]
                   traitement_aide_finale_contributions_sociales_arrondi_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementAccessionPropriété";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                ( if (o_lt_mon_mon aide_finale_ montant_minimal_aide_d832_10_)
                   then (money_of_cents_string "0") else aide_finale_))))
@@ -12435,8 +12523,8 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
   let residence_: Collectivite.t = eligibilite_prestations_familiales_in.EligibilitePrestationsFamilialesIn.residence_in in
   let age_l512_3_2_: unit -> duration = eligibilite_prestations_familiales_in.EligibilitePrestationsFamilialesIn.age_l512_3_2_in in
   let age_l512_3_2_: duration = (log_variable_definition
-    ["ÉligibilitéPrestationsFamiliales"; "âge_l512_3_2"] (embed_duration)
-    (
+    ["ÉligibilitéPrestationsFamiliales"; "âge_l512_3_2"]
+    {io_input=Reentrant; io_output=true} (embed_duration) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12465,7 +12553,7 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
   let smic_dot_date_courante_: date = 
     try ((log_variable_definition
       ["ÉligibilitéPrestationsFamiliales"; "smic.date_courante"]
-      (embed_date)
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -12482,7 +12570,7 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
   let smic_dot_residence_: Collectivite.t = 
     try ((log_variable_definition
       ["ÉligibilitéPrestationsFamiliales"; "smic.résidence"]
-      (embed_collectivite)
+      {io_input=OnlyInput; io_output=false} (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -12504,7 +12592,7 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
   let smic_dot_brut_horaire_: money = result_.Smic.brut_horaire in
   let regime_outre_mer_l751_1_: bool = (log_variable_definition
     ["ÉligibilitéPrestationsFamiliales"; "régime_outre_mer_l751_1"]
-    (embed_bool) (
+    {io_input=NoInput; io_output=true} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12546,8 +12634,8 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
         start_line=31; start_column=12; end_line=31; end_column=35;
         law_headings=["Prologue : prestations familiales"]})))) in
   let plafond_l512_3_2_: money = (log_variable_definition
-    ["ÉligibilitéPrestationsFamiliales"; "plafond_l512_3_2"] (embed_money)
-    (
+    ["ÉligibilitéPrestationsFamiliales"; "plafond_l512_3_2"]
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12592,7 +12680,7 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
         law_headings=["Prologue : prestations familiales"]})))) in
   let conditions_hors_age_: EnfantPrestationsFamiliales.t -> bool = (log_variable_definition
     ["ÉligibilitéPrestationsFamiliales"; "conditions_hors_âge"]
-    (unembeddable)
+    {io_input=NoInput; io_output=true} (unembeddable)
     (fun (enfant_: EnfantPrestationsFamiliales.t) -> 
        try
          (handle_default
@@ -12654,7 +12742,8 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
            start_line=29; start_column=12; end_line=29; end_column=31;
            law_headings=["Prologue : prestations familiales"]})))) in
   let droit_ouvert_: EnfantPrestationsFamiliales.t -> bool = (log_variable_definition
-    ["ÉligibilitéPrestationsFamiliales"; "droit_ouvert"] (unembeddable)
+    ["ÉligibilitéPrestationsFamiliales"; "droit_ouvert"] {io_input=NoInput;
+    io_output=true} (unembeddable)
     (fun (enfant_: EnfantPrestationsFamiliales.t) -> 
        try
          (handle_default
@@ -12714,6 +12803,8 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                                                       ((log_variable_definition
                                                       ["VérificationÂgeSupérieurÀ";
                                                         "direct"; "input"]
+                                                      {io_input=OnlyInput;
+                                                      io_output=false}
                                                       (embed_verification_age_superieur_a_in)
                                                       ({VerificationAgeSuperieurAIn.date_naissance_in =
                                                           (
@@ -12784,6 +12875,8 @@ let eligibilite_prestations_familiales (eligibilite_prestations_familiales_in: E
                                                   ((log_variable_definition
                                                   ["VérificationÂgeSupérieurÀ";
                                                     "direct"; "output"]
+                                                  {io_input=NoInput;
+                                                  io_output=true}
                                                   (embed_verification_age_superieur_a)
                                                   ( if
                                                      ((log_decision_taken
@@ -12866,7 +12959,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
   let residence_: Collectivite.t = calcul_aide_personnalisee_logement_locatif_in.CalculAidePersonnaliseeLogementLocatifIn.residence_in in
   let fraction_l832_3_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "fraction_l832_3"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12914,7 +13007,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                           "Prologue : aides au logement"]}) in
   let montant_forfaitaire_d823_16_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "montant_forfaitaire_d823_16"] (embed_money) (
+      "montant_forfaitaire_d823_16"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -12958,7 +13052,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                           "Prologue : aides au logement"]}) in
   let multiplicateur_majoration_charges_d823_16_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "multiplicateur_majoration_charges_d823_16"] (embed_decimal) (
+      "multiplicateur_majoration_charges_d823_16"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -13034,7 +13129,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let montant_minimal_aide_d823_16_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "montant_minimal_aide_d823_16"] (embed_money) (
+      "montant_minimal_aide_d823_16"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -13083,7 +13179,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                           "Prologue : aides au logement"]}) in
   let loyer_principal_avec_reduction_meuble_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "loyer_principal_avec_réduction_meublé"] (embed_money) (
+      "loyer_principal_avec_réduction_meublé"] {io_input=NoInput;
+    io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -13115,7 +13212,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
   let contributions_sociales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementLocatif";
-        "contributions_sociales.date_courante"] (embed_date)
+        "contributions_sociales.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -13138,7 +13236,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
   let contributions_sociales_dot_lieu_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculAidePersonnaliséeLogementLocatif";
-        "contributions_sociales.lieu"] (embed_collectivite)
+        "contributions_sociales.lieu"] {io_input=OnlyInput; io_output=false}
+      (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -13171,7 +13270,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
   let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogement.montant in
   let taux_composition_familiale_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "taux_composition_familiale"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=true} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -13961,7 +14060,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let multiplicateur_majoration_r0_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "multiplicateur_majoration_r0"] (embed_decimal) (
+      "multiplicateur_majoration_r0"] {io_input=NoInput; io_output=false}
+    (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -14334,7 +14434,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let multiplicateur_majoration_loyer_reference_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "multiplicateur_majoration_loyer_référence"] (embed_decimal) (
+      "multiplicateur_majoration_loyer_référence"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -14680,7 +14781,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let multiplicateur_majoration_plafond_loyer_d823_16_2_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "multiplicateur_majoration_plafond_loyer_d823_16_2"] (embed_decimal) (
+      "multiplicateur_majoration_plafond_loyer_d823_16_2"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -15116,7 +15218,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                           "Code de la construction et de l'habitation"]}) in
   let montant_forfaitaire_charges_d823_16_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "montant_forfaitaire_charges_d823_16"] (embed_money) (
+      "montant_forfaitaire_charges_d823_16"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -16074,7 +16177,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let abattement_forfaitaire_d823_17_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "abattement_forfaitaire_d823_17"] (embed_money) (
+      "abattement_forfaitaire_d823_17"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -16933,7 +17037,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let loyer_reference_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "loyer_référence"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -17038,7 +17142,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let plafond_loyer_d823_16_2_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "plafond_loyer_d823_16_2"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -17926,7 +18030,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let plafond_suppression_d823_16_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "plafond_suppression_d823_16"] (embed_money) (
+      "plafond_suppression_d823_16"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -17960,7 +18065,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let plafond_degressivite_d823_16_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "plafond_dégressivité_d823_16"] (embed_money) (
+      "plafond_dégressivité_d823_16"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -17994,7 +18100,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let loyer_eligible_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "loyer_éligible"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -18056,7 +18162,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                                                           "Code de la construction et de l'habitation"]}) in
   let traitement_aide_finale_diminue_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "traitement_aide_finale_diminué"] (unembeddable)
+      "traitement_aide_finale_diminué"] {io_input=NoInput; io_output=false}
+    (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -18120,7 +18227,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]})))) in
   let participation_minimale_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "participation_minimale"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -18225,7 +18332,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let rapport_loyers_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "rapport_loyers"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -18319,7 +18426,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_minoration_forfaitaire_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "traitement_aide_finale_minoration_forfaitaire"] (unembeddable)
+      "traitement_aide_finale_minoration_forfaitaire"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -18345,13 +18453,15 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_diminué"; "output"]
-                  (embed_money) ((log_begin_call
+                  {io_input=NoInput; io_output=true} (embed_money)
+                  ((log_begin_call
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_diminué"]
                   traitement_aide_finale_diminue_) ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_diminué"; "input0"]
-                  (embed_money) aide_finale_)))))))
+                  {io_input=OnlyInput; io_output=false} (embed_money)
+                  aide_finale_)))))))
                in
                ( if
                   (o_gte_mon_mon
@@ -18369,7 +18479,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]})))) in
   let taux_loyer_eligible_formule_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "taux_loyer_éligible_formule"] (embed_decimal) (
+      "taux_loyer_éligible_formule"] {io_input=NoInput; io_output=false}
+    (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -18528,7 +18639,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_contributions_sociales_arrondi_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "traitement_aide_finale_contributions_sociales_arrondi"] (unembeddable)
+      "traitement_aide_finale_contributions_sociales_arrondi"]
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -18554,25 +18666,29 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_minoration_forfaitaire"]
                   traitement_aide_finale_minoration_forfaitaire_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                (let crds_ : money = ((log_end_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "output"] (embed_money) ((log_begin_call
+                    "montant"; "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] contributions_sociales_dot_montant_)
                   ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "input0"] (embed_money) aide_finale_)))))))
+                    "montant"; "input0"] {io_input=OnlyInput;
+                  io_output=false} (embed_money) aide_finale_)))))))
                in
                (let aide_finale_moins_crds_arrondie_ : money =
                   (o_round_mon
@@ -18595,7 +18711,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]})))) in
   let taux_loyer_eligible_taux_arrondi_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "taux_loyer_éligible_taux_arrondi"] (embed_decimal) (
+      "taux_loyer_éligible_taux_arrondi"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -18684,7 +18801,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_reduction_loyer_solidarite_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "traitement_aide_finale_réduction_loyer_solidarité"] (unembeddable)
+      "traitement_aide_finale_réduction_loyer_solidarité"]
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -18708,14 +18826,16 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_contributions_sociales_arrondi"]
                   traitement_aide_finale_contributions_sociales_arrondi_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                ( if
                   (o_gte_mon_mon
@@ -18736,7 +18856,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]})))) in
   let taux_prise_compte_ressources_: decimal = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "taux_prise_compte_ressources"] (embed_decimal) (
+      "taux_prise_compte_ressources"] {io_input=NoInput; io_output=false}
+    (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -18768,7 +18889,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
     money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
       "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon"]
-    (unembeddable)
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -18788,14 +18909,16 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_réduction_loyer_solidarité";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_réduction_loyer_solidarité"]
                   traitement_aide_finale_reduction_loyer_solidarite_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_réduction_loyer_solidarité";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                (montee_en_charge_saint_pierre_miquelon_ aide_finale_
                   residence_ date_courante_))))
@@ -18809,7 +18932,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]})))) in
   let participation_personnelle_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "participation_personnelle"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -18850,7 +18973,8 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_montant_minimal_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif";
-      "traitement_aide_finale_montant_minimal"] (unembeddable)
+      "traitement_aide_finale_montant_minimal"] {io_input=NoInput;
+    io_output=true} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -18876,14 +19000,16 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon"]
                   traitement_aide_finale_montee_en_charge_saint_pierre_miquelon_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogementLocatif";
                     "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                ( if (o_lt_mon_mon aide_finale_ montant_minimal_aide_d823_16_)
                   then (money_of_cents_string "0") else aide_finale_))))
@@ -18897,7 +19023,7 @@ let calcul_aide_personnalisee_logement_locatif (calcul_aide_personnalisee_logeme
                           "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogementLocatif"; "aide_finale_formule"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -18980,7 +19106,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let contributions_sociales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "contributions_sociales.date_courante"] (embed_date)
+        "contributions_sociales.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19001,7 +19128,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let contributions_sociales_dot_lieu_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer"; "contributions_sociales.lieu"]
-      (embed_collectivite)
+      {io_input=OnlyInput; io_output=false} (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19033,7 +19160,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_apl_logement_foyer_dot_residence_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_apl_logement_foyer.résidence"] (embed_collectivite)
+        "calcul_apl_logement_foyer.résidence"] {io_input=OnlyInput;
+      io_output=false} (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19055,7 +19183,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
         "calcul_apl_logement_foyer.logement_foyer_jeunes_travailleurs"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19076,8 +19204,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_apl_logement_foyer_dot_type_logement_foyer_: TypeLogementFoyer.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_apl_logement_foyer.type_logement_foyer"]
-      (embed_type_logement_foyer)
+        "calcul_apl_logement_foyer.type_logement_foyer"] {io_input=OnlyInput;
+      io_output=false} (embed_type_logement_foyer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19098,7 +19226,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_apl_logement_foyer_dot_date_conventionnement_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_apl_logement_foyer.date_conventionnement"] (embed_date)
+        "calcul_apl_logement_foyer.date_conventionnement"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19120,7 +19249,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
         "calcul_apl_logement_foyer.ressources_ménage_arrondies"]
-      (embed_money)
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19142,7 +19271,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
         "calcul_apl_logement_foyer.nombre_personnes_à_charge"]
-      (embed_integer)
+      {io_input=OnlyInput; io_output=false} (embed_integer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19164,6 +19293,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
         "calcul_apl_logement_foyer.situation_familiale_calcul_apl"]
+      {io_input=OnlyInput; io_output=false}
       (embed_situation_familiale_calcul_a_p_l)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -19185,7 +19315,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_apl_logement_foyer_dot_zone_: ZoneDHabitation.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer"; "calcul_apl_logement_foyer.zone"]
-      (embed_zone_d_habitation)
+      {io_input=OnlyInput; io_output=false} (embed_zone_d_habitation)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19206,7 +19336,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_apl_logement_foyer_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_apl_logement_foyer.date_courante"] (embed_date)
+        "calcul_apl_logement_foyer.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19227,7 +19358,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_apl_logement_foyer_dot_redevance_: money = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_apl_logement_foyer.redevance"] (embed_money)
+        "calcul_apl_logement_foyer.redevance"] {io_input=OnlyInput;
+      io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19248,7 +19380,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_apl_logement_foyer_dot_condition_2_du_832_25_: unit -> bool = 
     fun (_: unit) -> (log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_apl_logement_foyer.condition_2_du_832_25"] (embed_bool)
+        "calcul_apl_logement_foyer.condition_2_du_832_25"]
+      {io_input=Reentrant; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19267,7 +19400,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     unit -> bool = fun (_: unit) -> (log_variable_definition
                      ["CalculAllocationLogementFoyer";
                        "calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge"]
-                     (embed_bool)
+                     {io_input=Reentrant; io_output=false} (embed_bool)
                      (handle_default
                         {filename = ""; start_line=0; start_column=1;
                           end_line=0; end_column=1; law_headings=[]} (
@@ -19304,8 +19437,9 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_: unit -> decimal = 
     fun (_: unit) -> (log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_apl_logement_foyer.n_nombre_parts_d832_25"] (embed_decimal)
-      (raise EmptyError)) in
+        "calcul_apl_logement_foyer.n_nombre_parts_d832_25"]
+      {io_input=Reentrant; io_output=false} (embed_decimal) (raise
+      EmptyError)) in
   let result_: CalculAidePersonnaliseeLogementFoyer.t = (log_end_call
     ["CalculAllocationLogementFoyer"; "calcul_apl_logement_foyer";
       "CalculAidePersonnaliséeLogementFoyer"] ((log_begin_call
@@ -19351,7 +19485,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_nombre_parts_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer"; "calcul_nombre_parts.date_courante"]
-      (embed_date)
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19379,7 +19513,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_nombre_parts_dot_condition_2_du_832_25_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_nombre_parts.condition_2_du_832_25"] (embed_bool)
+        "calcul_nombre_parts.condition_2_du_832_25"] {io_input=OnlyInput;
+      io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19407,7 +19542,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_nombre_parts_dot_nombre_personnes_a_charge_: integer = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_nombre_parts.nombre_personnes_à_charge"] (embed_integer)
+        "calcul_nombre_parts.nombre_personnes_à_charge"]
+      {io_input=OnlyInput; io_output=false} (embed_integer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -19436,6 +19572,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
         "calcul_nombre_parts.situation_familiale_calcul_apl"]
+      {io_input=OnlyInput; io_output=false}
       (embed_situation_familiale_calcul_a_p_l)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -19465,7 +19602,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     unit -> bool = fun (_: unit) -> (log_variable_definition
                      ["CalculAllocationLogementFoyer";
                        "calcul_nombre_parts.limitation_majoration_personnes_à_charge"]
-                     (embed_bool) (raise EmptyError)) in
+                     {io_input=Reentrant; io_output=false} (embed_bool)
+                     (raise EmptyError)) in
   let result_: CalculNombrePartLogementFoyer.t = (log_end_call
     ["CalculAllocationLogementFoyer"; "calcul_nombre_parts";
       "CalculNombrePartLogementFoyer"] ((log_begin_call
@@ -19484,7 +19622,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_nombre_parts_dot_n_nombre_parts_d832_25_: decimal = result_.CalculNombrePartLogementFoyer.n_nombre_parts_d832_25 in
   let multiplicateur_majoration_charges_: decimal = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "multiplicateur_majoration_charges"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -19802,7 +19940,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Prologue : aides au logement"]})))) in
   let montant_minimal_depense_nette_d842_17_: money = (log_variable_definition
     ["CalculAllocationLogementFoyer";
-      "montant_minimal_dépense_nette_d842_17"] (embed_money) (
+      "montant_minimal_dépense_nette_d842_17"] {io_input=NoInput;
+    io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -19824,7 +19963,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Prologue : aides au logement"]})))) in
   let montant_forfaitaire_d842_15_: money = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "montant_forfaitaire_d842_15"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -19846,7 +19985,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Prologue : aides au logement"]})))) in
   let montant_minimal_aide_d842_15_: money = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "montant_minimal_aide_d842_15"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -19867,7 +20006,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
   let equivalence_loyer_: money = (log_variable_definition
-    ["CalculAllocationLogementFoyer"; "équivalence_loyer"] (embed_money) (
+    ["CalculAllocationLogementFoyer"; "équivalence_loyer"]
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -20289,7 +20429,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Prologue : aides au logement"]})))) in
   let coefficient_prise_en_charge_: decimal = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "coefficient_prise_en_charge"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=true} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -20317,7 +20457,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_equivalence_loyer_minimale_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
-        "calcul_équivalence_loyer_minimale.date_courante"] (embed_date)
+        "calcul_équivalence_loyer_minimale.date_courante"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -20339,7 +20480,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
         "calcul_équivalence_loyer_minimale.ressources_ménage_arrondies"]
-      (embed_money)
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -20368,7 +20509,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
         "calcul_équivalence_loyer_minimale.condition_2_du_832_25"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -20397,7 +20538,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     try ((log_variable_definition
       ["CalculAllocationLogementFoyer";
         "calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25"]
-      (embed_decimal)
+      {io_input=OnlyInput; io_output=false} (embed_decimal)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -20439,7 +20580,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
   let calcul_equivalence_loyer_minimale_dot_montant_: money = result_.CalculEquivalenceLoyerMinimale.montant in
   let montant_forfaitaire_charges_: money = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "montant_forfaitaire_charges"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -20816,7 +20957,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_minoration_forfaitaire_: money -> money = (log_variable_definition
     ["CalculAllocationLogementFoyer";
-      "traitement_aide_finale_minoration_forfaitaire"] (unembeddable)
+      "traitement_aide_finale_minoration_forfaitaire"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -20849,7 +20991,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]})))) in
   let loyer_minimal_: money = (log_variable_definition
-    ["CalculAllocationLogementFoyer"; "loyer_minimal"] (embed_money) (
+    ["CalculAllocationLogementFoyer"; "loyer_minimal"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -20875,7 +21018,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Prologue : aides au logement"]})))) in
   let depense_nette_minimale_: money -> money = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "dépense_nette_minimale"]
-    (unembeddable)
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (allocation_mensuelle_: money) -> 
        try
          (handle_default
@@ -20905,7 +21048,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
-    ["CalculAllocationLogementFoyer"; "aide_finale_formule"] (embed_money) (
+    ["CalculAllocationLogementFoyer"; "aide_finale_formule"]
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -20936,7 +21080,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                        "Prologue : aides au logement"]})))) in
   let abattement_depense_nette_minimale_: money -> money = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "abattement_dépense_nette_minimale"]
-    (unembeddable)
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (allocation_mensuelle_: money) -> 
        try
          (handle_default
@@ -20960,13 +21104,14 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                     ["CalculAllocationLogementFoyer";
                       "dépense_nette_minimale"] ((log_variable_definition
                     ["CalculAllocationLogementFoyer";
-                      "dépense_nette_minimale"; "output"] (embed_money)
-                    ((log_begin_call
+                      "dépense_nette_minimale"; "output"] {io_input=NoInput;
+                    io_output=true} (embed_money) ((log_begin_call
                     ["CalculAllocationLogementFoyer";
                       "dépense_nette_minimale"] depense_nette_minimale_)
                     ((log_variable_definition
                     ["CalculAllocationLogementFoyer";
-                      "dépense_nette_minimale"; "input0"] (embed_money)
+                      "dépense_nette_minimale"; "input0"]
+                    {io_input=OnlyInput; io_output=false} (embed_money)
                     allocation_mensuelle_)))))))
                     montant_minimal_depense_nette_d842_17_) then
                  (o_sub_mon_mon montant_minimal_depense_nette_d842_17_
@@ -20974,13 +21119,14 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                     ["CalculAllocationLogementFoyer";
                       "dépense_nette_minimale"] ((log_variable_definition
                     ["CalculAllocationLogementFoyer";
-                      "dépense_nette_minimale"; "output"] (embed_money)
-                    ((log_begin_call
+                      "dépense_nette_minimale"; "output"] {io_input=NoInput;
+                    io_output=true} (embed_money) ((log_begin_call
                     ["CalculAllocationLogementFoyer";
                       "dépense_nette_minimale"] depense_nette_minimale_)
                     ((log_variable_definition
                     ["CalculAllocationLogementFoyer";
-                      "dépense_nette_minimale"; "input0"] (embed_money)
+                      "dépense_nette_minimale"; "input0"]
+                    {io_input=OnlyInput; io_output=false} (embed_money)
                     allocation_mensuelle_)))))))) else
                  (money_of_cents_string "0")))
        with
@@ -20992,7 +21138,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_depense_nette_minimale_: money -> money = (log_variable_definition
     ["CalculAllocationLogementFoyer";
-      "traitement_aide_finale_dépense_nette_minimale"] (unembeddable)
+      "traitement_aide_finale_dépense_nette_minimale"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -21017,14 +21164,16 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_minoration_forfaitaire"]
                   traitement_aide_finale_minoration_forfaitaire_)
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                (let abattement_ : money = ((log_end_call
                   ["CalculAllocationLogementFoyer";
@@ -21032,14 +21181,16 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "abattement_dépense_nette_minimale"; "output"]
-                  (embed_money) ((log_begin_call
+                  {io_input=NoInput; io_output=true} (embed_money)
+                  ((log_begin_call
                   ["CalculAllocationLogementFoyer";
                     "abattement_dépense_nette_minimale"]
                   abattement_depense_nette_minimale_)
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "abattement_dépense_nette_minimale"; "input0"]
-                  (embed_money) aide_finale_)))))))
+                  {io_input=OnlyInput; io_output=false} (embed_money)
+                  aide_finale_)))))))
                in
                ( if
                   (o_lt_mon_mon (o_sub_mon_mon aide_finale_ abattement_)
@@ -21055,7 +21206,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_redevance_: money -> money = (log_variable_definition
     ["CalculAllocationLogementFoyer"; "traitement_aide_finale_redevance"]
-    (unembeddable)
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -21080,14 +21231,16 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_dépense_nette_minimale";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_dépense_nette_minimale"]
                   traitement_aide_finale_depense_nette_minimale_)
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_dépense_nette_minimale";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                ( if (o_gt_mon_mon aide_finale_ redevance_) then redevance_
                   else aide_finale_))))
@@ -21100,7 +21253,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_contributions_sociales_arrondi_: money -> money = (log_variable_definition
     ["CalculAllocationLogementFoyer";
-      "traitement_aide_finale_contributions_sociales_arrondi"] (unembeddable)
+      "traitement_aide_finale_contributions_sociales_arrondi"]
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -21125,25 +21279,29 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_redevance"; "output"]
-                  (embed_money) ((log_begin_call
+                  {io_input=NoInput; io_output=true} (embed_money)
+                  ((log_begin_call
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_redevance"]
                   traitement_aide_finale_redevance_)
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_redevance"; "input0"]
-                  (embed_money) aide_finale_)))))))
+                  {io_input=OnlyInput; io_output=false} (embed_money)
+                  aide_finale_)))))))
                in
                (let crds_ : money = ((log_end_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "output"] (embed_money) ((log_begin_call
+                    "montant"; "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] contributions_sociales_dot_montant_)
                   ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "input0"] (embed_money) aide_finale_)))))))
+                    "montant"; "input0"] {io_input=OnlyInput;
+                  io_output=false} (embed_money) aide_finale_)))))))
                in
                (let aide_finale_moins_crds_arrondie_ : money =
                   (o_round_mon
@@ -21167,7 +21325,7 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
     money -> money = (log_variable_definition
     ["CalculAllocationLogementFoyer";
       "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon"]
-    (unembeddable)
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -21187,14 +21345,16 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_contributions_sociales_arrondi"]
                   traitement_aide_finale_contributions_sociales_arrondi_)
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                (montee_en_charge_saint_pierre_miquelon_ aide_finale_
                   residence_ date_courante_))))
@@ -21207,7 +21367,8 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                           "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_montant_minimal_: money -> money = (log_variable_definition
     ["CalculAllocationLogementFoyer";
-      "traitement_aide_finale_montant_minimal"] (unembeddable)
+      "traitement_aide_finale_montant_minimal"] {io_input=NoInput;
+    io_output=true} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -21232,14 +21393,16 @@ let calcul_allocation_logement_foyer (calcul_allocation_logement_foyer_in: Calcu
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon"]
                   traitement_aide_finale_montee_en_charge_saint_pierre_miquelon_)
                   ((log_variable_definition
                   ["CalculAllocationLogementFoyer";
                     "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                ( if (o_lt_mon_mon aide_finale_ montant_minimal_aide_d842_15_)
                   then (money_of_cents_string "0") else aide_finale_))))
@@ -21278,7 +21441,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let operations_logement_evolutifs_sociaux_accession_propriete_aidee__etat_: bool = calcul_allocation_logement_accession_propriete_in.CalculAllocationLogementAccessionProprieteIn.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat_in in
   let taux_francs_vers_euros_: decimal = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "taux_francs_vers_euros"] (embed_decimal) (
+      "taux_francs_vers_euros"] {io_input=NoInput; io_output=false}
+    (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -21302,7 +21466,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_nombre_parts_dot_nombre_personnes_a_charge_: integer = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_nombre_parts.nombre_personnes_à_charge"] (embed_integer)
+        "calcul_nombre_parts.nombre_personnes_à_charge"]
+      {io_input=OnlyInput; io_output=false} (embed_integer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -21332,6 +21497,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
         "calcul_nombre_parts.situation_familiale_calcul_apl"]
+      {io_input=OnlyInput; io_output=false}
       (embed_situation_familiale_calcul_a_p_l)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -21391,7 +21557,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let contributions_sociales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "contributions_sociales.date_courante"] (embed_date)
+        "contributions_sociales.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -21412,7 +21579,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let contributions_sociales_dot_lieu_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "contributions_sociales.lieu"] (embed_collectivite)
+        "contributions_sociales.lieu"] {io_input=OnlyInput; io_output=false}
+      (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -21445,7 +21613,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let contributions_sociales_dot_montant_: money -> money = result_.ContributionsSocialesAidesPersonnelleLogement.montant in
   let multiplicateur_majoration_charges_: decimal = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "multiplicateur_majoration_charges"] (embed_decimal) (
+      "multiplicateur_majoration_charges"] {io_input=NoInput;
+    io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -21763,7 +21932,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let coefficient_d842_12_: decimal = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété"; "coefficient_d842_12"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -21785,7 +21954,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let coefficient_d842_11_: decimal = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété"; "coefficient_d842_11"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -21807,7 +21976,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let montant_forfaitaire_d842_12_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "montant_forfaitaire_d842_12"] (embed_money) (
+      "montant_forfaitaire_d842_12"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -21829,7 +21999,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let montant_forfaitaire_d842_11_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "montant_forfaitaire_d842_11"] (embed_money) (
+      "montant_forfaitaire_d842_11"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -21851,7 +22022,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let montant_minimal_aide_d842_6_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "montant_minimal_aide_d842_6"] (embed_money) (
+      "montant_minimal_aide_d842_6"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -21873,7 +22045,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let montant_forfaitaire_d842_6_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "montant_forfaitaire_d842_6"] (embed_money) (
+      "montant_forfaitaire_d842_6"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -21914,7 +22087,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                           "Prologue : aides au logement"]}) in
   let condition_d842_11_3_: bool = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété"; "condition_d842_11_3"]
-    (embed_bool) (
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -22205,7 +22378,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let calcul_plafond_mensualite_d842_6_base_: date -> integer -> money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "calcul_plafond_mensualité_d842_6_base"] (unembeddable)
+      "calcul_plafond_mensualité_d842_6_base"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (date_calcul_: date) (nombre_personnes_a_charge_: integer) -> 
        try
          (handle_default
@@ -26016,7 +26190,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]})))) in
   let montant_forfaitaire_charges_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "montant_forfaitaire_charges"] (embed_money) (
+      "montant_forfaitaire_charges"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -27032,7 +27207,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let seuil_minimal_ressources_menage_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "seuil_minimal_ressources_ménage"] (embed_money) (
+      "seuil_minimal_ressources_ménage"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -27140,7 +27316,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_minoration_forfaitaire_: money -> money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "traitement_aide_finale_minoration_forfaitaire"] (unembeddable)
+      "traitement_aide_finale_minoration_forfaitaire"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -27175,7 +27352,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_plafond_mensualite_d842_6_avec_copropriete_: date -> integer ->
                                                             money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "calcul_plafond_mensualité_d842_6_avec_copropriété"] (unembeddable)
+      "calcul_plafond_mensualité_d842_6_avec_copropriété"]
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (date_calcul_: date) (nombre_personnes_a_charge_: integer) -> 
        try
          (handle_default
@@ -27236,18 +27414,24 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                       ["CalculAllocationLogementAccessionPropriété";
                                                         "calcul_plafond_mensualité_d842_6_base";
                                                         "output"]
+                                                      {io_input=NoInput;
+                                                      io_output=true}
                                                       (embed_money)
                                                       ((calcul_plafond_mensualite_d842_6_base_)
                                                          ((log_variable_definition
                                                          ["CalculAllocationLogementAccessionPropriété";
                                                            "calcul_plafond_mensualité_d842_6_base";
                                                            "input0"]
+                                                         {io_input=OnlyInput;
+                                                         io_output=false}
                                                          (embed_date)
                                                          date_calcul_))
                                                          ((log_variable_definition
                                                          ["CalculAllocationLogementAccessionPropriété";
                                                            "calcul_plafond_mensualité_d842_6_base";
                                                            "input1"]
+                                                         {io_input=OnlyInput;
+                                                         io_output=false}
                                                          (embed_integer)
                                                          nombre_personnes_a_charge_)))))))
                                                       (decimal_of_string "0.75")))|])
@@ -27276,17 +27460,23 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                               ((log_variable_definition
                                               ["CalculAllocationLogementAccessionPropriété";
                                                 "calcul_plafond_mensualité_d842_6_base";
-                                                "output"] (embed_money)
+                                                "output"] {io_input=NoInput;
+                                              io_output=true} (embed_money)
                                               ((calcul_plafond_mensualite_d842_6_base_)
                                                  ((log_variable_definition
                                                  ["CalculAllocationLogementAccessionPropriété";
                                                    "calcul_plafond_mensualité_d842_6_base";
-                                                   "input0"] (embed_date)
-                                                 date_calcul_))
+                                                   "input0"]
+                                                 {io_input=OnlyInput;
+                                                 io_output=false}
+                                                 (embed_date) date_calcul_))
                                                  ((log_variable_definition
                                                  ["CalculAllocationLogementAccessionPropriété";
                                                    "calcul_plafond_mensualité_d842_6_base";
-                                                   "input1"] (embed_integer)
+                                                   "input1"]
+                                                 {io_input=OnlyInput;
+                                                 io_output=false}
+                                                 (embed_integer)
                                                  nombre_personnes_a_charge_)))))))
                                               (decimal_of_string "0.75")))|])
                                  (fun (_: unit) -> (log_decision_taken
@@ -27307,17 +27497,20 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                       ((log_variable_definition
                                       ["CalculAllocationLogementAccessionPropriété";
                                         "calcul_plafond_mensualité_d842_6_base";
-                                        "output"] (embed_money)
+                                        "output"] {io_input=NoInput;
+                                      io_output=true} (embed_money)
                                       ((calcul_plafond_mensualite_d842_6_base_)
                                          ((log_variable_definition
                                          ["CalculAllocationLogementAccessionPropriété";
                                            "calcul_plafond_mensualité_d842_6_base";
-                                           "input0"] (embed_date)
+                                           "input0"] {io_input=OnlyInput;
+                                         io_output=false} (embed_date)
                                          date_calcul_))
                                          ((log_variable_definition
                                          ["CalculAllocationLogementAccessionPropriété";
                                            "calcul_plafond_mensualité_d842_6_base";
-                                           "input1"] (embed_integer)
+                                           "input1"] {io_input=OnlyInput;
+                                         io_output=false} (embed_integer)
                                          nombre_personnes_a_charge_)))))))
                                       (decimal_of_string "0.75")))|])
                          (fun (_: unit) -> false)
@@ -27336,15 +27529,17 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                ((log_variable_definition
                ["CalculAllocationLogementAccessionPropriété";
                  "calcul_plafond_mensualité_d842_6_base"; "output"]
-               (embed_money)
+               {io_input=NoInput; io_output=true} (embed_money)
                ((calcul_plafond_mensualite_d842_6_base_)
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "calcul_plafond_mensualité_d842_6_base"; "input0"]
-                  (embed_date) date_calcul_)) ((log_variable_definition
+                  {io_input=OnlyInput; io_output=false} (embed_date)
+                  date_calcul_)) ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "calcul_plafond_mensualité_d842_6_base"; "input1"]
-                  (embed_integer) nombre_personnes_a_charge_))))))))
+                  {io_input=OnlyInput; io_output=false} (embed_integer)
+                  nombre_personnes_a_charge_))))))))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/aides_logement/prologue.catala_fr";
@@ -27354,7 +27549,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]})))) in
   let depense_nette_minimale_: money -> money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "dépense_nette_minimale"] (unembeddable)
+      "dépense_nette_minimale"] {io_input=NoInput; io_output=false}
+    (unembeddable)
     (fun (allocation_mensuelle_: money) -> 
        try
          (handle_default
@@ -27385,7 +27581,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]})))) in
   let ressources_menage_arrondies_seuil_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "ressources_ménage_arrondies_seuil"] (embed_money) (
+      "ressources_ménage_arrondies_seuil"] {io_input=NoInput;
+    io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -27442,7 +27639,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                                    money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
       "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom"]
-    (unembeddable)
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (date_calcul_: date) (nombre_personnes_a_charge_: integer) -> 
        try
          (handle_default
@@ -27556,6 +27753,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                                     ["CalculAllocationLogementAccessionPropriété";
                                                                     "calcul_plafond_mensualité_d842_6_avec_copropriété";
                                                                     "output"]
+                                                                    {io_input=NoInput;
+                                                                    io_output=true}
                                                                     (embed_money)
                                                                     (
                                                                     (calcul_plafond_mensualite_d842_6_avec_copropriete_)
@@ -27563,12 +27762,16 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                                     ["CalculAllocationLogementAccessionPropriété";
                                                                     "calcul_plafond_mensualité_d842_6_avec_copropriété";
                                                                     "input0"]
+                                                                    {io_input=OnlyInput;
+                                                                    io_output=false}
                                                                     (embed_date)
                                                                     date_calcul_))
                                                                     ((log_variable_definition
                                                                     ["CalculAllocationLogementAccessionPropriété";
                                                                     "calcul_plafond_mensualité_d842_6_avec_copropriété";
                                                                     "input1"]
+                                                                    {io_input=OnlyInput;
+                                                                    io_output=false}
                                                                     (embed_integer)
                                                                     (integer_of_string
                                                                     "6")))))))))|])
@@ -27633,18 +27836,24 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                             ["CalculAllocationLogementAccessionPropriété";
                                                               "calcul_plafond_mensualité_d842_6_avec_copropriété";
                                                               "output"]
+                                                            {io_input=NoInput;
+                                                            io_output=true}
                                                             (embed_money)
                                                             ((calcul_plafond_mensualite_d842_6_avec_copropriete_)
                                                                ((log_variable_definition
                                                                ["CalculAllocationLogementAccessionPropriété";
                                                                  "calcul_plafond_mensualité_d842_6_avec_copropriété";
                                                                  "input0"]
+                                                               {io_input=OnlyInput;
+                                                               io_output=false}
                                                                (embed_date)
                                                                date_calcul_))
                                                                ((log_variable_definition
                                                                ["CalculAllocationLogementAccessionPropriété";
                                                                  "calcul_plafond_mensualité_d842_6_avec_copropriété";
                                                                  "input1"]
+                                                               {io_input=OnlyInput;
+                                                               io_output=false}
                                                                (embed_integer)
                                                                (integer_of_string
                                                                "6")))))))))|])
@@ -27697,18 +27906,25 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                                     ((log_variable_definition
                                                     ["CalculAllocationLogementAccessionPropriété";
                                                       "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                                                      "output"] (embed_money)
+                                                      "output"]
+                                                    {io_input=NoInput;
+                                                    io_output=true}
+                                                    (embed_money)
                                                     ((calcul_plafond_mensualite_d842_6_avec_copropriete_)
                                                        ((log_variable_definition
                                                        ["CalculAllocationLogementAccessionPropriété";
                                                          "calcul_plafond_mensualité_d842_6_avec_copropriété";
                                                          "input0"]
+                                                       {io_input=OnlyInput;
+                                                       io_output=false}
                                                        (embed_date)
                                                        date_calcul_))
                                                        ((log_variable_definition
                                                        ["CalculAllocationLogementAccessionPropriété";
                                                          "calcul_plafond_mensualité_d842_6_avec_copropriété";
                                                          "input1"]
+                                                       {io_input=OnlyInput;
+                                                       io_output=false}
                                                        (embed_integer)
                                                        (integer_of_string
                                                        "6")))))))))|])
@@ -27758,17 +27974,23 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                             ((log_variable_definition
                                             ["CalculAllocationLogementAccessionPropriété";
                                               "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                                              "output"] (embed_money)
+                                              "output"] {io_input=NoInput;
+                                            io_output=true} (embed_money)
                                             ((calcul_plafond_mensualite_d842_6_avec_copropriete_)
                                                ((log_variable_definition
                                                ["CalculAllocationLogementAccessionPropriété";
                                                  "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                                                 "input0"] (embed_date)
+                                                 "input0"]
+                                               {io_input=OnlyInput;
+                                               io_output=false} (embed_date)
                                                date_calcul_))
                                                ((log_variable_definition
                                                ["CalculAllocationLogementAccessionPropriété";
                                                  "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                                                 "input1"] (embed_integer)
+                                                 "input1"]
+                                               {io_input=OnlyInput;
+                                               io_output=false}
+                                               (embed_integer)
                                                (integer_of_string "6")))))))))|])
                                  (fun (_: unit) -> (log_decision_taken
                                     {filename = "examples/aides_logement/archives.catala_fr";
@@ -27810,17 +28032,20 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                                     ((log_variable_definition
                                     ["CalculAllocationLogementAccessionPropriété";
                                       "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                                      "output"] (embed_money)
+                                      "output"] {io_input=NoInput;
+                                    io_output=true} (embed_money)
                                     ((calcul_plafond_mensualite_d842_6_avec_copropriete_)
                                        ((log_variable_definition
                                        ["CalculAllocationLogementAccessionPropriété";
                                          "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                                         "input0"] (embed_date)
+                                         "input0"] {io_input=OnlyInput;
+                                       io_output=false} (embed_date)
                                        date_calcul_))
                                        ((log_variable_definition
                                        ["CalculAllocationLogementAccessionPropriété";
                                          "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                                         "input1"] (embed_integer)
+                                         "input1"] {io_input=OnlyInput;
+                                       io_output=false} (embed_integer)
                                        (integer_of_string "6")))))))))|])
                          (fun (_: unit) -> false)
                          (fun (_: unit) -> raise EmptyError)))|])
@@ -27838,16 +28063,17 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                ((log_variable_definition
                ["CalculAllocationLogementAccessionPropriété";
                  "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                 "output"] (embed_money)
+                 "output"] {io_input=NoInput; io_output=true} (embed_money)
                ((calcul_plafond_mensualite_d842_6_avec_copropriete_)
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                    "input0"] (embed_date) date_calcul_))
-                  ((log_variable_definition
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_date) date_calcul_)) ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "calcul_plafond_mensualité_d842_6_avec_copropriété";
-                    "input1"] (embed_integer) nombre_personnes_a_charge_))))))))
+                    "input1"] {io_input=OnlyInput; io_output=false}
+                  (embed_integer) nombre_personnes_a_charge_))))))))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/aides_logement/prologue.catala_fr";
@@ -27858,7 +28084,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_equivalence_loyer_minimale_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_équivalence_loyer_minimale.date_courante"] (embed_date)
+        "calcul_équivalence_loyer_minimale.date_courante"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -27880,7 +28107,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
         "calcul_équivalence_loyer_minimale.ressources_ménage_arrondies"]
-      (embed_money)
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -27910,7 +28137,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
         "calcul_équivalence_loyer_minimale.condition_2_du_832_25"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -27940,7 +28167,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
         "calcul_équivalence_loyer_minimale.n_nombre_parts_d832_25"]
-      (embed_decimal)
+      {io_input=OnlyInput; io_output=false} (embed_decimal)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -27986,7 +28213,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_apl_logement_foyer_dot_residence_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_apl_logement_foyer.résidence"] (embed_collectivite)
+        "calcul_apl_logement_foyer.résidence"] {io_input=OnlyInput;
+      io_output=false} (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28008,7 +28236,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
         "calcul_apl_logement_foyer.logement_foyer_jeunes_travailleurs"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28029,8 +28257,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_apl_logement_foyer_dot_type_logement_foyer_: TypeLogementFoyer.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_apl_logement_foyer.type_logement_foyer"]
-      (embed_type_logement_foyer)
+        "calcul_apl_logement_foyer.type_logement_foyer"] {io_input=OnlyInput;
+      io_output=false} (embed_type_logement_foyer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28051,7 +28279,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_apl_logement_foyer_dot_date_conventionnement_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_apl_logement_foyer.date_conventionnement"] (embed_date)
+        "calcul_apl_logement_foyer.date_conventionnement"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28073,7 +28302,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
         "calcul_apl_logement_foyer.ressources_ménage_arrondies"]
-      (embed_money)
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28095,7 +28324,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
         "calcul_apl_logement_foyer.nombre_personnes_à_charge"]
-      (embed_integer)
+      {io_input=OnlyInput; io_output=false} (embed_integer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28117,6 +28346,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
         "calcul_apl_logement_foyer.situation_familiale_calcul_apl"]
+      {io_input=OnlyInput; io_output=false}
       (embed_situation_familiale_calcul_a_p_l)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28138,7 +28368,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_apl_logement_foyer_dot_zone_: ZoneDHabitation.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_apl_logement_foyer.zone"] (embed_zone_d_habitation)
+        "calcul_apl_logement_foyer.zone"] {io_input=OnlyInput;
+      io_output=false} (embed_zone_d_habitation)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28159,7 +28390,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_apl_logement_foyer_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_apl_logement_foyer.date_courante"] (embed_date)
+        "calcul_apl_logement_foyer.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28180,7 +28412,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_apl_logement_foyer_dot_redevance_: money = 
     try ((log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_apl_logement_foyer.redevance"] (embed_money)
+        "calcul_apl_logement_foyer.redevance"] {io_input=OnlyInput;
+      io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28201,7 +28434,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_apl_logement_foyer_dot_condition_2_du_832_25_: unit -> bool = 
     fun (_: unit) -> (log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_apl_logement_foyer.condition_2_du_832_25"] (embed_bool)
+        "calcul_apl_logement_foyer.condition_2_du_832_25"]
+      {io_input=Reentrant; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -28220,7 +28454,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     unit -> bool = fun (_: unit) -> (log_variable_definition
                      ["CalculAllocationLogementAccessionPropriété";
                        "calcul_apl_logement_foyer.limitation_majoration_personnes_à_charge"]
-                     (embed_bool)
+                     {io_input=Reentrant; io_output=false} (embed_bool)
                      (handle_default
                         {filename = ""; start_line=0; start_column=1;
                           end_line=0; end_column=1; law_headings=[]} (
@@ -28323,8 +28557,9 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
   let calcul_apl_logement_foyer_dot_n_nombre_parts_d832_25_: unit -> decimal = 
     fun (_: unit) -> (log_variable_definition
       ["CalculAllocationLogementAccessionPropriété";
-        "calcul_apl_logement_foyer.n_nombre_parts_d832_25"] (embed_decimal)
-      (raise EmptyError)) in
+        "calcul_apl_logement_foyer.n_nombre_parts_d832_25"]
+      {io_input=Reentrant; io_output=false} (embed_decimal) (raise
+      EmptyError)) in
   let result_: CalculAidePersonnaliseeLogementFoyer.t = (log_end_call
     ["CalculAllocationLogementAccessionPropriété";
       "calcul_apl_logement_foyer"; "CalculAidePersonnaliséeLogementFoyer"]
@@ -28370,7 +28605,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     money -> money = result_.CalculAidePersonnaliseeLogementFoyer.traitement_aide_finale in
   let seuil_minimal_depense_nette_minimale_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "seuil_minimal_dépense_nette_minimale"] (embed_money) (
+      "seuil_minimal_dépense_nette_minimale"] {io_input=NoInput;
+    io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28414,7 +28650,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let plafond_mensualite_d842_6_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "plafond_mensualité_d842_6"] (embed_money) (
+      "plafond_mensualité_d842_6"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28442,17 +28679,19 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        ((log_variable_definition
                        ["CalculAllocationLogementAccessionPropriété";
                          "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom";
-                         "output"] (embed_money)
+                         "output"] {io_input=NoInput; io_output=true}
+                       (embed_money)
                        ((calcul_plafond_mensualite_d842_6_avec_limitation_dom_tom_)
                           ((log_variable_definition
                           ["CalculAllocationLogementAccessionPropriété";
                             "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom";
-                            "input0"] (embed_date) date_signature_pret_))
+                            "input0"] {io_input=OnlyInput; io_output=false}
+                          (embed_date) date_signature_pret_))
                           ((log_variable_definition
                           ["CalculAllocationLogementAccessionPropriété";
                             "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom";
-                            "input1"] (embed_integer)
-                          nombre_personnes_a_charge_)))))))
+                            "input1"] {io_input=OnlyInput; io_output=false}
+                          (embed_integer) nombre_personnes_a_charge_)))))))
                     in
                     (let plafond_entree_ : money = ((log_end_call
                        ["CalculAllocationLogementAccessionPropriété";
@@ -28460,17 +28699,19 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        ((log_variable_definition
                        ["CalculAllocationLogementAccessionPropriété";
                          "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom";
-                         "output"] (embed_money)
+                         "output"] {io_input=NoInput; io_output=true}
+                       (embed_money)
                        ((calcul_plafond_mensualite_d842_6_avec_limitation_dom_tom_)
                           ((log_variable_definition
                           ["CalculAllocationLogementAccessionPropriété";
                             "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom";
-                            "input0"] (embed_date) date_entree_logement_))
+                            "input0"] {io_input=OnlyInput; io_output=false}
+                          (embed_date) date_entree_logement_))
                           ((log_variable_definition
                           ["CalculAllocationLogementAccessionPropriété";
                             "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom";
-                            "input1"] (embed_integer)
-                          nombre_personnes_a_charge_)))))))
+                            "input1"] {io_input=OnlyInput; io_output=false}
+                          (embed_integer) nombre_personnes_a_charge_)))))))
                     in
                     ( if (o_lt_mon_mon plafond_signature_ plafond_entree_)
                        then plafond_entree_ else plafond_signature_)))))|])
@@ -28491,16 +28732,17 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
             ((log_variable_definition
             ["CalculAllocationLogementAccessionPropriété";
               "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom";
-              "output"] (embed_money)
+              "output"] {io_input=NoInput; io_output=true} (embed_money)
             ((calcul_plafond_mensualite_d842_6_avec_limitation_dom_tom_)
                ((log_variable_definition
                ["CalculAllocationLogementAccessionPropriété";
                  "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom";
-                 "input0"] (embed_date) date_signature_pret_))
-               ((log_variable_definition
+                 "input0"] {io_input=OnlyInput; io_output=false} (embed_date)
+               date_signature_pret_)) ((log_variable_definition
                ["CalculAllocationLogementAccessionPropriété";
                  "calcul_plafond_mensualité_d842_6_avec_limitation_dom_tom";
-                 "input1"] (embed_integer) nombre_personnes_a_charge_))))))))
+                 "input1"] {io_input=OnlyInput; io_output=false}
+               (embed_integer) nombre_personnes_a_charge_))))))))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "examples/aides_logement/prologue.catala_fr";
@@ -28510,7 +28752,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let mensualite_minimale_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété"; "mensualité_minimale"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28536,7 +28778,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let coefficient_prise_en_charge_: decimal = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "coefficient_prise_en_charge"] (embed_decimal) (
+      "coefficient_prise_en_charge"] {io_input=NoInput; io_output=true}
+    (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28563,7 +28806,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let abattement_depense_nette_minimale_: money -> money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "abattement_dépense_nette_minimale"] (unembeddable)
+      "abattement_dépense_nette_minimale"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (allocation_mensuelle_: money) -> 
        try
          (handle_default
@@ -28586,14 +28830,14 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                   ["CalculAllocationLogementAccessionPropriété";
                     "dépense_nette_minimale"] ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
-                    "dépense_nette_minimale"; "output"] (embed_money)
-                  ((log_begin_call
+                    "dépense_nette_minimale"; "output"] {io_input=NoInput;
+                  io_output=true} (embed_money) ((log_begin_call
                   ["CalculAllocationLogementAccessionPropriété";
                     "dépense_nette_minimale"] depense_nette_minimale_)
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
-                    "dépense_nette_minimale"; "input0"] (embed_money)
-                  allocation_mensuelle_)))))))
+                    "dépense_nette_minimale"; "input0"] {io_input=OnlyInput;
+                  io_output=false} (embed_money) allocation_mensuelle_)))))))
                in
                ( if
                   (o_lt_mon_mon depense_nette_minimale_
@@ -28610,7 +28854,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]})))) in
   let mensualite_eligible_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété"; "mensualité_éligible"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28639,7 +28883,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_depense_nette_minimale_: money -> money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "traitement_aide_finale_dépense_nette_minimale"] (unembeddable)
+      "traitement_aide_finale_dépense_nette_minimale"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -28664,14 +28909,16 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_minoration_forfaitaire"]
                   traitement_aide_finale_minoration_forfaitaire_)
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_minoration_forfaitaire";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                (let abattement_ : money = ((log_end_call
                   ["CalculAllocationLogementAccessionPropriété";
@@ -28679,14 +28926,16 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "abattement_dépense_nette_minimale"; "output"]
-                  (embed_money) ((log_begin_call
+                  {io_input=NoInput; io_output=true} (embed_money)
+                  ((log_begin_call
                   ["CalculAllocationLogementAccessionPropriété";
                     "abattement_dépense_nette_minimale"]
                   abattement_depense_nette_minimale_)
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "abattement_dépense_nette_minimale"; "input0"]
-                  (embed_money) aide_finale_)))))))
+                  {io_input=OnlyInput; io_output=false} (embed_money)
+                  aide_finale_)))))))
                in
                ( if (o_lt_mon_mon aide_finale_ abattement_) then
                   (money_of_cents_string "0") else
@@ -28700,7 +28949,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété"; "aide_finale_formule"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28731,7 +28980,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_contributions_sociales_arrondi_: money -> money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "traitement_aide_finale_contributions_sociales_arrondi"] (unembeddable)
+      "traitement_aide_finale_contributions_sociales_arrondi"]
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -28756,25 +29006,29 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_dépense_nette_minimale";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_dépense_nette_minimale"]
                   traitement_aide_finale_depense_nette_minimale_)
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_dépense_nette_minimale";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                (let crds_ : money = ((log_end_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "output"] (embed_money) ((log_begin_call
+                    "montant"; "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["ContributionsSocialesAidesPersonnelleLogement";
                     "montant"] contributions_sociales_dot_montant_)
                   ((log_variable_definition
                   ["ContributionsSocialesAidesPersonnelleLogement";
-                    "montant"; "input0"] (embed_money) aide_finale_)))))))
+                    "montant"; "input0"] {io_input=OnlyInput;
+                  io_output=false} (embed_money) aide_finale_)))))))
                in
                (let aide_finale_moins_crds_arrondie_ : money =
                   (o_round_mon
@@ -28798,7 +29052,7 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
     money -> money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
       "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon"]
-    (unembeddable)
+    {io_input=NoInput; io_output=false} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -28818,14 +29072,16 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_contributions_sociales_arrondi"]
                   traitement_aide_finale_contributions_sociales_arrondi_)
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_contributions_sociales_arrondi";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                (montee_en_charge_saint_pierre_miquelon_ aide_finale_
                   residence_ date_courante_))))
@@ -28838,7 +29094,8 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                           "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_montant_minimal_: money -> money = (log_variable_definition
     ["CalculAllocationLogementAccessionPropriété";
-      "traitement_aide_finale_montant_minimal"] (unembeddable)
+      "traitement_aide_finale_montant_minimal"] {io_input=NoInput;
+    io_output=true} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -28863,14 +29120,16 @@ let calcul_allocation_logement_accession_propriete (calcul_allocation_logement_a
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon"]
                   traitement_aide_finale_montee_en_charge_saint_pierre_miquelon_)
                   ((log_variable_definition
                   ["CalculAllocationLogementAccessionPropriété";
                     "traitement_aide_finale_montée_en_charge_saint_pierre_miquelon";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                ( if (o_lt_mon_mon aide_finale_ montant_minimal_aide_d842_6_)
                   then (money_of_cents_string "0") else aide_finale_))))
@@ -28901,7 +29160,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
   let date_entree_vigueur_differee_cch_: unit -> date = eligibilite_aides_personnelle_logement_in.EligibiliteAidesPersonnelleLogementIn.date_entree_vigueur_differee_cch_in in
   let date_entree_vigueur_differee_cch_: date = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "date_entrée_vigueur_différée_cch"] (embed_date) (
+      "date_entrée_vigueur_différée_cch"] {io_input=Reentrant;
+    io_output=false} (embed_date) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28932,7 +29192,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let seuil_l822_3_parts_propriete_: decimal = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "seuil_l822_3_parts_propriété"] (embed_decimal) (
+      "seuil_l822_3_parts_propriété"] {io_input=NoInput; io_output=false}
+    (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28957,7 +29218,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let seuil_l822_3_parts_usufruit_: decimal = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement"; "seuil_l822_3_parts_usufruit"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=false} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -28982,7 +29243,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let usufruit_ou_propriete_famille_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "usufruit_ou_propriété_famille"] (embed_bool) (
+      "usufruit_ou_propriété_famille"] {io_input=NoInput; io_output=false}
+    (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -29018,7 +29280,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let nombre_personnes_logement_: integer = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement"; "nombre_personnes_logement"]
-    (embed_integer) (
+    {io_input=NoInput; io_output=false} (embed_integer) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -29059,7 +29321,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let septieme_alinea_l823_1_applicable_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "septième_alinéa_l823_1_applicable"] (embed_bool) (
+      "septième_alinéa_l823_1_applicable"] {io_input=NoInput;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -29123,7 +29386,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let condition_non_ouverture_l822_9_decence_logement_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "condition_non_ouverture_l822_9_decence_logement"] (embed_bool) (
+      "condition_non_ouverture_l822_9_decence_logement"] {io_input=NoInput;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -29161,7 +29425,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let condition_non_ouverture_l822_8_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "condition_non_ouverture_l822_8"] (embed_bool) (
+      "condition_non_ouverture_l822_8"] {io_input=NoInput; io_output=false}
+    (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -29198,7 +29463,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let condition_logement_residence_principale_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "condition_logement_résidence_principale"] (embed_bool) (
+      "condition_logement_résidence_principale"] {io_input=Reentrant;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -29245,7 +29511,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
   let ouverture_droits_retraite_dot_date_naissance_assure_: date = 
     try ((log_variable_definition
       ["ÉligibilitéAidesPersonnelleLogement";
-        "ouverture_droits_retraite.date_naissance_assuré"] (embed_date)
+        "ouverture_droits_retraite.date_naissance_assuré"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -29285,7 +29552,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
   let ouverture_droits_retraite_dot_age_ouverture_droit_: duration = result_.OuvertureDroitsRetraite.age_ouverture_droit in
   let condition_nationalite_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement"; "condition_nationalité"]
-    (embed_bool) (
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -29366,7 +29633,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                           "Prologue : aides au logement"]}) in
   let plafond_individuel_l815_9_secu_: money = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "plafond_individuel_l815_9_sécu"] (embed_money) (
+      "plafond_individuel_l815_9_sécu"] {io_input=NoInput; io_output=false}
+    (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -29494,7 +29762,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let condition_logement_location_tiers_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "condition_logement_location_tiers"] (embed_bool) (
+      "condition_logement_location_tiers"] {io_input=NoInput;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -29533,6 +29802,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                         ((log_variable_definition
                                         ["VérificationÂgeSupérieurÀ";
                                           "direct"; "input"]
+                                        {io_input=OnlyInput; io_output=false}
                                         (embed_verification_age_superieur_a_in)
                                         ({VerificationAgeSuperieurAIn.date_naissance_in =
                                             (
@@ -29592,7 +29862,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                     ["VérificationÂgeSupérieurÀ";
                                       "direct"] ((log_variable_definition
                                     ["VérificationÂgeSupérieurÀ";
-                                      "direct"; "output"]
+                                      "direct"; "output"] {io_input=NoInput;
+                                    io_output=true}
                                     (embed_verification_age_superieur_a)
                                     ( if
                                        ((log_decision_taken
@@ -29641,7 +29912,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
   let prestations_familiales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["ÉligibilitéAidesPersonnelleLogement";
-        "prestations_familiales.date_courante"] (embed_date)
+        "prestations_familiales.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -29662,7 +29934,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
   let prestations_familiales_dot_residence_: Collectivite.t = 
     try ((log_variable_definition
       ["ÉligibilitéAidesPersonnelleLogement";
-        "prestations_familiales.résidence"] (embed_collectivite)
+        "prestations_familiales.résidence"] {io_input=OnlyInput;
+      io_output=false} (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -29685,6 +29958,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                                     (log_variable_definition
                                                                     ["ÉligibilitéAidesPersonnelleLogement";
                                                                     "prestations_familiales.âge_l512_3_2"]
+                                                                    {io_input=Reentrant;
+                                                                    io_output=false}
                                                                     (embed_duration)
                                                                     (handle_default
                                                                     {filename = "";
@@ -29931,7 +30206,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                           "Code de la construction et de l'habitation"]}) in
   let condition_logement_mode_occupation_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "condition_logement_mode_occupation"] (embed_bool) (
+      "condition_logement_mode_occupation"] {io_input=NoInput;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30038,7 +30314,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let condition_logement_surface_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement"; "condition_logement_surface"]
-    (embed_bool) (
+    {io_input=Reentrant; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30167,7 +30443,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let age_l161_17_2_secu_: duration = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement"; "âge_l161_17_2_sécu"]
-    (embed_duration) (
+    {io_input=NoInput; io_output=false} (embed_duration) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30194,7 +30470,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let condition_ouverture_l822_10_peuplement_logement_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "condition_ouverture_l822_10_peuplement_logement"] (embed_bool) (
+      "condition_ouverture_l822_10_peuplement_logement"] {io_input=NoInput;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30230,7 +30507,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let age_l351_8_1_secu_: duration = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement"; "âge_l351_8_1_sécu"]
-    (embed_duration) (
+    {io_input=NoInput; io_output=false} (embed_duration) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30257,7 +30534,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let eligibilite_logement_: bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement"; "éligibilité_logement"]
-    (embed_bool) (
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30313,7 +30590,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let condition_2_r823_4_: PersonneACharge.t -> bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement"; "condition_2_r823_4"]
-    (unembeddable)
+    {io_input=NoInput; io_output=true} (unembeddable)
     (fun (personne_a_charge_: PersonneACharge.t) -> 
        try
          (handle_default
@@ -30365,6 +30642,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                                ((log_variable_definition
                                                ["VérificationÂgeInférieurOuÉgalÀ";
                                                  "direct"; "input"]
+                                               {io_input=OnlyInput;
+                                               io_output=false}
                                                (embed_verification_age_inferieur_ou_egal_a_in)
                                                ({VerificationAgeInferieurOuEgalAIn.date_naissance_in =
                                                    (
@@ -30432,6 +30711,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                                            ((log_variable_definition
                                            ["VérificationÂgeInférieurOuÉgalÀ";
                                              "direct"; "output"]
+                                           {io_input=NoInput; io_output=true}
                                            (embed_verification_age_inferieur_ou_egal_a)
                                            ( if
                                               ((log_decision_taken
@@ -30472,7 +30752,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]})))) in
   let eligibilite_: bool = (log_variable_definition
-    ["ÉligibilitéAidesPersonnelleLogement"; "éligibilité"] (embed_bool) (
+    ["ÉligibilitéAidesPersonnelleLogement"; "éligibilité"]
+    {io_input=NoInput; io_output=true} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30507,7 +30788,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let prise_en_compte_personne_a_charge_: PersonneACharge.t -> bool = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "prise_en_compte_personne_à_charge"] (unembeddable)
+      "prise_en_compte_personne_à_charge"] {io_input=NoInput;
+    io_output=false} (unembeddable)
     (fun (personne_a_charge_: PersonneACharge.t) -> 
        try
          (handle_default
@@ -30585,15 +30867,15 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        ["ÉligibilitéAidesPersonnelleLogement";
                          "condition_2_r823_4"] ((log_variable_definition
                        ["ÉligibilitéAidesPersonnelleLogement";
-                         "condition_2_r823_4"; "output"] (embed_bool)
-                       ((log_begin_call
+                         "condition_2_r823_4"; "output"] {io_input=NoInput;
+                       io_output=true} (embed_bool) ((log_begin_call
                        ["ÉligibilitéAidesPersonnelleLogement";
                          "condition_2_r823_4"] condition_2_r823_4_)
                        ((log_variable_definition
                        ["ÉligibilitéAidesPersonnelleLogement";
-                         "condition_2_r823_4"; "input0"]
-                       (embed_personne_a_charge) personne_a_charge_)))))))))
-                    (fun (_: unit) -> true));
+                         "condition_2_r823_4"; "input0"] {io_input=OnlyInput;
+                       io_output=false} (embed_personne_a_charge)
+                       personne_a_charge_))))))))) (fun (_: unit) -> true));
                (fun (_: unit) ->
                   handle_default
                     {filename = ""; start_line=0; start_column=1;
@@ -30798,14 +31080,15 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                             ["ÉligibilitéPrestationsFamiliales";
                               "droit_ouvert"] ((log_variable_definition
                             ["ÉligibilitéPrestationsFamiliales";
-                              "droit_ouvert"; "output"] (embed_bool)
-                            ((log_begin_call
+                              "droit_ouvert"; "output"] {io_input=NoInput;
+                            io_output=true} (embed_bool) ((log_begin_call
                             ["ÉligibilitéPrestationsFamiliales";
                               "droit_ouvert"]
                             prestations_familiales_dot_droit_ouvert_)
                             ((log_variable_definition
                             ["ÉligibilitéPrestationsFamiliales";
-                              "droit_ouvert"; "input0"]
+                              "droit_ouvert"; "input0"] {io_input=OnlyInput;
+                            io_output=false}
                             (embed_enfant_prestations_familiales)
                             ({EnfantPrestationsFamiliales.identifiant =
                                 (enfant_.EnfantACharge.identifiant);
@@ -30836,8 +31119,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                           "Prologue : aides au logement"]})))) in
   let personnes_a_charge_prises_en_compte_: PersonneACharge.t array = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "personnes_à_charge_prises_en_compte"]
-    (embed_array (embed_personne_a_charge)) (
+      "personnes_à_charge_prises_en_compte"] {io_input=NoInput;
+    io_output=false} (embed_array (embed_personne_a_charge)) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30861,13 +31144,15 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                  ((log_variable_definition
                  ["ÉligibilitéAidesPersonnelleLogement";
                    "prise_en_compte_personne_à_charge"; "output"]
-                 (embed_bool) ((log_begin_call
+                 {io_input=NoInput; io_output=true} (embed_bool)
+                 ((log_begin_call
                  ["ÉligibilitéAidesPersonnelleLogement";
                    "prise_en_compte_personne_à_charge"]
                  prise_en_compte_personne_a_charge_)
                  ((log_variable_definition
                  ["ÉligibilitéAidesPersonnelleLogement";
                    "prise_en_compte_personne_à_charge"; "input0"]
+                 {io_input=OnlyInput; io_output=false}
                  (embed_personne_a_charge) personne_a_charge_)))))))
               (menage_.Menage.personnes_a_charge)))
     with
@@ -30880,7 +31165,7 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
   let coefficents_enfants_garde_alternee_pris_en_compte_: decimal array = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
       "coefficents_enfants_garde_alternée_pris_en_compte"]
-    (embed_array (embed_decimal)) (
+    {io_input=NoInput; io_output=true} (embed_array (embed_decimal)) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30928,7 +31213,8 @@ let eligibilite_aides_personnelle_logement (eligibilite_aides_personnelle_logeme
                        "Prologue : aides au logement"]})))) in
   let nombre_personnes_a_charge_prises_en_compte_: integer = (log_variable_definition
     ["ÉligibilitéAidesPersonnelleLogement";
-      "nombre_personnes_à_charge_prises_en_compte"] (embed_integer) (
+      "nombre_personnes_à_charge_prises_en_compte"] {io_input=NoInput;
+    io_output=true} (embed_integer) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -30975,7 +31261,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_loyer_principal_base_: money = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
-        "calcul_apl_locatif.loyer_principal_base"] (embed_money)
+        "calcul_apl_locatif.loyer_principal_base"] {io_input=OnlyInput;
+      io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31004,7 +31291,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_ressources_menage_arrondies_: money = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
-        "calcul_apl_locatif.ressources_ménage_arrondies"] (embed_money)
+        "calcul_apl_locatif.ressources_ménage_arrondies"]
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31034,7 +31322,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
         "calcul_apl_locatif.bénéficiaire_aide_adulte_ou_enfant_handicapés"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31064,7 +31352,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.date_courante"]
-      (embed_date)
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31093,7 +31381,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_nombre_personnes_a_charge_: integer = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
-        "calcul_apl_locatif.nombre_personnes_à_charge"] (embed_integer)
+        "calcul_apl_locatif.nombre_personnes_à_charge"] {io_input=OnlyInput;
+      io_output=false} (embed_integer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31123,6 +31412,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
         "calcul_apl_locatif.situation_familiale_calcul_apl"]
+      {io_input=OnlyInput; io_output=false}
       (embed_situation_familiale_calcul_a_p_l)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31152,7 +31442,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_zone_: ZoneDHabitation.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.zone"]
-      (embed_zone_d_habitation)
+      {io_input=OnlyInput; io_output=false} (embed_zone_d_habitation)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31181,7 +31471,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_logement_est_chambre_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
-        "calcul_apl_locatif.logement_est_chambre"] (embed_bool)
+        "calcul_apl_locatif.logement_est_chambre"] {io_input=OnlyInput;
+      io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31211,7 +31502,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
         "calcul_apl_locatif.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31242,6 +31533,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_type_aide_: TypeAidesPersonnelleLogement.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.type_aide"]
+      {io_input=OnlyInput; io_output=false}
       (embed_type_aides_personnelle_logement)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31271,7 +31563,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_colocation_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.colocation"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31300,7 +31592,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_reduction_loyer_solidarite_: money = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
-        "calcul_apl_locatif.réduction_loyer_solidarité"] (embed_money)
+        "calcul_apl_locatif.réduction_loyer_solidarité"]
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31329,7 +31622,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_logement_meuble_d842_2_: bool = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif";
-        "calcul_apl_locatif.logement_meublé_d842_2"] (embed_bool)
+        "calcul_apl_locatif.logement_meublé_d842_2"] {io_input=OnlyInput;
+      io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31358,7 +31652,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
   let calcul_apl_locatif_dot_residence_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculAllocationLogementLocatif"; "calcul_apl_locatif.résidence"]
-      (embed_collectivite)
+      {io_input=OnlyInput; io_output=false} (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -31428,7 +31722,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
     money -> money = result_.CalculAidePersonnaliseeLogementLocatif.traitement_aide_finale in
   let participation_personnelle_: money = (log_variable_definition
     ["CalculAllocationLogementLocatif"; "participation_personnelle"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31449,7 +31743,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Prologue : aides au logement"]})))) in
   let taux_composition_familiale_: decimal = (log_variable_definition
     ["CalculAllocationLogementLocatif"; "taux_composition_familiale"]
-    (embed_decimal) (
+    {io_input=NoInput; io_output=true} (embed_decimal) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31470,7 +31764,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Prologue : aides au logement"]})))) in
   let participation_minimale_: money = (log_variable_definition
     ["CalculAllocationLogementLocatif"; "participation_minimale"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31491,7 +31785,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Prologue : aides au logement"]})))) in
   let plafond_loyer_d823_16_2_: money = (log_variable_definition
     ["CalculAllocationLogementLocatif"; "plafond_loyer_d823_16_2"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31512,7 +31806,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Prologue : aides au logement"]})))) in
   let montant_forfaitaire_charges_d823_16_: money = (log_variable_definition
     ["CalculAllocationLogementLocatif";
-      "montant_forfaitaire_charges_d823_16"] (embed_money) (
+      "montant_forfaitaire_charges_d823_16"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31534,7 +31829,7 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_: money -> money = (log_variable_definition
     ["CalculAllocationLogementLocatif"; "traitement_aide_finale"]
-    (unembeddable)
+    {io_input=NoInput; io_output=true} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -31580,14 +31875,16 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                ((log_variable_definition
                ["CalculAidePersonnaliséeLogementLocatif";
                  "traitement_aide_finale_montant_minimal"; "output"]
-               (embed_money) ((log_begin_call
+               {io_input=NoInput; io_output=true} (embed_money)
+               ((log_begin_call
                ["CalculAidePersonnaliséeLogementLocatif";
                  "traitement_aide_finale_montant_minimal"]
                calcul_apl_locatif_dot_traitement_aide_finale_montant_minimal_)
                ((log_variable_definition
                ["CalculAidePersonnaliséeLogementLocatif";
                  "traitement_aide_finale_montant_minimal"; "input0"]
-               (embed_money) aide_finale_))))))))
+               {io_input=OnlyInput; io_output=false} (embed_money)
+               aide_finale_))))))))
        with
        EmptyError -> (raise (NoValueProvided
          {filename = "examples/aides_logement/prologue.catala_fr";
@@ -31596,8 +31893,8 @@ let calcul_allocation_logement_locatif (calcul_allocation_logement_locatif_in: C
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
-    ["CalculAllocationLogementLocatif"; "aide_finale_formule"] (embed_money)
-    (
+    ["CalculAllocationLogementLocatif"; "aide_finale_formule"]
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31677,7 +31974,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
   let residence_: Collectivite.t = calcul_aide_personnalisee_logement_in.CalculAidePersonnaliseeLogementIn.residence_in in
   let categorie_calcul_apl_: CategorieCalculAPL.t = (log_variable_definition
     ["CalculAidePersonnaliséeLogement"; "catégorie_calcul_apl"]
-    (embed_categorie_calcul_a_p_l) (
+    {io_input=NoInput; io_output=false} (embed_categorie_calcul_a_p_l) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31716,7 +32013,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                        "Prologue : aides au logement"]})))) in
   let ressources_menage_avec_arrondi_: money = (log_variable_definition
     ["CalculAidePersonnaliséeLogement"; "ressources_ménage_avec_arrondi"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -31745,6 +32042,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                        "Prologue : aides au logement"]})))) in
   let situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = (log_variable_definition
     ["CalculAidePersonnaliséeLogement"; "situation_familiale_calcul_apl"]
+    {io_input=NoInput; io_output=false}
     (embed_situation_familiale_calcul_a_p_l) (
     try
       (handle_default
@@ -31782,6 +32080,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                        "Prologue : aides au logement"]})))) in
   let sous_calcul_traitement_: TraitementFormuleAideFinale.t = (log_variable_definition
     ["CalculAidePersonnaliséeLogement"; "sous_calcul_traitement"]
+    {io_input=NoInput; io_output=false}
     (embed_traitement_formule_aide_finale) (
     try
       (handle_default
@@ -31810,7 +32109,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                       calcul_aide_personnalisee_logement_locatif)
                       ((log_variable_definition
                       ["CalculAidePersonnaliséeLogementLocatif"; "direct";
-                        "input"]
+                        "input"] {io_input=OnlyInput; io_output=false}
                       (embed_calcul_aide_personnalisee_logement_locatif_in)
                       ({CalculAidePersonnaliseeLogementLocatifIn.loyer_principal_base_in =
                           (try (location_.Location.loyer_principal) with
@@ -32035,6 +32334,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                ((log_variable_definition
                                ["CalculAidePersonnaliséeLogementLocatif";
                                  "traitement_aide_finale"; "output"]
+                               {io_input=NoInput; io_output=true}
                                (embed_money) ((log_begin_call
                                ["CalculAidePersonnaliséeLogementLocatif";
                                  "traitement_aide_finale"]
@@ -32042,13 +32342,14 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                ((log_variable_definition
                                ["CalculAidePersonnaliséeLogementLocatif";
                                  "traitement_aide_finale"; "input0"]
+                               {io_input=OnlyInput; io_output=false}
                                (embed_money) param0_)))))))})
                    in
                    ((log_end_call
                    ["CalculAidePersonnaliséeLogementLocatif"; "direct"]
                    ((log_variable_definition
                    ["CalculAidePersonnaliséeLogementLocatif"; "direct";
-                     "output"]
+                     "output"] {io_input=NoInput; io_output=true}
                    (embed_calcul_aide_personnalisee_logement_locatif)
                    ( if
                       ((log_decision_taken
@@ -32079,7 +32380,8 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                       calcul_aide_personnalisee_logement_accession_propriete)
                       ((log_variable_definition
                       ["CalculAidePersonnaliséeLogementAccessionPropriété";
-                        "direct"; "input"]
+                        "direct"; "input"] {io_input=OnlyInput;
+                      io_output=false}
                       (embed_calcul_aide_personnalisee_logement_accession_propriete_in)
                       ({CalculAidePersonnaliseeLogementAccessionProprieteIn.mensualite_principale_in =
                           (
@@ -32319,6 +32621,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                ((log_variable_definition
                                ["CalculAidePersonnaliséeLogementAccessionPropriété";
                                  "traitement_aide_finale"; "output"]
+                               {io_input=NoInput; io_output=true}
                                (embed_money) ((log_begin_call
                                ["CalculAidePersonnaliséeLogementAccessionPropriété";
                                  "traitement_aide_finale"]
@@ -32326,13 +32629,14 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                ((log_variable_definition
                                ["CalculAidePersonnaliséeLogementAccessionPropriété";
                                  "traitement_aide_finale"; "input0"]
+                               {io_input=OnlyInput; io_output=false}
                                (embed_money) param0_)))))))})
                    in
                    ((log_end_call
                    ["CalculAidePersonnaliséeLogementAccessionPropriété";
                      "direct"] ((log_variable_definition
                    ["CalculAidePersonnaliséeLogementAccessionPropriété";
-                     "direct"; "output"]
+                     "direct"; "output"] {io_input=NoInput; io_output=true}
                    (embed_calcul_aide_personnalisee_logement_accession_propriete)
                    ( if
                       ((log_decision_taken
@@ -32361,7 +32665,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                       calcul_aide_personnalisee_logement_foyer)
                       ((log_variable_definition
                       ["CalculAidePersonnaliséeLogementFoyer"; "direct";
-                        "input"]
+                        "input"] {io_input=OnlyInput; io_output=false}
                       (embed_calcul_aide_personnalisee_logement_foyer_in)
                       ({CalculAidePersonnaliseeLogementFoyerIn.residence_in =
                           (try residence_ with
@@ -32534,6 +32838,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                ((log_variable_definition
                                ["CalculAidePersonnaliséeLogementFoyer";
                                  "traitement_aide_finale"; "output"]
+                               {io_input=NoInput; io_output=true}
                                (embed_money) ((log_begin_call
                                ["CalculAidePersonnaliséeLogementFoyer";
                                  "traitement_aide_finale"]
@@ -32541,13 +32846,14 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                                ((log_variable_definition
                                ["CalculAidePersonnaliséeLogementFoyer";
                                  "traitement_aide_finale"; "input0"]
+                               {io_input=OnlyInput; io_output=false}
                                (embed_money) param0_)))))))})
                    in
                    ((log_end_call
                    ["CalculAidePersonnaliséeLogementFoyer"; "direct"]
                    ((log_variable_definition
                    ["CalculAidePersonnaliséeLogementFoyer"; "direct";
-                     "output"]
+                     "output"] {io_input=NoInput; io_output=true}
                    (embed_calcul_aide_personnalisee_logement_foyer)
                    ( if
                       ((log_decision_taken
@@ -32577,7 +32883,7 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_: money -> money = (log_variable_definition
     ["CalculAidePersonnaliséeLogement"; "traitement_aide_finale"]
-    (unembeddable)
+    {io_input=NoInput; io_output=true} (unembeddable)
     (fun (arg_: money) -> 
        try
          (handle_default
@@ -32607,8 +32913,8 @@ let calcul_aide_personnalisee_logement (calcul_aide_personnalisee_logement_in: C
                           "Déclarations des champs d'application";
                           "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
-    ["CalculAidePersonnaliséeLogement"; "aide_finale_formule"] (embed_money)
-    (
+    ["CalculAidePersonnaliséeLogement"; "aide_finale_formule"]
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -32647,7 +32953,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
   let depenses_justifiees_reellement_engagees_: money = eligibilite_prime_de_demenagement_in.EligibilitePrimeDeDemenagementIn.depenses_justifiees_reellement_engagees_in in
   let delai_apres_emmenagement_l823_8_2_: duration = (log_variable_definition
     ["ÉligibilitéPrimeDeDéménagement";
-      "délai_après_emménagement_l823_8_2"] (embed_duration) (
+      "délai_après_emménagement_l823_8_2"] {io_input=NoInput;
+    io_output=false} (embed_duration) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -32672,7 +32979,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                        "Prologue : aides au logement"]})))) in
   let condition_rang_enfant_: bool = (log_variable_definition
     ["ÉligibilitéPrimeDeDéménagement"; "condition_rang_enfant"]
-    (embed_bool) (
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -32742,7 +33049,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
   let base_mensuelle_allocations_familiales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["ÉligibilitéPrimeDeDéménagement";
-        "base_mensuelle_allocations_familiales.date_courante"] (embed_date)
+        "base_mensuelle_allocations_familiales.date_courante"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -32774,7 +33082,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
   let eligibilite_apl_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["ÉligibilitéPrimeDeDéménagement"; "éligibilité_apl.ménage"]
-      (embed_menage)
+      {io_input=OnlyInput; io_output=false} (embed_menage)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -32795,7 +33103,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
   let eligibilite_apl_dot_demandeur_: Demandeur.t = 
     try ((log_variable_definition
       ["ÉligibilitéPrimeDeDéménagement"; "éligibilité_apl.demandeur"]
-      (embed_demandeur)
+      {io_input=OnlyInput; io_output=false} (embed_demandeur)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -32816,7 +33124,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
   let eligibilite_apl_dot_date_courante_: date = 
     try ((log_variable_definition
       ["ÉligibilitéPrimeDeDéménagement";
-        "éligibilité_apl.date_courante"] (embed_date)
+        "éligibilité_apl.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -32839,17 +33148,17 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
     fun (_: unit) -> (log_variable_definition
       ["ÉligibilitéPrimeDeDéménagement";
         "éligibilité_apl.condition_logement_résidence_principale"]
-      (embed_bool) (raise EmptyError)) in
+      {io_input=Reentrant; io_output=false} (embed_bool) (raise EmptyError)) in
   let eligibilite_apl_dot_condition_logement_surface_: unit -> bool = 
     fun (_: unit) -> (log_variable_definition
       ["ÉligibilitéPrimeDeDéménagement";
-        "éligibilité_apl.condition_logement_surface"] (embed_bool) (raise
-      EmptyError)) in
+        "éligibilité_apl.condition_logement_surface"] {io_input=Reentrant;
+      io_output=false} (embed_bool) (raise EmptyError)) in
   let eligibilite_apl_dot_date_entree_vigueur_differee_cch_: unit -> date = 
     fun (_: unit) -> (log_variable_definition
       ["ÉligibilitéPrimeDeDéménagement";
-        "éligibilité_apl.date_entrée_vigueur_différée_cch"] (embed_date)
-      (raise EmptyError)) in
+        "éligibilité_apl.date_entrée_vigueur_différée_cch"]
+      {io_input=Reentrant; io_output=false} (embed_date) (raise EmptyError)) in
   let result_: EligibiliteAidesPersonnelleLogement.t = (log_end_call
     ["ÉligibilitéPrimeDeDéménagement"; "éligibilité_apl";
       "ÉligibilitéAidesPersonnelleLogement"] ((log_begin_call
@@ -32876,7 +33185,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
   let eligibilite_apl_dot_condition_2_r823_4_: PersonneACharge.t -> bool = result_.EligibiliteAidesPersonnelleLogement.condition_2_r823_4 in
   let condition_periode_demenagement_: bool = (log_variable_definition
     ["ÉligibilitéPrimeDeDéménagement";
-      "condition_période_déménagement"] (embed_bool) (
+      "condition_période_déménagement"] {io_input=NoInput;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -32931,7 +33241,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
   let plafond_d823_22_: money = (log_variable_definition
-    ["ÉligibilitéPrimeDeDéménagement"; "plafond_d823_22"] (embed_money) (
+    ["ÉligibilitéPrimeDeDéménagement"; "plafond_d823_22"]
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -32986,7 +33297,8 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
   let eligibilite_: bool = (log_variable_definition
-    ["ÉligibilitéPrimeDeDéménagement"; "éligibilité"] (embed_bool) (
+    ["ÉligibilitéPrimeDeDéménagement"; "éligibilité"]
+    {io_input=NoInput; io_output=true} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -33168,7 +33480,7 @@ let eligibilite_prime_de_demenagement (eligibilite_prime_de_demenagement_in: Eli
                        "Prologue : aides au logement"]})))) in
   let montant_prime_demenagement_: money = (log_variable_definition
     ["ÉligibilitéPrimeDeDéménagement"; "montant_prime_déménagement"]
-    (embed_money) (
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -33208,7 +33520,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
   let demandeur_: Demandeur.t = eligibilite_allocation_logement_in.EligibiliteAllocationLogementIn.demandeur_in in
   let beneficie_aide_personnalisee_logement_: bool = eligibilite_allocation_logement_in.EligibiliteAllocationLogementIn.beneficie_aide_personnalisee_logement_in in
   let duree_l841_1_3_: duration = (log_variable_definition
-    ["ÉligibilitéAllocationLogement"; "durée_l841_1_3"] (embed_duration) (
+    ["ÉligibilitéAllocationLogement"; "durée_l841_1_3"] {io_input=NoInput;
+    io_output=false} (embed_duration) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -33233,7 +33546,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
   let prestations_familiales_dot_date_courante_: date = 
     try ((log_variable_definition
       ["ÉligibilitéAllocationLogement";
-        "prestations_familiales.date_courante"] (embed_date)
+        "prestations_familiales.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -33254,7 +33568,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
   let prestations_familiales_dot_residence_: Collectivite.t = 
     try ((log_variable_definition
       ["ÉligibilitéAllocationLogement";
-        "prestations_familiales.résidence"] (embed_collectivite)
+        "prestations_familiales.résidence"] {io_input=OnlyInput;
+      io_output=false} (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -33277,6 +33592,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     (log_variable_definition
                                                                     ["ÉligibilitéAllocationLogement";
                                                                     "prestations_familiales.âge_l512_3_2"]
+                                                                    {io_input=Reentrant;
+                                                                    io_output=false}
                                                                     (embed_duration)
                                                                     (raise
                                                                     EmptyError)) in
@@ -33299,8 +33616,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                          bool = result_.EligibilitePrestationsFamiliales.conditions_hors_age in
   let prestations_familiales_dot_regime_outre_mer_l751_1_: bool = result_.EligibilitePrestationsFamiliales.regime_outre_mer_l751_1 in
   let l_841_1_6_applicable_: bool = (log_variable_definition
-    ["ÉligibilitéAllocationLogement"; "l_841_1_6_applicable"] (embed_bool)
-    (
+    ["ÉligibilitéAllocationLogement"; "l_841_1_6_applicable"]
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -33418,8 +33735,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
   let l_841_1_2_applicable_: bool = (log_variable_definition
-    ["ÉligibilitéAllocationLogement"; "l_841_1_2_applicable"] (embed_bool)
-    (
+    ["ÉligibilitéAllocationLogement"; "l_841_1_2_applicable"]
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -33537,8 +33854,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
   let l_841_1_1_applicable_: bool = (log_variable_definition
-    ["ÉligibilitéAllocationLogement"; "l_841_1_1_applicable"] (embed_bool)
-    (
+    ["ÉligibilitéAllocationLogement"; "l_841_1_1_applicable"]
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -33657,7 +33974,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                        "Prologue : aides au logement"]})))) in
   let condition_accession_propriete_: bool = (log_variable_definition
     ["ÉligibilitéAllocationLogement"; "condition_accession_propriété"]
-    (embed_bool) (
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -33920,7 +34237,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
   let eligibilite_commune_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["ÉligibilitéAllocationLogement"; "éligibilité_commune.ménage"]
-      (embed_menage)
+      {io_input=OnlyInput; io_output=false} (embed_menage)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -33941,7 +34258,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
   let eligibilite_commune_dot_demandeur_: Demandeur.t = 
     try ((log_variable_definition
       ["ÉligibilitéAllocationLogement"; "éligibilité_commune.demandeur"]
-      (embed_demandeur)
+      {io_input=OnlyInput; io_output=false} (embed_demandeur)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -33962,7 +34279,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
   let eligibilite_commune_dot_date_courante_: date = 
     try ((log_variable_definition
       ["ÉligibilitéAllocationLogement";
-        "éligibilité_commune.date_courante"] (embed_date)
+        "éligibilité_commune.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -33984,7 +34302,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
     unit -> bool = fun (_: unit) -> (log_variable_definition
                      ["ÉligibilitéAllocationLogement";
                        "éligibilité_commune.condition_logement_résidence_principale"]
-                     (embed_bool)
+                     {io_input=Reentrant; io_output=false} (embed_bool)
                      (handle_default
                         {filename = ""; start_line=0; start_column=1;
                           end_line=0; end_column=1; law_headings=[]} (
@@ -34014,7 +34332,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
   let eligibilite_commune_dot_condition_logement_surface_: unit -> bool = 
     fun (_: unit) -> (log_variable_definition
       ["ÉligibilitéAllocationLogement";
-        "éligibilité_commune.condition_logement_surface"] (embed_bool)
+        "éligibilité_commune.condition_logement_surface"]
+      {io_input=Reentrant; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -34042,7 +34361,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
     fun (_: unit) -> (log_variable_definition
       ["ÉligibilitéAllocationLogement";
         "éligibilité_commune.date_entrée_vigueur_différée_cch"]
-      (embed_date) (raise EmptyError)) in
+      {io_input=Reentrant; io_output=false} (embed_date) (raise EmptyError)) in
   let result_: EligibiliteAidesPersonnelleLogement.t = (log_end_call
     ["ÉligibilitéAllocationLogement"; "éligibilité_commune";
       "ÉligibilitéAidesPersonnelleLogement"] ((log_begin_call
@@ -34070,7 +34389,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
   let coefficents_enfants_garde_alternee_pris_en_compte_: decimal array = (log_variable_definition
     ["ÉligibilitéAllocationLogement";
       "coefficents_enfants_garde_alternée_pris_en_compte"]
-    (embed_array (embed_decimal)) (
+    {io_input=NoInput; io_output=true} (embed_array (embed_decimal)) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -34092,7 +34411,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                        "Prologue : aides au logement"]})))) in
   let nombre_personnes_a_charge_prises_en_compte_: integer = (log_variable_definition
     ["ÉligibilitéAllocationLogement";
-      "nombre_personnes_à_charge_prises_en_compte"] (embed_integer) (
+      "nombre_personnes_à_charge_prises_en_compte"] {io_input=NoInput;
+    io_output=true} (embed_integer) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -34114,8 +34434,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                        "Prologue : aides au logement"]})))) in
   let eligibilite_dispositions_communes_: TypeEligibiliteAllocationLogement.t = (log_variable_definition
     ["ÉligibilitéAllocationLogement";
-      "éligibilité_dispositions_communes"]
-    (embed_type_eligibilite_allocation_logement) (
+      "éligibilité_dispositions_communes"] {io_input=NoInput;
+    io_output=false} (embed_type_eligibilite_allocation_logement) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -34144,7 +34464,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                        "Prologue : aides au logement"]})))) in
   let eligibilite_allocation_logement_familiale_: bool = (log_variable_definition
     ["ÉligibilitéAllocationLogement";
-      "éligibilité_allocation_logement_familiale"] (embed_bool) (
+      "éligibilité_allocation_logement_familiale"] {io_input=NoInput;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -34351,6 +34672,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     ["ÉligibilitéPrestationsFamiliales";
                                                                     "droit_ouvert";
                                                                     "output"]
+                                                                    {io_input=NoInput;
+                                                                    io_output=true}
                                                                     (embed_bool)
                                                                     ((log_begin_call
                                                                     ["ÉligibilitéPrestationsFamiliales";
@@ -34360,6 +34683,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     ["ÉligibilitéPrestationsFamiliales";
                                                                     "droit_ouvert";
                                                                     "input0"]
+                                                                    {io_input=OnlyInput;
+                                                                    io_output=false}
                                                                     (embed_enfant_prestations_familiales)
                                                                     ({EnfantPrestationsFamiliales.identifiant =
                                                                     (enfant_.EnfantACharge.identifiant);
@@ -34494,6 +34819,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     ["ÉligibilitéPrestationsFamiliales";
                                                                     "droit_ouvert";
                                                                     "output"]
+                                                                    {io_input=NoInput;
+                                                                    io_output=true}
                                                                     (embed_bool)
                                                                     ((log_begin_call
                                                                     ["ÉligibilitéPrestationsFamiliales";
@@ -34503,6 +34830,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     ["ÉligibilitéPrestationsFamiliales";
                                                                     "droit_ouvert";
                                                                     "input0"]
+                                                                    {io_input=OnlyInput;
+                                                                    io_output=false}
                                                                     (embed_enfant_prestations_familiales)
                                                                     ({EnfantPrestationsFamiliales.identifiant =
                                                                     (enfant_.EnfantACharge.identifiant);
@@ -34633,6 +34962,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     ["ÉligibilitéAidesPersonnelleLogement";
                                                                     "condition_2_r823_4";
                                                                     "output"]
+                                                                    {io_input=NoInput;
+                                                                    io_output=true}
                                                                     (embed_bool)
                                                                     ((log_begin_call
                                                                     ["ÉligibilitéAidesPersonnelleLogement";
@@ -34642,6 +34973,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     ["ÉligibilitéAidesPersonnelleLogement";
                                                                     "condition_2_r823_4";
                                                                     "input0"]
+                                                                    {io_input=OnlyInput;
+                                                                    io_output=false}
                                                                     (embed_personne_a_charge)
                                                                     personne_a_charge_)))))))
                                                                   (menage_.Menage.personnes_a_charge)))
@@ -34680,6 +35013,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     ["ÉligibilitéPrestationsFamiliales";
                                                                     "droit_ouvert";
                                                                     "output"]
+                                                                    {io_input=NoInput;
+                                                                    io_output=true}
                                                                     (embed_bool)
                                                                     ((log_begin_call
                                                                     ["ÉligibilitéPrestationsFamiliales";
@@ -34689,6 +35024,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                                     ["ÉligibilitéPrestationsFamiliales";
                                                                     "droit_ouvert";
                                                                     "input0"]
+                                                                    {io_input=OnlyInput;
+                                                                    io_output=false}
                                                                     (embed_enfant_prestations_familiales)
                                                                     ({EnfantPrestationsFamiliales.identifiant =
                                                                     (enfant_.EnfantACharge.identifiant);
@@ -34753,6 +35090,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                             ["ÉligibilitéPrestationsFamiliales";
                                                               "droit_ouvert";
                                                               "output"]
+                                                            {io_input=NoInput;
+                                                            io_output=true}
                                                             (embed_bool)
                                                             ((log_begin_call
                                                             ["ÉligibilitéPrestationsFamiliales";
@@ -34762,6 +35101,8 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                                                             ["ÉligibilitéPrestationsFamiliales";
                                                               "droit_ouvert";
                                                               "input0"]
+                                                            {io_input=OnlyInput;
+                                                            io_output=false}
                                                             (embed_enfant_prestations_familiales)
                                                             ({EnfantPrestationsFamiliales.identifiant =
                                                                 (enfant_.EnfantACharge.identifiant);
@@ -34828,6 +35169,7 @@ let eligibilite_allocation_logement (eligibilite_allocation_logement_in: Eligibi
                        "Prologue : aides au logement"]})))) in
   let eligibilite_l841_2_: TypeEligibiliteAllocationLogement.t = (log_variable_definition
     ["ÉligibilitéAllocationLogement"; "éligibilité_l841_2"]
+    {io_input=NoInput; io_output=true}
     (embed_type_eligibilite_allocation_logement) (
     try
       (handle_default
@@ -35008,7 +35350,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
   let date_courante_: date = eligibilite_aide_personnalisee_logement_in.EligibiliteAidePersonnaliseeLogementIn.date_courante_in in
   let caracteristiques_pret_l831_1_1_: Pret.t -> bool = (log_variable_definition
     ["ÉligibilitéAidePersonnaliséeLogement";
-      "caractéristiques_prêt_l831_1_1"] (unembeddable)
+      "caractéristiques_prêt_l831_1_1"] {io_input=NoInput; io_output=false}
+    (unembeddable)
     (fun (pret_: Pret.t) -> 
        try
          (handle_default
@@ -35135,7 +35478,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                           "Prologue : aides au logement"]})))) in
   let caracteristiques_pret_l831_1_6_: Pret.t -> bool = (log_variable_definition
     ["ÉligibilitéAidePersonnaliséeLogement";
-      "caractéristiques_prêt_l831_1_6"] (unembeddable)
+      "caractéristiques_prêt_l831_1_6"] {io_input=NoInput; io_output=false}
+    (unembeddable)
     (fun (pret_: Pret.t) -> 
        try
          (handle_default
@@ -35159,7 +35503,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
   let eligibilite_commune_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["ÉligibilitéAidePersonnaliséeLogement";
-        "éligibilité_commune.ménage"] (embed_menage)
+        "éligibilité_commune.ménage"] {io_input=OnlyInput;
+      io_output=false} (embed_menage)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -35180,7 +35525,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
   let eligibilite_commune_dot_demandeur_: Demandeur.t = 
     try ((log_variable_definition
       ["ÉligibilitéAidePersonnaliséeLogement";
-        "éligibilité_commune.demandeur"] (embed_demandeur)
+        "éligibilité_commune.demandeur"] {io_input=OnlyInput;
+      io_output=false} (embed_demandeur)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -35201,7 +35547,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
   let eligibilite_commune_dot_date_courante_: date = 
     try ((log_variable_definition
       ["ÉligibilitéAidePersonnaliséeLogement";
-        "éligibilité_commune.date_courante"] (embed_date)
+        "éligibilité_commune.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -35223,17 +35570,18 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
     unit -> bool = fun (_: unit) -> (log_variable_definition
                      ["ÉligibilitéAidePersonnaliséeLogement";
                        "éligibilité_commune.condition_logement_résidence_principale"]
-                     (embed_bool) (raise EmptyError)) in
+                     {io_input=Reentrant; io_output=false} (embed_bool)
+                     (raise EmptyError)) in
   let eligibilite_commune_dot_condition_logement_surface_: unit -> bool = 
     fun (_: unit) -> (log_variable_definition
       ["ÉligibilitéAidePersonnaliséeLogement";
-        "éligibilité_commune.condition_logement_surface"] (embed_bool)
-      (raise EmptyError)) in
+        "éligibilité_commune.condition_logement_surface"]
+      {io_input=Reentrant; io_output=false} (embed_bool) (raise EmptyError)) in
   let eligibilite_commune_dot_date_entree_vigueur_differee_cch_: unit -> date = 
     fun (_: unit) -> (log_variable_definition
       ["ÉligibilitéAidePersonnaliséeLogement";
         "éligibilité_commune.date_entrée_vigueur_différée_cch"]
-      (embed_date)
+      {io_input=Reentrant; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -35281,7 +35629,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
   let eligibilite_commune_dot_condition_2_r823_4_: PersonneACharge.t -> bool = result_.EligibiliteAidesPersonnelleLogement.condition_2_r823_4 in
   let logement_situe_commune_desequilibre_l831_2_: bool = (log_variable_definition
     ["ÉligibilitéAidePersonnaliséeLogement";
-      "logement_situé_commune_déséquilibre_l831_2"] (embed_bool) (
+      "logement_situé_commune_déséquilibre_l831_2"] {io_input=NoInput;
+    io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -35322,7 +35671,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                        "Prologue : aides au logement"]})))) in
   let condition_logement_bailleur_: bool = (log_variable_definition
     ["ÉligibilitéAidePersonnaliséeLogement";
-      "condition_logement_bailleur"] (embed_bool) (
+      "condition_logement_bailleur"] {io_input=NoInput; io_output=false}
+    (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -35627,6 +35977,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                       ["ÉligibilitéAidePersonnaliséeLogement";
                                                         "caractéristiques_prêt_l831_1_6";
                                                         "output"]
+                                                      {io_input=NoInput;
+                                                      io_output=true}
                                                       (embed_bool)
                                                       ((log_begin_call
                                                       ["ÉligibilitéAidePersonnaliséeLogement";
@@ -35636,6 +35988,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                                       ["ÉligibilitéAidePersonnaliséeLogement";
                                                         "caractéristiques_prêt_l831_1_6";
                                                         "input0"]
+                                                      {io_input=OnlyInput;
+                                                      io_output=false}
                                                       (embed_pret)
                                                       (propriete_.Proprietaire.pret)))))))))))
                                               (fun (_: unit) -> true))|])
@@ -35694,7 +36048,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                       ((log_variable_definition
                                       ["ÉligibilitéAidePersonnaliséeLogement";
                                         "caractéristiques_prêt_l831_1_1";
-                                        "output"] (embed_bool)
+                                        "output"] {io_input=NoInput;
+                                      io_output=true} (embed_bool)
                                       ((log_begin_call
                                       ["ÉligibilitéAidePersonnaliséeLogement";
                                         "caractéristiques_prêt_l831_1_1"]
@@ -35702,7 +36057,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                                       ((log_variable_definition
                                       ["ÉligibilitéAidePersonnaliséeLogement";
                                         "caractéristiques_prêt_l831_1_1";
-                                        "input0"] (embed_pret)
+                                        "input0"] {io_input=OnlyInput;
+                                      io_output=false} (embed_pret)
                                       (propriete_.Proprietaire.pret))))))))
                                   | ModeOccupation.SousLocataire _ -> false
                                   | ModeOccupation.LocationAccession _ ->
@@ -35726,7 +36082,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
   let coefficents_enfants_garde_alternee_pris_en_compte_: decimal array = (log_variable_definition
     ["ÉligibilitéAidePersonnaliséeLogement";
       "coefficents_enfants_garde_alternée_pris_en_compte"]
-    (embed_array (embed_decimal)) (
+    {io_input=NoInput; io_output=true} (embed_array (embed_decimal)) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -35748,7 +36104,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                        "Prologue : aides au logement"]})))) in
   let nombre_personnes_a_charge_prises_en_compte_: integer = (log_variable_definition
     ["ÉligibilitéAidePersonnaliséeLogement";
-      "nombre_personnes_à_charge_prises_en_compte"] (embed_integer) (
+      "nombre_personnes_à_charge_prises_en_compte"] {io_input=NoInput;
+    io_output=true} (embed_integer) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -35770,7 +36127,7 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                        "Prologue : aides au logement"]})))) in
   let condition_logement_pret_: bool = (log_variable_definition
     ["ÉligibilitéAidePersonnaliséeLogement"; "condition_logement_prêt"]
-    (embed_bool) (
+    {io_input=NoInput; io_output=false} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -35895,8 +36252,8 @@ let eligibilite_aide_personnalisee_logement (eligibilite_aide_personnalisee_loge
                        "Déclarations des champs d'application";
                        "Prologue : aides au logement"]})))) in
   let eligibilite_: bool = (log_variable_definition
-    ["ÉligibilitéAidePersonnaliséeLogement"; "éligibilité"] (embed_bool)
-    (
+    ["ÉligibilitéAidePersonnaliséeLogement"; "éligibilité"]
+    {io_input=NoInput; io_output=true} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -35979,8 +36336,8 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
   let type_aide_: TypeAidesPersonnelleLogement.t = calcul_allocation_logement_in.CalculAllocationLogementIn.type_aide_in in
   let residence_: Collectivite.t = calcul_allocation_logement_in.CalculAllocationLogementIn.residence_in in
   let categorie_calcul_apl_: CategorieCalculAPL.t = (log_variable_definition
-    ["CalculAllocationLogement"; "catégorie_calcul_apl"]
-    (embed_categorie_calcul_a_p_l) (
+    ["CalculAllocationLogement"; "catégorie_calcul_apl"] {io_input=NoInput;
+    io_output=false} (embed_categorie_calcul_a_p_l) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -36018,7 +36375,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                        "Prologue : aides au logement"]})))) in
   let ressources_menage_avec_arrondi_: money = (log_variable_definition
     ["CalculAllocationLogement"; "ressources_ménage_avec_arrondi"]
-    (embed_money) (
+    {io_input=NoInput; io_output=false} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -36046,6 +36403,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                        "Prologue : aides au logement"]})))) in
   let situation_familiale_calcul_apl_: SituationFamilialeCalculAPL.t = (log_variable_definition
     ["CalculAllocationLogement"; "situation_familiale_calcul_apl"]
+    {io_input=NoInput; io_output=false}
     (embed_situation_familiale_calcul_a_p_l) (
     try
       (handle_default
@@ -36081,8 +36439,8 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
   let sous_calcul_traitement_: TraitementFormuleAideFinale.t = (log_variable_definition
-    ["CalculAllocationLogement"; "sous_calcul_traitement"]
-    (embed_traitement_formule_aide_finale) (
+    ["CalculAllocationLogement"; "sous_calcul_traitement"] {io_input=NoInput;
+    io_output=false} (embed_traitement_formule_aide_finale) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -36141,7 +36499,8 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                               calcul_allocation_logement_locatif)
                               ((log_variable_definition
                               ["CalculAllocationLogementLocatif"; "direct";
-                                "input"]
+                                "input"] {io_input=OnlyInput;
+                              io_output=false}
                               (embed_calcul_allocation_logement_locatif_in)
                               ({CalculAllocationLogementLocatifIn.loyer_principal_in =
                                   (
@@ -36368,6 +36727,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                        ((log_variable_definition
                                        ["CalculAllocationLogementLocatif";
                                          "traitement_aide_finale"; "output"]
+                                       {io_input=NoInput; io_output=true}
                                        (embed_money) ((log_begin_call
                                        ["CalculAllocationLogementLocatif";
                                          "traitement_aide_finale"]
@@ -36375,6 +36735,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                        ((log_variable_definition
                                        ["CalculAllocationLogementLocatif";
                                          "traitement_aide_finale"; "input0"]
+                                       {io_input=OnlyInput; io_output=false}
                                        (embed_money) param0_)))))));
                                   CalculAllocationLogementLocatif.montant_forfaitaire_charges_d823_16 =
                                     (result_.CalculAllocationLogementLocatif.montant_forfaitaire_charges_d823_16);
@@ -36391,7 +36752,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                            ["CalculAllocationLogementLocatif"; "direct"]
                            ((log_variable_definition
                            ["CalculAllocationLogementLocatif"; "direct";
-                             "output"]
+                             "output"] {io_input=NoInput; io_output=true}
                            (embed_calcul_allocation_logement_locatif)
                            ( if
                               ((log_decision_taken
@@ -36434,6 +36795,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                       calcul_allocation_logement_locatif)
                       ((log_variable_definition
                       ["CalculAllocationLogementLocatif"; "direct"; "input"]
+                      {io_input=OnlyInput; io_output=false}
                       (embed_calcul_allocation_logement_locatif_in)
                       ({CalculAllocationLogementLocatifIn.loyer_principal_in =
                           (try (location_.Location.loyer_principal) with
@@ -36664,6 +37026,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                ((log_variable_definition
                                ["CalculAllocationLogementLocatif";
                                  "traitement_aide_finale"; "output"]
+                               {io_input=NoInput; io_output=true}
                                (embed_money) ((log_begin_call
                                ["CalculAllocationLogementLocatif";
                                  "traitement_aide_finale"]
@@ -36671,6 +37034,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                ((log_variable_definition
                                ["CalculAllocationLogementLocatif";
                                  "traitement_aide_finale"; "input0"]
+                               {io_input=OnlyInput; io_output=false}
                                (embed_money) param0_)))))));
                           CalculAllocationLogementLocatif.montant_forfaitaire_charges_d823_16 =
                             (result_.CalculAllocationLogementLocatif.montant_forfaitaire_charges_d823_16);
@@ -36687,6 +37051,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                    ["CalculAllocationLogementLocatif"; "direct"]
                    ((log_variable_definition
                    ["CalculAllocationLogementLocatif"; "direct"; "output"]
+                   {io_input=NoInput; io_output=true}
                    (embed_calcul_allocation_logement_locatif)
                    ( if
                       ((log_decision_taken
@@ -36717,7 +37082,8 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                       calcul_allocation_logement_accession_propriete)
                       ((log_variable_definition
                       ["CalculAllocationLogementAccessionPropriété";
-                        "direct"; "input"]
+                        "direct"; "input"] {io_input=OnlyInput;
+                      io_output=false}
                       (embed_calcul_allocation_logement_accession_propriete_in)
                       ({CalculAllocationLogementAccessionProprieteIn.ressources_menage_arrondies_base_in =
                           (try ressources_menage_avec_arrondi_ with
@@ -36957,6 +37323,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                ((log_variable_definition
                                ["CalculAllocationLogementAccessionPropriété";
                                  "traitement_aide_finale"; "output"]
+                               {io_input=NoInput; io_output=true}
                                (embed_money) ((log_begin_call
                                ["CalculAllocationLogementAccessionPropriété";
                                  "traitement_aide_finale"]
@@ -36964,13 +37331,14 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                ((log_variable_definition
                                ["CalculAllocationLogementAccessionPropriété";
                                  "traitement_aide_finale"; "input0"]
+                               {io_input=OnlyInput; io_output=false}
                                (embed_money) param0_)))))))})
                    in
                    ((log_end_call
                    ["CalculAllocationLogementAccessionPropriété"; "direct"]
                    ((log_variable_definition
                    ["CalculAllocationLogementAccessionPropriété"; "direct";
-                     "output"]
+                     "output"] {io_input=NoInput; io_output=true}
                    (embed_calcul_allocation_logement_accession_propriete)
                    ( if
                       ((log_decision_taken
@@ -36998,6 +37366,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                       calcul_allocation_logement_foyer)
                       ((log_variable_definition
                       ["CalculAllocationLogementFoyer"; "direct"; "input"]
+                      {io_input=OnlyInput; io_output=false}
                       (embed_calcul_allocation_logement_foyer_in)
                       ({CalculAllocationLogementFoyerIn.type_logement_foyer_in =
                           (
@@ -37172,6 +37541,7 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                ((log_variable_definition
                                ["CalculAllocationLogementFoyer";
                                  "traitement_aide_finale"; "output"]
+                               {io_input=NoInput; io_output=true}
                                (embed_money) ((log_begin_call
                                ["CalculAllocationLogementFoyer";
                                  "traitement_aide_finale"]
@@ -37179,11 +37549,13 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                                ((log_variable_definition
                                ["CalculAllocationLogementFoyer";
                                  "traitement_aide_finale"; "input0"]
+                               {io_input=OnlyInput; io_output=false}
                                (embed_money) param0_)))))))})
                    in
                    ((log_end_call ["CalculAllocationLogementFoyer"; "direct"]
                    ((log_variable_definition
                    ["CalculAllocationLogementFoyer"; "direct"; "output"]
+                   {io_input=NoInput; io_output=true}
                    (embed_calcul_allocation_logement_foyer)
                    ( if
                       ((log_decision_taken
@@ -37211,7 +37583,8 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                        "Calcul du montant de l'allocation logement";
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_: money -> money = (log_variable_definition
-    ["CalculAllocationLogement"; "traitement_aide_finale"] (unembeddable)
+    ["CalculAllocationLogement"; "traitement_aide_finale"] {io_input=NoInput;
+    io_output=true} (unembeddable)
     (fun (arg_: money) -> 
        try
          (handle_default
@@ -37240,7 +37613,8 @@ let calcul_allocation_logement (calcul_allocation_logement_in: CalculAllocationL
                           "Calcul du montant de l'allocation logement";
                           "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
-    ["CalculAllocationLogement"; "aide_finale_formule"] (embed_money) (
+    ["CalculAllocationLogement"; "aide_finale_formule"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -37277,7 +37651,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let eligibilite_allocation_logement_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
-        "éligibilité_allocation_logement.date_courante"] (embed_date)
+        "éligibilité_allocation_logement.date_courante"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37298,7 +37673,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let eligibilite_allocation_logement_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
-        "éligibilité_allocation_logement.ménage"] (embed_menage)
+        "éligibilité_allocation_logement.ménage"] {io_input=OnlyInput;
+      io_output=false} (embed_menage)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37319,7 +37695,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let eligibilite_allocation_logement_dot_demandeur_: Demandeur.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
-        "éligibilité_allocation_logement.demandeur"] (embed_demandeur)
+        "éligibilité_allocation_logement.demandeur"] {io_input=OnlyInput;
+      io_output=false} (embed_demandeur)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37341,7 +37718,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "éligibilité_allocation_logement.bénéficie_aide_personnalisée_logement"]
-      (embed_bool)
+      {io_input=OnlyInput; io_output=false} (embed_bool)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37384,7 +37761,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let eligibilite_aide_personnalisee_logement_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
-        "éligibilité_aide_personnalisée_logement.ménage"] (embed_menage)
+        "éligibilité_aide_personnalisée_logement.ménage"]
+      {io_input=OnlyInput; io_output=false} (embed_menage)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37406,7 +37784,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "éligibilité_aide_personnalisée_logement.demandeur"]
-      (embed_demandeur)
+      {io_input=OnlyInput; io_output=false} (embed_demandeur)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37428,7 +37806,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "éligibilité_aide_personnalisée_logement.date_courante"]
-      (embed_date)
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37468,7 +37846,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let calcul_allocation_logement_dot_mode_occupation_: ModeOccupation.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
-        "calcul_allocation_logement.mode_occupation"] (embed_mode_occupation)
+        "calcul_allocation_logement.mode_occupation"] {io_input=OnlyInput;
+      io_output=false} (embed_mode_occupation)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37490,7 +37869,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "calcul_allocation_logement.ressources_ménage_sans_arrondi"]
-      (embed_money)
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37512,7 +37891,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "calcul_allocation_logement.situation_familiale"]
-      (embed_situation_familiale)
+      {io_input=OnlyInput; io_output=false} (embed_situation_familiale)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37534,7 +37913,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "calcul_allocation_logement.nombre_personnes_à_charge"]
-      (embed_integer)
+      {io_input=OnlyInput; io_output=false} (embed_integer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37556,7 +37935,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let calcul_allocation_logement_dot_zone_: ZoneDHabitation.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement"; "calcul_allocation_logement.zone"]
-      (embed_zone_d_habitation)
+      {io_input=OnlyInput; io_output=false} (embed_zone_d_habitation)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37577,7 +37956,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let calcul_allocation_logement_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
-        "calcul_allocation_logement.date_courante"] (embed_date)
+        "calcul_allocation_logement.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37598,6 +37978,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let calcul_allocation_logement_dot_type_aide_: TypeAidesPersonnelleLogement.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement"; "calcul_allocation_logement.type_aide"]
+      {io_input=OnlyInput; io_output=false}
       (embed_type_aides_personnelle_logement)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -37633,7 +38014,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let calcul_allocation_logement_dot_residence_: Collectivite.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement"; "calcul_allocation_logement.résidence"]
-      (embed_collectivite)
+      {io_input=OnlyInput; io_output=false} (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37678,7 +38059,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "calcul_aide_personnalisée_logement.mode_occupation"]
-      (embed_mode_occupation)
+      {io_input=OnlyInput; io_output=false} (embed_mode_occupation)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37699,8 +38080,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let calcul_aide_personnalisee_logement_dot_type_aide_: TypeAidesPersonnelleLogement.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
-        "calcul_aide_personnalisée_logement.type_aide"]
-      (embed_type_aides_personnelle_logement)
+        "calcul_aide_personnalisée_logement.type_aide"] {io_input=OnlyInput;
+      io_output=false} (embed_type_aides_personnelle_logement)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37729,7 +38110,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "calcul_aide_personnalisée_logement.ressources_ménage_sans_arrondi"]
-      (embed_money)
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37751,7 +38132,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "calcul_aide_personnalisée_logement.situation_familiale"]
-      (embed_situation_familiale)
+      {io_input=OnlyInput; io_output=false} (embed_situation_familiale)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37773,7 +38154,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "calcul_aide_personnalisée_logement.nombre_personnes_à_charge"]
-      (embed_integer)
+      {io_input=OnlyInput; io_output=false} (embed_integer)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37795,7 +38176,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let calcul_aide_personnalisee_logement_dot_zone_: ZoneDHabitation.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
-        "calcul_aide_personnalisée_logement.zone"] (embed_zone_d_habitation)
+        "calcul_aide_personnalisée_logement.zone"] {io_input=OnlyInput;
+      io_output=false} (embed_zone_d_habitation)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37816,7 +38198,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let calcul_aide_personnalisee_logement_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
-        "calcul_aide_personnalisée_logement.date_courante"] (embed_date)
+        "calcul_aide_personnalisée_logement.date_courante"]
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37838,7 +38221,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
     try ((log_variable_definition
       ["CalculetteAidesAuLogement";
         "calcul_aide_personnalisée_logement.résidence"]
-      (embed_collectivite)
+      {io_input=OnlyInput; io_output=false} (embed_collectivite)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -37883,7 +38266,7 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
   let coefficents_enfants_garde_alternee_pris_en_compte_: decimal array = (log_variable_definition
     ["CalculetteAidesAuLogement";
       "coefficents_enfants_garde_alternée_pris_en_compte"]
-    (embed_array (embed_decimal)) (
+    {io_input=NoInput; io_output=true} (embed_array (embed_decimal)) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -37904,7 +38287,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                        "Calcul de l'aide au logement effective";
                        "Prologue : aides au logement"]})))) in
   let eligibilite_: bool = (log_variable_definition
-    ["CalculetteAidesAuLogement"; "éligibilité"] (embed_bool) (
+    ["CalculetteAidesAuLogement"; "éligibilité"] {io_input=NoInput;
+    io_output=true} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -37936,7 +38320,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                        "Calcul de l'aide au logement effective";
                        "Prologue : aides au logement"]})))) in
   let traitement_aide_finale_: money -> money = (log_variable_definition
-    ["CalculetteAidesAuLogement"; "traitement_aide_finale"] (unembeddable)
+    ["CalculetteAidesAuLogement"; "traitement_aide_finale"]
+    {io_input=NoInput; io_output=true} (unembeddable)
     (fun (aide_finale_: money) -> 
        try
          (handle_default
@@ -37958,26 +38343,28 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                   ["CalculAidePersonnaliséeLogement";
                     "traitement_aide_finale"] ((log_variable_definition
                   ["CalculAidePersonnaliséeLogement";
-                    "traitement_aide_finale"; "output"] (embed_money)
-                  ((log_begin_call
+                    "traitement_aide_finale"; "output"] {io_input=NoInput;
+                  io_output=true} (embed_money) ((log_begin_call
                   ["CalculAidePersonnaliséeLogement";
                     "traitement_aide_finale"]
                   calcul_aide_personnalisee_logement_dot_traitement_aide_finale_)
                   ((log_variable_definition
                   ["CalculAidePersonnaliséeLogement";
-                    "traitement_aide_finale"; "input0"] (embed_money)
-                  aide_finale_)))))))
+                    "traitement_aide_finale"; "input0"] {io_input=OnlyInput;
+                  io_output=false} (embed_money) aide_finale_)))))))
                in
                (let aide_finale_al_ : money = ((log_end_call
                   ["CalculAllocationLogement"; "traitement_aide_finale"]
                   ((log_variable_definition
                   ["CalculAllocationLogement"; "traitement_aide_finale";
-                    "output"] (embed_money) ((log_begin_call
+                    "output"] {io_input=NoInput; io_output=true}
+                  (embed_money) ((log_begin_call
                   ["CalculAllocationLogement"; "traitement_aide_finale"]
                   calcul_allocation_logement_dot_traitement_aide_finale_)
                   ((log_variable_definition
                   ["CalculAllocationLogement"; "traitement_aide_finale";
-                    "input0"] (embed_money) aide_finale_)))))))
+                    "input0"] {io_input=OnlyInput; io_output=false}
+                  (embed_money) aide_finale_)))))))
                in
                ( if (o_not eligibilite_) then aide_finale_ else
                   ( if
@@ -38006,7 +38393,8 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                           "Calcul de l'aide au logement effective";
                           "Prologue : aides au logement"]})))) in
   let aide_finale_formule_: money = (log_variable_definition
-    ["CalculetteAidesAuLogement"; "aide_finale_formule"] (embed_money) (
+    ["CalculetteAidesAuLogement"; "aide_finale_formule"] {io_input=NoInput;
+    io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -38041,25 +38429,29 @@ let calculette_aides_au_logement (calculette_aides_au_logement_in: CalculetteAid
                        ["CalculAidePersonnaliséeLogement";
                          "traitement_aide_finale"] ((log_variable_definition
                        ["CalculAidePersonnaliséeLogement";
-                         "traitement_aide_finale"; "output"] (embed_money)
+                         "traitement_aide_finale"; "output"]
+                       {io_input=NoInput; io_output=true} (embed_money)
                        ((log_begin_call
                        ["CalculAidePersonnaliséeLogement";
                          "traitement_aide_finale"]
                        calcul_aide_personnalisee_logement_dot_traitement_aide_finale_)
                        ((log_variable_definition
                        ["CalculAidePersonnaliséeLogement";
-                         "traitement_aide_finale"; "input0"] (embed_money)
+                         "traitement_aide_finale"; "input0"]
+                       {io_input=OnlyInput; io_output=false} (embed_money)
                        calcul_aide_personnalisee_logement_dot_aide_finale_formule_)))))))
                        ((log_end_call
                        ["CalculAllocationLogement"; "traitement_aide_finale"]
                        ((log_variable_definition
                        ["CalculAllocationLogement"; "traitement_aide_finale";
-                         "output"] (embed_money) ((log_begin_call
+                         "output"] {io_input=NoInput; io_output=true}
+                       (embed_money) ((log_begin_call
                        ["CalculAllocationLogement"; "traitement_aide_finale"]
                        calcul_allocation_logement_dot_traitement_aide_finale_)
                        ((log_variable_definition
                        ["CalculAllocationLogement"; "traitement_aide_finale";
-                         "input0"] (embed_money)
+                         "input0"] {io_input=OnlyInput; io_output=false}
+                       (embed_money)
                        calcul_allocation_logement_dot_aide_finale_formule_))))))))
                     then
                     calcul_aide_personnalisee_logement_dot_aide_finale_formule_
@@ -38091,7 +38483,8 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let ressources_menage_prises_en_compte_: money = calculette_aides_au_logement_garde_alternee_in.CalculetteAidesAuLogementGardeAlterneeIn.ressources_menage_prises_en_compte_in in
   let menage_sans_enfants_garde_alternee_: Menage.t = (log_variable_definition
     ["CalculetteAidesAuLogementGardeAlternée";
-      "ménage_sans_enfants_garde_alternée"] (embed_menage) (
+      "ménage_sans_enfants_garde_alternée"] {io_input=NoInput;
+    io_output=false} (embed_menage) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -38141,7 +38534,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let calculette_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogementGardeAlternée"; "calculette.ménage"]
-      (embed_menage)
+      {io_input=OnlyInput; io_output=false} (embed_menage)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -38162,7 +38555,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let calculette_dot_demandeur_: Demandeur.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogementGardeAlternée"; "calculette.demandeur"]
-      (embed_demandeur)
+      {io_input=OnlyInput; io_output=false} (embed_demandeur)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -38183,7 +38576,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let calculette_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogementGardeAlternée"; "calculette.date_courante"]
-      (embed_date)
+      {io_input=OnlyInput; io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -38204,7 +38597,8 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let calculette_dot_ressources_menage_prises_en_compte_: money = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogementGardeAlternée";
-        "calculette.ressources_ménage_prises_en_compte"] (embed_money)
+        "calculette.ressources_ménage_prises_en_compte"]
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -38241,7 +38635,8 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let calculette_sans_garde_alternee_dot_menage_: Menage.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogementGardeAlternée";
-        "calculette_sans_garde_alternée.ménage"] (embed_menage)
+        "calculette_sans_garde_alternée.ménage"] {io_input=OnlyInput;
+      io_output=false} (embed_menage)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -38262,7 +38657,8 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let calculette_sans_garde_alternee_dot_demandeur_: Demandeur.t = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogementGardeAlternée";
-        "calculette_sans_garde_alternée.demandeur"] (embed_demandeur)
+        "calculette_sans_garde_alternée.demandeur"] {io_input=OnlyInput;
+      io_output=false} (embed_demandeur)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -38283,7 +38679,8 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let calculette_sans_garde_alternee_dot_date_courante_: date = 
     try ((log_variable_definition
       ["CalculetteAidesAuLogementGardeAlternée";
-        "calculette_sans_garde_alternée.date_courante"] (embed_date)
+        "calculette_sans_garde_alternée.date_courante"] {io_input=OnlyInput;
+      io_output=false} (embed_date)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -38305,7 +38702,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
     try ((log_variable_definition
       ["CalculetteAidesAuLogementGardeAlternée";
         "calculette_sans_garde_alternée.ressources_ménage_prises_en_compte"]
-      (embed_money)
+      {io_input=OnlyInput; io_output=false} (embed_money)
       (handle_default
          {filename = ""; start_line=0; start_column=1;
            end_line=0; end_column=1; law_headings=[]} ([||])
@@ -38345,8 +38742,8 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let calculette_sans_garde_alternee_dot_coefficents_enfants_garde_alternee_pris_en_compte_: 
     decimal array = result_.CalculetteAidesAuLogement.coefficents_enfants_garde_alternee_pris_en_compte in
   let eligibilite_: bool = (log_variable_definition
-    ["CalculetteAidesAuLogementGardeAlternée"; "éligibilité"] (embed_bool)
-    (
+    ["CalculetteAidesAuLogementGardeAlternée"; "éligibilité"]
+    {io_input=NoInput; io_output=true} (embed_bool) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -38368,7 +38765,7 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
   let coefficents_enfants_garde_alternee_pris_en_compte_: decimal array = (log_variable_definition
     ["CalculetteAidesAuLogementGardeAlternée";
       "coefficents_enfants_garde_alternée_pris_en_compte"]
-    (embed_array (embed_decimal)) (
+    {io_input=NoInput; io_output=false} (embed_array (embed_decimal)) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -38389,8 +38786,8 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
                        "Calcul de l'aide au logement effective";
                        "Prologue : aides au logement"]})))) in
   let aide_finale_: money = (log_variable_definition
-    ["CalculetteAidesAuLogementGardeAlternée"; "aide_finale"] (embed_money)
-    (
+    ["CalculetteAidesAuLogementGardeAlternée"; "aide_finale"]
+    {io_input=NoInput; io_output=true} (embed_money) (
     try
       (handle_default
          {filename = ""; start_line=0; start_column=1;
@@ -38404,11 +38801,11 @@ let calculette_aides_au_logement_garde_alternee (calculette_aides_au_logement_ga
             ["CalculetteAidesAuLogement"; "traitement_aide_finale"]
             ((log_variable_definition
             ["CalculetteAidesAuLogement"; "traitement_aide_finale"; "output"]
-            (embed_money) ((log_begin_call
+            {io_input=NoInput; io_output=true} (embed_money) ((log_begin_call
             ["CalculetteAidesAuLogement"; "traitement_aide_finale"]
             calculette_dot_traitement_aide_finale_) ((log_variable_definition
             ["CalculetteAidesAuLogement"; "traitement_aide_finale"; "input0"]
-            (embed_money)
+            {io_input=OnlyInput; io_output=false} (embed_money)
             (o_add_mon_mon
                calculette_sans_garde_alternee_dot_aide_finale_formule_
                ( if

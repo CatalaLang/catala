@@ -3798,9 +3798,9 @@ def smic(smic_in:SmicIn):
             return False
         def temp_brut_horaire_2(_:Unit):
             def temp_brut_horaire_3(_:Unit):
-                return money_of_cents_string("851")
+                return money_of_cents_string("870")
             def temp_brut_horaire_4(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2023,1,1)) and
+                return ((date_courante_6 >= date_of_numbers(2023,5,1)) and
                     (residence == Collectivite(Collectivite_Code.Mayotte,
                     Unit())))
             return handle_default(SourcePosition(filename="", start_line=0,
@@ -3809,9 +3809,9 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_3)
         def temp_brut_horaire_5(_:Unit):
             def temp_brut_horaire_6(_:Unit):
-                return money_of_cents_string("1127")
+                return money_of_cents_string("1152")
             def temp_brut_horaire_7(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2023,1,1)) and
+                return ((date_courante_6 >= date_of_numbers(2023,5,1)) and
                     ((residence == Collectivite(Collectivite_Code.Metropole,
                     Unit())) or ((residence ==
                     Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -3832,10 +3832,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_6)
         def temp_brut_horaire_8(_:Unit):
             def temp_brut_horaire_9(_:Unit):
-                return money_of_cents_string("835")
+                return money_of_cents_string("851")
             def temp_brut_horaire_10(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2022,8,1)) and
-                    ((date_courante_6 <= date_of_numbers(2022,12,31)) and
+                return ((date_courante_6 >= date_of_numbers(2023,1,1)) and
+                    ((date_courante_6 < date_of_numbers(2023,5,1)) and
                     (residence == Collectivite(Collectivite_Code.Mayotte,
                     Unit()))))
             return handle_default(SourcePosition(filename="", start_line=0,
@@ -3844,10 +3844,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_9)
         def temp_brut_horaire_11(_:Unit):
             def temp_brut_horaire_12(_:Unit):
-                return money_of_cents_string("1107")
+                return money_of_cents_string("1127")
             def temp_brut_horaire_13(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2022,8,1)) and
-                    ((date_courante_6 <= date_of_numbers(2022,12,31)) and
+                return ((date_courante_6 >= date_of_numbers(2023,1,1)) and
+                    ((date_courante_6 < date_of_numbers(2023,5,1)) and
                     ((residence == Collectivite(Collectivite_Code.Metropole,
                     Unit())) or ((residence ==
                     Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -3868,10 +3868,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_12)
         def temp_brut_horaire_14(_:Unit):
             def temp_brut_horaire_15(_:Unit):
-                return money_of_cents_string("819")
+                return money_of_cents_string("835")
             def temp_brut_horaire_16(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2022,5,1)) and
-                    ((date_courante_6 <= date_of_numbers(2022,7,31)) and
+                return ((date_courante_6 >= date_of_numbers(2022,8,1)) and
+                    ((date_courante_6 <= date_of_numbers(2022,12,31)) and
                     (residence == Collectivite(Collectivite_Code.Mayotte,
                     Unit()))))
             return handle_default(SourcePosition(filename="", start_line=0,
@@ -3880,10 +3880,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_15)
         def temp_brut_horaire_17(_:Unit):
             def temp_brut_horaire_18(_:Unit):
-                return money_of_cents_string("1085")
+                return money_of_cents_string("1107")
             def temp_brut_horaire_19(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2022,5,1)) and
-                    ((date_courante_6 <= date_of_numbers(2022,7,31)) and
+                return ((date_courante_6 >= date_of_numbers(2022,8,1)) and
+                    ((date_courante_6 <= date_of_numbers(2022,12,31)) and
                     ((residence == Collectivite(Collectivite_Code.Metropole,
                     Unit())) or ((residence ==
                     Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -3904,10 +3904,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_18)
         def temp_brut_horaire_20(_:Unit):
             def temp_brut_horaire_21(_:Unit):
-                return money_of_cents_string("798")
+                return money_of_cents_string("819")
             def temp_brut_horaire_22(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2022,1,1)) and
-                    ((date_courante_6 <= date_of_numbers(2022,4,30)) and
+                return ((date_courante_6 >= date_of_numbers(2022,5,1)) and
+                    ((date_courante_6 <= date_of_numbers(2022,7,31)) and
                     (residence == Collectivite(Collectivite_Code.Mayotte,
                     Unit()))))
             return handle_default(SourcePosition(filename="", start_line=0,
@@ -3916,10 +3916,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_21)
         def temp_brut_horaire_23(_:Unit):
             def temp_brut_horaire_24(_:Unit):
-                return money_of_cents_string("1057")
+                return money_of_cents_string("1085")
             def temp_brut_horaire_25(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2022,1,1)) and
-                    ((date_courante_6 <= date_of_numbers(2022,4,30)) and
+                return ((date_courante_6 >= date_of_numbers(2022,5,1)) and
+                    ((date_courante_6 <= date_of_numbers(2022,7,31)) and
                     ((residence == Collectivite(Collectivite_Code.Metropole,
                     Unit())) or ((residence ==
                     Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -3940,10 +3940,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_24)
         def temp_brut_horaire_26(_:Unit):
             def temp_brut_horaire_27(_:Unit):
-                return money_of_cents_string("774")
+                return money_of_cents_string("798")
             def temp_brut_horaire_28(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2021,1,1)) and
-                    ((date_courante_6 <= date_of_numbers(2021,12,31)) and
+                return ((date_courante_6 >= date_of_numbers(2022,1,1)) and
+                    ((date_courante_6 <= date_of_numbers(2022,4,30)) and
                     (residence == Collectivite(Collectivite_Code.Mayotte,
                     Unit()))))
             return handle_default(SourcePosition(filename="", start_line=0,
@@ -3952,10 +3952,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_27)
         def temp_brut_horaire_29(_:Unit):
             def temp_brut_horaire_30(_:Unit):
-                return money_of_cents_string("1025")
+                return money_of_cents_string("1057")
             def temp_brut_horaire_31(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2021,1,1)) and
-                    ((date_courante_6 <= date_of_numbers(2021,12,31)) and
+                return ((date_courante_6 >= date_of_numbers(2022,1,1)) and
+                    ((date_courante_6 <= date_of_numbers(2022,4,30)) and
                     ((residence == Collectivite(Collectivite_Code.Metropole,
                     Unit())) or ((residence ==
                     Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -3976,10 +3976,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_30)
         def temp_brut_horaire_32(_:Unit):
             def temp_brut_horaire_33(_:Unit):
-                return money_of_cents_string("766")
+                return money_of_cents_string("774")
             def temp_brut_horaire_34(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2020,1,1)) and
-                    ((date_courante_6 <= date_of_numbers(2020,12,31)) and
+                return ((date_courante_6 >= date_of_numbers(2021,1,1)) and
+                    ((date_courante_6 <= date_of_numbers(2021,12,31)) and
                     (residence == Collectivite(Collectivite_Code.Mayotte,
                     Unit()))))
             return handle_default(SourcePosition(filename="", start_line=0,
@@ -3988,10 +3988,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_33)
         def temp_brut_horaire_35(_:Unit):
             def temp_brut_horaire_36(_:Unit):
-                return money_of_cents_string("1015")
+                return money_of_cents_string("1025")
             def temp_brut_horaire_37(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2020,1,1)) and
-                    ((date_courante_6 <= date_of_numbers(2020,12,31)) and
+                return ((date_courante_6 >= date_of_numbers(2021,1,1)) and
+                    ((date_courante_6 <= date_of_numbers(2021,12,31)) and
                     ((residence == Collectivite(Collectivite_Code.Metropole,
                     Unit())) or ((residence ==
                     Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -4012,10 +4012,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_36)
         def temp_brut_horaire_38(_:Unit):
             def temp_brut_horaire_39(_:Unit):
-                return money_of_cents_string("757")
+                return money_of_cents_string("766")
             def temp_brut_horaire_40(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2019,1,1)) and
-                    ((date_courante_6 <= date_of_numbers(2019,12,31)) and
+                return ((date_courante_6 >= date_of_numbers(2020,1,1)) and
+                    ((date_courante_6 <= date_of_numbers(2020,12,31)) and
                     (residence == Collectivite(Collectivite_Code.Mayotte,
                     Unit()))))
             return handle_default(SourcePosition(filename="", start_line=0,
@@ -4024,10 +4024,10 @@ def smic(smic_in:SmicIn):
                                   temp_brut_horaire_39)
         def temp_brut_horaire_41(_:Unit):
             def temp_brut_horaire_42(_:Unit):
-                return money_of_cents_string("1003")
+                return money_of_cents_string("1015")
             def temp_brut_horaire_43(_:Unit):
-                return ((date_courante_6 >= date_of_numbers(2019,1,1)) and
-                    ((date_courante_6 <= date_of_numbers(2019,12,31)) and
+                return ((date_courante_6 >= date_of_numbers(2020,1,1)) and
+                    ((date_courante_6 <= date_of_numbers(2020,12,31)) and
                     ((residence == Collectivite(Collectivite_Code.Metropole,
                     Unit())) or ((residence ==
                     Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
@@ -4046,10 +4046,48 @@ def smic(smic_in:SmicIn):
                                   start_column=1, end_line=0, end_column=1,
                                   law_headings=[]), [], temp_brut_horaire_43,
                                   temp_brut_horaire_42)
-        temp_brut_horaire_44 = handle_default(SourcePosition(filename="",
+        def temp_brut_horaire_44(_:Unit):
+            def temp_brut_horaire_45(_:Unit):
+                return money_of_cents_string("757")
+            def temp_brut_horaire_46(_:Unit):
+                return ((date_courante_6 >= date_of_numbers(2019,1,1)) and
+                    ((date_courante_6 <= date_of_numbers(2019,12,31)) and
+                    (residence == Collectivite(Collectivite_Code.Mayotte,
+                    Unit()))))
+            return handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [], temp_brut_horaire_46,
+                                  temp_brut_horaire_45)
+        def temp_brut_horaire_47(_:Unit):
+            def temp_brut_horaire_48(_:Unit):
+                return money_of_cents_string("1003")
+            def temp_brut_horaire_49(_:Unit):
+                return ((date_courante_6 >= date_of_numbers(2019,1,1)) and
+                    ((date_courante_6 <= date_of_numbers(2019,12,31)) and
+                    ((residence == Collectivite(Collectivite_Code.Metropole,
+                    Unit())) or ((residence ==
+                    Collectivite(Collectivite_Code.Guadeloupe, Unit())) or
+                    ((residence == Collectivite(Collectivite_Code.Guyane,
+                    Unit())) or ((residence ==
+                    Collectivite(Collectivite_Code.Martinique, Unit())) or
+                    ((residence == Collectivite(Collectivite_Code.LaReunion,
+                    Unit())) or ((residence ==
+                    Collectivite(Collectivite_Code.SaintBarthelemy,
+                    Unit())) or ((residence ==
+                    Collectivite(Collectivite_Code.SaintMartin, Unit())) or
+                    (residence ==
+                    Collectivite(Collectivite_Code.SaintPierreEtMiquelon,
+                    Unit())))))))))))
+            return handle_default(SourcePosition(filename="", start_line=0,
+                                  start_column=1, end_line=0, end_column=1,
+                                  law_headings=[]), [], temp_brut_horaire_49,
+                                  temp_brut_horaire_48)
+        temp_brut_horaire_50 = handle_default(SourcePosition(filename="",
                                               start_line=0, start_column=1,
                                               end_line=0, end_column=1,
-                                              law_headings=[]), [temp_brut_horaire_41,
+                                              law_headings=[]), [temp_brut_horaire_47,
+                                              temp_brut_horaire_44,
+                                              temp_brut_horaire_41,
                                               temp_brut_horaire_38,
                                               temp_brut_horaire_35,
                                               temp_brut_horaire_32,
@@ -4066,13 +4104,13 @@ def smic(smic_in:SmicIn):
                                               temp_brut_horaire_1,
                                               temp_brut_horaire)
     except EmptyError:
-        temp_brut_horaire_44 = dead_value
+        temp_brut_horaire_50 = dead_value
         raise NoValueProvided(SourcePosition(filename="examples/aides_logement/../prestations_familiales/../smic/smic.catala_fr",
                                              start_line=11, start_column=12,
                                              end_line=11, end_column=24,
                                              law_headings=["Prologue",
                                              "Montant du salaire minimum de croissance"]))
-    brut_horaire = temp_brut_horaire_44
+    brut_horaire = temp_brut_horaire_50
     return Smic(brut_horaire = brut_horaire)
 
 def arrondi_centaine_superieure(ressources_menage:Money):
@@ -13501,22 +13539,22 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                         match_arg_393 = residence_5
                         if match_arg_393.code == Collectivite_Code.Guadeloupe:
                             _ = match_arg_393.value
-                            temp_abattement_forfaitaire_d823_17_49 = True
+                            temp_abattement_forfaitaire_d823_17_49 = False
                         elif match_arg_393.code == Collectivite_Code.Guyane:
                             _ = match_arg_393.value
                             temp_abattement_forfaitaire_d823_17_49 = False
                         elif match_arg_393.code == Collectivite_Code.Martinique:
                             _ = match_arg_393.value
-                            temp_abattement_forfaitaire_d823_17_49 = True
+                            temp_abattement_forfaitaire_d823_17_49 = False
                         elif match_arg_393.code == Collectivite_Code.LaReunion:
                             _ = match_arg_393.value
-                            temp_abattement_forfaitaire_d823_17_49 = True
+                            temp_abattement_forfaitaire_d823_17_49 = False
                         elif match_arg_393.code == Collectivite_Code.SaintBarthelemy:
                             _ = match_arg_393.value
-                            temp_abattement_forfaitaire_d823_17_49 = True
+                            temp_abattement_forfaitaire_d823_17_49 = False
                         elif match_arg_393.code == Collectivite_Code.SaintMartin:
                             _ = match_arg_393.value
-                            temp_abattement_forfaitaire_d823_17_49 = True
+                            temp_abattement_forfaitaire_d823_17_49 = False
                         elif match_arg_393.code == Collectivite_Code.Metropole:
                             _ = match_arg_393.value
                             temp_abattement_forfaitaire_d823_17_49 = False
@@ -13574,22 +13612,22 @@ def calcul_aide_personnalisee_logement_locatif(calcul_aide_personnalisee_logemen
                         match_arg_395 = residence_5
                         if match_arg_395.code == Collectivite_Code.Guadeloupe:
                             _ = match_arg_395.value
-                            temp_abattement_forfaitaire_d823_17_53 = True
+                            temp_abattement_forfaitaire_d823_17_53 = False
                         elif match_arg_395.code == Collectivite_Code.Guyane:
                             _ = match_arg_395.value
                             temp_abattement_forfaitaire_d823_17_53 = False
                         elif match_arg_395.code == Collectivite_Code.Martinique:
                             _ = match_arg_395.value
-                            temp_abattement_forfaitaire_d823_17_53 = True
+                            temp_abattement_forfaitaire_d823_17_53 = False
                         elif match_arg_395.code == Collectivite_Code.LaReunion:
                             _ = match_arg_395.value
-                            temp_abattement_forfaitaire_d823_17_53 = True
+                            temp_abattement_forfaitaire_d823_17_53 = False
                         elif match_arg_395.code == Collectivite_Code.SaintBarthelemy:
                             _ = match_arg_395.value
-                            temp_abattement_forfaitaire_d823_17_53 = True
+                            temp_abattement_forfaitaire_d823_17_53 = False
                         elif match_arg_395.code == Collectivite_Code.SaintMartin:
                             _ = match_arg_395.value
-                            temp_abattement_forfaitaire_d823_17_53 = True
+                            temp_abattement_forfaitaire_d823_17_53 = False
                         elif match_arg_395.code == Collectivite_Code.Metropole:
                             _ = match_arg_395.value
                             temp_abattement_forfaitaire_d823_17_53 = False
