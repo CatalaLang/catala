@@ -130,7 +130,7 @@ let lident :=
 | i = LIDENT ; {
   match Localisation.lex_builtin i with
   | Some _ ->
-      Errors.raise_spanned_error
+      Messages.raise_spanned_error
         (Pos.from_lpos $sloc)
         "Reserved builtin name"
   | None ->
@@ -502,8 +502,8 @@ let scope_item :=
     match Localisation.lex_builtin i with
     | Some Round ->
        DateRounding(v), Mark.get v
-    | _ -> 
-         Errors.raise_spanned_error
+    | _ ->
+         Messages.raise_spanned_error
            (Pos.from_lpos $loc(i))
            "Expected the form 'date round increasing' or 'date round decreasing'"
   }

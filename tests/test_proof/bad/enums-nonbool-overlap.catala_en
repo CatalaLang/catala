@@ -35,7 +35,7 @@ $ catala Proof --disable_counterexamples
 5 │    -- C content boolean
   │       ‾
   └─ Test
-[ERROR] [A.x] At least two exceptions overlap for this variable:
+[WARNING] [A.x] At least two exceptions overlap for this variable:
 ┌─⯈ tests/test_proof/bad/enums-nonbool-overlap.catala_en:13.11-13.12:
 └──┐
 13 │   context x content integer

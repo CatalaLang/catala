@@ -69,7 +69,7 @@ let translate_binop : Surface.Ast.binop -> Pos.t -> Ast.expr boxed =
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TRat]
       | S.KDate ->
-        Errors.raise_spanned_error pos
+        Messages.raise_spanned_error pos
           "This operator doesn't exist, dates can't be multiplied"
       | S.KDuration -> [TLit TDuration; TLit TInt])
   | S.Div k ->
@@ -80,7 +80,7 @@ let translate_binop : Surface.Ast.binop -> Pos.t -> Ast.expr boxed =
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TMoney]
       | S.KDate ->
-        Errors.raise_spanned_error pos
+        Messages.raise_spanned_error pos
           "This operator doesn't exist, dates can't be divided"
       | S.KDuration -> [TLit TDuration; TLit TDuration])
   | S.Lt k | S.Lte k | S.Gt k | S.Gte k ->
@@ -116,7 +116,7 @@ let translate_unop (op : Surface.Ast.unop) pos : Ast.expr boxed =
       | S.KDec -> TLit TRat
       | S.KMoney -> TLit TMoney
       | S.KDate ->
-        Errors.raise_spanned_error pos
+        Messages.raise_spanned_error pos
           "This operator doesn't exist, dates can't be negative"
       | S.KDuration -> TLit TDuration)
 
@@ -128,20 +128,20 @@ let disambiguate_constructor
     match constructor with
     | [c] -> Mark.remove c
     | _ ->
-      Errors.raise_spanned_error pos
+      Messages.raise_spanned_error pos
         "The deep pattern matching syntactic sugar is not yet supported"
   in
   let possible_c_uids =
     try IdentName.Map.find (Mark.remove constructor) ctxt.constructor_idmap
     with Not_found ->
-      Errors.raise_spanned_error (Mark.get constructor)
+      Messages.raise_spanned_error (Mark.get constructor)
         "The name of this constructor has not been defined before, maybe it is \
          a typo?"
   in
   match path with
   | [] ->
     if EnumName.Map.cardinal possible_c_uids > 1 then
-      Errors.raise_spanned_error (Mark.get constructor)
+      Messages.raise_spanned_error (Mark.get constructor)
         "This constructor name is ambiguous, it can belong to %a. Disambiguate \
          it by prefixing it with the enum name."
         (Format.pp_print_list
@@ -158,12 +158,13 @@ let disambiguate_constructor
         let c_uid = EnumName.Map.find e_uid possible_c_uids in
         e_uid, c_uid
       with Not_found ->
-        Errors.raise_spanned_error pos "Enum %s does not contain case %s"
+        Messages.raise_spanned_error pos "Enum %s does not contain case %s"
           (Mark.remove enum) (Mark.remove constructor)
     with Not_found ->
-      Errors.raise_spanned_error (Mark.get enum)
+      Messages.raise_spanned_error (Mark.get enum)
         "Enum %s has not been defined before" (Mark.remove enum))
-  | _ -> Errors.raise_spanned_error pos "Qualified paths are not supported yet"
+  | _ ->
+    Messages.raise_spanned_error pos "Qualified paths are not supported yet"
 
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100
@@ -178,7 +179,7 @@ let rec check_formula (op, pos_op) e =
       (* Xor is mathematically associative, but without a useful semantics ([a
          xor b xor c] is most likely an error since it's true for [a = b = c =
          true]) *)
-      Errors.raise_multispanned_error
+      Messages.raise_multispanned_error
         [None, pos_op; None, pos_op1]
         "Please add parentheses to explicit which of these operators should be \
          applied first";
@@ -280,21 +281,21 @@ let rec translate_expr
       | LNumber ((Int i, _), Some (Day, _)) ->
         LDuration (Runtime.duration_of_numbers 0 0 (int_of_string i))
       | LNumber ((Dec (_, _), _), Some ((Year | Month | Day), _)) ->
-        Errors.raise_spanned_error pos
+        Messages.raise_spanned_error pos
           "Impossible to specify decimal amounts of days, months or years"
       | LDate date ->
         if date.literal_date_month > 12 then
-          Errors.raise_spanned_error pos
+          Messages.raise_spanned_error pos
             "There is an error in this date: the month number is bigger than 12";
         if date.literal_date_day > 31 then
-          Errors.raise_spanned_error pos
+          Messages.raise_spanned_error pos
             "There is an error in this date: the day number is bigger than 31";
         LDate
           (try
              Runtime.date_of_numbers date.literal_date_year
                date.literal_date_month date.literal_date_day
            with Runtime.ImpossibleDate ->
-             Errors.raise_spanned_error pos
+             Messages.raise_spanned_error pos
                "There is an error in this date, it does not correspond to a \
                 correct calendar day")
     in
@@ -328,7 +329,7 @@ let rec translate_expr
                    no state but variable has states"
               | Some inside_def_state ->
                 if StateName.compare inside_def_state (List.hd states) = 0 then
-                  Errors.raise_spanned_error pos
+                  Messages.raise_spanned_error pos
                     "It is impossible to refer to the variable you are \
                      defining when defining its first state."
                 else
@@ -361,7 +362,7 @@ let rec translate_expr
           Name_resolution.raise_unknown_identifier
             "for a local, scope-wide or global variable" (x, pos))))
   | Ident (_path, _x) ->
-    Errors.raise_spanned_error pos "Qualified paths are not supported yet"
+    Messages.raise_spanned_error pos "Qualified paths are not supported yet"
   | Dotted (e, ((path, x), _ppos)) -> (
     match path, Mark.remove e with
     | [], Ident ([], (y, _))
@@ -389,17 +390,18 @@ let rec translate_expr
         | [c] -> (
           try Some (Name_resolution.get_struct ctxt c)
           with Not_found ->
-            Errors.raise_spanned_error (Mark.get c)
+            Messages.raise_spanned_error (Mark.get c)
               "Structure %s was not declared" (Mark.remove c))
         | _ ->
-          Errors.raise_spanned_error pos "Qualified paths are not supported yet"
+          Messages.raise_spanned_error pos
+            "Qualified paths are not supported yet"
       in
       Expr.edstructaccess e (Mark.remove x) str emark)
   | FunCall (f, args) ->
     Expr.eapp (rec_helper f) (List.map rec_helper args) emark
   | ScopeCall ((([], sc_name), _), fields) ->
     if scope = None then
-      Errors.raise_spanned_error pos
+      Messages.raise_spanned_error pos
         "Scope calls are not allowed outside of a scope";
     let called_scope = Name_resolution.get_scope ctxt sc_name in
     let scope_def = ScopeName.Map.find called_scope ctxt.scopes in
@@ -412,7 +414,7 @@ let rec translate_expr
             with
             | Some (ScopeVar v) -> v
             | Some (SubScope _) | None ->
-              Errors.raise_multispanned_error
+              Messages.raise_multispanned_error
                 [
                   None, Mark.get fld_id;
                   ( Some
@@ -427,7 +429,7 @@ let rec translate_expr
             (function
               | None -> Some (rec_helper e)
               | Some _ ->
-                Errors.raise_spanned_error (Mark.get fld_id)
+                Messages.raise_spanned_error (Mark.get fld_id)
                   "Duplicate definition of scope input variable '%a'"
                   ScopeVar.format_t var)
             acc)
@@ -435,7 +437,7 @@ let rec translate_expr
     in
     Expr.escopecall called_scope in_struct emark
   | ScopeCall (((_, _sc_name), _), _fields) ->
-    Errors.raise_spanned_error pos "Qualified paths are not supported yet"
+    Messages.raise_spanned_error pos "Qualified paths are not supported yet"
   | LetIn (x, e1, e2) ->
     let ctxt, v = Name_resolution.add_def_local_var ctxt (Mark.remove x) in
     let tau = TAny, Mark.get x in
@@ -451,7 +453,7 @@ let rec translate_expr
       match IdentName.Map.find_opt (Mark.remove s_name) ctxt.typedefs with
       | Some (Name_resolution.TStruct s_uid) -> s_uid
       | _ ->
-        Errors.raise_spanned_error (Mark.get s_name)
+        Messages.raise_spanned_error (Mark.get s_name)
           "This identifier should refer to a struct name"
     in
 
@@ -463,14 +465,14 @@ let rec translate_expr
               StructName.Map.find s_uid
                 (IdentName.Map.find (Mark.remove f_name) ctxt.field_idmap)
             with Not_found ->
-              Errors.raise_spanned_error (Mark.get f_name)
+              Messages.raise_spanned_error (Mark.get f_name)
                 "This identifier should refer to a field of struct %s"
                 (Mark.remove s_name)
           in
           (match StructField.Map.find_opt f_uid s_fields with
           | None -> ()
           | Some e_field ->
-            Errors.raise_multispanned_error
+            Messages.raise_multispanned_error
               [None, Mark.get f_e; None, Expr.pos e_field]
               "The field %a has been defined twice:" StructField.format_t f_uid);
           let f_e = translate_expr scope inside_definition_of ctxt f_e in
@@ -481,19 +483,19 @@ let rec translate_expr
     StructField.Map.iter
       (fun expected_f _ ->
         if not (StructField.Map.mem expected_f s_fields) then
-          Errors.raise_spanned_error pos
+          Messages.raise_spanned_error pos
             "Missing field for structure %a: \"%a\"" StructName.format_t s_uid
             StructField.format_t expected_f)
       expected_s_fields;
 
     Expr.estruct s_uid s_fields emark
   | StructLit (((_, _s_name), _), _fields) ->
-    Errors.raise_spanned_error pos "Qualified paths are not supported yet"
+    Messages.raise_spanned_error pos "Qualified paths are not supported yet"
   | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let possible_c_uids =
       try IdentName.Map.find constructor ctxt.constructor_idmap
       with Not_found ->
-        Errors.raise_spanned_error pos_constructor
+        Messages.raise_spanned_error pos_constructor
           "The name of this constructor has not been defined before, maybe it \
            is a typo?"
     in
@@ -505,7 +507,7 @@ let rec translate_expr
         (* No constructor name was specified *)
         EnumName.Map.cardinal possible_c_uids > 1
       then
-        Errors.raise_spanned_error pos_constructor
+        Messages.raise_spanned_error pos_constructor
           "This constructor name is ambiguous, it can belong to %a. \
            Desambiguate it by prefixing it with the enum name."
           (Format.pp_print_list
@@ -538,13 +540,13 @@ let rec translate_expr
             | None -> Expr.elit LUnit mark_constructor)
             c_uid e_uid emark
         with Not_found ->
-          Errors.raise_spanned_error pos "Enum %s does not contain case %s"
+          Messages.raise_spanned_error pos "Enum %s does not contain case %s"
             (Mark.remove enum) constructor
       with Not_found ->
-        Errors.raise_spanned_error (Mark.get enum)
+        Messages.raise_spanned_error (Mark.get enum)
           "Enum %s has not been defined before" (Mark.remove enum))
     | _ ->
-      Errors.raise_spanned_error pos "Qualified paths are not supported yet")
+      Messages.raise_spanned_error pos "Qualified paths are not supported yet")
   | MatchWith (e1, (cases, _cases_pos)) ->
     let e1 = translate_expr scope inside_definition_of ctxt e1 in
     let cases_d, e_uid =
@@ -556,7 +558,7 @@ let rec translate_expr
     (match snd (Mark.remove pattern) with
     | None -> ()
     | Some binding ->
-      Errors.format_spanned_warning (Mark.get binding)
+      Messages.emit_spanned_warning (Mark.get binding)
         "This binding will be ignored (remove it to suppress warning)");
     let enum_uid, c_uid =
       disambiguate_constructor ctxt
@@ -694,7 +696,7 @@ let rec translate_expr
       | S.Money -> LMoney (Runtime.money_of_cents_integer i0)
       | S.Duration -> LDuration (Runtime.duration_of_numbers 0 0 0)
       | t ->
-        Errors.raise_spanned_error pos
+        Messages.raise_spanned_error pos
           "It is impossible to sum values of type %a together"
           SurfacePrint.format_primitive_typ t
     in
@@ -793,7 +795,7 @@ and disambiguate_match_and_build_expression
         | Some e_uid ->
           if e_uid = e_uid' then e_uid
           else
-            Errors.raise_spanned_error
+            Messages.raise_spanned_error
               (Mark.get case.Surface.Ast.match_case_pattern)
               "This case matches a constructor of enumeration %a but previous \
                case were matching constructors of enumeration %a"
@@ -802,7 +804,7 @@ and disambiguate_match_and_build_expression
       (match EnumConstructor.Map.find_opt c_uid cases_d with
       | None -> ()
       | Some e_case ->
-        Errors.raise_multispanned_error
+        Messages.raise_multispanned_error
           [None, Mark.get case.match_case_expr; None, Expr.pos e_case]
           "The constructor %a has been matched twice:" EnumConstructor.format_t
           c_uid);
@@ -819,7 +821,7 @@ and disambiguate_match_and_build_expression
     | Surface.Ast.WildCard match_case_expr -> (
       let nb_cases = List.length cases in
       let raise_wildcard_not_last_case_err () =
-        Errors.raise_multispanned_error
+        Messages.raise_multispanned_error
           [
             Some "Not ending wildcard:", case_pos;
             ( Some "Next reachable case:",
@@ -830,7 +832,7 @@ and disambiguate_match_and_build_expression
       match e_uid with
       | None ->
         if 1 = nb_cases then
-          Errors.raise_spanned_error case_pos
+          Messages.raise_spanned_error case_pos
             "Couldn't infer the enumeration name from lonely wildcard \
              (wildcard cannot be used as single match case)"
         else raise_wildcard_not_last_case_err ()
@@ -844,7 +846,7 @@ and disambiguate_match_and_build_expression
                  | None -> Some c_uid)
         in
         if EnumConstructor.Map.is_empty missing_constructors then
-          Errors.format_spanned_warning case_pos
+          Messages.emit_spanned_warning case_pos
             "Unreachable match case, all constructors of the enumeration %a \
              are already specified"
             EnumName.format_t e_uid;
@@ -909,12 +911,12 @@ let rec arglist_eq_check pos_decl pos_def pdecl pdefs =
   match pdecl, pdefs with
   | [], [] -> ()
   | [], (arg, apos) :: _ ->
-    Errors.raise_multispanned_error
+    Messages.raise_multispanned_error
       [Some "Declared here:", pos_decl; Some "Extra argument:", apos]
       "This definition has an extra, undeclared argument '%a'" Print.lit_style
       arg
   | (arg, apos) :: _, [] ->
-    Errors.raise_multispanned_error
+    Messages.raise_multispanned_error
       [
         Some "Argument declared here:", apos;
         Some "Mismatching definition:", pos_def;
@@ -923,7 +925,7 @@ let rec arglist_eq_check pos_decl pos_def pdecl pdefs =
   | decl :: pdecl, def :: pdefs when Uid.MarkedString.equal decl def ->
     arglist_eq_check pos_decl pos_def pdecl pdefs
   | (decl_arg, decl_apos) :: _, (def_arg, def_apos) :: _ ->
-    Errors.raise_multispanned_error
+    Messages.raise_multispanned_error
       [
         Some "Argument declared here:", decl_apos; Some "Defined here:", def_apos;
       ]
@@ -942,14 +944,14 @@ let process_rule_parameters
   match declared_params, def.S.definition_parameter with
   | None, None -> ctxt, None
   | None, Some (_, pos) ->
-    Errors.raise_multispanned_error
+    Messages.raise_multispanned_error
       [
         Some "Declared here without arguments", decl_pos;
         Some "Unexpected arguments appearing here", pos;
       ]
       "Extra arguments in this definition of %a" Ast.ScopeDef.format_t decl_name
   | Some (_, pos), None ->
-    Errors.raise_multispanned_error
+    Messages.raise_multispanned_error
       [
         Some "Arguments declared here", pos;
         ( Some "Definition missing the arguments",
@@ -1049,7 +1051,7 @@ let process_def
           in
           ExceptionToLabel (label_id, Mark.get label_str)
         with Not_found ->
-          Errors.raise_spanned_error (Mark.get label_str)
+          Messages.raise_spanned_error (Mark.get label_str)
             "Unknown label for the scope variable %a: \"%s\""
             Ast.ScopeDef.format_t def_key (Mark.remove label_str))
     in
@@ -1159,7 +1161,7 @@ let process_scope_use_item
           scope.scope_options
       with
       | Some (_, old_pos) ->
-        Errors.raise_multispanned_error
+        Messages.raise_multispanned_error
           [None, old_pos; None, Mark.get item]
           "You cannot set multiple date rounding modes"
       | None ->
@@ -1212,10 +1214,10 @@ let check_unlabeled_exception
     | Surface.Ast.UnlabeledException -> (
       match scope_def_ctxt.default_exception_rulename with
       | None ->
-        Errors.raise_spanned_error (Mark.get item)
+        Messages.raise_spanned_error (Mark.get item)
           "This exception does not have a corresponding definition"
       | Some (Ambiguous pos) ->
-        Errors.raise_multispanned_error
+        Messages.raise_multispanned_error
           ([Some "Ambiguous exception", Mark.get item]
           @ List.map (fun p -> Some "Candidate definition", p) pos)
           "This exception can refer to several definitions. Try using labels \

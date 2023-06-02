@@ -147,29 +147,10 @@ val call_unstyled : (unit -> 'a) -> 'a
 (** [call_unstyled f] calls the function [f] with the [style_flag] set to false
     during the execution. *)
 
-val debug_marker : Format.formatter -> unit -> unit
-val error_marker : Format.formatter -> unit -> unit
-val warning_marker : Format.formatter -> unit -> unit
-val result_marker : Format.formatter -> unit -> unit
-val log_marker : Format.formatter -> unit -> unit
-
 (**{2 Printers}*)
-
-(** All the printers below print their argument after the correct marker *)
 
 val concat_with_line_depending_prefix_and_suffix :
   (int -> string) -> (int -> string) -> string list -> string
 
 val add_prefix_to_each_line : string -> (int -> string) -> string
 (** The int argument of the prefix corresponds to the line number, starting at 0 *)
-
-val debug_print : ('a, Format.formatter, unit) format -> 'a
-val debug_format : ('a, Format.formatter, unit) format -> 'a
-val error_print : ('a, Format.formatter, unit) format -> 'a
-val error_format : ('a, Format.formatter, unit) format -> 'a
-val warning_print : ('a, Format.formatter, unit) format -> 'a
-val warning_format : ('a, Format.formatter, unit) format -> 'a
-val result_print : ('a, Format.formatter, unit) format -> 'a
-val result_format : ('a, Format.formatter, unit) format -> 'a
-val log_print : ('a, Format.formatter, unit) format -> 'a
-val log_format : ('a, Format.formatter, unit) format -> 'a

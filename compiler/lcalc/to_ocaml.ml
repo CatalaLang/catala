@@ -23,7 +23,7 @@ let find_struct (s : StructName.t) (ctx : decl_ctx) : typ StructField.Map.t =
   try StructName.Map.find s ctx.ctx_structs
   with Not_found ->
     let s_name, pos = StructName.get_info s in
-    Errors.raise_spanned_error pos
+    Messages.raise_spanned_error pos
       "Internal Error: Structure %s was not found in the current environment."
       s_name
 
@@ -31,7 +31,7 @@ let find_enum (en : EnumName.t) (ctx : decl_ctx) : typ EnumConstructor.Map.t =
   try EnumName.Map.find en ctx.ctx_enums
   with Not_found ->
     let en_name, pos = EnumName.get_info en in
-    Errors.raise_spanned_error pos
+    Messages.raise_spanned_error pos
       "Internal Error: Enumeration %s was not found in the current environment."
       en_name
 

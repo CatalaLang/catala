@@ -22,7 +22,7 @@ $ catala Proof --disable_counterexamples
 6 │   context y content boolean
   │           ‾
   └─ Test
-[ERROR] [A.y] This variable might return an empty error:
+[WARNING] [A.y] This variable might return an empty error:
 ┌─⯈ tests/test_proof/bad/dates_get_year-empty.catala_en:6.11-6.12:
 └─┐
 6 │   context y content boolean

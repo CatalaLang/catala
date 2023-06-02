@@ -139,7 +139,7 @@ $ catala Proof --disable_counterexamples
    │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └┬ ProLaLa 2022 Super Cash Bonus
     └─ Amount
-[ERROR] [Amount.amount] This variable might return an empty error:
+[WARNING] [Amount.amount] This variable might return an empty error:
 ┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:60.11-60.17:
 └──┐
 60 │   context amount content integer
@@ -147,7 +147,7 @@ $ catala Proof --disable_counterexamples
    └┬ ProLaLa 2022 Super Cash Bonus
     └─ Amount
 Counterexample generation is disabled so none was generated.
-[ERROR] [Eligibility.is_eligible] This variable might return an empty error:
+[WARNING] [Eligibility.is_eligible] This variable might return an empty error:
 ┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:11.10-11.21:
 └──┐
 11 │   output is_eligible content boolean
@@ -155,7 +155,7 @@ Counterexample generation is disabled so none was generated.
    └┬ ProLaLa 2022 Super Cash Bonus
     └─ Eligibility
 Counterexample generation is disabled so none was generated.
-[ERROR] [Eligibility.is_eligible] At least two exceptions overlap for this variable:
+[WARNING] [Eligibility.is_eligible] At least two exceptions overlap for this variable:
 ┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:11.10-11.21:
 └──┐
 11 │   output is_eligible content boolean

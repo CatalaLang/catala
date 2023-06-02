@@ -60,7 +60,7 @@ let update_acc (lexbuf : lexbuf) : unit =
 
 (** Error-generating helper *)
 let raise_lexer_error (loc : Pos.t) (token : string) =
-  Errors.raise_spanned_error loc
+  Messages.raise_spanned_error loc
     "Parsing error after token \"%s\": what comes after is unknown" token
 
 (** Associative list matching each punctuation string part of the Catala syntax

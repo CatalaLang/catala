@@ -33,7 +33,7 @@ let detect_empty_definitions (p : program) : unit =
             | NoInput -> true
             | _ -> false
           then
-            Errors.format_spanned_warning
+            Messages.emit_spanned_warning
               (ScopeDef.get_position scope_def_key)
               "In scope %a, the variable %a is declared but never defined; did \
                you forget something?"
@@ -91,7 +91,7 @@ let detect_identical_rules (p : program) : unit =
           RuleExpressionsMap.iter
             (fun _ pos ->
               if List.length pos > 1 then
-                Errors.format_multispanned_warning pos
+                Messages.emit_multispanned_warning pos
                   "These %s have identical justifications and consequences; is \
                    it a mistake?"
                   (if scope_def.scope_def_is_condition then "rules"
@@ -121,7 +121,7 @@ let detect_unused_scope_vars (p : program) : unit =
           | ScopeDef.Var (v, _)
             when (not (ScopeVar.Set.mem v used_scope_vars))
                  && not (Mark.remove scope_def.scope_def_io.io_output) ->
-            Errors.format_spanned_warning
+            Messages.emit_spanned_warning
               (ScopeDef.get_position scope_def_key)
               "In scope %a, the variable %a is never used anywhere; maybe it's \
                unnecessary?"
@@ -178,7 +178,7 @@ let detect_unused_struct_fields (p : program) : unit =
                && not (StructField.Set.mem field scope_out_structs_fields))
              fields
       then
-        Errors.format_spanned_warning
+        Messages.emit_spanned_warning
           (snd (StructName.get_info s_name))
           "The structure %a is never used; maybe it's unnecessary?"
           (Cli.format_with_style [ANSITerminal.yellow])
@@ -190,7 +190,7 @@ let detect_unused_struct_fields (p : program) : unit =
               (not (StructField.Set.mem field struct_fields_used))
               && not (StructField.Set.mem field scope_out_structs_fields)
             then
-              Errors.format_spanned_warning
+              Messages.emit_spanned_warning
                 (snd (StructField.get_info field))
                 "The field %a of struct %a is never used; maybe it's \
                  unnecessary?"
@@ -234,7 +234,7 @@ let detect_unused_enum_constructors (p : program) : unit =
             not (EnumConstructor.Set.mem cons enum_constructors_used))
           constructors
       then
-        Errors.format_spanned_warning
+        Messages.emit_spanned_warning
           (snd (EnumName.get_info e_name))
           "The enumeration %a is never used; maybe it's unnecessary?"
           (Cli.format_with_style [ANSITerminal.yellow])
@@ -244,7 +244,7 @@ let detect_unused_enum_constructors (p : program) : unit =
           (fun constructor _ ->
             if not (EnumConstructor.Set.mem constructor enum_constructors_used)
             then
-              Errors.format_spanned_warning
+              Messages.emit_spanned_warning
                 (snd (EnumConstructor.get_info constructor))
                 "The constructor %a of enumeration %a is never used; maybe \
                  it's unnecessary?"

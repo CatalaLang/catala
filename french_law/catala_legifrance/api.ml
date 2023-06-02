@@ -48,7 +48,7 @@ let get_token_aux (client_id : string) (client_secret : string) :
 let get_token (client_id : string) (client_secret : string) : string Lwt.t =
   let rec retry count =
     if count = 0 then (
-      Cli.debug_format "Too many retries, giving up\n";
+      Messages.emit_debug "Too many retries, giving up\n";
       exit 1)
     else
       let* resp, body = get_token_aux client_id client_secret in
@@ -59,16 +59,16 @@ let get_token (client_id : string) (client_secret : string) : string Lwt.t =
           |> Yojson.Basic.Util.member "access_token"
           |> Yojson.Basic.Util.to_string
         in
-        Cli.debug_format "The LegiFrance API access token is %s" token;
+        Messages.emit_debug "The LegiFrance API access token is %s" token;
         Lwt.return token
       end
       else if Cohttp.Code.code_of_status resp = 400 then begin
-        Cli.debug_format "The API access request returned code 400%s\n"
+        Messages.emit_debug "The API access request returned code 400%s\n"
           (if count > 1 then ", retrying..." else "");
         retry (count - 1)
       end
       else begin
-        Cli.debug_format
+        Messages.emit_debug
           "The API access token request went wrong ; status is %s and the body \
            is\n\
            %s"
@@ -121,7 +121,7 @@ let run_request (request : unit -> (string * string) Lwt.t) :
     if resp = "200 OK" then
       try body |> Yojson.Basic.from_string with
       | Yojson.Basic.Util.Type_error (msg, obj) ->
-        Cli.error_print
+        Messages.raise_error
           "Error while parsing JSON answer from API: %s\n\
            Specific JSON:\n\
            %s\n\
@@ -129,8 +129,7 @@ let run_request (request : unit -> (string * string) Lwt.t) :
            %s"
           msg
           (Yojson.Basic.to_string obj)
-          body;
-        exit (-1)
+          body
       | _ -> raise (Failure "")
     else raise (Failure "")
   in
@@ -140,13 +139,12 @@ let run_request (request : unit -> (string * string) Lwt.t) :
     with Failure _ ->
       if n > 0 then (
         Unix.sleep 2;
-        Cli.debug_format "Retrying request...";
+        Messages.emit_debug "Retrying request...";
         try_n_times (n - 1))
-      else (
-        Cli.error_print
+      else
+        Messages.raise_error
           "The API request went wrong ; status is %s and the body is\n%s" resp
-          body;
-        exit (-1))
+          body
   in
   try_n_times 5
 
@@ -165,7 +163,7 @@ let parse_id (id : string) : article_id =
     else if Re.execp ceta_tex id then CETATEXT
     else if Re.execp jorf_rex id then JORFARTI
     else
-      Errors.raise_error
+      Messages.raise_error
         "LégiFrance ID \"%s\" does not correspond to an ID format recognized \
          by the LégiFrance API"
         id
@@ -174,7 +172,7 @@ let parse_id (id : string) : article_id =
 
 let retrieve_article (access_token : string) (obj : article_id) : article Lwt.t
     =
-  Cli.debug_format "Accessing article %s" obj.id;
+  Messages.emit_debug "Accessing article %s" obj.id;
   let* content =
     run_request
       (make_request access_token
@@ -191,7 +189,7 @@ let raise_article_parsing_error
     (json : Yojson.Basic.t)
     (msg : string)
     (obj : Yojson.Basic.t) =
-  Cli.error_print
+  Messages.raise_error
     "Error while manipulating JSON answer from API: %s\n\
      Specific JSON:\n\
      %s\n\
@@ -199,8 +197,7 @@ let raise_article_parsing_error
      %s"
     msg
     (Yojson.Basic.to_string obj)
-    (Yojson.Basic.to_string json);
-  exit 1
+    (Yojson.Basic.to_string json)
 
 let get_article_id (article : article) : string =
   try

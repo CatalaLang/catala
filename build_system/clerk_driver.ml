@@ -237,7 +237,7 @@ let [@ocamlformat "disable"] scan_for_inline_tests (file : string)
               1
               (String.sub file_str 0 pos)
           in
-          Errors.raise_error "Bad inline-test format at %s line %d" file line
+          Messages.raise_error "Bad inline-test format at %s line %d" file line
       in
       let params =
         List.filter (( <> ) "")
@@ -305,7 +305,7 @@ let search_for_expected_outputs (file : string) : expected_output_descr list =
             match Re.Group.get_opt groups 1 with
             | Some x -> x
             | None ->
-              Errors.raise_error
+              Messages.raise_error
                 "A test declaration is missing its identifier in the file %s"
                 file
           in
@@ -525,7 +525,7 @@ let collect_all_ninja_build
     (reset_test_outputs : bool) : (string * ninja) option =
   let expected_outputs = search_for_expected_outputs tested_file in
   if expected_outputs = [] then (
-    Cli.debug_print "No expected outputs were found for test file %s"
+    Messages.emit_debug "No expected outputs were found for test file %s"
       tested_file;
     None)
   else
@@ -621,7 +621,7 @@ let run_inline_tests
     (catala_exe : string)
     (catala_opts : string list) =
   match scan_for_inline_tests file with
-  | None -> Cli.warning_print "No inline tests found in %s" file
+  | None -> Messages.emit_warning "No inline tests found in %s" file
   | Some file_tests ->
     let run oc =
       List.iter
@@ -694,7 +694,7 @@ let run_file
          (fun s -> s <> "")
          [catala_exe; catala_opts; "-s " ^ scope; "Interpret"; file])
   in
-  Cli.debug_print "Running: %s" command;
+  Messages.emit_debug "Running: %s" command;
   Sys.command command
 
 (** {1 Driver} *)
@@ -705,7 +705,7 @@ let get_catala_files_in_folder (dir : string) : string list =
       let f_is_dir =
         try Sys.is_directory f
         with Sys_error e ->
-          Cli.warning_print "skipping %s" e;
+          Messages.emit_warning "skipping %s" e;
           false
       in
       if f_is_dir then
@@ -905,7 +905,7 @@ let driver
     in
     match String.lowercase_ascii command with
     | "test" -> (
-      Cli.debug_print "building ninja rules...";
+      Messages.emit_debug "building ninja rules...";
       let ctx =
         add_test_builds
           (ninja_building_context_init (ninja_start catala_exe catala_opts))
@@ -922,7 +922,7 @@ let driver
           (fun f ->
             f
             |> Cli.with_style [ANSITerminal.magenta] "%s"
-            |> Cli.warning_print "No test case found for %s")
+            |> Messages.emit_warning "No test case found for %s")
           ctx.all_failed_names;
       if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then
         return_ok
@@ -931,7 +931,7 @@ let driver
         @@ fun nin ->
         match
           File.with_formatter_of_file nin (fun fmt ->
-              Cli.debug_print "writing %s..." nin;
+              Messages.emit_debug "writing %s..." nin;
               Nj.format fmt
                 (add_root_test_build ninja ctx.all_file_names
                    ctx.all_test_builds))
@@ -940,11 +940,9 @@ let driver
           let ninja_cmd =
             "ninja -k 0 -f " ^ nin ^ " " ^ ninja_flags ^ " test"
           in
-          Cli.debug_print "executing '%s'..." ninja_cmd;
+          Messages.emit_debug "executing '%s'..." ninja_cmd;
           Sys.command ninja_cmd
-        | exception Sys_error e ->
-          Cli.error_print "can not write in %s" e;
-          return_err)
+        | exception Sys_error e -> Messages.raise_error "can not write in %s" e)
     | "run" -> (
       match scope with
       | Some scope ->
@@ -955,22 +953,20 @@ let driver
         in
         if 0 <> res then return_err else return_ok
       | None ->
-        Cli.error_print "Please provide a scope to run with the -s option";
-        return_err)
+        Messages.raise_error "Please provide a scope to run with the -s option")
     | "runtest" -> (
       match files_or_folders with
       | [f] ->
         run_inline_tests ~reset:reset_test_outputs f catala_exe
           (List.filter (( <> ) "") (String.split_on_char ' ' catala_opts));
         0
-      | _ ->
-        Cli.error_print "Please specify a single catala file to test";
-        return_err)
+      | _ -> Messages.raise_error "Please specify a single catala file to test")
     | _ ->
-      Cli.error_print "The command \"%s\" is unknown to clerk." command;
-      return_err
-  with Errors.StructuredError (msg, pos) ->
-    Errors.print_structured_error msg pos;
+      Messages.raise_error "The command \"%s\" is unknown to clerk." command
+  with Messages.CompilerError content ->
+    let bt = Printexc.get_raw_backtrace () in
+    Messages.emit_content content Error;
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     return_err
 
 let main () = exit (Cmdliner.Cmd.eval' (Cmdliner.Cmd.v info (clerk_t driver)))

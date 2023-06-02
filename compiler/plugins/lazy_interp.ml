@@ -20,7 +20,7 @@ open Shared_ast
 (* -- Definition of the lazy interpreter -- *)
 
 let log fmt = Format.ifprintf Format.err_formatter (fmt ^^ "@\n")
-let error e = Errors.raise_spanned_error (Expr.pos e)
+let error e = Messages.raise_spanned_error (Expr.pos e)
 let noassert = true
 
 type laziness_level = {
@@ -186,7 +186,7 @@ let rec lazy_eval :
       log "@[<hov 5>EVAL %a@]" Expr.format e;
       lazy_eval ctx env llevel e
     | _ :: _ :: _ ->
-      Errors.raise_multispanned_error
+      Messages.raise_multispanned_error
         ((None, Expr.mark_pos m)
         :: List.map (fun (e, _) -> None, Expr.pos e) excs)
         "Conflicting exceptions")
@@ -257,7 +257,7 @@ let extension = ".out" (* unused *)
 let apply ~source_file ~output_file ~scope prg _type_ordering =
   let scope =
     match scope with
-    | None -> Errors.raise_error "A scope must be specified"
+    | None -> Messages.raise_error "A scope must be specified"
     | Some s -> s
   in
   ignore source_file;

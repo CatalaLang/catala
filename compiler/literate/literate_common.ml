@@ -64,7 +64,7 @@ let get_language_extension = function
   | Pl -> "catala_pl"
 
 let raise_failed_pandoc (command : string) (error_code : int) : 'a =
-  Errors.raise_error
+  Messages.raise_error
     "Weaving failed: pandoc command \"%s\" returned with error code %d" command
     error_code
 
@@ -112,14 +112,14 @@ let check_exceeding_lines
            Uutf.String.fold_utf_8 (fun (acc : int) _ _ -> acc + 1) 0 s
          in
          if len_s > max_len then (
-           Cli.warning_print "The line %s in %s is exceeding %s characters:"
+           Messages.emit_warning "The line %s in %s is exceeding %s characters:"
              (Cli.with_style
                 ANSITerminal.[Bold; yellow]
                 "%d"
                 (start_line + i + 1))
              (Cli.with_style ANSITerminal.[Bold; magenta] "%s" filename)
              (Cli.with_style ANSITerminal.[Bold; red] "%d" max_len);
-           Cli.warning_print "%s%s" (String.sub s 0 max_len)
+           Messages.emit_warning "%s%s" (String.sub s 0 max_len)
              (Cli.with_style
                 ANSITerminal.[red]
                 "%s"
@@ -139,7 +139,7 @@ let call_pygmentize ?lang args =
   let cmd = "pygmentize" in
   let check_exit n =
     if n <> 0 then
-      Errors.raise_error
+      Messages.raise_error
         "Weaving failed: pygmentize command %S returned with error code %d"
         (String.concat " " (cmd :: args))
         n
