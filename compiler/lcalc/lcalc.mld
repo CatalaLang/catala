@@ -2,12 +2,12 @@
 
 This representation is the fifth in the compilation chain
 (see {{: index.html#architecture} Architecture}). Its main difference
-with the previous {{: Dcalc.html} default calculus} is the absence of the
+with the previous {{: dcalc.html} default calculus} is the absence of the
 default term, which has been eliminated through diverse compilation schemes.
 
 The module describing the abstract syntax tree is:
 
-{!modules: Lcalc.Ast Lcalc.Print}
+{!modules: Lcalc.Ast}
 
 This intermediate representation corresponds to the lambda calculus
 presented in the {{: https://arxiv.org/abs/2103.03198} Catala formalization}.
@@ -16,11 +16,12 @@ presented in the {{: https://arxiv.org/abs/2103.03198} Catala formalization}.
 
 {!module: Lcalc.Compile_with_exceptions} compiles the default term of the
 default calculus using catchable exceptions. This compilation scheme has been
-certified.
+certified. Another compilation scheme that uses an option monad instead is
+available at {!module:Lcalc.Compile_without_exceptions}.
 
 Related modules:
 
-{!modules: Lcalc.Compile_with_exceptions}
+{!modules: Lcalc.Compile_with_exceptions Lcalc.Compile_without_exceptions}
 
 {1 Backends}
 
@@ -29,5 +30,5 @@ since the core of the OCaml value language is effectively a lambda calculus.
 
 Related modules:
 
-{!modules: Lcalc.To_ocaml Scalc.To_python Lcalc.Backends}
+{!modules: Lcalc.To_ocaml}
 

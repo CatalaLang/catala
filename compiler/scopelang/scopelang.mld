@@ -4,7 +4,7 @@ This representation is the third in the compilation chain
 (see {{: index.html#architecture} Architecture}). Its main difference
 with the previous {{: desugared.html} desugared representation} is that inside
 a scope, the definitions are ordered according to their computational
-dependency order, and each definition is a {!Dcalc.Ast.EDefault} tree
+dependency order, and each definition is a {!Shared_ast.EDefault} tree
 instead of a flat list of rules.
 
 The module describing the abstract syntax tree is:
@@ -29,11 +29,11 @@ The translation from the scope language to the
 }
 
 1 and 3 involve computing dependency graphs for respectively the structs and
-enums on one hand, and the inter-scope dependencies on the other hand. Both
-can be found in {!module: Scopelang.Dependency}, while
-{!module: Scopelang.Scope_to_dcalc} is mostly responsible for 2.
+enums on one hand, and the inter-scope dependencies on the other hand. Both can
+be found in {!module:Scopelang.Dependency}, while {!module:Dcalc.From_scopelang}
+is mostly responsible for 2.
 
 
 Related modules:
 
-{!modules: Scopelang.Dependency Scopelang.Scope_to_dcalc}
+{!modules: Scopelang.Dependency Dcalc.From_scopelang}

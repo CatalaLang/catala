@@ -68,6 +68,4 @@ module PluginAPI : sig
     unit
 end
 
-(**/*)
-
 val register : t -> unit

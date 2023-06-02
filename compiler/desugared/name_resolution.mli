@@ -88,7 +88,7 @@ type context = {
   var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
 }
-(** Main context used throughout {!module: Surface.Desugaring} *)
+(** Main context used throughout {!module: Desugared.From_surface} *)
 
 (** {1 Helpers} *)
 

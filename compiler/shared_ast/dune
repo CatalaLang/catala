@@ -4,3 +4,7 @@
  (flags
   (:standard -short-paths))
  (libraries bindlib unionFind catala_utils catala.runtime_ocaml alcotest))
+
+(documentation
+ (package catala)
+ (mld_files shared_ast))
