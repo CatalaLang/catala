@@ -15,7 +15,7 @@ Related modules:
 
 {!modules: Dcalc.Ast}
 
-{ 1 Invariants }
+{1 Invariants }
 
 While Dcalc is a superset of a fully-fledged simply typed lambda calculus,
 the Dcalc code actually generated from the previous intermediate representation
