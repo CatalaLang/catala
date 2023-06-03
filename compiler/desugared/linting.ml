@@ -100,39 +100,6 @@ let detect_identical_rules (p : program) : unit =
         scope.scope_defs)
     p.program_scopes
 
-let detect_unused_scope_vars (p : program) : unit =
-  let used_scope_vars =
-    Ast.fold_exprs
-      ~f:(fun used_scope_vars e ->
-        let rec used_scope_vars_expr e used_scope_vars =
-          match Mark.remove e with
-          | ELocation (DesugaredScopeVar (v, _)) ->
-            ScopeVar.Set.add (Mark.remove v) used_scope_vars
-          | _ -> Expr.shallow_fold used_scope_vars_expr e used_scope_vars
-        in
-        used_scope_vars_expr e used_scope_vars)
-      ~init:ScopeVar.Set.empty p
-  in
-  ScopeName.Map.iter
-    (fun (scope_name : ScopeName.t) scope ->
-      ScopeDef.Map.iter
-        (fun scope_def_key scope_def ->
-          match scope_def_key with
-          | ScopeDef.Var (v, _)
-            when (not (ScopeVar.Set.mem v used_scope_vars))
-                 && not (Mark.remove scope_def.scope_def_io.io_output) ->
-            Messages.emit_spanned_warning
-              (ScopeDef.get_position scope_def_key)
-              "In scope %a, the variable %a is never used anywhere; maybe it's \
-               unnecessary?"
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" ScopeName.format_t scope_name)
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" Ast.ScopeDef.format_t scope_def_key)
-          | _ -> ())
-        scope.scope_defs)
-    p.program_scopes
-
 let detect_unused_struct_fields (p : program) : unit =
   (* TODO: this analysis should be finer grained: a false negative is if the
      field is used to define itself, for passing data around but that never gets
@@ -315,7 +282,6 @@ let detect_dead_code (p : program) : unit =
 let lint_program (p : program) : unit =
   detect_empty_definitions p;
   detect_dead_code p;
-  detect_unused_scope_vars p;
   detect_unused_struct_fields p;
   detect_unused_enum_constructors p;
   detect_identical_rules p
