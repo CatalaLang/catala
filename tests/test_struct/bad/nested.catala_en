@@ -6,7 +6,7 @@ declaration enumeration E:
   -- Rec content E
 
 declaration scope A:
-  context y content E
+  output y content E
 
 scope A:
   definition y equals E.Empty
@@ -14,13 +14,6 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_struct/bad/nested.catala_en:9.11-9.12:
-└─┐
-9 │   context y content E
-  │           ‾
-  └─ Article
 [WARNING] The constructor "Rec" of enumeration "E" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_struct/bad/nested.catala_en:6.6-6.9:

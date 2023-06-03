@@ -1,7 +1,7 @@
 ```catala
 declaration scope Toto:
-  context bar content integer
-  input baz content decimal
+  internal bar content integer
+  input output baz content decimal
   output foo content integer
 
 scope Toto:
@@ -16,13 +16,6 @@ scope Titi:
 
 ```catala-test-inline
 $ catala dcalc -s Titi
-[WARNING] In scope "Toto", the variable "baz" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_scope/bad/scope_call_missing.catala_en:4.9-4.12:
-└─┐
-4 │   input baz content decimal
-  │         ‾‾‾
-
 [ERROR] Definition of input variable 'baz' missing in this scope call
 
 ┌─⯈ tests/test_scope/bad/scope_call_missing.catala_en:14.26-14.56:
@@ -32,10 +25,10 @@ $ catala dcalc -s Titi
 
 
 Declaration of the missing input variable
-┌─⯈ tests/test_scope/bad/scope_call_missing.catala_en:4.9-4.12:
+┌─⯈ tests/test_scope/bad/scope_call_missing.catala_en:4.16-4.19:
 └─┐
-4 │   input baz content decimal
-  │         ‾‾‾
+4 │   input output baz content decimal
+  │                ‾‾‾
 
 #return code 255#
 ```

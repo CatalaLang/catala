@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  context x content integer
+  output x content integer
 
 scope A:
   label base_x
@@ -17,13 +17,6 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_exception/bad/two_exceptions.catala_en:5.11-5.12:
-└─┐
-5 │   context x content integer
-  │           ‾
-  └─ Test
 [ERROR] There is a conflict between multiple valid consequences for assigning the same variable.
 
 This consequence has a valid justification:

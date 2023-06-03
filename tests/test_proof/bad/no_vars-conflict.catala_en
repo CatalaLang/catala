@@ -4,8 +4,8 @@ Should fail since y has two definitions when x = 0
 
 ```catala
 declaration scope A:
-  context x content integer
-  context y content integer
+  internal x content integer
+  output y content integer
 
 scope A:
   definition x under condition (6*7 = 42) and (false or (true and 1458 / 27 = 54.))
@@ -17,18 +17,11 @@ scope A:
 ```
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
-[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_proof/bad/no_vars-conflict.catala_en:8.11-8.12:
-└─┐
-8 │   context y content integer
-  │           ‾
-  └─ Test
 [WARNING] [A.y] At least two exceptions overlap for this variable:
-┌─⯈ tests/test_proof/bad/no_vars-conflict.catala_en:8.11-8.12:
+┌─⯈ tests/test_proof/bad/no_vars-conflict.catala_en:8.10-8.11:
 └─┐
-8 │   context y content integer
-  │           ‾
+8 │   output y content integer
+  │          ‾
   └─ Test
 Counterexample generation is disabled so none was generated.
 ```

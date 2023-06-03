@@ -1,8 +1,8 @@
 ```catala
 déclaration champ d'application Test:
-  contexte bday contenu date
-  contexte today contenu date
-  contexte ambiguité contenu booléen
+  interne bday contenu date
+  interne today contenu date
+  résultat ambiguité contenu booléen
 
 champ d'application Test:
   définition bday égal à |2000-02-29|
@@ -12,13 +12,6 @@ champ d'application Test:
 
 ```catala-test-inline
 $ catala Interpret -s Test
-[WARNING] In scope "Test", the variable "ambiguité" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_date/bad/rounding_option.catala_fr:5.12-5.21:
-└─┐
-5 │   contexte ambiguité contenu booléen
-  │            ‾‾‾‾‾‾‾‾‾
-
 catala: internal error, uncaught exception:
         Dates_calc.Dates.AmbiguousComputation
         

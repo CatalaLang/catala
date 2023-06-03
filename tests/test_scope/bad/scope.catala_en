@@ -2,9 +2,9 @@
 
 ```catala
 declaration scope A:
-  context a content integer
-  context b content integer
-  context c content boolean
+  output a content integer
+  output b content integer
+  internal c content boolean
 
 scope A:
   definition c equals false
@@ -16,20 +16,6 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[WARNING] In scope "A", the variable "a" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_scope/bad/scope.catala_en:5.11-5.12:
-└─┐
-5 │   context a content integer
-  │           ‾
-  └─ Article
-[WARNING] In scope "A", the variable "b" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_scope/bad/scope.catala_en:6.11-6.12:
-└─┐
-6 │   context b content integer
-  │           ‾
-  └─ Article
 [ERROR] There is a conflict between multiple valid consequences for assigning the same variable.
 
 This consequence has a valid justification:

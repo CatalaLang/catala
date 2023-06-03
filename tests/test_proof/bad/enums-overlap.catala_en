@@ -12,8 +12,8 @@ declaration enumeration S:
     -- B content T
 
 declaration scope A:
-  context x content integer
-  context y content S
+  output x content integer
+  internal y content S
 
 scope A:
   definition y equals B content (D content 1)
@@ -23,13 +23,6 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
-[WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:15.11-15.12:
-└──┐
-15 │   context x content integer
-   │           ‾
-   └─ Test
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:7.7-7.8:
@@ -38,10 +31,10 @@ $ catala Proof --disable_counterexamples
   │       ‾
   └─ Test
 [WARNING] [A.x] At least two exceptions overlap for this variable:
-┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:15.11-15.12:
+┌─⯈ tests/test_proof/bad/enums-overlap.catala_en:15.10-15.11:
 └──┐
-15 │   context x content integer
-   │           ‾
+15 │   output x content integer
+   │          ‾
    └─ Test
 Counterexample generation is disabled so none was generated.
 ```

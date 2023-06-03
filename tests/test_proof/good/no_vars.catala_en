@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  context x content integer
+  output x content integer
 
 scope A:
   definition x under condition (6*7 = 42) and (false or (true and 1458 / 27 = 54.))
@@ -10,12 +10,5 @@ scope A:
 ```
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
-[WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_proof/good/no_vars.catala_en:5.11-5.12:
-└─┐
-5 │   context x content integer
-  │           ‾
-  └─ Test
 [RESULT] No errors found during the proof mode run.
 ```

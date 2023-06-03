@@ -255,8 +255,66 @@ let detect_unused_enum_constructors (p : program) : unit =
           constructors)
     p.program_ctx.ctx_enums
 
+(* Reachability in a graph can be implemented as a simple fixpoint analysis with
+   backwards propagation. *)
+module Reachability =
+  Graph.Fixpoint.Make
+    (Dependency.ScopeDependencies)
+    (struct
+      type vertex = Dependency.ScopeDependencies.vertex
+      type edge = Dependency.ScopeDependencies.E.t
+      type g = Dependency.ScopeDependencies.t
+      type data = bool
+
+      let direction = Graph.Fixpoint.Backward
+      let equal = ( = )
+      let join = ( || )
+      let analyze _ x = x
+    end)
+
+let detect_dead_code (p : program) : unit =
+  (* Dead code detection for scope variables based on an intra-scope dependency
+     analysis. *)
+  ScopeName.Map.iter
+    (fun scope_name scope ->
+      let scope_dependencies = Dependency.build_scope_dependencies scope in
+      let is_alive (v : Dependency.ScopeDependencies.vertex) =
+        match v with
+        | Assertion _ -> true
+        | SubScope _ -> true
+        | Var (var, state) ->
+          let scope_def =
+            ScopeDef.Map.find (Var (var, state)) scope.scope_defs
+          in
+          Mark.remove scope_def.scope_def_io.io_output
+        (* A variable is initially alive if it is an output*)
+      in
+      let is_alive = Reachability.analyze is_alive scope_dependencies in
+      ScopeVar.Map.iter
+        (fun var states ->
+          let emit_unused_warning () =
+            Messages.emit_spanned_warning
+              (Mark.get (ScopeVar.get_info var))
+              "This variable is dead code; it does not contribute to computing \
+               any of scope %a outputs. Did you forget something?"
+              (Cli.format_with_style [ANSITerminal.yellow])
+              ("\"" ^ Mark.remove (ScopeName.get_info scope_name) ^ "\"")
+          in
+          match states with
+          | WholeVar ->
+            if not (is_alive (Var (var, None))) then emit_unused_warning ()
+          | States states ->
+            List.iter
+              (fun state ->
+                if not (is_alive (Var (var, Some state))) then
+                  emit_unused_warning ())
+              states)
+        scope.scope_vars)
+    p.program_scopes
+
 let lint_program (p : program) : unit =
   detect_empty_definitions p;
+  detect_dead_code p;
   detect_unused_scope_vars p;
   detect_unused_struct_fields p;
   detect_unused_enum_constructors p;
