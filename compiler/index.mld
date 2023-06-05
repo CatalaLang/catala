@@ -88,6 +88,7 @@ More documentation can be found on each intermediate representations here.
 {li {{: scalc.html} The statement calculus}}
 }
 
+Most of these intermediate representations use a {{: shared_ast.html} shared AST libary}.
 The main compilation chain is defined in:
 
 {!modules: Driver}
@@ -113,7 +114,7 @@ The Catala runtimes documentation is available here:
 Last, it is possible to customize the backend to the compiler using a plugin
 mechanism. The API is defined inside the following module:
 
-{!modules: Driver.Plugin}
+{!module: Driver.Plugin}
 
 See the examples in the [plugins/] subdirectory:
 

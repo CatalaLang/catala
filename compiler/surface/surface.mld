@@ -67,12 +67,12 @@ Relevant modules:
 The desugaring consists of translating {!module: Surface.Ast} to
 {!module: Desugared.Ast} of the {{: desugared.html} desugared representation}.
 The translation is implemented in
-{!module: Surface.Desugaring}, but it relies on a helper module to perform the
-name resolution: {!module: Surface.Name_resolution}. Indeed, in
+{!module:Desugared.From_surface}, but it relies on a helper module to perform the
+name resolution: {!module:Desugared.Name_resolution}. Indeed, in
 {!module: Surface.Ast}, the variables identifiers are just [string], whereas in
 {!module: Desugared.Ast} they have been turned into well-categorized types
-with an unique identifier like {!type: Scopelang.Ast.ScopeName.t}.
+with an unique identifier like {!type:Shared_ast.ScopeName.t}.
 
 Relevant modules:
 
-{!modules: Surface.Name_resolution Surface.Desugaring}
+{!modules: Desugared.Name_resolution Desugared.From_surface}

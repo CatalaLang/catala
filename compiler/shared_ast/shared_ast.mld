@@ -3,14 +3,13 @@
 This module contains a generic AST structure, various type definitions and
 helpers that are reused in various passes of the compiler.
 
-{1 The {!modules: Shared_ast.Definitions} module}
+{1 The [Shared_ast.Definitions] module}
 
-The main module {!modules: Shared_ast.Definitions} is exposed at top-level of
+The main module {!module: Shared_ast} is exposed at top-level of
 the library (so that [open Shared_ast] gives access to the structures). It
-defines literals, operators, and in particular the type {!types:
-Shared_ast.naked_gexpr}.
+defines literals, operators, and in particular the type {!type:Shared_ast.naked_gexpr}.
 
-The {!types: Shared_ast.naked_gexpr} type regroups all the cases for the {{:
+The {!type:Shared_ast.naked_gexpr} type regroups all the cases for the {{:
 ../dcalc.html} Dcalc} and {{: ../lcalc.html} Lcalc} ASTs, with unconstrained
 annotations (used for positions, types, etc.). A GADT is used to eliminate
 irrelevant cases, so that e.g. [(dcalc, _) naked_gexpr] doesn't have the [ERaise] and
@@ -28,13 +27,17 @@ structures that are also shared between different compiler passes.
 
 {1 Helper library}
 
-The {!modules: Shared_ast.Var} defines ['e Var.Set.t] and [('e, _) Var.Map.t]
+The {!module: Shared_ast.Var} defines ['e Var.Set.t] and [('e, _) Var.Map.t]
 types that are useful to handle variables for the different ['e] expression
 types without re-instanciating [Set.Make] and [Map.Make] each time.
 
-{!modules: Shared_ast.Expr} contains various helpers to build well-formed
+{!module: Shared_ast.Expr} contains various helpers to build well-formed
 expressions, and for traversal.
 
-{!modules: Shared_ast.Scope Shared_ast.Program} are dedicated to handling the
-program structure around expressions. Note that these don't make sense for the
-early compiler passes (up to [Scopelang]).
+The following modules are dedicated to handling the program structure around
+expressions. Note that these don't make sense for the early compiler passes (up
+to [Scopelang]).
+
+
+{!modules: Shared_ast.Scope Shared_ast.Program}
+

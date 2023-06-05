@@ -7,12 +7,12 @@ In {{: desugared.html} the desugared representation} or in the
 global identifiers. These identifiers use OCaml's type system to statically
 distinguish e.g. a scope identifier from a struct identifier.
 
-The {!module: Uid} module provides a generative functor whose output is
+The {!module:Catala_utils.Uid} module provides a generative functor whose output is
 a fresh sort of global identifiers.
 
 Related modules:
 
-{!modules: Uid}
+{!modules: Catala_utils.Uid}
 
 {1 Source code positions}
 
@@ -22,7 +22,7 @@ code. These annotations are critical to produce readable error messages.
 
 Related modules:
 
-{!modules: Pos}
+{!modules: Catala_utils.Pos}
 
 {1 Error messages}
 
@@ -31,14 +31,14 @@ of error messages inspired by the Rust compiler, where error messages all
 correspond to the same exception. This exception carries messages and positions
 that are displayed in the end in a nicely-formatted error message.
 
-Hence, all error thrown by the compiler should use {!module: Utils.Errors}
+Hence, all error thrown by the compiler should use {!module:Catala_utils.Messages}
 
 Related modules:
 
-{!modules: Utils.Errors}
+{!modules: Catala_utils.Messages}
 
 {1 Other utilies}
 
 Related modules:
 
-{!modules: Utils.File Utils.String_common}
+{!modules: Catala_utils.File Catala_utils.Mark Catala_utils.Cli Catala_utils.String}

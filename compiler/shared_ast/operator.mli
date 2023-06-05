@@ -21,13 +21,14 @@
     - During desugaring, the operators may remain untyped (with [TAny]) or, if
       they have an explicit type suffix (e.g. the [$] for "money" in [+$]),
       their operands types are already explicited in the [EOp] expression node.
-    - {!modules:Shared_ast.Typing} will then enforce these constraints in
+
+    - {!module:Shared_ast.Typing} will then enforce these constraints in
       addition to the known built-in type for each operator (e.g.
       [Eq: 'a -> 'a -> 'a] isn't encoded in the first-order AST types).
-    - Finally, during {!modules:Scopelang.From_desugared}, these types are
+
+    - Finally, during {!module:Scopelang.From_desugared}, these types are
       leveraged to resolve the overloaded operators to their concrete,
-      monomorphic counterparts
-*)
+      monomorphic counterparts *)
 
 open Catala_utils
 open Definitions

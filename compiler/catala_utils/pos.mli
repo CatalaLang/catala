@@ -33,7 +33,11 @@ val get_end_column : t -> int
 val get_file : t -> string
 
 val join : t -> t -> t
-(** Returns the smallest range including both supplied ranges. @raise Invalid_argument if they don't belong to the same file. The law position used is the one of the earliest position. *)
+(** Returns the smallest range including both supplied ranges.
+
+    @raise Invalid_argument
+      if they don't belong to the same file. The law position used is the one of
+      the earliest position. *)
 
 type input_file = FileName of string | Contents of string
 

@@ -8,7 +8,6 @@ lowered to sum and product types. The default calculus can be later compiled
 to a {{: lcalc.html} lambda calculus}.
 
 The module describing the abstract syntax tree is {!module: Dcalc.Ast}.
-Printing helpers can be found in {!module: Dcalc.Print}.
 This intermediate representation corresponds to the default calculus
 presented in the {{: https://arxiv.org/abs/2103.03198} Catala formalization}.
 
@@ -16,34 +15,13 @@ Related modules:
 
 {!modules: Dcalc.Ast}
 
-{1 Typing }
+{1 Invariants }
 
-This representation is where the typing is performed. Indeed, {!module: Dcalc.Typing}
-implements the classical {{: https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system} W algorithm}
-corresponding to a Hindley-Milner type system, without type constraints.
-
-Related modules:
-
-{!modules: Dcalc.Typing}
-
-{1 Interpreter}
-
-Since this representation is currently the last of the compilation chain,
-an {!module: Dcalc.Interpreter} module is provided to match the execution
-semantics of the default calculus.
-
-Later, translations to a regular lambda calculus and/or a simple imperative
-language are bound to be added.
+While Dcalc is a superset of a fully-fledged simply typed lambda calculus,
+the Dcalc code actually generated from the previous intermediate representation
+obeys some strict structural invariants. Those are formalized and empirically
+tested in {!module:Dcalc.Invariants}.
 
 Related modules:
 
-{!modules: Dcalc.Interpreter}
-
-{1 Optimizations}
-
-Classical optimizations passes can be performed on the Dcalc AST: partial
-evaluation, beta and iota-reduction, etc.
-
-Related modules:
-
-{!modules: Dcalc.Optimizations}
+{!modules: Dcalc.Invariants}
