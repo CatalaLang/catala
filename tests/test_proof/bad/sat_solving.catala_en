@@ -3,16 +3,16 @@
 
 ```catala
 declaration scope A:
-  context x1 content boolean
-  context x2 content boolean
-  context x3 content boolean
-  context x4 content boolean
-  context x5 content boolean
-  context x6 content boolean
-  context x7 content boolean
-  context x8 content boolean
-  context x9 content boolean
-  context x10 content boolean
+  internal x1 content boolean
+  internal x2 content boolean
+  internal x3 content boolean
+  internal x4 content boolean
+  internal x5 content boolean
+  internal x6 content boolean
+  internal x7 content boolean
+  internal x8 content boolean
+  internal x9 content boolean
+  output x10 content boolean
 
 scope A:
   definition x1 equals true
@@ -40,18 +40,11 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
-[WARNING] In scope "A", the variable "x10" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_proof/bad/sat_solving.catala_en:15.11-15.14:
-└──┐
-15 │   context x10 content boolean
-   │           ‾‾‾
-   └─ Test
 [WARNING] [A.x10] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/sat_solving.catala_en:15.11-15.14:
+┌─⯈ tests/test_proof/bad/sat_solving.catala_en:15.10-15.13:
 └──┐
-15 │   context x10 content boolean
-   │           ‾‾‾
+15 │   output x10 content boolean
+   │          ‾‾‾
    └─ Test
 Counterexample generation is disabled so none was generated.
 ```

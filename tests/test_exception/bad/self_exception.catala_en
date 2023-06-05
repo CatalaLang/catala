@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  context y content integer
+  output y content integer
 
 scope A:
   label base_y
@@ -12,13 +12,6 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_exception/bad/self_exception.catala_en:5.11-5.12:
-└─┐
-5 │   context y content integer
-  │           ‾
-  └─ Test
 [ERROR] Cannot define rule as an exception to itself
 
 ┌─⯈ tests/test_exception/bad/self_exception.catala_en:9.13-9.19:

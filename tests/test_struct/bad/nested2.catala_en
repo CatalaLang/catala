@@ -10,17 +10,17 @@ declaration enumeration E:
   -- Case2 content S
 
 declaration scope A:
-  context x content E
+  output x content E
 ```
 
 ```catala-test-inline
 $ catala Interpret -s A
-[WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
+[WARNING] In scope "A", the variable "x" is declared but never defined; did you forget something?
 
-┌─⯈ tests/test_struct/bad/nested2.catala_en:13.11-13.12:
+┌─⯈ tests/test_struct/bad/nested2.catala_en:13.10-13.11:
 └──┐
-13 │   context x content E
-   │           ‾
+13 │   output x content E
+   │          ‾
    └─ Article
 [WARNING] The structure "S" is never used; maybe it's unnecessary?
 

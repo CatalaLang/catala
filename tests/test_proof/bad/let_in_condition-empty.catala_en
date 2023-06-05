@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  context x content boolean
+  output x content boolean
 
 scope A:
   definition x under condition
@@ -13,18 +13,11 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples
-[WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_proof/bad/let_in_condition-empty.catala_en:5.11-5.12:
-└─┐
-5 │   context x content boolean
-  │           ‾
-  └─ Test
 [WARNING] [A.x] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/let_in_condition-empty.catala_en:5.11-5.12:
+┌─⯈ tests/test_proof/bad/let_in_condition-empty.catala_en:5.10-5.11:
 └─┐
-5 │   context x content boolean
-  │           ‾
+5 │   output x content boolean
+  │          ‾
   └─ Test
 Counterexample generation is disabled so none was generated.
 ```

@@ -15,7 +15,7 @@ scope B:
 ```
 ```catala-test-inline
 $ catala Typecheck
-[WARNING] In scope "A", the variable "a" is never used anywhere; maybe it's unnecessary?
+[WARNING] This variable is dead code; it does not contribute to computing any of scope "A" outputs. Did you forget something?
 
 ┌─⯈ tests/test_io/bad/using_non_output.catala_en:5.12-5.13:
 └─┐

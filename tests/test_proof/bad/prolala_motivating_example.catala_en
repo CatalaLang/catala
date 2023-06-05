@@ -6,8 +6,8 @@ Demo: https://asciinema.org/a/461790
 
 ```catala-metadata
 declaration scope Eligibility:
-  context is_student content boolean
-  context is_professor content boolean
+  internal is_student content boolean
+  internal is_professor content boolean
   output is_eligible content boolean
   output is_eligible_correct condition
 
@@ -54,11 +54,11 @@ scope Eligibility:
 ```catala-metadata
 declaration scope Amount:
   eligibility scope Eligibility
-  context is_student content boolean
-  context is_professor content boolean
-  context number_of_advisors content integer
-  context amount content integer
-  context correct_amount content integer
+  internal is_student content boolean
+  internal is_professor content boolean
+  internal number_of_advisors content integer
+  output amount content integer
+  output correct_amount content integer
 
 scope Amount:
   definition eligibility.is_student equals is_student
@@ -123,44 +123,29 @@ scope Amount:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
-[WARNING] In scope "Amount", the variable "amount" is never used anywhere; maybe it's unnecessary?
+[ERROR] It is impossible to give a definition to a subscope variable not tagged as input or context.
 
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:60.11-60.17:
+Incriminated subscope:
+┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:56.3-56.14:
 └──┐
-60 │   context amount content integer
-   │           ‾‾‾‾‾‾
+56 │   eligibility scope Eligibility
+   │   ‾‾‾‾‾‾‾‾‾‾‾
    └┬ ProLaLa 2022 Super Cash Bonus
     └─ Amount
-[WARNING] In scope "Amount", the variable "correct_amount" is never used anywhere; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:61.11-61.25:
+Incriminated variable:
+┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:9.12-9.22:
+└─┐
+9 │   internal is_student content boolean
+  │            ‾‾‾‾‾‾‾‾‾‾
+  └┬ ProLaLa 2022 Super Cash Bonus
+   └─ Eligibility
+
+Incriminated subscope variable definition:
+┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:64.3-64.36:
 └──┐
-61 │   context correct_amount content integer
-   │           ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-   └┬ ProLaLa 2022 Super Cash Bonus
-    └─ Amount
-[WARNING] [Amount.amount] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:60.11-60.17:
-└──┐
-60 │   context amount content integer
-   │           ‾‾‾‾‾‾
-   └┬ ProLaLa 2022 Super Cash Bonus
-    └─ Amount
-Counterexample generation is disabled so none was generated.
-[WARNING] [Eligibility.is_eligible] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:11.10-11.21:
-└──┐
-11 │   output is_eligible content boolean
-   │          ‾‾‾‾‾‾‾‾‾‾‾
-   └┬ ProLaLa 2022 Super Cash Bonus
-    └─ Eligibility
-Counterexample generation is disabled so none was generated.
-[WARNING] [Eligibility.is_eligible] At least two exceptions overlap for this variable:
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:11.10-11.21:
-└──┐
-11 │   output is_eligible content boolean
-   │          ‾‾‾‾‾‾‾‾‾‾‾
-   └┬ ProLaLa 2022 Super Cash Bonus
-    └─ Eligibility
-Counterexample generation is disabled so none was generated.
+64 │   definition eligibility.is_student equals is_student
+   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+#return code 255#
 ```

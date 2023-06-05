@@ -10,8 +10,8 @@ declaration enumeration S:
     -- B content T
 
 declaration scope A:
-  context x content integer
-  context y content S
+  output x content integer
+  internal y content S
 
 scope A:
   definition y equals B content (D content 1)
@@ -21,13 +21,6 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples
-[WARNING] In scope "A", the variable "x" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_proof/good/enums-nonbool.catala_en:13.11-13.12:
-└──┐
-13 │   context x content integer
-   │           ‾
-   └─ Test
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_proof/good/enums-nonbool.catala_en:5.7-5.8:

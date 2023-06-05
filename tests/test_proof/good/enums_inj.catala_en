@@ -6,8 +6,8 @@ declaration enumeration E:
   -- C2
 
 declaration scope A:
-  context x content E
-  context y content integer
+  internal x content E
+  output y content integer
 
 scope A:
   definition x equals C1
@@ -17,12 +17,5 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
-[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
-
-┌─⯈ tests/test_proof/good/enums_inj.catala_en:10.11-10.12:
-└──┐
-10 │   context y content integer
-   │           ‾
-   └─ Article
 [RESULT] No errors found during the proof mode run.
 ```

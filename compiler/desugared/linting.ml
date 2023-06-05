@@ -100,39 +100,6 @@ let detect_identical_rules (p : program) : unit =
         scope.scope_defs)
     p.program_scopes
 
-let detect_unused_scope_vars (p : program) : unit =
-  let used_scope_vars =
-    Ast.fold_exprs
-      ~f:(fun used_scope_vars e ->
-        let rec used_scope_vars_expr e used_scope_vars =
-          match Mark.remove e with
-          | ELocation (DesugaredScopeVar (v, _)) ->
-            ScopeVar.Set.add (Mark.remove v) used_scope_vars
-          | _ -> Expr.shallow_fold used_scope_vars_expr e used_scope_vars
-        in
-        used_scope_vars_expr e used_scope_vars)
-      ~init:ScopeVar.Set.empty p
-  in
-  ScopeName.Map.iter
-    (fun (scope_name : ScopeName.t) scope ->
-      ScopeDef.Map.iter
-        (fun scope_def_key scope_def ->
-          match scope_def_key with
-          | ScopeDef.Var (v, _)
-            when (not (ScopeVar.Set.mem v used_scope_vars))
-                 && not (Mark.remove scope_def.scope_def_io.io_output) ->
-            Messages.emit_spanned_warning
-              (ScopeDef.get_position scope_def_key)
-              "In scope %a, the variable %a is never used anywhere; maybe it's \
-               unnecessary?"
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" ScopeName.format_t scope_name)
-              (Cli.format_with_style [ANSITerminal.yellow])
-              (Format.asprintf "\"%a\"" Ast.ScopeDef.format_t scope_def_key)
-          | _ -> ())
-        scope.scope_defs)
-    p.program_scopes
-
 let detect_unused_struct_fields (p : program) : unit =
   (* TODO: this analysis should be finer grained: a false negative is if the
      field is used to define itself, for passing data around but that never gets
@@ -255,9 +222,66 @@ let detect_unused_enum_constructors (p : program) : unit =
           constructors)
     p.program_ctx.ctx_enums
 
+(* Reachability in a graph can be implemented as a simple fixpoint analysis with
+   backwards propagation. *)
+module Reachability =
+  Graph.Fixpoint.Make
+    (Dependency.ScopeDependencies)
+    (struct
+      type vertex = Dependency.ScopeDependencies.vertex
+      type edge = Dependency.ScopeDependencies.E.t
+      type g = Dependency.ScopeDependencies.t
+      type data = bool
+
+      let direction = Graph.Fixpoint.Backward
+      let equal = ( = )
+      let join = ( || )
+      let analyze _ x = x
+    end)
+
+let detect_dead_code (p : program) : unit =
+  (* Dead code detection for scope variables based on an intra-scope dependency
+     analysis. *)
+  ScopeName.Map.iter
+    (fun scope_name scope ->
+      let scope_dependencies = Dependency.build_scope_dependencies scope in
+      let is_alive (v : Dependency.ScopeDependencies.vertex) =
+        match v with
+        | Assertion _ -> true
+        | SubScope _ -> true
+        | Var (var, state) ->
+          let scope_def =
+            ScopeDef.Map.find (Var (var, state)) scope.scope_defs
+          in
+          Mark.remove scope_def.scope_def_io.io_output
+        (* A variable is initially alive if it is an output*)
+      in
+      let is_alive = Reachability.analyze is_alive scope_dependencies in
+      ScopeVar.Map.iter
+        (fun var states ->
+          let emit_unused_warning () =
+            Messages.emit_spanned_warning
+              (Mark.get (ScopeVar.get_info var))
+              "This variable is dead code; it does not contribute to computing \
+               any of scope %a outputs. Did you forget something?"
+              (Cli.format_with_style [ANSITerminal.yellow])
+              ("\"" ^ Mark.remove (ScopeName.get_info scope_name) ^ "\"")
+          in
+          match states with
+          | WholeVar ->
+            if not (is_alive (Var (var, None))) then emit_unused_warning ()
+          | States states ->
+            List.iter
+              (fun state ->
+                if not (is_alive (Var (var, Some state))) then
+                  emit_unused_warning ())
+              states)
+        scope.scope_vars)
+    p.program_scopes
+
 let lint_program (p : program) : unit =
   detect_empty_definitions p;
-  detect_unused_scope_vars p;
+  detect_dead_code p;
   detect_unused_struct_fields p;
   detect_unused_enum_constructors p;
   detect_identical_rules p

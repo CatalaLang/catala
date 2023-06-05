@@ -2,8 +2,8 @@
 
 ```catala
 declaration scope A:
-  context x content date
-  context y content boolean
+  input x content date
+  output y content boolean
 
 scope A:
   definition x equals |2022-01-16|
@@ -15,18 +15,20 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
-[WARNING] In scope "A", the variable "y" is never used anywhere; maybe it's unnecessary?
+[ERROR] It is impossible to give a definition to a scope variable tagged as input.
 
-┌─⯈ tests/test_proof/bad/dates_get_year-empty.catala_en:6.11-6.12:
+Incriminated variable:
+┌─⯈ tests/test_proof/bad/dates_get_year-empty.catala_en:5.9-5.10:
 └─┐
-6 │   context y content boolean
-  │           ‾
+5 │   input x content date
+  │         ‾
   └─ Test
-[WARNING] [A.y] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/dates_get_year-empty.catala_en:6.11-6.12:
+
+Incriminated variable definition:
+┌─⯈ tests/test_proof/bad/dates_get_year-empty.catala_en:9.3-9.15:
 └─┐
-6 │   context y content boolean
-  │           ‾
-  └─ Test
-Counterexample generation is disabled so none was generated.
+9 │   definition x equals |2022-01-16|
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+
+#return code 255#
 ```
