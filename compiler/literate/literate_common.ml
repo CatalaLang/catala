@@ -111,14 +111,14 @@ let check_exceeding_lines
          let len_s =
            Uutf.String.fold_utf_8 (fun (acc : int) _ _ -> acc + 1) 0 s
          in
-         if len_s > max_len then (
+         if len_s > max_len then
            Messages.emit_warning
-             "@[<v>The line @{<bold;yellow>%d@} in @{<bold;magenta>%s@} is exceeding @{<bold;red}%d@} characters:@,%s@{<red>%s@}@]"
+             "@[<v>The line @{<bold;yellow>%d@} in @{<bold;magenta>%s@} is \
+              exceeding @{<bold;red}%d@} characters:@,\
+              %s@{<red>%s@}@]"
              (start_line + i + 1)
-             filename
-             max_len
-             (String.sub s 0 max_len)
-             (String.sub s max_len (len_s - max_len))))
+             filename max_len (String.sub s 0 max_len)
+             (String.sub s max_len (len_s - max_len)))
 
 let with_pygmentize_lexer lang f =
   let lexer_py =

@@ -25,12 +25,10 @@ let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.pp_print_char fmt '.')
     (fun fmt info ->
-       Format.fprintf
-         fmt
-         (if String.begins_with_uppercase (Mark.remove info) then
-            "@{<red>%s@}"
-          else "%s")
-         (Uid.MarkedString.to_string info))
+      Format.fprintf fmt
+        (if String.begins_with_uppercase (Mark.remove info) then "@{<red>%s@}"
+        else "%s")
+        (Uid.MarkedString.to_string info))
     fmt infos
 
 let with_color f color fmt x =
@@ -302,12 +300,11 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
   let open Op in
   match op with
   | Log (entry, infos) ->
-    Format.fprintf fmt "@{<blue>#{@}%a%a@{<blue>}@}"
-      log_entry entry
+    Format.fprintf fmt "@{<blue>#{@}%a%a@{<blue>}@}" log_entry entry
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> punctuation fmt ".")
-         (fun fmt info -> Format.fprintf fmt "@{<blue>%s@}"
-             (Uid.MarkedString.to_string info)))
+         (fun fmt info ->
+           Format.fprintf fmt "@{<blue>%s@}" (Uid.MarkedString.to_string info)))
       infos
   | op ->
     op_style fmt
@@ -459,9 +456,7 @@ let rec expr_aux :
       pp_color_string (List.hd colors) fmt ")")
     else expr colors fmt e1
   in
-  let default_punct =
-    with_color (fun fmt -> Format.pp_print_as fmt 1)
-  in
+  let default_punct = with_color (fun fmt -> Format.pp_print_as fmt 1) in
   let lhs ?(colors = colors) ex = paren ~colors ~rhs:false ex in
   let rhs ex = paren ~rhs:true ex in
   match Mark.remove e with
@@ -673,13 +668,7 @@ let rec expr_aux :
 
 let rec colors =
   let open Ocolor_types in
-  blue
-  :: cyan
-  :: green
-  :: yellow
-  :: red
-  :: magenta
-  :: colors
+  blue :: cyan :: green :: yellow :: red :: magenta :: colors
 
 let typ_debug = typ None
 let typ ctx = typ (Some ctx)

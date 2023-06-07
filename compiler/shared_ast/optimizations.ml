@@ -310,44 +310,44 @@ let optimize_program (p : 'm program) : 'm program =
     (Program.map_exprs ~f:(optimize_expr p.decl_ctx) ~varf:(fun v -> v) p)
 
 let test_iota_reduction_1 () =
-      let x = Var.make "x" in
-      let enumT = EnumName.fresh ("t", Pos.no_pos) in
-      let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
-      let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
-      let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
-      let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
-      let nomark = Untyped { pos = Pos.no_pos } in
-      let injA = Expr.einj (Expr.evar x nomark) consA enumT nomark in
-      let injC = Expr.einj (Expr.evar x nomark) consC enumT nomark in
-      let injD = Expr.einj (Expr.evar x nomark) consD enumT nomark in
-      let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
-        EnumConstructor.Map.of_seq
-        @@ List.to_seq
-        @@ [
-             consA, Expr.eabs (Expr.bind [| x |] injC) [TAny, Pos.no_pos] nomark;
-             consB, Expr.eabs (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark;
-           ]
-      in
-      let matchA = Expr.ematch injA enumT cases nomark in
-      Alcotest.(check string)
-        "same string"
-        "before=match (A x)\n\
-        \       with\n\
-        \       | A → (λ (x: any) → C x)\n\
-        \       | B → (λ (x: any) → D x)\n\
-         after=C\n\
-         x"
-        (Format.asprintf "before=%a\nafter=%a" Expr.format (Expr.unbox matchA)
-           Expr.format
-           (Expr.unbox
-              (optimize_expr
-                 {
-                   ctx_enums = EnumName.Map.empty;
-                   ctx_structs = StructName.Map.empty;
-                   ctx_struct_fields = IdentName.Map.empty;
-                   ctx_scopes = ScopeName.Map.empty;
-                 }
-                 (Expr.unbox matchA))))
+  let x = Var.make "x" in
+  let enumT = EnumName.fresh ("t", Pos.no_pos) in
+  let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
+  let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
+  let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
+  let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
+  let nomark = Untyped { pos = Pos.no_pos } in
+  let injA = Expr.einj (Expr.evar x nomark) consA enumT nomark in
+  let injC = Expr.einj (Expr.evar x nomark) consC enumT nomark in
+  let injD = Expr.einj (Expr.evar x nomark) consD enumT nomark in
+  let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
+    EnumConstructor.Map.of_seq
+    @@ List.to_seq
+    @@ [
+         consA, Expr.eabs (Expr.bind [| x |] injC) [TAny, Pos.no_pos] nomark;
+         consB, Expr.eabs (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark;
+       ]
+  in
+  let matchA = Expr.ematch injA enumT cases nomark in
+  Alcotest.(check string)
+    "same string"
+    "before=match (A x)\n\
+    \       with\n\
+    \       | A → (λ (x: any) → C x)\n\
+    \       | B → (λ (x: any) → D x)\n\
+     after=C\n\
+     x"
+    (Format.asprintf "before=%a\nafter=%a" Expr.format (Expr.unbox matchA)
+       Expr.format
+       (Expr.unbox
+          (optimize_expr
+             {
+               ctx_enums = EnumName.Map.empty;
+               ctx_structs = StructName.Map.empty;
+               ctx_struct_fields = IdentName.Map.empty;
+               ctx_scopes = ScopeName.Map.empty;
+             }
+             (Expr.unbox matchA))))
 
 let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
   EnumConstructor.Map.of_seq
@@ -386,8 +386,7 @@ let test_iota_reduction_2 () =
       (Expr.ematch (num 1) enumT
          (cases_of_list
             [
-              (consB, fun x -> injBe (injB x));
-              (consA, fun _x -> injAe (num 20));
+              (consB, fun x -> injBe (injB x)); (consA, fun _x -> injAe (num 20));
             ])
          nomark)
       enumT
@@ -408,8 +407,8 @@ let test_iota_reduction_2 () =
     \      with\n\
     \      | A → (λ (x: any) → C 20)\n\
     \      | B → (λ (x: any) → D B x)\n"
-    (Format.asprintf "before=@[%a@]@.after=%a@." Expr.format
-       (Expr.unbox matchA) Expr.format
+    (Format.asprintf "before=@[%a@]@.after=%a@." Expr.format (Expr.unbox matchA)
+       Expr.format
        (Expr.unbox
           (optimize_expr
              {

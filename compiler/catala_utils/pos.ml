@@ -139,8 +139,7 @@ let utf8_byte_index s ui0 =
 let format_loc_text ppf (pos : t) =
   try
     let filename = get_file pos in
-    if filename = "" then
-      Format.pp_print_string ppf "No position information"
+    if filename = "" then Format.pp_print_string ppf "No position information"
     else
       let sline = get_start_line pos in
       let eline = get_end_line pos in
@@ -179,13 +178,13 @@ let format_loc_text ppf (pos : t) =
       let legal_pos_lines =
         List.rev_map
           (fun s ->
-             Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-               ~subst:(fun _ -> " ")
-               s)
+            Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+              ~subst:(fun _ -> " ")
+              s)
           pos.law_pos
       in
       (match ic with None -> () | Some ic -> close_in ic);
-      let print_matched_line ppf (line_no, line : int * string) =
+      let print_matched_line ppf ((line_no, line) : int * string) =
         let line_indent = indent_number line in
         let match_start_index =
           utf8_byte_index line
@@ -215,8 +214,7 @@ let format_loc_text ppf (pos : t) =
       Format.pp_print_list print_matched_line ppf pos_lines;
       Format.pp_print_cut ppf ();
       let rec pp_legal nspaces = function
-        | [last] ->
-          Format.fprintf ppf "@{<bold;blue>%*s└─ %s@}" nspaces "" last
+        | [last] -> Format.fprintf ppf "@{<bold;blue>%*s└─ %s@}" nspaces "" last
         | l :: lines ->
           Format.fprintf ppf "@{<bold;blue>%*s└┬ %s@}" nspaces "" l;
           pp_legal (nspaces + 1) lines

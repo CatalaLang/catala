@@ -16,10 +16,14 @@
 
 (** Interface for emitting compiler messages.
 
-    All messages are expected to use the [Format] module. Flush, ["@?"], ["@."], ["%!"] etc. are not supposed to be used outside of this module.
+    All messages are expected to use the [Format] module. Flush, ["@?"], ["@."],
+    ["%!"] etc. are not supposed to be used outside of this module.
 
-    WARNING: this module performs side-effects at load time, adding support for ocolor tags (e.g. ["@{<blue>text@}"]) to the standard string formatter used by e.g. [Format.sprintf]. (In this case, the tags are ignored, for color output you should use the functions of this module that toggle support depending on cli flags and terminal support).
-*)
+    WARNING: this module performs side-effects at load time, adding support for
+    ocolor tags (e.g. ["@{<blue>text@}"]) to the standard string formatter used
+    by e.g. [Format.sprintf]. (In this case, the tags are ignored, for color
+    output you should use the functions of this module that toggle support
+    depending on cli flags and terminal support). *)
 
 (** {1 Message content} *)
 
@@ -46,10 +50,15 @@ exception CompilerError of Content.t
 (** {1 Common error raising} *)
 
 val raise_spanned_error :
-  ?span_msg:Content.message -> Pos.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  ?span_msg:Content.message ->
+  Pos.t ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
 
 val raise_multispanned_error_full :
-  (Content.message option * Pos.t) list -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  (Content.message option * Pos.t) list ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
 
 val raise_multispanned_error :
   (string option * Pos.t) list -> ('a, Format.formatter, unit, 'b) format4 -> 'a
@@ -63,10 +72,15 @@ val assert_internal_error :
 (** {1 Common warning emission}*)
 
 val emit_multispanned_warning :
-  (Content.message option * Pos.t) list -> ('a, Format.formatter, unit) format -> 'a
+  (Content.message option * Pos.t) list ->
+  ('a, Format.formatter, unit) format ->
+  'a
 
 val emit_spanned_warning :
-  ?span_msg:Content.message -> Pos.t -> ('a, Format.formatter, unit) format -> 'a
+  ?span_msg:Content.message ->
+  Pos.t ->
+  ('a, Format.formatter, unit) format ->
+  'a
 
 val emit_warning : ('a, Format.formatter, unit) format -> 'a
 
@@ -84,21 +98,16 @@ val emit_result : ('a, Format.formatter, unit) format -> 'a
 
 (* {1 Some formatting helpers}*)
 
-val unformat: (Format.formatter -> unit) -> string
-(* Converts [f] to a string, discarding formatting and skipping newlines and indents *)
+val unformat : (Format.formatter -> unit) -> string
+(* Converts [f] to a string, discarding formatting and skipping newlines and
+   indents *)
 
+(* (**{2 Markers}*)
 
+   val with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
 
-(*
-(**{2 Markers}*)
+   val format_with_style : ANSITerminal.style list -> Format.formatter -> string
+   -> unit
 
-val with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
-
-val format_with_style :
-  ANSITerminal.style list -> Format.formatter -> string -> unit
-
-val call_unstyled : (unit -> 'a) -> 'a
-(** [call_unstyled f] calls the function [f] with the [style_flag] set to false
-    during the execution. *)
-
-*)
+   val call_unstyled : (unit -> 'a) -> 'a (** [call_unstyled f] calls the
+   function [f] with the [style_flag] set to false during the execution. *) *)

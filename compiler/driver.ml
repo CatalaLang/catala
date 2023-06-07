@@ -45,7 +45,8 @@ let get_scope_uid
     match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
     | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
     | _ ->
-      Messages.raise_error "There is no scope @{<yellow>\"%s\"@} inside the program." name)
+      Messages.raise_error
+        "There is no scope @{<yellow>\"%s\"@} inside the program." name)
 
 let get_variable_uid
     (options : Cli.options)
@@ -78,7 +79,8 @@ let get_variable_uid
         (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
     with
     | None ->
-      Messages.raise_error "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
+      Messages.raise_error
+        "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
         name Shared_ast.ScopeName.format_t scope_uid
     | Some
         (Desugared.Name_resolution.SubScope (subscope_var_name, subscope_name))
@@ -86,8 +88,9 @@ let get_variable_uid
       match second_part with
       | None ->
         Messages.raise_error
-          "Subscope @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@} cannot be selected by itself, please add \
-           \".<var>\" where <var> is a subscope variable."
+          "Subscope @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@} cannot be \
+           selected by itself, please add \".<var>\" where <var> is a subscope \
+           variable."
           Shared_ast.SubScopeName.format_t subscope_var_name
           Shared_ast.ScopeName.format_t scope_uid
       | Some second_part -> (
@@ -101,10 +104,10 @@ let get_variable_uid
                (subscope_var_name, v, Pos.no_pos))
         | _ ->
           Messages.raise_error
-            "Var @{<yellow>\"%s\"@} of subscope @{<yellow>\"%a\"@} in scope @{<yellow>\"%a\"@} does not exist, please check \
-             your command line arguments."
-            second_part
-            Shared_ast.SubScopeName.format_t subscope_var_name
+            "Var @{<yellow>\"%s\"@} of subscope @{<yellow>\"%a\"@} in scope \
+             @{<yellow>\"%a\"@} does not exist, please check your command line \
+             arguments."
+            second_part Shared_ast.SubScopeName.format_t subscope_var_name
             Shared_ast.ScopeName.format_t scope_uid))
     | Some (Desugared.Name_resolution.ScopeVar v) ->
       Some
@@ -120,10 +123,10 @@ let get_variable_uid
                  | Some state -> state
                  | None ->
                    Messages.raise_error
-                     "State @{<yellow>\"%s\"@} is not found for variable @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
-                     second_part
-                     first_part
-                     Shared_ast.ScopeName.format_t scope_uid)
+                     "State @{<yellow>\"%s\"@} is not found for variable \
+                      @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
+                     second_part first_part Shared_ast.ScopeName.format_t
+                     scope_uid)
                second_part )))
 
 (** Entry function for the executable. Returns a negative number in case of

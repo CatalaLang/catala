@@ -35,10 +35,9 @@ let detect_empty_definitions (p : program) : unit =
           then
             Messages.emit_spanned_warning
               (ScopeDef.get_position scope_def_key)
-              "In scope @{<yellow>\"%a\"@}, the variable @{<yellow>\"%a\"@} is declared but never defined; did \
-               you forget something?"
-              ScopeName.format_t scope_name
-              Ast.ScopeDef.format_t scope_def_key)
+              "In scope @{<yellow>\"%a\"@}, the variable @{<yellow>\"%a\"@} is \
+               declared but never defined; did you forget something?"
+              ScopeName.format_t scope_name Ast.ScopeDef.format_t scope_def_key)
         scope.scope_defs)
     p.program_scopes
 
@@ -145,7 +144,8 @@ let detect_unused_struct_fields (p : program) : unit =
       then
         Messages.emit_spanned_warning
           (snd (StructName.get_info s_name))
-          "The structure @{<yellow>\"%a\"@} is never used; maybe it's unnecessary?"
+          "The structure @{<yellow>\"%a\"@} is never used; maybe it's \
+           unnecessary?"
           StructName.format_t s_name
       else
         StructField.Map.iter
@@ -156,10 +156,9 @@ let detect_unused_struct_fields (p : program) : unit =
             then
               Messages.emit_spanned_warning
                 (snd (StructField.get_info field))
-                "The field @{<yellow>\"%a\"@} of struct @{<yellow>\"%a\"@} is never used; maybe it's \
-                 unnecessary?"
-                StructField.format_t field
-                StructName.format_t s_name)
+                "The field @{<yellow>\"%a\"@} of struct @{<yellow>\"%a\"@} is \
+                 never used; maybe it's unnecessary?"
+                StructField.format_t field StructName.format_t s_name)
           fields)
     p.program_ctx.ctx_structs
 
@@ -198,7 +197,8 @@ let detect_unused_enum_constructors (p : program) : unit =
       then
         Messages.emit_spanned_warning
           (snd (EnumName.get_info e_name))
-          "The enumeration @{<yellow>\"%a\"@} is never used; maybe it's unnecessary?"
+          "The enumeration @{<yellow>\"%a\"@} is never used; maybe it's \
+           unnecessary?"
           EnumName.format_t e_name
       else
         EnumConstructor.Map.iter
@@ -207,10 +207,9 @@ let detect_unused_enum_constructors (p : program) : unit =
             then
               Messages.emit_spanned_warning
                 (snd (EnumConstructor.get_info constructor))
-                "The constructor @{<yellow>\"%a\"@} of enumeration @{<yellow>\"%a\"@} is never used; maybe \
-                 it's unnecessary?"
-                EnumConstructor.format_t constructor
-                EnumName.format_t e_name)
+                "The constructor @{<yellow>\"%a\"@} of enumeration \
+                 @{<yellow>\"%a\"@} is never used; maybe it's unnecessary?"
+                EnumConstructor.format_t constructor EnumName.format_t e_name)
           constructors)
     p.program_ctx.ctx_enums
 
@@ -255,7 +254,8 @@ let detect_dead_code (p : program) : unit =
             Messages.emit_spanned_warning
               (Mark.get (ScopeVar.get_info var))
               "This variable is dead code; it does not contribute to computing \
-               any of scope @{<yellow>\"%s\"@} outputs. Did you forget something?"
+               any of scope @{<yellow>\"%s\"@} outputs. Did you forget \
+               something?"
               (Mark.remove (ScopeName.get_info scope_name))
           in
           match states with

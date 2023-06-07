@@ -101,9 +101,7 @@ let raise_unsupported_feature (msg : string) (pos : Pos.t) =
     in the program previously *)
 let raise_unknown_identifier (msg : string) (ident : IdentName.t Mark.pos) =
   Messages.raise_spanned_error (Mark.get ident)
-    "@{<yellow>\"%s\"@}: unknown identifier %s"
-    (Mark.remove ident)
-    msg
+    "@{<yellow>\"%s\"@}: unknown identifier %s" (Mark.remove ident) msg
 
 (** Gets the type associated to an uid *)
 let get_var_typ (ctxt : context) (uid : ScopeVar.t) : typ =
@@ -260,8 +258,7 @@ let process_subscope_decl
     in
     Messages.raise_multispanned_error
       [Some "first use", Mark.get info; Some "second use", s_pos]
-      "Subscope name @{<yellow>\"%s\"@} already used"
-      subscope
+      "Subscope name @{<yellow>\"%s\"@} already used" subscope
   | None ->
     let sub_scope_uid = SubScopeName.fresh (name, name_pos) in
     let original_subscope_uid =
@@ -314,7 +311,8 @@ let rec process_base_typ
         TStruct scope_str.out_struct_name, typ_pos
       | None ->
         Messages.raise_spanned_error typ_pos
-          "Unknown type @{<yellow>\"%s\"@}, not a struct or enum previously declared"
+          "Unknown type @{<yellow>\"%s\"@}, not a struct or enum previously \
+           declared"
           ident)
     | Surface.Ast.Named (_path, (_ident, _pos)) ->
       Messages.raise_spanned_error typ_pos
@@ -348,8 +346,7 @@ let process_data_decl
     in
     Messages.raise_multispanned_error
       [Some "First use:", Mark.get info; Some "Second use:", pos]
-      "Variable name @{<yellow>\"%s\"@} already used"
-      name
+      "Variable name @{<yellow>\"%s\"@} already used" name
   | None ->
     let uid = ScopeVar.fresh (name, pos) in
     let scope_ctxt =
@@ -367,11 +364,15 @@ let process_data_decl
             Messages.raise_multispanned_error_full
               [
                 ( Some
-                    (fun ppf -> Format.fprintf ppf "First instance of state @{<yellow>\"%s\"@}:"
+                    (fun ppf ->
+                      Format.fprintf ppf
+                        "First instance of state @{<yellow>\"%s\"@}:"
                         state_id_name),
                   Mark.get state_id );
                 ( Some
-                    (fun ppf -> Format.fprintf ppf "Second instance of state @{<yellow>\"%s\"@}:"
+                    (fun ppf ->
+                      Format.fprintf ppf
+                        "Second instance of state @{<yellow>\"%s\"@}:"
                         state_id_name),
                   Mark.get
                     (IdentName.Map.find state_id_name states_idmap
@@ -602,8 +603,11 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     context =
   let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
     Messages.raise_multispanned_error_full
-      [Some (fun ppf -> Format.pp_print_string ppf "First definition:"), Mark.get use;
-       Some (fun ppf -> Format.pp_print_string ppf "Second definition:"), pos]
+      [
+        ( Some (fun ppf -> Format.pp_print_string ppf "First definition:"),
+          Mark.get use );
+        Some (fun ppf -> Format.pp_print_string ppf "Second definition:"), pos;
+      ]
       "%s name @{<yellow>\"%s\"@} already defined" msg name
   in
   match Mark.remove item with
@@ -889,7 +893,8 @@ let process_scope_use (ctxt : context) (suse : Surface.Ast.scope_use) : context
     | _ ->
       Messages.raise_spanned_error
         (Mark.get suse.Surface.Ast.scope_use_name)
-        "@{<yellow>\"%s\"@}: this scope has not been declared anywhere, is it a typo?"
+        "@{<yellow>\"%s\"@}: this scope has not been declared anywhere, is it \
+         a typo?"
         (Mark.remove suse.Surface.Ast.scope_use_name)
   in
   List.fold_left

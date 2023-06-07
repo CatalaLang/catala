@@ -180,23 +180,24 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
   Messages.raise_multispanned_error_full
     [
       ( Some
-          (fun ppf -> Format.pp_print_string ppf
+          (fun ppf ->
+            Format.pp_print_string ppf
               "Error coming from typechecking the following expression:"),
         Expr.pos e );
-      Some (fun ppf ->
-          Format.fprintf ppf "Type @{<yellow>%a@} coming from expression:"
-            (format_typ ctx) t1),
-      t1_pos;
-      Some (fun ppf ->
-          Format.fprintf ppf "Type @{<yellow>%a@} coming from expression:"
-            (format_typ ctx) t2),
-      t2_pos;
+      ( Some
+          (fun ppf ->
+            Format.fprintf ppf "Type @{<yellow>%a@} coming from expression:"
+              (format_typ ctx) t1),
+        t1_pos );
+      ( Some
+          (fun ppf ->
+            Format.fprintf ppf "Type @{<yellow>%a@} coming from expression:"
+              (format_typ ctx) t2),
+        t2_pos );
     ]
     "@[<v>Error during typechecking, incompatible types:@,\
      @{<bold;blue>-->@} @[<hov>%a@]@,\
-     @{<bold;blue>-->@} @[<hov>%a@]@]"
-    (format_typ ctx) t1
-    (format_typ ctx) t2
+     @{<bold;blue>-->@} @[<hov>%a@]@]" (format_typ ctx) t1 (format_typ ctx) t2
 
 let lit_type (lit : A.lit) : naked_typ =
   match lit with
@@ -461,23 +462,22 @@ and typecheck_expr_top_down :
           with Not_found ->
             Messages.raise_spanned_error
               (Expr.mark_pos context_mark)
-              "Field @{<yellow>\"%s\"@} does not belong to structure @{<yellow>\"%a\"@} (no structure defines \
-               it)"
-              field
-              A.StructName.format_t name
+              "Field @{<yellow>\"%s\"@} does not belong to structure \
+               @{<yellow>\"%a\"@} (no structure defines it)"
+              field A.StructName.format_t name
         in
         try A.StructName.Map.find name candidate_structs
         with Not_found ->
           Messages.raise_spanned_error
             (Expr.mark_pos context_mark)
-            "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure @{<yellow>\"%a\"@},@ but to %a@]"
-            field
-            A.StructName.format_t name
+            "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
+             @{<yellow>\"%a\"@},@ but to %a@]"
+            field A.StructName.format_t name
             (Format.pp_print_list
                ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
                (fun fmt s_name ->
-                 Format.fprintf fmt "@{<yellow>\"%a\"@}"
-                   A.StructName.format_t s_name))
+                 Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format_t
+                   s_name))
             (List.map fst (A.StructName.Map.bindings candidate_structs))
       in
       A.StructField.Map.find field str

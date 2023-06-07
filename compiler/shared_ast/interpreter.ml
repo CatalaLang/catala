@@ -51,23 +51,21 @@ let print_log entry infos pos e =
   if !Cli.trace_flag then
     match entry with
     | VarDef _ ->
-      Messages.emit_log "@,%a %a: @{<green>%s@}" Print.log_entry
-        entry Print.uid_list infos
-        (Messages.unformat
-           (fun ppf -> Print.expr ~hide_function_body:true () ppf e))
+      Messages.emit_log "@,%a %a: @{<green>%s@}" Print.log_entry entry
+        Print.uid_list infos
+        (Messages.unformat (fun ppf ->
+             Print.expr ~hide_function_body:true () ppf e))
     | PosRecordIfTrueBool -> (
       match pos <> Pos.no_pos, Mark.remove e with
       | true, ELit (LBool true) ->
         Messages.emit_log "@,@[<v>%a@{<green>Definition applied@}:@,%a@]"
-          Print.log_entry entry
-          Pos.format_loc_text pos
+          Print.log_entry entry Pos.format_loc_text pos
       | _ -> ())
     | BeginCall ->
-      Messages.emit_log "@,[<v 2>%a %a" Print.log_entry entry
-        Print.uid_list infos
+      Messages.emit_log "@,@[<v 2>%a %a" Print.log_entry entry Print.uid_list
+        infos
     | EndCall ->
-      Messages.emit_log "@]@,%a %a" Print.log_entry entry
-        Print.uid_list infos
+      Messages.emit_log "@]@,%a %a" Print.log_entry entry Print.uid_list infos
 
 exception CatalaException of except
 

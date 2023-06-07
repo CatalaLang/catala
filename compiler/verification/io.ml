@@ -99,13 +99,17 @@ module MakeBackendIO (B : Backend) = struct
     let var_and_pos =
       match vc.Conditions.vc_kind with
       | Conditions.NoEmptyError ->
-        Format.asprintf "@[<v>@{<yellow>[%a.%s]@} This variable might return an empty error:@,%a@]"
+        Format.asprintf
+          "@[<v>@{<yellow>[%a.%s]@} This variable might return an empty error:@,\
+           %a@]"
           ScopeName.format_t vc.vc_scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
           Pos.format_loc_text (Mark.get vc.vc_variable)
       | Conditions.NoOverlappingExceptions ->
         Format.asprintf
-          "@[<v>@{<yellow>[%a.%s]@} At least two exceptions overlap for this variable:@,%a@]"
+          "@[<v>@{<yellow>[%a.%s]@} At least two exceptions overlap for this \
+           variable:@,\
+           %a@]"
           ScopeName.format_t vc.vc_scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
           Pos.format_loc_text (Mark.get vc.vc_variable)
@@ -140,8 +144,8 @@ module MakeBackendIO (B : Backend) = struct
       (vc : Conditions.verification_condition * vc_encoding_result) : bool =
     let vc, z3_vc = vc in
 
-    Messages.emit_debug "@[<v>For this variable:@,%a@,@]"
-      Pos.format_loc_text (Expr.pos vc.Conditions.vc_guard);
+    Messages.emit_debug "@[<v>For this variable:@,%a@,@]" Pos.format_loc_text
+      (Expr.pos vc.Conditions.vc_guard);
     Messages.emit_debug
       "@[<v>This verification condition was generated for @{<yellow>%s@}:@,\
        %a@,\
@@ -164,7 +168,8 @@ module MakeBackendIO (B : Backend) = struct
         false
       | Unknown -> failwith "The solver failed at proving or disproving the VC")
     | Fail msg ->
-      Messages.emit_warning "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s@]"
+      Messages.emit_warning
+        "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s@]"
         ScopeName.format_t vc.vc_scope
         (Bindlib.name_of (Mark.remove vc.vc_variable))
         msg;

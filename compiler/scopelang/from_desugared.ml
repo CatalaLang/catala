@@ -88,9 +88,9 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
       with Not_found ->
         (* Should not happen after disambiguation *)
         Messages.raise_spanned_error (Expr.mark_pos m)
-          "Field @{<yellow>\"%s\"@} does not belong to structure @{<yellow>\"%a\"@}"
-          field
-          StructName.format_t name
+          "Field @{<yellow>\"%s\"@} does not belong to structure \
+           @{<yellow>\"%a\"@}"
+          field StructName.format_t name
     in
     Expr.estructaccess e' field name m
   | ETuple es -> Expr.etuple (List.map (translate_expr ctx) es) m

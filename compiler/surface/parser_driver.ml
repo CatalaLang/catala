@@ -117,10 +117,11 @@ let raise_parser_error
     (match last_good_loc with
     | None -> []
     | Some last_good_loc ->
-      [Some (fun ppf -> Format.pp_print_string ppf "Last good token:"), last_good_loc]))
-    "@[<v>Syntax error at token %a@,%t@]"
-    pp_hint token
-    msg
+      [
+        ( Some (fun ppf -> Format.pp_print_string ppf "Last good token:"),
+          last_good_loc );
+      ]))
+    "@[<v>Syntax error at token %a@,%t@]" pp_hint token msg
 
 module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)
@@ -182,11 +183,13 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       match similar_acceptable_tokens with
       | [] -> None
       | tokens ->
-        Some (fun ppf -> Format.fprintf ppf "did you mean %a?"
-                (Format.pp_print_list
-                   ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or@  maybe@ ")
-                   (fun ppf (ts, _) -> pp_hint ppf ts))
-                tokens)
+        Some
+          (fun ppf ->
+            Format.fprintf ppf "did you mean %a?"
+              (Format.pp_print_list
+                 ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or@  maybe@ ")
+                 (fun ppf (ts, _) -> pp_hint ppf ts))
+              tokens)
     in
     (* The parser has suspended itself because of a syntax error. Stop. *)
     let custom_menhir_message ppf =
@@ -194,21 +197,20 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       | exception Not_found ->
         Format.fprintf ppf "Message: @{<yellow>unexpected token@}"
       | msg ->
-        Format.fprintf ppf "Message: %a" pp_hint (String.trim (String.uncapitalize_ascii msg))
+        Format.fprintf ppf "Message: @{<yellow>%s@}"
+          (String.trim (String.uncapitalize_ascii msg))
     in
     let msg ppf =
       match similar_token_msg with
       | None -> custom_menhir_message ppf
       | Some similar_token_msg ->
         Format.fprintf ppf "@[<v>%t@,@[<hov 4>Autosuggestion: %t@]@]"
-          custom_menhir_message
-          similar_token_msg
+          custom_menhir_message similar_token_msg
     in
     raise_parser_error
       (Pos.from_lpos (lexing_positions lexbuf))
       (Option.map Pos.from_lpos last_positions)
-      (Utf8.lexeme lexbuf)
-      msg
+      (Utf8.lexeme lexbuf) msg
 
   (** Main parsing loop *)
   let rec loop
