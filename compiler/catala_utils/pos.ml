@@ -136,15 +136,15 @@ let utf8_byte_index s ui0 =
   in
   aux 0 0
 
-let retrieve_loc_text (pos : t) : string =
+let format_loc_text ppf (pos : t) =
   try
     let filename = get_file pos in
-    let blue_style = [ANSITerminal.Bold; ANSITerminal.blue] in
-    if filename = "" then "No position information"
+    if filename = "" then
+      Format.pp_print_string ppf "No position information"
     else
       let sline = get_start_line pos in
       let eline = get_end_line pos in
-      let oc, input_line_opt =
+      let ic, input_line_opt =
         if filename = "stdin" then
           let line_index = ref 0 in
           let lines = String.split_on_char '\n' !Cli.contents in
@@ -157,15 +157,36 @@ let retrieve_loc_text (pos : t) : string =
           in
           None, input_line_opt
         else
-          let oc = open_in filename in
+          let ic = open_in filename in
           let input_line_opt () : string option =
-            try Some (input_line oc) with End_of_file -> None
+            try Some (input_line ic) with End_of_file -> None
           in
-          Some oc, input_line_opt
+          Some ic, input_line_opt
       in
-      let print_matched_line (line : string) (line_no : int) : string =
+      let include_extra_count = 0 in
+      let rec get_lines (n : int) : (int * string) list =
+        match input_line_opt () with
+        | Some line ->
+          if n < sline - include_extra_count then get_lines (n + 1)
+          else if
+            n >= sline - include_extra_count && n <= eline + include_extra_count
+          then (n, line) :: get_lines (n + 1)
+          else []
+        | None -> []
+      in
+      let pos_lines = get_lines 1 in
+      let nspaces = int_of_float (log10 (float_of_int eline)) + 1 in
+      let legal_pos_lines =
+        List.rev_map
+          (fun s ->
+             Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
+               ~subst:(fun _ -> " ")
+               s)
+          pos.law_pos
+      in
+      (match ic with None -> () | Some ic -> close_in ic);
+      let print_matched_line ppf (line_no, line : int * string) =
         let line_indent = indent_number line in
-        let error_indicator_style = [ANSITerminal.red; ANSITerminal.Bold] in
         let match_start_index =
           utf8_byte_index line
             (if line_no = sline then get_start_column pos - 1 else line_indent)
@@ -181,88 +202,28 @@ let retrieve_loc_text (pos : t) : string =
         in
         let match_start_col = string_columns unmatched_prefix in
         let match_num_cols = string_columns matched_substring in
-        String.concat ""
-          (line
-          :: "\n"
-          ::
-          (if line_no >= sline && line_no <= eline then
-           [
-             string_repeat match_start_col " ";
-             Cli.with_style error_indicator_style "%s"
-               (string_repeat match_num_cols "‾");
-           ]
-          else []))
+        Format.fprintf ppf "@{<bold;blue>%*d │@} %s@," nspaces line_no line;
+        if line_no >= sline && line_no <= eline then
+          Format.fprintf ppf "@{<bold;blue>%s │@} %s@{<bold;red>%s@}"
+            (string_repeat nspaces " ")
+            (string_repeat match_start_col " ")
+            (string_repeat match_num_cols "‾")
       in
-      let include_extra_count = 0 in
-      let rec get_lines (n : int) : string list =
-        match input_line_opt () with
-        | Some line ->
-          if n < sline - include_extra_count then get_lines (n + 1)
-          else if
-            n >= sline - include_extra_count && n <= eline + include_extra_count
-          then print_matched_line line n :: get_lines (n + 1)
-          else []
-        | None -> []
-      in
-      let pos_lines = get_lines 1 in
-      let spaces = int_of_float (log10 (float_of_int eline)) + 1 in
-      let legal_pos_lines =
-        List.rev
-          (List.map
-             (fun s ->
-               Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-                 ~subst:(fun _ -> " ")
-                 s)
-             pos.law_pos)
-      in
-      (match oc with None -> () | Some oc -> close_in oc);
-      let buf = Buffer.create 73 in
-      Buffer.add_string buf
-        (Cli.with_style blue_style "┌─⯈ %s:" (to_string_short pos));
-      Buffer.add_char buf '\n';
-      (* should be outside of [Cli.with_style] *)
-      Buffer.add_string buf
-        (Cli.with_style blue_style "└%s┐" (string_repeat spaces "─"));
-      Buffer.add_char buf '\n';
-      Buffer.add_string buf
-        (Cli.add_prefix_to_each_line (String.concat "\n" pos_lines) (fun i ->
-             let cur_line = sline - include_extra_count + i in
-             if
-               cur_line >= sline
-               && cur_line <= sline + (2 * (eline - sline))
-               && cur_line mod 2 = sline mod 2
-             then
-               Cli.with_style blue_style "%*d │" spaces
-                 (sline + ((cur_line - sline) / 2))
-             else if cur_line >= sline - include_extra_count && cur_line < sline
-             then Cli.with_style blue_style "%*d │" spaces (cur_line + 1)
-             else if
-               cur_line
-               <= sline + (2 * (eline - sline)) + 1 + include_extra_count
-               && cur_line > sline + (2 * (eline - sline)) + 1
-             then
-               Cli.with_style blue_style "%*d │" spaces
-                 (cur_line - (eline - sline + 1))
-             else Cli.with_style blue_style "%*s │" spaces ""));
-      Buffer.add_char buf '\n';
-      let () =
-        match legal_pos_lines with
+      Format.pp_open_vbox ppf 0;
+      Format.fprintf ppf "@{<bold;blue>┌─⯈ %s:@}@," (to_string_short pos);
+      Format.fprintf ppf "@{<bold;blue>└%s┐@}@," (string_repeat nspaces "─");
+      Format.pp_print_list print_matched_line ppf pos_lines;
+      Format.pp_print_cut ppf ();
+      let rec pp_legal nspaces = function
+        | [last] ->
+          Format.fprintf ppf "@{<bold;blue>%*s└─ %s@}" nspaces "" last
+        | l :: lines ->
+          Format.fprintf ppf "@{<bold;blue>%*s└┬ %s@}" nspaces "" l;
+          pp_legal (nspaces + 1) lines
         | [] -> ()
-        | _ ->
-          let last = List.length legal_pos_lines - 1 in
-          Buffer.add_string buf
-            (Cli.add_prefix_to_each_line
-               (String.concat "\n"
-                  (List.map
-                     (fun l -> Cli.with_style blue_style "%s" l)
-                     legal_pos_lines))
-               (fun i ->
-                 if i = last then
-                   Cli.with_style blue_style "%*s└─" (spaces + i + 1) ""
-                 else Cli.with_style blue_style "%*s└┬" (spaces + i + 1) ""))
       in
-      Buffer.contents buf
-  with Sys_error _ -> "Location:" ^ to_string pos
+      pp_legal (nspaces + 1) legal_pos_lines
+  with Sys_error _ -> Format.fprintf ppf "Location: %s" (to_string pos)
 
 let no_pos : t =
   let zero_pos =

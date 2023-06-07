@@ -45,9 +45,7 @@ let get_scope_uid
     match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
     | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
     | _ ->
-      Messages.raise_error "There is no scope %a inside the program."
-        (Cli.format_with_style [ANSITerminal.yellow])
-        ("\"" ^ name ^ "\""))
+      Messages.raise_error "There is no scope @{<yellow>\"%s\"@} inside the program." name)
 
 let get_variable_uid
     (options : Cli.options)
@@ -80,24 +78,18 @@ let get_variable_uid
         (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
     with
     | None ->
-      Messages.raise_error "Variable %a not found inside scope %a"
-        (Cli.format_with_style [ANSITerminal.yellow])
-        ("\"" ^ name ^ "\"")
-        (Cli.format_with_style [ANSITerminal.yellow])
-        (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t scope_uid)
+      Messages.raise_error "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
+        name Shared_ast.ScopeName.format_t scope_uid
     | Some
         (Desugared.Name_resolution.SubScope (subscope_var_name, subscope_name))
       -> (
       match second_part with
       | None ->
         Messages.raise_error
-          "Subscope %a of scope %a cannot be selected by itself, please add \
+          "Subscope @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@} cannot be selected by itself, please add \
            \".<var>\" where <var> is a subscope variable."
-          (Cli.format_with_style [ANSITerminal.yellow])
-          (Format.asprintf "\"%a\"" Shared_ast.SubScopeName.format_t
-             subscope_var_name)
-          (Cli.format_with_style [ANSITerminal.yellow])
-          (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t scope_uid)
+          Shared_ast.SubScopeName.format_t subscope_var_name
+          Shared_ast.ScopeName.format_t scope_uid
       | Some second_part -> (
         match
           Shared_ast.IdentName.Map.find_opt second_part
@@ -109,15 +101,11 @@ let get_variable_uid
                (subscope_var_name, v, Pos.no_pos))
         | _ ->
           Messages.raise_error
-            "Var %a of subscope %a in scope %a does not exist, please check \
+            "Var @{<yellow>\"%s\"@} of subscope @{<yellow>\"%a\"@} in scope @{<yellow>\"%a\"@} does not exist, please check \
              your command line arguments."
-            (Cli.format_with_style [ANSITerminal.yellow])
-            ("\"" ^ second_part ^ "\"")
-            (Cli.format_with_style [ANSITerminal.yellow])
-            (Format.asprintf "\"%a\"" Shared_ast.SubScopeName.format_t
-               subscope_var_name)
-            (Cli.format_with_style [ANSITerminal.yellow])
-            (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t scope_uid)))
+            second_part
+            Shared_ast.SubScopeName.format_t subscope_var_name
+            Shared_ast.ScopeName.format_t scope_uid))
     | Some (Desugared.Name_resolution.ScopeVar v) ->
       Some
         (Desugared.Ast.ScopeDef.Var
@@ -132,14 +120,10 @@ let get_variable_uid
                  | Some state -> state
                  | None ->
                    Messages.raise_error
-                     "State %a is not found for variable %a of scope %a"
-                     (Cli.format_with_style [ANSITerminal.yellow])
-                     ("\"" ^ second_part ^ "\"")
-                     (Cli.format_with_style [ANSITerminal.yellow])
-                     ("\"" ^ first_part ^ "\"")
-                     (Cli.format_with_style [ANSITerminal.yellow])
-                     (Format.asprintf "\"%a\"" Shared_ast.ScopeName.format_t
-                        scope_uid))
+                     "State @{<yellow>\"%s\"@} is not found for variable @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
+                     second_part
+                     first_part
+                     Shared_ast.ScopeName.format_t scope_uid)
                second_part )))
 
 (** Entry function for the executable. Returns a negative number in case of
@@ -570,7 +554,7 @@ let driver source_file (options : Cli.options) : int =
   | Sys_error msg ->
     let bt = Printexc.get_raw_backtrace () in
     Messages.emit_content
-      (Messages.Content.of_message ("System error: " ^ msg))
+      (Messages.Content.of_string ("System error: " ^ msg))
       Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1

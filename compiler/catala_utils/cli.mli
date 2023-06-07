@@ -35,6 +35,9 @@ type backend_option_builtin =
 
 type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
 
+(** The usual auto/always/never option argument *)
+type when_enum = Auto | Always | Never
+
 val languages : (string * backend_lang) list
 
 val language_code : backend_lang -> string
@@ -57,7 +60,7 @@ val locale_lang : backend_lang ref
 val contents : string ref
 val debug_flag : bool ref
 
-val style_flag : bool ref
+val style_flag : when_enum ref
 (** Styles the terminal output *)
 
 val optimize_flag : bool ref
@@ -99,9 +102,6 @@ val max_prec_digits_opt : int option Cmdliner.Term.t
 val ex_scope : string option Cmdliner.Term.t
 val output : string option Cmdliner.Term.t
 
-(** The usual auto/always/never option argument *)
-type when_enum = Auto | Always | Never
-
 type options = {
   debug : bool;
   color : when_enum;
@@ -136,21 +136,10 @@ val info : Cmdliner.Cmd.info
 
 (**{1 Terminal formatting}*)
 
-(**{2 Markers}*)
-
-val with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
-
-val format_with_style :
-  ANSITerminal.style list -> Format.formatter -> string -> unit
-
-val call_unstyled : (unit -> 'a) -> 'a
-(** [call_unstyled f] calls the function [f] with the [style_flag] set to false
-    during the execution. *)
-
 (**{2 Printers}*)
 
-val concat_with_line_depending_prefix_and_suffix :
-  (int -> string) -> (int -> string) -> string list -> string
-
-val add_prefix_to_each_line : string -> (int -> string) -> string
-(** The int argument of the prefix corresponds to the line number, starting at 0 *)
+(* val concat_with_line_depending_prefix_and_suffix :
+ *   (int -> string) -> (int -> string) -> string list -> string
+ * 
+ * val add_prefix_to_each_line : string -> (int -> string) -> string
+ * (\** The int argument of the prefix corresponds to the line number, starting at 0 *\) *)

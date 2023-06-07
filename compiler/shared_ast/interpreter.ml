@@ -43,8 +43,6 @@ let propagate_empty_error_list elist f =
   in
   aux [] elist
 
-let log_indent = ref 0
-
 (* TODO: we should provide a generic way to print logs, that work across the
    different backends: python, ocaml, javascript, and interpreter *)
 
@@ -53,35 +51,22 @@ let print_log entry infos pos e =
   if !Cli.trace_flag then
     match entry with
     | VarDef _ ->
-      (* TODO: this usage of Format is broken, Formatting requires that all is
-         formatted in one pass, without going through intermediate "%s" *)
-      Messages.emit_log "%*s%a %a: %s" (!log_indent * 2) "" Print.log_entry
+      Messages.emit_log "@,%a %a: @{<green>%s@}" Print.log_entry
         entry Print.uid_list infos
-        (let expr_str =
-           Format.asprintf "%a" (Print.expr ~hide_function_body:true ()) e
-         in
-         let expr_str =
-           Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\n\\s*")
-             ~subst:(fun _ -> " ")
-             expr_str
-         in
-         Cli.with_style [ANSITerminal.green] "%s" expr_str)
+        (Messages.unformat
+           (fun ppf -> Print.expr ~hide_function_body:true () ppf e))
     | PosRecordIfTrueBool -> (
       match pos <> Pos.no_pos, Mark.remove e with
       | true, ELit (LBool true) ->
-        Messages.emit_log "%*s%a%s:\n%s" (!log_indent * 2) "" Print.log_entry
-          entry
-          (Cli.with_style [ANSITerminal.green] "Definition applied")
-          (Cli.add_prefix_to_each_line (Pos.retrieve_loc_text pos) (fun _ ->
-               Format.asprintf "%*s" (!log_indent * 2) ""))
+        Messages.emit_log "@,@[<v>%a@{<green>Definition applied@}:@,%a@]"
+          Print.log_entry entry
+          Pos.format_loc_text pos
       | _ -> ())
     | BeginCall ->
-      Messages.emit_log "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
-        Print.uid_list infos;
-      log_indent := !log_indent + 1
+      Messages.emit_log "@,[<v 2>%a %a" Print.log_entry entry
+        Print.uid_list infos
     | EndCall ->
-      log_indent := !log_indent - 1;
-      Messages.emit_log "%*s%a %a" (!log_indent * 2) "" Print.log_entry entry
+      Messages.emit_log "@]@,%a %a" Print.log_entry entry
         Print.uid_list infos
 
 exception CatalaException of except

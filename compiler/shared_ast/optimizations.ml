@@ -310,7 +310,6 @@ let optimize_program (p : 'm program) : 'm program =
     (Program.map_exprs ~f:(optimize_expr p.decl_ctx) ~varf:(fun v -> v) p)
 
 let test_iota_reduction_1 () =
-  Cli.call_unstyled (fun _ ->
       let x = Var.make "x" in
       let enumT = EnumName.fresh ("t", Pos.no_pos) in
       let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
@@ -348,7 +347,7 @@ let test_iota_reduction_1 () =
                    ctx_struct_fields = IdentName.Map.empty;
                    ctx_scopes = ScopeName.Map.empty;
                  }
-                 (Expr.unbox matchA)))))
+                 (Expr.unbox matchA))))
 
 let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
   EnumConstructor.Map.of_seq
@@ -362,62 +361,61 @@ let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
              (Untyped { pos = Pos.no_pos }) ))
 
 let test_iota_reduction_2 () =
-  Cli.call_unstyled (fun _ ->
-      let enumT = EnumName.fresh ("t", Pos.no_pos) in
-      let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
-      let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
-      let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
-      let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
+  let enumT = EnumName.fresh ("t", Pos.no_pos) in
+  let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
+  let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
+  let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
+  let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
 
-      let nomark = Untyped { pos = Pos.no_pos } in
+  let nomark = Untyped { pos = Pos.no_pos } in
 
-      let num n = Expr.elit (LInt (Runtime.integer_of_int n)) nomark in
+  let num n = Expr.elit (LInt (Runtime.integer_of_int n)) nomark in
 
-      let injAe e = Expr.einj e consA enumT nomark in
-      let injBe e = Expr.einj e consB enumT nomark in
-      let injCe e = Expr.einj e consC enumT nomark in
-      let injDe e = Expr.einj e consD enumT nomark in
+  let injAe e = Expr.einj e consA enumT nomark in
+  let injBe e = Expr.einj e consB enumT nomark in
+  let injCe e = Expr.einj e consC enumT nomark in
+  let injDe e = Expr.einj e consD enumT nomark in
 
-      (* let injA x = injAe (Expr.evar x nomark) in *)
-      let injB x = injBe (Expr.evar x nomark) in
-      let injC x = injCe (Expr.evar x nomark) in
-      let injD x = injDe (Expr.evar x nomark) in
+  (* let injA x = injAe (Expr.evar x nomark) in *)
+  let injB x = injBe (Expr.evar x nomark) in
+  let injC x = injCe (Expr.evar x nomark) in
+  let injD x = injDe (Expr.evar x nomark) in
 
-      let matchA =
-        Expr.ematch
-          (Expr.ematch (num 1) enumT
-             (cases_of_list
-                [
-                  (consB, fun x -> injBe (injB x));
-                  (consA, fun _x -> injAe (num 20));
-                ])
-             nomark)
-          enumT
-          (cases_of_list [consA, injC; consB, injD])
-          nomark
-      in
-      Alcotest.(check string)
-        "same string "
-        "before=match\n\
-        \         (match 1\n\
-        \          with\n\
-        \          | A → (λ (x: any) → A 20)\n\
-        \          | B → (λ (x: any) → B B x))\n\
-        \       with\n\
-        \       | A → (λ (x: any) → C x)\n\
-        \       | B → (λ (x: any) → D x)\n\
-         after=match 1\n\
-        \      with\n\
-        \      | A → (λ (x: any) → C 20)\n\
-        \      | B → (λ (x: any) → D B x)\n"
-        (Format.asprintf "before=@[%a@]@.after=%a@." Expr.format
-           (Expr.unbox matchA) Expr.format
-           (Expr.unbox
-              (optimize_expr
-                 {
-                   ctx_enums = EnumName.Map.empty;
-                   ctx_structs = StructName.Map.empty;
-                   ctx_struct_fields = IdentName.Map.empty;
-                   ctx_scopes = ScopeName.Map.empty;
-                 }
-                 (Expr.unbox matchA)))))
+  let matchA =
+    Expr.ematch
+      (Expr.ematch (num 1) enumT
+         (cases_of_list
+            [
+              (consB, fun x -> injBe (injB x));
+              (consA, fun _x -> injAe (num 20));
+            ])
+         nomark)
+      enumT
+      (cases_of_list [consA, injC; consB, injD])
+      nomark
+  in
+  Alcotest.(check string)
+    "same string "
+    "before=match\n\
+    \         (match 1\n\
+    \          with\n\
+    \          | A → (λ (x: any) → A 20)\n\
+    \          | B → (λ (x: any) → B B x))\n\
+    \       with\n\
+    \       | A → (λ (x: any) → C x)\n\
+    \       | B → (λ (x: any) → D x)\n\
+     after=match 1\n\
+    \      with\n\
+    \      | A → (λ (x: any) → C 20)\n\
+    \      | B → (λ (x: any) → D B x)\n"
+    (Format.asprintf "before=@[%a@]@.after=%a@." Expr.format
+       (Expr.unbox matchA) Expr.format
+       (Expr.unbox
+          (optimize_expr
+             {
+               ctx_enums = EnumName.Map.empty;
+               ctx_structs = StructName.Map.empty;
+               ctx_struct_fields = IdentName.Map.empty;
+               ctx_scopes = ScopeName.Map.empty;
+             }
+             (Expr.unbox matchA))))

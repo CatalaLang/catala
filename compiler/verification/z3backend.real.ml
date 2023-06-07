@@ -229,9 +229,8 @@ let print_model (ctx : context) (model : Model.model) : string =
              match StringMap.find_opt symbol_name ctx.ctx_z3vars with
              | None -> ()
              | Some (v, ty) ->
-               Format.fprintf fmt "%s %s : %s\n"
-                 (Cli.with_style [ANSITerminal.blue] "%s" "-->")
-                 (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
+               Format.fprintf fmt "@{<blue>-->@} @{<yellow>%s@} : %s\n"
+                 (Bindlib.name_of v)
                  (print_z3model_expr ctx ty e))
          else
            (* Declaration d is a function *)
@@ -244,9 +243,8 @@ let print_model (ctx : context) (model : Model.model) : string =
            | Some f ->
              let symbol_name = Symbol.to_string (FuncDecl.get_name d) in
              let v, _ = StringMap.find symbol_name ctx.ctx_z3vars in
-             Format.fprintf fmt "%s %s : %s"
-               (Cli.with_style [ANSITerminal.blue] "%s" "-->")
-               (Cli.with_style [ANSITerminal.yellow] "%s" (Bindlib.name_of v))
+             Format.fprintf fmt "@{<blue>-->@} @{<yellow>%s@} : %s\n"
+               (Bindlib.name_of v)
                (* TODO: Model of a Z3 function should be pretty-printed *)
                (Model.FuncInterp.to_string f)))
     decls

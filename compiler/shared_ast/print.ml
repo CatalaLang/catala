@@ -25,28 +25,36 @@ let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.pp_print_char fmt '.')
     (fun fmt info ->
-      Cli.format_with_style
-        (if String.begins_with_uppercase (Mark.remove info) then
-         [ANSITerminal.red]
-        else [])
-        fmt
-        (Uid.MarkedString.to_string info))
+       Format.fprintf
+         fmt
+         (if String.begins_with_uppercase (Mark.remove info) then
+            "@{<red>%s@}"
+          else "%s")
+         (Uid.MarkedString.to_string info))
     fmt infos
 
+let with_color f color fmt x =
+  (* equivalent to [Format.fprintf fmt "@{<color>%s@}" s] *)
+  Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Fg (C4 color)));
+  f fmt x;
+  Format.pp_close_stag fmt ()
+
+let pp_color_string = with_color Format.pp_print_string
+
 let keyword (fmt : Format.formatter) (s : string) : unit =
-  Cli.format_with_style [ANSITerminal.red] fmt s
+  pp_color_string Ocolor_types.red fmt s
 
 let base_type (fmt : Format.formatter) (s : string) : unit =
-  Cli.format_with_style [ANSITerminal.yellow] fmt s
+  pp_color_string Ocolor_types.yellow fmt s
 
 let punctuation (fmt : Format.formatter) (s : string) : unit =
-  Format.pp_print_as fmt 1 (Cli.with_style [ANSITerminal.cyan] "%s" s)
+  with_color (fun fmt -> Format.pp_print_as fmt 1) Ocolor_types.cyan fmt s
 
 let op_style (fmt : Format.formatter) (s : string) : unit =
-  Cli.format_with_style [ANSITerminal.green] fmt s
+  pp_color_string Ocolor_types.green fmt s
 
 let lit_style (fmt : Format.formatter) (s : string) : unit =
-  Cli.format_with_style [ANSITerminal.yellow] fmt s
+  pp_color_string Ocolor_types.yellow fmt s
 
 let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   base_type fmt
@@ -69,12 +77,10 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   | ToplevelVar v -> TopdefName.format_t fmt (Mark.remove v)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
-  Cli.format_with_style [ANSITerminal.magenta] fmt
-    (Format.asprintf "%a" EnumConstructor.format_t c)
+  Format.fprintf fmt "@{<magenta>%a@}" EnumConstructor.format_t c
 
 let struct_field (fmt : Format.formatter) (c : StructField.t) : unit =
-  Cli.format_with_style [ANSITerminal.magenta] fmt
-    (Format.asprintf "%a" StructField.format_t c)
+  Format.fprintf fmt "@{<magenta>%a@}" StructField.format_t c
 
 let rec typ (ctx : decl_ctx option) (fmt : Format.formatter) (ty : typ) : unit =
   let typ = typ ctx in
@@ -152,14 +158,11 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
   | LDuration d -> lit_style fmt (Runtime.duration_to_string d)
 
 let log_entry (fmt : Format.formatter) (entry : log_entry) : unit =
-  Format.fprintf fmt "@<2>%a"
-    (fun fmt -> function
-      | VarDef _ -> Cli.format_with_style [ANSITerminal.blue] fmt "≔ "
-      | BeginCall -> Cli.format_with_style [ANSITerminal.yellow] fmt "→ "
-      | EndCall -> Cli.format_with_style [ANSITerminal.yellow] fmt "← "
-      | PosRecordIfTrueBool ->
-        Cli.format_with_style [ANSITerminal.green] fmt "☛ ")
-    entry
+  match entry with
+  | VarDef _ -> Format.fprintf fmt "@{<blue>@<1>%s @}" "≔"
+  | BeginCall -> Format.fprintf fmt "@{<yellow>@<1>%s @}" "→"
+  | EndCall -> Format.fprintf fmt "@{<yellow>@<1>%s @}" "←"
+  | PosRecordIfTrueBool -> Format.fprintf fmt "@{<green>@<1>%s @}" "☛"
 
 let operator_to_string : type a. a Op.t -> string =
   let open Op in
@@ -299,17 +302,13 @@ let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
   let open Op in
   match op with
   | Log (entry, infos) ->
-    Format.fprintf fmt "%a%a%a%a"
-      (Cli.format_with_style [ANSITerminal.blue])
-      "#{" log_entry entry
+    Format.fprintf fmt "@{<blue>#{@}%a%a@{<blue>}@}"
+      log_entry entry
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> punctuation fmt ".")
-         (fun fmt info ->
-           Cli.format_with_style [ANSITerminal.blue] fmt
+         (fun fmt info -> Format.fprintf fmt "@{<blue>%s@}"
              (Uid.MarkedString.to_string info)))
       infos
-      (Cli.format_with_style [ANSITerminal.blue])
-      "}"
   | op ->
     op_style fmt
       (if debug then operator_to_string op else operator_to_shorter_string op)
@@ -434,7 +433,7 @@ let rec expr_aux :
     hide_function_body:bool ->
     debug:bool ->
     Bindlib.ctxt ->
-    ANSITerminal.style list ->
+    Ocolor_types.color4 list ->
     Format.formatter ->
     (a, 't) gexpr ->
     unit =
@@ -454,14 +453,14 @@ let rec expr_aux :
   let paren ~rhs ?(colors = colors) expr fmt e1 =
     if Precedence.needs_parens ~rhs ~context:e (skip_log e1) then (
       Format.pp_open_hvbox fmt 1;
-      Cli.format_with_style [List.hd colors] fmt "(";
+      pp_color_string (List.hd colors) fmt "(";
       expr (List.tl colors) fmt e1;
       Format.pp_close_box fmt ();
-      Cli.format_with_style [List.hd colors] fmt ")")
+      pp_color_string (List.hd colors) fmt ")")
     else expr colors fmt e1
   in
-  let default_punct color fmt s =
-    Format.pp_print_as fmt 1 (Cli.with_style [color] "%s" s)
+  let default_punct =
+    with_color (fun fmt -> Format.pp_print_as fmt 1)
   in
   let lhs ?(colors = colors) ex = paren ~colors ~rhs:false ex in
   let rhs ex = paren ~rhs:true ex in
@@ -673,12 +672,13 @@ let rec expr_aux :
     Format.pp_close_box fmt ()
 
 let rec colors =
-  ANSITerminal.blue
-  :: ANSITerminal.cyan
-  :: ANSITerminal.green
-  :: ANSITerminal.yellow
-  :: ANSITerminal.red
-  :: ANSITerminal.magenta
+  let open Ocolor_types in
+  blue
+  :: cyan
+  :: green
+  :: yellow
+  :: red
+  :: magenta
   :: colors
 
 let typ_debug = typ None

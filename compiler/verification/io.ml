@@ -99,18 +99,16 @@ module MakeBackendIO (B : Backend) = struct
     let var_and_pos =
       match vc.Conditions.vc_kind with
       | Conditions.NoEmptyError ->
-        Format.asprintf "%s This variable might return an empty error:\n%s"
-          (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
-             (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-             (Bindlib.name_of (Mark.remove vc.vc_variable)))
-          (Pos.retrieve_loc_text (Mark.get vc.vc_variable))
+        Format.asprintf "@[<v>@{<yellow>[%a.%s]@} This variable might return an empty error:@,%a@]"
+          ScopeName.format_t vc.vc_scope
+          (Bindlib.name_of (Mark.remove vc.vc_variable))
+          Pos.format_loc_text (Mark.get vc.vc_variable)
       | Conditions.NoOverlappingExceptions ->
         Format.asprintf
-          "%s At least two exceptions overlap for this variable:\n%s"
-          (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
-             (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-             (Bindlib.name_of (Mark.remove vc.vc_variable)))
-          (Pos.retrieve_loc_text (Mark.get vc.vc_variable))
+          "@[<v>@{<yellow>[%a.%s]@} At least two exceptions overlap for this variable:@,%a@]"
+          ScopeName.format_t vc.vc_scope
+          (Bindlib.name_of (Mark.remove vc.vc_variable))
+          Pos.format_loc_text (Mark.get vc.vc_variable)
     in
     let counterexample : string option =
       if !Cli.disable_counterexamples then
@@ -142,14 +140,13 @@ module MakeBackendIO (B : Backend) = struct
       (vc : Conditions.verification_condition * vc_encoding_result) : bool =
     let vc, z3_vc = vc in
 
-    Messages.emit_debug "For this variable:\n%s\n"
-      (Pos.retrieve_loc_text (Expr.pos vc.Conditions.vc_guard));
+    Messages.emit_debug "@[<v>For this variable:@,%a@,@]"
+      Pos.format_loc_text (Expr.pos vc.Conditions.vc_guard);
     Messages.emit_debug
-      "This verification condition was generated for %a:@\n\
-       %a@\n\
-       with assertions:@\n\
-       %a"
-      (Cli.format_with_style [ANSITerminal.yellow])
+      "@[<v>This verification condition was generated for @{<yellow>%s@}:@,\
+       %a@,\
+       with assertions:@,\
+       %a@]"
       (match vc.vc_kind with
       | Conditions.NoEmptyError ->
         "the variable definition never to return an empty error"
@@ -158,7 +155,7 @@ module MakeBackendIO (B : Backend) = struct
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (
-      Messages.emit_debug "The translation to Z3 is the following:\n%s"
+      Messages.emit_debug "@[<v>The translation to Z3 is the following:@,%s@]"
         (B.print_encoding encoding);
       match B.solve_vc_encoding backend_ctx encoding with
       | ProvenTrue -> true
@@ -167,10 +164,9 @@ module MakeBackendIO (B : Backend) = struct
         false
       | Unknown -> failwith "The solver failed at proving or disproving the VC")
     | Fail msg ->
-      Messages.emit_warning "%s The translation to Z3 failed:\n%s"
-        (Cli.with_style [ANSITerminal.yellow] "[%s.%s]"
-           (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-           (Bindlib.name_of (Mark.remove vc.vc_variable)))
+      Messages.emit_warning "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s@]"
+        ScopeName.format_t vc.vc_scope
+        (Bindlib.name_of (Mark.remove vc.vc_variable))
         msg;
       false
 end

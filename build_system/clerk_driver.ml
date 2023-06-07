@@ -919,10 +919,7 @@ let driver
       in
       if there_is_some_fails then
         List.iter
-          (fun f ->
-            f
-            |> Cli.with_style [ANSITerminal.magenta] "%s"
-            |> Messages.emit_warning "No test case found for %s")
+          (Messages.emit_warning "No test case found for @{<magenta>%s@}")
           ctx.all_failed_names;
       if 0 = List.compare_lengths ctx.all_failed_names files_or_folders then
         return_ok
