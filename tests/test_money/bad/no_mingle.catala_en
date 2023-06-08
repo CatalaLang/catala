@@ -14,8 +14,7 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] I don't know how to apply operator * on types money and
-money
+[ERROR] I don't know how to apply operator * on types money and money
 
 ┌─⯈ tests/test_money/bad/no_mingle.catala_en:12.26-12.27:
 └──┐

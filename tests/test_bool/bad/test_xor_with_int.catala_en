@@ -11,8 +11,8 @@ scope TestXorWithInt:
 ```catala-test-inline
 $ catala Typecheck
 [ERROR] Error during typechecking, incompatible types:
---> integer
---> bool
+        --> integer
+        --> bool
 
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_bool/bad/test_xor_with_int.catala_en:8.30-8.32:

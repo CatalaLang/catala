@@ -101,7 +101,8 @@ let pp_marker target ppf () =
 
 (**{2 Printers}*)
 
-(** Prints the argument after the correct marker and to the correct channel *)
+(** Prints the argument after the correct marker and to the correct channel
+    (inside a vbox) *)
 let format target format =
   let ppf = get_ppf target in
   Format.pp_open_vbox ppf 0;
@@ -137,7 +138,7 @@ let to_internal_error (content : Content.t) : Content.t =
     content with
     message =
       (fun ppf ->
-        Format.fprintf ppf "%s@\n%t" internal_error_prefix content.message);
+        Format.fprintf ppf "%s@,%t" internal_error_prefix content.message);
   }
 
 let emit_content (content : Content.t) (target : content_type) : unit =

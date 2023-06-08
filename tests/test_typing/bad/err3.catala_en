@@ -20,8 +20,8 @@ $ catala Typecheck
   │      ‾‾‾
 
 [ERROR] Error during typechecking, incompatible types:
---> integer
---> decimal
+        --> integer
+        --> decimal
 
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
@@ -58,8 +58,8 @@ $ catala ocaml
   │      ‾‾‾
 
 [ERROR] Error during typechecking, incompatible types:
---> integer
---> decimal
+        --> integer
+        --> decimal
 
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:

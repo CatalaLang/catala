@@ -12,8 +12,7 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] I don't know how to apply operator >= on types integer and
-money
+[ERROR] I don't know how to apply operator >= on types integer and money
 
 ┌─⯈ tests/test_array/bad/fold_error.catala_en:10.50-10.52:
 └──┐
