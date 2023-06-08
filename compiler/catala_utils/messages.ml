@@ -84,7 +84,7 @@ let print_time_marker =
     if delta > 50. then
       Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@," delta
 
-let pp_marker target ppf () =
+let pp_marker target ppf =
   let open Ocolor_types in
   let tags, str =
     match target with
@@ -100,19 +100,6 @@ let pp_marker target ppf () =
   Format.pp_close_stag ppf ()
 
 (**{2 Printers}*)
-
-(** Prints the argument after the correct marker and to the correct channel
-    (inside a vbox) *)
-let format target format =
-  let ppf = get_ppf target in
-  Format.pp_open_vbox ppf 0;
-  pp_marker target ppf ();
-  Format.pp_print_char ppf ' ';
-  Format.kfprintf
-    (fun ppf ->
-      Format.pp_close_box ppf ();
-      Format.pp_print_newline ppf ())
-    ppf format
 
 (** {1 Message content} *)
 
@@ -145,7 +132,13 @@ let emit_content (content : Content.t) (target : content_type) : unit =
   let { message; positions } = content in
   match !Cli.message_format_flag with
   | Cli.Human ->
-    format target "@[<hov>%t@]%a" message
+    let ppf = get_ppf target in
+    Format.fprintf ppf "@[<v>@[<hov 0>%t%t%t@]%a@]@." (pp_marker target)
+      (fun ppf ->
+        match target with
+        | Log | Error | Warning -> Format.pp_print_char ppf ' '
+        | Result | Debug -> Format.pp_print_space ppf ())
+      message
       (fun ppf l ->
         Format.pp_print_list
           ~pp_sep:(fun _ () -> ())
@@ -164,7 +157,6 @@ let emit_content (content : Content.t) (target : content_type) : unit =
        everywhere there is not a more precise message. If we can'r find a
        position without a more precise message, we just take the first position
        in the list to pair with the message. *)
-    let marker = pp_marker target in
     let ppf = get_ppf target in
     let () =
       if
@@ -173,15 +165,15 @@ let emit_content (content : Content.t) (target : content_type) : unit =
              (fun (pos' : Content.position) -> Option.is_some pos'.pos_message)
              positions
       then
-        Format.fprintf ppf "@{<blue>%s@}: %a %s@\n"
+        Format.fprintf ppf "@{<blue>%s@}: %t %s@\n"
           (Pos.to_string_short (List.hd positions).pos)
-          marker () (unformat message)
+          (pp_marker target) (unformat message)
     in
     Format.pp_print_list ~pp_sep:Format.pp_print_newline
       (fun ppf pos' ->
-        Format.fprintf ppf "@{<blue>%s@}: %a %s"
+        Format.fprintf ppf "@{<blue>%s@}: %t %s"
           (Pos.to_string_short pos'.pos)
-          marker ()
+          (pp_marker target)
           (match pos'.pos_message with
           | None -> unformat message
           | Some msg' -> unformat msg'))
