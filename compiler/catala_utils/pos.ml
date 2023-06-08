@@ -216,7 +216,7 @@ let format_loc_text ppf (pos : t) =
       let rec pp_legal nspaces = function
         | [last] -> Format.fprintf ppf "@{<bold;blue>%*s└─ %s@}" nspaces "" last
         | l :: lines ->
-          Format.fprintf ppf "@{<bold;blue>%*s└┬ %s@}" nspaces "" l;
+          Format.fprintf ppf "@{<bold;blue>%*s└┬ %s@}@," nspaces "" l;
           pp_legal (nspaces + 1) lines
         | [] -> ()
       in

@@ -82,7 +82,7 @@ let print_time_marker =
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
     if delta > 50. then
-      Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@\n" delta
+      Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@," delta
 
 let pp_marker target ppf () =
   let open Ocolor_types in
@@ -104,9 +104,9 @@ let pp_marker target ppf () =
 (** Prints the argument after the correct marker and to the correct channel *)
 let format target format =
   let ppf = get_ppf target in
+  Format.pp_open_vbox ppf 0;
   pp_marker target ppf ();
-  Format.pp_print_space ppf ();
-  Format.pp_open_hovbox ppf 0;
+  Format.pp_print_char ppf ' ';
   Format.kfprintf
     (fun ppf ->
       Format.pp_close_box ppf ();
@@ -144,7 +144,7 @@ let emit_content (content : Content.t) (target : content_type) : unit =
   let { message; positions } = content in
   match !Cli.message_format_flag with
   | Cli.Human ->
-    format target "@[<v>%t%a@]" message
+    format target "@[<hov>%t@]%a" message
       (fun ppf l ->
         Format.pp_print_list
           ~pp_sep:(fun _ () -> ())

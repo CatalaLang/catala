@@ -46,26 +46,31 @@ let propagate_empty_error_list elist f =
 (* TODO: we should provide a generic way to print logs, that work across the
    different backends: python, ocaml, javascript, and interpreter *)
 
+let indent_str = ref ""
+
 (** {1 Evaluation} *)
 let print_log entry infos pos e =
   if !Cli.trace_flag then
     match entry with
     | VarDef _ ->
-      Messages.emit_log "@,%a %a: @{<green>%s@}" Print.log_entry entry
-        Print.uid_list infos
+      Messages.emit_log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
+        entry Print.uid_list infos
         (Messages.unformat (fun ppf ->
              Print.expr ~hide_function_body:true () ppf e))
     | PosRecordIfTrueBool -> (
       match pos <> Pos.no_pos, Mark.remove e with
       | true, ELit (LBool true) ->
-        Messages.emit_log "@,@[<v>%a@{<green>Definition applied@}:@,%a@]"
-          Print.log_entry entry Pos.format_loc_text pos
+        Messages.emit_log "%s@[<v>%a@{<green>Definition applied@}:@,%a@]"
+          !indent_str Print.log_entry entry Pos.format_loc_text pos
       | _ -> ())
     | BeginCall ->
-      Messages.emit_log "@,@[<v 2>%a %a" Print.log_entry entry Print.uid_list
-        infos
+      Messages.emit_log "%s%a %a" !indent_str Print.log_entry entry
+        Print.uid_list infos;
+      indent_str := !indent_str ^ "  "
     | EndCall ->
-      Messages.emit_log "@]@,%a %a" Print.log_entry entry Print.uid_list infos
+      indent_str := String.sub !indent_str 0 (String.length !indent_str - 2);
+      Messages.emit_log "%s%a %a" !indent_str Print.log_entry entry
+        Print.uid_list infos
 
 exception CatalaException of except
 
