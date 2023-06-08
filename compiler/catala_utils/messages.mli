@@ -92,22 +92,19 @@ val emit_log : ('a, Format.formatter, unit) format -> 'a
 
 val emit_debug : ('a, Format.formatter, unit) format -> 'a
 
-(* {1 Common result emission}*)
+(** {1 Common result emission}*)
 
 val emit_result : ('a, Format.formatter, unit) format -> 'a
 
-(* {1 Some formatting helpers}*)
+(** {1 Some formatting helpers}*)
 
 val unformat : (Format.formatter -> unit) -> string
-(* Converts [f] to a string, discarding formatting and skipping newlines and
-   indents *)
+(** Converts [f] to a string, discarding formatting and skipping newlines and
+    indents *)
 
-(* (**{2 Markers}*)
+(* {1 More general color-enabled formatting helpers}*)
 
-   val with_style : ANSITerminal.style list -> ('a, unit, string) format -> 'a
-
-   val format_with_style : ANSITerminal.style list -> Format.formatter -> string
-   -> unit
-
-   val call_unstyled : (unit -> 'a) -> 'a (** [call_unstyled f] calls the
-   function [f] with the [style_flag] set to false during the execution. *) *)
+val formatter_of_out_channel : out_channel -> Format.formatter
+(** Creates a new formatter from the given out channel, with correct handling of
+    the ocolor tags. Actual use of escape codes in the output depends on
+    [Cli.style_flag] -- and wether the channel is a tty if that is set to auto. *)

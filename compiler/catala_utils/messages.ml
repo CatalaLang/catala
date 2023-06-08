@@ -3,7 +3,7 @@
 (**{1 Terminal formatting}*)
 
 (* Adds handling of color tags in the formatter *)
-let[@ocaml.warning "-32"] color_formatter ppf =
+let color_formatter ppf =
   Ocolor_format.prettify_formatter ppf;
   ppf
 
@@ -23,30 +23,26 @@ let unstyle_formatter ppf =
 (* SIDE EFFECT AT MODULE LOAD: this turns on handling of tags in
    [Format.sprintf] etc. functions (ignoring them) *)
 let () = ignore (unstyle_formatter Format.str_formatter)
+
 (* Note: we could do the same for std_formatter, err_formatter... but we'd
    rather promote the use of the formatting functions of this module and the
    below std_ppf / err_ppf *)
 
-let has_color unix_fd =
+let has_color oc =
   match !Cli.style_flag with
   | Cli.Never -> false
   | Always -> true
-  | Auto -> Unix.isatty unix_fd
+  | Auto -> Unix.(isatty (descr_of_out_channel oc))
 
-(* Here we affect the Ocolor printers to stderr/stdout, which remain separate
-   from the ones used by [Format.printf] / [Format.eprintf] (which remain
-   unchanged) *)
+(* Here we create new formatters to stderr/stdout that remain separate from the
+   ones used by [Format.printf] / [Format.eprintf] (which remain unchanged) *)
 
-let std_ppf =
-  lazy
-    (if has_color Unix.stdout then Ocolor_format.raw_std_formatter
-    else unstyle_formatter Ocolor_format.raw_std_formatter)
+let formatter_of_out_channel oc =
+  let ppf = Format.formatter_of_out_channel oc in
+  if has_color oc then color_formatter ppf else unstyle_formatter ppf
 
-let err_ppf =
-  lazy
-    (if has_color Unix.stderr then Ocolor_format.raw_err_formatter
-    else unstyle_formatter Ocolor_format.raw_err_formatter)
-
+let std_ppf = lazy (formatter_of_out_channel stdout)
+let err_ppf = lazy (formatter_of_out_channel stderr)
 let ignore_ppf = lazy (Format.make_formatter (fun _ _ _ -> ()) (fun () -> ()))
 
 let unformat (f : Format.formatter -> unit) : string =
