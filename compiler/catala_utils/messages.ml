@@ -12,13 +12,6 @@ let color_formatter ppf =
 let unstyle_formatter ppf =
   Format.pp_set_mark_tags ppf false;
   ppf
-(* Format.pp_set_formatter_stag_functions ppf {
- *   Format.mark_open_stag = (fun _ -> "");
- *   mark_close_stag = (fun _ -> "");
- *   print_open_stag = ignore;
- *   print_close_stag = ignore;
- * };
- * ppf *)
 
 (* SIDE EFFECT AT MODULE LOAD: this turns on handling of tags in
    [Format.sprintf] etc. functions (ignoring them) *)

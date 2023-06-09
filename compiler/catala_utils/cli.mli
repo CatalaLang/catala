@@ -133,13 +133,3 @@ val catala_t : (string -> options -> 'a) -> 'a Cmdliner.Term.t
 val set_option_globals : options -> unit
 val version : string
 val info : Cmdliner.Cmd.info
-
-(**{1 Terminal formatting}*)
-
-(**{2 Printers}*)
-
-(* val concat_with_line_depending_prefix_and_suffix :
- *   (int -> string) -> (int -> string) -> string list -> string
- * 
- * val add_prefix_to_each_line : string -> (int -> string) -> string
- * (\** The int argument of the prefix corresponds to the line number, starting at 0 *\) *)
