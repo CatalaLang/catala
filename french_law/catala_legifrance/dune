@@ -10,7 +10,7 @@
   cohttp-lwt-unix
   yojson
   re
-  ANSITerminal))
+  ocolor))
 
 (documentation
  (package catala_legifrance))

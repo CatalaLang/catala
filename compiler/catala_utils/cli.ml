@@ -86,8 +86,10 @@ let contents : string ref = ref ""
 (** Prints debug information *)
 let debug_flag = ref false
 
+type when_enum = Auto | Always | Never
+
 (* Styles the terminal output *)
-let style_flag = ref true
+let style_flag = ref Auto
 
 (* Max number of digits to show for decimal results *)
 let max_prec_digits = ref 20
@@ -112,8 +114,6 @@ let file =
 
 let debug =
   Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information.")
-
-type when_enum = Auto | Always | Never
 
 let when_opt = Arg.enum ["auto", Auto; "always", Always; "never", Never]
 
@@ -370,11 +370,7 @@ let catala_t f = Term.(const f $ file $ options)
 
 let set_option_globals options : unit =
   debug_flag := options.debug;
-  (style_flag :=
-     match options.color with
-     | Always -> true
-     | Never -> false
-     | Auto -> Unix.isatty Unix.stdout);
+  style_flag := options.color;
   (match options.max_prec_digits with
   | None -> ()
   | Some i -> max_prec_digits := i);
@@ -478,43 +474,3 @@ let info =
   in
   let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
   Cmd.info "catala" ~version ~doc ~exits ~man
-
-let with_style
-    (styles : ANSITerminal.style list)
-    (str : ('a, unit, string) format) =
-  if !style_flag then ANSITerminal.sprintf styles str else Printf.sprintf str
-
-let format_with_style (styles : ANSITerminal.style list) fmt (str : string) =
-  if !style_flag then
-    Format.pp_print_as fmt (String.length str)
-      (ANSITerminal.sprintf styles "%s" str)
-  else Format.pp_print_string fmt str
-
-let call_unstyled f =
-  let prev = !style_flag in
-  style_flag := false;
-  let res = f () in
-  style_flag := prev;
-  res
-
-let concat_with_line_depending_prefix_and_suffix
-    (prefix : int -> string)
-    (suffix : int -> string)
-    (ss : string list) =
-  match ss with
-  | [] -> prefix 0
-  | _ :: _ ->
-    let len = List.length ss in
-    let suffix i = if i < len - 1 then suffix i else "" in
-    String.concat ""
-    @@ List.concat
-    @@ List.mapi
-         (fun i s -> [prefix i; (if s = "" then "" else " "); s; suffix i])
-         ss
-
-(** The int argument of the prefix corresponds to the line number, starting at 0 *)
-let add_prefix_to_each_line (s : string) (prefix : int -> string) =
-  concat_with_line_depending_prefix_and_suffix
-    (fun i -> prefix i)
-    (fun _ -> "\n")
-    (String.split_on_char '\n' s)

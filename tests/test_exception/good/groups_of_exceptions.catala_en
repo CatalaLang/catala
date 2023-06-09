@@ -46,8 +46,10 @@ let scope Foo (y: integer|input) (x: integer|internal|output) =
 
 ```catala-test-inline
 $ catala Exceptions -s Foo -v x
-[RESULT] Printing the tree of exceptions for the definitions of variable "x" of scope "Foo".
-[RESULT] Definitions with label "base":
+[RESULT]
+Printing the tree of exceptions for the definitions of variable "x" of scope "Foo".
+[RESULT]
+Definitions with label "base":
 ┌─⯈ tests/test_exception/good/groups_of_exceptions.catala_en:9.3-9.26:
 └─┐
 9 │   label base definition x under condition
@@ -58,7 +60,8 @@ $ catala Exceptions -s Foo -v x
 13 │   label base definition x under condition
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
-[RESULT] Definitions with label "intermediate":
+[RESULT]
+Definitions with label "intermediate":
 ┌─⯈ tests/test_exception/good/groups_of_exceptions.catala_en:17.3-17.49:
 └──┐
 17 │   label intermediate exception base definition x under condition
@@ -69,7 +72,8 @@ $ catala Exceptions -s Foo -v x
 21 │   label intermediate exception base definition x under condition
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
-[RESULT] Definitions with label "exception_to_intermediate":
+[RESULT]
+Definitions with label "exception_to_intermediate":
 ┌─⯈ tests/test_exception/good/groups_of_exceptions.catala_en:25.3-25.38:
 └──┐
 25 │   exception intermediate definition x under condition
@@ -80,7 +84,8 @@ $ catala Exceptions -s Foo -v x
 29 │   exception intermediate definition x under condition
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
-[RESULT] The exception tree structure is as follows:
+[RESULT]
+The exception tree structure is as follows:
 
 "base"───"intermediate"───"exception_to_intermediate"
 ```

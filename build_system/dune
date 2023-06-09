@@ -13,7 +13,7 @@
   ninja_utils
   cmdliner
   re
-  ANSITerminal)
+  ocolor)
  (modules clerk_driver))
 
 (rule

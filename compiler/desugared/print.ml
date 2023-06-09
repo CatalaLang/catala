@@ -25,47 +25,41 @@ open Format
 
 (* Original credits for this printing code: Jean-Christophe Filiâtre *)
 let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
-  let blue s =
-    Format.asprintf "%a" (Cli.format_with_style [ANSITerminal.blue]) s
-  in
+  let blue fmt s = Format.fprintf fmt "@{<blue>%s@}" s in
   let rec print_node pref (t : exception_tree) =
-    let (s, w), sons =
-      let print_s s =
-        ( Format.asprintf "%a"
-            (Cli.format_with_style [ANSITerminal.yellow])
-            (Format.asprintf "\"%a\"" LabelName.format_t
-               s.Dependency.ExceptionVertex.label),
-          String.length
-            (Format.asprintf "\"%a\"" LabelName.format_t
-               s.Dependency.ExceptionVertex.label) )
-      in
-      match t with Leaf s -> print_s s, [] | Node (sons, s) -> print_s s, sons
+    let label, sons =
+      match t with
+      | Leaf l -> l.Dependency.ExceptionVertex.label, []
+      | Node (sons, l) -> l.Dependency.ExceptionVertex.label, sons
     in
-    pp_print_string fmt s;
+    Format.fprintf fmt "@{<yellow>\"%a\"@}" LabelName.format_t label;
+    let w = String.length (fst (LabelName.get_info label)) + 2 in
     if sons != [] then
       let pref' = pref ^ String.make (w + 1) ' ' in
       match sons with
       | [t'] ->
-        pp_print_string fmt (blue "───");
+        blue fmt "───";
         print_node (pref' ^ " ") t'
       | _ ->
-        pp_print_string fmt (blue "──");
+        blue fmt "──";
         print_sons pref' "─┬──" sons
   and print_sons pref start = function
     | [] -> assert false
     | [s] ->
-      pp_print_string fmt (blue " └──");
+      blue fmt " └──";
       print_node (pref ^ " ") s
     | s :: sons ->
-      pp_print_string fmt (blue start);
+      blue fmt start;
       print_node (pref ^ "| ") s;
-      pp_force_newline fmt ();
-      pp_print_string fmt (blue (pref ^ " │"));
-      pp_force_newline fmt ();
-      pp_print_string fmt (blue pref);
+      pp_print_cut fmt ();
+      blue fmt (pref ^ " │");
+      pp_print_cut fmt ();
+      blue fmt pref;
       print_sons pref " ├──" sons
   in
-  print_node "" t
+  Format.pp_open_vbox fmt 0;
+  print_node "" t;
+  Format.pp_close_box fmt ()
 
 let build_exception_tree exc_graph =
   let base_cases =
@@ -91,22 +85,15 @@ let print_exceptions_graph
     (var : Ast.ScopeDef.t)
     (g : Dependency.ExceptionsDependencies.t) =
   Messages.emit_result
-    "Printing the tree of exceptions for the definitions of variable %a of \
-     scope %a."
-    (Cli.format_with_style [ANSITerminal.yellow])
-    (Format.asprintf "\"%a\"" Ast.ScopeDef.format_t var)
-    (Cli.format_with_style [ANSITerminal.yellow])
-    (Format.asprintf "\"%a\"" ScopeName.format_t scope);
+    "Printing the tree of exceptions for the definitions of variable \
+     @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@}."
+    Ast.ScopeDef.format_t var ScopeName.format_t scope;
   Dependency.ExceptionsDependencies.iter_vertex
     (fun ex ->
-      Messages.emit_result "Definitions with label %a:\n%a"
-        (Cli.format_with_style [ANSITerminal.yellow])
-        (Format.asprintf "\"%a\"" LabelName.format_t
-           ex.Dependency.ExceptionVertex.label)
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n")
-           (fun fmt (_, pos) ->
-             Format.fprintf fmt "%s" (Pos.retrieve_loc_text pos)))
+      Messages.emit_result
+        "@[<v>Definitions with label @{<yellow>\"%a\"@}:@,%a@]"
+        LabelName.format_t ex.Dependency.ExceptionVertex.label
+        (Format.pp_print_list (fun fmt (_, pos) -> Pos.format_loc_text fmt pos))
         (RuleName.Map.bindings ex.Dependency.ExceptionVertex.rules))
     g;
   let tree = build_exception_tree g in

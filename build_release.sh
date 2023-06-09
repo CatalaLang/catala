@@ -18,7 +18,6 @@ CUSTOM_LINKING_CATALA_Z3="\
  -cclib -lzarith
  -cclib -lgmp
  -cclib -lcamlstr
- -cclib -lANSITerminal_stubs
  -cclib -lalcotest_stubs
  -cclib -lunix)"
 

@@ -14,14 +14,25 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Interface for emitting compiler messages *)
+(** Interface for emitting compiler messages.
+
+    All messages are expected to use the [Format] module. Flush, ["@?"], ["@."],
+    ["%!"] etc. are not supposed to be used outside of this module.
+
+    WARNING: this module performs side-effects at load time, adding support for
+    ocolor tags (e.g. ["@{<blue>text@}"]) to the standard string formatter used
+    by e.g. [Format.sprintf]. (In this case, the tags are ignored, for color
+    output you should use the functions of this module that toggle support
+    depending on cli flags and terminal support). *)
 
 (** {1 Message content} *)
 
 module Content : sig
+  type message = Format.formatter -> unit
   type t
 
-  val of_message : string -> t
+  val of_message : (Format.formatter -> unit) -> t
+  val of_string : string -> t
 end
 
 val to_internal_error : Content.t -> Content.t
@@ -39,7 +50,15 @@ exception CompilerError of Content.t
 (** {1 Common error raising} *)
 
 val raise_spanned_error :
-  ?span_msg:string -> Pos.t -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  ?span_msg:Content.message ->
+  Pos.t ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
+
+val raise_multispanned_error_full :
+  (Content.message option * Pos.t) list ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
 
 val raise_multispanned_error :
   (string option * Pos.t) list -> ('a, Format.formatter, unit, 'b) format4 -> 'a
@@ -53,10 +72,15 @@ val assert_internal_error :
 (** {1 Common warning emission}*)
 
 val emit_multispanned_warning :
-  (string option * Pos.t) list -> ('a, Format.formatter, unit) format -> 'a
+  (Content.message option * Pos.t) list ->
+  ('a, Format.formatter, unit) format ->
+  'a
 
 val emit_spanned_warning :
-  ?span_msg:string -> Pos.t -> ('a, Format.formatter, unit) format -> 'a
+  ?span_msg:Content.message ->
+  Pos.t ->
+  ('a, Format.formatter, unit) format ->
+  'a
 
 val emit_warning : ('a, Format.formatter, unit) format -> 'a
 
@@ -68,6 +92,19 @@ val emit_log : ('a, Format.formatter, unit) format -> 'a
 
 val emit_debug : ('a, Format.formatter, unit) format -> 'a
 
-(* {1 Common result emission}*)
+(** {1 Common result emission}*)
 
 val emit_result : ('a, Format.formatter, unit) format -> 'a
+
+(** {1 Some formatting helpers}*)
+
+val unformat : (Format.formatter -> unit) -> string
+(** Converts [f] to a string, discarding formatting and skipping newlines and
+    indents *)
+
+(* {1 More general color-enabled formatting helpers}*)
+
+val formatter_of_out_channel : out_channel -> Format.formatter
+(** Creates a new formatter from the given out channel, with correct handling of
+    the ocolor tags. Actual use of escape codes in the output depends on
+    [Cli.style_flag] -- and wether the channel is a tty if that is set to auto. *)

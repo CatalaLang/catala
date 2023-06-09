@@ -197,20 +197,19 @@ module To_json = struct
       (scope : ScopeName.t)
       (prgm : 'm Lcalc.Ast.program) =
     let scope_body = Program.get_scope_body prgm scope in
-    Cli.call_unstyled (fun _ ->
-        Format.fprintf fmt
-          "{@[<hov 2>@\n\
-           \"type\": \"object\",@\n\
-           \"@[<hov 2>definitions\": {%a@]@\n\
-           },@\n\
-           \"@[<hov 2>properties\": {@\n\
-           %a@]@\n\
-           }@]@\n\
-           }"
-          (fmt_definitions prgm.decl_ctx)
-          (scope, scope_body)
-          (fmt_struct_properties prgm.decl_ctx)
-          scope_body.scope_body_input_struct)
+    Format.fprintf fmt
+      "{@[<hov 2>@\n\
+       \"type\": \"object\",@\n\
+       \"@[<hov 2>definitions\": {%a@]@\n\
+       },@\n\
+       \"@[<hov 2>properties\": {@\n\
+       %a@]@\n\
+       }@]@\n\
+       }"
+      (fmt_definitions prgm.decl_ctx)
+      (scope, scope_body)
+      (fmt_struct_properties prgm.decl_ctx)
+      scope_body.scope_body_input_struct
 end
 
 let apply

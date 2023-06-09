@@ -29,8 +29,8 @@ scope Test1:
 ```catala-test-inline
 $ catala Interpret -s Test1
 [ERROR] Syntax error at token "scope"
-Message: expected either 'condition', or 'content' followed by the expected variable type
-Autosuggestion: did you mean "content", or maybe "condition"?
+        Message: expected either 'condition', or 'content' followed by the expected variable type
+        Autosuggestion: did you mean "content", or  maybe "condition"?
 
 Error token:
 ┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
@@ -73,8 +73,8 @@ scope Test2:
 ```catala-test-inline
 $ catala Interpret -s Test2
 [ERROR] Syntax error at token "scope"
-Message: expected either 'condition', or 'content' followed by the expected variable type
-Autosuggestion: did you mean "content", or maybe "condition"?
+        Message: expected either 'condition', or 'content' followed by the expected variable type
+        Autosuggestion: did you mean "content", or  maybe "condition"?
 
 Error token:
 ┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
@@ -117,8 +117,8 @@ scope Test3:
 ```catala-test-inline
 $ catala Interpret -s Test3
 [ERROR] Syntax error at token "scope"
-Message: expected either 'condition', or 'content' followed by the expected variable type
-Autosuggestion: did you mean "content", or maybe "condition"?
+        Message: expected either 'condition', or 'content' followed by the expected variable type
+        Autosuggestion: did you mean "content", or  maybe "condition"?
 
 Error token:
 ┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
@@ -163,8 +163,8 @@ scope Test4:
 ```catala-test-inline
 $ catala Interpret -s Test4
 [ERROR] Syntax error at token "scope"
-Message: expected either 'condition', or 'content' followed by the expected variable type
-Autosuggestion: did you mean "content", or maybe "condition"?
+        Message: expected either 'condition', or 'content' followed by the expected variable type
+        Autosuggestion: did you mean "content", or  maybe "condition"?
 
 Error token:
 ┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:

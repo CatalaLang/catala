@@ -3,14 +3,10 @@ let failure = ref false
 let try_test msg test =
   try
     test ();
-    Format.printf "%s %s\n"
-      (ANSITerminal.sprintf [ANSITerminal.green] "PASS")
-      (ANSITerminal.sprintf [ANSITerminal.magenta] msg)
+    Format.printf "@{<green>PASS@} @{<magenta>%s@}\n" msg
   with Runtime_ocaml.Runtime.AssertionFailed _ ->
     failure := true;
-    Format.printf "%s %s\n"
-      (ANSITerminal.sprintf [ANSITerminal.red] "FAIL")
-      (ANSITerminal.sprintf [ANSITerminal.magenta] msg)
+    Format.printf "@{<red>FAIL@} @{<magenta>%s@}\n" msg
 
 let _ =
   try_test "Allocations familiales #1" Tests_allocations_familiales.test1;

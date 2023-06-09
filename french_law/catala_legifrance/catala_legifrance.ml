@@ -113,20 +113,16 @@ let compare_to_versions
     (law_article_text : law_article_text)
     (access_token : Api.access_token) : unit Lwt.t =
   let print_diff msg diff =
-    Messages.emit_warning "%s\n%s" msg
-      (String.concat "\n"
-         (List.map
-            (fun chunk ->
-              match chunk with
-              | Diff.Equal words ->
-                ANSITerminal.sprintf [] "    %s" (String.concat " " words)
-              | Diff.Added words ->
-                ANSITerminal.sprintf [ANSITerminal.green] "(+) %s"
-                  (String.concat " " words)
-              | Diff.Deleted words ->
-                ANSITerminal.sprintf [ANSITerminal.red] "(-) %s"
-                  (String.concat " " words))
-            diff))
+    Messages.emit_warning "@[<v>%s@,%a@]" msg
+      (Format.pp_print_list (fun ppf chunk ->
+           match chunk with
+           | Diff.Equal words ->
+             Format.fprintf ppf "    %s" (String.concat " " words)
+           | Diff.Added words ->
+             Format.fprintf ppf "@{<green>(+) %s@}" (String.concat " " words)
+           | Diff.Deleted words ->
+             Format.fprintf ppf "@{<red>(-) %s@}" (String.concat " " words)))
+      diff
   in
   let* _checl =
     match law_article_text.current_version with

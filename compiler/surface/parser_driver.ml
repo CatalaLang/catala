@@ -98,7 +98,7 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
         LawHeading (heading, gobbled) :: rest_out))
 
 (** Style with which to display syntax hints in the terminal output *)
-let syntax_hints_style = [ANSITerminal.yellow]
+let pp_hint ppf s = Format.fprintf ppf "@{<yellow>\"%s\"@}" s
 
 (** Usage: [raise_parser_error error_loc last_good_loc token msg]
 
@@ -110,17 +110,18 @@ let raise_parser_error
     (error_loc : Pos.t)
     (last_good_loc : Pos.t option)
     (token : string)
-    (msg : string) : 'a =
-  Messages.raise_multispanned_error
-    ((Some "Error token:", error_loc)
+    (msg : Format.formatter -> unit) : 'a =
+  Messages.raise_multispanned_error_full
+    ((Some (fun ppf -> Format.pp_print_string ppf "Error token:"), error_loc)
     ::
     (match last_good_loc with
     | None -> []
-    | Some last_good_loc -> [Some "Last good token:", last_good_loc]))
-    "Syntax error at token %a\n%s"
-    (Cli.format_with_style syntax_hints_style)
-    (Printf.sprintf "\"%s\"" token)
-    msg
+    | Some last_good_loc ->
+      [
+        ( Some (fun ppf -> Format.pp_print_string ppf "Last good token:"),
+          last_good_loc );
+      ]))
+    "@[<v>Syntax error at token %a@,%t@]" pp_hint token msg
 
 module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)
@@ -179,32 +180,32 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
         acceptable_tokens
     in
     let similar_token_msg =
-      if List.length similar_acceptable_tokens = 0 then None
-      else
+      match similar_acceptable_tokens with
+      | [] -> None
+      | tokens ->
         Some
-          (Printf.sprintf "did you mean %s?"
-             (String.concat ", or maybe "
-                (List.map
-                   (fun (ts, _) ->
-                     Cli.with_style syntax_hints_style "\"%s\"" ts)
-                   similar_acceptable_tokens)))
+          (fun ppf ->
+            Format.fprintf ppf "did you mean %a?"
+              (Format.pp_print_list
+                 ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or@  maybe@ ")
+                 (fun ppf (ts, _) -> pp_hint ppf ts))
+              tokens)
     in
     (* The parser has suspended itself because of a syntax error. Stop. *)
-    let custom_menhir_message =
+    let custom_menhir_message ppf =
       match Parser_errors.message (state env) with
       | exception Not_found ->
-        "Message: " ^ Cli.with_style syntax_hints_style "%s" "unexpected token"
+        Format.fprintf ppf "Message: @{<yellow>unexpected token@}"
       | msg ->
-        "Message: "
-        ^ Cli.with_style syntax_hints_style "%s"
-            (String.trim (String.uncapitalize_ascii msg))
+        Format.fprintf ppf "Message: @{<yellow>%s@}"
+          (String.trim (String.uncapitalize_ascii msg))
     in
-    let msg =
+    let msg ppf =
       match similar_token_msg with
-      | None -> custom_menhir_message
+      | None -> custom_menhir_message ppf
       | Some similar_token_msg ->
-        Printf.sprintf "%s\nAutosuggestion: %s" custom_menhir_message
-          similar_token_msg
+        Format.fprintf ppf "@[<v>%t@,@[<hov 4>Autosuggestion: %t@]@]"
+          custom_menhir_message similar_token_msg
     in
     raise_parser_error
       (Pos.from_lpos (lexing_positions lexbuf))
