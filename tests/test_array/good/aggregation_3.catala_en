@@ -41,27 +41,27 @@ let scope S (x: integer|internal|output) =
             filter (λ (i: integer) → i > 2) [ 1; 2; 3 ])
          = [ 5 ];
   assert (reduce
-            (λ (sum1: integer) (sum2: integer) → sum1 + sum2),
-            0,
+            (λ (sum1: integer) (sum2: integer) → sum1 + sum2)
+            0
             [ 1; 2; 3 ])
          = 6;
   assert (reduce
-            (λ (sum1: integer) (sum2: integer) → sum1 + sum2),
-            0,
+            (λ (sum1: integer) (sum2: integer) → sum1 + sum2)
+            0
             map (λ (i: integer) → i + 2) [ 1; 2; 3 ])
          = 12;
   assert (length [ 1; 2; 3 ]) = 3;
   assert (length filter (λ (i: integer) → i >= 2) [ 1; 2; 3 ]) = 2;
   assert (reduce
             (λ (max1: integer) (max2: integer) →
-             if max1 > max2 then max1 else max2),
-            10,
+             if max1 > max2 then max1 else max2)
+            10
             [ 1; 2; 3 ])
          = 3;
   assert (reduce
             (λ (max1: decimal) (max2: decimal) →
-             if max1 > max2 then max1 else max2),
-            10.,
+             if max1 > max2 then max1 else max2)
+            10.
             map (λ (i: integer) → to_rat i) [ 1; 2; 3 ])
          = 3.;
   assert (reduce
@@ -72,8 +72,8 @@ let scope S (x: integer|internal|output) =
                < let i : integer = i_2 in
                  to_rat ((2 - i) * (2 - i))
              then i_1
-             else i_2),
-            42,
+             else i_2)
+            42
             [ 1; 2; 3 ])
          = 2
 ```

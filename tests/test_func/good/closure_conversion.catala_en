@@ -13,12 +13,61 @@ scope S:
 
 ```catala-test-inline
 $ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
-[ERROR] Variable x not found in the current context
-
-┌─⯈ tests/test_func/good/closure_conversion.catala_en:5.12-5.13:
-└─┐
-5 │   internal f content integer depends on y content integer
-  │            ‾
-  └─ Article
-#return code 255#
+let scope S (S_in: S_in {x_in: option bool}): S {z: option integer} =
+  let get x : any = S_in.x_in in
+  let set f : any =
+    ESome
+      let f : any =
+        λ (env: any) (y: integer) →
+        let x : any = env.0 in
+        ESome
+          match
+            (match x with
+             | ENone _ → ENone _
+             | ESome x1 → if x1 then ESome y else ESome - y)
+            with
+          | ENone _ → raise NoValueProvided
+          | ESome f → f
+      in
+      (f, (x))
+  in
+  let set z : any =
+    ESome
+      match
+        (match f with
+         | ENone _ → ENone _
+         | ESome f →
+           let code_and_env : any = f in
+           let code : any = code_and_env.0 in
+           let env : any = code_and_env.1 in
+           code env -1)
+        with
+      | ENone _ → raise NoValueProvided
+      | ESome z → z
+  in
+  return { S z = z; }
+let scope S (S_in: S_in {x_in: option bool}): S {z: option integer} =
+  let get x : option bool = S_in.x_in in
+  let set f :
+      option (((option bool), integer) → option integer * (option bool)) =
+    ESome
+      (λ (env: (option bool)) (y: integer) →
+        ESome
+          match
+            (match env.0 with
+             | ENone _ → ENone _
+             | ESome x → if x then ESome y else ESome - y)
+            with
+          | ENone _ → raise NoValueProvided
+          | ESome f → f, (x))
+  in
+  let set z : option integer =
+    ESome
+      match (match f with
+             | ENone _ → ENone _
+             | ESome f → f.0 f.1 -1) with
+      | ENone _ → raise NoValueProvided
+      | ESome z → z
+  in
+  return { S z = z; }
 ```

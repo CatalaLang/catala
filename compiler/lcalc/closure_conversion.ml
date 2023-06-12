@@ -37,12 +37,9 @@ let rec hoist_context_free_closures :
  fun ctx e ->
   let m = Mark.get e in
   match Mark.remove e with
-  | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _ | EVar _ ->
-    Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_context_free_closures ctx) e
   | EMatch { e; cases; name } ->
     let collected_closures, new_e = (hoist_context_free_closures ctx) e in
-    (* We do not close the clotures inside the arms of the match expression,
+    (* We do not close the closures inside the arms of the match expression,
        since they get a special treatment at compilation to Scalc. *)
     let collected_closures, new_cases =
       EnumConstructor.Map.fold
@@ -83,7 +80,9 @@ let rec hoist_context_free_closures :
     (* this is the closure we want to hoist*)
     let closure_var = Var.make ctx.name_context in
     [{ name = closure_var; closure = e }], Expr.make_var closure_var m
-  | EApp _ ->
+  | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
+  | EArray _ | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _
+  | EVar _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_context_free_closures ctx) e
   | _ -> .
  [@@warning "-32"]
@@ -118,7 +117,9 @@ let rec transform_closures_expr :
             let vars, body = Bindlib.unmbind binder in
             let new_free_vars, new_body = (transform_closures_expr ctx) body in
             let new_binder = Expr.bind vars new_body in
-            ( Var.Set.union free_vars new_free_vars,
+            ( Var.Set.union free_vars
+                (Var.Set.diff new_free_vars
+                   (Var.Set.of_list (Array.to_list vars))),
               EnumConstructor.Map.add cons
                 (Expr.eabs new_binder tys (Mark.get e1))
                 new_cases )

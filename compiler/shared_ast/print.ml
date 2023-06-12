@@ -546,7 +546,7 @@ let rec expr_aux :
   | EApp { f; args } ->
     Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs exprc) f
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (rhs exprc))
       args
   | EIfThenElse _ ->
