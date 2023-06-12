@@ -142,7 +142,7 @@ val escopecall :
   'm mark ->
   ((< explicitScopes : yes ; .. > as 'a), 'm) boxed_gexpr
 
-val fun_id : 'm mark -> ('a any, 'm) boxed_gexpr
+val fun_id : ?var_name:string -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 (** {2 Manipulation of marks} *)
 

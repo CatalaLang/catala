@@ -102,6 +102,12 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
   let mark = m in
   let pos = Expr.pos e in
   (* Messages.emit_debug "%a" (Print.expr ~debug:true ()) e; *)
+  let context_or_same_var (ctx : typed ctx) (e : typed D.expr) : string =
+    match Mark.remove e with
+    | EInj { e = EVar v, _; _ } | EVar v -> Bindlib.name_of v
+    | EInj { e = ELit _, _; _ } | ELit _ -> "lit"
+    | _ -> ctx.ctx_context_name
+  in
   match Mark.remove e with
   | EVar x ->
     if (Var.Map.find x ctx.ctx_vars).info_pure then
@@ -152,7 +158,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
   | EErrorOnEmpty arg ->
     let arg' = trans ctx arg in
     Ast.OptionMonad.error_on_empty arg' ~mark ~toplevel:false
-      ~var_name:ctx.ctx_context_name
+      ~var_name:(context_or_same_var ctx arg)
   | EApp { f = EVar scope, _; args = [(EStruct { fields; name }, _)] }
     when (Var.Map.find scope ctx.ctx_vars).is_scope ->
     (* Scopes are encoded as functions that can take option arguments, and
@@ -175,19 +181,21 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
        As every function of type [a -> b] but top-level scopes is built using
        this function, returning a function of type [a -> b option], we should
        use [Ast.OptionMonad.mbind]. *)
-    let f_var = Var.make ctx.ctx_context_name in
+    let f_var = Var.make (Bindlib.name_of ff) in
     Ast.OptionMonad.bind_var ~mark
-      (Ast.OptionMonad.mbind ~var_name:ctx.ctx_context_name
+      (Ast.OptionMonad.mbind
+         ~var_name:(context_or_same_var ctx (List.hd args))
          (Expr.evar f_var mark)
          (List.map (trans ctx) args)
          ~mark)
       f_var (trans ctx f)
-  | EApp { f = (EStructAccess _, _) as f; args } ->
+  | EApp { f = (EStructAccess { e = es; _ }, _) as f; args } ->
     (* This occurs when calling a subscope function. The same encoding as the
        one for [EApp (Var _) _] if the variable is not a scope works. *)
-    let f_var = Var.make ctx.ctx_context_name in
+    let f_var = Var.make (context_or_same_var ctx es) in
     Ast.OptionMonad.bind_var ~mark
-      (Ast.OptionMonad.mbind ~var_name:ctx.ctx_context_name
+      (Ast.OptionMonad.mbind
+         ~var_name:(context_or_same_var ctx es)
          (Expr.evar f_var mark)
          (List.map (trans ctx) args)
          ~mark)
@@ -223,15 +231,17 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     let x1 = Var.make "f" in
     let x2 = Var.make "init" in
     let f' =
-      Ast.OptionMonad.bind_cont ~mark ~var_name:ctx.ctx_context_name
-        (fun f ->
+      Ast.OptionMonad.bind_cont ~mark
+        ~var_name:(context_or_same_var ctx f)
+        (fun f' ->
           Ast.OptionMonad.return ~mark
             (Expr.eabs
                (Expr.bind [| x1; x2 |]
-                  (Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+                  (Ast.OptionMonad.mbind_cont
+                     ~var_name:(context_or_same_var ctx f)
                      ~mark
                      (fun vars ->
-                       Expr.eapp (Expr.evar f m)
+                       Expr.eapp (Expr.evar f' m)
                          (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
                          m)
                      [Expr.evar x1 m; Expr.evar x2 m]))
@@ -239,7 +249,8 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
                m))
         (trans ctx f)
     in
-    Ast.OptionMonad.mbind ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.mbind
+      ~var_name:(context_or_same_var ctx f)
       (Expr.eop (trans_op Op.Fold) tys opmark)
       [f'; Ast.OptionMonad.return ~mark (trans ctx init); trans ctx l]
       ~mark
@@ -247,15 +258,17 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     let x1 = Var.make "f" in
     let x2 = Var.make "init" in
     let f' =
-      Ast.OptionMonad.bind_cont ~mark ~var_name:ctx.ctx_context_name
-        (fun f ->
+      Ast.OptionMonad.bind_cont ~mark
+        ~var_name:(context_or_same_var ctx f)
+        (fun f' ->
           Ast.OptionMonad.return ~mark
             (Expr.eabs
                (Expr.bind [| x1; x2 |]
-                  (Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+                  (Ast.OptionMonad.mbind_cont
+                     ~var_name:(context_or_same_var ctx f)
                      ~mark
                      (fun vars ->
-                       Expr.eapp (Expr.evar f m)
+                       Expr.eapp (Expr.evar f' m)
                          (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
                          m)
                      [Expr.evar x1 m; Expr.evar x2 m]))
@@ -263,7 +276,8 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
                m))
         (trans ctx f)
     in
-    Ast.OptionMonad.mbind ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.mbind
+      ~var_name:(context_or_same_var ctx f)
       (Expr.eop (trans_op Op.Reduce) tys opmark)
       [f'; Ast.OptionMonad.return ~mark (trans ctx init); trans ctx l]
       ~mark
@@ -289,7 +303,8 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
                m))
         (trans ctx f)
     in
-    Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.mbind_cont
+      ~var_name:(context_or_same_var ctx f)
       (fun vars ->
         Ast.OptionMonad.return ~mark
           (Expr.eapp
@@ -303,19 +318,20 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
        requires an function of type [a option -> bool]. Hence we need to modify
        [f] by first matching the input, and second using the error_on_empty on
        the result. *)
-    let x1 = Var.make ctx.ctx_context_name in
+    let x1 = Var.make (context_or_same_var ctx f) in
     let f' =
-      Ast.OptionMonad.bind_cont ~mark ~var_name:ctx.ctx_context_name
-        (fun f ->
+      Ast.OptionMonad.bind_cont ~mark
+        ~var_name:(context_or_same_var ctx f)
+        (fun f' ->
           Ast.OptionMonad.return ~mark
             (Expr.eabs
                (Expr.bind [| x1 |]
                   (Ast.OptionMonad.error_on_empty ~toplevel:true ~mark
-                     ~var_name:ctx.ctx_context_name
+                     ~var_name:(context_or_same_var ctx f)
                      (Ast.OptionMonad.mbind_cont ~mark
-                        ~var_name:ctx.ctx_context_name
+                        ~var_name:(context_or_same_var ctx f)
                         (fun vars ->
-                          Expr.eapp (Expr.evar f m)
+                          Expr.eapp (Expr.evar f' m)
                             (ListLabels.map vars ~f:(fun v -> Expr.evar v m))
                             m)
                         [Expr.evar x1 m])))
@@ -323,7 +339,8 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
                m))
         (trans ctx f)
     in
-    Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.mbind_cont
+      ~var_name:(context_or_same_var ctx f)
       (fun vars ->
         Ast.OptionMonad.return ~mark
           (Expr.eapp
@@ -344,7 +361,8 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
       op
   | EApp { f = EOp { op; tys }, opmark; args } ->
     let res =
-      Ast.OptionMonad.mmap ~var_name:ctx.ctx_context_name
+      Ast.OptionMonad.mmap
+        ~var_name:(context_or_same_var ctx (List.hd args))
         (Expr.eop (trans_op op) tys opmark)
         (List.map (trans ctx) args)
         ~mark
@@ -376,7 +394,8 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
             Expr.eabs binder tys m
           | _ -> assert false)
     in
-    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.bind_cont
+      ~var_name:(context_or_same_var ctx e)
       (fun e -> Expr.ematch (Expr.evar e m) name cases m)
       (trans ctx e) ~mark
   | EArray args ->
@@ -404,19 +423,22 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
       (List.map (trans ctx) fields)
       ~mark
   | EIfThenElse { cond; etrue; efalse } ->
-    Ast.OptionMonad.bind_cont ~mark ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.bind_cont ~mark
+      ~var_name:(context_or_same_var ctx cond)
       (fun cond ->
         Expr.eifthenelse (Expr.evar cond mark) (trans ctx etrue)
           (trans ctx efalse) mark)
       (trans ctx cond)
   | EInj { name; cons; e } ->
-    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.bind_cont
+      ~var_name:(context_or_same_var ctx e)
       (fun e ->
         Ast.OptionMonad.return ~mark
           (Expr.einj (Expr.evar e mark) cons name mark))
       (trans ctx e) ~mark
   | EStructAccess { name; e; field } ->
-    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.bind_cont
+      ~var_name:(context_or_same_var ctx e)
       (fun e -> Expr.estructaccess (Expr.evar e mark) field name mark)
       (trans ctx e) ~mark
   | ETuple args ->
@@ -427,11 +449,13 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
       (List.map (trans ctx) args)
       ~mark
   | ETupleAccess { e; index; size } ->
-    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.bind_cont
+      ~var_name:(context_or_same_var ctx e)
       (fun e -> Expr.etupleaccess (Expr.evar e mark) index size mark)
       (trans ctx e) ~mark
   | EAssert e ->
-    Ast.OptionMonad.bind_cont ~var_name:ctx.ctx_context_name
+    Ast.OptionMonad.bind_cont
+      ~var_name:(context_or_same_var ctx e)
       (fun e ->
         Ast.OptionMonad.return ~mark (Expr.eassert (Expr.evar e mark) mark))
       (trans ctx e) ~mark
