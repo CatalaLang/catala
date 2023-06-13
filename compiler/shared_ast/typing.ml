@@ -33,9 +33,9 @@ module Any =
     ()
 
 type unionfind_typ = naked_typ Mark.pos UnionFind.elem
-(** We do not reuse {!type: Shared_ast.typ} because we have to include a new
-    [TAny] variant. Indeed, error terms can have any type and this has to be
-    captured by the type sytem. *)
+(** We do not reuse {!type: A.typ} because we have to include a new [TAny]
+    variant. Indeed, error terms can have any type and this has to be captured
+    by the type sytem. *)
 
 and naked_typ =
   | TLit of A.typ_lit
@@ -928,7 +928,7 @@ let scope_body ~leave_unresolved ctx env body =
          (TArrow ([ty_in], ty_out))) )
 
 let rec scopes ~leave_unresolved ctx env = function
-  | A.Nil -> Bindlib.box A.Nil
+  | A.Nil -> Bindlib.box A.Nil, env
   | A.Cons (item, next_bind) ->
     let var, next = Bindlib.unbind next_bind in
     let env, def =
@@ -946,14 +946,46 @@ let rec scopes ~leave_unresolved ctx env = function
             (fun e -> A.Topdef (name, typ, e))
             (Expr.Box.lift e') )
     in
-    let next' = scopes ~leave_unresolved ctx env next in
+    let next', env = scopes ~leave_unresolved ctx env next in
     let next_bind' = Bindlib.bind_var (Var.translate var) next' in
-    Bindlib.box_apply2 (fun item next -> A.Cons (item, next)) def next_bind'
+    ( Bindlib.box_apply2 (fun item next -> A.Cons (item, next)) def next_bind',
+      env )
 
 let program ~leave_unresolved prg =
-  let code_items =
-    Bindlib.unbox
-      (scopes ~leave_unresolved prg.A.decl_ctx (Env.empty prg.A.decl_ctx)
-         prg.A.code_items)
+  let code_items, new_env =
+    scopes ~leave_unresolved prg.A.decl_ctx (Env.empty prg.A.decl_ctx)
+      prg.A.code_items
   in
-  { prg with code_items }
+  {
+    A.code_items = Bindlib.unbox code_items;
+    decl_ctx =
+      {
+        prg.decl_ctx with
+        ctx_structs =
+          A.StructName.Map.mapi
+            (fun s_name fields ->
+              A.StructField.Map.mapi
+                (fun f_name (t : A.typ) ->
+                  match Mark.remove t with
+                  | TAny ->
+                    typ_to_ast ~leave_unresolved
+                      (A.StructField.Map.find f_name
+                         (A.StructName.Map.find s_name new_env.structs))
+                  | _ -> t)
+                fields)
+            prg.decl_ctx.ctx_structs;
+        ctx_enums =
+          A.EnumName.Map.mapi
+            (fun e_name cons ->
+              A.EnumConstructor.Map.mapi
+                (fun cons_name (t : A.typ) ->
+                  match Mark.remove t with
+                  | TAny ->
+                    typ_to_ast ~leave_unresolved
+                      (A.EnumConstructor.Map.find cons_name
+                         (A.EnumName.Map.find e_name new_env.enums))
+                  | _ -> t)
+                cons)
+            prg.decl_ctx.ctx_enums;
+      };
+  }

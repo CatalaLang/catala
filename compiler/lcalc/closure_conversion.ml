@@ -197,6 +197,28 @@ let rec transform_closures_expr :
               ])
            m)
         (Expr.pos e) )
+  | EApp { f = (EOp { op = HandleDefaultOpt; _ }, _) as f; args } ->
+    (* Special case for HandleDefaultOpt: its arguments are thunks because if
+       you want to extract it as a function you need these closures to preserve
+       evaluation order, but backends that don't support closures will simply
+       extract HandleDefaultOpt in a inlined way and skip the thunks. *)
+    let free_vars, new_args =
+      List.fold_right
+        (fun (arg : (lcalc, m) gexpr) (free_vars, new_args) ->
+          match Mark.remove arg with
+          | EAbs { binder; tys } ->
+            (* The two last arguments of HandleDefaultOps are closures, see
+               above*)
+            let vars, arg = Bindlib.unmbind binder in
+            let new_free_vars, new_arg = (transform_closures_expr ctx) arg in
+            let new_arg = Expr.make_abs vars new_arg tys (Expr.pos arg) in
+            Var.Set.union free_vars new_free_vars, new_arg :: new_args
+          | _ ->
+            let new_free_vars, new_arg = transform_closures_expr ctx arg in
+            Var.Set.union free_vars new_free_vars, new_arg :: new_args)
+        args (Var.Set.empty, [])
+    in
+    free_vars, Expr.eapp (Expr.box f) new_args (Mark.get e)
   | EApp { f = EOp _, _; _ } ->
     (* This corresponds to an operator call, which we don't want to transform*)
     Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union
@@ -272,7 +294,7 @@ let closure_conversion_scope_let ctx scope_body_expr =
     scope_body_expr
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
-  let _, new_code_items =
+  let (_, new_decl_ctx), new_code_items =
     Scope.fold_map
       ~f:(fun (toplevel_vars, decl_ctx) var code_item ->
         match code_item with
@@ -297,10 +319,32 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
             (* Because closure conversion can change the type of input and
                output scope variables that are structs, their type will change.
                So we replace their type decleration in the structs with TAny so
-               that a later re-typing phase can infer them. *)
+               that a later re-typing phase can infer them. INVARIANT: the only
+               types that will change are the types of closures taken in and out
+               of the scopes. *)
+            let rec type_contains_arrow t =
+              match Mark.remove t with
+              | TArrow _ -> true
+              | TAny -> true
+              | TOption t' -> type_contains_arrow t'
+              | TLit _ -> false
+              | TArray ts -> type_contains_arrow ts
+              | TTuple ts -> List.exists type_contains_arrow ts
+              | TEnum e ->
+                EnumConstructor.Map.exists
+                  (fun _ t' -> type_contains_arrow t')
+                  (EnumName.Map.find e p.decl_ctx.ctx_enums)
+              | TStruct s ->
+                StructField.Map.exists
+                  (fun _ t' -> type_contains_arrow t')
+                  (StructName.Map.find s p.decl_ctx.ctx_structs)
+            in
             let replace_type_with_any s =
               Some
-                (StructField.Map.map (fun t -> Mark.copy t TAny) (Option.get s))
+                (StructField.Map.map
+                   (fun t ->
+                     if type_contains_arrow t then Mark.copy t TAny else t)
+                   (Option.get s))
             in
             {
               decl_ctx with
@@ -331,10 +375,9 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
               (Expr.Box.lift new_expr) ))
       ~varf:(fun v -> v)
       (Var.Set.empty, p.decl_ctx)
-      (* TODO: handle_default and handle_default_opt are now operators and not
-         variables. *)
       p.code_items
   in
   Bindlib.box_apply
-    (fun new_code_items -> { p with code_items = new_code_items })
+    (fun new_code_items ->
+      { code_items = new_code_items; decl_ctx = new_decl_ctx })
     new_code_items

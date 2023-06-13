@@ -7,6 +7,78 @@ declaration scope S:
 
 scope S:
   definition f of y equals if x then y else - y
+```
 
-# TODO: pass this
+```catala-test-inline
+$ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
+let scope S
+  (S_in: S_in {x_in: eoption bool})
+  : S {
+      f:
+        eoption
+          (((eoption bool), integer) → eoption integer * (eoption bool))
+    }
+  =
+  let get x : eoption bool = S_in.x_in in
+  let set f :
+      eoption
+        (((eoption bool), integer) → eoption integer * (eoption bool)) =
+    ESome
+      (λ (env: (eoption bool)) (y: integer) →
+        ESome
+          match
+            (match env.0 with
+             | ENone _ → ENone _
+             | ESome x → if x then ESome y else ESome - y)
+            with
+          | ENone _ → raise NoValueProvided
+          | ESome f → f, (x))
+  in
+  return { S f = f; }
+```
+
+```catala-test-inline
+$ catala Lcalc -s S --avoid_exceptions --closure_conversion
+let scope S
+  (S_in: S_in {x_in: eoption bool})
+  : S {
+      f:
+        eoption
+          (((eoption bool), integer) → eoption integer * (eoption bool))
+    }
+  =
+  let get x : eoption bool =
+    match (ESome S_in) with
+    | ENone _ → ENone _
+    | ESome S_in → S_in.x_in
+  in
+  let set f :
+      eoption
+        (((eoption bool), integer) → eoption integer * (eoption bool)) =
+    ESome
+      let f : ((eoption bool), integer) → eoption integer =
+        λ (env: (eoption bool)) (y: integer) →
+        let x : eoption bool = env.0 in
+        ESome
+          match
+            (handle_default_opt
+               [  ]
+               (λ (_: unit) → ESome true)
+               (λ (_: unit) →
+                match x with
+                | ENone _1 → ENone _1
+                | ESome x1 →
+                  if x1
+                  then ESome y
+                  else
+                    match (ESome y) with
+                    | ENone _1 → ENone _1
+                    | ESome y_0 → ESome - y_0))
+            with
+          | ENone _ → raise NoValueProvided
+          | ESome f → f
+      in
+      (f, (x))
+  in
+  return { S f = f; }
 ```
