@@ -825,7 +825,7 @@ module Backend = struct
     add_z3constraint vc ctx
 
   let init_backend () =
-    Messages.emit_debug "Running Z3 version %s" Version.to_string
+    Message.emit_debug "Running Z3 version %s" Version.to_string
 
   let make_context (decl_ctx : decl_ctx) : backend_context =
     let cfg =

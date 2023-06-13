@@ -38,7 +38,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       with Not_found -> (
         try A.EFunc (Var.Map.find v ctxt.func_dict)
         with Not_found ->
-          Messages.raise_spanned_error (Expr.pos expr)
+          Message.raise_spanned_error (Expr.pos expr)
             "Var not found in lambda→scalc: %a@\nknown: @[<hov>%a@]@\n"
             Print.var_debug v
             (Format.pp_print_list ~pp_sep:Format.pp_print_space

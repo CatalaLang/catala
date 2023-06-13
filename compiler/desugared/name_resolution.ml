@@ -95,12 +95,12 @@ type context = {
 (** Temporary function raising an error message saying that a feature is not
     supported yet *)
 let raise_unsupported_feature (msg : string) (pos : Pos.t) =
-  Messages.raise_spanned_error pos "Unsupported feature: %s" msg
+  Message.raise_spanned_error pos "Unsupported feature: %s" msg
 
 (** Function to call whenever an identifier used somewhere has not been declared
     in the program previously *)
 let raise_unknown_identifier (msg : string) (ident : IdentName.t Mark.pos) =
-  Messages.raise_spanned_error (Mark.get ident)
+  Message.raise_spanned_error (Mark.get ident)
     "@{<yellow>\"%s\"@}: unknown identifier %s" (Mark.remove ident) msg
 
 (** Gets the type associated to an uid *)
@@ -187,56 +187,56 @@ let get_enum ctxt id =
   match IdentName.Map.find (Mark.remove id) ctxt.typedefs with
   | TEnum id -> id
   | TStruct sid ->
-    Messages.raise_multispanned_error
+    Message.raise_multispanned_error
       [
         None, Mark.get id;
         Some "Structure defined at", Mark.get (StructName.get_info sid);
       ]
       "Expecting an enum, but found a structure"
   | TScope (sid, _) ->
-    Messages.raise_multispanned_error
+    Message.raise_multispanned_error
       [
         None, Mark.get id;
         Some "Scope defined at", Mark.get (ScopeName.get_info sid);
       ]
       "Expecting an enum, but found a scope"
   | exception Not_found ->
-    Messages.raise_spanned_error (Mark.get id) "No enum named %s found"
+    Message.raise_spanned_error (Mark.get id) "No enum named %s found"
       (Mark.remove id)
 
 let get_struct ctxt id =
   match IdentName.Map.find (Mark.remove id) ctxt.typedefs with
   | TStruct id | TScope (_, { out_struct_name = id; _ }) -> id
   | TEnum eid ->
-    Messages.raise_multispanned_error
+    Message.raise_multispanned_error
       [
         None, Mark.get id;
         Some "Enum defined at", Mark.get (EnumName.get_info eid);
       ]
       "Expecting an struct, but found an enum"
   | exception Not_found ->
-    Messages.raise_spanned_error (Mark.get id) "No struct named %s found"
+    Message.raise_spanned_error (Mark.get id) "No struct named %s found"
       (Mark.remove id)
 
 let get_scope ctxt id =
   match IdentName.Map.find (Mark.remove id) ctxt.typedefs with
   | TScope (id, _) -> id
   | TEnum eid ->
-    Messages.raise_multispanned_error
+    Message.raise_multispanned_error
       [
         None, Mark.get id;
         Some "Enum defined at", Mark.get (EnumName.get_info eid);
       ]
       "Expecting an scope, but found an enum"
   | TStruct sid ->
-    Messages.raise_multispanned_error
+    Message.raise_multispanned_error
       [
         None, Mark.get id;
         Some "Structure defined at", Mark.get (StructName.get_info sid);
       ]
       "Expecting an scope, but found a structure"
   | exception Not_found ->
-    Messages.raise_spanned_error (Mark.get id) "No scope named %s found"
+    Message.raise_spanned_error (Mark.get id) "No scope named %s found"
       (Mark.remove id)
 
 (** {1 Declarations pass} *)
@@ -256,7 +256,7 @@ let process_subscope_decl
       | ScopeVar v -> ScopeVar.get_info v
       | SubScope (ssc, _) -> SubScopeName.get_info ssc
     in
-    Messages.raise_multispanned_error
+    Message.raise_multispanned_error
       [Some "first use", Mark.get info; Some "second use", s_pos]
       "Subscope name @{<yellow>\"%s\"@} already used" subscope
   | None ->
@@ -310,12 +310,12 @@ let rec process_base_typ
       | Some (TScope (_, scope_str)) ->
         TStruct scope_str.out_struct_name, typ_pos
       | None ->
-        Messages.raise_spanned_error typ_pos
+        Message.raise_spanned_error typ_pos
           "Unknown type @{<yellow>\"%s\"@}, not a struct or enum previously \
            declared"
           ident)
     | Surface.Ast.Named (_path, (_ident, _pos)) ->
-      Messages.raise_spanned_error typ_pos
+      Message.raise_spanned_error typ_pos
         "Qualified paths are not supported yet")
 
 (** Process a type (function or not) *)
@@ -344,7 +344,7 @@ let process_data_decl
       | ScopeVar v -> ScopeVar.get_info v
       | SubScope (ssc, _) -> SubScopeName.get_info ssc
     in
-    Messages.raise_multispanned_error
+    Message.raise_multispanned_error
       [Some "First use:", Mark.get info; Some "Second use:", pos]
       "Variable name @{<yellow>\"%s\"@} already used" name
   | None ->
@@ -361,7 +361,7 @@ let process_data_decl
              ((states_idmap : StateName.t IdentName.Map.t), states_list) ->
           let state_id_name = Mark.remove state_id in
           if IdentName.Map.mem state_id_name states_idmap then
-            Messages.raise_multispanned_error_full
+            Message.raise_multispanned_error_full
               [
                 ( Some
                     (fun ppf ->
@@ -424,7 +424,7 @@ let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
     context =
   let s_uid = get_struct ctxt sdecl.struct_decl_name in
   if sdecl.struct_decl_fields = [] then
-    Messages.raise_spanned_error
+    Message.raise_spanned_error
       (Mark.get sdecl.struct_decl_name)
       "The struct %s does not have any fields; give it some for Catala to be \
        able to accept it."
@@ -469,7 +469,7 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
     =
   let e_uid = get_enum ctxt edecl.enum_decl_name in
   if List.length edecl.enum_decl_cases = 0 then
-    Messages.raise_spanned_error
+    Message.raise_spanned_error
       (Mark.get edecl.enum_decl_name)
       "The enum %s does not have any cases; give it some for Catala to be able \
        to accept it."
@@ -602,7 +602,7 @@ let typedef_info = function
 let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     context =
   let raise_already_defined_error (use : Uid.MarkedString.info) name pos msg =
-    Messages.raise_multispanned_error_full
+    Message.raise_multispanned_error_full
       [
         ( Some (fun ppf -> Format.pp_print_string ppf "First definition:"),
           Mark.get use );
@@ -734,7 +734,7 @@ let get_def_key
               (IdentName.Map.find (Mark.remove state)
                  var_sig.var_sig_states_idmap)
           with Not_found ->
-            Messages.raise_multispanned_error
+            Message.raise_multispanned_error
               [
                 None, Mark.get state;
                 Some "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
@@ -743,7 +743,7 @@ let get_def_key
               ScopeVar.format_t x_uid)
         | None ->
           if not (IdentName.Map.is_empty var_sig.var_sig_states_idmap) then
-            Messages.raise_multispanned_error
+            Message.raise_multispanned_error
               [
                 None, Mark.get x;
                 Some "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
@@ -757,17 +757,17 @@ let get_def_key
       match IdentName.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
       | Some (SubScope (v, u)) -> v, u
       | Some _ ->
-        Messages.raise_spanned_error pos
+        Message.raise_spanned_error pos
           "Invalid access to input variable, %a is not a subscope"
           Print.lit_style (Mark.remove y)
       | None ->
-        Messages.raise_spanned_error pos "No definition found for subscope %a"
+        Message.raise_spanned_error pos "No definition found for subscope %a"
           Print.lit_style (Mark.remove y)
     in
     let x_uid = get_var_uid subscope_real_uid ctxt x in
     Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)
   | _ ->
-    Messages.raise_spanned_error pos
+    Message.raise_spanned_error pos
       "This line is defining a quantity that is neither a scope variable nor a \
        subscope variable. In particular, it is not possible to define struct \
        fields individually in Catala."
@@ -891,7 +891,7 @@ let process_scope_use (ctxt : context) (suse : Surface.Ast.scope_use) : context
     with
     | Some (TScope (sn, _)) -> sn
     | _ ->
-      Messages.raise_spanned_error
+      Message.raise_spanned_error
         (Mark.get suse.Surface.Ast.scope_use_name)
         "@{<yellow>\"%s\"@}: this scope has not been declared anywhere, is it \
          a typo?"

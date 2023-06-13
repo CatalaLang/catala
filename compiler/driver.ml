@@ -27,7 +27,7 @@ let get_scope_uid
     (ctxt : Desugared.Name_resolution.context) =
   match options.ex_scope, backend with
   | None, `Interpret ->
-    Messages.raise_error "No scope was provided for execution."
+    Message.raise_error "No scope was provided for execution."
   | None, _ ->
     let _, scope =
       try
@@ -38,14 +38,14 @@ let get_scope_uid
           ctxt.typedefs
         |> Shared_ast.IdentName.Map.choose
       with Not_found ->
-        Messages.raise_error "There isn't any scope inside the program."
+        Message.raise_error "There isn't any scope inside the program."
     in
     scope
   | Some name, _ -> (
     match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
     | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
     | _ ->
-      Messages.raise_error
+      Message.raise_error
         "There is no scope @{<yellow>\"%s\"@} inside the program." name)
 
 let get_variable_uid
@@ -55,7 +55,7 @@ let get_variable_uid
     (scope_uid : Shared_ast.ScopeName.t) =
   match options.ex_variable, backend with
   | None, `Exceptions ->
-    Messages.raise_error
+    Message.raise_error
       "Please specify a variable with the -v option to print its exception \
        tree."
   | None, _ -> None
@@ -79,7 +79,7 @@ let get_variable_uid
         (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
     with
     | None ->
-      Messages.raise_error
+      Message.raise_error
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
         name Shared_ast.ScopeName.format_t scope_uid
     | Some
@@ -87,7 +87,7 @@ let get_variable_uid
       -> (
       match second_part with
       | None ->
-        Messages.raise_error
+        Message.raise_error
           "Subscope @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@} cannot be \
            selected by itself, please add \".<var>\" where <var> is a subscope \
            variable."
@@ -103,7 +103,7 @@ let get_variable_uid
             (Desugared.Ast.ScopeDef.SubScopeVar
                (subscope_var_name, v, Pos.no_pos))
         | _ ->
-          Messages.raise_error
+          Message.raise_error
             "Var @{<yellow>\"%s\"@} of subscope @{<yellow>\"%a\"@} in scope \
              @{<yellow>\"%a\"@} does not exist, please check your command line \
              arguments."
@@ -122,7 +122,7 @@ let get_variable_uid
                  with
                  | Some state -> state
                  | None ->
-                   Messages.raise_error
+                   Message.raise_error
                      "State @{<yellow>\"%s\"@} is not found for variable \
                       @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
                      second_part first_part Shared_ast.ScopeName.format_t
@@ -142,7 +142,7 @@ let driver source_file (options : Cli.options) : int =
       options.plugins_dirs;
     Cli.set_option_globals options;
     if options.debug then Printexc.record_backtrace true;
-    Messages.emit_debug "Reading files...";
+    Message.emit_debug "Reading files...";
     let filename = ref "" in
     (match source_file with
     | Pos.FileName f -> filename := f
@@ -154,7 +154,7 @@ let driver source_file (options : Cli.options) : int =
         (* Try to infer the language from the intput file extension. *)
         let ext = Filename.extension !filename in
         if ext = "" then
-          Messages.raise_error
+          Message.raise_error
             "No file extension found for the file '%s'. (Try to add one or to \
              specify the -l flag)"
             !filename;
@@ -163,7 +163,7 @@ let driver source_file (options : Cli.options) : int =
     let language =
       try List.assoc l Cli.languages
       with Not_found ->
-        Messages.raise_error
+        Message.raise_error
           "The selected language (%s) is not supported by Catala" l
     in
     Cli.locale_lang := language;
@@ -174,7 +174,7 @@ let driver source_file (options : Cli.options) : int =
       | `Plugin s -> (
         try `Plugin (Plugin.find s)
         with Not_found ->
-          Messages.raise_error
+          Message.raise_error
             "The selected backend (%s) is not supported by Catala, nor was a \
              plugin by this name found under %a"
             backend
@@ -203,11 +203,11 @@ let driver source_file (options : Cli.options) : int =
         match source_file with
         | FileName f -> f
         | Contents _ ->
-          Messages.raise_error
+          Message.raise_error
             "The Makefile backend does not work if the input is not a file"
       in
       let output_file, with_output = get_output ~ext:".d" () in
-      Messages.emit_debug "Writing list of dependencies to %s..."
+      Message.emit_debug "Writing list of dependencies to %s..."
         (Option.value ~default:"stdout" output_file);
       with_output
       @@ fun oc ->
@@ -220,7 +220,7 @@ let driver source_file (options : Cli.options) : int =
         (String.concat "\\\n" prgm.program_source_files)
         (String.concat "\\\n" prgm.program_source_files)
     | (`Latex | `Html) as backend ->
-      Messages.emit_debug "Weaving literate program into %s"
+      Message.emit_debug "Weaving literate program into %s"
         (match backend with `Latex -> "LaTeX" | `Html -> "HTML");
       let output_file, with_output =
         get_output_format ()
@@ -236,7 +236,7 @@ let driver source_file (options : Cli.options) : int =
               Literate.Html.ast_to_html language
                 ~print_only_law:options.print_only_law
           in
-          Messages.emit_debug "Writing to %s"
+          Message.emit_debug "Writing to %s"
             (Option.value ~default:"stdout" output_file);
           if options.wrap_weaved_output then
             match backend with
@@ -250,18 +250,18 @@ let driver source_file (options : Cli.options) : int =
     | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
       | `Lcalc | `Dcalc | `Scopelang | `Exceptions | `Proof | `Plugin _ ) as
       backend -> (
-      Messages.emit_debug "Name resolution...";
+      Message.emit_debug "Name resolution...";
       let ctxt = Desugared.Name_resolution.form_context prgm in
       let scope_uid = get_scope_uid options backend ctxt in
       (* This uid is a Desugared identifier *)
       let variable_uid = get_variable_uid options backend ctxt scope_uid in
-      Messages.emit_debug "Desugaring...";
+      Message.emit_debug "Desugaring...";
       let prgm = Desugared.From_surface.translate_program ctxt prgm in
-      Messages.emit_debug "Disambiguating...";
+      Message.emit_debug "Disambiguating...";
       let prgm = Desugared.Disambiguate.program prgm in
-      Messages.emit_debug "Linting...";
+      Message.emit_debug "Linting...";
       Desugared.Linting.lint_program prgm;
-      Messages.emit_debug "Collecting rules...";
+      Message.emit_debug "Collecting rules...";
       let exceptions_graphs =
         Scopelang.From_desugared.build_exceptions_graph prgm
       in
@@ -274,7 +274,7 @@ let driver source_file (options : Cli.options) : int =
           match variable_uid with
           | Some variable_uid -> variable_uid
           | None ->
-            Messages.raise_error
+            Message.raise_error
               "Please provide a scope variable to analyze with the -v option."
         in
         Desugared.Print.print_exceptions_graph scope_uid variable_uid
@@ -294,35 +294,35 @@ let driver source_file (options : Cli.options) : int =
             prgm
       | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
         | `Lcalc | `Dcalc | `Proof | `Plugin _ ) as backend -> (
-        Messages.emit_debug "Typechecking...";
+        Message.emit_debug "Typechecking...";
         let type_ordering =
           Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
             prgm.program_ctx.ctx_enums
         in
         let prgm = Scopelang.Ast.type_program prgm in
-        Messages.emit_debug "Translating to default calculus...";
+        Message.emit_debug "Translating to default calculus...";
         let prgm = Dcalc.From_scopelang.translate_program prgm in
         let prgm =
           if options.optimize then begin
-            Messages.emit_debug "Optimizing default calculus...";
+            Message.emit_debug "Optimizing default calculus...";
             Shared_ast.Optimizations.optimize_program prgm
           end
           else prgm
         in
-        (* Messages.emit_debug (Format.asprintf "Typechecking results :@\n%a"
+        (* Message.emit_debug (Format.asprintf "Typechecking results :@\n%a"
            (Print.typ prgm.decl_ctx) typ); *)
         match backend with
         | `Typecheck ->
-          Messages.emit_debug "Typechecking again...";
+          Message.emit_debug "Typechecking again...";
           let _ =
             try Shared_ast.Typing.program prgm ~leave_unresolved:false
-            with Messages.CompilerError error_content ->
+            with Message.CompilerError error_content ->
               raise
-                (Messages.CompilerError
-                   (Messages.to_internal_error error_content))
+                (Message.CompilerError
+                   (Message.to_internal_error error_content))
           in
           (* That's it! *)
-          Messages.emit_result "Typechecking successful!"
+          Message.emit_result "Typechecking successful!"
         | `Dcalc ->
           let _output_file, with_output = get_output_format () in
           with_output
@@ -349,20 +349,20 @@ let driver source_file (options : Cli.options) : int =
               prgrm_dcalc_expr
         | ( `Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _
           | `Interpret_Lcalc ) as backend -> (
-          Messages.emit_debug "Typechecking again...";
+          Message.emit_debug "Typechecking again...";
           let prgm =
             try Shared_ast.Typing.program ~leave_unresolved:false prgm
-            with Messages.CompilerError error_content ->
+            with Message.CompilerError error_content ->
               raise
-                (Messages.CompilerError
-                   (Messages.to_internal_error error_content))
+                (Message.CompilerError
+                   (Message.to_internal_error error_content))
           in
           if !Cli.check_invariants_flag then (
-            Messages.emit_debug "Checking invariants...";
+            Message.emit_debug "Checking invariants...";
             let result = Dcalc.Invariants.check_all_invariants prgm in
             if not result then
               raise
-                (Messages.raise_internal_error
+                (Message.raise_internal_error
                    "Some Dcalc invariants are invalid"));
           match backend with
           | `Proof ->
@@ -375,7 +375,7 @@ let driver source_file (options : Cli.options) : int =
 
             Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `Interpret ->
-            Messages.emit_debug "Starting interpretation (dcalc)...";
+            Message.emit_debug "Starting interpretation (dcalc)...";
             let results =
               Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
             in
@@ -384,18 +384,18 @@ let driver source_file (options : Cli.options) : int =
                 (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
                 results
             in
-            Messages.emit_debug "End of interpretation";
-            Messages.emit_result "Computation successful!%s"
+            Message.emit_debug "End of interpretation";
+            Message.emit_result "Computation successful!%s"
               (if List.length results > 0 then " Results:" else "");
             List.iter
               (fun ((var, _), result) ->
-                Messages.emit_result "@[<hov 2>%s@ =@ %a@]" var
+                Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
                   (Shared_ast.Print.expr ~debug:options.debug ())
                   result)
               results
           | `Plugin (Plugin.Dcalc p) ->
             let output_file, _ = get_output_format ~ext:p.Plugin.extension () in
-            Messages.emit_debug "Compiling program through backend \"%s\"..."
+            Message.emit_debug "Compiling program through backend \"%s\"..."
               p.Plugin.name;
             p.Plugin.apply ~source_file ~output_file
               ~scope:
@@ -406,10 +406,10 @@ let driver source_file (options : Cli.options) : int =
               type_ordering
           | (`OCaml | `Interpret_Lcalc | `Python | `Lcalc | `Scalc | `Plugin _)
             as backend -> (
-            Messages.emit_debug "Compiling program into lambda calculus...";
+            Message.emit_debug "Compiling program into lambda calculus...";
             let prgm =
               if options.trace && options.avoid_exceptions then
-                Messages.raise_error
+                Message.raise_error
                   "Option --avoid_exceptions is not compatible with option \
                    --trace";
               if options.avoid_exceptions then
@@ -421,7 +421,7 @@ let driver source_file (options : Cli.options) : int =
             in
             let prgm =
               if options.optimize then begin
-                Messages.emit_debug "Optimizing lambda calculus...";
+                Message.emit_debug "Optimizing lambda calculus...";
                 Shared_ast.Optimizations.optimize_program prgm
               end
               else Shared_ast.Program.untype prgm
@@ -429,19 +429,19 @@ let driver source_file (options : Cli.options) : int =
             let prgm =
               if options.closure_conversion then (
                 if not options.avoid_exceptions then
-                  Messages.raise_error
+                  Message.raise_error
                     "Option --avoid_exceptions must be enabled for \
                      --closure_conversion";
-                Messages.emit_debug "Performing closure conversion...";
+                Message.emit_debug "Performing closure conversion...";
                 let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
                 let prgm = Bindlib.unbox prgm in
                 let prgm =
                   if options.optimize then (
-                    Messages.emit_debug "Optimizing lambda calculus...";
+                    Message.emit_debug "Optimizing lambda calculus...";
                     Shared_ast.Optimizations.optimize_program prgm)
                   else prgm
                 in
-                Messages.emit_debug "Retyping lambda calculus...";
+                Message.emit_debug "Retyping lambda calculus...";
                 let prgm =
                   Shared_ast.Program.untype
                     (Shared_ast.Typing.program ~leave_unresolved:true prgm)
@@ -463,7 +463,7 @@ let driver source_file (options : Cli.options) : int =
                   (Shared_ast.Print.program ~debug:options.debug)
                   prgm
             | `Interpret_Lcalc ->
-              Messages.emit_debug "Starting interpretation (lcalc)...";
+              Message.emit_debug "Starting interpretation (lcalc)...";
               let results =
                 Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
               in
@@ -472,12 +472,12 @@ let driver source_file (options : Cli.options) : int =
                   (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
                   results
               in
-              Messages.emit_debug "End of interpretation";
-              Messages.emit_result "Computation successful!%s"
+              Message.emit_debug "End of interpretation";
+              Message.emit_result "Computation successful!%s"
                 (if List.length results > 0 then " Results:" else "");
               List.iter
                 (fun ((var, _), result) ->
-                  Messages.emit_result "@[<hov 2>%s@ =@ %a@]" var
+                  Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
                     (Shared_ast.Print.expr ~debug:options.debug ())
                     result)
                 results
@@ -489,8 +489,8 @@ let driver source_file (options : Cli.options) : int =
                 in
                 with_output
                 @@ fun fmt ->
-                Messages.emit_debug "Compiling program into OCaml...";
-                Messages.emit_debug "Writing to %s..."
+                Message.emit_debug "Compiling program into OCaml...";
+                Message.emit_debug "Writing to %s..."
                   (Option.value ~default:"stdout" output_file);
                 Lcalc.To_ocaml.format_program fmt prgm type_ordering
               | `Plugin (Plugin.Dcalc _) -> assert false
@@ -498,7 +498,7 @@ let driver source_file (options : Cli.options) : int =
                 let output_file, _ =
                   get_output_format ~ext:p.Plugin.extension ()
                 in
-                Messages.emit_debug
+                Message.emit_debug
                   "Compiling program through backend \"%s\"..." p.Plugin.name;
                 p.Plugin.apply ~source_file ~output_file
                   ~scope:
@@ -528,8 +528,8 @@ let driver source_file (options : Cli.options) : int =
                   let output_file, with_output =
                     get_output_format ~ext:".py" ()
                   in
-                  Messages.emit_debug "Compiling program into Python...";
-                  Messages.emit_debug "Writing to %s..."
+                  Message.emit_debug "Compiling program into Python...";
+                  Message.emit_debug "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
                   with_output
                   @@ fun fmt ->
@@ -537,9 +537,9 @@ let driver source_file (options : Cli.options) : int =
                 | `Plugin (Plugin.Dcalc _ | Plugin.Lcalc _) -> assert false
                 | `Plugin (Plugin.Scalc p) ->
                   let output_file, _ = get_output ~ext:p.Plugin.extension () in
-                  Messages.emit_debug
+                  Message.emit_debug
                     "Compiling program through backend \"%s\"..." p.Plugin.name;
-                  Messages.emit_debug "Writing to %s..."
+                  Message.emit_debug "Writing to %s..."
                     (Option.value ~default:"stdout" output_file);
                   p.Plugin.apply ~source_file ~output_file
                     ~scope:
@@ -549,15 +549,15 @@ let driver source_file (options : Cli.options) : int =
                     prgm type_ordering)))))));
     0
   with
-  | Messages.CompilerError content ->
+  | Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Messages.emit_content content Error;
+    Message.emit_content content Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
   | Sys_error msg ->
     let bt = Printexc.get_raw_backtrace () in
-    Messages.emit_content
-      (Messages.Content.of_string ("System error: " ^ msg))
+    Message.emit_content
+      (Message.Content.of_string ("System error: " ^ msg))
       Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1

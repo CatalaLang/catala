@@ -89,12 +89,12 @@ module Box = struct
     match fv b with
     | [] -> ()
     | [h] ->
-      Messages.raise_internal_error
+      Message.raise_internal_error
         "The boxed term is not closed the variable %s is free in the global \
          context"
         h
     | l ->
-      Messages.raise_internal_error
+      Message.raise_internal_error
         "The boxed term is not closed the variables %a is free in the global \
          context"
         (Format.pp_print_list
@@ -792,7 +792,7 @@ let make_app e args pos =
             tr
           | TAny -> fty.ty
           | _ ->
-            Messages.raise_internal_error
+            Message.raise_internal_error
               "wrong type: found %a while expecting either an Arrow or Any"
               Print.typ_debug fty.ty))
       (List.map Mark.get (e :: args))
