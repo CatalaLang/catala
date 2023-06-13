@@ -142,7 +142,7 @@ let rec typ
         (EnumConstructor.Map.bindings (EnumName.Map.find e ctx.ctx_enums))
         punctuation "]")
   | TOption t ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "option" (typ ~colors) t
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "eoption" (typ ~colors) t
   | TArrow ([t1], t2) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (typ_with_parens ~colors) t1
       op_style "→" (typ ~colors) t2
@@ -487,11 +487,16 @@ let rec expr_aux :
   match Mark.remove e with
   | EVar v -> var fmt v
   | ETuple es ->
-    Format.fprintf fmt "@[<hov 2>%a%a%a@]" punctuation "("
+    Format.fprintf fmt "@[<hov 2>%a%a%a@]"
+      (pp_color_string (List.hd colors))
+      "("
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt e -> lhs exprc fmt e))
-      es punctuation ")"
+         ~pp_sep:(fun fmt () ->
+           Format.fprintf fmt "%a@ " (pp_color_string (List.hd colors)) ",")
+         (fun fmt e -> lhs ~colors:(List.tl colors) exprc fmt e))
+      es
+      (pp_color_string (List.hd colors))
+      ")"
   | EArray es ->
     Format.fprintf fmt "@[<hv 2>%a %a@] %a" punctuation "["
       (Format.pp_print_list

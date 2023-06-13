@@ -85,48 +85,81 @@ let rec ast_to_typ (ty : A.typ) : unionfind_typ =
 
 let typ_needs_parens (t : unionfind_typ) : bool =
   let t = UnionFind.get (UnionFind.find t) in
-  match Mark.remove t with
-  | TArrow _ | TArray _ | TOption _ -> true
-  | _ -> false
+  match Mark.remove t with TArrow _ | TArray _ -> true | _ -> false
+
+let with_color f color fmt x =
+  (* equivalent to [Format.fprintf fmt "@{<color>%s@}" s] *)
+  Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Fg (C4 color)));
+  f fmt x;
+  Format.pp_close_stag fmt ()
+
+let pp_color_string = with_color Format.pp_print_string
 
 let rec format_typ
     (ctx : A.decl_ctx)
+    ~(colors : Ocolor_types.color4 list)
     (fmt : Format.formatter)
     (naked_typ : unionfind_typ) : unit =
   let format_typ = format_typ ctx in
-  let format_typ_with_parens (fmt : Format.formatter) (t : unionfind_typ) =
-    if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
-    else Format.fprintf fmt "%a" format_typ t
+  let format_typ_with_parens
+      ~colors
+      (fmt : Format.formatter)
+      (t : unionfind_typ) =
+    if typ_needs_parens t then (
+      Format.pp_open_hvbox fmt 1;
+      pp_color_string (List.hd colors) fmt "(";
+      format_typ ~colors:(List.tl colors) fmt t;
+      Format.pp_close_box fmt ();
+      pp_color_string (List.hd colors) fmt ")")
+    else Format.fprintf fmt "%a" (format_typ ~colors) t
   in
   let naked_typ = UnionFind.get (UnionFind.find naked_typ) in
   match Mark.remove naked_typ with
   | TLit l -> Format.fprintf fmt "%a" Print.tlit l
   | TTuple ts ->
-    Format.fprintf fmt "@[<hov 2>(%a)@]"
+    Format.fprintf fmt "@[<hov 2>%a%a%a@]"
+      (pp_color_string (List.hd colors))
+      "("
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-         (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
+         (fun fmt t ->
+           Format.fprintf fmt "%a" (format_typ ~colors:(List.tl colors)) t))
       ts
+      (pp_color_string (List.hd colors))
+      ")"
   | TStruct s -> Format.fprintf fmt "%a" A.StructName.format_t s
   | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format_t e
   | TOption t ->
-    Format.fprintf fmt "@[<hov 2>(%a)@ %s@]" format_typ_with_parens t "eoption"
+    Format.fprintf fmt "@[<hov 2>option %a@]"
+      (format_typ_with_parens ~colors:(List.tl colors))
+      t
   | TArrow ([t1], t2) ->
-    Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]" format_typ_with_parens t1
-      format_typ t2
+    Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]"
+      (format_typ_with_parens ~colors)
+      t1 (format_typ ~colors) t2
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>(%a)@ →@ %a@]"
+    Format.fprintf fmt "@[<hov 2>%a%a%a@ →@ %a@]"
+      (pp_color_string (List.hd colors))
+      "("
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         format_typ_with_parens)
-      t1 format_typ t2
+         (format_typ_with_parens ~colors:(List.tl colors)))
+      t1
+      (pp_color_string (List.hd colors))
+      ")" (format_typ ~colors) t2
   | TArray t1 -> (
     match Mark.remove (UnionFind.get (UnionFind.find t1)) with
     | TAny _ when not !Cli.debug_flag -> Format.pp_print_string fmt "collection"
-    | _ -> Format.fprintf fmt "@[collection@ %a@]" format_typ t1)
+    | _ -> Format.fprintf fmt "@[collection@ %a@]" (format_typ ~colors) t1)
   | TAny v ->
     if !Cli.debug_flag then Format.fprintf fmt "<a%d>" (Any.hash v)
     else Format.pp_print_string fmt "<any>"
+
+let rec colors =
+  let open Ocolor_types in
+  blue :: cyan :: green :: yellow :: red :: magenta :: colors
+
+let format_typ ctx fmt naked_typ = format_typ ctx ~colors fmt naked_typ
 
 exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
