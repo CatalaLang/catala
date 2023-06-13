@@ -1,8 +1,4 @@
 ```catala
-declaration structure Test:
-    data z2 content integer
-    data z3 content integer
-
 declaration scope SubFoo:
   input x content integer
   input y content integer
@@ -26,13 +22,6 @@ scope Foo:
 
 ```catala-test-inline
 $ catala interpret -s Foo
-[WARNING] The structure "Test" is never used; maybe it's unnecessary?
-
-┌─⯈ tests/test_scope/good/scope_call.catala_en:2.23-2.27:
-└─┐
-2 │ declaration structure Test:
-  │                       ‾‾‾‾
-
 [RESULT] Computation successful! Results:
 [RESULT] example = -7
 ```

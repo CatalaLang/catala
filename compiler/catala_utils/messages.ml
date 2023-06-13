@@ -75,7 +75,7 @@ let print_time_marker =
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
     if delta > 50. then
-      Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@," delta
+      Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@\n" delta
 
 let pp_marker target ppf =
   let open Ocolor_types in
@@ -105,21 +105,27 @@ module Content = struct
 
   let of_string (s : string) : t =
     { message = (fun ppf -> Format.pp_print_string ppf s); positions = [] }
+
+  let internal_error_prefix =
+    "Internal Error, please report to \
+     https://github.com/CatalaLang/catala/issues: "
+
+  let prepend_message (content : t) prefix : t =
+    {
+      content with
+      message = (fun ppf -> Format.fprintf ppf "%t@,%t" prefix content.message);
+    }
+
+  let mark_as_internal_error (content : t) : t =
+    {
+      content with
+      message =
+        (fun ppf ->
+          Format.fprintf ppf "%s@,%t" internal_error_prefix content.message);
+    }
 end
 
 open Content
-
-let internal_error_prefix =
-  "Internal Error, please report to \
-   https://github.com/CatalaLang/catala/issues: "
-
-let to_internal_error (content : Content.t) : Content.t =
-  {
-    content with
-    message =
-      (fun ppf ->
-        Format.fprintf ppf "%s@,%t" internal_error_prefix content.message);
-  }
 
 let emit_content (content : Content.t) (target : content_type) : unit =
   let { message; positions } = content in

@@ -319,7 +319,7 @@ let driver source_file (options : Cli.options) : int =
             with Messages.CompilerError error_content ->
               raise
                 (Messages.CompilerError
-                   (Messages.to_internal_error error_content))
+                   (Messages.Content.mark_as_internal_error error_content))
           in
           (* That's it! *)
           Messages.emit_result "Typechecking successful!"
@@ -355,7 +355,7 @@ let driver source_file (options : Cli.options) : int =
             with Messages.CompilerError error_content ->
               raise
                 (Messages.CompilerError
-                   (Messages.to_internal_error error_content))
+                   (Messages.Content.mark_as_internal_error error_content))
           in
           if !Cli.check_invariants_flag then (
             Messages.emit_debug "Checking invariants...";
@@ -445,11 +445,28 @@ let driver source_file (options : Cli.options) : int =
                   else prgm
                 in
                 Messages.emit_debug "Retyping lambda calculus...";
-                let prgm =
-                  Shared_ast.Program.untype
-                    (Shared_ast.Typing.program ~leave_unresolved:true prgm)
-                in
-                prgm)
+                try
+                  let prgm =
+                    Shared_ast.Program.untype
+                      (Shared_ast.Typing.program ~leave_unresolved:true prgm)
+                  in
+                  prgm
+                with Messages.CompilerError content ->
+                  raise
+                    (Messages.CompilerError
+                       (Messages.Content.prepend_message content (fun fmt ->
+                            Format.fprintf fmt
+                              "As part of the compilation process, one of the \
+                               step (closure conversion) modified the Catala \
+                               program and re-typing after this modification \
+                               failed with the error message below. This \
+                               re-typing error if not your fault, but is \
+                               likely to indicate that the program you are \
+                               trying to compile is incompatible with the \
+                               current compilation scheme provided by the \
+                               Catala compiler. Try to rewrite the program to \
+                               avoid the problematic pattern or contact the \
+                               compiler developers for help.@\n"))))
               else prgm
             in
             match backend with

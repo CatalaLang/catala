@@ -1,0 +1,54 @@
+```catala
+declaration structure Result:
+  data r content integer depends on z content integer
+
+declaration scope SubFoo:
+  input x content integer
+  output y content integer depends on z content integer
+
+declaration scope Foo:
+  internal r content Result
+  output z content integer
+
+scope SubFoo:
+  definition y of z equals x + z
+
+scope Foo:
+  definition r equals Result { --r: (output of SubFoo with { -- x: 10 }).y }
+  definition z equals r.r of 1
+```
+
+Closure conversion fails because the type of `Result` should change to reflect
+the transformed closure but we don't allow our closure conversion to change
+user-defined types.
+
+```catala-test-inline
+$ catala Lcalc --avoid_exceptions -O --closure_conversion
+[ERROR] As part of the compilation process, one of the step (closure conversion) modified the Catala program and re-typing after this modification failed with the error message below. This re-typing error if not your fault, but is likely to indicate that the program you are trying to compile is incompatible with the current compilation scheme provided by the Catala compiler. Try to rewrite the program to avoid the problematic pattern or contact the compiler developers for help.
+
+Error during typechecking, incompatible types:
+┌─⯈ (<any> * <any>)
+└─⯈ integer → option integer
+
+Error coming from typechecking the following expression:
+┌─⯈ tests/test_scope/bad/scope_call_func_struct_closure.catala_en:10.12-10.13:
+└──┐
+10 │   internal r content Result
+   │            ‾
+
+
+Type (<any> * <any>) coming from expression:
+┌─⯈ tests/test_scope/bad/scope_call_func_struct_closure.catala_en:10.12-10.13:
+└──┐
+10 │   internal r content Result
+   │            ‾
+
+
+Type integer → option integer coming from expression:
+┌─⯈ tests/test_scope/bad/scope_call_func_struct_closure.catala_en:3.18-3.25:
+└─┐
+3 │   data r content integer depends on z content integer
+  │                  ‾‾‾‾‾‾‾
+
+#return code 255#
+```
