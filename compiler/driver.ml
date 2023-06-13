@@ -447,6 +447,7 @@ let driver source_file (options : Cli.options) : int =
                     (Shared_ast.Print.program ~debug:options.debug)
                     prgm;
                 Format.pp_print_flush Format.std_formatter ();
+                (* TODO: delete above *)
                 let prgm =
                   if options.optimize then (
                     Messages.emit_debug "Optimizing lambda calculus...";
