@@ -1,0 +1,57 @@
+## Article
+
+```catala
+declaration scope S:
+  output f content integer depends on y content integer
+  input x content boolean
+
+declaration scope T:
+  s scope S
+  output y content integer
+
+scope S:
+  definition f of y equals if x then y else - y
+
+scope T:
+  definition s.x equals false
+  definition y equals s.f of 2
+```
+
+```catala-test-inline
+$ catala Lcalc -s T --avoid_exceptions -O --closure_conversion
+let scope T (T_in: T_in): T {y: eoption integer} =
+  let sub_set s.x : bool = false in
+  let call result :
+      eoption
+        S {
+          f:
+            eoption
+              (((eoption bool), integer) → eoption integer * (eoption bool))
+        } =
+    ESome S { S_in x_in = ESome s.x; }
+  in
+  let sub_get s.f :
+      eoption
+        (((eoption bool), integer) → eoption integer * (eoption bool)) =
+    match result with
+    | ENone _ → ENone _
+    | ESome result → result.f
+  in
+  let set y : eoption integer =
+    ESome
+      match
+        (match s.f with
+         | ENone _ → ENone _
+         | ESome s.f → s.f.0 s.f.1 2)
+        with
+      | ENone _ → raise NoValueProvided
+      | ESome y → y
+  in
+  return { T y = y; }
+```
+
+```catala-test-inline
+$ catala Interpret_lcalc -s T --avoid_exceptions -O --closure_conversion
+[RESULT] Computation successful! Results:
+[RESULT] y = ESome -2
+```

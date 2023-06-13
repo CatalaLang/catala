@@ -197,11 +197,17 @@ let rec transform_closures_expr :
               ])
            m)
         (Expr.pos e) )
-  | EApp { f = (EOp { op = HandleDefaultOpt; _ }, _) as f; args } ->
-    (* Special case for HandleDefaultOpt: its arguments are thunks because if
+  | EApp
+      {
+        f =
+          (EOp { op = HandleDefaultOpt | Fold | Map | Filter | Reduce; _ }, _)
+          as f;
+        args;
+      } ->
+    (* Special case for some operators: its arguments closures thunks because if
        you want to extract it as a function you need these closures to preserve
        evaluation order, but backends that don't support closures will simply
-       extract HandleDefaultOpt in a inlined way and skip the thunks. *)
+       extract these operators in a inlined way and skip the thunks. *)
     let free_vars, new_args =
       List.fold_right
         (fun (arg : (lcalc, m) gexpr) (free_vars, new_args) ->
