@@ -301,9 +301,9 @@ let closure_conversion_scope_let ctx scope_body_expr =
     scope_body_expr
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
-  let (_, new_decl_ctx), new_code_items =
+  let _, new_code_items =
     Scope.fold_map
-      ~f:(fun (toplevel_vars, decl_ctx) var code_item ->
+      ~f:(fun toplevel_vars var code_item ->
         match code_item with
         | ScopeDef (name, body) ->
           let scope_input_var, scope_body_expr =
@@ -322,47 +322,8 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
           let new_scope_body_expr =
             Bindlib.bind_var scope_input_var new_scope_lets
           in
-          let new_decl_ctx =
-            (* Because closure conversion can change the type of input and
-               output scope variables that are structs, their type will change.
-               So we replace their type decleration in the structs with TAny so
-               that a later re-typing phase can infer them. INVARIANT: the only
-               types that will change are the types of closures taken in and out
-               of the scopes. *)
-            let rec type_contains_arrow t =
-              match Mark.remove t with
-              | TArrow _ -> true
-              | TAny -> true
-              | TOption t' -> type_contains_arrow t'
-              | TLit _ -> false
-              | TArray ts -> type_contains_arrow ts
-              | TTuple ts -> List.exists type_contains_arrow ts
-              | TEnum e ->
-                EnumConstructor.Map.exists
-                  (fun _ t' -> type_contains_arrow t')
-                  (EnumName.Map.find e p.decl_ctx.ctx_enums)
-              | TStruct s ->
-                StructField.Map.exists
-                  (fun _ t' -> type_contains_arrow t')
-                  (StructName.Map.find s p.decl_ctx.ctx_structs)
-            in
-            let replace_type_with_any s =
-              Some
-                (StructField.Map.map
-                   (fun t ->
-                     if type_contains_arrow t then Mark.copy t TAny else t)
-                   (Option.get s))
-            in
-            {
-              decl_ctx with
-              ctx_structs =
-                StructName.Map.update body.scope_body_output_struct
-                  replace_type_with_any
-                  (StructName.Map.update body.scope_body_input_struct
-                     replace_type_with_any decl_ctx.ctx_structs);
-            }
-          in
-          ( (Var.Set.add var toplevel_vars, new_decl_ctx),
+
+          ( Var.Set.add var toplevel_vars,
             Bindlib.box_apply
               (fun scope_body_expr ->
                 ScopeDef (name, { body with scope_body_expr }))
@@ -376,13 +337,56 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
             }
           in
           let _free_vars, new_expr = transform_closures_expr ctx expr in
-          ( (Var.Set.add var toplevel_vars, decl_ctx),
+          ( Var.Set.add var toplevel_vars,
             Bindlib.box_apply
               (fun e -> Topdef (name, ty, e))
               (Expr.Box.lift new_expr) ))
       ~varf:(fun v -> v)
-      (Var.Set.empty, p.decl_ctx)
-      p.code_items
+      Var.Set.empty p.code_items
+  in
+  (* Now we need to further tweak [decl_ctx] because some of the user-defined
+     types can have closures in them and these closured might have changed type.
+     So we reset them to [TAny] in the hopes that the transformation applied
+     will not yield to type unification conflicts. Indeed, consider the
+     following closure: [let f = if ... then fun v -> x + v else fun v -> v]. To
+     be typed correctly once converted, this closure needs an existential type
+     but the Catala typechecker doesn't have them. However, this kind of type
+     conflict is difficult to produce using the Catala surface language: it can
+     only happen if you store a closure which is the output of a scope inside a
+     user-defined data structure, and if you do it in two different places in
+     the code with two closures that don't have the same capture footprint. *)
+  let new_decl_ctx =
+    let rec type_contains_arrow t =
+      match Mark.remove t with
+      | TArrow _ -> true
+      | TAny -> true
+      | TOption t' -> type_contains_arrow t'
+      | TLit _ -> false
+      | TArray ts -> type_contains_arrow ts
+      | TTuple ts -> List.exists type_contains_arrow ts
+      | TEnum e ->
+        EnumConstructor.Map.exists
+          (fun _ t' -> type_contains_arrow t')
+          (EnumName.Map.find e p.decl_ctx.ctx_enums)
+      | TStruct s ->
+        StructField.Map.exists
+          (fun _ t' -> type_contains_arrow t')
+          (StructName.Map.find s p.decl_ctx.ctx_structs)
+    in
+    let replace_fun_typs t =
+      if type_contains_arrow t then Mark.copy t TAny else t
+    in
+    {
+      p.decl_ctx with
+      ctx_structs =
+        StructName.Map.map
+          (StructField.Map.map replace_fun_typs)
+          p.decl_ctx.ctx_structs;
+      ctx_enums =
+        EnumName.Map.map
+          (EnumConstructor.Map.map replace_fun_typs)
+          p.decl_ctx.ctx_enums;
+    }
   in
   Bindlib.box_apply
     (fun new_code_items ->
