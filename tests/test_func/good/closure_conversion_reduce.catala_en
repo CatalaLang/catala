@@ -1,0 +1,57 @@
+
+# Article
+
+```catala
+declaration scope S:
+   input x content collection integer
+   output y content integer
+
+scope S:
+  definition y equals
+    potential_max among x such that potential_max is minimum or if collection empty then -1
+```
+
+```catala-test-inline
+$ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
+let scope S
+  (S_in: S_in {x_in: eoption collection eoption integer})
+  : S {y: eoption integer}
+  =
+  let get x : eoption collection eoption integer = S_in.x_in in
+  let set y : eoption integer =
+    ESome
+      match
+        (match x with
+         | ENone _ → ENone _
+         | ESome y_2 →
+           reduce
+             (λ (f: eoption integer) (init: eoption integer) →
+              match init with
+              | ENone _ → ENone _
+              | ESome y_3 →
+                match f with
+                | ENone _ → ENone _
+                | ESome y_0 → if y_0 < y_3 then ESome y_0 else ESome y_3)
+             ESome -1
+             y_2)
+        with
+      | ENone _ → raise NoValueProvided
+      | ESome y → y
+  in
+  return { S y = y; }
+```
+
+The next test of closure conversion does not go through for the moment.
+The detection of closures that should not be converted because they are arguments
+to reduce or other special operators relies on pattern matching the special
+operator and its EAbs argument. However without exceptions on, because the
+--avoid_exceptions pass is not optimized and produces more options than needed,
+the closures that are arguments to special operators are let-binded with an
+option. This let-binding is reduced by partial evaluation, which is why the test
+with optimizations on passes.
+
+```catala-test-inline
+$ catala Lcalc -s S --avoid_exceptions --closure_conversion
+[ERROR] Option --optimize must be enabled for --closure_conversion
+#return code 255#
+```

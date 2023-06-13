@@ -211,13 +211,14 @@ let rec transform_closures_expr :
     let free_vars, new_args =
       List.fold_right
         (fun (arg : (lcalc, m) gexpr) (free_vars, new_args) ->
+          let m_arg = Mark.get arg in
           match Mark.remove arg with
           | EAbs { binder; tys } ->
-            (* The two last arguments of HandleDefaultOps are closures, see
-               above*)
             let vars, arg = Bindlib.unmbind binder in
             let new_free_vars, new_arg = (transform_closures_expr ctx) arg in
-            let new_arg = Expr.make_abs vars new_arg tys (Expr.pos arg) in
+            let new_arg =
+              Expr.make_abs vars new_arg tys (Expr.mark_pos m_arg)
+            in
             Var.Set.union free_vars new_free_vars, new_arg :: new_args
           | _ ->
             let new_free_vars, new_arg = transform_closures_expr ctx arg in
