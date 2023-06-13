@@ -143,7 +143,7 @@ let unstyled =
   Arg.(
     value
     & flag
-    & info ["unstyled"; "u"]
+    & info ["unstyled"]
         ~doc:
           "Removes styling (colors, etc.) from terminal output. Equivalent to \
            $(b,--color=never)")
@@ -277,6 +277,14 @@ let output =
            compiler. Defaults to $(i,FILE).$(i,EXT) where $(i,EXT) depends on \
            the chosen backend. Use $(b,-o -) for stdout.")
 
+let link_modules =
+  Arg.(
+    value
+    & opt_all (file) []
+    & info ["use"; "u"] ~docv:"FILE"
+      ~doc:
+        "Specifies an additional module to be linked to the Catala program. $(i,FILE) must be a catala file with a metadata section expressing what is exported ; for interpretation, a compiled OCaml shared module by the same basename (either .cmo or .cmxs) will be expected.")
+
 type options = {
   debug : bool;
   color : when_enum;
@@ -297,6 +305,7 @@ type options = {
   output_file : string option;
   closure_conversion : bool;
   print_only_law : bool;
+  link_modules : string list;
 }
 
 let options =
@@ -320,7 +329,8 @@ let options =
       ex_scope
       ex_variable
       output_file
-      print_only_law : options =
+      print_only_law
+      link_modules: options =
     {
       debug;
       color = (if unstyled then Never else color);
@@ -341,6 +351,7 @@ let options =
       output_file;
       closure_conversion;
       print_only_law;
+      link_modules;
     }
   in
   Term.(
@@ -364,7 +375,8 @@ let options =
     $ ex_scope
     $ ex_variable
     $ output
-    $ print_only_law)
+    $ print_only_law
+    $ link_modules)
 
 let catala_t f = Term.(const f $ file $ options)
 

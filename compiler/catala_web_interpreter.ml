@@ -32,5 +32,6 @@ let _ =
              ex_variable = None;
              output_file = None;
              print_only_law = false;
+             link_modules = [];
            }
     end)

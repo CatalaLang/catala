@@ -989,24 +989,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
-let dynload_modules () =
-  (* FIXME: WIP placeholder ; also, each file should be loaded only once *)
-  match Sys.getenv_opt "CATALA_INTF" with
-  | None | Some "" -> ()
-  | Some str ->
-    let files = String.split_on_char ',' str in
-    List.iter
-      (fun f ->
-        let mlf = Filename.remove_extension f ^ ".cmxs" in
-        Dynlink.loadfile mlf)
-      files
-
 (** {1 API} *)
 let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
-  dynload_modules ();
   match evaluate_expr p.decl_ctx e with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not

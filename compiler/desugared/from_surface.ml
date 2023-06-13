@@ -1283,7 +1283,7 @@ let process_topdef
         | None, eopt -> Some (eopt, typ)
         | Some (eopt0, ty0), eopt -> (
           let err msg =
-            Messages.raise_multispanned_error
+            Message.raise_multispanned_error
               [None, Mark.get ty0; None, Mark.get typ]
               (msg ^^ " for %a") TopdefName.format_t id
           in

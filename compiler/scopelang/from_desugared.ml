@@ -814,7 +814,7 @@ let translate_program
       (fun id -> function
         | Some e, ty -> Expr.unbox (translate_expr ctx e), ty
         | None, (_, pos) ->
-          Messages.raise_spanned_error pos "No definition found for %a"
+          Message.raise_spanned_error pos "No definition found for %a"
             TopdefName.format_t id)
       pgrm.program_topdefs
   in

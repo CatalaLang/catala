@@ -194,22 +194,17 @@ let driver source_file (options : Cli.options) : int =
     in
     let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
     let prgm =
-      (* FIXME: WIP placeholder *)
-      match Sys.getenv_opt "CATALA_INTF" with
-      | None | Some "" -> prgm
-      | Some str ->
-        let files = String.split_on_char ',' str in
-        List.fold_left
-          (fun prgm f ->
-            let lang =
-              Option.value ~default:Cli.En
-              @@ Option.bind
-                   (List.assoc_opt (Filename.extension f) extensions)
-                   (fun l -> List.assoc_opt l Cli.languages)
-            in
-            let modname = modname_of_file f in
-            Surface.Parser_driver.add_interface (FileName f) lang [modname] prgm)
-          prgm files
+      List.fold_left
+        (fun prgm f ->
+           let lang =
+             Option.value ~default:language
+             @@ Option.bind
+               (List.assoc_opt (Filename.extension f) extensions)
+               (fun l -> List.assoc_opt l Cli.languages)
+           in
+           let modname = modname_of_file f in
+           Surface.Parser_driver.add_interface (FileName f) lang [modname] prgm)
+        prgm options.link_modules
     in
     let get_output ?ext =
       File.get_out_channel ~source_file ~output_file:options.output_file ?ext
@@ -395,6 +390,9 @@ let driver source_file (options : Cli.options) : int =
 
             Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `Interpret ->
+            if options.link_modules <> [] then
+              (Message.emit_debug "Loading shared modules...";
+               List.iter Dynlink.(fun m -> loadfile (adapt_filename (Filename.remove_extension m ^ ".cmo"))) options.link_modules);
             Message.emit_debug "Starting interpretation (dcalc)...";
             let results =
               Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid

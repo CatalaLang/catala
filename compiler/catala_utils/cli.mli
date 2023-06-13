@@ -122,6 +122,7 @@ type options = {
   output_file : string option;
   closure_conversion : bool;
   print_only_law : bool;
+  link_modules : string list;
 }
 (** {2 Command-line application} *)
 
