@@ -349,12 +349,9 @@ let get_interface program =
       List.fold_left
         (fun acc -> function
           | Ast.ScopeUse _, _ -> acc
-          | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
-            e :: acc
+          | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e -> e :: acc
           | Ast.Topdef def, m ->
-            ( Ast.Topdef { def with topdef_expr = None },
-              m )
-            :: acc)
+            (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
         acc code
     | Ast.CodeBlock (_, _, false) ->
       (* Non-metadata blocks are ignored *)
@@ -373,8 +370,10 @@ let add_interface source_file language path program =
     |> get_interface
     |> qualify_interface path
   in
-  { program with Ast.program_interfaces =
-                   List.append interface program.Ast.program_interfaces
+  {
+    program with
+    Ast.program_interfaces =
+      List.append interface program.Ast.program_interfaces;
   }
 
 let parse_top_level_file

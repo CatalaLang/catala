@@ -557,9 +557,11 @@ let format_module_registration
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "[ ";
   Format.pp_print_seq
-    ~pp_sep:(fun fmt () -> Format.pp_print_char fmt ';'; Format.pp_print_cut fmt ())
+    ~pp_sep:(fun fmt () ->
+      Format.pp_print_char fmt ';';
+      Format.pp_print_cut fmt ())
     (fun fmt (id, var) ->
-       Format.fprintf fmt "@[<hov 2>%S,@ Obj.repr %a@]" id format_var var)
+      Format.fprintf fmt "@[<hov 2>%S,@ Obj.repr %a@]" id format_var var)
     fmt (String.Map.to_seq bnd);
   Format.pp_close_box fmt ();
   Format.pp_print_char fmt ' ';

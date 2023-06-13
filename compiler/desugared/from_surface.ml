@@ -1272,32 +1272,28 @@ let process_topdef
           (Array.of_list (List.map Mark.remove args))
           body
           (List.map translate_tbase tys)
-        (Mark.get def.S.topdef_name)
+          (Mark.get def.S.topdef_name)
       in
       Some (Expr.unbox e)
   in
   let program_topdefs =
-    TopdefName.Map.update id (fun def0 ->
+    TopdefName.Map.update id
+      (fun def0 ->
         match def0, expr_opt with
         | None, eopt -> Some (eopt, typ)
-        | Some (eopt0, ty0), eopt ->
+        | Some (eopt0, ty0), eopt -> (
           let err msg =
             Messages.raise_multispanned_error
-              [None, Mark.get ty0;
-               None, Mark.get typ]
-              (msg ^^ " for %a")
-              TopdefName.format_t id
+              [None, Mark.get ty0; None, Mark.get typ]
+              (msg ^^ " for %a") TopdefName.format_t id
           in
-          if not (Type.equal ty0 typ) then
-            err "Conflicting type definitions"
+          if not (Type.equal ty0 typ) then err "Conflicting type definitions"
           else
             match eopt0, eopt with
-            | None, None ->
-              err "Multiple declarations"
-            | Some _, Some _ ->
-              err "Multiple definitions"
+            | None, None -> err "Multiple declarations"
+            | Some _, Some _ -> err "Multiple definitions"
             | Some e, None -> Some (Some e, typ)
-            | None, Some e -> Some (Some e, ty0))
+            | None, Some e -> Some (Some e, ty0)))
       prgm.Ast.program_topdefs
   in
   { prgm with Ast.program_topdefs }
@@ -1456,13 +1452,13 @@ let translate_program
             List.fold_left
               (fun map (path, def) ->
                 match def with
-                | ( Surface.Ast.Topdef
-                    {topdef_name; topdef_type; _},
-                    _pos ) ->
-                  Qident.Map.add (path, Mark.remove topdef_name) (translate_type topdef_type) map
+                | Surface.Ast.Topdef { topdef_name; topdef_type; _ }, _pos ->
+                  Qident.Map.add
+                    (path, Mark.remove topdef_name)
+                    (translate_type topdef_type)
+                    map
                 | (ScopeDecl _ | StructDecl _ | EnumDecl _), _ (* as e *) ->
-                  map
-                  (* assert false (\* TODO *\) *)
+                  map (* assert false (\* TODO *\) *)
                 | ScopeUse _, _ -> assert false)
               Qident.Map.empty prgm.Surface.Ast.program_interfaces;
         };

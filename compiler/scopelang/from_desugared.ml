@@ -812,15 +812,14 @@ let translate_program
   let program_topdefs =
     TopdefName.Map.mapi
       (fun id -> function
-         | (Some e, ty) -> Expr.unbox (translate_expr ctx e), ty
-         | (None, (_, pos)) ->
-           Messages.raise_spanned_error pos
-             "No definition found for %a"
-             TopdefName.format_t id)
+        | Some e, ty -> Expr.unbox (translate_expr ctx e), ty
+        | None, (_, pos) ->
+          Messages.raise_spanned_error pos "No definition found for %a"
+            TopdefName.format_t id)
       pgrm.program_topdefs
   in
-  { Ast.
-    program_topdefs;
+  {
+    Ast.program_topdefs;
     program_scopes;
     program_ctx = { pgrm.program_ctx with ctx_scopes };
   }

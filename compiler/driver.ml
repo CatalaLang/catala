@@ -129,7 +129,8 @@ let get_variable_uid
                      scope_uid)
                second_part )))
 
-let modname_of_file f = (* Fixme: make this more robust *)
+let modname_of_file f =
+  (* Fixme: make this more robust *)
   String.capitalize_ascii Filename.(basename (remove_extension f))
 
 (** Entry function for the executable. Returns a negative number in case of
@@ -206,7 +207,7 @@ let driver source_file (options : Cli.options) : int =
                    (List.assoc_opt (Filename.extension f) extensions)
                    (fun l -> List.assoc_opt l Cli.languages)
             in
-             let modname = modname_of_file f in
+            let modname = modname_of_file f in
             Surface.Parser_driver.add_interface (FileName f) lang [modname] prgm)
           prgm files
     in
@@ -514,8 +515,7 @@ let driver source_file (options : Cli.options) : int =
                 let modname =
                   match source_file with
                   (* FIXME: WIP placeholder *)
-                  | FileName n ->
-                    Some (modname_of_file n)
+                  | FileName n -> Some (modname_of_file n)
                   | _ -> None
                 in
                 Lcalc.To_ocaml.format_program fmt ?modname prgm type_ordering

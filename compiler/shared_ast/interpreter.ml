@@ -646,8 +646,8 @@ let rec evaluate_expr :
       (* Applies the arguments one by one to the curried form *)
       List.fold_left2
         (fun fobj targ arg ->
-           (Obj.obj fobj : Obj.t -> Obj.t)
-             (val_to_runtime evaluate_expr ctx targ arg))
+          (Obj.obj fobj : Obj.t -> Obj.t)
+            (val_to_runtime evaluate_expr ctx targ arg))
         obj targs args
       |> Obj.obj
       |> fun o -> runtime_to_val evaluate_expr ctx m tret o
@@ -997,8 +997,8 @@ let dynload_modules () =
     let files = String.split_on_char ',' str in
     List.iter
       (fun f ->
-         let mlf = Filename.remove_extension f ^ ".cmxs" in
-         Dynlink.loadfile mlf)
+        let mlf = Filename.remove_extension f ^ ".cmxs" in
+        Dynlink.loadfile mlf)
       files
 
 (** {1 API} *)
