@@ -195,9 +195,9 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
               (format_typ ctx) t2),
         t2_pos );
     ]
-    "@[<v>Error during typechecking, incompatible types:@,\
-     @{<bold;blue>-->@} @[<hov>%a@]@,\
-     @{<bold;blue>-->@} @[<hov>%a@]@]" (format_typ ctx) t1 (format_typ ctx) t2
+    "@[<v>Error during typechecking, incompatible types:@]@\n\
+     @[<v>@{<bold;blue>┌─⯈@} @[<hov>%a@]@,\
+     @{<bold;blue>└─⯈@} @[<hov>%a@]@]" (format_typ ctx) t1 (format_typ ctx) t2
 
 let lit_type (lit : A.lit) : naked_typ =
   match lit with

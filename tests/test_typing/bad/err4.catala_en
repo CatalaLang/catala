@@ -32,8 +32,8 @@ $ catala ocaml
   │      ‾‾‾
 
 [ERROR] Error during typechecking, incompatible types:
-        --> Enum
-        --> Structure
+┌─⯈ Enum
+└─⯈ Structure
 
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err4.catala_en:5.25-5.38:
