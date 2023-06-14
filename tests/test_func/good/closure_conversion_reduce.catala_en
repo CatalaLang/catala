@@ -31,7 +31,12 @@ let scope S
               | ESome y_3 →
                 match f with
                 | ENone _ → ENone _
-                | ESome y_0 → if y_0 < y_3 then ESome y_0 else ESome y_3)
+                | ESome y_0 →
+                  let potential_max_1 : integer = y_0 in
+                  let potential_max_2 : integer = y_3 in
+                  if potential_max_1 < potential_max_2
+                  then ESome potential_max_1
+                  else ESome potential_max_2)
              ESome -1
              y_2)
         with

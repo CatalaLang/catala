@@ -24,15 +24,19 @@ let scope S
       eoption
         (((eoption bool), integer) → eoption integer * (eoption bool)) =
     ESome
-      (λ (env: (eoption bool)) (y: integer) →
+      let f : ((eoption bool), integer) → eoption integer =
+        λ (env: (eoption bool)) (y: integer) →
+        let x : eoption bool = env.0 in
         ESome
           match
-            (match env.0 with
+            (match x with
              | ENone _ → ENone _
-             | ESome x → if x then ESome y else ESome - y)
+             | ESome x1 → if x1 then ESome y else ESome - y)
             with
           | ENone _ → raise NoValueProvided
-          | ESome f → f, (x))
+          | ESome f → f
+      in
+      (f, (x))
   in
   return { S f = f; }
 ```

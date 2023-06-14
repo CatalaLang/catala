@@ -177,8 +177,10 @@ let rec optimize_expr :
             | _ -> assert false)
       in
       EMatch { e = arg; cases; name = n1 }
-    | EApp { f = EAbs { binder; _ }, _; args } ->
-      (* beta reduction *)
+    | EApp { f = EAbs { binder; _ }, _; args }
+      when not (Array.exists Fun.id (Bindlib.mbinder_occurs binder)) ->
+      (* beta reduction when variables not used. TODO: also optimize when
+         variable is used only once. *)
       Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when name = name1 ->

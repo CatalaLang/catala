@@ -1,0 +1,73 @@
+```catala
+declaration structure Result:
+  data r content integer depends on z content integer
+  data q content integer
+
+declaration scope SubFoo1:
+  input output x content integer
+  output y content integer depends on z content integer
+
+declaration scope SubFoo2:
+  input output x1 content integer
+  input x2 content integer
+  output y content integer depends on z content integer
+
+
+declaration scope Foo:
+  input b content boolean
+  internal r content Result
+  output z content integer
+
+scope SubFoo1:
+  definition y of z equals x + z
+
+scope SubFoo2:
+  definition y of z equals x1 + x2 + z
+
+
+scope Foo:
+  definition r equals
+    if b then
+      let f equals output of SubFoo1 with { -- x: 10 } in
+      Result { --r: f.y --q: f.x }
+    else
+      let f equals output of SubFoo2 with { -- x1: 5 -- x2: 5 } in
+      Result { --r: f.y --q: f.x1 }
+  definition z equals r.r of 1
+```
+
+This test case is tricky because it creates a situation where the type of the
+two closures in Foo.r are different even with optimizations enabled.
+TODO fix this.
+
+```catala-test-inline
+$ catala Lcalc --avoid_exceptions -O --closure_conversion
+[ERROR] As part of the compilation process, one of the step (closure conversion) modified the Catala program and re-typing after this modification failed with the error message below. This re-typing error if not your fault, but is likely to indicate that the program you are trying to compile is incompatible with the current compilation scheme provided by the Catala compiler. Try to rewrite the program to avoid the problematic pattern or contact the compiler developers for help.
+
+Error during typechecking, incompatible types:
+┌─⯈ ()
+└─⯈ (option integer)
+
+Error coming from typechecking the following expression:
+┌─⯈ tests/test_func/good/scope_call_func_struct_closure.catala_en:31.20-31.55:
+└──┐
+31 │       let f equals output of SubFoo1 with { -- x: 10 } in
+   │                    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+
+Type () coming from expression:
+┌─⯈ tests/test_func/good/scope_call_func_struct_closure.catala_en:31.20-31.55:
+└──┐
+31 │       let f equals output of SubFoo1 with { -- x: 10 } in
+   │                    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+
+Type (option integer) coming from expression:
+┌─⯈ tests/test_func/good/scope_call_func_struct_closure.catala_en:8.10-8.11:
+└─┐
+8 │   output y content integer depends on z content integer
+  │          ‾
+
+#return code 255#
+```
+
