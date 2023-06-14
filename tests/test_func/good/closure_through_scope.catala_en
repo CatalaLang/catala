@@ -48,11 +48,7 @@ let scope T (T_in: T_in): T {y: eoption integer} =
                  (eoption bool)) =
              s.f
            in
-           let code : ((eoption bool), integer) → eoption integer =
-             code_and_env.0
-           in
-           let env : (eoption bool) = code_and_env.1 in
-           code env 2)
+           code_and_env.0 code_and_env.1 2)
         with
       | ENone _ → raise NoValueProvided
       | ESome y → y
