@@ -163,8 +163,7 @@ let disambiguate_constructor
     with Not_found ->
       Message.raise_spanned_error (Mark.get enum)
         "Enum %s has not been defined before" (Mark.remove enum))
-  | _ ->
-    Message.raise_spanned_error pos "Qualified paths are not supported yet"
+  | _ -> Message.raise_spanned_error pos "Qualified paths are not supported yet"
 
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100

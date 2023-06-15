@@ -100,8 +100,7 @@ let wrap_html
 (** Performs syntax highlighting on a piece of code by using Pygments and the
     special Catala lexer. *)
 let pygmentize_code (c : string Mark.pos) (lang : C.backend_lang) : string =
-  Message.emit_debug "Pygmenting the code chunk %s"
-    (Pos.to_string (Mark.get c));
+  Message.emit_debug "Pygmenting the code chunk %s" (Pos.to_string (Mark.get c));
   let output =
     File.with_temp_file "catala_html_pygments" "in" ~contents:(Mark.remove c)
     @@ fun temp_file_in ->

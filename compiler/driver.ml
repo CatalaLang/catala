@@ -318,8 +318,7 @@ let driver source_file (options : Cli.options) : int =
             try Shared_ast.Typing.program prgm ~leave_unresolved:false
             with Message.CompilerError error_content ->
               raise
-                (Message.CompilerError
-                   (Message.to_internal_error error_content))
+                (Message.CompilerError (Message.to_internal_error error_content))
           in
           (* That's it! *)
           Message.emit_result "Typechecking successful!"
@@ -354,8 +353,7 @@ let driver source_file (options : Cli.options) : int =
             try Shared_ast.Typing.program ~leave_unresolved:false prgm
             with Message.CompilerError error_content ->
               raise
-                (Message.CompilerError
-                   (Message.to_internal_error error_content))
+                (Message.CompilerError (Message.to_internal_error error_content))
           in
           if !Cli.check_invariants_flag then (
             Message.emit_debug "Checking invariants...";
@@ -498,8 +496,8 @@ let driver source_file (options : Cli.options) : int =
                 let output_file, _ =
                   get_output_format ~ext:p.Plugin.extension ()
                 in
-                Message.emit_debug
-                  "Compiling program through backend \"%s\"..." p.Plugin.name;
+                Message.emit_debug "Compiling program through backend \"%s\"..."
+                  p.Plugin.name;
                 p.Plugin.apply ~source_file ~output_file
                   ~scope:
                     (match options.ex_scope with

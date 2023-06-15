@@ -958,8 +958,7 @@ let driver
           (List.filter (( <> ) "") (String.split_on_char ' ' catala_opts));
         0
       | _ -> Message.raise_error "Please specify a single catala file to test")
-    | _ ->
-      Message.raise_error "The command \"%s\" is unknown to clerk." command
+    | _ -> Message.raise_error "The command \"%s\" is unknown to clerk." command
   with Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
     Message.emit_content content Error;
