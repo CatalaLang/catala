@@ -41,7 +41,7 @@ let with_in_channel filename f =
   finally (fun () -> close_in oc) (fun () -> f oc)
 
 let with_formatter_of_out_channel oc f =
-  let fmt = Messages.formatter_of_out_channel oc in
+  let fmt = Message.formatter_of_out_channel oc in
   finally (fun () -> Format.pp_print_flush fmt ()) @@ fun () -> f fmt
 
 let with_formatter_of_file filename f =

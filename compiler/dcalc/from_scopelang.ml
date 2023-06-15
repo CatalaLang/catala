@@ -227,7 +227,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
           let case_e =
             try EnumConstructor.Map.find constructor e_cases
             with Not_found ->
-              Messages.raise_spanned_error (Expr.pos e)
+              Message.raise_spanned_error (Expr.pos e)
                 "The constructor %a of enum %a is missing from this pattern \
                  matching"
                 EnumConstructor.format_t constructor EnumName.format_t name
@@ -239,7 +239,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         (EnumConstructor.Map.empty, e_cases)
     in
     if not (EnumConstructor.Map.is_empty remaining_e_cases) then
-      Messages.raise_spanned_error (Expr.pos e)
+      Message.raise_spanned_error (Expr.pos e)
         "Pattern matching is incomplete for enum %a: missing cases %a"
         EnumName.format_t name
         (Format.pp_print_list
@@ -272,7 +272,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
                     | _ -> false)
                   var_ctx.scope_input_io (translate_expr ctx e) )
           | Some var_ctx, None ->
-            Messages.raise_multispanned_error
+            Message.raise_multispanned_error
               [
                 None, pos;
                 ( Some "Declaration of the missing input variable",
@@ -281,7 +281,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
               "Definition of input variable '%a' missing in this scope call"
               ScopeVar.format_t var_name
           | None, Some _ ->
-            Messages.raise_multispanned_error
+            Message.raise_multispanned_error
               [
                 None, pos;
                 ( Some "Declaration of scope '%a'",
@@ -493,12 +493,12 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         match typ with
         | TArrow (tin, (tout, _)) -> List.map Mark.remove tin, tout
         | _ ->
-          Messages.raise_spanned_error (Expr.pos e)
+          Message.raise_spanned_error (Expr.pos e)
             "Application of non-function toplevel variable")
       | _ -> ListLabels.map new_args ~f:(fun _ -> TAny), TAny
     in
 
-    (* Messages.emit_debug "new_args %d, input_typs: %d, input_typs %a"
+    (* Message.emit_debug "new_args %d, input_typs: %d, input_typs %a"
        (List.length new_args) (List.length input_typs) (Format.pp_print_list
        Print.typ_debug) (List.map (Mark.add Pos.no_pos) input_typs); *)
     let new_args =
@@ -567,7 +567,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
       in
       Expr.evar v m
     with Not_found ->
-      Messages.raise_multispanned_error
+      Message.raise_multispanned_error
         [
           Some "Incriminated variable usage:", Expr.pos e;
           ( Some "Incriminated subscope variable declaration:",

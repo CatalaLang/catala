@@ -77,7 +77,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
     (* Note: this could only happen if disambiguation was disabled. If we want
        to support it, we should still allow this case when the field has only
        one possible matching structure *)
-    Messages.raise_spanned_error (Expr.mark_pos m)
+    Message.raise_spanned_error (Expr.mark_pos m)
       "Ambiguous structure field access"
   | EDStructAccess { e; field; name_opt = Some name } ->
     let e' = translate_expr ctx e in
@@ -87,7 +87,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
           (IdentName.Map.find field ctx.decl_ctx.ctx_struct_fields)
       with Not_found ->
         (* Should not happen after disambiguation *)
-        Messages.raise_spanned_error (Expr.mark_pos m)
+        Message.raise_spanned_error (Expr.mark_pos m)
           "Field @{<yellow>\"%s\"@} does not belong to structure \
            @{<yellow>\"%a\"@}"
           field StructName.format_t name
@@ -190,7 +190,7 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
     match Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input with
     | OnlyInput when not (RuleName.Map.is_empty var_def) ->
       (* If the variable is tagged as input, then it shall not be redefined. *)
-      Messages.raise_multispanned_error
+      Message.raise_multispanned_error
         ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
         :: List.map
              (fun (rule, _) ->
@@ -243,7 +243,7 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
                Mark.remove scope_def.Desugared.Ast.scope_def_io.io_input
              with
             | NoInput ->
-              Messages.raise_multispanned_error
+              Message.raise_multispanned_error
                 (( Some "Incriminated subscope:",
                    Mark.get (SubScopeName.get_info sscope) )
                 :: ( Some "Incriminated variable:",
@@ -258,7 +258,7 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
             | OnlyInput when RuleName.Map.is_empty def && not is_cond ->
               (* If the subscope variable is tagged as input, then it shall be
                  defined. *)
-              Messages.raise_multispanned_error
+              Message.raise_multispanned_error
                 [
                   ( Some "Incriminated subscope:",
                     Mark.get (SubScopeName.get_info sscope) );

@@ -55,7 +55,7 @@ let parse_expiration_date (date_format : date_format) (expiration_date : string)
            Unix.tm_isdst = false;
          })
   with _ ->
-    Messages.raise_error "Error while parsing expiration date argument (%s)"
+    Message.raise_error "Error while parsing expiration date argument (%s)"
       expiration_date
 
 (** Prints an [Unix.tm] under the ISO formatting [YYYY-MM-DD] *)

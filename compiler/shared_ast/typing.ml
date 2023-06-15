@@ -64,7 +64,7 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
       (* No polymorphism in Catala: type inference should return full types
          without wildcards, and this function is used to recover the types after
          typing. *)
-      Messages.raise_spanned_error pos
+      Message.raise_spanned_error pos
         "Internal error: typing at this point could not be resolved"
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
@@ -138,7 +138,7 @@ let rec unify
     (t1 : unionfind_typ)
     (t2 : unionfind_typ) : unit =
   let unify = unify ctx in
-  (* Messages.emit_debug "Unifying %a and %a" (format_typ ctx) t1 (format_typ
+  (* Message.emit_debug "Unifying %a and %a" (format_typ ctx) t1 (format_typ
      ctx) t2; *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
@@ -177,7 +177,7 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
   let t2_repr = UnionFind.get (UnionFind.find t2) in
   let t1_pos = Mark.get t1_repr in
   let t2_pos = Mark.get t2_repr in
-  Messages.raise_multispanned_error_full
+  Message.raise_multispanned_error_full
     [
       ( Some
           (fun ppf ->
@@ -348,8 +348,8 @@ and typecheck_expr_top_down :
     (a, m) A.gexpr ->
     (a, unionfind_typ A.custom) A.boxed_gexpr =
  fun ~leave_unresolved ctx env tau e ->
-  (* Messages.emit_debug "Propagating type %a for naked_expr %a" (format_typ
-     ctx) tau (Expr.format ctx) e; *)
+  (* Message.emit_debug "Propagating type %a for naked_expr %a" (format_typ ctx)
+     tau (Expr.format ctx) e; *)
   let pos_e = Expr.pos e in
   let () =
     (* If there already is a type annotation on the given expr, ensure it
@@ -381,7 +381,7 @@ and typecheck_expr_top_down :
       match ty_opt with
       | Some ty -> ty
       | None ->
-        Messages.raise_spanned_error pos_e "Reference to %a not found"
+        Message.raise_spanned_error pos_e "Reference to %a not found"
           (Print.expr ()) e
     in
     Expr.elocation loc (mark_with_tau_and_unify (ast_to_typ ty))
@@ -416,7 +416,7 @@ and typecheck_expr_top_down :
             (A.StructField.Map.bindings extra_fields)
       in
       if errs <> [] then
-        Messages.raise_multispanned_error errs
+        Message.raise_multispanned_error errs
           "Mismatching field definitions for structure %a" A.StructName.format_t
           name
     in
@@ -445,7 +445,7 @@ and typecheck_expr_top_down :
         Printf.ksprintf failwith
           "Disambiguation failed before reaching field %s" field
       | _ ->
-        Messages.raise_spanned_error (Expr.pos e)
+        Message.raise_spanned_error (Expr.pos e)
           "This is not a structure, cannot access field %s (%a)" field
           (format_typ ctx) (ty e_struct')
     in
@@ -453,14 +453,14 @@ and typecheck_expr_top_down :
       let str =
         try A.StructName.Map.find name env.structs
         with Not_found ->
-          Messages.raise_spanned_error pos_e "No structure %a found"
+          Message.raise_spanned_error pos_e "No structure %a found"
             A.StructName.format_t name
       in
       let field =
         let candidate_structs =
           try A.IdentName.Map.find field ctx.ctx_struct_fields
           with Not_found ->
-            Messages.raise_spanned_error
+            Message.raise_spanned_error
               (Expr.mark_pos context_mark)
               "Field @{<yellow>\"%s\"@} does not belong to structure \
                @{<yellow>\"%a\"@} (no structure defines it)"
@@ -468,7 +468,7 @@ and typecheck_expr_top_down :
         in
         try A.StructName.Map.find name candidate_structs
         with Not_found ->
-          Messages.raise_spanned_error
+          Message.raise_spanned_error
             (Expr.mark_pos context_mark)
             "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
              @{<yellow>\"%a\"@},@ but to %a@]"
@@ -489,12 +489,12 @@ and typecheck_expr_top_down :
       let str =
         try A.StructName.Map.find name env.structs
         with Not_found ->
-          Messages.raise_spanned_error pos_e "No structure %a found"
+          Message.raise_spanned_error pos_e "No structure %a found"
             A.StructName.format_t name
       in
       try A.StructField.Map.find field str
       with Not_found ->
-        Messages.raise_multispanned_error
+        Message.raise_multispanned_error
           [
             None, pos_e;
             ( Some "Structure %a declared here",
@@ -606,7 +606,7 @@ and typecheck_expr_top_down :
       match Env.get env v with
       | Some t -> t
       | None ->
-        Messages.raise_spanned_error pos_e
+        Message.raise_spanned_error pos_e
           "Variable %s not found in the current context" (Bindlib.name_of v)
     in
     Expr.evar (Var.translate v) (mark_with_tau_and_unify tau')
@@ -620,7 +620,7 @@ and typecheck_expr_top_down :
     Expr.etuple es' mark
   | A.ETupleAccess { e = e1; index; size } ->
     if index >= size then
-      Messages.raise_spanned_error (Expr.pos e)
+      Message.raise_spanned_error (Expr.pos e)
         "Tuple access out of bounds (%d/%d)" index size;
     let tuple_ty =
       TTuple
@@ -635,7 +635,7 @@ and typecheck_expr_top_down :
     Expr.etupleaccess e1' index size context_mark
   | A.EAbs { binder; tys = t_args } ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
-      Messages.raise_spanned_error (Expr.pos e)
+      Message.raise_spanned_error (Expr.pos e)
         "function has %d variables but was supplied %d types"
         (Bindlib.mbinder_arity binder)
         (List.length t_args)

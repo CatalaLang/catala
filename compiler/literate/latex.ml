@@ -306,5 +306,5 @@ let ast_to_latex
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
     (law_structure_to_latex language print_only_law)
     fmt program.program_items;
-  Messages.emit_debug "Lines of Catala inside literate source code: %d"
+  Message.emit_debug "Lines of Catala inside literate source code: %d"
     !lines_of_code

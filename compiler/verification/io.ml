@@ -144,9 +144,9 @@ module MakeBackendIO (B : Backend) = struct
       (vc : Conditions.verification_condition * vc_encoding_result) : bool =
     let vc, z3_vc = vc in
 
-    Messages.emit_debug "@[<v>For this variable:@,%a@,@]" Pos.format_loc_text
+    Message.emit_debug "@[<v>For this variable:@,%a@,@]" Pos.format_loc_text
       (Expr.pos vc.Conditions.vc_guard);
-    Messages.emit_debug
+    Message.emit_debug
       "@[<v>This verification condition was generated for @{<yellow>%s@}:@,\
        %a@,\
        with assertions:@,\
@@ -159,16 +159,16 @@ module MakeBackendIO (B : Backend) = struct
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (
-      Messages.emit_debug "@[<v>The translation to Z3 is the following:@,%s@]"
+      Message.emit_debug "@[<v>The translation to Z3 is the following:@,%s@]"
         (B.print_encoding encoding);
       match B.solve_vc_encoding backend_ctx encoding with
       | ProvenTrue -> true
       | ProvenFalse model ->
-        Messages.emit_warning "%s" (print_negative_result vc backend_ctx model);
+        Message.emit_warning "%s" (print_negative_result vc backend_ctx model);
         false
       | Unknown -> failwith "The solver failed at proving or disproving the VC")
     | Fail msg ->
-      Messages.emit_warning
+      Message.emit_warning
         "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s@]"
         ScopeName.format_t vc.vc_scope
         (Bindlib.name_of (Mark.remove vc.vc_variable))

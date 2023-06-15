@@ -50,7 +50,7 @@ let check_article_expiration
           Some new_version
         else None
       in
-      Messages.emit_warning
+      Message.emit_warning
         "%s %s has expired! Its expiration date is %s according to \
          LégiFrance.%s"
         (Mark.remove law_heading.Surface.Ast.law_heading_name)
@@ -113,7 +113,7 @@ let compare_to_versions
     (law_article_text : law_article_text)
     (access_token : Api.access_token) : unit Lwt.t =
   let print_diff msg diff =
-    Messages.emit_warning "@[<v>%s@,%a@]" msg
+    Message.emit_warning "@[<v>%s@,%a@]" msg
       (Format.pp_print_list (fun ppf chunk ->
            match chunk with
            | Diff.Equal words ->
@@ -171,12 +171,12 @@ let include_legislative_text
   let* article = Api.retrieve_article access_token id in
   let text_to_return = Api.get_article_text article in
   let to_insert = text_to_return in
-  Messages.emit_debug "Position: %s" (Pos.to_string_short pos);
+  Message.emit_debug "Position: %s" (Pos.to_string_short pos);
   let file = Pos.get_file pos in
   let include_line = Pos.get_start_line pos in
   let ic = open_in file in
   let new_file = file ^ ".new" in
-  Messages.emit_warning
+  Message.emit_warning
     "LégiFrance inclusion detected, writing new contents to %s" new_file;
   let oc = open_out new_file in
   (* Pos.t lines start at 1 *)
@@ -256,7 +256,7 @@ let driver_lwt
   try
     if debug then Cli.debug_flag := true;
     if not (expiration || diff) then
-      Messages.raise_error
+      Message.raise_error
         "You have to check at least something, see the list of options with \
          --help";
     let* access_token = Api.get_token client_id client_secret in
@@ -281,9 +281,9 @@ let driver_lwt
     in
     prerr_endline "0";
     Lwt.return 0
-  with Messages.CompilerError content ->
+  with Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Messages.emit_content content Error;
+    Message.emit_content content Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     Lwt.return (-1)
 
@@ -291,9 +291,9 @@ let driver file debug diff expiration custom_date client_id client_secret =
   try
     Lwt_main.run
       (driver_lwt file debug diff expiration custom_date client_id client_secret)
-  with Messages.CompilerError content ->
+  with Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Messages.emit_content content Error;
+    Message.emit_content content Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
 
