@@ -20,6 +20,8 @@
 open Catala_utils
 open Definitions
 
+exception CatalaException of except
+
 val evaluate_operator :
   ((((_, _) dcalc_lcalc as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator ->

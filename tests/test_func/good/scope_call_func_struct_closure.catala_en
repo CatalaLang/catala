@@ -14,7 +14,7 @@ declaration scope SubFoo2:
 
 
 declaration scope Foo:
-  input b content boolean
+  context b content boolean
   internal r content Result
   output z content integer
 
@@ -26,12 +26,13 @@ scope SubFoo2:
 
 
 scope Foo:
+  definition b equals true
   definition r equals
     if b then
       let f equals output of SubFoo1 with { -- x: 10 } in
       Result { --r: f.y --q: f.x }
     else
-      let f equals output of SubFoo2 with { -- x1: 5 -- x2: 5 } in
+      let f equals output of SubFoo2 with { -- x1: 10 -- x2: 10 } in
       Result { --r: f.y --q: f.x1 }
   definition z equals r.r of 1
 ```
@@ -41,33 +42,137 @@ two closures in Foo.r are different even with optimizations enabled.
 TODO fix this.
 
 ```catala-test-inline
-$ catala Lcalc --avoid_exceptions -O --closure_conversion
-[ERROR] As part of the compilation process, one of the step (closure conversion) modified the Catala program and re-typing after this modification failed with the error message below. This re-typing error if not your fault, but is likely to indicate that the program you are trying to compile is incompatible with the current compilation scheme provided by the Catala compiler. Try to rewrite the program to avoid the problematic pattern or contact the compiler developers for help.
-
-Error during typechecking, incompatible types:
-┌─⯈ ()
-└─⯈ (option integer)
-
-Error coming from typechecking the following expression:
-┌─⯈ tests/test_func/good/scope_call_func_struct_closure.catala_en:31.20-31.55:
-└──┐
-31 │       let f equals output of SubFoo1 with { -- x: 10 } in
-   │                    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-
-
-Type () coming from expression:
-┌─⯈ tests/test_func/good/scope_call_func_struct_closure.catala_en:31.20-31.55:
-└──┐
-31 │       let f equals output of SubFoo1 with { -- x: 10 } in
-   │                    ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-
-
-Type (option integer) coming from expression:
-┌─⯈ tests/test_func/good/scope_call_func_struct_closure.catala_en:8.10-8.11:
-└─┐
-8 │   output y content integer depends on z content integer
-  │          ‾
-
-#return code 255#
+$ catala Lcalc --avoid_exceptions -O --closure_conversion -s Foo
+let scope Foo
+  (Foo_in: Foo_in {b_in: eoption bool})
+  : Foo {z: eoption integer}
+  =
+  let get b : eoption bool = Foo_in.b_in in
+  let set b : eoption bool =
+    ESome
+      match
+        (handle_default_opt
+           [ b ]
+           (λ (_: unit) → ESome true)
+           (λ (_: unit) → ESome true))
+        with
+      | ENone _ → raise NoValueProvided
+      | ESome b → b
+  in
+  let set r :
+      eoption
+        Result {
+          r:
+            eoption
+              ((closure_env, integer) → eoption integer * closure_env);
+          q: eoption integer
+        } =
+    ESome
+      match
+        (match b with
+         | ENone _ → ENone _
+         | ESome b →
+           if b
+           then
+             match
+               (match (SubFoo1 { SubFoo1_in x_in = ESome 10; }).x with
+                | ENone _ → ENone _
+                | ESome result_0 →
+                  ESome
+                    { SubFoo1
+                      x = ESome result_0;
+                      y =
+                        ESome
+                          (λ (env: closure_env) (param0: integer) →
+                            match
+                              (SubFoo1 { SubFoo1_in x_in = ESome 10; }).y
+                              with
+                            | ENone _ → ENone _
+                            | ESome result →
+                              let code_and_env :
+                                  ((closure_env, integer) → eoption integer *
+                                    closure_env) =
+                                result
+                              in
+                              code_and_env.0 code_and_env.1 param0,
+                            to_closure_env ());
+                    })
+               with
+             | ENone _ → ENone _
+             | ESome f →
+               match f.x with
+               | ENone _ → ENone _
+               | ESome f_1 →
+                 match f.y with
+                 | ENone _ → ENone _
+                 | ESome f_0 → ESome { Result r = ESome f_0; q = ESome f_1; }
+           else
+             match
+               (match
+                  (SubFoo2 { SubFoo2_in x1_in = ESome 10; x2_in = ESome 10; }).
+                    x1
+                  with
+                | ENone _ → ENone _
+                | ESome result_0 →
+                  ESome
+                    { SubFoo2
+                      x1 = ESome result_0;
+                      y =
+                        ESome
+                          (λ (env: closure_env) (param0: integer) →
+                            match
+                              (SubFoo2
+                                 { SubFoo2_in
+                                   x1_in = ESome 10;
+                                   x2_in = ESome 10;
+                                 }).
+                                y
+                              with
+                            | ENone _ → ENone _
+                            | ESome result →
+                              let code_and_env :
+                                  ((closure_env, integer) → eoption integer *
+                                    closure_env) =
+                                result
+                              in
+                              code_and_env.0 code_and_env.1 param0,
+                            to_closure_env ());
+                    })
+               with
+             | ENone _ → ENone _
+             | ESome f →
+               match f.x1 with
+               | ENone _ → ENone _
+               | ESome f_1 →
+                 match f.y with
+                 | ENone _ → ENone _
+                 | ESome f_0 → ESome { Result r = ESome f_0; q = ESome f_1; })
+        with
+      | ENone _ → raise NoValueProvided
+      | ESome r → r
+  in
+  let set z : eoption integer =
+    ESome
+      match
+        (match (match r with
+                | ENone _ → ENone _
+                | ESome r → r.r) with
+         | ENone _ → ENone _
+         | ESome r →
+           let code_and_env :
+               ((closure_env, integer) → eoption integer * closure_env) =
+             r
+           in
+           code_and_env.0 code_and_env.1 1)
+        with
+      | ENone _ → raise NoValueProvided
+      | ESome z → z
+  in
+  return { Foo z = z; }
 ```
 
+```catala-test-inline
+$ catala Interpret_lcalc -s Foo --avoid_exceptions -O --closure_conversion
+[RESULT] Computation successful! Results:
+[RESULT] z = ESome 11
+```

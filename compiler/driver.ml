@@ -377,7 +377,12 @@ let driver source_file (options : Cli.options) : int =
           | `Interpret ->
             Messages.emit_debug "Starting interpretation (dcalc)...";
             let results =
-              Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
+              try Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
+              with Shared_ast.Interpreter.CatalaException exn ->
+                Messages.raise_error
+                  "During interpretation, the error %a has been raised but not \
+                   caught!"
+                  Shared_ast.Print.except exn
             in
             let results =
               List.sort
@@ -485,7 +490,13 @@ let driver source_file (options : Cli.options) : int =
             | `Interpret_Lcalc ->
               Messages.emit_debug "Starting interpretation (lcalc)...";
               let results =
-                Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
+                try
+                  Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
+                with Shared_ast.Interpreter.CatalaException exn ->
+                  Messages.raise_error
+                    "During interpretation, the error %a has been raised but \
+                     not caught!"
+                    Shared_ast.Print.except exn
               in
               let results =
                 List.sort

@@ -158,28 +158,38 @@ let rec transform_closures_expr :
     (* x1, ..., xn *)
     let code_var = Var.make ctx.name_context in
     (* code *)
-    let inner_c_var = Var.make "env" in
+    let closure_env_arg_var = Var.make "env" in
+    let closure_env_var = Var.make "env" in
     let any_ty = TAny, binder_pos in
+    (* let env = from_closure_env env in let arg0 = env.0 in ... *)
     let new_closure_body =
-      Expr.make_multiple_let_in
-        (Array.of_list extra_vars_list)
-        (List.map (fun _ -> any_ty) extra_vars_list)
-        (List.mapi
-           (fun i _ ->
-             Expr.etupleaccess
-               (Expr.evar inner_c_var binder_mark)
-               i
-               (List.length extra_vars_list)
-               binder_mark)
-           extra_vars_list)
-        new_body
-        (Expr.mark_pos binder_mark)
+      Expr.make_let_in closure_env_var any_ty
+        (Expr.eapp
+           (Expr.eop Operator.FromClosureEnv
+              [TClosureEnv, binder_pos]
+              binder_mark)
+           [Expr.evar closure_env_arg_var binder_mark]
+           binder_mark)
+        (Expr.make_multiple_let_in
+           (Array.of_list extra_vars_list)
+           (List.map (fun _ -> any_ty) extra_vars_list)
+           (List.mapi
+              (fun i _ ->
+                Expr.etupleaccess
+                  (Expr.evar closure_env_var binder_mark)
+                  i
+                  (List.length extra_vars_list)
+                  binder_mark)
+              extra_vars_list)
+           new_body binder_pos)
+        binder_pos
     in
+    (* fun env arg0 ... -> new_closure_body *)
     let new_closure =
       Expr.make_abs
-        (Array.concat [Array.make 1 inner_c_var; vars])
+        (Array.concat [Array.make 1 closure_env_arg_var; vars])
         new_closure_body
-        ((TAny, binder_pos) :: tys)
+        ((TClosureEnv, binder_pos) :: tys)
         (Expr.pos e)
     in
     ( extra_vars,
@@ -189,11 +199,19 @@ let rec transform_closures_expr :
         (Expr.etuple
            ((Bindlib.box_var code_var, binder_mark)
            :: [
-                Expr.etuple
-                  (List.map
-                     (fun extra_var -> Bindlib.box_var extra_var, binder_mark)
-                     extra_vars_list)
-                  m;
+                Expr.eapp
+                  (Expr.eop Operator.ToClosureEnv
+                     [TAny, Expr.pos e]
+                     (Mark.get e))
+                  [
+                    Expr.etuple
+                      (List.map
+                         (fun extra_var ->
+                           Bindlib.box_var extra_var, binder_mark)
+                         extra_vars_list)
+                      m;
+                  ]
+                  (Mark.get e);
               ])
            m)
         (Expr.pos e) )
