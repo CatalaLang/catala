@@ -89,6 +89,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Fold -> Format.pp_print_string fmt "list_fold_left"
   | HandleDefault -> Format.pp_print_string fmt "handle_default"
   | HandleDefaultOpt -> Format.pp_print_string fmt "handle_default_opt"
+  | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
     : unit =

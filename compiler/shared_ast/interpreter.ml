@@ -169,6 +169,12 @@ let rec evaluate_operator
   | Log (entry, infos), [e'] ->
     print_log entry infos pos e';
     Mark.remove e'
+  | (FromClosureEnv | ToClosureEnv), [e'] ->
+    (* [FromClosureEnv] and [ToClosureEnv] are just there to bypass the need for
+       existential types when typing code after closure conversion. There are
+       effectively no-ops. *)
+    Mark.remove e'
+  | (ToClosureEnv | FromClosureEnv), _ -> err ()
   | Eq, [(e1, _); (e2, _)] ->
     ELit (LBool (handle_eq (evaluate_operator evaluate_expr) m e1 e2))
   | Map, [f; (EArray es, _)] ->

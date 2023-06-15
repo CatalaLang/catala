@@ -278,6 +278,8 @@ let operator_to_string : type a. a Op.t -> string =
   | Fold -> "fold"
   | HandleDefault -> "handle_default"
   | HandleDefaultOpt -> "handle_default_opt"
+  | ToClosureEnv -> "to_closure_env"
+  | FromClosureEnv -> "from_closure_env"
 
 let operator_to_shorter_string : type a. a Op.t -> string =
   let open Op in
@@ -320,6 +322,8 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Fold -> "fold"
   | HandleDefault -> "handle_default"
   | HandleDefaultOpt -> "handle_default_opt"
+  | ToClosureEnv -> "to_closure_env"
+  | FromClosureEnv -> "from_closure_env"
 
 let operator : type a. ?debug:bool -> Format.formatter -> a operator -> unit =
  fun ?(debug = true) fmt op ->
@@ -399,7 +403,7 @@ module Precedence = struct
       | Div_dur_dur ->
         Op Div
       | HandleDefault | HandleDefaultOpt | Map | Concat | Filter | Reduce | Fold
-        ->
+      | ToClosureEnv | FromClosureEnv ->
         App)
     | EApp _ -> App
     | EOp _ -> Contained
