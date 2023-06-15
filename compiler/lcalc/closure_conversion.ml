@@ -361,7 +361,7 @@ let closure_conversion (p : 'm program) : 'm program Bindlib.box =
       | TArrow _ -> true
       | TAny -> true
       | TOption t' -> type_contains_arrow t'
-      | TLit _ -> false
+      | TClosureEnv | TLit _ -> false
       | TArray ts -> type_contains_arrow ts
       | TTuple ts -> List.exists type_contains_arrow ts
       | TEnum e ->

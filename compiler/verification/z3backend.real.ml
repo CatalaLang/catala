@@ -204,6 +204,8 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     (* For now, only the length of arrays is modeled *)
     Format.asprintf "(length = %s)" (Expr.to_string e)
   | TAny -> failwith "[Z3 model]: Pretty-printing of Any not supported"
+  | TClosureEnv ->
+    failwith "[Z3 model]: Pretty-printing of closure_env not supported"
 
 (** [print_model] pretty prints a Z3 model, used to exhibit counter examples
     where verification conditions are not satisfied. The context [ctx] is useful
@@ -277,6 +279,7 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
        Ultimately, the type of an array should also contain its elements *)
     ctx, Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TAny -> failwith "[Z3 encoding] TAny type not supported"
+  | TClosureEnv -> failwith "[Z3 encoding] TClosureEnv type not supported"
 
 (** [find_or_create_enum] attempts to retrieve the Z3 sort corresponding to the
     Catala enumeration [enum]. If no such sort exists yet, it constructs it by

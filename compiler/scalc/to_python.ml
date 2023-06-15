@@ -184,6 +184,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
       t1 format_typ_with_parens t2
   | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "Any"
+  | TClosureEnv -> failwith "unimplemented!"
 
 let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
   s
