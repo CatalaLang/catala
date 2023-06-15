@@ -59,10 +59,9 @@ let find name = Hashtbl.find backend_plugins (String.lowercase_ascii name)
 let load_file f =
   try
     Dynlink.loadfile f;
-    Messages.emit_debug "Plugin %S loaded" f
+    Message.emit_debug "Plugin %S loaded" f
   with e ->
-    Messages.emit_warning "Could not load plugin %S: %s" f
-      (Printexc.to_string e)
+    Message.emit_warning "Could not load plugin %S: %s" f (Printexc.to_string e)
 
 let rec load_dir d =
   let dynlink_exts =

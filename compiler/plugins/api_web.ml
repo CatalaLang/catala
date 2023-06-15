@@ -249,7 +249,7 @@ module To_jsoo = struct
              (fun fmt (cname, typ) ->
                match Mark.remove typ with
                | TTuple _ ->
-                 Messages.raise_spanned_error (Mark.get typ)
+                 Message.raise_spanned_error (Mark.get typ)
                    "Tuples aren't supported yet in the conversion to JS"
                | _ ->
                  Format.fprintf fmt
@@ -274,7 +274,7 @@ module To_jsoo = struct
              (fun fmt (cname, typ) ->
                match Mark.remove typ with
                | TTuple _ ->
-                 Messages.raise_spanned_error (Mark.get typ)
+                 Message.raise_spanned_error (Mark.get typ)
                    "Tuples aren't yet supported in the conversion to JS..."
                | TLit TUnit ->
                  Format.fprintf fmt "@[<hv 2>| \"%a\" ->@ %a.%a ()@]"
@@ -438,7 +438,7 @@ let apply
   ignore scope;
   File.with_formatter_of_opt_file output_file (fun fmt ->
       Cli.trace_flag := true;
-      Messages.emit_debug "Writing OCaml code to %s..."
+      Message.emit_debug "Writing OCaml code to %s..."
         (Option.value ~default:"stdout" output_file);
       To_ocaml.format_program fmt prgm type_ordering);
 
@@ -465,7 +465,7 @@ let apply
       filename_without_ext
   in
   with_formatter (fun fmt ->
-      Messages.emit_debug "Writing JSOO API code to %s..."
+      Message.emit_debug "Writing JSOO API code to %s..."
         (Option.value ~default:"stdout" jsoo_output_file);
       To_jsoo.format_program fmt module_name prgm type_ordering)
 

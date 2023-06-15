@@ -223,13 +223,13 @@ let apply
   match scope with
   | Some s ->
     File.with_formatter_of_opt_file output_file (fun fmt ->
-        Messages.emit_debug
+        Message.emit_debug
           "Writing JSON schema corresponding to the scope '%a' to the file \
            %s..."
           ScopeName.format_t s
           (Option.value ~default:"stdout" output_file);
         To_json.format_program fmt s prgm)
   | None ->
-    Messages.raise_error "A scope must be specified for the plugin: %s" name
+    Message.raise_error "A scope must be specified for the plugin: %s" name
 
 let () = Driver.Plugin.register_lcalc ~name ~extension apply

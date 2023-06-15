@@ -57,7 +57,7 @@ let rec trans_typ_keep (tau : typ) : typ =
       | TStruct s -> TStruct s
       | TEnum en -> TEnum en
       | TOption _ | TClosureEnv ->
-        Messages.raise_internal_error
+        Message.raise_internal_error
           "The types option and closure_env should not appear before the dcalc \
            -> lcalc translation step."
       | TAny -> TAny
@@ -101,7 +101,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
   let m = Mark.get e in
   let mark = m in
   let pos = Expr.pos e in
-  (* Messages.emit_debug "%a" (Print.expr ~debug:true ()) e; *)
+  (* Message.emit_debug "%a" (Print.expr ~debug:true ()) e; *)
   let context_or_same_var (ctx : typed ctx) (e : typed D.expr) : string =
     match Mark.remove e with
     | EInj { e = EVar v, _; _ } | EVar v -> Bindlib.name_of v
@@ -218,7 +218,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     in
     Ast.OptionMonad.bind_var (trans ctx' body) var' (trans ctx arg) ~mark
   | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
-    Messages.raise_internal_error
+    Message.raise_internal_error
       "Parameter trace is incompatible with parameter avoid_exceptions: some \
        tracing logs were added while they are not supported."
   (* Encoding of Fold, Filter, Map and Reduce is non trivial because we don't
@@ -354,7 +354,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
   | EApp { f = EOp { op = Op.Fold as op; _ }, _; _ }
   | EApp { f = EOp { op = Op.Reduce as op; _ }, _; _ } ->
     (* Cannot happend: list operator must be fully determined *)
-    Messages.raise_internal_error
+    Message.raise_internal_error
       "List operator %a was not fully determined: some partial evaluation was \
        found while compiling."
       (Print.operator ~debug:false)
@@ -460,12 +460,12 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
         Ast.OptionMonad.return ~mark (Expr.eassert (Expr.evar e mark) mark))
       (trans ctx e) ~mark
   | EApp _ ->
-    Messages.raise_spanned_error (Expr.pos e)
+    Message.raise_spanned_error (Expr.pos e)
       "Internal Error: found an EApp that does not satisfy the invariants when \
        translating Dcalc to Lcalc without exceptions."
   (* invalid invariant *)
   | EOp _ ->
-    Messages.raise_spanned_error (Expr.pos e)
+    Message.raise_spanned_error (Expr.pos e)
       "Internal Error: found an EOp that does not satisfy the invariants when \
        translating Dcalc to Lcalc without exceptions."
   | ELocation _ -> .
@@ -592,7 +592,7 @@ let rec trans_scope_let (ctx : typed ctx) (s : typed D.expr scope_let) =
         })
       scope_let_expr scope_let_next
   | { scope_let_kind = SubScopeVarDefinition; scope_let_pos = pos; _ } ->
-    Messages.raise_spanned_error pos
+    Message.raise_spanned_error pos
       "Internal Error: found an SubScopeVarDefinition that does not satisfy \
        the invariants when translating Dcalc to Lcalc without exceptions."
   | {

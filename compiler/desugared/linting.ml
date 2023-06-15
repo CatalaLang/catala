@@ -33,7 +33,7 @@ let detect_empty_definitions (p : program) : unit =
             | NoInput -> true
             | _ -> false
           then
-            Messages.emit_spanned_warning
+            Message.emit_spanned_warning
               (ScopeDef.get_position scope_def_key)
               "In scope @{<yellow>\"%a\"@}, the variable @{<yellow>\"%a\"@} is \
                declared but never defined; did you forget something?"
@@ -88,7 +88,7 @@ let detect_identical_rules (p : program) : unit =
           RuleExpressionsMap.iter
             (fun _ pos ->
               if List.length pos > 1 then
-                Messages.emit_multispanned_warning pos
+                Message.emit_multispanned_warning pos
                   "These %s have identical justifications and consequences; is \
                    it a mistake?"
                   (if scope_def.scope_def_is_condition then "rules"
@@ -142,7 +142,7 @@ let detect_unused_struct_fields (p : program) : unit =
                && not (StructField.Set.mem field scope_out_structs_fields))
              fields
       then
-        Messages.emit_spanned_warning
+        Message.emit_spanned_warning
           (snd (StructName.get_info s_name))
           "The structure @{<yellow>\"%a\"@} is never used; maybe it's \
            unnecessary?"
@@ -154,7 +154,7 @@ let detect_unused_struct_fields (p : program) : unit =
               (not (StructField.Set.mem field struct_fields_used))
               && not (StructField.Set.mem field scope_out_structs_fields)
             then
-              Messages.emit_spanned_warning
+              Message.emit_spanned_warning
                 (snd (StructField.get_info field))
                 "The field @{<yellow>\"%a\"@} of struct @{<yellow>\"%a\"@} is \
                  never used; maybe it's unnecessary?"
@@ -195,7 +195,7 @@ let detect_unused_enum_constructors (p : program) : unit =
             not (EnumConstructor.Set.mem cons enum_constructors_used))
           constructors
       then
-        Messages.emit_spanned_warning
+        Message.emit_spanned_warning
           (snd (EnumName.get_info e_name))
           "The enumeration @{<yellow>\"%a\"@} is never used; maybe it's \
            unnecessary?"
@@ -205,7 +205,7 @@ let detect_unused_enum_constructors (p : program) : unit =
           (fun constructor _ ->
             if not (EnumConstructor.Set.mem constructor enum_constructors_used)
             then
-              Messages.emit_spanned_warning
+              Message.emit_spanned_warning
                 (snd (EnumConstructor.get_info constructor))
                 "The constructor @{<yellow>\"%a\"@} of enumeration \
                  @{<yellow>\"%a\"@} is never used; maybe it's unnecessary?"
@@ -251,7 +251,7 @@ let detect_dead_code (p : program) : unit =
       ScopeVar.Map.iter
         (fun var states ->
           let emit_unused_warning () =
-            Messages.emit_spanned_warning
+            Message.emit_spanned_warning
               (Mark.get (ScopeVar.get_info var))
               "This variable is dead code; it does not contribute to computing \
                any of scope @{<yellow>\"%s\"@} outputs. Did you forget \

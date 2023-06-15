@@ -31,11 +31,11 @@ of error messages inspired by the Rust compiler, where error messages all
 correspond to the same exception. This exception carries messages and positions
 that are displayed in the end in a nicely-formatted error message.
 
-Hence, all error thrown by the compiler should use {!module:Catala_utils.Messages}
+Hence, all error thrown by the compiler should use {!module:Catala_utils.Message}
 
 Related modules:
 
-{!modules: Catala_utils.Messages}
+{!modules: Catala_utils.Message}
 
 {1 Other utilies}
 

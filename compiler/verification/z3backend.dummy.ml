@@ -18,7 +18,7 @@
     without the expected backend. All functions print an error message and exit *)
 
 let dummy () =
-  Catala_utils.Messages.raise_error
+  Catala_utils.Message.raise_error
     "This instance of Catala was compiled without Z3 support."
 
 module Io = struct
