@@ -46,6 +46,7 @@ and naked_typ =
   | TOption of unionfind_typ
   | TArray of unionfind_typ
   | TAny of Any.t
+  | TClosureEnv
 
 let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
   let typ_to_ast = typ_to_ast ~leave_unresolved in
@@ -66,6 +67,7 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
          typing. *)
       Messages.raise_spanned_error pos
         "Internal error: typing at this point could not be resolved"
+  | TClosureEnv -> TClosureEnv, pos
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
@@ -78,6 +80,7 @@ let rec ast_to_typ (ty : A.typ) : unionfind_typ =
     | A.TOption t -> TOption (ast_to_typ t)
     | A.TArray t -> TArray (ast_to_typ t)
     | A.TAny -> TAny (Any.fresh ())
+    | A.TClosureEnv -> TClosureEnv
   in
   UnionFind.make (Mark.copy ty ty')
 
@@ -154,6 +157,7 @@ let rec format_typ
   | TAny v ->
     if !Cli.debug_flag then Format.fprintf fmt "<a%d>" (Any.hash v)
     else Format.pp_print_string fmt "<any>"
+  | TClosureEnv -> Format.fprintf fmt "closure_env"
 
 let rec colors =
   let open Ocolor_types in
@@ -192,9 +196,10 @@ let rec unify
       if not (A.EnumName.equal e1 e2) then raise_type_error ()
     | TOption t1, TOption t2 -> unify e t1 t2
     | TArray t1', TArray t2' -> unify e t1' t2'
+    | TClosureEnv, TClosureEnv -> ()
     | TAny _, _ | _, TAny _ -> ()
     | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
-        | TArray _ ),
+        | TArray _ | TClosureEnv ),
         _ ) ->
       raise_type_error ()
   in

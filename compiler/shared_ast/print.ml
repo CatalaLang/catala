@@ -162,6 +162,7 @@ let rec typ
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" (typ ~colors)
       t1
   | TAny -> base_type fmt "any"
+  | TClosureEnv -> base_type fmt "closure_env"
 
 let lit (fmt : Format.formatter) (l : lit) : unit =
   match l with

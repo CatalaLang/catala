@@ -258,7 +258,7 @@ let rec get_structs_or_enums_in_type (t : typ) : TVertexSet.t =
       |> List.map get_structs_or_enums_in_type
       |> List.fold_left TVertexSet.union TVertexSet.empty)
       (get_structs_or_enums_in_type t2)
-  | TLit _ | TAny -> TVertexSet.empty
+  | TClosureEnv | TLit _ | TAny -> TVertexSet.empty
   | TOption t1 | TArray t1 -> get_structs_or_enums_in_type t1
   | TTuple ts ->
     List.fold_left

@@ -149,6 +149,7 @@ and naked_typ =
   | TArrow of typ list * typ
   | TArray of typ
   | TAny
+  | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
 (** {2 Constants and operators} *)
 
