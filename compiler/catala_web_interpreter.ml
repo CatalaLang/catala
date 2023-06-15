@@ -10,14 +10,13 @@ let _ =
            (scope : Js.js_string Js.t)
            (language : Js.js_string Js.t)
            (trace : bool) =
-         driver
+         driver `Interpret
            (Contents (Js.to_string contents))
            {
              Cli.debug = false;
              color = Never;
              wrap_weaved_output = false;
              avoid_exceptions = false;
-             backend = "Interpret";
              plugins_dirs = [];
              language = Some (Js.to_string language);
              max_prec_digits = None;

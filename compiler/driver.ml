@@ -21,9 +21,11 @@ open Catala_utils
     string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 
+type backend = [ Cli.backend_option | `Plugin of Plugin.handler ]
+
 let get_scope_uid
-    (options : Cli.options)
-    (backend : Plugin.t Cli.backend_option)
+    (options : Cli.global_options)
+    (backend : backend)
     (ctxt : Desugared.Name_resolution.context) =
   match options.ex_scope, backend with
   | None, `Interpret ->
@@ -49,8 +51,8 @@ let get_scope_uid
         "There is no scope @{<yellow>\"%s\"@} inside the program." name)
 
 let get_variable_uid
-    (options : Cli.options)
-    (backend : Plugin.t Cli.backend_option)
+    (options : Cli.global_options)
+    (backend : backend)
     (ctxt : Desugared.Name_resolution.context)
     (scope_uid : Shared_ast.ScopeName.t) =
   match options.ex_variable, backend with
@@ -135,15 +137,8 @@ let modname_of_file f =
 
 (** Entry function for the executable. Returns a negative number in case of
     error. Usage: [driver source_file options]*)
-let driver source_file (options : Cli.options) : int =
+let driver backend source_file (options : Cli.global_options) : int =
   try
-    List.iter
-      (fun d ->
-        match Sys.is_directory d with
-        | true -> Plugin.load_dir d
-        | false -> ()
-        | exception Sys_error _ -> ())
-      options.plugins_dirs;
     Cli.set_option_globals options;
     if options.debug then Printexc.record_backtrace true;
     Message.emit_debug "Reading files...";
@@ -171,24 +166,6 @@ let driver source_file (options : Cli.options) : int =
           "The selected language (%s) is not supported by Catala" l
     in
     Cli.locale_lang := language;
-    let backend = options.backend in
-    let backend =
-      match Cli.backend_option_of_string backend with
-      | #Cli.backend_option_builtin as backend -> backend
-      | `Plugin s -> (
-        try `Plugin (Plugin.find s)
-        with Not_found ->
-          Message.raise_error
-            "The selected backend (%s) is not supported by Catala, nor was a \
-             plugin by this name found under %a"
-            backend
-            (Format.pp_print_list
-               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or @ ")
-               (fun ppf dir ->
-                 Format.pp_print_string ppf
-                   (try Unix.readlink dir with _ -> dir)))
-            options.plugins_dirs)
-    in
     let prgm =
       Surface.Parser_driver.parse_top_level_file source_file language
     in
@@ -196,14 +173,14 @@ let driver source_file (options : Cli.options) : int =
     let prgm =
       List.fold_left
         (fun prgm f ->
-           let lang =
-             Option.value ~default:language
-             @@ Option.bind
-               (List.assoc_opt (Filename.extension f) extensions)
-               (fun l -> List.assoc_opt l Cli.languages)
-           in
-           let modname = modname_of_file f in
-           Surface.Parser_driver.add_interface (FileName f) lang [modname] prgm)
+          let lang =
+            Option.value ~default:language
+            @@ Option.bind
+                 (List.assoc_opt (Filename.extension f) extensions)
+                 (fun l -> List.assoc_opt l Cli.languages)
+          in
+          let modname = modname_of_file f in
+          Surface.Parser_driver.add_interface (FileName f) lang [modname] prgm)
         prgm options.link_modules
     in
     let get_output ?ext =
@@ -390,9 +367,14 @@ let driver source_file (options : Cli.options) : int =
 
             Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `Interpret ->
-            if options.link_modules <> [] then
-              (Message.emit_debug "Loading shared modules...";
-               List.iter Dynlink.(fun m -> loadfile (adapt_filename (Filename.remove_extension m ^ ".cmo"))) options.link_modules);
+            if options.link_modules <> [] then (
+              Message.emit_debug "Loading shared modules...";
+              List.iter
+                Dynlink.(
+                  fun m ->
+                    loadfile
+                      (adapt_filename (Filename.remove_extension m ^ ".cmo")))
+                options.link_modules);
             Message.emit_debug "Starting interpretation (dcalc)...";
             let results =
               Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
@@ -587,15 +569,65 @@ let driver source_file (options : Cli.options) : int =
     -1
 
 let main () =
-  if
-    Array.length Sys.argv >= 2
-    && String.lowercase_ascii Sys.argv.(1) = "pygmentize"
-  then Literate.Pygmentize.exec ();
+  let argv = Array.copy Sys.argv in
+  (* Our command names (first argument) are case-insensitive *)
+  if Array.length argv >= 2 then argv.(1) <- String.lowercase_ascii argv.(1);
+  (* Pygmentize is a specific exec subcommand that doesn't go through
+     cmdliner *)
+  if Array.length Sys.argv >= 2 && argv.(1) = "pygmentize" then
+    Literate.Pygmentize.exec ();
+  (* Peek to load plugins before the command-line is parsed proper *)
+  let plugins =
+    let plugins_dirs =
+      match
+        Cmdliner.Cmd.eval_peek_opts ~argv Cli.global_options ~version_opt:true
+      with
+      | Some opts, _ ->
+        Cli.set_option_globals opts;
+        (* Do this asap, for debug options, etc. *)
+        opts.Cli.plugins_dirs
+      | None, _ -> []
+    in
+    List.iter
+      (fun d ->
+        match Sys.is_directory d with
+        | true -> Plugin.load_dir d
+        | false -> ()
+        | exception Sys_error _ -> ())
+      plugins_dirs;
+    Plugin.list ()
+  in
   let return_code =
-    Cmdliner.Cmd.eval'
-      (Cmdliner.Cmd.v Cli.info (Cli.catala_t (fun f -> driver (FileName f))))
+    Cmdliner.Cmd.eval' ~argv
+      (Cli.catala_t
+         (fun backend f -> driver backend (FileName f))
+         ~extra:plugins)
   in
   exit return_code
 
 (* Export module PluginAPI, hide parent module Plugin *)
-module Plugin = Plugin.PluginAPI
+module Plugin = struct
+  open Plugin
+  include PluginAPI
+  open Cmdliner
+
+  let register_cmd info plugin =
+    let term =
+      Term.(
+        const (fun file opts -> driver (`Plugin plugin) (FileName file) opts)
+        $ Cli.file
+        $ Cli.global_options)
+    in
+    register_generic info term
+
+  let info_name info = Cmd.name (Cmd.v info (Term.const ()))
+
+  let register_dcalc info ~extension apply =
+    register_cmd info (Dcalc { name = info_name info; extension; apply })
+
+  let register_lcalc info ~extension apply =
+    register_cmd info (Lcalc { name = info_name info; extension; apply })
+
+  let register_scalc info ~extension apply =
+    register_cmd info (Scalc { name = info_name info; extension; apply })
+end

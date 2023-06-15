@@ -17,7 +17,7 @@
 
 type backend_lang = En | Fr | Pl
 
-type backend_option_builtin =
+type backend_option =
   [ `Latex
   | `Makefile
   | `Html
@@ -33,8 +33,6 @@ type backend_option_builtin =
   | `Exceptions
   | `Proof ]
 
-type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
-
 (** The usual auto/always/never option argument *)
 type when_enum = Auto | Always | Never
 
@@ -42,14 +40,6 @@ val languages : (string * backend_lang) list
 
 val language_code : backend_lang -> string
 (** Returns the lowercase two-letter language code *)
-
-val backend_option_to_string : string backend_option -> string
-(** [backend_option_to_string backend] returns the string representation of the
-    given [backend].*)
-
-val backend_option_of_string : string -> string backend_option
-(** [backend_option_of_string backend] returns the {!type:backend_option}
-    corresponding to the [backend] string. *)
 
 (** {2 Configuration globals} *)
 
@@ -95,20 +85,18 @@ val trace_opt : bool Cmdliner.Term.t
 val check_invariants_opt : bool Cmdliner.Term.t
 val wrap_weaved_output : bool Cmdliner.Term.t
 val print_only_law : bool Cmdliner.Term.t
-val backend : string Cmdliner.Term.t
 val plugins_dirs : string list Cmdliner.Term.t
 val language : string option Cmdliner.Term.t
 val max_prec_digits_opt : int option Cmdliner.Term.t
 val ex_scope : string option Cmdliner.Term.t
 val output : string option Cmdliner.Term.t
 
-type options = {
+type global_options = {
   debug : bool;
   color : when_enum;
   message_format : message_format_enum;
   wrap_weaved_output : bool;
   avoid_exceptions : bool;
-  backend : string;
   plugins_dirs : string list;
   language : string option;
   max_prec_digits : int option;
@@ -126,11 +114,14 @@ type options = {
 }
 (** {2 Command-line application} *)
 
-val options : options Cmdliner.Term.t
+val global_options : global_options Cmdliner.Term.t
 
-val catala_t : (string -> options -> 'a) -> 'a Cmdliner.Term.t
+val catala_t :
+  ?extra:int Cmdliner.Cmd.t list ->
+  (backend_option -> string -> global_options -> int) ->
+  int Cmdliner.Cmd.t
 (** Main entry point: [catala_t file options] *)
 
-val set_option_globals : options -> unit
+val set_option_globals : global_options -> unit
 val version : string
 val info : Cmdliner.Cmd.info

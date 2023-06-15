@@ -16,45 +16,43 @@
 
 open Catala_utils
 
-type 'ast plugin_apply_fun_typ =
-  source_file:Pos.input_file ->
-  output_file:string option ->
-  scope:Shared_ast.ScopeName.t option ->
-  'ast ->
-  Scopelang.Dependency.TVertex.t list ->
-  unit
-
-type 'ast gen = {
-  name : string;
-  extension : string;
-  apply : 'ast plugin_apply_fun_typ;
-}
-
-type t =
-  | Dcalc of Shared_ast.untyped Dcalc.Ast.program gen
-  | Lcalc of Shared_ast.untyped Lcalc.Ast.program gen
-  | Scalc of Scalc.Ast.program gen
-
-let name = function
-  | Dcalc { name; _ } | Lcalc { name; _ } | Scalc { name; _ } -> name
+type t = Cmdliner.Cmd.Exit.code Cmdliner.Cmd.t
 
 let backend_plugins : (string, t) Hashtbl.t = Hashtbl.create 17
 
 let register t =
-  Hashtbl.replace backend_plugins (String.lowercase_ascii (name t)) t
+  Hashtbl.replace backend_plugins
+    (String.lowercase_ascii (Cmdliner.Cmd.name t))
+    t
+
+let list () = Hashtbl.to_seq_values backend_plugins |> List.of_seq
 
 module PluginAPI = struct
-  let register_dcalc ~name ~extension apply =
-    register (Dcalc { name; extension; apply })
+  open Cmdliner
 
-  let register_lcalc ~name ~extension apply =
-    register (Lcalc { name; extension; apply })
+  let register_generic info term = register (Cmd.v info term)
 
-  let register_scalc ~name ~extension apply =
-    register (Scalc { name; extension; apply })
+  (* For plugins relying on the standard [Driver] *)
+
+  type 'ast plugin_apply_fun_typ =
+    source_file:Pos.input_file ->
+    output_file:string option ->
+    scope:Shared_ast.ScopeName.t option ->
+    'ast ->
+    Scopelang.Dependency.TVertex.t list ->
+    unit
 end
 
-let find name = Hashtbl.find backend_plugins (String.lowercase_ascii name)
+type 'ast gen = {
+  name : string;
+  extension : string;
+  apply : 'ast PluginAPI.plugin_apply_fun_typ;
+}
+
+type handler =
+  | Dcalc of Shared_ast.untyped Dcalc.Ast.program gen
+  | Lcalc of Shared_ast.untyped Lcalc.Ast.program gen
+  | Scalc of Scalc.Ast.program gen
 
 let load_file f =
   try

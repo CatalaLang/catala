@@ -17,6 +17,10 @@
 open Catala_utils
 open Shared_ast
 
+let name = "lazy"
+let extension = ".out" (* unused *)
+let info = Cmdliner.Cmd.info name ~doc:"Experimental lazy evaluation (plugin)"
+
 (* -- Definition of the lazy interpreter -- *)
 
 let log fmt = Format.ifprintf Format.err_formatter (fmt ^^ "@\n")
@@ -252,9 +256,6 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
 
 (* -- Plugin registration -- *)
 
-let name = "lazy"
-let extension = ".out" (* unused *)
-
 let apply ~source_file ~output_file ~scope prg _type_ordering =
   let scope =
     match scope with
@@ -269,4 +270,4 @@ let apply ~source_file ~output_file ~scope prg _type_ordering =
   let result_expr, _env = interpret_program prg scope in
   Expr.format fmt result_expr
 
-let () = Driver.Plugin.register_dcalc ~name ~extension apply
+let () = Driver.Plugin.register_dcalc info ~extension apply

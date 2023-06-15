@@ -14,31 +14,37 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** {2 catala-facing API} *)
-
 open Catala_utils
 
-type 'ast plugin_apply_fun_typ =
-  source_file:Pos.input_file ->
-  output_file:string option ->
-  scope:Shared_ast.ScopeName.t option ->
-  'ast ->
-  Scopelang.Dependency.TVertex.t list ->
-  unit
+type t = Cmdliner.Cmd.Exit.code Cmdliner.Cmd.t
+(** Plugins just provide an additional top-level command *)
 
-type 'ast gen = {
-  name : string;
-  extension : string;
-  apply : 'ast plugin_apply_fun_typ;
-}
+(** {2 plugin-facing API} *)
 
-type t =
-  | Dcalc of Shared_ast.untyped Dcalc.Ast.program gen
-  | Lcalc of Shared_ast.untyped Lcalc.Ast.program gen
-  | Scalc of Scalc.Ast.program gen
+module PluginAPI : sig
+  open Cmdliner
 
-val find : string -> t
-(** Find a registered plugin *)
+  val register_generic : Cmd.info -> Cmd.Exit.code Term.t -> unit
+  (** Entry point for the registration of a generic catala subcommand *)
+
+  (** The following are used by [Driver.Plugin] to provide a higher-level
+      interface, registering plugins that rely on the [Driver.driver] function. *)
+
+  type 'ast plugin_apply_fun_typ =
+    source_file:Pos.input_file ->
+    output_file:string option ->
+    scope:Shared_ast.ScopeName.t option ->
+    'ast ->
+    Scopelang.Dependency.TVertex.t list ->
+    unit
+end
+
+val register : t -> unit
+
+(** {2 catala-facing API} *)
+
+val list : unit -> t list
+(** List registered plugins *)
 
 val load_file : string -> unit
 (** Load the given plugin (cmo/cma or cmxs file) *)
@@ -46,26 +52,15 @@ val load_file : string -> unit
 val load_dir : string -> unit
 (** Load all plugins found in the given directory *)
 
-(** {2 plugin-facing API} *)
+(** {3 Facilities for plugins using the standard driver} *)
 
-module PluginAPI : sig
-  val register_dcalc :
-    name:string ->
-    extension:string ->
-    Shared_ast.untyped Dcalc.Ast.program plugin_apply_fun_typ ->
-    unit
+type 'ast gen = {
+  name : string;
+  extension : string;
+  apply : 'ast PluginAPI.plugin_apply_fun_typ;
+}
 
-  val register_lcalc :
-    name:string ->
-    extension:string ->
-    Shared_ast.untyped Lcalc.Ast.program plugin_apply_fun_typ ->
-    unit
-
-  val register_scalc :
-    name:string ->
-    extension:string ->
-    Scalc.Ast.program plugin_apply_fun_typ ->
-    unit
-end
-
-val register : t -> unit
+type handler =
+  | Dcalc of Shared_ast.untyped Dcalc.Ast.program gen
+  | Lcalc of Shared_ast.untyped Lcalc.Ast.program gen
+  | Scalc of Scalc.Ast.program gen
