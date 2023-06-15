@@ -71,11 +71,10 @@ module type BackendIO = sig
     model option ->
     string
 
-  val encode_and_check_vc :
+  val check_vc :
     decl_ctx -> Conditions.verification_condition * vc_encoding_result -> bool
-  (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the
-      expression [vc]. Returns [true] if the vs was proven true and [false]
-      otherwise. **)
+  (** [check_vc] spawns a new Z3 solver and tries to solve the expression [vc].
+      Returns [true] if the vs was proven true and [false] otherwise. **)
 end
 
 module MakeBackendIO : functor (B : Backend) ->

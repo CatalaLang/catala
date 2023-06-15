@@ -70,7 +70,7 @@ module type BackendIO = sig
     model option ->
     string
 
-  val encode_and_check_vc :
+  val check_vc :
     decl_ctx -> Conditions.verification_condition * vc_encoding_result -> bool
 end
 
@@ -113,6 +113,13 @@ module MakeBackendIO (B : Backend) = struct
           ScopeName.format_t vc.vc_scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
           Pos.format_loc_text (Mark.get vc.vc_variable)
+      | DateComputation ->
+        Format.asprintf
+          "@[<v>@{<yellow>[%a.%s]@} This date computation might be ambiguous:@,\
+           %a@]"
+          ScopeName.format_t vc.vc_scope
+          (Bindlib.name_of (Mark.remove vc.vc_variable))
+          Pos.format_loc_text (Expr.pos vc.vc_guard)
     in
     let counterexample : string option =
       if !Cli.disable_counterexamples then
@@ -139,7 +146,7 @@ module MakeBackendIO (B : Backend) = struct
     | None -> ""
     | Some counterexample -> "\n" ^ counterexample
 
-  let encode_and_check_vc
+  let check_vc
       (_decl_ctx : decl_ctx)
       (vc : Conditions.verification_condition * vc_encoding_result) : bool =
     let vc, z3_vc = vc in
@@ -154,7 +161,8 @@ module MakeBackendIO (B : Backend) = struct
       (match vc.vc_kind with
       | Conditions.NoEmptyError ->
         "the variable definition never to return an empty error"
-      | NoOverlappingExceptions -> "no two exceptions to ever overlap")
+      | NoOverlappingExceptions -> "no two exceptions to ever overlap"
+      | DateComputation -> "this date computation cannot be ambiguous")
       (Print.expr ()) vc.vc_guard (Print.expr ()) vc.vc_asserts;
 
     match z3_vc with

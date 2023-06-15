@@ -22,6 +22,21 @@ open Catala_utils
 let solve_vc
     (decl_ctx : Shared_ast.decl_ctx)
     (vcs : Conditions.verification_condition list) : unit =
+  let dates_vc =
+    List.filter
+      (fun vc ->
+        match vc.Conditions.vc_kind with
+        | Conditions.DateComputation -> true
+        | _ -> false)
+      vcs
+  in
+  List.iter
+    (fun dates_vc ->
+      Message.emit_result "%s"
+        (Z3backend.Io.print_negative_result dates_vc
+           (Z3backend.Io.make_context decl_ctx)
+           None))
+    dates_vc;
   (* Right now we only use the Z3 backend but the functorial interface should
      make it easy to mix and match different proof backends. *)
   Z3backend.Io.init_backend ();
@@ -39,13 +54,18 @@ let solve_vc
             in
             Z3backend.Io.Success (z3_vc, ctx)
           with Failure msg -> Fail msg ))
-      vcs
+      (List.filter
+         (fun vc ->
+           match vc.Conditions.vc_kind with
+           | Conditions.NoEmptyError | Conditions.NoOverlappingExceptions ->
+             true
+           | Conditions.DateComputation -> false)
+         vcs)
   in
   let all_proven =
     List.fold_left
       (fun all_proven vc ->
-        if Z3backend.Io.encode_and_check_vc decl_ctx vc then all_proven
-        else false)
+        if Z3backend.Io.check_vc decl_ctx vc then all_proven else false)
       true z3_vcs
   in
   if all_proven then

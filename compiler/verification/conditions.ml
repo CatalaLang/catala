@@ -289,9 +289,32 @@ let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
          e [])
       (Mark.get e)
 
+(** [slice_expression_for_date_computations ctx e] returns a list of
+    subexpressions of [e] whose top AST node is a computation on dates that can
+    raise [Dates_calc.AmbiguousComputation], that is [Dates_calc.add_dates]. The
+    list is ordered from the smallest subexpressions to the biggest. *)
+let rec slice_expression_for_date_computations (ctx : ctx) (e : typed expr) :
+    vc_return list =
+  match Mark.remove e with
+  | EApp
+      {
+        f =
+          EOp { op = Op.Add_dat_dur Dates_calc.Dates.AbortOnRound; tys = _ }, _;
+        args;
+      } ->
+    List.flatten (List.map (slice_expression_for_date_computations ctx) args)
+    @ [e]
+  | _ ->
+    Expr.shallow_fold
+      (fun e acc -> slice_expression_for_date_computations ctx e @ acc)
+      e []
+
 (** {1 Interface}*)
 
-type verification_condition_kind = NoEmptyError | NoOverlappingExceptions
+type verification_condition_kind =
+  | NoEmptyError
+  | NoOverlappingExceptions
+  | DateComputation
 
 type verification_condition = {
   vc_guard : typed expr;
@@ -383,6 +406,30 @@ let rec generate_verification_conditions_scope_body_expr
             }
             :: vc_list
           | _ -> vc_list
+        in
+        let vc_list =
+          let subexprs_dates : vc_return list =
+            slice_expression_for_date_computations ctx e
+          in
+          let subexprs_dates =
+            List.map
+              (fun e ->
+                if !Cli.optimize_flag then
+                  Expr.unbox (Shared_ast.Optimizations.optimize_expr ctx.decl e)
+                else e)
+              subexprs_dates
+          in
+          vc_list
+          @ List.map
+              (fun subexpr_date ->
+                {
+                  vc_guard = subexpr_date;
+                  vc_kind = DateComputation;
+                  vc_asserts = trivial_assert e;
+                  vc_scope = ctx.current_scope_name;
+                  vc_variable = scope_let_var, scope_let.scope_let_pos;
+                })
+              subexprs_dates
         in
         ctx, vc_list, []
       | _ -> ctx, [], []

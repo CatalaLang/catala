@@ -37,5 +37,5 @@ module Io = struct
   type vc_encoding_result = Success of model * model | Fail of string
 
   let print_negative_result _ _ _ = dummy ()
-  let encode_and_check_vc _ _ = dummy ()
+  let check_vc _ _ = dummy ()
 end

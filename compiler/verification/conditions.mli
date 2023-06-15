@@ -23,10 +23,13 @@ open Shared_ast
 type verification_condition_kind =
   | NoEmptyError
       (** This verification condition checks whether a definition never returns
-          an empty error *)
+          an empty error. Has type [bool]. *)
   | NoOverlappingExceptions
       (** This verification condition checks whether a definition never returns
-          a conflict error *)
+          a conflict error. Has type [bool]. *)
+  | DateComputation
+      (** This verification condition is just a slice of the program (a
+          subexpression) that features computations on dates. *)
 
 type verification_condition = {
   vc_guard : typed Dcalc.Ast.expr;
