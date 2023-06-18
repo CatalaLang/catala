@@ -951,7 +951,7 @@ let rec scopes ~leave_unresolved ctx env = function
         let e' = Expr.map_marks ~f:(get_ty_mark ~leave_unresolved) e' in
         ( Env.add var uf env,
           Bindlib.box_apply
-            (fun e -> A.Topdef (name, typ, e))
+            (fun e -> A.Topdef (name, Expr.ty e', e))
             (Expr.Box.lift e') )
     in
     let next', env = scopes ~leave_unresolved ctx env next in

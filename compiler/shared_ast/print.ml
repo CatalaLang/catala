@@ -855,16 +855,15 @@ let code_item ?(debug = false) decl_ctx fmt c =
   match c with
   | ScopeDef (n, b) -> scope ~debug decl_ctx fmt (n, b)
   | Topdef (n, ty, e) ->
-    Format.fprintf fmt "@[%a %a %a %a %a %a @]" keyword "let topval"
-      TopdefName.format_t n op_style ":" (typ decl_ctx) ty op_style "="
-      (expr ~debug ()) e
+    Format.fprintf fmt "@[<v 2>@[<hov 2>%a@ %a@ %a@ %a@ %a@]@ %a@]" keyword
+      "let topval" TopdefName.format_t n op_style ":" (typ decl_ctx) ty op_style
+      "=" (expr ~debug ()) e
 
 let rec code_item_list ?(debug = false) decl_ctx fmt c =
   match c with
   | Nil -> ()
   | Cons (c, b) ->
     let _x, cl = Bindlib.unbind b in
-
     Format.fprintf fmt "%a @.%a"
       (code_item ~debug decl_ctx)
       c
