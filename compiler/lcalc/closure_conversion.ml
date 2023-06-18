@@ -204,12 +204,14 @@ let rec transform_closures_expr :
                      [TAny, Expr.pos e]
                      (Mark.get e))
                   [
-                    Expr.etuple
-                      (List.map
-                         (fun extra_var ->
-                           Bindlib.box_var extra_var, binder_mark)
-                         extra_vars_list)
-                      m;
+                    (if extra_vars_list = [] then Expr.elit LUnit binder_mark
+                    else
+                      Expr.etuple
+                        (List.map
+                           (fun extra_var ->
+                             Bindlib.box_var extra_var, binder_mark)
+                           extra_vars_list)
+                        m);
                   ]
                   (Mark.get e);
               ])

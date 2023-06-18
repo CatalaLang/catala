@@ -39,7 +39,6 @@ scope Foo:
 
 This test case is tricky because it creates a situation where the type of the
 two closures in Foo.r are different even with optimizations enabled.
-TODO fix this.
 
 ```catala-test-inline
 $ catala Lcalc --avoid_exceptions -O --closure_conversion -s Foo
