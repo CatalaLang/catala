@@ -525,6 +525,9 @@ let hoist_closures_program (p : 'm program) : 'm program Bindlib.box =
       ~varf:(fun v -> v)
       [] p.code_items
   in
+  (*TODO: we need to insert the hoisted closures just before the scopes they
+    belong to, because some of them call sub-scopes and putting them all at the
+    beginning breaks dependency ordering. *)
   Bindlib.box_apply
     (fun hoisted_closures ->
       let new_code_items =

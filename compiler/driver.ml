@@ -443,13 +443,6 @@ let driver source_file (options : Cli.options) : int =
                     Message.emit_debug "Performing closure conversion...";
                 let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
                 let prgm = Bindlib.unbox prgm in
-                (* let _output_file, with_output = get_output_format () in
-                   with_output @@ fun fmt -> if Option.is_some options.ex_scope
-                   then Format.fprintf fmt "%a\n" (Shared_ast.Print.scope
-                   ~debug:options.debug prgm.decl_ctx) (scope_uid,
-                   Shared_ast.Program.get_scope_body prgm scope_uid) else
-                   Format.fprintf fmt "%a\n" (Shared_ast.Print.program
-                   ~debug:options.debug) prgm; *)
                 let prgm =
                   if options.optimize then (
                     Message.emit_debug "Optimizing lambda calculus...";
