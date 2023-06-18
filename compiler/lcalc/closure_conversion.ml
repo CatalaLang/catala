@@ -445,6 +445,11 @@ let rec hoist_closures_expr :
   | EAbs { tys; _ } ->
     (* this is the closure we want to hoist*)
     let closure_var = Var.make ("closure_" ^ name_context) in
+    (* TODO: This will end up as a toplevel name. However for now we assume
+       toplevel names are unique, but this breaks this assertions and can lead
+       to name wrangling in the backends. We need to have a better system for
+       name disambiguation when for instance printing to Dcalc/Lcalc/Scalc but
+       also OCaml, Python, etc. *)
     ( [
         {
           name = closure_var;
