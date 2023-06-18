@@ -14,6 +14,11 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+(** This module performs environment-passing style closure conversion, relying
+    on the existential [TClosureEnv] type and tuples for closure environments.
+    The implementation is based on François Pottier's
+    {{:http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=10} MPRI lesson}.
+    After closure conversion, closure hoisting is perform and all closures end
+    up as toplevel definitions. *)
+
 val closure_conversion : 'm Ast.program -> 'm Ast.program Bindlib.box
-(** Warning/todo: no effort was yet made to ensure correct propagation of type
-    annotations in the typed case *)

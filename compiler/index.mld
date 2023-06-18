@@ -89,9 +89,9 @@ More documentation can be found on each intermediate representations here.
 }
 
 Most of these intermediate representations use a {{: shared_ast.html} shared AST libary}.
-The main compilation chain is defined in:
+The main compilation chain is defined in {!module: Driver}.
 
-{!modules: Driver}
+{!modules: Shared_ast Driver}
 
 Additionally, the compiler features a verification plugin that generates
 verification condition for proof backends. More information can be found here:

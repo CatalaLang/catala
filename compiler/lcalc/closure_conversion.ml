@@ -30,7 +30,10 @@ type 'm ctx = {
 
 let tys_as_tanys tys = List.map (fun x -> Mark.map (fun _ -> TAny) x) tys
 
-type 'm hoisted_closure = { name : 'm expr Var.t; closure : 'm expr }
+type 'm hoisted_closure = {
+  name : 'm expr Var.t;
+  closure : 'm expr (* Starts with [EAbs]. *);
+}
 
 let rec hoist_context_free_closures :
     type m. m ctx -> m expr -> m hoisted_closure list * m expr boxed =
