@@ -360,12 +360,11 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
 type 'm hoisted_closure = {
   name : 'm expr Var.t;
   ty : typ;
-  closure : 'm expr (* Starts with [EAbs]. *);
+  closure : (lcalc, 'm) boxed_gexpr (* Starts with [EAbs]. *);
 }
 
 let rec hoist_closures_expr :
-    type m.
-    string -> m expr -> m hoisted_closure Bindlib.box list * m expr boxed =
+    type m. string -> m expr -> m hoisted_closure list * m expr boxed =
  fun name_context e ->
   let m = Mark.get e in
   match Mark.remove e with
@@ -447,14 +446,11 @@ let rec hoist_closures_expr :
     (* this is the closure we want to hoist*)
     let closure_var = Var.make ("closure_" ^ name_context) in
     ( [
-        Bindlib.box_apply
-          (fun e ->
-            {
-              name = closure_var;
-              ty = TArrow (tys, (TAny, Expr.mark_pos m)), Expr.mark_pos m;
-              closure = e, m;
-            })
-          (fst (Expr.box e));
+        {
+          name = closure_var;
+          ty = TArrow (tys, (TAny, Expr.mark_pos m)), Expr.mark_pos m;
+          closure = Expr.rebox e;
+        };
       ],
       Expr.make_var closure_var m )
   | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
@@ -492,62 +488,80 @@ let hoist_closures_scope_let name_context scope_body_expr =
           (Expr.Box.lift new_scope_let_expr) ))
     scope_body_expr
 
+let rec hoist_closures_code_item_list
+    (code_items : (lcalc, 'm) gexpr code_item_list) :
+    (lcalc, 'm) gexpr code_item_list Bindlib.box =
+  match code_items with
+  | Nil -> Bindlib.box Nil
+  | Cons (code_item, next_code_items) ->
+    let code_item_var, next_code_items = Bindlib.unbind next_code_items in
+    let hoisted_closures, new_code_item =
+      match code_item with
+      | ScopeDef (name, body) ->
+        let scope_input_var, scope_body_expr =
+          Bindlib.unbind body.scope_body_expr
+        in
+        let new_hoisted_closures, new_scope_lets =
+          hoist_closures_scope_let
+            (fst (ScopeName.get_info name))
+            scope_body_expr
+        in
+        let new_scope_body_expr =
+          Bindlib.bind_var scope_input_var new_scope_lets
+        in
+        ( new_hoisted_closures,
+          Bindlib.box_apply
+            (fun scope_body_expr ->
+              ScopeDef (name, { body with scope_body_expr }))
+            new_scope_body_expr )
+      | Topdef (name, ty, expr) ->
+        let new_hoisted_closures, new_expr =
+          hoist_closures_expr (Mark.remove (TopdefName.get_info name)) expr
+        in
+        ( new_hoisted_closures,
+          Bindlib.box_apply
+            (fun e -> Topdef (name, ty, e))
+            (Expr.Box.lift new_expr) )
+    in
+    let next_code_items = hoist_closures_code_item_list next_code_items in
+    let next_code_items =
+      Bindlib.box_apply2
+        (fun next_code_items new_code_item ->
+          Cons (new_code_item, next_code_items))
+        (Bindlib.bind_var code_item_var next_code_items)
+        new_code_item
+    in
+    let next_code_items =
+      List.fold_left
+        (fun (next_code_items : (lcalc, 'm) gexpr code_item_list Bindlib.box)
+             (hoisted_closure : 'm hoisted_closure) ->
+          let next_code_items =
+            Bindlib.bind_var hoisted_closure.name next_code_items
+          in
+          let closure, closure_mark = hoisted_closure.closure in
+          Bindlib.box_apply2
+            (fun next_code_items closure ->
+              Cons
+                ( Topdef
+                    ( TopdefName.fresh
+                        ( Bindlib.name_of hoisted_closure.name,
+                          Expr.mark_pos closure_mark ),
+                      hoisted_closure.ty,
+                      (closure, closure_mark) ),
+                  next_code_items ))
+            next_code_items closure)
+        next_code_items hoisted_closures
+    in
+    next_code_items
+
 let hoist_closures_program (p : 'm program) : 'm program Bindlib.box =
-  let hoisted_closures, new_code_items =
-    Scope.fold_map
-      ~f:(fun hoisted_closures _var code_item ->
-        match code_item with
-        | ScopeDef (name, body) ->
-          let scope_input_var, scope_body_expr =
-            Bindlib.unbind body.scope_body_expr
-          in
-          let new_hoisted_closures, new_scope_lets =
-            hoist_closures_scope_let
-              (fst (ScopeName.get_info name))
-              scope_body_expr
-          in
-          let new_scope_body_expr =
-            Bindlib.bind_var scope_input_var new_scope_lets
-          in
-          ( new_hoisted_closures @ hoisted_closures,
-            Bindlib.box_apply
-              (fun scope_body_expr ->
-                ScopeDef (name, { body with scope_body_expr }))
-              new_scope_body_expr )
-        | Topdef (name, ty, expr) ->
-          let new_hoisted_closures, new_expr =
-            hoist_closures_expr (Mark.remove (TopdefName.get_info name)) expr
-          in
-          ( new_hoisted_closures @ hoisted_closures,
-            Bindlib.box_apply
-              (fun e -> Topdef (name, ty, e))
-              (Expr.Box.lift new_expr) ))
-      ~varf:(fun v -> v)
-      [] p.code_items
-  in
+  let new_code_items = hoist_closures_code_item_list p.code_items in
   (*TODO: we need to insert the hoisted closures just before the scopes they
     belong to, because some of them call sub-scopes and putting them all at the
     beginning breaks dependency ordering. *)
   Bindlib.box_apply
-    (fun hoisted_closures ->
-      let new_code_items =
-        List.fold_left
-          (fun (new_code_items : _ gexpr code_item_list Bindlib.box) hc ->
-            let next = Bindlib.bind_var hc.name new_code_items in
-            Bindlib.box_apply
-              (fun next ->
-                Cons
-                  ( Topdef
-                      ( TopdefName.fresh
-                          (Bindlib.name_of hc.name, Expr.pos hc.closure),
-                        hc.ty,
-                        hc.closure ),
-                    next ))
-              next)
-          new_code_items hoisted_closures
-      in
-      { p with code_items = Bindlib.unbox new_code_items })
-    (Bindlib.box_list hoisted_closures)
+    (fun new_code_items -> { p with code_items = new_code_items })
+    new_code_items
 
 (** { 1 Closure conversion }*)
 
