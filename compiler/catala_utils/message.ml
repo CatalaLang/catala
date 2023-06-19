@@ -116,16 +116,27 @@ let pp_marker target ppf =
 module Content = struct
   type message = Format.formatter -> unit
   type position = { pos_message : message option; pos : Pos.t }
-  type t = { message : message; positions : position list }
+  type suggestions = string list option
 
-  let of_message (message : message) : t = { message; positions = [] }
+  type t = {
+    message : message;
+    positions : position list;
+    suggestions : suggestions;
+  }
+
+  let of_message (message : message) : t =
+    { message; positions = []; suggestions = None }
 
   let of_string (s : string) : t =
-    { message = (fun ppf -> Format.pp_print_string ppf s); positions = [] }
+    {
+      message = (fun ppf -> Format.pp_print_string ppf s);
+      positions = [];
+      suggestions = None;
+    }
 
   let internal_error_prefix =
     "Internal Error, please report to \
-     https://github.com/CatalaLang/catala/issues : "
+     https://github.com/CatalaLang/catala/issues: "
 
   let prepend_message (content : t) prefix : t =
     {
@@ -145,7 +156,7 @@ end
 open Content
 
 let emit_content (content : Content.t) (target : content_type) : unit =
-  let { message; positions } = content in
+  let { message; positions; suggestions } = content in
   match Cli.globals.message_format with
   | Cli.Human ->
     let ppf = get_ppf target in
@@ -162,7 +173,7 @@ let emit_content (content : Content.t) (target : content_type) : unit =
             Format.pp_print_cut ppf ();
             Format.pp_print_cut ppf ();
             Option.iter
-              (fun msg -> Format.fprintf ppf "%t@," msg)
+              (fun msg -> Format.fprintf ppf "%t@, compréhension ??" msg)
               pos.pos_message;
             Pos.format_loc_text ppf pos.pos)
           ppf l)
@@ -170,7 +181,7 @@ let emit_content (content : Content.t) (target : content_type) : unit =
   | Cli.GNU ->
     (* The top message doesn't come with a position, which is not something the
        GNU standard allows. So we look the position list and put the top message
-       everywhere there is not a more precise message. If we can'r find a
+       everywhere there is not a more precise message. If we can't find a
        position without a more precise message, we just take the first position
        in the list to pair with the message. *)
     let ppf = get_ppf target in
@@ -204,12 +215,17 @@ exception CompilerError of Content.t
 let raise_spanned_error
     ?(span_msg : Content.message option)
     (span : Pos.t)
+    ?(suggestions : string list option)
     format =
   Format.kdprintf
     (fun message ->
       raise
         (CompilerError
-           { message; positions = [{ pos_message = span_msg; pos = span }] }))
+           {
+             message;
+             positions = [{ pos_message = span_msg; pos = span }];
+             suggestions;
+           }))
     format
 
 let raise_multispanned_error_full
@@ -223,6 +239,7 @@ let raise_multispanned_error_full
              message;
              positions =
                List.map (fun (pos_message, pos) -> { pos_message; pos }) spans;
+             suggestions = None;
            }))
     format
 
@@ -236,7 +253,8 @@ let raise_multispanned_error spans format =
 
 let raise_error format =
   Format.kdprintf
-    (fun message -> raise (CompilerError { message; positions = [] }))
+    (fun message ->
+      raise (CompilerError { message; positions = []; suggestions = None }))
     format
 
 let raise_internal_error format =
@@ -258,6 +276,7 @@ let emit_multispanned_warning
           message;
           positions =
             List.map (fun (pos_message, pos) -> { pos_message; pos }) pos;
+          suggestions = None;
         }
         Warning)
     format
@@ -272,15 +291,18 @@ let emit_warning format = emit_multispanned_warning [] format
 
 let emit_log format =
   Format.kdprintf
-    (fun message -> emit_content { message; positions = [] } Log)
+    (fun message ->
+      emit_content { message; positions = []; suggestions = None } Log)
     format
 
 let emit_debug format =
   Format.kdprintf
-    (fun message -> emit_content { message; positions = [] } Debug)
+    (fun message ->
+      emit_content { message; positions = []; suggestions = None } Debug)
     format
 
 let emit_result format =
   Format.kdprintf
-    (fun message -> emit_content { message; positions = [] } Result)
+    (fun message ->
+      emit_content { message; positions = []; suggestions = None } Result)
     format

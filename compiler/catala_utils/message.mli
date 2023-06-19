@@ -29,6 +29,8 @@
 
 module Content : sig
   type message = Format.formatter -> unit
+  type position = { pos_message : message option; pos : Pos.t }
+  type suggestions = string list option
   type t
 
   val of_message : (Format.formatter -> unit) -> t
@@ -52,6 +54,7 @@ exception CompilerError of Content.t
 val raise_spanned_error :
   ?span_msg:Content.message ->
   Pos.t ->
+  ?suggestions:string list ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
 

@@ -42,3 +42,6 @@ Related modules:
 Related modules:
 
 {!modules: Catala_utils.File Catala_utils.Mark Catala_utils.Cli Catala_utils.String}
+
+(*description à compléter*)
+{!modules: Catala_utils.Myown}
