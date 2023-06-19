@@ -101,7 +101,7 @@ reasonable classification of property selected by the employer), and
 # percentage ; we do not formalize them
 ```
 
-##### (3) Employee discount defined
+#### (3) Employee discount defined
 
 The term “employee discount” means the amount by which—
 
@@ -119,7 +119,7 @@ scope QualifiedEmployeeDiscount:
     customer_price - employee_price
 ```
 
-##### (4) Qualified property or services
+#### (4) Qualified property or services
 
 The term “qualified property or services” means any property (other than real
 property and other than personal property of a kind held for investment) or
