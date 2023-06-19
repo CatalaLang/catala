@@ -120,6 +120,53 @@ let translate_unop (op : Surface.Ast.unop) pos : Ast.expr boxed =
           "This operator doesn't exist, dates can't be negative"
       | S.KDuration -> TLit TDuration)
 
+(* Three-way minimum *)
+let minimum a b c = min a (min b c)
+
+let levenshtein_distance (s : string) (t : string) : int =
+  let m = String.length s and n = String.length t in
+  (* for all i and j, d.(i).(j) will hold the Levenshtein distance between the
+     first i characters of s and the first j characters of t *)
+  let d = Array.make_matrix (m + 1) (n + 1) 0 in
+
+  for i = 0 to m do
+    d.(i).(0) <- i
+    (* the distance of any first string to an empty second string *)
+  done;
+  for j = 0 to n do
+    d.(0).(j) <- j
+    (* the distance of any second string to an empty first string *)
+  done;
+
+  for j = 1 to n do
+    for i = 1 to m do
+      if s.[i - 1] = t.[j - 1] then d.(i).(j) <- d.(i - 1).(j - 1)
+        (* no operation required *)
+      else
+        d.(i).(j) <-
+          minimum
+            (d.(i - 1).(j) + 1) (* a deletion *)
+            (d.(i).(j - 1) + 1) (* an insertion *)
+            (d.(i - 1).(j - 1) + 1) (* a substitution *)
+    done
+  done;
+  d.(m).(n)
+
+let raise_error_cons_not_found
+    (ctxt : Name_resolution.context)
+    (constructor : string Mark.pos) =
+  let constructors =
+    List.map (fun (s, _) -> s) (Ident.Map.bindings ctxt.constructor_idmap)
+  in
+  let _closest_constructor =
+    Myown.suggestion_minimum_levenshtein_distance_association constructors
+      (Mark.remove constructor)
+  in
+  Message.raise_spanned_error (Mark.get constructor)
+    "The name of this constructor has not been defined before, maybe it is a \
+     typo? Maybe you wanted to use : %s"
+    "blah" (* closest_constructor *)
+
 let disambiguate_constructor
     (ctxt : Name_resolution.context)
     (constructor : (S.path * S.uident Mark.pos) Mark.pos list)
@@ -133,10 +180,7 @@ let disambiguate_constructor
   in
   let possible_c_uids =
     try Ident.Map.find (Mark.remove constructor) ctxt.constructor_idmap
-    with Not_found ->
-      Message.raise_spanned_error (Mark.get constructor)
-        "The name of this constructor has not been defined before, maybe it is \
-         a typo?"
+    with Not_found -> raise_error_cons_not_found ctxt constructor
   in
   match path with
   | [] ->
@@ -493,9 +537,7 @@ let rec translate_expr
     let possible_c_uids =
       try Ident.Map.find constructor ctxt.constructor_idmap
       with Not_found ->
-        Message.raise_spanned_error pos_constructor
-          "The name of this constructor has not been defined before, maybe it \
-           is a typo?"
+        raise_error_cons_not_found ctxt (constructor, pos_constructor)
     in
     let mark_constructor = Untyped { pos = pos_constructor } in
 
