@@ -15,58 +15,66 @@
    the License. *)
 
 open Catala_utils
+open Shared_ast
 
 (** [solve_vc] is the main entry point of this module. It takes a list of
     expressions [vcs] corresponding to verification conditions that must be
     discharged by Z3, and attempts to solve them **)
-let solve_vc
+let solve_vcs
     (decl_ctx : Shared_ast.decl_ctx)
-    (vcs : Conditions.verification_condition list) : unit =
-  let dates_vc =
-    List.filter
-      (fun vc ->
-        match vc.Conditions.vc_kind with
-        | Conditions.DateComputation -> true
-        | _ -> false)
-      vcs
-  in
-  List.iter
-    (fun dates_vc ->
-      Message.emit_result "%s"
-        (Z3backend.Io.print_negative_result dates_vc
-           (Z3backend.Io.make_context decl_ctx)
-           None))
-    dates_vc;
+    (vcs : Conditions.verification_conditions_scope ScopeName.Map.t) : unit =
   (* Right now we only use the Z3 backend but the functorial interface should
      make it easy to mix and match different proof backends. *)
   Z3backend.Io.init_backend ();
-  let z3_vcs =
-    List.map
-      (fun vc ->
-        ( vc,
-          try
-            let ctx = Z3backend.Io.make_context decl_ctx in
-            let ctx =
-              Z3backend.Io.encode_asserts ctx vc.Conditions.vc_asserts
-            in
-            let ctx, z3_vc =
-              Z3backend.Io.translate_expr ctx vc.Conditions.vc_guard
-            in
-            Z3backend.Io.Success (z3_vc, ctx)
-          with Failure msg -> Fail msg ))
-      (List.filter
-         (fun vc ->
-           match vc.Conditions.vc_kind with
-           | Conditions.NoEmptyError | Conditions.NoOverlappingExceptions ->
-             true
-           | Conditions.DateComputation -> false)
-         vcs)
-  in
   let all_proven =
-    List.fold_left
-      (fun all_proven vc ->
-        if Z3backend.Io.check_vc decl_ctx vc then all_proven else false)
-      true z3_vcs
+    ScopeName.Map.fold
+      (fun scope_name scope_vcs all_proven ->
+        let dates_vc =
+          List.filter
+            (fun vc ->
+              match vc.Conditions.vc_kind with
+              | Conditions.DateComputation -> true
+              | _ -> false)
+            scope_vcs.Conditions.vc_scope_list
+        in
+        List.iter
+          (fun dates_vc ->
+            Message.emit_result "%s"
+              (Z3backend.Io.print_negative_result dates_vc scope_name
+                 (Z3backend.Io.make_context decl_ctx)
+                 None))
+          dates_vc;
+        let z3_vcs =
+          List.map
+            (fun vc ->
+              ( vc,
+                try
+                  let ctx = Z3backend.Io.make_context decl_ctx in
+                  let ctx =
+                    Z3backend.Io.encode_asserts ctx vc.Conditions.vc_asserts
+                  in
+                  let ctx, z3_vc =
+                    Z3backend.Io.translate_expr ctx vc.Conditions.vc_guard
+                  in
+                  Z3backend.Io.Success (z3_vc, ctx)
+                with Failure msg -> Fail msg ))
+            (List.filter
+               (fun vc ->
+                 match vc.Conditions.vc_kind with
+                 | Conditions.NoEmptyError | Conditions.NoOverlappingExceptions
+                   ->
+                   true
+                 | Conditions.DateComputation -> false)
+               scope_vcs.Conditions.vc_scope_list)
+        in
+        List.fold_left
+          (fun all_proven vc ->
+            if Z3backend.Io.check_vc decl_ctx scope_name vc then all_proven
+            else false)
+          all_proven z3_vcs)
+      vcs true
   in
   if all_proven then
-    Message.emit_result "No errors found during the proof mode run."
+    Message.emit_result "No potential errors found during the proof mode run."
+  else
+    Message.raise_error "Some potential errors were found during the proof run."

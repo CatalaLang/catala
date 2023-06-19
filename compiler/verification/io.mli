@@ -67,12 +67,16 @@ module type BackendIO = sig
 
   val print_negative_result :
     Conditions.verification_condition ->
+    ScopeName.t ->
     backend_context ->
     model option ->
     string
 
   val check_vc :
-    decl_ctx -> Conditions.verification_condition * vc_encoding_result -> bool
+    decl_ctx ->
+    ScopeName.t ->
+    Conditions.verification_condition * vc_encoding_result ->
+    bool
   (** [check_vc] spawns a new Z3 solver and tries to solve the expression [vc].
       Returns [true] if the vs was proven true and [false] otherwise. **)
 end

@@ -27,7 +27,6 @@ type vc_return = typed expr
 (** The return type of VC generators is the VC expression *)
 
 type ctx = {
-  current_scope_name : ScopeName.t;
   decl : decl_ctx;
   input_vars : typed expr Var.t list;
   scope_variables_typs : (typed expr, typ) Var.Map.t;
@@ -323,7 +322,6 @@ type verification_condition = {
   (* All assertions defined at the top-level of the scope corresponding to this
      assertion *)
   vc_asserts : typed expr;
-  vc_scope : ScopeName.t;
   vc_variable : typed expr Var.t Mark.pos;
 }
 
@@ -382,7 +380,6 @@ let rec generate_verification_conditions_scope_body_expr
               (* Placeholder until we add all assertions in scope once
                * we finished traversing it *)
               vc_asserts = trivial_assert e;
-              vc_scope = ctx.current_scope_name;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             };
           ]
@@ -401,7 +398,6 @@ let rec generate_verification_conditions_scope_body_expr
               vc_guard = Mark.copy e (Mark.remove vc_empty);
               vc_kind = NoEmptyError;
               vc_asserts = trivial_assert e;
-              vc_scope = ctx.current_scope_name;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             }
             :: vc_list
@@ -426,7 +422,6 @@ let rec generate_verification_conditions_scope_body_expr
                   vc_guard = subexpr_date;
                   vc_kind = DateComputation;
                   vc_asserts = trivial_assert e;
-                  vc_scope = ctx.current_scope_name;
                   vc_variable = scope_let_var, scope_let.scope_let_pos;
                 })
               subexprs_dates
@@ -446,14 +441,20 @@ let rec generate_verification_conditions_scope_body_expr
     in
     new_ctx, vc_list @ new_vcs, assert_list @ new_asserts
 
+type verification_conditions_scope = {
+  vc_scope_possible_variable_values :
+    (typed Dcalc.Ast.expr, typed Dcalc.Ast.expr list) Var.Map.t;
+  vc_scope_list : verification_condition list;
+}
+
 let generate_verification_conditions_code_items
     (decl_ctx : decl_ctx)
     (code_items : 'm expr code_item_list)
-    (s : ScopeName.t option) : verification_condition list =
+    (s : ScopeName.t option) : verification_conditions_scope ScopeName.Map.t =
   Scope.fold_left
-    ~f:(fun vcs item _ ->
+    ~f:(fun (vcs : verification_conditions_scope ScopeName.Map.t) item _ ->
       match item with
-      | Topdef _ -> []
+      | Topdef _ -> vcs
       | ScopeDef (name, body) ->
         let is_selected_scope =
           match s with
@@ -461,14 +462,13 @@ let generate_verification_conditions_code_items
           | None -> true
           | _ -> false
         in
-        let new_vcs =
-          if is_selected_scope then
+        if is_selected_scope then
+          let scope_vcs =
             let _scope_input_var, scope_body_expr =
               Bindlib.unbind body.scope_body_expr
             in
             let ctx =
               {
-                current_scope_name = name;
                 decl = decl_ctx;
                 input_vars = [];
                 scope_variables_typs =
@@ -489,24 +489,37 @@ let generate_verification_conditions_code_items
                    { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
             in
             List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
-          else []
-        in
-        new_vcs @ vcs)
-    ~init:[] code_items
+          in
+          ScopeName.Map.add name
+            {
+              vc_scope_list = scope_vcs;
+              vc_scope_possible_variable_values =
+                Var.Map.empty (* TODO: implement that!*);
+            }
+            vcs
+        else vcs)
+    ~init:ScopeName.Map.empty code_items
 
 let generate_verification_conditions (p : 'm program) (s : ScopeName.t option) :
-    verification_condition list =
-  let vcs =
+    verification_conditions_scope ScopeName.Map.t =
+  let vcs : verification_conditions_scope ScopeName.Map.t =
     generate_verification_conditions_code_items p.decl_ctx p.code_items s
   in
-  (* We sort this list by scope name and then variable name to ensure consistent
-     output for testing*)
-  List.sort
-    (fun vc1 vc2 ->
-      let to_str vc =
-        Format.asprintf "%s.%s"
-          (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-          (Bindlib.name_of (Mark.remove vc.vc_variable))
-      in
-      String.compare (to_str vc1) (to_str vc2))
+  ScopeName.Map.mapi
+    (fun scope_name scope_vc ->
+      {
+        scope_vc with
+        vc_scope_list =
+          (* We sort this list by scope name and then variable name to ensure
+             consistent output for testing*)
+          List.sort
+            (fun vc1 vc2 ->
+              let to_str vc =
+                Format.asprintf "%s.%s"
+                  (Format.asprintf "%a" ScopeName.format_t scope_name)
+                  (Bindlib.name_of (Mark.remove vc.vc_variable))
+              in
+              String.compare (to_str vc1) (to_str vc2))
+            scope_vc.vc_scope_list;
+      })
     vcs

@@ -370,8 +370,7 @@ let driver source_file (options : Cli.options) : int =
                 | None -> None
                 | Some _ -> Some scope_uid)
             in
-
-            Verification.Solver.solve_vc prgm.decl_ctx vcs
+            Verification.Solver.solve_vcs prgm.decl_ctx vcs
           | `Interpret ->
             Message.emit_debug "Starting interpretation (dcalc)...";
             let results =

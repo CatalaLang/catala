@@ -27,5 +27,5 @@ $ catala Proof --disable_counterexamples
 5 │    -- C content boolean
   │       ‾
   └─ Test
-[RESULT] No errors found during the proof mode run.
+[RESULT] No potential errors found during the proof mode run.
 ```

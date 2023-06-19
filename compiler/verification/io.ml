@@ -66,12 +66,16 @@ module type BackendIO = sig
 
   val print_negative_result :
     Conditions.verification_condition ->
+    ScopeName.t ->
     backend_context ->
     model option ->
     string
 
   val check_vc :
-    decl_ctx -> Conditions.verification_condition * vc_encoding_result -> bool
+    decl_ctx ->
+    ScopeName.t ->
+    Conditions.verification_condition * vc_encoding_result ->
+    bool
 end
 
 module MakeBackendIO (B : Backend) = struct
@@ -94,6 +98,7 @@ module MakeBackendIO (B : Backend) = struct
 
   let print_negative_result
       (vc : Conditions.verification_condition)
+      (scope : ScopeName.t)
       (ctx : B.backend_context)
       (model : B.model option) : string =
     let var_and_pos =
@@ -102,7 +107,7 @@ module MakeBackendIO (B : Backend) = struct
         Format.asprintf
           "@[<v>@{<yellow>[%a.%s]@} This variable might return an empty error:@,\
            %a@]"
-          ScopeName.format_t vc.vc_scope
+          ScopeName.format_t scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
           Pos.format_loc_text (Mark.get vc.vc_variable)
       | Conditions.NoOverlappingExceptions ->
@@ -110,14 +115,14 @@ module MakeBackendIO (B : Backend) = struct
           "@[<v>@{<yellow>[%a.%s]@} At least two exceptions overlap for this \
            variable:@,\
            %a@]"
-          ScopeName.format_t vc.vc_scope
+          ScopeName.format_t scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
           Pos.format_loc_text (Mark.get vc.vc_variable)
       | DateComputation ->
         Format.asprintf
           "@[<v>@{<yellow>[%a.%s]@} This date computation might be ambiguous:@,\
            %a@]"
-          ScopeName.format_t vc.vc_scope
+          ScopeName.format_t scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
           Pos.format_loc_text (Expr.pos vc.vc_guard)
     in
@@ -148,6 +153,7 @@ module MakeBackendIO (B : Backend) = struct
 
   let check_vc
       (_decl_ctx : decl_ctx)
+      (scope : ScopeName.t)
       (vc : Conditions.verification_condition * vc_encoding_result) : bool =
     let vc, z3_vc = vc in
 
@@ -172,13 +178,14 @@ module MakeBackendIO (B : Backend) = struct
       match B.solve_vc_encoding backend_ctx encoding with
       | ProvenTrue -> true
       | ProvenFalse model ->
-        Message.emit_warning "%s" (print_negative_result vc backend_ctx model);
+        Message.emit_warning "%s"
+          (print_negative_result vc scope backend_ctx model);
         false
       | Unknown -> failwith "The solver failed at proving or disproving the VC")
     | Fail msg ->
       Message.emit_warning
         "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s@]"
-        ScopeName.format_t vc.vc_scope
+        ScopeName.format_t scope
         (Bindlib.name_of (Mark.remove vc.vc_variable))
         msg;
       false
