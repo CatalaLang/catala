@@ -165,13 +165,27 @@ module MakeBackendIO (B : Backend) = struct
       "@[<v>This verification condition was generated for @{<yellow>%s@}:@,\
        %a@,\
        with assertions:@,\
+       %a@,\
+       and possible values for variables:@,\
        %a@]"
       (match vc.vc_kind with
       | Conditions.NoEmptyError ->
         "the variable definition never to return an empty error"
       | NoOverlappingExceptions -> "no two exceptions to ever overlap"
       | DateComputation -> "this date computation cannot be ambiguous")
-      (Print.expr ()) vc.vc_guard (Print.expr ()) vc_scope_ctx.vc_scope_asserts;
+      (Print.expr ()) vc.vc_guard (Print.expr ()) vc_scope_ctx.vc_scope_asserts
+      (fun fmt vars_possible_values ->
+        Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
+          (fun fmt (var, values) ->
+            Format.fprintf fmt "@[<hov 2>%a@ = @ %a@]" Print.var var
+              (Format.pp_print_list
+                 ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
+                 (Print.expr ()))
+              values)
+          fmt
+          (Var.Map.bindings vars_possible_values))
+      vc_scope_ctx.vc_scope_possible_variable_values;
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (

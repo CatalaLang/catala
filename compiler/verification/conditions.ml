@@ -31,6 +31,7 @@ type scope_conditions_ctx = {
   scope_cond_input_vars : typed expr Var.t list;
   scope_cond_variables_typs : (typed expr, typ) Var.Map.t;
   scope_cond_asserts : typed expr list;
+  scope_cond_possible_values : (typed expr, typed expr list) Var.Map.t;
 }
 
 let rec conjunction_exprs (exprs : typed expr list) (mark : typed mark) :
@@ -313,6 +314,15 @@ let rec slice_expression_for_date_computations
       (fun e acc -> slice_expression_for_date_computations ctx e @ acc)
       e []
 
+(* Expects a top [EDefault] node and below the tree of defaults. *)
+let rec generate_possible_values (ctx : scope_conditions_ctx) (e : typed expr) :
+    typed expr list =
+  match Mark.remove e with
+  | EDefault { excepts; just = _; cons = c } ->
+    generate_possible_values ctx c
+    @ List.flatten (List.map (generate_possible_values ctx) excepts)
+  | _ -> [e]
+
 (** {1 Interface}*)
 
 type verification_condition_kind =
@@ -326,8 +336,6 @@ type verification_condition = {
   vc_kind : verification_condition_kind;
   vc_variable : typed expr Var.t Mark.pos;
 }
-
-let trivial_assert e = Mark.copy e (ELit (LBool true))
 
 let rec generate_verification_conditions_scope_body_expr
     (ctx : scope_conditions_ctx)
@@ -372,6 +380,9 @@ let rec generate_verification_conditions_scope_body_expr
         in
         let e = match_and_ignore_outer_reentrant_default ctx e in
         let vc_confl = generate_vc_must_not_return_conflict ctx e in
+        let possible_values : typed expr list =
+          generate_possible_values ctx e
+        in
         let vc_confl =
           if !Cli.optimize_flag then
             Expr.unbox
@@ -433,7 +444,13 @@ let rec generate_verification_conditions_scope_body_expr
                 })
               subexprs_dates
         in
-        ctx, vc_list
+        ( {
+            ctx with
+            scope_cond_possible_values =
+              Var.Map.add scope_let_var possible_values
+                ctx.scope_cond_possible_values;
+          },
+          vc_list )
       | _ -> ctx, []
     in
     let new_ctx, new_vcs =
@@ -478,7 +495,11 @@ let generate_verification_conditions_code_items
             {
               scope_cond_decls = decl_ctx;
               scope_cond_asserts = [];
+              (* To be filled later *)
               scope_cond_input_vars = [];
+              (* To be filled later *)
+              scope_cond_possible_values = Var.Map.empty;
+              (* To be filled later *)
               scope_cond_variables_typs =
                 Var.Map.empty
                 (* We don't need to add the typ of the scope input var here
@@ -498,8 +519,7 @@ let generate_verification_conditions_code_items
             {
               vc_scope_asserts = combined_assert;
               vc_scope_list = scope_vcs;
-              vc_scope_possible_variable_values =
-                Var.Map.empty (* TODO: implement that!*);
+              vc_scope_possible_variable_values = ctx.scope_cond_possible_values;
             }
             vcs
         else vcs)
