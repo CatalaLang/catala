@@ -17,7 +17,7 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] The name of this constructor has not been defined before, maybe it is a typo?
+[ERROR] The name of this constructor has not been defined before, maybe it is a typo? Maybe you wanted to say "Case1"?
 
 ┌─⯈ tests/test_enum/bad/quick_pattern_fail.catala_en:15.38-15.43:
 └──┐

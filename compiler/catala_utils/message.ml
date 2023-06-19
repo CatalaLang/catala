@@ -173,7 +173,7 @@ let emit_content (content : Content.t) (target : content_type) : unit =
             Format.pp_print_cut ppf ();
             Format.pp_print_cut ppf ();
             Option.iter
-              (fun msg -> Format.fprintf ppf "%t@, compréhension ??" msg)
+              (fun msg -> Format.fprintf ppf "%t@," msg)
               pos.pos_message;
             Pos.format_loc_text ppf pos.pos)
           ppf l)
