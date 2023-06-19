@@ -452,6 +452,11 @@ let rec rebox (e : ('a any, 't) gexpr) = map ~f:rebox e
 
 let box e = Mark.map Bindlib.box e
 let unbox (e, m) = Bindlib.unbox e, m
+
+let unbox_closed e =
+  Box.assert_closed (fst e);
+  unbox e
+
 let untype e = map_marks ~f:(fun m -> Untyped { pos = mark_pos m }) e
 
 (* Tests *)

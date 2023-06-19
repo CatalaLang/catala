@@ -504,109 +504,6 @@ and val_to_runtime :
     curry [] targs
   | _ -> assert false
 
-(* let f e = (e : (< .. > as 'a, 't) gexpr :> (< custom : _; 'a; .. >, 't) gexpr ) 
- * 
- * let f (type a) ((e: (< custom: a; .. >, 't) naked_gexpr), t) =
- *   if false then ECustom { obj = Obj.repr (); targs = []; tret = (TLit TUnit, Pos.no_pos) }, t
- *   else e, t *)
-(* let rec add_custom: (< .. >
- *   type a b . (a, b, 't) base_gexpr * 't -> (< custom: yes; ..  >, 't) gexpr
- *   = function
- *     | ECustom _, _ as e -> Expr.box e
- *     | (ELit _
- *       | EApp _
- *       | EOp _
- *       | EArray _
- *       | EVar _
- *       | EExternal _
- *       | EAbs _
- *       | EIfThenElse _
- *       | ETuple _
- *       | ETupleAccess _
- *       | EInj _
- *       | EAssert _
- *       | EDefault _
- *       | EEmptyError
- *       | EErrorOnEmpty _
- *       | ECatch _
- *       | ERaise _
- *       | ELocation _
- *       | EStruct _
- *       | EDStructAccess _
- *       | EStructAccess _
- *       | EMatch _
- *       | EScopeCall _), _
- *       as e
- *       -> Expr.map ~f:add_custom e
- * 
- *   ;;
- *   fun e ->
- *   if false then
- *     Expr.box
- *       (ECustom { obj = Obj.repr (); targs = []; tret = (TLit TUnit, Pos.no_pos) },
- *        Marked.get_mark e)
- *   else *)
-
-(* type ('a, 'b) has_custom = < custom: 'a; .. > as 'b
- * 
- * let f (type b) (e: ((_, b) has_custom, 't) naked_gexpr) : ((yes, b) has_custom, 't) naked_gexpr = match e with
- *   | EEmptyError when false ->
- *     ECustom { obj = Obj.repr (); targs = []; tret = (TLit TUnit, Pos.no_pos) }
- *   | ECustom _ as e -> e
- *   | EOp _ as e -> e
- *   | ELocation _ as e -> e
- *   | ELit _ as e -> e
- *   | EApp _ as e -> e
- *   | EArray _ as e -> e
- *   | EVar _ as e -> e
- *   | EExternal _ as e -> e
- *   | EAbs _ as e -> e
- *   | EIfThenElse _ as e -> e
- *   | ETuple _ as e -> e
- *   | ETupleAccess _ as e -> e
- *   | EInj _ as e -> e
- *   | EAssert _ as e -> e
- *   | EDefault _ as e -> e
- *   | EEmptyError as e -> e
- *   | EErrorOnEmpty _ as e -> e
- *   | ECatch _ as e -> e
- *   | ERaise _ as e -> e
- *   | EStruct _ as e -> e
- *   | EDStructAccess _ as e -> e
- *   | EStructAccess _ as e -> e
- *   | EMatch _ as e -> e
- *   | EScopeCall _ as e -> e *)
-
-(* let rec add_custom:
- *   type c d e.
- *   (< features; defaultTerms: d; exceptions: e; custom : c >, 't) gexpr ->
- *   (< features; defaultTerms: d; exceptions: e; custom : yes >, 't) gexpr boxed
- *   = function
- *   (\* Obj.magic (Expr.box e) *\)
- *   (\* | EEmptyError, m when false ->
- *    *   Expr.box (ECustom { obj = Obj.repr (); targs = []; tret = (TLit TUnit, Pos.no_pos) }, m) *\)
- *   | (EDefault _ | EEmptyError | EErrorOnEmpty _), _ as e ->
- *     Expr.map ~f:add_custom
- *       (e : (< features; defaultTerms: yes; exceptions: e; custom : c >, 't) gexpr)
- *   | (ECatch _ | ERaise _), _ as e -> Expr.map ~f:add_custom e
- *   | ECustom _, _ -> assert false
- *   | (EOp _
- *   | ELocation _
- *   | ELit _
- *   | EApp _
- *   | EArray _
- *   | EVar _
- *   | EExternal _
- *   | EAbs _
- *   | EIfThenElse _
- *   | ETuple _
- *   | ETupleAccess _
- *   | EInj _
- *   | EAssert _
- *   | EStruct _
- *   | EStructAccess _
- *   | EMatch _), _ as e -> Expr.map ~f:add_custom e *)
-
 let rec evaluate_expr :
     type d e.
     decl_ctx -> ((d, e, yes) astk, 't) gexpr -> ((d, e, yes) astk, 't) gexpr =
@@ -804,97 +701,6 @@ let rec evaluate_expr :
       evaluate_expr ctx handler)
   | _ -> .
 
-(* type ('kind,'a,'b,'c,'d,'e,'f,'g,'h,'i,'k,'l,'m) astrec = {
- *   monomorphic : 'a
- * ; polymorphic : 'b 
- * ; overloaded : 'c
- * ; resolved : 'd
- * ; syntacticNames : 'e
- * ; resolvedNames : 'f
- * ; scopeVarStates : 'g
- * ; scopeVarSimpl : 'h
- * ; explicitScopes : 'i
- * ; assertions : 'j
- * ; defaultTerms : 'k
- * ; exceptions : 'l
- * ; custom : 'm 
- * }
- * constraint 'kind = <
- *   monomorphic : 'a
- * ; polymorphic : 'b
- * ; overloaded : 'c
- * ; resolved : 'd
- * ; syntacticNames : 'e
- * ; resolvedNames : 'f
- * ; scopeVarStates : 'g
- * ; scopeVarSimpl : 'h
- * ; explicitScopes : 'i
- * ; assertions : 'j
- * ; defaultTerms : 'k
- * ; exceptions : 'l
- * ; custom : 'm >
- * 
- * type ('kind,'a,'b,'c,'d,'e,'f,'g,'h,'i,'k,'l,'m) astrec2 =
- *     Astrec:
- *       { monomorphic : 'a
- *       ; polymorphic : 'b
- *       ; overloaded : 'c
- *       ; resolved : 'd
- *       ; syntacticNames : 'e
- *       ; resolvedNames : 'f
- *       ; scopeVarStates : 'g
- *       ; scopeVarSimpl : 'h
- *       ; explicitScopes : 'i
- *       ; assertions : 'j
- *       ; defaultTerms : 'k
- *       ; exceptions : 'l
- *       ; custom : 'm }
- *       ->
- *       (< monomorphic : 'a
- *        ; polymorphic : 'b
- *        ; overloaded : 'c
- *        ; resolved : 'd
- *        ; syntacticNames : 'e
- *        ; resolvedNames : 'f
- *        ; scopeVarStates : 'g
- *        ; scopeVarSimpl : 'h
- *        ; explicitScopes : 'i
- *        ; assertions : 'j
- *        ; defaultTerms : 'k
- *        ; exceptions : 'l
- *        ; custom : 'm >,
- *        'a,'b,'c,'d,'e,'f,'g,'h,'i,'k,'l,'m) astrec2
- * 
- * let customise
- *     (type x a b c d e f g h i j k l m)
- *     (ty: ('kind,a,b,c,d,e,f,g,h,i,k,l,m) astrec2)
- *     (e: (x, 't) gexpr)
- *   : ('kind, 't) gexpr =
- *   match ty, e with
- *   | Astrec { custom = Yes; _ }, (ECustom _, _ as e) -> (e: ('kind, 't) gexpr)
- *   | Astrec { custom = No; _ }, (ECustom _, _) -> invalid_arg "Bad AST cast"
- *   | EOp {op;tys}, m -> Expr.eop (Operator.translate op) tys m
- *   | EDefault _, _ as e -> Expr.map ~f e
- *   | EEmptyError, _ as e -> Expr.map ~f e
- *   | EErrorOnEmpty _, _ as e -> Expr.map ~f e
- *   | ECatch _, _ as e -> Expr.map ~f e
- *   | ERaise _, _ as e -> Expr.map ~f e
- *   | (EAssert _
- *     | ELit _
- *     | EApp _
- *     | EArray _
- *     | EVar _
- *     | EExternal _
- *     | EAbs _
- *     | EIfThenElse _
- *     | ETuple _
- *     | ETupleAccess _
- *     | EInj _
- *     | EStruct _
- *     | EStructAccess _
- *     | EMatch _), _ as e -> Expr.map ~f e
- *   | _ -> . *)
-
 (* Typing shenanigan to add custom terms to the AST type. This is an identity
    and could be optimised into [Obj.magic]. *)
 let addcustom e =
@@ -938,6 +744,10 @@ let delcustom e =
   in
   Expr.unbox (f e)
 
+(* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
+   external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
+   and [delcustom] are needed to expand and shrink the type of the terms to
+   reflect that. *)
 let evaluate_expr ctx e = delcustom (evaluate_expr ctx (addcustom e))
 
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list

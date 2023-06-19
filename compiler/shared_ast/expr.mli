@@ -28,6 +28,10 @@ val box : ('a, 'm) gexpr -> ('a, 'm) boxed_gexpr
 val unbox : ('a, 'm) boxed_gexpr -> ('a, 'm) gexpr
 (** For closed expressions, similar to [Bindlib.unbox] *)
 
+val unbox_closed : ('a, 'm) boxed_gexpr -> ('a, 'm) gexpr
+(** Similar to [unbox], but with an added assertion check on the expression
+    being closed *)
+
 val rebox : ('a any, 'm) gexpr -> ('a, 'm) boxed_gexpr
 (** Rebuild the whole term, re-binding all variables and exposing free variables *)
 

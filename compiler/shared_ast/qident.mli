@@ -18,10 +18,10 @@
     separate compilation units. *)
 
 type modname = string
-(** Expected to be a uident *)
+(** Expected to be a uident (i.e. start with an uppercase letter) *)
 
 type ident = string
-(** Expected to be a lident *)
+(** Expected to be a lident (i.e. start with a lowercase letter) *)
 
 type path = modname list
 type t = path * ident

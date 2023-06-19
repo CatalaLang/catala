@@ -1256,7 +1256,7 @@ let process_topdef
   let expr_opt =
     match def.S.topdef_expr, def.S.topdef_args with
     | None, _ -> None
-    | Some e, None -> Some (Expr.unbox (translate_expr None None ctxt e))
+    | Some e, None -> Some (Expr.unbox_closed (translate_expr None None ctxt e))
     | Some e, Some (args, _) ->
       let ctxt, args_tys =
         List.fold_left_map
@@ -1274,7 +1274,7 @@ let process_topdef
           (List.map translate_tbase tys)
           (Mark.get def.S.topdef_name)
       in
-      Some (Expr.unbox e)
+      Some (Expr.unbox_closed e)
   in
   let program_topdefs =
     TopdefName.Map.update id
