@@ -34,7 +34,6 @@ scope Money:
 ```catala-test-inline
 $ catala Interpret -s Dec
 [ERROR] division by zero at runtime
-
 The division operator:
 ┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.23-20.30:
 └──┐
@@ -42,7 +41,6 @@ The division operator:
    │                       ‾‾‾‾‾‾‾
    └┬ `Division_by_zero` exception management
     └─ with decimals
-
 The null denominator:
 ┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.28-20.30:
 └──┐
@@ -56,7 +54,6 @@ The null denominator:
 ```catala-test-inline
 $ catala Interpret -s Int
 [ERROR] division by zero at runtime
-
 The division operator:
 ┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.23-10.28:
 └──┐
@@ -64,7 +61,6 @@ The division operator:
    │                       ‾‾‾‾‾
    └┬ `Division_by_zero` exception management
     └─ with integers
-
 The null denominator:
 ┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.27-10.28:
 └──┐
@@ -78,7 +74,6 @@ The null denominator:
 ```catala-test-inline
 $ catala Interpret -s Money
 [ERROR] division by zero at runtime
-
 The division operator:
 ┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.23-30.35:
 └──┐
@@ -86,7 +81,6 @@ The division operator:
    │                       ‾‾‾‾‾‾‾‾‾‾‾‾
    └┬ `Division_by_zero` exception management
     └─ with money
-
 The null denominator:
 ┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.31-30.35:
 └──┐

@@ -124,7 +124,7 @@ module Passes = struct
         let bt = Printexc.get_raw_backtrace () in
         Printexc.raise_with_backtrace
           (Message.CompilerError
-             (Message.Content.mark_as_internal_error error_content))
+             (Message.Content.to_internal_error error_content))
           bt
     in
     if check_invariants then (
@@ -883,19 +883,19 @@ let main () =
   | exception Cli.Exit_with n -> exit n
   | exception Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Message.emit_content content Error;
+    Message.Content.emit content Error;
     if Cli.globals.debug then Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | exception Sys_error msg ->
     let bt = Printexc.get_raw_backtrace () in
-    Message.emit_content
+    Message.Content.emit
       (Message.Content.of_string ("System error: " ^ msg))
       Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.internal_error
   | exception e ->
     let bt = Printexc.get_raw_backtrace () in
-    Message.emit_content
+    Message.Content.emit
       (Message.Content.of_string ("Unexpected error: " ^ Printexc.to_string e))
       Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;

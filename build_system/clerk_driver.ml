@@ -957,7 +957,7 @@ let driver
     | _ -> Message.raise_error "The command \"%s\" is unknown to clerk." command
   with Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Message.emit_content content Error;
+    Message.Content.emit content Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     return_err
 

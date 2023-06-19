@@ -13,14 +13,13 @@ scope S:
 
 ```catala-test-inline
 $ catala typecheck
-[ERROR] Function argument name mismatch between declaration ('x') and definition ('y')
-
+[ERROR]
+Function argument name mismatch between declaration ('x') and definition ('y')
 Argument declared here:
 ┌─⯈ tests/test_func/bad/param_inconsistency3.catala_en:4.42-4.43:
 └─┐
 4 │   internal f1 content decimal depends on x content integer
   │                                          ‾
-
 
 Defined here:
 ┌─⯈ tests/test_func/bad/param_inconsistency3.catala_en:9.30-9.31:

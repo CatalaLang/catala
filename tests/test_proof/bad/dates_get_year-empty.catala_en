@@ -15,15 +15,14 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
-[ERROR] It is impossible to give a definition to a scope variable tagged as input.
-
+[ERROR]
+It is impossible to give a definition to a scope variable tagged as input.
 Incriminated variable:
 ┌─⯈ tests/test_proof/bad/dates_get_year-empty.catala_en:5.9-5.10:
 └─┐
 5 │   input x content date
   │         ‾
   └─ Test
-
 Incriminated variable definition:
 ┌─⯈ tests/test_proof/bad/dates_get_year-empty.catala_en:9.3-9.15:
 └─┐

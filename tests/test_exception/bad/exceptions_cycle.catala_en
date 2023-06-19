@@ -20,8 +20,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] Exception cycle detected when defining x: each of these 3 exceptions applies over the previous one, and the first applies over the last
-
+[ERROR]
+Exception cycle detected when defining x: each of these 3 exceptions applies over the previous one, and the first applies over the last
 ┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:8.3-10.15:
 └──┐
  8 │   label base_x
@@ -31,7 +31,6 @@ $ catala Interpret -s A
 10 │   definition x equals 0
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
 
-
 ┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:12.3-14.15:
 └──┐
 12 │   label exception_x
@@ -40,7 +39,6 @@ $ catala Interpret -s A
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 14 │   definition x equals 1
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
-
 
 ┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:16.3-18.15:
 └──┐

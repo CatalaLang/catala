@@ -17,7 +17,6 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] The constructor "C2" of enumeration "E" is never used; maybe it's unnecessary?
-
 ┌─⯈ tests/test_proof/bad/enums_inj-empty.catala_en:6.6-6.8:
 └─┐
 6 │   -- C2

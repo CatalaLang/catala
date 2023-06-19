@@ -21,8 +21,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] This exception can refer to several definitions. Try using labels to disambiguate
-
+[ERROR]
+This exception can refer to several definitions. Try using labels to disambiguate
 Ambiguous exception
 ┌─⯈ tests/test_exception/bad/one_ambiguous_exception.catala_en:18.3-19.15:
 └──┐
@@ -31,14 +31,12 @@ Ambiguous exception
 19 │   definition y equals 3
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
-
 Candidate definition
 ┌─⯈ tests/test_exception/bad/one_ambiguous_exception.catala_en:16.14-16.15:
 └──┐
 16 │   definition y equals 4
    │              ‾
    └─ Test
-
 Candidate definition
 ┌─⯈ tests/test_exception/bad/one_ambiguous_exception.catala_en:14.14-14.15:
 └──┐

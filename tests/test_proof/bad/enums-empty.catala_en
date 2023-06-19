@@ -24,7 +24,6 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
-
 ┌─⯈ tests/test_proof/bad/enums-empty.catala_en:7.7-7.8:
 └─┐
 7 │    -- C content boolean

@@ -27,21 +27,35 @@
 
 (** {1 Message content} *)
 
-module Content : sig
-  type message = Format.formatter -> unit
-  type position = { pos_message : message option; pos : Pos.t }
-  type suggestions = string list option
-  type t
-
-  val of_message : (Format.formatter -> unit) -> t
-  val of_string : string -> t
-  val mark_as_internal_error : t -> t
-  val prepend_message : t -> (Format.formatter -> unit) -> t
-end
-
 type content_type = Error | Warning | Debug | Log | Result
 
-val emit_content : Content.t -> content_type -> unit
+module Content : sig
+  (** {2 Types}*)
+
+  type message = Format.formatter -> unit
+  type t
+
+  (** {2 Content creation}*)
+
+  val of_message : message -> t
+
+  val of_result : message -> t
+  (** Similar as [of_message] but tailored for when you want to print the result
+      of a value, etc. *)
+
+  val of_string : string -> t
+  val prepend_message : t -> (Format.formatter -> unit) -> t
+
+  (** {2 Content manipulation}*)
+
+  val to_internal_error : t -> t
+  val add_suggestion : t -> message -> t
+
+  (** {2 Content emission}*)
+
+  val emit : t -> content_type -> unit
+end
+
 (** This functions emits the message according to the emission type defined by
     [Cli.message_format_flag]. *)
 
@@ -53,8 +67,8 @@ exception CompilerError of Content.t
 
 val raise_spanned_error :
   ?span_msg:Content.message ->
+  ?suggestion:Content.message ->
   Pos.t ->
-  ?suggestions:string list ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
 
