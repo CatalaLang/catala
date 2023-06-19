@@ -26,10 +26,11 @@ open Ast
 type vc_return = typed expr
 (** The return type of VC generators is the VC expression *)
 
-type ctx = {
-  decl : decl_ctx;
-  input_vars : typed expr Var.t list;
-  scope_variables_typs : (typed expr, typ) Var.Map.t;
+type scope_conditions_ctx = {
+  scope_cond_decls : decl_ctx;
+  scope_cond_input_vars : typed expr Var.t list;
+  scope_cond_variables_typs : (typed expr, typ) Var.Map.t;
+  scope_cond_asserts : typed expr list;
 }
 
 let rec conjunction_exprs (exprs : typed expr list) (mark : typed mark) :
@@ -110,8 +111,9 @@ let half_product (l1 : 'a list) (l2 : 'b list) : ('a * 'b) list =
     variables, or [fun () -> e1] for subscope variables. But what we really want
     to analyze is only [e1], so we match this outermost structure explicitely
     and have a clean verification condition generator that only runs on [e1] *)
-let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
-    typed expr =
+let match_and_ignore_outer_reentrant_default
+    (ctx : scope_conditions_ctx)
+    (e : typed expr) : typed expr =
   match Mark.remove e with
   | EErrorOnEmpty
       ( EDefault
@@ -121,7 +123,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
             cons;
           },
         _ )
-    when List.exists (fun x' -> Var.eq x x') ctx.input_vars ->
+    when List.exists (fun x' -> Var.eq x x') ctx.scope_cond_input_vars ->
     (* scope variables*)
     cons
   | EAbs { binder; tys = [(TLit TUnit, _)] } ->
@@ -154,8 +156,9 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
     [b] such that if [b] is true, then [e] will never return an empty error. It
     also returns a map of all the types of locally free variables inside the
     expression. *)
-let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
-    vc_return =
+let rec generate_vc_must_not_return_empty
+    (ctx : scope_conditions_ctx)
+    (e : typed expr) : vc_return =
   match Mark.remove e with
   | EAbs { binder; _ } ->
     (* Hot take: for a function never to return an empty error when called, it
@@ -246,8 +249,9 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
     expression [b] such that if [b] is true, then [e] will never return a
     conflict error. It also returns a map of all the types of locally free
     variables inside the expression. *)
-let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
-    vc_return =
+let rec generate_vc_must_not_return_conflict
+    (ctx : scope_conditions_ctx)
+    (e : typed expr) : vc_return =
   (* See the code of [generate_vc_must_not_return_empty] for a list of
      invariants on which this function relies on. *)
   match Mark.remove e with
@@ -292,8 +296,9 @@ let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
     subexpressions of [e] whose top AST node is a computation on dates that can
     raise [Dates_calc.AmbiguousComputation], that is [Dates_calc.add_dates]. The
     list is ordered from the smallest subexpressions to the biggest. *)
-let rec slice_expression_for_date_computations (ctx : ctx) (e : typed expr) :
-    vc_return list =
+let rec slice_expression_for_date_computations
+    (ctx : scope_conditions_ctx)
+    (e : typed expr) : vc_return list =
   match Mark.remove e with
   | EApp
       {
@@ -325,16 +330,16 @@ type verification_condition = {
 let trivial_assert e = Mark.copy e (ELit (LBool true))
 
 let rec generate_verification_conditions_scope_body_expr
-    (ctx : ctx)
+    (ctx : scope_conditions_ctx)
     (scope_body_expr : 'm expr scope_body_expr) :
-    ctx * verification_condition list * typed expr list =
+    scope_conditions_ctx * verification_condition list =
   match scope_body_expr with
-  | Result _ -> ctx, [], []
+  | Result _ -> ctx, []
   | ScopeLet scope_let ->
     let scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
     in
-    let new_ctx, vc_list, assert_list =
+    let new_ctx, vc_list =
       match scope_let.scope_let_kind with
       | Assertion -> (
         let e =
@@ -343,7 +348,7 @@ let rec generate_verification_conditions_scope_body_expr
         match Mark.remove e with
         | EAssert e ->
           let e = match_and_ignore_outer_reentrant_default ctx e in
-          ctx, [], [e]
+          { ctx with scope_cond_asserts = e :: ctx.scope_cond_asserts }, []
         | _ ->
           Message.raise_spanned_error (Expr.pos e)
             "Internal error: this assertion does not have the structure \
@@ -351,7 +356,11 @@ let rec generate_verification_conditions_scope_body_expr
              %a"
             (Print.expr ()) e)
       | DestructuringInputStruct ->
-        { ctx with input_vars = scope_let_var :: ctx.input_vars }, [], []
+        ( {
+            ctx with
+            scope_cond_input_vars = scope_let_var :: ctx.scope_cond_input_vars;
+          },
+          [] )
       | ScopeVarDefinition | SubScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
            emptyError nor conflictError. But for subscope variable definitions,
@@ -366,7 +375,8 @@ let rec generate_verification_conditions_scope_body_expr
         let vc_confl =
           if !Cli.optimize_flag then
             Expr.unbox
-              (Shared_ast.Optimizations.optimize_expr ctx.decl vc_confl)
+              (Shared_ast.Optimizations.optimize_expr ctx.scope_cond_decls
+                 vc_confl)
           else vc_confl
         in
         let vc_list =
@@ -387,7 +397,8 @@ let rec generate_verification_conditions_scope_body_expr
             let vc_empty =
               if !Cli.optimize_flag then
                 Expr.unbox
-                  (Shared_ast.Optimizations.optimize_expr ctx.decl vc_empty)
+                  (Shared_ast.Optimizations.optimize_expr ctx.scope_cond_decls
+                     vc_empty)
               else vc_empty
             in
             {
@@ -406,7 +417,9 @@ let rec generate_verification_conditions_scope_body_expr
             List.map
               (fun e ->
                 if !Cli.optimize_flag then
-                  Expr.unbox (Shared_ast.Optimizations.optimize_expr ctx.decl e)
+                  Expr.unbox
+                    (Shared_ast.Optimizations.optimize_expr ctx.scope_cond_decls
+                       e)
                 else e)
               subexprs_dates
           in
@@ -420,20 +433,20 @@ let rec generate_verification_conditions_scope_body_expr
                 })
               subexprs_dates
         in
-        ctx, vc_list, []
-      | _ -> ctx, [], []
+        ctx, vc_list
+      | _ -> ctx, []
     in
-    let new_ctx, new_vcs, new_asserts =
+    let new_ctx, new_vcs =
       generate_verification_conditions_scope_body_expr
         {
           new_ctx with
-          scope_variables_typs =
+          scope_cond_variables_typs =
             Var.Map.add scope_let_var scope_let.scope_let_typ
-              new_ctx.scope_variables_typs;
+              new_ctx.scope_cond_variables_typs;
         }
         scope_let_next
     in
-    new_ctx, vc_list @ new_vcs, assert_list @ new_asserts
+    new_ctx, vc_list @ new_vcs
 
 type verification_conditions_scope = {
   vc_scope_asserts : typed expr;
@@ -463,9 +476,10 @@ let generate_verification_conditions_code_items
           in
           let ctx =
             {
-              decl = decl_ctx;
-              input_vars = [];
-              scope_variables_typs =
+              scope_cond_decls = decl_ctx;
+              scope_cond_asserts = [];
+              scope_cond_input_vars = [];
+              scope_cond_variables_typs =
                 Var.Map.empty
                 (* We don't need to add the typ of the scope input var here
                    because it will never appear in an expression for which we
@@ -473,11 +487,11 @@ let generate_verification_conditions_code_items
                    destructured with a series of let bindings just after. )*);
             }
           in
-          let _, scope_vcs, asserts =
+          let ctx, scope_vcs =
             generate_verification_conditions_scope_body_expr ctx scope_body_expr
           in
           let combined_assert =
-            conjunction_exprs asserts
+            conjunction_exprs ctx.scope_cond_asserts
               (Typed { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
           in
           ScopeName.Map.add name
