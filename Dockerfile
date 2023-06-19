@@ -10,8 +10,6 @@ RUN sudo apk add python3
 RUN sudo ln -s /usr/bin/python3 /usr/bin/python
 RUN sudo apk add g++
 RUN sudo apk add make
-# We also need bash to build JaneStreet's base
-RUN sudo apk add bash
 
 RUN mkdir catala
 WORKDIR catala

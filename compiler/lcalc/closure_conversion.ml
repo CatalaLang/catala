@@ -166,10 +166,11 @@ let rec transform_closures_expr :
           as f;
         args;
       } ->
-    (* Special case for some operators: its arguments closures thunks because if
-       you want to extract it as a function you need these closures to preserve
-       evaluation order, but backends that don't support closures will simply
-       extract these operators in a inlined way and skip the thunks. *)
+    (* Special case for some operators: its arguments shall remain thunks (which
+       are closures) because if you want to extract it as a function you need
+       these closures to preserve evaluation order, but backends that don't
+       support closures will simply extract these operators in a inlined way and
+       skip the thunks. *)
     let free_vars, new_args =
       List.fold_right
         (fun (arg : (lcalc, m) gexpr) (free_vars, new_args) ->
@@ -308,15 +309,17 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
   in
   (* Now we need to further tweak [decl_ctx] because some of the user-defined
      types can have closures in them and these closured might have changed type.
-     So we reset them to [TAny] in the hopes that the transformation applied
-     will not yield to type unification conflicts. Indeed, consider the
-     following closure: [let f = if ... then fun v -> x + v else fun v -> v]. To
-     be typed correctly once converted, this closure needs an existential type
-     but the Catala typechecker doesn't have them. However, this kind of type
-     conflict is difficult to produce using the Catala surface language: it can
-     only happen if you store a closure which is the output of a scope inside a
-     user-defined data structure, and if you do it in two different places in
-     the code with two closures that don't have the same capture footprint. *)
+     So we reset them to [TAny] and leave the typechecker to figure it out. This
+     will not yield any type unification conflicts because of the special type
+     [TClosureEnv]. Indeed, consider the following closure: [let f = if ... then
+     fun v -> x + v else fun v -> v]. To be typed correctly once converted, this
+     closure needs an existential type, this is what [TClosureEnv] is for. This
+     kind of situation is difficult to produce using the Catala surface
+     language: it can only happen if you store a closure which is the output of
+     a scope inside a user-defined data structure, and if you do it in two
+     different places in the code with two closures that don't have the same
+     capture footprint. See
+     [tests/tests_func/good/scope_call_func_struct_closure.catala_en]. *)
   let new_decl_ctx =
     let rec type_contains_arrow t =
       match Mark.remove t with
@@ -463,7 +466,6 @@ let rec hoist_closures_expr :
   | EVar _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_closures_expr name_context) e
   | _ -> .
- [@@warning "-32"]
 
 (* Here I have to reimplement Scope.map_exprs_in_lets because I'm changing the
    type *)

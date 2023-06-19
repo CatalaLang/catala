@@ -75,7 +75,7 @@ let print_time_marker =
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
     if delta > 50. then
-      Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@\n" delta
+      Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@ " delta
 
 let pp_marker target ppf =
   let open Ocolor_types in
@@ -108,7 +108,7 @@ module Content = struct
 
   let internal_error_prefix =
     "Internal Error, please report to \
-     https://github.com/CatalaLang/catala/issues: "
+     https://github.com/CatalaLang/catala/issues : "
 
   let prepend_message (content : t) prefix : t =
     {
