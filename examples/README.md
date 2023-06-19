@@ -14,8 +14,6 @@ of the Catala programming language development.
 - `aides_logement`: computation of the French housing benefits, based on the
   _Code de la construction et de l'habitation_. This case study is the biggest and
   most ambitious for Catala so far.
-- `code_general_impots/`: computation of the French income tax, based on the
-  _Code général des impôts_. Currently, there are only stubs of program.
 - `tutorial_<en/fr>/`: Catala language tutorial for developers of tech-savvy lawyers.
   The tutorial is written like a piece of legislation that gets annotated by
   Catala snippets.
@@ -46,13 +44,14 @@ file `examples/foo/foo.catala_en`) list.
 When invoking any of these targets, additional options to the Catala compiler
 can be passed using the `CATALA_OPTS` Makefile variable.
 
- Important
+Important
 
- : Before trying to generates LaTex or PDF files:
-   1. don't forget to run `make pygments`,
-   2. and you need to have the font
-      [Marianne](https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography)
-      installed in your machine.
+: Before trying to generates LaTex or PDF files:
+
+1.  don't forget to run `make pygments`,
+2.  and you need to have the font
+    [Marianne](https://gouvfr.atlassian.net/wiki/spaces/DB/pages/223019527/Typographie+-+Typography)
+    installed in your machine.
 
 > Note: the OCaml, Javascript and Python artifacts that are generated here and
 > used in ../french_law are generated using `dune` rules instead. See the
