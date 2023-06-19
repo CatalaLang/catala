@@ -1,15 +1,9 @@
-# Stage 1: setup an opam switch with all dependencies installed
+#
+# STAGE 1: setup an opam switch with all dependencies installed
+#
 # (only depends on the opam files)
-FROM ocamlpro/ocaml:4.14-2023-04-02 AS dev-build-context
-
-# pandoc and ninja are not in alpine stable yet, install it manually with an explicit repository
-RUN sudo apk add pandoc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
-# In order to compiler rescript for `npm install` in french_law/js we need
-# the following dependencies (according to https://github.com/GlancingMind/rescript-alpine-docker)
-RUN sudo apk add python3
-RUN sudo ln -s /usr/bin/python3 /usr/bin/python
-RUN sudo apk add g++
-RUN sudo apk add make
+FROM ocamlpro/ocaml:4.14-2023-06-18 AS dev-build-context
+# Image from https://hub.docker.com/r/ocamlpro/ocaml
 
 RUN mkdir catala
 WORKDIR catala
@@ -22,16 +16,31 @@ ENV OPAMVAR_cataladevmode=1
 ENV OPAMVAR_catalaz3mode=1
 
 # Get a switch with all the dependencies installed
-RUN opam --cli=2.1 update && \
-    opam --cli=2.1 switch create catala ocaml-system && \
-    opam --cli=2.1 pin . --no-action && \
+# DON'T run 'opam update' here. Instead use a newer parent Docker image
+# (update the 'FROM' line above)
+RUN opam --cli=2.1 switch create catala ocaml-system && \
     opam --cli=2.1 install . --with-test --with-doc --depext-only && \
     opam --cli=2.1 install . --with-test --with-doc --deps-only && \
     opam clean
-# Note: just one `opam switch create .` command should be enough once opam 2.1.3 is released (opam#5047 ; opam#5185)
+# Note: just `opam switch create . --deps-only --with-test --with-doc && opam clean`
+# should be enough once opam 2.2 is released (see opam#5185)
+
+# Install extra dependencies not handled yet by the opam depexts
+#
+# python3, ninja (samurai in this case), etc. already got installed through opam's
+# depext mechanism at this point -- see clerk.opam and catala.opam
+#
+# pandoc is not in alpine stable yet though, so install it manually with an explicit repository
+RUN sudo apk add pandoc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
+
+# Workaround broken rescript build that recompiles its own version of
+# ninja with a badly written script :[]
+RUN sudo apk add pythonispython3
 
 
-# Stage 2: get the whole repo, run checks and builds
+#
+# STAGE 2: get the whole repo, run checks and builds
+#
 FROM dev-build-context
 
 # Get the full repo
