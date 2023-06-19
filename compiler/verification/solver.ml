@@ -51,7 +51,7 @@ let solve_vcs
                 try
                   let ctx = Z3backend.Io.make_context decl_ctx in
                   let ctx =
-                    Z3backend.Io.encode_asserts ctx vc.Conditions.vc_asserts
+                    Z3backend.Io.encode_asserts ctx scope_vcs.vc_scope_asserts
                   in
                   let ctx, z3_vc =
                     Z3backend.Io.translate_expr ctx vc.Conditions.vc_guard
@@ -69,7 +69,8 @@ let solve_vcs
         in
         List.fold_left
           (fun all_proven vc ->
-            if Z3backend.Io.check_vc decl_ctx scope_name vc then all_proven
+            if Z3backend.Io.check_vc decl_ctx scope_name scope_vcs vc then
+              all_proven
             else false)
           all_proven z3_vcs)
       vcs true

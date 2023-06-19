@@ -319,9 +319,6 @@ type verification_condition = {
   vc_guard : typed expr;
   (* should have type bool *)
   vc_kind : verification_condition_kind;
-  (* All assertions defined at the top-level of the scope corresponding to this
-     assertion *)
-  vc_asserts : typed expr;
   vc_variable : typed expr Var.t Mark.pos;
 }
 
@@ -379,7 +376,6 @@ let rec generate_verification_conditions_scope_body_expr
               vc_kind = NoOverlappingExceptions;
               (* Placeholder until we add all assertions in scope once
                * we finished traversing it *)
-              vc_asserts = trivial_assert e;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             };
           ]
@@ -397,7 +393,6 @@ let rec generate_verification_conditions_scope_body_expr
             {
               vc_guard = Mark.copy e (Mark.remove vc_empty);
               vc_kind = NoEmptyError;
-              vc_asserts = trivial_assert e;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             }
             :: vc_list
@@ -421,7 +416,6 @@ let rec generate_verification_conditions_scope_body_expr
                 {
                   vc_guard = subexpr_date;
                   vc_kind = DateComputation;
-                  vc_asserts = trivial_assert e;
                   vc_variable = scope_let_var, scope_let.scope_let_pos;
                 })
               subexprs_dates
@@ -442,6 +436,7 @@ let rec generate_verification_conditions_scope_body_expr
     new_ctx, vc_list @ new_vcs, assert_list @ new_asserts
 
 type verification_conditions_scope = {
+  vc_scope_asserts : typed expr;
   vc_scope_possible_variable_values :
     (typed Dcalc.Ast.expr, typed Dcalc.Ast.expr list) Var.Map.t;
   vc_scope_list : verification_condition list;
@@ -463,35 +458,31 @@ let generate_verification_conditions_code_items
           | _ -> false
         in
         if is_selected_scope then
-          let scope_vcs =
-            let _scope_input_var, scope_body_expr =
-              Bindlib.unbind body.scope_body_expr
-            in
-            let ctx =
-              {
-                decl = decl_ctx;
-                input_vars = [];
-                scope_variables_typs =
-                  Var.Map.empty
-                  (* We don't need to add the typ of the scope input var here
-                     because it will never appear in an expression for which we
-                     generate a verification conditions (the big struct is
-                     destructured with a series of let bindings just after. )*);
-              }
-            in
-            let _, vcs, asserts =
-              generate_verification_conditions_scope_body_expr ctx
-                scope_body_expr
-            in
-            let combined_assert =
-              conjunction_exprs asserts
-                (Typed
-                   { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
-            in
-            List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
+          let _scope_input_var, scope_body_expr =
+            Bindlib.unbind body.scope_body_expr
+          in
+          let ctx =
+            {
+              decl = decl_ctx;
+              input_vars = [];
+              scope_variables_typs =
+                Var.Map.empty
+                (* We don't need to add the typ of the scope input var here
+                   because it will never appear in an expression for which we
+                   generate a verification conditions (the big struct is
+                   destructured with a series of let bindings just after. )*);
+            }
+          in
+          let _, scope_vcs, asserts =
+            generate_verification_conditions_scope_body_expr ctx scope_body_expr
+          in
+          let combined_assert =
+            conjunction_exprs asserts
+              (Typed { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
           in
           ScopeName.Map.add name
             {
+              vc_scope_asserts = combined_assert;
               vc_scope_list = scope_vcs;
               vc_scope_possible_variable_values =
                 Var.Map.empty (* TODO: implement that!*);

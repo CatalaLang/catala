@@ -75,6 +75,7 @@ module type BackendIO = sig
   val check_vc :
     decl_ctx ->
     ScopeName.t ->
+    Conditions.verification_conditions_scope ->
     Conditions.verification_condition * vc_encoding_result ->
     bool
   (** [check_vc] spawns a new Z3 solver and tries to solve the expression [vc].

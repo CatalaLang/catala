@@ -74,6 +74,7 @@ module type BackendIO = sig
   val check_vc :
     decl_ctx ->
     ScopeName.t ->
+    Conditions.verification_conditions_scope ->
     Conditions.verification_condition * vc_encoding_result ->
     bool
 end
@@ -154,6 +155,7 @@ module MakeBackendIO (B : Backend) = struct
   let check_vc
       (_decl_ctx : decl_ctx)
       (scope : ScopeName.t)
+      (vc_scope_ctx : Conditions.verification_conditions_scope)
       (vc : Conditions.verification_condition * vc_encoding_result) : bool =
     let vc, z3_vc = vc in
 
@@ -169,7 +171,7 @@ module MakeBackendIO (B : Backend) = struct
         "the variable definition never to return an empty error"
       | NoOverlappingExceptions -> "no two exceptions to ever overlap"
       | DateComputation -> "this date computation cannot be ambiguous")
-      (Print.expr ()) vc.vc_guard (Print.expr ()) vc.vc_asserts;
+      (Print.expr ()) vc.vc_guard (Print.expr ()) vc_scope_ctx.vc_scope_asserts;
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (
