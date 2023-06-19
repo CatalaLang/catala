@@ -32,6 +32,10 @@ authors:
     affiliation: "INRIA, ENS Lyon"
   - given-names: Lilya
     family-names: Slimani
+  - given-name: Justine
+    family-names: Banuls
+  - given-name: Aminata
+    family-names: Boiguillé
 repository-code: "https://github.com/CatalaLang/catala"
 url: "https://catala-lang.org/"
 abstract: >-
