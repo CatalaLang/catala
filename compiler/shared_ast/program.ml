@@ -28,6 +28,15 @@ let fold_left_exprs ~f ~init { code_items; decl_ctx = _ } =
 let fold_right_exprs ~f ~init { code_items; decl_ctx = _ } =
   Scope.fold_right ~f:(fun e _ acc -> f e acc) ~init code_items
 
+let empty_ctx =
+  {
+    ctx_enums = EnumName.Map.empty;
+    ctx_structs = StructName.Map.empty;
+    ctx_struct_fields = Ident.Map.empty;
+    ctx_scopes = ScopeName.Map.empty;
+    ctx_modules = Qident.Map.empty;
+  }
+
 let get_scope_body { code_items; _ } scope =
   match
     Scope.fold_left ~init:None

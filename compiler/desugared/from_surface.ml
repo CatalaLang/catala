@@ -132,7 +132,7 @@ let disambiguate_constructor
         "The deep pattern matching syntactic sugar is not yet supported"
   in
   let possible_c_uids =
-    try IdentName.Map.find (Mark.remove constructor) ctxt.constructor_idmap
+    try Ident.Map.find (Mark.remove constructor) ctxt.constructor_idmap
     with Not_found ->
       Message.raise_spanned_error (Mark.get constructor)
         "The name of this constructor has not been defined before, maybe it is \
@@ -198,7 +198,7 @@ let rec translate_expr
     (expr : Surface.Ast.expression) : Ast.expr boxed =
   let scope_vars =
     match scope with
-    | None -> IdentName.Map.empty
+    | None -> Ident.Map.empty
     | Some s -> (ScopeName.Map.find s ctxt.scopes).var_idmap
   in
   let rec_helper = translate_expr scope inside_definition_of ctxt in
@@ -302,12 +302,12 @@ let rec translate_expr
   | Ident ([], (x, pos)) -> (
     (* first we check whether this is a local var, then we resort to scope-wide
        variables, then global variables *)
-    match IdentName.Map.find_opt x ctxt.local_var_idmap with
+    match Ident.Map.find_opt x ctxt.local_var_idmap with
     | Some uid ->
       Expr.make_var uid emark
       (* the whole box thing is to accomodate for this case *)
     | None -> (
-      match IdentName.Map.find_opt x scope_vars with
+      match Ident.Map.find_opt x scope_vars with
       | Some (ScopeVar uid) ->
         (* If the referenced variable has states, then here are the rules to
            desambiguate. In general, only the last state can be referenced.
@@ -352,7 +352,7 @@ let rec translate_expr
       (* Note: allowing access to a global variable with the same name as a
          subscope is disputable, but I see no good reason to forbid it either *)
       | None -> (
-        match IdentName.Map.find_opt x ctxt.topdefs with
+        match Ident.Map.find_opt x ctxt.topdefs with
         | Some v ->
           Expr.elocation
             (ToplevelVar (v, Mark.get (TopdefName.get_info v)))
@@ -360,8 +360,9 @@ let rec translate_expr
         | None ->
           Name_resolution.raise_unknown_identifier
             "for a local, scope-wide or global variable" (x, pos))))
-  | Ident (_path, _x) ->
-    Message.raise_spanned_error pos "Qualified paths are not supported yet"
+  | Surface.Ast.Ident (path, x) ->
+    let path = List.map Mark.remove path in
+    Expr.eexternal (path, Mark.remove x) emark
   | Dotted (e, ((path, x), _ppos)) -> (
     match path, Mark.remove e with
     | [], Ident ([], (y, _))
@@ -369,7 +370,7 @@ let rec translate_expr
                Name_resolution.is_subscope_uid s ctxt y) ->
       (* In this case, y.x is a subscope variable *)
       let subscope_uid, subscope_real_uid =
-        match IdentName.Map.find y scope_vars with
+        match Ident.Map.find y scope_vars with
         | SubScope (sub, sc) -> sub, sc
         | ScopeVar _ -> assert false
       in
@@ -409,7 +410,7 @@ let rec translate_expr
         (fun acc (fld_id, e) ->
           let var =
             match
-              IdentName.Map.find_opt (Mark.remove fld_id) scope_def.var_idmap
+              Ident.Map.find_opt (Mark.remove fld_id) scope_def.var_idmap
             with
             | Some (ScopeVar v) -> v
             | Some (SubScope _) | None ->
@@ -449,7 +450,7 @@ let rec translate_expr
     Expr.eapp fn [rec_helper e1] emark
   | StructLit ((([], s_name), _), fields) ->
     let s_uid =
-      match IdentName.Map.find_opt (Mark.remove s_name) ctxt.typedefs with
+      match Ident.Map.find_opt (Mark.remove s_name) ctxt.typedefs with
       | Some (Name_resolution.TStruct s_uid) -> s_uid
       | _ ->
         Message.raise_spanned_error (Mark.get s_name)
@@ -462,7 +463,7 @@ let rec translate_expr
           let f_uid =
             try
               StructName.Map.find s_uid
-                (IdentName.Map.find (Mark.remove f_name) ctxt.field_idmap)
+                (Ident.Map.find (Mark.remove f_name) ctxt.field_idmap)
             with Not_found ->
               Message.raise_spanned_error (Mark.get f_name)
                 "This identifier should refer to a field of struct %s"
@@ -492,7 +493,7 @@ let rec translate_expr
     Message.raise_spanned_error pos "Qualified paths are not supported yet"
   | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let possible_c_uids =
-      try IdentName.Map.find constructor ctxt.constructor_idmap
+      try Ident.Map.find constructor ctxt.constructor_idmap
       with Not_found ->
         Message.raise_spanned_error pos_constructor
           "The name of this constructor has not been defined before, maybe it \
@@ -1028,7 +1029,7 @@ let process_def
       match def.definition_label with
       | Some (label_str, label_pos) ->
         Ast.ExplicitlyLabeled
-          (IdentName.Map.find label_str scope_def_ctxt.label_idmap, label_pos)
+          (Ident.Map.find label_str scope_def_ctxt.label_idmap, label_pos)
       | None -> Ast.Unlabeled
     in
     let exception_situation =
@@ -1045,8 +1046,7 @@ let process_def
       | ExceptionToLabel label_str -> (
         try
           let label_id =
-            IdentName.Map.find (Mark.remove label_str)
-              scope_def_ctxt.label_idmap
+            Ident.Map.find (Mark.remove label_str) scope_def_ctxt.label_idmap
           in
           ExceptionToLabel (label_id, Mark.get label_str)
         with Not_found ->
@@ -1248,17 +1248,16 @@ let process_topdef
     (prgm : Ast.program)
     (def : S.top_def) : Ast.program =
   let id =
-    IdentName.Map.find
-      (Mark.remove def.S.topdef_name)
-      ctxt.Name_resolution.topdefs
+    Ident.Map.find (Mark.remove def.S.topdef_name) ctxt.Name_resolution.topdefs
   in
   let translate_typ t = Name_resolution.process_type ctxt t in
   let translate_tbase (tbase, m) = translate_typ (Base tbase, m) in
   let typ = translate_typ def.S.topdef_type in
-  let expr =
-    match def.S.topdef_args with
-    | None -> translate_expr None None ctxt def.S.topdef_expr
-    | Some (args, _) ->
+  let expr_opt =
+    match def.S.topdef_expr, def.S.topdef_args with
+    | None, _ -> None
+    | Some e, None -> Some (Expr.unbox_closed (translate_expr None None ctxt e))
+    | Some e, Some (args, _) ->
       let ctxt, args_tys =
         List.fold_left_map
           (fun ctxt ((lbl, pos), ty) ->
@@ -1266,19 +1265,38 @@ let process_topdef
             ctxt, ((v, pos), ty))
           ctxt args
       in
-      let body = translate_expr None None ctxt def.S.topdef_expr in
+      let body = translate_expr None None ctxt e in
       let args, tys = List.split args_tys in
-      Expr.make_abs
-        (Array.of_list (List.map Mark.remove args))
-        body
-        (List.map translate_tbase tys)
-        (Mark.get def.S.topdef_name)
+      let e =
+        Expr.make_abs
+          (Array.of_list (List.map Mark.remove args))
+          body
+          (List.map translate_tbase tys)
+          (Mark.get def.S.topdef_name)
+      in
+      Some (Expr.unbox_closed e)
   in
-  {
-    prgm with
-    Ast.program_topdefs =
-      TopdefName.Map.add id (Expr.unbox expr, typ) prgm.Ast.program_topdefs;
-  }
+  let program_topdefs =
+    TopdefName.Map.update id
+      (fun def0 ->
+        match def0, expr_opt with
+        | None, eopt -> Some (eopt, typ)
+        | Some (eopt0, ty0), eopt -> (
+          let err msg =
+            Message.raise_multispanned_error
+              [None, Mark.get ty0; None, Mark.get typ]
+              (msg ^^ " for %a") TopdefName.format_t id
+          in
+          if not (Type.equal ty0 typ) then err "Conflicting type definitions"
+          else
+            match eopt0, eopt with
+            | None, None -> err "Multiple declarations"
+            | Some _, Some _ -> err "Multiple definitions"
+            | Some e, None -> Some (Some e, typ)
+            | None, Some e -> Some (Some e, ty0)))
+      prgm.Ast.program_topdefs
+  in
+  { prgm with Ast.program_topdefs }
 
 let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
   {
@@ -1295,7 +1313,7 @@ let attribute_to_io (attr : Surface.Ast.scope_decl_context_io) : Ast.io =
 
 let init_scope_defs
     (ctxt : Name_resolution.context)
-    (scope_idmap : Name_resolution.scope_var_or_subscope IdentName.Map.t) :
+    (scope_idmap : Name_resolution.scope_var_or_subscope Ident.Map.t) :
     Ast.scope_def Ast.ScopeDef.Map.t =
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
@@ -1351,7 +1369,7 @@ let init_scope_defs
       let sub_scope_def =
         ScopeName.Map.find subscope_uid ctxt.Name_resolution.scopes
       in
-      IdentName.Map.fold
+      Ident.Map.fold
         (fun _ v scope_def_map ->
           match v with
           | Name_resolution.SubScope _ -> scope_def_map
@@ -1373,7 +1391,7 @@ let init_scope_defs
               scope_def_map)
         sub_scope_def.Name_resolution.var_idmap scope_def_map
   in
-  IdentName.Map.fold add_def scope_idmap Ast.ScopeDef.Map.empty
+  Ident.Map.fold add_def scope_idmap Ast.ScopeDef.Map.empty
 
 (** Main function of this module *)
 let translate_program
@@ -1384,7 +1402,7 @@ let translate_program
       ScopeName.Map.mapi
         (fun s_uid s_context ->
           let scope_vars =
-            IdentName.Map.fold
+            Ident.Map.fold
               (fun _ v acc ->
                 match v with
                 | Name_resolution.SubScope _ -> acc
@@ -1396,7 +1414,7 @@ let translate_program
               s_context.Name_resolution.var_idmap ScopeVar.Map.empty
           in
           let scope_sub_scopes =
-            IdentName.Map.fold
+            Ident.Map.fold
               (fun _ v acc ->
                 match v with
                 | Name_resolution.ScopeVar _ -> acc
@@ -1415,13 +1433,14 @@ let translate_program
           })
         ctxt.Name_resolution.scopes
     in
+    let translate_type t = Name_resolution.process_type ctxt t in
     {
       Ast.program_ctx =
         {
           ctx_structs = ctxt.Name_resolution.structs;
           ctx_enums = ctxt.Name_resolution.enums;
           ctx_scopes =
-            IdentName.Map.fold
+            Ident.Map.fold
               (fun _ def acc ->
                 match def with
                 | Name_resolution.TScope (scope, scope_out_struct) ->
@@ -1429,6 +1448,19 @@ let translate_program
                 | _ -> acc)
               ctxt.Name_resolution.typedefs ScopeName.Map.empty;
           ctx_struct_fields = ctxt.Name_resolution.field_idmap;
+          ctx_modules =
+            List.fold_left
+              (fun map (path, def) ->
+                match def with
+                | Surface.Ast.Topdef { topdef_name; topdef_type; _ }, _pos ->
+                  Qident.Map.add
+                    (path, Mark.remove topdef_name)
+                    (translate_type topdef_type)
+                    map
+                | (ScopeDecl _ | StructDecl _ | EnumDecl _), _ (* as e *) ->
+                  map (* assert false (\* TODO *\) *)
+                | ScopeUse _, _ -> assert false)
+              Qident.Map.empty prgm.Surface.Ast.program_interfaces;
         };
       Ast.program_topdefs = TopdefName.Map.empty;
       Ast.program_scopes;

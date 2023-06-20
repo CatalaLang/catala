@@ -17,7 +17,7 @@
 
 type backend_lang = En | Fr | Pl
 
-type backend_option_builtin =
+type backend_option =
   [ `Latex
   | `Makefile
   | `Html
@@ -33,49 +33,12 @@ type backend_option_builtin =
   | `Exceptions
   | `Proof ]
 
-type 'a backend_option = [ backend_option_builtin | `Plugin of 'a ]
-
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
 let languages = ["en", En; "fr", Fr; "pl", Pl]
 
 let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
   fun l -> List.assoc l rl
-
-let backend_option_to_string = function
-  | `Interpret -> "Interpret"
-  | `Interpret_Lcalc -> "Interpret_Lcalc"
-  | `Makefile -> "Makefile"
-  | `OCaml -> "Ocaml"
-  | `Scopelang -> "Scopelang"
-  | `Dcalc -> "Dcalc"
-  | `Latex -> "Latex"
-  | `Proof -> "Proof"
-  | `Html -> "Html"
-  | `Python -> "Python"
-  | `Typecheck -> "Typecheck"
-  | `Scalc -> "Scalc"
-  | `Lcalc -> "Lcalc"
-  | `Exceptions -> "Exceptions"
-  | `Plugin s -> s
-
-let backend_option_of_string backend =
-  match String.lowercase_ascii backend with
-  | "interpret" -> `Interpret
-  | "interpret_lcalc" -> `Interpret_Lcalc
-  | "makefile" -> `Makefile
-  | "ocaml" -> `OCaml
-  | "scopelang" -> `Scopelang
-  | "dcalc" -> `Dcalc
-  | "latex" -> `Latex
-  | "proof" -> `Proof
-  | "html" -> `Html
-  | "python" -> `Python
-  | "typecheck" -> `Typecheck
-  | "scalc" -> `Scalc
-  | "lcalc" -> `Lcalc
-  | "exceptions" -> `Exceptions
-  | s -> `Plugin s
 
 (** Source files to be compiled *)
 let source_files : string list ref = ref []
@@ -109,7 +72,7 @@ open Cmdliner
 let file =
   Arg.(
     required
-    & pos 1 (some file) None
+    & pos 0 (some file) None
     & info [] ~docv:"FILE" ~doc:"Catala master file to be compiled.")
 
 let debug =
@@ -143,7 +106,7 @@ let unstyled =
   Arg.(
     value
     & flag
-    & info ["unstyled"; "u"]
+    & info ["unstyled"]
         ~doc:
           "Removes styling (colors, etc.) from terminal output. Equivalent to \
            $(b,--color=never)")
@@ -202,14 +165,6 @@ let print_only_law =
         ~doc:
           "In literate programming output, skip all code and metadata sections \
            and print only the text of the law.")
-
-let backend =
-  Arg.(
-    required
-    & pos 0 (some string) None
-    & info [] ~docv:"COMMAND"
-        ~doc:
-          "Backend selection (see the list of commands for available options).")
 
 let plugins_dirs =
   let doc = "Set the given directory to be searched for backend plugins." in
@@ -277,13 +232,24 @@ let output =
            compiler. Defaults to $(i,FILE).$(i,EXT) where $(i,EXT) depends on \
            the chosen backend. Use $(b,-o -) for stdout.")
 
-type options = {
+let link_modules =
+  Arg.(
+    value
+    & opt_all file []
+    & info ["use"; "u"] ~docv:"FILE"
+        ~doc:
+          "Specifies an additional module to be linked to the Catala program. \
+           $(i,FILE) must be a catala file with a metadata section expressing \
+           what is exported ; for interpretation, a compiled OCaml shared \
+           module by the same basename (either .cmo or .cmxs) will be \
+           expected.")
+
+type global_options = {
   debug : bool;
   color : when_enum;
   message_format : message_format_enum;
   wrap_weaved_output : bool;
   avoid_exceptions : bool;
-  backend : string;
   plugins_dirs : string list;
   language : string option;
   max_prec_digits : int option;
@@ -297,9 +263,10 @@ type options = {
   output_file : string option;
   closure_conversion : bool;
   print_only_law : bool;
+  link_modules : string list;
 }
 
-let options =
+let global_options =
   let make
       debug
       color
@@ -308,7 +275,6 @@ let options =
       wrap_weaved_output
       avoid_exceptions
       closure_conversion
-      backend
       plugins_dirs
       language
       max_prec_digits
@@ -320,14 +286,14 @@ let options =
       ex_scope
       ex_variable
       output_file
-      print_only_law : options =
+      print_only_law
+      link_modules : global_options =
     {
       debug;
       color = (if unstyled then Never else color);
       message_format;
       wrap_weaved_output;
       avoid_exceptions;
-      backend;
       plugins_dirs;
       language;
       max_prec_digits;
@@ -341,6 +307,7 @@ let options =
       output_file;
       closure_conversion;
       print_only_law;
+      link_modules;
     }
   in
   Term.(
@@ -352,7 +319,6 @@ let options =
     $ wrap_weaved_output
     $ avoid_exceptions
     $ closure_conversion
-    $ backend
     $ plugins_dirs
     $ language
     $ max_prec_digits_opt
@@ -364,9 +330,8 @@ let options =
     $ ex_scope
     $ ex_variable
     $ output
-    $ print_only_law)
-
-let catala_t f = Term.(const f $ file $ options)
+    $ print_only_law
+    $ link_modules)
 
 let set_option_globals options : unit =
   debug_flag := options.debug;
@@ -382,6 +347,101 @@ let set_option_globals options : unit =
   avoid_exceptions_flag := options.avoid_exceptions;
   message_format_flag := options.message_format
 
+let subcommands handler =
+  [
+    Cmd.v
+      (Cmd.info "interpret"
+         ~doc:
+           "Runs the interpreter on the Catala program, executing the scope \
+            specified by the $(b,-s) option assuming no additional external \
+            inputs.")
+      Term.(const (handler `Interpret) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "interpret_lcalc"
+         ~doc:
+           "Runs the interpreter on the lcalc pass on the Catala program, \
+            executing the scope specified by the $(b,-s) option assuming no \
+            additional external inputs.")
+      Term.(const (handler `Interpret_Lcalc) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "typecheck"
+         ~doc:"Parses and typechecks a Catala program, without interpreting it.")
+      Term.(const (handler `Typecheck) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "proof"
+         ~doc:
+           "Generates and proves verification conditions about the \
+            well-behaved execution of the Catala program.")
+      Term.(const (handler `Proof) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "ocaml"
+         ~doc:"Generates an OCaml translation of the Catala program.")
+      Term.(const (handler `OCaml) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "python"
+         ~doc:"Generates a Python translation of the Catala program.")
+      Term.(const (handler `Python) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "latex"
+         ~doc:
+           "Weaves a LaTeX literate programming output of the Catala program.")
+      Term.(const (handler `Latex) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "html"
+         ~doc:
+           "Weaves an HTML literate programming output of the Catala program.")
+      Term.(const (handler `Html) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "makefile"
+         ~doc:
+           "Generates a Makefile-compatible list of the file dependencies of a \
+            Catala program.")
+      Term.(const (handler `Makefile) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "scopelang"
+         ~doc:
+           "Prints a debugging verbatim of the scope language intermediate \
+            representation of the Catala program. Use the $(b,-s) option to \
+            restrict the output to a particular scope.")
+      Term.(const (handler `Scopelang) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "dcalc"
+         ~doc:
+           "Prints a debugging verbatim of the default calculus intermediate \
+            representation of the Catala program. Use the $(b,-s) option to \
+            restrict the output to a particular scope.")
+      Term.(const (handler `Dcalc) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "lcalc"
+         ~doc:
+           "Prints a debugging verbatim of the lambda calculus intermediate \
+            representation of the Catala program. Use the $(b,-s) option to \
+            restrict the output to a particular scope.")
+      Term.(const (handler `Lcalc) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "scalc"
+         ~doc:
+           "Prints a debugging verbatim of the statement calculus intermediate \
+            representation of the Catala program. Use the $(b,-s) option to \
+            restrict the output to a particular scope.")
+      Term.(const (handler `Scalc) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "exceptions"
+         ~doc:
+           "Prints the exception tree for the definitions of a particular \
+            variable, for debugging purposes. Use the $(b,-s) option to select \
+            the scope and the $(b,-v) option to select the variable. Use \
+            foo.bar to access state bar of variable foo or variable bar of \
+            subscope foo.")
+      Term.(const (handler `Exceptions) $ file $ global_options);
+    Cmd.v
+      (Cmd.info "pygmentize"
+         ~doc:
+           "This special command is a wrapper around the $(b,pygmentize) \
+            command that enables support for colorising Catala code.")
+      Term.(const (fun _ -> assert false) $ file);
+  ]
+
 let version = "0.8.0"
 
 let info =
@@ -395,67 +455,6 @@ let info =
       `P
         "Catala is a domain-specific language for deriving \
          faithful-by-construction algorithms from legislative texts.";
-      `S Manpage.s_commands;
-      `I
-        ( "$(b,Intepret)",
-          "Runs the interpreter on the Catala program, executing the scope \
-           specified by the $(b,-s) option assuming no additional external \
-           inputs." );
-      `I
-        ( "$(b,Intepret_Lcalc)",
-          "Runs the interpreter on the lcalc pass on the Catala program, \
-           executing the scope specified by the $(b,-s) option assuming no \
-           additional external inputs." );
-      `I
-        ( "$(b,Typecheck)",
-          "Parses and typechecks a Catala program, without interpreting it." );
-      `I
-        ( "$(b,Proof)",
-          "Generates and proves verification conditions about the well-behaved \
-           execution of the Catala program." );
-      `I ("$(b,OCaml)", "Generates an OCaml translation of the Catala program.");
-      `I ("$(b,Python)", "Generates a Python translation of the Catala program.");
-      `I
-        ( "$(b,LaTeX)",
-          "Weaves a LaTeX literate programming output of the Catala program." );
-      `I
-        ( "$(b,HTML)",
-          "Weaves an HTML literate programming output of the Catala program." );
-      `I
-        ( "$(b,Makefile)",
-          "Generates a Makefile-compatible list of the file dependencies of a \
-           Catala program." );
-      `I
-        ( "$(b,Scopelang)",
-          "Prints a debugging verbatim of the scope language intermediate \
-           representation of the Catala program. Use the $(b,-s) option to \
-           restrict the output to a particular scope." );
-      `I
-        ( "$(b,Dcalc)",
-          "Prints a debugging verbatim of the default calculus intermediate \
-           representation of the Catala program. Use the $(b,-s) option to \
-           restrict the output to a particular scope." );
-      `I
-        ( "$(b,Lcalc)",
-          "Prints a debugging verbatim of the lambda calculus intermediate \
-           representation of the Catala program. Use the $(b,-s) option to \
-           restrict the output to a particular scope." );
-      `I
-        ( "$(b,Scalc)",
-          "Prints a debugging verbatim of the statement calculus intermediate \
-           representation of the Catala program. Use the $(b,-s) option to \
-           restrict the output to a particular scope." );
-      `I
-        ( "$(b,Exceptions)",
-          "Prints the exception tree for the definitions of a particular \
-           variable, for debugging purposes. Use the $(b,-s) option to select \
-           the scope and the $(b,-v) option to select the variable. Use \
-           foo.bar to access state bar of variable foo or variable bar of \
-           subscope foo." );
-      `I
-        ( "$(b,pygmentize)",
-          "This special command is a wrapper around the $(b,pygmentize) \
-           command that enables support for colorising Catala code." );
       `S Manpage.s_authors;
       `P "The authors are listed by alphabetical order.";
       `P "Nicolas Chataing <nicolas.chataing@ens.fr>";
@@ -474,3 +473,5 @@ let info =
   in
   let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
   Cmd.info "catala" ~version ~doc ~exits ~man
+
+let catala_t ?(extra = []) handler = Cmd.group info (subcommands handler @ extra)

@@ -109,6 +109,7 @@ let subst binder vars =
   Bindlib.msubst binder (Array.of_list (List.map Mark.remove vars))
 
 let evar v mark = Mark.add mark (Bindlib.box_var v)
+let eexternal eref mark = Mark.add mark (Bindlib.box (EExternal eref))
 let etuple args = Box.appn args @@ fun args -> ETuple args
 
 let etupleaccess e index size =
@@ -139,6 +140,9 @@ let eraise e1 = Box.app0 @@ ERaise e1
 
 let ecatch body exn handler =
   Box.app2 body handler @@ fun body handler -> ECatch { body; exn; handler }
+
+let ecustom obj targs tret mark =
+  Mark.add mark (Bindlib.box (ECustom { obj; targs; tret }))
 
 let elocation loc = Box.app0 @@ ELocation loc
 
@@ -268,6 +272,7 @@ let map
   | EOp { op; tys } -> eop op tys m
   | EArray args -> earray (List.map f args) m
   | EVar v -> evar (Var.translate v) m
+  | EExternal eref -> eexternal eref m
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let body = f body in
@@ -298,6 +303,7 @@ let map
   | EScopeCall { scope; args } ->
     let fields = ScopeVar.Map.map f args in
     escopecall scope fields m
+  | ECustom { obj; targs; tret } -> ecustom obj targs tret m
 
 let rec map_top_down ~f e = map ~f:(map_top_down ~f) (f e)
 let map_marks ~f e = map_top_down ~f:(Mark.map_mark f) e
@@ -310,7 +316,9 @@ let shallow_fold
     (acc : 'acc) : 'acc =
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   match Mark.remove e with
-  | ELit _ | EOp _ | EVar _ | ERaise _ | ELocation _ | EEmptyError -> acc
+  | ELit _ | EOp _ | EVar _ | EExternal _ | ERaise _ | ELocation _ | EEmptyError
+    ->
+    acc
   | EApp { f = e; args } -> acc |> f e |> lfold args
   | EArray args -> acc |> lfold args
   | EAbs { binder; tys = _ } ->
@@ -330,6 +338,7 @@ let shallow_fold
   | EMatch { e; cases; _ } ->
     acc |> f e |> EnumConstructor.Map.fold (fun _ -> f) cases
   | EScopeCall { args; _ } -> acc |> ScopeVar.Map.fold (fun _ -> f) args
+  | ECustom _ -> acc
 
 (* Like [map], but also allows to gather a result bottom-up. *)
 let map_gather
@@ -360,6 +369,7 @@ let map_gather
     let acc, args = lfoldmap args in
     acc, earray args m
   | EVar v -> acc, evar (Var.translate v) m
+  | EExternal eref -> acc, eexternal eref m
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let acc, body = f body in
@@ -433,6 +443,7 @@ let map_gather
         args (acc, ScopeVar.Map.empty)
     in
     acc, escopecall scope args m
+  | ECustom { obj; targs; tret } -> acc, ecustom obj targs tret m
 
 (* - *)
 
@@ -441,6 +452,11 @@ let rec rebox (e : ('a any, 't) gexpr) = map ~f:rebox e
 
 let box e = Mark.map Bindlib.box e
 let unbox (e, m) = Bindlib.unbox e, m
+
+let unbox_closed e =
+  Box.assert_closed (fst e);
+  unbox e
+
 let untype e = map_marks ~f:(fun m -> Untyped { pos = mark_pos m }) e
 
 (* Tests *)
@@ -541,6 +557,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
  fun e1 e2 ->
   match Mark.remove e1, Mark.remove e2 with
   | EVar v1, EVar v2 -> Bindlib.eq_vars v1 v2
+  | EExternal eref1, EExternal eref2 -> Qident.equal eref1 eref2
   | ETuple es1, ETuple es2 -> equal_list es1 es2
   | ( ETupleAccess { e = e1; index = id1; size = s1 },
       ETupleAccess { e = e2; index = id2; size = s2 } ) ->
@@ -573,7 +590,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
   | ( EDStructAccess { e = e1; field = f1; name_opt = s1 },
       EDStructAccess { e = e2; field = f2; name_opt = s2 } ) ->
-    Option.equal StructName.equal s1 s2 && IdentName.equal f1 f2 && equal e1 e2
+    Option.equal StructName.equal s1 s2 && Ident.equal f1 f2 && equal e1 e2
   | ( EStructAccess { e = e1; field = f1; name = s1 },
       EStructAccess { e = e2; field = f2; name = s2 } ) ->
     StructName.equal s1 s2 && StructField.equal f1 f2 && equal e1 e2
@@ -588,10 +605,14 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( EScopeCall { scope = s1; args = fields1 },
       EScopeCall { scope = s2; args = fields2 } ) ->
     ScopeName.equal s1 s2 && ScopeVar.Map.equal equal fields1 fields2
-  | ( ( EVar _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _ | EAbs _ | EApp _
-      | EAssert _ | EOp _ | EDefault _ | EIfThenElse _ | EEmptyError
-      | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _ | EStruct _
-      | EDStructAccess _ | EStructAccess _ | EInj _ | EMatch _ | EScopeCall _ ),
+  | ( ECustom { obj = obj1; targs = targs1; tret = tret1 },
+      ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
+    Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
+  | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
+      | EAbs _ | EApp _ | EAssert _ | EOp _ | EDefault _ | EIfThenElse _
+      | EEmptyError | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _
+      | EStruct _ | EDStructAccess _ | EStructAccess _ | EInj _ | EMatch _
+      | EScopeCall _ | ECustom _ ),
       _ ) ->
     false
 
@@ -614,6 +635,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     List.compare compare a1 a2
   | EVar v1, EVar v2 ->
     Bindlib.compare_vars v1 v2
+  | EExternal eref1, EExternal eref2 ->
+    Qident.compare eref1 eref2
   | EAbs {binder=binder1; tys=typs1},
     EAbs {binder=binder2; tys=typs2} ->
     List.compare Type.compare typs1 typs2 @@< fun () ->
@@ -633,7 +656,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1},
     EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2} ->
     compare e1 e2 @@< fun () ->
-    IdentName.compare field_name1 field_name2 @@< fun () ->
+    Ident.compare field_name1 field_name2 @@< fun () ->
     Option.compare StructName.compare struct_name1 struct_name2
   | EStructAccess {e=e1; field=field_name1; name=struct_name1},
     EStructAccess {e=e2; field=field_name2; name=struct_name2} ->
@@ -678,11 +701,15 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare_except ex1 ex2 @@< fun () ->
     compare etry1 etry2 @@< fun () ->
     compare ewith1 ewith2
+  | ECustom _, _ | _, ECustom _ ->
+    (* fixme: ideally this would be forbidden by typing *)
+    invalid_arg "Custom block comparison"
   | ELit _, _ -> -1 | _, ELit _ -> 1
   | EApp _, _ -> -1 | _, EApp _ -> 1
   | EOp _, _ -> -1 | _, EOp _ -> 1
   | EArray _, _ -> -1 | _, EArray _ -> 1
   | EVar _, _ -> -1 | _, EVar _ -> 1
+  | EExternal _, _ -> -1 | _, EExternal _ -> 1
   | EAbs _, _ -> -1 | _, EAbs _ -> 1
   | EIfThenElse _, _ -> -1 | _, EIfThenElse _ -> 1
   | ELocation _, _ -> -1 | _, ELocation _ -> 1
@@ -735,7 +762,7 @@ let format ppf e = Print.expr ~debug:false () ppf e
 let rec size : type a. (a, 't) gexpr -> int =
  fun e ->
   match Mark.remove e with
-  | EVar _ | ELit _ | EOp _ | EEmptyError -> 1
+  | EVar _ | EExternal _ | ELit _ | EOp _ | EEmptyError | ECustom _ -> 1
   | ETuple args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | EArray args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | ETupleAccess { e; _ } -> size e + 1

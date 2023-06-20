@@ -16,11 +16,39 @@
    the License. *)
 
 open Catala_utils
-module Plugin = Plugin.PluginAPI
 
-val driver : Pos.input_file -> Cli.options -> int
+val driver :
+  [< Cli.backend_option | `Plugin of Plugin.handler ] ->
+  Pos.input_file ->
+  Cli.global_options ->
+  int
 (** Entry function for the executable. Returns a negative number in case of
     error. *)
 
 val main : unit -> unit
 (** Main program entry point, including command-line parsing and return code *)
+
+module Plugin : sig
+  include module type of Plugin.PluginAPI
+  open Cmdliner
+
+  val register_generic : Cmd.info -> Cmd.Exit.code Term.t -> unit
+
+  val register_dcalc :
+    Cmd.info ->
+    extension:string ->
+    Shared_ast.untyped Dcalc.Ast.program plugin_apply_fun_typ ->
+    unit
+
+  val register_lcalc :
+    Cmd.info ->
+    extension:string ->
+    Shared_ast.untyped Lcalc.Ast.program plugin_apply_fun_typ ->
+    unit
+
+  val register_scalc :
+    Cmd.info ->
+    extension:string ->
+    Scalc.Ast.program plugin_apply_fun_typ ->
+    unit
+end

@@ -238,9 +238,9 @@ source_file: BEGIN_CODE DECLARATION YEAR
 ## code_item -> DECLARATION . STRUCT UIDENT COLON list(addpos(struct_scope)) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . SCOPE UIDENT COLON nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
 ## code_item -> DECLARATION . ENUM UIDENT COLON list(addpos(enum_decl_line)) [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION . lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION . lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION . lident CONTENT typ_data DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION . lident CONTENT typ_data option(opt_def) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION
@@ -944,7 +944,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 394.
+## Ends in an error in state: 393.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -1005,8 +1005,8 @@ source_file: BEGIN_METADATA LAW_TEXT LAW_HEADING
 ## accurate view of the past (what has been recognized so far), they
 ## may provide an INCOMPLETE view of the future (what was expected next).
 ## In state 1, spurious reduction of production nonempty_list(LAW_TEXT) -> LAW_TEXT
-## In state 383, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
-## In state 384, spurious reduction of production option(law_text) -> law_text
+## In state 382, spurious reduction of production law_text -> nonempty_list(LAW_TEXT)
+## In state 383, spurious reduction of production option(law_text) -> law_text
 ##
 
 expected some law text or code block
@@ -4019,9 +4019,9 @@ source_file: BEGIN_CODE DECLARATION LIDENT YEAR
 ##
 ## Ends in an error in state: 364.
 ##
-## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident . CONTENT typ_data DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident . CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident . CONTENT typ_data option(opt_def) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident
@@ -4033,9 +4033,9 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT YEAR
 ##
 ## Ends in an error in state: 365.
 ##
-## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT . typ_data DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT . typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT . typ_data option(opt_def) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident CONTENT
@@ -4047,9 +4047,9 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT BOOLEAN YEAR
 ##
 ## Ends in an error in state: 366.
 ##
-## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT typ_data . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data . DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data . option(opt_def) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident CONTENT typ_data
@@ -4062,8 +4062,8 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS YEAR
 ##
 ## Ends in an error in state: 367.
 ##
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . separated_nonempty_list(COMMA,var_content) DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . separated_nonempty_list(COMMA,var_content) option(opt_def) [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS . LPAREN separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident CONTENT typ_data DEPENDS
@@ -4075,7 +4075,7 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN YEAR
 ##
 ## Ends in an error in state: 368.
 ##
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN . separated_nonempty_list(COMMA,var_content) RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident CONTENT typ_data DEPENDS LPAREN
@@ -4087,7 +4087,7 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT 
 ##
 ## Ends in an error in state: 369.
 ##
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) . RPAREN option(opt_def) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content)
@@ -4109,7 +4109,7 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT 
 ##
 ## Ends in an error in state: 370.
 ##
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
+## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN . option(opt_def) [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
 ## DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN
@@ -4121,45 +4121,13 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT 
 ##
 ## Ends in an error in state: 371.
 ##
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS . expression [ SCOPE END_CODE DECLARATION ]
+## option(opt_def) -> DEFINED_AS . expression [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS
+## DEFINED_AS
 ##
 
 expected an expression
-
-source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LPAREN LIDENT CONTENT UIDENT RPAREN DEFINED_AS FALSE YEAR
-##
-## Ends in an error in state: 372.
-##
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression . [ SCOPE END_CODE DECLARATION ]
-## expression -> expression . DOT qlident [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . OF funcall_args [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . WITH constructor_binding [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . CONTAINS expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . FOR lident AMONG expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . MULT expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . DIV expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . PLUS expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . MINUS expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . PLUSPLUS expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . LESSER expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . LESSER_EQUAL expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . GREATER expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . GREATER_EQUAL expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . EQUAL expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . NOT_EQUAL expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . AND expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . OR expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . XOR expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-## expression -> expression . FOR lident AMONG expression SUCH THAT expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
-##
-## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ_data DEPENDS LPAREN separated_nonempty_list(COMMA,var_content) RPAREN DEFINED_AS expression
-##
-
-expected a binary operator continuing the expression, or a keyword ending the expression and starting the next item
 
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT YEAR
 ##
@@ -4212,44 +4180,10 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT
 
 expected the definition of another argument in the form '<var> content <type>'
 
-source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT RPAREN
-##
-## Ends in an error in state: 373.
-##
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) . DEFINED_AS expression [ SCOPE END_CODE DECLARATION ]
-##
-## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content)
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 21, spurious reduction of production quident -> UIDENT
-## In state 30, spurious reduction of production primitive_typ -> quident
-## In state 296, spurious reduction of production typ_data -> primitive_typ
-## In state 307, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
-##
-
-expected 'equals <expression>'
-
-source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS YEAR
-##
-## Ends in an error in state: 374.
-##
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS . expression [ SCOPE END_CODE DECLARATION ]
-##
-## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS
-##
-
-expected an expression
-
 source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT UIDENT DEFINED_AS FALSE YEAR
 ##
-## Ends in an error in state: 375.
+## Ends in an error in state: 372.
 ##
-## code_item -> DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression . [ SCOPE END_CODE DECLARATION ]
 ## expression -> expression . DOT qlident [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ## expression -> expression . OF funcall_args [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ## expression -> expression . WITH constructor_binding [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
@@ -4270,16 +4204,17 @@ source_file: BEGIN_CODE DECLARATION LIDENT CONTENT UIDENT DEPENDS LIDENT CONTENT
 ## expression -> expression . OR expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ## expression -> expression . XOR expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
 ## expression -> expression . FOR lident AMONG expression SUCH THAT expression [ XOR WITH SCOPE PLUSPLUS PLUS OR OF NOT_EQUAL MULT MINUS LESSER_EQUAL LESSER GREATER_EQUAL GREATER FOR EQUAL END_CODE DOT DIV DECLARATION CONTAINS AND ]
+## option(opt_def) -> DEFINED_AS expression . [ SCOPE END_CODE DECLARATION ]
 ##
 ## The known suffix of the stack is as follows:
-## DECLARATION lident CONTENT typ_data DEPENDS separated_nonempty_list(COMMA,var_content) DEFINED_AS expression
+## DEFINED_AS expression
 ##
 
 expected a binary operator continuing the expression, or a keyword ending the expression and starting the next item
 
 source_file: BEGIN_DIRECTIVE YEAR
 ##
-## Ends in an error in state: 385.
+## Ends in an error in state: 384.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE . LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4291,7 +4226,7 @@ expected a directive, e.g. 'Include: <filename>'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE YEAR
 ##
-## Ends in an error in state: 386.
+## Ends in an error in state: 385.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE . COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4303,7 +4238,7 @@ expected ':', then a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON YEAR
 ##
-## Ends in an error in state: 387.
+## Ends in an error in state: 386.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON . nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4315,7 +4250,7 @@ expected a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG YEAR
 ##
-## Ends in an error in state: 388.
+## Ends in an error in state: 387.
 ##
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . [ END_DIRECTIVE AT_PAGE ]
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . nonempty_list(DIRECTIVE_ARG) [ END_DIRECTIVE AT_PAGE ]
@@ -4328,7 +4263,7 @@ expected a page specification in the form '@p.<number>', or a newline
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG AT_PAGE YEAR
 ##
-## Ends in an error in state: 392.
+## Ends in an error in state: 391.
 ##
 ## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) . END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4340,7 +4275,7 @@ expected a newline
 
 source_file: LAW_HEADING YEAR
 ##
-## Ends in an error in state: 397.
+## Ends in an error in state: 396.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##

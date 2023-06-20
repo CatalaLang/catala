@@ -57,7 +57,6 @@ type 'm ctx = {
   subscope_vars :
     ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t
     SubScopeName.Map.t;
-  local_vars : ('m Scopelang.Ast.expr, 'm Ast.expr Var.t) Var.Map.t;
   date_rounding : date_rounding;
 }
 
@@ -202,22 +201,6 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     'm Ast.expr boxed =
   let m = Mark.get e in
   match Mark.remove e with
-  | EVar v -> Expr.evar (Var.Map.find v ctx.local_vars) m
-  | ELit
-      ((LBool _ | LInt _ | LRat _ | LMoney _ | LUnit | LDate _ | LDuration _) as
-      l) ->
-    Expr.elit l m
-  | EStruct { name; fields } ->
-    let fields = StructField.Map.map (translate_expr ctx) fields in
-    Expr.estruct name fields m
-  | EStructAccess { e; field; name } ->
-    Expr.estructaccess (translate_expr ctx e) field name m
-  | ETuple es -> Expr.etuple (List.map (translate_expr ctx) es) m
-  | ETupleAccess { e; index; size } ->
-    Expr.etupleaccess (translate_expr ctx e) index size m
-  | EInj { e; cons; name } ->
-    let e' = translate_expr ctx e in
-    Expr.einj e' cons name m
   | EMatch { e = e1; name; cases = e_cases } ->
     let enum_sig = EnumName.Map.find name ctx.enums in
     let d_cases, remaining_e_cases =
@@ -534,23 +517,6 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
           EndCall m
     in
     new_e
-  | EAbs { binder; tys } ->
-    let xs, body = Bindlib.unmbind binder in
-    let new_xs = Array.map (fun x -> Var.make (Bindlib.name_of x)) xs in
-    let both_xs = Array.map2 (fun x new_x -> x, new_x) xs new_xs in
-    let body =
-      translate_expr
-        {
-          ctx with
-          local_vars =
-            Array.fold_left
-              (fun local_vars (x, new_x) -> Var.Map.add x new_x local_vars)
-              ctx.local_vars both_xs;
-        }
-        body
-    in
-    let binder = Expr.bind new_xs body in
-    Expr.eabs binder tys m
   | EDefault { excepts; just; cons } ->
     let excepts = collapse_similar_outcomes excepts in
     Expr.edefault
@@ -582,16 +548,13 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
   | ELocation (ToplevelVar v) ->
     let v, _ = TopdefName.Map.find (Mark.remove v) ctx.toplevel_vars in
     Expr.evar v m
-  | EIfThenElse { cond; etrue; efalse } ->
-    Expr.eifthenelse (translate_expr ctx cond) (translate_expr ctx etrue)
-      (translate_expr ctx efalse)
-      m
   | EOp { op = Add_dat_dur _; tys } ->
     Expr.eop (Add_dat_dur ctx.date_rounding) tys m
   | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
-  | EEmptyError -> Expr.eemptyerror m
-  | EErrorOnEmpty e' -> Expr.eerroronempty (translate_expr ctx e') m
-  | EArray es -> Expr.earray (List.map (translate_expr ctx) es) m
+  | ( EVar _ | EAbs _ | ELit _ | EExternal _ | EStruct _ | EStructAccess _
+    | ETuple _ | ETupleAccess _ | EInj _ | EEmptyError | EErrorOnEmpty _
+    | EArray _ | EIfThenElse _ ) as e ->
+    Expr.map ~f:(translate_expr ctx) (e, m)
 
 (** The result of a rule translation is a list of assignment, with variables and
     expressions. We also return the new translation context available after the
@@ -1123,7 +1086,6 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
       scopes_parameters = sctx;
       scope_vars = ScopeVar.Map.empty;
       subscope_vars = SubScopeName.Map.empty;
-      local_vars = Var.Map.empty;
       toplevel_vars;
       date_rounding = AbortOnRound;
     }

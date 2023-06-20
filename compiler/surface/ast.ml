@@ -735,7 +735,7 @@ type top_def = {
   topdef_args : (lident Mark.pos * base_typ Mark.pos) list Mark.pos option;
       (** Empty list if this is not a function *)
   topdef_type : typ;
-  topdef_expr : expression;
+  topdef_expr : expression option;
 }
 [@@deriving
   visitors
@@ -869,6 +869,8 @@ type law_structure =
       }]
 
 type program = {
+  program_interfaces :
+    ((Shared_ast.Qident.path[@opaque]) * code_item Mark.pos) list;
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
 }

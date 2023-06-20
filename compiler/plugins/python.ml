@@ -25,10 +25,16 @@ open Catala_utils
 let name = "python-plugin"
 let extension = ".py"
 
+let info =
+  Cmdliner.Cmd.info name
+    ~doc:
+      "This plugin is for demonstration purposes and should be equivalent to \
+       using the built-in Python backend"
+
 let apply ~source_file ~output_file ~scope prgm type_ordering =
   ignore source_file;
   ignore scope;
   File.with_formatter_of_opt_file output_file
   @@ fun fmt -> Scalc.To_python.format_program fmt prgm type_ordering
 
-let () = Driver.Plugin.register_scalc ~name ~extension apply
+let () = Driver.Plugin.register_scalc info ~extension apply

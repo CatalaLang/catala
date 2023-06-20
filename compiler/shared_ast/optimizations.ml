@@ -184,7 +184,7 @@ let rec optimize_expr :
       when name = name1 ->
       Mark.remove (StructField.Map.find field fields)
     | EDefault { excepts; just; cons } -> (
-      (* TODO: mechanically prove each of these optimizations correct :) *)
+      (* TODO: mechanically prove each of these optimizations correct *)
       let excepts =
         List.filter (fun except -> Mark.remove except <> EEmptyError) excepts
         (* we can discard the exceptions that are always empty error *)
@@ -198,7 +198,8 @@ let rec optimize_expr :
         (* at this point we know a conflict error will be triggered so we just
            feed the expression to the interpreter that will print the beautiful
            right error message *)
-        Mark.remove (Interpreter.evaluate_expr ctx.decl_ctx e)
+        let _ = Interpreter.evaluate_expr ctx.decl_ctx e in
+        assert false
       else
         match excepts, just with
         | [except], _ when Expr.is_value except ->
@@ -302,7 +303,12 @@ let rec optimize_expr :
   in
   Expr.Box.app1 e reduce mark
 
-let optimize_expr (decl_ctx : decl_ctx) (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) =
+let optimize_expr :
+      'm.
+      decl_ctx ->
+      (('a, 'b) dcalc_lcalc, 'm) gexpr ->
+      (('a, 'b) dcalc_lcalc, 'm) boxed_gexpr =
+ fun (decl_ctx : decl_ctx) (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) ->
   optimize_expr { var_values = Var.Map.empty; decl_ctx } e
 
 let optimize_program (p : 'm program) : 'm program =
@@ -339,15 +345,7 @@ let test_iota_reduction_1 () =
      x"
     (Format.asprintf "before=%a\nafter=%a" Expr.format (Expr.unbox matchA)
        Expr.format
-       (Expr.unbox
-          (optimize_expr
-             {
-               ctx_enums = EnumName.Map.empty;
-               ctx_structs = StructName.Map.empty;
-               ctx_struct_fields = IdentName.Map.empty;
-               ctx_scopes = ScopeName.Map.empty;
-             }
-             (Expr.unbox matchA))))
+       (Expr.unbox (optimize_expr Program.empty_ctx (Expr.unbox matchA))))
 
 let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
   EnumConstructor.Map.of_seq
@@ -409,12 +407,4 @@ let test_iota_reduction_2 () =
     \      | B → (λ (x: any) → D B x)\n"
     (Format.asprintf "before=@[%a@]@.after=%a@." Expr.format (Expr.unbox matchA)
        Expr.format
-       (Expr.unbox
-          (optimize_expr
-             {
-               ctx_enums = EnumName.Map.empty;
-               ctx_structs = StructName.Map.empty;
-               ctx_struct_fields = IdentName.Map.empty;
-               ctx_scopes = ScopeName.Map.empty;
-             }
-             (Expr.unbox matchA))))
+       (Expr.unbox (optimize_expr Program.empty_ctx (Expr.unbox matchA))))

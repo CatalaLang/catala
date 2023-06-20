@@ -107,6 +107,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     if (Var.Map.find x ctx.ctx_vars).info_pure then
       Ast.OptionMonad.return (Expr.evar (trans_var ctx x) m) ~mark
     else Expr.evar (trans_var ctx x) m
+  | EExternal eref -> Expr.eexternal eref mark
   | EApp { f = EVar v, _; args = [(ELit LUnit, _)] } ->
     (* Invariant: as users cannot write thunks, it can only come from prior
        compilation passes. Hence we can safely remove those. *)

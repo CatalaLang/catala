@@ -291,6 +291,7 @@ let rec parse_source_file
   (match input with Some input -> close_in input | None -> ());
   let program = expand_includes source_file_name commands language in
   {
+    program_interfaces = [];
     program_items = program.Ast.program_items;
     program_source_files = source_file_name :: program.Ast.program_source_files;
   }
@@ -309,6 +310,7 @@ and expand_includes
         let sub_source = Filename.concat source_dir (Mark.remove sub_source) in
         let includ_program = parse_source_file (FileName sub_source) language in
         {
+          program_interfaces = [];
           Ast.program_source_files =
             acc.Ast.program_source_files @ includ_program.program_source_files;
           Ast.program_items =
@@ -316,27 +318,71 @@ and expand_includes
         }
       | Ast.LawHeading (heading, commands') ->
         let {
+          Ast.program_interfaces = _;
           Ast.program_items = commands';
           Ast.program_source_files = new_sources;
         } =
           expand_includes source_file commands' language
         in
         {
+          Ast.program_interfaces = [];
           Ast.program_source_files = acc.Ast.program_source_files @ new_sources;
           Ast.program_items =
             acc.Ast.program_items @ [Ast.LawHeading (heading, commands')];
         }
       | i -> { acc with Ast.program_items = acc.Ast.program_items @ [i] })
-    { Ast.program_source_files = []; Ast.program_items = [] }
+    {
+      Ast.program_interfaces = [];
+      Ast.program_source_files = [];
+      Ast.program_items = [];
+    }
     commands
 
+(** {2 Handling interfaces} *)
+
+let get_interface program =
+  let rec filter acc = function
+    | Ast.LawInclude _ -> acc
+    | Ast.LawHeading (_, str) -> List.fold_left filter acc str
+    | Ast.LawText _ -> acc
+    | Ast.CodeBlock (code, _, true) ->
+      List.fold_left
+        (fun acc -> function
+          | Ast.ScopeUse _, _ -> acc
+          | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e -> e :: acc
+          | Ast.Topdef def, m ->
+            (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
+        acc code
+    | Ast.CodeBlock (_, _, false) ->
+      (* Non-metadata blocks are ignored *)
+      acc
+  in
+  List.fold_left filter [] program.Ast.program_items
+
+let qualify_interface path code_items =
+  List.map (fun item -> path, item) code_items
+
 (** {1 API} *)
+
+let add_interface source_file language path program =
+  let interface =
+    parse_source_file source_file language
+    |> get_interface
+    |> qualify_interface path
+  in
+  {
+    program with
+    Ast.program_interfaces =
+      List.append interface program.Ast.program_interfaces;
+  }
 
 let parse_top_level_file
     (source_file : Pos.input_file)
     (language : Cli.backend_lang) : Ast.program =
   let program = parse_source_file source_file language in
+  let interface = get_interface program in
   {
     program with
     Ast.program_items = law_struct_list_to_tree program.Ast.program_items;
+    Ast.program_interfaces = qualify_interface [] interface;
   }

@@ -27,7 +27,7 @@ type unique_rulename = Ambiguous of Pos.t list | Unique of RuleName.t Mark.pos
 
 type scope_def_context = {
   default_exception_rulename : unique_rulename option;
-  label_idmap : LabelName.t IdentName.Map.t;
+  label_idmap : LabelName.t Ident.Map.t;
 }
 
 type scope_var_or_subscope =
@@ -35,7 +35,7 @@ type scope_var_or_subscope =
   | SubScope of SubScopeName.t * ScopeName.t
 
 type scope_context = {
-  var_idmap : scope_var_or_subscope IdentName.Map.t;
+  var_idmap : scope_var_or_subscope Ident.Map.t;
       (** All variables, including scope variables and subscopes *)
   scope_defs_contexts : scope_def_context Ast.ScopeDef.Map.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
@@ -56,7 +56,7 @@ type var_sig = {
   var_sig_parameters :
     (Uid.MarkedString.info * Shared_ast.typ) list Mark.pos option;
   var_sig_io : Surface.Ast.scope_decl_context_io;
-  var_sig_states_idmap : StateName.t IdentName.Map.t;
+  var_sig_states_idmap : StateName.t Ident.Map.t;
   var_sig_states_list : StateName.t list;
 }
 
@@ -69,19 +69,19 @@ type typedef =
       (** Implicitly defined output struct *)
 
 type context = {
-  local_var_idmap : Ast.expr Var.t IdentName.Map.t;
+  local_var_idmap : Ast.expr Var.t Ident.Map.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
-  typedefs : typedef IdentName.Map.t;
+  typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
-  field_idmap : StructField.t StructName.Map.t IdentName.Map.t;
+  field_idmap : StructField.t StructName.Map.t Ident.Map.t;
       (** The names of the struct fields. Names of fields can be shared between
           different structs *)
-  constructor_idmap : EnumConstructor.t EnumName.Map.t IdentName.Map.t;
+  constructor_idmap : EnumConstructor.t EnumName.Map.t Ident.Map.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
   scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
-  topdefs : TopdefName.t IdentName.Map.t;  (** Global definitions *)
+  topdefs : TopdefName.t Ident.Map.t;  (** Global definitions *)
   structs : struct_context StructName.Map.t;
       (** For each struct, its context *)
   enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
@@ -99,7 +99,7 @@ let raise_unsupported_feature (msg : string) (pos : Pos.t) =
 
 (** Function to call whenever an identifier used somewhere has not been declared
     in the program previously *)
-let raise_unknown_identifier (msg : string) (ident : IdentName.t Mark.pos) =
+let raise_unknown_identifier (msg : string) (ident : Ident.t Mark.pos) =
   Message.raise_spanned_error (Mark.get ident)
     "@{<yellow>\"%s\"@}: unknown identifier %s" (Mark.remove ident) msg
 
@@ -118,9 +118,9 @@ let get_var_io (ctxt : context) (uid : ScopeVar.t) :
 let get_var_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
-    ((x, pos) : IdentName.t Mark.pos) : ScopeVar.t =
+    ((x, pos) : Ident.t Mark.pos) : ScopeVar.t =
   let scope = ScopeName.Map.find scope_uid ctxt.scopes in
-  match IdentName.Map.find_opt x scope.var_idmap with
+  match Ident.Map.find_opt x scope.var_idmap with
   | Some (ScopeVar uid) -> uid
   | _ ->
     raise_unknown_identifier
@@ -131,18 +131,18 @@ let get_var_uid
 let get_subscope_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
-    ((y, pos) : IdentName.t Mark.pos) : SubScopeName.t =
+    ((y, pos) : Ident.t Mark.pos) : SubScopeName.t =
   let scope = ScopeName.Map.find scope_uid ctxt.scopes in
-  match IdentName.Map.find_opt y scope.var_idmap with
+  match Ident.Map.find_opt y scope.var_idmap with
   | Some (SubScope (sub_uid, _sub_id)) -> sub_uid
   | _ -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
 
 (** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the
     subscopes of [scope_uid]. *)
-let is_subscope_uid (scope_uid : ScopeName.t) (ctxt : context) (y : IdentName.t)
-    : bool =
+let is_subscope_uid (scope_uid : ScopeName.t) (ctxt : context) (y : Ident.t) :
+    bool =
   let scope = ScopeName.Map.find scope_uid ctxt.scopes in
-  match IdentName.Map.find_opt y scope.var_idmap with
+  match Ident.Map.find_opt y scope.var_idmap with
   | Some (SubScope _) -> true
   | _ -> false
 
@@ -150,7 +150,7 @@ let is_subscope_uid (scope_uid : ScopeName.t) (ctxt : context) (y : IdentName.t)
 let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
     bool =
   let scope = ScopeName.Map.find scope_uid ctxt.scopes in
-  IdentName.Map.exists
+  Ident.Map.exists
     (fun _ -> function
       | ScopeVar var_uid -> ScopeVar.equal uid var_uid
       | _ -> false)
@@ -184,7 +184,7 @@ let is_def_cond (ctxt : context) (def : Ast.ScopeDef.t) : bool =
     is_var_cond ctxt x
 
 let get_enum ctxt id =
-  match IdentName.Map.find (Mark.remove id) ctxt.typedefs with
+  match Ident.Map.find (Mark.remove id) ctxt.typedefs with
   | TEnum id -> id
   | TStruct sid ->
     Message.raise_multispanned_error
@@ -205,7 +205,7 @@ let get_enum ctxt id =
       (Mark.remove id)
 
 let get_struct ctxt id =
-  match IdentName.Map.find (Mark.remove id) ctxt.typedefs with
+  match Ident.Map.find (Mark.remove id) ctxt.typedefs with
   | TStruct id | TScope (_, { out_struct_name = id; _ }) -> id
   | TEnum eid ->
     Message.raise_multispanned_error
@@ -219,7 +219,7 @@ let get_struct ctxt id =
       (Mark.remove id)
 
 let get_scope ctxt id =
-  match IdentName.Map.find (Mark.remove id) ctxt.typedefs with
+  match Ident.Map.find (Mark.remove id) ctxt.typedefs with
   | TScope (id, _) -> id
   | TEnum eid ->
     Message.raise_multispanned_error
@@ -249,7 +249,7 @@ let process_subscope_decl
   let name, name_pos = decl.scope_decl_context_scope_name in
   let subscope, s_pos = decl.scope_decl_context_scope_sub_scope in
   let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
-  match IdentName.Map.find_opt subscope scope_ctxt.var_idmap with
+  match Ident.Map.find_opt subscope scope_ctxt.var_idmap with
   | Some use ->
     let info =
       match use with
@@ -268,7 +268,7 @@ let process_subscope_decl
       {
         scope_ctxt with
         var_idmap =
-          IdentName.Map.add name
+          Ident.Map.add name
             (SubScope (sub_scope_uid, original_subscope_uid))
             scope_ctxt.var_idmap;
         sub_scopes =
@@ -304,7 +304,7 @@ let rec process_base_typ
     | Surface.Ast.Boolean -> TLit TBool, typ_pos
     | Surface.Ast.Text -> raise_unsupported_feature "text type" typ_pos
     | Surface.Ast.Named ([], (ident, _pos)) -> (
-      match IdentName.Map.find_opt ident ctxt.typedefs with
+      match Ident.Map.find_opt ident ctxt.typedefs with
       | Some (TStruct s_uid) -> TStruct s_uid, typ_pos
       | Some (TEnum e_uid) -> TEnum e_uid, typ_pos
       | Some (TScope (_, scope_str)) ->
@@ -337,7 +337,7 @@ let process_data_decl
   let is_cond = is_type_cond decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
   let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
-  match IdentName.Map.find_opt name scope_ctxt.var_idmap with
+  match Ident.Map.find_opt name scope_ctxt.var_idmap with
   | Some use ->
     let info =
       match use with
@@ -352,15 +352,14 @@ let process_data_decl
     let scope_ctxt =
       {
         scope_ctxt with
-        var_idmap = IdentName.Map.add name (ScopeVar uid) scope_ctxt.var_idmap;
+        var_idmap = Ident.Map.add name (ScopeVar uid) scope_ctxt.var_idmap;
       }
     in
     let states_idmap, states_list =
       List.fold_right
-        (fun state_id
-             ((states_idmap : StateName.t IdentName.Map.t), states_list) ->
+        (fun state_id ((states_idmap : StateName.t Ident.Map.t), states_list) ->
           let state_id_name = Mark.remove state_id in
-          if IdentName.Map.mem state_id_name states_idmap then
+          if Ident.Map.mem state_id_name states_idmap then
             Message.raise_multispanned_error_full
               [
                 ( Some
@@ -375,15 +374,15 @@ let process_data_decl
                         "Second instance of state @{<yellow>\"%s\"@}:"
                         state_id_name),
                   Mark.get
-                    (IdentName.Map.find state_id_name states_idmap
+                    (Ident.Map.find state_id_name states_idmap
                     |> StateName.get_info) );
               ]
               "There are two states with the same name for the same variable: \
                this is ambiguous. Please change the name of either states.";
           let state_uid = StateName.fresh state_id in
-          ( IdentName.Map.add state_id_name state_uid states_idmap,
+          ( Ident.Map.add state_id_name state_uid states_idmap,
             state_uid :: states_list ))
-        decl.scope_decl_context_item_states (IdentName.Map.empty, [])
+        decl.scope_decl_context_item_states (Ident.Map.empty, [])
     in
     let var_sig_parameters =
       Option.map
@@ -407,14 +406,13 @@ let process_data_decl
     }
 
 (** Adds a binding to the context *)
-let add_def_local_var (ctxt : context) (name : IdentName.t) :
+let add_def_local_var (ctxt : context) (name : Ident.t) :
     context * Ast.expr Var.t =
   let local_var_uid = Var.make name in
   let ctxt =
     {
       ctxt with
-      local_var_idmap =
-        IdentName.Map.add name local_var_uid ctxt.local_var_idmap;
+      local_var_idmap = Ident.Map.add name local_var_uid ctxt.local_var_idmap;
     }
   in
   ctxt, local_var_uid
@@ -436,7 +434,7 @@ let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
         {
           ctxt with
           field_idmap =
-            IdentName.Map.update
+            Ident.Map.update
               (Mark.remove fdecl.Surface.Ast.struct_decl_field_name)
               (fun uids ->
                 match uids with
@@ -481,7 +479,7 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
         {
           ctxt with
           constructor_idmap =
-            IdentName.Map.update
+            Ident.Map.update
               (Mark.remove cdecl.Surface.Ast.enum_decl_case_name)
               (fun uids ->
                 match uids with
@@ -569,21 +567,21 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
     let out_struct_fields =
       let sco = ScopeName.Map.find scope_uid ctxt.scopes in
       let str = get_struct ctxt decl.scope_decl_name in
-      IdentName.Map.fold
+      Ident.Map.fold
         (fun id var svmap ->
           match var with
           | SubScope _ -> svmap
           | ScopeVar v -> (
             try
               let field =
-                StructName.Map.find str (IdentName.Map.find id ctxt.field_idmap)
+                StructName.Map.find str (Ident.Map.find id ctxt.field_idmap)
               in
               ScopeVar.Map.add v field svmap
             with Not_found -> svmap))
         sco.var_idmap ScopeVar.Map.empty
     in
     let typedefs =
-      IdentName.Map.update
+      Ident.Map.update
         (Mark.remove decl.scope_decl_name)
         (function
           | Some (TScope (scope, { out_struct_name; _ })) ->
@@ -617,13 +615,13 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     Option.iter
       (fun use ->
         raise_already_defined_error (typedef_info use) name pos "scope")
-      (IdentName.Map.find_opt name ctxt.typedefs);
+      (Ident.Map.find_opt name ctxt.typedefs);
     let scope_uid = ScopeName.fresh (name, pos) in
     let out_struct_uid = StructName.fresh (name, pos) in
     {
       ctxt with
       typedefs =
-        IdentName.Map.add name
+        Ident.Map.add name
           (TScope
              ( scope_uid,
                {
@@ -634,7 +632,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
       scopes =
         ScopeName.Map.add scope_uid
           {
-            var_idmap = IdentName.Map.empty;
+            var_idmap = Ident.Map.empty;
             scope_defs_contexts = Ast.ScopeDef.Map.empty;
             sub_scopes = ScopeName.Set.empty;
           }
@@ -645,12 +643,12 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     Option.iter
       (fun use ->
         raise_already_defined_error (typedef_info use) name pos "struct")
-      (IdentName.Map.find_opt name ctxt.typedefs);
+      (Ident.Map.find_opt name ctxt.typedefs);
     let s_uid = StructName.fresh sdecl.struct_decl_name in
     {
       ctxt with
       typedefs =
-        IdentName.Map.add
+        Ident.Map.add
           (Mark.remove sdecl.struct_decl_name)
           (TStruct s_uid) ctxt.typedefs;
     }
@@ -659,12 +657,12 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     Option.iter
       (fun use ->
         raise_already_defined_error (typedef_info use) name pos "enum")
-      (IdentName.Map.find_opt name ctxt.typedefs);
+      (Ident.Map.find_opt name ctxt.typedefs);
     let e_uid = EnumName.fresh edecl.enum_decl_name in
     {
       ctxt with
       typedefs =
-        IdentName.Map.add
+        Ident.Map.add
           (Mark.remove edecl.enum_decl_name)
           (TEnum e_uid) ctxt.typedefs;
     }
@@ -675,9 +673,9 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
       (fun use ->
         raise_already_defined_error (TopdefName.get_info use) name pos
           "toplevel definition")
-      (IdentName.Map.find_opt name ctxt.topdefs);
+      (Ident.Map.find_opt name ctxt.topdefs);
     let uid = TopdefName.fresh def.topdef_name in
-    { ctxt with topdefs = IdentName.Map.add name uid ctxt.topdefs }
+    { ctxt with topdefs = Ident.Map.add name uid ctxt.topdefs }
 
 (** Process a code item that is a declaration *)
 let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
@@ -731,8 +729,7 @@ let get_def_key
         | Some state -> (
           try
             Some
-              (IdentName.Map.find (Mark.remove state)
-                 var_sig.var_sig_states_idmap)
+              (Ident.Map.find (Mark.remove state) var_sig.var_sig_states_idmap)
           with Not_found ->
             Message.raise_multispanned_error
               [
@@ -742,7 +739,7 @@ let get_def_key
               "This identifier is not a state declared for variable %a."
               ScopeVar.format_t x_uid)
         | None ->
-          if not (IdentName.Map.is_empty var_sig.var_sig_states_idmap) then
+          if not (Ident.Map.is_empty var_sig.var_sig_states_idmap) then
             Message.raise_multispanned_error
               [
                 None, Mark.get x;
@@ -754,7 +751,7 @@ let get_def_key
           else None )
   | [y; x] ->
     let (subscope_uid, subscope_real_uid) : SubScopeName.t * ScopeName.t =
-      match IdentName.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
+      match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
       | Some (SubScope (v, u)) -> v, u
       | Some _ ->
         Message.raise_spanned_error pos
@@ -782,7 +779,7 @@ let update_def_key_ctx
     | None -> def_key_ctx
     | Some label ->
       let new_label_idmap =
-        IdentName.Map.update (Mark.remove label)
+        Ident.Map.update (Mark.remove label)
           (fun existing_label ->
             match existing_label with
             | Some existing_label -> Some existing_label
@@ -836,7 +833,7 @@ let empty_def_key_ctx =
     (* Here, this is the first time we encounter a definition for this
        definition key *)
     default_exception_rulename = None;
-    label_idmap = IdentName.Map.empty;
+    label_idmap = Ident.Map.empty;
   }
 
 let process_definition
@@ -885,7 +882,7 @@ let process_scope_use (ctxt : context) (suse : Surface.Ast.scope_use) : context
     =
   let s_name =
     match
-      IdentName.Map.find_opt
+      Ident.Map.find_opt
         (Mark.remove suse.Surface.Ast.scope_use_name)
         ctxt.typedefs
     with
@@ -913,15 +910,15 @@ let process_use_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
 let form_context (prgm : Surface.Ast.program) : context =
   let empty_ctxt =
     {
-      local_var_idmap = IdentName.Map.empty;
-      typedefs = IdentName.Map.empty;
+      local_var_idmap = Ident.Map.empty;
+      typedefs = Ident.Map.empty;
       scopes = ScopeName.Map.empty;
-      topdefs = IdentName.Map.empty;
+      topdefs = Ident.Map.empty;
       var_typs = ScopeVar.Map.empty;
       structs = StructName.Map.empty;
-      field_idmap = IdentName.Map.empty;
+      field_idmap = Ident.Map.empty;
       enums = EnumName.Map.empty;
-      constructor_idmap = IdentName.Map.empty;
+      constructor_idmap = Ident.Map.empty;
     }
   in
   let ctxt =

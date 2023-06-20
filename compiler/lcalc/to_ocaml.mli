@@ -40,7 +40,9 @@ val format_var : Format.formatter -> 'm Var.t -> unit
 
 val format_program :
   Format.formatter ->
+  ?modname:string ->
   'm Ast.program ->
   Scopelang.Dependency.TVertex.t list ->
   unit
-(** Usage [format_program fmt p type_dependencies_ordering] *)
+(** Usage [format_program fmt p type_dependencies_ordering]. If [modname] is
+    set, registers the module for dynamic loading *)
