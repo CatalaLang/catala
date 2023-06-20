@@ -19,4 +19,13 @@
 
 open Catala_utils
 
+val add_interface :
+  Pos.input_file ->
+  Cli.backend_lang ->
+  Shared_ast.Qident.path ->
+  Ast.program ->
+  Ast.program
+(** Reads only declarations in metadata in the supplied input file, and add them
+    to the given program *)
+
 val parse_top_level_file : Pos.input_file -> Cli.backend_lang -> Ast.program

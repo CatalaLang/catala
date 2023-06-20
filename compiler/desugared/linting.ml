@@ -109,7 +109,7 @@ let detect_unused_struct_fields (p : program) : unit =
           | EDStructAccess { name_opt = Some name; e = e_struct; field } ->
             let field =
               StructName.Map.find name
-                (IdentName.Map.find field p.program_ctx.ctx_struct_fields)
+                (Ident.Map.find field p.program_ctx.ctx_struct_fields)
             in
             StructField.Set.add field
               (structs_fields_used_expr e_struct struct_fields_used)

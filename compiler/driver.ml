@@ -21,9 +21,11 @@ open Catala_utils
     string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 
+type backend = [ Cli.backend_option | `Plugin of Plugin.handler ]
+
 let get_scope_uid
-    (options : Cli.options)
-    (backend : Plugin.t Cli.backend_option)
+    (options : Cli.global_options)
+    (backend : backend)
     (ctxt : Desugared.Name_resolution.context) =
   match options.ex_scope, backend with
   | None, `Interpret ->
@@ -31,26 +33,26 @@ let get_scope_uid
   | None, _ ->
     let _, scope =
       try
-        Shared_ast.IdentName.Map.filter_map
+        Shared_ast.Ident.Map.filter_map
           (fun _ -> function
             | Desugared.Name_resolution.TScope (uid, _) -> Some uid
             | _ -> None)
           ctxt.typedefs
-        |> Shared_ast.IdentName.Map.choose
+        |> Shared_ast.Ident.Map.choose
       with Not_found ->
         Message.raise_error "There isn't any scope inside the program."
     in
     scope
   | Some name, _ -> (
-    match Shared_ast.IdentName.Map.find_opt name ctxt.typedefs with
+    match Shared_ast.Ident.Map.find_opt name ctxt.typedefs with
     | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
     | _ ->
       Message.raise_error
         "There is no scope @{<yellow>\"%s\"@} inside the program." name)
 
 let get_variable_uid
-    (options : Cli.options)
-    (backend : Plugin.t Cli.backend_option)
+    (options : Cli.global_options)
+    (backend : backend)
     (ctxt : Desugared.Name_resolution.context)
     (scope_uid : Shared_ast.ScopeName.t) =
   match options.ex_variable, backend with
@@ -75,7 +77,7 @@ let get_variable_uid
       | Some groups -> Re.Group.get groups 1, Some (Re.Group.get groups 2)
     in
     match
-      Shared_ast.IdentName.Map.find_opt first_part
+      Shared_ast.Ident.Map.find_opt first_part
         (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
     with
     | None ->
@@ -95,7 +97,7 @@ let get_variable_uid
           Shared_ast.ScopeName.format_t scope_uid
       | Some second_part -> (
         match
-          Shared_ast.IdentName.Map.find_opt second_part
+          Shared_ast.Ident.Map.find_opt second_part
             (Shared_ast.ScopeName.Map.find subscope_name ctxt.scopes).var_idmap
         with
         | Some (Desugared.Name_resolution.ScopeVar v) ->
@@ -117,7 +119,7 @@ let get_variable_uid
                (fun second_part ->
                  let var_sig = Shared_ast.ScopeVar.Map.find v ctxt.var_typs in
                  match
-                   Shared_ast.IdentName.Map.find_opt second_part
+                   Shared_ast.Ident.Map.find_opt second_part
                      var_sig.var_sig_states_idmap
                  with
                  | Some state -> state
@@ -129,17 +131,14 @@ let get_variable_uid
                      scope_uid)
                second_part )))
 
+let modname_of_file f =
+  (* Fixme: make this more robust *)
+  String.capitalize_ascii Filename.(basename (remove_extension f))
+
 (** Entry function for the executable. Returns a negative number in case of
     error. Usage: [driver source_file options]*)
-let driver source_file (options : Cli.options) : int =
+let driver backend source_file (options : Cli.global_options) : int =
   try
-    List.iter
-      (fun d ->
-        match Sys.is_directory d with
-        | true -> Plugin.load_dir d
-        | false -> ()
-        | exception Sys_error _ -> ())
-      options.plugins_dirs;
     Cli.set_option_globals options;
     if options.debug then Printexc.record_backtrace true;
     Message.emit_debug "Reading files...";
@@ -167,28 +166,23 @@ let driver source_file (options : Cli.options) : int =
           "The selected language (%s) is not supported by Catala" l
     in
     Cli.locale_lang := language;
-    let backend = options.backend in
-    let backend =
-      match Cli.backend_option_of_string backend with
-      | #Cli.backend_option_builtin as backend -> backend
-      | `Plugin s -> (
-        try `Plugin (Plugin.find s)
-        with Not_found ->
-          Message.raise_error
-            "The selected backend (%s) is not supported by Catala, nor was a \
-             plugin by this name found under %a"
-            backend
-            (Format.pp_print_list
-               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or @ ")
-               (fun ppf dir ->
-                 Format.pp_print_string ppf
-                   (try Unix.readlink dir with _ -> dir)))
-            options.plugins_dirs)
-    in
     let prgm =
       Surface.Parser_driver.parse_top_level_file source_file language
     in
     let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
+    let prgm =
+      List.fold_left
+        (fun prgm f ->
+          let lang =
+            Option.value ~default:language
+            @@ Option.bind
+                 (List.assoc_opt (Filename.extension f) extensions)
+                 (fun l -> List.assoc_opt l Cli.languages)
+          in
+          let modname = modname_of_file f in
+          Surface.Parser_driver.add_interface (FileName f) lang [modname] prgm)
+        prgm options.link_modules
+    in
     let get_output ?ext =
       File.get_out_channel ~source_file ~output_file:options.output_file ?ext
     in
@@ -375,6 +369,14 @@ let driver source_file (options : Cli.options) : int =
 
             Verification.Solver.solve_vc prgm.decl_ctx vcs
           | `Interpret ->
+            if options.link_modules <> [] then (
+              Message.emit_debug "Loading shared modules...";
+              List.iter
+                Dynlink.(
+                  fun m ->
+                    loadfile
+                      (adapt_filename (Filename.remove_extension m ^ ".cmo")))
+                options.link_modules);
             Message.emit_debug "Starting interpretation (dcalc)...";
             let results =
               try Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
@@ -523,7 +525,13 @@ let driver source_file (options : Cli.options) : int =
                 Message.emit_debug "Compiling program into OCaml...";
                 Message.emit_debug "Writing to %s..."
                   (Option.value ~default:"stdout" output_file);
-                Lcalc.To_ocaml.format_program fmt prgm type_ordering
+                let modname =
+                  match source_file with
+                  (* FIXME: WIP placeholder *)
+                  | FileName n -> Some (modname_of_file n)
+                  | _ -> None
+                in
+                Lcalc.To_ocaml.format_program fmt ?modname prgm type_ordering
               | `Plugin (Plugin.Dcalc _) -> assert false
               | `Plugin (Plugin.Lcalc p) ->
                 let output_file, _ =
@@ -594,15 +602,65 @@ let driver source_file (options : Cli.options) : int =
     -1
 
 let main () =
-  if
-    Array.length Sys.argv >= 2
-    && String.lowercase_ascii Sys.argv.(1) = "pygmentize"
-  then Literate.Pygmentize.exec ();
+  let argv = Array.copy Sys.argv in
+  (* Our command names (first argument) are case-insensitive *)
+  if Array.length argv >= 2 then argv.(1) <- String.lowercase_ascii argv.(1);
+  (* Pygmentize is a specific exec subcommand that doesn't go through
+     cmdliner *)
+  if Array.length Sys.argv >= 2 && argv.(1) = "pygmentize" then
+    Literate.Pygmentize.exec ();
+  (* Peek to load plugins before the command-line is parsed proper *)
+  let plugins =
+    let plugins_dirs =
+      match
+        Cmdliner.Cmd.eval_peek_opts ~argv Cli.global_options ~version_opt:true
+      with
+      | Some opts, _ ->
+        Cli.set_option_globals opts;
+        (* Do this asap, for debug options, etc. *)
+        opts.Cli.plugins_dirs
+      | None, _ -> []
+    in
+    List.iter
+      (fun d ->
+        match Sys.is_directory d with
+        | true -> Plugin.load_dir d
+        | false -> ()
+        | exception Sys_error _ -> ())
+      plugins_dirs;
+    Plugin.list ()
+  in
   let return_code =
-    Cmdliner.Cmd.eval'
-      (Cmdliner.Cmd.v Cli.info (Cli.catala_t (fun f -> driver (FileName f))))
+    Cmdliner.Cmd.eval' ~argv
+      (Cli.catala_t
+         (fun backend f -> driver backend (FileName f))
+         ~extra:plugins)
   in
   exit return_code
 
 (* Export module PluginAPI, hide parent module Plugin *)
-module Plugin = Plugin.PluginAPI
+module Plugin = struct
+  open Plugin
+  include PluginAPI
+  open Cmdliner
+
+  let register_cmd info plugin =
+    let term =
+      Term.(
+        const (fun file opts -> driver (`Plugin plugin) (FileName file) opts)
+        $ Cli.file
+        $ Cli.global_options)
+    in
+    register_generic info term
+
+  let info_name info = Cmd.name (Cmd.v info (Term.const ()))
+
+  let register_dcalc info ~extension apply =
+    register_cmd info (Dcalc { name = info_name info; extension; apply })
+
+  let register_lcalc info ~extension apply =
+    register_cmd info (Lcalc { name = info_name info; extension; apply })
+
+  let register_scalc info ~extension apply =
+    register_cmd info (Scalc { name = info_name info; extension; apply })
+end

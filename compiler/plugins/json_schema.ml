@@ -14,11 +14,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Catala plugin for generating {{:https://json-schema.org} JSON schemas} used
-    to build forms for the Catala website. *)
-
 let name = "json_schema"
 let extension = "_schema.json"
+
+let info =
+  Cmdliner.Cmd.info name
+    ~doc:
+      "Catala plugin for generating {{:https://json-schema.org} JSON schemas} \
+       used to build forms for the Catala website."
 
 open Catala_utils
 open Shared_ast
@@ -232,4 +235,4 @@ let apply
   | None ->
     Message.raise_error "A scope must be specified for the plugin: %s" name
 
-let () = Driver.Plugin.register_lcalc ~name ~extension apply
+let () = Driver.Plugin.register_lcalc info ~extension apply

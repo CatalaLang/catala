@@ -233,9 +233,9 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
               (format_typ ctx) t2),
         t2_pos );
     ]
-    "Error during typechecking, incompatible types:@,\
+    "@[<v>Error during typechecking, incompatible types:@,\
      @[<v>@{<bold;blue>@<3>%s@} @[<hov>%a@]@,\
-     @{<bold;blue>@<3>%s@} @[<hov>%a@]@]" "┌─⯈" (format_typ ctx) t1 "└─⯈"
+     @{<bold;blue>@<3>%s@} @[<hov>%a@]@]@]" "┌─⯈" (format_typ ctx) t1 "└─⯈"
     (format_typ ctx) t2
 
 let lit_type (lit : A.lit) : naked_typ =
@@ -500,7 +500,7 @@ and typecheck_expr_top_down :
       in
       let field =
         let candidate_structs =
-          try A.IdentName.Map.find field ctx.ctx_struct_fields
+          try A.Ident.Map.find field ctx.ctx_struct_fields
           with Not_found ->
             Message.raise_spanned_error
               (Expr.mark_pos context_mark)
@@ -652,6 +652,16 @@ and typecheck_expr_top_down :
           "Variable %s not found in the current context" (Bindlib.name_of v)
     in
     Expr.evar (Var.translate v) (mark_with_tau_and_unify tau')
+  | A.EExternal eref ->
+    let ty =
+      try Qident.Map.find eref ctx.ctx_modules
+      with Not_found ->
+        Message.raise_spanned_error pos_e
+          "Could not resolve the reference to %a.@ Make sure the corresponding \
+           module was properly loaded?"
+          Qident.format eref
+    in
+    Expr.eexternal eref (mark_with_tau_and_unify (ast_to_typ ty))
   | A.ELit lit -> Expr.elit lit (ty_mark (lit_type lit))
   | A.ETuple es ->
     let tys = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) es in
@@ -829,6 +839,11 @@ and typecheck_expr_top_down :
       List.map (typecheck_expr_top_down ~leave_unresolved ctx env cell_type) es
     in
     Expr.earray es' mark
+  | A.ECustom { obj; targs; tret } ->
+    let mark =
+      mark_with_tau_and_unify (ast_to_typ (A.TArrow (targs, tret), Expr.pos e))
+    in
+    Expr.ecustom obj targs tret mark
 
 let wrap ctx f e =
   try f e

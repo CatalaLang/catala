@@ -224,7 +224,7 @@ type scope = {
 
 type program = {
   program_scopes : scope ScopeName.Map.t;
-  program_topdefs : (expr * typ) TopdefName.Map.t;
+  program_topdefs : (expr option * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
 }
 
@@ -291,4 +291,6 @@ let fold_exprs ~(f : 'a -> expr -> 'a) ~(init : 'a) (p : program) : 'a =
         acc)
       p.program_scopes init
   in
-  TopdefName.Map.fold (fun _ (e, _) acc -> f acc e) p.program_topdefs acc
+  TopdefName.Map.fold
+    (fun _ (e, _) acc -> Option.fold ~none:acc ~some:(f acc) e)
+    p.program_topdefs acc

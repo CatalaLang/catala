@@ -17,6 +17,10 @@
 
 open Definitions
 
+(** {2 Program declaration context helpers} *)
+
+val empty_ctx : decl_ctx
+
 (** {2 Transformations} *)
 
 val map_exprs :

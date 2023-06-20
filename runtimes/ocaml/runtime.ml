@@ -737,3 +737,23 @@ module Oper = struct
 end
 
 include Oper
+
+type hash = string
+
+let modules_table : (string, hash) Hashtbl.t = Hashtbl.create 13
+let values_table : (string list * string, Obj.t) Hashtbl.t = Hashtbl.create 13
+
+let register_module modname values hash =
+  Hashtbl.add modules_table modname hash;
+  List.iter (fun (id, v) -> Hashtbl.add values_table ([modname], id) v) values
+
+let check_module m h = String.equal (Hashtbl.find modules_table m) h
+
+let lookup_value qid =
+  try Hashtbl.find values_table qid
+  with Not_found ->
+    failwith
+      ("Could not resolve reference to "
+      ^ String.concat "." (fst qid)
+      ^ "."
+      ^ snd qid)

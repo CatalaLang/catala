@@ -28,10 +28,15 @@ val box : ('a, 'm) gexpr -> ('a, 'm) boxed_gexpr
 val unbox : ('a, 'm) boxed_gexpr -> ('a, 'm) gexpr
 (** For closed expressions, similar to [Bindlib.unbox] *)
 
+val unbox_closed : ('a, 'm) boxed_gexpr -> ('a, 'm) gexpr
+(** Similar to [unbox], but with an added assertion check on the expression
+    being closed *)
+
 val rebox : ('a any, 'm) gexpr -> ('a, 'm) boxed_gexpr
 (** Rebuild the whole term, re-binding all variables and exposing free variables *)
 
 val evar : ('a, 'm) gexpr Var.t -> 'm mark -> ('a, 'm) boxed_gexpr
+val eexternal : Qident.t -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 val bind :
   ('a, 'm) gexpr Var.t array ->
@@ -110,7 +115,7 @@ val estruct :
 
 val edstructaccess :
   ('a, 'm) boxed_gexpr ->
-  IdentName.t ->
+  Ident.t ->
   StructName.t option ->
   'm mark ->
   ((< syntacticNames : yes ; .. > as 'a), 'm) boxed_gexpr
@@ -141,6 +146,13 @@ val escopecall :
   ('a, 'm) boxed_gexpr ScopeVar.Map.t ->
   'm mark ->
   ((< explicitScopes : yes ; .. > as 'a), 'm) boxed_gexpr
+
+val ecustom :
+  Obj.t ->
+  Type.t list ->
+  Type.t ->
+  'm mark ->
+  (< custom : Definitions.yes ; .. >, 'm) boxed_gexpr
 
 val fun_id : ?var_name:string -> 'm mark -> ('a any, 'm) boxed_gexpr
 

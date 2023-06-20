@@ -27,7 +27,7 @@ type unique_rulename = Ambiguous of Pos.t list | Unique of RuleName.t Mark.pos
 
 type scope_def_context = {
   default_exception_rulename : unique_rulename option;
-  label_idmap : LabelName.t IdentName.Map.t;
+  label_idmap : LabelName.t Ident.Map.t;
 }
 
 type scope_var_or_subscope =
@@ -35,7 +35,7 @@ type scope_var_or_subscope =
   | SubScope of SubScopeName.t * ScopeName.t
 
 type scope_context = {
-  var_idmap : scope_var_or_subscope IdentName.Map.t;
+  var_idmap : scope_var_or_subscope Ident.Map.t;
       (** All variables, including scope variables and subscopes *)
   scope_defs_contexts : scope_def_context Ast.ScopeDef.Map.t;
       (** What is the default rule to refer to for unnamed exceptions, if any *)
@@ -56,7 +56,7 @@ type var_sig = {
   var_sig_parameters :
     (Uid.MarkedString.info * Shared_ast.typ) list Mark.pos option;
   var_sig_io : Surface.Ast.scope_decl_context_io;
-  var_sig_states_idmap : StateName.t IdentName.Map.t;
+  var_sig_states_idmap : StateName.t Ident.Map.t;
   var_sig_states_list : StateName.t list;
 }
 
@@ -69,19 +69,19 @@ type typedef =
       (** Implicitly defined output struct *)
 
 type context = {
-  local_var_idmap : Ast.expr Var.t IdentName.Map.t;
+  local_var_idmap : Ast.expr Var.t Ident.Map.t;
       (** Inside a definition, local variables can be introduced by functions
           arguments or pattern matching *)
-  typedefs : typedef IdentName.Map.t;
+  typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
-  field_idmap : StructField.t StructName.Map.t IdentName.Map.t;
+  field_idmap : StructField.t StructName.Map.t Ident.Map.t;
       (** The names of the struct fields. Names of fields can be shared between
           different structs *)
-  constructor_idmap : EnumConstructor.t EnumName.Map.t IdentName.Map.t;
+  constructor_idmap : EnumConstructor.t EnumName.Map.t Ident.Map.t;
       (** The names of the enum constructors. Constructor names can be shared
           between different enums *)
   scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
-  topdefs : TopdefName.t IdentName.Map.t;  (** Global definitions *)
+  topdefs : TopdefName.t Ident.Map.t;  (** Global definitions *)
   structs : struct_context StructName.Map.t;
       (** For each struct, its context *)
   enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
@@ -96,7 +96,7 @@ val raise_unsupported_feature : string -> Pos.t -> 'a
 (** Temporary function raising an error message saying that a feature is not
     supported yet *)
 
-val raise_unknown_identifier : string -> IdentName.t Mark.pos -> 'a
+val raise_unknown_identifier : string -> Ident.t Mark.pos -> 'a
 (** Function to call whenever an identifier used somewhere has not been declared
     in the program previously *)
 
@@ -106,14 +106,14 @@ val get_var_typ : context -> ScopeVar.t -> typ
 val is_var_cond : context -> ScopeVar.t -> bool
 val get_var_io : context -> ScopeVar.t -> Surface.Ast.scope_decl_context_io
 
-val get_var_uid : ScopeName.t -> context -> IdentName.t Mark.pos -> ScopeVar.t
+val get_var_uid : ScopeName.t -> context -> Ident.t Mark.pos -> ScopeVar.t
 (** Get the variable uid inside the scope given in argument *)
 
 val get_subscope_uid :
-  ScopeName.t -> context -> IdentName.t Mark.pos -> SubScopeName.t
+  ScopeName.t -> context -> Ident.t Mark.pos -> SubScopeName.t
 (** Get the subscope uid inside the scope given in argument *)
 
-val is_subscope_uid : ScopeName.t -> context -> IdentName.t -> bool
+val is_subscope_uid : ScopeName.t -> context -> Ident.t -> bool
 (** [is_subscope_uid scope_uid ctxt y] returns true if [y] belongs to the
     subscopes of [scope_uid]. *)
 
@@ -131,7 +131,7 @@ val get_params :
 val is_def_cond : context -> Ast.ScopeDef.t -> bool
 val is_type_cond : Surface.Ast.typ -> bool
 
-val add_def_local_var : context -> IdentName.t -> context * Ast.expr Var.t
+val add_def_local_var : context -> Ident.t -> context * Ast.expr Var.t
 (** Adds a binding to the context *)
 
 val get_def_key :
@@ -143,21 +143,20 @@ val get_def_key :
   Ast.ScopeDef.t
 (** Usage: [get_def_key var_name var_state scope_uid ctxt pos]*)
 
-val get_enum : context -> IdentName.t Mark.pos -> EnumName.t
+val get_enum : context -> Ident.t Mark.pos -> EnumName.t
 (** Find an enum definition from the typedefs, failing if there is none or it
     has a different kind *)
 
-val get_struct : context -> IdentName.t Mark.pos -> StructName.t
+val get_struct : context -> Ident.t Mark.pos -> StructName.t
 (** Find a struct definition from the typedefs (possibly an implicit output
     struct from a scope), failing if there is none or it has a different kind *)
 
-val get_scope : context -> IdentName.t Mark.pos -> ScopeName.t
+val get_scope : context -> Ident.t Mark.pos -> ScopeName.t
 (** Find a scope definition from the typedefs, failing if there is none or it
     has a different kind *)
 
 val process_type : context -> Surface.Ast.typ -> typ
 (** Convert a surface base type to an AST type *)
-(* Note: should probably be moved to a different module *)
 
 (** {1 API} *)
 

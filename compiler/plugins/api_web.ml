@@ -15,9 +15,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Catala plugin for generating web APIs. It generates OCaml code before the
-    the associated [js_of_ocaml] wrapper. *)
-
 open Catala_utils
 open Shared_ast
 open Lcalc
@@ -27,6 +24,12 @@ module D = Dcalc.Ast
 
 let name = "api_web"
 let extension = ".ml"
+
+let info =
+  Cmdliner.Cmd.info name
+    ~doc:
+      "Catala plugin for generating web APIs. It generates OCaml code before \
+       the associated [js_of_ocaml] wrapper."
 
 (** Contains all format functions used to generating the [js_of_ocaml] wrapper
     of the corresponding Catala program. *)
@@ -469,4 +472,4 @@ let apply
         (Option.value ~default:"stdout" jsoo_output_file);
       To_jsoo.format_program fmt module_name prgm type_ordering)
 
-let () = Driver.Plugin.register_lcalc ~name ~extension apply
+let () = Driver.Plugin.register_lcalc info ~extension apply

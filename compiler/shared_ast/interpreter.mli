@@ -22,8 +22,21 @@ open Definitions
 
 exception CatalaException of except
 
+type features =
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; resolvedNames : yes
+  ; scopeVarStates : no
+  ; scopeVarSimpl : no
+  ; explicitScopes : no
+  ; assertions : yes >
+(** The interpreter only works on dcalc and lcalc, which share these features *)
+
 val evaluate_operator :
-  ((((_, _) dcalc_lcalc as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
+  (((< features ; .. > as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator ->
   'm mark ->
   ('a, 'm) gexpr list ->
@@ -34,9 +47,7 @@ val evaluate_operator :
     operator. *)
 
 val evaluate_expr :
-  decl_ctx ->
-  (('a, 'b) dcalc_lcalc, 'm) gexpr ->
-  (('a, 'b) dcalc_lcalc, 'm) gexpr
+  decl_ctx -> (((_, _) dcalc_lcalc as 'a), 'm) gexpr -> ('a, 'm) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program_dcalc :

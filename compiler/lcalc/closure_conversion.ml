@@ -39,7 +39,8 @@ let rec transform_closures_expr :
   let m = Mark.get e in
   match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _ ->
+  | ELit _ | EExternal _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _
+  | ECatch _ ->
     Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union
       ~f:(transform_closures_expr ctx)
       e
@@ -465,6 +466,7 @@ let rec hoist_closures_expr :
   | EArray _ | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _
   | EVar _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_closures_expr name_context) e
+  | EExternal _ -> failwith "unimplemented"
   | _ -> .
 
 (* Here I have to reimplement Scope.map_exprs_in_lets because I'm changing the
