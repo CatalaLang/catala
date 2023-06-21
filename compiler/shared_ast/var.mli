@@ -49,6 +49,7 @@ module Set : sig
   val of_list : 'e var list -> 'e t
   val elements : 'e t -> 'e var list
   val diff : 'e t -> 'e t -> 'e t
+  val choose_opt : 'e t -> 'e var option
 end
 
 (** Wrapper over [Map.S] but with a type variable for the AST type parameters.
