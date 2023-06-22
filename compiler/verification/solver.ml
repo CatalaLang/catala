@@ -96,46 +96,28 @@ let solve_date_vc
     (Z3backend.Io.print_negative_result vc scope_name
        (Z3backend.Io.make_context decl_ctx)
        None);
-  let interesting_vars =
-    let rec collect_vars = function
-      | EVar v, _ -> Var.Set.singleton v
-      | e ->
-        Expr.shallow_fold
-          (fun e -> Var.Set.union (collect_vars e))
-          e Var.Set.empty
-    in
-    let rec related_vars todos acc =
-      match Var.Set.choose_opt todos with
-      | None -> acc
-      | Some t ->
-        let new_vars =
-          List.fold_left
-            (fun acc e -> Var.Set.union acc (collect_vars e))
-            Var.Set.empty
-            (Option.value ~default:[]
-               (Var.Map.find_opt t
-                  vc_scope_ctx.Conditions.vc_scope_possible_variable_values))
-        in
-        related_vars
-          (Var.Set.union (Var.Set.remove t todos) new_vars)
-          (Var.Set.union acc new_vars)
-    in
-    related_vars (collect_vars vc.vc_guard) (collect_vars vc.vc_guard)
+  let vars_used_in_vc = Expr.free_vars vc.vc_guard in
+  let vars_used_in_vc_with_known_values =
+    Var.Set.filter
+      (fun v ->
+        Var.Map.mem v vc_scope_ctx.Conditions.vc_scope_possible_variable_values)
+      vars_used_in_vc
   in
-  Message.emit_debug "For: %a@.Assumptions: %a@.Relevant values: %a@."
+  Message.emit_debug "For: %a@.Assumptions: %a@.Relevant values:@.%a@."
     (Print.expr ()) vc.vc_guard (Print.expr ())
     vc_scope_ctx.Conditions.vc_scope_asserts
     (fun fmt vars_possible_values ->
       Format.pp_print_list
         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
         (fun fmt (var, values) ->
-          if Var.Set.mem var interesting_vars then Format.fprintf fmt "<IMP>";
-          Format.fprintf fmt "@[<hov 2>%a@ = @ %a@]" Print.var var
-            (Format.pp_print_list
-               ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
-               (fun fmt expr -> Print.expr () fmt expr))
-            values;
-          if Var.Set.mem var interesting_vars then Format.fprintf fmt "</IMP>")
+          if Var.Set.mem var vars_used_in_vc_with_known_values then (
+            Format.fprintf fmt "<IMP>";
+            Format.fprintf fmt "@[<hov 2>%a@ = @ %a@]" Print.var_debug var
+              (Format.pp_print_list
+                 ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
+                 (fun fmt expr -> Print.expr () fmt expr))
+              values;
+            Format.fprintf fmt "</IMP>"))
         fmt
         (Var.Map.bindings vars_possible_values))
     vc_scope_ctx.Conditions.vc_scope_possible_variable_values;

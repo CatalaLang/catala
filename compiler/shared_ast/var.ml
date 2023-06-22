@@ -77,6 +77,7 @@ module Set = struct
   let elements s = elements s |> List.map get
   let diff s1 s2 = diff s1 s2
   let choose_opt s = Option.map get (choose_opt s)
+  let filter f s = filter (fun v -> f (get v)) s
 
   (* Add more as needed *)
 end
