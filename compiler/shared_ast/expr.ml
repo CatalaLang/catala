@@ -185,8 +185,8 @@ let mark_pos (type m) (m : m mark) : Pos.t =
 
 let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Mark.get x)
 
-let fun_id mark : ('a any, 'm) boxed_gexpr =
-  let x = Var.make "x" in
+let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
+  let x = Var.make var_name in
   eabs (bind [| x |] (evar x mark)) [TAny, mark_pos mark] mark
 
 let ty (_, m) : typ = match m with Typed { ty; _ } -> ty

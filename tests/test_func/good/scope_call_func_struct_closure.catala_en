@@ -1,0 +1,245 @@
+```catala
+declaration structure Result:
+  data r content integer depends on z content integer
+  data q content integer
+
+declaration scope SubFoo1:
+  input output x content integer
+  output y content integer depends on z content integer
+
+declaration scope SubFoo2:
+  input output x1 content integer
+  input x2 content integer
+  output y content integer depends on z content integer
+
+
+declaration scope Foo:
+  context b content boolean
+  internal r content Result
+  output z content integer
+
+scope SubFoo1:
+  definition y of z equals x + z
+
+scope SubFoo2:
+  definition y of z equals x1 + x2 + z
+
+
+scope Foo:
+  definition b equals true
+  definition r equals
+    if b then
+      let f equals output of SubFoo1 with { -- x: 10 } in
+      Result { --r: f.y --q: f.x }
+    else
+      let f equals output of SubFoo2 with { -- x1: 10 -- x2: 10 } in
+      Result { --r: f.y --q: f.x1 }
+  definition z equals r.r of 1
+```
+
+This test case is tricky because it creates a situation where the type of the
+two closures in Foo.r are different even with optimizations enabled.
+
+```catala-test-inline
+$ catala Lcalc --avoid_exceptions -O --closure_conversion 
+type eoption =  | ENone of unit  | ESome of any
+
+type Result = {
+  r: eoption ((closure_env, integer) → eoption integer * closure_env);
+  q: eoption integer;
+  }
+
+type SubFoo1 = {
+  x: eoption integer;
+  y: eoption ((closure_env, integer) → eoption integer * closure_env);
+  }
+
+type SubFoo2 = {
+  x1: eoption integer;
+  y: eoption ((closure_env, integer) → eoption integer * closure_env);
+  }
+
+type Foo = { z: eoption integer; }
+
+type SubFoo1_in = { x_in: eoption integer; }
+
+type SubFoo2_in = { x1_in: eoption integer; x2_in: eoption integer; }
+
+type Foo_in = { b_in: eoption bool; }
+ 
+let topval closure_y : (closure_env, integer) → eoption integer =
+  λ (env: closure_env) (z: integer) →
+  ESome
+    match
+      (match (from_closure_env env).0 with
+       | ENone _ → ENone _
+       | ESome x_0 → ESome (x_0 + z))
+      with
+    | ENone _ → raise NoValueProvided
+    | ESome y → y
+let scope SubFoo1
+  (SubFoo1_in: SubFoo1_in {x_in: eoption integer})
+  : SubFoo1 {
+      x: eoption integer;
+      y: eoption ((closure_env, integer) → eoption integer * closure_env)
+    }
+  =
+  let get x : eoption integer = SubFoo1_in.x_in in
+  let set y :
+      eoption ((closure_env, integer) → eoption integer * closure_env) =
+    ESome (closure_y, to_closure_env (x))
+  in
+  return { SubFoo1 x = x; y = y; }
+let topval closure_y : (closure_env, integer) → eoption integer =
+  λ (env: closure_env) (z: integer) →
+  let env1 : (eoption integer * eoption integer) = from_closure_env env in
+  ESome
+    match
+      (match
+         (match env1.0 with
+          | ENone _ → ENone _
+          | ESome x1_1 →
+            match env1.1 with
+            | ENone _ → ENone _
+            | ESome x1_0 → ESome (x1_0 + x1_1))
+         with
+       | ENone _ → ENone _
+       | ESome y_0 → ESome (y_0 + z))
+      with
+    | ENone _ → raise NoValueProvided
+    | ESome y → y
+let scope SubFoo2
+  (SubFoo2_in: SubFoo2_in {x1_in: eoption integer; x2_in: eoption integer})
+  : SubFoo2 {
+      x1: eoption integer;
+      y: eoption ((closure_env, integer) → eoption integer * closure_env)
+    }
+  =
+  let get x1 : eoption integer = SubFoo2_in.x1_in in
+  let get x2 : eoption integer = SubFoo2_in.x2_in in
+  let set y :
+      eoption ((closure_env, integer) → eoption integer * closure_env) =
+    ESome (closure_y, to_closure_env (x2, x1))
+  in
+  return { SubFoo2 x1 = x1; y = y; }
+let topval closure_r : (closure_env, integer) → eoption integer =
+  λ (env: closure_env) (param0: integer) →
+  match (SubFoo2 { SubFoo2_in x1_in = ESome 10; x2_in = ESome 10; }).y with
+  | ENone _ → ENone _
+  | ESome result →
+    let code_and_env :
+        ((closure_env, integer) → eoption integer * closure_env) =
+      result
+    in
+    code_and_env.0 code_and_env.1 param0
+let topval closure_r : (closure_env, integer) → eoption integer =
+  λ (env: closure_env) (param0: integer) →
+  match (SubFoo1 { SubFoo1_in x_in = ESome 10; }).y with
+  | ENone _ → ENone _
+  | ESome result →
+    let code_and_env :
+        ((closure_env, integer) → eoption integer * closure_env) =
+      result
+    in
+    code_and_env.0 code_and_env.1 param0
+let scope Foo
+  (Foo_in: Foo_in {b_in: eoption bool})
+  : Foo {z: eoption integer}
+  =
+  let get b : eoption bool = Foo_in.b_in in
+  let set b : eoption bool =
+    ESome
+      match
+        (handle_default_opt
+           [ b ]
+           (λ (_: unit) → ESome true)
+           (λ (_: unit) → ESome true))
+        with
+      | ENone _ → raise NoValueProvided
+      | ESome b → b
+  in
+  let set r :
+      eoption
+        Result {
+          r:
+            eoption
+              ((closure_env, integer) → eoption integer * closure_env);
+          q: eoption integer
+        } =
+    ESome
+      match
+        (match b with
+         | ENone _ → ENone _
+         | ESome b →
+           if b
+           then
+             match
+               (match (SubFoo1 { SubFoo1_in x_in = ESome 10; }).x with
+                | ENone _ → ENone _
+                | ESome result_0 →
+                  ESome
+                    { SubFoo1
+                      x = ESome result_0;
+                      y = ESome (closure_r, to_closure_env ());
+                    })
+               with
+             | ENone _ → ENone _
+             | ESome f →
+               match f.x with
+               | ENone _ → ENone _
+               | ESome f_1 →
+                 match f.y with
+                 | ENone _ → ENone _
+                 | ESome f_0 → ESome { Result r = ESome f_0; q = ESome f_1; }
+           else
+             match
+               (match
+                  (SubFoo2 { SubFoo2_in x1_in = ESome 10; x2_in = ESome 10; }).
+                    x1
+                  with
+                | ENone _ → ENone _
+                | ESome result_0 →
+                  ESome
+                    { SubFoo2
+                      x1 = ESome result_0;
+                      y = ESome (closure_r, to_closure_env ());
+                    })
+               with
+             | ENone _ → ENone _
+             | ESome f →
+               match f.x1 with
+               | ENone _ → ENone _
+               | ESome f_1 →
+                 match f.y with
+                 | ENone _ → ENone _
+                 | ESome f_0 → ESome { Result r = ESome f_0; q = ESome f_1; })
+        with
+      | ENone _ → raise NoValueProvided
+      | ESome r → r
+  in
+  let set z : eoption integer =
+    ESome
+      match
+        (match (match r with
+                | ENone _ → ENone _
+                | ESome r → r.r) with
+         | ENone _ → ENone _
+         | ESome r →
+           let code_and_env :
+               ((closure_env, integer) → eoption integer * closure_env) =
+             r
+           in
+           code_and_env.0 code_and_env.1 1)
+        with
+      | ENone _ → raise NoValueProvided
+      | ESome z → z
+  in
+  return { Foo z = z; }
+
+```
+
+```catala-test-inline
+$ catala Interpret_lcalc -s Foo --avoid_exceptions -O --closure_conversion
+[RESULT] Computation successful! Results:
+[RESULT] z = ESome 11
+```

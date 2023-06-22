@@ -46,10 +46,10 @@ f1 =
        match
          (match (ESome (λ (x1: integer) → ESome (x1 + 1))) with
           | ENone _ → ENone _
-          | ESome f1 → f1 (x + 1))
+          | ESome g → g (x + 1))
          with
-       | ENone f1 → raise NoValueProvided
-       | ESome x1 → x1)
+       | ENone _ → raise NoValueProvided
+       | ESome f1 → f1)
 [RESULT]
 f2 =
   ESome
@@ -58,8 +58,8 @@ f2 =
        match
          (match (ESome (λ (x1: integer) → ESome (x1 + 1))) with
           | ENone _ → ENone _
-          | ESome f2 → f2 (x + 1))
+          | ESome g → g (x + 1))
          with
-       | ENone f2 → raise NoValueProvided
-       | ESome x1 → x1)
+       | ENone _ → raise NoValueProvided
+       | ESome f2 → f2)
 ```

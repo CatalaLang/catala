@@ -176,6 +176,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
       (t1 @ [t2])
   | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "_"
+  | TClosureEnv -> failwith "unimplemented!"
 
 let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
   let lowercase_name =

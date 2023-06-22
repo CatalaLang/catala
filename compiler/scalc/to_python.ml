@@ -89,6 +89,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Fold -> Format.pp_print_string fmt "list_fold_left"
   | HandleDefault -> Format.pp_print_string fmt "handle_default"
   | HandleDefaultOpt -> Format.pp_print_string fmt "handle_default_opt"
+  | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
     : unit =
@@ -184,6 +185,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
       t1 format_typ_with_parens t2
   | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
   | TAny -> Format.fprintf fmt "Any"
+  | TClosureEnv -> failwith "unimplemented!"
 
 let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
   s

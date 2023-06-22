@@ -20,6 +20,8 @@
 open Catala_utils
 open Definitions
 
+exception CatalaException of except
+
 type features =
   < monomorphic : yes
   ; polymorphic : yes

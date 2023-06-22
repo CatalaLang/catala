@@ -86,6 +86,7 @@ module To_jsoo = struct
            ~pp_sep:(fun fmt () -> Format.pp_print_string fmt " -> ")
            format_typ_with_parens)
         t1 format_typ_with_parens t2
+    | TClosureEnv -> Format.fprintf fmt "Js.Unsafe.any Js.t"
 
   let rec format_typ_to_jsoo fmt typ =
     match Mark.remove typ with

@@ -312,7 +312,8 @@ let driver backend source_file (options : Cli.global_options) : int =
             try Shared_ast.Typing.program prgm ~leave_unresolved:false
             with Message.CompilerError error_content ->
               raise
-                (Message.CompilerError (Message.to_internal_error error_content))
+                (Message.CompilerError
+                   (Message.Content.mark_as_internal_error error_content))
           in
           (* That's it! *)
           Message.emit_result "Typechecking successful!"
@@ -347,7 +348,8 @@ let driver backend source_file (options : Cli.global_options) : int =
             try Shared_ast.Typing.program ~leave_unresolved:false prgm
             with Message.CompilerError error_content ->
               raise
-                (Message.CompilerError (Message.to_internal_error error_content))
+                (Message.CompilerError
+                   (Message.Content.mark_as_internal_error error_content))
           in
           if !Cli.check_invariants_flag then (
             Message.emit_debug "Checking invariants...";
@@ -377,7 +379,12 @@ let driver backend source_file (options : Cli.global_options) : int =
                 options.link_modules);
             Message.emit_debug "Starting interpretation (dcalc)...";
             let results =
-              Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
+              try Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
+              with Shared_ast.Interpreter.CatalaException exn ->
+                Message.raise_error
+                  "During interpretation, the error %a has been raised but not \
+                   caught!"
+                  Shared_ast.Print.except exn
             in
             let results =
               List.sort
@@ -432,7 +439,10 @@ let driver backend source_file (options : Cli.global_options) : int =
                   Message.raise_error
                     "Option --avoid_exceptions must be enabled for \
                      --closure_conversion";
-                Message.emit_debug "Performing closure conversion...";
+                if not options.optimize then
+                  Message.raise_error
+                    "Option --optimize must be enabled for --closure_conversion"
+                    Message.emit_debug "Performing closure conversion...";
                 let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
                 let prgm = Bindlib.unbox prgm in
                 let prgm =
@@ -442,11 +452,28 @@ let driver backend source_file (options : Cli.global_options) : int =
                   else prgm
                 in
                 Message.emit_debug "Retyping lambda calculus...";
-                let prgm =
-                  Shared_ast.Program.untype
-                    (Shared_ast.Typing.program ~leave_unresolved:true prgm)
-                in
-                prgm)
+                try
+                  let prgm =
+                    Shared_ast.Program.untype
+                      (Shared_ast.Typing.program ~leave_unresolved:true prgm)
+                  in
+                  prgm
+                with Message.CompilerError content ->
+                  raise
+                    (Message.CompilerError
+                       (Message.Content.prepend_message content (fun fmt ->
+                            Format.fprintf fmt
+                              "As part of the compilation process, one of the \
+                               step (closure conversion) modified the Catala \
+                               program and re-typing after this modification \
+                               failed with the error message below. This \
+                               re-typing error if not your fault, but is \
+                               likely to indicate that the program you are \
+                               trying to compile is incompatible with the \
+                               current compilation scheme provided by the \
+                               Catala compiler. Try to rewrite the program to \
+                               avoid the problematic pattern or contact the \
+                               compiler developers for help.@\n"))))
               else prgm
             in
             match backend with
@@ -465,7 +492,13 @@ let driver backend source_file (options : Cli.global_options) : int =
             | `Interpret_Lcalc ->
               Message.emit_debug "Starting interpretation (lcalc)...";
               let results =
-                Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
+                try
+                  Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
+                with Shared_ast.Interpreter.CatalaException exn ->
+                  Message.raise_error
+                    "During interpretation, the error %a has been raised but \
+                     not caught!"
+                    Shared_ast.Print.except exn
               in
               let results =
                 List.sort

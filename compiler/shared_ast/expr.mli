@@ -154,7 +154,7 @@ val ecustom :
   'm mark ->
   (< custom : Definitions.yes ; .. >, 'm) boxed_gexpr
 
-val fun_id : 'm mark -> ('a any, 'm) boxed_gexpr
+val fun_id : ?var_name:string -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 (** {2 Manipulation of marks} *)
 

@@ -58,6 +58,29 @@ let all_match_cases_map_to_same_constructor cases n =
         | _ -> false)
       | _ -> assert false)
 
+let binder_vars_used_at_most_once
+    (binder :
+      ( (('a, 'b) dcalc_lcalc, ('a, 'b) dcalc_lcalc, 'm) base_gexpr,
+        (('a, 'b) dcalc_lcalc, 'm) gexpr )
+      Bindlib.mbinder) : bool =
+  (* fast path: variables not used at all *)
+  (not (Array.exists Fun.id (Bindlib.mbinder_occurs binder)))
+  ||
+  let vars, body = Bindlib.unmbind binder in
+  let rec vars_count (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) : int array =
+    match e with
+    | EVar v, _ ->
+      Array.map
+        (fun i -> if Bindlib.eq_vars v (Array.get vars i) then 1 else 0)
+        (Array.make (Array.length vars) 0)
+    | e ->
+      Expr.shallow_fold
+        (fun e' acc -> Array.map2 (fun x y -> x + y) (vars_count e') acc)
+        e
+        (Array.make (Array.length vars) 0)
+  in
+  not (Array.exists (fun c -> c > 1) (vars_count body))
+
 let rec optimize_expr :
     type a b.
     (a, b, 'm) optimizations_ctx ->
@@ -177,8 +200,9 @@ let rec optimize_expr :
             | _ -> assert false)
       in
       EMatch { e = arg; cases; name = n1 }
-    | EApp { f = EAbs { binder; _ }, _; args } ->
-      (* beta reduction *)
+    | EApp { f = EAbs { binder; _ }, _; args }
+      when binder_vars_used_at_most_once binder ->
+      (* beta reduction when variables not used. *)
       Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when name = name1 ->

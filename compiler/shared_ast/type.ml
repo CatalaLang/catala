@@ -31,9 +31,9 @@ let rec equal ty1 ty2 =
   | TOption t1, TOption t2 -> equal t1 t2
   | TArrow (t1, t1'), TArrow (t2, t2') -> equal_list t1 t2 && equal t1' t2'
   | TArray t1, TArray t2 -> equal t1 t2
-  | TAny, TAny -> true
+  | TClosureEnv, TClosureEnv | TAny, TAny -> true
   | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
-      | TArray _ | TAny ),
+      | TArray _ | TAny | TClosureEnv ),
       _ ) ->
     false
 
@@ -52,7 +52,9 @@ let rec unifiable ty1 ty2 =
   | TArrow (t1, t1'), TArrow (t2, t2') ->
     unifiable_list t1 t2 && unifiable t1' t2'
   | TArray t1, TArray t2 -> unifiable t1 t2
-  | ( (TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _ | TArray _),
+  | TClosureEnv, TClosureEnv -> true
+  | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
+      | TArray _ | TClosureEnv ),
       _ ) ->
     false
 
@@ -69,7 +71,7 @@ let rec compare ty1 ty2 =
   | TArrow (a1, b1), TArrow (a2, b2) -> (
     match List.compare compare a1 a2 with 0 -> compare b1 b2 | n -> n)
   | TArray t1, TArray t2 -> compare t1 t2
-  | TAny, TAny -> 0
+  | TAny, TAny | TClosureEnv, TClosureEnv -> 0
   | TLit _, _ -> -1
   | _, TLit _ -> 1
   | TTuple _, _ -> -1
@@ -84,5 +86,7 @@ let rec compare ty1 ty2 =
   | _, TArrow _ -> 1
   | TArray _, _ -> -1
   | _, TArray _ -> 1
+  | TClosureEnv, _ -> -1
+  | _, TClosureEnv -> 1
 
 let rec arrow_return = function TArrow (_, b), _ -> arrow_return b | t -> t

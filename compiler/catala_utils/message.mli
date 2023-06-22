@@ -33,9 +33,9 @@ module Content : sig
 
   val of_message : (Format.formatter -> unit) -> t
   val of_string : string -> t
+  val mark_as_internal_error : t -> t
+  val prepend_message : t -> (Format.formatter -> unit) -> t
 end
-
-val to_internal_error : Content.t -> Content.t
 
 type content_type = Error | Warning | Debug | Log | Result
 

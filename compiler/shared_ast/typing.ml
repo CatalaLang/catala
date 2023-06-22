@@ -33,9 +33,9 @@ module Any =
     ()
 
 type unionfind_typ = naked_typ Mark.pos UnionFind.elem
-(** We do not reuse {!type: Shared_ast.typ} because we have to include a new
-    [TAny] variant. Indeed, error terms can have any type and this has to be
-    captured by the type sytem. *)
+(** We do not reuse {!type: A.typ} because we have to include a new [TAny]
+    variant. Indeed, error terms can have any type and this has to be captured
+    by the type sytem. *)
 
 and naked_typ =
   | TLit of A.typ_lit
@@ -46,6 +46,7 @@ and naked_typ =
   | TOption of unionfind_typ
   | TArray of unionfind_typ
   | TAny of Any.t
+  | TClosureEnv
 
 let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
   let typ_to_ast = typ_to_ast ~leave_unresolved in
@@ -66,6 +67,7 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
          typing. *)
       Message.raise_spanned_error pos
         "Internal error: typing at this point could not be resolved"
+  | TClosureEnv -> TClosureEnv, pos
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
   let ty' =
@@ -78,6 +80,7 @@ let rec ast_to_typ (ty : A.typ) : unionfind_typ =
     | A.TOption t -> TOption (ast_to_typ t)
     | A.TArray t -> TArray (ast_to_typ t)
     | A.TAny -> TAny (Any.fresh ())
+    | A.TClosureEnv -> TClosureEnv
   in
   UnionFind.make (Mark.copy ty ty')
 
@@ -85,48 +88,82 @@ let rec ast_to_typ (ty : A.typ) : unionfind_typ =
 
 let typ_needs_parens (t : unionfind_typ) : bool =
   let t = UnionFind.get (UnionFind.find t) in
-  match Mark.remove t with
-  | TArrow _ | TArray _ | TOption _ -> true
-  | _ -> false
+  match Mark.remove t with TArrow _ | TArray _ -> true | _ -> false
+
+let with_color f color fmt x =
+  (* equivalent to [Format.fprintf fmt "@{<color>%s@}" s] *)
+  Format.pp_open_stag fmt Ocolor_format.(Ocolor_style_tag (Fg (C4 color)));
+  f fmt x;
+  Format.pp_close_stag fmt ()
+
+let pp_color_string = with_color Format.pp_print_string
 
 let rec format_typ
     (ctx : A.decl_ctx)
+    ~(colors : Ocolor_types.color4 list)
     (fmt : Format.formatter)
     (naked_typ : unionfind_typ) : unit =
   let format_typ = format_typ ctx in
-  let format_typ_with_parens (fmt : Format.formatter) (t : unionfind_typ) =
-    if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
-    else Format.fprintf fmt "%a" format_typ t
+  let format_typ_with_parens
+      ~colors
+      (fmt : Format.formatter)
+      (t : unionfind_typ) =
+    if typ_needs_parens t then (
+      Format.pp_open_hvbox fmt 1;
+      pp_color_string (List.hd colors) fmt "(";
+      format_typ ~colors:(List.tl colors) fmt t;
+      Format.pp_close_box fmt ();
+      pp_color_string (List.hd colors) fmt ")")
+    else Format.fprintf fmt "%a" (format_typ ~colors) t
   in
   let naked_typ = UnionFind.get (UnionFind.find naked_typ) in
   match Mark.remove naked_typ with
   | TLit l -> Format.fprintf fmt "%a" Print.tlit l
   | TTuple ts ->
-    Format.fprintf fmt "@[<hov 2>(%a)@]"
+    Format.fprintf fmt "@[<hov 2>%a%a%a@]"
+      (pp_color_string (List.hd colors))
+      "("
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-         (fun fmt t -> Format.fprintf fmt "%a" format_typ t))
+         (fun fmt t ->
+           Format.fprintf fmt "%a" (format_typ ~colors:(List.tl colors)) t))
       ts
+      (pp_color_string (List.hd colors))
+      ")"
   | TStruct s -> Format.fprintf fmt "%a" A.StructName.format_t s
   | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format_t e
   | TOption t ->
-    Format.fprintf fmt "@[<hov 2>(%a)@ %s@]" format_typ_with_parens t "eoption"
+    Format.fprintf fmt "@[<hov 2>option %a@]"
+      (format_typ_with_parens ~colors:(List.tl colors))
+      t
   | TArrow ([t1], t2) ->
-    Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]" format_typ_with_parens t1
-      format_typ t2
+    Format.fprintf fmt "@[<hov 2>%a@ →@ %a@]"
+      (format_typ_with_parens ~colors)
+      t1 (format_typ ~colors) t2
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>(%a)@ →@ %a@]"
+    Format.fprintf fmt "@[<hov 2>%a%a%a@ →@ %a@]"
+      (pp_color_string (List.hd colors))
+      "("
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         format_typ_with_parens)
-      t1 format_typ t2
+         (format_typ_with_parens ~colors:(List.tl colors)))
+      t1
+      (pp_color_string (List.hd colors))
+      ")" (format_typ ~colors) t2
   | TArray t1 -> (
     match Mark.remove (UnionFind.get (UnionFind.find t1)) with
     | TAny _ when not !Cli.debug_flag -> Format.pp_print_string fmt "collection"
-    | _ -> Format.fprintf fmt "@[collection@ %a@]" format_typ t1)
+    | _ -> Format.fprintf fmt "@[collection@ %a@]" (format_typ ~colors) t1)
   | TAny v ->
     if !Cli.debug_flag then Format.fprintf fmt "<a%d>" (Any.hash v)
     else Format.pp_print_string fmt "<any>"
+  | TClosureEnv -> Format.fprintf fmt "closure_env"
+
+let rec colors =
+  let open Ocolor_types in
+  blue :: cyan :: green :: yellow :: red :: magenta :: colors
+
+let format_typ ctx fmt naked_typ = format_typ ctx ~colors fmt naked_typ
 
 exception Type_error of A.any_expr * unionfind_typ * unionfind_typ
 
@@ -159,9 +196,10 @@ let rec unify
       if not (A.EnumName.equal e1 e2) then raise_type_error ()
     | TOption t1, TOption t2 -> unify e t1 t2
     | TArray t1', TArray t2' -> unify e t1' t2'
+    | TClosureEnv, TClosureEnv -> ()
     | TAny _, _ | _, TAny _ -> ()
     | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
-        | TArray _ ),
+        | TArray _ | TClosureEnv ),
         _ ) ->
       raise_type_error ()
   in
@@ -196,8 +234,9 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
         t2_pos );
     ]
     "@[<v>Error during typechecking, incompatible types:@,\
-     @{<bold;blue>-->@} @[<hov>%a@]@,\
-     @{<bold;blue>-->@} @[<hov>%a@]@]" (format_typ ctx) t1 (format_typ ctx) t2
+     @[<v>@{<bold;blue>@<3>%s@} @[<hov>%a@]@,\
+     @{<bold;blue>@<3>%s@} @[<hov>%a@]@]@]" "┌─⯈" (format_typ ctx) t1 "└─⯈"
+    (format_typ ctx) t2
 
 let lit_type (lit : A.lit) : naked_typ =
   match lit with
@@ -223,6 +262,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let bt = lazy (UnionFind.make (TLit TBool, pos)) in
   let ut = lazy (UnionFind.make (TLit TUnit, pos)) in
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
+  let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
   let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
   let ( @-> ) x y =
@@ -243,6 +283,8 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | HandleDefaultOpt ->
       [array (option any); [ut] @-> option bt; [ut] @-> option any]
       @-> option any
+    | ToClosureEnv -> [any] @-> cet
+    | FromClosureEnv -> [cet] @-> any
   in
   Lazy.force ty
 
@@ -910,7 +952,7 @@ let scope_body ~leave_unresolved ctx env body =
          (TArrow ([ty_in], ty_out))) )
 
 let rec scopes ~leave_unresolved ctx env = function
-  | A.Nil -> Bindlib.box A.Nil
+  | A.Nil -> Bindlib.box A.Nil, env
   | A.Cons (item, next_bind) ->
     let var, next = Bindlib.unbind next_bind in
     let env, def =
@@ -925,17 +967,49 @@ let rec scopes ~leave_unresolved ctx env = function
         let e' = Expr.map_marks ~f:(get_ty_mark ~leave_unresolved) e' in
         ( Env.add var uf env,
           Bindlib.box_apply
-            (fun e -> A.Topdef (name, typ, e))
+            (fun e -> A.Topdef (name, Expr.ty e', e))
             (Expr.Box.lift e') )
     in
-    let next' = scopes ~leave_unresolved ctx env next in
+    let next', env = scopes ~leave_unresolved ctx env next in
     let next_bind' = Bindlib.bind_var (Var.translate var) next' in
-    Bindlib.box_apply2 (fun item next -> A.Cons (item, next)) def next_bind'
+    ( Bindlib.box_apply2 (fun item next -> A.Cons (item, next)) def next_bind',
+      env )
 
 let program ~leave_unresolved prg =
-  let code_items =
-    Bindlib.unbox
-      (scopes ~leave_unresolved prg.A.decl_ctx (Env.empty prg.A.decl_ctx)
-         prg.A.code_items)
+  let code_items, new_env =
+    scopes ~leave_unresolved prg.A.decl_ctx (Env.empty prg.A.decl_ctx)
+      prg.A.code_items
   in
-  { prg with code_items }
+  {
+    A.code_items = Bindlib.unbox code_items;
+    decl_ctx =
+      {
+        prg.decl_ctx with
+        ctx_structs =
+          A.StructName.Map.mapi
+            (fun s_name fields ->
+              A.StructField.Map.mapi
+                (fun f_name (t : A.typ) ->
+                  match Mark.remove t with
+                  | TAny ->
+                    typ_to_ast ~leave_unresolved
+                      (A.StructField.Map.find f_name
+                         (A.StructName.Map.find s_name new_env.structs))
+                  | _ -> t)
+                fields)
+            prg.decl_ctx.ctx_structs;
+        ctx_enums =
+          A.EnumName.Map.mapi
+            (fun e_name cons ->
+              A.EnumConstructor.Map.mapi
+                (fun cons_name (t : A.typ) ->
+                  match Mark.remove t with
+                  | TAny ->
+                    typ_to_ast ~leave_unresolved
+                      (A.EnumConstructor.Map.find cons_name
+                         (A.EnumName.Map.find e_name new_env.enums))
+                  | _ -> t)
+                cons)
+            prg.decl_ctx.ctx_enums;
+      };
+  }

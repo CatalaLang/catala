@@ -162,7 +162,13 @@ let rec evaluate_operator
   in
   let err () =
     Message.raise_multispanned_error
-      ([Some "Operator:", pos]
+      ([
+         ( Some
+             (Format.asprintf "Operator (value %a):"
+                (Print.operator ~debug:true)
+                op),
+           pos );
+       ]
       @ List.mapi
           (fun i arg ->
             ( Some
@@ -184,6 +190,12 @@ let rec evaluate_operator
   | Log (entry, infos), [e'] ->
     print_log entry infos pos e';
     Mark.remove e'
+  | (FromClosureEnv | ToClosureEnv), [e'] ->
+    (* [FromClosureEnv] and [ToClosureEnv] are just there to bypass the need for
+       existential types when typing code after closure conversion. There are
+       effectively no-ops. *)
+    Mark.remove e'
+  | (ToClosureEnv | FromClosureEnv), _ -> err ()
   | Eq, [(e1, _); (e2, _)] ->
     ELit (LBool (handle_eq (evaluate_operator evaluate_expr) m e1 e2))
   | Map, [f; (EArray es, _)] ->
@@ -333,6 +345,13 @@ let rec evaluate_operator
     ELit (LBool (o_eq_dat_dat x y))
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (protect o_eq_dur_dur x y))
+  | HandleDefault, _ ->
+    Message.raise_internal_error
+      "The interpreter is trying to evaluate the \"handle_default\" operator, \
+       which is the leftover from the dcalc->lcalc compilation pass. This \
+       indicates that you are trying to interpret the lcalc without having \
+       activating --avoid_exceptions. This interpretation is not implemented, \
+       just try to interpret the dcalc (with \"Interpret\") instead."
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -340,7 +359,6 @@ let rec evaluate_operator
           EnumConstructor.equal cons Expr.some_constr
         | _ -> err ())
     in
-
     match valid_exceptions with
     | [] -> (
       match
@@ -385,8 +403,7 @@ let rec evaluate_operator
       | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
       | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
       | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
-      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefault | HandleDefaultOpt
-        ),
+      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefaultOpt ),
       _ ) ->
     err ()
 
@@ -436,6 +453,7 @@ let rec runtime_to_val :
     let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
     EInj { name; cons; e }, m
   | TOption _ty -> assert false
+  | TClosureEnv -> assert false
   | TArray ty ->
     ( EArray
         (List.map

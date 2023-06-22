@@ -159,6 +159,7 @@ and naked_typ =
   | TArrow of typ list * typ
   | TArray of typ
   | TAny
+  | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
 (** {2 Constants and operators} *)
 
@@ -211,6 +212,8 @@ module Op = struct
     (* * polymorphic *)
     | Length : < polymorphic ; .. > t
     | Log : log_entry * Uid.MarkedString.info list -> < polymorphic ; .. > t
+    | ToClosureEnv : < polymorphic ; .. > t
+    | FromClosureEnv : < polymorphic ; .. > t
     (* * overloaded *)
     | Minus : < overloaded ; .. > t
     | Minus_int : < resolved ; .. > t

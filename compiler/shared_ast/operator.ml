@@ -109,6 +109,8 @@ let name : type a. a t -> string = function
   | Fold -> "o_fold"
   | HandleDefault -> "o_handledefault"
   | HandleDefaultOpt -> "o_handledefaultopt"
+  | ToClosureEnv -> "o_toclosureenv"
+  | FromClosureEnv -> "o_fromclosureenv"
 
 let compare_log_entries l1 l2 =
   match l1, l2 with
@@ -229,7 +231,8 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Eq_dur_dur, Eq_dur_dur
   | Fold, Fold
   | HandleDefault, HandleDefault
-  | HandleDefaultOpt, HandleDefaultOpt -> 0
+  | HandleDefaultOpt, HandleDefaultOpt
+  | FromClosureEnv, FromClosureEnv | ToClosureEnv, ToClosureEnv -> 0
   | Not, _ -> -1 | _, Not -> 1
   | Length, _ -> -1 | _, Length -> 1
   | GetDay, _ -> -1 | _, GetDay -> 1
@@ -314,6 +317,8 @@ let compare (type a1 a2) (t1 : a1 t) (t2 : a2 t) =
   | Eq_dur_dur, _ -> -1 | _, Eq_dur_dur -> 1
   | HandleDefault, _ -> -1 | _, HandleDefault -> 1
   | HandleDefaultOpt, _ -> -1 | _, HandleDefaultOpt -> 1
+  | FromClosureEnv, _ -> -1 | _, FromClosureEnv -> 1
+  | ToClosureEnv, _ -> -1 | _, ToClosureEnv -> 1
   | Fold, _  | _, Fold -> .
 
 let equal t1 t2 = compare t1 t2 = 0
@@ -335,7 +340,8 @@ let kind_dispatch :
     | Or | Xor ) as op ->
     monomorphic op
   | ( Log _ | Length | Eq | Map | Concat | Filter | Reduce | Fold
-    | HandleDefault | HandleDefaultOpt ) as op ->
+    | HandleDefault | HandleDefaultOpt | FromClosureEnv | ToClosureEnv ) as op
+    ->
     polymorphic op
   | ( Minus | ToRat | ToMoney | Round | Add | Sub | Mult | Div | Lt | Lte | Gt
     | Gte ) as op ->
@@ -376,7 +382,8 @@ let translate (t : 'a no_overloads t) : 'b no_overloads t =
     | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur
     | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur
     | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur
-    | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ) as op ->
+    | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur
+    | FromClosureEnv | ToClosureEnv ) as op ->
     op
 
 let monomorphic_type ((op : monomorphic t), pos) =

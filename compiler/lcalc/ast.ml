@@ -113,13 +113,13 @@ module OptionMonad = struct
         (List.to_seq
            [
              ( Expr.none_constr,
-               let x = Var.make var_name in
+               let x = Var.make "_" in
                Expr.eabs
                  (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
                  [TAny, Expr.mark_pos mark]
                  mark );
              (* | None x -> raise NoValueProvided *)
-             Expr.some_constr, Expr.fun_id mark (* | Some x -> x*);
+             Expr.some_constr, Expr.fun_id ~var_name mark (* | Some x -> x*);
            ])
     in
     if toplevel then Expr.ematch arg Expr.option_enum cases mark
