@@ -96,6 +96,7 @@ module Map = struct
   let find v m = find (t v) m
   let find_opt v m = find_opt (t v) m
   let bindings m = bindings m |> List.map (fun (v, x) -> get v, x)
+  let map f m = map f m
   let mem x m = mem (t x) m
   let union f m1 m2 = union (fun v x1 x2 -> f (get v) x1 x2) m1 m2
   let fold f m acc = fold (fun v x acc -> f (get v) x acc) m acc

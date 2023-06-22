@@ -65,6 +65,7 @@ module Map : sig
   val find_opt : 'e var -> ('e, 'x) t -> 'x option
   val bindings : ('e, 'x) t -> ('e var * 'x) list
   val mem : 'e var -> ('e, 'x) t -> bool
+  val map : ('x -> 'y) -> ('e, 'x) t -> ('e, 'y) t
 
   val union :
     ('e var -> 'x -> 'x -> 'x option) -> ('e, 'x) t -> ('e, 'x) t -> ('e, 'x) t
