@@ -300,18 +300,25 @@ let rec generate_vc_must_not_return_conflict
 let rec slice_expression_for_date_computations
     (ctx : scope_conditions_ctx)
     (e : typed expr) : vc_return list =
-  (* let (Typed { ty = t; _ }) = Mark.get e in  *)
+  (* let (Typed { ty = t; _ }) = Mark.get e in *)
   match Mark.remove e with
   | EApp
       {
         f =
-          EOp { op = Op.Lte_dat_dat | Op.Lt_dat_dat | Op.Gt_dat_dat | Op.Gte_dat_dat; tys = _ }, _;
+          ( EOp
+              {
+                op =
+                  ( Op.Lte_dat_dat | Op.Lt_dat_dat | Op.Gt_dat_dat
+                  | Op.Gte_dat_dat );
+                tys = _;
+              },
+            _ );
         args;
       } ->
-    let r = List.flatten (List.map (slice_expression_for_date_computations ctx) args) in
-    if r <> [] then
-      [e]
-    else []
+    let r =
+      List.flatten (List.map (slice_expression_for_date_computations ctx) args)
+    in
+    if r <> [] then [e] else []
   | EApp
       {
         f =
