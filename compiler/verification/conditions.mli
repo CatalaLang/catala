@@ -47,6 +47,7 @@ type verification_conditions_scope = {
       (** For each variable, a list containing all the possible values that this
           variable can have. This is a conservative analysis based on the
           traversal of the default tree. *)
+  vc_scope_variables_defined_outside_of_scope : typed Dcalc.Ast.expr Var.Set.t;
   vc_scope_list : verification_condition list;
 }
 

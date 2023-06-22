@@ -28,7 +28,8 @@ type vc_return = typed expr
 
 type scope_conditions_ctx = {
   scope_cond_decls : decl_ctx;
-  scope_cond_input_vars : typed expr Var.t list;
+  scope_cond_input_vars : typed expr Var.Set.t;
+  scope_cond_subscope_output_vars : typed expr Var.Set.t;
   scope_cond_variables_typs : (typed expr, typ) Var.Map.t;
   scope_cond_asserts : typed expr list;
   scope_cond_possible_values : (typed expr, typed expr list) Var.Map.t;
@@ -124,7 +125,7 @@ let match_and_ignore_outer_reentrant_default
             cons;
           },
         _ )
-    when List.exists (fun x' -> Var.eq x x') ctx.scope_cond_input_vars ->
+    when Var.Set.exists (fun x' -> Var.eq x x') ctx.scope_cond_input_vars ->
     (* scope variables*)
     cons
   | EAbs { binder; tys = [(TLit TUnit, _)] } ->
@@ -384,7 +385,15 @@ let rec generate_verification_conditions_scope_body_expr
       | DestructuringInputStruct ->
         ( {
             ctx with
-            scope_cond_input_vars = scope_let_var :: ctx.scope_cond_input_vars;
+            scope_cond_input_vars =
+              Var.Set.add scope_let_var ctx.scope_cond_input_vars;
+          },
+          [] )
+      | DestructuringSubScopeResults ->
+        ( {
+            ctx with
+            scope_cond_input_vars =
+              Var.Set.add scope_let_var ctx.scope_cond_subscope_output_vars;
           },
           [] )
       | ScopeVarDefinition | SubScopeVarDefinition ->
@@ -469,7 +478,7 @@ let rec generate_verification_conditions_scope_body_expr
                 ctx.scope_cond_possible_values;
           },
           vc_list )
-      | _ -> ctx, []
+      | CallingSubScope -> ctx, []
     in
     let new_ctx, new_vcs =
       generate_verification_conditions_scope_body_expr
@@ -487,6 +496,7 @@ type verification_conditions_scope = {
   vc_scope_asserts : typed expr;
   vc_scope_possible_variable_values :
     (typed Dcalc.Ast.expr, typed Dcalc.Ast.expr list) Var.Map.t;
+  vc_scope_variables_defined_outside_of_scope : typed Dcalc.Ast.expr Var.Set.t;
   vc_scope_list : verification_condition list;
 }
 
@@ -509,15 +519,13 @@ let generate_verification_conditions_code_items
           let _scope_input_var, scope_body_expr =
             Bindlib.unbind body.scope_body_expr
           in
-          let ctx =
+          let init_ctx =
             {
               scope_cond_decls = decl_ctx;
               scope_cond_asserts = [];
-              (* To be filled later *)
-              scope_cond_input_vars = [];
-              (* To be filled later *)
+              scope_cond_input_vars = Var.Set.empty;
               scope_cond_possible_values = Var.Map.empty;
-              (* To be filled later *)
+              scope_cond_subscope_output_vars = Var.Set.empty;
               scope_cond_variables_typs =
                 Var.Map.empty
                 (* We don't need to add the typ of the scope input var here
@@ -527,7 +535,8 @@ let generate_verification_conditions_code_items
             }
           in
           let ctx, scope_vcs =
-            generate_verification_conditions_scope_body_expr ctx scope_body_expr
+            generate_verification_conditions_scope_body_expr init_ctx
+              scope_body_expr
           in
           let combined_assert =
             conjunction_exprs ctx.scope_cond_asserts
@@ -538,6 +547,9 @@ let generate_verification_conditions_code_items
               vc_scope_asserts = combined_assert;
               vc_scope_list = scope_vcs;
               vc_scope_possible_variable_values = ctx.scope_cond_possible_values;
+              vc_scope_variables_defined_outside_of_scope =
+                Var.Set.union ctx.scope_cond_input_vars
+                  ctx.scope_cond_subscope_output_vars;
             }
             vcs
         else vcs)

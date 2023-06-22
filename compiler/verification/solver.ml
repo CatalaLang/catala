@@ -103,7 +103,14 @@ let solve_date_vc
         Var.Map.mem v vc_scope_ctx.Conditions.vc_scope_possible_variable_values)
       vars_used_in_vc
   in
-  Message.emit_debug "For: %a@.Assumptions: %a@.Relevant values:@.%a@."
+  let vars_used_in_vc_defined_outside_of_scope =
+    Var.Set.filter
+      (fun v ->
+        Var.Set.mem v
+          vc_scope_ctx.Conditions.vc_scope_variables_defined_outside_of_scope)
+      vars_used_in_vc
+  in
+  Message.emit_debug "For: %a@.Assumptions: %a@.Relevant values:@.%a@.%a"
     (Print.expr ()) vc.vc_guard (Print.expr ())
     vc_scope_ctx.Conditions.vc_scope_asserts
     (fun fmt vars_possible_values ->
@@ -112,7 +119,7 @@ let solve_date_vc
         (fun fmt (var, values) ->
           if Var.Set.mem var vars_used_in_vc_with_known_values then (
             Format.fprintf fmt "<IMP>";
-            Format.fprintf fmt "@[<hov 2>%a@ = @ %a@]" Print.var_debug var
+            Format.fprintf fmt "@[<hov 2>%a@ =@ %a@]" Print.var_debug var
               (Format.pp_print_list
                  ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
                  (fun fmt expr -> Print.expr () fmt expr))
@@ -120,7 +127,18 @@ let solve_date_vc
             Format.fprintf fmt "</IMP>"))
         fmt
         (Var.Map.bindings vars_possible_values))
-    vc_scope_ctx.Conditions.vc_scope_possible_variable_values;
+    vc_scope_ctx.Conditions.vc_scope_possible_variable_values
+    (fun fmt variables_defined_out_of_scope ->
+      Format.pp_print_list
+        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
+        (fun fmt var ->
+          if Var.Set.mem var vars_used_in_vc_defined_outside_of_scope then (
+            Format.fprintf fmt "<UNK>";
+            Format.fprintf fmt "@[<hov 2>%a@ =@ unknown@]" Print.var_debug var;
+            Format.fprintf fmt "</UNK>"))
+        fmt
+        (Var.Set.elements variables_defined_out_of_scope))
+    vc_scope_ctx.Conditions.vc_scope_variables_defined_outside_of_scope;
   let prog = turn_vc_into_mopsa_compatible_program vc in
   let prog_string =
     Var.Map.fold
