@@ -388,7 +388,8 @@ let rec generate_verification_conditions_scope_body_expr
             scope_cond_input_vars =
               Var.Set.add scope_let_var ctx.scope_cond_input_vars;
             scope_cond_variables_typs =
-              Var.Map.add scope_let_var scope_let.scope_let_typ ctx.scope_cond_variables_typs ;
+              Var.Map.add scope_let_var scope_let.scope_let_typ
+                ctx.scope_cond_variables_typs;
           },
           [] )
       | DestructuringSubScopeResults ->
@@ -397,7 +398,9 @@ let rec generate_verification_conditions_scope_body_expr
             scope_cond_subscope_output_vars =
               Var.Set.add scope_let_var ctx.scope_cond_subscope_output_vars;
             scope_cond_variables_typs =
-              Var.Map.add scope_let_var scope_let.scope_let_typ ctx.scope_cond_variables_typs ;          },
+              Var.Map.add scope_let_var scope_let.scope_let_typ
+                ctx.scope_cond_variables_typs;
+          },
           [] )
       | ScopeVarDefinition | SubScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
