@@ -392,7 +392,7 @@ let rec generate_verification_conditions_scope_body_expr
       | DestructuringSubScopeResults ->
         ( {
             ctx with
-            scope_cond_input_vars =
+            scope_cond_subscope_output_vars =
               Var.Set.add scope_let_var ctx.scope_cond_subscope_output_vars;
           },
           [] )

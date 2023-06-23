@@ -96,7 +96,25 @@ let solve_date_vc
     (Z3backend.Io.print_negative_result vc scope_name
        (Z3backend.Io.make_context decl_ctx)
        None);
-  let vars_used_in_vc = Expr.free_vars vc.vc_guard in
+  let rec vars_used_in_vc (e : typed Dcalc.Ast.expr) :
+      typed Dcalc.Ast.expr Var.Set.t =
+    (* We search recursively in the possible definitions of each free
+       variable. *)
+    let free_vars = Expr.free_vars e in
+    let possible_values_of_free_vars =
+      Var.Map.filter
+        (fun v _ -> Var.Set.mem v free_vars)
+        vc_scope_ctx.Conditions.vc_scope_possible_variable_values
+    in
+    Var.Map.fold
+      (fun _ possible_values vars_used ->
+        List.fold_left
+          (fun vars_used possible_value ->
+            Var.Set.union (vars_used_in_vc possible_value) vars_used)
+          vars_used possible_values)
+      possible_values_of_free_vars free_vars
+  in
+  let vars_used_in_vc = vars_used_in_vc vc.vc_guard in
   let vars_used_in_vc_with_known_values =
     Var.Set.filter
       (fun v ->
@@ -110,7 +128,7 @@ let solve_date_vc
           vc_scope_ctx.Conditions.vc_scope_variables_defined_outside_of_scope)
       vars_used_in_vc
   in
-  Message.emit_debug "For: %a@.Assumptions: %a@.Relevant values:@.%a@.%a"
+  Message.emit_debug "For: %a@.Assumptions: %a@.Relevant values:@.%a%a%a"
     (Print.expr ()) vc.vc_guard (Print.expr ())
     vc_scope_ctx.Conditions.vc_scope_asserts
     (fun fmt vars_possible_values ->
@@ -133,12 +151,29 @@ let solve_date_vc
         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
         (fun fmt var ->
           if Var.Set.mem var vars_used_in_vc_defined_outside_of_scope then (
-            Format.fprintf fmt "<UNK>";
-            Format.fprintf fmt "@[<hov 2>%a@ =@ unknown@]" Print.var_debug var;
-            Format.fprintf fmt "</UNK>"))
+            Format.fprintf fmt "<OOS>";
+            Format.fprintf fmt "@[<hov 2>%a@ =@ unknown (out of scope)@]"
+              Print.var_debug var;
+            Format.fprintf fmt "</OOS>"))
         fmt
         (Var.Set.elements variables_defined_out_of_scope))
-    vc_scope_ctx.Conditions.vc_scope_variables_defined_outside_of_scope;
+    vc_scope_ctx.Conditions.vc_scope_variables_defined_outside_of_scope
+    (fun fmt other_variables ->
+      Format.pp_print_list
+        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
+        (fun fmt var ->
+          if
+            not
+              (Var.Set.mem var vars_used_in_vc_defined_outside_of_scope
+              || Var.Set.mem var vars_used_in_vc_with_known_values)
+          then (
+            Format.fprintf fmt "<UNK>";
+            Format.fprintf fmt "@[<hov 2>%a@ =@ unknown (others)@]"
+              Print.var_debug var;
+            Format.fprintf fmt "</UNK>"))
+        fmt
+        (Var.Set.elements other_variables))
+    vars_used_in_vc;
   let prog = turn_vc_into_mopsa_compatible_program vc in
   let prog_string =
     Var.Map.fold

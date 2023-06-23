@@ -102,6 +102,7 @@ module Map = struct
   let mem x m = mem (t x) m
   let union f m1 m2 = union (fun v x1 x2 -> f (get v) x1 x2) m1 m2
   let fold f m acc = fold (fun v x acc -> f (get v) x acc) m acc
+  let filter f m = filter (fun k v -> f (get k) v) m
 
   (* Add more as needed *)
 end
