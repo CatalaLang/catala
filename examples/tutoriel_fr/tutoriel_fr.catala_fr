@@ -251,7 +251,7 @@ garantir qu’une seule condition, au maximum, soit vraie à tout moment.  De ce
 façon, quand le programme Catala va s’exécuter, la juste définition sera choisie
 dynamiquement en déterminant quelle condition est vraie, selon le contexte.
 
-Ici, cependant, notre définition des conflits `fixed_percentage` avec la définition
+Ici, cependant, notre définition des conflits `pourcentage_fixe` avec la définition
 plus générale que nous avons donnée ci-dessus.  Ainsi Catala nous donnera une erreur
 si nous essayons d'utiliser cette définition telle quelle.
 
