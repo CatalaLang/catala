@@ -52,6 +52,7 @@ module Set : sig
   val choose_opt : 'e t -> 'e var option
   val filter : ('e var -> bool) -> 'e t -> 'e t
   val exists : ('e var -> bool) -> 'e t -> bool
+  val inter : 'e t -> 'e t -> 'e t
 end
 
 (** Wrapper over [Map.S] but with a type variable for the AST type parameters.

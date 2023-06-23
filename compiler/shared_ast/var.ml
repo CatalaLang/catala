@@ -79,6 +79,7 @@ module Set = struct
   let choose_opt s = Option.map get (choose_opt s)
   let filter f s = filter (fun v -> f (get v)) s
   let exists f s = exists (fun v -> f (get v)) s
+  let inter s1 s2 = inter s1 s2
 
   (* Add more as needed *)
 end

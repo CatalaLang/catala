@@ -17,30 +17,93 @@
 open Catala_utils
 open Shared_ast
 
+let rec vars_used_in_vc vc_scope_ctx (e : typed Dcalc.Ast.expr) :
+  typed Dcalc.Ast.expr Var.Set.t =
+  (* We search recursively in the possible definitions of each free
+     variable. *)
+  let free_vars = Expr.free_vars e in
+  let possible_values_of_free_vars =
+    Var.Map.filter
+      (fun v _ -> Var.Set.mem v free_vars)
+      vc_scope_ctx.Conditions.vc_scope_possible_variable_values
+  in
+  Var.Map.fold
+    (fun _ possible_values vars_used ->
+       List.fold_left
+         (fun vars_used possible_value ->
+            Var.Set.union (vars_used_in_vc vc_scope_ctx possible_value) vars_used)
+         vars_used possible_values)
+    possible_values_of_free_vars free_vars
+
 module TypedValuesDcalcVarMap = struct
-  type 'x t = (typed Dcalc.Ast.expr, ('x, typed) marked) Var.Map.t
+  type 'x t = (typed Dcalc.Ast.expr, (('x, typed) marked) option) Var.Map.t
 
   let map (f : 'a -> 'b) (m : 'a t) : 'b t =
-    Var.Map.map (fun (x, tx) -> f x, tx) m
+    Var.Map.map (Option.map (fun (x, tx) -> f x, tx)) m
 end
 
 module TypedValuesDcalcVarMapBoxLifting = Bindlib.Lift (TypedValuesDcalcVarMap)
 
 type mopsa_program = {
   main_guard : typed Dcalc.Ast.expr;
-  other_values : (typed Dcalc.Ast.expr, typed Dcalc.Ast.expr) Var.Map.t;
+  declared_variables :
+    ((dcalc, typed) gexpr Var.t * typed Dcalc.Ast.expr option) list;
+        (* ((typed Dcalc.Ast.expr * (typed Dcalc.Ast.expr) option)) list; *)
 }
 
 (* The goal of this part is to extract additions from expressions, and perform
    them before as assignments. This will simplify the analysis and communication
    with Mopsa. *)
 let turn_vc_into_mopsa_compatible_program
-    (vc : Conditions.verification_condition) : mopsa_program =
+    (vc : Conditions.verification_condition) vc_scope_ctx : mopsa_program =
+  let vars_used_in_vc = vars_used_in_vc vc_scope_ctx vc.vc_guard in
+  let vars_used_in_vc_with_known_values =
+    Var.Set.filter
+      (fun v ->
+         Var.Map.mem v vc_scope_ctx.Conditions.vc_scope_possible_variable_values)
+      vars_used_in_vc
+  in
+  let vars_used_in_vc_defined_outside_of_scope =
+    Var.Set.inter
+      vc_scope_ctx.Conditions.vc_scope_variables_defined_outside_of_scope
+      vars_used_in_vc
+  in
+  let decls_to_top =
+    let others =
+      Var.Set.diff
+        vars_used_in_vc
+        (Var.Set.union
+           vars_used_in_vc_defined_outside_of_scope
+           vars_used_in_vc_with_known_values) in
+    List.fold_left (fun decls v -> (v, None)::decls) [] (Var.Set.elements (Var.Set.union vars_used_in_vc_defined_outside_of_scope others))
+  in
+  let assignments =
+    List.fold_left (fun decls (var, values) ->
+        if Var.Set.mem var vars_used_in_vc_with_known_values then
+          (* FIXME handle multiple values *)
+          let () = assert((List.length values) = 1) in
+          (var, (Some (List.hd values)))::decls
+        else
+          decls
+      ) []
+      (Var.Map.bindings vc_scope_ctx.vc_scope_possible_variable_values) in
+  let declared_variables = decls_to_top @ assignments in 
   let trivial_map_union = Var.Map.union (fun _ _ _ -> assert false) in
-  let rec split_expression_into_atomic_parts (e : typed Dcalc.Ast.expr) :
-      (typed Dcalc.Ast.expr, (dcalc, typed) boxed_gexpr) Var.Map.t
-      * (dcalc, typed) boxed_gexpr =
+  let rec transform_field_accesses_into_variables e =
     match Mark.remove e with
+    | EStructAccess
+        { e = (EVar v, _); } when List.exists (fun (v2, _) -> Var.compare v v2 = 0) declared_variables ->
+      Message.emit_debug "Variable %a in assignements, but we may need to patch with %a" Print.var v (Print.expr ()) e;
+      let var = Var.make (Format.asprintf "%a" (Print.expr ()) e) in
+      Var.Map.singleton var None, Expr.evar var (Mark.get e)
+    | _ ->
+      Expr.map_gather ~acc:Var.Map.empty ~join:trivial_map_union
+        ~f:transform_field_accesses_into_variables e
+  in
+  let rec split_expression_into_atomic_parts (e : typed Dcalc.Ast.expr) :
+      (typed Dcalc.Ast.expr, ((dcalc, typed) boxed_gexpr) option) Var.Map.t
+      * (dcalc, typed) boxed_gexpr =
+    match Mark.remove e with 
     | EApp
         {
           f =
@@ -66,13 +129,22 @@ let turn_vc_into_mopsa_compatible_program
              (Pos.get_end_line pos) (Pos.get_end_column pos))
       in
       let new_e = Expr.eapp (Expr.box f) args (Mark.get e) in
-      Var.Map.add dummy_var new_e acc, Expr.evar dummy_var (Mark.get e)
+      Var.Map.add dummy_var (Some new_e) acc, Expr.evar dummy_var (Mark.get e)
     | _ ->
       Expr.map_gather ~acc:Var.Map.empty ~join:trivial_map_union
         ~f:split_expression_into_atomic_parts e
   in
+  let new_vars_fields, (e, e_mark) =
+    transform_field_accesses_into_variables vc.vc_guard in
+  let new_vars_fields, e =
+    Bindlib.unbox
+      (Bindlib.box_apply2
+         (fun new_vars e ->
+            new_vars, (e, e_mark))
+         (TypedValuesDcalcVarMapBoxLifting.lift_box new_vars_fields)
+         e) in
   let new_vars, (simple_guard, simple_guard_mark) =
-    split_expression_into_atomic_parts vc.vc_guard
+    split_expression_into_atomic_parts e
   in
   let new_vars, simple_guard =
     (* This manipulation is done so that we only unbox once to keep all
@@ -82,9 +154,11 @@ let turn_vc_into_mopsa_compatible_program
          (fun new_vars simple_guard ->
            new_vars, (simple_guard, simple_guard_mark))
          (TypedValuesDcalcVarMapBoxLifting.lift_box new_vars)
-         simple_guard)
-  in
-  { main_guard = simple_guard; other_values = new_vars }
+         simple_guard) in
+  {
+    main_guard = simple_guard;
+    declared_variables = declared_variables @ (Var.Map.bindings new_vars_fields) @ (Var.Map.bindings new_vars)
+  }
 
 (** This function is temporarily here but should be moved to a MOPSA backend. *)
 let solve_date_vc
@@ -96,92 +170,20 @@ let solve_date_vc
     (Z3backend.Io.print_negative_result vc scope_name
        (Z3backend.Io.make_context decl_ctx)
        None);
-  let rec vars_used_in_vc (e : typed Dcalc.Ast.expr) :
-      typed Dcalc.Ast.expr Var.Set.t =
-    (* We search recursively in the possible definitions of each free
-       variable. *)
-    let free_vars = Expr.free_vars e in
-    let possible_values_of_free_vars =
-      Var.Map.filter
-        (fun v _ -> Var.Set.mem v free_vars)
-        vc_scope_ctx.Conditions.vc_scope_possible_variable_values
-    in
-    Var.Map.fold
-      (fun _ possible_values vars_used ->
-        List.fold_left
-          (fun vars_used possible_value ->
-            Var.Set.union (vars_used_in_vc possible_value) vars_used)
-          vars_used possible_values)
-      possible_values_of_free_vars free_vars
-  in
-  let vars_used_in_vc = vars_used_in_vc vc.vc_guard in
-  let vars_used_in_vc_with_known_values =
-    Var.Set.filter
-      (fun v ->
-        Var.Map.mem v vc_scope_ctx.Conditions.vc_scope_possible_variable_values)
-      vars_used_in_vc
-  in
-  let vars_used_in_vc_defined_outside_of_scope =
-    Var.Set.filter
-      (fun v ->
-        Var.Set.mem v
-          vc_scope_ctx.Conditions.vc_scope_variables_defined_outside_of_scope)
-      vars_used_in_vc
-  in
-  Message.emit_debug "For: %a@.Assumptions: %a@.Relevant values:@.%a%a%a"
-    (Print.expr ()) vc.vc_guard (Print.expr ())
-    vc_scope_ctx.Conditions.vc_scope_asserts
-    (fun fmt vars_possible_values ->
-      Format.pp_print_list
-        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
-        (fun fmt (var, values) ->
-          if Var.Set.mem var vars_used_in_vc_with_known_values then (
-            Format.fprintf fmt "<IMP>";
-            Format.fprintf fmt "@[<hov 2>%a@ =@ %a@]" Print.var_debug var
-              (Format.pp_print_list
-                 ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
-                 (fun fmt expr -> Print.expr () fmt expr))
-              values;
-            Format.fprintf fmt "</IMP>"))
-        fmt
-        (Var.Map.bindings vars_possible_values))
-    vc_scope_ctx.Conditions.vc_scope_possible_variable_values
-    (fun fmt variables_defined_out_of_scope ->
-      Format.pp_print_list
-        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
-        (fun fmt var ->
-          if Var.Set.mem var vars_used_in_vc_defined_outside_of_scope then (
-            Format.fprintf fmt "<OOS>";
-            Format.fprintf fmt "@[<hov 2>%a@ =@ unknown (out of scope)@]"
-              Print.var_debug var;
-            Format.fprintf fmt "</OOS>"))
-        fmt
-        (Var.Set.elements variables_defined_out_of_scope))
-    vc_scope_ctx.Conditions.vc_scope_variables_defined_outside_of_scope
-    (fun fmt other_variables ->
-      Format.pp_print_list
-        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
-        (fun fmt var ->
-          if
-            not
-              (Var.Set.mem var vars_used_in_vc_defined_outside_of_scope
-              || Var.Set.mem var vars_used_in_vc_with_known_values)
-          then (
-            Format.fprintf fmt "<UNK>";
-            Format.fprintf fmt "@[<hov 2>%a@ =@ unknown (others)@]"
-              Print.var_debug var;
-            Format.fprintf fmt "</UNK>"))
-        fmt
-        (Var.Set.elements other_variables))
-    vars_used_in_vc;
-  let prog = turn_vc_into_mopsa_compatible_program vc in
+  let prog = turn_vc_into_mopsa_compatible_program vc vc_scope_ctx in
   let prog_string =
-    Var.Map.fold
-      (fun var expr acc ->
-        Format.asprintf "%a %a = %a@." (Print.typ decl_ctx) (Expr.ty expr)
-          Print.var_debug var (Print.expr ()) expr
-        ^ acc)
-      prog.other_values ""
+    List.fold_left
+      (fun acc (var, oexpr) ->
+         acc^(match oexpr with
+         | None ->
+           (* FIXME typ *)
+           (* let (Typed { ty = match_ty; _ }) = Mark.get var in *)
+           Format.asprintf "%a = T@." (*(Print.typ decl_ctx) (Expr.ty )*) Print.var_debug var
+         | Some expr ->
+           Format.asprintf "%a %a = %a@." (Print.typ decl_ctx) (Expr.ty expr)
+             Print.var_debug var (Print.expr ()) expr)
+      )
+      "" prog.declared_variables
     ^ Format.asprintf "assert(sync(%a))" (Print.expr ()) prog.main_guard
   in
   Format.eprintf "Prog:@.%s@." prog_string
