@@ -17,6 +17,14 @@
 open Catala_utils
 open Shared_ast
 
+let simplified_string_of_pos pos =
+  let basename =
+    Filename.basename (Pos.get_file pos) |> Filename.chop_extension
+  in
+  Format.asprintf "%s_%d-%d_%d-%d" basename
+    (Pos.get_start_line pos) (Pos.get_start_column pos)
+    (Pos.get_end_line pos) (Pos.get_end_column pos)
+
 let rec vars_used_in_vc vc_scope_ctx (e : typed Dcalc.Ast.expr) :
   typed Dcalc.Ast.expr Var.Set.t =
   (* We search recursively in the possible definitions of each free
@@ -55,7 +63,9 @@ type mopsa_program = {
    them before as assignments. This will simplify the analysis and communication
    with Mopsa. *)
 let turn_vc_into_mopsa_compatible_program
-    (vc : Conditions.verification_condition) vc_scope_ctx : mopsa_program =
+    (vc : Conditions.verification_condition)
+    (vc_scope_ctx : Conditions.verification_conditions_scope) :
+  mopsa_program * Conditions.verification_conditions_scope =
   let vars_used_in_vc = vars_used_in_vc vc_scope_ctx vc.vc_guard in
   let vars_used_in_vc_with_known_values =
     Var.Set.filter
@@ -88,16 +98,14 @@ let turn_vc_into_mopsa_compatible_program
       ) []
       (Var.Map.bindings vc_scope_ctx.vc_scope_possible_variable_values) in
   let declared_variables = decls_to_top @ assignments in 
-  let trivial_map_union = Var.Map.union (fun _ _ _ -> assert false) in
   let rec transform_field_accesses_into_variables e =
     match Mark.remove e with
     | EStructAccess
-        { e = (EVar v, _); } when List.exists (fun (v2, _) -> Var.compare v v2 = 0) declared_variables ->
-      Message.emit_debug "Variable %a in assignements, but we may need to patch with %a" Print.var v (Print.expr ()) e;
+        { e = (EVar v, _); _; } when List.exists (fun (v2, _) -> Var.compare v v2 = 0) declared_variables ->
       let var = Var.make (Format.asprintf "%a" (Print.expr ()) e) in
-      Var.Map.singleton var None, Expr.evar var (Mark.get e)
+      Var.Map.singleton var (Expr.ty e), Expr.evar var (Mark.get e)
     | _ ->
-      Expr.map_gather ~acc:Var.Map.empty ~join:trivial_map_union
+      Expr.map_gather ~acc:Var.Map.empty ~join:(Var.Map.union (fun _ _ _ -> assert false))
         ~f:transform_field_accesses_into_variables e
   in
   let rec split_expression_into_atomic_parts (e : typed Dcalc.Ast.expr) :
@@ -115,27 +123,30 @@ let turn_vc_into_mopsa_compatible_program
         List.fold_left_map
           (fun acc arg ->
             let toadd, arg = split_expression_into_atomic_parts arg in
-            trivial_map_union acc toadd, arg)
+            (Var.Map.union (fun _ _ _ -> assert false)) acc toadd, arg)
           Var.Map.empty args
       in
       let dummy_var =
         let pos = Expr.pos e in
-        let basename =
-          Filename.basename (Pos.get_file pos) |> Filename.chop_extension
-        in
         Var.make
-          (Format.asprintf "var_%s_%d-%d_%d-%d" basename
-             (Pos.get_start_line pos) (Pos.get_start_column pos)
-             (Pos.get_end_line pos) (Pos.get_end_column pos))
+          ("var_" ^ (simplified_string_of_pos pos))
       in
       let new_e = Expr.eapp (Expr.box f) args (Mark.get e) in
       Var.Map.add dummy_var (Some new_e) acc, Expr.evar dummy_var (Mark.get e)
     | _ ->
-      Expr.map_gather ~acc:Var.Map.empty ~join:trivial_map_union
+      Expr.map_gather ~acc:Var.Map.empty ~join:(Var.Map.union (fun _ _ _ -> assert false))
         ~f:split_expression_into_atomic_parts e
   in
   let new_vars_fields, (e, e_mark) =
     transform_field_accesses_into_variables vc.vc_guard in
+  let new_vars_fields, vc_scope_ctx =
+    Var.Map.map (fun _ -> None) new_vars_fields,
+    {
+      vc_scope_ctx with vc_scope_variables_typs =
+                         Var.Map.union (fun _ _ _ -> assert false)
+                           vc_scope_ctx.vc_scope_variables_typs
+                           new_vars_fields 
+    } in
   let new_vars_fields, e =
     Bindlib.unbox
       (Bindlib.box_apply2
@@ -157,8 +168,8 @@ let turn_vc_into_mopsa_compatible_program
          simple_guard) in
   {
     main_guard = simple_guard;
-    declared_variables = declared_variables @ (Var.Map.bindings new_vars_fields) @ (Var.Map.bindings new_vars)
-  }
+    declared_variables = declared_variables @ (Var.Map.bindings new_vars_fields) @ (List.rev @@ Var.Map.bindings new_vars)
+  }, vc_scope_ctx
 
 (** This function is temporarily here but should be moved to a MOPSA backend. *)
 let solve_date_vc
@@ -170,23 +181,41 @@ let solve_date_vc
     (Z3backend.Io.print_negative_result vc scope_name
        (Z3backend.Io.make_context decl_ctx)
        None);
-  let prog = turn_vc_into_mopsa_compatible_program vc vc_scope_ctx in
-  let prog_string =
-    List.fold_left
-      (fun acc (var, oexpr) ->
-         acc^(match oexpr with
-         | None ->
-           (* FIXME typ *)
-           (* let (Typed { ty = match_ty; _ }) = Mark.get var in *)
-           Format.asprintf "%a = T@." (*(Print.typ decl_ctx) (Expr.ty )*) Print.var_debug var
-         | Some expr ->
-           Format.asprintf "%a %a = %a@." (Print.typ decl_ctx) (Expr.ty expr)
-             Print.var_debug var (Print.expr ()) expr)
+  let prog, vc_scope_ctx = turn_vc_into_mopsa_compatible_program vc vc_scope_ctx in
+  let prog_name = "proof_obligation_" ^ (simplified_string_of_pos (Expr.pos prog.main_guard)) ^ ".u" in
+  let prog_channel = open_out prog_name in
+  let fmt = Format.formatter_of_out_channel prog_channel in
+  let () = Format.pp_set_margin fmt 2000 in
+  let () = Format.fprintf fmt "%aassert(sync(%s));@."
+      (Format.pp_print_list
+         ~pp_sep:(fun _ () -> ())
+         (fun fmt (var, oexpr) ->
+            match oexpr with
+            | None ->
+              begin match Var.Map.find_opt var vc_scope_ctx.vc_scope_variables_typs with
+                | None ->
+                  (* This should only correspond to structures that are not accessed, so we can skip *)
+                  Message.emit_warning "Ignoring type declaration of var %a, as we've lost its type" Print.var_debug var 
+                | Some ty ->
+                  let make_random = match Mark.remove ty with
+                    | TLit TDate -> "date()"
+                    | TLit TDuration -> "duration_ym()"
+                    | TLit TBool -> "bool()"
+                    | TLit TInt -> "int()"
+                    | _ -> failwith "not implemented" in
+                  Format.fprintf fmt "%a %s = make_random_%s;@." (Print.typ decl_ctx) ty
+                    (String.to_ascii @@ Format.asprintf "%a" Print.var var) make_random 
+              end
+            | Some expr ->
+              Format.fprintf fmt "%a %s = %s;@." (Print.typ decl_ctx) (Expr.ty expr)
+                (String.to_ascii @@ Format.asprintf "%a" Print.var var)
+                (String.to_ascii @@ Format.asprintf "%a" (Print.expr ~debug:false ()) expr)
+         )
       )
-      "" prog.declared_variables
-    ^ Format.asprintf "assert(sync(%a))" (Print.expr ()) prog.main_guard
-  in
-  Format.eprintf "Prog:@.%s@." prog_string
+      prog.declared_variables
+      (String.to_ascii @@ Format.asprintf "%a" (Print.expr ~debug:false ()) prog.main_guard) in
+  close_out prog_channel;
+  Message.emit_debug "Generated new Mopsa program at %s" prog_name
 
 (** [solve_vc] is the main entry point of this module. It takes a list of
     expressions [vcs] corresponding to verification conditions that must be
