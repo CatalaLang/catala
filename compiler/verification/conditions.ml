@@ -387,6 +387,8 @@ let rec generate_verification_conditions_scope_body_expr
             ctx with
             scope_cond_input_vars =
               Var.Set.add scope_let_var ctx.scope_cond_input_vars;
+            scope_cond_variables_typs =
+              Var.Map.add scope_let_var scope_let.scope_let_typ ctx.scope_cond_variables_typs ;
           },
           [] )
       | DestructuringSubScopeResults ->
@@ -394,7 +396,8 @@ let rec generate_verification_conditions_scope_body_expr
             ctx with
             scope_cond_subscope_output_vars =
               Var.Set.add scope_let_var ctx.scope_cond_subscope_output_vars;
-          },
+            scope_cond_variables_typs =
+              Var.Map.add scope_let_var scope_let.scope_let_typ ctx.scope_cond_variables_typs ;          },
           [] )
       | ScopeVarDefinition | SubScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
@@ -498,6 +501,7 @@ type verification_conditions_scope = {
     (typed Dcalc.Ast.expr, typed Dcalc.Ast.expr list) Var.Map.t;
   vc_scope_variables_defined_outside_of_scope : typed Dcalc.Ast.expr Var.Set.t;
   vc_scope_list : verification_condition list;
+  vc_scope_variables_typs : (typed expr, typ) Var.Map.t;
 }
 
 let generate_verification_conditions_code_items
@@ -550,6 +554,7 @@ let generate_verification_conditions_code_items
               vc_scope_variables_defined_outside_of_scope =
                 Var.Set.union ctx.scope_cond_input_vars
                   ctx.scope_cond_subscope_output_vars;
+              vc_scope_variables_typs = ctx.scope_cond_variables_typs;
             }
             vcs
         else vcs)

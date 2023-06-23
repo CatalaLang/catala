@@ -49,6 +49,7 @@ type verification_conditions_scope = {
           traversal of the default tree. *)
   vc_scope_variables_defined_outside_of_scope : typed Dcalc.Ast.expr Var.Set.t;
   vc_scope_list : verification_condition list;
+  vc_scope_variables_typs : (typed Dcalc.Ast.expr, typ) Var.Map.t;
 }
 
 val generate_verification_conditions :
