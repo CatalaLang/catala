@@ -211,30 +211,43 @@ let solve_date_vc
          ~pp_sep:(fun _ () -> ())
          (fun fmt (var, oexpr) ->
            match oexpr with
-           | None -> begin
-             match
-               Var.Map.find_opt var vc_scope_ctx.vc_scope_variables_typs
-             with
              | None ->
-               (* This should only correspond to structures that are not
-                  accessed, so we can skip *)
-               Message.emit_warning
-                 "Ignoring type declaration of var %a, as we've lost its type"
-                 Print.var_debug var
-             | Some ty ->
+               let ty = 
+                 begin
+                   match
+                     Var.Map.find_opt var vc_scope_ctx.vc_scope_variables_typs
+                   with
+                   | None ->
+                     (* FIXME: I may have added to many variables in vc_scope_variables_typs in commit b08841e7,
+                               the good way to do it would be to extract types of variables from the expression directly *)
+                     let rec find_type_of_var v e = match e with
+                       | EVar v', mark when Var.compare v v' = 0 -> [mark]
+                       | e -> Expr.shallow_fold (fun e acc -> (find_type_of_var v e) @ acc) e [] in
+                     let m = find_type_of_var var vc.vc_guard in
+                     let (Typed { ty; _ }) = List.hd m in
+                     ty 
+                   | Some ty -> ty
+                 end in
                let make_random =
                  match Mark.remove ty with
-                 | TLit TDate -> "date()"
-                 | TLit TDuration -> "duration_ym()"
-                 | TLit TBool -> "bool()"
-                 | TLit TInt -> "int()"
-                 | _ -> failwith "not implemented"
+                 | TLit TDate -> Some  "date()"
+                 | TLit TDuration -> Some "duration_ym()"
+                 | TLit TBool -> Some "bool()"
+                 | TLit TInt -> Some "int()"
+                 | _ -> None 
                in
-               Format.fprintf fmt "%a %s = make_random_%s;@."
-                 (Print.typ decl_ctx) ty
-                 (String.to_ascii @@ Format.asprintf "%a" Print.var var)
-                 make_random
-           end
+               begin match make_random with
+                 | Some make_random ->
+                   Format.fprintf fmt "%a %s = make_random_%s;@."
+                     (Print.typ decl_ctx) ty
+                     (String.to_ascii @@ Format.asprintf "%a" Print.var var)
+                     make_random
+                 | None ->
+                   Message.emit_warning
+                     "Ignoring type declaration of var %a : %a"
+                     Print.var_debug var
+                     Print.typ_debug ty
+               end
            | Some expr ->
              Format.fprintf fmt "%a %s = %s;@." (Print.typ decl_ctx)
                (Expr.ty expr)
