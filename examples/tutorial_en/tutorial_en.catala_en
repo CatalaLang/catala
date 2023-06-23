@@ -227,13 +227,17 @@ scope IncomeTaxComputation:
   consequence equals 15 %
   # Writing 15% is just an abbreviation for "0.15".
 ```
+While conditional definitions are a powerful tool for expressing legal conditions,
+a correctly drafted legislative source should always ensure that at most one
+condition is true at all times.  This way, when the Catala program is
+executed, the right definition will be dynamically chosen by looking at which
+condition is true.
 
-When the Catala program will execute, the right definition will be dynamically
-chosen by looking at which condition is true. A correctly drafted legislative
-source should always ensure that at most one condition is true at all times.
-However, if it is not the case, Catala will let you define a precedence on the
-conditions, which has to be justified by the law. But we will see how to
-do that later.
+Here, however, our definition of `fixed_percentage` conflicts
+with the more general definition that we gave above---so Catala will give us
+an error if we try and use this definition as is.  In situations like this, Catala
+allows us to define a precedence on the conditions, which has to be justified by
+the law. But we will see how to do that later.
 
 ## Rules
 
