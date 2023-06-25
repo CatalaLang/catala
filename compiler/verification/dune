@@ -11,7 +11,14 @@
    z3backend.ml
    from
    (z3 -> z3backend.real.ml)
-   (-> z3backend.dummy.ml))))
+   (-> z3backend.dummy.ml))
+  (select
+   mopsabackend.ml
+   from
+   (mopsa.mopsa_analyzer -> mopsabackend.real.ml)
+   (-> mopsabackend.dummy.ml))
+ )
+)
 
 (documentation
  (package catala)
