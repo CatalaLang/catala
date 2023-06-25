@@ -793,7 +793,7 @@ module Backend = struct
   type backend_context = context
   type vc_encoding = Z3.Expr.expr
 
-  let print_encoding (vc : vc_encoding) : string = Expr.to_string vc
+  let print_encoding _ (vc : vc_encoding) : string = Expr.to_string vc
 
   type model = Z3.Model.model
   type solver_result = ProvenTrue | ProvenFalse of model option | Unknown
@@ -848,3 +848,4 @@ module Backend = struct
 end
 
 module Io = Io.MakeBackendIO (Backend)
+

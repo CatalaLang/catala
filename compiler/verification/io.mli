@@ -28,7 +28,7 @@ module type Backend = sig
 
   type vc_encoding
 
-  val print_encoding : vc_encoding -> string
+  val print_encoding : backend_context -> vc_encoding -> string
 
   type model
   type solver_result = ProvenTrue | ProvenFalse of model option | Unknown

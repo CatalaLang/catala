@@ -18,6 +18,7 @@ open Catala_utils
 open Shared_ast
 
 type mopsa_program = {
+  initial_guard : typed Dcalc.Ast.expr;
   main_guard : typed Dcalc.Ast.expr;
   declared_variables :
     ((dcalc, typed) gexpr Var.t * typed Dcalc.Ast.expr option) list;
@@ -174,6 +175,7 @@ let translate_expr vc_scope_ctx vc_guard =
   in
   (vc_scope_ctx,
    {
+     initial_guard = vc_guard;
       main_guard = simple_guard;
       declared_variables =
         declared_variables
@@ -184,7 +186,7 @@ let translate_expr vc_scope_ctx vc_guard =
 
 
 
-let print_encoding (prog : mopsa_program) =
+let print_encoding (vc_scope_ctx : Conditions.verification_conditions_scope) (prog : mopsa_program) =
   let fmt = Format.str_formatter in
   let () =
     Format.fprintf fmt "%aassert(sync(%a));@."
@@ -193,29 +195,26 @@ let print_encoding (prog : mopsa_program) =
          (fun fmt (var, oexpr) ->
            match oexpr with
            | None -> (
-             let ty =
-               let rec find_type_of_var v e =
-                 match e with
-                 | EVar v', mark when Var.compare v v' = 0 -> [mark]
-                 | e ->
-                   Expr.shallow_fold
-                     (fun e acc -> find_type_of_var v e @ acc)
-                     e []
-               in
-               let m = find_type_of_var var prog.main_guard in 
-               let (Typed { ty; _ }) = List.hd m in
-               ty in
-             (*     match *)
-             (*     Var.Map.find_opt var vc_scope_ctx.vc_scope_variables_typs *)
-             (*   with *)
-             (*   | None -> *)
-             (*     (\* FIXME: I may have added to many variables in *)
-             (*        vc_scope_variables_typs in commit b08841e7, the good way to *)
-             (*        do it would be to extract types of variables from the *)
-             (*        expression directly *\) *)
-             (*   | Some ty -> ty *)
-             (* in *)
-             let make_random =
+               let ty = match Var.Map.find_opt var vc_scope_ctx.vc_scope_variables_typs with
+                 | None ->
+                   (* FIXME: I may have added to many variables in
+                        vc_scope_variables_typs in commit b08841e7, the good way to
+                        do it would be to extract types of variables from the
+                        expression directly *)
+                   let rec find_type_of_var v e =
+                     match e with
+                     | EVar v', mark when Var.compare v v' = 0 -> [mark]
+                     | e ->
+                       Expr.shallow_fold
+                         (fun e acc -> find_type_of_var v e @ acc)
+                         e []
+                   in
+                   let m = find_type_of_var var prog.initial_guard in
+                   (* let () = Message.emit_debug "searching for %a in %a" Print.var_debug var (Print.expr ()) prog.initial_guard in *)
+                   let (Typed { ty; _ }) = List.hd m in
+                   ty
+                 | Some ty -> ty in
+               let make_random =
                match Mark.remove ty with
                | TLit TDate -> Some "date()"
                | TLit TDuration -> Some "duration_ym()"
@@ -255,19 +254,19 @@ module Backend = struct
 
   let translate_expr = translate_expr
 
-  let print_encoding = print_encoding
+  let print_encoding ctx prog = print_encoding ctx prog
 
   type model = Yojson.Basic.t (* yeah, I'll have to fix that *)
   type solver_result = ProvenTrue | ProvenFalse of model option | Unknown
 
-  let solve_vc_encoding _ mopsa_program =
+  let solve_vc_encoding ctx mopsa_program =
     let prog_name =
       "proof_obligation_"
       ^ simplified_string_of_pos (Expr.pos mopsa_program.main_guard)
       ^ ".u"
     in
     let prog_channel = open_out prog_name in
-    Printf.fprintf prog_channel "%s" (print_encoding mopsa_program);
+    Printf.fprintf prog_channel "%s" (print_encoding ctx mopsa_program);
     close_out prog_channel;
     Message.emit_debug "Generated new Mopsa program at %s" prog_name;
     let process_mopsas_json j =
@@ -318,7 +317,7 @@ module Backend = struct
   let init_backend () =
     Message.emit_debug "Running Mopsa"
 
-  let is_model_empty _ = assert false
+  let is_model_empty _ = false
   let encode_asserts _ _ = assert false 
 end
 

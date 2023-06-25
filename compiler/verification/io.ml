@@ -27,7 +27,7 @@ module type Backend = sig
 
   type vc_encoding
 
-  val print_encoding : vc_encoding -> string
+  val print_encoding : backend_context -> vc_encoding -> string
 
   type model
   type solver_result = ProvenTrue | ProvenFalse of model option | Unknown
@@ -161,6 +161,7 @@ module MakeBackendIO (B : Backend) = struct
 
     Message.emit_debug "@[<v>For this variable:@,%a@,@]" Pos.format_loc_text
       (Expr.pos vc.Conditions.vc_guard);
+    if vc.vc_kind <> DateComputation then 
     Message.emit_debug
       "@[<v>This verification condition was generated for @{<yellow>%s@}:@,\
        %a@,\
@@ -190,14 +191,17 @@ module MakeBackendIO (B : Backend) = struct
     match z3_vc with
     | Success (encoding, backend_ctx) -> (
       Message.emit_debug "@[<v>The translation to Z3 is the following:@,%s@]"
-        (B.print_encoding encoding);
+        (B.print_encoding backend_ctx encoding);
       match B.solve_vc_encoding backend_ctx encoding with
       | ProvenTrue -> true
       | ProvenFalse model ->
         Message.emit_warning "%s"
           (print_negative_result vc scope backend_ctx model);
         false
-      | Unknown -> failwith "The solver failed at proving or disproving the VC")
+      | Unknown ->
+        (* FIXME: we probably want to have the choice of behavior between failure and warning here *)
+        Message.emit_warning "The solver failed at proving or disproving the VC";
+        false )
     | Fail msg ->
       Message.emit_warning
         "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s@]"
