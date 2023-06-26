@@ -297,8 +297,7 @@ module Backend = struct
     (* I wanted to use mopsa as a library, but we have a small issue to fix
        there first *)
     let args = [|
-      "mopsa.bin";
-      "-share-dir=/home/raphael/work/mopsa/share/mopsa";
+      "mopsa-universal";
       "-config=universal/ymd_poly_powerint_markerset.json";
       (* "-debug=_"; *)
       "-max-set-size=7";
