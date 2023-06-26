@@ -294,21 +294,21 @@ module Backend = struct
         in
         None
     in
-    let args =
-      [|
-        "/home/raphael/work/mopsa/bin/../bin/mopsa.bin";
-        "-share-dir=/home/raphael/work/mopsa/share/mopsa";
-        "-config=universal/ymd_poly_powerint_markerset.json";
-        (* "-debug=_"; *)
-        "-max-set-size=7";
-        "-format=json";
-        "-silent";
-        "-output=tmp.json";
-        prog_name;
-      |]
-    in
     (* I wanted to use mopsa as a library, but we have a small issue to fix
        there first *)
+    let args = [|
+      "mopsa.bin";
+      "-share-dir=/home/raphael/work/mopsa/share/mopsa";
+      "-config=universal/ymd_poly_powerint_markerset.json";
+      (* "-debug=_"; *)
+      "-max-set-size=7";
+      "-numeric=polkagrid";
+      "-format=json";
+      "-silent";
+      "-output=tmp.json";
+      prog_name 
+    |] in
+    (* I wanted to use mopsa as a library, but we have a small issue to fix there first *)
     (* let open Mopsa_analyzer.Framework.Runner in *)
     (* let _ = *)
     (*   try parse_options args analyze_files () *)

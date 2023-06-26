@@ -2,6 +2,7 @@
  (name verification)
  (public_name catala.verification)
  (libraries
+  str
   bindlib
   catala_utils
   dcalc
@@ -15,8 +16,7 @@
   (select
    mopsabackend.ml
    from
-   (mopsa.mopsa_analyzer -> mopsabackend.real.ml)
-   (-> mopsabackend.dummy.ml))))
+   (-> mopsabackend.real.ml))))
 
 (documentation
  (package catala)
