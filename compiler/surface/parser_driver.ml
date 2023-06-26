@@ -21,43 +21,6 @@
 open Sedlexing
 open Catala_utils
 
-(** {1 Internal functions} *)
-
-(** Three-way minimum *)
-let minimum a b c = min a (min b c)
-
-(** Computes the levenshtein distance between two strings, used to provide error
-    messages suggestions *)
-let levenshtein_distance (s : string) (t : string) : int =
-  let m = String.length s and n = String.length t in
-  (* for all i and j, d.(i).(j) will hold the Levenshtein distance between the
-     first i characters of s and the first j characters of t *)
-  let d = Array.make_matrix (m + 1) (n + 1) 0 in
-
-  for i = 0 to m do
-    d.(i).(0) <- i
-    (* the distance of any first string to an empty second string *)
-  done;
-  for j = 0 to n do
-    d.(0).(j) <- j
-    (* the distance of any second string to an empty first string *)
-  done;
-
-  for j = 1 to n do
-    for i = 1 to m do
-      if s.[i - 1] = t.[j - 1] then d.(i).(j) <- d.(i - 1).(j - 1)
-        (* no operation required *)
-      else
-        d.(i).(j) <-
-          minimum
-            (d.(i - 1).(j) + 1) (* a deletion *)
-            (d.(i).(j - 1) + 1) (* an insertion *)
-            (d.(i - 1).(j - 1) + 1) (* a substitution *)
-    done
-  done;
-
-  d.(m).(n)
-
 (** After parsing, heading structure is completely flat because of the
     [source_file_item] rule. We need to tree-i-fy the flat structure, by looking
     at the precedence of the law headings. *)
@@ -174,8 +137,8 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
               String.sub y 0 (String.length wrong_token)
             else y
           in
-          let levx = levenshtein_distance truncated_x wrong_token in
-          let levy = levenshtein_distance truncated_y wrong_token in
+          let levx = Suggestions.levenshtein_distance truncated_x wrong_token in
+          let levy = Suggestions.levenshtein_distance truncated_y wrong_token in
           if levx = levy then String.length x - String.length y else levx - levy)
         acceptable_tokens
     in
@@ -187,7 +150,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
           (fun ppf ->
             Format.fprintf ppf "did you mean %a?"
               (Format.pp_print_list
-                 ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or@  maybe@ ")
+                 ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or@ maybe@ ")
                  (fun ppf (ts, _) -> pp_hint ppf ts))
               tokens)
     in

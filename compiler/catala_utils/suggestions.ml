@@ -15,7 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(* Three-way minimum *)
+(** Three-way minimum *)
 let minimum a b c = min a (min b c)
 
 (** Computes the levenshtein distance between two strings, used to provide error
@@ -50,37 +50,44 @@ let levenshtein_distance (s : string) (t : string) : int =
 
   d.(m).(n)
 
-(*On crée la liste des distances minimales, c'est à dire tous les couples (>=1)
-  qui partagent la distance minimale*)
+(*We're creating a string list composed by those who satisfy the following rule
+  : they share the same levenshtein distance, which is the minimal distance
+  found between the reference word "keyword" and all the strings in
+  "string_list".*)
 let suggestion_minimum_levenshtein_distance_association
-    (l : string list)
-    (mot : string) : string list =
-  let rec insertion ((x, y) : int * string) (l : (int * string) list) :
-      (int * string) list =
-    match l with
-    | (current_x, current_y) :: t ->
-      if x <= current_x then (x, y) :: l
-        (*égalité car insertion du dernier au premier élément*)
-      else (current_x, current_y) :: insertion (x, y) t
-    | [] -> l @ [x, y]
+    (string_list : string list)
+    (keyword : string) : string list =
+  let rec insertion ((new_x, new_y) : int * 'a) (n_tuple_list : (int * 'a) list)
+      : (int * 'a) list =
+    match n_tuple_list with
+    | (current_x, current_y) :: tail ->
+      if new_x <= current_x then (new_x, new_y) :: n_tuple_list
+        (*= to satisfy first-come first-served basis (because the last element
+          is inserted first (see levenshtein_distance_association))*)
+      else (current_x, current_y) :: insertion (new_x, new_y) tail
+    | [] -> [new_x, new_y]
   in
-  (*on associe à chaque string de l sa distance de levenshtein avec un mot
-    commun. La liste en sortie est triée (principe premier arrivé, premier
-    inscrit)*)
-  (*sauf accumulateur*)
-  let rec levenshtein_distance_association (l' : string list) (mot' : string) :
-      (int * string) list =
-    match l' with
+  (*Here we associate each elements of "string_list'" with its levenshtein
+    distance with "keyword'"*)
+  (*It returns a 2-tuple list with the following format (levenshein_distance,
+    word_from_string_list). 2-tuples are sorted on the first-come first-served
+    basis*)
+  let rec levenshtein_distance_association
+      (string_list' : string list)
+      (keyword' : string) : (int * string) list =
+    match string_list' with
     | h :: t ->
       insertion
-        (levenshtein_distance h mot', h)
-        (levenshtein_distance_association t mot')
+        (levenshtein_distance h keyword', h)
+        (levenshtein_distance_association t keyword')
     | [] -> []
   in
-  let final_list = levenshtein_distance_association l mot in
+  let final_list = levenshtein_distance_association string_list keyword in
   match final_list with
   | h :: _ ->
-    (*on filtre les minimums et on récupère les strings*)
+    (*We collect the strings from "string_list" with the minimum levenshtein
+      distance found (i.e. the distance of the first element of the sorted
+      list*)
     List.map snd (List.filter (fun (x, _) -> x == fst h) final_list)
-    (*< impossible car déjà la liste est déjà triée*)
+    (*< impossible because the list is already sorted in ascending order*)
   | [] -> []

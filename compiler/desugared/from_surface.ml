@@ -130,15 +130,18 @@ let raise_error_cons_not_found
     Suggestions.suggestion_minimum_levenshtein_distance_association constructors
       (Mark.remove constructor)
   in
-  Message.raise_spanned_error (Mark.get constructor)
-    "The name of this constructor has not been defined before, maybe it is a \
-     typo?%a"
-    (fun fmt closest_constructors ->
-      match closest_constructors with
-      | [] -> Format.fprintf fmt ""
-      | hd :: _ ->
-        Format.fprintf fmt " Maybe you wanted to say @{<yellow>\"%s\"@}?" hd)
-    closest_constructors
+  let print_string_list (ppf : Format.formatter) (string_list : string list) =
+    Format.pp_print_list
+      ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " or ")
+      (fun ppf str -> Format.fprintf ppf "\"@{<yellow>%s@}\"" str)
+      ppf string_list
+  in
+  Message.raise_spanned_error
+    ~span_msg:(fun ppf -> Format.fprintf ppf "Here is your code :")
+    ~suggestion:(fun ppf -> print_string_list ppf closest_constructors)
+    (Mark.get constructor)
+    "The name of this constructor has not been defined before (it's probably a \
+     typographical error)."
 
 let disambiguate_constructor
     (ctxt : Name_resolution.context)

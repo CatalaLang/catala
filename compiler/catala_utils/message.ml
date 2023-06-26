@@ -197,16 +197,13 @@ let raise_spanned_error
     ?(suggestion : Content.message option)
     (span : Pos.t)
     format =
-  Format.kdprintf
-    (fun message ->
-      raise
-        (CompilerError
-           ([
-              MainMessage message;
-              Position { pos_message = span_msg; pos = span };
-            ]
-           @ match suggestion with None -> [] | Some sug -> [Suggestion sug])))
-    format
+  let continuation (message : Format.formatter -> unit) =
+    raise
+      (CompilerError
+         ([MainMessage message; Position { pos_message = span_msg; pos = span }]
+         @ match suggestion with None -> [] | Some sug -> [Suggestion sug]))
+  in
+  Format.kdprintf continuation format
 
 let raise_multispanned_error_full
     (spans : (Content.message option * Pos.t) list)
