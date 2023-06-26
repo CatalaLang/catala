@@ -318,7 +318,9 @@ module Backend = struct
     (*   | _ -> *)
     (*     Message.emit_warning "Mopsa failed :("; 0 *)
     (* in *)
-    let () = Unix.unlink "tmp.json" in
+    let () =
+      try Unix.unlink "tmp.json"
+      with Unix.Unix_error _ -> () in
     let _ =
       Unix.system (Array.fold_left (fun acc s -> acc ^ " " ^ s) "" args)
     in
