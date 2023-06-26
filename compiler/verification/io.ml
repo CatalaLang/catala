@@ -161,32 +161,33 @@ module MakeBackendIO (B : Backend) = struct
 
     Message.emit_debug "@[<v>For this variable:@,%a@,@]" Pos.format_loc_text
       (Expr.pos vc.Conditions.vc_guard);
-    if vc.vc_kind <> DateComputation then 
-    Message.emit_debug
-      "@[<v>This verification condition was generated for @{<yellow>%s@}:@,\
-       %a@,\
-       with assertions:@,\
-       %a@,\
-       and possible values for variables:@,\
-       %a@]"
-      (match vc.vc_kind with
-      | Conditions.NoEmptyError ->
-        "the variable definition never to return an empty error"
-      | NoOverlappingExceptions -> "no two exceptions to ever overlap"
-      | DateComputation -> "this date computation cannot be ambiguous")
-      (Print.expr ()) vc.vc_guard (Print.expr ()) vc_scope_ctx.vc_scope_asserts
-      (fun fmt vars_possible_values ->
-        Format.pp_print_list
-          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
-          (fun fmt (var, values) ->
-            Format.fprintf fmt "@[<hov 2>%a@ = @ %a@]" Print.var var
-              (Format.pp_print_list
-                 ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
-                 (Print.expr ()))
-              values)
-          fmt
-          (Var.Map.bindings vars_possible_values))
-      vc_scope_ctx.vc_scope_possible_variable_values;
+    if vc.vc_kind <> DateComputation then
+      Message.emit_debug
+        "@[<v>This verification condition was generated for @{<yellow>%s@}:@,\
+         %a@,\
+         with assertions:@,\
+         %a@,\
+         and possible values for variables:@,\
+         %a@]"
+        (match vc.vc_kind with
+        | Conditions.NoEmptyError ->
+          "the variable definition never to return an empty error"
+        | NoOverlappingExceptions -> "no two exceptions to ever overlap"
+        | DateComputation -> "this date computation cannot be ambiguous")
+        (Print.expr ()) vc.vc_guard (Print.expr ())
+        vc_scope_ctx.vc_scope_asserts
+        (fun fmt vars_possible_values ->
+          Format.pp_print_list
+            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,")
+            (fun fmt (var, values) ->
+              Format.fprintf fmt "@[<hov 2>%a@ = @ %a@]" Print.var var
+                (Format.pp_print_list
+                   ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ |@ ")
+                   (Print.expr ()))
+                values)
+            fmt
+            (Var.Map.bindings vars_possible_values))
+        vc_scope_ctx.vc_scope_possible_variable_values;
 
     match z3_vc with
     | Success (encoding, backend_ctx) -> (
@@ -199,9 +200,10 @@ module MakeBackendIO (B : Backend) = struct
           (print_negative_result vc scope backend_ctx model);
         false
       | Unknown ->
-        (* FIXME: we probably want to have the choice of behavior between failure and warning here *)
+        (* FIXME: we probably want to have the choice of behavior between
+           failure and warning here *)
         Message.emit_warning "The solver failed at proving or disproving the VC";
-        false )
+        false)
     | Fail msg ->
       Message.emit_warning
         "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s@]"

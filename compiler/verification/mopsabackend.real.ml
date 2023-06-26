@@ -1,6 +1,7 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2023 Inria, contributors:
-   Raphaël Monat <raphael.monat@inria.fr>, Denis Merigoux <denis.merigoux@inria.fr>
+   and social benefits computation rules. Copyright (C) 2023 Inria,
+   contributors: Raphaël Monat <raphael.monat@inria.fr>, Denis Merigoux
+   <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -24,7 +25,6 @@ type mopsa_program = {
     ((dcalc, typed) gexpr Var.t * typed Dcalc.Ast.expr option) list;
 }
 
-
 let simplified_string_of_pos pos =
   let basename =
     Filename.basename (Pos.get_file pos) |> Filename.chop_extension
@@ -33,7 +33,7 @@ let simplified_string_of_pos pos =
     (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
 
 let rec vars_used_in_vc vc_scope_ctx (e : typed Dcalc.Ast.expr) :
-  typed Dcalc.Ast.expr Var.Set.t =
+    typed Dcalc.Ast.expr Var.Set.t =
   (* We search recursively in the possible definitions of each free variable. *)
   let free_vars = Expr.free_vars e in
   let possible_values_of_free_vars =
@@ -43,10 +43,10 @@ let rec vars_used_in_vc vc_scope_ctx (e : typed Dcalc.Ast.expr) :
   in
   Var.Map.fold
     (fun _ possible_values vars_used ->
-       List.fold_left
-         (fun vars_used possible_value ->
-            Var.Set.union (vars_used_in_vc vc_scope_ctx possible_value) vars_used)
-         vars_used possible_values)
+      List.fold_left
+        (fun vars_used possible_value ->
+          Var.Set.union (vars_used_in_vc vc_scope_ctx possible_value) vars_used)
+        vars_used possible_values)
     possible_values_of_free_vars free_vars
 
 module TypedValuesDcalcVarMap = struct
@@ -57,7 +57,6 @@ module TypedValuesDcalcVarMap = struct
 end
 
 module TypedValuesDcalcVarMapBoxLifting = Bindlib.Lift (TypedValuesDcalcVarMap)
-
 
 (* The goal of this part is to extract additions from expressions, and perform
    them before as assignments. This will simplify the analysis and communication
@@ -118,7 +117,13 @@ let translate_expr vc_scope_ctx vc_guard =
     | EApp
         {
           f =
-            ( EOp { op = Op.Add_dat_dur Dates_calc.Dates.AbortOnRound | Op.FirstDayOfMonth; tys = _ },
+            ( EOp
+                {
+                  op =
+                    ( Op.Add_dat_dur Dates_calc.Dates.AbortOnRound
+                    | Op.FirstDayOfMonth );
+                  tys = _;
+                },
               _ ) as f;
           args;
         } ->
@@ -173,20 +178,20 @@ let translate_expr vc_scope_ctx vc_guard =
          (TypedValuesDcalcVarMapBoxLifting.lift_box new_vars)
          simple_guard)
   in
-  (vc_scope_ctx,
-   {
-     initial_guard = vc_guard;
+  ( vc_scope_ctx,
+    {
+      initial_guard = vc_guard;
       main_guard = simple_guard;
       declared_variables =
         declared_variables
         @ Var.Map.bindings new_vars_fields
         @ List.rev
         @@ Var.Map.bindings new_vars;
-    })
+    } )
 
-
-
-let print_encoding (vc_scope_ctx : Conditions.verification_conditions_scope) (prog : mopsa_program) =
+let print_encoding
+    (vc_scope_ctx : Conditions.verification_conditions_scope)
+    (prog : mopsa_program) =
   let fmt = Format.str_formatter in
   let () =
     Format.fprintf fmt "%aassert(sync(%a));@."
@@ -195,26 +200,31 @@ let print_encoding (vc_scope_ctx : Conditions.verification_conditions_scope) (pr
          (fun fmt (var, oexpr) ->
            match oexpr with
            | None -> (
-               let ty = match Var.Map.find_opt var vc_scope_ctx.vc_scope_variables_typs with
-                 | None ->
-                   (* FIXME: I may have added to many variables in
-                        vc_scope_variables_typs in commit b08841e7, the good way to
-                        do it would be to extract types of variables from the
-                        expression directly *)
-                   let rec find_type_of_var v e =
-                     match e with
-                     | EVar v', mark when Var.compare v v' = 0 -> [mark]
-                     | e ->
-                       Expr.shallow_fold
-                         (fun e acc -> find_type_of_var v e @ acc)
-                         e []
-                   in
-                   let m = find_type_of_var var prog.initial_guard in
-                   (* let () = Message.emit_debug "searching for %a in %a" Print.var_debug var (Print.expr ()) prog.initial_guard in *)
-                   let (Typed { ty; _ }) = List.hd m in
-                   ty
-                 | Some ty -> ty in
-               let make_random =
+             let ty =
+               match
+                 Var.Map.find_opt var vc_scope_ctx.vc_scope_variables_typs
+               with
+               | None ->
+                 (* FIXME: I may have added to many variables in
+                    vc_scope_variables_typs in commit b08841e7, the good way to
+                    do it would be to extract types of variables from the
+                    expression directly *)
+                 let rec find_type_of_var v e =
+                   match e with
+                   | EVar v', mark when Var.compare v v' = 0 -> [mark]
+                   | e ->
+                     Expr.shallow_fold
+                       (fun e acc -> find_type_of_var v e @ acc)
+                       e []
+                 in
+                 let m = find_type_of_var var prog.initial_guard in
+                 (* let () = Message.emit_debug "searching for %a in %a"
+                    Print.var_debug var (Print.expr ()) prog.initial_guard in *)
+                 let (Typed { ty; _ }) = List.hd m in
+                 ty
+               | Some ty -> ty
+             in
+             let make_random =
                match Mark.remove ty with
                | TLit TDate -> Some "date()"
                | TLit TDuration -> Some "duration_ym()"
@@ -224,36 +234,32 @@ let print_encoding (vc_scope_ctx : Conditions.verification_conditions_scope) (pr
              in
              match make_random with
              | Some make_random ->
-               Format.fprintf fmt "%a %a = make_random_%s;@."
-                 Print.typ_debug ty
-                 Print.var var
-                 make_random
+               Format.fprintf fmt "%a %a = make_random_%s;@." Print.typ_debug ty
+                 Print.var var make_random
              | None ->
                Message.emit_warning "Ignoring type declaration of var %a : %a"
                  Print.var_debug var Print.typ_debug ty)
            | Some expr ->
-             Format.fprintf fmt "%a %a = %a;@."
-               Print.typ_debug (Expr.ty expr)
+             Format.fprintf fmt "%a %a = %a;@." Print.typ_debug (Expr.ty expr)
                Print.var var
-               (Print.expr ~debug:false ()) expr))
+               (Print.expr ~debug:false ())
+               expr))
       prog.declared_variables
-      (Print.expr ~debug:false ()) prog.main_guard
+      (Print.expr ~debug:false ())
+      prog.main_guard
   in
   let str = Format.flush_str_formatter () in
-  String.to_ascii str 
-
+  String.to_ascii str
 
 module Backend = struct
-  type vc_encoding = mopsa_program 
+  type vc_encoding = mopsa_program
 
   let init_backend () = ()
 
   type backend_context = Conditions.verification_conditions_scope
 
   let make_context _ = assert false
-
   let translate_expr = translate_expr
-
   let print_encoding ctx prog = print_encoding ctx prog
 
   type model = Yojson.Basic.t (* yeah, I'll have to fix that *)
@@ -271,29 +277,38 @@ module Backend = struct
     Message.emit_debug "Generated new Mopsa program at %s" prog_name;
     let process_mopsas_json j =
       let open Yojson.Basic.Util in
-      if j |> member "success" |> to_bool then 
+      if j |> member "success" |> to_bool then
         let alarms = j |> member "checks" |> to_list in
         (* FIXME: if list.hd fails the program is safe *)
         let toparse = List.hd alarms |> member "messages" |> to_string in
         let pos = Str.search_forward (Str.regexp_string "Hints: ") toparse 0 in
         let sub_until_end s from = String.sub s from (String.length s - from) in
-        let new_json_to_parse = sub_until_end toparse (pos + String.length "Hints: ") in
+        let new_json_to_parse =
+          sub_until_end toparse (pos + String.length "Hints: ")
+        in
         Some (Yojson.Basic.from_string new_json_to_parse)
       else
-        let () = Message.emit_warning "Something went wrong with Mopsa: %s" (j |> member "exception" |> to_string) in None
+        let () =
+          Message.emit_warning "Something went wrong with Mopsa: %s"
+            (j |> member "exception" |> to_string)
+        in
+        None
     in
-    let args = [|
-      "/home/raphael/work/mopsa/bin/../bin/mopsa.bin";
-      "-share-dir=/home/raphael/work/mopsa/share/mopsa";
-      "-config=universal/ymd_poly_powerint_markerset.json";
-      (* "-debug=_"; *)
-      "-max-set-size=7";
-      "-format=json";
-      "-silent";
-      "-output=tmp.json";
-      prog_name 
-    |] in
-    (* I wanted to use mopsa as a library, but we have a small issue to fix there first *)
+    let args =
+      [|
+        "/home/raphael/work/mopsa/bin/../bin/mopsa.bin";
+        "-share-dir=/home/raphael/work/mopsa/share/mopsa";
+        "-config=universal/ymd_poly_powerint_markerset.json";
+        (* "-debug=_"; *)
+        "-max-set-size=7";
+        "-format=json";
+        "-silent";
+        "-output=tmp.json";
+        prog_name;
+      |]
+    in
+    (* I wanted to use mopsa as a library, but we have a small issue to fix
+       there first *)
     (* let open Mopsa_analyzer.Framework.Runner in *)
     (* let _ = *)
     (*   try parse_options args analyze_files () *)
@@ -304,21 +319,17 @@ module Backend = struct
     (*     Message.emit_warning "Mopsa failed :("; 0 *)
     (* in *)
     let () = Unix.unlink "tmp.json" in
-    let _ = Unix.system (Array.fold_left (fun acc s -> acc ^ " " ^ s) "" args) in
+    let _ =
+      Unix.system (Array.fold_left (fun acc s -> acc ^ " " ^ s) "" args)
+    in
     match process_mopsas_json (Yojson.Basic.from_file "tmp.json") with
-    | Some hints ->
-      ProvenFalse (Some hints)
-    | None ->
-      Unknown 
+    | Some hints -> ProvenFalse (Some hints)
+    | None -> Unknown
 
-  let print_model _ m : string =
-    Yojson.Basic.pretty_to_string ~std:true m
-
-  let init_backend () =
-    Message.emit_debug "Running Mopsa"
-
+  let print_model _ m : string = Yojson.Basic.pretty_to_string ~std:true m
+  let init_backend () = Message.emit_debug "Running Mopsa"
   let is_model_empty _ = false
-  let encode_asserts _ _ = assert false 
+  let encode_asserts _ _ = assert false
 end
 
 module Io = Io.MakeBackendIO (Backend)

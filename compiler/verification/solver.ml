@@ -30,48 +30,57 @@ let solve_vcs
   let all_proven =
     ScopeName.Map.fold
       (fun scope_name scope_vcs all_proven ->
-         let dates_vcs =
-           List.filter
-             (fun vc ->
-                match vc.Conditions.vc_kind with
-                | Conditions.DateComputation -> true
-                | _ -> false)
-             scope_vcs.Conditions.vc_scope_list |>
-           List.map (fun vc ->
-               let ctx, prog = Mopsabackend.Io.translate_expr scope_vcs vc.Conditions.vc_guard in
-               vc, Mopsabackend.Io.Success (prog, ctx)
-             ) in
-         let all_proven = List.fold_left (fun all_proven vc ->
-             if Mopsabackend.Io.check_vc decl_ctx scope_name scope_vcs vc then all_proven else false) all_proven dates_vcs in
-         let z3_vcs =
-           List.map
-             (fun vc ->
-                ( vc,
-                  try
-                    let ctx = Z3backend.Io.make_context decl_ctx in
-                    let ctx =
-                      Z3backend.Io.encode_asserts ctx scope_vcs.vc_scope_asserts
-                    in
-                    let ctx, z3_vc =
-                      Z3backend.Io.translate_expr ctx vc.Conditions.vc_guard
-                    in
-                    Z3backend.Io.Success (z3_vc, ctx)
-                  with Failure msg -> Fail msg ))
-             (List.filter
-                (fun vc ->
-                   match vc.Conditions.vc_kind with
-                   | Conditions.NoEmptyError | Conditions.NoOverlappingExceptions
-                     ->
-                     true
-                   | Conditions.DateComputation -> false)
-                scope_vcs.Conditions.vc_scope_list)
-         in
-         List.fold_left
-           (fun all_proven vc ->
-              if Z3backend.Io.check_vc decl_ctx scope_name scope_vcs vc then
+        let dates_vcs =
+          List.filter
+            (fun vc ->
+              match vc.Conditions.vc_kind with
+              | Conditions.DateComputation -> true
+              | _ -> false)
+            scope_vcs.Conditions.vc_scope_list
+          |> List.map (fun vc ->
+                 let ctx, prog =
+                   Mopsabackend.Io.translate_expr scope_vcs
+                     vc.Conditions.vc_guard
+                 in
+                 vc, Mopsabackend.Io.Success (prog, ctx))
+        in
+        let all_proven =
+          List.fold_left
+            (fun all_proven vc ->
+              if Mopsabackend.Io.check_vc decl_ctx scope_name scope_vcs vc then
                 all_proven
               else false)
-           all_proven z3_vcs)
+            all_proven dates_vcs
+        in
+        let z3_vcs =
+          List.map
+            (fun vc ->
+              ( vc,
+                try
+                  let ctx = Z3backend.Io.make_context decl_ctx in
+                  let ctx =
+                    Z3backend.Io.encode_asserts ctx scope_vcs.vc_scope_asserts
+                  in
+                  let ctx, z3_vc =
+                    Z3backend.Io.translate_expr ctx vc.Conditions.vc_guard
+                  in
+                  Z3backend.Io.Success (z3_vc, ctx)
+                with Failure msg -> Fail msg ))
+            (List.filter
+               (fun vc ->
+                 match vc.Conditions.vc_kind with
+                 | Conditions.NoEmptyError | Conditions.NoOverlappingExceptions
+                   ->
+                   true
+                 | Conditions.DateComputation -> false)
+               scope_vcs.Conditions.vc_scope_list)
+        in
+        List.fold_left
+          (fun all_proven vc ->
+            if Z3backend.Io.check_vc decl_ctx scope_name scope_vcs vc then
+              all_proven
+            else false)
+          all_proven z3_vcs)
       vcs true
   in
   if all_proven then
