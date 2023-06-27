@@ -53,6 +53,7 @@ module Set : sig
   val filter : ('e var -> bool) -> 'e t -> 'e t
   val exists : ('e var -> bool) -> 'e t -> bool
   val inter : 'e t -> 'e t -> 'e t
+  val fold : ('e var -> 'x -> 'x) -> 'e t -> 'x -> 'x
 end
 
 (** Wrapper over [Map.S] but with a type variable for the AST type parameters.
@@ -69,10 +70,12 @@ module Map : sig
   val bindings : ('e, 'x) t -> ('e var * 'x) list
   val mem : 'e var -> ('e, 'x) t -> bool
   val map : ('x -> 'y) -> ('e, 'x) t -> ('e, 'y) t
+  val mapi : ('e var -> 'x -> 'y) -> ('e, 'x) t -> ('e, 'y) t
   val filter : ('e var -> 'x -> bool) -> ('e, 'x) t -> ('e, 'x) t
 
   val union :
     ('e var -> 'x -> 'x -> 'x option) -> ('e, 'x) t -> ('e, 'x) t -> ('e, 'x) t
 
   val fold : ('e var -> 'x -> 'acc -> 'acc) -> ('e, 'x) t -> 'acc -> 'acc
+  val exists : ('e var -> 'x -> bool) -> ('e, 'x) t -> bool
 end

@@ -58,135 +58,196 @@ end
 
 module TypedValuesDcalcVarMapBoxLifting = Bindlib.Lift (TypedValuesDcalcVarMap)
 
+(** Sometimes VC contains struct accesses from larger values which are defined
+    elsewhere. Since MOPSA does not currently handle structs, etc., we prefer
+    replacing the struct access with its own variable coming with an unknown
+    value. *)
+let rec transform_field_accesses_into_variables
+    ~(is_vc_var : (dcalc, typed) naked_gexpr Bindlib.var -> bool)
+    (e : typed Dcalc.Ast.expr) :
+    (typed Dcalc.Ast.expr, typ) Var.Map.t * (dcalc, typed) boxed_gexpr =
+  match Mark.remove e with
+  | EStructAccess { e = EVar v, _; field; _ } when is_vc_var v ->
+    let var =
+      Var.make (Format.asprintf "%a__%a" Print.var v StructField.format_t field)
+    in
+    Var.Map.singleton var (Expr.ty e), Expr.evar var (Mark.get e)
+  | _ ->
+    Expr.map_gather ~acc:Var.Map.empty
+      ~join:(Var.Map.union (fun _ _ _ -> assert false))
+      ~f:(transform_field_accesses_into_variables ~is_vc_var)
+      e
+
+type mopsa_variable_declarations =
+  (typed Dcalc.Ast.expr, (dcalc, typed) gexpr option) Var.Map.t
+
+type mopsa_variable_boxed_declarations =
+  (typed Dcalc.Ast.expr, (dcalc, typed) boxed_gexpr option) Var.Map.t
+
+module VarVertex = struct
+  include Var
+
+  type t = typed Dcalc.Ast.expr Var.t
+
+  let hash x = Bindlib.uid_of x
+  let equal x y = Bindlib.eq_vars x y
+end
+
+module VarDependencies =
+  Graph.Persistent.Digraph.ConcreteBidirectional (VarVertex)
+
+module VarDependenciesTraversal = Graph.Topological.Make (VarDependencies)
+
+let declaration_reverse_dependency_ordering (d : mopsa_variable_declarations) :
+    typed Dcalc.Ast.expr Var.t list =
+  let g = VarDependencies.empty in
+  let g =
+    Var.Map.fold
+      (fun (v : typed Dcalc.Ast.expr Var.t) (e : typed Dcalc.Ast.expr option) g ->
+        let g = VarDependencies.add_vertex g v in
+        match e with
+        | None -> g
+        | Some e ->
+          let used = Expr.free_vars e in
+          Var.Set.fold (fun used g -> VarDependencies.add_edge g used v) used g)
+      d g
+  in
+  List.rev (VarDependenciesTraversal.fold (fun v acc -> v :: acc) g [])
+
+(** To better split the load for MOPSA and improve debugging, we split the VC
+    into smaller parts by creating supplementary variables. *)
+let rec split_expression_into_atomic_parts (e : typed Dcalc.Ast.expr) :
+    mopsa_variable_boxed_declarations * (dcalc, typed) boxed_gexpr =
+  match Mark.remove e with
+  | EApp
+      {
+        f =
+          ( EOp
+              {
+                op =
+                  ( Op.Add_dat_dur Dates_calc.Dates.AbortOnRound
+                  | Op.FirstDayOfMonth );
+                tys = _;
+              },
+            _ ) as f;
+        args;
+      } ->
+    let acc, args =
+      List.fold_left_map
+        (fun acc arg ->
+          let toadd, arg = split_expression_into_atomic_parts arg in
+          (Var.Map.union (fun _ _ _ -> assert false)) acc toadd, arg)
+        Var.Map.empty args
+    in
+    let dummy_var =
+      let pos = Expr.pos e in
+      Var.make ("var_" ^ simplified_string_of_pos pos)
+    in
+    let new_e = Expr.eapp (Expr.box f) args (Mark.get e) in
+    Var.Map.add dummy_var (Some new_e) acc, Expr.evar dummy_var (Mark.get e)
+  | _ ->
+    Expr.map_gather ~acc:Var.Map.empty
+      ~join:(Var.Map.union (fun _ _ _ -> assert false))
+      ~f:split_expression_into_atomic_parts e
+
 (* The goal of this part is to extract additions from expressions, and perform
    them before as assignments. This will simplify the analysis and communication
    with Mopsa. *)
-let translate_expr vc_scope_ctx vc_guard =
-  let vars_used_in_vc = vars_used_in_vc vc_scope_ctx vc_guard in
+let translate_expr
+    (vc_scope_ctx : Conditions.verification_conditions_scope)
+    (original_vc_guard : typed Dcalc.Ast.expr) =
+  let vars_used_in_vc = vars_used_in_vc vc_scope_ctx original_vc_guard in
   let vars_used_in_vc_with_known_values =
     Var.Set.filter
       (fun v ->
         Var.Map.mem v vc_scope_ctx.Conditions.vc_scope_possible_variable_values)
       vars_used_in_vc
   in
-  let vars_used_in_vc_defined_outside_of_scope =
-    Var.Set.inter
-      vc_scope_ctx.Conditions.vc_scope_variables_defined_outside_of_scope
-      vars_used_in_vc
+  let vc_variables_declarations_unknown =
+    Var.Set.fold
+      (fun v declarations -> Var.Map.add v None declarations)
+      (Var.Set.diff vars_used_in_vc vars_used_in_vc_with_known_values)
+      Var.Map.empty
   in
-  let decls_to_top =
-    let others =
-      Var.Set.diff vars_used_in_vc
-        (Var.Set.union vars_used_in_vc_defined_outside_of_scope
-           vars_used_in_vc_with_known_values)
-    in
-    List.fold_left
-      (fun decls v -> (v, None) :: decls)
-      []
-      (Var.Set.elements
-         (Var.Set.union vars_used_in_vc_defined_outside_of_scope others))
+  let vc_variables_declarations_defined =
+    Var.Map.mapi
+      (fun var values ->
+        if List.length values <> 1 then
+          Message.emit_debug
+            "Only the first possible value was taken into account for %a"
+            Print.var_debug var;
+        (* FIXME: take into account multiple possible values *)
+        Some (List.hd values))
+      (Var.Map.filter
+         (fun v _ -> Var.Set.mem v vars_used_in_vc)
+         vc_scope_ctx.vc_scope_possible_variable_values)
   in
-  let assignments =
-    List.fold_left
-      (fun decls (var, values) ->
-        if Var.Set.mem var vars_used_in_vc_with_known_values then
-          (* FIXME handle multiple values *)
-          let () = assert (List.length values = 1) in
-          (var, Some (List.hd values)) :: decls
-        else decls)
-      []
-      (Var.Map.bindings vc_scope_ctx.vc_scope_possible_variable_values)
+  let vc_variables_declarations =
+    Var.Map.union
+      (fun _ _ -> assert false)
+      vc_variables_declarations_unknown vc_variables_declarations_defined
   in
-  let declared_variables = decls_to_top @ assignments in
-  let rec transform_field_accesses_into_variables e =
-    match Mark.remove e with
-    | EStructAccess { e = EVar v, _; _ }
-      when List.exists (fun (v2, _) -> Var.compare v v2 = 0) declared_variables
-      ->
-      let var = Var.make (Format.asprintf "%a" (Print.expr ()) e) in
-      Var.Map.singleton var (Expr.ty e), Expr.evar var (Mark.get e)
-    | _ ->
-      Expr.map_gather ~acc:Var.Map.empty
-        ~join:(Var.Map.union (fun _ _ _ -> assert false))
-        ~f:transform_field_accesses_into_variables e
+  let new_vars_for_struct_accesses, (vc_guard, vc_guard_mark) =
+    transform_field_accesses_into_variables
+      ~is_vc_var:(fun v ->
+        Var.Map.exists
+          (fun v2 _ -> Var.compare v v2 = 0)
+          vc_variables_declarations)
+      original_vc_guard
   in
-  let rec split_expression_into_atomic_parts (e : typed Dcalc.Ast.expr) :
-      (typed Dcalc.Ast.expr, (dcalc, typed) boxed_gexpr option) Var.Map.t
-      * (dcalc, typed) boxed_gexpr =
-    match Mark.remove e with
-    | EApp
-        {
-          f =
-            ( EOp
-                {
-                  op =
-                    ( Op.Add_dat_dur Dates_calc.Dates.AbortOnRound
-                    | Op.FirstDayOfMonth );
-                  tys = _;
-                },
-              _ ) as f;
-          args;
-        } ->
-      let acc, args =
-        List.fold_left_map
-          (fun acc arg ->
-            let toadd, arg = split_expression_into_atomic_parts arg in
-            (Var.Map.union (fun _ _ _ -> assert false)) acc toadd, arg)
-          Var.Map.empty args
-      in
-      let dummy_var =
-        let pos = Expr.pos e in
-        Var.make ("var_" ^ simplified_string_of_pos pos)
-      in
-      let new_e = Expr.eapp (Expr.box f) args (Mark.get e) in
-      Var.Map.add dummy_var (Some new_e) acc, Expr.evar dummy_var (Mark.get e)
-    | _ ->
-      Expr.map_gather ~acc:Var.Map.empty
-        ~join:(Var.Map.union (fun _ _ _ -> assert false))
-        ~f:split_expression_into_atomic_parts e
-  in
-  let new_vars_fields, (e, e_mark) =
-    transform_field_accesses_into_variables vc_guard
-  in
-  let new_vars_fields, vc_scope_ctx =
-    ( Var.Map.map (fun _ -> None) new_vars_fields,
+  let new_vars_for_struct_accesses, vc_scope_ctx =
+    ( Var.Map.map (fun _ -> None) new_vars_for_struct_accesses,
       {
         vc_scope_ctx with
         vc_scope_variables_typs =
           Var.Map.union
             (fun _ _ _ -> assert false)
-            vc_scope_ctx.vc_scope_variables_typs new_vars_fields;
+            vc_scope_ctx.vc_scope_variables_typs new_vars_for_struct_accesses;
       } )
   in
-  let new_vars_fields, e =
+  let new_vars_for_struct_accesses, vc_guard =
     Bindlib.unbox
       (Bindlib.box_apply2
-         (fun new_vars e -> new_vars, (e, e_mark))
-         (TypedValuesDcalcVarMapBoxLifting.lift_box new_vars_fields)
-         e)
+         (fun new_vars_for_struct_accesses vc_guard ->
+           new_vars_for_struct_accesses, (vc_guard, vc_guard_mark))
+         (TypedValuesDcalcVarMapBoxLifting.lift_box new_vars_for_struct_accesses)
+         vc_guard)
   in
-  let new_vars, (simple_guard, simple_guard_mark) =
-    split_expression_into_atomic_parts e
+  let new_vars_for_atomic_splitting, (vc_guard, vc_guard_mark) =
+    split_expression_into_atomic_parts vc_guard
   in
-  let new_vars, simple_guard =
+  let new_vars_for_atomic_splitting, vc_guard =
     (* This manipulation is done so that we only unbox once to keep all
        variables in sync. *)
     Bindlib.unbox
       (Bindlib.box_apply2
-         (fun new_vars simple_guard ->
-           new_vars, (simple_guard, simple_guard_mark))
-         (TypedValuesDcalcVarMapBoxLifting.lift_box new_vars)
-         simple_guard)
+         (fun new_vars_for_atomic_splitting vc_guard ->
+           new_vars_for_atomic_splitting, (vc_guard, vc_guard_mark))
+         (TypedValuesDcalcVarMapBoxLifting.lift_box
+            new_vars_for_atomic_splitting)
+         vc_guard)
+  in
+  let vc_variables_declarations =
+    Var.Map.union
+      (fun _ _ -> assert false)
+      vc_variables_declarations
+      (Var.Map.union
+         (fun _ _ -> assert false)
+         new_vars_for_struct_accesses new_vars_for_atomic_splitting)
+  in
+  let declaration_reverse_dependency_ordering =
+    declaration_reverse_dependency_ordering vc_variables_declarations
   in
   ( vc_scope_ctx,
     {
-      initial_guard = vc_guard;
-      main_guard = simple_guard;
+      initial_guard = original_vc_guard;
+      main_guard = vc_guard;
       declared_variables =
-        declared_variables
-        @ Var.Map.bindings new_vars_fields
-        @ List.rev
-        @@ Var.Map.bindings new_vars;
+        (* Careful with the order! these definitions must be laid out in reverse
+           dependency order *)
+        List.map
+          (fun v -> v, Var.Map.find v vc_variables_declarations)
+          declaration_reverse_dependency_ordering;
     } )
 
 let print_encoding
