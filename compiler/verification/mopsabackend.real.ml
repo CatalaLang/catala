@@ -237,7 +237,7 @@ let print_encoding
                Format.fprintf fmt "%a %a = make_random_%s;@." Print.typ_debug ty
                  Print.var var make_random
              | None ->
-               Message.emit_warning "Ignoring type declaration of var %a : %a"
+               Message.emit_debug "Ignoring type declaration of var %a : %a"
                  Print.var_debug var Print.typ_debug ty)
            | Some expr ->
              Format.fprintf fmt "%a %a = %a;@." Print.typ_debug (Expr.ty expr)
@@ -296,18 +296,21 @@ module Backend = struct
     in
     (* I wanted to use mopsa as a library, but we have a small issue to fix
        there first *)
-    let args = [|
-      "mopsa-universal";
-      "-config=universal/ymd_poly_powerint_markerset.json";
-      (* "-debug=_"; *)
-      "-max-set-size=7";
-      "-numeric=polkagrid";
-      "-format=json";
-      "-silent";
-      "-output=tmp.json";
-      prog_name 
-    |] in
-    (* I wanted to use mopsa as a library, but we have a small issue to fix there first *)
+    let args =
+      [|
+        "mopsa-universal";
+        "-config=universal/ymd_poly_powerint_markerset.json";
+        (* "-debug=_"; *)
+        "-max-set-size=7";
+        "-numeric=polkagrid";
+        "-format=json";
+        "-silent";
+        "-output=tmp.json";
+        prog_name;
+      |]
+    in
+    (* I wanted to use mopsa as a library, but we have a small issue to fix
+       there first *)
     (* let open Mopsa_analyzer.Framework.Runner in *)
     (* let _ = *)
     (*   try parse_options args analyze_files () *)
@@ -317,9 +320,7 @@ module Backend = struct
     (*   | _ -> *)
     (*     Message.emit_warning "Mopsa failed :("; 0 *)
     (* in *)
-    let () =
-      try Unix.unlink "tmp.json"
-      with Unix.Unix_error _ -> () in
+    let () = try Unix.unlink "tmp.json" with Unix.Unix_error _ -> () in
     let _ =
       Unix.system (Array.fold_left (fun acc s -> acc ^ " " ^ s) "" args)
     in
