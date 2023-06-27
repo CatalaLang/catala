@@ -245,19 +245,23 @@ champ d'application CalculImpôtRevenu:
   conséquence égal à 15%
   # Ecrire 15% est juste une abbréviation pour « 0.15 »
 ```
-Alors que les définitions conditionelles sont un outil puissant por exprimer
-conditions légales, une source législative rédigée correctement doit toujours
-garantir qu’une seule condition, au maximum, soit vraie à tout moment.  De cette
-façon, quand le programme Catala va s’exécuter, la juste définition sera choisie
-dynamiquement en déterminant quelle condition est vraie, selon le contexte.
 
-Ici, cependant, notre définition des conflits `pourcentage_fixe` avec la définition
-plus générale que nous avons donnée ci-dessus.  Ainsi Catala nous donnera une erreur
-si nous essayons d'utiliser cette définition telle quelle.
+Même si les définitions conditionelles sont un outil puissant et expressif,
+une document juridique correctement rédigé doit toujours garantir qu’une seule
+condition au maximum soit vraie à tout moment. De cette façon, quand le
+programme Catala va s’exécuter, la juste définition sera choisie dynamiquement
+en déterminant quelle condition est vraie, selon le contexte.
 
-Dans des situations comme celle-ci, Catala vous permettra de définir un ordre des priorités sur les
-conditions, qui devra être justifié par un raisonnement juridique. Mais nous
-verrons comment faire cela plus tard.
+Ici, nous pouvons détecter un conflit sur `pourcentage_fixe` entre la
+définition générale et celle ci-dessus avec plus de ceux enfants. Catala
+donnera une erreur à l'exécution si nous essayons d'utiliser ces définitions
+de `pourcentage_fixe` avec plus de deux enfants ; les deux définitions
+contradictoires sont valables en même temps.
+
+
+Dans des situations comme celle-ci, Catala vous permettra de définir un ordre
+des priorité sur les conditions, qui devra être justifié par un raisonnement
+juridique. Mais nous verrons comment faire cela plus tard.
 
 ## Règles
 
