@@ -25,11 +25,12 @@ let solve_vcs
     (vcs : Conditions.verification_conditions_scope ScopeName.Map.t) : unit =
   (* Right now we only use the Z3 backend but the functorial interface should
      make it easy to mix and match different proof backends. *)
-  Z3backend.Io.init_backend ();
-  Mopsabackend.Io.init_backend ();
+  Z3backend.Backend.init_backend ();
+  Mopsabackend.Backend.init_backend ();
   let all_proven =
     ScopeName.Map.fold
-      (fun scope_name scope_vcs all_proven ->
+      (fun scope_name (scope_vcs : Conditions.verification_conditions_scope)
+           all_proven ->
         let dates_vcs =
           List.filter
             (fun vc ->
@@ -39,7 +40,8 @@ let solve_vcs
             scope_vcs.Conditions.vc_scope_list
           |> List.map (fun vc ->
                  let ctx, prog =
-                   Mopsabackend.Io.translate_expr scope_vcs
+                   Mopsabackend.Backend.translate_expr scope_vcs
+                     (Mopsabackend.Backend.make_context decl_ctx)
                      vc.Conditions.vc_guard
                  in
                  vc, Mopsabackend.Io.Success (prog, ctx))

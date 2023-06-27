@@ -38,27 +38,21 @@ module type Backend = sig
   val is_model_empty : model -> bool
 
   val translate_expr :
-    backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
+    Conditions.verification_conditions_scope ->
+    backend_context ->
+    typed Dcalc.Ast.expr ->
+    backend_context * vc_encoding
 
   val encode_asserts :
-    backend_context -> typed Dcalc.Ast.expr -> backend_context
+    Conditions.verification_conditions_scope ->
+    backend_context ->
+    typed Dcalc.Ast.expr ->
+    backend_context
 end
 
 module type BackendIO = sig
-  val init_backend : unit -> unit
-
   type backend_context
-
-  val make_context : decl_ctx -> backend_context
-
   type vc_encoding
-
-  val translate_expr :
-    backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
-
-  val encode_asserts :
-    backend_context -> typed Dcalc.Ast.expr -> backend_context
-
   type model
 
   type vc_encoding_result =

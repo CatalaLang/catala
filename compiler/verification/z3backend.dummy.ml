@@ -21,7 +21,7 @@ let dummy () =
   Catala_utils.Message.raise_error
     "This instance of Catala was compiled without Z3 support."
 
-module Io = struct
+module Backend = struct
   let init_backend () = dummy ()
 
   type backend_context = unit
@@ -30,9 +30,13 @@ module Io = struct
 
   type vc_encoding = unit
 
-  let translate_expr _ _ = dummy ()
-  let encode_asserts _ _ = dummy ()
+  let translate_expr _ _ _ = dummy ()
+  let encode_asserts _ _ _ = dummy ()
+end
 
+module Io = struct
+  type backend_context = unit
+  type vc_encoding = unit
   type model = unit
   type vc_encoding_result = Success of model * model | Fail of string
 

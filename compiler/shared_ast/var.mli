@@ -64,6 +64,7 @@ module Map : sig
   val empty : ('e, 'x) t
   val singleton : 'e var -> 'x -> ('e, 'x) t
   val add : 'e var -> 'x -> ('e, 'x) t -> ('e, 'x) t
+  val remove : 'e var -> ('e, 'x) t -> ('e, 'x) t
   val update : 'e var -> ('x option -> 'x option) -> ('e, 'x) t -> ('e, 'x) t
   val find : 'e var -> ('e, 'x) t -> 'x
   val find_opt : 'e var -> ('e, 'x) t -> 'x option

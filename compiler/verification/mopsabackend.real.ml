@@ -18,13 +18,6 @@
 open Catala_utils
 open Shared_ast
 
-type mopsa_program = {
-  initial_guard : typed Dcalc.Ast.expr;
-  main_guard : typed Dcalc.Ast.expr;
-  declared_variables :
-    ((dcalc, typed) gexpr Var.t * typed Dcalc.Ast.expr option) list;
-}
-
 let simplified_string_of_pos pos =
   let basename =
     Filename.basename (Pos.get_file pos) |> Filename.chop_extension
@@ -33,56 +26,71 @@ let simplified_string_of_pos pos =
     (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
 
 let rec vars_used_in_vc vc_scope_ctx (e : typed Dcalc.Ast.expr) :
-    typed Dcalc.Ast.expr Var.Set.t =
+    (typed Dcalc.Ast.expr, typ) Var.Map.t =
+  let rec free_vars_with_types :
+      ('a, 't) gexpr -> (('a, 't) gexpr, typ) Var.Map.t =
+   fun e ->
+    match e with
+    | EVar v, _ -> Var.Map.singleton v (Expr.ty e)
+    | EAbs { binder; _ }, _ ->
+      let vs, body = Bindlib.unmbind binder in
+      Array.fold_right Var.Map.remove vs (free_vars_with_types body)
+    | e ->
+      Expr.shallow_fold
+        (fun e ->
+          Var.Map.union (fun _ _ -> assert false) (free_vars_with_types e))
+        e Var.Map.empty
+  in
+  let free_vars = free_vars_with_types e in
   (* We search recursively in the possible definitions of each free variable. *)
-  let free_vars = Expr.free_vars e in
   let possible_values_of_free_vars =
     Var.Map.filter
-      (fun v _ -> Var.Set.mem v free_vars)
+      (fun v _ -> Var.Map.mem v free_vars)
       vc_scope_ctx.Conditions.vc_scope_possible_variable_values
   in
   Var.Map.fold
     (fun _ possible_values vars_used ->
       List.fold_left
         (fun vars_used possible_value ->
-          Var.Set.union (vars_used_in_vc vc_scope_ctx possible_value) vars_used)
+          Var.Map.union
+            (fun _ _ -> assert false)
+            (vars_used_in_vc vc_scope_ctx possible_value)
+            vars_used)
         vars_used possible_values)
     possible_values_of_free_vars free_vars
 
+type mopsa_variable_declaration_value =
+  | Unknown of typ
+  | Known of typed Dcalc.Ast.expr
+
+type mopsa_program = {
+  initial_guard : typed Dcalc.Ast.expr;
+  main_guard : typed Dcalc.Ast.expr;
+  declared_variables :
+    ((dcalc, typed) gexpr Var.t * mopsa_variable_declaration_value) list;
+}
+
+type 'a mopsa_variable_declaration_boxed_value =
+  | BoxedUnknown of typ
+  | BoxedKnown of ('a, typed) marked
+
 module TypedValuesDcalcVarMap = struct
-  type 'x t = (typed Dcalc.Ast.expr, ('x, typed) marked option) Var.Map.t
+  type 'x t =
+    (typed Dcalc.Ast.expr, 'x mopsa_variable_declaration_boxed_value) Var.Map.t
 
   let map (f : 'a -> 'b) (m : 'a t) : 'b t =
-    Var.Map.map (Option.map (fun (x, tx) -> f x, tx)) m
+    Var.Map.map
+      (fun v ->
+        match v with
+        | BoxedUnknown ty -> BoxedUnknown ty
+        | BoxedKnown (e, te) -> BoxedKnown (f e, te))
+      m
 end
 
 module TypedValuesDcalcVarMapBoxLifting = Bindlib.Lift (TypedValuesDcalcVarMap)
 
-(** Sometimes VC contains struct accesses from larger values which are defined
-    elsewhere. Since MOPSA does not currently handle structs, etc., we prefer
-    replacing the struct access with its own variable coming with an unknown
-    value. *)
-let rec transform_field_accesses_into_variables
-    ~(is_vc_var : (dcalc, typed) naked_gexpr Bindlib.var -> bool)
-    (e : typed Dcalc.Ast.expr) :
-    (typed Dcalc.Ast.expr, typ) Var.Map.t * (dcalc, typed) boxed_gexpr =
-  match Mark.remove e with
-  | EStructAccess { e = EVar v, _; field; _ } when is_vc_var v ->
-    let var =
-      Var.make (Format.asprintf "%a__%a" Print.var v StructField.format_t field)
-    in
-    Var.Map.singleton var (Expr.ty e), Expr.evar var (Mark.get e)
-  | _ ->
-    Expr.map_gather ~acc:Var.Map.empty
-      ~join:(Var.Map.union (fun _ _ _ -> assert false))
-      ~f:(transform_field_accesses_into_variables ~is_vc_var)
-      e
-
 type mopsa_variable_declarations =
-  (typed Dcalc.Ast.expr, (dcalc, typed) gexpr option) Var.Map.t
-
-type mopsa_variable_boxed_declarations =
-  (typed Dcalc.Ast.expr, (dcalc, typed) boxed_gexpr option) Var.Map.t
+  (typed Dcalc.Ast.expr, mopsa_variable_declaration_value) Var.Map.t
 
 module VarVertex = struct
   include Var
@@ -103,11 +111,12 @@ let declaration_reverse_dependency_ordering (d : mopsa_variable_declarations) :
   let g = VarDependencies.empty in
   let g =
     Var.Map.fold
-      (fun (v : typed Dcalc.Ast.expr Var.t) (e : typed Dcalc.Ast.expr option) g ->
+      (fun (v : typed Dcalc.Ast.expr Var.t)
+           (e : mopsa_variable_declaration_value) g ->
         let g = VarDependencies.add_vertex g v in
         match e with
-        | None -> g
-        | Some e ->
+        | Unknown _ -> g
+        | Known e ->
           let used = Expr.free_vars e in
           Var.Set.fold (fun used g -> VarDependencies.add_edge g used v) used g)
       d g
@@ -117,7 +126,11 @@ let declaration_reverse_dependency_ordering (d : mopsa_variable_declarations) :
 (** To better split the load for MOPSA and improve debugging, we split the VC
     into smaller parts by creating supplementary variables. *)
 let rec split_expression_into_atomic_parts (e : typed Dcalc.Ast.expr) :
-    mopsa_variable_boxed_declarations * (dcalc, typed) boxed_gexpr =
+    ( typed Dcalc.Ast.expr,
+      (dcalc, typed) naked_gexpr Bindlib.box
+      mopsa_variable_declaration_boxed_value )
+    Var.Map.t
+    * (dcalc, typed) boxed_gexpr =
   match Mark.remove e with
   | EApp
       {
@@ -144,29 +157,52 @@ let rec split_expression_into_atomic_parts (e : typed Dcalc.Ast.expr) :
       Var.make ("var_" ^ simplified_string_of_pos pos)
     in
     let new_e = Expr.eapp (Expr.box f) args (Mark.get e) in
-    Var.Map.add dummy_var (Some new_e) acc, Expr.evar dummy_var (Mark.get e)
+    ( Var.Map.add dummy_var (BoxedKnown new_e) acc,
+      Expr.evar dummy_var (Mark.get e) )
   | _ ->
     Expr.map_gather ~acc:Var.Map.empty
       ~join:(Var.Map.union (fun _ _ _ -> assert false))
       ~f:split_expression_into_atomic_parts e
+
+(** Sometimes VC contains struct accesses from larger values which are defined
+    elsewhere. Since MOPSA does not currently handle structs, etc., we prefer
+    replacing the struct access with its own variable coming with an unknown
+    value. *)
+let rec transform_field_accesses_into_variables
+    ~(is_vc_var : (dcalc, typed) naked_gexpr Bindlib.var -> bool)
+    (e : typed Dcalc.Ast.expr) :
+    (typed Dcalc.Ast.expr, typ) Var.Map.t * (dcalc, typed) boxed_gexpr =
+  match Mark.remove e with
+  | EStructAccess { e = EVar v, _; field; _ } when is_vc_var v ->
+    let var =
+      Var.make (Format.asprintf "%a__%a" Print.var v StructField.format_t field)
+    in
+    Var.Map.singleton var (Expr.ty e), Expr.evar var (Mark.get e)
+  | _ ->
+    Expr.map_gather ~acc:Var.Map.empty
+      ~join:(Var.Map.union (fun _ _ _ -> assert false))
+      ~f:(transform_field_accesses_into_variables ~is_vc_var)
+      e
 
 (* The goal of this part is to extract additions from expressions, and perform
    them before as assignments. This will simplify the analysis and communication
    with Mopsa. *)
 let translate_expr
     (vc_scope_ctx : Conditions.verification_conditions_scope)
-    (original_vc_guard : typed Dcalc.Ast.expr) =
+    (original_vc_guard : typed Dcalc.Ast.expr) : mopsa_program =
   let vars_used_in_vc = vars_used_in_vc vc_scope_ctx original_vc_guard in
   let vars_used_in_vc_with_known_values =
-    Var.Set.filter
-      (fun v ->
+    Var.Map.filter
+      (fun v _ ->
         Var.Map.mem v vc_scope_ctx.Conditions.vc_scope_possible_variable_values)
       vars_used_in_vc
   in
   let vc_variables_declarations_unknown =
-    Var.Set.fold
-      (fun v declarations -> Var.Map.add v None declarations)
-      (Var.Set.diff vars_used_in_vc vars_used_in_vc_with_known_values)
+    Var.Map.fold
+      (fun v ty declarations -> Var.Map.add v (Unknown ty) declarations)
+      (Var.Map.filter
+         (fun v _ -> not (Var.Map.mem v vars_used_in_vc_with_known_values))
+         vars_used_in_vc)
       Var.Map.empty
   in
   let vc_variables_declarations_defined =
@@ -177,17 +213,17 @@ let translate_expr
             "Only the first possible value was taken into account for %a"
             Print.var_debug var;
         (* FIXME: take into account multiple possible values *)
-        Some (List.hd values))
+        Known (List.hd values))
       (Var.Map.filter
-         (fun v _ -> Var.Set.mem v vars_used_in_vc)
+         (fun v _ -> Var.Map.mem v vars_used_in_vc)
          vc_scope_ctx.vc_scope_possible_variable_values)
   in
-  let vc_variables_declarations =
+  let vc_variables_declarations : mopsa_variable_declarations =
     Var.Map.union
       (fun _ _ -> assert false)
       vc_variables_declarations_unknown vc_variables_declarations_defined
   in
-  let new_vars_for_struct_accesses, (vc_guard, vc_guard_mark) =
+  let new_vars_for_struct_accesses, vc_guard =
     transform_field_accesses_into_variables
       ~is_vc_var:(fun v ->
         Var.Map.exists
@@ -195,24 +231,10 @@ let translate_expr
           vc_variables_declarations)
       original_vc_guard
   in
-  let new_vars_for_struct_accesses, vc_scope_ctx =
-    ( Var.Map.map (fun _ -> None) new_vars_for_struct_accesses,
-      {
-        vc_scope_ctx with
-        vc_scope_variables_typs =
-          Var.Map.union
-            (fun _ _ _ -> assert false)
-            vc_scope_ctx.vc_scope_variables_typs new_vars_for_struct_accesses;
-      } )
+  let new_vars_for_struct_accesses : mopsa_variable_declarations =
+    Var.Map.map (fun ty -> Unknown ty) new_vars_for_struct_accesses
   in
-  let new_vars_for_struct_accesses, vc_guard =
-    Bindlib.unbox
-      (Bindlib.box_apply2
-         (fun new_vars_for_struct_accesses vc_guard ->
-           new_vars_for_struct_accesses, (vc_guard, vc_guard_mark))
-         (TypedValuesDcalcVarMapBoxLifting.lift_box new_vars_for_struct_accesses)
-         vc_guard)
-  in
+  let vc_guard = Expr.unbox vc_guard in
   let new_vars_for_atomic_splitting, (vc_guard, vc_guard_mark) =
     split_expression_into_atomic_parts vc_guard
   in
@@ -227,6 +249,12 @@ let translate_expr
             new_vars_for_atomic_splitting)
          vc_guard)
   in
+  let new_vars_for_atomic_splitting : mopsa_variable_declarations =
+    Var.Map.map
+      (fun v ->
+        match v with BoxedUnknown ty -> Unknown ty | BoxedKnown e -> Known e)
+      new_vars_for_atomic_splitting
+  in
   let vc_variables_declarations =
     Var.Map.union
       (fun _ _ -> assert false)
@@ -238,21 +266,18 @@ let translate_expr
   let declaration_reverse_dependency_ordering =
     declaration_reverse_dependency_ordering vc_variables_declarations
   in
-  ( vc_scope_ctx,
-    {
-      initial_guard = original_vc_guard;
-      main_guard = vc_guard;
-      declared_variables =
-        (* Careful with the order! these definitions must be laid out in reverse
-           dependency order *)
-        List.map
-          (fun v -> v, Var.Map.find v vc_variables_declarations)
-          declaration_reverse_dependency_ordering;
-    } )
+  {
+    initial_guard = original_vc_guard;
+    main_guard = vc_guard;
+    declared_variables =
+      (* Careful with the order! these definitions must be laid out in reverse
+         dependency order *)
+      List.map
+        (fun v -> v, Var.Map.find v vc_variables_declarations)
+        declaration_reverse_dependency_ordering;
+  }
 
-let print_encoding
-    (vc_scope_ctx : Conditions.verification_conditions_scope)
-    (prog : mopsa_program) =
+let print_encoding (prog : mopsa_program) =
   let fmt = Format.str_formatter in
   let () =
     Format.fprintf fmt "%aassert(sync(%a));@."
@@ -260,31 +285,7 @@ let print_encoding
          ~pp_sep:(fun _ () -> ())
          (fun fmt (var, oexpr) ->
            match oexpr with
-           | None -> (
-             let ty =
-               match
-                 Var.Map.find_opt var vc_scope_ctx.vc_scope_variables_typs
-               with
-               | None ->
-                 (* FIXME: I may have added to many variables in
-                    vc_scope_variables_typs in commit b08841e7, the good way to
-                    do it would be to extract types of variables from the
-                    expression directly *)
-                 let rec find_type_of_var v e =
-                   match e with
-                   | EVar v', mark when Var.compare v v' = 0 -> [mark]
-                   | e ->
-                     Expr.shallow_fold
-                       (fun e acc -> find_type_of_var v e @ acc)
-                       e []
-                 in
-                 let m = find_type_of_var var prog.initial_guard in
-                 (* let () = Message.emit_debug "searching for %a in %a"
-                    Print.var_debug var (Print.expr ()) prog.initial_guard in *)
-                 let (Typed { ty; _ }) = List.hd m in
-                 ty
-               | Some ty -> ty
-             in
+           | Unknown ty -> (
              let make_random =
                match Mark.remove ty with
                | TLit TDate -> Some "date()"
@@ -300,7 +301,7 @@ let print_encoding
              | None ->
                Message.emit_debug "Ignoring type declaration of var %a : %a"
                  Print.var_debug var Print.typ_debug ty)
-           | Some expr ->
+           | Known expr ->
              Format.fprintf fmt "%a %a = %a;@." Print.typ_debug (Expr.ty expr)
                Print.var var
                (Print.expr ~debug:false ())
@@ -312,16 +313,22 @@ let print_encoding
   let str = Format.flush_str_formatter () in
   String.to_ascii str
 
-module Backend = struct
+module Backend : Io.Backend = struct
   type vc_encoding = mopsa_program
 
   let init_backend () = ()
 
-  type backend_context = Conditions.verification_conditions_scope
+  type backend_context = unit
 
-  let make_context _ = assert false
-  let translate_expr = translate_expr
-  let print_encoding ctx prog = print_encoding ctx prog
+  let make_context _ = ()
+
+  let translate_expr
+      (scope_vcs : Conditions.verification_conditions_scope)
+      ()
+      (e : typed Dcalc.Ast.expr) : unit * mopsa_program =
+    (), translate_expr scope_vcs e
+
+  let print_encoding _ctx prog = print_encoding prog
 
   type model = Yojson.Basic.t (* yeah, I'll have to fix that *)
   type solver_result = ProvenTrue | ProvenFalse of model option | Unknown
@@ -392,7 +399,7 @@ module Backend = struct
   let print_model _ m : string = Yojson.Basic.pretty_to_string ~std:true m
   let init_backend () = Message.emit_debug "Running Mopsa"
   let is_model_empty _ = false
-  let encode_asserts _ _ = assert false
+  let encode_asserts _ _ _ = assert false
 end
 
 module Io = Io.MakeBackendIO (Backend)

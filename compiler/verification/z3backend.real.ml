@@ -817,11 +817,11 @@ module Backend = struct
 
   let is_model_empty (m : model) : bool = Z3.Model.get_decls m = []
 
-  let translate_expr (ctx : backend_context) (e : typed expr) =
+  let translate_expr _ (ctx : backend_context) (e : typed expr) =
     translate_expr ctx e
 
-  let encode_asserts (ctx : backend_context) (e : typed expr) =
-    let ctx, vc = translate_expr ctx e in
+  let encode_asserts scvs (ctx : backend_context) (e : typed expr) =
+    let ctx, vc = translate_expr scvs ctx e in
     add_z3constraint vc ctx
 
   let init_backend () =

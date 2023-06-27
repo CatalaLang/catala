@@ -107,6 +107,7 @@ module Map = struct
   let fold f m acc = fold (fun v x acc -> f (get v) x acc) m acc
   let filter f m = filter (fun k v -> f (get k) v) m
   let exists f m = exists (fun k v -> f (get k) v) m
+  let remove x s = remove (t x) s
 
   (* Add more as needed *)
 end
