@@ -28,6 +28,13 @@
  (modules lazy_interp)
  (libraries shared_ast catala.driver))
 
+(library
+ (name modules)
+ (public_name catala.plugins.modules)
+ (synopsis "Catala plugin for experimental module handling tooling")
+ (modules modules)
+ (libraries shared_ast catala.driver))
+
 (documentation
  (package catala)
  (mld_files plugins))

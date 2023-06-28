@@ -545,6 +545,32 @@ let format_code_items
         String.Map.add (Mark.remove (ScopeName.get_info name)) var bnd)
     ~init:String.Map.empty code_items
 
+let format_scope_exec
+    (ctx : decl_ctx)
+    (fmt : Format.formatter)
+    (bnd : 'm Ast.expr Var.t String.Map.t)
+    scope_name
+    scope_body =
+  let scope_name_str = Mark.remove (ScopeName.get_info scope_name) in
+  let scope_var = String.Map.find scope_name_str bnd in
+  let scope_input =
+    StructName.Map.find scope_body.scope_body_input_struct ctx.ctx_structs
+  in
+  if not (StructField.Map.is_empty scope_input) then
+    Message.raise_error
+      "The scope @{<bold>%s@} defines input variables.@ This is not supported \
+       for a main scope at the moment."
+      scope_name_str;
+  Format.pp_open_vbox fmt 2;
+  Format.pp_print_string fmt "let _ =";
+  (* TODO: dump the output using yojson that should be already available from
+     the runtime *)
+  Format.pp_print_space fmt ();
+  format_var fmt scope_var;
+  Format.pp_print_space fmt ();
+  Format.pp_print_string fmt "()";
+  Format.pp_close_box fmt ()
+
 let format_module_registration
     fmt
     (bnd : 'm Ast.expr Var.t String.Map.t)
@@ -584,11 +610,21 @@ open Runtime_ocaml.Runtime
 
 let format_program
     (fmt : Format.formatter)
-    ?modname
+    ?register_module
+    ?exec_scope
     (p : 'm Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
   Format.pp_print_string fmt header;
   format_ctx type_ordering fmt p.decl_ctx;
   let bnd = format_code_items p.decl_ctx fmt p.code_items in
   Format.pp_print_newline fmt ();
-  Option.iter (format_module_registration fmt bnd) modname
+  match register_module, exec_scope with
+  | Some modname, None -> format_module_registration fmt bnd modname
+  | None, Some scope_name ->
+    let scope_body = Program.get_scope_body p scope_name in
+    format_scope_exec p.decl_ctx fmt bnd scope_name scope_body
+  | None, None -> ()
+  | Some _, Some _ ->
+    Message.raise_error
+      "OCaml generation: both module registration and top-level scope \
+       execution where required at the same time."

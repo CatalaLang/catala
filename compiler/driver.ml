@@ -684,7 +684,7 @@ module Commands = struct
       | FileName n -> Some (modname_of_file n)
       | _ -> None
     in
-    Lcalc.To_ocaml.format_program fmt ?modname prg type_ordering
+    Lcalc.To_ocaml.format_program fmt ?register_module:modname prg type_ordering
 
   let ocaml_cmd =
     Cmd.v
