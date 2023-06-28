@@ -43,6 +43,9 @@ exception IndivisibleDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
 
+(* TODO: register exception printers for the above
+   (Printexc.register_printer) *)
+
 let money_of_cents_string (cents : string) : money = Z.of_string cents
 let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)
 let money_of_cents_integer (cents : integer) : money = cents

@@ -28,5 +28,5 @@ Defined here:
 9 │   exception definition f1 of y under condition not cond
   │                              ‾
 
-#return code 255#
+#return code 123#
 ```

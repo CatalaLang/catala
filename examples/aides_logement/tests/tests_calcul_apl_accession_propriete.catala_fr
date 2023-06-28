@@ -150,44 +150,44 @@ champ d'application Exemple4:
 ```catala-test-inline
 $ catala Interpret -s Exemple1 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = 181.91 €
+[RESULT] montant = ¤181.91
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple2 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = 67.34 €
+[RESULT] montant = ¤67.34
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple3 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = 181.91 €
+[RESULT] montant = ¤181.91
 ```
 
 
 ```catala-test-inline
 $ catala Interpret -s Exemple4 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = 118.59 €
+[RESULT] montant = ¤118.59
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome 181.91 €
+[RESULT] montant = ESome ¤181.91
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple2 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome 67.34 €
+[RESULT] montant = ESome ¤67.34
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple3 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome 181.91 €
+[RESULT] montant = ESome ¤181.91
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple4 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome 118.59 €
+[RESULT] montant = ESome ¤118.59
 ```

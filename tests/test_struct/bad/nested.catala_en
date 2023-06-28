@@ -28,5 +28,5 @@ $ catala Interpret -s A
 6 │   -- Rec content E
   │                  ‾
   └─ Article
-#return code 255#
+#return code 123#
 ```

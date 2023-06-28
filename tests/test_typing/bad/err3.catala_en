@@ -43,7 +43,7 @@ Type decimal coming from expression:
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```
 
 Re-putting the same check again, to ensure that the `Typecheck` and `ocaml` subcommands output the same type error consistently (bug pointed out and fixed in 498429e).
@@ -81,5 +81,5 @@ Type decimal coming from expression:
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```

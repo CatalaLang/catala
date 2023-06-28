@@ -34,16 +34,16 @@ $ catala Interpret -s A
 [RESULT] Computation successful! Results:
 [RESULT]
 x =
-  [ { S id = 0; income = $0.00; };
-    { S id = 1; income = $9.00; };
-    { S id = 2; income = $5.20; } ]
+  [ { S id = 0; income = ¤0.00; };
+    { S id = 1; income = ¤9.00; };
+    { S id = 2; income = ¤5.20; } ]
 ```
 
 ```catala-test-inline
 $ catala Interpret -s B
 [RESULT] Computation successful! Results:
-[RESULT] argmax = { S id = 1; income = $9.00; }
-[RESULT] argmin = { S id = 0; income = $0.00; }
+[RESULT] argmax = { S id = 1; income = ¤9.00; }
+[RESULT] argmin = { S id = 0; income = ¤0.00; }
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
@@ -51,13 +51,13 @@ $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT]
 x =
   ESome
-    [ ESome { S id = ESome 0; income = ESome $0.00; };
-      ESome { S id = ESome 1; income = ESome $9.00; };
-      ESome { S id = ESome 2; income = ESome $5.20; } ]
+    [ ESome { S id = ESome 0; income = ESome ¤0.00; };
+      ESome { S id = ESome 1; income = ESome ¤9.00; };
+      ESome { S id = ESome 2; income = ESome ¤5.20; } ]
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] argmax = ESome { S id = ESome 1; income = ESome $9.00; }
-[RESULT] argmin = ESome { S id = ESome 0; income = ESome $0.00; }
+[RESULT] argmax = ESome { S id = ESome 1; income = ESome ¤9.00; }
+[RESULT] argmin = ESome { S id = ESome 0; income = ESome ¤0.00; }
 ```

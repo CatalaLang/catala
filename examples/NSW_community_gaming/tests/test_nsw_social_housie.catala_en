@@ -45,7 +45,7 @@ Last good token:
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```
 
 
@@ -89,7 +89,7 @@ Last good token:
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```
 
 
@@ -133,7 +133,7 @@ Last good token:
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```
 
 
@@ -179,5 +179,5 @@ Last good token:
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```

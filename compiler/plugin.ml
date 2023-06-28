@@ -15,44 +15,19 @@
    the License. *)
 
 open Catala_utils
+open Cmdliner
 
-type t = Cmdliner.Cmd.Exit.code Cmdliner.Cmd.t
+type t = unit Cmdliner.Cmd.t
 
 let backend_plugins : (string, t) Hashtbl.t = Hashtbl.create 17
 
-let register t =
-  Hashtbl.replace backend_plugins
-    (String.lowercase_ascii (Cmdliner.Cmd.name t))
-    t
+let register info term =
+  let name = String.lowercase_ascii (Cmd.name (Cmd.v info (Term.const ()))) in
+  Hashtbl.replace backend_plugins name
+    (Cmd.v info Term.(term $ Cli.Flags.Global.options))
 
 let list () = Hashtbl.to_seq_values backend_plugins |> List.of_seq
-
-module PluginAPI = struct
-  open Cmdliner
-
-  let register_generic info term = register (Cmd.v info term)
-
-  (* For plugins relying on the standard [Driver] *)
-
-  type 'ast plugin_apply_fun_typ =
-    source_file:Pos.input_file ->
-    output_file:string option ->
-    scope:Shared_ast.ScopeName.t option ->
-    'ast ->
-    Scopelang.Dependency.TVertex.t list ->
-    unit
-end
-
-type 'ast gen = {
-  name : string;
-  extension : string;
-  apply : 'ast PluginAPI.plugin_apply_fun_typ;
-}
-
-type handler =
-  | Dcalc of Shared_ast.untyped Dcalc.Ast.program gen
-  | Lcalc of Shared_ast.untyped Lcalc.Ast.program gen
-  | Scalc of Scalc.Ast.program gen
+let names () = Hashtbl.to_seq_keys backend_plugins |> List.of_seq
 
 let load_file f =
   try
@@ -62,6 +37,7 @@ let load_file f =
     Message.emit_warning "Could not load plugin %S: %s" f (Printexc.to_string e)
 
 let rec load_dir d =
+  Message.emit_debug "Loading plugins from %s" d;
   let dynlink_exts =
     if Dynlink.is_native then [".cmxs"] else [".cmo"; ".cma"]
   in

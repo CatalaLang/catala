@@ -22,19 +22,37 @@
 
 open Catala_utils
 
-let name = "python-plugin"
-let extension = ".py"
+let run
+    link_modules
+    output
+    optimize
+    check_invariants
+    avoid_exceptions
+    closure_conversion
+    options =
+  let open Driver.Commands in
+  let prg, _, type_ordering =
+    Driver.Passes.scalc options ~link_modules ~optimize ~check_invariants
+      ~avoid_exceptions ~closure_conversion
+  in
+  let output_file, with_output = get_output_format options ~ext:".py" output in
+  Message.emit_debug "Compiling program into Python...";
+  Message.emit_debug "Writing to %s..."
+    (Option.value ~default:"stdout" output_file);
+  with_output @@ fun fmt -> Scalc.To_python.format_program fmt prg type_ordering
 
-let info =
-  Cmdliner.Cmd.info name
+let term =
+  let open Cmdliner.Term in
+  const run
+  $ Cli.Flags.link_modules
+  $ Cli.Flags.output
+  $ Cli.Flags.optimize
+  $ Cli.Flags.check_invariants
+  $ Cli.Flags.avoid_exceptions
+  $ Cli.Flags.closure_conversion
+
+let () =
+  Driver.Plugin.register "python-plugin" term
     ~doc:
       "This plugin is for demonstration purposes and should be equivalent to \
        using the built-in Python backend"
-
-let apply ~source_file ~output_file ~scope prgm type_ordering =
-  ignore source_file;
-  ignore scope;
-  File.with_formatter_of_opt_file output_file
-  @@ fun fmt -> Scalc.To_python.format_program fmt prgm type_ordering
-
-let () = Driver.Plugin.register_scalc info ~extension apply

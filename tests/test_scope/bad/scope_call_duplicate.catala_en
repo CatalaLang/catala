@@ -23,5 +23,5 @@ $ catala dcalc -s Titi
 14 │   definition fizz equals output of Toto with {--bar: 1 --baz: 2.1 -- bar: 3}
    │                                                                      ‾‾‾
 
-#return code 255#
+#return code 123#
 ```

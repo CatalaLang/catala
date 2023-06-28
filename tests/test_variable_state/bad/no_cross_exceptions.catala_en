@@ -23,5 +23,5 @@ $ catala Typecheck
 14 │   exception thing definition foo state baz under condition true consequence equals 3
    │             ‾‾‾‾‾
    └─ Test
-#return code 255#
+#return code 123#
 ```

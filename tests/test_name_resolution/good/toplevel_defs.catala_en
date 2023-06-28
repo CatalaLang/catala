@@ -114,7 +114,7 @@ let S2_6 (S2_in_11: S2_in) =
   try:
     decl temp_a_16 : any;
     let temp_a_16 (__17 : unit) =
-      return glob3_3 $44.00 + 100.;
+      return glob3_3 ¤44.00 + 100.;
     decl temp_a_14 : any;
     let temp_a_14 (__15 : unit) =
       return true;
@@ -131,7 +131,7 @@ let S3_7 (S3_in_18: S3_in) =
   try:
     decl temp_a_23 : any;
     let temp_a_23 (__24 : unit) =
-      return 50. + glob4_4 $44.00 55.;
+      return 50. + glob4_4 ¤44.00 55.;
     decl temp_a_21 : any;
     let temp_a_21 (__22 : unit) =
       return true;

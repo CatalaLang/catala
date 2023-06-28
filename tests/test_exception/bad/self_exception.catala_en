@@ -19,5 +19,5 @@ $ catala Interpret -s A
 9 │   exception base_y
   │             ‾‾‾‾‾‾
   └─ Test
-#return code 255#
+#return code 123#
 ```

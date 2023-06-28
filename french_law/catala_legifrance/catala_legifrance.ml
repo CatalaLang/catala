@@ -254,7 +254,7 @@ let driver_lwt
     (client_id : string)
     (client_secret : string) =
   try
-    if debug then Cli.debug_flag := true;
+    let _options = Cli.enforce_globals ~debug () in
     if not (expiration || diff) then
       Message.raise_error
         "You have to check at least something, see the list of options with \

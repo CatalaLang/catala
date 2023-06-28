@@ -25,5 +25,5 @@ $ catala Interpret -s A
 6 │   output y content boolean
   │          ‾
   └─ Article
-#return code 255#
+#return code 123#
 ```

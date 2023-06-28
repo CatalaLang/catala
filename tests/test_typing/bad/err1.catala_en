@@ -36,5 +36,5 @@ Type integer coming from expression:
 8 │   data i content integer
   │                  ‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```

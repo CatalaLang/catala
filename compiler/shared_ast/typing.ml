@@ -152,10 +152,11 @@ let rec format_typ
       ")" (format_typ ~colors) t2
   | TArray t1 -> (
     match Mark.remove (UnionFind.get (UnionFind.find t1)) with
-    | TAny _ when not !Cli.debug_flag -> Format.pp_print_string fmt "collection"
+    | TAny _ when not Cli.globals.debug ->
+      Format.pp_print_string fmt "collection"
     | _ -> Format.fprintf fmt "@[collection@ %a@]" (format_typ ~colors) t1)
   | TAny v ->
-    if !Cli.debug_flag then Format.fprintf fmt "<a%d>" (Any.hash v)
+    if Cli.globals.debug then Format.fprintf fmt "<a%d>" (Any.hash v)
     else Format.pp_print_string fmt "<any>"
   | TClosureEnv -> Format.fprintf fmt "closure_env"
 

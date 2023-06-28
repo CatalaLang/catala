@@ -67,3 +67,7 @@ val interpret_program_lcalc :
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
+
+val load_runtime_modules : string list -> unit
+(** Dynlink the given runtime modules, in order to make them callable by the
+    interpreter *)

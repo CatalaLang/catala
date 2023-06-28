@@ -7,7 +7,7 @@ scope S1:
 ```
 
 ```catala-test-inline
-$ catala typecheck -s S1
+$ catala typecheck
 [ERROR] Please add parentheses to explicit which of these operators should be applied first
 
 ┌─⯈ tests/test_arithmetic/bad/logical_prio.catala_en:6.28-6.31:
@@ -21,5 +21,5 @@ $ catala typecheck -s S1
 6 │   definition o equals true and (false and true and true) or false
   │                                                          ‾‾
 
-#return code 255#
+#return code 123#
 ```

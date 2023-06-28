@@ -17,10 +17,6 @@
 open Catala_utils
 open Shared_ast
 
-let name = "lazy"
-let extension = ".out" (* unused *)
-let info = Cmdliner.Cmd.info name ~doc:"Experimental lazy evaluation (plugin)"
-
 (* -- Definition of the lazy interpreter -- *)
 
 let log fmt = Format.ifprintf Format.err_formatter (fmt ^^ "@\n")
@@ -256,18 +252,24 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
 
 (* -- Plugin registration -- *)
 
-let apply ~source_file ~output_file ~scope prg _type_ordering =
-  let scope =
-    match scope with
-    | None -> Message.raise_error "A scope must be specified"
-    | Some s -> s
+let run link_modules optimize check_invariants ex_scope options =
+  Interpreter.load_runtime_modules link_modules;
+  let prg, ctx, _ =
+    Driver.Passes.dcalc options ~link_modules ~optimize ~check_invariants
   in
-  ignore source_file;
-  (* File.with_formatter_of_opt_file output_file
-   * @@ fun fmt -> *)
-  ignore output_file;
-  let fmt = Format.std_formatter in
+  let scope = Driver.Commands.get_scope_uid ctx ex_scope in
   let result_expr, _env = interpret_program prg scope in
+  let fmt = Format.std_formatter in
   Expr.format fmt result_expr
 
-let () = Driver.Plugin.register_dcalc info ~extension apply
+let term =
+  let open Cmdliner.Term in
+  const run
+  $ Cli.Flags.link_modules
+  $ Cli.Flags.optimize
+  $ Cli.Flags.check_invariants
+  $ Cli.Flags.ex_scope
+
+let () =
+  Driver.Plugin.register "lazy" term
+    ~doc:"Experimental lazy evaluation (plugin)"

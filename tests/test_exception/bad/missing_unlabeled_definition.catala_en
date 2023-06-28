@@ -20,5 +20,5 @@ $ catala Interpret -s A
 9 │   definition x equals 1
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
   └─ Test
-#return code 255#
+#return code 123#
 ```

@@ -34,5 +34,5 @@ Type bool coming from expression:
 8 │   definition test_var equals 10 xor 20
   │                                 ‾‾‾
   └─ 'xor' should be a boolean operator
-#return code 255#
+#return code 123#
 ```

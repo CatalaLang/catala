@@ -316,12 +316,12 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
         f = EApp { f = EOp { op = Log (BeginCall, info); _ }, _; args = [f] }, _;
         args = [arg];
       }
-    when !Cli.trace_flag ->
+    when Cli.globals.trace ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
       format_with_parens f format_with_parens arg
   | EApp
       { f = EOp { op = Log (VarDef var_def_info, info); _ }, _; args = [arg1] }
-    when !Cli.trace_flag ->
+    when Cli.globals.trace ->
     Format.fprintf fmt
       "(log_variable_definition@ %a@ {io_input=%s;@ io_output=%b}@ (%a)@ %a)"
       format_uid_list info
@@ -333,7 +333,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       (var_def_info.log_typ, Pos.no_pos)
       format_with_parens arg1
   | EApp { f = EOp { op = Log (PosRecordIfTrueBool, _); _ }, m; args = [arg1] }
-    when !Cli.trace_flag ->
+    when Cli.globals.trace ->
     let pos = Expr.mark_pos m in
     Format.fprintf fmt
       "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
@@ -342,7 +342,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) format_with_parens arg1
   | EApp { f = EOp { op = Log (EndCall, info); _ }, _; args = [arg1] }
-    when !Cli.trace_flag ->
+    when Cli.globals.trace ->
     Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
       format_with_parens arg1
   | EApp { f = EOp { op = Log _; _ }, _; args = [arg1] } ->
@@ -465,7 +465,7 @@ let format_ctx
              Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
                (None, struct_field) format_typ struct_field_type))
         (StructField.Map.bindings struct_fields);
-    if !Cli.trace_flag then
+    if Cli.globals.trace then
       format_struct_embedding fmt (struct_name, struct_fields)
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
@@ -478,7 +478,7 @@ let format_ctx
            Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
              enum_cons format_typ enum_cons_type))
       (EnumConstructor.Map.bindings enum_cons);
-    if !Cli.trace_flag then format_enum_embedding fmt (enum_name, enum_cons)
+    if Cli.globals.trace then format_enum_embedding fmt (enum_name, enum_cons)
   in
   let is_in_type_ordering s =
     List.exists

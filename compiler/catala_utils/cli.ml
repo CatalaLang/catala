@@ -15,23 +15,12 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-type backend_lang = En | Fr | Pl
+(* Types used by flags & options *)
 
-type backend_option =
-  [ `Latex
-  | `Makefile
-  | `Html
-  | `Interpret
-  | `Interpret_Lcalc
-  | `Typecheck
-  | `OCaml
-  | `Python
-  | `Scalc
-  | `Lcalc
-  | `Dcalc
-  | `Scopelang
-  | `Exceptions
-  | `Proof ]
+type backend_lang = En | Fr | Pl
+type when_enum = Auto | Always | Never
+type message_format_enum = Human | GNU
+type input_file = FileName of string | Contents of string
 
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
 let languages = ["en", En; "fr", Fr; "pl", Pl]
@@ -40,200 +29,275 @@ let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
   fun l -> List.assoc l rl
 
-(** Source files to be compiled *)
-let source_files : string list ref = ref []
+let message_format_opt = ["human", Human; "gnu", GNU]
 
-let locale_lang : backend_lang ref = ref En
-let contents : string ref = ref ""
+type options = {
+  mutable input_file : input_file;
+  mutable language : backend_lang option;
+  mutable debug : bool;
+  mutable color : when_enum;
+  mutable message_format : message_format_enum;
+  mutable trace : bool;
+  mutable plugins_dirs : string list;
+  mutable disable_warnings : bool;
+  mutable max_prec_digits : int;
+}
 
-(** Prints debug information *)
-let debug_flag = ref false
+(* Note: we force that the global options (ie options common to all commands)
+   and the options available through global refs are the same. While this is a
+   bit arbitrary, it makes some sense code-wise and provides some safeguard
+   against explosion of the number of global references. Reducing the number of
+   globals further would be nice though. *)
+let globals =
+  {
+    input_file = Contents "";
+    language = None;
+    debug = false;
+    color = Auto;
+    message_format = Human;
+    trace = false;
+    plugins_dirs = [];
+    disable_warnings = false;
+    max_prec_digits = 20;
+  }
 
-type when_enum = Auto | Always | Never
-
-(* Styles the terminal output *)
-let style_flag = ref Auto
-
-(* Max number of digits to show for decimal results *)
-let max_prec_digits = ref 20
-let trace_flag = ref false
-let disable_warnings_flag = ref false
-let optimize_flag = ref false
-let disable_counterexamples = ref false
-let avoid_exceptions_flag = ref false
-let check_invariants_flag = ref false
-
-type message_format_enum = Human | GNU
-
-let message_format_flag = ref Human
+let enforce_globals
+    ?input_file
+    ?language
+    ?debug
+    ?color
+    ?message_format
+    ?trace
+    ?plugins_dirs
+    ?disable_warnings
+    ?max_prec_digits
+    () =
+  Option.iter (fun x -> globals.input_file <- x) input_file;
+  Option.iter (fun x -> globals.language <- x) language;
+  Option.iter (fun x -> globals.debug <- x) debug;
+  Option.iter (fun x -> globals.color <- x) color;
+  Option.iter (fun x -> globals.message_format <- x) message_format;
+  Option.iter (fun x -> globals.trace <- x) trace;
+  Option.iter (fun x -> globals.plugins_dirs <- x) plugins_dirs;
+  Option.iter (fun x -> globals.disable_warnings <- x) disable_warnings;
+  Option.iter (fun x -> globals.max_prec_digits <- x) max_prec_digits;
+  globals
 
 open Cmdliner
 
-let file =
-  Arg.(
-    required
-    & pos 0 (some file) None
-    & info [] ~docv:"FILE" ~doc:"Catala master file to be compiled.")
-
-let debug =
-  Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information.")
+(* Arg converters for our custom types *)
 
 let when_opt = Arg.enum ["auto", Auto; "always", Always; "never", Never]
 
-let color =
-  Arg.(
-    value
-    & opt ~vopt:Always when_opt Auto
-    & info ["color"]
-        ~doc:
-          "Allow output of colored and styled text. If set to $(i,auto), \
-           enabled when the standard output is to a terminal.")
+(** CLI flags and options *)
 
-let message_format_opt = Arg.enum ["human", Human; "gnu", GNU]
+module Flags = struct
+  open Cmdliner
+  open Arg
 
-let message_format =
-  Arg.(
-    value
-    & opt message_format_opt Human
-    & info ["message_format"]
-        ~doc:
-          "Selects the format of error and warning messages emitted by the \
-           compiler. If set to $(i,human), the messages will be nicely \
-           displayed and meant to be read by a human. If set to $(i, gnu), the \
-           messages will be rendered according to the GNU coding standards.")
+  module Global = struct
+    let info = info ~docs:Manpage.s_common_options
 
-let unstyled =
-  Arg.(
+    let input_file =
+      let converter =
+        conv ~docv:"FILE"
+          ( (fun s ->
+              Result.map (fun f -> FileName f) (conv_parser non_dir_file s)),
+            fun ppf -> function
+              | FileName f -> conv_printer non_dir_file ppf f
+              | _ -> assert false )
+      in
+      required
+      & pos 0 (some converter) None
+      & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
+          ~doc:"Catala master file to be compiled."
+
+    let language =
+      value
+      & opt (some (enum languages)) None
+      & info ["l"; "language"] ~docv:"LANG"
+          ~doc:
+            "Locale variant of the input language to use when it can not be \
+             inferred from the file extension."
+
+    let debug =
+      value
+      & flag
+      & info ["debug"; "d"]
+          ~env:(Cmd.Env.info "CATALA_DEBUG")
+          ~doc:"Prints debug information."
+
+    let color =
+      let unstyled =
+        value
+        & flag
+        & info ["unstyled"]
+            ~doc:"Removes styling (colors, etc.) from terminal output."
+            ~deprecated:"Use $(b,--color=)$(i,never) instead"
+      in
+      let color =
+        value
+        & opt ~vopt:Always when_opt Auto
+        & info ["color"]
+            ~env:(Cmd.Env.info "CATALA_COLOR")
+            ~doc:
+              "Allow output of colored and styled text. Use $(i,auto), to \
+               enable when the standard output is to a terminal, $(i,never) to \
+               disable."
+      in
+      Term.(
+        const (fun color unstyled -> if unstyled then Never else color)
+        $ color
+        $ unstyled)
+
+    let message_format =
+      value
+      & opt (enum message_format_opt) Human
+      & info ["message_format"]
+          ~doc:
+            "Selects the format of error and warning messages emitted by the \
+             compiler. If set to $(i,human), the messages will be nicely \
+             displayed and meant to be read by a human. If set to $(i, gnu), \
+             the messages will be rendered according to the GNU coding \
+             standards."
+
+    let trace =
+      value
+      & flag
+      & info ["trace"; "t"]
+          ~doc:
+            "Displays a trace of the interpreter's computation or generates \
+             logging instructions in translate programs."
+
+    let plugins_dirs =
+      let doc = "Set the given directory to be searched for backend plugins." in
+      let env = Cmd.Env.info "CATALA_PLUGINS" in
+      let default =
+        let ( / ) = Filename.concat in
+        [
+          Filename.dirname Sys.executable_name
+          / Filename.parent_dir_name
+          / "lib"
+          / "catala"
+          / "plugins";
+          "_build" / "default" / "compiler" / "plugins";
+        ]
+      in
+      value & opt_all dir default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc
+
+    let disable_warnings =
+      value
+      & flag
+      & info ["disable_warnings"]
+          ~doc:"Disable all the warnings emitted by the compiler."
+
+    let max_prec_digits =
+      value
+      & opt int 20
+      & info
+          ["p"; "max_digits_printed"]
+          ~docv:"NUM"
+          ~doc:
+            "Maximum number of significant digits printed for decimal results."
+
+    let flags =
+      let make
+          language
+          debug
+          color
+          message_format
+          trace
+          plugins_dirs
+          disable_warnings
+          max_prec_digits : options =
+        if debug then Printexc.record_backtrace true;
+        (* This sets some global refs for convenience, but most importantly
+           returns the options record. *)
+        enforce_globals ~language ~debug ~color ~message_format ~trace
+          ~plugins_dirs ~disable_warnings ~max_prec_digits ()
+      in
+      Term.(
+        const make
+        $ language
+        $ debug
+        $ color
+        $ message_format
+        $ trace
+        $ plugins_dirs
+        $ disable_warnings
+        $ max_prec_digits)
+
+    let options =
+      let make input_file options : options =
+        (* Set some global refs for convenience *)
+        globals.input_file <- input_file;
+        { options with input_file }
+      in
+      Term.(const make $ input_file $ flags)
+  end
+
+  let check_invariants =
     value
     & flag
-    & info ["unstyled"]
-        ~doc:
-          "Removes styling (colors, etc.) from terminal output. Equivalent to \
-           $(b,--color=never)")
+    & info ["check_invariants"] ~doc:"Check structural invariants on the AST."
 
-let optimize =
-  Arg.(value & flag & info ["optimize"; "O"] ~doc:"Run compiler optimizations.")
-
-let trace_opt =
-  Arg.(
-    value
-    & flag
-    & info ["trace"; "t"]
-        ~doc:
-          "Displays a trace of the interpreter's computation or generates \
-           logging instructions in translate programs.")
-
-let disable_warnings_opt =
-  Arg.(
-    value
-    & flag
-    & info ["disable_warnings"]
-        ~doc:"Disable all the warnings emitted by the compiler.")
-
-let check_invariants_opt =
-  Arg.(
-    value
-    & flag
-    & info ["check_invariants"] ~doc:"Check structural invariants on the AST.")
-
-let avoid_exceptions =
-  Arg.(
-    value
-    & flag
-    & info ["avoid_exceptions"]
-        ~doc:"Compiles the default calculus without exceptions.")
-
-let closure_conversion =
-  Arg.(
-    value
-    & flag
-    & info ["closure_conversion"]
-        ~doc:"Performs closure conversion on the lambda calculus.")
-
-let wrap_weaved_output =
-  Arg.(
+  let wrap_weaved_output =
     value
     & flag
     & info ["wrap"; "w"]
-        ~doc:"Wraps literate programming output with a minimal preamble.")
+        ~doc:"Wraps literate programming output with a minimal preamble."
 
-let print_only_law =
-  Arg.(
+  let print_only_law =
     value
     & flag
     & info ["print_only_law"]
         ~doc:
           "In literate programming output, skip all code and metadata sections \
-           and print only the text of the law.")
+           and print only the text of the law."
 
-let plugins_dirs =
-  let doc = "Set the given directory to be searched for backend plugins." in
-  let env = Cmd.Env.info "CATALA_PLUGINS" ~doc in
-  let default =
-    let ( / ) = Filename.concat in
-    [
-      Filename.dirname Sys.executable_name
-      / Filename.parent_dir_name
-      / "lib"
-      / "catala"
-      / "plugins";
-    ]
-  in
-  Arg.(value & opt_all dir default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc)
+  let ex_scope =
+    required
+    & opt (some string) None
+    & info ["s"; "scope"] ~docv:"SCOPE" ~doc:"Scope to be focused on."
 
-let language =
-  Arg.(
+  let ex_scope_opt =
     value
     & opt (some string) None
-    & info ["l"; "language"] ~docv:"LANG"
-        ~doc:"Input language among: en, fr, pl.")
+    & info ["s"; "scope"] ~docv:"SCOPE" ~doc:"Scope to be focused on."
 
-let max_prec_digits_opt =
-  Arg.(
-    value
-    & opt (some int) None
-    & info
-        ["p"; "max_digits_printed"]
-        ~docv:"DIGITS"
-        ~doc:
-          "Maximum number of significant digits printed for decimal results \
-           (default 20).")
-
-let disable_counterexamples_opt =
-  Arg.(
-    value
-    & flag
-    & info
-        ["disable_counterexamples"]
-        ~doc:
-          "Disables the search for counterexamples in proof mode. Useful when \
-           you want a deterministic output from the Catala compiler, since \
-           provers can have some randomness in them.")
-
-let ex_scope =
-  Arg.(
-    value
+  let ex_variable =
+    required
     & opt (some string) None
-    & info ["s"; "scope"] ~docv:"SCOPE" ~doc:"Scope to be focused on.")
+    & info ["v"; "variable"] ~docv:"VARIABLE" ~doc:"Variable to be focused on."
 
-let ex_variable =
-  Arg.(
-    value
-    & opt (some string) None
-    & info ["v"; "variable"] ~docv:"VARIABLE" ~doc:"Variable to be focused on.")
-
-let output =
-  Arg.(
+  let output =
     value
     & opt (some string) None
     & info ["output"; "o"] ~docv:"OUTPUT"
+        ~env:(Cmd.Env.info "CATALA_OUT")
         ~doc:
           "$(i, OUTPUT) is the file that will contain the output of the \
            compiler. Defaults to $(i,FILE).$(i,EXT) where $(i,EXT) depends on \
-           the chosen backend. Use $(b,-o -) for stdout.")
+           the chosen backend. Use $(b,-o -) for stdout."
 
-let link_modules =
-  Arg.(
+  let optimize =
+    value & flag & info ["optimize"; "O"] ~doc:"Run compiler optimizations."
+
+  let avoid_exceptions =
+    value
+    & flag
+    & info ["avoid_exceptions"]
+        ~doc:"Compiles the default calculus without exceptions."
+
+  let closure_conversion =
+    value
+    & flag
+    & info ["closure_conversion"]
+        ~doc:
+          "Performs closure conversion on the lambda calculus. Implies \
+           $(b,--avoid-exceptions) and $(b,--optimize)."
+
+  let link_modules =
     value
     & opt_all file []
     & info ["use"; "u"] ~docv:"FILE"
@@ -242,207 +306,21 @@ let link_modules =
            $(i,FILE) must be a catala file with a metadata section expressing \
            what is exported ; for interpretation, a compiled OCaml shared \
            module by the same basename (either .cmo or .cmxs) will be \
-           expected.")
+           expected."
 
-type global_options = {
-  debug : bool;
-  color : when_enum;
-  message_format : message_format_enum;
-  wrap_weaved_output : bool;
-  avoid_exceptions : bool;
-  plugins_dirs : string list;
-  language : string option;
-  max_prec_digits : int option;
-  trace : bool;
-  disable_warnings : bool;
-  disable_counterexamples : bool;
-  check_invariants : bool;
-  optimize : bool;
-  ex_scope : string option;
-  ex_variable : string option;
-  output_file : string option;
-  closure_conversion : bool;
-  print_only_law : bool;
-  link_modules : string list;
-}
-
-let global_options =
-  let make
-      debug
-      color
-      message_format
-      unstyled
-      wrap_weaved_output
-      avoid_exceptions
-      closure_conversion
-      plugins_dirs
-      language
-      max_prec_digits
-      disable_warnings
-      trace
-      disable_counterexamples
-      optimize
-      check_invariants
-      ex_scope
-      ex_variable
-      output_file
-      print_only_law
-      link_modules : global_options =
-    {
-      debug;
-      color = (if unstyled then Never else color);
-      message_format;
-      wrap_weaved_output;
-      avoid_exceptions;
-      plugins_dirs;
-      language;
-      max_prec_digits;
-      disable_warnings;
-      trace;
-      disable_counterexamples;
-      optimize;
-      check_invariants;
-      ex_scope;
-      ex_variable;
-      output_file;
-      closure_conversion;
-      print_only_law;
-      link_modules;
-    }
-  in
-  Term.(
-    const make
-    $ debug
-    $ color
-    $ message_format
-    $ unstyled
-    $ wrap_weaved_output
-    $ avoid_exceptions
-    $ closure_conversion
-    $ plugins_dirs
-    $ language
-    $ max_prec_digits_opt
-    $ disable_warnings_opt
-    $ trace_opt
-    $ disable_counterexamples_opt
-    $ optimize
-    $ check_invariants_opt
-    $ ex_scope
-    $ ex_variable
-    $ output
-    $ print_only_law
-    $ link_modules)
-
-let set_option_globals options : unit =
-  debug_flag := options.debug;
-  style_flag := options.color;
-  (match options.max_prec_digits with
-  | None -> ()
-  | Some i -> max_prec_digits := i);
-  disable_warnings_flag := options.disable_warnings;
-  trace_flag := options.trace;
-  optimize_flag := options.optimize;
-  check_invariants_flag := options.check_invariants;
-  disable_counterexamples := options.disable_counterexamples;
-  avoid_exceptions_flag := options.avoid_exceptions;
-  message_format_flag := options.message_format
-
-let subcommands handler =
-  [
-    Cmd.v
-      (Cmd.info "interpret"
-         ~doc:
-           "Runs the interpreter on the Catala program, executing the scope \
-            specified by the $(b,-s) option assuming no additional external \
-            inputs.")
-      Term.(const (handler `Interpret) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "interpret_lcalc"
-         ~doc:
-           "Runs the interpreter on the lcalc pass on the Catala program, \
-            executing the scope specified by the $(b,-s) option assuming no \
-            additional external inputs.")
-      Term.(const (handler `Interpret_Lcalc) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "typecheck"
-         ~doc:"Parses and typechecks a Catala program, without interpreting it.")
-      Term.(const (handler `Typecheck) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "proof"
-         ~doc:
-           "Generates and proves verification conditions about the \
-            well-behaved execution of the Catala program.")
-      Term.(const (handler `Proof) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "ocaml"
-         ~doc:"Generates an OCaml translation of the Catala program.")
-      Term.(const (handler `OCaml) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "python"
-         ~doc:"Generates a Python translation of the Catala program.")
-      Term.(const (handler `Python) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "latex"
-         ~doc:
-           "Weaves a LaTeX literate programming output of the Catala program.")
-      Term.(const (handler `Latex) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "html"
-         ~doc:
-           "Weaves an HTML literate programming output of the Catala program.")
-      Term.(const (handler `Html) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "makefile"
-         ~doc:
-           "Generates a Makefile-compatible list of the file dependencies of a \
-            Catala program.")
-      Term.(const (handler `Makefile) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "scopelang"
-         ~doc:
-           "Prints a debugging verbatim of the scope language intermediate \
-            representation of the Catala program. Use the $(b,-s) option to \
-            restrict the output to a particular scope.")
-      Term.(const (handler `Scopelang) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "dcalc"
-         ~doc:
-           "Prints a debugging verbatim of the default calculus intermediate \
-            representation of the Catala program. Use the $(b,-s) option to \
-            restrict the output to a particular scope.")
-      Term.(const (handler `Dcalc) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "lcalc"
-         ~doc:
-           "Prints a debugging verbatim of the lambda calculus intermediate \
-            representation of the Catala program. Use the $(b,-s) option to \
-            restrict the output to a particular scope.")
-      Term.(const (handler `Lcalc) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "scalc"
-         ~doc:
-           "Prints a debugging verbatim of the statement calculus intermediate \
-            representation of the Catala program. Use the $(b,-s) option to \
-            restrict the output to a particular scope.")
-      Term.(const (handler `Scalc) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "exceptions"
-         ~doc:
-           "Prints the exception tree for the definitions of a particular \
-            variable, for debugging purposes. Use the $(b,-s) option to select \
-            the scope and the $(b,-v) option to select the variable. Use \
-            foo.bar to access state bar of variable foo or variable bar of \
-            subscope foo.")
-      Term.(const (handler `Exceptions) $ file $ global_options);
-    Cmd.v
-      (Cmd.info "pygmentize"
-         ~doc:
-           "This special command is a wrapper around the $(b,pygmentize) \
-            command that enables support for colorising Catala code.")
-      Term.(const (fun _ -> assert false) $ file);
-  ]
+  let disable_counterexamples =
+    value
+    & flag
+    & info
+        ["disable_counterexamples"]
+        ~doc:
+          "Disables the search for counterexamples. Useful when you want a \
+           deterministic output from the Catala compiler, since provers can \
+           have some randomness in them."
+end
 
 let version = "0.8.0"
+let s_plugins = "INSTALLED PLUGINS"
 
 let info =
   let doc =
@@ -451,18 +329,30 @@ let info =
   in
   let man =
     [
+      `S Manpage.s_synopsis;
+      `P "$(mname) [$(i,COMMAND)] $(i,FILE) [$(i,OPTION)]…";
+      `P
+        "Use $(mname) [$(i,COMMAND)] $(b,--hel)p for documentation on a \
+         specific command";
       `S Manpage.s_description;
       `P
         "Catala is a domain-specific language for deriving \
          faithful-by-construction algorithms from legislative texts.";
+      `S Manpage.s_commands;
+      `S s_plugins;
       `S Manpage.s_authors;
-      `P "The authors are listed by alphabetical order.";
-      `P "Nicolas Chataing <nicolas.chataing@ens.fr>";
-      `P "Alain Delaët-Tixeuil <alain.delaet--tixeuil@inria.fr>";
-      `P "Aymeric Fromherz <aymeric.fromherz@inria.fr>";
-      `P "Louis Gesbert <louis.gesbert@ocamlpro.com>";
-      `P "Denis Merigoux <denis.merigoux@inria.fr>";
-      `P "Emile Rolley <erolley@tutamail.com>";
+      `P "The authors are listed by alphabetical order:";
+      `P "Nicolas Chataing <$(i,nicolas.chataing@ens.fr)>";
+      `Noblank;
+      `P "Alain Delaët-Tixeuil <$(i,alain.delaet--tixeuil@inria.fr)>";
+      `Noblank;
+      `P "Aymeric Fromherz <$(i,aymeric.fromherz@inria.fr)>";
+      `Noblank;
+      `P "Louis Gesbert <$(i,louis.gesbert@ocamlpro.com)>";
+      `Noblank;
+      `P "Denis Merigoux <$(i,denis.merigoux@inria.fr)>";
+      `Noblank;
+      `P "Emile Rolley <$(i,erolley@tutamail.com)>";
       `S Manpage.s_examples;
       `Pre "catala Interpret -s Foo file.catala_en";
       `Pre "catala Ocaml -o target/file.ml file.catala_en";
@@ -474,4 +364,4 @@ let info =
   let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
   Cmd.info "catala" ~version ~doc ~exits ~man
 
-let catala_t ?(extra = []) handler = Cmd.group info (subcommands handler @ extra)
+exception Exit_with of int

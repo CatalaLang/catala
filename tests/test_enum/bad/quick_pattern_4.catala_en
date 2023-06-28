@@ -43,5 +43,5 @@ Type F coming from expression:
 17 │ definition y equals x with pattern Case3
    │                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
-#return code 255#
+#return code 123#
 ```

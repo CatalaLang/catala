@@ -1,3 +1,20 @@
+(* This file is part of the Catala compiler, a specification language for tax
+   and social benefits computation rules. Copyright (C) 2023 Inria,
+   contributors: Denis Merigoux <denis.merigoux@inria.fr>, Louis Gesbert
+   <louis.gesbert@inria.fr>
+
+   Licensed under the Apache License, Version 2.0 (the "License"); you may not
+   use this file except in compliance with the License. You may obtain a copy of
+   the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+   WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+   License for the specific language governing permissions and limitations under
+   the License. *)
+
 (** Error formatting and helper functions *)
 
 (**{1 Terminal formatting}*)
@@ -22,7 +39,7 @@ let () = ignore (unstyle_formatter Format.str_formatter)
    below std_ppf / err_ppf *)
 
 let has_color oc =
-  match !Cli.style_flag with
+  match Cli.globals.color with
   | Cli.Never -> false
   | Always -> true
   | Auto -> Unix.(isatty (descr_of_out_channel oc))
@@ -61,8 +78,8 @@ type content_type = Error | Warning | Debug | Log | Result
 
 let get_ppf = function
   | Result -> Lazy.force std_ppf
-  | Debug when not !Cli.debug_flag -> Lazy.force ignore_ppf
-  | Warning when !Cli.disable_warnings_flag -> Lazy.force ignore_ppf
+  | Debug when not Cli.globals.debug -> Lazy.force ignore_ppf
+  | Warning when Cli.globals.disable_warnings -> Lazy.force ignore_ppf
   | Error | Log | Debug | Warning -> Lazy.force err_ppf
 
 (**{3 Markers}*)
@@ -75,7 +92,7 @@ let print_time_marker =
     time := new_time;
     let delta = (new_time -. old_time) *. 1000. in
     if delta > 50. then
-      Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@ " delta
+      Format.fprintf ppf "@{<bold;black>[TIME] %.0fms@}@\n" delta
 
 let pp_marker target ppf =
   let open Ocolor_types in
@@ -129,14 +146,14 @@ open Content
 
 let emit_content (content : Content.t) (target : content_type) : unit =
   let { message; positions } = content in
-  match !Cli.message_format_flag with
+  match Cli.globals.message_format with
   | Cli.Human ->
     let ppf = get_ppf target in
     Format.fprintf ppf "@[<v>@[<hov 0>%t%t%t@]%a@]@." (pp_marker target)
       (fun ppf ->
         match target with
-        | Log | Error | Warning -> Format.pp_print_char ppf ' '
-        | Result | Debug -> Format.pp_print_space ppf ())
+        | Log | Error | Warning | Debug -> Format.pp_print_char ppf ' '
+        | Result -> Format.pp_print_space ppf ())
       message
       (fun ppf l ->
         Format.pp_print_list

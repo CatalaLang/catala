@@ -64,8 +64,10 @@ and translate_expr (ctx : 'm ctx) (e : 'm D.expr) : 'm A.expr boxed =
     Expr.ecatch (translate_expr ctx arg) EmptyError
       (Expr.eraise NoValueProvided m)
       m
-  | EDefault { excepts = [exn]; just; cons } when !Cli.optimize_flag ->
-    (* FIXME: bad place to rely on a global flag *)
+  | EDefault { excepts = [exn]; just; cons }
+  (* Specific optimisation for this case *) ->
+    (* FIXME: this case used to be disabled when optimisations are disabled, but
+       the flag isn't forwarded to this function *)
     Expr.ecatch (translate_expr ctx exn) EmptyError
       (Expr.eifthenelse (translate_expr ctx just) (translate_expr ctx cons)
          (Expr.eraise EmptyError (Mark.get e))

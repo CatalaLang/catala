@@ -26,5 +26,5 @@ $ catala Interpret -s A
 17 │   definition y equals x.Foo.g
    │                       ‾‾‾‾‾‾‾
    └─ Article
-#return code 255#
+#return code 123#
 ```

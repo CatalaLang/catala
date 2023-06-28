@@ -57,10 +57,10 @@ let ninja_output =
   Arg.(
     value
     & opt (some string) None
-    & info ["o"; "output"] ~docv:"OUTPUT"
+    & info ["o"; "output"] ~docv:"FILE"
         ~doc:
-          "$(i, OUTPUT) is the file that will contain the build.ninja file \
-           output. If not specified, the build.ninja file will be outputed in \
+          "$(i,FILE) is the file that will contain the build.ninja file \
+           output. If not specified, the build.ninja file will be output in \
            the temporary directory of the system.")
 
 let scope =
@@ -384,8 +384,6 @@ let add_reset_rules_aux
       [
         Var.catala_cmd;
         Var.tested_file;
-        Lit "--unstyled";
-        Lit "--output=-";
         Lit redirect;
         Var.expected_output;
         Lit "2>&1";
@@ -422,8 +420,6 @@ let add_test_rules_aux
             :: [
                  Var.catala_cmd;
                  Var.tested_file;
-                 Lit "--unstyled";
-                 Lit "--output=-";
                  Lit "2>&1 | colordiff -u -b";
                  Var.expected_output;
                  Lit "-";
@@ -630,16 +626,15 @@ let run_inline_tests
           let cmd_out_rd, cmd_out_wr = Unix.pipe () in
           let ic = Unix.in_channel_of_descr cmd_out_rd in
           let cmd =
-            Array.of_list
-              ((catala_exe :: catala_opts)
-              @ test.params
-              @ [file; "--unstyled"; "--output=-"])
+            Array.of_list ((catala_exe :: catala_opts) @ test.params @ [file])
           in
           let env =
             Unix.environment ()
             |> Array.to_seq
             |> Seq.filter (fun s ->
                    not (String.starts_with ~prefix:"OCAMLRUNPARAM=" s))
+            |> Seq.cons "CATALA_OUT=-"
+            |> Seq.cons "CATALA_COLOR=never"
             |> Array.of_seq
           in
           let pid =
@@ -885,7 +880,7 @@ let driver
     (reset_test_outputs : bool)
     (ninja_output : string option) : int =
   try
-    if debug then Cli.debug_flag := true;
+    let _options = Cli.enforce_globals ~debug () in
     let ninja_flags = makeflags_to_ninja_flags makeflags in
     let files_or_folders = List.sort_uniq String.compare files_or_folders
     and catala_exe = Option.fold ~none:"catala" ~some:Fun.id catala_exe

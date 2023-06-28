@@ -30,5 +30,5 @@ Declaration of the missing input variable
 4 │   input output baz content decimal
   │                ‾‾‾
 
-#return code 255#
+#return code 123#
 ```

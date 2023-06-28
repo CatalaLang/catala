@@ -20,5 +20,5 @@ $ catala typecheck
 11 │   equals (output of S1).a
    │           ‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Scope calls are not allowed outside of scopes
-#return code 255#
+#return code 123#
 ```

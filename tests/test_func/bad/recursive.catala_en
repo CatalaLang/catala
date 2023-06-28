@@ -17,5 +17,5 @@ $ catala Interpret -s RecursiveFunc
 8 │   definition f of x equals f of x + 1
   │                            ‾
   └─ Article
-#return code 255#
+#return code 123#
 ```

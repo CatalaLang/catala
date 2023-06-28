@@ -171,13 +171,9 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
-      (Runtime.decimal_to_string ~max_prec_digits:!Cli.max_prec_digits i)
-  | LMoney e -> (
-    match !Cli.locale_lang with
-    | En -> lit_style fmt (Format.asprintf "$%s" (Runtime.money_to_string e))
-    | Fr -> lit_style fmt (Format.asprintf "%s €" (Runtime.money_to_string e))
-    | Pl -> lit_style fmt (Format.asprintf "%s PLN" (Runtime.money_to_string e))
-    )
+      (Runtime.decimal_to_string ~max_prec_digits:Cli.globals.max_prec_digits i)
+  | LMoney e ->
+    lit_style fmt (Format.asprintf "¤%s" (Runtime.money_to_string e))
   | LDate d -> lit_style fmt (Runtime.date_to_string d)
   | LDuration d -> lit_style fmt (Runtime.duration_to_string d)
 
@@ -712,7 +708,7 @@ let rec colors =
 let typ_debug = typ None ~colors
 let typ ctx = typ (Some ctx) ~colors
 
-let expr ?(hide_function_body = false) ?(debug = !Cli.debug_flag) () ppf e =
+let expr ?(hide_function_body = false) ?(debug = Cli.globals.debug) () ppf e =
   expr_aux ~hide_function_body ~debug Bindlib.empty_ctxt colors ppf e
 
 let scope_let_kind ?debug:(_debug = true) _ctx fmt k =

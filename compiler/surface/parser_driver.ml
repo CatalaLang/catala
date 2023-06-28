@@ -269,7 +269,7 @@ let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
 
 (** Parses a single source file *)
 let rec parse_source_file
-    (source_file : Pos.input_file)
+    (source_file : Cli.input_file)
     (language : Cli.backend_lang) : Ast.program =
   Message.emit_debug "Parsing %s"
     (match source_file with FileName s | Contents s -> s);
@@ -307,7 +307,7 @@ and expand_includes
       match command with
       | Ast.LawInclude (Ast.CatalaFile sub_source) ->
         let source_dir = Filename.dirname source_file in
-        let sub_source = Filename.concat source_dir (Mark.remove sub_source) in
+        let sub_source = File.(source_dir / Mark.remove sub_source) in
         let includ_program = parse_source_file (FileName sub_source) language in
         {
           program_interfaces = [];
@@ -377,7 +377,7 @@ let add_interface source_file language path program =
   }
 
 let parse_top_level_file
-    (source_file : Pos.input_file)
+    (source_file : Cli.input_file)
     (language : Cli.backend_lang) : Ast.program =
   let program = parse_source_file source_file language in
   let interface = get_interface program in

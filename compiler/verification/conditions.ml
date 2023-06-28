@@ -346,7 +346,7 @@ let rec generate_verification_conditions_scope_body_expr
         let e = match_and_ignore_outer_reentrant_default ctx e in
         let vc_confl = generate_vc_must_not_return_conflict ctx e in
         let vc_confl =
-          if !Cli.optimize_flag then
+          if Globals.optimize () then
             Expr.unbox
               (Shared_ast.Optimizations.optimize_expr ctx.decl vc_confl)
           else vc_confl
@@ -369,7 +369,7 @@ let rec generate_verification_conditions_scope_body_expr
           | ScopeVarDefinition ->
             let vc_empty = generate_vc_must_not_return_empty ctx e in
             let vc_empty =
-              if !Cli.optimize_flag then
+              if Globals.optimize () then
                 Expr.unbox
                   (Shared_ast.Optimizations.optimize_expr ctx.decl vc_empty)
               else vc_empty

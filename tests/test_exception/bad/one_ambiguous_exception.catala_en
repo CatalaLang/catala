@@ -45,5 +45,5 @@ Candidate definition
 14 │   definition y equals 2
    │              ‾
    └─ Test
-#return code 255#
+#return code 123#
 ```

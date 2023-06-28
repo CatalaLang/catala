@@ -43,6 +43,6 @@ let scope A
 ```
 
 ```catala-test-inline
-$ catala Typecheck -s A
+$ catala Typecheck
 [RESULT] Typechecking successful!
 ```

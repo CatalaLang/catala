@@ -36,5 +36,5 @@ Type bool coming from expression:
 9 │   assertion x
   │             ‾
   └─ Test
-#return code 255#
+#return code 123#
 ```

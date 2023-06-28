@@ -24,5 +24,5 @@ $ catala Interpret -s A
 15 │   definition y equals x with pattern Case3
    │                                      ‾‾‾‾‾
    └─ Article
-#return code 255#
+#return code 123#
 ```

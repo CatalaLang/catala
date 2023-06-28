@@ -30,5 +30,5 @@ $ catala Interpret -s A
 21 │     -- Case4 : true
    │        ‾‾‾‾‾
    └─ Article
-#return code 255#
+#return code 123#
 ```

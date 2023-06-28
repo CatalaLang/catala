@@ -115,7 +115,7 @@ module MakeBackendIO (B : Backend) = struct
           Pos.format_loc_text (Mark.get vc.vc_variable)
     in
     let counterexample : string option =
-      if !Cli.disable_counterexamples then
+      if Globals.disable_counterexamples () then
         Some "Counterexample generation is disabled so none was generated."
       else
         match model with

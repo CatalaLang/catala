@@ -28,7 +28,7 @@ let finally f k =
 
 let temp_file pfx sfx =
   let f = Filename.temp_file pfx sfx in
-  if not !Cli.debug_flag then
+  if not Cli.globals.debug then
     at_exit (fun () -> try Sys.remove f with _ -> ());
   f
 
@@ -58,7 +58,7 @@ let get_out_channel ~source_file ~output_file ?ext () =
   | Some f, _ -> Some f, with_out_channel f
   | None, Some ext ->
     let src =
-      match source_file with Pos.FileName f -> f | Pos.Contents _ -> "a"
+      match source_file with Cli.FileName f -> f | Cli.Contents _ -> "a"
     in
     let f = Filename.remove_extension src ^ ext in
     Some f, with_out_channel f
@@ -108,3 +108,11 @@ let process_out ?check_exit cmd args =
     done;
     assert false
   with End_of_file -> Buffer.contents buf
+
+let check_directory d =
+  try
+    let d = Unix.realpath d in
+    if Sys.is_directory d then Some d else None
+  with Unix.Unix_error _ | Sys_error _ -> None
+
+let ( / ) = Filename.concat

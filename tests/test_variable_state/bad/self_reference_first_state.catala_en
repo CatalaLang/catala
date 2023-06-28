@@ -21,5 +21,5 @@ $ catala Typecheck
 10 │   definition foo state bar equals foo + 1
    │                                   ‾‾‾
    └─ Test
-#return code 255#
+#return code 123#
 ```

@@ -14,53 +14,30 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Catala_utils
-
-type t = Cmdliner.Cmd.Exit.code Cmdliner.Cmd.t
+type t = unit Cmdliner.Cmd.t
 (** Plugins just provide an additional top-level command *)
 
 (** {2 plugin-facing API} *)
 
-module PluginAPI : sig
-  open Cmdliner
-
-  val register_generic : Cmd.info -> Cmd.Exit.code Term.t -> unit
-  (** Entry point for the registration of a generic catala subcommand *)
-
-  (** The following are used by [Driver.Plugin] to provide a higher-level
-      interface, registering plugins that rely on the [Driver.driver] function. *)
-
-  type 'ast plugin_apply_fun_typ =
-    source_file:Pos.input_file ->
-    output_file:string option ->
-    scope:Shared_ast.ScopeName.t option ->
-    'ast ->
-    Scopelang.Dependency.TVertex.t list ->
-    unit
-end
-
-val register : t -> unit
+val register :
+  Cmdliner.Cmd.info ->
+  (Catala_utils.Cli.options -> unit) Cmdliner.Term.t ->
+  unit
+(** Plugins are registerd as [Cmdliner] commands, which must take at least the
+    default global options as arguments (this is required for e.g.
+    [--plugins-dirs] to be handled correctly, and for setting debug flags), but
+    can add more. *)
 
 (** {2 catala-facing API} *)
 
 val list : unit -> t list
 (** List registered plugins *)
 
+val names : unit -> string list
+(** List the names of registered plugins *)
+
 val load_file : string -> unit
 (** Load the given plugin (cmo/cma or cmxs file) *)
 
 val load_dir : string -> unit
 (** Load all plugins found in the given directory *)
-
-(** {3 Facilities for plugins using the standard driver} *)
-
-type 'ast gen = {
-  name : string;
-  extension : string;
-  apply : 'ast PluginAPI.plugin_apply_fun_typ;
-}
-
-type handler =
-  | Dcalc of Shared_ast.untyped Dcalc.Ast.program gen
-  | Lcalc of Shared_ast.untyped Lcalc.Ast.program gen
-  | Scalc of Scalc.Ast.program gen

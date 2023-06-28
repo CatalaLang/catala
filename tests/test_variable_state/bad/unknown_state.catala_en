@@ -28,5 +28,5 @@ Variable declaration:
 5 │   output foo content integer
   │          ‾‾‾
   └─ Test
-#return code 255#
+#return code 123#
 ```

@@ -147,5 +147,5 @@ Incriminated subscope variable definition:
 64 │   definition eligibility.is_student equals is_student
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```
