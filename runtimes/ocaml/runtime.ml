@@ -14,6 +14,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+type nonrec unit = unit
+type nonrec bool = bool
+
 (* An integer number of cents *)
 type money = Z.t
 type integer = Z.t

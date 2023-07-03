@@ -13,13 +13,13 @@ scope B:
 ```catala-test-inline
 $ catala Interpret -s B
 [RESULT] Computation successful! Results:
-[RESULT] x = [ ¤4.00; ¤8.00 ]
-[RESULT] z = [ false; true ]
+[RESULT] x = [$4.00; $8.00]
+[RESULT] z = [false; true]
 ```
 
 ```catala-test-inline
 $ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] x = ESome [ ESome ¤4.00; ESome ¤8.00 ]
-[RESULT] z = ESome [ ESome false; ESome true ]
+[RESULT] x = ESome [ESome $4.00; ESome $8.00]
+[RESULT] z = ESome [ESome false; ESome true]
 ```

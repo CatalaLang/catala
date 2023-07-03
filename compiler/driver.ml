@@ -26,7 +26,8 @@ let modname_of_file f =
   (* Fixme: make this more robust *)
   String.capitalize_ascii Filename.(basename (remove_extension f))
 
-let get_lang options filename =
+let get_lang options file =
+  let filename = match file with Cli.FileName s -> s | Contents _ -> "-" in
   Option.bind
     (List.assoc_opt (Filename.extension filename) extensions)
     (fun l -> List.assoc_opt l Cli.languages)
@@ -44,7 +45,7 @@ let get_lang options filename =
 let load_module_interfaces prg options link_modules =
   List.fold_left
     (fun prg f ->
-      let lang = get_lang options f in
+      let lang = get_lang options (FileName f) in
       let modname = modname_of_file f in
       Surface.Parser_driver.add_interface (FileName f) lang [modname] prg)
     prg link_modules
@@ -55,10 +56,7 @@ module Passes = struct
 
   let surface options : Surface.Ast.program * Cli.backend_lang =
     Message.emit_debug "Reading files...";
-    let language =
-      get_lang options
-        (match options.input_file with FileName s -> s | Contents _ -> "")
-    in
+    let language = get_lang options options.input_file in
     let prg =
       Surface.Parser_driver.parse_top_level_file options.input_file language
     in
@@ -555,7 +553,7 @@ module Commands = struct
     List.iter
       (fun ((var, _), result) ->
         Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
-          (Print.expr ~debug:options.Cli.debug ())
+          (Print.UserFacing.value (get_lang options options.input_file))
           result)
       results
 

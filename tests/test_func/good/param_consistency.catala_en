@@ -34,8 +34,8 @@ scope T1:
 ```catala-test-inline
 $ catala Interpret -s T1
 [RESULT] Computation successful! Results:
-[RESULT] o1 = 20.
-[RESULT] o2 = 5.
+[RESULT] o1 = 20.0
+[RESULT] o2 = 5.0
 ```
 
 ## Multi-argument function
@@ -60,5 +60,5 @@ scope T2:
 ```catala-test-inline
 $ catala Interpret -s T2
 [RESULT] Computation successful! Results:
-[RESULT] o = 40.
+[RESULT] o = 40.0
 ```

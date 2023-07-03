@@ -75,24 +75,24 @@ champ d'application Exemple2:
 ```catala-test-inline
 $ catala Interpret -s Exemple1
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤96.48
+[RESULT] montant = 96,48 €
 ```
 
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤96.48
+[RESULT] montant = ESome 96,48 €
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple2
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤85.00
+[RESULT] montant = 85,00 €
 ```
 
 ```catala-test-inline
 $ catala Interpret_lcalc -s Exemple2 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤85.00
+[RESULT] montant = ESome 85,00 €
 ```
 

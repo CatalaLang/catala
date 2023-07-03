@@ -5,24 +5,28 @@ declaration scope A:
   context output x content decimal
   context output y content decimal
   context output z content decimal
+  output k content decimal
 
 scope A:
   definition x equals 84.648665
   definition y equals 4.368297
   definition z equals x / y
+  definition k equals 1/3
 ```
 
 ```catala-test-inline
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
-[RESULT] x = 84.648665
-[RESULT] y = 4.368297
-[RESULT] z = 19.37795552820698775747…
+[RESULT] k = 0.333,333,333,333,333,333,33…
+[RESULT] x = 84.648,665
+[RESULT] y = 4.368,297
+[RESULT] z = 19.377,955,528,206,987,757…
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] x = ESome 84.648665
-[RESULT] y = ESome 4.368297
-[RESULT] z = ESome 19.37795552820698775747…
+[RESULT] k = ESome 0.333,333,333,333,333,333,33…
+[RESULT] x = ESome 84.648,665
+[RESULT] y = ESome 4.368,297
+[RESULT] z = ESome 19.377,955,528,206,987,757…
 ```

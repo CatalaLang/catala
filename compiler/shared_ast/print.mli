@@ -73,3 +73,28 @@ val scope :
   unit
 
 val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
+
+(** User-facing, localised printer *)
+module UserFacing : sig
+  val unit : Cli.backend_lang -> Format.formatter -> Runtime.unit -> unit
+  val bool : Cli.backend_lang -> Format.formatter -> Runtime.bool -> unit
+  val integer : Cli.backend_lang -> Format.formatter -> Runtime.integer -> unit
+  val decimal : Cli.backend_lang -> Format.formatter -> Runtime.decimal -> unit
+  val money : Cli.backend_lang -> Format.formatter -> Runtime.money -> unit
+  val date : Cli.backend_lang -> Format.formatter -> Runtime.date -> unit
+
+  val duration :
+    Cli.backend_lang -> Format.formatter -> Runtime.duration -> unit
+
+  val lit : Cli.backend_lang -> Format.formatter -> lit -> unit
+  val lit_to_string : Cli.backend_lang -> lit -> string
+
+  val value :
+    Cli.backend_lang ->
+    Format.formatter ->
+    ((_, _) dcalc_lcalc, _) gexpr ->
+    unit
+  (** @raise Invalid_argument
+        if the supplied expression is a custom/external or anything that is not
+        a value *)
+end

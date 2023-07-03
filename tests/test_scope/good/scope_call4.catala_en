@@ -25,41 +25,13 @@ scope RentComputation:
 ```catala-test-inline
 $ catala Interpret -s RentComputation
 [RESULT] Computation successful! Results:
-[RESULT]
-f1 = λ (x: integer) →
-  error_empty ⟨true ⊢ let x1 : integer = x + 1 in
-                      error_empty ⟨true ⊢ x1 + 1⟩⟩
-[RESULT]
-f2 = λ (x: integer) →
-  error_empty ⟨true ⊢ let x1 : integer = x + 1 in
-                      error_empty ⟨true ⊢ x1 + 1⟩⟩
+[RESULT] f1 = <function>
+[RESULT] f2 = <function>
 ```
 
 ```catala-test-inline
 $ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT]
-f1 =
-  ESome
-    (λ (x: integer) →
-     ESome
-       match
-         (match (ESome (λ (x1: integer) → ESome (x1 + 1))) with
-          | ENone _ → ENone _
-          | ESome g → g (x + 1))
-         with
-       | ENone _ → raise NoValueProvided
-       | ESome f1 → f1)
-[RESULT]
-f2 =
-  ESome
-    (λ (x: integer) →
-     ESome
-       match
-         (match (ESome (λ (x1: integer) → ESome (x1 + 1))) with
-          | ENone _ → ENone _
-          | ESome g → g (x + 1))
-         with
-       | ENone _ → raise NoValueProvided
-       | ESome f2 → f2)
+[RESULT] f1 = ESome <function>
+[RESULT] f2 = ESome <function>
 ```

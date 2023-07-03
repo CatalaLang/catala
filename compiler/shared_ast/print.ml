@@ -873,3 +873,167 @@ let rec code_item_list ?(debug = false) decl_ctx fmt c =
 let program ?(debug = false) fmt p =
   decl_ctx ~debug p.decl_ctx fmt p.decl_ctx;
   code_item_list ~debug p.decl_ctx fmt p.code_items
+
+(* - User-facing value printer - *)
+
+module UserFacing = struct
+  (* Refs:
+     https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
+     https://fr.wikipedia.org/wiki/Wikip%C3%A9dia:Conventions_concernant_les_nombres#Pour_un_comptage_ou_une_mesure *)
+  let bigsep (lang : Cli.backend_lang) =
+    match lang with En -> ",", 3 | Fr -> " ", 3 | Pl -> ",", 3
+
+  let decsep (lang : Cli.backend_lang) =
+    match lang with En -> "." | Fr -> "," | Pl -> "."
+
+  let unit (_lang : Cli.backend_lang) ppf () = Format.pp_print_string ppf "()"
+
+  let bool (lang : Cli.backend_lang) ppf b =
+    let s =
+      match lang, b with
+      | En, true -> "true"
+      | En, false -> "false"
+      | Fr, true -> "vrai"
+      | Fr, false -> "faux"
+      | Pl, true -> "prawda"
+      | Pl, false -> "falsz"
+    in
+    Format.pp_print_string ppf s
+
+  let integer (lang : Cli.backend_lang) ppf n =
+    let sep, nsep = bigsep lang in
+    let nsep = Z.pow (Z.of_int 10) nsep in
+    if Z.sign n < 0 then Format.pp_print_char ppf '-';
+    let rec aux n =
+      let a, b = Z.div_rem n nsep in
+      if Z.equal a Z.zero then Z.pp_print ppf b
+      else (
+        aux a;
+        Format.fprintf ppf "%s%03d" sep (Z.to_int b))
+    in
+    aux (Z.abs n)
+
+  let money (lang : Cli.backend_lang) ppf n =
+    (match lang with En -> Format.pp_print_string ppf "$" | Fr | Pl -> ());
+    let units, cents = Z.div_rem n (Z.of_int 100) in
+    integer lang ppf units;
+    Format.pp_print_string ppf (decsep lang);
+    Format.fprintf ppf "%02d" (Z.to_int (Z.abs cents));
+    match lang with
+    | En -> ()
+    | Fr -> Format.pp_print_string ppf " €"
+    | Pl -> Format.pp_print_string ppf " PLN"
+
+  let decimal (lang : Cli.backend_lang) ppf r =
+    let den = Q.den r in
+    let int_part, rem = Z.div_rem (Q.num r) den in
+    let rem = Z.abs rem in
+    (* Printing the integer part *)
+    integer lang ppf int_part;
+    (* Printing the decimals *)
+    let bigsep, nsep = bigsep lang in
+    let rec aux ndigit rem_digits rem =
+      let n, rem = Z.div_rem (Z.mul rem (Z.of_int 10)) den in
+      let rem_digits, stop =
+        match rem_digits with
+        | None ->
+          if Z.equal n Z.zero then None, false
+          else
+            let r = Cli.globals.max_prec_digits in
+            Some (r - 1), r <= 1
+        | Some r -> Some (r - 1), r <= 1
+      in
+      if ndigit mod nsep = 0 then
+        Format.pp_print_string ppf (if ndigit = 0 then decsep lang else bigsep);
+      Format.pp_print_int ppf (Z.to_int n);
+      if Z.gt rem Z.zero then
+        if stop then Format.pp_print_as ppf 1 "…"
+        else aux (ndigit + 1) rem_digits rem
+    in
+    let rec ndigits n =
+      if Z.equal n Z.zero then 0 else 1 + ndigits (Z.div n (Z.of_int 10))
+    in
+    aux 0
+      (if Z.equal int_part Z.zero then None else Some (Cli.globals.max_prec_digits - ndigits int_part))
+      rem
+  (* It would be nice to print ratios as % but that's impossible to guess.
+     Trying would lead to inconsistencies where some comparable numbers are in %
+     and some others not, adding confusion. *)
+
+  let date (lang : Cli.backend_lang) ppf d =
+    let y, m, d = Dates_calc.Dates.date_to_ymd d in
+    match lang with
+    | En | Pl -> Format.fprintf ppf "%04d-%02d-%02d" y m d
+    | Fr -> Format.fprintf ppf "%02d/%02d/%04d" d m y
+
+  let duration (lang : Cli.backend_lang) ppf dr =
+    let y, m, d = Dates_calc.Dates.period_to_ymds dr in
+    let rec filter0 = function
+      | (0, _) :: (_ :: _ as r) -> filter0 r
+      | x :: r -> x :: List.filter (fun (n, _) -> n <> 0) r
+      | [] -> []
+    in
+    let splur n s = if abs n > 1 then n, s ^ "s" else n, s in
+    Format.pp_print_char ppf '[';
+    (match lang with
+    | En -> [splur y "year"; splur m "month"; splur d "day"]
+    | Fr -> [splur y "an"; m, "mois"; splur d "jour"]
+    | Pl -> [y, "rok"; m, "miesiac"; d, "dzien"])
+    |> filter0
+    |> Format.pp_print_list
+         ~pp_sep:(fun ppf () -> Format.pp_print_string ppf ", ")
+         (fun ppf (n, s) -> Format.fprintf ppf "%d %s" n s)
+         ppf;
+    Format.pp_print_char ppf ']'
+
+  let lit_raw (lang : Cli.backend_lang) ppf lit : unit =
+    match lit with
+    | LUnit -> unit lang ppf ()
+    | LBool b -> bool lang ppf b
+    | LInt i -> integer lang ppf i
+    | LRat r -> decimal lang ppf r
+    | LMoney e -> money lang ppf e
+    | LDate d -> date lang ppf d
+    | LDuration dr -> duration lang ppf dr
+
+  let lit_to_string (lang : Cli.backend_lang) lit =
+    let buf = Buffer.create 32 in
+    let ppf = Format.formatter_of_buffer buf in
+    lit_raw lang ppf lit;
+    Format.pp_print_flush ppf ();
+    Buffer.contents buf
+
+  let lit (lang : Cli.backend_lang) ppf lit : unit =
+    with_color (lit_raw lang) Ocolor_types.yellow ppf lit
+
+  let rec value :
+      type a b.
+      Cli.backend_lang ->
+      Format.formatter ->
+      ((a, b) dcalc_lcalc, _) gexpr ->
+      unit =
+   fun lang ppf e ->
+    match Mark.remove e with
+    | ELit l -> lit lang ppf l
+    | EArray l | ETuple l ->
+      Format.fprintf ppf "@[<hov 1>[@;<0 1>%a@;<0 -1>]@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+           (value lang))
+        l
+    | EStruct { name; fields } ->
+      Format.fprintf ppf "@[<hv 2>%a {@ %a@;<1 -2>}@]" StructName.format_t name
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (fld, e) ->
+             Format.fprintf ppf "-- %a: %a" StructField.format_t fld
+               (value lang) e))
+        (StructField.Map.bindings fields)
+    | EInj { name = _; cons; e } ->
+      Format.fprintf ppf "%a %a" EnumConstructor.format_t cons (value lang) e
+    | EEmptyError -> Format.pp_print_string ppf "ø"
+    | EAbs _ -> Format.pp_print_string ppf "<function>"
+    | EExternal _ -> Format.pp_print_string ppf "<external>"
+    | EApp _ | EOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
+    | EStructAccess _ | EAssert _ | EDefault _ | EErrorOnEmpty _ | ERaise _
+    | ECatch _ | ELocation _ ->
+      invalid_arg "UserPrint.value: not a value"
+end

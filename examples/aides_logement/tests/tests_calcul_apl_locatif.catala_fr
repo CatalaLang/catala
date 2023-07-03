@@ -281,98 +281,98 @@ champ d'application Exemple9:
 ```catala-test-inline
 $ catala Interpret -s Exemple1 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤0.00
+[RESULT] montant = 0,00 €
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple2 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤352.77
+[RESULT] montant = 352,77 €
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple3 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤321.61
+[RESULT] montant = 321,61 €
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple4 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤0.00
+[RESULT] montant = 0,00 €
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple5 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤311.56
+[RESULT] montant = 311,56 €
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple6 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤0.00
+[RESULT] montant = 0,00 €
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple7 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤153.77
+[RESULT] montant = 153,77 €
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple8 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤11.06
+[RESULT] montant = 11,06 €
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Exemple9 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] montant = ¤210.06
+[RESULT] montant = 210,06 €
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤0.00
+[RESULT] montant = ESome 0,00 €
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple2 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤352.77
+[RESULT] montant = ESome 352,77 €
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple3 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤321.61
+[RESULT] montant = ESome 321,61 €
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple4 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤0.00
+[RESULT] montant = ESome 0,00 €
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple5 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤311.56
+[RESULT] montant = ESome 311,56 €
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple6 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤0.00
+[RESULT] montant = ESome 0,00 €
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple7 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤153.77
+[RESULT] montant = ESome 153,77 €
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple8 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤11.06
+[RESULT] montant = ESome 11,06 €
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple9 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome ¤210.06
+[RESULT] montant = ESome 210,06 €
 ```
