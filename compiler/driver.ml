@@ -553,7 +553,8 @@ module Commands = struct
     List.iter
       (fun ((var, _), result) ->
         Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
-          (Print.UserFacing.value (get_lang options options.input_file))
+          (if options.Cli.debug then Print.expr ~debug:false ()
+          else Print.UserFacing.value (get_lang options options.input_file))
           result)
       results
 
@@ -861,11 +862,13 @@ let main () =
     in
     List.iter
       (fun d ->
-        match Sys.is_directory d with
-        | true -> Plugin.load_dir d
-        | false -> Message.emit_debug "Could not read plugin directory %s" d
-        | exception Sys_error _ ->
-          Message.emit_debug "Could not read plugin directory %s" d)
+        if d = "" then ()
+        else
+          match Sys.is_directory d with
+          | true -> Plugin.load_dir d
+          | false -> Message.emit_debug "Could not read plugin directory %s" d
+          | exception Sys_error _ ->
+            Message.emit_debug "Could not read plugin directory %s" d)
       plugins_dirs;
     Dynlink.allow_only ["Runtime_ocaml__Runtime"];
     (* We may use dynlink again, but only for runtime modules: no plugin

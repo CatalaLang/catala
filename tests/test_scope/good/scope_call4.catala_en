@@ -23,15 +23,70 @@ scope RentComputation:
 
 
 ```catala-test-inline
-$ catala Interpret -s RentComputation
+$ catala Interpret -s RentComputation --debug
+[DEBUG] Collecting rules...
+[DEBUG] Reading files...
+[DEBUG] Parsing tests/test_scope/good/scope_call4.catala_en
+[DEBUG] Name resolution...
+[DEBUG] Desugaring...
+[DEBUG] Disambiguating...
+[DEBUG] Linting...
+[DEBUG] Typechecking...
+[DEBUG] Translating to default calculus...
+[DEBUG] Typechecking again...
+[DEBUG] Starting interpretation...
+[DEBUG] End of interpretation
 [RESULT] Computation successful! Results:
-[RESULT] f1 = <function>
-[RESULT] f2 = <function>
+[RESULT]
+f1 = λ (x: integer) →
+  error_empty ⟨true ⊢ let x1 : integer = x + 1 in
+                      error_empty ⟨true ⊢ x1 + 1⟩⟩
+[RESULT]
+f2 = λ (x: integer) →
+  error_empty ⟨true ⊢ let x1 : integer = x + 1 in
+                      error_empty ⟨true ⊢ x1 + 1⟩⟩
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize --debug
+[DEBUG] Collecting rules...
+[DEBUG] Reading files...
+[DEBUG] Parsing tests/test_scope/good/scope_call4.catala_en
+[DEBUG] Name resolution...
+[DEBUG] Desugaring...
+[DEBUG] Disambiguating...
+[DEBUG] Linting...
+[DEBUG] Typechecking...
+[DEBUG] Translating to default calculus...
+[DEBUG] Optimizing default calculus...
+[DEBUG] Typechecking again...
+[DEBUG] Compiling program into lambda calculus...
+[DEBUG] Optimizing lambda calculus...
+[DEBUG] Starting interpretation...
+[DEBUG] End of interpretation
 [RESULT] Computation successful! Results:
-[RESULT] f1 = ESome <function>
-[RESULT] f2 = ESome <function>
+[RESULT]
+f1 =
+  ESome
+    (λ (x: integer) →
+     ESome
+       match
+         (match (ESome (λ (x1: integer) → ESome (x1 + 1))) with
+          | ENone _ → ENone _
+          | ESome g → g (x + 1))
+         with
+       | ENone _ → raise NoValueProvided
+       | ESome f1 → f1)
+[RESULT]
+f2 =
+  ESome
+    (λ (x: integer) →
+     ESome
+       match
+         (match (ESome (λ (x1: integer) → ESome (x1 + 1))) with
+          | ENone _ → ENone _
+          | ESome g → g (x + 1))
+         with
+       | ENone _ → raise NoValueProvided
+       | ESome f2 → f2)
 ```

@@ -183,7 +183,7 @@ module Flags = struct
           "_build" / "default" / "compiler" / "plugins";
         ]
       in
-      value & opt_all dir default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc
+      value & opt_all string default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc
 
     let disable_warnings =
       value

@@ -635,6 +635,7 @@ let run_inline_tests
                    not (String.starts_with ~prefix:"OCAMLRUNPARAM=" s))
             |> Seq.cons "CATALA_OUT=-"
             |> Seq.cons "CATALA_COLOR=never"
+            |> Seq.cons "CATALA_PLUGINS="
             |> Array.of_seq
           in
           let pid =

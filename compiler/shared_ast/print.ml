@@ -954,7 +954,8 @@ module UserFacing = struct
       if Z.equal n Z.zero then 0 else 1 + ndigits (Z.div n (Z.of_int 10))
     in
     aux 0
-      (if Z.equal int_part Z.zero then None else Some (Cli.globals.max_prec_digits - ndigits int_part))
+      (if Z.equal int_part Z.zero then None
+      else Some (Cli.globals.max_prec_digits - ndigits int_part))
       rem
   (* It would be nice to print ratios as % but that's impossible to guess.
      Trying would lead to inconsistencies where some comparable numbers are in %
