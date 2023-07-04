@@ -23,24 +23,39 @@ open Shared_ast
 type verification_condition_kind =
   | NoEmptyError
       (** This verification condition checks whether a definition never returns
-          an empty error *)
+          an empty error. Has type [bool]. *)
   | NoOverlappingExceptions
       (** This verification condition checks whether a definition never returns
-          a conflict error *)
+          a conflict error. Has type [bool]. *)
+  | DateComputation
+      (** This verification condition is just a slice of the program (a
+          subexpression) that features computations on dates. *)
 
 type verification_condition = {
   vc_guard : typed Dcalc.Ast.expr;
       (** This expression should have type [bool]*)
   vc_kind : verification_condition_kind;
-  vc_asserts : typed Dcalc.Ast.expr;
-      (** A conjunction of all assertions in scope of this VC. * This expression
-          should have type [bool] *)
-  vc_scope : ScopeName.t;
   vc_variable : typed Dcalc.Ast.expr Var.t Mark.pos;
 }
 
+type verification_conditions_scope = {
+  vc_scope_asserts : typed Dcalc.Ast.expr;
+      (** A conjunction of all assertions in scope. This expression should have
+          type [bool] *)
+  vc_scope_possible_variable_values :
+    (typed Dcalc.Ast.expr, typed Dcalc.Ast.expr list) Var.Map.t;
+      (** For each variable, a list containing all the possible values that this
+          variable can have. This is a conservative analysis based on the
+          traversal of the default tree. *)
+  vc_scope_variables_defined_outside_of_scope : typed Dcalc.Ast.expr Var.Set.t;
+  vc_scope_list : verification_condition list;
+  vc_scope_variables_typs : (typed Dcalc.Ast.expr, typ) Var.Map.t;
+}
+
 val generate_verification_conditions :
-  typed Dcalc.Ast.program -> ScopeName.t option -> verification_condition list
+  typed Dcalc.Ast.program ->
+  ScopeName.t option ->
+  verification_conditions_scope ScopeName.Map.t
 (** [generate_verification_conditions p None] will generate the verification
     conditions for all the variables of all the scopes of the program [p], while
     [generate_verification_conditions p (Some s)] will focus only on the

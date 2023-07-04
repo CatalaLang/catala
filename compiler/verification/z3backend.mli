@@ -17,4 +17,5 @@
 
 (** Interfacing with the Z3 SMT solver *)
 
+module Backend : Io.Backend
 module Io : Io.BackendIO

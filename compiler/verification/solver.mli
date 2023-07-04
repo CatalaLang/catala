@@ -16,5 +16,7 @@
 
 (** Solves verification conditions using various proof backends *)
 
-val solve_vc :
-  Shared_ast.decl_ctx -> Conditions.verification_condition list -> unit
+val solve_vcs :
+  Shared_ast.decl_ctx ->
+  Conditions.verification_conditions_scope Shared_ast.ScopeName.Map.t ->
+  unit

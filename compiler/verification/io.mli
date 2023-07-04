@@ -28,7 +28,7 @@ module type Backend = sig
 
   type vc_encoding
 
-  val print_encoding : vc_encoding -> string
+  val print_encoding : backend_context -> vc_encoding -> string
 
   type model
   type solver_result = ProvenTrue | ProvenFalse of model option | Unknown
@@ -38,27 +38,21 @@ module type Backend = sig
   val is_model_empty : model -> bool
 
   val translate_expr :
-    backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
+    Conditions.verification_conditions_scope ->
+    backend_context ->
+    typed Dcalc.Ast.expr ->
+    backend_context * vc_encoding
 
   val encode_asserts :
-    backend_context -> typed Dcalc.Ast.expr -> backend_context
+    Conditions.verification_conditions_scope ->
+    backend_context ->
+    typed Dcalc.Ast.expr ->
+    backend_context
 end
 
 module type BackendIO = sig
-  val init_backend : unit -> unit
-
   type backend_context
-
-  val make_context : decl_ctx -> backend_context
-
   type vc_encoding
-
-  val translate_expr :
-    backend_context -> typed Dcalc.Ast.expr -> backend_context * vc_encoding
-
-  val encode_asserts :
-    backend_context -> typed Dcalc.Ast.expr -> backend_context
-
   type model
 
   type vc_encoding_result =
@@ -67,15 +61,19 @@ module type BackendIO = sig
 
   val print_negative_result :
     Conditions.verification_condition ->
+    ScopeName.t ->
     backend_context ->
     model option ->
     string
 
-  val encode_and_check_vc :
-    decl_ctx -> Conditions.verification_condition * vc_encoding_result -> bool
-  (** [encode_and_check_vc] spawns a new Z3 solver and tries to solve the
-      expression [vc]. Returns [true] if the vs was proven true and [false]
-      otherwise. **)
+  val check_vc :
+    decl_ctx ->
+    ScopeName.t ->
+    Conditions.verification_conditions_scope ->
+    Conditions.verification_condition * vc_encoding_result ->
+    bool
+  (** [check_vc] spawns a new Z3 solver and tries to solve the expression [vc].
+      Returns [true] if the vs was proven true and [false] otherwise. **)
 end
 
 module MakeBackendIO : functor (B : Backend) ->

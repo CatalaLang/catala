@@ -366,8 +366,7 @@ let driver backend source_file (options : Cli.global_options) : int =
                 | None -> None
                 | Some _ -> Some scope_uid)
             in
-
-            Verification.Solver.solve_vc prgm.decl_ctx vcs
+            Verification.Solver.solve_vcs prgm.decl_ctx vcs
           | `Interpret ->
             if options.link_modules <> [] then (
               Message.emit_debug "Loading shared modules...";

@@ -2,6 +2,7 @@
  (name verification)
  (public_name catala.verification)
  (libraries
+  str
   bindlib
   catala_utils
   dcalc
@@ -11,7 +12,11 @@
    z3backend.ml
    from
    (z3 -> z3backend.real.ml)
-   (-> z3backend.dummy.ml))))
+   (-> z3backend.dummy.ml))
+  (select
+   mopsabackend.ml
+   from
+   (-> mopsabackend.real.ml))))
 
 (documentation
  (package catala)

@@ -25,4 +25,6 @@ $ catala Proof --disable_counterexamples
    │          ‾
    └─ Article
 Counterexample generation is disabled so none was generated.
+[ERROR] Some potential errors were found during the proof run.
+#return code 255#
 ```

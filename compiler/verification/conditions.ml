@@ -26,11 +26,13 @@ open Ast
 type vc_return = typed expr
 (** The return type of VC generators is the VC expression *)
 
-type ctx = {
-  current_scope_name : ScopeName.t;
-  decl : decl_ctx;
-  input_vars : typed expr Var.t list;
-  scope_variables_typs : (typed expr, typ) Var.Map.t;
+type scope_conditions_ctx = {
+  scope_cond_decls : decl_ctx;
+  scope_cond_input_vars : typed expr Var.Set.t;
+  scope_cond_subscope_output_vars : typed expr Var.Set.t;
+  scope_cond_variables_typs : (typed expr, typ) Var.Map.t;
+  scope_cond_asserts : typed expr list;
+  scope_cond_possible_values : (typed expr, typed expr list) Var.Map.t;
 }
 
 let rec conjunction_exprs (exprs : typed expr list) (mark : typed mark) :
@@ -111,8 +113,9 @@ let half_product (l1 : 'a list) (l2 : 'b list) : ('a * 'b) list =
     variables, or [fun () -> e1] for subscope variables. But what we really want
     to analyze is only [e1], so we match this outermost structure explicitely
     and have a clean verification condition generator that only runs on [e1] *)
-let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
-    typed expr =
+let match_and_ignore_outer_reentrant_default
+    (ctx : scope_conditions_ctx)
+    (e : typed expr) : typed expr =
   match Mark.remove e with
   | EErrorOnEmpty
       ( EDefault
@@ -122,7 +125,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
             cons;
           },
         _ )
-    when List.exists (fun x' -> Var.eq x x') ctx.input_vars ->
+    when Var.Set.exists (fun x' -> Var.eq x x') ctx.scope_cond_input_vars ->
     (* scope variables*)
     cons
   | EAbs { binder; tys = [(TLit TUnit, _)] } ->
@@ -155,8 +158,9 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
     [b] such that if [b] is true, then [e] will never return an empty error. It
     also returns a map of all the types of locally free variables inside the
     expression. *)
-let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
-    vc_return =
+let rec generate_vc_must_not_return_empty
+    (ctx : scope_conditions_ctx)
+    (e : typed expr) : vc_return =
   match Mark.remove e with
   | EAbs { binder; _ } ->
     (* Hot take: for a function never to return an empty error when called, it
@@ -247,8 +251,9 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
     expression [b] such that if [b] is true, then [e] will never return a
     conflict error. It also returns a map of all the types of locally free
     variables inside the expression. *)
-let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
-    vc_return =
+let rec generate_vc_must_not_return_conflict
+    (ctx : scope_conditions_ctx)
+    (e : typed expr) : vc_return =
   (* See the code of [generate_vc_must_not_return_empty] for a list of
      invariants on which this function relies on. *)
   match Mark.remove e with
@@ -289,34 +294,79 @@ let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
          e [])
       (Mark.get e)
 
+(** [slice_expression_for_date_computations ctx e] returns a list of
+    subexpressions of [e] whose top AST node is a computation on dates that can
+    raise [Dates_calc.AmbiguousComputation], that is [Dates_calc.add_dates]. The
+    list is ordered from the smallest subexpressions to the biggest. *)
+let rec slice_expression_for_date_computations
+    (ctx : scope_conditions_ctx)
+    (e : typed expr) : vc_return list =
+  (* let (Typed { ty = t; _ }) = Mark.get e in *)
+  match Mark.remove e with
+  | EApp
+      {
+        f =
+          ( EOp
+              {
+                op =
+                  ( Op.Lte_dat_dat | Op.Lt_dat_dat | Op.Gt_dat_dat
+                  | Op.Gte_dat_dat );
+                tys = _;
+              },
+            _ );
+        args;
+      } ->
+    let r =
+      List.flatten (List.map (slice_expression_for_date_computations ctx) args)
+    in
+    if r <> [] then [e] else []
+  | EApp
+      {
+        f =
+          EOp { op = Op.Add_dat_dur Dates_calc.Dates.AbortOnRound; tys = _ }, _;
+        args;
+      } ->
+    List.flatten (List.map (slice_expression_for_date_computations ctx) args)
+    @ [e]
+  | _ ->
+    Expr.shallow_fold
+      (fun e acc -> slice_expression_for_date_computations ctx e @ acc)
+      e []
+
+(* Expects a top [EDefault] node and below the tree of defaults. *)
+let rec generate_possible_values (ctx : scope_conditions_ctx) (e : typed expr) :
+    typed expr list =
+  match Mark.remove e with
+  | EDefault { excepts; just = _; cons = c } ->
+    generate_possible_values ctx c
+    @ List.flatten (List.map (generate_possible_values ctx) excepts)
+  | _ -> [e]
+
 (** {1 Interface}*)
 
-type verification_condition_kind = NoEmptyError | NoOverlappingExceptions
+type verification_condition_kind =
+  | NoEmptyError
+  | NoOverlappingExceptions
+  | DateComputation
 
 type verification_condition = {
   vc_guard : typed expr;
   (* should have type bool *)
   vc_kind : verification_condition_kind;
-  (* All assertions defined at the top-level of the scope corresponding to this
-     assertion *)
-  vc_asserts : typed expr;
-  vc_scope : ScopeName.t;
   vc_variable : typed expr Var.t Mark.pos;
 }
 
-let trivial_assert e = Mark.copy e (ELit (LBool true))
-
 let rec generate_verification_conditions_scope_body_expr
-    (ctx : ctx)
+    (ctx : scope_conditions_ctx)
     (scope_body_expr : 'm expr scope_body_expr) :
-    ctx * verification_condition list * typed expr list =
+    scope_conditions_ctx * verification_condition list =
   match scope_body_expr with
-  | Result _ -> ctx, [], []
+  | Result _ -> ctx, []
   | ScopeLet scope_let ->
     let scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
     in
-    let new_ctx, vc_list, assert_list =
+    let new_ctx, vc_list =
       match scope_let.scope_let_kind with
       | Assertion -> (
         let e =
@@ -325,7 +375,7 @@ let rec generate_verification_conditions_scope_body_expr
         match Mark.remove e with
         | EAssert e ->
           let e = match_and_ignore_outer_reentrant_default ctx e in
-          ctx, [], [e]
+          { ctx with scope_cond_asserts = e :: ctx.scope_cond_asserts }, []
         | _ ->
           Message.raise_spanned_error (Expr.pos e)
             "Internal error: this assertion does not have the structure \
@@ -333,7 +383,25 @@ let rec generate_verification_conditions_scope_body_expr
              %a"
             (Print.expr ()) e)
       | DestructuringInputStruct ->
-        { ctx with input_vars = scope_let_var :: ctx.input_vars }, [], []
+        ( {
+            ctx with
+            scope_cond_input_vars =
+              Var.Set.add scope_let_var ctx.scope_cond_input_vars;
+            scope_cond_variables_typs =
+              Var.Map.add scope_let_var scope_let.scope_let_typ
+                ctx.scope_cond_variables_typs;
+          },
+          [] )
+      | DestructuringSubScopeResults ->
+        ( {
+            ctx with
+            scope_cond_subscope_output_vars =
+              Var.Set.add scope_let_var ctx.scope_cond_subscope_output_vars;
+            scope_cond_variables_typs =
+              Var.Map.add scope_let_var scope_let.scope_let_typ
+                ctx.scope_cond_variables_typs;
+          },
+          [] )
       | ScopeVarDefinition | SubScopeVarDefinition ->
         (* For scope variables, we should check both that they never evaluate to
            emptyError nor conflictError. But for subscope variable definitions,
@@ -345,10 +413,14 @@ let rec generate_verification_conditions_scope_body_expr
         in
         let e = match_and_ignore_outer_reentrant_default ctx e in
         let vc_confl = generate_vc_must_not_return_conflict ctx e in
+        let possible_values : typed expr list =
+          generate_possible_values ctx e
+        in
         let vc_confl =
           if !Cli.optimize_flag then
             Expr.unbox
-              (Shared_ast.Optimizations.optimize_expr ctx.decl vc_confl)
+              (Shared_ast.Optimizations.optimize_expr ctx.scope_cond_decls
+                 vc_confl)
           else vc_confl
         in
         let vc_list =
@@ -358,8 +430,6 @@ let rec generate_verification_conditions_scope_body_expr
               vc_kind = NoOverlappingExceptions;
               (* Placeholder until we add all assertions in scope once
                * we finished traversing it *)
-              vc_asserts = trivial_assert e;
-              vc_scope = ctx.current_scope_name;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             };
           ]
@@ -371,42 +441,80 @@ let rec generate_verification_conditions_scope_body_expr
             let vc_empty =
               if !Cli.optimize_flag then
                 Expr.unbox
-                  (Shared_ast.Optimizations.optimize_expr ctx.decl vc_empty)
+                  (Shared_ast.Optimizations.optimize_expr ctx.scope_cond_decls
+                     vc_empty)
               else vc_empty
             in
             {
               vc_guard = Mark.copy e (Mark.remove vc_empty);
               vc_kind = NoEmptyError;
-              vc_asserts = trivial_assert e;
-              vc_scope = ctx.current_scope_name;
               vc_variable = scope_let_var, scope_let.scope_let_pos;
             }
             :: vc_list
           | _ -> vc_list
         in
-        ctx, vc_list, []
-      | _ -> ctx, [], []
+        let vc_list =
+          let subexprs_dates : vc_return list =
+            slice_expression_for_date_computations ctx e
+          in
+          let subexprs_dates =
+            List.map
+              (fun e ->
+                if !Cli.optimize_flag then
+                  Expr.unbox
+                    (Shared_ast.Optimizations.optimize_expr ctx.scope_cond_decls
+                       e)
+                else e)
+              subexprs_dates
+          in
+          vc_list
+          @ List.map
+              (fun subexpr_date ->
+                {
+                  vc_guard = subexpr_date;
+                  vc_kind = DateComputation;
+                  vc_variable = scope_let_var, scope_let.scope_let_pos;
+                })
+              subexprs_dates
+        in
+        ( {
+            ctx with
+            scope_cond_possible_values =
+              Var.Map.add scope_let_var possible_values
+                ctx.scope_cond_possible_values;
+          },
+          vc_list )
+      | CallingSubScope -> ctx, []
     in
-    let new_ctx, new_vcs, new_asserts =
+    let new_ctx, new_vcs =
       generate_verification_conditions_scope_body_expr
         {
           new_ctx with
-          scope_variables_typs =
+          scope_cond_variables_typs =
             Var.Map.add scope_let_var scope_let.scope_let_typ
-              new_ctx.scope_variables_typs;
+              new_ctx.scope_cond_variables_typs;
         }
         scope_let_next
     in
-    new_ctx, vc_list @ new_vcs, assert_list @ new_asserts
+    new_ctx, vc_list @ new_vcs
+
+type verification_conditions_scope = {
+  vc_scope_asserts : typed expr;
+  vc_scope_possible_variable_values :
+    (typed Dcalc.Ast.expr, typed Dcalc.Ast.expr list) Var.Map.t;
+  vc_scope_variables_defined_outside_of_scope : typed Dcalc.Ast.expr Var.Set.t;
+  vc_scope_list : verification_condition list;
+  vc_scope_variables_typs : (typed expr, typ) Var.Map.t;
+}
 
 let generate_verification_conditions_code_items
     (decl_ctx : decl_ctx)
     (code_items : 'm expr code_item_list)
-    (s : ScopeName.t option) : verification_condition list =
+    (s : ScopeName.t option) : verification_conditions_scope ScopeName.Map.t =
   Scope.fold_left
-    ~f:(fun vcs item _ ->
+    ~f:(fun (vcs : verification_conditions_scope ScopeName.Map.t) item _ ->
       match item with
-      | Topdef _ -> []
+      | Topdef _ -> vcs
       | ScopeDef (name, body) ->
         let is_selected_scope =
           match s with
@@ -414,52 +522,67 @@ let generate_verification_conditions_code_items
           | None -> true
           | _ -> false
         in
-        let new_vcs =
-          if is_selected_scope then
-            let _scope_input_var, scope_body_expr =
-              Bindlib.unbind body.scope_body_expr
-            in
-            let ctx =
-              {
-                current_scope_name = name;
-                decl = decl_ctx;
-                input_vars = [];
-                scope_variables_typs =
-                  Var.Map.empty
-                  (* We don't need to add the typ of the scope input var here
-                     because it will never appear in an expression for which we
-                     generate a verification conditions (the big struct is
-                     destructured with a series of let bindings just after. )*);
-              }
-            in
-            let _, vcs, asserts =
-              generate_verification_conditions_scope_body_expr ctx
-                scope_body_expr
-            in
-            let combined_assert =
-              conjunction_exprs asserts
-                (Typed
-                   { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
-            in
-            List.map (fun vc -> { vc with vc_asserts = combined_assert }) vcs
-          else []
-        in
-        new_vcs @ vcs)
-    ~init:[] code_items
+        if is_selected_scope then
+          let _scope_input_var, scope_body_expr =
+            Bindlib.unbind body.scope_body_expr
+          in
+          let init_ctx =
+            {
+              scope_cond_decls = decl_ctx;
+              scope_cond_asserts = [];
+              scope_cond_input_vars = Var.Set.empty;
+              scope_cond_possible_values = Var.Map.empty;
+              scope_cond_subscope_output_vars = Var.Set.empty;
+              scope_cond_variables_typs =
+                Var.Map.empty
+                (* We don't need to add the typ of the scope input var here
+                   because it will never appear in an expression for which we
+                   generate a verification conditions (the big struct is
+                   destructured with a series of let bindings just after. )*);
+            }
+          in
+          let ctx, scope_vcs =
+            generate_verification_conditions_scope_body_expr init_ctx
+              scope_body_expr
+          in
+          let combined_assert =
+            conjunction_exprs ctx.scope_cond_asserts
+              (Typed { pos = Pos.no_pos; ty = Mark.add Pos.no_pos (TLit TBool) })
+          in
+          ScopeName.Map.add name
+            {
+              vc_scope_asserts = combined_assert;
+              vc_scope_list = scope_vcs;
+              vc_scope_possible_variable_values = ctx.scope_cond_possible_values;
+              vc_scope_variables_defined_outside_of_scope =
+                Var.Set.union ctx.scope_cond_input_vars
+                  ctx.scope_cond_subscope_output_vars;
+              vc_scope_variables_typs = ctx.scope_cond_variables_typs;
+            }
+            vcs
+        else vcs)
+    ~init:ScopeName.Map.empty code_items
 
 let generate_verification_conditions (p : 'm program) (s : ScopeName.t option) :
-    verification_condition list =
-  let vcs =
+    verification_conditions_scope ScopeName.Map.t =
+  let vcs : verification_conditions_scope ScopeName.Map.t =
     generate_verification_conditions_code_items p.decl_ctx p.code_items s
   in
-  (* We sort this list by scope name and then variable name to ensure consistent
-     output for testing*)
-  List.sort
-    (fun vc1 vc2 ->
-      let to_str vc =
-        Format.asprintf "%s.%s"
-          (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
-          (Bindlib.name_of (Mark.remove vc.vc_variable))
-      in
-      String.compare (to_str vc1) (to_str vc2))
+  ScopeName.Map.mapi
+    (fun scope_name scope_vc ->
+      {
+        scope_vc with
+        vc_scope_list =
+          (* We sort this list by scope name and then variable name to ensure
+             consistent output for testing*)
+          List.sort
+            (fun vc1 vc2 ->
+              let to_str vc =
+                Format.asprintf "%s.%s"
+                  (Format.asprintf "%a" ScopeName.format_t scope_name)
+                  (Bindlib.name_of (Mark.remove vc.vc_variable))
+              in
+              String.compare (to_str vc1) (to_str vc2))
+            scope_vc.vc_scope_list;
+      })
     vcs

@@ -13,5 +13,5 @@ scope A:
 
 ```catala-test-inline
 $ catala Proof --disable_counterexamples
-[RESULT] No errors found during the proof mode run.
+[RESULT] No potential errors found during the proof mode run.
 ```

@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
-   Aymeric Fromherz <aymeric.fromherz@inria.fr>
+   and social benefits computation rules. Copyright (C) 2023 Inria, contributor:
+   Raphaël Monat <raphael.monat@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -19,9 +19,9 @@
 
 let dummy () =
   Catala_utils.Message.raise_error
-    "This instance of Catala was compiled without Z3 support."
+    "This instance of Catala is not linked with Mopsa."
 
-module Backend = struct
+module Io = struct
   let init_backend () = dummy ()
 
   type backend_context = unit
@@ -30,13 +30,9 @@ module Backend = struct
 
   type vc_encoding = unit
 
-  let translate_expr _ _ _ = dummy ()
-  let encode_asserts _ _ _ = dummy ()
-end
+  let translate_expr _ _ = dummy ()
+  let encode_asserts _ _ = dummy ()
 
-module Io = struct
-  type backend_context = unit
-  type vc_encoding = unit
   type model = unit
   type vc_encoding_result = Success of model * model | Fail of string
 

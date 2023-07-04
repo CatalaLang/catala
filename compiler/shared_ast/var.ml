@@ -76,6 +76,11 @@ module Set = struct
   let of_list l = of_list (List.map t l)
   let elements s = elements s |> List.map get
   let diff s1 s2 = diff s1 s2
+  let choose_opt s = Option.map get (choose_opt s)
+  let filter f s = filter (fun v -> f (get v)) s
+  let exists f s = exists (fun v -> f (get v)) s
+  let inter s1 s2 = inter s1 s2
+  let fold f s init = fold (fun v acc -> f (get v) acc) s init
 
   (* Add more as needed *)
 end
@@ -95,9 +100,14 @@ module Map = struct
   let find v m = find (t v) m
   let find_opt v m = find_opt (t v) m
   let bindings m = bindings m |> List.map (fun (v, x) -> get v, x)
+  let map f m = map f m
+  let mapi f m = mapi (fun v x -> f (get v) x) m
   let mem x m = mem (t x) m
   let union f m1 m2 = union (fun v x1 x2 -> f (get v) x1 x2) m1 m2
   let fold f m acc = fold (fun v x acc -> f (get v) x acc) m acc
+  let filter f m = filter (fun k v -> f (get k) v) m
+  let exists f m = exists (fun k v -> f (get k) v) m
+  let remove x s = remove (t x) s
 
   (* Add more as needed *)
 end

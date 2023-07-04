@@ -580,7 +580,10 @@ let rec expr_aux :
     pr colors fmt e;
     Format.pp_close_box fmt ()
   | EApp { f = EOp { op; _ }, _; args = [arg1] } ->
-    Format.fprintf fmt "@[<hv 2>%a@ %a@]" (operator ~debug) op (rhs exprc) arg1
+    (* FIXME: I'd like to have an imperative style printing of function calls
+       (ie f(a,b,c) rather than (f a b c)) for Mopsa export. How to concialiate
+       both? *)
+    Format.fprintf fmt "@[<hv 2>%a(%a)@]" (operator ~debug) op (rhs exprc) arg1
   | EApp { f; args } ->
     Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs exprc) f
       (Format.pp_print_list
