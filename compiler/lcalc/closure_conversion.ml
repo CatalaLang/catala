@@ -27,7 +27,7 @@ type 'm ctx = {
 
 let tys_as_tanys tys = List.map (fun x -> Mark.map (fun _ -> TAny) x) tys
 
-(** { 1 Transforming closures}*)
+(** {1 Transforming closures}*)
 
 (** Returns the expression with closed closures and the set of free variables
     inside this new expression. Implementation guided by
@@ -572,7 +572,7 @@ let hoist_closures_program (p : 'm program) : 'm program Bindlib.box =
     (fun new_code_items -> { p with code_items = new_code_items })
     new_code_items
 
-(** { 1 Closure conversion }*)
+(** {1 Closure conversion}*)
 
 let closure_conversion (p : 'm program) : 'm program Bindlib.box =
   let new_p = transform_closures_program p in

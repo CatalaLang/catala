@@ -21,7 +21,10 @@
 
 type nonrec unit = unit
 type nonrec bool = bool
-type money = Z.t (** Number of cents *)
+
+type money = Z.t
+(** Number of cents *)
+
 type integer = Z.t
 type decimal = Q.t
 type date = Dates_calc.Dates.date
