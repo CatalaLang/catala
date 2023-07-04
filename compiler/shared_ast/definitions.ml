@@ -238,7 +238,6 @@ module Op = struct
     | Map : < polymorphic ; .. > t
     | Concat : < polymorphic ; .. > t
     | Filter : < polymorphic ; .. > t
-    | Reduce : < polymorphic ; .. > t
     (* * overloaded *)
     | Add : < overloaded ; .. > t
     | Add_int_int : < resolved ; .. > t
@@ -298,6 +297,7 @@ module Op = struct
     | Eq_dat_dat : < resolved ; .. > t
     (* ternary *)
     (* * polymorphic *)
+    | Reduce : < polymorphic ; .. > t
     | Fold : < polymorphic ; .. > t
     | HandleDefault : < polymorphic ; .. > t
     | HandleDefaultOpt : < polymorphic ; .. > t
