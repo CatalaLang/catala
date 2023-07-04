@@ -39,5 +39,5 @@ y is used here in the definition of z:
 13 │   definition z under condition y < 1 consequence equals y
    │                                ‾
    └─ Article
-#return code 255#
+#return code 123#
 ```

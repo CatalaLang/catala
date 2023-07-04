@@ -25,5 +25,5 @@ champ d'application Test:
 ```catala-test-inline
 $ catala Interpret -s Test
 [RESULT] Computation successful! Results:
-[RESULT] r = true
+[RESULT] r = vrai
 ```

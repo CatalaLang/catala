@@ -27,5 +27,5 @@ Second instance of state "bar":
 7 │     state bar
   │           ‾‾‾
   └─ Test
-#return code 255#
+#return code 123#
 ```

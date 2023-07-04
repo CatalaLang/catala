@@ -135,7 +135,7 @@ let tag_with_log_entry
     (markings : Uid.MarkedString.info list) : 'm Ast.expr boxed =
   let m = mark_tany (Mark.get e) (Expr.pos e) in
 
-  if !Cli.trace_flag then
+  if Cli.globals.trace then
     Expr.eapp (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] m) [e] m
   else e
 

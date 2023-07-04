@@ -84,8 +84,6 @@ let get_end_column (pos : t) : int =
 
 let get_file (pos : t) : string = (fst pos.code_pos).Lexing.pos_fname
 
-type input_file = FileName of string | Contents of string
-
 let to_string (pos : t) : string =
   let s, e = pos.code_pos in
   Printf.sprintf "in file %s, from %d:%d to %d:%d" s.Lexing.pos_fname
@@ -146,7 +144,10 @@ let format_loc_text ppf (pos : t) =
       let ic, input_line_opt =
         if filename = "stdin" then
           let line_index = ref 0 in
-          let lines = String.split_on_char '\n' !Cli.contents in
+          let lines =
+            String.split_on_char '\n'
+              (match Cli.globals.input_file with Contents s -> s | _ -> "")
+          in
           let input_line_opt () : string option =
             match List.nth_opt lines !line_index with
             | Some l ->

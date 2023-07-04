@@ -22,15 +22,6 @@ open Lcalc.Ast
 open Lcalc.To_ocaml
 module D = Dcalc.Ast
 
-let name = "api_web"
-let extension = ".ml"
-
-let info =
-  Cmdliner.Cmd.info name
-    ~doc:
-      "Catala plugin for generating web APIs. It generates OCaml code before \
-       the associated [js_of_ocaml] wrapper."
-
 (** Contains all format functions used to generating the [js_of_ocaml] wrapper
     of the corresponding Catala program. *)
 module To_jsoo = struct
@@ -432,44 +423,60 @@ module To_jsoo = struct
       prgm.code_items
 end
 
-let apply
-    ~(source_file : Pos.input_file)
-    ~(output_file : string option)
-    ~scope
-    (prgm : 'm Lcalc.Ast.program)
-    (type_ordering : Scopelang.Dependency.TVertex.t list) =
-  ignore scope;
-  File.with_formatter_of_opt_file output_file (fun fmt ->
-      Cli.trace_flag := true;
-      Message.emit_debug "Writing OCaml code to %s..."
-        (Option.value ~default:"stdout" output_file);
-      To_ocaml.format_program fmt prgm type_ordering);
-
-  let output_file, filename_without_ext =
-    match output_file with
-    | Some "-" -> output_file, output_file
-    | Some f ->
-      output_file, Some (Filename.basename f |> Filename.remove_extension)
-    | None -> Some "-", None
+let run
+    link_modules
+    output
+    optimize
+    check_invariants
+    avoid_exceptions
+    closure_conversion
+    options =
+  if not options.Cli.trace then
+    Message.raise_error "This plugin requires the --trace flag.";
+  let prg, _, type_ordering =
+    Driver.Passes.lcalc options ~link_modules ~optimize ~check_invariants
+      ~avoid_exceptions ~closure_conversion
+  in
+  let modname =
+    (* TODO: module directive support *)
+    match options.Cli.input_file with
+    | FileName n -> Some (Driver.modname_of_file n)
+    | _ -> None
+  in
+  let () =
+    (* First compile to ocaml (with --trace on) *)
+    let output_file, with_output =
+      Driver.Commands.get_output_format options ~ext:".ml" output
+    in
+    with_output
+    @@ fun fmt ->
+    Message.emit_debug "Compiling program into OCaml...";
+    Message.emit_debug "Writing to %s..."
+      (Option.value ~default:"stdout" output_file);
+    Lcalc.To_ocaml.format_program fmt ?register_module:modname prg type_ordering
   in
   let jsoo_output_file, with_formatter =
-    File.get_formatter_of_out_channel ~source_file
-      ~output_file:
-        (Option.map
-           (fun name ->
-             if "-" = name then "-"
-             else Filename.remove_extension name ^ "_api_web.ml")
-           output_file)
-      ~ext:"_api_web.ml" ()
-  in
-  let module_name =
-    Option.map
-      (fun name -> Printf.sprintf "open %s" (String.capitalize_ascii name))
-      filename_without_ext
+    Driver.Commands.get_output_format options ~ext:"_api_web.ml" output
   in
   with_formatter (fun fmt ->
       Message.emit_debug "Writing JSOO API code to %s..."
         (Option.value ~default:"stdout" jsoo_output_file);
-      To_jsoo.format_program fmt module_name prgm type_ordering)
+      To_jsoo.format_program fmt
+        (Option.map (( ^ ) "open ") modname)
+        prg type_ordering)
 
-let () = Driver.Plugin.register_lcalc info ~extension apply
+let term =
+  let open Cmdliner.Term in
+  const run
+  $ Cli.Flags.link_modules
+  $ Cli.Flags.output
+  $ Cli.Flags.optimize
+  $ Cli.Flags.check_invariants
+  $ Cli.Flags.avoid_exceptions
+  $ Cli.Flags.closure_conversion
+
+let () =
+  Driver.Plugin.register "api_web" term
+    ~doc:
+      "Catala plugin for generating web APIs. It generates OCaml code before \
+       the associated [js_of_ocaml] wrapper."

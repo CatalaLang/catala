@@ -19,11 +19,16 @@
 
 (** {1 Types} *)
 
-type money
-type integer
-type decimal
-type date
-type duration
+type nonrec unit = unit
+type nonrec bool = bool
+
+type money = Z.t
+(** Number of cents *)
+
+type integer = Z.t
+type decimal = Q.t
+type date = Dates_calc.Dates.date
+type duration = Dates_calc.Dates.period
 type date_rounding = Dates_calc.Dates.date_rounding
 
 type source_position = {

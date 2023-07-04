@@ -16,5 +16,5 @@ $ catala Typecheck
 4 │ declaration structure Foo:
   │                       ‾‾‾
   └─ Test
-#return code 255#
+#return code 123#
 ```

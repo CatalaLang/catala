@@ -36,5 +36,5 @@ Type Structure coming from expression:
 6 │     Structure { -- i: 3 -- e: Int content x };
   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```

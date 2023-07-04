@@ -38,5 +38,5 @@ Incriminated subscope variable definition:
 14 │   definition a.a equals 0
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```

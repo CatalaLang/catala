@@ -14,12 +14,12 @@ scope A:
 ```catala-test-inline
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
-[RESULT] x = 4.
+[RESULT] x = 4.0
 [RESULT] y = 1.04
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] x = ESome 4.
+[RESULT] x = ESome 4.0
 [RESULT] y = ESome 1.04
 ```

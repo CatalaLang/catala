@@ -57,7 +57,7 @@ $ catala Interpret -s Ge
    │                                  ‾‾‾‾‾
    └┬ `UncomparableDurations` exception management
     └─ `>=` operator
-#return code 255#
+#return code 123#
 ```
 
 ```catala-test-inline
@@ -77,7 +77,7 @@ $ catala Interpret -s Gt
    │                                 ‾‾‾‾‾
    └┬ `UncomparableDurations` exception management
     └─ `<=` operator
-#return code 255#
+#return code 123#
 ```
 
 ```catala-test-inline
@@ -97,7 +97,7 @@ $ catala Interpret -s Le
    │                                  ‾‾‾‾‾
    └┬ `UncomparableDurations` exception management
     └─ `<=` operator
-#return code 255#
+#return code 123#
 ```
 
 ```catala-test-inline
@@ -117,5 +117,5 @@ $ catala Interpret -s Lt
    │                                 ‾‾‾‾‾
    └┬ `UncomparableDurations` exception management
     └─ `<` operator
-#return code 255#
+#return code 123#
 ```

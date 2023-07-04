@@ -45,6 +45,7 @@ $(PY_VENV_DIR)/stamp: \
     syntax_highlighting/fr/pygments/pyproject.toml \
     syntax_highlighting/pl/pygments/pyproject.toml
 	test -d $(PY_VENV_DIR) || python3 -m venv $(PY_VENV_DIR)
+	$(PY_VENV_ACTIVATE) python3 -m pip install -U pip
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U \
 	  -e runtimes/python/catala \
 	  -e syntax_highlighting/en/pygments \
@@ -102,7 +103,6 @@ runtimes:
 #> plugins					: Builds the compiler backend plugins
 plugins: runtimes
 	dune build compiler/plugins/
-	@echo "define CATALA_PLUGINS=_build/default/compiler/plugins to test the plugins"
 
 ##########################################
 # Rules related to promoted files

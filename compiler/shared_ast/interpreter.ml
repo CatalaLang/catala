@@ -65,7 +65,7 @@ let indent_str = ref ""
 
 (** {1 Evaluation} *)
 let print_log entry infos pos e =
-  if !Cli.trace_flag then
+  if Cli.globals.trace then
     match entry with
     | VarDef _ ->
       Message.emit_log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
@@ -671,7 +671,7 @@ let rec evaluate_expr :
               } ->
             Message.raise_spanned_error (Expr.pos e')
               "Assertion failed: %a %a %a" (Print.expr ()) e1
-              (Print.operator ~debug:!Cli.debug_flag)
+              (Print.operator ~debug:Cli.globals.debug)
               op (Print.expr ()) e2
           | _ ->
             Message.emit_debug "%a" (Print.expr ()) e';
@@ -867,3 +867,13 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     Message.raise_spanned_error (Expr.pos e)
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
+
+let load_runtime_modules = function
+  | [] -> ()
+  | modules ->
+    Message.emit_debug "Loading shared modules...";
+    List.iter
+      Dynlink.(
+        fun m ->
+          loadfile (adapt_filename (Filename.remove_extension m ^ ".cmo")))
+      modules

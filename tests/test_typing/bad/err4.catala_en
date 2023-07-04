@@ -55,5 +55,5 @@ Type Structure coming from expression:
 14 │   output z content collection Structure
    │                               ‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```

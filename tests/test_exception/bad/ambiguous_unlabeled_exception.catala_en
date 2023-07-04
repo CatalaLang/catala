@@ -39,5 +39,5 @@ Candidate definition
 8 │   definition x equals 0
   │              ‾
   └─ Test
-#return code 255#
+#return code 123#
 ```

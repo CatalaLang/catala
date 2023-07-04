@@ -1,6 +1,7 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Denis Merigoux <denis.merigoux@inria.fr>
+   and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
+   Aymeric Fromherz <aymeric.fromherz@inria.fr>, Denis Merigoux
+   <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,18 +15,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Wrapping module around parser and lexer that offers the
-    [Surface.Parser_driver.parse_source_file] API. *)
+let optimize_ref = ref false
+let disable_counterexamples_ref = ref false
 
-open Catala_utils
+(** This sub-lib relies on global refs in many places. This should be cleaned
+    up. *)
+let setup ~optimize ~disable_counterexamples =
+  optimize_ref := optimize;
+  disable_counterexamples_ref := disable_counterexamples
 
-val add_interface :
-  Cli.input_file ->
-  Cli.backend_lang ->
-  Shared_ast.Qident.path ->
-  Ast.program ->
-  Ast.program
-(** Reads only declarations in metadata in the supplied input file, and add them
-    to the given program *)
-
-val parse_top_level_file : Cli.input_file -> Cli.backend_lang -> Ast.program
+let optimize () = !optimize_ref
+let disable_counterexamples () = !disable_counterexamples_ref

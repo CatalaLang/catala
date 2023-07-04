@@ -10,27 +10,22 @@ let _ =
            (scope : Js.js_string Js.t)
            (language : Js.js_string Js.t)
            (trace : bool) =
-         driver `Interpret
-           (Contents (Js.to_string contents))
-           {
-             Cli.debug = false;
-             color = Never;
-             wrap_weaved_output = false;
-             avoid_exceptions = false;
-             plugins_dirs = [];
-             language = Some (Js.to_string language);
-             max_prec_digits = None;
-             closure_conversion = false;
-             message_format = Human;
-             trace;
-             disable_warnings = true;
-             disable_counterexamples = false;
-             optimize = false;
-             check_invariants = false;
-             ex_scope = Some (Js.to_string scope);
-             ex_variable = None;
-             output_file = None;
-             print_only_law = false;
-             link_modules = [];
-           }
+         let contents = Js.to_string contents in
+         let scope = Js.to_string scope in
+         let language = Js.to_string language in
+         let language =
+           try List.assoc (String.lowercase_ascii language) Cli.languages
+           with Not_found ->
+             Message.raise_error "Unrecognised input locale %S" language
+         in
+         let options =
+           Cli.enforce_globals ~input_file:(Contents contents)
+             ~language:(Some language) ~debug:false ~color:Never ~trace ()
+         in
+         let prg, ctx, _type_order =
+           Passes.dcalc options ~link_modules:[] ~optimize:false
+             ~check_invariants:false
+         in
+         Shared_ast.Interpreter.interpret_program_dcalc prg
+           (Commands.get_scope_uid ctx scope)
     end)

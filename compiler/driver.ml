@@ -1,7 +1,7 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020 Inria,
    contributors: Denis Merigoux <denis.merigoux@inria.fr>, Emile Rolley
-   <emile.rolley@tuta.io>
+   <emile.rolley@tuta.io>, Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -16,21 +16,206 @@
    the License. *)
 
 open Catala_utils
+open Shared_ast
 
 (** Associates a file extension with its corresponding {!type: Cli.backend_lang}
     string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 
-type backend = [ Cli.backend_option | `Plugin of Plugin.handler ]
+let modname_of_file f =
+  (* Fixme: make this more robust *)
+  String.capitalize_ascii Filename.(basename (remove_extension f))
 
-let get_scope_uid
-    (options : Cli.global_options)
-    (backend : backend)
-    (ctxt : Desugared.Name_resolution.context) =
-  match options.ex_scope, backend with
-  | None, `Interpret ->
-    Message.raise_error "No scope was provided for execution."
-  | None, _ ->
+let get_lang options file =
+  let filename = match file with Cli.FileName s -> s | Contents _ -> "-" in
+  Option.bind
+    (List.assoc_opt (Filename.extension filename) extensions)
+    (fun l -> List.assoc_opt l Cli.languages)
+  |> function
+  | Some lang -> lang
+  | None -> (
+    match options.Cli.language with
+    | Some lang -> lang
+    | None ->
+      Message.raise_error
+        "Could not infer language variant from the extension of \
+         @{<yellow>%s@}, and @{<bold>--language@} was not specified"
+        filename)
+
+let load_module_interfaces prg options link_modules =
+  List.fold_left
+    (fun prg f ->
+      let lang = get_lang options (FileName f) in
+      let modname = modname_of_file f in
+      Surface.Parser_driver.add_interface (FileName f) lang [modname] prg)
+    prg link_modules
+
+module Passes = struct
+  (* Each pass takes only its cli options, then calls upon its dependent passes
+     (forwarding their options as needed) *)
+
+  let surface options : Surface.Ast.program * Cli.backend_lang =
+    Message.emit_debug "Reading files...";
+    let language = get_lang options options.input_file in
+    let prg =
+      Surface.Parser_driver.parse_top_level_file options.input_file language
+    in
+    Surface.Fill_positions.fill_pos_with_legislative_info prg, language
+
+  let desugared options ~link_modules :
+      Desugared.Ast.program * Desugared.Name_resolution.context =
+    let prg, _ = surface options in
+    let prg = load_module_interfaces prg options link_modules in
+    Message.emit_debug "Name resolution...";
+    let ctx = Desugared.Name_resolution.form_context prg in
+    (* let scope_uid = get_scope_uid options backend ctx in
+     * (\* This uid is a Desugared identifier *\)
+     * let variable_uid = get_variable_uid options backend ctx scope_uid in *)
+    Message.emit_debug "Desugaring...";
+    let prg = Desugared.From_surface.translate_program ctx prg in
+    Message.emit_debug "Disambiguating...";
+    let prg = Desugared.Disambiguate.program prg in
+    Message.emit_debug "Linting...";
+    Desugared.Linting.lint_program prg;
+    prg, ctx
+  (* Note: we forward the name resolution context throughout in order to locate
+     uids from strings. Maybe a reduced form should be included directly in
+     [prg] for that purpose *)
+
+  let scopelang options ~link_modules :
+      untyped Scopelang.Ast.program
+      * Desugared.Name_resolution.context
+      * Desugared.Dependency.ExceptionsDependencies.t
+        Desugared.Ast.ScopeDef.Map.t =
+    Message.emit_debug "Collecting rules...";
+    let prg, ctx = desugared options ~link_modules in
+    let exceptions_graphs =
+      Scopelang.From_desugared.build_exceptions_graph prg
+    in
+    let prg =
+      Scopelang.From_desugared.translate_program prg exceptions_graphs
+    in
+    prg, ctx, exceptions_graphs
+
+  let dcalc options ~link_modules ~optimize ~check_invariants :
+      typed Dcalc.Ast.program
+      * Desugared.Name_resolution.context
+      * Scopelang.Dependency.TVertex.t list =
+    let prg, ctx, _ = scopelang options ~link_modules in
+    Message.emit_debug "Typechecking...";
+    let type_ordering =
+      Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
+        prg.program_ctx.ctx_enums
+    in
+    let prg = Scopelang.Ast.type_program prg in
+    Message.emit_debug "Translating to default calculus...";
+    let prg = Dcalc.From_scopelang.translate_program prg in
+    let prg =
+      if optimize then begin
+        Message.emit_debug "Optimizing default calculus...";
+        Optimizations.optimize_program prg
+      end
+      else prg
+    in
+    Message.emit_debug "Typechecking again...";
+    let prg =
+      try Typing.program ~leave_unresolved:false prg
+      with Message.CompilerError error_content ->
+        let bt = Printexc.get_raw_backtrace () in
+        Printexc.raise_with_backtrace
+          (Message.CompilerError
+             (Message.Content.mark_as_internal_error error_content))
+          bt
+    in
+    if check_invariants then (
+      Message.emit_debug "Checking invariants...";
+      let result = Dcalc.Invariants.check_all_invariants prg in
+      if not result then
+        raise (Message.raise_internal_error "Some Dcalc invariants are invalid"));
+    prg, ctx, type_ordering
+
+  let lcalc
+      options
+      ~link_modules
+      ~optimize
+      ~check_invariants
+      ~avoid_exceptions
+      ~closure_conversion :
+      untyped Lcalc.Ast.program
+      * Desugared.Name_resolution.context
+      * Scopelang.Dependency.TVertex.t list =
+    let prg, ctx, type_ordering =
+      dcalc options ~link_modules ~optimize ~check_invariants
+    in
+    Message.emit_debug "Compiling program into lambda calculus...";
+    let avoid_exceptions = avoid_exceptions || closure_conversion in
+    let optimize = optimize || closure_conversion in
+    (* --closure_conversion implies --avoid_exceptions and --optimize *)
+    let prg =
+      if avoid_exceptions then (
+        if options.trace then
+          Message.raise_error
+            "Option --avoid_exceptions is not compatible with option --trace";
+        Lcalc.Compile_without_exceptions.translate_program prg)
+      else Program.untype (Lcalc.Compile_with_exceptions.translate_program prg)
+    in
+    let prg =
+      if optimize then begin
+        Message.emit_debug "Optimizing lambda calculus...";
+        Optimizations.optimize_program prg
+      end
+      else prg
+    in
+    let prg =
+      if not closure_conversion then prg
+      else (
+        Message.emit_debug "Performing closure conversion...";
+        let prg = Lcalc.Closure_conversion.closure_conversion prg in
+        let prg = Bindlib.unbox prg in
+        let prg =
+          if optimize then (
+            Message.emit_debug "Optimizing lambda calculus...";
+            Optimizations.optimize_program prg)
+          else prg
+        in
+        Message.emit_debug "Retyping lambda calculus...";
+        let prg = Program.untype (Typing.program ~leave_unresolved:true prg) in
+        prg)
+    in
+    prg, ctx, type_ordering
+
+  let scalc
+      options
+      ~link_modules
+      ~optimize
+      ~check_invariants
+      ~avoid_exceptions
+      ~closure_conversion :
+      Scalc.Ast.program
+      * Desugared.Name_resolution.context
+      * Scopelang.Dependency.TVertex.t list =
+    let prg, ctx, type_ordering =
+      lcalc options ~link_modules ~optimize ~check_invariants ~avoid_exceptions
+        ~closure_conversion
+    in
+    Message.emit_debug "Compiling program into statement calculus...";
+    Scalc.From_lcalc.translate_program prg, ctx, type_ordering
+end
+
+module Commands = struct
+  open Cmdliner
+
+  let get_scope_uid (ctxt : Desugared.Name_resolution.context) (scope : string)
+      =
+    match Ident.Map.find_opt scope ctxt.typedefs with
+    | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
+    | _ ->
+      Message.raise_error
+        "There is no scope @{<yellow>\"%s\"@} inside the program." scope
+
+  (* TODO: this is very weird but I'm trying to maintain the current behaviour
+     for now *)
+  let get_random_scope_uid (ctxt : Desugared.Name_resolution.context) =
     let _, scope =
       try
         Shared_ast.Ident.Map.filter_map
@@ -43,47 +228,27 @@ let get_scope_uid
         Message.raise_error "There isn't any scope inside the program."
     in
     scope
-  | Some name, _ -> (
-    match Shared_ast.Ident.Map.find_opt name ctxt.typedefs with
-    | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
-    | _ ->
-      Message.raise_error
-        "There is no scope @{<yellow>\"%s\"@} inside the program." name)
 
-let get_variable_uid
-    (options : Cli.global_options)
-    (backend : backend)
-    (ctxt : Desugared.Name_resolution.context)
-    (scope_uid : Shared_ast.ScopeName.t) =
-  match options.ex_variable, backend with
-  | None, `Exceptions ->
-    Message.raise_error
-      "Please specify a variable with the -v option to print its exception \
-       tree."
-  | None, _ -> None
-  | Some name, _ -> (
-    (* Sometimes the variable selected is of the form [a.b]*)
+  let get_variable_uid
+      (ctxt : Desugared.Name_resolution.context)
+      (scope_uid : ScopeName.t)
+      (variable : string) =
+    (* Sometimes the variable selected is of the form [a.b] *)
     let first_part, second_part =
-      match
-        Re.(
-          exec_opt
-            (compile
-            @@ whole_string
-            @@ seq [group (rep1 (compl [char '.'])); char '.'; group (rep1 any)]
-            )
-            name)
-      with
-      | None -> name, None
-      | Some groups -> Re.Group.get groups 1, Some (Re.Group.get groups 2)
+      match String.index_opt variable '.' with
+      | Some i ->
+        ( String.sub variable 0 i,
+          Some (String.sub variable i (String.length variable - i)) )
+      | None -> variable, None
     in
     match
-      Shared_ast.Ident.Map.find_opt first_part
-        (Shared_ast.ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
+      Ident.Map.find_opt first_part
+        (ScopeName.Map.find scope_uid ctxt.scopes).var_idmap
     with
     | None ->
       Message.raise_error
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
-        name Shared_ast.ScopeName.format_t scope_uid
+        variable ScopeName.format_t scope_uid
     | Some
         (Desugared.Name_resolution.SubScope (subscope_var_name, subscope_name))
       -> (
@@ -93,513 +258,588 @@ let get_variable_uid
           "Subscope @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@} cannot be \
            selected by itself, please add \".<var>\" where <var> is a subscope \
            variable."
-          Shared_ast.SubScopeName.format_t subscope_var_name
-          Shared_ast.ScopeName.format_t scope_uid
+          SubScopeName.format_t subscope_var_name ScopeName.format_t scope_uid
       | Some second_part -> (
         match
-          Shared_ast.Ident.Map.find_opt second_part
-            (Shared_ast.ScopeName.Map.find subscope_name ctxt.scopes).var_idmap
+          Ident.Map.find_opt second_part
+            (ScopeName.Map.find subscope_name ctxt.scopes).var_idmap
         with
         | Some (Desugared.Name_resolution.ScopeVar v) ->
-          Some
-            (Desugared.Ast.ScopeDef.SubScopeVar
-               (subscope_var_name, v, Pos.no_pos))
+          Desugared.Ast.ScopeDef.SubScopeVar (subscope_var_name, v, Pos.no_pos)
         | _ ->
           Message.raise_error
             "Var @{<yellow>\"%s\"@} of subscope @{<yellow>\"%a\"@} in scope \
              @{<yellow>\"%a\"@} does not exist, please check your command line \
              arguments."
-            second_part Shared_ast.SubScopeName.format_t subscope_var_name
-            Shared_ast.ScopeName.format_t scope_uid))
+            second_part SubScopeName.format_t subscope_var_name
+            ScopeName.format_t scope_uid))
     | Some (Desugared.Name_resolution.ScopeVar v) ->
-      Some
-        (Desugared.Ast.ScopeDef.Var
-           ( v,
-             Option.map
-               (fun second_part ->
-                 let var_sig = Shared_ast.ScopeVar.Map.find v ctxt.var_typs in
-                 match
-                   Shared_ast.Ident.Map.find_opt second_part
-                     var_sig.var_sig_states_idmap
-                 with
-                 | Some state -> state
-                 | None ->
-                   Message.raise_error
-                     "State @{<yellow>\"%s\"@} is not found for variable \
-                      @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
-                     second_part first_part Shared_ast.ScopeName.format_t
-                     scope_uid)
-               second_part )))
+      Desugared.Ast.ScopeDef.Var
+        ( v,
+          Option.map
+            (fun second_part ->
+              let var_sig = ScopeVar.Map.find v ctxt.var_typs in
+              match
+                Ident.Map.find_opt second_part var_sig.var_sig_states_idmap
+              with
+              | Some state -> state
+              | None ->
+                Message.raise_error
+                  "State @{<yellow>\"%s\"@} is not found for variable \
+                   @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
+                  second_part first_part ScopeName.format_t scope_uid)
+            second_part )
 
-let modname_of_file f =
-  (* Fixme: make this more robust *)
-  String.capitalize_ascii Filename.(basename (remove_extension f))
+  let get_output ?ext options output_file =
+    File.get_out_channel ~source_file:options.Cli.input_file ~output_file ?ext
+      ()
 
-(** Entry function for the executable. Returns a negative number in case of
-    error. Usage: [driver source_file options]*)
-let driver backend source_file (options : Cli.global_options) : int =
-  try
-    Cli.set_option_globals options;
-    if options.debug then Printexc.record_backtrace true;
-    Message.emit_debug "Reading files...";
-    let filename = ref "" in
-    (match source_file with
-    | Pos.FileName f -> filename := f
-    | Contents c -> Cli.contents := c);
-    let l =
-      match options.language with
-      | Some l -> l
-      | None -> (
-        (* Try to infer the language from the intput file extension. *)
-        let ext = Filename.extension !filename in
-        if ext = "" then
-          Message.raise_error
-            "No file extension found for the file '%s'. (Try to add one or to \
-             specify the -l flag)"
-            !filename;
-        try List.assoc ext extensions with Not_found -> ext)
+  let get_output_format ?ext options output_file =
+    File.get_formatter_of_out_channel ~source_file:options.Cli.input_file
+      ~output_file ?ext ()
+
+  let makefile options output =
+    let prg, _ = Passes.surface options in
+    let backend_extensions_list = [".tex"] in
+    let source_file =
+      match options.Cli.input_file with
+      | FileName f -> f
+      | Contents _ ->
+        Message.raise_error "The Makefile backend requires a filename as input"
     in
-    let language =
-      try List.assoc l Cli.languages
-      with Not_found ->
+    let output_file, with_output = get_output options ~ext:".d" output in
+    Message.emit_debug "Writing list of dependencies to %s..."
+      (Option.value ~default:"stdout" output_file);
+    with_output
+    @@ fun oc ->
+    Printf.fprintf oc "%s:\\\n%s\n%s:"
+      (String.concat "\\\n"
+         (Option.value ~default:"stdout" output_file
+         :: List.map
+              (fun ext -> Filename.remove_extension source_file ^ ext)
+              backend_extensions_list))
+      (String.concat "\\\n" prg.Surface.Ast.program_source_files)
+      (String.concat "\\\n" prg.Surface.Ast.program_source_files)
+
+  let makefile_cmd =
+    Cmd.v
+      (Cmd.info "makefile"
+         ~doc:
+           "Generates a Makefile-compatible list of the file dependencies of a \
+            Catala program.")
+      Term.(const makefile $ Cli.Flags.Global.options $ Cli.Flags.output)
+
+  let html options output print_only_law wrap_weaved_output =
+    let prg, language = Passes.surface options in
+    Message.emit_debug "Weaving literate program into HTML";
+    let output_file, with_output =
+      get_output_format options ~ext:".html" output
+    in
+    with_output
+    @@ fun fmt ->
+    let weave_output = Literate.Html.ast_to_html language ~print_only_law in
+    Message.emit_debug "Writing to %s"
+      (Option.value ~default:"stdout" output_file);
+    if wrap_weaved_output then
+      Literate.Html.wrap_html prg.Surface.Ast.program_source_files language fmt
+        (fun fmt -> weave_output fmt prg)
+    else weave_output fmt prg
+
+  let html_cmd =
+    Cmd.v
+      (Cmd.info "html"
+         ~doc:
+           "Weaves an HTML literate programming output of the Catala program.")
+      Term.(
+        const html
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.output
+        $ Cli.Flags.print_only_law
+        $ Cli.Flags.wrap_weaved_output)
+
+  let latex options output print_only_law wrap_weaved_output =
+    let prg, language = Passes.surface options in
+    Message.emit_debug "Weaving literate program into LaTeX";
+    let output_file, with_output =
+      get_output_format options ~ext:".tex" output
+    in
+    with_output
+    @@ fun fmt ->
+    let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
+    Message.emit_debug "Writing to %s"
+      (Option.value ~default:"stdout" output_file);
+    if wrap_weaved_output then
+      Literate.Latex.wrap_latex prg.Surface.Ast.program_source_files language
+        fmt (fun fmt -> weave_output fmt prg)
+    else weave_output fmt prg
+
+  let latex_cmd =
+    Cmd.v
+      (Cmd.info "latex"
+         ~doc:
+           "Weaves a LaTeX literate programming output of the Catala program.")
+      Term.(
+        const latex
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.output
+        $ Cli.Flags.print_only_law
+        $ Cli.Flags.wrap_weaved_output)
+
+  let exceptions options link_modules ex_scope ex_variable =
+    let _, ctxt, exceptions_graphs = Passes.scopelang options ~link_modules in
+    let scope_uid = get_scope_uid ctxt ex_scope in
+    let variable_uid = get_variable_uid ctxt scope_uid ex_variable in
+    Desugared.Print.print_exceptions_graph scope_uid variable_uid
+      (Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs)
+
+  let exceptions_cmd =
+    Cmd.v
+      (Cmd.info "exceptions"
+         ~doc:
+           "Prints the exception tree for the definitions of a particular \
+            variable, for debugging purposes. Use the $(b,-s) option to select \
+            the scope and the $(b,-v) option to select the variable. Use \
+            foo.bar to access state bar of variable foo or variable bar of \
+            subscope foo.")
+      Term.(
+        const exceptions
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.ex_scope
+        $ Cli.Flags.ex_variable)
+
+  let scopelang options link_modules output ex_scope_opt =
+    let prg, ctx, _ = Passes.scopelang options ~link_modules in
+    let _output_file, with_output = get_output_format options output in
+    with_output
+    @@ fun fmt ->
+    match ex_scope_opt with
+    | Some scope ->
+      let scope_uid = get_scope_uid ctx scope in
+      Scopelang.Print.scope ~debug:options.Cli.debug prg.program_ctx fmt
+        (scope_uid, ScopeName.Map.find scope_uid prg.program_scopes);
+      Format.pp_print_newline fmt ()
+    | None ->
+      Scopelang.Print.program ~debug:options.Cli.debug fmt prg;
+      Format.pp_print_newline fmt ()
+
+  let scopelang_cmd =
+    Cmd.v
+      (Cmd.info "scopelang"
+         ~doc:
+           "Prints a debugging verbatim of the scope language intermediate \
+            representation of the Catala program. Use the $(b,-s) option to \
+            restrict the output to a particular scope.")
+      Term.(
+        const scopelang
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.output
+        $ Cli.Flags.ex_scope_opt)
+
+  let typecheck options link_modules =
+    let prg, _, _ = Passes.scopelang options ~link_modules in
+    Message.emit_debug "Typechecking...";
+    let _type_ordering =
+      Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
+        prg.program_ctx.ctx_enums
+    in
+    let prg = Scopelang.Ast.type_program prg in
+    Message.emit_debug "Translating to default calculus...";
+    (* Strictly type-checking could stop here, but we also want this pass to
+       check full name-resolution and cycle detection. These are checked during
+       translation to dcalc so we run it here and drop the result. *)
+    let _prg = Dcalc.From_scopelang.translate_program prg in
+    Message.emit_result "Typechecking successful!"
+
+  let typecheck_cmd =
+    Cmd.v
+      (Cmd.info "typecheck"
+         ~doc:"Parses and typechecks a Catala program, without interpreting it.")
+      Term.(const typecheck $ Cli.Flags.Global.options $ Cli.Flags.link_modules)
+
+  let dcalc options link_modules output optimize ex_scope_opt check_invariants =
+    let prg, ctx, _ =
+      Passes.dcalc options ~link_modules ~optimize ~check_invariants
+    in
+    let _output_file, with_output = get_output_format options output in
+    with_output
+    @@ fun fmt ->
+    match ex_scope_opt with
+    | Some scope ->
+      let scope_uid = get_scope_uid ctx scope in
+      Print.scope ~debug:options.Cli.debug prg.decl_ctx fmt
+        ( scope_uid,
+          Option.get
+            (Scope.fold_left ~init:None
+               ~f:(fun acc def _ ->
+                 match def with
+                 | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
+                   Some body
+                 | _ -> acc)
+               prg.code_items) );
+      Format.pp_print_newline fmt ()
+    | None ->
+      let scope_uid = get_random_scope_uid ctx in
+      (* TODO: ??? *)
+      let prg_dcalc_expr = Expr.unbox (Program.to_expr prg scope_uid) in
+      Format.fprintf fmt "%a\n"
+        (Print.expr ~debug:options.Cli.debug ())
+        prg_dcalc_expr
+
+  let dcalc_cmd =
+    Cmd.v
+      (Cmd.info "dcalc"
+         ~doc:
+           "Prints a debugging verbatim of the default calculus intermediate \
+            representation of the Catala program. Use the $(b,-s) option to \
+            restrict the output to a particular scope.")
+      Term.(
+        const dcalc
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.ex_scope_opt
+        $ Cli.Flags.check_invariants)
+
+  let proof
+      options
+      link_modules
+      optimize
+      ex_scope_opt
+      check_invariants
+      disable_counterexamples =
+    let prg, ctx, _ =
+      Passes.dcalc options ~link_modules ~optimize ~check_invariants
+    in
+    Verification.Globals.setup ~optimize ~disable_counterexamples;
+    let vcs =
+      Verification.Conditions.generate_verification_conditions prg
+        (Option.map (get_scope_uid ctx) ex_scope_opt)
+    in
+    Verification.Solver.solve_vc prg.decl_ctx vcs
+
+  let proof_cmd =
+    Cmd.v
+      (Cmd.info "proof"
+         ~doc:
+           "Generates and proves verification conditions about the \
+            well-behaved execution of the Catala program.")
+      Term.(
+        const proof
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.optimize
+        $ Cli.Flags.ex_scope_opt
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.disable_counterexamples)
+
+  let print_interpretation_results options interpreter prg scope_uid =
+    Message.emit_debug "Starting interpretation...";
+    let results =
+      try interpreter prg scope_uid
+      with Shared_ast.Interpreter.CatalaException exn ->
         Message.raise_error
-          "The selected language (%s) is not supported by Catala" l
+          "During interpretation, the error %a has been raised but not caught!"
+          Shared_ast.Print.except exn
     in
-    Cli.locale_lang := language;
-    let prgm =
-      Surface.Parser_driver.parse_top_level_file source_file language
+    Message.emit_debug "End of interpretation";
+    let results =
+      List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) results
     in
-    let prgm = Surface.Fill_positions.fill_pos_with_legislative_info prgm in
-    let prgm =
-      List.fold_left
-        (fun prgm f ->
-          let lang =
-            Option.value ~default:language
-            @@ Option.bind
-                 (List.assoc_opt (Filename.extension f) extensions)
-                 (fun l -> List.assoc_opt l Cli.languages)
-          in
-          let modname = modname_of_file f in
-          Surface.Parser_driver.add_interface (FileName f) lang [modname] prgm)
-        prgm options.link_modules
-    in
-    let get_output ?ext =
-      File.get_out_channel ~source_file ~output_file:options.output_file ?ext
-    in
-    let get_output_format ?ext =
-      File.get_formatter_of_out_channel ~source_file
-        ~output_file:options.output_file ?ext
-    in
-    (match backend with
-    | `Makefile ->
-      let backend_extensions_list = [".tex"] in
-      let source_file =
-        match source_file with
-        | FileName f -> f
-        | Contents _ ->
-          Message.raise_error
-            "The Makefile backend does not work if the input is not a file"
-      in
-      let output_file, with_output = get_output ~ext:".d" () in
-      Message.emit_debug "Writing list of dependencies to %s..."
-        (Option.value ~default:"stdout" output_file);
-      with_output
-      @@ fun oc ->
-      Printf.fprintf oc "%s:\\\n%s\n%s:"
-        (String.concat "\\\n"
-           (Option.value ~default:"stdout" output_file
-           :: List.map
-                (fun ext -> Filename.remove_extension source_file ^ ext)
-                backend_extensions_list))
-        (String.concat "\\\n" prgm.program_source_files)
-        (String.concat "\\\n" prgm.program_source_files)
-    | (`Latex | `Html) as backend ->
-      Message.emit_debug "Weaving literate program into %s"
-        (match backend with `Latex -> "LaTeX" | `Html -> "HTML");
-      let output_file, with_output =
-        get_output_format ()
-          ~ext:(match backend with `Latex -> ".tex" | `Html -> ".html")
-      in
-      with_output (fun fmt ->
-          let weave_output =
-            match backend with
-            | `Latex ->
-              Literate.Latex.ast_to_latex language
-                ~print_only_law:options.print_only_law
-            | `Html ->
-              Literate.Html.ast_to_html language
-                ~print_only_law:options.print_only_law
-          in
-          Message.emit_debug "Writing to %s"
-            (Option.value ~default:"stdout" output_file);
-          if options.wrap_weaved_output then
-            match backend with
-            | `Latex ->
-              Literate.Latex.wrap_latex prgm.Surface.Ast.program_source_files
-                language fmt (fun fmt -> weave_output fmt prgm)
-            | `Html ->
-              Literate.Html.wrap_html prgm.Surface.Ast.program_source_files
-                language fmt (fun fmt -> weave_output fmt prgm)
-          else weave_output fmt prgm)
-    | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
-      | `Lcalc | `Dcalc | `Scopelang | `Exceptions | `Proof | `Plugin _ ) as
-      backend -> (
-      Message.emit_debug "Name resolution...";
-      let ctxt = Desugared.Name_resolution.form_context prgm in
-      let scope_uid = get_scope_uid options backend ctxt in
-      (* This uid is a Desugared identifier *)
-      let variable_uid = get_variable_uid options backend ctxt scope_uid in
-      Message.emit_debug "Desugaring...";
-      let prgm = Desugared.From_surface.translate_program ctxt prgm in
-      Message.emit_debug "Disambiguating...";
-      let prgm = Desugared.Disambiguate.program prgm in
-      Message.emit_debug "Linting...";
-      Desugared.Linting.lint_program prgm;
-      Message.emit_debug "Collecting rules...";
-      let exceptions_graphs =
-        Scopelang.From_desugared.build_exceptions_graph prgm
-      in
-      let prgm =
-        Scopelang.From_desugared.translate_program prgm exceptions_graphs
-      in
-      match backend with
-      | `Exceptions ->
-        let variable_uid =
-          match variable_uid with
-          | Some variable_uid -> variable_uid
-          | None ->
-            Message.raise_error
-              "Please provide a scope variable to analyze with the -v option."
-        in
-        Desugared.Print.print_exceptions_graph scope_uid variable_uid
-          (Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs)
-      | `Scopelang ->
-        let _output_file, with_output = get_output_format () in
-        with_output
-        @@ fun fmt ->
-        if Option.is_some options.ex_scope then
-          Format.fprintf fmt "%a\n"
-            (Scopelang.Print.scope prgm.program_ctx ~debug:options.debug)
-            ( scope_uid,
-              Shared_ast.ScopeName.Map.find scope_uid prgm.program_scopes )
-        else
-          Format.fprintf fmt "%a\n"
-            (Scopelang.Print.program ~debug:options.debug)
-            prgm
-      | ( `Interpret | `Interpret_Lcalc | `Typecheck | `OCaml | `Python | `Scalc
-        | `Lcalc | `Dcalc | `Proof | `Plugin _ ) as backend -> (
-        Message.emit_debug "Typechecking...";
-        let type_ordering =
-          Scopelang.Dependency.check_type_cycles prgm.program_ctx.ctx_structs
-            prgm.program_ctx.ctx_enums
-        in
-        let prgm = Scopelang.Ast.type_program prgm in
-        Message.emit_debug "Translating to default calculus...";
-        let prgm = Dcalc.From_scopelang.translate_program prgm in
-        let prgm =
-          if options.optimize then begin
-            Message.emit_debug "Optimizing default calculus...";
-            Shared_ast.Optimizations.optimize_program prgm
-          end
-          else prgm
-        in
-        (* Message.emit_debug (Format.asprintf "Typechecking results :@\n%a"
-           (Print.typ prgm.decl_ctx) typ); *)
-        match backend with
-        | `Typecheck ->
-          Message.emit_debug "Typechecking again...";
-          let _ =
-            try Shared_ast.Typing.program prgm ~leave_unresolved:false
-            with Message.CompilerError error_content ->
-              raise
-                (Message.CompilerError
-                   (Message.Content.mark_as_internal_error error_content))
-          in
-          (* That's it! *)
-          Message.emit_result "Typechecking successful!"
-        | `Dcalc ->
-          let _output_file, with_output = get_output_format () in
-          with_output
-          @@ fun fmt ->
-          if Option.is_some options.ex_scope then
-            Format.fprintf fmt "%a\n"
-              (Shared_ast.Print.scope ~debug:options.debug prgm.decl_ctx)
-              ( scope_uid,
-                Option.get
-                  (Shared_ast.Scope.fold_left ~init:None
-                     ~f:(fun acc def _ ->
-                       match def with
-                       | ScopeDef (name, body)
-                         when Shared_ast.ScopeName.equal name scope_uid ->
-                         Some body
-                       | _ -> acc)
-                     prgm.code_items) )
-          else
-            let prgrm_dcalc_expr =
-              Shared_ast.Expr.unbox (Shared_ast.Program.to_expr prgm scope_uid)
-            in
-            Format.fprintf fmt "%a\n"
-              (Shared_ast.Print.expr ~debug:options.debug ())
-              prgrm_dcalc_expr
-        | ( `Interpret | `OCaml | `Python | `Scalc | `Lcalc | `Proof | `Plugin _
-          | `Interpret_Lcalc ) as backend -> (
-          Message.emit_debug "Typechecking again...";
-          let prgm =
-            try Shared_ast.Typing.program ~leave_unresolved:false prgm
-            with Message.CompilerError error_content ->
-              raise
-                (Message.CompilerError
-                   (Message.Content.mark_as_internal_error error_content))
-          in
-          if !Cli.check_invariants_flag then (
-            Message.emit_debug "Checking invariants...";
-            let result = Dcalc.Invariants.check_all_invariants prgm in
-            if not result then
-              raise
-                (Message.raise_internal_error
-                   "Some Dcalc invariants are invalid"));
-          match backend with
-          | `Proof ->
-            let vcs =
-              Verification.Conditions.generate_verification_conditions prgm
-                (match options.ex_scope with
-                | None -> None
-                | Some _ -> Some scope_uid)
-            in
+    Message.emit_result "Computation successful!%s"
+      (if List.length results > 0 then " Results:" else "");
+    List.iter
+      (fun ((var, _), result) ->
+        Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
+          (if options.Cli.debug then Print.expr ~debug:false ()
+          else Print.UserFacing.value (get_lang options options.input_file))
+          result)
+      results
 
-            Verification.Solver.solve_vc prgm.decl_ctx vcs
-          | `Interpret ->
-            if options.link_modules <> [] then (
-              Message.emit_debug "Loading shared modules...";
-              List.iter
-                Dynlink.(
-                  fun m ->
-                    loadfile
-                      (adapt_filename (Filename.remove_extension m ^ ".cmo")))
-                options.link_modules);
-            Message.emit_debug "Starting interpretation (dcalc)...";
-            let results =
-              try Shared_ast.Interpreter.interpret_program_dcalc prgm scope_uid
-              with Shared_ast.Interpreter.CatalaException exn ->
-                Message.raise_error
-                  "During interpretation, the error %a has been raised but not \
-                   caught!"
-                  Shared_ast.Print.except exn
-            in
-            let results =
-              List.sort
-                (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
-                results
-            in
-            Message.emit_debug "End of interpretation";
-            Message.emit_result "Computation successful!%s"
-              (if List.length results > 0 then " Results:" else "");
-            List.iter
-              (fun ((var, _), result) ->
-                Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
-                  (Shared_ast.Print.expr ~debug:options.debug ())
-                  result)
-              results
-          | `Plugin (Plugin.Dcalc p) ->
-            let output_file, _ = get_output_format ~ext:p.Plugin.extension () in
-            Message.emit_debug "Compiling program through backend \"%s\"..."
-              p.Plugin.name;
-            p.Plugin.apply ~source_file ~output_file
-              ~scope:
-                (match options.ex_scope with
-                | None -> None
-                | Some _ -> Some scope_uid)
-              (Shared_ast.Program.untype prgm)
-              type_ordering
-          | (`OCaml | `Interpret_Lcalc | `Python | `Lcalc | `Scalc | `Plugin _)
-            as backend -> (
-            Message.emit_debug "Compiling program into lambda calculus...";
-            let prgm =
-              if options.trace && options.avoid_exceptions then
-                Message.raise_error
-                  "Option --avoid_exceptions is not compatible with option \
-                   --trace";
-              if options.avoid_exceptions then
-                Shared_ast.Program.untype
-                @@ Lcalc.Compile_without_exceptions.translate_program prgm
-              else
-                Shared_ast.Program.untype
-                @@ Lcalc.Compile_with_exceptions.translate_program prgm
-            in
-            let prgm =
-              if options.optimize then begin
-                Message.emit_debug "Optimizing lambda calculus...";
-                Shared_ast.Optimizations.optimize_program prgm
-              end
-              else Shared_ast.Program.untype prgm
-            in
-            let prgm =
-              if options.closure_conversion then (
-                if not options.avoid_exceptions then
-                  Message.raise_error
-                    "Option --avoid_exceptions must be enabled for \
-                     --closure_conversion";
-                if not options.optimize then
-                  Message.raise_error
-                    "Option --optimize must be enabled for --closure_conversion"
-                    Message.emit_debug "Performing closure conversion...";
-                let prgm = Lcalc.Closure_conversion.closure_conversion prgm in
-                let prgm = Bindlib.unbox prgm in
-                let prgm =
-                  if options.optimize then (
-                    Message.emit_debug "Optimizing lambda calculus...";
-                    Shared_ast.Optimizations.optimize_program prgm)
-                  else prgm
-                in
-                Message.emit_debug "Retyping lambda calculus...";
-                try
-                  let prgm =
-                    Shared_ast.Program.untype
-                      (Shared_ast.Typing.program ~leave_unresolved:true prgm)
-                  in
-                  prgm
-                with Message.CompilerError content ->
-                  raise
-                    (Message.CompilerError
-                       (Message.Content.prepend_message content (fun fmt ->
-                            Format.fprintf fmt
-                              "As part of the compilation process, one of the \
-                               step (closure conversion) modified the Catala \
-                               program and re-typing after this modification \
-                               failed with the error message below. This \
-                               re-typing error if not your fault, but is \
-                               likely to indicate that the program you are \
-                               trying to compile is incompatible with the \
-                               current compilation scheme provided by the \
-                               Catala compiler. Try to rewrite the program to \
-                               avoid the problematic pattern or contact the \
-                               compiler developers for help.@\n"))))
-              else prgm
-            in
-            match backend with
-            | `Lcalc ->
-              let _output_file, with_output = get_output_format () in
-              with_output
-              @@ fun fmt ->
-              if Option.is_some options.ex_scope then
-                Format.fprintf fmt "%a\n"
-                  (Shared_ast.Print.scope ~debug:options.debug prgm.decl_ctx)
-                  (scope_uid, Shared_ast.Program.get_scope_body prgm scope_uid)
-              else
-                Format.fprintf fmt "%a\n"
-                  (Shared_ast.Print.program ~debug:options.debug)
-                  prgm
-            | `Interpret_Lcalc ->
-              Message.emit_debug "Starting interpretation (lcalc)...";
-              let results =
-                try
-                  Shared_ast.Interpreter.interpret_program_lcalc prgm scope_uid
-                with Shared_ast.Interpreter.CatalaException exn ->
-                  Message.raise_error
-                    "During interpretation, the error %a has been raised but \
-                     not caught!"
-                    Shared_ast.Print.except exn
-              in
-              let results =
-                List.sort
-                  (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2)
-                  results
-              in
-              Message.emit_debug "End of interpretation";
-              Message.emit_result "Computation successful!%s"
-                (if List.length results > 0 then " Results:" else "");
-              List.iter
-                (fun ((var, _), result) ->
-                  Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
-                    (Shared_ast.Print.expr ~debug:options.debug ())
-                    result)
-                results
-            | (`OCaml | `Python | `Scalc | `Plugin _) as backend -> (
-              match backend with
-              | `OCaml ->
-                let output_file, with_output =
-                  get_output_format ~ext:".ml" ()
-                in
-                with_output
-                @@ fun fmt ->
-                Message.emit_debug "Compiling program into OCaml...";
-                Message.emit_debug "Writing to %s..."
-                  (Option.value ~default:"stdout" output_file);
-                let modname =
-                  match source_file with
-                  (* FIXME: WIP placeholder *)
-                  | FileName n -> Some (modname_of_file n)
-                  | _ -> None
-                in
-                Lcalc.To_ocaml.format_program fmt ?modname prgm type_ordering
-              | `Plugin (Plugin.Dcalc _) -> assert false
-              | `Plugin (Plugin.Lcalc p) ->
-                let output_file, _ =
-                  get_output_format ~ext:p.Plugin.extension ()
-                in
-                Message.emit_debug "Compiling program through backend \"%s\"..."
-                  p.Plugin.name;
-                p.Plugin.apply ~source_file ~output_file
-                  ~scope:
-                    (match options.ex_scope with
-                    | None -> None
-                    | Some _ -> Some scope_uid)
-                  prgm type_ordering
-              | (`Python | `Scalc | `Plugin (Plugin.Scalc _)) as backend -> (
-                let prgm = Scalc.From_lcalc.translate_program prgm in
-                match backend with
-                | `Scalc ->
-                  let _output_file, with_output = get_output_format () in
-                  with_output
-                  @@ fun fmt ->
-                  if Option.is_some options.ex_scope then
-                    Format.fprintf fmt "%a\n"
-                      (Scalc.Print.format_item ~debug:options.debug
-                         prgm.decl_ctx)
-                      (List.find
-                         (function
-                           | Scalc.Ast.SScope { scope_body_name; _ } ->
-                             scope_body_name = scope_uid
-                           | _ -> false)
-                         prgm.code_items)
-                  else Scalc.Print.format_program prgm.decl_ctx fmt prgm
-                | `Python ->
-                  let output_file, with_output =
-                    get_output_format ~ext:".py" ()
-                  in
-                  Message.emit_debug "Compiling program into Python...";
-                  Message.emit_debug "Writing to %s..."
-                    (Option.value ~default:"stdout" output_file);
-                  with_output
-                  @@ fun fmt ->
-                  Scalc.To_python.format_program fmt prgm type_ordering
-                | `Plugin (Plugin.Dcalc _ | Plugin.Lcalc _) -> assert false
-                | `Plugin (Plugin.Scalc p) ->
-                  let output_file, _ = get_output ~ext:p.Plugin.extension () in
-                  Message.emit_debug
-                    "Compiling program through backend \"%s\"..." p.Plugin.name;
-                  Message.emit_debug "Writing to %s..."
-                    (Option.value ~default:"stdout" output_file);
-                  p.Plugin.apply ~source_file ~output_file
-                    ~scope:
-                      (match options.ex_scope with
-                      | None -> None
-                      | Some _ -> Some scope_uid)
-                    prgm type_ordering)))))));
-    0
-  with
-  | Message.CompilerError content ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.emit_content content Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    -1
-  | Sys_error msg ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.emit_content
-      (Message.Content.of_string ("System error: " ^ msg))
-      Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    -1
+  let interpret_dcalc options link_modules optimize check_invariants ex_scope =
+    Interpreter.load_runtime_modules link_modules;
+    let prg, ctx, _ =
+      Passes.dcalc options ~link_modules ~optimize ~check_invariants
+    in
+    print_interpretation_results options Interpreter.interpret_program_dcalc prg
+      (get_scope_uid ctx ex_scope)
+
+  let interpret_cmd =
+    Cmd.v
+      (Cmd.info "interpret"
+         ~doc:
+           "Runs the interpreter on the Catala program, executing the scope \
+            specified by the $(b,-s) option assuming no additional external \
+            inputs.")
+      Term.(
+        const interpret_dcalc
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.ex_scope)
+
+  let lcalc
+      options
+      link_modules
+      output
+      optimize
+      check_invariants
+      avoid_exceptions
+      closure_conversion
+      ex_scope_opt =
+    let prg, ctx, _ =
+      Passes.lcalc options ~link_modules ~optimize ~check_invariants
+        ~avoid_exceptions ~closure_conversion
+    in
+    let _output_file, with_output = get_output_format options output in
+    with_output
+    @@ fun fmt ->
+    match ex_scope_opt with
+    | Some scope ->
+      let scope_uid = get_scope_uid ctx scope in
+      Print.scope ~debug:options.Cli.debug prg.decl_ctx fmt
+        (scope_uid, Program.get_scope_body prg scope_uid);
+      Format.pp_print_newline fmt ()
+    | None ->
+      Print.program ~debug:options.Cli.debug fmt prg;
+      Format.pp_print_newline fmt ()
+
+  let lcalc_cmd =
+    Cmd.v
+      (Cmd.info "lcalc"
+         ~doc:
+           "Prints a debugging verbatim of the lambda calculus intermediate \
+            representation of the Catala program. Use the $(b,-s) option to \
+            restrict the output to a particular scope.")
+      Term.(
+        const lcalc
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.avoid_exceptions
+        $ Cli.Flags.closure_conversion
+        $ Cli.Flags.ex_scope_opt)
+
+  let interpret_lcalc
+      options
+      link_modules
+      optimize
+      check_invariants
+      avoid_exceptions
+      closure_conversion
+      ex_scope =
+    let prg, ctx, _ =
+      Passes.lcalc options ~link_modules ~optimize ~check_invariants
+        ~avoid_exceptions ~closure_conversion
+    in
+    print_interpretation_results options Interpreter.interpret_program_lcalc prg
+      (get_scope_uid ctx ex_scope)
+
+  let interpret_lcalc_cmd =
+    Cmd.v
+      (Cmd.info "interpret_lcalc"
+         ~doc:
+           "Runs the interpreter on the lcalc pass on the Catala program, \
+            executing the scope specified by the $(b,-s) option assuming no \
+            additional external inputs.")
+      Term.(
+        const interpret_lcalc
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.avoid_exceptions
+        $ Cli.Flags.closure_conversion
+        $ Cli.Flags.ex_scope)
+
+  let ocaml
+      options
+      link_modules
+      output
+      optimize
+      check_invariants
+      avoid_exceptions
+      closure_conversion =
+    let prg, _, type_ordering =
+      Passes.lcalc options ~link_modules ~optimize ~check_invariants
+        ~avoid_exceptions ~closure_conversion
+    in
+    let output_file, with_output =
+      get_output_format options ~ext:".ml" output
+    in
+    with_output
+    @@ fun fmt ->
+    Message.emit_debug "Compiling program into OCaml...";
+    Message.emit_debug "Writing to %s..."
+      (Option.value ~default:"stdout" output_file);
+    let modname =
+      (* TODO: module directive *)
+      match options.Cli.input_file with
+      | FileName n -> Some (modname_of_file n)
+      | _ -> None
+    in
+    Lcalc.To_ocaml.format_program fmt ?register_module:modname prg type_ordering
+
+  let ocaml_cmd =
+    Cmd.v
+      (Cmd.info "ocaml"
+         ~doc:"Generates an OCaml translation of the Catala program.")
+      Term.(
+        const ocaml
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.avoid_exceptions
+        $ Cli.Flags.closure_conversion)
+
+  let scalc
+      options
+      link_modules
+      output
+      optimize
+      check_invariants
+      avoid_exceptions
+      closure_conversion
+      ex_scope_opt =
+    let prg, ctx, _ =
+      Passes.scalc options ~link_modules ~optimize ~check_invariants
+        ~avoid_exceptions ~closure_conversion
+    in
+    let _output_file, with_output = get_output_format options output in
+    with_output
+    @@ fun fmt ->
+    match ex_scope_opt with
+    | Some scope ->
+      let scope_uid = get_scope_uid ctx scope in
+      Scalc.Print.format_item ~debug:options.Cli.debug prg.decl_ctx fmt
+        (List.find
+           (function
+             | Scalc.Ast.SScope { scope_body_name; _ } ->
+               scope_body_name = scope_uid
+             | _ -> false)
+           prg.code_items);
+      Format.pp_print_newline fmt ()
+    | None -> Scalc.Print.format_program prg.decl_ctx fmt prg
+
+  let scalc_cmd =
+    Cmd.v
+      (Cmd.info "scalc"
+         ~doc:
+           "Prints a debugging verbatim of the statement calculus intermediate \
+            representation of the Catala program. Use the $(b,-s) option to \
+            restrict the output to a particular scope.")
+      Term.(
+        const scalc
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.avoid_exceptions
+        $ Cli.Flags.closure_conversion
+        $ Cli.Flags.ex_scope_opt)
+
+  let python
+      options
+      link_modules
+      output
+      optimize
+      check_invariants
+      avoid_exceptions
+      closure_conversion =
+    let prg, _, type_ordering =
+      Passes.scalc options ~link_modules ~optimize ~check_invariants
+        ~avoid_exceptions ~closure_conversion
+    in
+    let output_file, with_output =
+      get_output_format options ~ext:".py" output
+    in
+    Message.emit_debug "Compiling program into Python...";
+    Message.emit_debug "Writing to %s..."
+      (Option.value ~default:"stdout" output_file);
+    with_output
+    @@ fun fmt -> Scalc.To_python.format_program fmt prg type_ordering
+
+  let python_cmd =
+    Cmd.v
+      (Cmd.info "python"
+         ~doc:"Generates a Python translation of the Catala program.")
+      Term.(
+        const python
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.avoid_exceptions
+        $ Cli.Flags.closure_conversion)
+
+  let pygmentize_cmd =
+    Cmd.v
+      (Cmd.info "pygmentize"
+         ~doc:
+           "This special command is a wrapper around the $(b,pygmentize) \
+            command that enables support for colorising Catala code.")
+      Term.(
+        const (fun _ ->
+            assert false
+            (* Not really a catala command, this is handled preemptively at
+               startup *))
+        $ Cli.Flags.Global.options)
+
+  let commands =
+    [
+      interpret_cmd;
+      interpret_lcalc_cmd;
+      typecheck_cmd;
+      proof_cmd;
+      ocaml_cmd;
+      python_cmd;
+      latex_cmd;
+      html_cmd;
+      makefile_cmd;
+      scopelang_cmd;
+      dcalc_cmd;
+      lcalc_cmd;
+      scalc_cmd;
+      exceptions_cmd;
+      pygmentize_cmd;
+    ]
+end
+
+let raise_help cmdname cmds =
+  let plugins = Plugin.names () in
+  let cmds = List.filter (fun name -> not (List.mem name plugins)) cmds in
+  Message.raise_error
+    "One of the following commands was expected:@;\
+     <1 4>@[<v>@{<bold;blue>%a@}@]%a@\n\
+     Run `@{<bold>%s --help@}' or `@{<bold>%s COMMAND --help@}' for details."
+    (Format.pp_print_list Format.pp_print_string)
+    (List.sort String.compare cmds)
+    (fun ppf -> function
+      | [] -> ()
+      | plugins ->
+        Format.fprintf ppf
+          "@\n\
+           Or one of the following installed plugins:@;\
+           <1 4>@[<v>@{<blue>%a@}@]"
+          (Format.pp_print_list Format.pp_print_string)
+          plugins)
+    plugins cmdname cmdname
+
+let catala_t extra_commands =
+  let open Cmdliner in
+  let default =
+    Term.(const raise_help $ main_name $ choice_names $ Cli.Flags.Global.flags)
+  in
+  Cmd.group ~default Cli.info (Commands.commands @ extra_commands)
 
 let main () =
   let argv = Array.copy Sys.argv in
@@ -609,58 +849,62 @@ let main () =
      cmdliner *)
   if Array.length Sys.argv >= 2 && argv.(1) = "pygmentize" then
     Literate.Pygmentize.exec ();
-  (* Peek to load plugins before the command-line is parsed proper *)
+  (* Peek to load plugins before the command-line is parsed proper (plugins add
+     their own commands) *)
   let plugins =
     let plugins_dirs =
       match
-        Cmdliner.Cmd.eval_peek_opts ~argv Cli.global_options ~version_opt:true
+        Cmdliner.Cmd.eval_peek_opts ~argv Cli.Flags.Global.flags
+          ~version_opt:true
       with
-      | Some opts, _ ->
-        Cli.set_option_globals opts;
-        (* Do this asap, for debug options, etc. *)
-        opts.Cli.plugins_dirs
+      | Some opts, _ -> opts.Cli.plugins_dirs
       | None, _ -> []
     in
     List.iter
       (fun d ->
-        match Sys.is_directory d with
-        | true -> Plugin.load_dir d
-        | false -> ()
-        | exception Sys_error _ -> ())
+        if d = "" then ()
+        else
+          match Sys.is_directory d with
+          | true -> Plugin.load_dir d
+          | false -> Message.emit_debug "Could not read plugin directory %s" d
+          | exception Sys_error _ ->
+            Message.emit_debug "Could not read plugin directory %s" d)
       plugins_dirs;
+    Dynlink.allow_only ["Runtime_ocaml__Runtime"];
+    (* We may use dynlink again, but only for runtime modules: no plugin
+       registration after this point *)
     Plugin.list ()
   in
-  let return_code =
-    Cmdliner.Cmd.eval' ~argv
-      (Cli.catala_t
-         (fun backend f -> driver backend (FileName f))
-         ~extra:plugins)
-  in
-  exit return_code
+  let command = catala_t plugins in
+  let open Cmdliner in
+  match Cmd.eval_value ~catch:false ~argv command with
+  | Ok _ -> exit Cmd.Exit.ok
+  | Error _ -> exit Cmd.Exit.cli_error
+  | exception Cli.Exit_with n -> exit n
+  | exception Message.CompilerError content ->
+    let bt = Printexc.get_raw_backtrace () in
+    Message.emit_content content Error;
+    if Cli.globals.debug then Printexc.print_raw_backtrace stderr bt;
+    exit Cmd.Exit.some_error
+  | exception Sys_error msg ->
+    let bt = Printexc.get_raw_backtrace () in
+    Message.emit_content
+      (Message.Content.of_string ("System error: " ^ msg))
+      Error;
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
+    exit Cmd.Exit.internal_error
+  | exception e ->
+    let bt = Printexc.get_raw_backtrace () in
+    Message.emit_content
+      (Message.Content.of_string ("Unexpected error: " ^ Printexc.to_string e))
+      Error;
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
+    exit Cmd.Exit.internal_error
 
 (* Export module PluginAPI, hide parent module Plugin *)
 module Plugin = struct
-  open Plugin
-  include PluginAPI
-  open Cmdliner
-
-  let register_cmd info plugin =
-    let term =
-      Term.(
-        const (fun file opts -> driver (`Plugin plugin) (FileName file) opts)
-        $ Cli.file
-        $ Cli.global_options)
-    in
-    register_generic info term
-
-  let info_name info = Cmd.name (Cmd.v info (Term.const ()))
-
-  let register_dcalc info ~extension apply =
-    register_cmd info (Dcalc { name = info_name info; extension; apply })
-
-  let register_lcalc info ~extension apply =
-    register_cmd info (Lcalc { name = info_name info; extension; apply })
-
-  let register_scalc info ~extension apply =
-    register_cmd info (Scalc { name = info_name info; extension; apply })
+  let register name ?man ?doc term =
+    let name = String.lowercase_ascii name in
+    let info = Cmdliner.Cmd.info name ?man ?doc ~docs:Cli.s_plugins in
+    Plugin.register info term
 end

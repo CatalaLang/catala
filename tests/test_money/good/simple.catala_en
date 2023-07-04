@@ -16,13 +16,13 @@ scope A:
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
 [RESULT] x = $123.54
-[RESULT] y = $8548650.96
+[RESULT] y = $8,548,650.96
 [RESULT] z = $7.23
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] x = ESome $123.54
-[RESULT] y = ESome $8548650.96
+[RESULT] y = ESome $8,548,650.96
 [RESULT] z = ESome $7.23
 ```

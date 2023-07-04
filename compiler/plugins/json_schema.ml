@@ -14,15 +14,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-let name = "json_schema"
-let extension = "_schema.json"
-
-let info =
-  Cmdliner.Cmd.info name
-    ~doc:
-      "Catala plugin for generating {{:https://json-schema.org} JSON schemas} \
-       used to build forms for the Catala website."
-
 open Catala_utils
 open Shared_ast
 open Lcalc.To_ocaml
@@ -215,24 +206,44 @@ module To_json = struct
       scope_body.scope_body_input_struct
 end
 
-let apply
-    ~(source_file : Pos.input_file)
-    ~(output_file : string option)
-    ~(scope : Shared_ast.ScopeName.t option)
-    (prgm : 'm Lcalc.Ast.program)
-    (type_ordering : Scopelang.Dependency.TVertex.t list) =
-  ignore source_file;
-  ignore type_ordering;
-  match scope with
-  | Some s ->
-    File.with_formatter_of_opt_file output_file (fun fmt ->
-        Message.emit_debug
-          "Writing JSON schema corresponding to the scope '%a' to the file \
-           %s..."
-          ScopeName.format_t s
-          (Option.value ~default:"stdout" output_file);
-        To_json.format_program fmt s prgm)
-  | None ->
-    Message.raise_error "A scope must be specified for the plugin: %s" name
+let run
+    link_modules
+    output
+    optimize
+    check_invariants
+    avoid_exceptions
+    closure_conversion
+    ex_scope
+    options =
+  let prg, ctx, _ =
+    Driver.Passes.lcalc options ~link_modules ~optimize ~check_invariants
+      ~avoid_exceptions ~closure_conversion
+  in
+  let output_file, with_output =
+    Driver.Commands.get_output_format options ~ext:"_schema.json" output
+  in
+  with_output
+  @@ fun fmt ->
+  let scope_uid = Driver.Commands.get_scope_uid ctx ex_scope in
+  Message.emit_debug
+    "Writing JSON schema corresponding to the scope '%a' to the file %s..."
+    ScopeName.format_t scope_uid
+    (Option.value ~default:"stdout" output_file);
+  To_json.format_program fmt scope_uid prg
 
-let () = Driver.Plugin.register_lcalc info ~extension apply
+let term =
+  let open Cmdliner.Term in
+  const run
+  $ Cli.Flags.link_modules
+  $ Cli.Flags.output
+  $ Cli.Flags.optimize
+  $ Cli.Flags.check_invariants
+  $ Cli.Flags.avoid_exceptions
+  $ Cli.Flags.closure_conversion
+  $ Cli.Flags.ex_scope
+
+let () =
+  Driver.Plugin.register "json_schema" term
+    ~doc:
+      "Catala plugin for generating {{:https://json-schema.org} JSON schemas} \
+       used to build forms for the Catala website."

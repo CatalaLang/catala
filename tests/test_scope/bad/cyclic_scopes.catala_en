@@ -34,5 +34,5 @@ A is used here in the definition of B:
 9 │   a scope A
   │   ‾
   └─ Article
-#return code 255#
+#return code 123#
 ```

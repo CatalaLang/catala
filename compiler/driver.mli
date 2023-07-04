@@ -17,38 +17,101 @@
 
 open Catala_utils
 
-val driver :
-  [< Cli.backend_option | `Plugin of Plugin.handler ] ->
-  Pos.input_file ->
-  Cli.global_options ->
-  int
-(** Entry function for the executable. Returns a negative number in case of
-    error. *)
-
 val main : unit -> unit
 (** Main program entry point, including command-line parsing and return code *)
 
+(** Compiler passes
+
+    Each pass takes only its cli options, then calls upon its dependent passes
+    (forwarding their options as needed) *)
+module Passes : sig
+  val surface : Cli.options -> Surface.Ast.program * Cli.backend_lang
+
+  val desugared :
+    Cli.options ->
+    link_modules:string list ->
+    Desugared.Ast.program * Desugared.Name_resolution.context
+
+  val scopelang :
+    Cli.options ->
+    link_modules:string list ->
+    Shared_ast.untyped Scopelang.Ast.program
+    * Desugared.Name_resolution.context
+    * Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t
+
+  val dcalc :
+    Cli.options ->
+    link_modules:string list ->
+    optimize:bool ->
+    check_invariants:bool ->
+    Shared_ast.typed Dcalc.Ast.program
+    * Desugared.Name_resolution.context
+    * Scopelang.Dependency.TVertex.t list
+
+  val lcalc :
+    Cli.options ->
+    link_modules:string list ->
+    optimize:bool ->
+    check_invariants:bool ->
+    avoid_exceptions:bool ->
+    closure_conversion:bool ->
+    Shared_ast.untyped Lcalc.Ast.program
+    * Desugared.Name_resolution.context
+    * Scopelang.Dependency.TVertex.t list
+
+  val scalc :
+    Cli.options ->
+    link_modules:string list ->
+    optimize:bool ->
+    check_invariants:bool ->
+    avoid_exceptions:bool ->
+    closure_conversion:bool ->
+    Scalc.Ast.program
+    * Desugared.Name_resolution.context
+    * Scopelang.Dependency.TVertex.t list
+end
+
+module Commands : sig
+  (** Helper functions used by top-level commands *)
+
+  val get_output :
+    ?ext:string ->
+    Cli.options ->
+    string option ->
+    string option * ((out_channel -> 'a) -> 'a)
+  (** bounded open of the expected output file *)
+
+  val get_output_format :
+    ?ext:string ->
+    Cli.options ->
+    string option ->
+    string option * ((Format.formatter -> 'a) -> 'a)
+
+  val get_scope_uid :
+    Desugared.Name_resolution.context -> string -> Shared_ast.ScopeName.t
+
+  val get_variable_uid :
+    Desugared.Name_resolution.context ->
+    Shared_ast.ScopeName.t ->
+    string ->
+    Desugared.Ast.ScopeDef.t
+
+  val commands : unit Cmdliner.Cmd.t list
+  (** The list of built-in catala subcommands, as expected by
+      [Cmdliner.Cmd.group] *)
+end
+
+(** Various helpers *)
+
+val modname_of_file : string -> string
+
+(** API available to plugins for their own registration *)
+
 module Plugin : sig
-  include module type of Plugin.PluginAPI
-  open Cmdliner
-
-  val register_generic : Cmd.info -> Cmd.Exit.code Term.t -> unit
-
-  val register_dcalc :
-    Cmd.info ->
-    extension:string ->
-    Shared_ast.untyped Dcalc.Ast.program plugin_apply_fun_typ ->
-    unit
-
-  val register_lcalc :
-    Cmd.info ->
-    extension:string ->
-    Shared_ast.untyped Lcalc.Ast.program plugin_apply_fun_typ ->
-    unit
-
-  val register_scalc :
-    Cmd.info ->
-    extension:string ->
-    Scalc.Ast.program plugin_apply_fun_typ ->
+  val register :
+    string ->
+    ?man:Cmdliner.Manpage.block list ->
+    ?doc:string ->
+    (Cli.options -> unit) Cmdliner.Term.t ->
     unit
 end

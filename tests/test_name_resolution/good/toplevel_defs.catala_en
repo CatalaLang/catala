@@ -22,8 +22,8 @@ scope S:
 ```catala-test-inline
 $ catala Interpret -s S
 [RESULT] Computation successful! Results:
-[RESULT] a = 1946.5744
-[RESULT] b = { A y = true; z = 2091.; }
+[RESULT] a = 1,946.574,4
+[RESULT] b = A { -- y: true -- z: 2,091.0 }
 ```
 
 ## Test toplevel function defs
@@ -43,7 +43,7 @@ scope S2:
 ```catala-test-inline
 $ catala Interpret -s S2
 [RESULT] Computation successful! Results:
-[RESULT] a = 154.
+[RESULT] a = 154.0
 ```
 
 ## Test function def with two args
@@ -63,7 +63,7 @@ scope S3:
 ```catala-test-inline
 $ catala Interpret -s S3
 [RESULT] Computation successful! Results:
-[RESULT] a = 2480.
+[RESULT] a = 2,480.0
 ```
 
 ## Test inline defs in toplevel defs
@@ -86,7 +86,7 @@ scope S4:
 ```catala-test-inline
 $ catala Interpret -s S4
 [RESULT] Computation successful! Results:
-[RESULT] a = 6001.
+[RESULT] a = 6,001.0
 ```
 
 ```catala-test-inline
@@ -114,7 +114,7 @@ let S2_6 (S2_in_11: S2_in) =
   try:
     decl temp_a_16 : any;
     let temp_a_16 (__17 : unit) =
-      return glob3_3 $44.00 + 100.;
+      return glob3_3 ¤44.00 + 100.;
     decl temp_a_14 : any;
     let temp_a_14 (__15 : unit) =
       return true;
@@ -131,7 +131,7 @@ let S3_7 (S3_in_18: S3_in) =
   try:
     decl temp_a_23 : any;
     let temp_a_23 (__24 : unit) =
-      return 50. + glob4_4 $44.00 55.;
+      return 50. + glob4_4 ¤44.00 55.;
     decl temp_a_21 : any;
     let temp_a_21 (__22 : unit) =
       return true;
@@ -465,21 +465,21 @@ def s(s_in:SIn):
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] a = ESome 1946.5744
-[RESULT] b = ESome { A y = ESome true; z = ESome 2091.; }
+[RESULT] a = ESome 1,946.574,4
+[RESULT] b = ESome A { -- y: ESome true -- z: ESome 2,091.0 }
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S2 --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] a = ESome 154.
+[RESULT] a = ESome 154.0
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S3 --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] a = ESome 2480.
+[RESULT] a = ESome 2,480.0
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S4 --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] a = ESome 6001.
+[RESULT] a = ESome 6,001.0
 ```

@@ -32,6 +32,6 @@ let scope B (B_in: B_in): B =
 ```
 
 ```catala-test-inline
-$ catala Typecheck -s B
+$ catala Typecheck
 [RESULT] Typechecking successful!
 ```

@@ -33,5 +33,5 @@ Type money coming from expression:
 10 │   definition list_high_count equals number of (m >= $7) for m among list
    │                                                     ‾‾
    └─ Article
-#return code 255#
+#return code 123#
 ```

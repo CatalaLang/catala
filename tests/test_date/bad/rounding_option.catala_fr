@@ -12,8 +12,6 @@ champ d'application Test:
 
 ```catala-test-inline
 $ catala Interpret -s Test
-catala: internal error, uncaught exception:
-        Dates_calc.Dates.AmbiguousComputation
-        
+[ERROR] Unexpected error: Dates_calc.Dates.AmbiguousComputation
 #return code 125#
 ```

@@ -39,8 +39,6 @@ val join : t -> t -> t
       if they don't belong to the same file. The law position used is the one of
       the earliest position. *)
 
-type input_file = FileName of string | Contents of string
-
 (**{2 Formatters}*)
 
 val to_string : t -> string

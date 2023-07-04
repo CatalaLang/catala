@@ -42,7 +42,7 @@ val with_formatter_of_opt_file : string option -> (Format.formatter -> 'a) -> 'a
     {!with_formatter_of_file}), otherwise, uses the [Format.std_formatter]. *)
 
 val get_out_channel :
-  source_file:Pos.input_file ->
+  source_file:Cli.input_file ->
   output_file:string option ->
   ?ext:string ->
   unit ->
@@ -52,7 +52,7 @@ val get_out_channel :
     equal to [Some "-"] returns a wrapper around [stdout]. *)
 
 val get_formatter_of_out_channel :
-  source_file:Pos.input_file ->
+  source_file:Cli.input_file ->
   output_file:string option ->
   ?ext:string ->
   unit ->
@@ -79,3 +79,11 @@ val process_out : ?check_exit:(int -> unit) -> string -> string list -> string
     arguments, and returns the stdout of the process as a string. [check_exit]
     is called on the return code of the sub-process, the default is to fail on
     anything but 0. *)
+
+val check_directory : string -> string option
+(** Checks if the given directory exists and returns it normalised (as per
+    [Unix.realpath]). *)
+
+val ( / ) : string -> string -> string
+(** [Filename.concat]: Sugar to allow writing
+    [File.("some" / "relative" / "path")] *)

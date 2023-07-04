@@ -38,5 +38,5 @@ $ catala Interpret -s Test
 12 │   date round increasing
    │              ‾‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```

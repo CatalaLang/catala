@@ -14,6 +14,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+type nonrec unit = unit
+type nonrec bool = bool
+
 (* An integer number of cents *)
 type money = Z.t
 type integer = Z.t
@@ -42,6 +45,9 @@ exception UncomparableDurations
 exception IndivisibleDurations
 exception ImpossibleDate
 exception NoValueProvided of source_position
+
+(* TODO: register exception printers for the above
+   (Printexc.register_printer) *)
 
 let money_of_cents_string (cents : string) : money = Z.of_string cents
 let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)

@@ -51,5 +51,5 @@ $ catala Interpret -s A
 18 │   definition x equals 2
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```

@@ -215,13 +215,13 @@ champ d'application Exemple3 :
 ```catala-test-inline
 $ catala Interpret -s Exemple1 --disable_warnings
 [RESULT] Computation successful! Results:
-[RESULT] éligible = true
+[RESULT] éligible = vrai
 ```
 
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] éligible = ESome true
+[RESULT] éligible = ESome vrai
 ```
 
 

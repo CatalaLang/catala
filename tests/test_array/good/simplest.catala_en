@@ -11,11 +11,11 @@ scope A:
 ```catala-test-inline
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
-[RESULT] x = [ 0; 4; 8 ]
+[RESULT] x = [0; 4; 8]
 ```
 
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] x = ESome [ ESome 0; ESome 4; ESome 8 ]
+[RESULT] x = ESome [ESome 0; ESome 4; ESome 8]
 ```

@@ -31,5 +31,5 @@ This consequence has a valid justification:
 14 │   definition b under condition not c consequence equals 0
    │                                                         ‾
    └─ Article
-#return code 255#
+#return code 123#
 ```

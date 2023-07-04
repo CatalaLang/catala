@@ -30,5 +30,5 @@ Scope Toto declared here
 2 │ declaration scope Toto:
   │                   ‾‾‾‾
 
-#return code 255#
+#return code 123#
 ```

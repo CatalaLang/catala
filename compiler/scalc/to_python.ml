@@ -308,11 +308,11 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
       (op, Pos.no_pos) (format_expression ctx) arg2
   | EApp ((EApp ((EOp (Log (BeginCall, info)), _), [f]), _), [arg])
-    when !Cli.trace_flag ->
+    when Cli.globals.trace ->
     Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
       (format_expression ctx) f (format_expression ctx) arg
   | EApp ((EOp (Log (VarDef var_def_info, info)), _), [arg1])
-    when !Cli.trace_flag ->
+    when Cli.globals.trace ->
     Format.fprintf fmt
       "log_variable_definition(%a,@ LogIO(io_input=%s,@ io_output=%b),@ %a)"
       format_uid_list info
@@ -322,14 +322,14 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       | Runtime.Reentrant -> "Reentrant")
       var_def_info.log_io_output (format_expression ctx) arg1
   | EApp ((EOp (Log (PosRecordIfTrueBool, _)), pos), [arg1])
-    when !Cli.trace_flag ->
+    when Cli.globals.trace ->
     Format.fprintf fmt
       "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) (format_expression ctx) arg1
-  | EApp ((EOp (Log (EndCall, info)), _), [arg1]) when !Cli.trace_flag ->
+  | EApp ((EOp (Log (EndCall, info)), _), [arg1]) when Cli.globals.trace ->
     Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
   | EApp ((EOp (Log _), _), [arg1]) ->
