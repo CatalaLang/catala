@@ -200,15 +200,17 @@ let format_loc_text ppf (pos : t) =
       Format.fprintf ppf "@{<bold;blue>┌─⯈ %s:@}@," (to_string_short pos);
       Format.fprintf ppf "@{<bold;blue>└%s┐@}@," (string_repeat nspaces "─");
       Format.pp_print_list print_matched_line ppf pos_lines;
-      Format.pp_print_cut ppf ();
+      (* Format.pp_print_cut ppf (); *)
       let rec pp_legal nspaces = function
-        | [last] -> Format.fprintf ppf "@{<bold;blue>%*s└─ %s@}" nspaces "" last
+        | [last] ->
+          Format.fprintf ppf "@,@{<bold;blue>%*s└─ %s@}" nspaces "" last
         | l :: lines ->
-          Format.fprintf ppf "@{<bold;blue>%*s└┬ %s@}@," nspaces "" l;
+          Format.fprintf ppf "@,@{<bold;blue>%*s└┬ %s@}" nspaces "" l;
           pp_legal (nspaces + 1) lines
         | [] -> ()
       in
-      pp_legal (nspaces + 1) legal_pos_lines
+      pp_legal (nspaces + 1) legal_pos_lines;
+      Format.pp_close_box ppf ()
   with Sys_error _ -> Format.fprintf ppf "Location: %s" (to_string pos)
 
 let no_pos : t =

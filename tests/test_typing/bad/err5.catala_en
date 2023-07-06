@@ -16,6 +16,7 @@ $ catala Typecheck
 Error during typechecking, incompatible types:
 ┌─⯈ integer
 └─⯈ Structure
+
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err5.catala_en:8.5-8.9:
 └─┐
@@ -33,6 +34,5 @@ Type Structure coming from expression:
 └─┐
 6 │     Structure { -- i: 3 -- e: Int content x };
   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-
 #return code 123#
 ```

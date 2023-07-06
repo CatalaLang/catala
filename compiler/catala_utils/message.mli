@@ -73,12 +73,16 @@ val raise_spanned_error :
   'a
 
 val raise_multispanned_error_full :
+  ?suggestion:Content.message ->
   (Content.message option * Pos.t) list ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
 
 val raise_multispanned_error :
-  (string option * Pos.t) list -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  ?suggestion:Content.message ->
+  (string option * Pos.t) list ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
 
 val raise_error : ('a, Format.formatter, unit, 'b) format4 -> 'a
 val raise_internal_error : ('a, Format.formatter, unit, 'b) format4 -> 'a

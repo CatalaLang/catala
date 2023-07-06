@@ -14,13 +14,16 @@ scope A:
 ```catala-test-inline
 $ catala Typecheck
 [ERROR]
-The name of this constructor has not been defined before (it's probably a typographical error).
+The name of this constructor has not been defined before
+(it's probably a typographical error).
+
 Here is your code :
 ┌─⯈ tests/test_enum/bad/wrong_cons.catala_en:11.23-11.28:
 └──┐
 11 │   definition e equals Case2
    │                       ‾‾‾‾‾
    └─ Article
-Maybe you wanted to write "Case1"
+
+🔎 Maybe you wanted to write "Case1"
 #return code 123#
 ```

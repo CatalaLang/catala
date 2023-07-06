@@ -70,11 +70,12 @@ let pp_hint ppf s = Format.fprintf ppf "@{<yellow>\"%s\"@}" s
     message [msg]. If available, displays [last_good_loc] the location of the
     last token correctly parsed. *)
 let raise_parser_error
+    ?(suggestion : Message.Content.message option)
     (error_loc : Pos.t)
     (last_good_loc : Pos.t option)
     (token : string)
     (msg : Format.formatter -> unit) : 'a =
-  Message.raise_multispanned_error_full
+  Message.raise_multispanned_error_full ?suggestion
     ((Some (fun ppf -> Format.pp_print_string ppf "Error token:"), error_loc)
     ::
     (match last_good_loc with
@@ -148,11 +149,10 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       | tokens ->
         Some
           (fun ppf ->
-            Format.fprintf ppf "did you mean %a?"
-              (Format.pp_print_list
-                 ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or@ maybe@ ")
-                 (fun ppf (ts, _) -> pp_hint ppf ts))
-              tokens)
+            (Format.pp_print_list
+               ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@,or maybe ")
+               (fun ppf (ts, _) -> pp_hint ppf ts))
+              ppf tokens)
     in
     (* The parser has suspended itself because of a syntax error. Stop. *)
     let custom_menhir_message ppf =
@@ -163,17 +163,10 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
         Format.fprintf ppf "Message: @{<yellow>%s@}"
           (String.trim (String.uncapitalize_ascii msg))
     in
-    let msg ppf =
-      match similar_token_msg with
-      | None -> custom_menhir_message ppf
-      | Some similar_token_msg ->
-        Format.fprintf ppf "@[<v>%t@,@[<hov 4>Autosuggestion: %t@]@]"
-          custom_menhir_message similar_token_msg
-    in
-    raise_parser_error
+    raise_parser_error ?suggestion:similar_token_msg
       (Pos.from_lpos (lexing_positions lexbuf))
       (Option.map Pos.from_lpos last_positions)
-      (Utf8.lexeme lexbuf) msg
+      (Utf8.lexeme lexbuf) custom_menhir_message
 
   (** Main parsing loop *)
   let rec loop

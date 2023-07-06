@@ -13,14 +13,16 @@ scope S:
 ```catala-test-inline
 $ catala Typecheck
 [WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
+
 ┌─⯈ tests/test_typing/bad/common.catala_en:4.6-4.9:
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
+[ERROR]
+Error during typechecking, incompatible types:
+┌─⯈ integer
+└─⯈ decimal
 
-[ERROR] Error during typechecking, incompatible types:
-        ┌─⯈ integer
-        └─⯈ decimal
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
 └──┐
@@ -38,7 +40,6 @@ Type decimal coming from expression:
 └──┐
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾
-
 #return code 123#
 ```
 
@@ -47,14 +48,16 @@ Re-putting the same check again, to ensure that the `Typecheck` and `ocaml` subc
 ```catala-test-inline
 $ catala ocaml
 [WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
+
 ┌─⯈ tests/test_typing/bad/common.catala_en:4.6-4.9:
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
+[ERROR]
+Error during typechecking, incompatible types:
+┌─⯈ integer
+└─⯈ decimal
 
-[ERROR] Error during typechecking, incompatible types:
-        ┌─⯈ integer
-        └─⯈ decimal
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
 └──┐
@@ -72,6 +75,5 @@ Type decimal coming from expression:
 └──┐
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾
-
 #return code 123#
 ```

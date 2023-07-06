@@ -154,18 +154,18 @@ module Content = struct
           | _ -> Format.pp_print_char ppf ' ')
         (fun (ppf : Format.formatter) (message_elements : t) ->
           Format.pp_print_list
-            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@.")
+            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,@,")
             (fun ppf (elt : message_element) ->
               match elt with
               | Position pos ->
                 Option.iter
-                  (fun msg -> Format.fprintf ppf "%t@." msg)
+                  (fun msg -> Format.fprintf ppf "%t@," msg)
                   pos.pos_message;
                 Pos.format_loc_text ppf pos.pos
               | MainMessage msg -> msg ppf
               | Result msg -> msg ppf
               | Suggestion msg ->
-                Format.fprintf ppf "Maybe you wanted to write %t" msg)
+                Format.fprintf ppf "🔎 Maybe you wanted to write %t" msg)
             ppf message_elements)
         content
     | Cli.GNU -> failwith "unimplemented until the message library stabilises"
@@ -201,11 +201,12 @@ let raise_spanned_error
     raise
       (CompilerError
          ([MainMessage message; Position { pos_message = span_msg; pos = span }]
-         @ match suggestion with None -> [] | Some sug -> [Suggestion sug]))
+         @ match suggestion with None -> [] | Some sugg -> [Suggestion sugg]))
   in
   Format.kdprintf continuation format
 
 let raise_multispanned_error_full
+    ?(suggestion : Content.message option)
     (spans : (Content.message option * Pos.t) list)
     format =
   Format.kdprintf
@@ -213,13 +214,17 @@ let raise_multispanned_error_full
       raise
         (CompilerError
            (MainMessage message
-           :: List.map
-                (fun (pos_message, pos) -> Position { pos_message; pos })
-                spans)))
+            :: List.map
+                 (fun (pos_message, pos) -> Position { pos_message; pos })
+                 spans
+           @ match suggestion with None -> [] | Some sugg -> [Suggestion sugg])))
     format
 
-let raise_multispanned_error spans format =
-  raise_multispanned_error_full
+let raise_multispanned_error
+    ?(suggestion : Content.message option)
+    (spans : (string option * Pos.t) list)
+    format =
+  raise_multispanned_error_full ?suggestion
     (List.map
        (fun (msg, pos) ->
          Option.map (fun s ppf -> Format.pp_print_string ppf s) msg, pos)

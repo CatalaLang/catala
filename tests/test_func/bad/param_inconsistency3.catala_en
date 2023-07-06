@@ -15,6 +15,7 @@ scope S:
 $ catala typecheck
 [ERROR]
 Function argument name mismatch between declaration ('x') and definition ('y')
+
 Argument declared here:
 ┌─⯈ tests/test_func/bad/param_inconsistency3.catala_en:4.42-4.43:
 └─┐
@@ -26,6 +27,5 @@ Defined here:
 └─┐
 9 │   exception definition f1 of y under condition not cond
   │                              ‾
-
 #return code 123#
 ```

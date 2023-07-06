@@ -125,6 +125,7 @@ scope Amount:
 $ catala Proof --disable_counterexamples 
 [ERROR]
 It is impossible to give a definition to a subscope variable not tagged as input or context.
+
 Incriminated subscope:
 ┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:56.3-56.14:
 └──┐
@@ -132,6 +133,7 @@ Incriminated subscope:
    │   ‾‾‾‾‾‾‾‾‾‾‾
    └┬ ProLaLa 2022 Super Cash Bonus
     └─ Amount
+
 Incriminated variable:
 ┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:9.12-9.22:
 └─┐
@@ -139,11 +141,11 @@ Incriminated variable:
   │            ‾‾‾‾‾‾‾‾‾‾
   └┬ ProLaLa 2022 Super Cash Bonus
    └─ Eligibility
+
 Incriminated subscope variable definition:
 ┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:64.3-64.36:
 └──┐
 64 │   definition eligibility.is_student equals is_student
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-
 #return code 123#
 ```

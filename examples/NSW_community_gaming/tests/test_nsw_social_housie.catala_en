@@ -31,7 +31,7 @@ $ catala Interpret -s Test1
 [ERROR]
 Syntax error at token "scope"
 Message: expected either 'condition', or 'content' followed by the expected variable type
-Autosuggestion: did you mean "content", or maybe "condition"?
+
 Error token:
 ┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
@@ -44,6 +44,8 @@ Last good token:
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
+🔎 Maybe you wanted to write "content",
+or maybe "condition"
 #return code 123#
 ```
 
@@ -74,7 +76,7 @@ $ catala Interpret -s Test2
 [ERROR]
 Syntax error at token "scope"
 Message: expected either 'condition', or 'content' followed by the expected variable type
-Autosuggestion: did you mean "content", or maybe "condition"?
+
 Error token:
 ┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
@@ -87,6 +89,8 @@ Last good token:
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
+🔎 Maybe you wanted to write "content",
+or maybe "condition"
 #return code 123#
 ```
 
@@ -117,7 +121,7 @@ $ catala Interpret -s Test3
 [ERROR]
 Syntax error at token "scope"
 Message: expected either 'condition', or 'content' followed by the expected variable type
-Autosuggestion: did you mean "content", or maybe "condition"?
+
 Error token:
 ┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
@@ -130,6 +134,8 @@ Last good token:
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
+🔎 Maybe you wanted to write "content",
+or maybe "condition"
 #return code 123#
 ```
 
@@ -162,7 +168,7 @@ $ catala Interpret -s Test4
 [ERROR]
 Syntax error at token "scope"
 Message: expected either 'condition', or 'content' followed by the expected variable type
-Autosuggestion: did you mean "content", or maybe "condition"?
+
 Error token:
 ┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
@@ -175,5 +181,7 @@ Last good token:
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
 
+🔎 Maybe you wanted to write "content",
+or maybe "condition"
 #return code 123#
 ```
