@@ -586,7 +586,8 @@ let rec expr_aux :
   | EIfThenElse _ ->
     let rec pr els fmt = function
       | EIfThenElse { cond; etrue; efalse }, _ ->
-        Format.fprintf fmt "@[<hv 2>%a@ %a@]@ @[<hv 2>%a@ %a@]@ %a" keyword
+        Format.fprintf fmt "@[<hv 2>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]@ %a"
+          keyword
           (if els then "else if" else "if")
           expr cond keyword "then" expr etrue (pr true) efalse
       | e -> Format.fprintf fmt "@[<hv 2>%a@ %a@]" keyword "else" (rhs exprc) e

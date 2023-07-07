@@ -71,7 +71,8 @@ let scope S (x: integer|internal|output) =
                 to_rat ((2 - i) * (2 - i)))
                < let i : integer = i_2 in
                  to_rat ((2 - i) * (2 - i))
-             then i_1
+             then
+               i_1
              else i_2)
             42
             [ 1; 2; 3 ])
