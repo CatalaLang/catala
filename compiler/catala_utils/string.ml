@@ -56,5 +56,17 @@ let remove_prefix ~prefix s =
 
 let format_t = Format.pp_print_string
 
+(* Note: this should do, but remains incorrect for combined unicode characters
+   that display as one (e.g. `e` + postfix `'`). We should switch to Uuseg at
+   some poing *)
+let width s =
+  let len = length s in
+  let rec aux ncols i =
+    if i >= len then ncols
+    else if get s i = '\t' then aux (ncols + 8) (i + 1)
+    else aux (ncols + 1) (i + Uchar.utf_decode_length (get_utf_8_uchar s i))
+  in
+  aux 0 0
+
 module Set = Set.Make (Stdlib.String)
 module Map = Map.Make (Stdlib.String)
