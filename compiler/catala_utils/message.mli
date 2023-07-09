@@ -49,7 +49,7 @@ module Content : sig
   (** {2 Content manipulation}*)
 
   val to_internal_error : t -> t
-  val add_suggestion : t -> message -> t
+  val add_suggestion : t -> string list -> t
 
   (** {2 Content emission}*)
 
@@ -67,19 +67,19 @@ exception CompilerError of Content.t
 
 val raise_spanned_error :
   ?span_msg:Content.message ->
-  ?suggestion:Content.message ->
+  ?suggestion:string list ->
   Pos.t ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
 
 val raise_multispanned_error_full :
-  ?suggestion:Content.message ->
+  ?suggestion:string list ->
   (Content.message option * Pos.t) list ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
 
 val raise_multispanned_error :
-  ?suggestion:Content.message ->
+  ?suggestion:string list ->
   (string option * Pos.t) list ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a

@@ -18,7 +18,6 @@
 (** Computes the levenshtein distance between two strings, used to provide error
     messages suggestions *)
 let levenshtein_distance (s : string) (t : string) : int =
-  (* Three-way minimum *)
   let three_way_minimum a b c = min a (min b c) in
   let m = String.length s and n = String.length t in
   (* for all i and j, d.(i).(j) will hold the Levenshtein distance between the
@@ -49,34 +48,61 @@ let levenshtein_distance (s : string) (t : string) : int =
 
   d.(m).(n)
 
-(*We're creating a string list composed by those who satisfy the following rule
-  : they share the same levenshtein distance, which is the minimal distance
-  found between the reference word "keyword" and all the strings in
-  "string_list".*)
-let suggestion_minimum_levenshtein_distance_association
+(*We create a list composed by strings that satisfy the following rule : they
+  have the same levenshtein distance, which is the minimum distance between the
+  reference word "keyword" and all the strings in "string_list" (with the
+  condition that this minimum is equal to or less than one third of the length
+  of keyword + 1, in order to get suggestions close to "keyword")*)
+let rec suggestion_minimum_levenshtein_distance_association
     (string_list : string list)
-    (keyword : string) : string list =
+    (keyword : string) : string list option =
   let rec strings_minimum_levenshtein_distance
       (minimum : int)
       (result : string list)
-      (levenshtein_distance_association' : (string * int) list) : string list =
-    match levenshtein_distance_association' with
-    | (current_string, current_lev_dist) :: tail ->
-      if current_lev_dist < minimum then
-        strings_minimum_levenshtein_distance current_lev_dist [current_string]
-          tail
-      else if current_lev_dist = minimum then
+      (string_list' : string list) : string list =
+    (*As we iterate through the "string_list'" list, we create a list "result"
+      with all strings that have the last minimum levenshtein distance found
+      ("minimum").*)
+    match string_list' with
+    (*When a new minimum levenshtein distance is found, the new result list is
+      our new element "current_string" followed by strings that have the same
+      minimum distance. It will be the "result" list if there is no levenshtein
+      distance smaller than this new minimum.*)
+    | current_string :: tail ->
+      let current_levenshtein_distance =
+        levenshtein_distance current_string keyword
+      in
+      if current_levenshtein_distance < minimum then
+        strings_minimum_levenshtein_distance current_levenshtein_distance
+          [current_string] tail
+        (*The "result" list is updated (we append "current_string" to "result")
+          when a new string shares the same minimum levenshtein distance
+          "minimum"*)
+      else if current_levenshtein_distance = minimum then
         strings_minimum_levenshtein_distance minimum
           (result @ [current_string])
           tail
+        (*If a levenshtein distance greater than the minimum is found, "result"
+          doesn't change*)
       else strings_minimum_levenshtein_distance minimum result tail
-    | _ -> result
+    (*The "result" list is returned at the end of the "string_list'" list.*)
+    | [] -> result
   in
-  let levenshtein_distance_association =
-    List.map (fun s -> s, levenshtein_distance keyword s) string_list
+  let suggestions =
+    strings_minimum_levenshtein_distance
+      (1 + (String.length keyword / 3))
+      (*In order to select suggestions that are not too far away from the
+        keyword*)
+      [] string_list
   in
-  match levenshtein_distance_association with
-  | [] -> []
-  | (_, first_levenshtein_distance) :: _ ->
-    strings_minimum_levenshtein_distance first_levenshtein_distance []
-      levenshtein_distance_association
+  match suggestions with [] -> None | _ :: _ -> Some suggestions
+
+let display (suggestions_list : string list) (ppf : Format.formatter) =
+  match suggestions_list with
+  | [] -> ()
+  | _ :: _ ->
+    Format.pp_print_string ppf "Maybe you wanted to write : ";
+    Format.pp_print_list
+      ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@,or ")
+      (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
+      ppf suggestions_list

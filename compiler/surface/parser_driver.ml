@@ -60,9 +60,6 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
         let gobbled, rest_out = split_rest_tree rest_tree in
         LawHeading (heading, gobbled) :: rest_out))
 
-(** Style with which to display syntax hints in the terminal output *)
-let pp_hint ppf s = Format.fprintf ppf "@{<yellow>\"%s\"@}" s
-
 (** Usage: [raise_parser_error error_loc last_good_loc token msg]
 
     Raises an error message featuring the [error_loc] position where the parser
@@ -70,7 +67,7 @@ let pp_hint ppf s = Format.fprintf ppf "@{<yellow>\"%s\"@}" s
     message [msg]. If available, displays [last_good_loc] the location of the
     last token correctly parsed. *)
 let raise_parser_error
-    ?(suggestion : Message.Content.message option)
+    ?(suggestion : string list option)
     (error_loc : Pos.t)
     (last_good_loc : Pos.t option)
     (token : string)
@@ -85,7 +82,9 @@ let raise_parser_error
         ( Some (fun ppf -> Format.pp_print_string ppf "Last good token:"),
           last_good_loc );
       ]))
-    "@[<v>Syntax error at token %a@,%t@]" pp_hint token msg
+    "@[<v>Syntax error at token %a@,%t@]"
+    (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
+    token msg
 
 module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)
@@ -126,33 +125,9 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       | None -> token_list, None
     in
     let similar_acceptable_tokens =
-      List.sort
-        (fun (x, _) (y, _) ->
-          let truncated_x =
-            if String.length wrong_token <= String.length x then
-              String.sub x 0 (String.length wrong_token)
-            else x
-          in
-          let truncated_y =
-            if String.length wrong_token <= String.length y then
-              String.sub y 0 (String.length wrong_token)
-            else y
-          in
-          let levx = Suggestions.levenshtein_distance truncated_x wrong_token in
-          let levy = Suggestions.levenshtein_distance truncated_y wrong_token in
-          if levx = levy then String.length x - String.length y else levx - levy)
-        acceptable_tokens
-    in
-    let similar_token_msg =
-      match similar_acceptable_tokens with
-      | [] -> None
-      | tokens ->
-        Some
-          (fun ppf ->
-            (Format.pp_print_list
-               ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@,or maybe ")
-               (fun ppf (ts, _) -> pp_hint ppf ts))
-              ppf tokens)
+      Suggestions.suggestion_minimum_levenshtein_distance_association
+        (List.map (fun (s, _) -> s) acceptable_tokens)
+        wrong_token
     in
     (* The parser has suspended itself because of a syntax error. Stop. *)
     let custom_menhir_message ppf =
@@ -163,7 +138,7 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
         Format.fprintf ppf "Message: @{<yellow>%s@}"
           (String.trim (String.uncapitalize_ascii msg))
     in
-    raise_parser_error ?suggestion:similar_token_msg
+    raise_parser_error ?suggestion:similar_acceptable_tokens
       (Pos.from_lpos (lexing_positions lexbuf))
       (Option.map Pos.from_lpos last_positions)
       (Utf8.lexeme lexbuf) custom_menhir_message

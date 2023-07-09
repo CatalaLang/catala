@@ -120,7 +120,7 @@ module Content = struct
   type message_element =
     | MainMessage of message
     | Position of position
-    | Suggestion of message
+    | Suggestion of string list
     | Result of message
 
   type t = message_element list
@@ -137,7 +137,7 @@ module Content = struct
     in
     prepend_message content internal_error_prefix
 
-  let add_suggestion (content : t) (suggestion : message) =
+  let add_suggestion (content : t) (suggestion : string list) =
     content @ [Suggestion suggestion]
 
   let of_string (s : string) : t =
@@ -164,8 +164,8 @@ module Content = struct
                 Pos.format_loc_text ppf pos.pos
               | MainMessage msg -> msg ppf
               | Result msg -> msg ppf
-              | Suggestion msg ->
-                Format.fprintf ppf "🔎 Maybe you wanted to write %t" msg)
+              | Suggestion suggestions_list ->
+                Suggestions.display suggestions_list ppf)
             ppf message_elements)
         content
     | Cli.GNU -> failwith "unimplemented until the message library stabilises"
@@ -194,7 +194,7 @@ exception CompilerError of Content.t
 
 let raise_spanned_error
     ?(span_msg : Content.message option)
-    ?(suggestion : Content.message option)
+    ?(suggestion : string list option)
     (span : Pos.t)
     format =
   let continuation (message : Format.formatter -> unit) =
@@ -206,7 +206,7 @@ let raise_spanned_error
   Format.kdprintf continuation format
 
 let raise_multispanned_error_full
-    ?(suggestion : Content.message option)
+    ?(suggestion : string list option)
     (spans : (Content.message option * Pos.t) list)
     format =
   Format.kdprintf
@@ -221,7 +221,7 @@ let raise_multispanned_error_full
     format
 
 let raise_multispanned_error
-    ?(suggestion : Content.message option)
+    ?(suggestion : string list option)
     (spans : (string option * Pos.t) list)
     format =
   raise_multispanned_error_full ?suggestion
