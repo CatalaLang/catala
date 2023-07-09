@@ -43,9 +43,6 @@ Last good token:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
-
-🔎 Maybe you wanted to write "content",
-or maybe "condition"
 #return code 123#
 ```
 
@@ -88,9 +85,6 @@ Last good token:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
-
-🔎 Maybe you wanted to write "content",
-or maybe "condition"
 #return code 123#
 ```
 
@@ -133,9 +127,6 @@ Last good token:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
-
-🔎 Maybe you wanted to write "content",
-or maybe "condition"
 #return code 123#
 ```
 
@@ -180,8 +171,5 @@ Last good token:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
-
-🔎 Maybe you wanted to write "content",
-or maybe "condition"
 #return code 123#
 ```
