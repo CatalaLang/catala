@@ -131,12 +131,19 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
     in
     (* The parser has suspended itself because of a syntax error. Stop. *)
     let custom_menhir_message ppf =
-      match Parser_errors.message (state env) with
+      (match Parser_errors.message (state env) with
       | exception Not_found ->
-        Format.fprintf ppf "Message: @{<yellow>unexpected token@}"
+        Format.fprintf ppf "Message: @{<yellow>unexpected token@}@,%t"
       | msg ->
-        Format.fprintf ppf "Message: @{<yellow>%s@}"
-          (String.trim (String.uncapitalize_ascii msg))
+        Format.fprintf ppf "Message: @{<yellow>%s@}@,%t"
+          (String.trim (String.uncapitalize_ascii msg)))
+        (fun (ppf : Format.formatter) ->
+          Format.fprintf ppf "You can only write : ";
+          Format.pp_print_list
+            ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or ")
+            (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
+            ppf
+            (List.map (fun (s, _) -> s) acceptable_tokens))
     in
     raise_parser_error ?suggestion:similar_acceptable_tokens
       (Pos.from_lpos (lexing_positions lexbuf))

@@ -50,20 +50,20 @@ let levenshtein_distance (s : string) (t : string) : int =
 
 (*We create a list composed by strings that satisfy the following rule : they
   have the same levenshtein distance, which is the minimum distance between the
-  reference word "keyword" and all the strings in "string_list" (with the
+  reference word "keyword" and all the strings in "candidates" (with the
   condition that this minimum is equal to or less than one third of the length
   of keyword + 1, in order to get suggestions close to "keyword")*)
 let suggestion_minimum_levenshtein_distance_association
-    (string_list : string list)
+    (candidates : string list)
     (keyword : string) : string list option =
   let rec strings_minimum_levenshtein_distance
       (minimum : int)
       (result : string list)
-      (string_list' : string list) : string list =
-    (*As we iterate through the "string_list'" list, we create a list "result"
+      (candidates' : string list) : string list =
+    (*As we iterate through the "candidates'" list, we create a list "result"
       with all strings that have the last minimum levenshtein distance found
       ("minimum").*)
-    match string_list' with
+    match candidates' with
     (*When a new minimum levenshtein distance is found, the new result list is
       our new element "current_string" followed by strings that have the same
       minimum distance. It will be the "result" list if there is no levenshtein
@@ -85,7 +85,7 @@ let suggestion_minimum_levenshtein_distance_association
         (*If a levenshtein distance greater than the minimum is found, "result"
           doesn't change*)
       else strings_minimum_levenshtein_distance minimum result tail
-    (*The "result" list is returned at the end of the "string_list'" list.*)
+    (*The "result" list is returned at the end of the "candidates'" list.*)
     | [] -> result
   in
   let suggestions =
@@ -93,7 +93,7 @@ let suggestion_minimum_levenshtein_distance_association
       (1 + (String.length keyword / 3))
       (*In order to select suggestions that are not too far away from the
         keyword*)
-      [] string_list
+      [] candidates
   in
   match suggestions with [] -> None | _ :: _ -> Some suggestions
 
@@ -103,6 +103,6 @@ let display (suggestions_list : string list) (ppf : Format.formatter) =
   | _ :: _ ->
     Format.pp_print_string ppf "Maybe you wanted to write : ";
     Format.pp_print_list
-      ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@,or ")
+      ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or ")
       (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
       ppf suggestions_list
