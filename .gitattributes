@@ -3,16 +3,5 @@
 *.md linguist-documentation
 *.hints linguist-generated
 
-french_law/js/src/french_law.js binary linguist-generated
-
 **/package-lock.json linguist-generated
 **/yarn.lock linguist-generated
-
-french_law/ocaml/law_source/allocations_familiales.ml binary linguist-generated
-french_law/ocaml/law_source/allocations_familiales_api_web.ml binary linguist-generated
-french_law/ocaml/law_source/unit_tests/tests_allocations_famiales.ml binary linguist-generated
-french_law/python/src/allocations_familiales.py binary linguist-generated
-
-french_law/ocaml/law_source/aides_logement.ml binary linguist-generated
-french_law/ocaml/law_source/aides_logement_api_web.ml binary linguist-generated
-french_law/python/src/aides_logement.py binary linguist-generated
