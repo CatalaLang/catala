@@ -113,19 +113,6 @@ let string_repeat n s =
   done;
   Bytes.to_string buf
 
-(* Note: this should do, but remains incorrect for combined unicode characters
-   that display as one (e.g. `e` + postfix `'`). We should switch to Uuseg at
-   some poing *)
-let string_columns s =
-  let len = String.length s in
-  let rec aux ncols i =
-    if i >= len then ncols
-    else if s.[i] = '\t' then aux (ncols + 8) (i + 1)
-    else
-      aux (ncols + 1) (i + Uchar.utf_decode_length (String.get_utf_8_uchar s i))
-  in
-  aux 0 0
-
 let utf8_byte_index s ui0 =
   let rec aux bi ui =
     if ui >= ui0 then bi
@@ -200,8 +187,8 @@ let format_loc_text ppf (pos : t) =
           String.sub line match_start_index
             (max 0 (match_end_index - match_start_index))
         in
-        let match_start_col = string_columns unmatched_prefix in
-        let match_num_cols = string_columns matched_substring in
+        let match_start_col = String.width unmatched_prefix in
+        let match_num_cols = String.width matched_substring in
         Format.fprintf ppf "@{<bold;blue>%*d │@} %s@," nspaces line_no line;
         if line_no >= sline && line_no <= eline then
           Format.fprintf ppf "@{<bold;blue>%s │@} %s@{<bold;red>%s@}"

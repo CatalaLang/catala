@@ -171,8 +171,7 @@ let scope Foo
         (match b with
          | ENone _ → ENone _
          | ESome b →
-           if b
-           then
+           if b then
              match
                (match (SubFoo1 { SubFoo1_in x_in = ESome 10; }).x with
                 | ENone _ → ENone _

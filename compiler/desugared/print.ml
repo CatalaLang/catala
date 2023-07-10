@@ -25,40 +25,42 @@ open Format
 
 (* Original credits for this printing code: Jean-Christophe Filiâtre *)
 let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
-  let blue fmt s = Format.fprintf fmt "@{<blue>%s@}" s in
-  let rec print_node pref (t : exception_tree) =
+  let blue fmt n s =
+    Format.fprintf fmt "@{<blue>%a@}" (fun fmt -> Format.pp_print_as fmt n) s
+  in
+  let rec print_node pref prefsz (t : exception_tree) =
     let label, sons =
       match t with
       | Leaf l -> l.Dependency.ExceptionVertex.label, []
       | Node (sons, l) -> l.Dependency.ExceptionVertex.label, sons
     in
     Format.fprintf fmt "@{<yellow>\"%a\"@}" LabelName.format_t label;
-    let w = String.length (fst (LabelName.get_info label)) + 2 in
+    let w = String.width (fst (LabelName.get_info label)) + 2 in
     if sons != [] then
-      let pref' = pref ^ String.make (w + 1) ' ' in
+      let pref', prefsz' = pref ^ String.make (w + 1) ' ', prefsz + w + 2 in
       match sons with
       | [t'] ->
-        blue fmt "───";
-        print_node (pref' ^ " ") t'
+        blue fmt 3 "───";
+        print_node (pref' ^ " ") (prefsz' + 1) t'
       | _ ->
-        blue fmt "──";
-        print_sons pref' "─┬──" sons
-  and print_sons pref start = function
+        blue fmt 1 "─";
+        print_sons pref' prefsz' "─┬──" sons
+  and print_sons pref prefsz start = function
     | [] -> assert false
     | [s] ->
-      blue fmt " └──";
-      print_node (pref ^ " ") s
+      blue fmt 4 " └──";
+      print_node (pref ^ " ") (prefsz + 1) s
     | s :: sons ->
-      blue fmt start;
-      print_node (pref ^ "| ") s;
+      blue fmt 4 start;
+      print_node (pref ^ "| ") (prefsz + 2) s;
       pp_print_cut fmt ();
-      blue fmt (pref ^ " │");
+      blue fmt (prefsz + 2) (pref ^ " │");
       pp_print_cut fmt ();
-      blue fmt pref;
-      print_sons pref " ├──" sons
+      blue fmt prefsz pref;
+      print_sons pref prefsz " ├──" sons
   in
   Format.pp_open_vbox fmt 0;
-  print_node "" t;
+  print_node "" 0 t;
   Format.pp_close_box fmt ()
 
 let build_exception_tree exc_graph =
@@ -97,8 +99,8 @@ let print_exceptions_graph
         (RuleName.Map.bindings ex.Dependency.ExceptionVertex.rules))
     g;
   let tree = build_exception_tree g in
-  Message.emit_result "The exception tree structure is as follows:\n\n%a"
+  Message.emit_result "@[<v>The exception tree structure is as follows:@,@,%a@]"
     (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,@,")
        (fun fmt tree -> format_exception_tree fmt tree))
     tree

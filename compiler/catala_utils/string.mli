@@ -46,3 +46,8 @@ val remove_prefix : prefix:string -> string -> string
     - otherwise, [str] unchanged *)
 
 val format_t : Format.formatter -> string -> unit
+
+val width : string -> int
+(** Returns the width of a given string in screen columns (assuming a monospace
+    font). Useful for alignment. This takes unicode (except composite chars) and
+    tabs into account, but not escape sequences. *)

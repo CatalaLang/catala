@@ -51,15 +51,11 @@ one, which contains all the class types and conversion functions between the
 OCaml types and their corresponding JS objects. At the end the module exposes
 all methods in a JS lib [<module_name>Lib].
 
-See
-{{:https://github.com/CatalaLang/catala/tree/master/french_law/ocaml/law_source}
-law_source} for examples of generated code.
+See the `law_source/` directory in the
+{{:https://catalalang.github.io/catala/french_law_ocaml.tar.gz}
+OCaml french law bundle} for examples of generated code.
 
 {2 JSON schema generator example}
 
 This plugin generates a {{:https://json-schema.org} JSON schema} corresponding
 to a scope of a Catala program.
-
-See
-{{:https://github.com/CatalaLang/catala/tree/master/french_law/json_schemas}
-json_schemas} for examples of generated schemas.
