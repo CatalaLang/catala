@@ -53,7 +53,7 @@ let levenshtein_distance (s : string) (t : string) : int =
   reference word "keyword" and all the strings in "string_list" (with the
   condition that this minimum is equal to or less than one third of the length
   of keyword + 1, in order to get suggestions close to "keyword")*)
-let rec suggestion_minimum_levenshtein_distance_association
+let suggestion_minimum_levenshtein_distance_association
     (string_list : string list)
     (keyword : string) : string list option =
   let rec strings_minimum_levenshtein_distance
