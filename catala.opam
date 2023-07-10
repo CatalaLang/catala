@@ -73,7 +73,7 @@ dev-repo: "git+https://github.com/CatalaLang/catala.git"
 depexts: [
   ["groff" "colordiff" "latexmk" "python3-pip" "pandoc"]
     {cataladevmode & os-family = "debian"}
-  ["groff" "colordiff" "texlive" "py3-pip" "py3-pygments"]
+  ["groff" "colordiff" "texlive" "texmf-dist-fontsextra" "texmf-dist-latexextra" "py3-pip" "py3-pygments"]
     {cataladevmode & os-distribution = "alpine"}
   ["groff" "colordiff" "latex-mk" "python-pygments" "pandoc"]
     {cataladevmode & os-family = "arch"}
