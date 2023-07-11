@@ -104,6 +104,7 @@ end
 (** Various helpers *)
 
 val modname_of_file : string -> string
+val get_lang : Cli.options -> Cli.input_file -> Cli.backend_lang
 
 (** API available to plugins for their own registration *)
 

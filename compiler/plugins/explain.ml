@@ -614,6 +614,7 @@ let program_to_graph
           let e = Scope.to_expr ctx body (Scope.get_body_mark body) in
           let e = customize (Expr.unbox e) in
           let e = Expr.remove_logging_calls (Expr.unbox e) in
+          let e = Expr.rename_vars (Expr.unbox e) in
           ( Env.add (Var.translate v) (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
         | Topdef (_, _, e) ->
@@ -1009,60 +1010,196 @@ let rec graph_cleanup options g base_vars =
   in
   g
 
-let to_dot ppf ctx env base_vars g ~base_src_url =
+let expr_to_dot_label0 :
+    type a.
+    Cli.backend_lang ->
+    decl_ctx ->
+    Env.t ->
+    Format.formatter ->
+    (a, 't) gexpr ->
+    unit =
+ fun lang ctx env ->
+  let xlang ~en ?(pl = en) ~fr () =
+    match lang with Cli.Fr -> fr | Cli.En -> en | Cli.Pl -> pl
+  in
+  let rec aux_value : type a t. Format.formatter -> (a, t) gexpr -> unit =
+   fun ppf e -> Print.UserFacing.value ~fallback lang ppf e
+  and fallback : type a t. Format.formatter -> (a, t) gexpr -> unit =
+   fun ppf e ->
+    let module E = Print.ExprGen (struct
+      let var ppf v = String.format_t ppf (Bindlib.name_of v)
+      let lit = Print.UserFacing.lit lang
+
+      let operator : type x. Format.formatter -> x operator -> unit =
+       fun ppf o ->
+        let open Op in
+        let str =
+          match o with
+          | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq
+            ->
+            "="
+          | Minus_int | Minus_rat | Minus_mon | Minus_dur | Minus -> "-"
+          | ToRat_int | ToRat_mon | ToRat -> ""
+          | ToMoney_rat | ToMoney -> ""
+          | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _
+          | Add_dur_dur | Add ->
+            "+"
+          | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
+          | Sub_dur_dur | Sub ->
+            "-"
+          | Mult_int_int | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Mult ->
+            "×"
+          | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur
+          | Div ->
+            "/"
+          | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dur_dur | Lt_dat_dat | Lt
+            ->
+            "<"
+          | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dur_dur | Lte_dat_dat
+          | Lte ->
+            "<="
+          | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dur_dur | Gt_dat_dat | Gt
+            ->
+            ">"
+          | Gte_int_int | Gte_rat_rat | Gte_mon_mon | Gte_dur_dur | Gte_dat_dat
+          | Gte ->
+            ">="
+          | Concat -> "++"
+          | Not -> xlang () ~en:"not" ~fr:"non"
+          | Length -> xlang () ~en:"length" ~fr:"nombre"
+          | GetDay -> xlang () ~en:"day_of_month" ~fr:"jour_du_mois"
+          | GetMonth -> xlang () ~en:"month" ~fr:"mois"
+          | GetYear -> xlang () ~en:"year" ~fr:"année"
+          | FirstDayOfMonth ->
+            xlang () ~en:"first_day_of_month" ~fr:"premier_jour_du_mois"
+          | LastDayOfMonth ->
+            xlang () ~en:"last_day_of_month" ~fr:"dernier_jour_du_mois"
+          | Round_rat | Round_mon | Round -> xlang () ~en:"round" ~fr:"arrondi"
+          | Log _ -> xlang () ~en:"Log" ~fr:"Journal"
+          | And -> xlang () ~en:"and" ~fr:"et"
+          | Or -> xlang () ~en:"or" ~fr:"ou"
+          | Xor -> xlang () ~en:"xor" ~fr:"ou bien"
+          | Map -> xlang () ~en:"on_every" ~fr:"pour_chaque"
+          | Reduce -> xlang () ~en:"reduce" ~fr:"réunion"
+          | Filter -> xlang () ~en:"filter" ~fr:"filtre"
+          | Fold -> xlang () ~en:"fold" ~fr:"pliage"
+          | HandleDefault -> ""
+          | HandleDefaultOpt -> ""
+          | ToClosureEnv -> ""
+          | FromClosureEnv -> ""
+        in
+        Format.pp_print_string ppf str
+
+      let pre_map = Expr.skip_wrappers
+
+      let bypass : type a t. Format.formatter -> (a, t) gexpr -> bool =
+       fun ppf e ->
+        match Mark.remove e with
+        | ELit _ | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmptyError
+        | EAbs _ | EExternal _ ->
+          aux_value ppf e;
+          true
+        | EMatch { e; cases; _ } ->
+          let cases =
+            List.map
+              (function
+                | cons, (EAbs { binder; _ }, _) ->
+                  cons, snd (Bindlib.unmbind binder)
+                | cons, e -> cons, e)
+              (EnumConstructor.Map.bindings cases)
+          in
+          if
+            List.for_all
+              (function _, (ELit (LBool _), _) -> true | _ -> false)
+              cases
+          then (
+            let cases =
+              List.filter_map
+                (function c, (ELit (LBool true), _) -> Some c | _ -> None)
+                cases
+            in
+            Format.fprintf ppf "%a @<1>%s @[<hov>%a@]" aux_value e "≅"
+              (Format.pp_print_list
+                 ~pp_sep:(fun ppf () ->
+                   Format.fprintf ppf " %t@ " (fun ppf -> operator ppf Or))
+                 EnumConstructor.format_t)
+              cases;
+            true)
+          else false
+        | _ -> false
+    end) in
+    E.expr ppf e
+  in
+  aux_value
+
+let rec expr_to_dot_label lang ctx env ppf e =
+  let print_expr = expr_to_dot_label lang ctx env in
+  let e = Expr.skip_wrappers e in
+  match e with
+  | EVar v, _ ->
+    let e, _ = lazy_eval ctx env value_level e in
+    Format.fprintf ppf "%a = %a" String.format_t (Bindlib.name_of v)
+      (expr_to_dot_label0 lang ctx env)
+      e
+  | EStruct { name; fields }, _ ->
+    let pr ppf =
+      Format.fprintf ppf "{ %a | { { %a } | { %a }}}" StructName.format_t name
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
+           (fun ppf (fld, _) ->
+             StructField.format_t ppf fld;
+             Format.pp_print_string ppf "\\l"))
+        (StructField.Map.bindings fields)
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
+           (fun ppf -> function
+             | ( _,
+                 (((EVar _ | ELit _ | EInj { e = (EVar _ | ELit _), _; _ }), _)
+                 as e) ) ->
+               print_expr ppf e;
+               Format.pp_print_string ppf "\\l"
+             | _ -> Format.pp_print_string ppf "…\\l"))
+        (StructField.Map.bindings fields)
+    in
+    Format.pp_print_string ppf (Message.unformat pr)
+  | EArray elts, _ ->
+    let pr ppf =
+      Format.fprintf ppf "{ %a }"
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
+           (fun ppf -> function
+             | ((EVar _ | ELit _), _) as e -> print_expr ppf e
+             | _ -> Format.pp_print_string ppf "…"))
+        elts
+    in
+    Format.pp_print_string ppf (Message.unformat pr)
+  | e -> Format.fprintf ppf "%a@," (expr_to_dot_label0 lang ctx env) e
+
+let to_dot lang ppf ctx env base_vars g ~base_src_url =
   let module GPr = Graph.Graphviz.Dot (struct
     include G
+
+    let print_expr env ctx lang ppf e =
+      let out_funs = Format.pp_get_formatter_out_functions ppf () in
+      Format.pp_set_formatter_out_functions ppf
+        {
+          out_funs with
+          Format.out_newline = (fun () -> out_funs.out_string "\\l" 0 2);
+        };
+      expr_to_dot_label env ctx lang ppf e;
+      Format.pp_print_flush ppf ();
+      Format.pp_set_formatter_out_functions ppf out_funs
 
     let graph_attributes _ = [ (* `Rankdir `LeftToRight *) ]
     let default_vertex_attributes _ = []
 
     let vertex_label v =
-      let e = Expr.skip_wrappers (G.V.label v) in
-      match e with
-      | EVar v, _ -> (
-        match lazy_eval ctx env value_level e (* Env.find v env *) with
-        | (ELit l, _), _ ->
-          Format.asprintf "%s = %a" (Bindlib.name_of v) Print.lit l
-        | e, _ -> Format.asprintf "%s\n%a" (Bindlib.name_of v) Expr.format e
-        | exception _ -> Format.asprintf "YY %s" (Bindlib.name_of v))
-      | (EApp { f = EOp { op; _ }, _; _ }, _) as e -> (
-        Re.replace_string Re.(compile (char '\n')) ~by:"\\l"
-        @@
-        match op_kind op with
-        | `Sum | `Product | `Round -> Format.asprintf "%a\\l" Expr.format e
-        | `Fct -> Format.asprintf "<%a>" (Print.operator ~debug:false) op
-        | `Other -> Format.asprintf "%a\\l" Expr.format e)
-      | EApp { f; _ }, _ -> Format.asprintf "%a" Expr.format f
-      | ELit l, _ -> Format.asprintf "%a" Print.lit l
-      | EStruct { name; fields }, _ ->
-        Format.asprintf "{ %a | { { %a } | { %a }}}" StructName.format_t name
-          (Format.pp_print_list
-             ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
-             (fun ppf (fld, _) ->
-               StructField.format_t ppf fld;
-               Format.pp_print_string ppf "\\l"))
-          (StructField.Map.bindings fields)
-          (Format.pp_print_list
-             ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
-             (fun ppf -> function
-               | ( _,
-                   (((EVar _ | ELit _ | EInj { e = (EVar _ | ELit _), _; _ }), _)
-                   as e) ) ->
-                 Expr.format ppf e;
-                 Format.pp_print_string ppf "\\l"
-               | _ -> Format.pp_print_string ppf "…\\l"))
-          (StructField.Map.bindings fields)
-        |> Re.replace_string Re.(compile (seq [char '\n'; rep space])) ~by:" "
-      | EArray elts, _ ->
-        Format.asprintf "{ %a }"
-          (Format.pp_print_list
-             ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
-             (fun ppf -> function
-               | ((EVar _ | ELit _), _) as e -> Expr.format ppf e
-               | _ -> Format.pp_print_string ppf "…"))
-          elts
-        |> Re.replace_string Re.(compile (seq [char '\n'; rep space])) ~by:" "
-      | z -> Format.asprintf "[%a]" Expr.format z
+      let print_expr = print_expr lang ctx env in
+      match G.V.label v with
+      | (EVar v, _) as e ->
+        Format.asprintf "%a = %a" String.format_t (Bindlib.name_of v) print_expr
+          (fst (lazy_eval ctx env value_level e))
+      | e -> Format.asprintf "%a" print_expr e
 
     let vertex_name v = Printf.sprintf "x%03d" (G.V.hash v)
 
@@ -1255,8 +1392,9 @@ let run link_modules optimize ex_scope explain_options global_options =
       graph_cleanup explain_options g base_vars
     else g
   in
+  let lang = Driver.get_lang global_options global_options.Cli.input_file in
   let dot_content =
-    to_dot Format.str_formatter prg.decl_ctx env base_vars g
+    to_dot lang Format.str_formatter prg.decl_ctx env base_vars g
       ~base_src_url:explain_options.base_src_url;
     Format.flush_str_formatter ()
     |> Re.(replace_string (compile (seq [bow; str "comment="])) ~by:"tooltip=")

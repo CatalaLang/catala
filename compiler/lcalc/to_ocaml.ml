@@ -73,20 +73,75 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
            (Re.replace sanitize_quotes ~f:(fun _ -> "\\\"") info)))
     uids
 
+(* list taken from
+   http://caml.inria.fr/pub/docs/manual-ocaml/lex.html#sss:keywords *)
+let ocaml_keywords =
+  [
+    "and";
+    "as";
+    "assert";
+    "asr";
+    "begin";
+    "class";
+    "constraint";
+    "do";
+    "done";
+    "downto";
+    "else";
+    "end";
+    "exception";
+    "external";
+    "false";
+    "for";
+    "fun";
+    "function";
+    "functor";
+    "if";
+    "in";
+    "include";
+    "inherit";
+    "initializer";
+    "land";
+    "lazy";
+    "let";
+    "lor";
+    "lsl";
+    "lsr";
+    "lxor";
+    "match";
+    "method";
+    "mod";
+    "module";
+    "mutable";
+    "new";
+    "nonrec";
+    "object";
+    "of";
+    "open";
+    "or";
+    "private";
+    "rec";
+    "sig";
+    "struct";
+    "then";
+    "to";
+    "true";
+    "try";
+    "type";
+    "val";
+    "virtual";
+    "when";
+    "while";
+    "with";
+    "Stdlib";
+    "Runtime";
+    "Oper";
+  ]
+
+let ocaml_keywords_set = String.Set.of_list ocaml_keywords
+
 let avoid_keywords (s : string) : string =
-  match s with
-  (* list taken from
-     http://caml.inria.fr/pub/docs/manual-ocaml/lex.html#sss:keywords *)
-  | "and" | "as" | "assert" | "asr" | "begin" | "class" | "constraint" | "do"
-  | "done" | "downto" | "else" | "end" | "exception" | "external" | "false"
-  | "for" | "fun" | "function" | "functor" | "if" | "in" | "include" | "inherit"
-  | "initializer" | "land" | "lazy" | "let" | "lor" | "lsl" | "lsr" | "lxor"
-  | "match" | "method" | "mod" | "module" | "mutable" | "new" | "nonrec"
-  | "object" | "of" | "open" | "or" | "private" | "rec" | "sig" | "struct"
-  | "then" | "to" | "true" | "try" | "type" | "val" | "virtual" | "when"
-  | "while" | "with" | "Stdlib" | "Runtime" | "Oper" ->
-    s ^ "_user"
-  | _ -> s
+  if String.Set.mem s ocaml_keywords_set then s ^ "_user" else s
 (* Fixme: this could cause clashes if the user program contains both e.g. [new]
    and [new_user] *)
 
@@ -187,7 +242,7 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
       ~subst:(fun _ -> "_dot_")
       lowercase_name
   in
-  let lowercase_name = avoid_keywords (String.to_ascii lowercase_name) in
+  let lowercase_name = String.to_ascii lowercase_name in
   if
     List.mem lowercase_name ["handle_default"; "handle_default_opt"]
     || String.begins_with_uppercase (Bindlib.name_of v)
@@ -504,6 +559,14 @@ let format_ctx
       | Scopelang.Dependency.TVertex.Enum e ->
         Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
     (type_ordering @ scope_structs)
+
+let rename_vars e =
+  Expr.(
+    unbox
+      (rename_vars ~exclude:ocaml_keywords ~reset_context_for_closed_terms:true
+         ~skip_constant_binders:true ~constant_binder_name:(Some "_") e))
+
+let format_expr ctx fmt e = format_expr ctx fmt (rename_vars e)
 
 let rec format_scope_body_expr
     (ctx : decl_ctx)

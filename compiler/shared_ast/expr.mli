@@ -363,6 +363,17 @@ val remove_logging_calls :
 (** Removes all calls to [Log] unary operators in the AST, replacing them by
     their argument. *)
 
+val rename_vars :
+  ?exclude:string list ->
+  ?reset_context_for_closed_terms:bool ->
+  ?skip_constant_binders:bool ->
+  ?constant_binder_name:string option ->
+  ('a, 'm) gexpr ->
+  ('a, 'm) boxed_gexpr
+(** Disambiguates all variable names in [e]. [exclude] will blacklist the given
+    names (useful for keywords or built-in names) ; the other flags behave as
+    defined in the bindlib documentation for module type [Rename] *)
+
 val format : Format.formatter -> ('a, 'm) gexpr -> unit
 (** Simple printing without debug, use [Print.expr ()] instead to follow the
     command-line debug setting *)

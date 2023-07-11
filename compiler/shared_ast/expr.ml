@@ -757,6 +757,85 @@ let remove_logging_calls e =
   in
   f e
 
+module DefaultBindlibCtxRename = struct
+  (* This code is a copy-paste from Bindlib, they forgot to expose the default
+     implementation ! *)
+  type ctxt = int String.Map.t
+
+  let empty_ctxt = String.Map.empty
+
+  let split_name : string -> string * int =
+   fun name ->
+    let len = String.length name in
+    (* [i] is the index of the first first character of the suffix. *)
+    let i =
+      let is_digit c = '0' <= c && c <= '9' in
+      let first_digit = ref len in
+      let first_non_0 = ref len in
+      while !first_digit > 0 && is_digit name.[!first_digit - 1] do
+        decr first_digit;
+        if name.[!first_digit] <> '0' then first_non_0 := !first_digit
+      done;
+      !first_non_0
+    in
+    if i = len then name, 0
+    else String.sub name 0 i, int_of_string (String.sub name i (len - i))
+
+  let get_suffix : string -> int -> ctxt -> int * ctxt =
+   fun name suffix ctxt ->
+    let n = try String.Map.find name ctxt with Not_found -> -1 in
+    let suffix = if suffix > n then suffix else n + 1 in
+    suffix, String.Map.add name suffix ctxt
+
+  let merge_name : string -> int -> string =
+   fun prefix suffix ->
+    if suffix > 0 then prefix ^ string_of_int suffix else prefix
+
+  let new_name : string -> ctxt -> string * ctxt =
+   fun name ctxt ->
+    let prefix, suffix = split_name name in
+    let suffix, ctxt = get_suffix prefix suffix ctxt in
+    merge_name prefix suffix, ctxt
+
+  let reserve_name : string -> ctxt -> ctxt =
+   fun name ctxt ->
+    let prefix, suffix = split_name name in
+    try
+      let n = String.Map.find prefix ctxt in
+      if suffix <= n then ctxt else String.Map.add prefix suffix ctxt
+    with Not_found -> String.Map.add prefix suffix ctxt
+end
+
+let rename_vars
+    ?(exclude = ([] : string list))
+    ?(reset_context_for_closed_terms = false)
+    ?(skip_constant_binders = false)
+    ?(constant_binder_name = None)
+    e =
+  let module BindCtx = Bindlib.Ctxt (struct
+    include DefaultBindlibCtxRename
+
+    let reset_context_for_closed_terms = reset_context_for_closed_terms
+    let skip_constant_binders = skip_constant_binders
+    let constant_binder_name = constant_binder_name
+  end) in
+  let rec aux : type a. BindCtx.ctxt -> (a, 't) gexpr -> (a, 't) gexpr boxed =
+   fun ctx e ->
+    match e with
+    | EAbs { binder; tys }, m ->
+      let vars, body, ctx = BindCtx.unmbind_in ctx binder in
+      let body = aux ctx body in
+      let binder = bind vars body in
+      eabs binder tys m
+    | e -> map ~f:(aux ctx) e
+  in
+  let ctx =
+    List.fold_left
+      (fun ctx name -> DefaultBindlibCtxRename.reserve_name name ctx)
+      BindCtx.empty_ctxt exclude
+  in
+  aux ctx e
+
 let format ppf e = Print.expr ~debug:false () ppf e
 
 let rec size : type a. (a, 't) gexpr -> int =
