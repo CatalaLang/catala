@@ -33,7 +33,10 @@ let load_file f =
   try
     Dynlink.loadfile f;
     Message.emit_debug "Plugin %S loaded" f
-  with e ->
+  with
+  | Dynlink.Error (Dynlink.Module_already_loaded s) ->
+    Message.emit_debug "Plugin %S (%s) was already loaded, skipping" f s
+  | e ->
     Message.emit_warning "Could not load plugin %S: %s" f (Printexc.to_string e)
 
 let rec load_dir d =
