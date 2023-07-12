@@ -165,7 +165,7 @@ module Content = struct
               | MainMessage msg -> msg ppf
               | Result msg -> msg ppf
               | Suggestion suggestions_list ->
-                Suggestions.display ppf suggestions_list)
+                Suggestions.format ppf suggestions_list)
             ppf message_elements)
         content
     | Cli.GNU ->
@@ -177,35 +177,40 @@ module Content = struct
       let ppf = get_ppf target in
       Format.pp_print_list ~pp_sep:Format.pp_print_newline
         (fun ppf elt ->
-           let pos, message = match elt with
-             | MainMessage m ->
-               let pos =
-                 List.find_map (function
-                     | Position {pos_message = None; pos} -> Some pos
-                     | _ -> None) content
-                 |> function
-                 | None ->
-                   List.find_map (function
-                       | Position {pos_message = _; pos} -> Some pos
-                       | _ -> None) content
-                 | some -> some
-               in
-               pos, m
-             | Position { pos_message; pos } ->
-               let message = match pos_message with
-                 | Some m -> m
-                 | None -> fun _ -> ()
-               in
-               (Some pos), message
-             | Result m -> None, m
-             | Suggestion sl -> None, fun ppf -> Suggestions.display ppf sl
-           in
-           Option.iter (fun pos -> Format.fprintf ppf "@{<blue>%s@}: "
-                           (Pos.to_string_short pos))
-             pos;
-           pp_marker target ppf;
-           Format.pp_print_char ppf ' ';
-           Format.pp_print_string ppf (unformat message))
+          let pos, message =
+            match elt with
+            | MainMessage m ->
+              let pos =
+                List.find_map
+                  (function
+                    | Position { pos_message = None; pos } -> Some pos
+                    | _ -> None)
+                  content
+                |> function
+                | None ->
+                  List.find_map
+                    (function
+                      | Position { pos_message = _; pos } -> Some pos
+                      | _ -> None)
+                    content
+                | some -> some
+              in
+              pos, m
+            | Position { pos_message; pos } ->
+              let message =
+                match pos_message with Some m -> m | None -> fun _ -> ()
+              in
+              Some pos, message
+            | Result m -> None, m
+            | Suggestion sl -> None, fun ppf -> Suggestions.format ppf sl
+          in
+          Option.iter
+            (fun pos ->
+              Format.fprintf ppf "@{<blue>%s@}: " (Pos.to_string_short pos))
+            pos;
+          pp_marker target ppf;
+          Format.pp_print_char ppf ' ';
+          Format.pp_print_string ppf (unformat message))
         ppf content;
       Format.pp_print_newline ppf ()
 end
@@ -220,19 +225,19 @@ exception CompilerError of Content.t
 
 let raise_spanned_error
     ?(span_msg : Content.message option)
-    ?(suggestion : string list option)
+    ?(suggestion = ([] : string list))
     (span : Pos.t)
     format =
   let continuation (message : Format.formatter -> unit) =
     raise
       (CompilerError
          ([MainMessage message; Position { pos_message = span_msg; pos = span }]
-         @ match suggestion with None -> [] | Some sugg -> [Suggestion sugg]))
+         @ match suggestion with [] -> [] | sugg -> [Suggestion sugg]))
   in
   Format.kdprintf continuation format
 
 let raise_multispanned_error_full
-    ?(suggestion : string list option)
+    ?(suggestion = ([] : string list))
     (spans : (Content.message option * Pos.t) list)
     format =
   Format.kdprintf
@@ -243,14 +248,14 @@ let raise_multispanned_error_full
             :: List.map
                  (fun (pos_message, pos) -> Position { pos_message; pos })
                  spans
-           @ match suggestion with None -> [] | Some sugg -> [Suggestion sugg])))
+           @ match suggestion with [] -> [] | sugg -> [Suggestion sugg])))
     format
 
 let raise_multispanned_error
-    ?(suggestion : string list option)
+    ?(suggestion = ([] : string list))
     (spans : (string option * Pos.t) list)
     format =
-  raise_multispanned_error_full ?suggestion
+  raise_multispanned_error_full ~suggestion
     (List.map
        (fun (msg, pos) ->
          Option.map (fun s ppf -> Format.pp_print_string ppf s) msg, pos)

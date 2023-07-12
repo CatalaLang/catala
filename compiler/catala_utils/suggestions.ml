@@ -55,7 +55,7 @@ let levenshtein_distance (s : string) (t : string) : int =
   of keyword + 1, in order to get suggestions close to "keyword")*)
 let suggestion_minimum_levenshtein_distance_association
     (candidates : string list)
-    (keyword : string) : string list option =
+    (keyword : string) : string list =
   let rec strings_minimum_levenshtein_distance
       (minimum : int)
       (result : string list)
@@ -88,16 +88,13 @@ let suggestion_minimum_levenshtein_distance_association
     (*The "result" list is returned at the end of the "candidates'" list.*)
     | [] -> result
   in
-  let suggestions =
-    strings_minimum_levenshtein_distance
-      (1 + (String.length keyword / 3))
-      (*In order to select suggestions that are not too far away from the
-        keyword*)
-      [] candidates
-  in
-  match suggestions with [] -> None | _ :: _ -> Some suggestions
+  strings_minimum_levenshtein_distance
+    (1 + (String.length keyword / 3))
+    (*In order to select suggestions that are not too far away from the
+      keyword*)
+    [] candidates
 
-let display (ppf : Format.formatter) (suggestions_list : string list) =
+let format (ppf : Format.formatter) (suggestions_list : string list) =
   match suggestions_list with
   | [] -> ()
   | _ :: _ ->

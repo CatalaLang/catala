@@ -31,7 +31,7 @@ $ catala Interpret -s Test1
 [ERROR]
 Syntax error at token "scope"
 Message: expected either 'condition', or 'content' followed by the expected variable type
-You can only write : "condition",
+You could have written : "condition",
 or "content"
 
 Error token:
@@ -75,7 +75,7 @@ $ catala Interpret -s Test2
 [ERROR]
 Syntax error at token "scope"
 Message: expected either 'condition', or 'content' followed by the expected variable type
-You can only write : "condition",
+You could have written : "condition",
 or "content"
 
 Error token:
@@ -119,7 +119,7 @@ $ catala Interpret -s Test3
 [ERROR]
 Syntax error at token "scope"
 Message: expected either 'condition', or 'content' followed by the expected variable type
-You can only write : "condition",
+You could have written : "condition",
 or "content"
 
 Error token:
@@ -165,7 +165,7 @@ $ catala Interpret -s Test4
 [ERROR]
 Syntax error at token "scope"
 Message: expected either 'condition', or 'content' followed by the expected variable type
-You can only write : "condition",
+You could have written : "condition",
 or "content"
 
 Error token:

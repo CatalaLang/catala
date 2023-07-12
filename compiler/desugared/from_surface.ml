@@ -130,7 +130,7 @@ let raise_error_cons_not_found
   in
   Message.raise_spanned_error
     ~span_msg:(fun ppf -> Format.fprintf ppf "Here is your code :")
-    ?suggestion:closest_constructors (Mark.get constructor)
+    ~suggestion:closest_constructors (Mark.get constructor)
     "The name of this constructor has not been defined before@ (it's probably \
      a typographical error)."
 

@@ -1,0 +1,37 @@
+###Article
+
+```catala
+declaration scope A:
+  output wrong_definition content integer
+
+scope A:
+ definition wrong_definition = 1
+```
+
+
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR]
+Syntax error at token "="
+Message: expected 'under condition' followed by a condition, 'equals' followed by the definition body, or the rest of the variable qualified name
+You could have written : "of",
+or "state",
+or "equals",
+or "under condition",
+or "."
+
+Error token:
+┌─⯈ tests/test_default/bad/typing_or_logical_error.catala_en:8.30-8.31:
+└─┐
+8 │  definition wrong_definition = 1
+  │                              ‾
+
+Last good token:
+┌─⯈ tests/test_default/bad/typing_or_logical_error.catala_en:8.13-8.29:
+└─┐
+8 │  definition wrong_definition = 1
+  │             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+Maybe you wanted to write : "."
+#return code 123#
+```
