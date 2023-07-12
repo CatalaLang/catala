@@ -24,11 +24,11 @@ let struc
     (name : StructName.t)
     (fields : typ StructField.Map.t) : unit =
   Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "struct"
-    StructName.format_t name Print.punctuation "=" Print.punctuation "{"
+    StructName.format name Print.punctuation "=" Print.punctuation "{"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        (fun fmt (field_name, typ) ->
-         Format.fprintf fmt "%a%a %a" StructField.format_t field_name
+         Format.fprintf fmt "%a%a %a" StructField.format field_name
            Print.punctuation ":" (Print.typ ctx) typ))
     (StructField.Map.bindings fields)
     Print.punctuation "}"
@@ -39,22 +39,22 @@ let enum
     (name : EnumName.t)
     (cases : typ EnumConstructor.Map.t) : unit =
   Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "enum"
-    EnumName.format_t name Print.punctuation "="
+    EnumName.format name Print.punctuation "="
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        (fun fmt (field_name, typ) ->
          Format.fprintf fmt "%a %a%a %a" Print.punctuation "|"
-           EnumConstructor.format_t field_name Print.punctuation ":"
+           EnumConstructor.format field_name Print.punctuation ":"
            (Print.typ ctx) typ))
     (EnumConstructor.Map.bindings cases)
 
 let scope ?debug ctx fmt (name, decl) =
   Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
-    Print.keyword "let" Print.keyword "scope" ScopeName.format_t name
+    Print.keyword "let" Print.keyword "scope" ScopeName.format name
     (Format.pp_print_list ~pp_sep:Format.pp_print_space
        (fun fmt (scope_var, (typ, vis)) ->
          Format.fprintf fmt "%a%a%a %a%a%a%a%a" Print.punctuation "("
-           ScopeVar.format_t scope_var Print.punctuation ":" (Print.typ ctx) typ
+           ScopeVar.format scope_var Print.punctuation ":" (Print.typ ctx) typ
            Print.punctuation "|" Print.keyword
            (match Mark.remove vis.Desugared.Ast.io_input with
            | NoInput -> "internal"
@@ -94,8 +94,8 @@ let scope ?debug ctx fmt (name, decl) =
              (Print.expr ?debug ()) e
          | Call (scope_name, subscope_name, _) ->
            Format.fprintf fmt "%a %a%a%a%a" Print.keyword "call"
-             ScopeName.format_t scope_name Print.punctuation "["
-             SubScopeName.format_t subscope_name Print.punctuation "]"))
+             ScopeName.format scope_name Print.punctuation "["
+             SubScopeName.format subscope_name Print.punctuation "]"))
     decl.scope_decl_rules
 
 let print_topdef ctx ppf name (e, ty) =
@@ -104,7 +104,7 @@ let print_topdef ctx ppf name (e, ty) =
     Format.pp_open_hovbox ppf 2;
     Print.keyword ppf "let";
     Format.pp_print_space ppf ();
-    TopdefName.format_t ppf name;
+    TopdefName.format ppf name;
     Print.punctuation ppf ":";
     Format.pp_print_space ppf ();
     Print.typ ctx ppf ty;

@@ -21,11 +21,10 @@ open Ast
 let needs_parens (_e : expr) : bool = false
 
 let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
-  Format.fprintf fmt "%a_%s" VarName.format_t v (string_of_int (VarName.hash v))
+  Format.fprintf fmt "%a_%s" VarName.format v (string_of_int (VarName.hash v))
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
-  Format.fprintf fmt "%a_%s" FuncName.format_t v
-    (string_of_int (FuncName.hash v))
+  Format.fprintf fmt "%a_%s" FuncName.format v (string_of_int (FuncName.hash v))
 
 let rec format_expr
     (decl_ctx : decl_ctx)
@@ -43,13 +42,13 @@ let rec format_expr
   | EVar v -> Format.fprintf fmt "%a" format_var_name v
   | EFunc v -> Format.fprintf fmt "%a" format_func_name v
   | EStruct (es, s) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format_t s
+    Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format s
       Print.punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, (struct_field, _)) ->
            Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
-             StructField.format_t struct_field Print.punctuation "\""
+             StructField.format struct_field Print.punctuation "\""
              Print.punctuation ":" format_expr e))
       (List.combine es
          (StructField.Map.bindings (StructName.Map.find s decl_ctx.ctx_structs)))
@@ -62,7 +61,7 @@ let rec format_expr
       es Print.punctuation "]"
   | EStructFieldAccess (e1, field, _) ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
-      Print.punctuation "\"" StructField.format_t field Print.punctuation "\""
+      Print.punctuation "\"" StructField.format field Print.punctuation "\""
   | EInj (e, cons, _) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.enum_constructor cons
       format_expr e

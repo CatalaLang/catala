@@ -102,7 +102,7 @@ module MakeBackendIO (B : Backend) = struct
         Format.asprintf
           "@[<v>@{<yellow>[%a.%s]@} This variable might return an empty error:@,\
            %a@]"
-          ScopeName.format_t vc.vc_scope
+          ScopeName.format vc.vc_scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
           Pos.format_loc_text (Mark.get vc.vc_variable)
       | Conditions.NoOverlappingExceptions ->
@@ -110,7 +110,7 @@ module MakeBackendIO (B : Backend) = struct
           "@[<v>@{<yellow>[%a.%s]@} At least two exceptions overlap for this \
            variable:@,\
            %a@]"
-          ScopeName.format_t vc.vc_scope
+          ScopeName.format vc.vc_scope
           (Bindlib.name_of (Mark.remove vc.vc_variable))
           Pos.format_loc_text (Mark.get vc.vc_variable)
     in
@@ -170,7 +170,7 @@ module MakeBackendIO (B : Backend) = struct
     | Fail msg ->
       Message.emit_warning
         "@[<v>@{<yellow>[%a.%s]@} The translation to Z3 failed:@,%s@]"
-        ScopeName.format_t vc.vc_scope
+        ScopeName.format vc.vc_scope
         (Bindlib.name_of (Mark.remove vc.vc_variable))
         msg;
       false

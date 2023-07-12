@@ -144,11 +144,9 @@ let disambiguate_constructor
       Message.raise_spanned_error (Mark.get constructor)
         "This constructor name is ambiguous, it can belong to %a. Disambiguate \
          it by prefixing it with the enum name."
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-           (fun fmt (s_name, _) ->
-             Format.fprintf fmt "%a" EnumName.format_t s_name))
-        (EnumName.Map.bindings possible_c_uids);
+        (EnumName.Map.format_keys ~pp_sep:(fun fmt () ->
+             Format.pp_print_string fmt " or "))
+        possible_c_uids;
     EnumName.Map.choose possible_c_uids
   | [enum] -> (
     try
@@ -418,11 +416,11 @@ let rec translate_expr
                 [
                   None, Mark.get fld_id;
                   ( Some
-                      (Format.asprintf "Scope %a declared here"
-                         ScopeName.format_t called_scope),
+                      (Format.asprintf "Scope %a declared here" ScopeName.format
+                         called_scope),
                     Mark.get (ScopeName.get_info called_scope) );
                 ]
-                "Scope %a has no input variable %a" ScopeName.format_t
+                "Scope %a has no input variable %a" ScopeName.format
                 called_scope Print.lit_style (Mark.remove fld_id)
           in
           ScopeVar.Map.update var
@@ -431,7 +429,7 @@ let rec translate_expr
               | Some _ ->
                 Message.raise_spanned_error (Mark.get fld_id)
                   "Duplicate definition of scope input variable '%a'"
-                  ScopeVar.format_t var)
+                  ScopeVar.format var)
             acc)
         ScopeVar.Map.empty fields
     in
@@ -474,7 +472,7 @@ let rec translate_expr
           | Some e_field ->
             Message.raise_multispanned_error
               [None, Mark.get f_e; None, Expr.pos e_field]
-              "The field %a has been defined twice:" StructField.format_t f_uid);
+              "The field %a has been defined twice:" StructField.format f_uid);
           let f_e = translate_expr scope inside_definition_of ctxt f_e in
           StructField.Map.add f_uid f_e s_fields)
         StructField.Map.empty fields
@@ -484,8 +482,8 @@ let rec translate_expr
       (fun expected_f _ ->
         if not (StructField.Map.mem expected_f s_fields) then
           Message.raise_spanned_error pos
-            "Missing field for structure %a: \"%a\"" StructName.format_t s_uid
-            StructField.format_t expected_f)
+            "Missing field for structure %a: \"%a\"" StructName.format s_uid
+            StructField.format expected_f)
       expected_s_fields;
 
     Expr.estruct s_uid s_fields emark
@@ -510,11 +508,9 @@ let rec translate_expr
         Message.raise_spanned_error pos_constructor
           "This constructor name is ambiguous, it can belong to %a. \
            Desambiguate it by prefixing it with the enum name."
-          (Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt " or ")
-             (fun fmt (s_name, _) ->
-               Format.fprintf fmt "%a" EnumName.format_t s_name))
-          (EnumName.Map.bindings possible_c_uids)
+          (EnumName.Map.format_keys ~pp_sep:(fun fmt () ->
+               Format.fprintf fmt " or "))
+          possible_c_uids
       else
         let e_uid, c_uid = EnumName.Map.choose possible_c_uids in
         let payload =
@@ -799,14 +795,14 @@ and disambiguate_match_and_build_expression
               (Mark.get case.Surface.Ast.match_case_pattern)
               "This case matches a constructor of enumeration %a but previous \
                case were matching constructors of enumeration %a"
-              EnumName.format_t e_uid EnumName.format_t e_uid'
+              EnumName.format e_uid EnumName.format e_uid'
       in
       (match EnumConstructor.Map.find_opt c_uid cases_d with
       | None -> ()
       | Some e_case ->
         Message.raise_multispanned_error
           [None, Mark.get case.match_case_expr; None, Expr.pos e_case]
-          "The constructor %a has been matched twice:" EnumConstructor.format_t
+          "The constructor %a has been matched twice:" EnumConstructor.format
           c_uid);
       let ctxt, param_var = create_var (Option.map Mark.remove binding) in
       let case_body =
@@ -849,7 +845,7 @@ and disambiguate_match_and_build_expression
           Message.emit_spanned_warning case_pos
             "Unreachable match case, all constructors of the enumeration %a \
              are already specified"
-            EnumName.format_t e_uid;
+            EnumName.format e_uid;
         (* The current used strategy is to replace the wildcard branch:
                match foo with
                | Case1 x -> x
@@ -949,7 +945,7 @@ let process_rule_parameters
         Some "Declared here without arguments", decl_pos;
         Some "Unexpected arguments appearing here", pos;
       ]
-      "Extra arguments in this definition of %a" Ast.ScopeDef.format_t decl_name
+      "Extra arguments in this definition of %a" Ast.ScopeDef.format decl_name
   | Some (_, pos), None ->
     Message.raise_multispanned_error
       [
@@ -957,7 +953,7 @@ let process_rule_parameters
         ( Some "Definition missing the arguments",
           Mark.get def.Surface.Ast.definition_name );
       ]
-      "This definition for %a is missing the arguments" Ast.ScopeDef.format_t
+      "This definition for %a is missing the arguments" Ast.ScopeDef.format
       decl_name
   | Some (pdecl, pos_decl), Some (pdefs, pos_def) ->
     arglist_eq_check pos_decl pos_def (List.map fst pdecl) pdefs;
@@ -1052,7 +1048,7 @@ let process_def
         with Not_found ->
           Message.raise_spanned_error (Mark.get label_str)
             "Unknown label for the scope variable %a: \"%s\""
-            Ast.ScopeDef.format_t def_key (Mark.remove label_str))
+            Ast.ScopeDef.format def_key (Mark.remove label_str))
     in
     let scope_def =
       {
@@ -1285,7 +1281,7 @@ let process_topdef
           let err msg =
             Message.raise_multispanned_error
               [None, Mark.get ty0; None, Mark.get typ]
-              (msg ^^ " for %a") TopdefName.format_t id
+              (msg ^^ " for %a") TopdefName.format id
           in
           if not (Type.equal ty0 typ) then err "Conflicting type definitions"
           else

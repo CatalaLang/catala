@@ -248,7 +248,7 @@ module Commands = struct
     | None ->
       Message.raise_error
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
-        variable ScopeName.format_t scope_uid
+        variable ScopeName.format scope_uid
     | Some
         (Desugared.Name_resolution.SubScope (subscope_var_name, subscope_name))
       -> (
@@ -258,7 +258,7 @@ module Commands = struct
           "Subscope @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@} cannot be \
            selected by itself, please add \".<var>\" where <var> is a subscope \
            variable."
-          SubScopeName.format_t subscope_var_name ScopeName.format_t scope_uid
+          SubScopeName.format subscope_var_name ScopeName.format scope_uid
       | Some second_part -> (
         match
           Ident.Map.find_opt second_part
@@ -271,8 +271,8 @@ module Commands = struct
             "Var @{<yellow>\"%s\"@} of subscope @{<yellow>\"%a\"@} in scope \
              @{<yellow>\"%a\"@} does not exist, please check your command line \
              arguments."
-            second_part SubScopeName.format_t subscope_var_name
-            ScopeName.format_t scope_uid))
+            second_part SubScopeName.format subscope_var_name ScopeName.format
+            scope_uid))
     | Some (Desugared.Name_resolution.ScopeVar v) ->
       Desugared.Ast.ScopeDef.Var
         ( v,
@@ -287,7 +287,7 @@ module Commands = struct
                 Message.raise_error
                   "State @{<yellow>\"%s\"@} is not found for variable \
                    @{<yellow>\"%s\"@} of scope @{<yellow>\"%a\"@}"
-                  second_part first_part ScopeName.format_t scope_uid)
+                  second_part first_part ScopeName.format scope_uid)
             second_part )
 
   let get_output ?ext options output_file =

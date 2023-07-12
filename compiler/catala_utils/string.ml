@@ -66,7 +66,13 @@ let width s =
   in
   aux 0 0
 
-let format_t ppf s = Format.pp_print_as ppf (width s) s
+let format ppf s = Format.pp_print_as ppf (width s) s
 
-module Set = Set.Make (Stdlib.String)
-module Map = Map.Make (Stdlib.String)
+module Arg = struct
+  include Stdlib.String
+
+  let format = format
+end
+
+module Set = Set.Make (Arg)
+module Map = Map.Make (Arg)

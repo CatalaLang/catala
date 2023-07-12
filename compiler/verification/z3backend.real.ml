@@ -344,9 +344,8 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
     let z3_fieldnames =
       List.map
         (fun f ->
-          Mark.remove (StructField.get_info (fst f))
-          |> Symbol.mk_string ctx.ctx_z3)
-        (StructField.Map.bindings fields)
+          Mark.remove (StructField.get_info f) |> Symbol.mk_string ctx.ctx_z3)
+        (StructField.Map.keys fields)
     in
     let ctx, z3_fieldtypes_rev =
       StructField.Map.fold
@@ -669,9 +668,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let accessors = List.hd (Datatype.get_accessors z3_struct) in
     let idx_mappings =
       List.combine
-        (List.map fst
-           (StructField.Map.bindings
-              (StructName.Map.find name ctx.ctx_decl.ctx_structs)))
+        (StructField.Map.keys
+           (StructName.Map.find name ctx.ctx_decl.ctx_structs))
         accessors
     in
     let _, accessor =
@@ -690,9 +688,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     (* This should always succeed if the expression is well-typed in dcalc *)
     let idx_mappings =
       List.combine
-        (List.map fst
-           (EnumConstructor.Map.bindings
-              (EnumName.Map.find name ctx.ctx_decl.ctx_enums)))
+        (EnumConstructor.Map.keys
+           (EnumName.Map.find name ctx.ctx_decl.ctx_enums))
         ctrs
     in
     let _, ctr =
@@ -721,7 +718,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
         (translate_match_arm z3_arg)
         ctx
         (List.combine
-           (List.map snd (EnumConstructor.Map.bindings cases))
+           (EnumConstructor.Map.values cases)
            (Datatype.get_accessors z3_enum))
     in
     let z3_arms =

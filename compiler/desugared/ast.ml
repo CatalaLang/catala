@@ -50,13 +50,13 @@ module ScopeDef = struct
       | Var (_, Some sx) -> Mark.get (StateName.get_info sx)
       | SubScopeVar (_, _, pos) -> pos
 
-    let format_t fmt x =
+    let format fmt x =
       match x with
-      | Var (v, None) -> ScopeVar.format_t fmt v
+      | Var (v, None) -> ScopeVar.format fmt v
       | Var (v, Some sv) ->
-        Format.fprintf fmt "%a.%a" ScopeVar.format_t v StateName.format_t sv
+        Format.fprintf fmt "%a.%a" ScopeVar.format v StateName.format sv
       | SubScopeVar (s, v, _) ->
-        Format.fprintf fmt "%a.%a" SubScopeName.format_t s ScopeVar.format_t v
+        Format.fprintf fmt "%a.%a" SubScopeName.format s ScopeVar.format v
 
     let hash x =
       match x with
@@ -89,6 +89,7 @@ module ExprMap = Map.Make (struct
   type t = expr
 
   let compare = Expr.compare
+  let format = Expr.format
 end)
 
 type io = { io_output : bool Mark.pos; io_input : Runtime.io_input Mark.pos }

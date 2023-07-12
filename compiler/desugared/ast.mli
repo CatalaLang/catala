@@ -28,7 +28,7 @@ module ScopeDef : sig
 
   val compare : t -> t -> int
   val get_position : t -> Pos.t
-  val format_t : Format.formatter -> t -> unit
+  val format : Format.formatter -> t -> unit
   val hash : t -> int
 
   module Map : Map.S with type key = t

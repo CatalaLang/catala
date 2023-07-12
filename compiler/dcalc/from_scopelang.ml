@@ -152,6 +152,7 @@ let collapse_similar_outcomes (type m) (excepts : m Scopelang.Ast.expr list) :
     type t = m Scopelang.Ast.expr
 
     let compare = Expr.compare
+    let format = Expr.format
   end) in
   let cons_map =
     List.fold_left
@@ -213,7 +214,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
               Message.raise_spanned_error (Expr.pos e)
                 "The constructor %a of enum %a is missing from this pattern \
                  matching"
-                EnumConstructor.format_t constructor EnumName.format_t name
+                EnumConstructor.format constructor EnumName.format name
           in
           let case_d = translate_expr ctx case_e in
           ( EnumConstructor.Map.add constructor case_d d_cases,
@@ -224,11 +225,10 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     if not (EnumConstructor.Map.is_empty remaining_e_cases) then
       Message.raise_spanned_error (Expr.pos e)
         "Pattern matching is incomplete for enum %a: missing cases %a"
-        EnumName.format_t name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-           (fun fmt (case_name, _) -> EnumConstructor.format_t fmt case_name))
-        (EnumConstructor.Map.bindings remaining_e_cases);
+        EnumName.format name
+        (EnumConstructor.Map.format_keys ~pp_sep:(fun fmt () ->
+             Format.fprintf fmt ", "))
+        remaining_e_cases;
     let e1 = translate_expr ctx e1 in
     Expr.ematch e1 name d_cases m
   | EScopeCall { scope; args } ->
@@ -262,7 +262,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
                   Mark.get (StructField.get_info var_ctx.scope_input_name) );
               ]
               "Definition of input variable '%a' missing in this scope call"
-              ScopeVar.format_t var_name
+              ScopeVar.format var_name
           | None, Some _ ->
             Message.raise_multispanned_error
               [
@@ -271,7 +271,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
                   Mark.get (ScopeName.get_info scope) );
               ]
               "Unknown input variable '%a' in scope call of '%a'"
-              ScopeVar.format_t var_name ScopeName.format_t scope)
+              ScopeVar.format var_name ScopeName.format scope)
         sc_sig.scope_sig_in_fields args
     in
     let field_map =
@@ -543,8 +543,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         ]
         "The variable %a.%a cannot be used here, as it is not part of subscope \
          %a's results. Maybe you forgot to qualify it as an output?"
-        SubScopeName.format_t (Mark.remove s) ScopeVar.format_t (Mark.remove a)
-        SubScopeName.format_t (Mark.remove s))
+        SubScopeName.format (Mark.remove s) ScopeVar.format (Mark.remove a)
+        SubScopeName.format (Mark.remove s))
   | ELocation (ToplevelVar v) ->
     let v, _ = TopdefName.Map.find (Mark.remove v) ctx.toplevel_vars in
     Expr.evar v m

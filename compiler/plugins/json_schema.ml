@@ -32,7 +32,7 @@ module To_json = struct
       (fmt : Format.formatter)
       (v : StructField.t) : unit =
     let s =
-      Format.asprintf "%a" StructField.format_t v
+      Format.asprintf "%a" StructField.format v
       |> String.to_ascii
       |> String.to_snake_case
       |> avoid_keywords
@@ -76,12 +76,12 @@ module To_json = struct
       (ctx : decl_ctx)
       (fmt : Format.formatter)
       (sname : StructName.t) =
-    Format.fprintf fmt "%a"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
-         (fun fmt (field_name, field_type) ->
-           Format.fprintf fmt "@[<hov 2>\"%a\": {@\n%a@]@\n}"
-             format_struct_field_name_camel_case field_name fmt_type field_type))
+    Format.pp_print_list
+      ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
+      (fun fmt (field_name, field_type) ->
+        Format.fprintf fmt "@[<hov 2>\"%a\": {@\n%a@]@\n}"
+          format_struct_field_name_camel_case field_name fmt_type field_type)
+      fmt
       (StructField.Map.bindings (find_struct sname ctx))
 
   let fmt_definitions
@@ -103,15 +103,13 @@ module To_json = struct
           (t :: acc) @ collect_required_type_defs_from_scope_input s
         | TEnum e ->
           List.fold_left collect (t :: acc)
-            (List.map snd
-               (EnumConstructor.Map.bindings
-                  (EnumName.Map.find e ctx.ctx_enums)))
+            (EnumConstructor.Map.values (EnumName.Map.find e ctx.ctx_enums))
         | TArray t -> collect acc t
         | _ -> acc
       in
       find_struct input_struct ctx
-      |> StructField.Map.bindings
-      |> List.fold_left (fun acc (_, field_typ) -> collect acc field_typ) []
+      |> StructField.Map.values
+      |> List.fold_left (fun acc field_typ -> collect acc field_typ) []
       |> List.sort_uniq (fun t t' -> String.compare (get_name t) (get_name t'))
     in
     let fmt_enum_properties fmt ename =
@@ -130,11 +128,11 @@ module To_json = struct
          }"
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
-           (fun fmt (enum_cons, _) ->
+           (fun fmt enum_cons ->
              Format.fprintf fmt
                "@[<hov 2>{@\n\"type\": \"string\",@\n\"enum\": [\"%a\"]@]@\n}"
                format_enum_cons_name enum_cons))
-        (EnumConstructor.Map.bindings enum_def)
+        (EnumConstructor.Map.keys enum_def)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
            (fun fmt (enum_cons, payload_type) ->
@@ -227,7 +225,7 @@ let run
   let scope_uid = Driver.Commands.get_scope_uid ctx ex_scope in
   Message.emit_debug
     "Writing JSON schema corresponding to the scope '%a' to the file %s..."
-    ScopeName.format_t scope_uid
+    ScopeName.format scope_uid
     (Option.value ~default:"stdout" output_file);
   To_json.format_program fmt scope_uid prg
 

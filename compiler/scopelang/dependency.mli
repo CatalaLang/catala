@@ -38,7 +38,7 @@ val get_defs_ordering : SDependencies.t -> vertex list
 module TVertex : sig
   type t = Struct of StructName.t | Enum of EnumName.t
 
-  val format_t : Format.formatter -> t -> unit
+  val format : Format.formatter -> t -> unit
   val get_info : t -> StructName.info
 
   include Graph.Sig.COMPARABLE with type t := t

@@ -71,4 +71,6 @@ module Map : sig
     ('e var -> 'x -> 'x -> 'x option) -> ('e, 'x) t -> ('e, 'x) t -> ('e, 'x) t
 
   val fold : ('e var -> 'x -> 'acc -> 'acc) -> ('e, 'x) t -> 'acc -> 'acc
+  val keys : ('e, 'x) t -> 'e var list
+  val values : ('e, 'x) t -> 'x list
 end

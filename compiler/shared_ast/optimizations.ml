@@ -26,7 +26,8 @@ type ('a, 'b, 'm) optimizations_ctx = {
 }
 
 let all_match_cases_are_id_fun cases n =
-  EnumConstructor.MapLabels.for_all cases ~f:(fun i case ->
+  EnumConstructor.Map.for_all
+    (fun i case ->
       match Mark.remove case with
       | EAbs { binder; _ } -> (
         let var, body = Bindlib.unmbind binder in
@@ -46,9 +47,11 @@ let all_match_cases_are_id_fun cases n =
         (* because of invariant [invariant_match], there is always some EAbs in
            each cases. *)
         assert false)
+    cases
 
 let all_match_cases_map_to_same_constructor cases n =
-  EnumConstructor.MapLabels.for_all cases ~f:(fun i case ->
+  EnumConstructor.Map.for_all
+    (fun i case ->
       match Mark.remove case with
       | EAbs { binder; _ } -> (
         let _, body = Bindlib.unmbind binder in
@@ -57,6 +60,7 @@ let all_match_cases_map_to_same_constructor cases n =
           EnumConstructor.equal i i' && EnumName.equal n n'
         | _ -> false)
       | _ -> assert false)
+    cases
 
 let binder_vars_used_at_most_once
     (binder :
@@ -179,7 +183,8 @@ let rec optimize_expr :
       (* iota-reduction when the matched expression is itself a match of the
          same enum mapping all constructors to themselves *)
       let cases =
-        EnumConstructor.MapLabels.merge cases1 cases2 ~f:(fun _i o1 o2 ->
+        EnumConstructor.Map.merge
+          (fun _i o1 o2 ->
             match o1, o2 with
             | Some b1, Some e2 -> (
               match Mark.remove b1, Mark.remove e2 with
@@ -198,6 +203,7 @@ let rec optimize_expr :
                 | _ -> assert false)
               | _ -> assert false)
             | _ -> assert false)
+          cases1 cases2
       in
       EMatch { e = arg; cases; name = n1 }
     | EApp { f = EAbs { binder; _ }, _; args }
@@ -351,12 +357,11 @@ let test_iota_reduction_1 () =
   let injC = Expr.einj (Expr.evar x nomark) consC enumT nomark in
   let injD = Expr.einj (Expr.evar x nomark) consD enumT nomark in
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
-    EnumConstructor.Map.of_seq
-    @@ List.to_seq
-    @@ [
-         consA, Expr.eabs (Expr.bind [| x |] injC) [TAny, Pos.no_pos] nomark;
-         consB, Expr.eabs (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark;
-       ]
+    EnumConstructor.Map.of_list
+      [
+        consA, Expr.eabs (Expr.bind [| x |] injC) [TAny, Pos.no_pos] nomark;
+        consB, Expr.eabs (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark;
+      ]
   in
   let matchA = Expr.ematch injA enumT cases nomark in
   Alcotest.(check string)
@@ -372,8 +377,7 @@ let test_iota_reduction_1 () =
        (Expr.unbox (optimize_expr Program.empty_ctx (Expr.unbox matchA))))
 
 let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
-  EnumConstructor.Map.of_seq
-  @@ List.to_seq
+  EnumConstructor.Map.of_list
   @@ ListLabels.map l ~f:(fun (cons, f) ->
          let var = Var.make "x" in
          ( cons,

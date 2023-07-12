@@ -146,7 +146,7 @@ let avoid_keywords (s : string) : string =
    and [new_user] *)
 
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
-  Format.asprintf "%a" StructName.format_t v
+  Format.asprintf "%a" StructName.format v
   |> String.to_ascii
   |> String.to_snake_case
   |> avoid_keywords
@@ -156,8 +156,8 @@ let format_to_module_name
     (fmt : Format.formatter)
     (name : [< `Ename of EnumName.t | `Sname of StructName.t ]) =
   (match name with
-  | `Ename v -> Format.asprintf "%a" EnumName.format_t v
-  | `Sname v -> Format.asprintf "%a" StructName.format_t v)
+  | `Ename v -> Format.asprintf "%a" EnumName.format v
+  | `Sname v -> Format.asprintf "%a" StructName.format v)
   |> String.to_ascii
   |> String.to_snake_case
   |> avoid_keywords
@@ -174,19 +174,19 @@ let format_struct_field_name
     Format.fprintf fmt "%a.%s" format_to_module_name (`Sname sname)
   | None -> Format.fprintf fmt "%s")
     (avoid_keywords
-       (String.to_ascii (Format.asprintf "%a" StructField.format_t v)))
+       (String.to_ascii (Format.asprintf "%a" StructField.format v)))
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
        (String.to_snake_case
-          (String.to_ascii (Format.asprintf "%a" EnumName.format_t v))))
+          (String.to_ascii (Format.asprintf "%a" EnumName.format v))))
 
 let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (String.to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
+       (String.to_ascii (Format.asprintf "%a" EnumConstructor.format v)))
 
 let rec typ_embedding_name (fmt : Format.formatter) (ty : typ) : unit =
   match Mark.remove ty with
@@ -468,11 +468,11 @@ let format_struct_embedding
        @[<hov 2>[%a]@])@]@\n\
        @\n"
       format_struct_name struct_name format_to_module_name (`Sname struct_name)
-      StructName.format_t struct_name
+      StructName.format struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
          (fun _fmt (struct_field, struct_field_type) ->
-           Format.fprintf fmt "(\"%a\",@ %a@ x.%a)" StructField.format_t
+           Format.fprintf fmt "(\"%a\",@ %a@ x.%a)" StructField.format
              struct_field typ_embedding_name struct_field_type
              format_struct_field_name
              (Some struct_name, struct_field)))
@@ -490,12 +490,12 @@ let format_enum_embedding
        =@]@ Enum([\"%a\"],@ @[<hov 2>match x with@ %a@])@]@\n\
        @\n"
       format_enum_name enum_name format_to_module_name (`Ename enum_name)
-      EnumName.format_t enum_name
+      EnumName.format enum_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun _fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
-             format_enum_cons_name enum_cons EnumConstructor.format_t enum_cons
+             format_enum_cons_name enum_cons EnumConstructor.format enum_cons
              typ_embedding_name enum_cons_type))
       (EnumConstructor.Map.bindings enum_cases)
 

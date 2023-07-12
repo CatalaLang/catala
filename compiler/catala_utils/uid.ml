@@ -31,13 +31,12 @@ module type Id = sig
   val get_info : t -> info
   val compare : t -> t -> int
   val equal : t -> t -> bool
-  val format_t : Format.formatter -> t -> unit
+  val format : Format.formatter -> t -> unit
   val hash : t -> int
 
   module Set : Set.S with type elt = t
   module SetLabels : MoreLabels.Set.S with type elt = t and type t = Set.t
   module Map : Map.S with type key = t
-  module MapLabels : MoreLabels.Map.S with type key = t and type 'a t = 'a Map.t
 end
 
 module Make (X : Info) () : Id with type info = X.info = struct
@@ -46,6 +45,7 @@ module Make (X : Info) () : Id with type info = X.info = struct
 
     let compare (x : t) (y : t) : int = compare x.id y.id
     let equal x y = Int.equal x.id y.id
+    let format ppf t = X.format ppf t.info
   end
 
   include Ordering
@@ -59,7 +59,7 @@ module Make (X : Info) () : Id with type info = X.info = struct
     { id = !counter; info }
 
   let get_info (uid : t) : X.info = uid.info
-  let format_t (fmt : Format.formatter) (x : t) : unit = X.format fmt x.info
+  let format (fmt : Format.formatter) (x : t) : unit = X.format fmt x.info
   let hash (x : t) : int = x.id
 
   module Set = Set.Make (Ordering)
@@ -72,7 +72,7 @@ module MarkedString = struct
   type info = string Mark.pos
 
   let to_string (s, _) = s
-  let format fmt i = String.format_t fmt (to_string i)
+  let format fmt i = String.format fmt (to_string i)
   let equal = Mark.equal String.equal
   let compare = Mark.compare String.compare
 end

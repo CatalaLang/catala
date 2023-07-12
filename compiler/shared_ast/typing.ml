@@ -130,8 +130,8 @@ let rec format_typ
       ts
       (pp_color_string (List.hd colors))
       ")"
-  | TStruct s -> Format.fprintf fmt "%a" A.StructName.format_t s
-  | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format_t e
+  | TStruct s -> Format.fprintf fmt "%a" A.StructName.format s
+  | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format e
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>option %a@]"
       (format_typ_with_parens ~colors:(List.tl colors))
@@ -445,7 +445,7 @@ and typecheck_expr_top_down :
       let errs =
         List.map
           (fun (f, ty) ->
-            ( Some (Format.asprintf "Missing field %a" A.StructField.format_t f),
+            ( Some (Format.asprintf "Missing field %a" A.StructField.format f),
               Mark.get ty ))
           (A.StructField.Map.bindings missing_fields)
         @ List.map
@@ -454,13 +454,13 @@ and typecheck_expr_top_down :
               ( Some
                   (Format.asprintf "%s field %a"
                      (if dup then "Duplicate" else "Unknown")
-                     A.StructField.format_t f),
+                     A.StructField.format f),
                 Expr.pos ef ))
             (A.StructField.Map.bindings extra_fields)
       in
       if errs <> [] then
         Message.raise_multispanned_error errs
-          "Mismatching field definitions for structure %a" A.StructName.format_t
+          "Mismatching field definitions for structure %a" A.StructName.format
           name
     in
     let fields' =
@@ -497,7 +497,7 @@ and typecheck_expr_top_down :
         try A.StructName.Map.find name env.structs
         with Not_found ->
           Message.raise_spanned_error pos_e "No structure %a found"
-            A.StructName.format_t name
+            A.StructName.format name
       in
       let field =
         let candidate_structs =
@@ -507,7 +507,7 @@ and typecheck_expr_top_down :
               (Expr.mark_pos context_mark)
               "Field @{<yellow>\"%s\"@} does not belong to structure \
                @{<yellow>\"%a\"@} (no structure defines it)"
-              field A.StructName.format_t name
+              field A.StructName.format name
         in
         try A.StructName.Map.find name candidate_structs
         with Not_found ->
@@ -515,13 +515,13 @@ and typecheck_expr_top_down :
             (Expr.mark_pos context_mark)
             "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
              @{<yellow>\"%a\"@},@ but to %a@]"
-            field A.StructName.format_t name
+            field A.StructName.format name
             (Format.pp_print_list
                ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
                (fun fmt s_name ->
-                 Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format_t
+                 Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format
                    s_name))
-            (List.map fst (A.StructName.Map.bindings candidate_structs))
+            (A.StructName.Map.keys candidate_structs)
       in
       A.StructField.Map.find field str
     in
@@ -533,7 +533,7 @@ and typecheck_expr_top_down :
         try A.StructName.Map.find name env.structs
         with Not_found ->
           Message.raise_spanned_error pos_e "No structure %a found"
-            A.StructName.format_t name
+            A.StructName.format name
       in
       try A.StructField.Map.find field str
       with Not_found ->
@@ -543,8 +543,8 @@ and typecheck_expr_top_down :
             ( Some "Structure %a declared here",
               Mark.get (A.StructName.get_info name) );
           ]
-          "Structure %a doesn't define a field %a" A.StructName.format_t name
-          A.StructField.format_t field
+          "Structure %a doesn't define a field %a" A.StructName.format name
+          A.StructField.format field
     in
     let mark = mark_with_tau_and_unify fld_ty in
     let e_struct' =
@@ -592,7 +592,8 @@ and typecheck_expr_top_down :
     let mark = mark_with_tau_and_unify t_ret in
     let e1' = typecheck_expr_top_down ~leave_unresolved ctx env t_arg e1 in
     let cases' =
-      A.EnumConstructor.MapLabels.merge cases cases_ty ~f:(fun _ e e_ty ->
+      A.EnumConstructor.Map.merge
+        (fun _ e e_ty ->
           match e, e_ty with
           | Some e, Some e_ty ->
             Some
@@ -600,6 +601,7 @@ and typecheck_expr_top_down :
                  (unionfind ~pos:e (TArrow ([e_ty], t_ret)))
                  e)
           | _ -> assert false)
+        cases cases_ty
     in
 
     Expr.ematch e1' name cases' mark

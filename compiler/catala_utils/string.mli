@@ -45,7 +45,7 @@ val remove_prefix : prefix:string -> string -> string
     - if [str] starts with [prefix], a string [s] such that [prefix ^ s = str]
     - otherwise, [str] unchanged *)
 
-val format_t : Format.formatter -> string -> unit
+val format : Format.formatter -> string -> unit
 
 val width : string -> int
 (** Returns the width of a given string in screen columns (assuming a monospace

@@ -53,8 +53,8 @@ module Env = struct
 
   let print ppf (Env t) =
     Format.pp_print_list ~pp_sep:Format.pp_print_space
-      (fun ppf (v, { contents = _e, _env }) -> Print.var_debug ppf v)
-      ppf (Var.Map.bindings t)
+      (fun ppf v -> Print.var_debug ppf v)
+      ppf (Var.Map.keys t)
 end
 
 let rec lazy_eval :

@@ -37,7 +37,7 @@ let detect_empty_definitions (p : program) : unit =
               (ScopeDef.get_position scope_def_key)
               "In scope @{<yellow>\"%a\"@}, the variable @{<yellow>\"%a\"@} is \
                declared but never defined; did you forget something?"
-              ScopeName.format_t scope_name Ast.ScopeDef.format_t scope_def_key)
+              ScopeName.format scope_name Ast.ScopeDef.format scope_def_key)
         scope.scope_defs)
     p.program_scopes
 
@@ -63,6 +63,8 @@ module RuleExpressionsMap = Map.Make (struct
            (fun xc yc -> Expr.compare (xc, xc_mark) (yc, yc_mark))
            xc yc)
     else just
+
+  let format ppf r = RuleName.format ppf r.rule_id
 end)
 
 let detect_identical_rules (p : program) : unit =
@@ -146,7 +148,7 @@ let detect_unused_struct_fields (p : program) : unit =
           (snd (StructName.get_info s_name))
           "The structure @{<yellow>\"%a\"@} is never used; maybe it's \
            unnecessary?"
-          StructName.format_t s_name
+          StructName.format s_name
       else
         StructField.Map.iter
           (fun field _ ->
@@ -158,7 +160,7 @@ let detect_unused_struct_fields (p : program) : unit =
                 (snd (StructField.get_info field))
                 "The field @{<yellow>\"%a\"@} of struct @{<yellow>\"%a\"@} is \
                  never used; maybe it's unnecessary?"
-                StructField.format_t field StructName.format_t s_name)
+                StructField.format field StructName.format s_name)
           fields)
     p.program_ctx.ctx_structs
 
@@ -199,7 +201,7 @@ let detect_unused_enum_constructors (p : program) : unit =
           (snd (EnumName.get_info e_name))
           "The enumeration @{<yellow>\"%a\"@} is never used; maybe it's \
            unnecessary?"
-          EnumName.format_t e_name
+          EnumName.format e_name
       else
         EnumConstructor.Map.iter
           (fun constructor _ ->
@@ -209,7 +211,7 @@ let detect_unused_enum_constructors (p : program) : unit =
                 (snd (EnumConstructor.get_info constructor))
                 "The constructor @{<yellow>\"%a\"@} of enumeration \
                  @{<yellow>\"%a\"@} is never used; maybe it's unnecessary?"
-                EnumConstructor.format_t constructor EnumName.format_t e_name)
+                EnumConstructor.format constructor EnumName.format e_name)
           constructors)
     p.program_ctx.ctx_enums
 
