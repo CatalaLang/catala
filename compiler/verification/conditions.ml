@@ -122,7 +122,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
             cons;
           },
         _ )
-    when List.exists (fun x' -> Var.eq x x') ctx.input_vars ->
+    when List.exists (fun x' -> Var.equal x x') ctx.input_vars ->
     (* scope variables*)
     cons
   | EAbs { binder; tys = [(TLit TUnit, _)] } ->

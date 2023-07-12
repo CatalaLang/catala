@@ -54,8 +54,6 @@ let remove_prefix ~prefix s =
     sub s plen (length s - plen)
   else s
 
-let format_t = Format.pp_print_string
-
 (* Note: this should do, but remains incorrect for combined unicode characters
    that display as one (e.g. `e` + postfix `'`). We should switch to Uuseg at
    some poing *)
@@ -67,6 +65,8 @@ let width s =
     else aux (ncols + 1) (i + Uchar.utf_decode_length (get_utf_8_uchar s i))
   in
   aux 0 0
+
+let format_t ppf s = Format.pp_print_as ppf (width s) s
 
 module Set = Set.Make (Stdlib.String)
 module Map = Map.Make (Stdlib.String)

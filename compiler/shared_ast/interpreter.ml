@@ -68,10 +68,20 @@ let print_log entry infos pos e =
   if Cli.globals.trace then
     match entry with
     | VarDef _ ->
+      let module Printer = Print.ExprGen (struct
+        include Print.ExprConciseParam
+
+        let bypass : type a. Format.formatter -> (a, 't) gexpr -> bool =
+         fun ppf e ->
+          match e with
+          | EAbs _, _ ->
+            Print.op_style ppf "<function>";
+            true
+          | _ -> false
+      end) in
       Message.emit_log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
         entry Print.uid_list infos
-        (Message.unformat (fun ppf ->
-             Print.expr ~hide_function_body:true () ppf e))
+        (Message.unformat (fun ppf -> Printer.expr ppf e))
     | PosRecordIfTrueBool -> (
       match pos <> Pos.no_pos, Mark.remove e with
       | true, ELit (LBool true) ->
@@ -176,8 +186,11 @@ let rec evaluate_operator
                    (Print.expr ()) arg),
               Expr.pos arg ))
           args)
-      "Operator applied to the wrong arguments\n\
-       (should not happen if the term was well-typed)"
+      "Operator %a applied to the wrong arguments\n\
+       (should not happen if the term was well-typed)%a"
+      (Print.operator ~debug:true)
+      op Expr.format
+      (EApp { f = EOp { op; tys = [] }, m; args }, m)
   in
   propagate_empty_error_list args
   @@ fun args ->

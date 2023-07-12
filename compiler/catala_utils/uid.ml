@@ -72,7 +72,7 @@ module MarkedString = struct
   type info = string Mark.pos
 
   let to_string (s, _) = s
-  let format fmt i = Format.pp_print_string fmt (to_string i)
+  let format fmt i = String.format_t fmt (to_string i)
   let equal = Mark.equal String.equal
   let compare = Mark.compare String.compare
 end

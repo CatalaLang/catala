@@ -51,15 +51,35 @@ val except : Format.formatter -> except -> unit
 val var : Format.formatter -> 'e Var.t -> unit
 val var_debug : Format.formatter -> 'e Var.t -> unit
 
-val expr :
-  ?hide_function_body:bool ->
-  ?debug:bool ->
-  unit ->
-  Format.formatter ->
-  ('a, 'm) gexpr ->
-  unit
-(** Same as [expr], but with a debug flag that defaults to [!Cli.debug_flag]. If
-    [~hide_function_body:true], prints "<function>" for [EAbs] nodes *)
+val expr : ?debug:bool -> unit -> Format.formatter -> ('a, 'm) gexpr -> unit
+(** Expression printer.
+
+    @param debug
+      (default to the global setting) turns on printing of logging nodes,
+      variable indices and operator suffixes. See the interface below for more
+      detailed control. *)
+
+(** {2 Generic expression printer interface} *)
+
+module type EXPR_PARAM = sig
+  val bypass : Format.formatter -> ('a, 't) gexpr -> bool
+  (** can be used to customise printing of any specific nodes or subtrees: will
+      cancel normal printing upon returning [true]. *)
+
+  val operator : Format.formatter -> 'a operator -> unit
+  val var : Format.formatter -> ('a, 't) gexpr Var.t -> unit
+  val lit : Format.formatter -> lit -> unit
+
+  val pre_map : ('a, 't) gexpr -> ('a, 't) gexpr
+  (** pre-processing on expressions: can be used to skip log calls, etc. *)
+end
+
+module ExprGen (C : EXPR_PARAM) : sig
+  val expr : Format.formatter -> ('a, 't) gexpr -> unit
+end
+
+module ExprConciseParam : EXPR_PARAM
+module ExprDebugParam : EXPR_PARAM
 
 (** {1 Debugging versions that don't require a context} *)
 
@@ -90,11 +110,18 @@ module UserFacing : sig
   val lit_to_string : Cli.backend_lang -> lit -> string
 
   val value :
+    ?fallback:(Format.formatter -> ('a, 't) gexpr -> unit) ->
     Cli.backend_lang ->
     Format.formatter ->
-    ((_, _) dcalc_lcalc, _) gexpr ->
+    ('a, 't) gexpr ->
     unit
-  (** @raise Invalid_argument
-        if the supplied expression is a custom/external or anything that is not
-        a value *)
+  (** Prints a value in a localised format, intended to be read by an end-user.
+
+      @param fallback
+        is called upon non-value expressions (by default, [Invalid_argument] is
+        raised) *)
+
+  val expr : Cli.backend_lang -> Format.formatter -> (_, _) gexpr -> unit
+  (** This combines the user-facing value printer and the generic expression
+      printer to handle all AST nodes *)
 end

@@ -39,6 +39,11 @@ let with_color f color fmt x =
 
 let pp_color_string = with_color Format.pp_print_string
 
+(* Cyclic list used to choose nested paren colors *)
+let rec colors =
+  let open Ocolor_types in
+  blue :: cyan :: green :: yellow :: red :: magenta :: colors
+
 let keyword (fmt : Format.formatter) (s : string) : unit =
   pp_color_string Ocolor_types.red fmt s
 
@@ -80,12 +85,12 @@ let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
 let struct_field (fmt : Format.formatter) (c : StructField.t) : unit =
   Format.fprintf fmt "@{<magenta>%a@}" StructField.format_t c
 
-let rec typ
+let rec typ_gen
     (ctx : decl_ctx option)
     ~(colors : Ocolor_types.color4 list)
     (fmt : Format.formatter)
     (ty : typ) : unit =
-  let typ = typ ctx in
+  let typ = typ_gen ctx in
   let typ_with_parens ~colors (fmt : Format.formatter) (t : typ) =
     if typ_needs_parens t then (
       Format.pp_open_hvbox fmt 1;
@@ -163,6 +168,9 @@ let rec typ
       t1
   | TAny -> base_type fmt "any"
   | TClosureEnv -> base_type fmt "closure_env"
+
+let typ_debug = typ_gen None ~colors
+let typ ctx = typ_gen (Some ctx) ~colors
 
 let lit (fmt : Format.formatter) (l : lit) : unit =
   match l with
@@ -453,264 +461,292 @@ module Precedence = struct
     | Contained, _ -> false
 end
 
-let rec expr_aux :
-    type a.
-    hide_function_body:bool ->
-    debug:bool ->
-    Bindlib.ctxt ->
-    Ocolor_types.color4 list ->
-    Format.formatter ->
-    (a, 't) gexpr ->
-    unit =
- fun ~hide_function_body ~debug bnd_ctx colors fmt e ->
-  let exprb bnd_ctx colors e =
-    expr_aux ~hide_function_body ~debug bnd_ctx colors e
-  in
-  let exprc colors e = exprb bnd_ctx colors e in
-  let expr e = exprc colors e in
-  let var = if debug then var_debug else var in
-  let rec skip_log : type a. (a, 't) gexpr -> (a, 't) gexpr = function
-    | EApp { f = EOp { op = Log _; _ }, _; args = [e] }, _ when not debug ->
-      skip_log e
-    | e -> e
-  in
-  let e = skip_log e in
-  let paren ~rhs ?(colors = colors) expr fmt e1 =
-    if Precedence.needs_parens ~rhs ~context:e (skip_log e1) then (
-      Format.pp_open_hvbox fmt 1;
-      pp_color_string (List.hd colors) fmt "(";
-      expr (List.tl colors) fmt e1;
-      Format.pp_close_box fmt ();
-      pp_color_string (List.hd colors) fmt ")")
-    else expr colors fmt e1
-  in
-  let default_punct = with_color (fun fmt -> Format.pp_print_as fmt 1) in
-  let lhs ?(colors = colors) ex = paren ~colors ~rhs:false ex in
-  let rhs ex = paren ~rhs:true ex in
-  match Mark.remove e with
-  | EVar v -> var fmt v
-  | EExternal eref -> Qident.format fmt eref
-  | ETuple es ->
-    Format.fprintf fmt "@[<hov 2>%a%a%a@]"
-      (pp_color_string (List.hd colors))
-      "("
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () ->
-           Format.fprintf fmt "%a@ " (pp_color_string (List.hd colors)) ",")
-         (fun fmt e -> lhs ~colors:(List.tl colors) exprc fmt e))
-      es
-      (pp_color_string (List.hd colors))
-      ")"
-  | EArray es ->
-    Format.fprintf fmt "@[<hv 2>%a %a@] %a" punctuation "["
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-         (fun fmt e -> lhs exprc fmt e))
-      es punctuation "]"
-  | ETupleAccess { e; index; _ } ->
-    lhs exprc fmt e;
-    punctuation fmt ".";
-    Format.pp_print_int fmt index
-  | ELit l -> lit fmt l
-  | EApp { f = EAbs _, _; _ } ->
-    let rec pr bnd_ctx colors fmt = function
-      | EApp { f = EAbs { binder; tys }, _; args }, _ ->
-        let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
-        let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
-        let xs_tau_arg =
-          List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args
+module type EXPR_PARAM = sig
+  val bypass : Format.formatter -> ('a, 't) gexpr -> bool
+  val operator : Format.formatter -> 'a operator -> unit
+  val var : Format.formatter -> ('a, 't) gexpr Var.t -> unit
+  val lit : Format.formatter -> lit -> unit
+  val pre_map : ('a, 't) gexpr -> ('a, 't) gexpr
+end
+
+module ExprGen (C : EXPR_PARAM) = struct
+  let rec expr_aux :
+      type a.
+      Bindlib.ctxt ->
+      Ocolor_types.color4 list ->
+      Format.formatter ->
+      (a, 't) gexpr ->
+      unit =
+   fun bnd_ctx colors fmt e ->
+    let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
+    let exprc colors e = exprb bnd_ctx colors e in
+    let expr e = exprc colors e in
+    let var = C.var in
+    let operator = C.operator in
+    let e = C.pre_map e in
+    let paren ~rhs ?(colors = colors) expr fmt e1 =
+      if Precedence.needs_parens ~rhs ~context:e (C.pre_map e1) then (
+        Format.pp_open_hvbox fmt 1;
+        pp_color_string (List.hd colors) fmt "(";
+        expr (List.tl colors) fmt e1;
+        Format.pp_close_box fmt ();
+        pp_color_string (List.hd colors) fmt ")")
+      else expr colors fmt e1
+    in
+    let default_punct = with_color (fun fmt -> Format.pp_print_as fmt 1) in
+    let lhs ?(colors = colors) ex = paren ~colors ~rhs:false ex in
+    let rhs ex = paren ~rhs:true ex in
+    if C.bypass fmt e then ()
+    else
+      match Mark.remove e with
+      | EVar v -> var fmt v
+      | EExternal eref -> Qident.format fmt eref
+      | ETuple es ->
+        Format.fprintf fmt "@[<hov 2>%a%a%a@]"
+          (pp_color_string (List.hd colors))
+          "("
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () ->
+               Format.fprintf fmt "%a@ " (pp_color_string (List.hd colors)) ",")
+             (fun fmt e -> lhs ~colors:(List.tl colors) exprc fmt e))
+          es
+          (pp_color_string (List.hd colors))
+          ")"
+      | EArray es ->
+        Format.fprintf fmt "@[<hov 2>%a %a@] %a" punctuation "["
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+             (fun fmt e -> lhs exprc fmt e))
+          es punctuation "]"
+      | ETupleAccess { e; index; _ } ->
+        lhs exprc fmt e;
+        punctuation fmt ".";
+        Format.pp_print_int fmt index
+      | ELit l -> C.lit fmt l
+      | EApp { f = EAbs _, _; _ } ->
+        let rec pr bnd_ctx colors fmt = function
+          | EApp { f = EAbs { binder; tys }, _; args }, _ ->
+            let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+            let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
+            let xs_tau_arg =
+              List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args
+            in
+            Format.pp_print_list
+              (fun fmt (x, tau, arg) ->
+                Format.fprintf fmt
+                  "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
+                  "let" var x punctuation ":" (typ_gen None ~colors) tau
+                  punctuation "=" (exprc colors) arg keyword "in")
+              fmt xs_tau_arg;
+            Format.pp_print_cut fmt ();
+            rhs (pr bnd_ctx) fmt body
+          | e -> rhs (exprb bnd_ctx) fmt e
         in
-        Format.pp_print_list
-          (fun fmt (x, tau, arg) ->
-            Format.fprintf fmt
-              "@[<hv 2>@[<hov 4>%a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]" keyword
-              "let" var x punctuation ":" (typ None ~colors) tau punctuation "="
-              (exprc colors) arg keyword "in")
-          fmt xs_tau_arg;
-        Format.pp_print_cut fmt ();
-        rhs (pr bnd_ctx) fmt body
-      | e -> rhs (exprb bnd_ctx) fmt e
-    in
-    Format.pp_open_vbox fmt 0;
-    pr bnd_ctx colors fmt e;
-    Format.pp_close_box fmt ()
-  | EAbs { binder; tys } ->
-    if hide_function_body then Format.fprintf fmt "%a" op_style "<function>"
-    else
-      let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
-      let expr = exprb bnd_ctx in
-      let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
-      Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
-        (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun fmt (x, tau) ->
-             punctuation fmt "(";
-             Format.pp_open_hvbox fmt 2;
-             var fmt x;
-             punctuation fmt ":";
-             Format.pp_print_space fmt ();
-             typ None ~colors fmt tau;
-             Format.pp_close_box fmt ();
-             punctuation fmt ")"))
-        xs_tau punctuation "→" (rhs expr) body
-  | EApp { f = EOp { op = (Map | Filter) as op; _ }, _; args = [arg1; arg2] } ->
-    Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" (operator ~debug) op (lhs exprc)
-      arg1 (rhs exprc) arg2
-  | EApp { f = EOp { op = Log _ as op; _ }, _; args = [arg1] } ->
-    Format.fprintf fmt "@[<hv 0>%a@ %a@]" (operator ~debug) op (rhs exprc) arg1
-  | EApp { f = EOp { op = op0; _ }, _; args = [_; _] } ->
-    let prec = Precedence.expr e in
-    let rec pr colors fmt = function
-      (* Flatten sequences of the same associative op *)
-      | EApp { f = EOp { op; _ }, _; args = [arg1; arg2] }, _ when op = op0 -> (
-        (match prec with
-        | Op (And | Or | Mul | Add | Div | Sub) -> lhs pr fmt arg1
-        | _ -> lhs exprc fmt arg1);
+        Format.pp_open_vbox fmt 0;
+        pr bnd_ctx colors fmt e;
+        Format.pp_close_box fmt ()
+      | EAbs { binder; tys } ->
+        let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+        let expr = exprb bnd_ctx in
+        let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
+        Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
+          (Format.pp_print_list ~pp_sep:Format.pp_print_space
+             (fun fmt (x, tau) ->
+               punctuation fmt "(";
+               Format.pp_open_hvbox fmt 2;
+               var fmt x;
+               punctuation fmt ":";
+               Format.pp_print_space fmt ();
+               typ_gen None ~colors fmt tau;
+               Format.pp_close_box fmt ();
+               punctuation fmt ")"))
+          xs_tau punctuation "→" (rhs expr) body
+      | EApp
+          { f = EOp { op = (Map | Filter) as op; _ }, _; args = [arg1; arg2] }
+        ->
+        Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
+          (rhs exprc) arg2
+      | EApp { f = EOp { op = Log _ as op; _ }, _; args = [arg1] } ->
+        Format.fprintf fmt "@[<hv 0>%a@ %a@]" operator op (rhs exprc) arg1
+      | EApp { f = EOp { op = op0; _ }, _; args = [_; _] } ->
+        let prec = Precedence.expr e in
+        let rec pr colors fmt = function
+          (* Flatten sequences of the same associative op *)
+          | EApp { f = EOp { op; _ }, _; args = [arg1; arg2] }, _ when op = op0
+            -> (
+            (match prec with
+            | Op (And | Or | Mul | Add | Div | Sub) -> lhs pr fmt arg1
+            | _ -> lhs exprc fmt arg1);
+            Format.pp_print_space fmt ();
+            operator fmt op;
+            Format.pp_print_char fmt ' ';
+            match prec with
+            | Op (And | Or | Mul | Add) -> rhs pr fmt arg2
+            | _ -> rhs exprc fmt arg2)
+          | e -> exprc colors fmt e
+        in
+        Format.pp_open_hvbox fmt 0;
+        pr colors fmt e;
+        Format.pp_close_box fmt ()
+      | EApp { f = EOp { op; _ }, _; args = [arg1] } ->
+        Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op (rhs exprc) arg1
+      | EApp { f; args } ->
+        Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs exprc) f
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+             (rhs exprc))
+          args
+      | EIfThenElse _ ->
+        let rec pr els fmt = function
+          | EIfThenElse { cond; etrue; efalse }, _ ->
+            Format.fprintf fmt "@[<hv 2>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]@ %a"
+              keyword
+              (if els then "else if" else "if")
+              expr cond keyword "then" expr etrue (pr true) efalse
+          | e ->
+            Format.fprintf fmt "@[<hv 2>%a@ %a@]" keyword "else" (rhs exprc) e
+        in
+        Format.pp_open_hvbox fmt 0;
+        pr false fmt e;
+        Format.pp_close_box fmt ()
+      | EOp { op; _ } -> operator fmt op
+      | EDefault { excepts; just; cons } ->
+        if List.length excepts = 0 then
+          Format.fprintf fmt "@[<hv 1>%a%a@ %a %a%a@]"
+            (default_punct (List.hd colors))
+            "⟨"
+            (exprc (List.tl colors))
+            just
+            (default_punct (List.hd colors))
+            "⊢"
+            (exprc (List.tl colors))
+            cons
+            (default_punct (List.hd colors))
+            "⟩"
+        else
+          Format.fprintf fmt
+            "@[<hv 0>@[<hov 2>%a %a@]@ @[<hov 2>%a %a@ %a %a@] %a@]"
+            (default_punct (List.hd colors))
+            "⟨"
+            (Format.pp_print_list
+               ~pp_sep:(fun fmt () ->
+                 Format.fprintf fmt "%a@ " (default_punct (List.hd colors)) ",")
+               (lhs ~colors:(List.tl colors) exprc))
+            excepts
+            (default_punct (List.hd colors))
+            "|"
+            (exprc (List.tl colors))
+            just
+            (default_punct (List.hd colors))
+            "⊢"
+            (exprc (List.tl colors))
+            cons
+            (default_punct (List.hd colors))
+            "⟩"
+      | EEmptyError -> lit_style fmt "∅"
+      | EErrorOnEmpty e' ->
+        Format.fprintf fmt "@[<hov 2>%a@ %a@]" op_style "error_empty"
+          (rhs exprc) e'
+      | EAssert e' ->
+        Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation
+          "(" (rhs exprc) e' punctuation ")"
+      | ECatch { body; exn; handler } ->
+        Format.fprintf fmt
+          "@[<hv 0>@[<hov 2>%a@ %a@]@ @[<hov 2>%a@ %a ->@ %a@]@]" keyword "try"
+          expr body keyword "with" except exn (rhs exprc) handler
+      | ERaise exn ->
+        Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except exn
+      | ELocation loc -> location fmt loc
+      | EDStructAccess { e; field; _ } ->
+        Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation
+          "." punctuation "\"" Ident.format_t field punctuation "\""
+      | EStruct { name; fields } ->
+        if StructField.Map.is_empty fields then (
+          punctuation fmt "{";
+          StructName.format_t fmt name;
+          punctuation fmt "}")
+        else
+          Format.fprintf fmt "@[<hv 2>%a %a@ %a@;<1 -2>%a@]" punctuation "{"
+            StructName.format_t name
+            (Format.pp_print_list ~pp_sep:Format.pp_print_space
+               (fun fmt (field_name, field_expr) ->
+                 Format.fprintf fmt "@[<hv 2>%a %a@ %a%a@]" struct_field
+                   field_name punctuation "=" (lhs exprc) field_expr punctuation
+                   ";"))
+            (StructField.Map.bindings fields)
+            punctuation "}"
+      | EStructAccess { e; field; _ } ->
+        Format.fprintf fmt "@[<hv 2>%a%a@,%a@]" (lhs exprc) e punctuation "."
+          struct_field field
+      | EInj { e; cons; _ } ->
+        Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format_t cons
+          (rhs exprc) e
+      | EMatch { e; cases; _ } ->
+        Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@ %a@]@ %a@]" keyword "match"
+          (lhs exprc) e keyword "with"
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+             (fun fmt (cons_name, case_expr) ->
+               match case_expr with
+               | EAbs { binder; _ }, _ ->
+                 let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
+                 let expr = exprb bnd_ctx in
+                 Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@ %a@]" punctuation
+                   "|" enum_constructor cons_name
+                   (Format.pp_print_seq ~pp_sep:Format.pp_print_space var)
+                   (Array.to_seq xs) punctuation "→" (rhs expr) body
+               | e ->
+                 Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
+                   enum_constructor cons_name punctuation "→" (rhs exprc) e))
+          (EnumConstructor.Map.bindings cases)
+      | EScopeCall { scope; args } ->
+        Format.pp_open_hovbox fmt 2;
+        ScopeName.format_t fmt scope;
         Format.pp_print_space fmt ();
-        (operator ~debug) fmt op;
-        Format.pp_print_char fmt ' ';
-        match prec with
-        | Op (And | Or | Mul | Add) -> rhs pr fmt arg2
-        | _ -> rhs exprc fmt arg2)
-      | e -> exprc colors fmt e
-    in
-    Format.pp_open_hvbox fmt 0;
-    pr colors fmt e;
-    Format.pp_close_box fmt ()
-  | EApp { f = EOp { op; _ }, _; args = [arg1] } ->
-    Format.fprintf fmt "@[<hv 2>%a@ %a@]" (operator ~debug) op (rhs exprc) arg1
-  | EApp { f; args } ->
-    Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs exprc) f
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
-         (rhs exprc))
-      args
-  | EIfThenElse _ ->
-    let rec pr els fmt = function
-      | EIfThenElse { cond; etrue; efalse }, _ ->
-        Format.fprintf fmt "@[<hv 2>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]@ %a"
-          keyword
-          (if els then "else if" else "if")
-          expr cond keyword "then" expr etrue (pr true) efalse
-      | e -> Format.fprintf fmt "@[<hv 2>%a@ %a@]" keyword "else" (rhs exprc) e
-    in
-    Format.pp_open_hvbox fmt 0;
-    pr false fmt e;
-    Format.pp_close_box fmt ()
-  | EOp { op; _ } -> operator ~debug fmt op
-  | EDefault { excepts; just; cons } ->
-    if List.length excepts = 0 then
-      Format.fprintf fmt "@[<hv 1>%a%a@ %a %a%a@]"
-        (default_punct (List.hd colors))
-        "⟨"
-        (exprc (List.tl colors))
-        just
-        (default_punct (List.hd colors))
-        "⊢"
-        (exprc (List.tl colors))
-        cons
-        (default_punct (List.hd colors))
-        "⟩"
-    else
-      Format.fprintf fmt
-        "@[<hv 0>@[<hov 2>%a %a@]@ @[<hov 2>%a %a@ %a %a@] %a@]"
-        (default_punct (List.hd colors))
-        "⟨"
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () ->
-             Format.fprintf fmt "%a@ " (default_punct (List.hd colors)) ",")
-           (lhs ~colors:(List.tl colors) exprc))
-        excepts
-        (default_punct (List.hd colors))
-        "|"
-        (exprc (List.tl colors))
-        just
-        (default_punct (List.hd colors))
-        "⊢"
-        (exprc (List.tl colors))
-        cons
-        (default_punct (List.hd colors))
-        "⟩"
-  | EEmptyError -> lit_style fmt "∅"
-  | EErrorOnEmpty e' ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" op_style "error_empty" (rhs exprc) e'
-  | EAssert e' ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" keyword "assert" punctuation "("
-      (rhs exprc) e' punctuation ")"
-  | ECatch { body; exn; handler } ->
-    Format.fprintf fmt "@[<hv 0>@[<hov 2>%a@ %a@]@ @[<hov 2>%a@ %a ->@ %a@]@]"
-      keyword "try" expr body keyword "with" except exn (rhs exprc) handler
-  | ERaise exn ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" keyword "raise" except exn
-  | ELocation loc -> location fmt loc
-  | EDStructAccess { e; field; _ } ->
-    Format.fprintf fmt "@[<hv 2>%a%a@,%a%a%a@]" (lhs exprc) e punctuation "."
-      punctuation "\"" Ident.format_t field punctuation "\""
-  | EStruct { name; fields } ->
-    if StructField.Map.is_empty fields then (
-      punctuation fmt "{";
-      StructName.format_t fmt name;
-      punctuation fmt "}")
-    else
-      Format.fprintf fmt "@[<hv 2>%a %a@ %a@;<1 -2>%a@]" punctuation "{"
-        StructName.format_t name
-        (Format.pp_print_list ~pp_sep:Format.pp_print_space
-           (fun fmt (field_name, field_expr) ->
-             Format.fprintf fmt "@[<hv 2>%a %a@ %a%a@]" struct_field field_name
-               punctuation "=" (lhs exprc) field_expr punctuation ";"))
-        (StructField.Map.bindings fields)
-        punctuation "}"
-  | EStructAccess { e; field; _ } ->
-    Format.fprintf fmt "@[<hv 2>%a%a@,%a@]" (lhs exprc) e punctuation "."
-      struct_field field
-  | EInj { e; cons; _ } ->
-    Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format_t cons
-      (rhs exprc) e
-  | EMatch { e; cases; _ } ->
-    Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@ %a@]@ %a@]" keyword "match"
-      (lhs exprc) e keyword "with"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-         (fun fmt (cons_name, case_expr) ->
-           match case_expr with
-           | EAbs { binder; _ }, _ ->
-             let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
-             let expr = exprb bnd_ctx in
-             Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@ %a@]" punctuation "|"
-               enum_constructor cons_name
-               (Format.pp_print_seq ~pp_sep:Format.pp_print_space var)
-               (Array.to_seq xs) punctuation "→" (rhs expr) body
-           | e ->
-             Format.fprintf fmt "@[<hov 2>%a %a@ %a@ %a@]" punctuation "|"
-               enum_constructor cons_name punctuation "→" (rhs exprc) e))
-      (EnumConstructor.Map.bindings cases)
-  | EScopeCall { scope; args } ->
-    Format.pp_open_hovbox fmt 2;
-    ScopeName.format_t fmt scope;
-    Format.pp_print_space fmt ();
-    keyword fmt "of";
-    Format.pp_print_space fmt ();
-    Format.pp_open_hvbox fmt 2;
-    punctuation fmt "{";
-    Format.pp_print_list
-      ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
-      (fun fmt (field_name, field_expr) ->
-        Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\"" ScopeVar.format_t
-          field_name punctuation "\"" punctuation "=" (rhs exprc) field_expr)
-      fmt
-      (ScopeVar.Map.bindings args);
-    Format.pp_close_box fmt ();
-    punctuation fmt "}";
-    Format.pp_close_box fmt ()
-  | ECustom _ -> Format.pp_print_string fmt "<obj>"
+        keyword fmt "of";
+        Format.pp_print_space fmt ();
+        Format.pp_open_hvbox fmt 2;
+        punctuation fmt "{";
+        Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt "%a@ " punctuation ";")
+          (fun fmt (field_name, field_expr) ->
+            Format.fprintf fmt "%a%a%a%a@ %a" punctuation "\"" ScopeVar.format_t
+              field_name punctuation "\"" punctuation "=" (rhs exprc) field_expr)
+          fmt
+          (ScopeVar.Map.bindings args);
+        Format.pp_close_box fmt ();
+        punctuation fmt "}";
+        Format.pp_close_box fmt ()
+      | ECustom _ -> Format.pp_print_string fmt "<obj>"
 
-let rec colors =
-  let open Ocolor_types in
-  blue :: cyan :: green :: yellow :: red :: magenta :: colors
+  let expr ppf e = expr_aux Bindlib.empty_ctxt colors ppf e
+end
 
-let typ_debug = typ None ~colors
-let typ ctx = typ (Some ctx) ~colors
+module ExprConciseParam = struct
+  let bypass _ _ = false
+  let operator o = operator ~debug:false o
+  let var = var
+  let lit = lit
 
-let expr ?(hide_function_body = false) ?(debug = Cli.globals.debug) () ppf e =
-  expr_aux ~hide_function_body ~debug Bindlib.empty_ctxt colors ppf e
+  let rec pre_map : type a. (a, 't) gexpr -> (a, 't) gexpr = function
+    | EApp { f = EOp { op = Log _; _ }, _; args = [e] }, _ -> pre_map e
+    | e -> e
+end
+
+module ExprConcise = ExprGen (ExprConciseParam)
+
+module ExprDebugParam = struct
+  let bypass _ _ = false
+  let operator o = operator ~debug:true o
+  let var = var_debug
+  let lit = lit
+  let pre_map e = e
+end
+
+module ExprDebug = ExprGen (ExprDebugParam)
+
+let expr ?(debug = Cli.globals.debug) () ppf e =
+  if debug then ExprDebug.expr ppf e else ExprConcise.expr ppf e
 
 let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   match k with
@@ -1009,33 +1045,74 @@ module UserFacing = struct
     with_color (lit_raw lang) Ocolor_types.yellow ppf lit
 
   let rec value :
-      type a b.
+      type a.
+      ?fallback:(Format.formatter -> (a, 't) gexpr -> unit) ->
       Cli.backend_lang ->
       Format.formatter ->
-      ((a, b) dcalc_lcalc, _) gexpr ->
+      (a, 't) gexpr ->
       unit =
-   fun lang ppf e ->
+   fun ?(fallback = fun _ _ -> invalid_arg "UserPrint.value: not a value") lang
+       ppf e ->
     match Mark.remove e with
     | ELit l -> lit lang ppf l
     | EArray l | ETuple l ->
       Format.fprintf ppf "@[<hov 1>[@;<0 1>%a@;<0 -1>]@]"
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
-           (value lang))
+           (value ~fallback lang))
         l
     | EStruct { name; fields } ->
       Format.fprintf ppf "@[<hv 2>%a {@ %a@;<1 -2>}@]" StructName.format_t name
         (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf (fld, e) ->
              Format.fprintf ppf "-- %a: %a" StructField.format_t fld
-               (value lang) e))
+               (value ~fallback lang) e))
         (StructField.Map.bindings fields)
     | EInj { name = _; cons; e } ->
-      Format.fprintf ppf "%a %a" EnumConstructor.format_t cons (value lang) e
+      Format.fprintf ppf "%a %a" EnumConstructor.format_t cons
+        (value ~fallback lang) e
     | EEmptyError -> Format.pp_print_string ppf "ø"
     | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EApp _ | EOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EDefault _ | EErrorOnEmpty _ | ERaise _
-    | ECatch _ | ELocation _ ->
-      invalid_arg "UserPrint.value: not a value"
+    | ECatch _ | ELocation _ | EScopeCall _ | EDStructAccess _ | ECustom _ ->
+      fallback ppf e
+
+  (* This function is already in module [Expr], but [Expr] depends on this
+     module *)
+  let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
+    | EApp { f = EOp { op = Log _; _ }, _; args = [e] }, _ -> skip_wrappers e
+    | EApp { f = EApp { f = EOp { op = Log _; _ }, _; args = [f] }, _; args }, m
+      ->
+      skip_wrappers (EApp { f; args }, m)
+    | EErrorOnEmpty e, _ -> skip_wrappers e
+    | EDefault { excepts = []; just = ELit (LBool true), _; cons = e }, _ ->
+      skip_wrappers e
+    | e -> e
+
+  let expr :
+      type a. Cli.backend_lang -> Format.formatter -> (a, 't) gexpr -> unit =
+   fun lang ->
+    let rec aux_value : type a t. Format.formatter -> (a, t) gexpr -> unit =
+     fun ppf e -> value ~fallback lang ppf e
+    and fallback : type a t. Format.formatter -> (a, t) gexpr -> unit =
+     fun ppf e ->
+      let module E = ExprGen (struct
+        let bypass : type a t. Format.formatter -> (a, t) gexpr -> bool =
+         fun ppf e ->
+          match Mark.remove e with
+          | EArray _ | ETuple _ | EStruct _ | EInj _ | EEmptyError | EAbs _
+          | EExternal _ ->
+            aux_value ppf e;
+            true
+          | _ -> false
+
+        let operator o = operator ~debug:false o
+        let var = var
+        let lit = lit lang
+        let pre_map = skip_wrappers
+      end) in
+      E.expr ppf e
+    in
+    aux_value
 end

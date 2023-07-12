@@ -46,11 +46,12 @@
  (modes native js)
  (flags
   (:standard
-   (:include custom_linking.sexp)))
+   (:include custom_linking.sexp)
+   -linkall))
  (package catala)
  (modules catala)
  (public_name catala)
- (libraries catala.driver))
+ (libraries catala.driver ocamlgraph))
 
 (documentation
  (package catala)
