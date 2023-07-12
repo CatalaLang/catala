@@ -98,7 +98,7 @@ let rec translate_expr (ctx : ctx) (e : Desugared.Ast.expr) :
         Message.raise_spanned_error (Expr.mark_pos m)
           "Field @{<yellow>\"%s\"@} does not belong to structure \
            @{<yellow>\"%a\"@}"
-          field StructName.format_t name
+          field StructName.format name
     in
     Expr.estructaccess e' field name m
   | EScopeCall { scope; args } ->
@@ -170,10 +170,10 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
       Message.raise_multispanned_error
         ((Some "Incriminated variable:", Mark.get (ScopeVar.get_info var))
         :: List.map
-             (fun (rule, _) ->
+             (fun rule ->
                ( Some "Incriminated variable definition:",
                  Mark.get (RuleName.get_info rule) ))
-             (RuleName.Map.bindings var_def))
+             (RuleName.Map.keys var_def))
         "It is impossible to give a definition to a scope variable tagged as \
          input."
     | OnlyInput -> Desugared.Ast.ScopeDef.Map.empty
@@ -226,10 +226,10 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
                 :: ( Some "Incriminated variable:",
                      Mark.get (ScopeVar.get_info sub_scope_var) )
                 :: List.map
-                     (fun (rule, _) ->
+                     (fun rule ->
                        ( Some "Incriminated subscope variable definition:",
                          Mark.get (RuleName.get_info rule) ))
-                     (RuleName.Map.bindings def))
+                     (RuleName.Map.keys def))
                 "It is impossible to give a definition to a subscope variable \
                  not tagged as input or context."
             | OnlyInput when RuleName.Map.is_empty def && not is_cond ->
@@ -256,7 +256,7 @@ let rule_to_exception_graph (scope : Desugared.Ast.scope) = function
              (sub_scope_index, subscope_var, var_pos))
           new_exc_graph exc_graphs)
       Desugared.Ast.ScopeDef.Map.empty
-      (List.map snd (Desugared.Ast.ScopeDef.Map.bindings sub_scope_vars_redefs))
+      (Desugared.Ast.ScopeDef.Map.values sub_scope_vars_redefs)
   | Assertion _ ->
     Desugared.Ast.ScopeDef.Map.empty (* no exceptions for assertions *)
 
@@ -311,8 +311,8 @@ let def_map_to_tree
     in
     let base_case_as_rule_list =
       List.map
-        (fun (r, _) -> RuleName.Map.find r def)
-        (RuleName.Map.bindings base_cases.rules)
+        (fun r -> RuleName.Map.find r def)
+        (RuleName.Map.keys base_cases.rules)
     in
     match exceptions with
     | [] -> Leaf base_case_as_rule_list
@@ -656,7 +656,7 @@ let translate_rule
         sub_scope_vars_redefs_candidates
     in
     let sub_scope_vars_redefs =
-      List.map snd (Desugared.Ast.ScopeDef.Map.bindings sub_scope_vars_redefs)
+      Desugared.Ast.ScopeDef.Map.values sub_scope_vars_redefs
     in
     sub_scope_vars_redefs
     @ [
@@ -815,7 +815,7 @@ let translate_program
         | Some e, ty -> Expr.unbox (translate_expr ctx e), ty
         | None, (_, pos) ->
           Message.raise_spanned_error pos "No definition found for %a"
-            TopdefName.format_t id)
+            TopdefName.format id)
       pgrm.program_topdefs
   in
   {

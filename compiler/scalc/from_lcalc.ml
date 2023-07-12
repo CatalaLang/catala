@@ -41,9 +41,9 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
           Message.raise_spanned_error (Expr.pos expr)
             "Var not found in lambda→scalc: %a@\nknown: @[<hov>%a@]@\n"
             Print.var_debug v
-            (Format.pp_print_list ~pp_sep:Format.pp_print_space
-               (fun ppf (v, _) -> Print.var_debug ppf v))
-            (Var.Map.bindings ctxt.var_dict))
+            (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf v ->
+                 Print.var_debug ppf v))
+            (Var.Map.keys ctxt.var_dict))
     in
     [], (local_var, Expr.pos expr)
   | EStruct { fields; name } ->

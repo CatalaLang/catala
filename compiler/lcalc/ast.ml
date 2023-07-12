@@ -30,22 +30,21 @@ module OptionMonad = struct
 
   let bind_var ~(mark : 'a mark) f x arg =
     let cases =
-      EnumConstructor.Map.of_seq
-        (List.to_seq
-           [
-             ( Expr.none_constr,
-               let x = Var.make "_" in
-               Expr.eabs
-                 (Expr.bind [| x |]
-                    (Expr.einj (Expr.evar x mark) Expr.none_constr
-                       Expr.option_enum mark))
-                 [TLit TUnit, Expr.mark_pos mark]
-                 mark );
-             (* | None x -> None x *)
-             ( Expr.some_constr,
-               Expr.eabs (Expr.bind [| x |] f) [TAny, Expr.mark_pos mark] mark )
-             (*| Some x -> f (where f contains x as a free variable) *);
-           ])
+      EnumConstructor.Map.of_list
+        [
+          ( Expr.none_constr,
+            let x = Var.make "_" in
+            Expr.eabs
+              (Expr.bind [| x |]
+                 (Expr.einj (Expr.evar x mark) Expr.none_constr Expr.option_enum
+                    mark))
+              [TLit TUnit, Expr.mark_pos mark]
+              mark );
+          (* | None x -> None x *)
+          ( Expr.some_constr,
+            Expr.eabs (Expr.bind [| x |] f) [TAny, Expr.mark_pos mark] mark )
+          (*| Some x -> f (where f contains x as a free variable) *);
+        ]
     in
     Expr.ematch arg Expr.option_enum cases mark
 
@@ -109,18 +108,17 @@ module OptionMonad = struct
       ?(toplevel = false)
       arg =
     let cases =
-      EnumConstructor.Map.of_seq
-        (List.to_seq
-           [
-             ( Expr.none_constr,
-               let x = Var.make "_" in
-               Expr.eabs
-                 (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
-                 [TAny, Expr.mark_pos mark]
-                 mark );
-             (* | None x -> raise NoValueProvided *)
-             Expr.some_constr, Expr.fun_id ~var_name mark (* | Some x -> x*);
-           ])
+      EnumConstructor.Map.of_list
+        [
+          ( Expr.none_constr,
+            let x = Var.make "_" in
+            Expr.eabs
+              (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
+              [TAny, Expr.mark_pos mark]
+              mark );
+          (* | None x -> raise NoValueProvided *)
+          Expr.some_constr, Expr.fun_id ~var_name mark (* | Some x -> x*);
+        ]
     in
     if toplevel then Expr.ematch arg Expr.option_enum cases mark
     else return ~mark (Expr.ematch arg Expr.option_enum cases mark)

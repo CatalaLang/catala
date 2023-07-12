@@ -31,16 +31,6 @@ let compare (p1, i1) (p2, i2) =
   match compare_path p1 p2 with 0 -> String.compare i1 i2 | n -> n
 
 let equal (p1, i1) (p2, i2) = equal_path p1 p2 && String.equal i1 i2
-
-module Ord = struct
-  type nonrec t = t
-
-  let compare = compare
-end
-
-module Set = Set.Make (Ord)
-module Map = Map.Make (Ord)
-
 let format_modname ppf m = Format.fprintf ppf "@{<blue>%s@}" m
 
 let format_path ppf p =
@@ -51,3 +41,13 @@ let format_path ppf p =
 let format ppf (p, i) =
   format_path ppf p;
   Format.pp_print_string ppf i
+
+module Ord = struct
+  type nonrec t = t
+
+  let compare = compare
+  let format = format
+end
+
+module Set = Set.Make (Ord)
+module Map = Map.Make (Ord)

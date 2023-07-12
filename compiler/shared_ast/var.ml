@@ -14,6 +14,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
 open Definitions
 
 (** {1 Variables and their collections} *)
@@ -58,6 +59,7 @@ module Generic = struct
   let get (Var v) = Bindlib.copy_var v (fun x -> EVar x) (Bindlib.name_of v)
   let compare (Var x) (Var y) = Bindlib.compare_vars x y
   let eq (Var x) (Var y) = Bindlib.eq_vars x y [@@ocaml.warning "-32"]
+  let format ppf v = String.format ppf (Bindlib.name_of (get v))
 end
 
 (* Wrapper around Set.Make to re-add type parameters (avoid inconsistent
@@ -100,6 +102,8 @@ module Map = struct
   let mem x m = mem (t x) m
   let union f m1 m2 = union (fun v x1 x2 -> f (get v) x1 x2) m1 m2
   let fold f m acc = fold (fun v x acc -> f (get v) x acc) m acc
+  let keys m = keys m |> List.map get
+  let values m = values m
 
   (* Add more as needed *)
 end

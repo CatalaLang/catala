@@ -68,13 +68,13 @@ module Vertex = struct
     | Assertion a, Assertion b -> Ast.AssertionName.equal a b
     | (Var _ | SubScope _ | Assertion _), _ -> false
 
-  let format_t (fmt : Format.formatter) (x : t) : unit =
+  let format (fmt : Format.formatter) (x : t) : unit =
     match x with
-    | Var (v, None) -> ScopeVar.format_t fmt v
+    | Var (v, None) -> ScopeVar.format fmt v
     | Var (v, Some sv) ->
-      Format.fprintf fmt "%a@%a" ScopeVar.format_t v StateName.format_t sv
-    | SubScope v -> SubScopeName.format_t fmt v
-    | Assertion a -> Ast.AssertionName.format_t fmt a
+      Format.fprintf fmt "%a@%a" ScopeVar.format v StateName.format sv
+    | SubScope v -> SubScopeName.format fmt v
+    | Assertion a -> Ast.AssertionName.format fmt a
 
   let info = function
     | Var (v, None) -> ScopeVar.get_info v
@@ -144,7 +144,7 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
         (fun v1 v2 ->
           let msg =
             Format.asprintf "%a is used here in the definition of %a:"
-              Vertex.format_t v1 Vertex.format_t v2
+              Vertex.format v1 Vertex.format v2
           in
           let _, edge_pos, _ = ScopeDependencies.find_edge g v1 v2 in
           Some msg, edge_pos)
@@ -154,10 +154,10 @@ let check_for_cycle (scope : Ast.scope) (g : ScopeDependencies.t) : unit =
     Message.raise_multispanned_error spans
       "@[<hov 2>Cyclic dependency detected between the following variables of \
        scope %a:@ @[<hv>%a@]@]"
-      ScopeName.format_t scope.scope_uid
+      ScopeName.format scope.scope_uid
       (Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.fprintf ppf " →@ ")
-         Vertex.format_t)
+         Vertex.format)
       (cycle @ [List.hd cycle])
 
 (** Builds the dependency graph of a particular scope *)
@@ -207,7 +207,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 Message.raise_spanned_error fv_def_pos
                   "The variable %a is used in one of its definitions, but \
                    recursion is forbidden in Catala"
-                  Ast.ScopeDef.format_t def_key
+                  Ast.ScopeDef.format def_key
               else
                 let edge =
                   ScopeDependencies.E.create
@@ -235,7 +235,7 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 Message.raise_spanned_error fv_def_pos
                   "The subscope %a is used when defining one of its inputs, \
                    but recursion is forbidden in Catala"
-                  SubScopeName.format_t defined
+                  SubScopeName.format defined
               else
                 let edge =
                   ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos
@@ -465,7 +465,7 @@ let build_exceptions_graph
                        edge.edge_positions)
                   "The definition of exceptions are inconsistent for variable \
                    %a."
-                  Ast.ScopeDef.format_t def_info)
+                  Ast.ScopeDef.format def_info)
             other_edges_originating_from_same_label;
           (* Now we add the edge to the list*)
           let existing_edge =
@@ -544,4 +544,4 @@ let check_for_exception_cycle
     Message.raise_multispanned_error spans
       "Exception cycle detected when defining %a: each of these %d exceptions \
        applies over the previous one, and the first applies over the last"
-      RuleName.format_t v (List.length scc)
+      RuleName.format v (List.length scc)

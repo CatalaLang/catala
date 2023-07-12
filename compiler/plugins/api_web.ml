@@ -35,7 +35,7 @@ module To_jsoo = struct
       (fmt : Format.formatter)
       (v : StructField.t) : unit =
     let s =
-      Format.asprintf "%a" StructField.format_t v
+      Format.asprintf "%a" StructField.format v
       |> String.to_ascii
       |> String.to_snake_case
       |> avoid_keywords

@@ -46,11 +46,11 @@ module SVertex = struct
     | Scope s -> ScopeName.hash s
     | Topdef g -> TopdefName.hash g
 
-  let format_t ppf = function
-    | Scope s -> ScopeName.format_t ppf s
-    | Topdef g -> TopdefName.format_t ppf g
+  let format ppf = function
+    | Scope s -> ScopeName.format ppf s
+    | Topdef g -> TopdefName.format ppf g
 
-  (* let to_string v = Format.asprintf "%a" format_t v
+  (* let to_string v = Format.asprintf "%a" format v
 
      let info = function | Scope s -> ScopeName.get_info s | Topdef g ->
      TopdefName.get_info g *)
@@ -119,7 +119,7 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
             (Mark.get (TopdefName.get_info glo_name))
             "The Topdef %a has a definition that refers to itself, which is \
              forbidden since Catala does not provide recursion"
-            TopdefName.format_t glo_name;
+            TopdefName.format glo_name;
         VMap.fold
           (fun def pos g ->
             let edge = SDependencies.E.create def pos (Topdef glo_name) in
@@ -137,7 +137,7 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
               (Mark.get (ScopeName.get_info scope.Ast.scope_decl_name))
               "The scope %a is calling into itself as a subscope, which is \
                forbidden since Catala does not provide recursion"
-              ScopeName.format_t scope.Ast.scope_decl_name;
+              ScopeName.format scope.Ast.scope_decl_name;
           VMap.fold
             (fun used_def pos g ->
               let edge =
@@ -181,7 +181,7 @@ let check_for_cycle_in_defs (g : SDependencies.t) : unit =
         (fun v1 v2 ->
           let msg =
             Format.asprintf "%a is used here in the definition of %a:"
-              SVertex.format_t v1 SVertex.format_t v2
+              SVertex.format v1 SVertex.format v2
           in
           let _, edge_pos, _ = SDependencies.find_edge g v1 v2 in
           Some msg, edge_pos)
@@ -193,7 +193,7 @@ let check_for_cycle_in_defs (g : SDependencies.t) : unit =
        @[<hv>%a@]@]"
       (Format.pp_print_list
          ~pp_sep:(fun ppf () -> Format.fprintf ppf " →@ ")
-         SVertex.format_t)
+         SVertex.format)
       (cycle @ [List.hd cycle])
 
 let get_defs_ordering (g : SDependencies.t) : SVertex.t list =
@@ -218,10 +218,10 @@ module TVertex = struct
     | Enum x, Enum y -> EnumName.compare x y = 0
     | _ -> false
 
-  let format_t (fmt : Format.formatter) (x : t) : unit =
+  let format (fmt : Format.formatter) (x : t) : unit =
     match x with
-    | Struct x -> StructName.format_t fmt x
-    | Enum x -> EnumName.format_t fmt x
+    | Struct x -> StructName.format fmt x
+    | Enum x -> EnumName.format fmt x
 
   let get_info (x : t) =
     match x with
@@ -282,7 +282,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
                   Message.raise_spanned_error (Mark.get typ)
                     "The type %a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
-                    TVertex.format_t used
+                    TVertex.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in
                   TDependencies.add_edge_e g edge)
@@ -304,7 +304,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
                   Message.raise_spanned_error (Mark.get typ)
                     "The type %a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
-                    TVertex.format_t used
+                    TVertex.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in
                   TDependencies.add_edge_e g edge)
@@ -327,13 +327,13 @@ let check_type_cycles (structs : struct_ctx) (enums : enum_ctx) : TVertex.t list
        (List.map
           (fun v ->
             let var_str, var_info =
-              Format.asprintf "%a" TVertex.format_t v, TVertex.get_info v
+              Format.asprintf "%a" TVertex.format v, TVertex.get_info v
             in
             let succs = TDependencies.succ_e g v in
             let _, edge_pos, succ =
               List.find (fun (_, _, succ) -> List.mem succ scc) succs
             in
-            let succ_str = Format.asprintf "%a" TVertex.format_t succ in
+            let succ_str = Format.asprintf "%a" TVertex.format succ in
             [
               Some ("Cycle type " ^ var_str ^ ", declared:"), Mark.get var_info;
               ( Some

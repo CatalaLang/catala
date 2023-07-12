@@ -124,7 +124,7 @@ let get_var_uid
   | Some (ScopeVar uid) -> uid
   | _ ->
     raise_unknown_identifier
-      (Format.asprintf "for a variable of scope %a" ScopeName.format_t scope_uid)
+      (Format.asprintf "for a variable of scope %a" ScopeName.format scope_uid)
       (x, pos)
 
 (** Get the subscope uid inside the scope given in argument *)
@@ -737,7 +737,7 @@ let get_def_key
                 Some "Variable declaration:", Mark.get (ScopeVar.get_info x_uid);
               ]
               "This identifier is not a state declared for variable %a."
-              ScopeVar.format_t x_uid)
+              ScopeVar.format x_uid)
         | None ->
           if not (Ident.Map.is_empty var_sig.var_sig_states_idmap) then
             Message.raise_multispanned_error
@@ -747,7 +747,7 @@ let get_def_key
               ]
               "This definition does not indicate which state has to be \
                considered for variable %a."
-              ScopeVar.format_t x_uid
+              ScopeVar.format x_uid
           else None )
   | [y; x] ->
     let (subscope_uid, subscope_real_uid) : SubScopeName.t * ScopeName.t =

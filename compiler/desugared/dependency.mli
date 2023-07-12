@@ -39,7 +39,7 @@ module Vertex : sig
     | SubScope of Shared_ast.SubScopeName.t
     | Assertion of Ast.AssertionName.t
 
-  val format_t : Format.formatter -> t -> unit
+  val format : Format.formatter -> t -> unit
   val info : t -> Uid.MarkedString.info
 
   include Graph.Sig.COMPARABLE with type t := t

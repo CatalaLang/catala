@@ -215,7 +215,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                 match Mark.remove arg with
                 | EStruct { fields; _ } ->
                   List.map
-                    (fun (_, field) ->
+                    (fun field ->
                       match Mark.remove field with
                       | EAbs { binder; tys = [(TLit TUnit, _)] } -> (
                         (* Invariant: when calling a function with a thunked
@@ -232,7 +232,7 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
                           (* same as basic [EAbs case]*)
                           generate_vc_must_not_return_empty ctx field)
                       | _ -> generate_vc_must_not_return_empty ctx field)
-                    (StructField.Map.bindings fields)
+                    (StructField.Map.values fields)
                 | _ -> [generate_vc_must_not_return_empty ctx arg])
               args))
       (Mark.get e)
@@ -458,7 +458,7 @@ let generate_verification_conditions (p : 'm program) (s : ScopeName.t option) :
     (fun vc1 vc2 ->
       let to_str vc =
         Format.asprintf "%s.%s"
-          (Format.asprintf "%a" ScopeName.format_t vc.vc_scope)
+          (Format.asprintf "%a" ScopeName.format vc.vc_scope)
           (Bindlib.name_of (Mark.remove vc.vc_variable))
       in
       String.compare (to_str vc1) (to_str vc2))

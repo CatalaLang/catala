@@ -169,11 +169,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     Ast.OptionMonad.return ~mark
       (Expr.eapp
          (Expr.evar (trans_var ctx scope) mark)
-         [
-           Expr.estruct name
-             (StructField.MapLabels.map fields ~f:(trans ctx))
-             mark;
-         ]
+         [Expr.estruct name (StructField.Map.map (trans ctx) fields) mark]
          mark)
   | EApp { f = (EVar ff, _) as f; args }
     when not (Var.Map.find ff ctx.ctx_vars).is_scope ->
@@ -371,7 +367,8 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     res
   | EMatch { name; e; cases } ->
     let cases =
-      EnumConstructor.MapLabels.map cases ~f:(fun case ->
+      EnumConstructor.Map.map
+        (fun case ->
           match Mark.remove case with
           | EAbs { binder; tys } ->
             let vars, body = Bindlib.unmbind binder in
@@ -394,6 +391,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
             in
             Expr.eabs binder tys m
           | _ -> assert false)
+        cases
     in
     Ast.OptionMonad.bind_cont
       ~var_name:(context_or_same_var ctx e)

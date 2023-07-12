@@ -129,25 +129,25 @@ let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
        (String.to_camel_case
-          (String.to_ascii (Format.asprintf "%a" StructName.format_t v))))
+          (String.to_ascii (Format.asprintf "%a" StructName.format v))))
 
 let format_struct_field_name (fmt : Format.formatter) (v : StructField.t) : unit
     =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (String.to_ascii (Format.asprintf "%a" StructField.format_t v)))
+       (String.to_ascii (Format.asprintf "%a" StructField.format v)))
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
        (String.to_camel_case
-          (String.to_ascii (Format.asprintf "%a" EnumName.format_t v))))
+          (String.to_ascii (Format.asprintf "%a" EnumName.format v))))
 
 let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     unit =
   Format.fprintf fmt "%s"
     (avoid_keywords
-       (String.to_ascii (Format.asprintf "%a" EnumConstructor.format_t v)))
+       (String.to_ascii (Format.asprintf "%a" EnumConstructor.format v)))
 
 let typ_needs_parens (e : typ) : bool =
   match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
@@ -196,8 +196,13 @@ let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
   |> avoid_keywords
   |> Format.fprintf fmt "%s"
 
-module StringMap = Map.Make (String)
-module IntMap = Map.Make (Int)
+module StringMap = String.Map
+
+module IntMap = Map.Make (struct
+  include Int
+
+  let format ppf i = Format.pp_print_int ppf i
+end)
 
 (** For each `VarName.t` defined by its string and then by its hash, we keep
     track of which local integer id we've given it. This is used to keep

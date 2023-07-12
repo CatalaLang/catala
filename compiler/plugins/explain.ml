@@ -57,8 +57,8 @@ module Env = struct
 
   let print ppf (Env t) =
     Format.pp_print_list ~pp_sep:Format.pp_print_space
-      (fun ppf (v, _) -> Print.var_debug ppf v)
-      ppf (Var.Map.bindings t)
+      (fun ppf v -> Print.var_debug ppf v)
+      ppf (Var.Map.keys t)
 end
 
 type expr = Env.expr
@@ -511,6 +511,7 @@ module V = struct
     | e, _ -> Hashtbl.hash e
 
   let equal a b = Expr.equal a b
+  let format = Expr.format
 end
 
 module E = struct
@@ -578,7 +579,7 @@ let to_graph ctx env expr =
     | EStruct { fields; _ }, _ ->
       let v = G.V.create e in
       let g = G.add_vertex g v in
-      let args = List.map snd (StructField.Map.bindings fields) in
+      let args = StructField.Map.values fields in
       let g, children = List.fold_left_map (aux env) g args in
       List.fold_left (fun g -> G.add_edge g v) g children, v
     | _ ->
@@ -776,7 +777,7 @@ let program_to_graph
     | EStruct { fields; _ }, _ ->
       let v = G.V.create e in
       let g = G.add_vertex g v in
-      let args = List.map snd (StructField.Map.bindings fields) in
+      let args = StructField.Map.values fields in
       let (g, var_vertices, env), children =
         List.fold_left_map (aux (Some v)) (g, var_vertices, env0) args
       in
@@ -860,7 +861,11 @@ let rec graph_cleanup options g base_vars =
    *     g
    * in *)
   let module GTop = Graph.Topological.Make (G) in
-  let module VMap = Map.Make (G.V) in
+  let module VMap = Map.Make (struct
+    include G.V
+
+    let format ppf v = V.format ppf (G.V.label v)
+  end) in
   let g, vmap =
     (* Remove separate nodes for variable literal values *)
     G.fold_vertex
@@ -972,6 +977,7 @@ let rec graph_cleanup options g base_vars =
       type t = expr
 
       let compare = Expr.compare
+      let format = Expr.format
     end) in
     (* Merge duplicate nodes *)
     let emap =
@@ -1027,7 +1033,7 @@ let expr_to_dot_label0 :
   and fallback : type a t. Format.formatter -> (a, t) gexpr -> unit =
    fun ppf e ->
     let module E = Print.ExprGen (struct
-      let var ppf v = String.format_t ppf (Bindlib.name_of v)
+      let var ppf v = String.format ppf (Bindlib.name_of v)
       let lit = Print.UserFacing.lit lang
 
       let operator : type x. Format.formatter -> x operator -> unit =
@@ -1122,7 +1128,7 @@ let expr_to_dot_label0 :
               (Format.pp_print_list
                  ~pp_sep:(fun ppf () ->
                    Format.fprintf ppf " %t@ " (fun ppf -> operator ppf Or))
-                 EnumConstructor.format_t)
+                 EnumConstructor.format)
               cases;
             true)
           else false
@@ -1138,28 +1144,27 @@ let rec expr_to_dot_label lang ctx env ppf e =
   match e with
   | EVar v, _ ->
     let e, _ = lazy_eval ctx env value_level e in
-    Format.fprintf ppf "%a = %a" String.format_t (Bindlib.name_of v)
+    Format.fprintf ppf "%a = %a" String.format (Bindlib.name_of v)
       (expr_to_dot_label0 lang ctx env)
       e
   | EStruct { name; fields }, _ ->
     let pr ppf =
-      Format.fprintf ppf "{ %a | { { %a } | { %a }}}" StructName.format_t name
+      Format.fprintf ppf "{ %a | { { %a } | { %a }}}" StructName.format name
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
-           (fun ppf (fld, _) ->
-             StructField.format_t ppf fld;
+           (fun ppf fld ->
+             StructField.format ppf fld;
              Format.pp_print_string ppf "\\l"))
-        (StructField.Map.bindings fields)
+        (StructField.Map.keys fields)
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.pp_print_string ppf " | ")
            (fun ppf -> function
-             | ( _,
-                 (((EVar _ | ELit _ | EInj { e = (EVar _ | ELit _), _; _ }), _)
-                 as e) ) ->
+             | ((EVar _ | ELit _ | EInj { e = (EVar _ | ELit _), _; _ }), _) as
+               e ->
                print_expr ppf e;
                Format.pp_print_string ppf "\\l"
              | _ -> Format.pp_print_string ppf "…\\l"))
-        (StructField.Map.bindings fields)
+        (StructField.Map.values fields)
     in
     Format.pp_print_string ppf (Message.unformat pr)
   | EArray elts, _ ->
@@ -1197,7 +1202,7 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
       let print_expr = print_expr lang ctx env in
       match G.V.label v with
       | (EVar v, _) as e ->
-        Format.asprintf "%a = %a" String.format_t (Bindlib.name_of v) print_expr
+        Format.asprintf "%a = %a" String.format (Bindlib.name_of v) print_expr
           (fst (lazy_eval ctx env value_level e))
       | e -> Format.asprintf "%a" print_expr e
 

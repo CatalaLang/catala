@@ -616,12 +616,12 @@ let rec evaluate_expr :
         Message.raise_spanned_error (Expr.pos e)
           "Invalid field access %a in struct %a (should not happen if the term \
            was well-typed)"
-          StructField.format_t field StructName.format_t s)
+          StructField.format field StructName.format s)
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
         "The expression %a should be a struct %a but is not (should not happen \
          if the term was well-typed)"
-        (Print.expr ()) e StructName.format_t s)
+        (Print.expr ()) e StructName.format s)
   | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx) es))
   | ETupleAccess { e = e1; index; size } -> (
     match evaluate_expr ctx e1 with
