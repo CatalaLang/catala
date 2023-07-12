@@ -97,7 +97,7 @@ let suggestion_minimum_levenshtein_distance_association
   in
   match suggestions with [] -> None | _ :: _ -> Some suggestions
 
-let display (suggestions_list : string list) (ppf : Format.formatter) =
+let display (ppf : Format.formatter) (suggestions_list : string list) =
   match suggestions_list with
   | [] -> ()
   | _ :: _ ->

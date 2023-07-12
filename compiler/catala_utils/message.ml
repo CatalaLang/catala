@@ -154,7 +154,7 @@ module Content = struct
           | _ -> Format.pp_print_char ppf ' ')
         (fun (ppf : Format.formatter) (message_elements : t) ->
           Format.pp_print_list
-            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@,@,")
+            ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,@,")
             (fun ppf (elt : message_element) ->
               match elt with
               | Position pos ->
@@ -165,23 +165,49 @@ module Content = struct
               | MainMessage msg -> msg ppf
               | Result msg -> msg ppf
               | Suggestion suggestions_list ->
-                Suggestions.display suggestions_list ppf)
+                Suggestions.display ppf suggestions_list)
             ppf message_elements)
         content
-    | Cli.GNU -> failwith "unimplemented until the message library stabilises"
-  (* (* The top message doesn't come with a position, which is not something the
-     GNU standard allows. So we look the position list and put the top message
-     everywhere there is not a more precise message. If we can't find a position
-     without a more precise message, we just take the first position in the list
-     to pair with the message. *) let ppf = get_ppf target in let () = if
-     positions != [] && List.for_all (fun (pos' : Content.position) ->
-     Option.is_some pos'.pos_message) positions then Format.fprintf ppf
-     "@{<blue>%s@}: %t %s@\n" (Pos.to_string_short (List.hd positions).pos)
-     (pp_marker target) (unformat message) in Format.pp_print_list
-     ~pp_sep:Format.pp_print_newline (fun ppf pos' -> Format.fprintf ppf
-     "@{<blue>%s@}: %t %s" (Pos.to_string_short pos'.pos) (pp_marker target)
-     (match pos'.pos_message with | None -> unformat message | Some msg' ->
-     unformat msg')) ppf positions *)
+    | Cli.GNU ->
+      (* The top message doesn't come with a position, which is not something
+         the GNU standard allows. So we look the position list and put the top
+         message everywhere there is not a more precise message. If we can't
+         find a position without a more precise message, we just take the first
+         position in the list to pair with the message. *)
+      let ppf = get_ppf target in
+      Format.pp_print_list ~pp_sep:Format.pp_print_newline
+        (fun ppf elt ->
+           let pos, message = match elt with
+             | MainMessage m ->
+               let pos =
+                 List.find_map (function
+                     | Position {pos_message = None; pos} -> Some pos
+                     | _ -> None) content
+                 |> function
+                 | None ->
+                   List.find_map (function
+                       | Position {pos_message = _; pos} -> Some pos
+                       | _ -> None) content
+                 | some -> some
+               in
+               pos, m
+             | Position { pos_message; pos } ->
+               let message = match pos_message with
+                 | Some m -> m
+                 | None -> fun _ -> ()
+               in
+               (Some pos), message
+             | Result m -> None, m
+             | Suggestion sl -> None, fun ppf -> Suggestions.display ppf sl
+           in
+           Option.iter (fun pos -> Format.fprintf ppf "@{<blue>%s@}: "
+                           (Pos.to_string_short pos))
+             pos;
+           pp_marker target ppf;
+           Format.pp_print_char ppf ' ';
+           Format.pp_print_string ppf (unformat message))
+        ppf content;
+      Format.pp_print_newline ppf ()
 end
 
 open Content

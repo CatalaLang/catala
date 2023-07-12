@@ -123,9 +123,7 @@ let translate_unop (op : Surface.Ast.unop) pos : Ast.expr boxed =
 let raise_error_cons_not_found
     (ctxt : Name_resolution.context)
     (constructor : string Mark.pos) =
-  let constructors =
-    List.map (fun (s, _) -> s) (Ident.Map.bindings ctxt.constructor_idmap)
-  in
+  let constructors = Ident.Map.keys ctxt.constructor_idmap in
   let closest_constructors =
     Suggestions.suggestion_minimum_levenshtein_distance_association constructors
       (Mark.remove constructor)
