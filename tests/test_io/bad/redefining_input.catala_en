@@ -9,7 +9,8 @@ scope A:
 ```
 ```catala-test-inline
 $ catala Typecheck 
-[ERROR] It is impossible to give a definition to a scope variable tagged as input.
+[ERROR]
+It is impossible to give a definition to a scope variable tagged as input.
 
 Incriminated variable:
 ┌─⯈ tests/test_io/bad/redefining_input.catala_en:5.16-5.17:
@@ -23,6 +24,5 @@ Incriminated variable definition:
 └─┐
 8 │   definition a equals 0
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
-
 #return code 123#
 ```

@@ -21,43 +21,6 @@
 open Sedlexing
 open Catala_utils
 
-(** {1 Internal functions} *)
-
-(** Three-way minimum *)
-let minimum a b c = min a (min b c)
-
-(** Computes the levenshtein distance between two strings, used to provide error
-    messages suggestions *)
-let levenshtein_distance (s : string) (t : string) : int =
-  let m = String.length s and n = String.length t in
-  (* for all i and j, d.(i).(j) will hold the Levenshtein distance between the
-     first i characters of s and the first j characters of t *)
-  let d = Array.make_matrix (m + 1) (n + 1) 0 in
-
-  for i = 0 to m do
-    d.(i).(0) <- i
-    (* the distance of any first string to an empty second string *)
-  done;
-  for j = 0 to n do
-    d.(0).(j) <- j
-    (* the distance of any second string to an empty first string *)
-  done;
-
-  for j = 1 to n do
-    for i = 1 to m do
-      if s.[i - 1] = t.[j - 1] then d.(i).(j) <- d.(i - 1).(j - 1)
-        (* no operation required *)
-      else
-        d.(i).(j) <-
-          minimum
-            (d.(i - 1).(j) + 1) (* a deletion *)
-            (d.(i).(j - 1) + 1) (* an insertion *)
-            (d.(i - 1).(j - 1) + 1) (* a substitution *)
-    done
-  done;
-
-  d.(m).(n)
-
 (** After parsing, heading structure is completely flat because of the
     [source_file_item] rule. We need to tree-i-fy the flat structure, by looking
     at the precedence of the law headings. *)
@@ -97,9 +60,6 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
         let gobbled, rest_out = split_rest_tree rest_tree in
         LawHeading (heading, gobbled) :: rest_out))
 
-(** Style with which to display syntax hints in the terminal output *)
-let pp_hint ppf s = Format.fprintf ppf "@{<yellow>\"%s\"@}" s
-
 (** Usage: [raise_parser_error error_loc last_good_loc token msg]
 
     Raises an error message featuring the [error_loc] position where the parser
@@ -107,11 +67,12 @@ let pp_hint ppf s = Format.fprintf ppf "@{<yellow>\"%s\"@}" s
     message [msg]. If available, displays [last_good_loc] the location of the
     last token correctly parsed. *)
 let raise_parser_error
+    ?(suggestion : string list option)
     (error_loc : Pos.t)
     (last_good_loc : Pos.t option)
     (token : string)
     (msg : Format.formatter -> unit) : 'a =
-  Message.raise_multispanned_error_full
+  Message.raise_multispanned_error_full ?suggestion
     ((Some (fun ppf -> Format.pp_print_string ppf "Error token:"), error_loc)
     ::
     (match last_good_loc with
@@ -121,7 +82,9 @@ let raise_parser_error
         ( Some (fun ppf -> Format.pp_print_string ppf "Last good token:"),
           last_good_loc );
       ]))
-    "@[<v>Syntax error at token %a@,%t@]" pp_hint token msg
+    "@[<v>Syntax error at token %a@,%t@]"
+    (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
+    token msg
 
 module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
   include Parser.Make (LocalisedLexer)
@@ -162,55 +125,30 @@ module ParserAux (LocalisedLexer : Lexer_common.LocalisedLexer) = struct
       | None -> token_list, None
     in
     let similar_acceptable_tokens =
-      List.sort
-        (fun (x, _) (y, _) ->
-          let truncated_x =
-            if String.length wrong_token <= String.length x then
-              String.sub x 0 (String.length wrong_token)
-            else x
-          in
-          let truncated_y =
-            if String.length wrong_token <= String.length y then
-              String.sub y 0 (String.length wrong_token)
-            else y
-          in
-          let levx = levenshtein_distance truncated_x wrong_token in
-          let levy = levenshtein_distance truncated_y wrong_token in
-          if levx = levy then String.length x - String.length y else levx - levy)
-        acceptable_tokens
-    in
-    let similar_token_msg =
-      match similar_acceptable_tokens with
-      | [] -> None
-      | tokens ->
-        Some
-          (fun ppf ->
-            Format.fprintf ppf "did you mean %a?"
-              (Format.pp_print_list
-                 ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or@  maybe@ ")
-                 (fun ppf (ts, _) -> pp_hint ppf ts))
-              tokens)
+      Suggestions.suggestion_minimum_levenshtein_distance_association
+        (List.map (fun (s, _) -> s) acceptable_tokens)
+        wrong_token
     in
     (* The parser has suspended itself because of a syntax error. Stop. *)
     let custom_menhir_message ppf =
-      match Parser_errors.message (state env) with
+      (match Parser_errors.message (state env) with
       | exception Not_found ->
-        Format.fprintf ppf "Message: @{<yellow>unexpected token@}"
+        Format.fprintf ppf "Message: @{<yellow>unexpected token@}@,%t"
       | msg ->
-        Format.fprintf ppf "Message: @{<yellow>%s@}"
-          (String.trim (String.uncapitalize_ascii msg))
+        Format.fprintf ppf "Message: @{<yellow>%s@}@,%t"
+          (String.trim (String.uncapitalize_ascii msg)))
+        (fun (ppf : Format.formatter) ->
+          Format.fprintf ppf "You could have written : ";
+          Format.pp_print_list
+            ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ or ")
+            (fun ppf string -> Format.fprintf ppf "@{<yellow>\"%s\"@}" string)
+            ppf
+            (List.map (fun (s, _) -> s) acceptable_tokens))
     in
-    let msg ppf =
-      match similar_token_msg with
-      | None -> custom_menhir_message ppf
-      | Some similar_token_msg ->
-        Format.fprintf ppf "@[<v>%t@,@[<hov 4>Autosuggestion: %t@]@]"
-          custom_menhir_message similar_token_msg
-    in
-    raise_parser_error
+    raise_parser_error ~suggestion:similar_acceptable_tokens
       (Pos.from_lpos (lexing_positions lexbuf))
       (Option.map Pos.from_lpos last_positions)
-      (Utf8.lexeme lexbuf) msg
+      (Utf8.lexeme lexbuf) custom_menhir_message
 
   (** Main parsing loop *)
   let rec loop

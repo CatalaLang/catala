@@ -36,7 +36,8 @@ $ catala Interpret -s A
 8 │ declaration enumeration E:
   │                         ‾
   └─ Article
-[ERROR] Cyclic dependency detected between types!
+[ERROR]
+Cyclic dependency detected between types!
 
 Cycle type S, declared:
 ┌─⯈ tests/test_struct/bad/nested2.catala_en:4.23-4.24:

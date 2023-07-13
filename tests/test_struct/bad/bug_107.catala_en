@@ -18,7 +18,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] struct name "S" already defined
+[ERROR]
+struct name "S" already defined
 
 First definition:
 ┌─⯈ tests/test_struct/bad/bug_107.catala_en:4.23-4.24:

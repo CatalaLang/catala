@@ -590,7 +590,7 @@ source_file: BEGIN_CODE SCOPE UIDENT COLON RULE LIDENT YEAR
 ## LIDENT
 ##
 
-expected a condition or a consequence for this rule, or the rest of the variable qualified name
+expected 'under condition' followed by a condition, 'equals' followed by the definition body, or the rest of the variable qualified name
 
 source_file: BEGIN_CODE SCOPE UIDENT COLON RULE YEAR
 ##

@@ -18,10 +18,10 @@ $ catala Typecheck
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
-
-[ERROR] Error during typechecking, incompatible types:
-        ┌─⯈ integer
-        └─⯈ decimal
+[ERROR]
+Error during typechecking, incompatible types:
+┌─⯈ integer
+└─⯈ decimal
 
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
@@ -29,20 +29,17 @@ Error coming from typechecking the following expression:
 10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
-
 Type integer coming from expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
 └──┐
 10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
-
 Type decimal coming from expression:
 ┌─⯈ tests/test_typing/bad/common.catala_en:15.20-15.27:
 └──┐
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾
-
 #return code 123#
 ```
 
@@ -56,10 +53,10 @@ $ catala ocaml
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
-
-[ERROR] Error during typechecking, incompatible types:
-        ┌─⯈ integer
-        └─⯈ decimal
+[ERROR]
+Error during typechecking, incompatible types:
+┌─⯈ integer
+└─⯈ decimal
 
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
@@ -67,19 +64,16 @@ Error coming from typechecking the following expression:
 10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
-
 Type integer coming from expression:
 ┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
 └──┐
 10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
-
 Type decimal coming from expression:
 ┌─⯈ tests/test_typing/bad/common.catala_en:15.20-15.27:
 └──┐
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾
-
 #return code 123#
 ```

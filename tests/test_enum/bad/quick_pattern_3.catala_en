@@ -20,9 +20,10 @@ definition y equals x with pattern Case3
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] Error during typechecking, incompatible types:
-        ┌─⯈ E
-        └─⯈ F
+[ERROR]
+Error during typechecking, incompatible types:
+┌─⯈ E
+└─⯈ F
 
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_enum/bad/quick_pattern_3.catala_en:18.21-18.22:

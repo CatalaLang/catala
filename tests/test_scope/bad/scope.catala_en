@@ -16,7 +16,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] There is a conflict between multiple valid consequences for assigning the same variable.
+[ERROR]
+There is a conflict between multiple valid consequences for assigning the same variable.
 
 This consequence has a valid justification:
 ┌─⯈ tests/test_scope/bad/scope.catala_en:13.57-13.61:

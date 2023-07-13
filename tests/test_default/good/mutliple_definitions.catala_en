@@ -18,12 +18,10 @@ $ catala Interpret -s A
 9 │   definition w equals 3
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 
-
 ┌─⯈ tests/test_default/good/mutliple_definitions.catala_en:6.3-6.15:
 └─┐
 6 │   definition w equals 3
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
-
 [RESULT] Computation successful! Results:
 [RESULT] w = 3
 ```

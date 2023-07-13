@@ -27,19 +27,35 @@
 
 (** {1 Message content} *)
 
+type content_type = Error | Warning | Debug | Log | Result
+
 module Content : sig
+  (** {2 Types}*)
+
   type message = Format.formatter -> unit
   type t
 
-  val of_message : (Format.formatter -> unit) -> t
+  (** {2 Content creation}*)
+
+  val of_message : message -> t
+
+  val of_result : message -> t
+  (** Similar as [of_message] but tailored for when you want to print the result
+      of a value, etc. *)
+
   val of_string : string -> t
-  val mark_as_internal_error : t -> t
   val prepend_message : t -> (Format.formatter -> unit) -> t
+
+  (** {2 Content manipulation}*)
+
+  val to_internal_error : t -> t
+  val add_suggestion : t -> string list -> t
+
+  (** {2 Content emission}*)
+
+  val emit : t -> content_type -> unit
 end
 
-type content_type = Error | Warning | Debug | Log | Result
-
-val emit_content : Content.t -> content_type -> unit
 (** This functions emits the message according to the emission type defined by
     [Cli.message_format_flag]. *)
 
@@ -51,17 +67,22 @@ exception CompilerError of Content.t
 
 val raise_spanned_error :
   ?span_msg:Content.message ->
+  ?suggestion:string list ->
   Pos.t ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
 
 val raise_multispanned_error_full :
+  ?suggestion:string list ->
   (Content.message option * Pos.t) list ->
   ('a, Format.formatter, unit, 'b) format4 ->
   'a
 
 val raise_multispanned_error :
-  (string option * Pos.t) list -> ('a, Format.formatter, unit, 'b) format4 -> 'a
+  ?suggestion:string list ->
+  (string option * Pos.t) list ->
+  ('a, Format.formatter, unit, 'b) format4 ->
+  'a
 
 val raise_error : ('a, Format.formatter, unit, 'b) format4 -> 'a
 val raise_internal_error : ('a, Format.formatter, unit, 'b) format4 -> 'a

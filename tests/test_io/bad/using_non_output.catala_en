@@ -22,7 +22,8 @@ $ catala Typecheck
 5 │   internal a content integer
   │            ‾
   └─ Test
-[ERROR] The variable a.a cannot be used here, as it is not part of subscope a's results. Maybe you forgot to qualify it as an output?
+[ERROR]
+The variable a.a cannot be used here, as it is not part of subscope a's results. Maybe you forgot to qualify it as an output?
 
 Incriminated variable usage:
 ┌─⯈ tests/test_io/bad/using_non_output.catala_en:14.13-14.16:

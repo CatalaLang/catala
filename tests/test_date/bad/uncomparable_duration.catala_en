@@ -42,7 +42,8 @@ scope Ge:
 
 ```catala-test-inline
 $ catala Interpret -s Ge
-[ERROR] Cannot compare together durations that cannot be converted to a precise number of days
+[ERROR]
+Cannot compare together durations that cannot be converted to a precise number of days
 
 ┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:40.23-40.30:
 └──┐
@@ -62,7 +63,8 @@ $ catala Interpret -s Ge
 
 ```catala-test-inline
 $ catala Interpret -s Gt
-[ERROR] Cannot compare together durations that cannot be converted to a precise number of days
+[ERROR]
+Cannot compare together durations that cannot be converted to a precise number of days
 
 ┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:30.23-30.30:
 └──┐
@@ -82,7 +84,8 @@ $ catala Interpret -s Gt
 
 ```catala-test-inline
 $ catala Interpret -s Le
-[ERROR] Cannot compare together durations that cannot be converted to a precise number of days
+[ERROR]
+Cannot compare together durations that cannot be converted to a precise number of days
 
 ┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:20.23-20.30:
 └──┐
@@ -102,7 +105,8 @@ $ catala Interpret -s Le
 
 ```catala-test-inline
 $ catala Interpret -s Lt
-[ERROR] Cannot compare together durations that cannot be converted to a precise number of days
+[ERROR]
+Cannot compare together durations that cannot be converted to a precise number of days
 
 ┌─⯈ tests/test_date/bad/uncomparable_duration.catala_en:10.23-10.30:
 └──┐

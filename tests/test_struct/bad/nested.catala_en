@@ -21,7 +21,8 @@ $ catala Interpret -s A
 6 │   -- Rec content E
   │      ‾‾‾
   └─ Article
-[ERROR] The type E is defined using itself, which is forbidden since Catala does not provide recursive types
+[ERROR]
+The type E is defined using itself, which is forbidden since Catala does not provide recursive types
 
 ┌─⯈ tests/test_struct/bad/nested.catala_en:6.18-6.19:
 └─┐

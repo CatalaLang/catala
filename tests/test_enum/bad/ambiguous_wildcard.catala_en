@@ -17,7 +17,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A
-[ERROR] Couldn't infer the enumeration name from lonely wildcard (wildcard cannot be used as single match case)
+[ERROR]
+Couldn't infer the enumeration name from lonely wildcard (wildcard cannot be used as single match case)
 
 ┌─⯈ tests/test_enum/bad/ambiguous_wildcard.catala_en:15.5-15.21:
 └──┐

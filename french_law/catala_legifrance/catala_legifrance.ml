@@ -283,7 +283,7 @@ let driver_lwt
     Lwt.return 0
   with Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Message.emit_content content Error;
+    Message.Content.emit content Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     Lwt.return (-1)
 
@@ -293,7 +293,7 @@ let driver file debug diff expiration custom_date client_id client_secret =
       (driver_lwt file debug diff expiration custom_date client_id client_secret)
   with Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
-    Message.emit_content content Error;
+    Message.Content.emit content Error;
     if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     -1
 

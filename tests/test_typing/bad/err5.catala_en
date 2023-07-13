@@ -12,9 +12,10 @@ scope S:
 
 ```catala-test-inline
 $ catala Typecheck
-[ERROR] Error during typechecking, incompatible types:
-        ┌─⯈ integer
-        └─⯈ Structure
+[ERROR]
+Error during typechecking, incompatible types:
+┌─⯈ integer
+└─⯈ Structure
 
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_typing/bad/err5.catala_en:8.5-8.9:
@@ -22,19 +23,16 @@ Error coming from typechecking the following expression:
 8 │     1040
   │     ‾‾‾‾
 
-
 Type integer coming from expression:
 ┌─⯈ tests/test_typing/bad/err5.catala_en:8.5-8.9:
 └─┐
 8 │     1040
   │     ‾‾‾‾
 
-
 Type Structure coming from expression:
 ┌─⯈ tests/test_typing/bad/err5.catala_en:6.5-6.46:
 └─┐
 6 │     Structure { -- i: 3 -- e: Int content x };
   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-
 #return code 123#
 ```

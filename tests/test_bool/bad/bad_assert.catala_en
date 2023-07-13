@@ -12,9 +12,10 @@ scope Foo:
 
 ```catala-test-inline
 $ catala Interpret -s Foo
-[ERROR] Error during typechecking, incompatible types:
-        ┌─⯈ integer
-        └─⯈ bool
+[ERROR]
+Error during typechecking, incompatible types:
+┌─⯈ integer
+└─⯈ bool
 
 Error coming from typechecking the following expression:
 ┌─⯈ tests/test_bool/bad/bad_assert.catala_en:9.13-9.14:

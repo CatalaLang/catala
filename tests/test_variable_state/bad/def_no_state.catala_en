@@ -12,7 +12,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Typecheck 
-[ERROR] This definition does not indicate which state has to be considered for variable foo.
+[ERROR]
+This definition does not indicate which state has to be considered for variable foo.
 
 ┌─⯈ tests/test_variable_state/bad/def_no_state.catala_en:10.14-10.17:
 └──┐

@@ -120,6 +120,20 @@ let translate_unop (op : Surface.Ast.unop) pos : Ast.expr boxed =
           "This operator doesn't exist, dates can't be negative"
       | S.KDuration -> TLit TDuration)
 
+let raise_error_cons_not_found
+    (ctxt : Name_resolution.context)
+    (constructor : string Mark.pos) =
+  let constructors = Ident.Map.keys ctxt.constructor_idmap in
+  let closest_constructors =
+    Suggestions.suggestion_minimum_levenshtein_distance_association constructors
+      (Mark.remove constructor)
+  in
+  Message.raise_spanned_error
+    ~span_msg:(fun ppf -> Format.fprintf ppf "Here is your code :")
+    ~suggestion:closest_constructors (Mark.get constructor)
+    "The name of this constructor has not been defined before@ (it's probably \
+     a typographical error)."
+
 let disambiguate_constructor
     (ctxt : Name_resolution.context)
     (constructor : (S.path * S.uident Mark.pos) Mark.pos list)
@@ -133,10 +147,7 @@ let disambiguate_constructor
   in
   let possible_c_uids =
     try Ident.Map.find (Mark.remove constructor) ctxt.constructor_idmap
-    with Not_found ->
-      Message.raise_spanned_error (Mark.get constructor)
-        "The name of this constructor has not been defined before, maybe it is \
-         a typo?"
+    with Not_found -> raise_error_cons_not_found ctxt constructor
   in
   match path with
   | [] ->
@@ -493,9 +504,7 @@ let rec translate_expr
     let possible_c_uids =
       try Ident.Map.find constructor ctxt.constructor_idmap
       with Not_found ->
-        Message.raise_spanned_error pos_constructor
-          "The name of this constructor has not been defined before, maybe it \
-           is a typo?"
+        raise_error_cons_not_found ctxt (constructor, pos_constructor)
     in
     let mark_constructor = Untyped { pos = pos_constructor } in
 

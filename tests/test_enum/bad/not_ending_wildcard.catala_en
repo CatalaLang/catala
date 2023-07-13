@@ -38,7 +38,8 @@ scope Middle_case:
 
 ```catala-test-inline
 $ catala Interpret -s First_case
-[ERROR] Wildcard must be the last match case
+[ERROR]
+Wildcard must be the last match case
 
 Not ending wildcard:
 ┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:19.5-19.21:
@@ -60,7 +61,8 @@ Next reachable case:
 
 ```catala-test-inline
 $ catala Interpret -s Middle_case
-[ERROR] Wildcard must be the last match case
+[ERROR]
+Wildcard must be the last match case
 
 Not ending wildcard:
 ┌─⯈ tests/test_enum/bad/not_ending_wildcard.catala_en:19.5-19.21:

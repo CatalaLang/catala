@@ -13,7 +13,8 @@ declaration glob5 content decimal
 
 ```catala-test-inline
 $ catala typecheck
-[ERROR] Scope calls are not allowed outside of a scope
+[ERROR]
+Scope calls are not allowed outside of a scope
 
 ┌─⯈ tests/test_name_resolution/bad/toplevel_defs.catala_en:11.11-11.23:
 └──┐
