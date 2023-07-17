@@ -17,8 +17,8 @@ CLERK=_build/default/build_system/clerk.exe --exe "_build/default/compiler/catal
 	@cd ..; $(CLERK) tests/$@
 
 pass_all_tests:
-	@cd ..;OCAMLRUNPARAM= $(CLERK) tests
+	@cd ..; $(CLERK) tests
 
 reset_all_tests: CLERK_OPTS+=--reset
 reset_all_tests:
-	@cd ..;OCAMLRUNPARAM= $(CLERK) tests
+	@cd ..; $(CLERK) tests
