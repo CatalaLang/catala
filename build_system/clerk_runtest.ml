@@ -98,7 +98,8 @@ let rec has_inline_tests ?(parents = []) (file : string) : bool =
 
 let has_inline_tests file = has_inline_tests file (* hide optional parameter *)
 
-let [@ocamlformat "disable"] rec scan_for_inline_tests ?(parents=[]) (file : string)
+let [@ocamlformat "disable"] rec scan_for_inline_tests
+    ?(parents=[]) (file : string)
   : file_tests list =
   let parents, file = checkfile parents file in
   let read_file ic =
@@ -138,7 +139,8 @@ let [@ocamlformat "disable"] rec scan_for_inline_tests ?(parents=[]) (file : str
                   1
                   (String.sub file_str 0 pos)
               in
-              Message.raise_error "Bad inline-test format at %s line %d" file line
+              Message.raise_error "Bad inline-test format at %s line %d"
+                file line
           in
           let params =
             List.filter (( <> ) "")
@@ -179,12 +181,14 @@ let run_inline_tests
     (file : string)
     (catala_exe : string)
     (catala_opts : string list) =
+  let _, file = checkfile [] file in
   match scan_for_inline_tests file with
   | [] -> Message.emit_warning "No inline tests found in %s" file
   | file_tests ->
     Message.emit_debug "@[<v 2>Running tests:@ %a@]"
-      (Format.pp_print_list (fun ppf t -> Format.fprintf ppf "- @[<hov>%s:@ %d tests@]"
-                                t.filename (List.length t.tests)))
+      (Format.pp_print_list
+         (fun ppf t -> Format.fprintf ppf "- @[<hov>%s:@ %d tests@]"
+             t.filename (List.length t.tests)))
       file_tests;
     let run test oc =
       List.iter
@@ -192,6 +196,8 @@ let run_inline_tests
           output_string oc test.text_before;
           let cmd_out_rd, cmd_out_wr = Unix.pipe () in
           let ic = Unix.in_channel_of_descr cmd_out_rd in
+          let file_dir, file = Filename.dirname file, Filename.basename file in
+          let catala_exe = Unix.realpath catala_exe in
           let cmd =
             Array.of_list ((catala_exe :: catala_opts) @ test.params @ [file])
           in
@@ -206,6 +212,9 @@ let run_inline_tests
             |> Array.of_seq
           in
           let pid =
+            let cwd = Unix.getcwd () in
+            Unix.chdir file_dir;
+            Fun.protect ~finally:(fun () -> Unix.chdir cwd) @@ fun () ->
             Unix.create_process_env catala_exe cmd env Unix.stdin cmd_out_wr
               cmd_out_wr
           in
@@ -237,7 +246,8 @@ let run_inline_tests
     in
     List.iter
       (fun test ->
-        if reset then (
+        if test.filename <> file then ()
+        else if reset then (
           let out = test.filename ^ ".out" in
           (try File.with_out_channel out (run test)
            with e ->

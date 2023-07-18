@@ -22,7 +22,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] [A.y] At least two exceptions overlap for this variable:
-┌─⯈ tests/test_proof/bad/enums_unit-overlap.catala_en:10.10-10.11:
+┌─⯈ enums_unit-overlap.catala_en:10.10-10.11:
 └──┐
 10 │   output y content integer
    │          ‾

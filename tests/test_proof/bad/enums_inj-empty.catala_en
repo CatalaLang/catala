@@ -18,13 +18,13 @@ scope A:
 $ catala Proof --disable_counterexamples 
 [WARNING] The constructor "C2" of enumeration "E" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/bad/enums_inj-empty.catala_en:6.6-6.8:
+┌─⯈ enums_inj-empty.catala_en:6.6-6.8:
 └─┐
 6 │   -- C2
   │      ‾‾
   └─ Article
 [WARNING] [A.y] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/enums_inj-empty.catala_en:10.10-10.11:
+┌─⯈ enums_inj-empty.catala_en:10.10-10.11:
 └──┐
 10 │   output y content integer
    │          ‾

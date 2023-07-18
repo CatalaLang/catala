@@ -15,7 +15,7 @@ $ catala Interpret -s A
 [ERROR]
 Cannot define rule as an exception to itself
 
-┌─⯈ tests/test_exception/bad/self_exception.catala_en:9.13-9.19:
+┌─⯈ self_exception.catala_en:9.13-9.19:
 └─┐
 9 │   exception base_y
   │             ‾‾‾‾‾‾

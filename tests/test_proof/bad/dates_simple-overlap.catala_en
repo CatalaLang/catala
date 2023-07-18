@@ -16,7 +16,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] [A.y] At least two exceptions overlap for this variable:
-┌─⯈ tests/test_proof/bad/dates_simple-overlap.catala_en:6.10-6.11:
+┌─⯈ dates_simple-overlap.catala_en:6.10-6.11:
 └─┐
 6 │   output y content boolean
   │          ‾

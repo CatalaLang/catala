@@ -19,13 +19,13 @@ $ catala dcalc -s Titi
 [ERROR]
 Scope Toto has no input variable biz
 
-┌─⯈ tests/test_scope/bad/scope_call_extra.catala_en:14.49-14.52:
+┌─⯈ scope_call_extra.catala_en:14.49-14.52:
 └──┐
 14 │   definition fizz equals output of Toto with {--biz: 1}
    │                                                 ‾‾‾
 
 Scope Toto declared here
-┌─⯈ tests/test_scope/bad/scope_call_extra.catala_en:2.19-2.23:
+┌─⯈ scope_call_extra.catala_en:2.19-2.23:
 └─┐
 2 │ declaration scope Toto:
   │                   ‾‾‾‾

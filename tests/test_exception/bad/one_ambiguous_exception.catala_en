@@ -25,7 +25,7 @@ $ catala Interpret -s A
 This exception can refer to several definitions. Try using labels to disambiguate
 
 Ambiguous exception
-┌─⯈ tests/test_exception/bad/one_ambiguous_exception.catala_en:18.3-19.15:
+┌─⯈ one_ambiguous_exception.catala_en:18.3-19.15:
 └──┐
 18 │   exception
    │   ‾‾‾‾‾‾‾‾‾
@@ -34,14 +34,14 @@ Ambiguous exception
    └─ Test
 
 Candidate definition
-┌─⯈ tests/test_exception/bad/one_ambiguous_exception.catala_en:16.14-16.15:
+┌─⯈ one_ambiguous_exception.catala_en:16.14-16.15:
 └──┐
 16 │   definition y equals 4
    │              ‾
    └─ Test
 
 Candidate definition
-┌─⯈ tests/test_exception/bad/one_ambiguous_exception.catala_en:14.14-14.15:
+┌─⯈ one_ambiguous_exception.catala_en:14.14-14.15:
 └──┐
 14 │   definition y equals 2
    │              ‾

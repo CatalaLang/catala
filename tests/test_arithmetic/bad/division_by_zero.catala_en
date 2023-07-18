@@ -37,7 +37,7 @@ $ catala Interpret -s Dec
 division by zero at runtime
 
 The division operator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.23-20.30:
+┌─⯈ division_by_zero.catala_en:20.23-20.30:
 └──┐
 20 │   definition i equals 1. / 0.
    │                       ‾‾‾‾‾‾‾
@@ -45,7 +45,7 @@ The division operator:
     └─ with decimals
 
 The null denominator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.28-20.30:
+┌─⯈ division_by_zero.catala_en:20.28-20.30:
 └──┐
 20 │   definition i equals 1. / 0.
    │                            ‾‾
@@ -60,7 +60,7 @@ $ catala Interpret -s Int
 division by zero at runtime
 
 The division operator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.23-10.28:
+┌─⯈ division_by_zero.catala_en:10.23-10.28:
 └──┐
 10 │   definition i equals 1 / 0
    │                       ‾‾‾‾‾
@@ -68,7 +68,7 @@ The division operator:
     └─ with integers
 
 The null denominator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.27-10.28:
+┌─⯈ division_by_zero.catala_en:10.27-10.28:
 └──┐
 10 │   definition i equals 1 / 0
    │                           ‾
@@ -83,7 +83,7 @@ $ catala Interpret -s Money
 division by zero at runtime
 
 The division operator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.23-30.35:
+┌─⯈ division_by_zero.catala_en:30.23-30.35:
 └──┐
 30 │   definition i equals $10.0 / $0.0
    │                       ‾‾‾‾‾‾‾‾‾‾‾‾
@@ -91,7 +91,7 @@ The division operator:
     └─ with money
 
 The null denominator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.31-30.35:
+┌─⯈ division_by_zero.catala_en:30.31-30.35:
 └──┐
 30 │   definition i equals $10.0 / $0.0
    │                               ‾‾‾‾

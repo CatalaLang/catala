@@ -21,21 +21,21 @@ $ catala Scopelang -s B
 It is impossible to give a definition to a subscope variable not tagged as input or context.
 
 Incriminated subscope:
-┌─⯈ tests/test_func/good/context_func.catala_en:9.3-9.4:
+┌─⯈ context_func.catala_en:9.3-9.4:
 └─┐
 9 │   a scope A
   │   ‾
   └─ Test
 
 Incriminated variable:
-┌─⯈ tests/test_func/good/context_func.catala_en:5.10-5.11:
+┌─⯈ context_func.catala_en:5.10-5.11:
 └─┐
 5 │   output f content integer depends on x content integer
   │          ‾
   └─ Test
 
 Incriminated subscope variable definition:
-┌─⯈ tests/test_func/good/context_func.catala_en:15.3-15.17:
+┌─⯈ context_func.catala_en:15.3-15.17:
 └──┐
 15 │   definition a.f of x under condition b and x > 0 consequence equals x - 1
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -48,21 +48,21 @@ $ catala Dcalc -s A
 It is impossible to give a definition to a subscope variable not tagged as input or context.
 
 Incriminated subscope:
-┌─⯈ tests/test_func/good/context_func.catala_en:9.3-9.4:
+┌─⯈ context_func.catala_en:9.3-9.4:
 └─┐
 9 │   a scope A
   │   ‾
   └─ Test
 
 Incriminated variable:
-┌─⯈ tests/test_func/good/context_func.catala_en:5.10-5.11:
+┌─⯈ context_func.catala_en:5.10-5.11:
 └─┐
 5 │   output f content integer depends on x content integer
   │          ‾
   └─ Test
 
 Incriminated subscope variable definition:
-┌─⯈ tests/test_func/good/context_func.catala_en:15.3-15.17:
+┌─⯈ context_func.catala_en:15.3-15.17:
 └──┐
 15 │   definition a.f of x under condition b and x > 0 consequence equals x - 1
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -75,21 +75,21 @@ $ catala Dcalc -s B
 It is impossible to give a definition to a subscope variable not tagged as input or context.
 
 Incriminated subscope:
-┌─⯈ tests/test_func/good/context_func.catala_en:9.3-9.4:
+┌─⯈ context_func.catala_en:9.3-9.4:
 └─┐
 9 │   a scope A
   │   ‾
   └─ Test
 
 Incriminated variable:
-┌─⯈ tests/test_func/good/context_func.catala_en:5.10-5.11:
+┌─⯈ context_func.catala_en:5.10-5.11:
 └─┐
 5 │   output f content integer depends on x content integer
   │          ‾
   └─ Test
 
 Incriminated subscope variable definition:
-┌─⯈ tests/test_func/good/context_func.catala_en:15.3-15.17:
+┌─⯈ context_func.catala_en:15.3-15.17:
 └──┐
 15 │   definition a.f of x under condition b and x > 0 consequence equals x - 1
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾

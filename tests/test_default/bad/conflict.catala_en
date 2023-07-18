@@ -11,8 +11,8 @@ scope A:
 
 ```catala-test-inline
 $ catala Interpret -s A --message=gnu
-tests/test_default/bad/conflict.catala_en:8.56-8.57: [ERROR] There is a conflict between multiple valid consequences for assigning the same variable.
-tests/test_default/bad/conflict.catala_en:8.56-8.57: [ERROR] This consequence has a valid justification:
-tests/test_default/bad/conflict.catala_en:9.56-9.57: [ERROR] This consequence has a valid justification:
+conflict.catala_en:8.56-8.57: [ERROR] There is a conflict between multiple valid consequences for assigning the same variable.
+conflict.catala_en:8.56-8.57: [ERROR] This consequence has a valid justification:
+conflict.catala_en:9.56-9.57: [ERROR] This consequence has a valid justification:
 #return code 123#
 ```
