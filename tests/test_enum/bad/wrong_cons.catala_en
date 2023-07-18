@@ -18,7 +18,7 @@ The name of this constructor has not been defined before
 (it's probably a typographical error).
 
 Here is your code :
-┌─⯈ tests/test_enum/bad/wrong_cons.catala_en:11.23-11.28:
+┌─⯈ wrong_cons.catala_en:11.23-11.28:
 └──┐
 11 │   definition e equals Case2
    │                       ‾‾‾‾‾

@@ -16,21 +16,21 @@ $ catala Interpret -s A
 I don't know how to apply operator >= on types integer and
 money
 
-┌─⯈ tests/test_array/bad/fold_error.catala_en:10.50-10.52:
+┌─⯈ fold_error.catala_en:10.50-10.52:
 └──┐
 10 │   definition list_high_count equals number of (m >= $7) for m among list
    │                                                  ‾‾
    └─ Article
 
 Type integer coming from expression:
-┌─⯈ tests/test_array/bad/fold_error.catala_en:5.35-5.42:
+┌─⯈ fold_error.catala_en:5.35-5.42:
 └─┐
 5 │   context list content collection integer
   │                                   ‾‾‾‾‾‾‾
   └─ Article
 
 Type money coming from expression:
-┌─⯈ tests/test_array/bad/fold_error.catala_en:10.53-10.55:
+┌─⯈ fold_error.catala_en:10.53-10.55:
 └──┐
 10 │   definition list_high_count equals number of (m >= $7) for m among list
    │                                                     ‾‾

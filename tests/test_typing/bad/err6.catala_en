@@ -34,19 +34,19 @@ Error during typechecking, incompatible types:
 └─⯈ integer
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_typing/bad/err6.catala_en:20.27-20.30:
+┌─⯈ err6.catala_en:20.27-20.30:
 └──┐
 20 │   definition sub.x equals 44.
    │                           ‾‾‾
 
 Type decimal coming from expression:
-┌─⯈ tests/test_typing/bad/err6.catala_en:20.27-20.30:
+┌─⯈ err6.catala_en:20.27-20.30:
 └──┐
 20 │   definition sub.x equals 44.
    │                           ‾‾‾
 
 Type integer coming from expression:
-┌─⯈ tests/test_typing/bad/common.catala_en:12.19-12.26:
+┌─⯈ ./common.catala_en:12.19-12.26:
 └──┐
 12 │   input x content integer
    │                   ‾‾‾‾‾‾‾

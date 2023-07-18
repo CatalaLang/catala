@@ -20,21 +20,21 @@ $ catala Typecheck
 It is impossible to give a definition to a subscope variable not tagged as input or context.
 
 Incriminated subscope:
-┌─⯈ tests/test_io/bad/inputing_to_not_input.catala_en:8.3-8.4:
+┌─⯈ inputing_to_not_input.catala_en:8.3-8.4:
 └─┐
 8 │   a scope A
   │   ‾
   └─ Test
 
 Incriminated variable:
-┌─⯈ tests/test_io/bad/inputing_to_not_input.catala_en:5.10-5.11:
+┌─⯈ inputing_to_not_input.catala_en:5.10-5.11:
 └─┐
 5 │   output a content integer
   │          ‾
   └─ Test
 
 Incriminated subscope variable definition:
-┌─⯈ tests/test_io/bad/inputing_to_not_input.catala_en:14.3-14.17:
+┌─⯈ inputing_to_not_input.catala_en:14.3-14.17:
 └──┐
 14 │   definition a.a equals 0
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾

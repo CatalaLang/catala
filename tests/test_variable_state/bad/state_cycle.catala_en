@@ -26,28 +26,28 @@ Cyclic dependency detected between the following variables of scope A:
   foofoo@bar → foofoo@baz → foo@bar → foo@baz → foofoo@bar
 
 foofoo@bar is used here in the definition of foofoo@baz:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:19.38-19.44:
+┌─⯈ state_cycle.catala_en:19.38-19.44:
 └──┐
 19 │   definition foofoo state baz equals foofoo + 1
    │                                      ‾‾‾‾‾‾
    └─ Test
 
 foofoo@baz is used here in the definition of foo@bar:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:13.35-13.41:
+┌─⯈ state_cycle.catala_en:13.35-13.41:
 └──┐
 13 │   definition foo state bar equals foofoo
    │                                   ‾‾‾‾‾‾
    └─ Test
 
 foo@bar is used here in the definition of foo@baz:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:15.35-15.38:
+┌─⯈ state_cycle.catala_en:15.35-15.38:
 └──┐
 15 │   definition foo state baz equals foo + 1
    │                                   ‾‾‾
    └─ Test
 
 foo@baz is used here in the definition of foofoo@bar:
-┌─⯈ tests/test_variable_state/bad/state_cycle.catala_en:17.38-17.41:
+┌─⯈ state_cycle.catala_en:17.38-17.41:
 └──┐
 17 │   definition foofoo state bar equals foo
    │                                      ‾‾‾

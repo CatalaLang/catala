@@ -20,7 +20,7 @@ scope A:
 $ catala Interpret -s A
 [WARNING] The structure "Bar" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_struct/good/same_name_fields.catala_en:7.23-7.26:
+┌─⯈ same_name_fields.catala_en:7.23-7.26:
 └─┐
 7 │ declaration structure Bar:
   │                       ‾‾‾
@@ -33,7 +33,7 @@ $ catala Interpret -s A
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [WARNING] The structure "Bar" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_struct/good/same_name_fields.catala_en:7.23-7.26:
+┌─⯈ same_name_fields.catala_en:7.23-7.26:
 └─┐
 7 │ declaration structure Bar:
   │                       ‾‾‾

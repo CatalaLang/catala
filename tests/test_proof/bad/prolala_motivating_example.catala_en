@@ -127,7 +127,7 @@ $ catala Proof --disable_counterexamples
 It is impossible to give a definition to a subscope variable not tagged as input or context.
 
 Incriminated subscope:
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:56.3-56.14:
+┌─⯈ prolala_motivating_example.catala_en:56.3-56.14:
 └──┐
 56 │   eligibility scope Eligibility
    │   ‾‾‾‾‾‾‾‾‾‾‾
@@ -135,7 +135,7 @@ Incriminated subscope:
     └─ Amount
 
 Incriminated variable:
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:9.12-9.22:
+┌─⯈ prolala_motivating_example.catala_en:9.12-9.22:
 └─┐
 9 │   internal is_student content boolean
   │            ‾‾‾‾‾‾‾‾‾‾
@@ -143,7 +143,7 @@ Incriminated variable:
    └─ Eligibility
 
 Incriminated subscope variable definition:
-┌─⯈ tests/test_proof/bad/prolala_motivating_example.catala_en:64.3-64.36:
+┌─⯈ prolala_motivating_example.catala_en:64.3-64.36:
 └──┐
 64 │   definition eligibility.is_student equals is_student
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

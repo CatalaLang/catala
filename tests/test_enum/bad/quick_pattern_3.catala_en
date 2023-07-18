@@ -26,21 +26,21 @@ Error during typechecking, incompatible types:
 └─⯈ F
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_enum/bad/quick_pattern_3.catala_en:18.21-18.22:
+┌─⯈ quick_pattern_3.catala_en:18.21-18.22:
 └──┐
 18 │ definition y equals x with pattern Case3
    │                     ‾
    └─ Article
 
 Type E coming from expression:
-┌─⯈ tests/test_enum/bad/quick_pattern_3.catala_en:13.19-13.20:
+┌─⯈ quick_pattern_3.catala_en:13.19-13.20:
 └──┐
 13 │ context x content E
    │                   ‾
    └─ Article
 
 Type F coming from expression:
-┌─⯈ tests/test_enum/bad/quick_pattern_3.catala_en:18.21-18.41:
+┌─⯈ quick_pattern_3.catala_en:18.21-18.41:
 └──┐
 18 │ definition y equals x with pattern Case3
    │                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

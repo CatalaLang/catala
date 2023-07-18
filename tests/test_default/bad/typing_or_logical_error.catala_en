@@ -21,13 +21,13 @@ or "under condition",
 or "."
 
 Error token:
-┌─⯈ tests/test_default/bad/typing_or_logical_error.catala_en:8.30-8.31:
+┌─⯈ typing_or_logical_error.catala_en:8.30-8.31:
 └─┐
 8 │  definition wrong_definition = 1
   │                              ‾
 
 Last good token:
-┌─⯈ tests/test_default/bad/typing_or_logical_error.catala_en:8.13-8.29:
+┌─⯈ typing_or_logical_error.catala_en:8.13-8.29:
 └─┐
 8 │  definition wrong_definition = 1
   │             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

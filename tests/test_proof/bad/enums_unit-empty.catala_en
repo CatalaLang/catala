@@ -22,7 +22,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] [A.y] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/enums_unit-empty.catala_en:10.10-10.11:
+┌─⯈ enums_unit-empty.catala_en:10.10-10.11:
 └──┐
 10 │   output y content integer
    │          ‾

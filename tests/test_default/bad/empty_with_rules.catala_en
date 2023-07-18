@@ -17,7 +17,7 @@ $ catala Interpret -s A
 [ERROR]
 This variable evaluated to an empty term (no rule that defined it applied in this situation)
 
-┌─⯈ tests/test_default/bad/empty_with_rules.catala_en:5.10-5.11:
+┌─⯈ empty_with_rules.catala_en:5.10-5.11:
 └─┐
 5 │   output x content integer
   │          ‾

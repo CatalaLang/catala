@@ -22,14 +22,14 @@ $ catala Interpret -s A
 Cyclic dependency detected between the following scopes: B → A → B
 
 B is used here in the definition of A:
-┌─⯈ tests/test_scope/bad/cyclic_scopes.catala_en:5.3-5.4:
+┌─⯈ cyclic_scopes.catala_en:5.3-5.4:
 └─┐
 5 │   b scope B
   │   ‾
   └─ Article
 
 A is used here in the definition of B:
-┌─⯈ tests/test_scope/bad/cyclic_scopes.catala_en:9.3-9.4:
+┌─⯈ cyclic_scopes.catala_en:9.3-9.4:
 └─┐
 9 │   a scope A
   │   ‾

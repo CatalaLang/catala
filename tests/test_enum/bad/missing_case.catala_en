@@ -20,7 +20,7 @@ scope A:
 $ catala Interpret -s A
 [WARNING] The constructor "Case3" of enumeration "E" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_enum/bad/missing_case.catala_en:7.6-7.11:
+┌─⯈ missing_case.catala_en:7.6-7.11:
 └─┐
 7 │   -- Case3
   │      ‾‾‾‾‾
@@ -28,7 +28,7 @@ $ catala Interpret -s A
 [ERROR]
 The constructor Case3 of enum E is missing from this pattern matching
 
-┌─⯈ tests/test_enum/bad/missing_case.catala_en:14.25-16.22:
+┌─⯈ missing_case.catala_en:14.25-16.22:
 └──┐
 14 │   definition out equals match e with pattern
    │                         ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

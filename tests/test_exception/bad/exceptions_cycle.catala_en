@@ -23,7 +23,7 @@ $ catala Interpret -s A
 [ERROR]
 Exception cycle detected when defining x: each of these 3 exceptions applies over the previous one, and the first applies over the last
 
-┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:8.3-10.15:
+┌─⯈ exceptions_cycle.catala_en:8.3-10.15:
 └──┐
  8 │   label base_x
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
@@ -32,7 +32,7 @@ Exception cycle detected when defining x: each of these 3 exceptions applies ove
 10 │   definition x equals 0
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
 
-┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:12.3-14.15:
+┌─⯈ exceptions_cycle.catala_en:12.3-14.15:
 └──┐
 12 │   label exception_x
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -41,7 +41,7 @@ Exception cycle detected when defining x: each of these 3 exceptions applies ove
 14 │   definition x equals 1
    │   ‾‾‾‾‾‾‾‾‾‾‾‾
 
-┌─⯈ tests/test_exception/bad/exceptions_cycle.catala_en:16.3-18.15:
+┌─⯈ exceptions_cycle.catala_en:16.3-18.15:
 └──┐
 16 │   label exception_exception_x
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

@@ -9,7 +9,7 @@ declaration scope Foo2:
 $ catala Scalc -s Foo2 -O -t
 [WARNING] In scope "Foo2", the variable "bar" is declared but never defined; did you forget something?
 
-┌─⯈ tests/test_scope/good/nothing.catala_en:5.10-5.13:
+┌─⯈ nothing.catala_en:5.10-5.13:
 └─┐
 5 │   output bar content integer
   │          ‾‾‾

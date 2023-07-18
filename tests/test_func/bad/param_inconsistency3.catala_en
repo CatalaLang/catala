@@ -17,13 +17,13 @@ $ catala typecheck
 Function argument name mismatch between declaration ('x') and definition ('y')
 
 Argument declared here:
-┌─⯈ tests/test_func/bad/param_inconsistency3.catala_en:4.42-4.43:
+┌─⯈ param_inconsistency3.catala_en:4.42-4.43:
 └─┐
 4 │   internal f1 content decimal depends on x content integer
   │                                          ‾
 
 Defined here:
-┌─⯈ tests/test_func/bad/param_inconsistency3.catala_en:9.30-9.31:
+┌─⯈ param_inconsistency3.catala_en:9.30-9.31:
 └─┐
 9 │   exception definition f1 of y under condition not cond
   │                              ‾
