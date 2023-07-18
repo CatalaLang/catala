@@ -14,7 +14,7 @@
   cmdliner
   re
   ocolor)
- (modules clerk_driver))
+ (modules clerk_runtest clerk_driver))
 
 (rule
  (target custom_linking.sexp)
