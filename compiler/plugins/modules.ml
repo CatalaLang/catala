@@ -115,7 +115,7 @@ let compile options link_modules optimize check_invariants =
     gen_ocaml options link_modules optimize check_invariants (Some modname) None
   in
   let flags = ["-I"; Lazy.force runtime_dir] in
-  let shared_out = basename ^ ".cmxs" in
+  let shared_out = File.(Filename.dirname ml_file / basename ^ ".cmxs") in
   Message.emit_debug "Compiling OCaml shared object file @{<bold>%s@}..."
     shared_out;
   run_process "ocamlopt" ("-shared" :: ml_file :: "-o" :: shared_out :: flags);
