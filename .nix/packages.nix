@@ -11,4 +11,5 @@ ocamlPackages.overrideScope' (self: super: {
   ubase = self.callPackage ./ubase.nix { };
   dates_calc = self.callPackage ./dates_calc.nix { };
   french_law = self.callPackage ./french_law.nix { };
+  ocolor = self.callPackage ./ocolor.nix { };
 })
