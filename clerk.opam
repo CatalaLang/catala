@@ -38,4 +38,8 @@ dev-repo: "git+https://github.com/CatalaLang/catala.git"
 depexts: [
   ["ninja-build"] {os-family = "debian"}
   ["samurai"] {os-distribution = "alpine"}
+  ["colordiff"] {cataladevmode &
+                 (os-distribution = "alpine" |
+                  os-family = "arch" |
+                  os-family = "debian")}
 ]
