@@ -19,6 +19,7 @@ depends: [
   "catala" {= version}
   "ninja_utils" {= version}
   "odoc" {with-doc}
+  "conf-diffutils" {cataladevmode}
 ]
 build: [
   ["dune" "subst"] {dev}
@@ -38,8 +39,4 @@ dev-repo: "git+https://github.com/CatalaLang/catala.git"
 depexts: [
   ["ninja-build"] {os-family = "debian"}
   ["samurai"] {os-distribution = "alpine"}
-  ["colordiff"] {cataladevmode &
-                 (os-distribution = "alpine" |
-                  os-family = "arch" |
-                  os-family = "debian")}
 ]
