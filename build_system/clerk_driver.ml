@@ -338,7 +338,7 @@ let pipe_diff_cmd =
         Var.tested_file;
         Lit "/dev/stdin";
       ]
-  else Seq [Lit "| colordiff -u -b"; Var.tested_file; Lit "-"]
+  else Seq [Lit "| diff -u -b --color"; Var.tested_file; Lit "-"]
 
 let inline_test_rule catala_exe catala_opts =
   let open Nj.Expr in

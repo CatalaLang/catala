@@ -2,7 +2,7 @@
 # STAGE 1: setup an opam switch with all dependencies installed
 #
 # (only depends on the opam files)
-FROM ocamlpro/ocaml:4.14-2023-06-18 AS dev-build-context
+FROM ocamlpro/ocaml:4.14-2023-08-01 AS dev-build-context
 # Image from https://hub.docker.com/r/ocamlpro/ocaml
 
 RUN mkdir catala
@@ -24,19 +24,6 @@ RUN opam --cli=2.1 switch create catala ocaml-system && \
     opam clean
 # Note: just `opam switch create . --deps-only --with-test --with-doc && opam clean`
 # should be enough once opam 2.2 is released (see opam#5185)
-
-# Install extra dependencies not handled yet by the opam depexts
-#
-# python3, ninja (samurai in this case), etc. already got installed through opam's
-# depext mechanism at this point -- see clerk.opam and catala.opam
-#
-# pandoc is not in alpine stable yet though, so install it manually with an explicit repository
-RUN sudo apk add pandoc --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community/
-
-# Workaround broken rescript build that recompiles its own version of
-# ninja with a badly written script :[]
-RUN sudo apk add pythonispython3
-
 
 #
 # STAGE 2: get the whole repo, run checks and builds

@@ -19,6 +19,7 @@ depends: [
   "catala" {= version}
   "ninja_utils" {= version}
   "odoc" {with-doc}
+  "conf-diffutils" {cataladevmode}
 ]
 build: [
   ["dune" "subst"] {dev}
