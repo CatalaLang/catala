@@ -19,7 +19,7 @@ open Catala_utils
 let fill_pos_with_legislative_info (p : Ast.program) : Ast.program =
   let visitor =
     object
-      inherit [_] Ast.program_map as super
+      inherit [_] Ast.map as super
 
       method! visit_pos f env x =
         f env (Mark.remove x), Pos.overwrite_law_info (Mark.get x) env
