@@ -8,41 +8,27 @@
 \usepackage{epsfig}
 %\usepackage{bookman}
 %\usepackage{booktabs}
+\usepackage{fontspec}
 \usepackage{upquote} % Uncurly the quotes
 \usepackage{etoolbox} % for backquote fix
-\usepackage[scaled=0.9]{DejaVuSans}
-\usepackage[scaled=0.9]{DejaVuSansMono}
 \usepackage{mdframed} % nice frames
 \usepackage[nobottomtitles]{titlesec} % better titles
 \usepackage{enumitem}
 \usepackage{minted}
 \usepackage[a4paper,landscape,margin=1cm,includehead,headsep=2ex,nofoot]{geometry}
-\usepackage{fancyhdr}\usepackage{hyperref}
+\usepackage{fancyhdr}
 \usepackage{array}
 \usepackage[none]{hyphenat}
 \usepackage[document]{ragged2e}
 
 \usemintedstyle{tango}
 
+\setsansfont{DejaVu Sans}[Scale=0.9]
+\setmonofont{DejaVu Sans Mono}[Scale=0.9]
+
 \setlist[itemize]{noitemsep, topsep=0pt}
 
 \renewcommand{\MintedPygmentize}{../../_build/default/compiler/catala.exe pygmentize}
-
-% backquote dejavu fix
-\makeatletter
-\chardef\straightquote@code=\catcode`'
-\chardef\backquote@code=\catcode``
-\catcode`'=\active \catcode``=\active
-\patchcmd{\@noligs}
- {\textasciigrave}
- {\fixedtextasciigrave}
- {}{}
-\newcommand{\fixedtextasciigrave}{%
-  \makebox[.5em]{\fontencoding{TS1}\fontfamily{fvs}\selectfont\textasciigrave}% Vera Sans
-}
-\catcode\lq\'=\straightquote@code
-\catcode\lq\`=\backquote@code
-\makeatletter
 
 % fancyvrb and mdframed stuff
 \newmdenv[bottomline=false,rightline=false]{topleft}
@@ -58,26 +44,6 @@
 		{\geometry{top=1cm,left=1cm,right=1cm,bottom=1cm} }
 	}
 \pagestyle{empty}
-
-%% \makeatletter
-%% \renewcommand{\section}{\@startsection{section}{1}{0mm}%
-%%                                 {-1ex plus -.5ex minus -.2ex}%
-%%                                 {0.5ex plus .2ex}%x
-%%                                 {\normalfont\large\bfseries}}
-%% \renewcommand{\subsection}{\@startsection{subsection}{2}{0mm}%
-%%                                 {-1ex plus -.5ex minus -.2ex}%
-%%                                 {0.5ex plus .2ex}%
-%%                                 {\normalfont\normalsize\bfseries}}
-%% \renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{0mm}%
-%%                                 {-1ex plus -.5ex minus -.2ex}%
-%%                                 {1ex plus .2ex}%
-%%                                 {\normalfont\small\bfseries}}
-%% \makeatother
-
-%% \makeatletter
-%% \let\origsection\section
-%% \renewcommand\section{\vspace{5em}\origsection}
-%% \makeatother
 
 % Don't print section numbers
 \setcounter{secnumdepth}{0}
@@ -124,14 +90,6 @@
 \setlength{\headsep}{10pt}
 
 \renewcommand{\familydefault}{\sfdefault} % everything sans-serif
-
-%Url handling
-\hypersetup{
-  colorlinks=true,
-  urlcolor=black,
-  linkcolor=black,
-  citecolor=black
-}
 
 % font size -> set to equivalent to footnotesize of 10 pt
 % it affect only the \\normalsize command, all are still relative to default's
