@@ -381,6 +381,9 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (format_expression ctx))
       args
   | EOp op -> Format.fprintf fmt "%a" format_op (op, Pos.no_pos)
+  | ETryExcept _ ->
+    Message.raise_internal_error
+      "Python needs TryExcept to be compiled as statements and not expressions"
 
 let rec format_statement
     (ctx : decl_ctx)

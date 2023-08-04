@@ -229,8 +229,8 @@ let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
         StringMap.add v_str (IntMap.singleton hash 0) !string_counter_map;
       0
   in
-  if v_str = "_" then Format.fprintf fmt "_"
-    (* special case for the unit pattern *)
+  if v_str = "_" then Format.fprintf fmt "dummy_var"
+    (* special case for the unit pattern TODO escape dummy_var *)
   else if local_id = 0 then format_name_cleaned fmt v_str
   else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
 
@@ -243,22 +243,29 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   match Mark.remove exc with
   | ConflictError ->
     Format.fprintf fmt
-      "ConflictError(@[<hov 0>SourcePosition(@[<hov 0>filename=\"%s\",@ \
-       start_line=%d,@ start_column=%d,@ end_line=%d,@ end_column=%d,@ \
-       law_headings=%a)@])@]"
+      "catala_conflict_error(@[<hov 0>SourcePosition(@[<hov \
+       0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
+       end_column=%d,@ law_headings=%a)@])@]"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
-  | EmptyError -> Format.fprintf fmt "EmptyError"
-  | Crash -> Format.fprintf fmt "Crash"
+  | EmptyError -> Format.fprintf fmt "catala_empty_error()"
+  | Crash -> Format.fprintf fmt "catala_crash()"
   | NoValueProvided ->
     Format.fprintf fmt
-      "NoValueProvided(@[<hov 0>SourcePosition(@[<hov 0>filename=\"%s\",@ \
-       start_line=%d,@ start_column=%d,@ end_line=%d,@ end_column=%d,@ \
-       law_headings=%a)@])@]"
+      "catala_no_value_provided_error(@[<hov 0>SourcePosition(@[<hov \
+       0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
+       end_column=%d,@ law_headings=%a)@])@]"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
+
+let format_exception_name (fmt : Format.formatter) (exc : except) : unit =
+  match exc with
+  | ConflictError -> Format.fprintf fmt "catala_conflict_error"
+  | EmptyError -> Format.fprintf fmt "catala_empty_error"
+  | Crash -> Format.fprintf fmt "catala_crash"
+  | NoValueProvided -> Format.fprintf fmt "catala_no_value_provided_error"
 
 let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     unit =
@@ -373,6 +380,12 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (format_expression ctx))
       args
   | EOp op -> Format.fprintf fmt "%a" format_op (op, Pos.no_pos)
+  | ETryExcept (e_try, except, e_catch) ->
+    Format.fprintf fmt
+      (* TODO escape dummy__arg*)
+      "tryCatch@[<hov 2>(%a, %a = function(dummy__arg)) @[<hov 2>{@;%a@;}@],@]"
+      (format_expression ctx) e_try format_exception_name except
+      (format_expression ctx) e_catch
 
 let rec format_statement
     (ctx : decl_ctx)
@@ -380,23 +393,22 @@ let rec format_statement
     (s : stmt Mark.pos) : unit =
   match Mark.remove s with
   | SInnerFuncDef (name, { func_params; func_body }) ->
-    Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_var
+    Format.fprintf fmt "@[<hov 2>%a <- function(@\n%a) {@\n%a@]@\n}" format_var
       (Mark.remove name)
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n,@;")
          (fun fmt (var, typ) ->
-           Format.fprintf fmt "%a:%a" format_var (Mark.remove var) format_typ
-             typ))
+           Format.fprintf fmt "%a# (%a)@\n" format_var (Mark.remove var)
+             format_typ typ))
       func_params (format_block ctx) func_body
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
   | SLocalDef (v, e) ->
-    Format.fprintf fmt "@[<hov 4>%a = %a@]" format_var (Mark.remove v)
+    Format.fprintf fmt "@[<hov 2>%a <- %a@]" format_var (Mark.remove v)
       (format_expression ctx) e
-  | STryExcept (try_b, except, catch_b) ->
-    Format.fprintf fmt "@[<hov 4>try:@\n%a@]@\n@[<hov 4>except %a:@\n%a@]"
-      (format_block ctx) try_b format_exception (except, Pos.no_pos)
-      (format_block ctx) catch_b
+  | STryExcept (_try_b, _except, _catch_b) ->
+    Message.raise_internal_error
+      "R needs TryExcept to be compiled as exceptions and not statements"
   | SRaise except ->
     Format.fprintf fmt "@[<hov 4>raise %a@]" format_exception
       (except, Mark.get s)
@@ -562,17 +574,18 @@ let format_program
     (format_ctx type_ordering) p.decl_ctx
     (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt -> function
        | SVar { var; expr } ->
-         Format.fprintf fmt "@[<hv 4>%a = (@,%a@,@])@," format_var var
+         Format.fprintf fmt "@[<hv 2>%a <- (@,%a@,@])@," format_var var
            (format_expression p.decl_ctx)
            expr
        | SFunc { var; func }
        | SScope { scope_body_var = var; scope_body_func = func; _ } ->
          let { Ast.func_params; Ast.func_body } = func in
-         Format.fprintf fmt "@[<hv 4>def %a(%a):@\n%a@]@," format_func_name var
+         Format.fprintf fmt "@[<hv 2>%a <- function(@\n%a) {@\n%a@]@\n}@,"
+           format_func_name var
            (Format.pp_print_list
-              ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n,@;")
               (fun fmt (var, typ) ->
-                Format.fprintf fmt "%a:%a" format_var (Mark.remove var)
+                Format.fprintf fmt "%a# (%a)@\n" format_var (Mark.remove var)
                   format_typ typ))
            func_params (format_block p.decl_ctx) func_body))
     p.code_items

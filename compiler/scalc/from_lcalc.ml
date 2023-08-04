@@ -20,7 +20,11 @@ module A = Ast
 module L = Lcalc.Ast
 module D = Dcalc.Ast
 
+type compilation_type = Expression | Statement
+type compilation_options = { try_catch_type : compilation_type }
+
 type 'm ctxt = {
+  compilation_options : compilation_options;
   func_dict : ('m L.expr, A.FuncName.t) Var.Map.t;
   decl_ctx : decl_ctx;
   var_dict : ('m L.expr, A.VarName.t) Var.Map.t;
@@ -88,6 +92,12 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     args_stmts, (A.EArray new_args, Expr.pos expr)
   | EOp { op; _ } -> [], (A.EOp (Operator.translate op), Expr.pos expr)
   | ELit l -> [], (A.ELit l, Expr.pos expr)
+  | ECatch { body; exn; handler }
+    when ctxt.compilation_options.try_catch_type = Expression ->
+    let try_stmts, new_e_try = translate_expr ctxt body in
+    let catch_stmts, new_e_catch = translate_expr ctxt handler in
+    ( try_stmts @ catch_stmts,
+      (A.ETryExcept (new_e_try, exn, new_e_catch), Expr.pos expr) )
   | _ ->
     let tmp_var =
       A.VarName.fresh
@@ -233,7 +243,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let s_e_false = translate_statements ctxt efalse in
     cond_stmts
     @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), Expr.pos block_expr]
-  | ECatch { body; exn; handler } ->
+  | ECatch { body; exn; handler }
+    when ctxt.compilation_options.try_catch_type = Statement ->
     let s_e_try = translate_statements ctxt body in
     let s_e_catch = translate_statements ctxt handler in
     [A.STryExcept (s_e_try, exn, s_e_catch), Expr.pos block_expr]
@@ -269,6 +280,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       ])
 
 let rec translate_scope_body_expr
+    (options : compilation_options)
     (scope_name : ScopeName.t)
     (decl_ctx : decl_ctx)
     (var_dict : ('m L.expr, A.VarName.t) Var.Map.t)
@@ -279,6 +291,7 @@ let rec translate_scope_body_expr
     let block, new_e =
       translate_expr
         {
+          compilation_options = options;
           decl_ctx;
           func_dict;
           var_dict;
@@ -298,6 +311,7 @@ let rec translate_scope_body_expr
     | Assertion ->
       translate_statements
         {
+          compilation_options = options;
           decl_ctx;
           func_dict;
           var_dict;
@@ -309,6 +323,7 @@ let rec translate_scope_body_expr
       let let_expr_stmts, new_let_expr =
         translate_expr
           {
+            compilation_options = options;
             decl_ctx;
             func_dict;
             var_dict;
@@ -325,10 +340,11 @@ let rec translate_scope_body_expr
           ( A.SLocalDef ((let_var_id, scope_let.scope_let_pos), new_let_expr),
             scope_let.scope_let_pos );
         ])
-    @ translate_scope_body_expr scope_name decl_ctx new_var_dict func_dict
-        scope_let_next
+    @ translate_scope_body_expr options scope_name decl_ctx new_var_dict
+        func_dict scope_let_next
 
-let translate_program (p : 'm L.program) : A.program =
+let translate_program (p : 'm L.program) (options : compilation_options) :
+    A.program =
   let _, _, rev_items =
     Scope.fold_left
       ~f:(fun (func_dict, var_dict, rev_items) code_item var ->
@@ -345,8 +361,8 @@ let translate_program (p : 'm L.program) : A.program =
             Var.Map.add scope_input_var scope_input_var_id var_dict
           in
           let new_scope_body =
-            translate_scope_body_expr name p.decl_ctx var_dict_local func_dict
-              scope_body_expr
+            translate_scope_body_expr options name p.decl_ctx var_dict_local
+              func_dict scope_body_expr
           in
           let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
           ( Var.Map.add var func_id func_dict,
@@ -381,6 +397,7 @@ let translate_program (p : 'm L.program) : A.program =
           let block, expr =
             let ctxt =
               {
+                compilation_options = options;
                 func_dict;
                 decl_ctx = p.decl_ctx;
                 var_dict =
@@ -410,6 +427,7 @@ let translate_program (p : 'm L.program) : A.program =
           let block, expr =
             let ctxt =
               {
+                compilation_options = options;
                 func_dict;
                 decl_ctx = p.decl_ctx;
                 var_dict;

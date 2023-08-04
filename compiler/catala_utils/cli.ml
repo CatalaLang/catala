@@ -20,6 +20,7 @@
 type backend_lang = En | Fr | Pl
 type when_enum = Auto | Always | Never
 type message_format_enum = Human | GNU
+type compilation_method = Expression | Statement
 type input_file = FileName of string | Contents of string
 
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
@@ -30,6 +31,7 @@ let language_code =
   fun l -> List.assoc l rl
 
 let message_format_opt = ["human", Human; "gnu", GNU]
+let compilation_method_opt = ["expression", Expression; "statement", Statement]
 
 type options = {
   mutable input_file : input_file;
@@ -317,6 +319,15 @@ module Flags = struct
           "Disables the search for counterexamples. Useful when you want a \
            deterministic output from the Catala compiler, since provers can \
            have some randomness in them."
+
+  let scalc_try_with_compilation =
+    value
+    & opt (enum compilation_method_opt) Statement
+    & info
+        ["scalc_try_with_compilation"]
+        ~doc:
+          "How should try ... with ... constructs be compiled from Lcalc to \
+           Scalc ? Choice is between $(i,expression) or $(i,statement)."
 end
 
 let version = "0.8.0"

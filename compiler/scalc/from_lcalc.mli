@@ -16,4 +16,8 @@
 
 open Shared_ast
 
-val translate_program : untyped Lcalc.Ast.program -> Ast.program
+type compilation_type = Expression | Statement
+type compilation_options = { try_catch_type : compilation_type }
+
+val translate_program :
+  untyped Lcalc.Ast.program -> compilation_options -> Ast.program

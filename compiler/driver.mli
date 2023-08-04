@@ -66,6 +66,7 @@ module Passes : sig
     check_invariants:bool ->
     avoid_exceptions:bool ->
     closure_conversion:bool ->
+    scalc_try_with_compilation:Cli.compilation_method ->
     Scalc.Ast.program
     * Desugared.Name_resolution.context
     * Scopelang.Dependency.TVertex.t list

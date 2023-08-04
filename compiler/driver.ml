@@ -190,7 +190,8 @@ module Passes = struct
       ~optimize
       ~check_invariants
       ~avoid_exceptions
-      ~closure_conversion :
+      ~closure_conversion
+      ~scalc_try_with_compilation :
       Scalc.Ast.program
       * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
@@ -199,7 +200,15 @@ module Passes = struct
         ~closure_conversion
     in
     Message.emit_debug "Compiling program into statement calculus...";
-    Scalc.From_lcalc.translate_program prg, ctx, type_ordering
+    ( Scalc.From_lcalc.translate_program prg
+        {
+          try_catch_type =
+            (match scalc_try_with_compilation with
+            | Cli.Expression -> Scalc.From_lcalc.Expression
+            | Cli.Statement -> Scalc.From_lcalc.Statement);
+        },
+      ctx,
+      type_ordering )
 end
 
 module Commands = struct
@@ -707,10 +716,11 @@ module Commands = struct
       check_invariants
       avoid_exceptions
       closure_conversion
-      ex_scope_opt =
+      ex_scope_opt
+      scalc_try_with_compilation =
     let prg, ctx, _ =
       Passes.scalc options ~link_modules ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion
+        ~avoid_exceptions ~closure_conversion ~scalc_try_with_compilation
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -744,7 +754,8 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
-        $ Cli.Flags.ex_scope_opt)
+        $ Cli.Flags.ex_scope_opt
+        $ Cli.Flags.scalc_try_with_compilation)
 
   let python
       options
@@ -757,6 +768,7 @@ module Commands = struct
     let prg, _, type_ordering =
       Passes.scalc options ~link_modules ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
+        ~scalc_try_with_compilation:Statement
     in
     let output_file, with_output =
       get_output_format options ~ext:".py" output
@@ -792,6 +804,7 @@ module Commands = struct
     let prg, _, type_ordering =
       Passes.scalc options ~link_modules ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
+        ~scalc_try_with_compilation:Expression
     in
     let output_file, with_output = get_output_format options ~ext:".r" output in
     Message.emit_debug "Compiling program into R...";
