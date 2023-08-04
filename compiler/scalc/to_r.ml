@@ -23,23 +23,25 @@ module L = Lcalc.Ast
 
 let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
-  | LBool true -> Format.pp_print_string fmt "True"
-  | LBool false -> Format.pp_print_string fmt "False"
+  | LBool true -> Format.pp_print_string fmt "TRUE"
+  | LBool false -> Format.pp_print_string fmt "FALSE"
   | LInt i ->
-    Format.fprintf fmt "integer_of_string(\"%s\")" (Runtime.integer_to_string i)
-  | LUnit -> Format.pp_print_string fmt "Unit()"
-  | LRat i -> Format.fprintf fmt "decimal_of_string(\"%a\")" Print.lit (LRat i)
+    Format.fprintf fmt "catala_integer_from_string(\"%s\")"
+      (Runtime.integer_to_string i)
+  | LUnit -> Format.pp_print_string fmt "catala_unit()"
+  | LRat i ->
+    Format.fprintf fmt "catala_decimal_from_string(\"%a\")" Print.lit (LRat i)
   | LMoney e ->
-    Format.fprintf fmt "money_of_cents_string(\"%s\")"
+    Format.fprintf fmt "catala_money_from_cents(\"%s\")"
       (Runtime.integer_to_string (Runtime.money_to_cents e))
   | LDate d ->
-    Format.fprintf fmt "date_of_numbers(%d,%d,%d)"
+    Format.fprintf fmt "catala_date_from_ymd(%d,%d,%d)"
       (Runtime.integer_to_int (Runtime.year_of_date d))
       (Runtime.integer_to_int (Runtime.month_number_of_date d))
       (Runtime.integer_to_int (Runtime.day_of_month_of_date d))
   | LDuration d ->
     let years, months, days = Runtime.duration_to_years_months_days d in
-    Format.fprintf fmt "duration_of_numbers(%d,%d,%d)" years months days
+    Format.fprintf fmt "catala_duration_from_ymd(%d,%d,%d)" years months days
 
 let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   match Mark.remove op with
@@ -102,7 +104,7 @@ let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   let sanitize_quotes = Re.compile (Re.char '"') in
-  Format.fprintf fmt "[%a]"
+  Format.fprintf fmt "c(%a)"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
        (fun fmt info ->
@@ -243,7 +245,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   match Mark.remove exc with
   | ConflictError ->
     Format.fprintf fmt
-      "catala_conflict_error(@[<hov 0>SourcePosition(@[<hov \
+      "catala_conflict_error(@[<hov 0>catala_position(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
        end_column=%d,@ law_headings=%a)@])@]"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
@@ -253,7 +255,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   | Crash -> Format.fprintf fmt "catala_crash()"
   | NoValueProvided ->
     Format.fprintf fmt
-      "catala_no_value_provided_error(@[<hov 0>SourcePosition(@[<hov \
+      "catala_no_value_provided_error(@[<hov 0>catala_position(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
        end_column=%d,@ law_headings=%a)@])@]"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
@@ -282,13 +284,13 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       (List.combine es
          (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs)))
   | EStructFieldAccess (e1, field, _) ->
-    Format.fprintf fmt "%a.%a" (format_expression ctx) e1
+    Format.fprintf fmt "%a$%a" (format_expression ctx) e1
       format_struct_field_name field
   | EInj (_, cons, e_name)
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.none_constr ->
     (* We translate the option type with an overloading by Python's [None] *)
-    Format.fprintf fmt "None"
+    Format.fprintf fmt "NULL"
   | EInj (e, cons, e_name)
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
@@ -299,7 +301,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       format_enum_name enum_name format_enum_cons_name cons
       (format_expression ctx) e
   | EArray es ->
-    Format.fprintf fmt "[%a]"
+    Format.fprintf fmt "list(%a)"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
@@ -328,7 +330,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EApp ((EOp (Log (PosRecordIfTrueBool, _)), pos), [arg1])
     when Cli.globals.trace ->
     Format.fprintf fmt
-      "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \
+      "log_decision_taken(catala_position(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
@@ -349,9 +351,12 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EApp ((EOp op, _), [arg1]) ->
     Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
-  | EApp ((EOp ((HandleDefault | HandleDefaultOpt) as op), pos), args) ->
+  | EApp ((EOp HandleDefaultOpt, _), _) ->
+    Message.raise_internal_error
+      "R compilation does not currently support the avoiding of exceptions"
+  | EApp ((EOp (HandleDefault as op), pos), args) ->
     Format.fprintf fmt
-      "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
+      "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
       format_op (op, pos) (Pos.get_file pos) (Pos.get_start_line pos)
       (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
@@ -364,7 +369,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     when Ast.FuncName.compare x Ast.handle_default = 0
          || Ast.FuncName.compare x Ast.handle_default_opt = 0 ->
     Format.fprintf fmt
-      "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
+      "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
       format_func_name x (Pos.get_file pos) (Pos.get_start_line pos)
       (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
@@ -383,7 +388,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | ETryExcept (e_try, except, e_catch) ->
     Format.fprintf fmt
       (* TODO escape dummy__arg*)
-      "tryCatch@[<hov 2>(%a, %a = function(dummy__arg)) @[<hov 2>{@;%a@;}@],@]"
+      "tryCatch@[<hov 2>(%a, %a = function(dummy__arg) @[<hov 2>{@;%a@;}@])@]"
       (format_expression ctx) e_try format_exception_name except
       (format_expression ctx) e_catch
 
@@ -410,10 +415,10 @@ let rec format_statement
     Message.raise_internal_error
       "R needs TryExcept to be compiled as exceptions and not statements"
   | SRaise except ->
-    Format.fprintf fmt "@[<hov 4>raise %a@]" format_exception
+    Format.fprintf fmt "@[<hov 2>stop(%a)@]" format_exception
       (except, Mark.get s)
   | SIfThenElse (cond, b1, b2) ->
-    Format.fprintf fmt "@[<hov 4>if %a:@\n%a@]@\n@[<hov 4>else:@\n%a@]"
+    Format.fprintf fmt "@[<hov 2>if %a:@\n%a@]@\n@[<hov 2>else:@\n%a@]"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
   | SSwitch (e1, e_name, [(case_none, _); (case_some, case_some_var)])
     when EnumName.equal e_name Expr.option_enum ->
@@ -421,9 +426,9 @@ let rec format_statement
     let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
     Format.fprintf fmt
       "%a = %a@\n\
-       @[<hov 4>if %a is None:@\n\
+       @[<hov 2>if %a is None:@\n\
        %a@]@\n\
-       @[<hov 4>else:@\n\
+       @[<hov 2>else:@\n\
        %a = %a@\n\
        %a@]"
       format_var tmp_var (format_expression ctx) e1 format_var tmp_var
@@ -437,10 +442,10 @@ let rec format_statement
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
     let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
-    Format.fprintf fmt "%a = %a@\n@[<hov 4>if %a@]" format_var tmp_var
+    Format.fprintf fmt "%a = %a@\n@[<hov 2>if %a@]" format_var tmp_var
       (format_expression ctx) e1
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 2>elif ")
          (fun fmt (case_block, payload_var, cons_name) ->
            Format.fprintf fmt "%a.code == %a_Code.%a:@\n%a = %a.value@\n%a"
              format_var tmp_var format_enum_name e_name format_enum_cons_name
@@ -448,13 +453,13 @@ let rec format_statement
              (format_block ctx) case_block))
       cases
   | SReturn e1 ->
-    Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx)
+    Format.fprintf fmt "@[<hov 2>return(%a)@]" (format_expression ctx)
       (e1, Mark.get s)
   | SAssert e1 ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "@[<hov 4>if not (%a):@\n\
-       raise AssertionFailure(@[<hov 0>SourcePosition(@[<hov \
+      "@[<hov 2>if not (%a):@\n\
+       raise AssertionFailure(@[<hov 0>catala_position(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
        end_column=%d,@ law_headings=@[<hv>%a@])@])@]@]"
       (format_expression ctx)

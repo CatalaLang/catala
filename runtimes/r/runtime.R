@@ -246,18 +246,21 @@ catala_position <- setClass(
     filename = "character",
     start_line = "numeric",
     end_line = "numeric",
-    start_col = "numeric",
-    end_col = "numeric"
+    start_column = "numeric",
+    end_column = "numeric",
+    law_headings = "character"
   )
 )
 
 catala_position_to_string <- function(pos) {
+  headings <- paste(pos@law_headings, collapse = ", ")
   paste0(
     pos@filename, ":",
     pos@start_line, ".",
-    pos@start_col, "-",
+    pos@start_column, "-",
     pos@end_line, ".",
-    pos@end_col
+    pos@end_column, " (",
+    headings, ")"
   )
 }
 
@@ -322,3 +325,9 @@ catala_handle_default <- function(pos, exceptions, just, cons) {
     acc
   }
 }
+
+# This value is used for the R code generation to trump R and forcing
+# it to accept dead code. Indeed, when raising an exception during a variable
+# definition, R could complains that the later dead code will not know what
+# this variable was. So we give this variable a dead value.
+dead_value <- 0

@@ -793,17 +793,11 @@ module Commands = struct
         $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion)
 
-  let r
-      options
-      link_modules
-      output
-      optimize
-      check_invariants
-      avoid_exceptions
-      closure_conversion =
+  let r options link_modules output optimize check_invariants closure_conversion
+      =
     let prg, _, type_ordering =
       Passes.scalc options ~link_modules ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion
+        ~avoid_exceptions:false ~closure_conversion
         ~scalc_try_with_compilation:Expression
     in
     let output_file, with_output = get_output_format options ~ext:".r" output in
@@ -822,7 +816,6 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion)
 
   let pygmentize_cmd =
