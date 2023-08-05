@@ -7,9 +7,15 @@ catala_integer <- setClass(
   "catala_integer",
   representation(v = "bigz"),
 )
-setMethod("Ops", "catala_integer", function(e1, e2) {
+setMethod("Arith", "catala_integer", function(e1, e2) {
   v <- callGeneric(e1@v, e2@v)
   new("catala_integer", v = v)
+})
+setMethod("-", c("catala_integer", "missing"), function(e1) {
+  catala_integer(v = -e1@v)
+})
+setMethod("Compare", "catala_integer", function(e1, e2) {
+  callGeneric(e1@v, e2@v)
 })
 
 ################ Decimals #################
@@ -18,9 +24,15 @@ catala_decimal <- setClass(
   "catala_decimal",
   representation(v = "bigq"),
 )
-setMethod("Ops", "catala_decimal", function(e1, e2) {
+setMethod("Arith", "catala_decimal", function(e1, e2) {
   v <- callGeneric(e1@v, e2@v)
   new("catala_decimal", v = v)
+})
+setMethod("-", c("catala_decimal", "missing"), function(e1) {
+  catala_decimal(v = -e1@v)
+})
+setMethod("Compare", "catala_decimal", function(e1, e2) {
+  callGeneric(e1@v, e2@v)
 })
 
 ################ Money #################
@@ -34,6 +46,9 @@ setMethod("+", c("catala_money", "catala_money"), function(e1, e2) {
 setMethod("-", c("catala_money", "catala_money"), function(e1, e2) {
   catala_money(v = e1@v - e2@v)
 })
+setMethod("-", c("catala_money", "missing"), function(e1) {
+  catala_money(v = -e1@v)
+})
 setMethod("*", c("catala_money", "catala_decimal"), function(e1, e2) {
   catala_money(v = as.bigz(as.bigq(e1@v) * e2@v))
 })
@@ -41,8 +56,7 @@ setMethod("/", c("catala_money", "catala_money"), function(e1, e2) {
   catala_decimal(v = as.bigq(e1@v / e2@v))
 })
 setMethod("Compare", "catala_money", function(e1, e2) {
-  v <- callGeneric(e1@v, e2@v)
-  new("catala_money", v = v)
+  callGeneric(e1@v, e2@v)
 })
 
 ################ Duration #################
@@ -56,12 +70,14 @@ setMethod("+", c("catala_duration", "catala_duration"), function(e1, e2) {
 setMethod("-", c("catala_duration", "catala_duration"), function(e1, e2) {
   catala_duration(v = e1@v - e2@v)
 })
+setMethod("-", c("catala_duration", "missing"), function(e1) {
+  catala_duration(v = -e1@v)
+})
 setMethod("/", c("catala_duration", "catala_duration"), function(e1, e2) {
   catala_duration(v = e1@v / e2@v)
 })
 setMethod("Compare", "catala_duration", function(e1, e2) {
-  v <- callGeneric(e1@v, e2@v)
-  new("catala_duration", v = v)
+  callGeneric(e1@v, e2@v)
 })
 
 
@@ -80,13 +96,12 @@ setMethod("-", c("catala_date", "catala_date"), function(e1, e2) {
   catala_date(v = e1@v - e2@v)
 })
 setMethod("Compare", "catala_date", function(e1, e2) {
-  v <- callGeneric(e1@v, e2@v)
-  new("catala_date", v = v)
+  callGeneric(e1@v, e2@v)
 })
 
 ################ Unit #################
 
-catala_unit <- setClass("catala_unit")
+catala_unit <- setClass("catala_unit", representation(v = "numeric"))
 
 ################ Constructors and conversions #################
 
@@ -300,7 +315,7 @@ catala_assertion_failure <- function(pos) {
 handle_default <- function(pos, exceptions, just, cons) {
   acc <- Reduce(function(acc, exception) {
     new_val <- tryCatch(
-      exception(catala_unit()),
+      exception(catala_unit(v = 0)),
       catala_empty_error = function(e) {
         NULL
       }
@@ -316,8 +331,8 @@ handle_default <- function(pos, exceptions, just, cons) {
     }
   }, exceptions, NULL)
   if (is.null(acc)) {
-    if (just(catala_unit())) {
-      cons(catala_unit())
+    if (just(catala_unit(v = 0))) {
+      cons(catala_unit(v = 0))
     } else {
       stop(catala_empty_error())
     }

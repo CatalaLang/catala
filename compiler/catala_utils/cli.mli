@@ -24,11 +24,6 @@ type message_format_enum =
   | Human
   | GNU  (** Format of error and warning messages output by the compiler. *)
 
-type compilation_method =
-  | Expression
-  | Statement
-      (** Whether to compile something as an expression or a statement *)
-
 type input_file = FileName of string | Contents of string
 
 val languages : (string * backend_lang) list
@@ -104,7 +99,6 @@ module Flags : sig
   val closure_conversion : bool Term.t
   val link_modules : string list Term.t
   val disable_counterexamples : bool Term.t
-  val scalc_try_with_compilation : compilation_method Term.t
 end
 
 (** {2 Command-line application} *)

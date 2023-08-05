@@ -7,7 +7,6 @@ declaration structure S:
   data a content integer
   data b content boolean
   data c content collection decimal
-  data d content integer depends on x content boolean
 
 declaration enumeration E:
   -- Case1 content S
@@ -15,5 +14,16 @@ declaration enumeration E:
 
 declaration scope Foo:
   input x content integer
-  output y content integer
+  internal y content E
+  output z content boolean
+
+scope Foo:
+  definition y equals Case2
+
+  exception definition y under condition x = 1 consequence equals 
+    Case1 content S { --a: 1 --b: true --c: [0.2;0.3]}
+
+  definition z equals match y with pattern
+  -- Case1: true 
+  -- Case2: false
 ```

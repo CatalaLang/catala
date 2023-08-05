@@ -26,9 +26,13 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   | LBool true -> Format.pp_print_string fmt "TRUE"
   | LBool false -> Format.pp_print_string fmt "FALSE"
   | LInt i ->
-    Format.fprintf fmt "catala_integer_from_string(\"%s\")"
-      (Runtime.integer_to_string i)
-  | LUnit -> Format.pp_print_string fmt "catala_unit()"
+    if Z.fits_nativeint i then
+      Format.fprintf fmt "catala_integer_from_numeric(%s)"
+        (Runtime.integer_to_string i)
+    else
+      Format.fprintf fmt "catala_integer_from_string(\"%s\")"
+        (Runtime.integer_to_string i)
+  | LUnit -> Format.pp_print_string fmt "catala_unit(v=0)"
   | LRat i ->
     Format.fprintf fmt "catala_decimal_from_string(\"%a\")" Print.lit (LRat i)
   | LMoney e ->
@@ -92,15 +96,6 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | HandleDefault -> Format.pp_print_string fmt "handle_default"
   | HandleDefaultOpt -> Format.pp_print_string fmt "handle_default_opt"
   | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
-
-let format_uid_list (fmt : Format.formatter) (uids : Uid.MarkedString.info list)
-    : unit =
-  Format.fprintf fmt "[%a]"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-       (fun fmt info ->
-         Format.fprintf fmt "\"%a\"" Uid.MarkedString.format info))
-    uids
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   let sanitize_quotes = Re.compile (Re.char '"') in
@@ -167,18 +162,19 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@;")
          format_typ)
       ts
-  | TStruct s -> Format.fprintf fmt "\"catala_class_%a\"" format_struct_name s
+  | TStruct s -> Format.fprintf fmt "\"catala_struct_%a\"" format_struct_name s
   | TOption some_typ ->
     (* We loose track of optional value as they're crammed into NULL *)
     format_typ fmt some_typ
   | TEnum e -> Format.fprintf fmt "\"catala_enum_%a\"" format_enum_name e
-  | TArrow (_t1, _t2) ->
-    Message.raise_internal_error "This type should not be printed out in R: %a"
-      Print.typ_debug typ
+  | TArrow (t1, t2) ->
+    Format.fprintf fmt "\"function\" # %a -> %a@\n"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+         format_typ)
+      t1 format_typ t2
   | TArray t1 -> Format.fprintf fmt "\"list\" # array(%a)@\n" format_typ t1
-  | TAny ->
-    Message.raise_internal_error "This type should not be printed out in R: %a"
-      Print.typ_debug typ
+  | TAny -> Format.fprintf fmt "\"ANY\""
   | TClosureEnv -> failwith "unimplemented!"
 
 let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
@@ -275,7 +271,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
   | EStruct (es, s) ->
-    Format.fprintf fmt "%a(%a)" format_struct_name s
+    Format.fprintf fmt "catala_struct_%a(%a)" format_struct_name s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, (struct_field, _)) ->
@@ -289,15 +285,15 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EInj (_, cons, e_name)
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.none_constr ->
-    (* We translate the option type with an overloading by Python's [None] *)
+    (* We translate the option type with an overloading by R's [NULL] *)
     Format.fprintf fmt "NULL"
   | EInj (e, cons, e_name)
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
-    (* We translate the option type with an overloading by Python's [None] *)
+    (* We translate the option type with an overloading by R's [NULL] *)
     format_expression ctx fmt e
   | EInj (e, cons, enum_name) ->
-    Format.fprintf fmt "%a(%a_Code.%a,@ %a)" format_enum_name enum_name
+    Format.fprintf fmt "catala_enum_%a(code = \"%a\",@ value = %a)"
       format_enum_name enum_name format_enum_cons_name cons
       (format_expression ctx) e
   | EArray es ->
@@ -313,33 +309,6 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EApp ((EOp op, _), [arg1; arg2]) ->
     Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
       (op, Pos.no_pos) (format_expression ctx) arg2
-  | EApp ((EApp ((EOp (Log (BeginCall, info)), _), [f]), _), [arg])
-    when Cli.globals.trace ->
-    Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
-      (format_expression ctx) f (format_expression ctx) arg
-  | EApp ((EOp (Log (VarDef var_def_info, info)), _), [arg1])
-    when Cli.globals.trace ->
-    Format.fprintf fmt
-      "log_variable_definition(%a,@ LogIO(io_input=%s,@ io_output=%b),@ %a)"
-      format_uid_list info
-      (match var_def_info.log_io_input with
-      | Runtime.NoInput -> "NoInput"
-      | Runtime.OnlyInput -> "OnlyInput"
-      | Runtime.Reentrant -> "Reentrant")
-      var_def_info.log_io_output (format_expression ctx) arg1
-  | EApp ((EOp (Log (PosRecordIfTrueBool, _)), pos), [arg1])
-    when Cli.globals.trace ->
-    Format.fprintf fmt
-      "log_decision_taken(catala_position(filename=\"%s\",@ start_line=%d,@ \
-       start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)"
-      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos) (format_expression ctx) arg1
-  | EApp ((EOp (Log (EndCall, info)), _), [arg1]) when Cli.globals.trace ->
-    Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info
-      (format_expression ctx) arg1
-  | EApp ((EOp (Log _), _), [arg1]) ->
-    Format.fprintf fmt "%a" (format_expression ctx) arg1
   | EApp ((EOp Not, _), [arg1]) ->
     Format.fprintf fmt "%a %a" format_op (Not, Pos.no_pos)
       (format_expression ctx) arg1
@@ -427,12 +396,13 @@ let rec format_statement
     (* We translate the option type with an overloading by Python's [None] *)
     let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
     Format.fprintf fmt
-      "%a = %a@\n\
-       @[<hov 2>if %a is None:@\n\
+      "%a <- %a@\n\
+       @[<hov 2>if (is.null(%a)) {@\n\
        %a@]@\n\
-       @[<hov 2>else:@\n\
+       @[<hov 2>} else {@\n\
        %a = %a@\n\
-       %a@]"
+       %a@]@\n\
+       }"
       format_var tmp_var (format_expression ctx) e1 format_var tmp_var
       (format_block ctx) case_none format_var case_some_var format_var tmp_var
       (format_block ctx) case_some
@@ -444,15 +414,14 @@ let rec format_statement
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
     let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
-    Format.fprintf fmt "%a = %a@\n@[<hov 2>if %a@]" format_var tmp_var
+    Format.fprintf fmt "%a <- %a@\n@[<hov 2>if %a@]@\n}" format_var tmp_var
       (format_expression ctx) e1
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 2>elif ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 2>} else if ")
          (fun fmt (case_block, payload_var, cons_name) ->
-           Format.fprintf fmt "%a.code == %a_Code.%a:@\n%a = %a.value@\n%a"
-             format_var tmp_var format_enum_name e_name format_enum_cons_name
-             cons_name format_var payload_var format_var tmp_var
-             (format_block ctx) case_block))
+           Format.fprintf fmt "(%a$code == \"%a\") {@\n%a <- %a$value@\n%a"
+             format_var tmp_var format_enum_cons_name cons_name format_var
+             payload_var format_var tmp_var (format_block ctx) case_block))
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 2>return(%a)@]" (format_expression ctx)
@@ -460,10 +429,11 @@ let rec format_statement
   | SAssert e1 ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "@[<hov 2>if not (%a):@\n\
-       raise AssertionFailure(@[<hov 0>catala_position(@[<hov \
+      "@[<hov 2>if (not (%a)) {@\n\
+       stop(catala_assertion_failure(@[<hov 0>catala_position(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
-       end_column=%d,@ law_headings=@[<hv>%a@])@])@]@]"
+       end_column=%d,@ law_headings=@[<hv>%a@])@])@]@]@\n\
+       }"
       (format_expression ctx)
       (e1, Mark.get s)
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
@@ -484,21 +454,10 @@ let format_ctx
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
-    let non_func_fields =
-      List.filter
-        (fun (_, t) -> match Mark.remove t with TArrow _ -> false | _ -> true)
-        fields
-    in
-    let func_fields =
-      List.filter
-        (fun (_, t) -> match Mark.remove t with TArrow _ -> true | _ -> false)
-        fields
-    in
     Format.fprintf fmt
       "@[<hov 2>catala_struct_%a <- setRefClass(@,\
        \"catala_struct_%a\",@;\
-       fields = list@[<hov 2>(%a)@],@,\
-       methods = list@[<hov 2>(%a)@]@,\
+       fields = list@[<hov 2>(%a)@]@\n\
        )@]"
       format_struct_name struct_name format_struct_name struct_name
       (Format.pp_print_list
@@ -506,14 +465,7 @@ let format_ctx
          (fun fmt (struct_field, typ) ->
            Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
              format_typ typ))
-      non_func_fields
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@;")
-         (fun fmt (struct_field, typ) ->
-           Format.fprintf fmt
-             "%a = # %a@\nfunction () @[<hov 2>{@;stop(\"uninitialized\")@;}@]"
-             format_struct_field_name struct_field Print.typ_debug typ))
-      func_fields
+      fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     if EnumConstructor.Map.is_empty enum_cons then
