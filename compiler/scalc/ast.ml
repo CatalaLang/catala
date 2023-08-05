@@ -41,7 +41,6 @@ and naked_expr =
   | ELit : lit -> naked_expr
   | EApp : expr * expr list -> naked_expr
   | EOp : operator -> naked_expr
-  | ETryExcept : expr * except * expr -> naked_expr
 
 type stmt =
   | SInnerFuncDef of VarName.t Mark.pos * func

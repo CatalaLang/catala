@@ -297,7 +297,7 @@ catala_assertion_failure <- function(pos) {
 
 ################ Defaults #################
 
-catala_handle_default <- function(pos, exceptions, just, cons) {
+handle_default <- function(pos, exceptions, just, cons) {
   acc <- Reduce(function(acc, exception) {
     new_val <- tryCatch(
       exception(catala_unit()),

@@ -85,9 +85,6 @@ let rec format_expr
          format_with_parens)
       args
   | EOp op -> Print.operator ~debug fmt op
-  | ETryExcept (e_try, except, e_with) ->
-    Format.fprintf fmt "@[<v 2>%a(%a,@;%a,@;%a)@]" Print.keyword "tryWithExn"
-      format_expr e_try Print.except except format_expr e_with
 
 let rec format_statement
     (decl_ctx : decl_ctx)

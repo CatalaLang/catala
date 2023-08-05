@@ -92,12 +92,6 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     args_stmts, (A.EArray new_args, Expr.pos expr)
   | EOp { op; _ } -> [], (A.EOp (Operator.translate op), Expr.pos expr)
   | ELit l -> [], (A.ELit l, Expr.pos expr)
-  | ECatch { body; exn; handler }
-    when ctxt.compilation_options.try_catch_type = Expression ->
-    let try_stmts, new_e_try = translate_expr ctxt body in
-    let catch_stmts, new_e_catch = translate_expr ctxt handler in
-    ( try_stmts @ catch_stmts,
-      (A.ETryExcept (new_e_try, exn, new_e_catch), Expr.pos expr) )
   | _ ->
     let tmp_var =
       A.VarName.fresh
@@ -243,8 +237,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let s_e_false = translate_statements ctxt efalse in
     cond_stmts
     @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), Expr.pos block_expr]
-  | ECatch { body; exn; handler }
-    when ctxt.compilation_options.try_catch_type = Statement ->
+  | ECatch { body; exn; handler } ->
     let s_e_try = translate_statements ctxt body in
     let s_e_catch = translate_statements ctxt handler in
     [A.STryExcept (s_e_try, exn, s_e_catch), Expr.pos block_expr]

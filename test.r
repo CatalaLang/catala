@@ -3,49 +3,74 @@
 source("runtimes/r/runtime.R")
 
 catala_struct_S <- setRefClass("catala_struct_S",
-  fields = list(a = "catala_integer", b = "logical",
-                 c = "list" # array("catala_decimal")
-                 ),
-  methods = list(d = # bool → integer
-                  function () { stop("uninitialized") }))
+  fields = list(
+    a = "catala_integer", b = "logical",
+    c = "list" # array("catala_decimal")
+  ),
+  methods = list(
+    d = # bool → integer
+      function() {
+        stop("uninitialized")
+      }
+  )
+)
 
 catala_struct_Foo <- setRefClass("catala_struct_Foo",
-  fields = list(y = "catala_integer"),methods = list())
+  fields = list(y = "catala_integer"), methods = list()
+)
 
 # Enum cases: "Case1" ("catala_class_S"), "Case2" ("catala_unit")
 catala_enum_E <- setRefClass("catala_enum_E",
-  fields = list(code = "character", value = "ANY"))
+  fields = list(code = "character", value = "ANY")
+)
 
 catala_struct_FooIn <- setRefClass("catala_struct_FooIn",
-  fields = list(x_in = "catala_integer"),methods = list())
+  fields = list(x_in = "catala_integer"), methods = list()
+)
 
 
 
 foo <- function(
-  foo_in# ("catala_class_FooIn")
-  ) {
+    foo_in # ("catala_class_FooIn")
+    ) {
   x <- foo_in$x_in
-  temp_y <- function(
-    dummy_var# ("catala_unit")
-    ) {
-    stop(catala_empty_error())
-  }
-  temp_y_1 <- function(
-    dummy_var# ("catala_unit")
-    ) {
-    return(FALSE)
-  }
-  temp_y_2 <- dead_value
-  stop(catala_no_value_provided_error(catala_position(filename="test.catala_en",
-                                                      start_line=18,
-                                                      start_column=10,
-                                                      end_line=18,
-                                                      end_column=11,
-                                                      law_headings=c("Coucou",
-                                                      "Salut"))))
-  y <- tryCatch(handle_default(catala_position(filename="", start_line=0,
-                               start_column=1, end_line=0, end_column=1,
-                               law_headings=c()), list(), temp_y_1, temp_y), catala_empty_error = function(dummy__arg) 
-                 { temp_y_2 })
+  tryCatch(
+    {
+      temp_y <- function(dummy_var # ("catala_unit")
+      ) {
+        stop(catala_empty_error())
+      }
+      temp_y_1 <- function(dummy_var # ("catala_unit")
+      ) {
+        return(FALSE)
+      }
+      temp_y_2 <- handle_default(
+        catala_position(
+          filename = "",
+          start_line = 0, start_column = 1,
+          end_line = 0, end_column = 1,
+          law_headings = c()
+        ), list(), temp_y_1,
+        temp_y
+      )
+    },
+    catala_empty_error = function(dummy__arg) {
+      temp_y_2 <- dead_value
+      stop(catala_no_value_provided_error(
+        catala_position(
+          filename = "test.catala_en",
+          start_line = 18,
+          start_column = 10,
+          end_line = 18,
+          end_column = 11,
+          law_headings = c(
+            "Coucou",
+            "Salut"
+          )
+        )
+      ))
+    }
+  )
+  y <- temp_y_2
   return(Foo(y = y))
 }

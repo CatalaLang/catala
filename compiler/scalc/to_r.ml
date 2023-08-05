@@ -385,12 +385,6 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (format_expression ctx))
       args
   | EOp op -> Format.fprintf fmt "%a" format_op (op, Pos.no_pos)
-  | ETryExcept (e_try, except, e_catch) ->
-    Format.fprintf fmt
-      (* TODO escape dummy__arg*)
-      "tryCatch@[<hov 2>(%a, %a = function(dummy__arg) @[<hov 2>{@;%a@;}@])@]"
-      (format_expression ctx) e_try format_exception_name except
-      (format_expression ctx) e_catch
 
 let rec format_statement
     (ctx : decl_ctx)
@@ -411,9 +405,17 @@ let rec format_statement
   | SLocalDef (v, e) ->
     Format.fprintf fmt "@[<hov 2>%a <- %a@]" format_var (Mark.remove v)
       (format_expression ctx) e
-  | STryExcept (_try_b, _except, _catch_b) ->
-    Message.raise_internal_error
-      "R needs TryExcept to be compiled as exceptions and not statements"
+  | STryExcept (try_b, except, catch_b) ->
+    Format.fprintf fmt
+      (* TODO escape dummy__arg*)
+      "tryCatch@[<hov 2>(@[<hov 2>{@;\
+       %a@;\
+       }@],@;\
+       %a = function(dummy__arg) @[<hov 2>{@;\
+       %a@;\
+       }@])@]"
+      (format_block ctx) try_b format_exception_name except (format_block ctx)
+      catch_b
   | SRaise except ->
     Format.fprintf fmt "@[<hov 2>stop(%a)@]" format_exception
       (except, Mark.get s)

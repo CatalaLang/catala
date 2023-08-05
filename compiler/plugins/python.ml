@@ -34,6 +34,7 @@ let run
   let prg, _, type_ordering =
     Driver.Passes.scalc options ~link_modules ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion
+      ~scalc_try_with_compilation:Statement
   in
   let output_file, with_output = get_output_format options ~ext:".py" output in
   Message.emit_debug "Compiling program into Python...";
