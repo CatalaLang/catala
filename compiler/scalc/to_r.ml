@@ -53,18 +53,19 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Minus_int | Minus_rat | Minus_mon | Minus_dur ->
     Format.pp_print_string fmt "-"
   (* Todo: use the names from [Operator.name] *)
-  | Not -> Format.pp_print_string fmt "not"
-  | Length -> Format.pp_print_string fmt "list_length"
-  | ToRat_int -> Format.pp_print_string fmt "decimal_of_integer"
-  | ToRat_mon -> Format.pp_print_string fmt "decimal_of_money"
-  | ToMoney_rat -> Format.pp_print_string fmt "money_of_decimal"
-  | GetDay -> Format.pp_print_string fmt "day_of_month_of_date"
-  | GetMonth -> Format.pp_print_string fmt "month_number_of_date"
-  | GetYear -> Format.pp_print_string fmt "year_of_date"
-  | FirstDayOfMonth -> Format.pp_print_string fmt "first_day_of_month"
-  | LastDayOfMonth -> Format.pp_print_string fmt "last_day_of_month"
-  | Round_mon -> Format.pp_print_string fmt "money_round"
-  | Round_rat -> Format.pp_print_string fmt "decimal_round"
+  | Not -> Format.pp_print_string fmt "!"
+  | Length -> Format.pp_print_string fmt "catala_list_length"
+  | ToRat_int -> Format.pp_print_string fmt "catala_decimal_from_integer"
+  | ToRat_mon -> Format.pp_print_string fmt "catala_decimal_from_money"
+  | ToMoney_rat -> Format.pp_print_string fmt "catala_money_from_decimal"
+  | GetDay -> Format.pp_print_string fmt "catala_day_of_month_of_date"
+  | GetMonth -> Format.pp_print_string fmt "catala_month_number_of_date"
+  | GetYear -> Format.pp_print_string fmt "catala_year_of_date"
+  | FirstDayOfMonth ->
+    Format.pp_print_string fmt "catala_date_first_day_of_month"
+  | LastDayOfMonth -> Format.pp_print_string fmt "catala_date_last_day_of_month"
+  | Round_mon -> Format.pp_print_string fmt "catala_money_round"
+  | Round_rat -> Format.pp_print_string fmt "catala_decimal_round"
   | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
   | Concat ->
     Format.pp_print_string fmt "+"
@@ -75,8 +76,8 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
     Format.pp_print_string fmt "*"
   | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur ->
     Format.pp_print_string fmt "/"
-  | And -> Format.pp_print_string fmt "and"
-  | Or -> Format.pp_print_string fmt "or"
+  | And -> Format.pp_print_string fmt "&&"
+  | Or -> Format.pp_print_string fmt "||"
   | Eq -> Format.pp_print_string fmt "=="
   | Xor -> Format.pp_print_string fmt "!="
   | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur ->
@@ -89,13 +90,12 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
     Format.pp_print_string fmt ">="
   | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ->
     Format.pp_print_string fmt "=="
-  | Map -> Format.pp_print_string fmt "list_map"
-  | Reduce -> Format.pp_print_string fmt "list_reduce"
-  | Filter -> Format.pp_print_string fmt "list_filter"
-  | Fold -> Format.pp_print_string fmt "list_fold_left"
-  | HandleDefault -> Format.pp_print_string fmt "handle_default"
-  | HandleDefaultOpt -> Format.pp_print_string fmt "handle_default_opt"
-  | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
+  | Map -> Format.pp_print_string fmt "catala_list_map"
+  | Reduce -> Format.pp_print_string fmt "catala_list_reduce"
+  | Filter -> Format.pp_print_string fmt "catala_list_filter"
+  | Fold -> Format.pp_print_string fmt "catala_list_fold_left"
+  | HandleDefault -> Format.pp_print_string fmt "catala_handle_default"
+  | HandleDefaultOpt | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
 let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   let sanitize_quotes = Re.compile (Re.char '"') in
@@ -150,7 +150,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   let format_typ = format_typ in
   match Mark.remove typ with
   | TLit TUnit -> Format.fprintf fmt "\"catala_unit\""
-  | TLit TMoney -> Format.fprintf fmt "\"ctala_money\""
+  | TLit TMoney -> Format.fprintf fmt "\"catala_money\""
   | TLit TInt -> Format.fprintf fmt "\"catala_integer\""
   | TLit TRat -> Format.fprintf fmt "\"catala_decimal\""
   | TLit TDate -> Format.fprintf fmt "\"catala_date\""
@@ -377,7 +377,7 @@ let rec format_statement
   | STryExcept (try_b, except, catch_b) ->
     Format.fprintf fmt
       (* TODO escape dummy__arg*)
-      "tryCatch@[<hov 2>(@[<hov 2>{@;\
+      "@[<hov 2>tryCatch(@[<hov 2>{@;\
        %a@;\
        }@],@;\
        %a = function(dummy__arg) @[<hov 2>{@;\
@@ -389,7 +389,8 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>stop(%a)@]" format_exception
       (except, Mark.get s)
   | SIfThenElse (cond, b1, b2) ->
-    Format.fprintf fmt "@[<hov 2>if %a:@\n%a@]@\n@[<hov 2>else:@\n%a@]"
+    Format.fprintf fmt
+      "@[<hov 2>if (%a) {@\n%a@]@\n@[<hov 2>} else {@\n%a@]@\n}"
       (format_expression ctx) cond (format_block ctx) b1 (format_block ctx) b2
   | SSwitch (e1, e_name, [(case_none, _); (case_some, case_some_var)])
     when EnumName.equal e_name Expr.option_enum ->
@@ -414,8 +415,8 @@ let rec format_statement
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
     let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
-    Format.fprintf fmt "%a <- %a@\n@[<hov 2>if %a@]@\n}" format_var tmp_var
-      (format_expression ctx) e1
+    Format.fprintf fmt "@[<hov 2>%a <- %a@]@\n@[<hov 2>if %a@]@\n}" format_var
+      tmp_var (format_expression ctx) e1
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 2>} else if ")
          (fun fmt (case_block, payload_var, cons_name) ->
@@ -429,10 +430,10 @@ let rec format_statement
   | SAssert e1 ->
     let pos = Mark.get s in
     Format.fprintf fmt
-      "@[<hov 2>if (not (%a)) {@\n\
+      "@[<hov 2>if (!(%a)) {@\n\
        stop(catala_assertion_failure(@[<hov 0>catala_position(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
-       end_column=%d,@ law_headings=@[<hv>%a@])@])@]@]@\n\
+       end_column=%d,@ law_headings=@[<hv>%a@])@])@])@]@\n\
        }"
       (format_expression ctx)
       (e1, Mark.get s)
