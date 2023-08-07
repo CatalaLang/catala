@@ -5,7 +5,7 @@
 ################ Integers #################
 
 #' @export
-catala_integer <- setClass(
+setClass(
   "catala_integer",
   representation(v = "bigz"),
 )
@@ -26,7 +26,7 @@ setMethod("Compare", "catala_integer", function(e1, e2) {
 ################ Decimals #################
 
 #' @export
-catala_decimal <- setClass(
+setClass(
   "catala_decimal",
   representation(v = "bigq"),
 )
@@ -47,7 +47,7 @@ setMethod("Compare", "catala_decimal", function(e1, e2) {
 ################ Money #################
 
 #' @export
-catala_money <- setClass(
+setClass(
   "catala_money",
   representation(v = "bigz"),
 )
@@ -79,7 +79,7 @@ setMethod("Compare", "catala_money", function(e1, e2) {
 ################ Duration #################
 
 #' @export
-catala_duration <- suppressWarnings(setClass(
+suppressWarnings(setClass(
   "catala_duration",
   representation(v = "Period")
 ))
@@ -111,7 +111,7 @@ setMethod("Compare", "catala_duration", function(e1, e2) {
 ################ Dates #################
 
 #' @export
-catala_date <- setClass(
+setClass(
   "catala_date",
   representation(v = "Date"),
 )
@@ -299,7 +299,7 @@ catala_list_length <- function(l) {
 ################ Exceptions #################
 
 #' @export
-catala_position <- setClass(
+setClass(
   "catala_position",
   representation(
     filename = "character",
