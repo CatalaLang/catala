@@ -35,6 +35,7 @@ let run
     Driver.Passes.scalc options ~link_modules ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion
   in
+
   let output_file, with_output = get_output_format options ~ext:".py" output in
   Message.emit_debug "Compiling program into Python...";
   Message.emit_debug "Writing to %s..."

@@ -758,6 +758,7 @@ module Commands = struct
       Passes.scalc options ~link_modules ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
     in
+
     let output_file, with_output =
       get_output_format options ~ext:".py" output
     in
@@ -781,6 +782,31 @@ module Commands = struct
         $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion)
 
+  let r options link_modules output optimize check_invariants closure_conversion
+      =
+    let prg, _, type_ordering =
+      Passes.scalc options ~link_modules ~optimize ~check_invariants
+        ~avoid_exceptions:false ~closure_conversion
+    in
+
+    let output_file, with_output = get_output_format options ~ext:".r" output in
+    Message.emit_debug "Compiling program into R...";
+    Message.emit_debug "Writing to %s..."
+      (Option.value ~default:"stdout" output_file);
+    with_output @@ fun fmt -> Scalc.To_r.format_program fmt prg type_ordering
+
+  let r_cmd =
+    Cmd.v
+      (Cmd.info "r" ~doc:"Generates an R translation of the Catala program.")
+      Term.(
+        const r
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.link_modules
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.closure_conversion)
+
   let pygmentize_cmd =
     Cmd.v
       (Cmd.info "pygmentize"
@@ -802,6 +828,7 @@ module Commands = struct
       proof_cmd;
       ocaml_cmd;
       python_cmd;
+      r_cmd;
       latex_cmd;
       html_cmd;
       makefile_cmd;
