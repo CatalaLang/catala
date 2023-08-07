@@ -32,12 +32,20 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
     else
       Format.fprintf fmt "catala_integer_from_string(\"%s\")"
         (Runtime.integer_to_string i)
-  | LUnit -> Format.pp_print_string fmt "catala_unit(v=0)"
+  | LUnit -> Format.pp_print_string fmt "new(\"catala_unit\",v=0)"
   | LRat i ->
-    Format.fprintf fmt "catala_decimal_from_string(\"%a\")" Print.lit (LRat i)
+    Format.fprintf fmt "catala_decimal_from_fraction(%s,%s)"
+      (if Z.fits_nativeint (Q.num i) then Z.to_string (Q.num i)
+      else "\"" ^ Z.to_string (Q.num i) ^ "\"")
+      (if Z.fits_nativeint (Q.den i) then Z.to_string (Q.den i)
+      else "\"" ^ Z.to_string (Q.den i) ^ "\"")
   | LMoney e ->
-    Format.fprintf fmt "catala_money_from_cents(\"%s\")"
-      (Runtime.integer_to_string (Runtime.money_to_cents e))
+    if Z.fits_nativeint e then
+      Format.fprintf fmt "catala_money_from_cents(%s)"
+        (Runtime.integer_to_string (Runtime.money_to_cents e))
+    else
+      Format.fprintf fmt "catala_money_from_cents(\"%s\")"
+        (Runtime.integer_to_string (Runtime.money_to_cents e))
   | LDate d ->
     Format.fprintf fmt "catala_date_from_ymd(%d,%d,%d)"
       (Runtime.integer_to_int (Runtime.year_of_date d))

@@ -7,7 +7,7 @@
 #' @export
 setClass(
   "catala_integer",
-  representation(v = "bigz"),
+  representation(v = "bigz")
 )
 #' @export
 setMethod("Arith", "catala_integer", function(e1, e2) {
@@ -16,7 +16,7 @@ setMethod("Arith", "catala_integer", function(e1, e2) {
 })
 #' @export
 setMethod("-", c("catala_integer", "missing"), function(e1) {
-  catala_integer(v = -e1@v)
+  new("catala_integer", v = -e1@v)
 })
 #' @export
 setMethod("Compare", "catala_integer", function(e1, e2) {
@@ -28,7 +28,7 @@ setMethod("Compare", "catala_integer", function(e1, e2) {
 #' @export
 setClass(
   "catala_decimal",
-  representation(v = "bigq"),
+  representation(v = "bigq")
 )
 #' @export
 setMethod("Arith", "catala_decimal", function(e1, e2) {
@@ -37,7 +37,7 @@ setMethod("Arith", "catala_decimal", function(e1, e2) {
 })
 #' @export
 setMethod("-", c("catala_decimal", "missing"), function(e1) {
-  catala_decimal(v = -e1@v)
+  new("catala_decimal", v = -e1@v)
 })
 #' @export
 setMethod("Compare", "catala_decimal", function(e1, e2) {
@@ -49,27 +49,27 @@ setMethod("Compare", "catala_decimal", function(e1, e2) {
 #' @export
 setClass(
   "catala_money",
-  representation(v = "bigz"),
+  representation(v = "bigz")
 )
 #' @export
 setMethod("+", c("catala_money", "catala_money"), function(e1, e2) {
-  catala_money(v = e1@v + e2@v)
+  new("catala_money", v = e1@v + e2@v)
 })
 #' @export
 setMethod("-", c("catala_money", "catala_money"), function(e1, e2) {
-  catala_money(v = e1@v - e2@v)
+  new("catala_money", v = e1@v - e2@v)
 })
 #' @export
 setMethod("-", c("catala_money", "missing"), function(e1) {
-  catala_money(v = -e1@v)
+  new("catala_money", v = -e1@v)
 })
 #' @export
 setMethod("*", c("catala_money", "catala_decimal"), function(e1, e2) {
-  catala_money(v = as.bigz(as.bigq(e1@v) * e2@v))
+  new("catala_money", v = as.bigz(as.bigq(e1@v) * e2@v))
 })
 #' @export
 setMethod("/", c("catala_money", "catala_money"), function(e1, e2) {
-  catala_decimal(v = as.bigq(e1@v / e2@v))
+  new("catala_decimal", v = as.bigq(e1@v / e2@v))
 })
 #' @export
 setMethod("Compare", "catala_money", function(e1, e2) {
@@ -79,25 +79,25 @@ setMethod("Compare", "catala_money", function(e1, e2) {
 ################ Duration #################
 
 #' @export
-suppressWarnings(setClass(
+setClass(
   "catala_duration",
   representation(v = "Period")
-))
+)
 #' @export
 setMethod("+", c("catala_duration", "catala_duration"), function(e1, e2) {
-  catala_duration(v = e1@v + e2@v)
+  new("catala_duration", v = e1@v + e2@v)
 })
 #' @export
 setMethod("-", c("catala_duration", "catala_duration"), function(e1, e2) {
-  catala_duration(v = e1@v - e2@v)
+  new("catala_duration", v = e1@v - e2@v)
 })
 #' @export
 setMethod("-", c("catala_duration", "missing"), function(e1) {
-  catala_duration(v = -e1@v)
+  new("catala_duration", v = -e1@v)
 })
 #' @export
 setMethod("/", c("catala_duration", "catala_duration"), function(e1, e2) {
-  catala_duration(v = e1@v / e2@v)
+  new("catala_duration", v = e1@v / e2@v)
 })
 #' @export
 setMethod("Compare", "catala_duration", function(e1, e2) {
@@ -113,15 +113,15 @@ setMethod("Compare", "catala_duration", function(e1, e2) {
 #' @export
 setClass(
   "catala_date",
-  representation(v = "Date"),
+  representation(v = "Date")
 )
 #' @export
 setMethod("+", c("catala_date", "catala_duration"), function(e1, e2) {
-  catala_date(v = e1@v + e2@v)
+  new("catala_date", v = e1@v + e2@v)
 })
 #' @export
 setMethod("-", c("catala_date", "catala_date"), function(e1, e2) {
-  catala_date(v = e1@v - e2@v)
+  new("catala_date", v = e1@v - e2@v)
 })
 #' @export
 setMethod("Compare", "catala_date", function(e1, e2) {
@@ -131,7 +131,7 @@ setMethod("Compare", "catala_date", function(e1, e2) {
 ################ Unit #################
 
 #' @export
-catala_unit <- setClass("catala_unit", representation(v = "numeric"))
+setClass("catala_unit", representation(v = "numeric"))
 
 ################ Constructors and conversions #################
 
@@ -139,11 +139,11 @@ catala_unit <- setClass("catala_unit", representation(v = "numeric"))
 
 #' @export
 catala_money_from_units <- function(x) {
-  catala_money(v = as.bigz(x) * as.bigz(100))
+  new("catala_money", v = as.bigz(x) * as.bigz(100))
 }
 #' @export
 catala_money_from_cents <- function(x) {
-  catala_money(v = as.bigz(x))
+  new("catala_money", v = as.bigz(x))
 }
 #' @export
 catala_money_from_decimal <- function(d) {
@@ -151,9 +151,9 @@ catala_money_from_decimal <- function(d) {
   unit_part_num_cents_z <- as.bigz(num_cents_q)
   remainder_q <- num_cents_q - as.bigq(unit_part_num_cents_z)
   if (remainder_q < as.bigq(0.5)) {
-    catala_money(v = as.bigz(sign(d@v)) * unit_part_num_cents_z)
+    new("catala_money", v = as.bigz(sign(d@v)) * unit_part_num_cents_z)
   } else {
-    catala_money(v = as.bigz(sign(d@v)) * (unit_part_num_cents_z + as.bigz(1)))
+    new("catala_money", v = as.bigz(sign(d@v)) * (unit_part_num_cents_z + as.bigz(1)))
   }
 }
 #' @export
@@ -169,9 +169,9 @@ catala_money_round <- function(m) {
   q <- abs(m@v) %/% as.bigz(100)
   r <- abs(m@v) %% as.bigz(100)
   if (abs(r) < 50) {
-    catala_money(v = sign(m@v) * q * as.bigz(100))
+    new("catala_money", v = sign(m@v) * q * as.bigz(100))
   } else {
-    catala_money(v = sign(m@v) * (q + 1) * as.bigz(100))
+    new("catala_money", v = sign(m@v) * (q + 1) * as.bigz(100))
   }
 }
 
@@ -180,15 +180,15 @@ catala_money_round <- function(m) {
 
 #' @export
 catala_decimal_from_numeric <- function(x) {
-  catala_decimal(v = as.bigq(x))
+  new("catala_decimal", v = as.bigq(x))
 }
 #' @export
-catala_decimal_from_string <- function(x) {
-  catala_decimal(v = as.bigq(x))
+catala_decimal_from_fraction <- function(x, y) {
+  new("catala_decimal", v = as.bigq(n = x, d = y))
 }
 #' @export
 catala_decimal_from_integer <- function(x) {
-  catala_decimal(v = as.bigq(x@v))
+  new("catala_decimal", v = as.bigq(x@v))
 }
 #' @export
 catala_decimal_to_numeric <- function(x) {
@@ -199,25 +199,25 @@ catala_decimal_round <- function(d) {
   q <- abs(as.bigq(as.bigz(d@v)))
   r <- abs(d@v) - as.bigq(q)
   if (r < as.bigq(0.5)) {
-    catala_decimal(v = sign(d@v) * q)
+    new("catala_decimal", v = sign(d@v) * q)
   } else {
-    catala_decimal(v = sign(d@v) * (q + as.bigq(1)))
+    new("catala_decimal", v = sign(d@v) * (q + as.bigq(1)))
   }
 }
 #' @export
 catala_decimal_from_money <- function(m) {
-  catala_decimal(v = as.bigq(as.bigq(m@v) / as.bigq(100)))
+  new("catala_decimal", v = as.bigq(as.bigq(m@v) / as.bigq(100)))
 }
 
 # Integers
 
 #' @export
 catala_integer_from_numeric <- function(x) {
-  catala_integer(v = as.bigz(x))
+  new("catala_integer", v = as.bigz(x))
 }
 #' @export
 catala_integer_from_string <- function(x) {
-  catala_integer(v = as.bigz(x))
+  new("catala_integer", v = as.bigz(x))
 }
 #' @export
 catala_integer_to_numeric <- function(x) {
@@ -228,7 +228,7 @@ catala_integer_to_numeric <- function(x) {
 
 #' @export
 catala_date_from_ymd <- function(y, m, d) {
-  catala_date(v = make_date(year = y, month = m, day = d))
+  new("catala_date", v = make_date(year = y, month = m, day = d))
 }
 #' @export
 catala_day_of_month_of_date <- function(d) {
@@ -248,11 +248,11 @@ catala_date_to_string <- function(d) {
 }
 #' @export
 catala_date_first_day_of_month <- function(d) {
-  catala_date(v = make_date(year = year(d@v), month = month(d@v), day = 1))
+  new("catala_date", v = make_date(year = year(d@v), month = month(d@v), day = 1))
 }
 #' @export
 catala_date_last_day_of_month <- function(d) {
-  catala_date(v = make_date(
+  new("catala_date", v = make_date(
     year = year(d@v),
     month = month(d@v),
     day = days_in_month(d@v)
@@ -263,7 +263,7 @@ catala_date_last_day_of_month <- function(d) {
 
 #' @export
 catala_duration_from_ymd <- function(y, m, d) {
-  catala_duration(v = years(y) + months(m) + days(d))
+  new("catala_duration", v = years(y) + months(m) + days(d))
 }
 #' @export
 catala_duration_to_ymd <- function(d) {
@@ -272,6 +272,7 @@ catala_duration_to_ymd <- function(d) {
 
 # List
 
+#' @export
 catala_list_fold_left <- function(f, init, l) {
   Reduce(f, l, init)
 }
@@ -362,7 +363,7 @@ catala_assertion_failure <- function(pos) {
 catala_handle_default <- function(pos, exceptions, just, cons) {
   acc <- Reduce(function(acc, exception) {
     new_val <- tryCatch(
-      exception(catala_unit(v = 0)),
+      exception(new("catala_unit", v = 0)),
       catala_empty_error = function(e) {
         NULL
       }
@@ -378,8 +379,8 @@ catala_handle_default <- function(pos, exceptions, just, cons) {
     }
   }, exceptions, NULL)
   if (is.null(acc)) {
-    if (just(catala_unit(v = 0))) {
-      cons(catala_unit(v = 0))
+    if (just(new("catala_unit", v = 0))) {
+      cons(new("catala_unit", v = 0))
     } else {
       stop(catala_empty_error())
     }
@@ -392,5 +393,6 @@ catala_handle_default <- function(pos, exceptions, just, cons) {
 # it to accept dead code. Indeed, when raising an exception during a variable
 # definition, R could complains that the later dead code will not know what
 # this variable was. So we give this variable a dead value.
+
 #' @export
 dead_value <- 0
