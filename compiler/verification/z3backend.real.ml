@@ -162,7 +162,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
   match Mark.remove ty with
   | TLit ty -> print_lit ty
   | TStruct name ->
-    let s = StructName.Map.find name ctx.ctx_decl.ctx_structs in
+    let _path, s = StructName.Map.find name ctx.ctx_decl.ctx_structs in
     let get_fieldname (fn : StructField.t) : string =
       Mark.remove (StructField.get_info fn)
     in
@@ -188,7 +188,7 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
     let fd = Expr.get_func_decl e in
     let fd_name = Symbol.to_string (FuncDecl.get_name fd) in
 
-    let enum_ctrs = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
+    let _path, enum_ctrs = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
     let case =
       List.find
         (fun (ctr, _) ->
@@ -315,7 +315,7 @@ and find_or_create_enum (ctx : context) (enum : EnumName.t) :
   match EnumName.Map.find_opt enum ctx.ctx_z3datatypes with
   | Some e -> ctx, e
   | None ->
-    let ctrs = EnumName.Map.find enum ctx.ctx_decl.ctx_enums in
+    let _path, ctrs = EnumName.Map.find enum ctx.ctx_decl.ctx_enums in
     let ctx, z3_ctrs =
       EnumConstructor.Map.fold
         (fun ctr ty (ctx, ctrs) ->
@@ -340,7 +340,7 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
   | Some s -> ctx, s
   | None ->
     let s_name = Mark.remove (StructName.get_info s) in
-    let fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
+    let _path, fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
     let z3_fieldnames =
       List.map
         (fun f ->
@@ -666,10 +666,10 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
        mk_struct. The accessors of this constructor correspond to the field
        accesses *)
     let accessors = List.hd (Datatype.get_accessors z3_struct) in
+    let _path, fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
     let idx_mappings =
       List.combine
-        (StructField.Map.keys
-           (StructName.Map.find name ctx.ctx_decl.ctx_structs))
+        (StructField.Map.keys fields)
         accessors
     in
     let _, accessor =
@@ -685,11 +685,11 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let ctx, z3_enum = find_or_create_enum ctx name in
     let ctx, z3_arg = translate_expr ctx e in
     let ctrs = Datatype.get_constructors z3_enum in
+    let _path, cons_map = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
     (* This should always succeed if the expression is well-typed in dcalc *)
     let idx_mappings =
       List.combine
-        (EnumConstructor.Map.keys
-           (EnumName.Map.find name ctx.ctx_decl.ctx_enums))
+        (EnumConstructor.Map.keys cons_map)
         ctrs
     in
     let _, ctr =

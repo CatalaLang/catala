@@ -70,7 +70,7 @@ let rec transform_closures_expr :
         cases
         (free_vars, EnumConstructor.Map.empty)
     in
-    free_vars, Expr.ematch new_e name new_cases m
+    free_vars, Expr.ematch ~e:new_e ~name ~cases:new_cases m
   | EApp { f = EAbs { binder; tys }, e1_pos; args } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
@@ -333,11 +333,11 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
       | TEnum e ->
         EnumConstructor.Map.exists
           (fun _ t' -> type_contains_arrow t')
-          (EnumName.Map.find e p.decl_ctx.ctx_enums)
+          (snd (EnumName.Map.find e p.decl_ctx.ctx_enums))
       | TStruct s ->
         StructField.Map.exists
           (fun _ t' -> type_contains_arrow t')
-          (StructName.Map.find s p.decl_ctx.ctx_structs)
+          (snd (StructName.Map.find s p.decl_ctx.ctx_structs))
     in
     let replace_fun_typs t =
       if type_contains_arrow t then Mark.copy t TAny else t
@@ -346,11 +346,11 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
       p.decl_ctx with
       ctx_structs =
         StructName.Map.map
-          (StructField.Map.map replace_fun_typs)
+          (fun (p, def) -> p, StructField.Map.map replace_fun_typs def)
           p.decl_ctx.ctx_structs;
       ctx_enums =
         EnumName.Map.map
-          (EnumConstructor.Map.map replace_fun_typs)
+          (fun (p, def) -> p, EnumConstructor.Map.map replace_fun_typs def)
           p.decl_ctx.ctx_enums;
     }
   in
@@ -394,7 +394,7 @@ let rec hoist_closures_expr :
         cases
         (collected_closures, EnumConstructor.Map.empty)
     in
-    collected_closures, Expr.ematch new_e name new_cases m
+    collected_closures, Expr.ematch ~e:new_e ~name ~cases:new_cases m
   | EApp { f = EAbs { binder; tys }, e1_pos; args } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in

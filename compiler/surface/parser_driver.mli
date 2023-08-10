@@ -19,13 +19,11 @@
 
 open Catala_utils
 
-val add_interface :
+val load_interface :
   Cli.input_file ->
   Cli.backend_lang ->
-  Shared_ast.Qident.path ->
-  Ast.program ->
-  Ast.program
-(** Reads only declarations in metadata in the supplied input file, and add them
-    to the given program *)
+  Ast.interface
+(** Reads only declarations in metadata in the supplied input file, and only keeps type information *)
 
 val parse_top_level_file : Cli.input_file -> Cli.backend_lang -> Ast.program
+(** Parses a catala file (handling file includes) and returns a program. Modules in the program are returned empty, use [load_interface] to fill them. *)

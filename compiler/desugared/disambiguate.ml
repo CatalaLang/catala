@@ -62,11 +62,40 @@ let scope ctx env scope =
   { scope with scope_defs; scope_assertions }
 
 let program prg =
+  let base_typing_env prg =
+    let env =
+      TopdefName.Map.fold
+        (fun name (_e, ty) env -> Typing.Env.add_toplevel_var name ty env)
+        prg.program_topdefs
+        (Typing.Env.empty prg.program_ctx)
+    in
+    let env =
+      ScopeName.Map.fold
+        (fun scope_name scope env ->
+           let vars =
+             ScopeDef.Map.fold
+               (fun var def vars ->
+                  match var with
+                  | Var (v, _states) -> ScopeVar.Map.add v def.scope_def_typ vars
+                  | SubScopeVar _ -> vars)
+               scope.scope_defs ScopeVar.Map.empty
+           in
+           Typing.Env.add_scope scope_name ~vars env)
+        prg.program_scopes env
+    in
+    env
+  in
+  let rec build_typing_env prg =
+    ModuleName.Map.fold (fun modname prg ->
+        Typing.Env.add_module modname ~module_env:(build_typing_env prg))
+      prg.program_modules
+      (base_typing_env prg)
+  in
   let env =
-    TopdefName.Map.fold
-      (fun name (_e, ty) env -> Typing.Env.add_toplevel_var name ty env)
-      prg.program_topdefs
-      (Typing.Env.empty prg.program_ctx)
+    ModuleName.Map.fold (fun modname prg ->
+        Typing.Env.add_module modname ~module_env:(build_typing_env prg))
+      prg.program_modules
+      (base_typing_env prg)
   in
   let program_topdefs =
     TopdefName.Map.map
@@ -75,20 +104,6 @@ let program prg =
           Some (Expr.unbox (expr prg.program_ctx env (Expr.box e))), ty
         | None, ty -> None, ty)
       prg.program_topdefs
-  in
-  let env =
-    ScopeName.Map.fold
-      (fun scope_name scope env ->
-        let vars =
-          ScopeDef.Map.fold
-            (fun var def vars ->
-              match var with
-              | Var (v, _states) -> ScopeVar.Map.add v def.scope_def_typ vars
-              | SubScopeVar _ -> vars)
-            scope.scope_defs ScopeVar.Map.empty
-        in
-        Typing.Env.add_scope scope_name ~vars env)
-      prg.program_scopes env
   in
   let program_scopes =
     ScopeName.Map.map (scope prg.program_ctx env) prg.program_scopes

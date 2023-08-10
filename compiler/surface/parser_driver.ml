@@ -229,9 +229,9 @@ let rec parse_source_file
   (match input with Some input -> close_in input | None -> ());
   let program = expand_includes source_file_name commands language in
   {
-    program_interfaces = [];
     program_items = program.Ast.program_items;
     program_source_files = source_file_name :: program.Ast.program_source_files;
+    program_modules = []
   }
 
 (** Expands the include directives in a parsing result, thus parsing new source
@@ -248,31 +248,33 @@ and expand_includes
         let sub_source = File.(source_dir / Mark.remove sub_source) in
         let includ_program = parse_source_file (FileName sub_source) language in
         {
-          program_interfaces = [];
           Ast.program_source_files =
             acc.Ast.program_source_files @ includ_program.program_source_files;
           Ast.program_items =
             acc.Ast.program_items @ includ_program.program_items;
+          Ast.program_modules =
+            acc.Ast.program_modules @ includ_program.program_modules;
         }
       | Ast.LawHeading (heading, commands') ->
         let {
-          Ast.program_interfaces = _;
           Ast.program_items = commands';
           Ast.program_source_files = new_sources;
+          Ast.program_modules = new_modules;
         } =
           expand_includes source_file commands' language
         in
         {
-          Ast.program_interfaces = [];
           Ast.program_source_files = acc.Ast.program_source_files @ new_sources;
           Ast.program_items =
             acc.Ast.program_items @ [Ast.LawHeading (heading, commands')];
+          Ast.program_modules =
+            acc.Ast.program_modules @ new_modules;
         }
       | i -> { acc with Ast.program_items = acc.Ast.program_items @ [i] })
     {
-      Ast.program_interfaces = [];
       Ast.program_source_files = [];
       Ast.program_items = [];
+      Ast.program_modules = [];
     }
     commands
 
@@ -297,30 +299,17 @@ let get_interface program =
   in
   List.fold_left filter [] program.Ast.program_items
 
-let qualify_interface path code_items =
-  List.map (fun item -> path, item) code_items
-
 (** {1 API} *)
 
-let add_interface source_file language path program =
-  let interface =
-    parse_source_file source_file language
-    |> get_interface
-    |> qualify_interface path
-  in
-  {
-    program with
-    Ast.program_interfaces =
-      List.append interface program.Ast.program_interfaces;
-  }
+let load_interface source_file language =
+  parse_source_file source_file language
+  |> get_interface
 
 let parse_top_level_file
     (source_file : Cli.input_file)
     (language : Cli.backend_lang) : Ast.program =
   let program = parse_source_file source_file language in
-  let interface = get_interface program in
   {
     program with
     Ast.program_items = law_struct_list_to_tree program.Ast.program_items;
-    Ast.program_interfaces = qualify_interface [] interface;
   }

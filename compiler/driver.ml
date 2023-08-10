@@ -42,30 +42,36 @@ let get_lang options file =
          @{<yellow>%s@}, and @{<bold>--language@} was not specified"
         filename)
 
-let load_module_interfaces prg options link_modules =
-  List.fold_left
-    (fun prg f ->
+let load_module_interfaces options link_modules =
+  List.map
+    (fun f ->
       let lang = get_lang options (FileName f) in
       let modname = modname_of_file f in
-      Surface.Parser_driver.add_interface (FileName f) lang [modname] prg)
-    prg link_modules
+      let intf = Surface.Parser_driver.load_interface (FileName f) lang in
+      modname, intf)
+    link_modules
 
 module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes
      (forwarding their options as needed) *)
 
-  let surface options : Surface.Ast.program * Cli.backend_lang =
+  let surface options ~link_modules : Surface.Ast.program * Cli.backend_lang =
     Message.emit_debug "Reading files...";
     let language = get_lang options options.input_file in
     let prg =
       Surface.Parser_driver.parse_top_level_file options.input_file language
     in
-    Surface.Fill_positions.fill_pos_with_legislative_info prg, language
+    let prg =
+      Surface.Fill_positions.fill_pos_with_legislative_info prg
+    in
+    let prg =
+      { prg with program_modules = load_module_interfaces options link_modules }
+    in
+    prg, language
 
   let desugared options ~link_modules :
       Desugared.Ast.program * Desugared.Name_resolution.context =
-    let prg, _ = surface options in
-    let prg = load_module_interfaces prg options link_modules in
+    let prg, _ = surface options ~link_modules in
     Message.emit_debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context prg in
     (* let scope_uid = get_scope_uid options backend ctx in
@@ -250,7 +256,7 @@ module Commands = struct
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
         variable ScopeName.format scope_uid
     | Some
-        (Desugared.Name_resolution.SubScope (subscope_var_name, subscope_name))
+        (Desugared.Name_resolution.SubScope (subscope_var_name, (subscope_path, subscope_name)))
       -> (
       match second_part with
       | None ->
@@ -261,6 +267,7 @@ module Commands = struct
           SubScopeName.format subscope_var_name ScopeName.format scope_uid
       | Some second_part -> (
         match
+          let ctxt = Desugared.Name_resolution.module_ctx ctxt subscope_path in
           Ident.Map.find_opt second_part
             (ScopeName.Map.find subscope_name ctxt.scopes).var_idmap
         with
@@ -299,7 +306,7 @@ module Commands = struct
       ~output_file ?ext ()
 
   let makefile options output =
-    let prg, _ = Passes.surface options in
+    let prg, _ = Passes.surface options ~link_modules:[] in
     let backend_extensions_list = [".tex"] in
     let source_file =
       match options.Cli.input_file with
@@ -330,7 +337,7 @@ module Commands = struct
       Term.(const makefile $ Cli.Flags.Global.options $ Cli.Flags.output)
 
   let html options output print_only_law wrap_weaved_output =
-    let prg, language = Passes.surface options in
+    let prg, language = Passes.surface options ~link_modules:[] in
     Message.emit_debug "Weaving literate program into HTML";
     let output_file, with_output =
       get_output_format options ~ext:".html" output
@@ -358,7 +365,7 @@ module Commands = struct
         $ Cli.Flags.wrap_weaved_output)
 
   let latex options output print_only_law wrap_weaved_output =
-    let prg, language = Passes.surface options in
+    let prg, language = Passes.surface options ~link_modules:[] in
     Message.emit_debug "Weaving literate program into LaTeX";
     let output_file, with_output =
       get_output_format options ~ext:".tex" output

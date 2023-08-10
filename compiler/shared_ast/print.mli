@@ -42,7 +42,10 @@ val operator_to_string : 'a operator -> string
 val uid_list : Format.formatter -> Uid.MarkedString.info list -> unit
 val enum_constructor : Format.formatter -> EnumConstructor.t -> unit
 val tlit : Format.formatter -> typ_lit -> unit
+val module_name : Format.formatter -> ModuleName.t -> unit
+val path : Format.formatter -> ModuleName.t Mark.pos list -> unit
 val location : Format.formatter -> 'a glocation -> unit
+val external_ref : Format.formatter -> external_ref Mark.pos -> unit
 val typ : decl_ctx -> Format.formatter -> typ -> unit
 val lit : Format.formatter -> lit -> unit
 val operator : ?debug:bool -> Format.formatter -> 'a operator -> unit

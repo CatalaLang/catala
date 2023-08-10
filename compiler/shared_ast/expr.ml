@@ -109,7 +109,7 @@ let subst binder vars =
   Bindlib.msubst binder (Array.of_list (List.map Mark.remove vars))
 
 let evar v mark = Mark.add mark (Bindlib.box_var v)
-let eexternal eref mark = Mark.add mark (Bindlib.box (EExternal eref))
+let eexternal ~path ~name mark = Mark.add mark (Bindlib.box (EExternal {path; name}))
 let etuple args = Box.appn args @@ fun args -> ETuple args
 
 let etupleaccess e index size =
@@ -146,31 +146,31 @@ let ecustom obj targs tret mark =
 
 let elocation loc = Box.app0 @@ ELocation loc
 
-let estruct name (fields : ('a, 't) boxed_gexpr StructField.Map.t) mark =
+let estruct ~name ~(fields : ('a, 't) boxed_gexpr StructField.Map.t) mark =
   Mark.add mark
   @@ Bindlib.box_apply
        (fun fields -> EStruct { name; fields })
        (Box.lift_struct (StructField.Map.map Box.lift fields))
 
-let edstructaccess e field name_opt =
-  Box.app1 e @@ fun e -> EDStructAccess { name_opt; e; field }
+let edstructaccess ~path ~name_opt ~field ~e =
+  Box.app1 e @@ fun e -> EDStructAccess { path; name_opt; field; e }
 
-let estructaccess e field name =
-  Box.app1 e @@ fun e -> EStructAccess { name; e; field }
+let estructaccess ~name ~field ~e =
+  Box.app1 e @@ fun e -> EStructAccess { name; field; e }
 
-let einj e cons name = Box.app1 e @@ fun e -> EInj { name; e; cons }
+let einj ~name ~cons ~e = Box.app1 e @@ fun e -> EInj { name; cons; e }
 
-let ematch e name cases mark =
+let ematch ~name ~e ~cases mark =
   Mark.add mark
   @@ Bindlib.box_apply2
        (fun e cases -> EMatch { name; e; cases })
        (Box.lift e)
        (Box.lift_enum (EnumConstructor.Map.map Box.lift cases))
 
-let escopecall scope args mark =
+let escopecall ~path ~scope ~args mark =
   Mark.add mark
   @@ Bindlib.box_apply
-       (fun args -> EScopeCall { scope; args })
+       (fun args -> EScopeCall { path; scope; args })
        (Box.lift_scope_vars (ScopeVar.Map.map Box.lift args))
 
 (* - Manipulation of marks - *)
@@ -272,7 +272,7 @@ let map
   | EOp { op; tys } -> eop op tys m
   | EArray args -> earray (List.map f args) m
   | EVar v -> evar (Var.translate v) m
-  | EExternal eref -> eexternal eref m
+  | EExternal { path; name } -> eexternal ~path ~name m
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let body = f body in
@@ -282,7 +282,7 @@ let map
     eifthenelse (f cond) (f etrue) (f efalse) m
   | ETuple args -> etuple (List.map f args) m
   | ETupleAccess { e; index; size } -> etupleaccess (f e) index size m
-  | EInj { e; name; cons } -> einj (f e) cons name m
+  | EInj { name; cons; e } -> einj ~name ~cons ~e:(f e) m
   | EAssert e1 -> eassert (f e1) m
   | EDefault { excepts; just; cons } ->
     edefault (List.map f excepts) (f just) (f cons) m
@@ -293,16 +293,17 @@ let map
   | ELocation loc -> elocation loc m
   | EStruct { name; fields } ->
     let fields = StructField.Map.map f fields in
-    estruct name fields m
-  | EDStructAccess { e; field; name_opt } ->
-    edstructaccess (f e) field name_opt m
-  | EStructAccess { e; field; name } -> estructaccess (f e) field name m
-  | EMatch { e; name; cases } ->
+    estruct ~name ~fields m
+  | EDStructAccess { path; name_opt; field; e } ->
+    edstructaccess ~path ~name_opt ~field ~e:(f e) m
+  | EStructAccess { name; field; e } ->
+    estructaccess ~name ~field ~e:(f e) m
+  | EMatch { name; e; cases } ->
     let cases = EnumConstructor.Map.map f cases in
-    ematch (f e) name cases m
-  | EScopeCall { scope; args } ->
-    let fields = ScopeVar.Map.map f args in
-    escopecall scope fields m
+    ematch ~name ~e:(f e) ~cases m
+  | EScopeCall { path; scope; args } ->
+    let args = ScopeVar.Map.map f args in
+    escopecall ~path ~scope ~args m
   | ECustom { obj; targs; tret } -> ecustom obj targs tret m
 
 let rec map_top_down ~f e = map ~f:(map_top_down ~f) (f e)
@@ -369,7 +370,7 @@ let map_gather
     let acc, args = lfoldmap args in
     acc, earray args m
   | EVar v -> acc, evar (Var.translate v) m
-  | EExternal eref -> acc, eexternal eref m
+  | EExternal { path; name } -> acc, eexternal ~path ~name m
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let acc, body = f body in
@@ -386,9 +387,9 @@ let map_gather
   | ETupleAccess { e; index; size } ->
     let acc, e = f e in
     acc, etupleaccess e index size m
-  | EInj { e; name; cons } ->
+  | EInj { name; cons; e } ->
     let acc, e = f e in
-    acc, einj e cons name m
+    acc, einj ~name ~cons ~e  m
   | EAssert e ->
     let acc, e = f e in
     acc, eassert e m
@@ -416,14 +417,14 @@ let map_gather
         fields
         (acc, StructField.Map.empty)
     in
-    acc, estruct name fields m
-  | EDStructAccess { e; field; name_opt } ->
+    acc, estruct ~name ~fields m
+  | EDStructAccess { path; name_opt; field; e } ->
     let acc, e = f e in
-    acc, edstructaccess e field name_opt m
-  | EStructAccess { e; field; name } ->
+    acc, edstructaccess ~path ~name_opt ~field ~e m
+  | EStructAccess { name; field; e } ->
     let acc, e = f e in
-    acc, estructaccess e field name m
-  | EMatch { e; name; cases } ->
+    acc, estructaccess ~name ~field ~e m
+  | EMatch { name; e; cases } ->
     let acc, e = f e in
     let acc, cases =
       EnumConstructor.Map.fold
@@ -433,8 +434,8 @@ let map_gather
         cases
         (acc, EnumConstructor.Map.empty)
     in
-    acc, ematch e name cases m
-  | EScopeCall { scope; args } ->
+    acc, ematch ~name ~e ~cases m
+  | EScopeCall { path; scope; args } ->
     let acc, args =
       ScopeVar.Map.fold
         (fun var e (acc, args) ->
@@ -442,7 +443,7 @@ let map_gather
           join acc acc1, ScopeVar.Map.add var e args)
         args (acc, ScopeVar.Map.empty)
     in
-    acc, escopecall scope args m
+    acc, escopecall ~path ~scope ~args m
   | ECustom { obj; targs; tret } -> acc, ecustom obj targs tret m
 
 (* - *)
@@ -515,25 +516,31 @@ let compare_lit (l1 : lit) (l2 : lit) =
   | LDuration _, _ -> .
   | _, LDuration _ -> .
 
+let compare_path =
+  List.compare (Mark.compare ModuleName.compare)
+
 let compare_location
     (type a)
     (x : a glocation Mark.pos)
     (y : a glocation Mark.pos) =
   match Mark.remove x, Mark.remove y with
-  | DesugaredScopeVar (vx, None), DesugaredScopeVar (vy, None)
-  | DesugaredScopeVar (vx, Some _), DesugaredScopeVar (vy, None)
-  | DesugaredScopeVar (vx, None), DesugaredScopeVar (vy, Some _) ->
+  | DesugaredScopeVar { name = vx; state = None}, DesugaredScopeVar { name = vy; state = None}
+  | DesugaredScopeVar { name = vx; state = Some _}, DesugaredScopeVar { name = vy; state = None}
+  | DesugaredScopeVar { name = vx; state = None}, DesugaredScopeVar { name = vy; state = Some _} ->
     ScopeVar.compare (Mark.remove vx) (Mark.remove vy)
-  | DesugaredScopeVar ((x, _), Some sx), DesugaredScopeVar ((y, _), Some sy) ->
+  | DesugaredScopeVar {name = (x, _); state = Some sx}, DesugaredScopeVar {name = (y, _); state = Some sy} ->
     let cmp = ScopeVar.compare x y in
     if cmp = 0 then StateName.compare sx sy else cmp
-  | ScopelangScopeVar (vx, _), ScopelangScopeVar (vy, _) ->
+  | ScopelangScopeVar { name = (vx, _) }, ScopelangScopeVar { name = (vy, _) } ->
     ScopeVar.compare vx vy
-  | ( SubScopeVar (_, (xsubindex, _), (xsubvar, _)),
-      SubScopeVar (_, (ysubindex, _), (ysubvar, _)) ) ->
+  | ( SubScopeVar { alias = (xsubindex, _); var = (xsubvar, _); _},
+      SubScopeVar { alias = (ysubindex, _); var = (ysubvar, _); _} ) ->
     let c = SubScopeName.compare xsubindex ysubindex in
     if c = 0 then ScopeVar.compare xsubvar ysubvar else c
-  | ToplevelVar (vx, _), ToplevelVar (vy, _) -> TopdefName.compare vx vy
+  | ToplevelVar { path = px; name = (vx, _) }, ToplevelVar { path = py; name = (vy, _) } ->
+    (match compare_path px py with
+     | 0 -> TopdefName.compare vx vy
+     | n -> n)
   | DesugaredScopeVar _, _ -> -1
   | _, DesugaredScopeVar _ -> 1
   | ScopelangScopeVar _, _ -> -1
@@ -543,21 +550,33 @@ let compare_location
   | ToplevelVar _, _ -> .
   | _, ToplevelVar _ -> .
 
+let equal_path = List.equal (Mark.equal ModuleName.equal)
 let equal_location a b = compare_location a b = 0
 let equal_except ex1 ex2 = ex1 = ex2
 let compare_except ex1 ex2 = Stdlib.compare ex1 ex2
+let equal_external_ref ref1 ref2 = match ref1, ref2 with
+  | External_value v1, External_value v2 -> TopdefName.equal v1 v2
+  | External_scope s1, External_scope s2 -> ScopeName.equal s1 s2
+  | (External_value _ | External_scope _), _ -> false
+let compare_external_ref ref1 ref2 = match ref1, ref2 with
+  | External_value v1, External_value v2 -> TopdefName.compare v1 v2
+  | External_scope s1, External_scope s2 -> ScopeName.compare s1 s2
+  | External_value _, _ -> -1
+  | _, External_value _ -> 1
+  | External_scope _, _ -> .
+  | _, External_scope _ -> .
 
 (* weird indentation; see
    https://github.com/ocaml-ppx/ocamlformat/issues/2143 *)
 let rec equal_list : 'a. ('a, 't) gexpr list -> ('a, 't) gexpr list -> bool =
- fun es1 es2 ->
-  try List.for_all2 equal es1 es2 with Invalid_argument _ -> false
+  fun es1 es2 -> List.equal equal es1 es2
 
 and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
  fun e1 e2 ->
   match Mark.remove e1, Mark.remove e2 with
   | EVar v1, EVar v2 -> Bindlib.eq_vars v1 v2
-  | EExternal eref1, EExternal eref2 -> Qident.equal eref1 eref2
+  | EExternal { path = p1; name = n1 }, EExternal { path = p2; name = n2 } ->
+    Mark.equal equal_external_ref n1 n2 && equal_path p1 p2
   | ETuple es1, ETuple es2 -> equal_list es1 es2
   | ( ETupleAccess { e = e1; index = id1; size = s1 },
       ETupleAccess { e = e2; index = id2; size = s2 } ) ->
@@ -588,23 +607,25 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( EStruct { name = s1; fields = fields1 },
       EStruct { name = s2; fields = fields2 } ) ->
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
-  | ( EDStructAccess { e = e1; field = f1; name_opt = s1 },
-      EDStructAccess { e = e2; field = f2; name_opt = s2 } ) ->
-    Option.equal StructName.equal s1 s2 && Ident.equal f1 f2 && equal e1 e2
+  | ( EDStructAccess { e = e1; field = f1; name_opt = s1; path = p1 },
+      EDStructAccess { e = e2; field = f2; name_opt = s2; path = p2 } ) ->
+    Option.equal StructName.equal s1 s2 && equal_path p1 p2 && Ident.equal f1 f2 && equal e1 e2
   | ( EStructAccess { e = e1; field = f1; name = s1 },
       EStructAccess { e = e2; field = f2; name = s2 } ) ->
     StructName.equal s1 s2 && StructField.equal f1 f2 && equal e1 e2
-  | EInj { e = e1; cons = c1; name = n1 }, EInj { e = e2; cons = c2; name = n2 }
-    ->
+  | EInj { e = e1; cons = c1; name = n1 },
+    EInj { e = e2; cons = c2; name = n2 } ->
     EnumName.equal n1 n2 && EnumConstructor.equal c1 c2 && equal e1 e2
   | ( EMatch { e = e1; name = n1; cases = cases1 },
       EMatch { e = e2; name = n2; cases = cases2 } ) ->
     EnumName.equal n1 n2
     && equal e1 e2
     && EnumConstructor.Map.equal equal cases1 cases2
-  | ( EScopeCall { scope = s1; args = fields1 },
-      EScopeCall { scope = s2; args = fields2 } ) ->
-    ScopeName.equal s1 s2 && ScopeVar.Map.equal equal fields1 fields2
+  | ( EScopeCall { path = p1; scope = s1; args = fields1 },
+      EScopeCall { path = p2; scope = s2; args = fields2 } ) ->
+    ScopeName.equal s1 s2 &&
+    equal_path p1 p2 &&
+    ScopeVar.Map.equal equal fields1 fields2
   | ( ECustom { obj = obj1; targs = targs1; tret = tret1 },
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
@@ -635,8 +656,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     List.compare compare a1 a2
   | EVar v1, EVar v2 ->
     Bindlib.compare_vars v1 v2
-  | EExternal eref1, EExternal eref2 ->
-    Qident.compare eref1 eref2
+  | EExternal { path = p1; name = n1 }, EExternal { path = p2; name = n2 } ->
+    compare_path p1 p2 @@< fun () -> Mark.compare compare_external_ref n1 n2
   | EAbs {binder=binder1; tys=typs1},
     EAbs {binder=binder2; tys=typs2} ->
     List.compare Type.compare typs1 typs2 @@< fun () ->
@@ -649,27 +670,29 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare e1 e2
   | ELocation l1, ELocation l2 ->
     compare_location (Mark.add Pos.no_pos l1) (Mark.add Pos.no_pos l2)
-  | EStruct {name=name1; fields=field_map1},
-    EStruct {name=name2; fields=field_map2} ->
+  | EStruct {name=name1; fields=field_map1 },
+    EStruct {name=name2; fields=field_map2 } ->
     StructName.compare name1 name2 @@< fun () ->
     StructField.Map.compare compare field_map1 field_map2
-  | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1},
-    EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2} ->
+  | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1; path=p1},
+    EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2; path=p2} ->
     compare e1 e2 @@< fun () ->
+    compare_path p1 p2 @@< fun () ->
     Ident.compare field_name1 field_name2 @@< fun () ->
     Option.compare StructName.compare struct_name1 struct_name2
-  | EStructAccess {e=e1; field=field_name1; name=struct_name1},
-    EStructAccess {e=e2; field=field_name2; name=struct_name2} ->
+  | EStructAccess {e=e1; field=field_name1; name=struct_name1 },
+    EStructAccess {e=e2; field=field_name2; name=struct_name2 } ->
     compare e1 e2 @@< fun () ->
     StructField.compare field_name1 field_name2 @@< fun () ->
     StructName.compare struct_name1 struct_name2
-  | EMatch {e=e1; name=name1; cases=emap1},
-    EMatch {e=e2; name=name2; cases=emap2} ->
+  | EMatch {e=e1; name=name1; cases=emap1 },
+    EMatch {e=e2; name=name2; cases=emap2 } ->
     EnumName.compare name1 name2 @@< fun () ->
     compare e1 e2 @@< fun () ->
     EnumConstructor.Map.compare compare emap1 emap2
-  | EScopeCall {scope=name1; args=field_map1},
-    EScopeCall {scope=name2; args=field_map2} ->
+  | EScopeCall {path = p1; scope=name1; args=field_map1},
+    EScopeCall {path = p2; scope=name2; args=field_map2} ->
+    compare_path p1 p2 @@< fun () ->
     ScopeName.compare name1 name2 @@< fun () ->
     ScopeVar.Map.compare compare field_map1 field_map2
   | ETuple es1, ETuple es2 ->
@@ -679,8 +702,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     Int.compare s1 s2 @@< fun () ->
     Int.compare n1 n2 @@< fun () ->
     compare e1 e2
-  | EInj {e=e1; name=name1; cons=cons1},
-    EInj {e=e2; name=name2; cons=cons2} ->
+  | EInj {e=e1; name=name1; cons=cons1 },
+    EInj {e=e2; name=name2; cons=cons2 } ->
     EnumName.compare name1 name2 @@< fun () ->
     EnumConstructor.compare cons1 cons2 @@< fun () ->
     compare e1 e2

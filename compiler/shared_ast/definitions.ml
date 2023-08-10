@@ -22,6 +22,9 @@
 
 open Catala_utils
 module Runtime = Runtime_ocaml.Runtime
+module ModuleName = String
+(* TODO: should probably be turned into an Uid once we implement module import directives; that will incur an additional resolution work on all paths though *)
+
 module ScopeName = Uid.Gen ()
 module TopdefName = Uid.Gen ()
 module StructName = Uid.Gen ()
@@ -311,6 +314,8 @@ type except = ConflictError | EmptyError | NoValueProvided | Crash
 type untyped = { pos : Pos.t } [@@caml.unboxed]
 type typed = { pos : Pos.t; ty : typ }
 type 'a custom = { pos : Pos.t; custom : 'a }
+type nil = |
+  (** Using empty markings will ensure terms can't be constructed: used for example in interfaces to ensure that they don't contain any expressions *)
 
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
@@ -339,19 +344,26 @@ type lit =
   | LDate of date
   | LDuration of duration
 
+type path = ModuleName.t Mark.pos list
+
+(** External references are resolved to strings that point to functions or constants in the end, but we need to keep different references for typing *)
+type external_ref =
+  | External_value of TopdefName.t
+  | External_scope of ScopeName.t
+
 (** Locations are handled differently in [desugared] and [scopelang] *)
 type 'a glocation =
   | DesugaredScopeVar :
-      ScopeVar.t Mark.pos * StateName.t option
+      { name: ScopeVar.t Mark.pos; state: StateName.t option }
       -> < scopeVarStates : yes ; .. > glocation
   | ScopelangScopeVar :
-      ScopeVar.t Mark.pos
+      { name: ScopeVar.t Mark.pos }
       -> < scopeVarSimpl : yes ; .. > glocation
   | SubScopeVar :
-      ScopeName.t * SubScopeName.t Mark.pos * ScopeVar.t Mark.pos
+      { path: path; scope: ScopeName.t; alias: SubScopeName.t Mark.pos; var: ScopeVar.t Mark.pos }
       -> < explicitScopes : yes ; .. > glocation
   | ToplevelVar :
-      TopdefName.t Mark.pos
+      { path: path; name: TopdefName.t Mark.pos }
       -> < explicitScopes : yes ; .. > glocation
 
 type ('a, 'm) gexpr = (('a, 'm) naked_gexpr, 'm) marked
@@ -392,7 +404,6 @@ and ('a, 'b, 'm) base_gexpr =
       -> ('a, (< .. > as 'b), 'm) base_gexpr
   | EArray : ('a, 'm) gexpr list -> ('a, < .. >, 'm) base_gexpr
   | EVar : ('a, 'm) naked_gexpr Bindlib.var -> ('a, _, 'm) base_gexpr
-  | EExternal : Qident.t -> ('a, < .. >, 't) base_gexpr
   | EAbs : {
       binder : (('a, 'a, 'm) base_gexpr, ('a, 'm) gexpr) Bindlib.mbinder;
       tys : typ list;
@@ -431,11 +442,13 @@ and ('a, 'b, 'm) base_gexpr =
   (* Early stages *)
   | ELocation : 'b glocation -> ('a, (< .. > as 'b), 'm) base_gexpr
   | EScopeCall : {
+      path : path;
       scope : ScopeName.t;
       args : ('a, 'm) gexpr ScopeVar.Map.t;
     }
       -> ('a, < explicitScopes : yes ; .. >, 'm) base_gexpr
   | EDStructAccess : {
+      path : path;
       name_opt : StructName.t option;
       e : ('a, 'm) gexpr;
       field : Ident.t;
@@ -450,6 +463,7 @@ and ('a, 'b, 'm) base_gexpr =
       -> ('a, < resolvedNames : yes ; .. >, 'm) base_gexpr
       (** Resolved struct/enums, after [desugared] *)
   (* Lambda-like *)
+  | EExternal : { path: path; name: external_ref Mark.pos} -> ('a, < explicitScopes: no ; .. >, 't) base_gexpr
   | EAssert : ('a, 'm) gexpr -> ('a, < assertions : yes ; .. >, 'm) base_gexpr
   (* Default terms *)
   | EDefault : {
@@ -562,10 +576,11 @@ type 'e code_item_list =
   | Nil
   | Cons of 'e code_item * ('e, 'e code_item_list) binder
 
-type struct_ctx = typ StructField.Map.t StructName.Map.t
-type enum_ctx = typ EnumConstructor.Map.t EnumName.Map.t
+type struct_ctx = (path * typ StructField.Map.t) StructName.Map.t
+type enum_ctx = (path * typ EnumConstructor.Map.t) EnumName.Map.t
 
-type scope_out_struct = {
+type scope_info = {
+  in_struct_name : StructName.t;
   out_struct_name : StructName.t;
   out_struct_fields : StructField.t ScopeVar.Map.t;
 }
@@ -575,8 +590,12 @@ type decl_ctx = {
   ctx_structs : struct_ctx;
   ctx_struct_fields : StructField.t StructName.Map.t Ident.Map.t;
       (** needed for disambiguation (desugared -> scope) *)
-  ctx_scopes : scope_out_struct ScopeName.Map.t;
-  ctx_modules : typ Qident.Map.t;
+  ctx_scopes : scope_info ScopeName.Map.t;
+  ctx_topdefs : typ TopdefName.Map.t;
+  ctx_modules : decl_ctx ModuleName.Map.t;
 }
 
-type 'e program = { decl_ctx : decl_ctx; code_items : 'e code_item_list }
+type 'e program = {
+  decl_ctx : decl_ctx;
+  code_items : 'e code_item_list;
+}

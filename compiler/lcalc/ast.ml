@@ -23,10 +23,10 @@ type 'm program = 'm expr Shared_ast.program
 
 module OptionMonad = struct
   let return ~(mark : 'a mark) e =
-    Expr.einj e Expr.some_constr Expr.option_enum mark
+    Expr.einj ~e ~cons:Expr.some_constr ~name:Expr.option_enum mark
 
   let empty ~(mark : 'a mark) =
-    Expr.einj (Expr.elit LUnit mark) Expr.none_constr Expr.option_enum mark
+    Expr.einj ~e:(Expr.elit LUnit mark) ~cons:Expr.none_constr ~name:Expr.option_enum mark
 
   let bind_var ~(mark : 'a mark) f x arg =
     let cases =
@@ -36,7 +36,7 @@ module OptionMonad = struct
             let x = Var.make "_" in
             Expr.eabs
               (Expr.bind [| x |]
-                 (Expr.einj (Expr.evar x mark) Expr.none_constr Expr.option_enum
+                 (Expr.einj ~e:(Expr.evar x mark) ~cons:Expr.none_constr ~name:Expr.option_enum
                     mark))
               [TLit TUnit, Expr.mark_pos mark]
               mark );
@@ -46,7 +46,7 @@ module OptionMonad = struct
           (*| Some x -> f (where f contains x as a free variable) *);
         ]
     in
-    Expr.ematch arg Expr.option_enum cases mark
+    Expr.ematch ~e:arg ~name:Expr.option_enum ~cases mark
 
   let bind ~(mark : 'a mark) ~(var_name : string) f arg =
     let x = Var.make var_name in
@@ -86,8 +86,8 @@ module OptionMonad = struct
     ListLabels.fold_left2 xs args ~f:(bind_var ~mark)
       ~init:
         (Expr.einj
-           (Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
-           Expr.some_constr Expr.option_enum mark)
+           ~e:(Expr.eapp f (List.map (fun v -> Expr.evar v mark) xs) mark)
+           ~cons:Expr.some_constr ~name:Expr.option_enum mark)
 
   let map_var ~(mark : 'a mark) f x arg = mmap_mvar f [x] [arg] ~mark
 
@@ -120,6 +120,6 @@ module OptionMonad = struct
           Expr.some_constr, Expr.fun_id ~var_name mark (* | Some x -> x*);
         ]
     in
-    if toplevel then Expr.ematch arg Expr.option_enum cases mark
-    else return ~mark (Expr.ematch arg Expr.option_enum cases mark)
+    if toplevel then Expr.ematch ~e:arg ~name:Expr.option_enum ~cases mark
+    else return ~mark (Expr.ematch ~e:arg ~name:Expr.option_enum ~cases mark)
 end

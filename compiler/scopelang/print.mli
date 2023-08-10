@@ -14,11 +14,13 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
+
 val scope :
   ?debug:bool (** [true] for debug printing *) ->
   Shared_ast.decl_ctx ->
   Format.formatter ->
-  Shared_ast.ScopeName.t * 'm Ast.scope_decl ->
+  Shared_ast.ScopeName.t * 'm Ast.scope_decl Mark.pos ->
   unit
 
 val program :

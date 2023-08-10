@@ -12,7 +12,7 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = groff python3 colordiff node node npm ninja pandoc
+EXECUTABLES = groff python3 node npm ninja pandoc
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))

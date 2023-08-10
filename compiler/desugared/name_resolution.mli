@@ -32,7 +32,7 @@ type scope_def_context = {
 
 type scope_var_or_subscope =
   | ScopeVar of ScopeVar.t
-  | SubScope of SubScopeName.t * ScopeName.t
+  | SubScope of SubScopeName.t * (path * ScopeName.t)
 
 type scope_context = {
   var_idmap : scope_var_or_subscope Ident.Map.t;
@@ -65,13 +65,10 @@ type var_sig = {
 type typedef =
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TScope of ScopeName.t * scope_out_struct
+  | TScope of ScopeName.t * scope_info
       (** Implicitly defined output struct *)
 
 type context = {
-  local_var_idmap : Ast.expr Var.t Ident.Map.t;
-      (** Inside a definition, local variables can be introduced by functions
-          arguments or pattern matching *)
   typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructField.t StructName.Map.t Ident.Map.t;
@@ -82,11 +79,13 @@ type context = {
           between different enums *)
   scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
   topdefs : TopdefName.t Ident.Map.t;  (** Global definitions *)
+  topdef_types : typ TopdefName.Map.t;
   structs : struct_context StructName.Map.t;
       (** For each struct, its context *)
   enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
   var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
+  modules : context ModuleName.Map.t;
 }
 (** Main context used throughout {!module: Desugared.From_surface} *)
 
@@ -131,9 +130,6 @@ val get_params :
 val is_def_cond : context -> Ast.ScopeDef.t -> bool
 val is_type_cond : Surface.Ast.typ -> bool
 
-val add_def_local_var : context -> Ident.t -> context * Ast.expr Var.t
-(** Adds a binding to the context *)
-
 val get_def_key :
   Surface.Ast.scope_var ->
   Surface.Ast.lident Mark.pos option ->
@@ -154,6 +150,9 @@ val get_struct : context -> Ident.t Mark.pos -> StructName.t
 val get_scope : context -> Ident.t Mark.pos -> ScopeName.t
 (** Find a scope definition from the typedefs, failing if there is none or it
     has a different kind *)
+
+val module_ctx : context -> path -> context
+(** Returns the context corresponding to the given module path; raises a user error if the module is not found *)
 
 val process_type : context -> Surface.Ast.typ -> typ
 (** Convert a surface base type to an AST type *)

@@ -215,7 +215,7 @@ type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
-  scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
+  scope_sub_scopes : (path * ScopeName.t) SubScopeName.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion AssertionName.Map.t;
@@ -227,6 +227,7 @@ type program = {
   program_scopes : scope ScopeName.Map.t;
   program_topdefs : (expr option * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
+  program_modules : program ModuleName.Map.t;
 }
 
 let rec locations_used e : LocationSet.t =
@@ -247,11 +248,11 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDef.Map.t =
       (fun (loc, loc_pos) acc ->
         let usage =
           match loc with
-          | DesugaredScopeVar (v, st) -> Some (ScopeDef.Var (Mark.remove v, st))
-          | SubScopeVar (_, sub_index, sub_var) ->
+          | DesugaredScopeVar { name; state } -> Some (ScopeDef.Var (Mark.remove name, state))
+          | SubScopeVar { alias; var; _ } ->
             Some
               (ScopeDef.SubScopeVar
-                 (Mark.remove sub_index, Mark.remove sub_var, Mark.get sub_index))
+                 (Mark.remove alias, Mark.remove var, Mark.get alias))
           | ToplevelVar _ -> None
         in
         match usage with

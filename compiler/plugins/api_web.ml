@@ -139,14 +139,14 @@ module To_jsoo = struct
       | TArrow _ -> Format.fprintf fmt "Js.meth"
       | _ -> Format.fprintf fmt "Js.readonly_prop"
     in
-    let format_struct_decl fmt (struct_name, struct_fields) =
+    let format_struct_decl fmt (struct_name, (path, struct_fields)) =
       let fmt_struct_name fmt _ = format_struct_name fmt struct_name in
       let fmt_module_struct_name fmt _ =
+        Print.path fmt path;
         To_ocaml.format_to_module_name fmt (`Sname struct_name)
       in
       let fmt_to_jsoo fmt _ =
-        Format.fprintf fmt "%a"
-          (Format.pp_print_list
+          Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt (struct_field, struct_field_type) ->
                match Mark.remove struct_field_type with
@@ -172,12 +172,12 @@ module To_jsoo = struct
                  Format.fprintf fmt "@[<hov 2>val %a =@ %a %a.%a@]"
                    format_struct_field_name_camel_case struct_field
                    format_typ_to_jsoo struct_field_type fmt_struct_name ()
-                   format_struct_field_name (None, struct_field)))
+                   format_struct_field_name (None, struct_field))
+             fmt
           (StructField.Map.bindings struct_fields)
       in
       let fmt_of_jsoo fmt _ =
-        Format.fprintf fmt "%a"
-          (Format.pp_print_list
+          Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
              (fun fmt (struct_field, struct_field_type) ->
                match Mark.remove struct_field_type with
@@ -192,7 +192,8 @@ module To_jsoo = struct
                    "@[<hv 2>%a =@ @[<hov 2>%a@ @[<hov>%a@,##.%a@]@]@]"
                    format_struct_field_name (None, struct_field)
                    format_typ_of_jsoo struct_field_type fmt_struct_name ()
-                   format_struct_field_name_camel_case struct_field))
+                   format_struct_field_name_camel_case struct_field)
+          fmt
           (StructField.Map.bindings struct_fields)
       in
       let fmt_conv_funs fmt _ =
@@ -230,10 +231,11 @@ module To_jsoo = struct
           (StructField.Map.bindings struct_fields)
           fmt_conv_funs ()
     in
-    let format_enum_decl fmt (enum_name, (enum_cons : typ EnumConstructor.Map.t))
+    let format_enum_decl fmt (enum_name, (path, (enum_cons : typ EnumConstructor.Map.t)))
         =
       let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
-      let fmt_module_enum_name fmt _ =
+      let fmt_module_enum_name fmt () =
+        Print.path fmt path;
         To_ocaml.format_to_module_name fmt (`Ename enum_name)
       in
       let fmt_to_jsoo fmt _ =
@@ -332,9 +334,11 @@ module To_jsoo = struct
       (fun struct_or_enum ->
         match struct_or_enum with
         | Scopelang.Dependency.TVertex.Struct s ->
-          Format.fprintf fmt "%a@\n" format_struct_decl (s, find_struct s ctx)
+          Format.fprintf fmt "%a@\n" format_struct_decl
+            (s, StructName.Map.find s ctx.ctx_structs)
         | Scopelang.Dependency.TVertex.Enum e ->
-          Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
+          Format.fprintf fmt "%a@\n" format_enum_decl
+            (e, EnumName.Map.find e ctx.ctx_enums))
       (type_ordering @ scope_structs)
 
   let fmt_input_struct_name fmt (scope_body : 'a expr scope_body) =

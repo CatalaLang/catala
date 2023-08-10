@@ -15,6 +15,7 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
 open Definitions
 
 let map_exprs ~f ~varf { code_items; decl_ctx } =
@@ -34,8 +35,17 @@ let empty_ctx =
     ctx_structs = StructName.Map.empty;
     ctx_struct_fields = Ident.Map.empty;
     ctx_scopes = ScopeName.Map.empty;
-    ctx_modules = Qident.Map.empty;
+    ctx_topdefs = TopdefName.Map.empty;
+    ctx_modules = ModuleName.Map.empty;
   }
+
+let rec module_ctx ctx = function
+  | [] -> ctx
+  | (modname, mpos) :: path ->
+    match ModuleName.Map.find_opt modname ctx.ctx_modules with
+    | None ->
+      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format modname
+    | Some ctx -> module_ctx ctx path
 
 let get_scope_body { code_items; _ } scope =
   match

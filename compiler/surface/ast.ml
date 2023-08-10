@@ -251,7 +251,7 @@ and scope_decl_context_io = {
 
 and scope_decl_context_scope = {
   scope_decl_context_scope_name : lident Mark.pos;
-  scope_decl_context_scope_sub_scope : uident Mark.pos;
+  scope_decl_context_scope_sub_scope : (path * uident Mark.pos) Mark.pos;
   scope_decl_context_scope_attribute : scope_decl_context_io;
 }
 
@@ -309,11 +309,13 @@ and law_structure =
   | LawText of (string[@opaque])
   | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
 
+and interface = code_block
+(** Invariant: an interface shall only contain [*Decl] elements, or [Topdef] elements with [topdef_expr = None] *)
+
 and program = {
-  program_interfaces :
-    ((Shared_ast.Qident.path[@opaque]) * code_item Mark.pos) list;
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
+  program_modules : (uident * interface) list;
 }
 
 and source_file = law_structure list

@@ -50,7 +50,6 @@ module type Id = sig
   val hash : t -> int
 
   module Set : Set.S with type elt = t
-  module SetLabels : MoreLabels.Set.S with type elt = t and type t = Set.t
   module Map : Map.S with type key = t
 end
 

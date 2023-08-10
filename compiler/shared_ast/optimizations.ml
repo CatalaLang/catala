@@ -178,7 +178,7 @@ let rec optimize_expr :
       when false
            (* TODO: this case is buggy because of the box/unbox manipulation, it
               should be fixed before removing this [false] value*)
-           && n1 = n2
+           && EnumName.equal n1 n2
            && all_match_cases_map_to_same_constructor cases1 n1 ->
       (* iota-reduction when the matched expression is itself a match of the
          same enum mapping all constructors to themselves *)
@@ -211,7 +211,7 @@ let rec optimize_expr :
       (* beta reduction when variables not used. *)
       Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
-      when name = name1 ->
+      when StructName.equal name name1 ->
       Mark.remove (StructField.Map.find field fields)
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct *)
@@ -353,9 +353,9 @@ let test_iota_reduction_1 () =
   let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
   let consD = EnumConstructor.fresh ("D", Pos.no_pos) in
   let nomark = Untyped { pos = Pos.no_pos } in
-  let injA = Expr.einj (Expr.evar x nomark) consA enumT nomark in
-  let injC = Expr.einj (Expr.evar x nomark) consC enumT nomark in
-  let injD = Expr.einj (Expr.evar x nomark) consD enumT nomark in
+  let injA = Expr.einj ~e:(Expr.evar x nomark) ~cons:consA ~name:enumT nomark in
+  let injC = Expr.einj ~e:(Expr.evar x nomark) ~cons:consC ~name:enumT nomark in
+  let injD = Expr.einj ~e:(Expr.evar x nomark) ~cons:consD ~name:enumT nomark in
   let cases : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
     EnumConstructor.Map.of_list
       [
@@ -363,7 +363,7 @@ let test_iota_reduction_1 () =
         consB, Expr.eabs (Expr.bind [| x |] injD) [TAny, Pos.no_pos] nomark;
       ]
   in
-  let matchA = Expr.ematch injA enumT cases nomark in
+  let matchA = Expr.ematch ~e:injA ~name:enumT ~cases nomark in
   Alcotest.(check string)
     "same string"
     "before=match (A x)\n\
@@ -397,10 +397,10 @@ let test_iota_reduction_2 () =
 
   let num n = Expr.elit (LInt (Runtime.integer_of_int n)) nomark in
 
-  let injAe e = Expr.einj e consA enumT nomark in
-  let injBe e = Expr.einj e consB enumT nomark in
-  let injCe e = Expr.einj e consC enumT nomark in
-  let injDe e = Expr.einj e consD enumT nomark in
+  let injAe e = Expr.einj ~e ~cons:consA ~name:enumT nomark in
+  let injBe e = Expr.einj ~e ~cons:consB ~name:enumT nomark in
+  let injCe e = Expr.einj ~e ~cons:consC ~name:enumT nomark in
+  let injDe e = Expr.einj ~e ~cons:consD ~name:enumT nomark in
 
   (* let injA x = injAe (Expr.evar x nomark) in *)
   let injB x = injBe (Expr.evar x nomark) in
@@ -409,14 +409,14 @@ let test_iota_reduction_2 () =
 
   let matchA =
     Expr.ematch
-      (Expr.ematch (num 1) enumT
-         (cases_of_list
+      ~e:(Expr.ematch ~e:(num 1) ~name:enumT
+            ~cases:(cases_of_list
             [
               (consB, fun x -> injBe (injB x)); (consA, fun _x -> injAe (num 20));
             ])
          nomark)
-      enumT
-      (cases_of_list [consA, injC; consB, injD])
+      ~name:enumT
+      ~cases:(cases_of_list [consA, injC; consB, injD])
       nomark
   in
   Alcotest.(check string)

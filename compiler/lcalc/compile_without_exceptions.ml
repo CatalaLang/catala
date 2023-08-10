@@ -113,7 +113,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     if (Var.Map.find x ctx.ctx_vars).info_pure then
       Ast.OptionMonad.return (Expr.evar (trans_var ctx x) m) ~mark
     else Expr.evar (trans_var ctx x) m
-  | EExternal eref -> Expr.eexternal eref mark
+  | EExternal _ as e -> Expr.map ~f:(trans ctx) (e, m)
   | EApp { f = EVar v, _; args = [(ELit LUnit, _)] } ->
     (* Invariant: as users cannot write thunks, it can only come from prior
        compilation passes. Hence we can safely remove those. *)
@@ -169,7 +169,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     Ast.OptionMonad.return ~mark
       (Expr.eapp
          (Expr.evar (trans_var ctx scope) mark)
-         [Expr.estruct name (StructField.Map.map (trans ctx) fields) mark]
+         [Expr.estruct ~name ~fields:(StructField.Map.map (trans ctx) fields) mark]
          mark)
   | EApp { f = (EVar ff, _) as f; args }
     when not (Var.Map.find ff ctx.ctx_vars).is_scope ->
@@ -395,7 +395,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     in
     Ast.OptionMonad.bind_cont
       ~var_name:(context_or_same_var ctx e)
-      (fun e -> Expr.ematch (Expr.evar e m) name cases m)
+      (fun e -> Expr.ematch ~e:(Expr.evar e m) ~name ~cases m)
       (trans ctx e) ~mark
   | EArray args ->
     Ast.OptionMonad.mbind_cont ~mark ~var_name:ctx.ctx_context_name
@@ -418,7 +418,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
                xs)
             ~f:StructField.Map.add ~init:StructField.Map.empty
         in
-        Ast.OptionMonad.return ~mark (Expr.estruct name fields mark))
+        Ast.OptionMonad.return ~mark (Expr.estruct ~name ~fields mark))
       (List.map (trans ctx) fields)
       ~mark
   | EIfThenElse { cond; etrue; efalse } ->
@@ -433,12 +433,12 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
       ~var_name:(context_or_same_var ctx e)
       (fun e ->
         Ast.OptionMonad.return ~mark
-          (Expr.einj (Expr.evar e mark) cons name mark))
+          (Expr.einj ~e:(Expr.evar e mark) ~cons ~name mark))
       (trans ctx e) ~mark
   | EStructAccess { name; e; field } ->
     Ast.OptionMonad.bind_cont
       ~var_name:(context_or_same_var ctx e)
-      (fun e -> Expr.estructaccess (Expr.evar e mark) field name mark)
+      (fun e -> Expr.estructaccess ~e:(Expr.evar e mark) ~field ~name mark)
       (trans ctx e) ~mark
   | ETuple args ->
     Ast.OptionMonad.mbind_cont ~var_name:ctx.ctx_context_name
@@ -653,8 +653,8 @@ and trans_scope_body_expr ctx s :
       Bindlib.box_apply
         (fun e -> Result e)
         (Expr.Box.lift
-        @@ Expr.estruct name
-             (StructField.Map.map (trans ctx) fields)
+        @@ Expr.estruct ~name
+             ~fields:(StructField.Map.map (trans ctx) fields)
              (Mark.get e))
     | _ -> assert false
   end
@@ -741,7 +741,7 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       prgm.decl_ctx with
       ctx_enums =
         prgm.decl_ctx.ctx_enums
-        |> EnumName.Map.add Expr.option_enum Expr.option_enum_config;
+        |> EnumName.Map.add Expr.option_enum ([], Expr.option_enum_config);
     }
   in
   let decl_ctx =
@@ -749,7 +749,8 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       decl_ctx with
       ctx_structs =
         prgm.decl_ctx.ctx_structs
-        |> StructName.Map.mapi (fun _n str ->
+        |> StructName.Map.mapi (fun _n (path, str) ->
+            path,
                StructField.Map.map trans_typ_keep str);
     }
   in

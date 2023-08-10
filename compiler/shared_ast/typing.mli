@@ -27,6 +27,8 @@ module Env : sig
   val add_toplevel_var : TopdefName.t -> typ -> 'e t -> 'e t
   val add_scope_var : ScopeVar.t -> typ -> 'e t -> 'e t
   val add_scope : ScopeName.t -> vars:typ ScopeVar.Map.t -> 'e t -> 'e t
+  val add_module : ModuleName.t -> module_env:'e t -> 'e t -> 'e t
+  val module_env : path -> 'e t -> 'e t
   val open_scope : ScopeName.t -> 'e t -> 'e t
 end
 

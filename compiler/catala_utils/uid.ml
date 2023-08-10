@@ -35,7 +35,6 @@ module type Id = sig
   val hash : t -> int
 
   module Set : Set.S with type elt = t
-  module SetLabels : MoreLabels.Set.S with type elt = t and type t = Set.t
   module Map : Map.S with type key = t
 end
 
@@ -43,7 +42,7 @@ module Make (X : Info) () : Id with type info = X.info = struct
   module Ordering = struct
     type t = { id : int; info : X.info }
 
-    let compare (x : t) (y : t) : int = compare x.id y.id
+    let compare (x : t) (y : t) : int = Int.compare x.id y.id
     let equal x y = Int.equal x.id y.id
     let format ppf t = X.format ppf t.info
   end
@@ -64,8 +63,6 @@ module Make (X : Info) () : Id with type info = X.info = struct
 
   module Set = Set.Make (Ordering)
   module Map = Map.Make (Ordering)
-  module SetLabels = MoreLabels.Set.Make (Ordering)
-  module MapLabels = MoreLabels.Map.Make (Ordering)
 end
 
 module MarkedString = struct
