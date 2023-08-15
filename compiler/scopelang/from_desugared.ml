@@ -807,6 +807,13 @@ let translate_program
       }
   in
   let ctx = make_ctx desugared in
+  let rec gather_scope_vars acc modules =
+    ModuleName.Map.fold (fun _modname mctx acc ->
+        let acc = gather_scope_vars acc mctx.modules in
+        ScopeVar.Map.union (fun _ _ -> assert false) acc mctx.scope_var_mapping)
+      modules acc
+  in
+  let ctx = { ctx with scope_var_mapping = gather_scope_vars ctx.scope_var_mapping ctx.modules } in
   let rec process_decl_ctx ctx decl_ctx =
     let ctx_scopes =
       ScopeName.Map.map

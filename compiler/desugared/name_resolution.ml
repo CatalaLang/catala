@@ -949,6 +949,16 @@ let form_context (prgm : Surface.Ast.program) : context =
     List.fold_left import_module ModuleName.Map.empty prgm.program_modules
   in
   let ctxt = { empty_ctxt with modules } in
+  let rec gather_var_sigs acc modules =
+    (* Scope vars from imported modules need to be accessible directly for definitions through submodules *)
+    ModuleName.Map.fold (fun _modname mctx acc ->
+        let acc = gather_var_sigs acc mctx.modules in
+        ScopeVar.Map.union (fun _ _ -> assert false) acc mctx.var_typs)
+      modules acc
+  in
+  let ctxt =
+    { ctxt with var_typs = gather_var_sigs ScopeVar.Map.empty ctxt.modules }
+  in
   let ctxt =
     List.fold_left
       (process_law_structure process_name_item)
