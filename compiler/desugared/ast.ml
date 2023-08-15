@@ -248,7 +248,8 @@ let free_variables (def : rule RuleName.Map.t) : Pos.t ScopeDef.Map.t =
       (fun (loc, loc_pos) acc ->
         let usage =
           match loc with
-          | DesugaredScopeVar { name; state } -> Some (ScopeDef.Var (Mark.remove name, state))
+          | DesugaredScopeVar { name; state } ->
+            Some (ScopeDef.Var (Mark.remove name, state))
           | SubScopeVar { alias; var; _ } ->
             Some
               (ScopeDef.SubScopeVar

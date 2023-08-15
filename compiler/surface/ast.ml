@@ -310,7 +310,8 @@ and law_structure =
   | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
 
 and interface = code_block
-(** Invariant: an interface shall only contain [*Decl] elements, or [Topdef] elements with [topdef_expr = None] *)
+(** Invariant: an interface shall only contain [*Decl] elements, or [Topdef]
+    elements with [topdef_expr = None] *)
 
 and program = {
   program_items : law_structure list;

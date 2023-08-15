@@ -261,7 +261,8 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
           (fun used_var g ->
             let edge_from =
               match Mark.remove used_var with
-              | DesugaredScopeVar { name; state } -> Some (Vertex.Var (Mark.remove name, state))
+              | DesugaredScopeVar { name; state } ->
+                Some (Vertex.Var (Mark.remove name, state))
               | SubScopeVar { alias; _ } ->
                 Some (Vertex.SubScope (Mark.remove alias))
               | ToplevelVar _ -> None

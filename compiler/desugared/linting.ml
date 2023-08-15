@@ -108,7 +108,8 @@ let detect_unused_struct_fields (p : program) : unit =
       ~f:(fun struct_fields_used e ->
         let rec structs_fields_used_expr e struct_fields_used =
           match Mark.remove e with
-          | EDStructAccess { name_opt = Some name; e = e_struct; field; path = _ } ->
+          | EDStructAccess
+              { name_opt = Some name; e = e_struct; field; path = _ } ->
             let field =
               StructName.Map.find name
                 (Ident.Map.find field p.program_ctx.ctx_struct_fields)

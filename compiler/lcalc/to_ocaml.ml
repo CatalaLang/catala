@@ -218,9 +218,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TClosureEnv -> failwith "unimplemented!"
 
 let format_var_str (fmt : Format.formatter) (v : string) : unit =
-  let lowercase_name =
-    String.to_snake_case (String.to_ascii v)
-  in
+  let lowercase_name = String.to_snake_case (String.to_ascii v) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")
       ~subst:(fun _ -> "_dot_")
@@ -276,13 +274,21 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   in
   match Mark.remove e with
   | EVar v -> Format.fprintf fmt "%a" format_var v
-  | EExternal { path; name } ->
+  | EExternal { path; name } -> (
     Print.path fmt path;
-    (* FIXME: this is wrong in general !!
-       We assume the idents exposed by the module depend only on the original name, while they actually get through Bindlib and may have been renamed. A correct implem could use the runtime registration used by the interpreter, but that would be distasteful and incur a penalty ; or we would need to reproduce the same structure as in the original module to ensure that bindlib performs the exact same renamings ; or finally we could normalise the names at generation time (either at toplevel or in a dedicated submodule ?) *)
-    (match Mark.remove name with
-     | External_value name -> format_var_str fmt (Mark.remove (TopdefName.get_info name))
-     | External_scope name -> format_var_str fmt (Mark.remove (ScopeName.get_info name)))
+    (* FIXME: this is wrong in general !! We assume the idents exposed by the
+       module depend only on the original name, while they actually get through
+       Bindlib and may have been renamed. A correct implem could use the runtime
+       registration used by the interpreter, but that would be distasteful and
+       incur a penalty ; or we would need to reproduce the same structure as in
+       the original module to ensure that bindlib performs the exact same
+       renamings ; or finally we could normalise the names at generation time
+       (either at toplevel or in a dedicated submodule ?) *)
+    match Mark.remove name with
+    | External_value name ->
+      format_var_str fmt (Mark.remove (TopdefName.get_info name))
+    | External_scope name ->
+      format_var_str fmt (Mark.remove (ScopeName.get_info name)))
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
@@ -550,12 +556,10 @@ let format_ctx
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
         let path, def = StructName.Map.find s ctx.ctx_structs in
-        if path = [] then
-          Format.fprintf fmt "%a@\n" format_struct_decl (s, def)
+        if path = [] then Format.fprintf fmt "%a@\n" format_struct_decl (s, def)
       | Scopelang.Dependency.TVertex.Enum e ->
         let path, def = EnumName.Map.find e ctx.ctx_enums in
-        if path = [] then
-          Format.fprintf fmt "%a@\n" format_enum_decl (e, def))
+        if path = [] then Format.fprintf fmt "%a@\n" format_enum_decl (e, def))
     (type_ordering @ scope_structs)
 
 let rename_vars e =

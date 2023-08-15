@@ -109,7 +109,10 @@ let subst binder vars =
   Bindlib.msubst binder (Array.of_list (List.map Mark.remove vars))
 
 let evar v mark = Mark.add mark (Bindlib.box_var v)
-let eexternal ~path ~name mark = Mark.add mark (Bindlib.box (EExternal {path; name}))
+
+let eexternal ~path ~name mark =
+  Mark.add mark (Bindlib.box (EExternal { path; name }))
+
 let etuple args = Box.appn args @@ fun args -> ETuple args
 
 let etupleaccess e index size =
@@ -296,8 +299,7 @@ let map
     estruct ~name ~fields m
   | EDStructAccess { path; name_opt; field; e } ->
     edstructaccess ~path ~name_opt ~field ~e:(f e) m
-  | EStructAccess { name; field; e } ->
-    estructaccess ~name ~field ~e:(f e) m
+  | EStructAccess { name; field; e } -> estructaccess ~name ~field ~e:(f e) m
   | EMatch { name; e; cases } ->
     let cases = EnumConstructor.Map.map f cases in
     ematch ~name ~e:(f e) ~cases m
@@ -389,7 +391,7 @@ let map_gather
     acc, etupleaccess e index size m
   | EInj { name; cons; e } ->
     let acc, e = f e in
-    acc, einj ~name ~cons ~e  m
+    acc, einj ~name ~cons ~e m
   | EAssert e ->
     let acc, e = f e in
     acc, eassert e m
@@ -516,31 +518,33 @@ let compare_lit (l1 : lit) (l2 : lit) =
   | LDuration _, _ -> .
   | _, LDuration _ -> .
 
-let compare_path =
-  List.compare (Mark.compare ModuleName.compare)
+let compare_path = List.compare (Mark.compare ModuleName.compare)
 
 let compare_location
     (type a)
     (x : a glocation Mark.pos)
     (y : a glocation Mark.pos) =
   match Mark.remove x, Mark.remove y with
-  | DesugaredScopeVar { name = vx; state = None}, DesugaredScopeVar { name = vy; state = None}
-  | DesugaredScopeVar { name = vx; state = Some _}, DesugaredScopeVar { name = vy; state = None}
-  | DesugaredScopeVar { name = vx; state = None}, DesugaredScopeVar { name = vy; state = Some _} ->
+  | ( DesugaredScopeVar { name = vx; state = None },
+      DesugaredScopeVar { name = vy; state = None } )
+  | ( DesugaredScopeVar { name = vx; state = Some _ },
+      DesugaredScopeVar { name = vy; state = None } )
+  | ( DesugaredScopeVar { name = vx; state = None },
+      DesugaredScopeVar { name = vy; state = Some _ } ) ->
     ScopeVar.compare (Mark.remove vx) (Mark.remove vy)
-  | DesugaredScopeVar {name = (x, _); state = Some sx}, DesugaredScopeVar {name = (y, _); state = Some sy} ->
+  | ( DesugaredScopeVar { name = x, _; state = Some sx },
+      DesugaredScopeVar { name = y, _; state = Some sy } ) ->
     let cmp = ScopeVar.compare x y in
     if cmp = 0 then StateName.compare sx sy else cmp
-  | ScopelangScopeVar { name = (vx, _) }, ScopelangScopeVar { name = (vy, _) } ->
+  | ScopelangScopeVar { name = vx, _ }, ScopelangScopeVar { name = vy, _ } ->
     ScopeVar.compare vx vy
-  | ( SubScopeVar { alias = (xsubindex, _); var = (xsubvar, _); _},
-      SubScopeVar { alias = (ysubindex, _); var = (ysubvar, _); _} ) ->
+  | ( SubScopeVar { alias = xsubindex, _; var = xsubvar, _; _ },
+      SubScopeVar { alias = ysubindex, _; var = ysubvar, _; _ } ) ->
     let c = SubScopeName.compare xsubindex ysubindex in
     if c = 0 then ScopeVar.compare xsubvar ysubvar else c
-  | ToplevelVar { path = px; name = (vx, _) }, ToplevelVar { path = py; name = (vy, _) } ->
-    (match compare_path px py with
-     | 0 -> TopdefName.compare vx vy
-     | n -> n)
+  | ( ToplevelVar { path = px; name = vx, _ },
+      ToplevelVar { path = py; name = vy, _ } ) -> (
+    match compare_path px py with 0 -> TopdefName.compare vx vy | n -> n)
   | DesugaredScopeVar _, _ -> -1
   | _, DesugaredScopeVar _ -> 1
   | ScopelangScopeVar _, _ -> -1
@@ -554,11 +558,15 @@ let equal_path = List.equal (Mark.equal ModuleName.equal)
 let equal_location a b = compare_location a b = 0
 let equal_except ex1 ex2 = ex1 = ex2
 let compare_except ex1 ex2 = Stdlib.compare ex1 ex2
-let equal_external_ref ref1 ref2 = match ref1, ref2 with
+
+let equal_external_ref ref1 ref2 =
+  match ref1, ref2 with
   | External_value v1, External_value v2 -> TopdefName.equal v1 v2
   | External_scope s1, External_scope s2 -> ScopeName.equal s1 s2
   | (External_value _ | External_scope _), _ -> false
-let compare_external_ref ref1 ref2 = match ref1, ref2 with
+
+let compare_external_ref ref1 ref2 =
+  match ref1, ref2 with
   | External_value v1, External_value v2 -> TopdefName.compare v1 v2
   | External_scope s1, External_scope s2 -> ScopeName.compare s1 s2
   | External_value _, _ -> -1
@@ -569,7 +577,7 @@ let compare_external_ref ref1 ref2 = match ref1, ref2 with
 (* weird indentation; see
    https://github.com/ocaml-ppx/ocamlformat/issues/2143 *)
 let rec equal_list : 'a. ('a, 't) gexpr list -> ('a, 't) gexpr list -> bool =
-  fun es1 es2 -> List.equal equal es1 es2
+ fun es1 es2 -> List.equal equal es1 es2
 
 and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
  fun e1 e2 ->
@@ -609,12 +617,15 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
   | ( EDStructAccess { e = e1; field = f1; name_opt = s1; path = p1 },
       EDStructAccess { e = e2; field = f2; name_opt = s2; path = p2 } ) ->
-    Option.equal StructName.equal s1 s2 && equal_path p1 p2 && Ident.equal f1 f2 && equal e1 e2
+    Option.equal StructName.equal s1 s2
+    && equal_path p1 p2
+    && Ident.equal f1 f2
+    && equal e1 e2
   | ( EStructAccess { e = e1; field = f1; name = s1 },
       EStructAccess { e = e2; field = f2; name = s2 } ) ->
     StructName.equal s1 s2 && StructField.equal f1 f2 && equal e1 e2
-  | EInj { e = e1; cons = c1; name = n1 },
-    EInj { e = e2; cons = c2; name = n2 } ->
+  | EInj { e = e1; cons = c1; name = n1 }, EInj { e = e2; cons = c2; name = n2 }
+    ->
     EnumName.equal n1 n2 && EnumConstructor.equal c1 c2 && equal e1 e2
   | ( EMatch { e = e1; name = n1; cases = cases1 },
       EMatch { e = e2; name = n2; cases = cases2 } ) ->
@@ -623,9 +634,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     && EnumConstructor.Map.equal equal cases1 cases2
   | ( EScopeCall { path = p1; scope = s1; args = fields1 },
       EScopeCall { path = p2; scope = s2; args = fields2 } ) ->
-    ScopeName.equal s1 s2 &&
-    equal_path p1 p2 &&
-    ScopeVar.Map.equal equal fields1 fields2
+    ScopeName.equal s1 s2
+    && equal_path p1 p2
+    && ScopeVar.Map.equal equal fields1 fields2
   | ( ECustom { obj = obj1; targs = targs1; tret = tret1 },
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2

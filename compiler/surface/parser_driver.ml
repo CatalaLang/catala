@@ -231,7 +231,7 @@ let rec parse_source_file
   {
     program_items = program.Ast.program_items;
     program_source_files = source_file_name :: program.Ast.program_source_files;
-    program_modules = []
+    program_modules = [];
   }
 
 (** Expands the include directives in a parsing result, thus parsing new source
@@ -267,8 +267,7 @@ and expand_includes
           Ast.program_source_files = acc.Ast.program_source_files @ new_sources;
           Ast.program_items =
             acc.Ast.program_items @ [Ast.LawHeading (heading, commands')];
-          Ast.program_modules =
-            acc.Ast.program_modules @ new_modules;
+          Ast.program_modules = acc.Ast.program_modules @ new_modules;
         }
       | i -> { acc with Ast.program_items = acc.Ast.program_items @ [i] })
     {
@@ -302,8 +301,7 @@ let get_interface program =
 (** {1 API} *)
 
 let load_interface source_file language =
-  parse_source_file source_file language
-  |> get_interface
+  parse_source_file source_file language |> get_interface
 
 let parse_top_level_file
     (source_file : Cli.input_file)

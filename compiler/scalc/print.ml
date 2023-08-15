@@ -43,8 +43,8 @@ let rec format_expr
   | EFunc v -> Format.fprintf fmt "%a" format_func_name v
   | EStruct (es, s) ->
     let path, fields = StructName.Map.find s decl_ctx.ctx_structs in
-    Format.fprintf fmt "@[<hov 2>%a%a@ %a%a%a@]" Print.path path StructName.format s
-      Print.punctuation "{"
+    Format.fprintf fmt "@[<hov 2>%a%a@ %a%a%a@]" Print.path path
+      StructName.format s Print.punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, (struct_field, _)) ->
@@ -150,13 +150,11 @@ let rec format_statement
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt ((case, _), (arm_block, payload_name)) ->
            Format.fprintf fmt "%a %a%a%a@ %a @[<v 2>%a@ %a@]" Print.punctuation
-             "|" Print.path path Print.enum_constructor case Print.punctuation ":"
-             format_var_name payload_name Print.punctuation "→"
+             "|" Print.path path Print.enum_constructor case Print.punctuation
+             ":" format_var_name payload_name Print.punctuation "→"
              (format_block decl_ctx ~debug)
              arm_block))
-      (List.combine
-         (EnumConstructor.Map.bindings cons)
-         arms)
+      (List.combine (EnumConstructor.Map.bindings cons) arms)
 
 and format_block
     (decl_ctx : decl_ctx)

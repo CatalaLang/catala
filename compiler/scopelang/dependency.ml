@@ -82,7 +82,8 @@ let rec expr_used_defs e =
       e VMap.empty
   in
   match e with
-  | ELocation (ToplevelVar { path = []; name = v, pos }), _ -> VMap.singleton (Topdef v) pos
+  | ELocation (ToplevelVar { path = []; name = v, pos }), _ ->
+    VMap.singleton (Topdef v) pos
   | (EScopeCall { path = []; scope; _ }, m) as e ->
     VMap.add (Scope scope) (Expr.mark_pos m) (recurse_subterms e)
   | EAbs { binder; _ }, _ ->
@@ -95,7 +96,7 @@ let rule_used_defs = function
     (* TODO: maybe this info could be passed on from previous passes without
        walking through all exprs again *)
     expr_used_defs e
-  | Ast.Call ((_::_path, _), _, _) -> VMap.empty
+  | Ast.Call ((_ :: _path, _), _, _) -> VMap.empty
   | Ast.Call (([], subscope), subindex, _) ->
     VMap.singleton (Scope subscope) (Mark.get (SubScopeName.get_info subindex))
 
@@ -148,7 +149,8 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
             used_defs g)
         g scope.Ast.scope_decl_rules)
     prgm.program_scopes g
-(* TODO FIXME: Add submodules here, they may still need dependency resolution type-wise (?) *)
+(* TODO FIXME: Add submodules here, they may still need dependency resolution
+   type-wise (?) *)
 
 let check_for_cycle_in_defs (g : SDependencies.t) : unit =
   (* if there is a cycle, there will be an strongly connected component of
@@ -284,8 +286,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
                   Message.raise_spanned_error (Mark.get typ)
                     "The type %a%a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
-                    Print.path path
-                    TVertex.format used
+                    Print.path path TVertex.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in
                   TDependencies.add_edge_e g edge)
@@ -307,8 +308,7 @@ let build_type_graph (structs : struct_ctx) (enums : enum_ctx) : TDependencies.t
                   Message.raise_spanned_error (Mark.get typ)
                     "The type %a%a is defined using itself, which is forbidden \
                      since Catala does not provide recursive types"
-                    Print.path path
-                    TVertex.format used
+                    Print.path path TVertex.format used
                 else
                   let edge = TDependencies.E.create used (Mark.get typ) def in
                   TDependencies.add_edge_e g edge)

@@ -173,7 +173,6 @@ let readdir_sort (dirname : string) : string array =
     dirs
   with Sys_error _ -> [||]
 
-
 (** Given a file, looks in the relative [output] directory if there are files
     with the same base name that contain expected outputs for different *)
 let search_for_expected_outputs (file : string) : expected_output_descr list =

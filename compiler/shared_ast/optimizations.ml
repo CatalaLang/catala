@@ -409,12 +409,15 @@ let test_iota_reduction_2 () =
 
   let matchA =
     Expr.ematch
-      ~e:(Expr.ematch ~e:(num 1) ~name:enumT
-            ~cases:(cases_of_list
-            [
-              (consB, fun x -> injBe (injB x)); (consA, fun _x -> injAe (num 20));
-            ])
-         nomark)
+      ~e:
+        (Expr.ematch ~e:(num 1) ~name:enumT
+           ~cases:
+             (cases_of_list
+                [
+                  (consB, fun x -> injBe (injB x));
+                  (consA, fun _x -> injAe (num 20));
+                ])
+           nomark)
       ~name:enumT
       ~cases:(cases_of_list [consA, injC; consB, injD])
       nomark

@@ -549,31 +549,33 @@ let rec evaluate_expr :
     Message.raise_spanned_error pos
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
-  | EExternal { path; name } -> (
-      let ty =
-        try
-          let ctx = Program.module_ctx ctx path in
-          match Mark.remove name with
-          | External_value name ->
-            TopdefName.Map.find name ctx.ctx_topdefs
-          | External_scope name ->
-            let scope_info = ScopeName.Map.find name ctx.ctx_scopes in
-            TArrow ([TStruct scope_info.in_struct_name, pos],
-                    (TStruct scope_info.out_struct_name, pos)),
-            pos
-        with TopdefName.Map.Not_found _ | ScopeName.Map.Not_found _ ->
-          Message.raise_spanned_error pos "Reference to %a%a could not be resolved"
-            Print.path path Print.external_ref name
-      in
-      let runtime_path =
-        List.map Mark.remove path,
+  | EExternal { path; name } ->
+    let ty =
+      try
+        let ctx = Program.module_ctx ctx path in
+        match Mark.remove name with
+        | External_value name -> TopdefName.Map.find name ctx.ctx_topdefs
+        | External_scope name ->
+          let scope_info = ScopeName.Map.find name ctx.ctx_scopes in
+          ( TArrow
+              ( [TStruct scope_info.in_struct_name, pos],
+                (TStruct scope_info.out_struct_name, pos) ),
+            pos )
+      with TopdefName.Map.Not_found _ | ScopeName.Map.Not_found _ ->
+        Message.raise_spanned_error pos
+          "Reference to %a%a could not be resolved" Print.path path
+          Print.external_ref name
+    in
+    let runtime_path =
+      ( List.map Mark.remove path,
         match Mark.remove name with
         | External_value name -> Mark.remove (TopdefName.get_info name)
-        | External_scope name -> Mark.remove (ScopeName.get_info name)
-        (* we have the guarantee that the two cases won't collide because they have different capitalisation rules inherited from the input *)
-      in
-      let o = Runtime.lookup_value runtime_path in
-      runtime_to_val evaluate_expr ctx m ty o)
+        | External_scope name -> Mark.remove (ScopeName.get_info name) )
+      (* we have the guarantee that the two cases won't collide because they
+         have different capitalisation rules inherited from the input *)
+    in
+    let o = Runtime.lookup_value runtime_path in
+    runtime_to_val evaluate_expr ctx m ty o
   | EApp { f = e1; args } -> (
     let e1 = evaluate_expr ctx e1 in
     let args = List.map (evaluate_expr ctx) args in

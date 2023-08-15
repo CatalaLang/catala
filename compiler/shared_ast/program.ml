@@ -41,11 +41,12 @@ let empty_ctx =
 
 let rec module_ctx ctx = function
   | [] -> ctx
-  | (modname, mpos) :: path ->
+  | (modname, mpos) :: path -> (
     match ModuleName.Map.find_opt modname ctx.ctx_modules with
     | None ->
-      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format modname
-    | Some ctx -> module_ctx ctx path
+      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format
+        modname
+    | Some ctx -> module_ctx ctx path)
 
 let get_scope_body { code_items; _ } scope =
   match

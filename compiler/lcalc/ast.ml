@@ -26,7 +26,8 @@ module OptionMonad = struct
     Expr.einj ~e ~cons:Expr.some_constr ~name:Expr.option_enum mark
 
   let empty ~(mark : 'a mark) =
-    Expr.einj ~e:(Expr.elit LUnit mark) ~cons:Expr.none_constr ~name:Expr.option_enum mark
+    Expr.einj ~e:(Expr.elit LUnit mark) ~cons:Expr.none_constr
+      ~name:Expr.option_enum mark
 
   let bind_var ~(mark : 'a mark) f x arg =
     let cases =
@@ -36,8 +37,8 @@ module OptionMonad = struct
             let x = Var.make "_" in
             Expr.eabs
               (Expr.bind [| x |]
-                 (Expr.einj ~e:(Expr.evar x mark) ~cons:Expr.none_constr ~name:Expr.option_enum
-                    mark))
+                 (Expr.einj ~e:(Expr.evar x mark) ~cons:Expr.none_constr
+                    ~name:Expr.option_enum mark))
               [TLit TUnit, Expr.mark_pos mark]
               mark );
           (* | None x -> None x *)

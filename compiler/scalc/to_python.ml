@@ -274,9 +274,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
   | EStruct (es, s) ->
-    let path, fields =
-      StructName.Map.find s ctx.ctx_structs
-    in
+    let path, fields = StructName.Map.find s ctx.ctx_structs in
     Format.fprintf fmt "%a%a(%a)" Print.path path format_struct_name s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
@@ -442,9 +440,9 @@ let rec format_statement
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
          (fun fmt (case_block, payload_var, cons_name) ->
            Format.fprintf fmt "%a.code == %a%a_Code.%a:@\n%a = %a.value@\n%a"
-             format_var tmp_var Print.path path format_enum_name e_name format_enum_cons_name
-             cons_name format_var payload_var format_var tmp_var
-             (format_block ctx) case_block))
+             format_var tmp_var Print.path path format_enum_name e_name
+             format_enum_cons_name cons_name format_var payload_var format_var
+             tmp_var (format_block ctx) case_block))
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx)

@@ -23,7 +23,8 @@ open Definitions
 val empty_ctx : decl_ctx
 
 val module_ctx : decl_ctx -> ModuleName.t Mark.pos list -> decl_ctx
-(** Follows a path to get the corresponding context for type and value declarations. Errors out if the module is not found *)
+(** Follows a path to get the corresponding context for type and value
+    declarations. Errors out if the module is not found *)
 
 (** {2 Transformations} *)
 

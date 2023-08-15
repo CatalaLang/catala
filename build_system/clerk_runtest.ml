@@ -40,7 +40,7 @@ let checkfile parents file =
          ~pp_sep:(fun ppf () -> Format.fprintf ppf " %a@ " String.format "→")
          Format.pp_print_string)
       (List.rev (file :: parents));
-  (file :: parents), file
+  file :: parents, file
 
 let with_in_channel_safe parents file f =
   try File.with_in_channel file f
@@ -186,9 +186,9 @@ let run_inline_tests
   | [] -> Message.emit_warning "No inline tests found in %s" file
   | file_tests ->
     Message.emit_debug "@[<v 2>Running tests:@ %a@]"
-      (Format.pp_print_list
-         (fun ppf t -> Format.fprintf ppf "- @[<hov>%s:@ %d tests@]"
-             t.filename (List.length t.tests)))
+      (Format.pp_print_list (fun ppf t ->
+           Format.fprintf ppf "- @[<hov>%s:@ %d tests@]" t.filename
+             (List.length t.tests)))
       file_tests;
     let run test oc =
       List.iter
@@ -214,7 +214,8 @@ let run_inline_tests
           let pid =
             let cwd = Unix.getcwd () in
             Unix.chdir file_dir;
-            Fun.protect ~finally:(fun () -> Unix.chdir cwd) @@ fun () ->
+            Fun.protect ~finally:(fun () -> Unix.chdir cwd)
+            @@ fun () ->
             Unix.create_process_env catala_exe cmd env Unix.stdin cmd_out_wr
               cmd_out_wr
           in
@@ -256,4 +257,3 @@ let run_inline_tests
           Sys.rename out test.filename)
         else run test stdout)
       file_tests
-

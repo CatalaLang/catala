@@ -72,30 +72,30 @@ let program prg =
     let env =
       ScopeName.Map.fold
         (fun scope_name scope env ->
-           let vars =
-             ScopeDef.Map.fold
-               (fun var def vars ->
-                  match var with
-                  | Var (v, _states) -> ScopeVar.Map.add v def.scope_def_typ vars
-                  | SubScopeVar _ -> vars)
-               scope.scope_defs ScopeVar.Map.empty
-           in
-           Typing.Env.add_scope scope_name ~vars env)
+          let vars =
+            ScopeDef.Map.fold
+              (fun var def vars ->
+                match var with
+                | Var (v, _states) -> ScopeVar.Map.add v def.scope_def_typ vars
+                | SubScopeVar _ -> vars)
+              scope.scope_defs ScopeVar.Map.empty
+          in
+          Typing.Env.add_scope scope_name ~vars env)
         prg.program_scopes env
     in
     env
   in
   let rec build_typing_env prg =
-    ModuleName.Map.fold (fun modname prg ->
+    ModuleName.Map.fold
+      (fun modname prg ->
         Typing.Env.add_module modname ~module_env:(build_typing_env prg))
-      prg.program_modules
-      (base_typing_env prg)
+      prg.program_modules (base_typing_env prg)
   in
   let env =
-    ModuleName.Map.fold (fun modname prg ->
+    ModuleName.Map.fold
+      (fun modname prg ->
         Typing.Env.add_module modname ~module_env:(build_typing_env prg))
-      prg.program_modules
-      (base_typing_env prg)
+      prg.program_modules (base_typing_env prg)
   in
   let program_topdefs =
     TopdefName.Map.map

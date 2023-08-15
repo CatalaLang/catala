@@ -23,7 +23,9 @@
 open Catala_utils
 module Runtime = Runtime_ocaml.Runtime
 module ModuleName = String
-(* TODO: should probably be turned into an Uid once we implement module import directives; that will incur an additional resolution work on all paths though *)
+(* TODO: should probably be turned into an Uid once we implement module import
+   directives; that will incur an additional resolution work on all paths
+   though *)
 
 module ScopeName = Uid.Gen ()
 module TopdefName = Uid.Gen ()
@@ -314,8 +316,10 @@ type except = ConflictError | EmptyError | NoValueProvided | Crash
 type untyped = { pos : Pos.t } [@@caml.unboxed]
 type typed = { pos : Pos.t; ty : typ }
 type 'a custom = { pos : Pos.t; custom : 'a }
+
+(** Using empty markings will ensure terms can't be constructed: used for
+    example in interfaces to ensure that they don't contain any expressions *)
 type nil = |
-  (** Using empty markings will ensure terms can't be constructed: used for example in interfaces to ensure that they don't contain any expressions *)
 
 (** The generic type of AST markings. Using a GADT allows functions to be
     polymorphic in the marking, but still do transformations on types when
@@ -346,24 +350,34 @@ type lit =
 
 type path = ModuleName.t Mark.pos list
 
-(** External references are resolved to strings that point to functions or constants in the end, but we need to keep different references for typing *)
+(** External references are resolved to strings that point to functions or
+    constants in the end, but we need to keep different references for typing *)
 type external_ref =
   | External_value of TopdefName.t
   | External_scope of ScopeName.t
 
 (** Locations are handled differently in [desugared] and [scopelang] *)
 type 'a glocation =
-  | DesugaredScopeVar :
-      { name: ScopeVar.t Mark.pos; state: StateName.t option }
+  | DesugaredScopeVar : {
+      name : ScopeVar.t Mark.pos;
+      state : StateName.t option;
+    }
       -> < scopeVarStates : yes ; .. > glocation
-  | ScopelangScopeVar :
-      { name: ScopeVar.t Mark.pos }
+  | ScopelangScopeVar : {
+      name : ScopeVar.t Mark.pos;
+    }
       -> < scopeVarSimpl : yes ; .. > glocation
-  | SubScopeVar :
-      { path: path; scope: ScopeName.t; alias: SubScopeName.t Mark.pos; var: ScopeVar.t Mark.pos }
+  | SubScopeVar : {
+      path : path;
+      scope : ScopeName.t;
+      alias : SubScopeName.t Mark.pos;
+      var : ScopeVar.t Mark.pos;
+    }
       -> < explicitScopes : yes ; .. > glocation
-  | ToplevelVar :
-      { path: path; name: TopdefName.t Mark.pos }
+  | ToplevelVar : {
+      path : path;
+      name : TopdefName.t Mark.pos;
+    }
       -> < explicitScopes : yes ; .. > glocation
 
 type ('a, 'm) gexpr = (('a, 'm) naked_gexpr, 'm) marked
@@ -463,7 +477,11 @@ and ('a, 'b, 'm) base_gexpr =
       -> ('a, < resolvedNames : yes ; .. >, 'm) base_gexpr
       (** Resolved struct/enums, after [desugared] *)
   (* Lambda-like *)
-  | EExternal : { path: path; name: external_ref Mark.pos} -> ('a, < explicitScopes: no ; .. >, 't) base_gexpr
+  | EExternal : {
+      path : path;
+      name : external_ref Mark.pos;
+    }
+      -> ('a, < explicitScopes : no ; .. >, 't) base_gexpr
   | EAssert : ('a, 'm) gexpr -> ('a, < assertions : yes ; .. >, 'm) base_gexpr
   (* Default terms *)
   | EDefault : {
@@ -595,7 +613,4 @@ type decl_ctx = {
   ctx_modules : decl_ctx ModuleName.Map.t;
 }
 
-type 'e program = {
-  decl_ctx : decl_ctx;
-  code_items : 'e code_item_list;
-}
+type 'e program = { decl_ctx : decl_ctx; code_items : 'e code_item_list }

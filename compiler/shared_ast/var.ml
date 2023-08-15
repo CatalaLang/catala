@@ -92,6 +92,7 @@ module Map = struct
   open M
 
   type k0 = M.key
+
   exception Not_found = M.Not_found
 
   type nonrec ('e, 'x) t = 'x t

@@ -61,9 +61,7 @@ module Passes = struct
     let prg =
       Surface.Parser_driver.parse_top_level_file options.input_file language
     in
-    let prg =
-      Surface.Fill_positions.fill_pos_with_legislative_info prg
-    in
+    let prg = Surface.Fill_positions.fill_pos_with_legislative_info prg in
     let prg =
       { prg with program_modules = load_module_interfaces options link_modules }
     in
@@ -256,8 +254,8 @@ module Commands = struct
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
         variable ScopeName.format scope_uid
     | Some
-        (Desugared.Name_resolution.SubScope (subscope_var_name, (subscope_path, subscope_name)))
-      -> (
+        (Desugared.Name_resolution.SubScope
+          (subscope_var_name, (subscope_path, subscope_name))) -> (
       match second_part with
       | None ->
         Message.raise_error

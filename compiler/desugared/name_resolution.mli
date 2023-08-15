@@ -65,8 +65,7 @@ type var_sig = {
 type typedef =
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TScope of ScopeName.t * scope_info
-      (** Implicitly defined output struct *)
+  | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type context = {
   typedefs : typedef Ident.Map.t;
@@ -152,7 +151,8 @@ val get_scope : context -> Ident.t Mark.pos -> ScopeName.t
     has a different kind *)
 
 val module_ctx : context -> path -> context
-(** Returns the context corresponding to the given module path; raises a user error if the module is not found *)
+(** Returns the context corresponding to the given module path; raises a user
+    error if the module is not found *)
 
 val process_type : context -> Surface.Ast.typ -> typ
 (** Convert a surface base type to an AST type *)

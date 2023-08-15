@@ -169,7 +169,11 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
     Ast.OptionMonad.return ~mark
       (Expr.eapp
          (Expr.evar (trans_var ctx scope) mark)
-         [Expr.estruct ~name ~fields:(StructField.Map.map (trans ctx) fields) mark]
+         [
+           Expr.estruct ~name
+             ~fields:(StructField.Map.map (trans ctx) fields)
+             mark;
+         ]
          mark)
   | EApp { f = (EVar ff, _) as f; args }
     when not (Var.Map.find ff ctx.ctx_vars).is_scope ->
@@ -750,8 +754,7 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       ctx_structs =
         prgm.decl_ctx.ctx_structs
         |> StructName.Map.mapi (fun _n (path, str) ->
-            path,
-               StructField.Map.map trans_typ_keep str);
+               path, StructField.Map.map trans_typ_keep str);
     }
   in
 

@@ -146,53 +146,53 @@ module To_jsoo = struct
         To_ocaml.format_to_module_name fmt (`Sname struct_name)
       in
       let fmt_to_jsoo fmt _ =
-          Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-             (fun fmt (struct_field, struct_field_type) ->
-               match Mark.remove struct_field_type with
-               | TArrow (t1, t2) ->
-                 let args_names =
-                   ListLabels.mapi t1 ~f:(fun i _ ->
-                       "function_input" ^ string_of_int i)
-                 in
-                 Format.fprintf fmt
-                   "@[<hov 2>method %a =@ Js.wrap_meth_callback@ @[<hv 2>(@,\
-                    fun _ %a ->@ %a (%a.%a %a))@]@]"
-                   format_struct_field_name_camel_case struct_field
-                   (Format.pp_print_list (fun fmt (arg_i, ti) ->
-                        Format.fprintf fmt "(%s: %a)" arg_i format_typ ti))
-                   (List.combine args_names t1)
-                   format_typ_to_jsoo t2 fmt_struct_name ()
-                   format_struct_field_name (None, struct_field)
-                   (Format.pp_print_list (fun fmt (i, ti) ->
-                        Format.fprintf fmt "@[<hv 2>(%a@ %a)@]"
-                          format_typ_of_jsoo ti Format.pp_print_string i))
-                   (List.combine args_names t1)
-               | _ ->
-                 Format.fprintf fmt "@[<hov 2>val %a =@ %a %a.%a@]"
-                   format_struct_field_name_camel_case struct_field
-                   format_typ_to_jsoo struct_field_type fmt_struct_name ()
-                   format_struct_field_name (None, struct_field))
-             fmt
+        Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+          (fun fmt (struct_field, struct_field_type) ->
+            match Mark.remove struct_field_type with
+            | TArrow (t1, t2) ->
+              let args_names =
+                ListLabels.mapi t1 ~f:(fun i _ ->
+                    "function_input" ^ string_of_int i)
+              in
+              Format.fprintf fmt
+                "@[<hov 2>method %a =@ Js.wrap_meth_callback@ @[<hv 2>(@,\
+                 fun _ %a ->@ %a (%a.%a %a))@]@]"
+                format_struct_field_name_camel_case struct_field
+                (Format.pp_print_list (fun fmt (arg_i, ti) ->
+                     Format.fprintf fmt "(%s: %a)" arg_i format_typ ti))
+                (List.combine args_names t1)
+                format_typ_to_jsoo t2 fmt_struct_name ()
+                format_struct_field_name (None, struct_field)
+                (Format.pp_print_list (fun fmt (i, ti) ->
+                     Format.fprintf fmt "@[<hv 2>(%a@ %a)@]" format_typ_of_jsoo
+                       ti Format.pp_print_string i))
+                (List.combine args_names t1)
+            | _ ->
+              Format.fprintf fmt "@[<hov 2>val %a =@ %a %a.%a@]"
+                format_struct_field_name_camel_case struct_field
+                format_typ_to_jsoo struct_field_type fmt_struct_name ()
+                format_struct_field_name (None, struct_field))
+          fmt
           (StructField.Map.bindings struct_fields)
       in
       let fmt_of_jsoo fmt _ =
-          Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
-             (fun fmt (struct_field, struct_field_type) ->
-               match Mark.remove struct_field_type with
-               | TArrow _ ->
-                 Format.fprintf fmt
-                   "%a = failwith \"The function '%a' translation isn't yet \
-                    supported...\""
-                   format_struct_field_name (None, struct_field)
-                   format_struct_field_name (None, struct_field)
-               | _ ->
-                 Format.fprintf fmt
-                   "@[<hv 2>%a =@ @[<hov 2>%a@ @[<hov>%a@,##.%a@]@]@]"
-                   format_struct_field_name (None, struct_field)
-                   format_typ_of_jsoo struct_field_type fmt_struct_name ()
-                   format_struct_field_name_camel_case struct_field)
+        Format.pp_print_list
+          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
+          (fun fmt (struct_field, struct_field_type) ->
+            match Mark.remove struct_field_type with
+            | TArrow _ ->
+              Format.fprintf fmt
+                "%a = failwith \"The function '%a' translation isn't yet \
+                 supported...\""
+                format_struct_field_name (None, struct_field)
+                format_struct_field_name (None, struct_field)
+            | _ ->
+              Format.fprintf fmt
+                "@[<hv 2>%a =@ @[<hov 2>%a@ @[<hov>%a@,##.%a@]@]@]"
+                format_struct_field_name (None, struct_field) format_typ_of_jsoo
+                struct_field_type fmt_struct_name ()
+                format_struct_field_name_camel_case struct_field)
           fmt
           (StructField.Map.bindings struct_fields)
       in
@@ -231,8 +231,9 @@ module To_jsoo = struct
           (StructField.Map.bindings struct_fields)
           fmt_conv_funs ()
     in
-    let format_enum_decl fmt (enum_name, (path, (enum_cons : typ EnumConstructor.Map.t)))
-        =
+    let format_enum_decl
+        fmt
+        (enum_name, (path, (enum_cons : typ EnumConstructor.Map.t))) =
       let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
       let fmt_module_enum_name fmt () =
         Print.path fmt path;

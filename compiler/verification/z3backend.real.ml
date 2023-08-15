@@ -667,11 +667,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
        accesses *)
     let accessors = List.hd (Datatype.get_accessors z3_struct) in
     let _path, fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
-    let idx_mappings =
-      List.combine
-        (StructField.Map.keys fields)
-        accessors
-    in
+    let idx_mappings = List.combine (StructField.Map.keys fields) accessors in
     let _, accessor =
       List.find (fun (field1, _) -> StructField.equal field field1) idx_mappings
     in
@@ -687,11 +683,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let ctrs = Datatype.get_constructors z3_enum in
     let _path, cons_map = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
     (* This should always succeed if the expression is well-typed in dcalc *)
-    let idx_mappings =
-      List.combine
-        (EnumConstructor.Map.keys cons_map)
-        ctrs
-    in
+    let idx_mappings = List.combine (EnumConstructor.Map.keys cons_map) ctrs in
     let _, ctr =
       List.find
         (fun (cons1, _) -> EnumConstructor.equal cons cons1)

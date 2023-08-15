@@ -160,21 +160,24 @@ let rec disambiguate_constructor
         possible_c_uids;
     EnumName.Map.choose possible_c_uids
   | [enum] -> (
-      (* The path is fully qualified *)
-      let e_uid = Name_resolution.get_enum ctxt enum in
-      try
-        let c_uid = EnumName.Map.find e_uid possible_c_uids in
-        e_uid, c_uid
-      with EnumName.Map.Not_found _ ->
-        Message.raise_spanned_error pos "Enum %s does not contain case %s"
-          (Mark.remove enum) (Mark.remove constructor))
-  | (modname, mpos)::path ->
+    (* The path is fully qualified *)
+    let e_uid = Name_resolution.get_enum ctxt enum in
+    try
+      let c_uid = EnumName.Map.find e_uid possible_c_uids in
+      e_uid, c_uid
+    with EnumName.Map.Not_found _ ->
+      Message.raise_spanned_error pos "Enum %s does not contain case %s"
+        (Mark.remove enum) (Mark.remove constructor))
+  | (modname, mpos) :: path -> (
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
-      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format modname
+      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format
+        modname
     | Some ctxt ->
-      let constructor = List.map (Mark.map (fun (_, c) -> path, c)) constructor0 in
-      disambiguate_constructor ctxt constructor pos
+      let constructor =
+        List.map (Mark.map (fun (_, c) -> path, c)) constructor0
+      in
+      disambiguate_constructor ctxt constructor pos)
 
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100
@@ -213,7 +216,7 @@ let rec translate_expr
     | None -> Ident.Map.empty
     | Some s -> (ScopeName.Map.find s ctxt.scopes).var_idmap
   in
-  let rec_helper ?(local_vars=local_vars) e =
+  let rec_helper ?(local_vars = local_vars) e =
     translate_expr scope inside_definition_of ctxt local_vars e
   in
   let pos = Mark.get expr in
@@ -240,14 +243,14 @@ let rec translate_expr
               [tau] pos
           else
             let binding_var = Var.make (Mark.remove binding) in
-            let local_vars = Ident.Map.add (Mark.remove binding) binding_var local_vars in
+            let local_vars =
+              Ident.Map.add (Mark.remove binding) binding_var local_vars
+            in
             let e2 = rec_helper ~local_vars e2 in
             Expr.make_abs [| binding_var |] e2 [tau] pos)
         (EnumName.Map.find enum_uid ctxt.enums)
     in
-    Expr.ematch
-      ~e:(rec_helper e1_sub)
-      ~name:enum_uid ~cases emark
+    Expr.ematch ~e:(rec_helper e1_sub) ~name:enum_uid ~cases emark
   | Binop ((((S.And | S.Or | S.Xor), _) as op), e1, e2) ->
     check_formula op e1;
     check_formula op e2;
@@ -349,7 +352,8 @@ let rec translate_expr
                      with respect to the state that we are defining. *)
                   let rec find_prev_state = function
                     | [] -> None
-                    | st0 :: st1 :: _ when StateName.equal inside_def_state st1 ->
+                    | st0 :: st1 :: _ when StateName.equal inside_def_state st1
+                      ->
                       Some st0
                     | _ :: states -> find_prev_state states
                   in
@@ -358,7 +362,9 @@ let rec translate_expr
               (* we take the last state in the chain *)
               Some (List.hd (List.rev states)))
         in
-        Expr.elocation (DesugaredScopeVar { name = uid, pos; state = x_state }) emark
+        Expr.elocation
+          (DesugaredScopeVar { name = uid, pos; state = x_state })
+          emark
       | Some (SubScope _)
       (* Note: allowing access to a global variable with the same name as a
          subscope is disputable, but I see no good reason to forbid it either *)
@@ -366,21 +372,21 @@ let rec translate_expr
         match Ident.Map.find_opt x ctxt.topdefs with
         | Some v ->
           Expr.elocation
-            (ToplevelVar { path = []; name = v, Mark.get (TopdefName.get_info v) })
+            (ToplevelVar
+               { path = []; name = v, Mark.get (TopdefName.get_info v) })
             emark
         | None ->
           Name_resolution.raise_unknown_identifier
             "for a local, scope-wide or global variable" (x, pos))))
-  | Ident (path, name) ->
+  | Ident (path, name) -> (
     let ctxt = Name_resolution.module_ctx ctxt path in
-    (match Ident.Map.find_opt (Mark.remove name) ctxt.topdefs with
-     | Some v ->
-       Expr.elocation
-         (ToplevelVar { path; name = v, Mark.get (TopdefName.get_info v) })
-         emark
-     | None ->
-       Name_resolution.raise_unknown_identifier
-         "for an external variable" name)
+    match Ident.Map.find_opt (Mark.remove name) ctxt.topdefs with
+    | Some v ->
+      Expr.elocation
+        (ToplevelVar { path; name = v, Mark.get (TopdefName.get_info v) })
+        emark
+    | None ->
+      Name_resolution.raise_unknown_identifier "for an external variable" name)
   | Dotted (e, ((path, x), _ppos)) -> (
     match path, Mark.remove e with
     | [], Ident ([], (y, _))
@@ -397,29 +403,29 @@ let rec translate_expr
         Name_resolution.get_var_uid subscope_real_uid ctxt x
       in
       Expr.elocation
-        (SubScopeVar {
-            path = subscope_path;
-            scope = subscope_real_uid;
-            alias = (subscope_uid, pos);
-            var = (subscope_var_uid, pos)
-          })
+        (SubScopeVar
+           {
+             path = subscope_path;
+             scope = subscope_real_uid;
+             alias = subscope_uid, pos;
+             var = subscope_var_uid, pos;
+           })
         emark
     | _ ->
       (* In this case e.x is the struct field x access of expression e *)
       let e = rec_helper e in
       let rec get_str ctxt = function
         | [] -> None
-        | [c] ->
-          Some (Name_resolution.get_struct ctxt c)
-        | (modname, mpos) :: path ->
+        | [c] -> Some (Name_resolution.get_struct ctxt c)
+        | (modname, mpos) :: path -> (
           match ModuleName.Map.find_opt modname ctxt.modules with
           | None ->
-            Message.raise_spanned_error mpos
-              "Module %a not found" ModuleName.format modname
-          | Some ctxt ->
-            get_str ctxt path
+            Message.raise_spanned_error mpos "Module %a not found"
+              ModuleName.format modname
+          | Some ctxt -> get_str ctxt path)
       in
-      Expr.edstructaccess ~e ~field:(Mark.remove x) ~name_opt:(get_str ctxt path) ~path emark)
+      Expr.edstructaccess ~e ~field:(Mark.remove x)
+        ~name_opt:(get_str ctxt path) ~path emark)
   | FunCall (f, args) ->
     Expr.eapp (rec_helper f) (List.map rec_helper args) emark
   | ScopeCall (((path, id), _), fields) ->
@@ -467,11 +473,7 @@ let rec translate_expr
     let local_vars = Ident.Map.add (Mark.remove x) v local_vars in
     let tau = TAny, Mark.get x in
     (* This type will be resolved in Scopelang.Desambiguation *)
-    let fn =
-      Expr.make_abs [| v |]
-        (rec_helper ~local_vars e2)
-        [tau] pos
-    in
+    let fn = Expr.make_abs [| v |] (rec_helper ~local_vars e2) [tau] pos in
     Expr.eapp fn [rec_helper e1] emark
   | StructLit ((([], s_name), _), fields) ->
     let s_uid =
@@ -540,38 +542,38 @@ let rec translate_expr
         let e_uid, c_uid = EnumName.Map.choose possible_c_uids in
         let payload = Option.map rec_helper payload in
         Expr.einj
-          ~e:(match payload with
-          | Some e' -> e'
-          | None -> Expr.elit LUnit mark_constructor)
+          ~e:
+            (match payload with
+            | Some e' -> e'
+            | None -> Expr.elit LUnit mark_constructor)
           ~cons:c_uid ~name:e_uid emark
     | path_enum -> (
-      let path, enum = match List.rev path_enum with
+      let path, enum =
+        match List.rev path_enum with
         | enum :: rpath -> List.rev rpath, enum
         | _ -> assert false
       in
-        let ctxt = Name_resolution.module_ctx ctxt path in
-        let possible_c_uids = get_possible_c_uids ctxt in
-        (* The path has been qualified *)
-        let e_uid = Name_resolution.get_enum ctxt enum in
-        try
-          let c_uid = EnumName.Map.find e_uid possible_c_uids in
-          let payload =
-            Option.map rec_helper payload
-          in
-          Expr.einj
-            ~e:(match payload with
+      let ctxt = Name_resolution.module_ctx ctxt path in
+      let possible_c_uids = get_possible_c_uids ctxt in
+      (* The path has been qualified *)
+      let e_uid = Name_resolution.get_enum ctxt enum in
+      try
+        let c_uid = EnumName.Map.find e_uid possible_c_uids in
+        let payload = Option.map rec_helper payload in
+        Expr.einj
+          ~e:
+            (match payload with
             | Some e' -> e'
             | None -> Expr.elit LUnit mark_constructor)
-            ~cons:c_uid ~name:e_uid emark
-        with EnumName.Map.Not_found _ ->
-          Message.raise_spanned_error pos "Enum %s does not contain case %s"
-            (Mark.remove enum) constructor))
+          ~cons:c_uid ~name:e_uid emark
+      with EnumName.Map.Not_found _ ->
+        Message.raise_spanned_error pos "Enum %s does not contain case %s"
+          (Mark.remove enum) constructor))
   | MatchWith (e1, (cases, _cases_pos)) ->
     let e1 = rec_helper e1 in
     let cases_d, e_uid =
       disambiguate_match_and_build_expression scope inside_definition_of ctxt
-        local_vars
-        cases
+        local_vars cases
     in
     Expr.ematch ~e:e1 ~name:e_uid ~cases:cases_d emark
   | TestMatchCase (e1, pattern) ->
@@ -594,9 +596,7 @@ let rec translate_expr
             [tau] pos)
         (EnumName.Map.find enum_uid ctxt.enums)
     in
-    Expr.ematch
-      ~e:(rec_helper e1)
-      ~name:enum_uid ~cases:cases emark
+    Expr.ematch ~e:(rec_helper e1) ~name:enum_uid ~cases emark
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
   | CollectionOp (((S.Filter { f } | S.Map { f }) as op), collection) ->
     let collection = rec_helper collection in
@@ -619,8 +619,8 @@ let rec translate_expr
          emark)
       [f_pred; collection] emark
   | CollectionOp
-      (S.AggregateArgExtremum { max; default; f = param_name, predicate }, collection)
-    ->
+      ( S.AggregateArgExtremum { max; default; f = param_name, predicate },
+        collection ) ->
     let default = rec_helper default in
     let pos_dft = Expr.pos default in
     let collection = rec_helper collection in
@@ -800,9 +800,7 @@ and disambiguate_match_and_build_expression
   let bind_match_cases (cases_d, e_uid, curr_index) (case, case_pos) =
     match case with
     | S.MatchCase case ->
-      let constructor, binding =
-        Mark.remove case.S.match_case_pattern
-      in
+      let constructor, binding = Mark.remove case.S.match_case_pattern in
       let e_uid', c_uid =
         disambiguate_constructor ctxt constructor
           (Mark.get case.S.match_case_pattern)
@@ -826,7 +824,9 @@ and disambiguate_match_and_build_expression
           [None, Mark.get case.match_case_expr; None, Expr.pos e_case]
           "The constructor %a has been matched twice:" EnumConstructor.format
           c_uid);
-      let local_vars, param_var = create_var local_vars (Option.map Mark.remove binding) in
+      let local_vars, param_var =
+        create_var local_vars (Option.map Mark.remove binding)
+      in
       let case_body =
         translate_expr scope inside_definition_of ctxt local_vars
           case.S.match_case_expr
@@ -882,7 +882,8 @@ and disambiguate_match_and_build_expression
         (* Creates the wildcard payload *)
         let local_vars, payload_var = create_var local_vars None in
         let case_body =
-          translate_expr scope inside_definition_of ctxt local_vars match_case_expr
+          translate_expr scope inside_definition_of ctxt local_vars
+            match_case_expr
         in
         let e_binder = Expr.bind [| payload_var |] case_body in
 
@@ -972,8 +973,7 @@ let process_rule_parameters
     Message.raise_multispanned_error
       [
         Some "Arguments declared here", pos;
-        ( Some "Definition missing the arguments",
-          Mark.get def.S.definition_name );
+        Some "Definition missing the arguments", Mark.get def.S.definition_name;
       ]
       "This definition for %a is missing the arguments" Ast.ScopeDef.format
       decl_name
@@ -982,9 +982,9 @@ let process_rule_parameters
     let local_vars, params =
       List.fold_left_map
         (fun local_vars ((lbl, pos), ty) ->
-           let v = Var.make lbl in
-           let local_vars = Ident.Map.add lbl v local_vars in
-           local_vars, ((v, pos), ty))
+          let v = Var.make lbl in
+          let local_vars = Ident.Map.add lbl v local_vars in
+          local_vars, ((v, pos), ty))
         Ident.Map.empty pdecl
     in
     local_vars, Some (params, pos_def)
@@ -1005,7 +1005,8 @@ let process_default
     (cons : S.expression) : Ast.rule =
   let just =
     match just with
-    | Some just -> Some (translate_expr (Some scope) (Some def_key) ctxt local_vars just)
+    | Some just ->
+      Some (translate_expr (Some scope) (Some def_key) ctxt local_vars just)
     | None -> None
   in
   let just = merge_conditions precond just (Mark.get def_key) in
@@ -1159,7 +1160,9 @@ let process_scope_use_item
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)
     (item : S.scope_use_item Mark.pos) : Ast.program =
-  let precond = Option.map (translate_expr (Some scope) None ctxt Ident.Map.empty) precond in
+  let precond =
+    Option.map (translate_expr (Some scope) None ctxt Ident.Map.empty) precond
+  in
   match Mark.remove item with
   | S.Rule rule -> process_rule precond scope ctxt prgm rule
   | S.Definition def -> process_def precond scope ctxt prgm def
@@ -1277,14 +1280,15 @@ let process_topdef
   let expr_opt =
     match def.S.topdef_expr, def.S.topdef_args with
     | None, _ -> None
-    | Some e, None -> Some (Expr.unbox_closed (translate_expr None None ctxt Ident.Map.empty e))
+    | Some e, None ->
+      Some (Expr.unbox_closed (translate_expr None None ctxt Ident.Map.empty e))
     | Some e, Some (args, _) ->
       let local_vars, args_tys =
         List.fold_left_map
           (fun local_vars ((lbl, pos), ty) ->
-             let v = Var.make lbl in
-             let local_vars = Ident.Map.add lbl v local_vars in
-             local_vars, ((v, pos), ty))
+            let v = Var.make lbl in
+            let local_vars = Ident.Map.add lbl v local_vars in
+            local_vars, ((v, pos), ty))
           Ident.Map.empty args
       in
       let body = translate_expr None None ctxt local_vars e in
@@ -1417,9 +1421,8 @@ let init_scope_defs
   Ident.Map.fold add_def scope_idmap Ast.ScopeDef.Map.empty
 
 (** Main function of this module *)
-let translate_program
-    (ctxt : Name_resolution.context)
-    (surface : S.program) : Ast.program =
+let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
+    Ast.program =
   let desugared =
     let get_program_scopes ctxt =
       ScopeName.Map.mapi
@@ -1430,7 +1433,9 @@ let translate_program
                 match v with
                 | Name_resolution.SubScope _ -> acc
                 | Name_resolution.ScopeVar v -> (
-                  let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
+                  let v_sig =
+                    ScopeVar.Map.find v ctxt.Name_resolution.var_typs
+                  in
                   match v_sig.Name_resolution.var_sig_states_list with
                   | [] -> ScopeVar.Map.add v Ast.WholeVar acc
                   | states -> ScopeVar.Map.add v (Ast.States states) acc))
@@ -1458,39 +1463,52 @@ let translate_program
     in
     let rec make_ctx ctxt =
       let submodules =
-        ModuleName.Map.map make_ctx ctxt.Name_resolution.modules;
+        ModuleName.Map.map make_ctx ctxt.Name_resolution.modules
       in
       {
         Ast.program_ctx =
           {
-            (* After name resolution, type definitions (structs and enums) are exposed at toplevel for easier lookup, but their paths need to remain available for printing and later passes *)
+            (* After name resolution, type definitions (structs and enums) are
+               exposed at toplevel for easier lookup, but their paths need to
+               remain available for printing and later passes *)
             ctx_structs =
-              ModuleName.Map.fold (fun modname prg acc ->
-                  StructName.Map.union (fun _ _ _ -> assert false) acc
+              ModuleName.Map.fold
+                (fun modname prg acc ->
+                  StructName.Map.union
+                    (fun _ _ _ -> assert false)
+                    acc
                     (StructName.Map.map
                        (fun (path, def) -> (modname, Pos.no_pos) :: path, def)
                        prg.Ast.program_ctx.ctx_structs))
                 submodules
-                (StructName.Map.map (fun def -> [], def) ctxt.Name_resolution.structs);
+                (StructName.Map.map
+                   (fun def -> [], def)
+                   ctxt.Name_resolution.structs);
             ctx_enums =
-              ModuleName.Map.fold (fun modname prg acc ->
-                  EnumName.Map.union (fun _ _ _ -> assert false) acc
+              ModuleName.Map.fold
+                (fun modname prg acc ->
+                  EnumName.Map.union
+                    (fun _ _ _ -> assert false)
+                    acc
                     (EnumName.Map.map
                        (fun (path, def) -> (modname, Pos.no_pos) :: path, def)
                        prg.Ast.program_ctx.ctx_enums))
                 submodules
-                (EnumName.Map.map (fun def -> [], def) ctxt.Name_resolution.enums);
+                (EnumName.Map.map
+                   (fun def -> [], def)
+                   ctxt.Name_resolution.enums);
             ctx_scopes =
               Ident.Map.fold
                 (fun _ def acc ->
-                   match def with
-                   | Name_resolution.TScope (scope, scope_info) ->
-                     ScopeName.Map.add scope scope_info acc
-                   | _ -> acc)
+                  match def with
+                  | Name_resolution.TScope (scope, scope_info) ->
+                    ScopeName.Map.add scope scope_info acc
+                  | _ -> acc)
                 ctxt.Name_resolution.typedefs ScopeName.Map.empty;
             ctx_struct_fields = ctxt.Name_resolution.field_idmap;
             ctx_topdefs = ctxt.Name_resolution.topdef_types;
-            ctx_modules = ModuleName.Map.map (fun s -> s.Ast.program_ctx) submodules;
+            ctx_modules =
+              ModuleName.Map.map (fun s -> s.Ast.program_ctx) submodules;
           };
         Ast.program_topdefs = TopdefName.Map.empty;
         Ast.program_scopes = get_program_scopes ctxt;
@@ -1502,44 +1520,52 @@ let translate_program
   let process_code_block ctxt prgm block =
     List.fold_left
       (fun prgm item ->
-         match Mark.remove item with
-         | S.ScopeUse use -> process_scope_use ctxt prgm use
-         | S.Topdef def -> process_topdef ctxt prgm def
-         | S.ScopeDecl _ | S.StructDecl _
-         | S.EnumDecl _ ->
-           prgm)
+        match Mark.remove item with
+        | S.ScopeUse use -> process_scope_use ctxt prgm use
+        | S.Topdef def -> process_topdef ctxt prgm def
+        | S.ScopeDecl _ | S.StructDecl _ | S.EnumDecl _ -> prgm)
       prgm block
   in
-  let rec process_structure
-      (prgm : Ast.program)
-      (item : S.law_structure) : Ast.program =
+  let rec process_structure (prgm : Ast.program) (item : S.law_structure) :
+      Ast.program =
     match item with
     | S.LawHeading (_, children) ->
       List.fold_left
         (fun prgm child -> process_structure prgm child)
         prgm children
-    | S.CodeBlock (block, _, _) ->
-      process_code_block ctxt prgm block
+    | S.CodeBlock (block, _, _) -> process_code_block ctxt prgm block
     | S.LawInclude _ | S.LawText _ -> prgm
   in
   Message.emit_debug "DESUGARED → prog scopes: %a@ modules: %a"
-    (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space) desugared.Ast.program_scopes
-    (ModuleName.Map.format
-       (fun fmt prg -> ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space fmt prg.Ast.program_scopes)) desugared.Ast.program_modules;
+    (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space)
+    desugared.Ast.program_scopes
+    (ModuleName.Map.format (fun fmt prg ->
+         ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space fmt
+           prg.Ast.program_scopes))
+    desugared.Ast.program_modules;
   let desugared =
-    List.fold_left (fun acc (id, intf) ->
+    List.fold_left
+      (fun acc (id, intf) ->
         let modul = ModuleName.Map.find id acc.Ast.program_modules in
-        let modul = process_code_block (Name_resolution.module_ctx ctxt [id, Pos.no_pos]) modul intf in
-        { acc with program_modules =
-                     ModuleName.Map.add id modul acc.program_modules })
-      desugared
-      surface.S.program_modules
+        let modul =
+          process_code_block
+            (Name_resolution.module_ctx ctxt [id, Pos.no_pos])
+            modul intf
+        in
+        {
+          acc with
+          program_modules = ModuleName.Map.add id modul acc.program_modules;
+        })
+      desugared surface.S.program_modules
   in
   let desugared =
     List.fold_left process_structure desugared surface.S.program_items
   in
   Message.emit_debug "DESUGARED2 → prog scopes: %a@ modules: %a"
-    (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space) desugared.Ast.program_scopes
-    (ModuleName.Map.format
-       (fun fmt prg -> ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space fmt prg.Ast.program_scopes)) desugared.Ast.program_modules;
+    (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space)
+    desugared.Ast.program_scopes
+    (ModuleName.Map.format (fun fmt prg ->
+         ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space fmt
+           prg.Ast.program_scopes))
+    desugared.Ast.program_modules;
   desugared

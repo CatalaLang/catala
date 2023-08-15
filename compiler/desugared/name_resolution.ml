@@ -65,8 +65,7 @@ type var_sig = {
 type typedef =
   | TStruct of StructName.t
   | TEnum of EnumName.t
-  | TScope of ScopeName.t * scope_info
-      (** Implicitly defined output struct *)
+  | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type context = {
   typedefs : typedef Ident.Map.t;
@@ -238,15 +237,15 @@ let get_scope ctxt id =
     Message.raise_spanned_error (Mark.get id) "No scope named %s found"
       (Mark.remove id)
 
-let rec module_ctx ctxt path = match path with
+let rec module_ctx ctxt path =
+  match path with
   | [] -> ctxt
-  | (modname, mpos) :: path ->
-    (match ModuleName.Map.find_opt modname ctxt.modules with
-     | None ->
-       Message.raise_spanned_error mpos
-         "Module %a not found" ModuleName.format modname
-     | Some ctxt ->
-       module_ctx ctxt path)
+  | (modname, mpos) :: path -> (
+    match ModuleName.Map.find_opt modname ctxt.modules with
+    | None ->
+      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format
+        modname
+    | Some ctxt -> module_ctx ctxt path)
 
 (** {1 Declarations pass} *)
 
@@ -267,8 +266,7 @@ let process_subscope_decl
     in
     Message.raise_multispanned_error
       [Some "first use", Mark.get info; Some "second use", s_pos]
-      "Subscope name @{<yellow>\"%s\"@} already used"
-      (Mark.remove subscope)
+      "Subscope name @{<yellow>\"%s\"@} already used" (Mark.remove subscope)
   | None ->
     let sub_scope_uid = SubScopeName.fresh (name, name_pos) in
     let original_subscope_uid =
@@ -316,23 +314,24 @@ let rec process_base_typ
     | Surface.Ast.Text -> raise_unsupported_feature "text type" typ_pos
     | Surface.Ast.Named ([], (ident, _pos)) -> (
       match Ident.Map.find_opt ident ctxt.typedefs with
-      | Some (TStruct s_uid) -> TStruct ( s_uid), typ_pos
-      | Some (TEnum e_uid) -> TEnum ( e_uid), typ_pos
+      | Some (TStruct s_uid) -> TStruct s_uid, typ_pos
+      | Some (TEnum e_uid) -> TEnum e_uid, typ_pos
       | Some (TScope (_, scope_str)) ->
-        TStruct ( scope_str.out_struct_name), typ_pos
+        TStruct scope_str.out_struct_name, typ_pos
       | None ->
         Message.raise_spanned_error typ_pos
           "Unknown type @{<yellow>\"%s\"@}, not a struct or enum previously \
            declared"
           ident)
-    | Surface.Ast.Named ((modul, mpos)::path, id) ->
+    | Surface.Ast.Named ((modul, mpos) :: path, id) -> (
       match ModuleName.Map.find_opt modul ctxt.modules with
       | None ->
         Message.raise_spanned_error mpos
-          "This refers to module %a, which was not found"
-          ModuleName.format modul
+          "This refers to module %a, which was not found" ModuleName.format
+          modul
       | Some mod_ctxt ->
-        process_base_typ mod_ctxt Surface.Ast.(Data (Primitive (Named (path, id))), typ_pos))
+        process_base_typ mod_ctxt
+          Surface.Ast.(Data (Primitive (Named (path, id))), typ_pos)))
 
 (** Process a type (function or not) *)
 let process_type (ctxt : context) ((naked_typ, typ_pos) : Surface.Ast.typ) : typ
@@ -589,7 +588,9 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
         (Mark.remove decl.scope_decl_name)
         (function
           | Some (TScope (scope, { in_struct_name; out_struct_name; _ })) ->
-            Some (TScope (scope, { in_struct_name; out_struct_name; out_struct_fields; }))
+            Some
+              (TScope
+                 (scope, { in_struct_name; out_struct_name; out_struct_fields }))
           | _ -> assert false)
         ctxt.typedefs
     in
@@ -681,9 +682,14 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
           "toplevel definition")
       (Ident.Map.find_opt name ctxt.topdefs);
     let uid = TopdefName.fresh def.topdef_name in
-    { ctxt with
+    {
+      ctxt with
       topdefs = Ident.Map.add name uid ctxt.topdefs;
-      topdef_types = TopdefName.Map.add uid (process_type ctxt def.topdef_type) ctxt.topdef_types }
+      topdef_types =
+        TopdefName.Map.add uid
+          (process_type ctxt def.topdef_type)
+          ctxt.topdef_types;
+    }
 
 (** Process a code item that is a declaration *)
 let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
@@ -699,16 +705,14 @@ let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
 let process_code_block
     (process_item : context -> Surface.Ast.code_item Mark.pos -> context)
     (ctxt : context)
-    (block : Surface.Ast.code_block) :
-    context =
+    (block : Surface.Ast.code_block) : context =
   List.fold_left (fun ctxt decl -> process_item ctxt decl) ctxt block
 
 (** Process a law structure, only considering the code blocks *)
 let rec process_law_structure
     (process_item : context -> Surface.Ast.code_item Mark.pos -> context)
     (ctxt : context)
-    (s : Surface.Ast.law_structure) :
-    context =
+    (s : Surface.Ast.law_structure) : context =
   match s with
   | Surface.Ast.LawHeading (_, children) ->
     List.fold_left
@@ -758,7 +762,8 @@ let get_def_key
               ScopeVar.format x_uid
           else None )
   | [y; x] ->
-    let (subscope_uid, (path, subscope_real_uid)) : SubScopeName.t * (path * ScopeName.t) =
+    let (subscope_uid, (path, subscope_real_uid))
+          : SubScopeName.t * (path * ScopeName.t) =
       match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
       | Some (SubScope (v, u)) -> v, u
       | Some _ ->
@@ -933,14 +938,11 @@ let empty_ctxt =
 
 let import_module modules (name, intf) =
   let ctxt = { empty_ctxt with modules } in
-  let ctxt =
-    List.fold_left process_name_item ctxt intf
-  in
-  let ctxt =
-    List.fold_left process_decl_item ctxt intf
-  in
+  let ctxt = List.fold_left process_name_item ctxt intf in
+  let ctxt = List.fold_left process_decl_item ctxt intf in
   let ctxt = { ctxt with modules = empty_ctxt.modules } in
-  (* No submodules at the moment, a module may use the ones loaded before it, but doesn't reexport them *)
+  (* No submodules at the moment, a module may use the ones loaded before it,
+     but doesn't reexport them *)
   ModuleName.Map.add name ctxt modules
 
 (** Derive the context from metadata, in one pass over the declarations *)
@@ -950,8 +952,10 @@ let form_context (prgm : Surface.Ast.program) : context =
   in
   let ctxt = { empty_ctxt with modules } in
   let rec gather_var_sigs acc modules =
-    (* Scope vars from imported modules need to be accessible directly for definitions through submodules *)
-    ModuleName.Map.fold (fun _modname mctx acc ->
+    (* Scope vars from imported modules need to be accessible directly for
+       definitions through submodules *)
+    ModuleName.Map.fold
+      (fun _modname mctx acc ->
         let acc = gather_var_sigs acc mctx.modules in
         ScopeVar.Map.union (fun _ _ -> assert false) acc mctx.var_typs)
       modules acc

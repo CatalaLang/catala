@@ -57,8 +57,8 @@ end
     Extend as needed *)
 module Map : sig
   type ('e, 'x) t
-
   type k0
+
   exception Not_found of k0
 
   val empty : ('e, 'x) t

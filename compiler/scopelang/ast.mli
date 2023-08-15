@@ -47,7 +47,9 @@ type 'm program = {
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
   program_topdefs : ('m expr * typ) TopdefName.Map.t;
   program_modules : nil program ModuleName.Map.t;
-  (* Using [nil] here ensure that program interfaces don't contain any expressions. They won't contain any rules or topdefs, but will still have the scope signatures needed to respect the call convention *)
+  (* Using [nil] here ensure that program interfaces don't contain any
+     expressions. They won't contain any rules or topdefs, but will still have
+     the scope signatures needed to respect the call convention *)
   program_ctx : decl_ctx;
 }
 

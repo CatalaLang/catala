@@ -36,7 +36,12 @@ val rebox : ('a any, 'm) gexpr -> ('a, 'm) boxed_gexpr
 (** Rebuild the whole term, re-binding all variables and exposing free variables *)
 
 val evar : ('a, 'm) gexpr Var.t -> 'm mark -> ('a, 'm) boxed_gexpr
-val eexternal : path:path -> name:external_ref Mark.pos -> 'm mark -> (< explicitScopes: no; .. >, 'm) boxed_gexpr
+
+val eexternal :
+  path:path ->
+  name:external_ref Mark.pos ->
+  'm mark ->
+  (< explicitScopes : no ; .. >, 'm) boxed_gexpr
 
 val bind :
   ('a, 'm) gexpr Var.t array ->
@@ -108,37 +113,37 @@ val eraise : except -> 'm mark -> (< exceptions : yes ; .. >, 'm) boxed_gexpr
 val elocation : 'a glocation -> 'm mark -> ((< .. > as 'a), 'm) boxed_gexpr
 
 val estruct :
-  name: StructName.t ->
-  fields: ('a, 'm) boxed_gexpr StructField.Map.t ->
+  name:StructName.t ->
+  fields:('a, 'm) boxed_gexpr StructField.Map.t ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
 val edstructaccess :
-  path: path ->
-  name_opt: StructName.t option ->
-  field: Ident.t ->
-  e: ('a, 'm) boxed_gexpr ->
+  path:path ->
+  name_opt:StructName.t option ->
+  field:Ident.t ->
+  e:('a, 'm) boxed_gexpr ->
   'm mark ->
   ((< syntacticNames : yes ; .. > as 'a), 'm) boxed_gexpr
 
 val estructaccess :
-  name: StructName.t ->
-  field: StructField.t ->
-  e: ('a, 'm) boxed_gexpr ->
+  name:StructName.t ->
+  field:StructField.t ->
+  e:('a, 'm) boxed_gexpr ->
   'm mark ->
   ((< resolvedNames : yes ; .. > as 'a), 'm) boxed_gexpr
 
 val einj :
-  name: EnumName.t ->
-  cons: EnumConstructor.t ->
-  e: ('a, 'm) boxed_gexpr ->
+  name:EnumName.t ->
+  cons:EnumConstructor.t ->
+  e:('a, 'm) boxed_gexpr ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
 val ematch :
-  name: EnumName.t ->
-  e: ('a, 'm) boxed_gexpr ->
-  cases: ('a, 'm) boxed_gexpr EnumConstructor.Map.t ->
+  name:EnumName.t ->
+  e:('a, 'm) boxed_gexpr ->
+  cases:('a, 'm) boxed_gexpr EnumConstructor.Map.t ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 

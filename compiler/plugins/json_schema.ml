@@ -80,8 +80,7 @@ module To_json = struct
     Format.pp_print_list
       ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
       (fun fmt (field_name, field_type) ->
-        Format.fprintf fmt "@[<hov 2>\"%a%a\": {@\n%a@]@\n}"
-          Print.path path
+        Format.fprintf fmt "@[<hov 2>\"%a%a\": {@\n%a@]@\n}" Print.path path
           format_struct_field_name_camel_case field_name fmt_type field_type)
       fmt
       (StructField.Map.bindings fields)
@@ -105,7 +104,8 @@ module To_json = struct
           (t :: acc) @ collect_required_type_defs_from_scope_input s
         | TEnum e ->
           List.fold_left collect (t :: acc)
-            (EnumConstructor.Map.values (snd (EnumName.Map.find e ctx.ctx_enums)))
+            (EnumConstructor.Map.values
+               (snd (EnumName.Map.find e ctx.ctx_enums)))
         | TArray t -> collect acc t
         | _ -> acc
       in
