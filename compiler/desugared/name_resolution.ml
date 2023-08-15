@@ -199,7 +199,7 @@ let get_enum ctxt id =
         Some "Scope defined at", Mark.get (ScopeName.get_info sid);
       ]
       "Expecting an enum, but found a scope"
-  | exception Not_found ->
+  | exception Ident.Map.Not_found _ ->
     Message.raise_spanned_error (Mark.get id) "No enum named %s found"
       (Mark.remove id)
 
@@ -213,7 +213,7 @@ let get_struct ctxt id =
         Some "Enum defined at", Mark.get (EnumName.get_info eid);
       ]
       "Expecting a struct, but found an enum"
-  | exception Not_found ->
+  | exception Ident.Map.Not_found _ ->
     Message.raise_spanned_error (Mark.get id) "No struct named %s found"
       (Mark.remove id)
 
@@ -234,7 +234,7 @@ let get_scope ctxt id =
         Some "Structure defined at", Mark.get (StructName.get_info sid);
       ]
       "Expecting an scope, but found a structure"
-  | exception Not_found ->
+  | exception Ident.Map.Not_found _ ->
     Message.raise_spanned_error (Mark.get id) "No scope named %s found"
       (Mark.remove id)
 
@@ -581,7 +581,7 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
                 StructName.Map.find str (Ident.Map.find id ctxt.field_idmap)
               in
               ScopeVar.Map.add v field svmap
-            with Not_found -> svmap))
+            with StructName.Map.Not_found _ | Ident.Map.Not_found _ -> svmap))
         sco.var_idmap ScopeVar.Map.empty
     in
     let typedefs =
@@ -738,7 +738,7 @@ let get_def_key
           try
             Some
               (Ident.Map.find (Mark.remove state) var_sig.var_sig_states_idmap)
-          with Not_found ->
+          with Ident.Map.Not_found _ ->
             Message.raise_multispanned_error
               [
                 None, Mark.get state;

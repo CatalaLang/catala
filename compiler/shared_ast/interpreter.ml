@@ -561,7 +561,7 @@ let rec evaluate_expr :
             TArrow ([TStruct scope_info.in_struct_name, pos],
                     (TStruct scope_info.out_struct_name, pos)),
             pos
-        with Not_found ->
+        with TopdefName.Map.Not_found _ | ScopeName.Map.Not_found _ ->
           Message.raise_spanned_error pos "Reference to %a%a could not be resolved"
             Print.path path Print.external_ref name
       in

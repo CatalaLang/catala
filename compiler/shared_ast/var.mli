@@ -58,6 +58,9 @@ end
 module Map : sig
   type ('e, 'x) t
 
+  type k0
+  exception Not_found of k0
+
   val empty : ('e, 'x) t
   val singleton : 'e var -> 'x -> ('e, 'x) t
   val add : 'e var -> 'x -> ('e, 'x) t -> ('e, 'x) t

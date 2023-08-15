@@ -88,7 +88,11 @@ end
    maps) *)
 module Map = struct
   open Generic
-  open Map.Make (Generic)
+  module M = Map.Make (Generic)
+  open M
+
+  type k0 = M.key
+  exception Not_found = M.Not_found
 
   type nonrec ('e, 'x) t = 'x t
 

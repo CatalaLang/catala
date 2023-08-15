@@ -75,7 +75,7 @@ let rec lazy_eval :
          (?) *)
       let v_env =
         try Env.find v env
-        with Not_found ->
+        with Var.Map.Not_found _ ->
           error e0 "Variable %a undefined [@[<hv>%a@]]" Print.var_debug v
             Env.print env
       in

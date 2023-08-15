@@ -179,7 +179,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
          (?) *)
       let env_elt =
         try Env.find v env
-        with Not_found ->
+        with Var.Map.Not_found _ ->
           error e0 "Variable %a undefined [@[<hv>%a@]]" Print.var_debug v
             Env.print env
       in
@@ -689,7 +689,7 @@ let program_to_graph
       (G.add_vertex g v, var_vertices, env0), v
     | EVar var, _ -> (
       try (g, var_vertices, env0), Var.Map.find var var_vertices
-      with Not_found -> (
+      with Var.Map.Not_found _ -> (
         try
           let child, env = (Env.find var env0).base in
           let m = Mark.get child in
@@ -714,7 +714,7 @@ let program_to_graph
               else Var.Map.add var v var_vertices
           in
           (G.add_edge g v child_v, var_vertices, env), v
-        with Not_found ->
+        with Var.Map.Not_found _ ->
           Message.emit_warning "VAR NOT FOUND: %a" Print.var var;
           let v = G.V.create e in
           let g = G.add_vertex g v in

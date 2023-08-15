@@ -806,7 +806,7 @@ module DefaultBindlibCtxRename = struct
 
   let get_suffix : string -> int -> ctxt -> int * ctxt =
    fun name suffix ctxt ->
-    let n = try String.Map.find name ctxt with Not_found -> -1 in
+    let n = try String.Map.find name ctxt with String.Map.Not_found _ -> -1 in
     let suffix = if suffix > n then suffix else n + 1 in
     suffix, String.Map.add name suffix ctxt
 
@@ -826,7 +826,7 @@ module DefaultBindlibCtxRename = struct
     try
       let n = String.Map.find prefix ctxt in
       if suffix <= n then ctxt else String.Map.add prefix suffix ctxt
-    with Not_found -> String.Map.add prefix suffix ctxt
+    with String.Map.Not_found _ -> String.Map.add prefix suffix ctxt
 end
 
 let rename_vars

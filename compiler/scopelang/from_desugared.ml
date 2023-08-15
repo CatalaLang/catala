@@ -107,7 +107,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) :
       try
         StructName.Map.find name
           (Ident.Map.find field ctx.decl_ctx.ctx_struct_fields)
-      with Not_found ->
+      with StructName.Map.Not_found _ | Ident.Map.Not_found _ ->
         (* Should not happen after disambiguation *)
         Message.raise_spanned_error (Expr.mark_pos m)
           "Field @{<yellow>\"%s\"@} does not belong to structure \

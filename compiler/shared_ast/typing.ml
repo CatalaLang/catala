@@ -517,14 +517,14 @@ and typecheck_expr_top_down :
     let fld_ty =
       let str =
         try A.StructName.Map.find name env.structs
-        with Not_found ->
+        with A.StructName.Map.Not_found _ ->
           Message.raise_spanned_error pos_e "No structure %a found"
             A.StructName.format name
       in
       let field =
         let candidate_structs =
           try A.Ident.Map.find field ctx.ctx_struct_fields
-          with Not_found ->
+          with A.Ident.Map.Not_found _ ->
             Message.raise_spanned_error
               (Expr.mark_pos context_mark)
               "Field @{<yellow>\"%s\"@} does not belong to structure \
@@ -532,7 +532,7 @@ and typecheck_expr_top_down :
               field A.StructName.format name
         in
         try A.StructName.Map.find name candidate_structs
-        with Not_found ->
+        with A.StructName.Map.Not_found _ ->
           Message.raise_spanned_error
             (Expr.mark_pos context_mark)
             "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
@@ -553,12 +553,12 @@ and typecheck_expr_top_down :
     let fld_ty =
       let str =
         try A.StructName.Map.find name env.structs
-        with Not_found ->
+        with A.StructName.Map.Not_found _ ->
           Message.raise_spanned_error pos_e "No structure %a found"
             A.StructName.format name
       in
       try A.StructField.Map.find field str
-      with Not_found ->
+      with A.StructField.Map.Not_found _ ->
         Message.raise_multispanned_error
           [
             None, pos_e;
@@ -697,14 +697,14 @@ and typecheck_expr_top_down :
       | A.External_value name ->
         (try
            ast_to_typ (A.TopdefName.Map.find name ctx.ctx_topdefs)
-         with Not_found -> not_found A.TopdefName.format name)
+         with A.TopdefName.Map.Not_found _ -> not_found A.TopdefName.format name)
       | A.External_scope name ->
         (try
            let scope_info = A.ScopeName.Map.find name ctx.ctx_scopes in
            ast_to_typ (TArrow ([TStruct scope_info.in_struct_name, pos_e],
                                (TStruct scope_info.out_struct_name, pos_e)),
                        pos_e)
-         with Not_found -> not_found A.ScopeName.format name)
+         with A.ScopeName.Map.Not_found _ -> not_found A.ScopeName.format name)
     in
     Expr.eexternal ~path ~name (mark_with_tau_and_unify ty)
   | A.ELit lit -> Expr.elit lit (ty_mark (lit_type lit))

@@ -147,7 +147,7 @@ let rec disambiguate_constructor
   in
   let possible_c_uids =
     try Ident.Map.find (Mark.remove constructor) ctxt.constructor_idmap
-    with Not_found -> raise_error_cons_not_found ctxt constructor
+    with Ident.Map.Not_found _ -> raise_error_cons_not_found ctxt constructor
   in
   match path with
   | [] ->
@@ -160,18 +160,14 @@ let rec disambiguate_constructor
         possible_c_uids;
     EnumName.Map.choose possible_c_uids
   | [enum] -> (
-    try
       (* The path is fully qualified *)
       let e_uid = Name_resolution.get_enum ctxt enum in
       try
         let c_uid = EnumName.Map.find e_uid possible_c_uids in
         e_uid, c_uid
-      with Not_found ->
+      with EnumName.Map.Not_found _ ->
         Message.raise_spanned_error pos "Enum %s does not contain case %s"
-          (Mark.remove enum) (Mark.remove constructor)
-    with Not_found ->
-      Message.raise_spanned_error (Mark.get enum)
-        "Enum %s has not been defined before" (Mark.remove enum))
+          (Mark.remove enum) (Mark.remove constructor))
   | (modname, mpos)::path ->
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
@@ -413,11 +409,8 @@ let rec translate_expr
       let e = rec_helper e in
       let rec get_str ctxt = function
         | [] -> None
-        | [c] -> (
-          try Some (Name_resolution.get_struct ctxt c)
-          with Not_found ->
-            Message.raise_spanned_error (Mark.get c)
-              "Structure %s was not declared" (Mark.remove c))
+        | [c] ->
+          Some (Name_resolution.get_struct ctxt c)
         | (modname, mpos) :: path ->
           match ModuleName.Map.find_opt modname ctxt.modules with
           | None ->
@@ -496,7 +489,7 @@ let rec translate_expr
             try
               StructName.Map.find s_uid
                 (Ident.Map.find (Mark.remove f_name) ctxt.field_idmap)
-            with Not_found ->
+            with StructName.Map.Not_found _ | Ident.Map.Not_found _ ->
               Message.raise_spanned_error (Mark.get f_name)
                 "This identifier should refer to a field of struct %s"
                 (Mark.remove s_name)
@@ -526,11 +519,10 @@ let rec translate_expr
   | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let get_possible_c_uids ctxt =
       try Ident.Map.find constructor ctxt.Name_resolution.constructor_idmap
-      with Not_found ->
+      with Ident.Map.Not_found _ ->
         raise_error_cons_not_found ctxt (constructor, pos_constructor)
     in
     let mark_constructor = Untyped { pos = pos_constructor } in
-
     match path with
     | [] ->
       let possible_c_uids = get_possible_c_uids ctxt in
@@ -557,7 +549,6 @@ let rec translate_expr
         | enum :: rpath -> List.rev rpath, enum
         | _ -> assert false
       in
-      try
         let ctxt = Name_resolution.module_ctx ctxt path in
         let possible_c_uids = get_possible_c_uids ctxt in
         (* The path has been qualified *)
@@ -572,12 +563,9 @@ let rec translate_expr
             | Some e' -> e'
             | None -> Expr.elit LUnit mark_constructor)
             ~cons:c_uid ~name:e_uid emark
-        with Not_found ->
+        with EnumName.Map.Not_found _ ->
           Message.raise_spanned_error pos "Enum %s does not contain case %s"
-            (Mark.remove enum) constructor
-      with Not_found ->
-        Message.raise_spanned_error (Mark.get enum)
-          "Enum %s has not been defined" (Mark.remove enum)))
+            (Mark.remove enum) constructor))
   | MatchWith (e1, (cases, _cases_pos)) ->
     let e1 = rec_helper e1 in
     let cases_d, e_uid =
@@ -1082,7 +1070,7 @@ let process_def
             Ident.Map.find (Mark.remove label_str) scope_def_ctxt.label_idmap
           in
           ExceptionToLabel (label_id, Mark.get label_str)
-        with Not_found ->
+        with Ident.Map.Not_found _ ->
           Message.raise_spanned_error (Mark.get label_str)
             "Unknown label for the scope variable %a: \"%s\""
             Ast.ScopeDef.format def_key (Mark.remove label_str))

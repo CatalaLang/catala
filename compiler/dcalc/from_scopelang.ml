@@ -219,7 +219,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         (fun constructor _ (d_cases, e_cases) ->
           let case_e =
             try EnumConstructor.Map.find constructor e_cases
-            with Not_found ->
+            with EnumConstructor.Map.Not_found _ ->
               Message.raise_spanned_error (Expr.pos e)
                 "The constructor %a of enum %a%a is missing from this pattern \
                  matching"
@@ -551,7 +551,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
           (SubScopeName.Map.find (Mark.remove s) ctx.subscope_vars)
       in
       Expr.evar v m
-    with Not_found ->
+    with ScopeVar.Map.Not_found _ | SubScopeName.Map.Not_found _ ->
       Message.raise_multispanned_error
         [
           Some "Incriminated variable usage:", Expr.pos e;
@@ -735,7 +735,7 @@ let translate_rule
     let called_scope_return_struct = subscope_sig.scope_sig_output_struct in
     let subscope_vars_defined =
       try SubScopeName.Map.find subindex ctx.subscope_vars
-      with Not_found -> ScopeVar.Map.empty
+      with SubScopeName.Map.Not_found _ -> ScopeVar.Map.empty
     in
     let subscope_var_not_yet_defined subvar =
       not (ScopeVar.Map.mem subvar subscope_vars_defined)
@@ -1091,7 +1091,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
       let scope_info =
         try
           ScopeName.Map.find scope_name (Program.module_ctx decl_ctx scope_path).ctx_scopes
-        with Not_found -> Message.raise_spanned_error (Mark.get (ScopeName.get_info scope_name)) "Could not find scope %a%a" Print.path scope_path ScopeName.format scope_name
+        with ScopeName.Map.Not_found _ -> Message.raise_spanned_error (Mark.get (ScopeName.get_info scope_name)) "Could not find scope %a%a" Print.path scope_path ScopeName.format scope_name
       in
       let scope_sig_in_fields =
           (* Output fields have already been generated and added to the program ctx at this point, because they are visible to the user (manipulated as the return type of ScopeCalls) ; but input fields are used purely internally and need to be created here to implement the call convention for scopes. *)
