@@ -806,8 +806,8 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
-               Please create another scope thatprovide the input arguments to \
-               this one and execute it instead. ")
+               Please create another scope that provides the input arguments \
+               to this one and execute it instead. ")
         taus
     in
     let to_interpret =
@@ -857,8 +857,8 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
-               Please create another scope thatprovide the input arguments to \
-               this one and execute it instead. ")
+               Please create another scope that provides the input arguments \
+               to this one and execute it instead. ")
         taus
     in
     let to_interpret =
