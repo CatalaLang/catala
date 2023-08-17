@@ -4,12 +4,12 @@
 
 ```catala
 deklaracja zakres Test_A7_U1_P9:
-  sprzedaz zakres UmowaSpolki
+  sprzedaż zakres UmowaSpółki
 
 zakres Test_A7_U1_P9:
-  definicja sprzedaz.kwota wynosi 1000 PLN
+  definicja sprzedaż.kwota wynosi 1000 PLN
 
-  asercja sprzedaz.podatek = 5 PLN
+  asercja sprzedaż.podatek = 5 PLN
 ```
 ```catala-test-inline
 $ catala Interpret -s Test_A7_U1_P9 --disable_warnings

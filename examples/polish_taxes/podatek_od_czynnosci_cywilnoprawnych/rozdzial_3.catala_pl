@@ -9,17 +9,17 @@
 a) nieruchomości, rzeczy ruchomych, prawa użytkowania wieczystego, własnościowego spółdzielczego prawa do lokalu mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z przepisów prawa spółdzielczego: prawa do domu jednorodzinnego oraz prawa do lokalu w małym domu mieszkalnym – 2%,
 
 ```catala
-deklaracja zakres UmowaSprzedazy:
+deklaracja zakres UmowaSprzedaży:
   kontekst kwota typu pieniądze
-  kontekst inne_prawa_majatkowe warunek
+  kontekst inne_prawa_majątkowe warunek
   kontekst stawka_podatku typu dziesiętny
   wyjście podatek typu pieniądze
 
-zakres UmowaSprzedazy:
+zakres UmowaSprzedaży:
   definicja podatek wynosi
     kwota * stawka_podatku
 
-zakres UmowaSprzedazy:
+zakres UmowaSprzedaży:
   etykieta a7_u1_p1_ppa
   definicja stawka_podatku wynosi 2%
 ```
@@ -27,10 +27,10 @@ zakres UmowaSprzedazy:
 
 b) innych praw majątkowych – 1%;
 ```catala
-zakres UmowaSprzedazy:
+zakres UmowaSprzedaży:
   wyjątek a7_u1_p1_ppa
   definicja stawka_podatku pod warunkiem
-    inne_prawa_majatkowe
+    inne_prawa_majątkowe
   konsekwencja wynosi 1%
 ```
 
@@ -42,7 +42,7 @@ mieszkalnego, spółdzielczego prawa do lokalu użytkowego oraz wynikających z 
 ```catala
 deklaracja zakres UmowaZamianyLubDarowizny:
   kontekst kwota typu pieniądze
-  kontekst inne_prawa_majatkowe warunek
+  kontekst inne_prawa_majątkowe warunek
   kontekst stawka_podatku typu dziesiętny
   wyjście podatek typu pieniądze
 
@@ -61,40 +61,40 @@ b) przy przeniesieniu własności innych praw majątkowych – 1%;
 zakres UmowaZamianyLubDarowizny:
   wyjątek a7_u1_p2_ppa
   definicja stawka_podatku pod warunkiem
-    inne_prawa_majatkowe
+    inne_prawa_majątkowe
   konsekwencja wynosi 1%
 ```
 
 3) od umowy ustanowienia odpłatnego użytkowania, w tym nieprawidłowego, oraz odpłatnej służebności – 1%, z zastrzeżeniem ust. 5;
 
 ```catala
-deklaracja zakres OdplatneUzytkowanie:
+deklaracja zakres OdpłatneUżytkowanie:
   kontekst kwota typu pieniądze
   kontekst stawka_podatku typu dziesiętny
   wyjście podatek typu pieniądze
 
-zakres OdplatneUzytkowanie:
+zakres OdpłatneUżytkowanie:
   definicja podatek wynosi
     kwota * stawka_podatku
 
-zakres OdplatneUzytkowanie:
+zakres OdpłatneUżytkowanie:
   definicja stawka_podatku wynosi 1%
 ```
 
 4) od umowy pożyczki oraz depozytu nieprawidłowego – 0,5%, z zastrzeżeniem ust. 5;
 
 ```catala
-deklaracja zakres PozyczkaLubDepozytNieprawidlowy:
+deklaracja zakres PożyczkaLubDepozytNieprawidłowy:
   kontekst kwota typu pieniądze
   kontekst stawka_podatku typu dziesiętny
   wyjście podatek typu pieniądze
 
-zakres PozyczkaLubDepozytNieprawidlowy:
+zakres PożyczkaLubDepozytNieprawidłowy:
   definicja podatek wynosi
     kwota * stawka_podatku # TODO: extract somehow?
                             # this exists in every declaration
 
-zakres PozyczkaLubDepozytNieprawidlowy:
+zakres PożyczkaLubDepozytNieprawidłowy:
   definicja stawka_podatku wynosi 0.5%
 ```
 
@@ -105,7 +105,7 @@ a) na zabezpieczenie wierzytelności istniejących – od kwoty zabezpieczonej w
 ```catala
 deklaracja  zakres Hipoteka:
   kontekst kwota typu pieniądze
-  kontekst wysokosc_nieustalona warunek
+  kontekst wysokość_nieustalona warunek
   kontekst stawka_podatku typu dziesiętny
   kontekst podatek typu pieniądze
 
@@ -124,22 +124,22 @@ b) na zabezpieczenie wierzytelności o wysokości nieustalonej – 19 zł;
 zakres Hipoteka:
   wyjątek a7_u1_p7_ppa
   definicja podatek pod warunkiem
-    wysokosc_nieustalona
+    wysokość_nieustalona
   konsekwencja wynosi 19 PLN
 ```
 
 9) od umowy spółki – 0,5%.
 
 ```catala
-deklaracja zakres UmowaSpolki:
+deklaracja zakres UmowaSpółki:
   kontekst kwota typu pieniądze
   kontekst stawka_podatku typu dziesiętny
   wyjście podatek typu pieniądze
 
-zakres UmowaSpolki:
+zakres UmowaSpółki:
   definicja podatek wynosi
     kwota * stawka_podatku
 
-zakres UmowaSpolki:
+zakres UmowaSpółki:
   definicja stawka_podatku wynosi 0.5%
 ```

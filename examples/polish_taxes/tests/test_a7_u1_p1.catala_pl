@@ -4,22 +4,22 @@
 
 ```catala
 deklaracja zakres Test_A7_U1_P1_PPa:
-  sprzedaz zakres UmowaSprzedazy
+  sprzedaż zakres UmowaSprzedaży
 
 zakres Test_A7_U1_P1_PPa:
-  definicja sprzedaz.kwota wynosi 100 PLN
+  definicja sprzedaż.kwota wynosi 100 PLN
 
-  asercja sprzedaz.podatek = 2 PLN
+  asercja sprzedaż.podatek = 2 PLN
 
 
 deklaracja zakres Test_A7_U1_P1_PPb:
-  sprzedaz zakres UmowaSprzedazy
+  sprzedaż zakres UmowaSprzedaży
 
 zakres Test_A7_U1_P1_PPb:
-  definicja sprzedaz.kwota wynosi 100 PLN
-  definicja sprzedaz.inne_prawa_majatkowe wynosi prawda
+  definicja sprzedaż.kwota wynosi 100 PLN
+  definicja sprzedaż.inne_prawa_majątkowe wynosi prawda
 
-  asercja sprzedaz.podatek = 1 PLN
+  asercja sprzedaż.podatek = 1 PLN
 ```
 
 ```catala-test-inline
