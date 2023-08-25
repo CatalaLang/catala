@@ -359,27 +359,34 @@ de la construction et de l’habitation, à compter du mois de mai 2021.
 # correctement évaluer leur montant.
 ```
 
-######## Article R822-6 | LEGIARTI000038878991
+######## Article R822-6 | LEGIARTI000047985814
 
-Ne sont prises en compte que pour la fraction dépassant le plafond
-individuel prévu à l' article L. 815-9 du code de la sécurité sociale multiplié
-par 1,25 les ressources de chacune des personnes vivant habituellement au foyer
-qui sont :
+Ne sont prises en compte que pour la fraction dépassant le plafond individuel
+prévu à l'article L. 815-9 du code de la sécurité sociale multiplié par 1,25
+les ressources de chacune des personnes vivant habituellement au foyer qui
+sont :
 
 1° Soit enfants du bénéficiaire de l'aide ou de son conjoint ;
 
 2° Soit ascendants du bénéficiaire ou de son conjoint ayant atteint un âge au
-moins égal à celui prévu par l' article L. 161-17-2 du code de la sécurité
-sociale augmenté de cinq années, ou d'un âge au moins égal à celui prévu par
-le même article en cas d'inaptitude au travail ou âgés d'au moins soixante-cinq
-ans s'ils percevaient l'allocation de solidarité aux personnes âgées ;
+moins égal à celui mentionné au 1° de l'article L. 351-8 du code de la
+sécurité sociale, ou d'un âge au moins égal à celui mentionné à l'article L.
+351-1-5 du même code en cas d'inaptitude au travail, ou âgés d'au moins
+soixante-cinq ans s'ils percevaient l'allocation de solidarité aux personnes
+âgées ;
 
-3° Soit ascendants, descendants ou collatéraux au deuxième degré ou au troisième
-degré du bénéficiaire ou de son conjoint et titulaires de la carte
-" mobilité-inclusion " comportant la mention " invalidité " prévue à l' article
-L. 241-3 du code de l'action sociale et des familles ou de la carte d'invalidité
-prévue à l'article L. 241-3 du même code, dans sa rédaction antérieure au 1er
-janvier 2017.
+3° Soit ascendants, descendants ou collatéraux au deuxième degré ou au
+troisième degré du bénéficiaire ou de son conjoint et titulaires de la carte "
+mobilité-inclusion " comportant la mention " invalidité " prévue à l'article
+L. 241-3 du code de l'action sociale et des familles ou de la carte
+d'invalidité prévue à l'article L. 241-3 du même code, dans sa rédaction
+antérieure au 1er janvier 2017.
+
+NOTA:
+
+Conformément au I de l’article 7 du décret n° 2023-799 du 21 août 2023, ces
+dispositions sont applicables aux prestations dues à compter du 1er septembre
+2023.
 
 ```catala
 # Nous choissisons par manque de ressources (sic) de développement de laisser
@@ -1106,13 +1113,14 @@ fournies avec la demande de révision du montant de l'aide.
 ```
 
 
-####### Article R823-4 | LEGIARTI000038878933
+####### Article R823-4 | LEGIARTI000047985801
 
 Sont considérés comme personnes à charge, sous réserve qu'ils vivent
 habituellement au foyer :
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= |2023-09-01|:
   définition personnes_à_charge_prises_en_compte égal à
     personne_à_charge parmi ménage.personnes_à_charge tel que
       prise_en_compte_personne_à_charge de personne_à_charge
@@ -1123,9 +1131,11 @@ sens des 1° et 2° de l'article L. 512-3 du code de la sécurité sociale et de
 l'article L. 823-2 du présent code ;
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= |2023-09-01|:
   # L'âge limite de 21 ans établi ici vient écraser la valeur de l'âge limite
   # prévue par L512-3 du CSS et définie par défaut par R512-2 du CSS.
+  étiquette r823_4_enfants
   définition prestations_familiales.âge_l512_3_2 égal à 21 an
 
   étiquette r823_4_enfants
@@ -1158,12 +1168,13 @@ a) Ayant au moins l'âge prévu par le 1° de l'article L. 351-8 du code de la
 sécurité sociale ou, s'ils sont titulaires de l'allocation de solidarité aux
 personnes âgées, soixante-cinq ans ;
 
-b) Ayant au moins l'âge prévu par l' article L. 161-17-2 du code de la sécurité
+b) Ayant au moins l'âge prévu par l' article L. 351-1-5 du code de la sécurité
 sociale et bénéficiaires des articles L. 161-19 , L. 351-8 ou L. 643-3 du même
 code ;
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= |2023-09-01|:
   règle condition_2_r823_4 de personne_à_charge sous condition
     selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
@@ -1183,10 +1194,10 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
                   -- années: 65 an }).est_inférieur_ou_égal
               )
           ) ou
-          # VERIF: parent.date_naissance + âge_l161_17_2_sécu est ambiguë,
+          # VERIF: parent.date_naissance + âge_l351_1_5_sécu est ambiguë,
           # à détecter
           (parent.date_naissance +
-            âge_l161_17_2_sécu <= date_courante et
+            âge_l351_1_5_sécu <= date_courante et
               parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
         )
   conséquence rempli
@@ -1209,7 +1220,8 @@ individuel prévu à l'article L. 815-9 du code de la sécurité sociale en vigu
 au 31 décembre de l'année de référence multiplié par 1,25.
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement:
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= |2023-09-01|:
   exception r823_4_2
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
    selon personne_à_charge sous forme
@@ -1223,6 +1235,12 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
           plafond_individuel_l815_9_sécu * 1,25
   conséquence rempli
 ```
+
+NOTA:
+
+Conformément au I de l’article 7 du décret n° 2023-799 du 21 août 2023, ces
+dispositions sont applicables aux prestations dues à compter du 1er septembre
+2023.
 
 ####### Article R823-5 | LEGIARTI000038878931
 
@@ -4899,7 +4917,7 @@ champ d'application CalculAllocationLogementFoyer:
     alors 0 € sinon aide_finale
 ```
 
-####### Article D842-16 | LEGIARTI000038878653
+####### Article D842-16 | LEGIARTI000047985424
 
 Un arrêté fixe l'équivalence de loyer " L ", définie au 3° de l'article D. 842-15,
 pour chacune des catégories de personnes résidant dans un logement-foyer ou assimilé,
@@ -4911,11 +4929,12 @@ Ces catégories comprennent :
 
 2° Les étudiants logés dans une chambre ayant fait l'objet d'une réhabilitation ;
 
-3° Les personnes dont l'âge est au moins égal à celui prévu par l' article L. 161-17-2
-du code de la sécurité sociale , augmenté de cinq années, sauf en cas d'inaptitude au
-travail, les personnes titulaires de l'allocation mentionnée à l' article L. 815-1 du
-code de la sécurité sociale dont l'âge est au moins égal à soixante-cinq ans, ainsi
-que les personnes handicapées ;
+3° Les personnes dont l'âge est au moins égal à celui prévu au 1° de l' article
+L. 351-8 du code de la sécurité sociale, ou à celui mentionné à l'article L.
+351-1-5 du même code en cas d'inaptitude au travail, les personnes titulaires
+de l'allocation mentionnée à l'article L. 815-1 du code de la sécurité sociale
+dont l'âge est au moins égal à soixante-cinq ans, ainsi que les personnes
+handicapées ;
 
 4° Les autres personnes.
 
@@ -5280,20 +5299,6 @@ contraintes liées à l'âge ou au handicap de ces personnes.
 
 ##### Capitre I : Guadeloupe, Guyane, Martinique, La Réunion et Mayotte
 
-###### Article R861-1 | LEGIARTI000038878601
-
-Pour l'application du présent livre en Guadeloupe, en Guyane, en Martinique, à La Réunion et à
-Mayotte, un logement-foyer s'entend d'un établissement destiné au logement collectif, à titre
-de résidence principale, de personnes dans des immeubles comportant à la fois des locaux
-privatifs, meublés ou non, et des locaux communs affectés à la vie collective.
-
-```catala
-# Cet article redéfinit L633-1 en éliminant la distinction avec les logements-
-# foyer "résidence sociale", etc. Rien à coder à priori puisque cela veut
-# juste dire que les logements-foyers d'outre mer ne pourront pas cocher la
-# case "résidence sociale" dans les outre-mer.
-```
-
 ###### Article D861-4 | LEGIARTI000038878593
 
 Les arrêtés relatifs aux allocations de logement prévus à l'article D. 823-19 sont également
@@ -5303,19 +5308,11 @@ pris par le ministre chargé de l'outre-mer.
 # Rien à coder.
 ```
 
-###### Article R861-5 | LEGIARTI000041419283
+###### Article R861-5 | LEGIARTI000047985786
 
 Pour leur application à Mayotte :
 
-1° Pour l'application à Mayotte de l'article R. 822-3, les mots : “ prises en compte par la
-déclaration sociale nominative définie à l'article L. 133-5-3 du code de la sécurité sociale ”
-sont remplacés par les mots : “ prises en compte par les déclarations mentionnées à l'article
-87 A du code général des impôts ”
-
-```catala
-# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
-# code donc rien ici.
-```
+1° (Supprimé) ;
 
 2° L'article R. 822-6 est ainsi modifié :
 
@@ -5323,11 +5320,11 @@ a) Au premier alinéa, les mots : " l'article L. 815-9 du code de la sécurité 
 remplacés par les mots : " l'article 28 de l'ordonnance n° 2002-411 du 27 mars 2002 relative à
 la protection sanitaire et sociale à Mayotte " ;
 
-b) Au troisième alinéa, les mots : " par l'article L. 161-17-2 du code de la sécurité sociale "
-sont remplacés par les mots : " par le premier alinéa de l'article 6 de la même ordonnance "
-et les mots : " l'allocation de solidarité aux personnes âgées " sont remplacés par les mots :
-" l'allocation spéciale pour les personnes âgées prévue par l'article 28 de la même
-ordonnance " ;
+b) Au troisième alinéa, les mots : " par l'article L. 161-17-2 du code de la
+sécurité sociale " sont remplacés par les mots : " par le premier alinéa de
+l'article 6 de la même ordonnance " et les mots : " l'allocation de solidarité
+aux personnes âgées " sont remplacés par les mots : " l'allocation spéciale
+pour les personnes âgées prévue par l'article 28 de la même ordonnance " ;
 
 ```catala
 # Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
@@ -5366,11 +5363,12 @@ b) Au quatrième alinéa, les mots : " par le 1° de l'article L. 351-8 du code 
 sociale " sont remplacés par les mots : " par le second alinéa de l'article 6 de l'ordonnance
 n° 2002-411 du 27 mars 2002 relative à la protection sanitaire et sociale à Mayotte " ;
 
-c) Au cinquième alinéa, les mots : " prévu par l'article L. 161-17-2 du code de la sécurité
-sociale " sont remplacés par les mots : " prévu par le premier alinéa de l'article 6 de la
-même ordonnance " et les mots : " des articles L. 161-19, L. 351-8 ou L. 643-3 du même code
-" sont remplacés par les mots : " de l'article L. 161-19 du code de la sécurité sociale ainsi
-que des articles 12 et 23 de la même ordonnance " ;
+c) Au cinquième alinéa, les mots : " prévu par l'article L. 161-17-2 du code
+de la sécurité sociale " sont remplacés par les mots : " prévu par le premier
+alinéa de l'article 6 de la même ordonnance " et les mots : " des articles L.
+161-19, L. 351-8 ou L. 643-3 du même code " sont remplacés par les mots : " de
+l'article L. 161-19 du code de la sécurité sociale ainsi que des articles 12
+et 23 de la même ordonnance " ;
 
 d) A la fin du sixième alinéa, les mots : " prévu à l'article L. 815-9 du code de la sécurité
 sociale " sont remplacés par les mots : " prévu à l'article 28 de l'ordonnance n° 2002-411 du
@@ -5628,7 +5626,8 @@ fixé à vingt-deux ans.
 # l'éligibilité commune aux AL et aux APL pour éviter du code compliqué qui ne
 # s'appliquerait qu'aux AL.
 champ d'application ÉligibilitéAidesPersonnelleLogement:
-  exception définition prestations_familiales.âge_l512_3_2 sous condition
+  exception r823_4_enfants
+  définition prestations_familiales.âge_l512_3_2 sous condition
     (selon ménage.résidence sous forme
       -- Guadeloupe: vrai
       -- Guyane: vrai
@@ -5639,17 +5638,16 @@ champ d'application ÉligibilitéAidesPersonnelleLogement:
   conséquence égal à 22 an
 ```
 
-###### Article D861-10 | LEGIARTI000038878579
+###### Article D861-10 | LEGIARTI000047985420
 
 Pour son application à Mayotte, le 3° de l'article D. 842-16 est ainsi modifié :
 
-1° Les mots : " par l'article L. 161-17-2 du code de la sécurité sociale " sont remplacés
-par les mots : " par le premier alinéa de l'article 6 de l'ordonnance n° 2002-411 du 27 mars
-2002 relative à la protection sanitaire et sociale à Mayotte " ;
+1° Les mots : " celui prévu au 1° de l'article L. 351-8 du code de la sécurité sociale "
+sont remplacés par les mots : " soixante-sept ans " et les mots : " celui mentionné
+à l'article L. 351-1-5 du même code " sont remplacés par les mots : " soixante-deux ans " ;
 
 ```catala
-# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
-# code donc rien ici.
+# TODO juridique et informatique : implémenter ceci.
 ```
 
 2° Les mots : " l'allocation mentionnée à l'article L. 815-1 du code de la sécurité sociale "
@@ -5660,6 +5658,12 @@ l'article 28 de la même ordonnance ".
 # Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
 # code donc rien ici.
 ```
+
+NOTA :
+
+Conformément au I de l’article 3 du décret n° 2023-800 du 21 août 2023, ces
+dispositions sont applicables aux prestations dues à compter du 1er septembre
+2023.
 
 ###### Article D861-11 | LEGIARTI000038878577
 
@@ -5834,7 +5838,8 @@ présent code " ;
 champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
   date_courante >= date_entrée_vigueur_différée_cch:
 
-  exception définition prestations_familiales.âge_l512_3_2 sous condition
+  exception r823_4_enfants
+  définition prestations_familiales.âge_l512_3_2 sous condition
     selon ménage.résidence sous forme
     -- SaintBarthélemy: vrai
     -- SaintMartin: vrai
@@ -6186,7 +6191,7 @@ janvier 2022.
 
 ###### Sous-section II : Conditions générales d'attribution
 
-####### Article R863-4 | LEGIARTI000044636782
+####### Article R863-4 | LEGIARTI000047985799
 
 Pour leur application à Saint-Pierre-et-Miquelon :
 
@@ -6264,17 +6269,7 @@ impôts. ” ;
 # correctement évaluer leur montant.
 ```
 
-5° Au 2° l'article R. 822-6, après les mots : “ l'article L. 161-17-2 du code de la
-sécurité sociale ”, sont insérés les mots : “ dans sa rédaction résultant du b du 1° de
-l'article 5 de la loi n° 87-563 du 17 juillet 1987 portant réforme du régime d'assurance
-vieillesse applicable à Saint-Pierre-et-Miquelon ” ;
-
-```catala
-# Nous choissisons par manque de ressources (sic) de développement de laisser
-# le calcul des ressources à l'utilisateur du programme qui devra suivre
-# les instructions de cet article et de ceux auxquels il se réfère pour
-# correctement évaluer leur montant.
-```
+5° (Supprimé) ;
 
 6° A l'article R. 822-7, les mots : “ au 1° de ” sont remplacés par le mot : “ à ” ;
 
@@ -6351,7 +6346,7 @@ janvier 2022.
 
 ###### Sous-section III : Modalités de liquidation et de versement
 
-####### Article R863-6 | LEGIARTI000044636786
+####### Article R863-6 | LEGIARTI000047985795
 
 Pour leur application à Saint-Pierre-et-Miquelon :
 
@@ -6399,10 +6394,10 @@ dans sa rédaction résultant du a du 3° de l'article 5 de la loi n° 87-563 du
 Saint-Pierre-et-Miquelon ou, s'ils sont titulaires de l'allocation de solidarité aux
 personnes âgées, soixante-cinq ans ;
 
-“ b) Ayant au moins l'âge prévu par l'article L. 161-17-2 du code de la sécurité sociale
-dans sa rédaction résultant du b du 1° de l'article 5 de la loi n° 87-563 mentionnée
-précédemment et bénéficiaires de l'article L. 161-19 et de l'article L. 351-8 dans sa
-rédaction résultant du même article 5 ; ”
+“ b) Ayant au moins l'âge prévu par l' article L. 351-1-5 du code de la
+sécurité sociale et bénéficiaires de l'article L. 161-19 et de l'article L.
+351-8 dans sa rédaction résultant de l' article 5 de la loi n° 87-563 du 17
+juillet 1987 mentionnée précédemment ; ”
 
 ```catala
 # Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
