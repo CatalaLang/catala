@@ -315,10 +315,10 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 
 .FORCE:
 
-test_suite: .FORCE compiler
+test_suite: .FORCE install
 	@$(MAKE) -C tests pass_all_tests
 
-test_examples: .FORCE compiler
+test_examples: .FORCE install
 	@$(MAKE) -C examples pass_all_tests
 
 #> tests					: Run interpreter tests

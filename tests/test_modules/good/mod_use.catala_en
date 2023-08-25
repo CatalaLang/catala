@@ -1,0 +1,23 @@
+# Test modules + inclusions 2
+
+```catala
+declaration scope T2:
+  t1 scope Mod_def.S
+#  input i content Enum1
+  output o1 content Mod_def.Enum1
+  output o2 content Mod_def.Enum1
+  output o3 content money
+
+scope T2:
+  definition o1 equals Mod_def.Enum1.No
+  definition o2 equals t1.e1
+  definition o3 equals t1.sr
+```
+
+```catala-test-inline
+$ catala interpret -s T2 --disable_warnings --use mod_def.catala_en
+[RESULT] Computation successful! Results:
+[RESULT] o1 = No ()
+[RESULT] o2 = Maybe ()
+[RESULT] o3 = $1,000.00
+```

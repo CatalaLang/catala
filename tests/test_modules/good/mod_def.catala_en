@@ -1,0 +1,22 @@
+# Test modules + inclusions 1
+
+```catala-metadata
+declaration enumeration Enum1:
+  -- Yes
+  -- No
+  -- Maybe
+
+declaration scope S:
+  output sr content money
+  output e1 content Enum1
+```
+
+```catala
+scope S:
+  definition sr equals $1,000
+  definition e1 equals Maybe
+```
+
+```catala-test-inline
+$ catala module --compile --plugin-dir=../../../_build/default/compiler/plugins --disable_warnings
+```
