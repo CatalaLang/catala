@@ -322,6 +322,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne seuil_l822_3_parts_usufruit contenu décimal
   interne âge_l351_8_1_sécu contenu durée
   interne âge_l161_17_2_sécu contenu durée
+  interne âge_l351_1_5_sécu contenu durée
   interne plafond_individuel_l815_9_sécu contenu argent
 
   prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
