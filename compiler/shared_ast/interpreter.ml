@@ -910,5 +910,10 @@ let load_runtime_modules = function
     List.iter
       Dynlink.(
         fun m ->
-          loadfile (adapt_filename (Filename.remove_extension m ^ ".cmo")))
+          try loadfile (adapt_filename (Filename.remove_extension m ^ ".cmo"))
+          with Dynlink.Error dl_err ->
+            Message.raise_error
+              "Could not load module %s, has it been suitably compiled?@;\
+               <1 2>@[<hov>%a@]" m Format.pp_print_text
+              (Dynlink.error_message dl_err))
       modules

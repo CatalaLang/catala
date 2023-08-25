@@ -84,24 +84,37 @@ let ocaml_libdir =
              "Could not locate the OCaml library directory, make sure OCaml or \
               opam is installed")))
 
+let rec find_catala_project_root dir =
+  if Sys.file_exists File.(dir / "catala.opam") then Some dir
+  else
+    let dir' = Unix.realpath File.(dir / Filename.parent_dir_name) in
+    if dir' = dir then None else find_catala_project_root dir'
+
 let runtime_dir =
   lazy
-    (match
-       List.find_map File.check_directory
-         [
-           "_build/install/default/lib/catala/runtime_ocaml";
-           (* Relative dir when running from catala source *)
-           File.(Lazy.force ocaml_libdir / "catala" / "runtime");
-         ]
-     with
-    | Some dir ->
-      Message.emit_debug "Catala runtime libraries found at @{<bold>%s@}." dir;
-      dir
-    | None ->
-      Message.raise_error
-        "Could not locate the Catala runtime library.@ Make sure that either \
-         catala is correctly installed,@ or you are running from the root of a \
-         compiled source tree.")
+    (let d =
+       match find_catala_project_root (Sys.getcwd ()) with
+       | Some root ->
+         (* Relative dir when running from catala source *)
+         File.(
+           root
+           / "_build"
+           / "install"
+           / "default"
+           / "lib"
+           / "catala"
+           / "runtime_ocaml")
+       | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime")
+     in
+     match File.check_directory d with
+     | Some dir ->
+       Message.emit_debug "Catala runtime libraries found at @{<bold>%s@}." dir;
+       dir
+     | None ->
+       Message.raise_error
+         "@[<hov>Could not locate the Catala runtime library.@ Make sure that \
+          either catala is correctly installed,@ or you are running from the \
+          root of a compiled source tree.@]")
 
 let compile options link_modules optimize check_invariants =
   let modname =

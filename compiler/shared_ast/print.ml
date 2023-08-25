@@ -101,15 +101,6 @@ let external_ref fmt er =
   | External_value v -> TopdefName.format fmt v
   | External_scope s -> ScopeName.format fmt s
 
-let rec module_ctx ctx = function
-  | [] -> ctx
-  | (modname, mpos) :: path -> (
-    match ModuleName.Map.find_opt modname ctx.ctx_modules with
-    | None ->
-      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format
-        modname
-    | Some ctx -> module_ctx ctx path)
-
 let rec typ_gen
     (ctx : decl_ctx option)
     ~(colors : Ocolor_types.color4 list)
