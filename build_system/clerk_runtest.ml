@@ -1,5 +1,5 @@
 (* This file is part of the Catala build system, a specification language for
-   tax and social benefits computation rules. Copyright (C) 2020 Inria,
+   tax and social benefits computation rules. Copyright (C) 2022-2023 Inria,
    contributors: Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -213,6 +213,12 @@ let run_inline_tests
           in
           let pid =
             let cwd = Unix.getcwd () in
+            (* Catala depends on the CWD when printing relative file locations
+               in error messages. Here we are dealing with inline tests, and it
+               would be inconvenient for the file to contain its own location
+               relative to where the test was run from ; to avoid that, we
+               ensure to always run the catala exec from the directory where the
+               test file was found. *)
             Unix.chdir file_dir;
             Fun.protect ~finally:(fun () -> Unix.chdir cwd)
             @@ fun () ->

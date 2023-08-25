@@ -1,5 +1,5 @@
 (* This file is part of the Catala build system, a specification language for
-   tax and social benefits computation rules. Copyright (C) 2020 Inria,
+   tax and social benefits computation rules. Copyright (C) 2022-2023 Inria,
    contributors: Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not

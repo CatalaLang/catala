@@ -1277,7 +1277,4 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
         ctx )
   in
   let items, ctx = translate_defs top_ctx defs_ordering in
-  (* WIP TODO FIXME HERE: the scopes in submodules are not translated here it
-     seems, and their input structs not added to decl_ctx (see From_surface:1476
-     for decl_ctx flattening info) *)
   { code_items = Bindlib.unbox items; decl_ctx = ctx.decl_ctx }

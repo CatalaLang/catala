@@ -79,6 +79,7 @@ type context = {
   scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
   topdefs : TopdefName.t Ident.Map.t;  (** Global definitions *)
   topdef_types : typ TopdefName.Map.t;
+      (** Types associated with the global definitions *)
   structs : struct_context StructName.Map.t;
       (** For each struct, its context *)
   enums : enum_context EnumName.Map.t;  (** For each enum, its context *)

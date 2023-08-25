@@ -1,4 +1,4 @@
-(* This file is part of the Catala compiler, a specification language for tax <
+(* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020-2022 Inria,
    contributor: Denis Merigoux <denis.merigoux@inria.fr>, Alain Delaët-Tixeuil
    <alain.delaet--tixeuil@inria.fr>, Louis Gesbert <louis.gesbert@inria.fr>

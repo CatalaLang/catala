@@ -149,8 +149,6 @@ let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =
             used_defs g)
         g scope.Ast.scope_decl_rules)
     prgm.program_scopes g
-(* TODO FIXME: Add submodules here, they may still need dependency resolution
-   type-wise (?) *)
 
 let check_for_cycle_in_defs (g : SDependencies.t) : unit =
   (* if there is a cycle, there will be an strongly connected component of
