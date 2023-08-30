@@ -39,7 +39,7 @@ module TVertex : sig
   type t = Struct of StructName.t | Enum of EnumName.t
 
   val format : Format.formatter -> t -> unit
-  val get_info : t -> StructName.info
+  val get_info : t -> Uid.MarkedString.info
 
   include Graph.Sig.COMPARABLE with type t := t
 end

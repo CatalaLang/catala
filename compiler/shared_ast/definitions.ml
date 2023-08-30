@@ -22,16 +22,13 @@
 
 open Catala_utils
 module Runtime = Runtime_ocaml.Runtime
-module ModuleName = String
-(* TODO: should probably be turned into an Uid once we implement module import
-   directives; that will incur an additional resolution work on all paths
-   though *)
+module ModuleName = Uid.Module
 
-module ScopeName = Uid.Gen ()
-module TopdefName = Uid.Gen ()
-module StructName = Uid.Gen ()
+module ScopeName = Uid.Gen_qualified ()
+module TopdefName = Uid.Gen_qualified ()
+module StructName = Uid.Gen_qualified ()
 module StructField = Uid.Gen ()
-module EnumName = Uid.Gen ()
+module EnumName = Uid.Gen_qualified ()
 module EnumConstructor = Uid.Gen ()
 
 (** Only used by surface *)
@@ -348,8 +345,6 @@ type lit =
   | LDate of date
   | LDuration of duration
 
-type path = ModuleName.t Mark.pos list
-
 (** External references are resolved to strings that point to functions or
     constants in the end, but we need to keep different references for typing *)
 type external_ref =
@@ -368,14 +363,12 @@ type 'a glocation =
     }
       -> < scopeVarSimpl : yes ; .. > glocation
   | SubScopeVar : {
-      path : path;
       scope : ScopeName.t;
       alias : SubScopeName.t Mark.pos;
       var : ScopeVar.t Mark.pos;
     }
       -> < explicitScopes : yes ; .. > glocation
   | ToplevelVar : {
-      path : path;
       name : TopdefName.t Mark.pos;
     }
       -> < explicitScopes : yes ; .. > glocation
@@ -456,13 +449,11 @@ and ('a, 'b, 'm) base_gexpr =
   (* Early stages *)
   | ELocation : 'b glocation -> ('a, (< .. > as 'b), 'm) base_gexpr
   | EScopeCall : {
-      path : path;
       scope : ScopeName.t;
       args : ('a, 'm) gexpr ScopeVar.Map.t;
     }
       -> ('a, < explicitScopes : yes ; .. >, 'm) base_gexpr
   | EDStructAccess : {
-      path : path;
       name_opt : StructName.t option;
       e : ('a, 'm) gexpr;
       field : Ident.t;
@@ -478,7 +469,6 @@ and ('a, 'b, 'm) base_gexpr =
       (** Resolved struct/enums, after [desugared] *)
   (* Lambda-like *)
   | EExternal : {
-      path : path;
       name : external_ref Mark.pos;
     }
       -> ('a, < explicitScopes : no ; .. >, 't) base_gexpr
@@ -594,8 +584,8 @@ type 'e code_item_list =
   | Nil
   | Cons of 'e code_item * ('e, 'e code_item_list) binder
 
-type struct_ctx = (path * typ StructField.Map.t) StructName.Map.t
-type enum_ctx = (path * typ EnumConstructor.Map.t) EnumName.Map.t
+type struct_ctx = typ StructField.Map.t StructName.Map.t
+type enum_ctx = typ EnumConstructor.Map.t EnumName.Map.t
 
 type scope_info = {
   in_struct_name : StructName.t;

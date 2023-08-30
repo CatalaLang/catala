@@ -22,9 +22,9 @@ let struc
     ctx
     (fmt : Format.formatter)
     (name : StructName.t)
-    ((path, fields) : path * typ StructField.Map.t) : unit =
-  Format.fprintf fmt "%a %a%a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword
-    "struct" Print.path path StructName.format name Print.punctuation "="
+    (fields : typ StructField.Map.t) : unit =
+  Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword
+    "struct" StructName.format name Print.punctuation "="
     Print.punctuation "{"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
@@ -38,9 +38,9 @@ let enum
     ctx
     (fmt : Format.formatter)
     (name : EnumName.t)
-    ((path, cases) : path * typ EnumConstructor.Map.t) : unit =
-  Format.fprintf fmt "%a %a%a %a @\n@[<hov 2>  %a@]" Print.keyword "enum"
-    Print.path path EnumName.format name Print.punctuation "="
+    (cases : typ EnumConstructor.Map.t) : unit =
+  Format.fprintf fmt "%a %a %a @\n@[<hov 2>  %a@]" Print.keyword "enum"
+    EnumName.format name Print.punctuation "="
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        (fun fmt (field_name, typ) ->
@@ -93,9 +93,9 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
          | Assertion e ->
            Format.fprintf fmt "%a %a" Print.keyword "assert"
              (Print.expr ?debug ()) e
-         | Call ((scope_path, scope_name), subscope_name, _) ->
-           Format.fprintf fmt "%a %a%a%a%a%a" Print.keyword "call" Print.path
-             scope_path ScopeName.format scope_name Print.punctuation "["
+         | Call (scope_name, subscope_name, _) ->
+           Format.fprintf fmt "%a %a%a%a%a" Print.keyword "call"
+             ScopeName.format scope_name Print.punctuation "["
              SubScopeName.format subscope_name Print.punctuation "]"))
     decl.scope_decl_rules
 

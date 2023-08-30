@@ -33,15 +33,6 @@ type ctx = {
   modules : ctx ModuleName.Map.t;
 }
 
-let rec module_ctx ctx = function
-  | [] -> ctx
-  | (modname, mpos) :: path -> (
-    match ModuleName.Map.find_opt modname ctx.modules with
-    | None ->
-      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format
-        modname
-    | Some ctx -> module_ctx ctx path)
-
 let tag_with_log_entry
     (e : untyped Ast.expr boxed)
     (l : log_entry)
@@ -66,16 +57,16 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
         ctx (Array.to_list vars) (Array.to_list new_vars)
     in
     Expr.eabs (Expr.bind new_vars (translate_expr ctx body)) tys m
-  | ELocation (SubScopeVar { path; scope; alias; var }) ->
+  | ELocation (SubScopeVar { scope; alias; var }) ->
     (* When referring to a subscope variable in an expression, we are referring
        to the output, hence we take the last state. *)
-    let ctx = module_ctx ctx path in
+    let ctx = List.fold_left (fun ctx m -> ModuleName.Map.find m ctx.modules) ctx (ScopeName.path scope) in
     let var =
       match ScopeVar.Map.find (Mark.remove var) ctx.scope_var_mapping with
       | WholeVar new_s_var -> Mark.copy var new_s_var
       | States states -> Mark.copy var (snd (List.hd (List.rev states)))
     in
-    Expr.elocation (SubScopeVar { path; scope; alias; var }) m
+    Expr.elocation (SubScopeVar { scope; alias; var }) m
   | ELocation (DesugaredScopeVar { name; state = None }) ->
     Expr.elocation
       (ScopelangScopeVar
@@ -107,7 +98,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
        one possible matching structure *)
     Message.raise_spanned_error (Expr.mark_pos m)
       "Ambiguous structure field access"
-  | EDStructAccess { e; field; path = _; name_opt = Some name } ->
+  | EDStructAccess { e; field; name_opt = Some name } ->
     let e' = translate_expr ctx e in
     let field =
       try
@@ -121,8 +112,8 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
           field StructName.format name
     in
     Expr.estructaccess ~e:e' ~field ~name m
-  | EScopeCall { path; scope; args } ->
-    Expr.escopecall ~path ~scope
+  | EScopeCall { scope; args } ->
+    Expr.escopecall ~scope
       ~args:
         (ScopeVar.Map.fold
            (fun v e args' ->
@@ -624,13 +615,12 @@ let translate_rule
                 (D.ScopeDef.Map.find def_key exc_graphs)
                 ~is_cond ~is_subscope_var:true
             in
-            let subscop_path, subscop_real_name =
+            let subscop_real_name =
               SubScopeName.Map.find sub_scope_index scope.scope_sub_scopes
             in
             Ast.Definition
               ( ( SubScopeVar
                     {
-                      path = subscop_path;
                       scope = subscop_real_name;
                       alias = sub_scope_index, var_pos;
                       var =

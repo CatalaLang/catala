@@ -139,10 +139,9 @@ module To_jsoo = struct
       | TArrow _ -> Format.fprintf fmt "Js.meth"
       | _ -> Format.fprintf fmt "Js.readonly_prop"
     in
-    let format_struct_decl fmt (struct_name, (path, struct_fields)) =
+    let format_struct_decl fmt (struct_name, struct_fields) =
       let fmt_struct_name fmt _ = format_struct_name fmt struct_name in
       let fmt_module_struct_name fmt _ =
-        Print.path fmt path;
         To_ocaml.format_to_module_name fmt (`Sname struct_name)
       in
       let fmt_to_jsoo fmt _ =
@@ -233,10 +232,9 @@ module To_jsoo = struct
     in
     let format_enum_decl
         fmt
-        (enum_name, (path, (enum_cons : typ EnumConstructor.Map.t))) =
+        (enum_name, (enum_cons : typ EnumConstructor.Map.t)) =
       let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
       let fmt_module_enum_name fmt () =
-        Print.path fmt path;
         To_ocaml.format_to_module_name fmt (`Ename enum_name)
       in
       let fmt_to_jsoo fmt _ =

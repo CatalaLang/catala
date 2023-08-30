@@ -745,7 +745,7 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       prgm.decl_ctx with
       ctx_enums =
         prgm.decl_ctx.ctx_enums
-        |> EnumName.Map.add Expr.option_enum ([], Expr.option_enum_config);
+        |> EnumName.Map.add Expr.option_enum Expr.option_enum_config;
     }
   in
   let decl_ctx =
@@ -753,8 +753,8 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       decl_ctx with
       ctx_structs =
         prgm.decl_ctx.ctx_structs
-        |> StructName.Map.mapi (fun _n (path, str) ->
-               path, StructField.Map.map trans_typ_keep str);
+        |> StructName.Map.mapi (fun _n str ->
+            StructField.Map.map trans_typ_keep str);
     }
   in
 

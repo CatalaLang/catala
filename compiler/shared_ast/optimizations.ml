@@ -347,7 +347,7 @@ let optimize_program (p : 'm program) : 'm program =
 
 let test_iota_reduction_1 () =
   let x = Var.make "x" in
-  let enumT = EnumName.fresh ("t", Pos.no_pos) in
+  let enumT = EnumName.fresh [] ("t", Pos.no_pos) in
   let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
   let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
   let consC = EnumConstructor.fresh ("C", Pos.no_pos) in
@@ -387,7 +387,7 @@ let cases_of_list l : ('a, 't) boxed_gexpr EnumConstructor.Map.t =
              (Untyped { pos = Pos.no_pos }) ))
 
 let test_iota_reduction_2 () =
-  let enumT = EnumName.fresh ("t", Pos.no_pos) in
+  let enumT = EnumName.fresh [] ("t", Pos.no_pos) in
   let consA = EnumConstructor.fresh ("A", Pos.no_pos) in
   let consB = EnumConstructor.fresh ("B", Pos.no_pos) in
   let consC = EnumConstructor.fresh ("C", Pos.no_pos) in

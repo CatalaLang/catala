@@ -274,8 +274,8 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
   | EStruct (es, s) ->
-    let path, fields = StructName.Map.find s ctx.ctx_structs in
-    Format.fprintf fmt "%a%a(%a)" Print.path path format_struct_name s
+    let fields = StructName.Map.find s ctx.ctx_structs in
+    Format.fprintf fmt "%a(%a)" format_struct_name s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, (struct_field, _)) ->
@@ -426,7 +426,7 @@ let rec format_statement
       (format_block ctx) case_none format_var case_some_var format_var tmp_var
       (format_block ctx) case_some
   | SSwitch (e1, e_name, cases) ->
-    let path, cons_map = EnumName.Map.find e_name ctx.ctx_enums in
+    let cons_map = EnumName.Map.find e_name ctx.ctx_enums in
     let cases =
       List.map2
         (fun (x, y) (cons, _) -> x, y, cons)
@@ -439,8 +439,8 @@ let rec format_statement
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
          (fun fmt (case_block, payload_var, cons_name) ->
-           Format.fprintf fmt "%a.code == %a%a_Code.%a:@\n%a = %a.value@\n%a"
-             format_var tmp_var Print.path path format_enum_name e_name
+           Format.fprintf fmt "%a.code == %a_Code.%a:@\n%a = %a.value@\n%a"
+             format_var tmp_var format_enum_name e_name
              format_enum_cons_name cons_name format_var payload_var format_var
              tmp_var (format_block ctx) case_block))
       cases
@@ -585,10 +585,10 @@ let format_ctx
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
         Format.fprintf fmt "%a@\n@\n" format_struct_decl
-          (s, snd (StructName.Map.find s ctx.ctx_structs))
+          (s, StructName.Map.find s ctx.ctx_structs)
       | Scopelang.Dependency.TVertex.Enum e ->
         Format.fprintf fmt "%a@\n@\n" format_enum_decl
-          (e, snd (EnumName.Map.find e ctx.ctx_enums)))
+          (e, EnumName.Map.find e ctx.ctx_enums))
     (type_ordering @ scope_structs)
 
 let format_program

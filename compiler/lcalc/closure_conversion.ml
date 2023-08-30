@@ -333,11 +333,11 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
       | TEnum e ->
         EnumConstructor.Map.exists
           (fun _ t' -> type_contains_arrow t')
-          (snd (EnumName.Map.find e p.decl_ctx.ctx_enums))
+          (EnumName.Map.find e p.decl_ctx.ctx_enums)
       | TStruct s ->
         StructField.Map.exists
           (fun _ t' -> type_contains_arrow t')
-          (snd (StructName.Map.find s p.decl_ctx.ctx_structs))
+          (StructName.Map.find s p.decl_ctx.ctx_structs)
     in
     let replace_fun_typs t =
       if type_contains_arrow t then Mark.copy t TAny else t
@@ -346,11 +346,11 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
       p.decl_ctx with
       ctx_structs =
         StructName.Map.map
-          (fun (p, def) -> p, StructField.Map.map replace_fun_typs def)
+          (StructField.Map.map replace_fun_typs)
           p.decl_ctx.ctx_structs;
       ctx_enums =
         EnumName.Map.map
-          (fun (p, def) -> p, EnumConstructor.Map.map replace_fun_typs def)
+          (EnumConstructor.Map.map replace_fun_typs)
           p.decl_ctx.ctx_enums;
     }
   in
@@ -552,7 +552,7 @@ let rec hoist_closures_code_item_list
             (fun next_code_items closure ->
               Cons
                 ( Topdef
-                    ( TopdefName.fresh
+                    ( TopdefName.fresh []
                         ( Bindlib.name_of hoisted_closure.name,
                           Expr.mark_pos closure_mark ),
                       hoisted_closure.ty,

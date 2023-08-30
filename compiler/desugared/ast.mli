@@ -104,7 +104,7 @@ type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
-  scope_sub_scopes : (path * ScopeName.t) SubScopeName.Map.t;
+  scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion AssertionName.Map.t;

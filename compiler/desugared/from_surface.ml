@@ -169,6 +169,7 @@ let rec disambiguate_constructor
       Message.raise_spanned_error pos "Enum %s does not contain case %s"
         (Mark.remove enum) (Mark.remove constructor))
   | (modname, mpos) :: path -> (
+    let modname = ModuleName.of_string modname in
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
       Message.raise_spanned_error mpos "Module %a not found" ModuleName.format
@@ -373,7 +374,7 @@ let rec translate_expr
         | Some v ->
           Expr.elocation
             (ToplevelVar
-               { path = []; name = v, Mark.get (TopdefName.get_info v) })
+               { name = v, Mark.get (TopdefName.get_info v) })
             emark
         | None ->
           Name_resolution.raise_unknown_identifier
@@ -383,7 +384,7 @@ let rec translate_expr
     match Ident.Map.find_opt (Mark.remove name) ctxt.topdefs with
     | Some v ->
       Expr.elocation
-        (ToplevelVar { path; name = v, Mark.get (TopdefName.get_info v) })
+        (ToplevelVar { name = v, Mark.get (TopdefName.get_info v) })
         emark
     | None ->
       Name_resolution.raise_unknown_identifier "for an external variable" name)
@@ -393,19 +394,17 @@ let rec translate_expr
       when Option.fold scope ~none:false ~some:(fun s ->
                Name_resolution.is_subscope_uid s ctxt y) ->
       (* In this case, y.x is a subscope variable *)
-      let subscope_uid, (subscope_path, subscope_real_uid) =
+      let subscope_uid, subscope_real_uid =
         match Ident.Map.find y scope_vars with
         | SubScope (sub, sc) -> sub, sc
         | ScopeVar _ -> assert false
       in
       let subscope_var_uid =
-        let ctxt = Name_resolution.module_ctx ctxt subscope_path in
         Name_resolution.get_var_uid subscope_real_uid ctxt x
       in
       Expr.elocation
         (SubScopeVar
            {
-             path = subscope_path;
              scope = subscope_real_uid;
              alias = subscope_uid, pos;
              var = subscope_var_uid, pos;
@@ -418,6 +417,7 @@ let rec translate_expr
         | [] -> None
         | [c] -> Some (Name_resolution.get_struct ctxt c)
         | (modname, mpos) :: path -> (
+          let modname = ModuleName.of_string modname in
           match ModuleName.Map.find_opt modname ctxt.modules with
           | None ->
             Message.raise_spanned_error mpos "Module %a not found"
@@ -425,7 +425,7 @@ let rec translate_expr
           | Some ctxt -> get_str ctxt path)
       in
       Expr.edstructaccess ~e ~field:(Mark.remove x)
-        ~name_opt:(get_str ctxt path) ~path emark)
+        ~name_opt:(get_str ctxt path) emark)
   | FunCall (f, args) ->
     Expr.eapp (rec_helper f) (List.map rec_helper args) emark
   | ScopeCall (((path, id), _), fields) ->
@@ -467,7 +467,7 @@ let rec translate_expr
             acc)
         ScopeVar.Map.empty fields
     in
-    Expr.escopecall ~path ~scope:called_scope ~args:in_struct emark
+    Expr.escopecall ~scope:called_scope ~args:in_struct emark
   | LetIn (x, e1, e2) ->
     let v = Var.make (Mark.remove x) in
     let local_vars = Ident.Map.add (Mark.remove x) v local_vars in
@@ -1391,11 +1391,11 @@ let init_scope_defs
             (scope_def_map, 0) states
         in
         scope_def)
-    | Name_resolution.SubScope (v0, (path, subscope_uid)) ->
-      let ctxt = Name_resolution.module_ctx ctxt path in
+    | Name_resolution.SubScope (v0, subscope_uid) ->
       let sub_scope_def =
-        ScopeName.Map.find subscope_uid ctxt.Name_resolution.scopes
+        Name_resolution.get_scope_context ctxt subscope_uid
       in
+      let ctxt = List.fold_left (fun ctx m -> ModuleName.Map.find m ctx.Name_resolution.modules) ctxt (ScopeName.path subscope_uid) in
       Ident.Map.fold
         (fun _ v scope_def_map ->
           match v with
@@ -1469,34 +1469,25 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         Ast.program_ctx =
           {
             (* After name resolution, type definitions (structs and enums) are
-               exposed at toplevel for easier lookup, but their paths need to
-               remain available for printing and later passes *)
+               exposed at toplevel for easier lookup *)
             ctx_structs =
               ModuleName.Map.fold
-                (fun modname prg acc ->
+                (fun _ prg acc ->
                   StructName.Map.union
                     (fun _ _ _ -> assert false)
                     acc
-                    (StructName.Map.map
-                       (fun (path, def) -> (modname, Pos.no_pos) :: path, def)
-                       prg.Ast.program_ctx.ctx_structs))
+                    prg.Ast.program_ctx.ctx_structs)
                 submodules
-                (StructName.Map.map
-                   (fun def -> [], def)
-                   ctxt.Name_resolution.structs);
+                ctxt.Name_resolution.structs;
             ctx_enums =
               ModuleName.Map.fold
-                (fun modname prg acc ->
+                (fun _ prg acc ->
                   EnumName.Map.union
                     (fun _ _ _ -> assert false)
                     acc
-                    (EnumName.Map.map
-                       (fun (path, def) -> (modname, Pos.no_pos) :: path, def)
-                       prg.Ast.program_ctx.ctx_enums))
+                    prg.Ast.program_ctx.ctx_enums)
                 submodules
-                (EnumName.Map.map
-                   (fun def -> [], def)
-                   ctxt.Name_resolution.enums);
+                ctxt.Name_resolution.enums;
             ctx_scopes =
               Ident.Map.fold
                 (fun _ def acc ->
@@ -1546,10 +1537,11 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
   let desugared =
     List.fold_left
       (fun acc (id, intf) ->
+        let id = ModuleName.of_string id in
         let modul = ModuleName.Map.find id acc.Ast.program_modules in
         let modul =
           process_code_block
-            (Name_resolution.module_ctx ctxt [id, Pos.no_pos])
+            (ModuleName.Map.find id ctxt.modules)
             modul intf
         in
         {

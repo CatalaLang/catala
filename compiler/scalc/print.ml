@@ -42,8 +42,8 @@ let rec format_expr
   | EVar v -> Format.fprintf fmt "%a" format_var_name v
   | EFunc v -> Format.fprintf fmt "%a" format_func_name v
   | EStruct (es, s) ->
-    let path, fields = StructName.Map.find s decl_ctx.ctx_structs in
-    Format.fprintf fmt "@[<hov 2>%a%a@ %a%a%a@]" Print.path path
+    let fields = StructName.Map.find s decl_ctx.ctx_structs in
+    Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]"
       StructName.format s Print.punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
@@ -142,15 +142,15 @@ let rec format_statement
       (format_expr decl_ctx ~debug)
       (naked_expr, Mark.get stmt)
   | SSwitch (e_switch, enum, arms) ->
-    let path, cons = EnumName.Map.find enum decl_ctx.ctx_enums in
+    let cons = EnumName.Map.find enum decl_ctx.ctx_enums in
     Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@]%a" Print.keyword "switch"
       (format_expr decl_ctx ~debug)
       e_switch Print.punctuation ":"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt ((case, _), (arm_block, payload_name)) ->
-           Format.fprintf fmt "%a %a%a%a@ %a @[<v 2>%a@ %a@]" Print.punctuation
-             "|" Print.path path Print.enum_constructor case Print.punctuation
+           Format.fprintf fmt "%a %a%a@ %a @[<v 2>%a@ %a@]" Print.punctuation
+             "|" Print.enum_constructor case Print.punctuation
              ":" format_var_name payload_name Print.punctuation "→"
              (format_block decl_ctx ~debug)
              arm_block))

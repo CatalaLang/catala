@@ -31,7 +31,7 @@ type scope_input_var_ctx = {
 
 type 'm scope_ref =
   | Local_scope_ref of 'm Ast.expr Var.t
-  | External_scope_ref of path * ScopeName.t Mark.pos
+  | External_scope_ref of ScopeName.t Mark.pos
 
 type 'm scope_sig_ctx = {
   scope_sig_local_vars : scope_var_ctx list;  (** List of scope variables *)
@@ -73,15 +73,12 @@ let pos_mark_mk (type a m) (e : (a, m) gexpr) :
   let pos_mark_as e = pos_mark (Mark.get e) in
   pos_mark, pos_mark_as
 
-let rec module_scope_sig scope_sig_ctx path scope =
-  match path with
-  | [] -> ScopeName.Map.find scope scope_sig_ctx.scope_sigs
-  | (modname, mpos) :: path -> (
-    match ModuleName.Map.find_opt modname scope_sig_ctx.scope_sigs_modules with
-    | None ->
-      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format
-        modname
-    | Some sig_ctx -> module_scope_sig sig_ctx path scope)
+let module_scope_sig scope_sig_ctx scope =
+  let ssctx =
+    List.fold_left (fun ssctx m -> ModuleName.Map.find m ssctx.scope_sigs_modules)
+      scope_sig_ctx (ScopeName.path scope)
+  in
+  ScopeName.Map.find scope ssctx.scope_sigs
 
 let merge_defaults
     ~(is_func : bool)
@@ -214,7 +211,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
   let m = Mark.get e in
   match Mark.remove e with
   | EMatch { e = e1; name; cases = e_cases } ->
-    let path, enum_sig = EnumName.Map.find name ctx.decl_ctx.ctx_enums in
+    let enum_sig = EnumName.Map.find name ctx.decl_ctx.ctx_enums in
     let d_cases, remaining_e_cases =
       (* FIXME: these checks should probably be moved to a better place *)
       EnumConstructor.Map.fold
@@ -223,9 +220,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
             try EnumConstructor.Map.find constructor e_cases
             with EnumConstructor.Map.Not_found _ ->
               Message.raise_spanned_error (Expr.pos e)
-                "The constructor %a of enum %a%a is missing from this pattern \
+                "The constructor %a of enum %a is missing from this pattern \
                  matching"
-                EnumConstructor.format constructor Print.path path
+                EnumConstructor.format constructor
                 EnumName.format name
           in
           let case_d = translate_expr ctx case_e in
@@ -236,16 +233,16 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     in
     if not (EnumConstructor.Map.is_empty remaining_e_cases) then
       Message.raise_spanned_error (Expr.pos e)
-        "Pattern matching is incomplete for enum %a%a: missing cases %a"
-        Print.path path EnumName.format name
+        "Pattern matching is incomplete for enum %a: missing cases %a"
+        EnumName.format name
         (EnumConstructor.Map.format_keys ~pp_sep:(fun fmt () ->
              Format.fprintf fmt ", "))
         remaining_e_cases;
     let e1 = translate_expr ctx e1 in
     Expr.ematch ~e:e1 ~name ~cases:d_cases m
-  | EScopeCall { path; scope; args } ->
+  | EScopeCall { scope; args } ->
     let pos = Expr.mark_pos m in
-    let sc_sig = module_scope_sig ctx.scopes_parameters path scope in
+    let sc_sig = module_scope_sig ctx.scopes_parameters scope in
     let in_var_map =
       ScopeVar.Map.merge
         (fun var_name (str_field : scope_input_var_ctx option) expr ->
@@ -300,8 +297,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
       let e =
         match sc_sig.scope_sig_scope_ref with
         | Local_scope_ref v -> Expr.evar v m
-        | External_scope_ref (path, name) ->
-          Expr.eexternal ~path
+        | External_scope_ref name ->
+          Expr.eexternal
             ~name:(Mark.map (fun s -> External_scope s) name)
             m
       in
@@ -411,9 +408,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
                       EndCall f_markings)
                    ts_in (Expr.pos e)
                | _ -> original_field_expr)
-             (snd
-                (StructName.Map.find sc_sig.scope_sig_output_struct
-                   ctx.decl_ctx.ctx_structs)))
+             (StructName.Map.find sc_sig.scope_sig_output_struct
+                   ctx.decl_ctx.ctx_structs))
         (Expr.with_ty m (TStruct sc_sig.scope_sig_output_struct, Expr.pos e))
     in
     (* Here we have to go through an if statement that records a decision being
@@ -497,8 +493,8 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         ctx.subscope_vars
         |> SubScopeName.Map.find (Mark.remove alias)
         |> retrieve_in_and_out_typ_or_any var
-      | ELocation (ToplevelVar { path; name }) -> (
-        let decl_ctx = Program.module_ctx ctx.decl_ctx path in
+      | ELocation (ToplevelVar { name }) -> (
+        let decl_ctx = Program.module_ctx ctx.decl_ctx (TopdefName.path (Mark.remove name)) in
         let typ = TopdefName.Map.find (Mark.remove name) decl_ctx.ctx_topdefs in
         match Mark.remove typ with
         | TArrow (tin, (tout, _)) -> List.map Mark.remove tin, tout
@@ -572,11 +568,13 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
          %a's results. Maybe you forgot to qualify it as an output?"
         SubScopeName.format (Mark.remove s) ScopeVar.format (Mark.remove a)
         SubScopeName.format (Mark.remove s))
-  | ELocation (ToplevelVar { path = []; name }) ->
-    let v, _ = TopdefName.Map.find (Mark.remove name) ctx.toplevel_vars in
-    Expr.evar v m
-  | ELocation (ToplevelVar { path = _ :: _ as path; name }) ->
-    Expr.eexternal ~path ~name:(Mark.map (fun n -> External_value n) name) m
+  | ELocation (ToplevelVar { name }) ->
+    let path = TopdefName.path (Mark.remove name) in
+    if path = [] then
+      let v, _ = TopdefName.Map.find (Mark.remove name) ctx.toplevel_vars in
+      Expr.evar v m
+    else
+      Expr.eexternal ~name:(Mark.map (fun n -> External_value n) name) m
   | EOp { op = Add_dat_dur _; tys } ->
     Expr.eop (Add_dat_dur ctx.date_rounding) tys m
   | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
@@ -710,11 +708,11 @@ let translate_rule
     (* A global variable can't be defined locally. The [Definition] constructor
        could be made more specific to avoid this case, but the added complexity
        didn't seem worth it *)
-  | Call ((path, subname), subindex, m) ->
-    let subscope_sig = module_scope_sig ctx.scopes_parameters path subname in
+  | Call (subname, subindex, m) ->
+    let subscope_sig = module_scope_sig ctx.scopes_parameters subname in
     let scope_sig_decl =
       ScopeName.Map.find subname
-        (Program.module_ctx ctx.decl_ctx path).ctx_scopes
+        (Program.module_ctx ctx.decl_ctx (ScopeName.path subname)).ctx_scopes
     in
     let all_subscope_vars = subscope_sig.scope_sig_local_vars in
     let all_subscope_input_vars =
@@ -736,8 +734,8 @@ let translate_rule
       let m = mark_tany m pos_call in
       match subscope_sig.scope_sig_scope_ref with
       | Local_scope_ref var -> Expr.make_var var m
-      | External_scope_ref (path, name) ->
-        Expr.eexternal ~path ~name:(Mark.map (fun n -> External_scope n) name) m
+      | External_scope_ref name ->
+        Expr.eexternal ~name:(Mark.map (fun n -> External_scope n) name) m
     in
     let called_scope_input_struct = subscope_sig.scope_sig_input_struct in
     let called_scope_return_struct = subscope_sig.scope_sig_output_struct in
@@ -1069,7 +1067,7 @@ let translate_scope_decl
       StructField.Map.empty scope_input_variables
   in
   let new_struct_ctx =
-    StructName.Map.singleton scope_input_struct_name ([], field_map)
+    StructName.Map.singleton scope_input_struct_name field_map
   in
   scope_body, new_struct_ctx
 
@@ -1088,18 +1086,18 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
            prg.Scopelang.Ast.program_scopes))
     prgm.program_modules;
   let sctx : 'm scope_sigs_ctx =
-    let process_scope_sig (scope_path, scope_name) scope =
-      Message.emit_debug "process_scope_sig %a%a (%a)" Print.path scope_path
+    let process_scope_sig scope_name scope =
+      Message.emit_debug "process_scope_sig %a (%a)"
         ScopeName.format scope_name ScopeName.format
         scope.Scopelang.Ast.scope_decl_name;
+      let scope_path = ScopeName.path scope_name in
       let scope_ref =
-        match scope_path with
-        | [] ->
+        if scope_path = [] then
           let v = Var.make (Mark.remove (ScopeName.get_info scope_name)) in
           Local_scope_ref v
-        | path ->
+        else
           External_scope_ref
-            (path, Mark.copy (ScopeName.get_info scope_name) scope_name)
+            (Mark.copy (ScopeName.get_info scope_name) scope_name)
       in
       let scope_info =
         try
@@ -1108,7 +1106,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
         with ScopeName.Map.Not_found _ ->
           Message.raise_spanned_error
             (Mark.get (ScopeName.get_info scope_name))
-            "Could not find scope %a%a" Print.path scope_path ScopeName.format
+            "Could not find scope %a" ScopeName.format
             scope_name
       in
       let scope_sig_in_fields =
@@ -1148,17 +1146,15 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
         scope_sig_in_fields;
       }
     in
-    let rec process_modules path prg =
+    let rec process_modules prg =
       {
         scope_sigs =
           ScopeName.Map.mapi
             (fun scope_name (scope_decl, _) ->
-              process_scope_sig (path, scope_name) scope_decl)
+              process_scope_sig scope_name scope_decl)
             prg.Scopelang.Ast.program_scopes;
         scope_sigs_modules =
-          ModuleName.Map.mapi
-            (fun modname prg ->
-              process_modules (path @ [modname, Pos.no_pos]) prg)
+          ModuleName.Map.map process_modules
             prg.Scopelang.Ast.program_modules;
       }
     in
@@ -1166,21 +1162,20 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
       scope_sigs =
         ScopeName.Map.mapi
           (fun scope_name (scope_decl, _) ->
-            process_scope_sig ([], scope_name) scope_decl)
+            process_scope_sig scope_name scope_decl)
           prgm.Scopelang.Ast.program_scopes;
       scope_sigs_modules =
-        ModuleName.Map.mapi
-          (fun modname prg -> process_modules [modname, Pos.no_pos] prg)
+        ModuleName.Map.map
+          process_modules
           prgm.Scopelang.Ast.program_modules;
     }
   in
-  let rec gather_module_in_structs acc path sctx =
+  let rec gather_module_in_structs acc sctx =
     (* Expose all added in_structs from submodules at toplevel *)
     ModuleName.Map.fold
-      (fun modname scope_sigs acc ->
-        let path = path @ [modname, Pos.no_pos] in
+      (fun _ scope_sigs acc ->
         let acc =
-          gather_module_in_structs acc path scope_sigs.scope_sigs_modules
+          gather_module_in_structs acc scope_sigs.scope_sigs_modules
         in
         ScopeName.Map.fold
           (fun _ scope_sig_ctx acc ->
@@ -1196,7 +1191,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
                 scope_sig_ctx.scope_sig_in_fields StructField.Map.empty
             in
             StructName.Map.add scope_sig_ctx.scope_sig_input_struct
-              (path, fields) acc)
+              fields acc)
           scope_sigs.scope_sigs acc)
       sctx acc
   in
@@ -1204,7 +1199,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
     {
       decl_ctx with
       ctx_structs =
-        gather_module_in_structs decl_ctx.ctx_structs [] sctx.scope_sigs_modules;
+        gather_module_in_structs decl_ctx.ctx_structs sctx.scope_sigs_modules;
     }
   in
   let top_ctx =

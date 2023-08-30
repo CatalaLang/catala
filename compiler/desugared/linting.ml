@@ -109,7 +109,7 @@ let detect_unused_struct_fields (p : program) : unit =
         let rec structs_fields_used_expr e struct_fields_used =
           match Mark.remove e with
           | EDStructAccess
-              { name_opt = Some name; e = e_struct; field; path = _ } ->
+              { name_opt = Some name; e = e_struct; field } ->
             let field =
               StructName.Map.find name
                 (Ident.Map.find field p.program_ctx.ctx_struct_fields)
@@ -136,8 +136,8 @@ let detect_unused_struct_fields (p : program) : unit =
       p.program_ctx.ctx_scopes StructField.Set.empty
   in
   StructName.Map.iter
-    (fun s_name (path, fields) ->
-      if path <> [] then ()
+    (fun s_name fields ->
+      if StructName.path s_name <> [] then ()
       else if
         (not (StructField.Map.is_empty fields))
         && StructField.Map.for_all
@@ -192,8 +192,8 @@ let detect_unused_enum_constructors (p : program) : unit =
       ~init:EnumConstructor.Set.empty p
   in
   EnumName.Map.iter
-    (fun e_name (path, constructors) ->
-      if path <> [] then ()
+    (fun e_name constructors ->
+      if EnumName.path e_name <> [] then ()
       else if
         EnumConstructor.Map.for_all
           (fun cons _ ->

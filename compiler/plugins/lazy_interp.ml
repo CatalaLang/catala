@@ -243,7 +243,7 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
                  (Bindlib.box EEmptyError, Expr.with_ty m ty_out)
                  ty_in (Expr.mark_pos m)
              | ty -> Expr.evar (Var.make "undefined_input") (Expr.with_ty m ty))
-           (snd (StructName.Map.find scope_arg_struct ctx.ctx_structs)))
+           (StructName.Map.find scope_arg_struct ctx.ctx_structs))
       m
   in
   let e_app = Expr.eapp (Expr.box e) [application_arg] m in

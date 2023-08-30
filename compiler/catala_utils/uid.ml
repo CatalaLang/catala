@@ -58,12 +58,13 @@ module Make (X : Info) () : Id with type info = X.info = struct
     { id = !counter; info }
 
   let get_info (uid : t) : X.info = uid.info
-  let format (fmt : Format.formatter) (x : t) : unit = X.format fmt x.info
   let hash (x : t) : int = x.id
 
   module Set = Set.Make (Ordering)
   module Map = Map.Make (Ordering)
 end
+
+(* - Raw idents - *)
 
 module MarkedString = struct
   type info = string Mark.pos
@@ -75,3 +76,54 @@ module MarkedString = struct
 end
 
 module Gen () = Make (MarkedString) ()
+
+(* - Modules, paths and qualified idents - *)
+
+module Module = struct
+  include String
+  let to_string m = m
+  let format ppf m = Format.fprintf ppf "@{<blue>%s@}" m
+
+  let of_string m = m
+end
+(* TODO: should probably be turned into an uid once we implement module import
+   directives; that will incur an additional resolution work on all paths
+   though ([module Module = Gen ()]) *)
+
+module Path = struct
+  type t = Module.t list
+
+  let format ppf p =
+    Format.pp_print_list
+      ~pp_sep:(fun _ () -> ())
+      (fun ppf m ->
+         Format.fprintf ppf "%a@{<cyan>.@}" Module.format m)
+      ppf p
+
+  let to_string p = String.concat "." p
+  let equal = List.equal String.equal
+  let compare = List.compare String.compare
+end
+
+module QualifiedMarkedString = struct
+  type info = Path.t * MarkedString.info
+
+  let to_string (p, i) =
+    Format.asprintf "%a%a" Path.format p MarkedString.format i
+  let format fmt (p, i) =
+    Path.format fmt p; MarkedString.format fmt i
+  let equal (p1, i1) (p2, i2) =
+    Path.equal p1 p2 && MarkedString.equal i1 i2
+  let compare (p1, i1) (p2, i2) =
+    match Path.compare p1 p2 with
+    | 0 -> MarkedString.compare i1 i2
+    | n -> n
+end
+
+module Gen_qualified () = struct
+  include Make (QualifiedMarkedString) ()
+
+  let fresh path t = fresh (path, t)
+  let path t = fst (get_info t)
+  let get_info t = snd (get_info t)
+end

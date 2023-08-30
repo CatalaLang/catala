@@ -255,7 +255,7 @@ module Commands = struct
         variable ScopeName.format scope_uid
     | Some
         (Desugared.Name_resolution.SubScope
-          (subscope_var_name, (subscope_path, subscope_name))) -> (
+          (subscope_var_name, subscope_name)) -> (
       match second_part with
       | None ->
         Message.raise_error
@@ -265,7 +265,10 @@ module Commands = struct
           SubScopeName.format subscope_var_name ScopeName.format scope_uid
       | Some second_part -> (
         match
-          let ctxt = Desugared.Name_resolution.module_ctx ctxt subscope_path in
+          let ctxt = Desugared.Name_resolution.module_ctx ctxt
+              (List.map (fun m -> ModuleName.to_string m, Pos.no_pos)
+                 (ScopeName.path subscope_name))
+          in
           Ident.Map.find_opt second_part
             (ScopeName.Map.find subscope_name ctxt.scopes).var_idmap
         with

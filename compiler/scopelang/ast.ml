@@ -41,7 +41,7 @@ let rec locations_used (e : 'm expr) : LocationSet.t =
 type 'm rule =
   | Definition of location Mark.pos * typ * Desugared.Ast.io * 'm expr
   | Assertion of 'm expr
-  | Call of (path * ScopeName.t) * SubScopeName.t * 'm mark
+  | Call of ScopeName.t * SubScopeName.t * 'm mark
 
 type 'm scope_decl = {
   scope_decl_name : ScopeName.t;

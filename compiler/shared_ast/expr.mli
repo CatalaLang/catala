@@ -38,7 +38,6 @@ val rebox : ('a any, 'm) gexpr -> ('a, 'm) boxed_gexpr
 val evar : ('a, 'm) gexpr Var.t -> 'm mark -> ('a, 'm) boxed_gexpr
 
 val eexternal :
-  path:path ->
   name:external_ref Mark.pos ->
   'm mark ->
   (< explicitScopes : no ; .. >, 'm) boxed_gexpr
@@ -119,7 +118,6 @@ val estruct :
   ('a any, 'm) boxed_gexpr
 
 val edstructaccess :
-  path:path ->
   name_opt:StructName.t option ->
   field:Ident.t ->
   e:('a, 'm) boxed_gexpr ->
@@ -148,7 +146,6 @@ val ematch :
   ('a any, 'm) boxed_gexpr
 
 val escopecall :
-  path:path ->
   scope:ScopeName.t ->
   args:('a, 'm) boxed_gexpr ScopeVar.Map.t ->
   'm mark ->
@@ -389,8 +386,6 @@ val format : Format.formatter -> ('a, 'm) gexpr -> unit
 
 val equal_lit : lit -> lit -> bool
 val compare_lit : lit -> lit -> int
-val equal_path : path -> path -> bool
-val compare_path : path -> path -> int
 val equal_location : 'a glocation Mark.pos -> 'a glocation Mark.pos -> bool
 val compare_location : 'a glocation Mark.pos -> 'a glocation Mark.pos -> int
 val equal_except : except -> except -> bool

@@ -60,3 +60,35 @@ module Make (X : Info) () : Id with type info = X.info
 
 module Gen () : Id with type info = MarkedString.info
 (** Shortcut for creating a kind of uids over marked strings *)
+
+(** {2 Handling of Uids with additional path information} *)
+
+module Module: sig
+  type t = private string (* TODO: this will become an uid at some point *)
+  val to_string: t -> string
+  val format: Format.formatter -> t -> unit
+  val equal : t -> t-> bool
+  val compare : t -> t -> int
+  val of_string: string -> t
+
+  module Set : Set.S with type elt = t
+  module Map : Map.S with type key = t
+end
+
+module Path: sig
+  type t = Module.t list
+
+  val to_string: t -> string
+  val format: Format.formatter -> t -> unit
+  val equal : t -> t-> bool
+  val compare : t -> t -> int
+end
+
+(** Same as [Gen] but also registers path information *)
+module Gen_qualified () : sig
+  include Id with type info = Path.t * MarkedString.info
+  val fresh : Path.t -> MarkedString.info -> t
+
+  val path : t -> Path.t
+  val get_info : t -> MarkedString.info
+end

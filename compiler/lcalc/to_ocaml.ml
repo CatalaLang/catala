@@ -274,8 +274,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   in
   match Mark.remove e with
   | EVar v -> Format.fprintf fmt "%a" format_var v
-  | EExternal { path; name } -> (
-    Print.path fmt path;
+  | EExternal { name } -> (
     (* FIXME: this is wrong in general !! We assume the idents exposed by the
        module depend only on the original name, while they actually get through
        Bindlib and may have been renamed. A correct implem could use the runtime
@@ -555,11 +554,13 @@ let format_ctx
     (fun struct_or_enum ->
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
-        let path, def = StructName.Map.find s ctx.ctx_structs in
-        if path = [] then Format.fprintf fmt "%a@\n" format_struct_decl (s, def)
+        let def = StructName.Map.find s ctx.ctx_structs in
+        if StructName.path s = [] then
+          Format.fprintf fmt "%a@\n" format_struct_decl (s, def)
       | Scopelang.Dependency.TVertex.Enum e ->
-        let path, def = EnumName.Map.find e ctx.ctx_enums in
-        if path = [] then Format.fprintf fmt "%a@\n" format_enum_decl (e, def))
+        let def = EnumName.Map.find e ctx.ctx_enums in
+        if EnumName.path e = [] then
+          Format.fprintf fmt "%a@\n" format_enum_decl (e, def))
     (type_ordering @ scope_structs)
 
 let rename_vars e =
@@ -618,7 +619,7 @@ let format_scope_exec
     scope_body =
   let scope_name_str = Mark.remove (ScopeName.get_info scope_name) in
   let scope_var = String.Map.find scope_name_str bnd in
-  let _, scope_input =
+  let scope_input =
     StructName.Map.find scope_body.scope_body_input_struct ctx.ctx_structs
   in
   if not (StructField.Map.is_empty scope_input) then

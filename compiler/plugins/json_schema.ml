@@ -76,11 +76,11 @@ module To_json = struct
       (ctx : decl_ctx)
       (fmt : Format.formatter)
       (sname : StructName.t) =
-    let path, fields = StructName.Map.find sname ctx.ctx_structs in
+    let fields = StructName.Map.find sname ctx.ctx_structs in
     Format.pp_print_list
       ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
       (fun fmt (field_name, field_type) ->
-        Format.fprintf fmt "@[<hov 2>\"%a%a\": {@\n%a@]@\n}" Print.path path
+        Format.fprintf fmt "@[<hov 2>\"%a\": {@\n%a@]@\n}"
           format_struct_field_name_camel_case field_name fmt_type field_type)
       fmt
       (StructField.Map.bindings fields)
@@ -105,18 +105,17 @@ module To_json = struct
         | TEnum e ->
           List.fold_left collect (t :: acc)
             (EnumConstructor.Map.values
-               (snd (EnumName.Map.find e ctx.ctx_enums)))
+               (EnumName.Map.find e ctx.ctx_enums))
         | TArray t -> collect acc t
         | _ -> acc
       in
       StructName.Map.find input_struct ctx.ctx_structs
-      |> snd
       |> StructField.Map.values
       |> List.fold_left (fun acc field_typ -> collect acc field_typ) []
       |> List.sort_uniq (fun t t' -> String.compare (get_name t) (get_name t'))
     in
     let fmt_enum_properties fmt ename =
-      let _path, enum_def = EnumName.Map.find ename ctx.ctx_enums in
+      let enum_def = EnumName.Map.find ename ctx.ctx_enums in
       Format.fprintf fmt
         "@[<hov 2>\"kind\": {@\n\
          \"type\": \"string\",@\n\

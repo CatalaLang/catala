@@ -32,7 +32,7 @@ type scope_def_context = {
 
 type scope_var_or_subscope =
   | ScopeVar of ScopeVar.t
-  | SubScope of SubScopeName.t * (path * ScopeName.t)
+  | SubScope of SubScopeName.t * ScopeName.t
 
 type scope_context = {
   var_idmap : scope_var_or_subscope Ident.Map.t;
@@ -68,6 +68,7 @@ type typedef =
   | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type context = {
+  path : Uid.Path.t;
   typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructField.t StructName.Map.t Ident.Map.t;
@@ -112,12 +113,23 @@ let get_var_io (ctxt : context) (uid : ScopeVar.t) :
     Surface.Ast.scope_decl_context_io =
   (ScopeVar.Map.find uid ctxt.var_typs).var_sig_io
 
+let get_scope_context (ctxt: context) (scope: ScopeName.t) : scope_context =
+  let rec remove_common_prefix curpath scpath = match curpath, scpath with
+    | m1 :: cp, m2 :: sp when ModuleName.equal m1 m2 -> remove_common_prefix cp sp
+    | _ -> scpath
+  in
+  let path = remove_common_prefix ctxt.path (ScopeName.path scope) in
+  let ctxt =
+    List.fold_left (fun ctx m -> ModuleName.Map.find m ctx.modules) ctxt path
+  in
+  ScopeName.Map.find scope ctxt.scopes
+
 (** Get the variable uid inside the scope given in argument *)
 let get_var_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
     ((x, pos) : Ident.t Mark.pos) : ScopeVar.t =
-  let scope = ScopeName.Map.find scope_uid ctxt.scopes in
+  let scope = get_scope_context ctxt scope_uid in
   match Ident.Map.find_opt x scope.var_idmap with
   | Some (ScopeVar uid) -> uid
   | _ ->
@@ -130,7 +142,7 @@ let get_subscope_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
     ((y, pos) : Ident.t Mark.pos) : SubScopeName.t =
-  let scope = ScopeName.Map.find scope_uid ctxt.scopes in
+  let scope = get_scope_context ctxt scope_uid in
   match Ident.Map.find_opt y scope.var_idmap with
   | Some (SubScope (sub_uid, _sub_id)) -> sub_uid
   | _ -> raise_unknown_identifier "for a subscope of this scope" (y, pos)
@@ -139,7 +151,7 @@ let get_subscope_uid
     subscopes of [scope_uid]. *)
 let is_subscope_uid (scope_uid : ScopeName.t) (ctxt : context) (y : Ident.t) :
     bool =
-  let scope = ScopeName.Map.find scope_uid ctxt.scopes in
+  let scope = get_scope_context ctxt scope_uid in
   match Ident.Map.find_opt y scope.var_idmap with
   | Some (SubScope _) -> true
   | _ -> false
@@ -147,7 +159,7 @@ let is_subscope_uid (scope_uid : ScopeName.t) (ctxt : context) (y : Ident.t) :
 (** Checks if the var_uid belongs to the scope scope_uid *)
 let belongs_to (ctxt : context) (uid : ScopeVar.t) (scope_uid : ScopeName.t) :
     bool =
-  let scope = ScopeName.Map.find scope_uid ctxt.scopes in
+  let scope = get_scope_context ctxt scope_uid in
   Ident.Map.exists
     (fun _ -> function
       | ScopeVar var_uid -> ScopeVar.equal uid var_uid
@@ -241,6 +253,7 @@ let rec module_ctx ctxt path =
   match path with
   | [] -> ctxt
   | (modname, mpos) :: path -> (
+    let modname = ModuleName.of_string modname in
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
       Message.raise_spanned_error mpos "Module %a not found" ModuleName.format
@@ -256,7 +269,7 @@ let process_subscope_decl
     (decl : Surface.Ast.scope_decl_context_scope) : context =
   let name, name_pos = decl.scope_decl_context_scope_name in
   let (path, subscope), s_pos = decl.scope_decl_context_scope_sub_scope in
-  let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
+  let scope_ctxt = get_scope_context ctxt scope in
   match Ident.Map.find_opt (Mark.remove subscope) scope_ctxt.var_idmap with
   | Some use ->
     let info =
@@ -278,7 +291,7 @@ let process_subscope_decl
         scope_ctxt with
         var_idmap =
           Ident.Map.add name
-            (SubScope (sub_scope_uid, (path, original_subscope_uid)))
+            (SubScope (sub_scope_uid, original_subscope_uid))
             scope_ctxt.var_idmap;
         sub_scopes =
           ScopeName.Set.add original_subscope_uid scope_ctxt.sub_scopes;
@@ -324,6 +337,7 @@ let rec process_base_typ
            declared"
           ident)
     | Surface.Ast.Named ((modul, mpos) :: path, id) -> (
+      let modul = ModuleName.of_string modul in
       match ModuleName.Map.find_opt modul ctxt.modules with
       | None ->
         Message.raise_spanned_error mpos
@@ -351,7 +365,7 @@ let process_data_decl
   let data_typ = process_type ctxt decl.scope_decl_context_item_typ in
   let is_cond = is_type_cond decl.scope_decl_context_item_typ in
   let name, pos = decl.scope_decl_context_item_name in
-  let scope_ctxt = ScopeName.Map.find scope ctxt.scopes in
+  let scope_ctxt = get_scope_context ctxt scope in
   match Ident.Map.find_opt name scope_ctxt.var_idmap with
   | Some use ->
     let info =
@@ -568,7 +582,7 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
         }
     in
     let out_struct_fields =
-      let sco = ScopeName.Map.find scope_uid ctxt.scopes in
+      let sco = get_scope_context ctxt scope_uid in
       let str = get_struct ctxt decl.scope_decl_name in
       Ident.Map.fold
         (fun id var svmap ->
@@ -621,9 +635,9 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
       (fun use ->
         raise_already_defined_error (typedef_info use) name pos "scope")
       (Ident.Map.find_opt name ctxt.typedefs);
-    let scope_uid = ScopeName.fresh (name, pos) in
-    let in_struct_name = StructName.fresh (name ^ "_in", pos) in
-    let out_struct_name = StructName.fresh (name, pos) in
+    let scope_uid = ScopeName.fresh ctxt.path (name, pos) in
+    let in_struct_name = StructName.fresh ctxt.path (name ^ "_in", pos) in
+    let out_struct_name = StructName.fresh ctxt.path (name, pos) in
     {
       ctxt with
       typedefs =
@@ -651,7 +665,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
       (fun use ->
         raise_already_defined_error (typedef_info use) name pos "struct")
       (Ident.Map.find_opt name ctxt.typedefs);
-    let s_uid = StructName.fresh sdecl.struct_decl_name in
+    let s_uid = StructName.fresh ctxt.path sdecl.struct_decl_name in
     {
       ctxt with
       typedefs =
@@ -665,7 +679,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
       (fun use ->
         raise_already_defined_error (typedef_info use) name pos "enum")
       (Ident.Map.find_opt name ctxt.typedefs);
-    let e_uid = EnumName.fresh edecl.enum_decl_name in
+    let e_uid = EnumName.fresh ctxt.path edecl.enum_decl_name in
     {
       ctxt with
       typedefs =
@@ -681,7 +695,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
         raise_already_defined_error (TopdefName.get_info use) name pos
           "toplevel definition")
       (Ident.Map.find_opt name ctxt.topdefs);
-    let uid = TopdefName.fresh def.topdef_name in
+    let uid = TopdefName.fresh ctxt.path def.topdef_name in
     {
       ctxt with
       topdefs = Ident.Map.add name uid ctxt.topdefs;
@@ -762,8 +776,8 @@ let get_def_key
               ScopeVar.format x_uid
           else None )
   | [y; x] ->
-    let (subscope_uid, (path, subscope_real_uid))
-          : SubScopeName.t * (path * ScopeName.t) =
+    let (subscope_uid, subscope_real_uid)
+          : SubScopeName.t * ScopeName.t =
       match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
       | Some (SubScope (v, u)) -> v, u
       | Some _ ->
@@ -775,7 +789,6 @@ let get_def_key
           Print.lit_style (Mark.remove y)
     in
     let x_uid =
-      let ctxt = module_ctx ctxt path in
       get_var_uid subscope_real_uid ctxt x
     in
     Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)
@@ -924,6 +937,7 @@ let process_use_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
 
 let empty_ctxt =
   {
+    path = [];
     typedefs = Ident.Map.empty;
     scopes = ScopeName.Map.empty;
     topdefs = Ident.Map.empty;
@@ -937,13 +951,14 @@ let empty_ctxt =
   }
 
 let import_module modules (name, intf) =
-  let ctxt = { empty_ctxt with modules } in
+  let mname = ModuleName.of_string name in
+  let ctxt = { empty_ctxt with modules; path = [mname] } in
   let ctxt = List.fold_left process_name_item ctxt intf in
   let ctxt = List.fold_left process_decl_item ctxt intf in
   let ctxt = { ctxt with modules = empty_ctxt.modules } in
   (* No submodules at the moment, a module may use the ones loaded before it,
      but doesn't reexport them *)
-  ModuleName.Map.add name ctxt modules
+  ModuleName.Map.add mname ctxt modules
 
 (** Derive the context from metadata, in one pass over the declarations *)
 let form_context (prgm : Surface.Ast.program) : context =

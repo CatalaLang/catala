@@ -448,7 +448,6 @@ let rec runtime_to_val :
       m )
   | TStruct name ->
     StructName.Map.find name ctx.ctx_structs
-    |> snd
     |> StructField.Map.to_seq
     |> Seq.map2
          (fun o (fld, ty) -> fld, runtime_to_val eval_expr ctx m ty o)
@@ -459,7 +458,7 @@ let rec runtime_to_val :
     (* we only use non-constant constructors of arity 1, which allows us to
        always use the tag directly (ordered as declared in the constr map), and
        the field 0 *)
-    let _path, cons_map = EnumName.Map.find name ctx.ctx_enums in
+    let cons_map = EnumName.Map.find name ctx.ctx_enums in
     let cons, ty =
       List.nth
         (EnumConstructor.Map.bindings cons_map)
@@ -497,7 +496,7 @@ and val_to_runtime :
     List.map2 (val_to_runtime eval_expr ctx) ts es |> Array.of_list |> Obj.repr
   | TStruct name1, EStruct { name; fields } ->
     assert (StructName.equal name name1);
-    let _path, fld_tys = StructName.Map.find name ctx.ctx_structs in
+    let fld_tys = StructName.Map.find name ctx.ctx_structs in
     Seq.map2
       (fun (_, ty) (_, v) -> val_to_runtime eval_expr ctx ty v)
       (StructField.Map.to_seq fld_tys)
@@ -506,7 +505,7 @@ and val_to_runtime :
     |> Obj.repr
   | TEnum name1, EInj { name; cons; e } ->
     assert (EnumName.equal name name1);
-    let _path, cons_map = EnumName.Map.find name ctx.ctx_enums in
+    let cons_map = EnumName.Map.find name ctx.ctx_enums in
     let rec find_tag n = function
       | [] -> assert false
       | (c, ty) :: _ when EnumConstructor.equal c cons -> n, ty
@@ -549,7 +548,11 @@ let rec evaluate_expr :
     Message.raise_spanned_error pos
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
-  | EExternal { path; name } ->
+  | EExternal { name } ->
+    let path = match Mark.remove name with
+      | External_value td -> TopdefName.path td
+      | External_scope s -> ScopeName.path s
+    in
     let ty =
       try
         let ctx = Program.module_ctx ctx path in
@@ -563,11 +566,11 @@ let rec evaluate_expr :
             pos )
       with TopdefName.Map.Not_found _ | ScopeName.Map.Not_found _ ->
         Message.raise_spanned_error pos
-          "Reference to %a%a could not be resolved" Print.path path
+          "Reference to %a could not be resolved"
           Print.external_ref name
     in
     let runtime_path =
-      ( List.map Mark.remove path,
+      ( List.map ModuleName.to_string path,
         match Mark.remove name with
         | External_value name -> Mark.remove (TopdefName.get_info name)
         | External_scope name -> Mark.remove (ScopeName.get_info name) )
@@ -814,7 +817,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
        the types of the scope arguments. For [context] arguments, we can provide
        an empty thunked term. But for [input] arguments of another type, we
        cannot provide anything so we have to fail. *)
-    let _path, taus = StructName.Map.find s_in ctx.ctx_structs in
+    let taus = StructName.Map.find s_in ctx.ctx_structs in
     let application_term =
       StructField.Map.map
         (fun ty ->
@@ -864,7 +867,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
        the types of the scope arguments. For [context] arguments, we can provide
        an empty thunked term. But for [input] arguments of another type, we
        cannot provide anything so we have to fail. *)
-    let _path, taus = StructName.Map.find s_in ctx.ctx_structs in
+    let taus = StructName.Map.find s_in ctx.ctx_structs in
     let application_term =
       StructField.Map.map
         (fun ty ->

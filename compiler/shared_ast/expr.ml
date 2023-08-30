@@ -110,8 +110,8 @@ let subst binder vars =
 
 let evar v mark = Mark.add mark (Bindlib.box_var v)
 
-let eexternal ~path ~name mark =
-  Mark.add mark (Bindlib.box (EExternal { path; name }))
+let eexternal ~name mark =
+  Mark.add mark (Bindlib.box (EExternal { name }))
 
 let etuple args = Box.appn args @@ fun args -> ETuple args
 
@@ -155,8 +155,8 @@ let estruct ~name ~(fields : ('a, 't) boxed_gexpr StructField.Map.t) mark =
        (fun fields -> EStruct { name; fields })
        (Box.lift_struct (StructField.Map.map Box.lift fields))
 
-let edstructaccess ~path ~name_opt ~field ~e =
-  Box.app1 e @@ fun e -> EDStructAccess { path; name_opt; field; e }
+let edstructaccess ~name_opt ~field ~e =
+  Box.app1 e @@ fun e -> EDStructAccess { name_opt; field; e }
 
 let estructaccess ~name ~field ~e =
   Box.app1 e @@ fun e -> EStructAccess { name; field; e }
@@ -170,10 +170,10 @@ let ematch ~name ~e ~cases mark =
        (Box.lift e)
        (Box.lift_enum (EnumConstructor.Map.map Box.lift cases))
 
-let escopecall ~path ~scope ~args mark =
+let escopecall ~scope ~args mark =
   Mark.add mark
   @@ Bindlib.box_apply
-       (fun args -> EScopeCall { path; scope; args })
+       (fun args -> EScopeCall { scope; args })
        (Box.lift_scope_vars (ScopeVar.Map.map Box.lift args))
 
 (* - Manipulation of marks - *)
@@ -253,7 +253,7 @@ let maybe_ty (type m) ?(typ = TAny) (m : m mark) : typ =
 
 (* - Predefined types (option) - *)
 
-let option_enum = EnumName.fresh ("eoption", Pos.no_pos)
+let option_enum = EnumName.fresh [] ("eoption", Pos.no_pos)
 let none_constr = EnumConstructor.fresh ("ENone", Pos.no_pos)
 let some_constr = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
@@ -275,7 +275,7 @@ let map
   | EOp { op; tys } -> eop op tys m
   | EArray args -> earray (List.map f args) m
   | EVar v -> evar (Var.translate v) m
-  | EExternal { path; name } -> eexternal ~path ~name m
+  | EExternal { name } -> eexternal ~name m
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let body = f body in
@@ -297,15 +297,15 @@ let map
   | EStruct { name; fields } ->
     let fields = StructField.Map.map f fields in
     estruct ~name ~fields m
-  | EDStructAccess { path; name_opt; field; e } ->
-    edstructaccess ~path ~name_opt ~field ~e:(f e) m
+  | EDStructAccess { name_opt; field; e } ->
+    edstructaccess ~name_opt ~field ~e:(f e) m
   | EStructAccess { name; field; e } -> estructaccess ~name ~field ~e:(f e) m
   | EMatch { name; e; cases } ->
     let cases = EnumConstructor.Map.map f cases in
     ematch ~name ~e:(f e) ~cases m
-  | EScopeCall { path; scope; args } ->
+  | EScopeCall { scope; args } ->
     let args = ScopeVar.Map.map f args in
-    escopecall ~path ~scope ~args m
+    escopecall ~scope ~args m
   | ECustom { obj; targs; tret } -> ecustom obj targs tret m
 
 let rec map_top_down ~f e = map ~f:(map_top_down ~f) (f e)
@@ -372,7 +372,7 @@ let map_gather
     let acc, args = lfoldmap args in
     acc, earray args m
   | EVar v -> acc, evar (Var.translate v) m
-  | EExternal { path; name } -> acc, eexternal ~path ~name m
+  | EExternal { name } -> acc, eexternal ~name m
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let acc, body = f body in
@@ -420,9 +420,9 @@ let map_gather
         (acc, StructField.Map.empty)
     in
     acc, estruct ~name ~fields m
-  | EDStructAccess { path; name_opt; field; e } ->
+  | EDStructAccess { name_opt; field; e } ->
     let acc, e = f e in
-    acc, edstructaccess ~path ~name_opt ~field ~e m
+    acc, edstructaccess ~name_opt ~field ~e m
   | EStructAccess { name; field; e } ->
     let acc, e = f e in
     acc, estructaccess ~name ~field ~e m
@@ -437,7 +437,7 @@ let map_gather
         (acc, EnumConstructor.Map.empty)
     in
     acc, ematch ~name ~e ~cases m
-  | EScopeCall { path; scope; args } ->
+  | EScopeCall { scope; args } ->
     let acc, args =
       ScopeVar.Map.fold
         (fun var e (acc, args) ->
@@ -445,7 +445,7 @@ let map_gather
           join acc acc1, ScopeVar.Map.add var e args)
         args (acc, ScopeVar.Map.empty)
     in
-    acc, escopecall ~path ~scope ~args m
+    acc, escopecall ~scope ~args m
   | ECustom { obj; targs; tret } -> acc, ecustom obj targs tret m
 
 (* - *)
@@ -518,8 +518,6 @@ let compare_lit (l1 : lit) (l2 : lit) =
   | LDuration _, _ -> .
   | _, LDuration _ -> .
 
-let compare_path = List.compare (Mark.compare ModuleName.compare)
-
 let compare_location
     (type a)
     (x : a glocation Mark.pos)
@@ -542,9 +540,9 @@ let compare_location
       SubScopeVar { alias = ysubindex, _; var = ysubvar, _; _ } ) ->
     let c = SubScopeName.compare xsubindex ysubindex in
     if c = 0 then ScopeVar.compare xsubvar ysubvar else c
-  | ( ToplevelVar { path = px; name = vx, _ },
-      ToplevelVar { path = py; name = vy, _ } ) -> (
-    match compare_path px py with 0 -> TopdefName.compare vx vy | n -> n)
+  | ( ToplevelVar { name = vx, _ },
+      ToplevelVar { name = vy, _ } ) ->
+    TopdefName.compare vx vy
   | DesugaredScopeVar _, _ -> -1
   | _, DesugaredScopeVar _ -> 1
   | ScopelangScopeVar _, _ -> -1
@@ -554,7 +552,6 @@ let compare_location
   | ToplevelVar _, _ -> .
   | _, ToplevelVar _ -> .
 
-let equal_path = List.equal (Mark.equal ModuleName.equal)
 let equal_location a b = compare_location a b = 0
 let equal_except ex1 ex2 = ex1 = ex2
 let compare_except ex1 ex2 = Stdlib.compare ex1 ex2
@@ -583,8 +580,8 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
  fun e1 e2 ->
   match Mark.remove e1, Mark.remove e2 with
   | EVar v1, EVar v2 -> Bindlib.eq_vars v1 v2
-  | EExternal { path = p1; name = n1 }, EExternal { path = p2; name = n2 } ->
-    Mark.equal equal_external_ref n1 n2 && equal_path p1 p2
+  | EExternal { name = n1 }, EExternal { name = n2 } ->
+    Mark.equal equal_external_ref n1 n2
   | ETuple es1, ETuple es2 -> equal_list es1 es2
   | ( ETupleAccess { e = e1; index = id1; size = s1 },
       ETupleAccess { e = e2; index = id2; size = s2 } ) ->
@@ -615,10 +612,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( EStruct { name = s1; fields = fields1 },
       EStruct { name = s2; fields = fields2 } ) ->
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
-  | ( EDStructAccess { e = e1; field = f1; name_opt = s1; path = p1 },
-      EDStructAccess { e = e2; field = f2; name_opt = s2; path = p2 } ) ->
+  | ( EDStructAccess { e = e1; field = f1; name_opt = s1 },
+      EDStructAccess { e = e2; field = f2; name_opt = s2 } ) ->
     Option.equal StructName.equal s1 s2
-    && equal_path p1 p2
     && Ident.equal f1 f2
     && equal e1 e2
   | ( EStructAccess { e = e1; field = f1; name = s1 },
@@ -632,10 +628,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     EnumName.equal n1 n2
     && equal e1 e2
     && EnumConstructor.Map.equal equal cases1 cases2
-  | ( EScopeCall { path = p1; scope = s1; args = fields1 },
-      EScopeCall { path = p2; scope = s2; args = fields2 } ) ->
+  | ( EScopeCall { scope = s1; args = fields1 },
+      EScopeCall { scope = s2; args = fields2 } ) ->
     ScopeName.equal s1 s2
-    && equal_path p1 p2
     && ScopeVar.Map.equal equal fields1 fields2
   | ( ECustom { obj = obj1; targs = targs1; tret = tret1 },
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
@@ -667,8 +662,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     List.compare compare a1 a2
   | EVar v1, EVar v2 ->
     Bindlib.compare_vars v1 v2
-  | EExternal { path = p1; name = n1 }, EExternal { path = p2; name = n2 } ->
-    compare_path p1 p2 @@< fun () -> Mark.compare compare_external_ref n1 n2
+  | EExternal { name = n1 }, EExternal { name = n2 } ->
+    Mark.compare compare_external_ref n1 n2
   | EAbs {binder=binder1; tys=typs1},
     EAbs {binder=binder2; tys=typs2} ->
     List.compare Type.compare typs1 typs2 @@< fun () ->
@@ -685,10 +680,9 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     EStruct {name=name2; fields=field_map2 } ->
     StructName.compare name1 name2 @@< fun () ->
     StructField.Map.compare compare field_map1 field_map2
-  | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1; path=p1},
-    EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2; path=p2} ->
+  | EDStructAccess {e=e1; field=field_name1; name_opt=struct_name1},
+    EDStructAccess {e=e2; field=field_name2; name_opt=struct_name2} ->
     compare e1 e2 @@< fun () ->
-    compare_path p1 p2 @@< fun () ->
     Ident.compare field_name1 field_name2 @@< fun () ->
     Option.compare StructName.compare struct_name1 struct_name2
   | EStructAccess {e=e1; field=field_name1; name=struct_name1 },
@@ -701,9 +695,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     EnumName.compare name1 name2 @@< fun () ->
     compare e1 e2 @@< fun () ->
     EnumConstructor.Map.compare compare emap1 emap2
-  | EScopeCall {path = p1; scope=name1; args=field_map1},
-    EScopeCall {path = p2; scope=name2; args=field_map2} ->
-    compare_path p1 p2 @@< fun () ->
+  | EScopeCall {scope=name1; args=field_map1},
+    EScopeCall {scope=name2; args=field_map2} ->
     ScopeName.compare name1 name2 @@< fun () ->
     ScopeVar.Map.compare compare field_map1 field_map2
   | ETuple es1, ETuple es2 ->

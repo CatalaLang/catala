@@ -32,7 +32,7 @@ type scope_def_context = {
 
 type scope_var_or_subscope =
   | ScopeVar of ScopeVar.t
-  | SubScope of SubScopeName.t * (path * ScopeName.t)
+  | SubScope of SubScopeName.t * ScopeName.t
 
 type scope_context = {
   var_idmap : scope_var_or_subscope Ident.Map.t;
@@ -68,6 +68,8 @@ type typedef =
   | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
 type context = {
+  path : ModuleName.t list;
+  (** The current path being processed. Used for generating the Uids. *)
   typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructField.t StructName.Map.t Ident.Map.t;
@@ -104,6 +106,9 @@ val get_var_typ : context -> ScopeVar.t -> typ
 
 val is_var_cond : context -> ScopeVar.t -> bool
 val get_var_io : context -> ScopeVar.t -> Surface.Ast.scope_decl_context_io
+
+val get_scope_context : context -> ScopeName.t -> scope_context
+(** Get the corresponding scope context from the context, looking up into nested submodules as necessary, following the path information in the scope name *)
 
 val get_var_uid : ScopeName.t -> context -> Ident.t Mark.pos -> ScopeVar.t
 (** Get the variable uid inside the scope given in argument *)
@@ -151,7 +156,7 @@ val get_scope : context -> Ident.t Mark.pos -> ScopeName.t
 (** Find a scope definition from the typedefs, failing if there is none or it
     has a different kind *)
 
-val module_ctx : context -> path -> context
+val module_ctx : context -> Surface.Ast.path -> context
 (** Returns the context corresponding to the given module path; raises a user
     error if the module is not found *)
 

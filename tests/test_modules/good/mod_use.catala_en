@@ -12,6 +12,9 @@ scope T2:
   definition o1 equals Mod_def.Enum1.No
   definition o2 equals t1.e1
   definition o3 equals t1.sr
+  assertion o1 = Mod_def.Enum1.No
+  assertion o2 = Mod_def.Enum1.Maybe
+  assertion o3 = $1000
 ```
 
 ```catala-test-inline
