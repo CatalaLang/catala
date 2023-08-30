@@ -143,11 +143,7 @@ let format_to_module_name
   | `Ename v -> Format.asprintf "%a" EnumName.format v
   | `Sname v -> Format.asprintf "%a" StructName.format v)
   |> String.to_ascii
-  |> String.to_snake_case
   |> avoid_keywords
-  |> String.split_on_char '_'
-  |> List.map String.capitalize_ascii
-  |> String.concat ""
   |> Format.fprintf fmt "%s"
 
 let format_struct_field_name
@@ -283,11 +279,17 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
        the original module to ensure that bindlib performs the exact same
        renamings ; or finally we could normalise the names at generation time
        (either at toplevel or in a dedicated submodule ?) *)
-    match Mark.remove name with
-    | External_value name ->
-      format_var_str fmt (Mark.remove (TopdefName.get_info name))
-    | External_scope name ->
-      format_var_str fmt (Mark.remove (ScopeName.get_info name)))
+      let path =
+        match Mark.remove name with
+        | External_value name -> TopdefName.path name
+        | External_scope name -> ScopeName.path name
+      in
+      Uid.Path.format fmt path;
+      match Mark.remove name with
+      | External_value name ->
+        format_var_str fmt (Mark.remove (TopdefName.get_info name))
+      | External_scope name ->
+        format_var_str fmt (Mark.remove (ScopeName.get_info name)))
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
@@ -470,7 +472,7 @@ let format_struct_embedding
       StructName.format struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
-         (fun _fmt (struct_field, struct_field_type) ->
+         (fun fmt (struct_field, struct_field_type) ->
            Format.fprintf fmt "(\"%a\",@ %a@ x.%a)" StructField.format
              struct_field typ_embedding_name struct_field_type
              format_struct_field_name
@@ -492,7 +494,7 @@ let format_enum_embedding
       EnumName.format enum_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-         (fun _fmt (enum_cons, enum_cons_type) ->
+         (fun fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
              format_enum_cons_name enum_cons EnumConstructor.format enum_cons
              typ_embedding_name enum_cons_type))
@@ -515,7 +517,7 @@ let format_ctx
         format_to_module_name (`Sname struct_name)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-           (fun _fmt (struct_field, struct_field_type) ->
+           (fun fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
                (None, struct_field) format_typ struct_field_type))
         (StructField.Map.bindings struct_fields);
@@ -528,7 +530,7 @@ let format_ctx
       format_to_module_name (`Ename enum_name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-         (fun _fmt (enum_cons, enum_cons_type) ->
+         (fun fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
              enum_cons format_typ enum_cons_type))
       (EnumConstructor.Map.bindings enum_cons);
@@ -597,7 +599,7 @@ let format_code_items
       | Topdef (name, typ, e) ->
         Format.fprintf fmt "@\n@\n@[<hov 2>let %a : %a =@\n%a@]" format_var var
           format_typ typ (format_expr ctx) e;
-        String.Map.add (Mark.remove (TopdefName.get_info name)) var bnd
+        String.Map.add (Format.asprintf "%a" TopdefName.format name) var bnd
       | ScopeDef (name, body) ->
         let scope_input_var, scope_body_expr =
           Bindlib.unbind body.scope_body_expr
@@ -608,7 +610,7 @@ let format_code_items
           (`Sname body.scope_body_output_struct)
           (format_scope_body_expr ctx)
           scope_body_expr;
-        String.Map.add (Mark.remove (ScopeName.get_info name)) var bnd)
+        String.Map.add (Format.asprintf "%a" ScopeName.format name) var bnd)
     ~init:String.Map.empty code_items
 
 let format_scope_exec
@@ -617,7 +619,7 @@ let format_scope_exec
     (bnd : 'm Ast.expr Var.t String.Map.t)
     scope_name
     scope_body =
-  let scope_name_str = Mark.remove (ScopeName.get_info scope_name) in
+  let scope_name_str = Format.asprintf "%a" ScopeName.format scope_name in
   let scope_var = String.Map.find scope_name_str bnd in
   let scope_input =
     StructName.Map.find scope_body.scope_body_input_struct ctx.ctx_structs
