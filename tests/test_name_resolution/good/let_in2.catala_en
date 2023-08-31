@@ -37,14 +37,14 @@ module S = struct
   type t = {a: bool}
 end
 
-module SIn = struct
+module S_in = struct
   type t = {a_in: unit -> bool}
 end
 
 
 
-let s (s_in: SIn.t) : S.t =
-  let a_: unit -> bool = s_in.SIn.a_in in
+let s (s_in: S_in.t) : S.t =
+  let a_: unit -> bool = s_in.S_in.a_in in
   let a_: bool =
     try
       (handle_default

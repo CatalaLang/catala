@@ -21,57 +21,10 @@ scope T2:
 ```
 
 ```catala-test-inline
-$ catala interpret -s T2 --disable_warnings --use mod_def.catala_en --debug
-[DEBUG] Loading shared modules...
-[DEBUG] Collecting rules...
-[DEBUG] Reading files...
-[DEBUG] Parsing mod_use.catala_en
-[DEBUG] Parsing mod_def.catala_en
-[DEBUG] Name resolution...
-[DEBUG] Desugaring...
-[DEBUG] Disambiguating...
-[DEBUG] Linting...
-[DEBUG] Typechecking...
-[ERROR]
-Reference to Mod_def.half not found
-
-┌─⯈ mod_use.catala_en:16.24-16.36:
-└──┐
-16 │   definition o4 equals Mod_def.half of 10
-   │                        ‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Test modules + inclusions 2
-Raised at Catala_utils__Message.raise_spanned_error.(fun).continuation in file "compiler/catala_utils/message.ml", line 232, characters 4-183
-Called from Shared_ast__Typing.typecheck_expr_top_down in file "compiler/shared_ast/typing.ml", line 437, characters 8-97
-Called from Shared_ast__Typing.typecheck_expr_top_down in file "compiler/shared_ast/typing.ml", line 810, characters 14-73
-Called from Shared_ast__Typing.typecheck_expr_top_down in file "compiler/shared_ast/typing.ml", line 841, characters 16-74
-Called from Shared_ast__Typing.wrap_expr.(fun) in file "compiler/shared_ast/typing.ml", line 895, characters 32-37
-Called from Shared_ast__Typing.wrap in file "compiler/shared_ast/typing.ml", line 886, characters 6-9
-Called from Shared_ast__Typing.expr in file "compiler/shared_ast/typing.ml", line 926, characters 4-48
-Called from Scopelang__Ast.type_rule in file "compiler/scopelang/ast.ml", line 62, characters 16-75
-Called from Stdlib__List.map in file "list.ml", line 92, characters 20-23
-Called from Stdlib__List.map in file "list.ml", line 92, characters 32-39
-Called from Scopelang__Ast.type_program.(fun) in file "compiler/scopelang/ast.ml", line 119, characters 13-118
-Called from Catala_utils__Mark.map in file "compiler/catala_utils/mark.ml", line 25, characters 19-22
-Called from Stdlib__Map.Make.map in file "map.ml", line 304, characters 19-22
-Called from Scopelang__Ast.type_program in file "compiler/scopelang/ast.ml", line 111, characters 4-498
-Called from Driver.Passes.dcalc in file "compiler/driver.ml", line 114, characters 14-44
-Called from Driver.Commands.interpret_dcalc in file "compiler/driver.ml", line 574, characters 6-68
-Called from Cmdliner_term.app.(fun) in file "cmdliner_term.ml", line 24, characters 19-24
-Called from Cmdliner_eval.run_parser in file "cmdliner_eval.ml", line 34, characters 37-44
-Called from Cmdliner_eval.eval_value in file "cmdliner_eval.ml", line 202, characters 14-39
-Called from Driver.main in file "compiler/driver.ml", line 890, characters 8-49
-#return code 123#
-```
-
-```catala-test-inline
-$ catala ocaml --disable_warnings --use mod_def.catala_en
-[ERROR]
-Reference to Mod_def.half not found
-
-┌─⯈ mod_use.catala_en:16.24-16.36:
-└──┐
-16 │   definition o4 equals Mod_def.half of 10
-   │                        ‾‾‾‾‾‾‾‾‾‾‾‾
-   └─ Test modules + inclusions 2
-#return code 123#
+$ catala interpret -s T2 --disable_warnings --use mod_def.catala_en
+[RESULT] Computation successful! Results:
+[RESULT] o1 = No ()
+[RESULT] o2 = Maybe ()
+[RESULT] o3 = $1,000.00
+[RESULT] o4 = 5.0
 ```

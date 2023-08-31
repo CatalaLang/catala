@@ -116,7 +116,7 @@ let run_test_allocations_familiales () =
   | Runtime.AssertionFailed _ -> ()
 
 let aides_logement_input :
-    Law_source.Aides_logement.CalculetteAidesAuLogementGardeAlterneeIn.t =
+    Law_source.Aides_logement.CalculetteAidesAuLogementGardeAlternee_in.t =
   {
     menage_in =
       {
@@ -137,7 +137,7 @@ let aides_logement_input :
                     false;
                   logement_meuble_d842_2 = false;
                   changement_logement_d842_4 =
-                    Law_source.Aides_logement.ChangementLogementD8424
+                    Law_source.Aides_logement.ChangementLogementD842_4
                     .PasDeChangement
                       ();
                   loyer_principal = Runtime.money_of_units_int 450;

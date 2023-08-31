@@ -33,24 +33,24 @@ module ScopeB = struct
   type t = {a: bool}
 end
 
-module ScopeAIn = struct
+module ScopeA_in = struct
   type t = unit
 end
 
-module ScopeBIn = struct
+module ScopeB_in = struct
   type t = unit
 end
 
 
 
-let scope_a (scope_a_in: ScopeAIn.t) : ScopeA.t =
+let scope_a (scope_a_in: ScopeA_in.t) : ScopeA.t =
   let a_: bool = try true with
     EmptyError -> (raise (NoValueProvided
       {filename = "191_fix_record_name_confusion.catala_en"; start_line=5;
         start_column=10; end_line=5; end_column=11; law_headings=["Article"]})) in
   {ScopeA.a = a_}
 
-let scope_b (scope_b_in: ScopeBIn.t) : ScopeB.t =
+let scope_b (scope_b_in: ScopeB_in.t) : ScopeB.t =
   let result_: ScopeA.t = scope_a (()) in
   let scope_a_dot_a_: bool = result_.ScopeA.a in
   let a_: bool = try scope_a_dot_a_ with

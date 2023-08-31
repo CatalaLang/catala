@@ -30,17 +30,17 @@ let compute_allocations_familiales
   let result =
     AF.interface_allocations_familiales
       {
-        AF.InterfaceAllocationsFamilialesIn.i_date_courante_in = current_date;
-        AF.InterfaceAllocationsFamilialesIn.i_enfants_in = children;
-        AF.InterfaceAllocationsFamilialesIn.i_ressources_menage_in =
+        AF.InterfaceAllocationsFamiliales_in.i_date_courante_in = current_date;
+        AF.InterfaceAllocationsFamiliales_in.i_enfants_in = children;
+        AF.InterfaceAllocationsFamiliales_in.i_ressources_menage_in =
           money_of_units_int income;
-        AF.InterfaceAllocationsFamilialesIn.i_residence_in = residence;
-        AF.InterfaceAllocationsFamilialesIn
+        AF.InterfaceAllocationsFamiliales_in.i_residence_in = residence;
+        AF.InterfaceAllocationsFamiliales_in
         .i_personne_charge_effective_permanente_est_parent_in = is_parent;
-        AF.InterfaceAllocationsFamilialesIn
+        AF.InterfaceAllocationsFamiliales_in
         .i_personne_charge_effective_permanente_remplit_titre_I_in =
           fills_title_I;
-        AF.InterfaceAllocationsFamilialesIn
+        AF.InterfaceAllocationsFamiliales_in
         .i_avait_enfant_a_charge_avant_1er_janvier_2012_in =
           had_rights_open_before_2012;
       }
