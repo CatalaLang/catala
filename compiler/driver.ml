@@ -56,7 +56,7 @@ module Passes = struct
      (forwarding their options as needed) *)
 
   let surface options ~link_modules : Surface.Ast.program * Cli.backend_lang =
-    Message.emit_debug "Reading files...";
+    Message.emit_debug "- SURFACE -";
     let language = get_lang options options.input_file in
     let prg =
       Surface.Parser_driver.parse_top_level_file options.input_file language
@@ -70,6 +70,7 @@ module Passes = struct
   let desugared options ~link_modules :
       Desugared.Ast.program * Desugared.Name_resolution.context =
     let prg, _ = surface options ~link_modules in
+    Message.emit_debug "- DESUGARED -";
     Message.emit_debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context prg in
     (* let scope_uid = get_scope_uid options backend ctx in
@@ -91,8 +92,8 @@ module Passes = struct
       * Desugared.Name_resolution.context
       * Desugared.Dependency.ExceptionsDependencies.t
         Desugared.Ast.ScopeDef.Map.t =
-    Message.emit_debug "Collecting rules...";
     let prg, ctx = desugared options ~link_modules in
+    Message.emit_debug "- SCOPELANG -";
     let exceptions_graphs =
       Scopelang.From_desugared.build_exceptions_graph prg
     in
@@ -106,11 +107,12 @@ module Passes = struct
       * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
     let prg, ctx, _ = scopelang options ~link_modules in
-    Message.emit_debug "Typechecking...";
+    Message.emit_debug "- DCALC -";
     let type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
         prg.program_ctx.ctx_enums
     in
+    Message.emit_debug "Typechecking...";
     let prg = Scopelang.Ast.type_program prg in
     Message.emit_debug "Translating to default calculus...";
     let prg = Dcalc.From_scopelang.translate_program prg in
@@ -151,7 +153,7 @@ module Passes = struct
     let prg, ctx, type_ordering =
       dcalc options ~link_modules ~optimize ~check_invariants
     in
-    Message.emit_debug "Compiling program into lambda calculus...";
+    Message.emit_debug "- LCALC -";
     let avoid_exceptions = avoid_exceptions || closure_conversion in
     let optimize = optimize || closure_conversion in
     (* --closure_conversion implies --avoid_exceptions and --optimize *)
@@ -202,7 +204,7 @@ module Passes = struct
       lcalc options ~link_modules ~optimize ~check_invariants ~avoid_exceptions
         ~closure_conversion
     in
-    Message.emit_debug "Compiling program into statement calculus...";
+    Message.emit_debug "- SCALC -";
     Scalc.From_lcalc.translate_program prg, ctx, type_ordering
 end
 
@@ -569,10 +571,10 @@ module Commands = struct
       results
 
   let interpret_dcalc options link_modules optimize check_invariants ex_scope =
-    Interpreter.load_runtime_modules link_modules;
     let prg, ctx, _ =
       Passes.dcalc options ~link_modules ~optimize ~check_invariants
     in
+    Interpreter.load_runtime_modules link_modules;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scope_uid ctx ex_scope)
 
@@ -870,6 +872,7 @@ let main () =
       | Some opts, _ -> opts.Cli.plugins_dirs
       | None, _ -> []
     in
+    Message.emit_debug "- INIT -";
     List.iter
       (fun d ->
         if d = "" then ()
