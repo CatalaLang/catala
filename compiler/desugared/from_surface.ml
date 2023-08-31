@@ -172,8 +172,8 @@ let rec disambiguate_constructor
     let modname = ModuleName.of_string modname in
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
-      Message.raise_spanned_error mpos "Module %a not found" ModuleName.format
-        modname
+      Message.raise_spanned_error mpos "Module \"%a\" not found"
+        ModuleName.format modname
     | Some ctxt ->
       let constructor =
         List.map (Mark.map (fun (_, c) -> path, c)) constructor0
@@ -419,7 +419,7 @@ let rec translate_expr
           let modname = ModuleName.of_string modname in
           match ModuleName.Map.find_opt modname ctxt.modules with
           | None ->
-            Message.raise_spanned_error mpos "Module %a not found"
+            Message.raise_spanned_error mpos "Module \"%a\" not found"
               ModuleName.format modname
           | Some ctxt -> get_str ctxt path)
       in
