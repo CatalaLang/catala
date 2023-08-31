@@ -358,7 +358,6 @@ module Env = struct
     { t with toplevel_vars = A.TopdefName.Map.add v typ t.toplevel_vars }
 
   let add_module modname ~module_env t =
-    Message.emit_debug "ADD MODULE %a" A.ModuleName.format modname;
     { t with modules = A.ModuleName.Map.add modname module_env t.modules }
 
   let open_scope scope_name t =

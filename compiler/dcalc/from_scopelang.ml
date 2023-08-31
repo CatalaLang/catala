@@ -1077,17 +1077,8 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
     Scopelang.Dependency.get_defs_ordering defs_dependencies
   in
   let decl_ctx = prgm.program_ctx in
-  Message.emit_debug "prog scopes: %a@ modules: %a"
-    (ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space)
-    prgm.program_scopes
-    (ModuleName.Map.format (fun fmt prg ->
-         ScopeName.Map.format_keys ~pp_sep:Format.pp_print_space fmt
-           prg.Scopelang.Ast.program_scopes))
-    prgm.program_modules;
   let sctx : 'm scope_sigs_ctx =
     let process_scope_sig scope_name scope =
-      Message.emit_debug "process_scope_sig %a (%a)" ScopeName.format scope_name
-        ScopeName.format scope.Scopelang.Ast.scope_decl_name;
       let scope_path = ScopeName.path scope_name in
       let scope_ref =
         if scope_path = [] then
