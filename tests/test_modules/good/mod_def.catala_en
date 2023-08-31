@@ -9,6 +9,10 @@ declaration enumeration Enum1:
 declaration scope S:
   output sr content money
   output e1 content Enum1
+
+declaration half content decimal
+  depends on x content integer
+  equals x / 2
 ```
 
 ```catala

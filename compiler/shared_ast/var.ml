@@ -109,6 +109,7 @@ module Map = struct
   let fold f m acc = fold (fun v x acc -> f (get v) x acc) m acc
   let keys m = keys m |> List.map get
   let values m = values m
+  let format_keys ?pp_sep m = format_keys ?pp_sep m
 
   (* Add more as needed *)
 end

@@ -315,7 +315,7 @@ module Env = struct
     modules : 'e t A.ModuleName.Map.t;
   }
 
-  let rec empty (decl_ctx : A.decl_ctx) =
+  let empty (decl_ctx : A.decl_ctx) =
     (* We fill the environment initially with the structs and enums
        declarations *)
     {
@@ -331,7 +331,7 @@ module Env = struct
       scope_vars = A.ScopeVar.Map.empty;
       scopes = A.ScopeName.Map.empty;
       toplevel_vars = A.TopdefName.Map.empty;
-      modules = A.ModuleName.Map.map empty decl_ctx.A.ctx_modules;
+      modules = A.ModuleName.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
@@ -368,6 +368,26 @@ module Env = struct
         (A.ScopeName.Map.find scope_name t.scopes)
     in
     { t with scope_vars }
+
+  let rec dump ppf env =
+    let pp_sep = Format.pp_print_space in
+    Format.pp_open_vbox ppf 0;
+    (* Format.fprintf ppf "structs: @[<hov>%a@]@,"
+     *   (A.StructName.Map.format_keys ~pp_sep) env.structs;
+     * Format.fprintf ppf "enums: @[<hov>%a@]@,"
+     *   (A.EnumName.Map.format_keys ~pp_sep) env.enums;
+     * Format.fprintf ppf "vars: @[<hov>%a@]@,"
+     *   (Var.Map.format_keys ~pp_sep) env.vars; *)
+    Format.fprintf ppf "scopes: @[<hov>%a@]@,"
+      (A.ScopeName.Map.format_keys ~pp_sep)
+      env.scopes;
+    Format.fprintf ppf "topdefs: @[<hov>%a@]@,"
+      (A.TopdefName.Map.format_keys ~pp_sep)
+      env.toplevel_vars;
+    Format.fprintf ppf "@[<hv 2>modules:@ %a@]"
+      (A.ModuleName.Map.format dump)
+      env.modules;
+    Format.pp_close_box ppf ()
 end
 
 let add_pos e ty = Mark.add (Expr.pos e) ty

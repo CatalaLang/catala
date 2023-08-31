@@ -62,12 +62,14 @@ let scope ctx env scope =
   { scope with scope_defs; scope_assertions }
 
 let program prg =
+  (* Caution: this environment building code is very similar to that in
+     scopelang/ast.ml. Any edits should probably be reflected. *)
   let base_typing_env prg =
+    let env = Typing.Env.empty prg.program_ctx in
     let env =
       TopdefName.Map.fold
         (fun name (_e, ty) env -> Typing.Env.add_toplevel_var name ty env)
-        prg.program_topdefs
-        (Typing.Env.empty prg.program_ctx)
+        prg.program_topdefs env
     in
     let env =
       ScopeName.Map.fold

@@ -31,6 +31,9 @@ module Env : sig
   val add_module : ModuleName.t -> module_env:'e t -> 'e t -> 'e t
   val module_env : Uid.Path.t -> 'e t -> 'e t
   val open_scope : ScopeName.t -> 'e t -> 'e t
+
+  val dump : Format.formatter -> 'e t -> unit
+  (** For debug purposes *)
 end
 
 (** In the following functions, the [~leave_unresolved] labeled parameter

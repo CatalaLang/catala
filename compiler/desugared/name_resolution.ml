@@ -524,6 +524,18 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
       })
     ctxt edecl.enum_decl_cases
 
+let process_topdef ctxt def =
+  let uid =
+    Ident.Map.find (Mark.remove def.Surface.Ast.topdef_name) ctxt.topdefs
+  in
+  {
+    ctxt with
+    topdef_types =
+      TopdefName.Map.add uid
+        (process_type ctxt def.Surface.Ast.topdef_type)
+        ctxt.topdef_types;
+  }
+
 (** Process an item declaration *)
 let process_item_decl
     (scope : ScopeName.t)
@@ -698,14 +710,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
           "toplevel definition")
       (Ident.Map.find_opt name ctxt.topdefs);
     let uid = TopdefName.fresh ctxt.path def.topdef_name in
-    {
-      ctxt with
-      topdefs = Ident.Map.add name uid ctxt.topdefs;
-      topdef_types =
-        TopdefName.Map.add uid
-          (process_type ctxt def.topdef_type)
-          ctxt.topdef_types;
-    }
+    { ctxt with topdefs = Ident.Map.add name uid ctxt.topdefs }
 
 (** Process a code item that is a declaration *)
 let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
@@ -715,7 +720,7 @@ let process_decl_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
   | StructDecl sdecl -> process_struct_decl ctxt sdecl
   | EnumDecl edecl -> process_enum_decl ctxt edecl
   | ScopeUse _ -> ctxt
-  | Topdef _ -> ctxt
+  | Topdef def -> process_topdef ctxt def
 
 (** Process a code block *)
 let process_code_block

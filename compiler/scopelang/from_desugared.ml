@@ -826,7 +826,7 @@ let translate_program
             ScopeName.Map.map
               (translate_scope_interface ctx)
               m_desugared.D.program_scopes;
-          program_ctx;
+          program_ctx = ModuleName.Map.find modname program_ctx.ctx_modules;
           program_modules =
             process_modules
               (ModuleName.Map.find modname program_ctx.ctx_modules)
