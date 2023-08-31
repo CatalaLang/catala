@@ -98,7 +98,8 @@ let rule_used_defs = function
     expr_used_defs e
   | Ast.Call (subscope, subindex, _) ->
     if ScopeName.path subscope = [] then
-      VMap.singleton (Scope subscope) (Mark.get (SubScopeName.get_info subindex))
+      VMap.singleton (Scope subscope)
+        (Mark.get (SubScopeName.get_info subindex))
     else VMap.empty
 
 let build_program_dep_graph (prgm : 'm Ast.program) : SDependencies.t =

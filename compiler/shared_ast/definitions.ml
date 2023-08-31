@@ -23,7 +23,6 @@
 open Catala_utils
 module Runtime = Runtime_ocaml.Runtime
 module ModuleName = Uid.Module
-
 module ScopeName = Uid.Gen_qualified ()
 module TopdefName = Uid.Gen_qualified ()
 module StructName = Uid.Gen_qualified ()

@@ -60,7 +60,11 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
   | ELocation (SubScopeVar { scope; alias; var }) ->
     (* When referring to a subscope variable in an expression, we are referring
        to the output, hence we take the last state. *)
-    let ctx = List.fold_left (fun ctx m -> ModuleName.Map.find m ctx.modules) ctx (ScopeName.path scope) in
+    let ctx =
+      List.fold_left
+        (fun ctx m -> ModuleName.Map.find m ctx.modules)
+        ctx (ScopeName.path scope)
+    in
     let var =
       match ScopeVar.Map.find (Mark.remove var) ctx.scope_var_mapping with
       | WholeVar new_s_var -> Mark.copy var new_s_var

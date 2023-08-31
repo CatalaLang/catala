@@ -104,8 +104,7 @@ module To_json = struct
           (t :: acc) @ collect_required_type_defs_from_scope_input s
         | TEnum e ->
           List.fold_left collect (t :: acc)
-            (EnumConstructor.Map.values
-               (EnumName.Map.find e ctx.ctx_enums))
+            (EnumConstructor.Map.values (EnumName.Map.find e ctx.ctx_enums))
         | TArray t -> collect acc t
         | _ -> acc
       in

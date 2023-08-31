@@ -129,10 +129,8 @@ let rec format_typ
       ts
       (pp_color_string (List.hd colors))
       ")"
-  | TStruct s ->
-    A.StructName.format fmt s
-  | TEnum e ->
-    A.EnumName.format fmt e
+  | TStruct s -> A.StructName.format fmt s
+  | TEnum e -> A.EnumName.format fmt e
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>option %a@]"
       (format_typ_with_parens ~colors:(List.tl colors))
@@ -344,7 +342,7 @@ module Env = struct
     Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
         A.ScopeVar.Map.find_opt var vmap)
 
-  let rec module_env path env =
+  let module_env path env =
     List.fold_left (fun env m -> A.ModuleName.Map.find m env.modules) env path
 
   let add v tau t = { t with vars = Var.Map.add v tau t.vars }
@@ -673,7 +671,8 @@ and typecheck_expr_top_down :
     in
     Expr.evar (Var.translate v) (mark_with_tau_and_unify tau')
   | A.EExternal { name } ->
-    let path = match Mark.remove name with
+    let path =
+      match Mark.remove name with
       | External_value td -> A.TopdefName.path td
       | External_scope s -> A.ScopeName.path s
     in
@@ -681,8 +680,8 @@ and typecheck_expr_top_down :
     let ty =
       let not_found pr x =
         Message.raise_spanned_error pos_e
-          "Could not resolve the reference to %a.@ Make sure the \
-           corresponding module was properly loaded?"
+          "Could not resolve the reference to %a.@ Make sure the corresponding \
+           module was properly loaded?"
           pr x
       in
       match Mark.remove name with
@@ -1026,29 +1025,29 @@ let program ~leave_unresolved prg =
         prg.decl_ctx with
         ctx_structs =
           A.StructName.Map.mapi
-            (fun s_name (fields) ->
-              ( A.StructField.Map.mapi
-                  (fun f_name (t : A.typ) ->
-                    match Mark.remove t with
-                    | TAny ->
-                      typ_to_ast ~leave_unresolved
-                        (A.StructField.Map.find f_name
-                           (A.StructName.Map.find s_name new_env.structs))
-                    | _ -> t)
-                  fields ))
+            (fun s_name fields ->
+              A.StructField.Map.mapi
+                (fun f_name (t : A.typ) ->
+                  match Mark.remove t with
+                  | TAny ->
+                    typ_to_ast ~leave_unresolved
+                      (A.StructField.Map.find f_name
+                         (A.StructName.Map.find s_name new_env.structs))
+                  | _ -> t)
+                fields)
             prg.decl_ctx.ctx_structs;
         ctx_enums =
           A.EnumName.Map.mapi
-            (fun e_name (cons) ->
-              ( A.EnumConstructor.Map.mapi
-                  (fun cons_name (t : A.typ) ->
-                    match Mark.remove t with
-                    | TAny ->
-                      typ_to_ast ~leave_unresolved
-                        (A.EnumConstructor.Map.find cons_name
-                           (A.EnumName.Map.find e_name new_env.enums))
-                    | _ -> t)
-                  cons ))
+            (fun e_name cons ->
+              A.EnumConstructor.Map.mapi
+                (fun cons_name (t : A.typ) ->
+                  match Mark.remove t with
+                  | TAny ->
+                    typ_to_ast ~leave_unresolved
+                      (A.EnumConstructor.Map.find cons_name
+                         (A.EnumName.Map.find e_name new_env.enums))
+                  | _ -> t)
+                cons)
             prg.decl_ctx.ctx_enums;
       };
   }

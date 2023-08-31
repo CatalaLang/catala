@@ -279,17 +279,17 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
        the original module to ensure that bindlib performs the exact same
        renamings ; or finally we could normalise the names at generation time
        (either at toplevel or in a dedicated submodule ?) *)
-      let path =
-        match Mark.remove name with
-        | External_value name -> TopdefName.path name
-        | External_scope name -> ScopeName.path name
-      in
-      Uid.Path.format fmt path;
+    let path =
       match Mark.remove name with
-      | External_value name ->
-        format_var_str fmt (Mark.remove (TopdefName.get_info name))
-      | External_scope name ->
-        format_var_str fmt (Mark.remove (ScopeName.get_info name)))
+      | External_value name -> TopdefName.path name
+      | External_scope name -> ScopeName.path name
+    in
+    Uid.Path.format fmt path;
+    match Mark.remove name with
+    | External_value name ->
+      format_var_str fmt (Mark.remove (TopdefName.get_info name))
+    | External_scope name ->
+      format_var_str fmt (Mark.remove (ScopeName.get_info name)))
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list

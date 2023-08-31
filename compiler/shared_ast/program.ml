@@ -39,8 +39,7 @@ let empty_ctx =
   }
 
 let module_ctx ctx path =
-  List.fold_left (fun ctx m -> ModuleName.Map.find m ctx.ctx_modules)
-    ctx path
+  List.fold_left (fun ctx m -> ModuleName.Map.find m ctx.ctx_modules) ctx path
 
 let get_scope_body { code_items; _ } scope =
   match

@@ -373,8 +373,7 @@ let rec translate_expr
         match Ident.Map.find_opt x ctxt.topdefs with
         | Some v ->
           Expr.elocation
-            (ToplevelVar
-               { name = v, Mark.get (TopdefName.get_info v) })
+            (ToplevelVar { name = v, Mark.get (TopdefName.get_info v) })
             emark
         | None ->
           Name_resolution.raise_unknown_identifier
@@ -1392,10 +1391,13 @@ let init_scope_defs
         in
         scope_def)
     | Name_resolution.SubScope (v0, subscope_uid) ->
-      let sub_scope_def =
-        Name_resolution.get_scope_context ctxt subscope_uid
+      let sub_scope_def = Name_resolution.get_scope_context ctxt subscope_uid in
+      let ctxt =
+        List.fold_left
+          (fun ctx m -> ModuleName.Map.find m ctx.Name_resolution.modules)
+          ctxt
+          (ScopeName.path subscope_uid)
       in
-      let ctxt = List.fold_left (fun ctx m -> ModuleName.Map.find m ctx.Name_resolution.modules) ctxt (ScopeName.path subscope_uid) in
       Ident.Map.fold
         (fun _ v scope_def_map ->
           match v with
@@ -1475,19 +1477,15 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
                 (fun _ prg acc ->
                   StructName.Map.union
                     (fun _ _ _ -> assert false)
-                    acc
-                    prg.Ast.program_ctx.ctx_structs)
-                submodules
-                ctxt.Name_resolution.structs;
+                    acc prg.Ast.program_ctx.ctx_structs)
+                submodules ctxt.Name_resolution.structs;
             ctx_enums =
               ModuleName.Map.fold
                 (fun _ prg acc ->
                   EnumName.Map.union
                     (fun _ _ _ -> assert false)
-                    acc
-                    prg.Ast.program_ctx.ctx_enums)
-                submodules
-                ctxt.Name_resolution.enums;
+                    acc prg.Ast.program_ctx.ctx_enums)
+                submodules ctxt.Name_resolution.enums;
             ctx_scopes =
               Ident.Map.fold
                 (fun _ def acc ->
@@ -1540,9 +1538,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         let id = ModuleName.of_string id in
         let modul = ModuleName.Map.find id acc.Ast.program_modules in
         let modul =
-          process_code_block
-            (ModuleName.Map.find id ctxt.modules)
-            modul intf
+          process_code_block (ModuleName.Map.find id ctxt.modules) modul intf
         in
         {
           acc with

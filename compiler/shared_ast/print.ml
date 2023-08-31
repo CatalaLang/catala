@@ -86,8 +86,7 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   | SubScopeVar { alias = subindex; var = subvar; _ } ->
     Format.fprintf fmt "%a.%a" SubScopeName.format (Mark.remove subindex)
       ScopeVar.format (Mark.remove subvar)
-  | ToplevelVar { name } ->
-    TopdefName.format fmt (Mark.remove name)
+  | ToplevelVar { name } -> TopdefName.format fmt (Mark.remove name)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
   Format.fprintf fmt "@{<magenta>%a@}" EnumConstructor.format c
@@ -131,11 +130,9 @@ let rec typ_gen
     | None -> StructName.format fmt s
     | Some ctx ->
       let fields = StructName.Map.find s ctx.ctx_structs in
-      if StructField.Map.is_empty fields then (
-        StructName.format fmt s)
+      if StructField.Map.is_empty fields then StructName.format fmt s
       else
-        Format.fprintf fmt "@[<hv 2>%a %a@,%a@;<0 -2>%a@]"
-          StructName.format s
+        Format.fprintf fmt "@[<hv 2>%a %a@,%a@;<0 -2>%a@]" StructName.format s
           (pp_color_string (List.hd colors))
           "{"
           (StructField.Map.format_bindings
@@ -155,8 +152,7 @@ let rec typ_gen
     | None -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format e
     | Some ctx ->
       let def = EnumName.Map.find e ctx.ctx_enums in
-      Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" EnumName.format e
-        punctuation "["
+      Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" EnumName.format e punctuation "["
         (EnumConstructor.Map.format_bindings
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " punctuation "|")
            (fun fmt pp_case mty ->
@@ -517,8 +513,7 @@ module ExprGen (C : EXPR_PARAM) = struct
     else
       match Mark.remove e with
       | EVar v -> var fmt v
-      | EExternal { name } ->
-        external_ref fmt name
+      | EExternal { name } -> external_ref fmt name
       | ETuple es ->
         Format.fprintf fmt "@[<hov 2>%a%a%a@]"
           (pp_color_string (List.hd colors))
@@ -859,8 +854,8 @@ let enum
     fmt
     (pp_name : Format.formatter -> unit)
     (c : typ EnumConstructor.Map.t) =
-  Format.fprintf fmt "@[<h 0>%a %t %a@ %a@]" keyword "type" pp_name
-    punctuation "="
+  Format.fprintf fmt "@[<h 0>%a %t %a@ %a@]" keyword "type" pp_name punctuation
+    "="
     (EnumConstructor.Map.format_bindings
        ~pp_sep:(fun _ _ -> ())
        (fun fmt pp_n ty ->

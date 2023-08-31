@@ -230,9 +230,8 @@ module To_jsoo = struct
           (StructField.Map.bindings struct_fields)
           fmt_conv_funs ()
     in
-    let format_enum_decl
-        fmt
-        (enum_name, (enum_cons : typ EnumConstructor.Map.t)) =
+    let format_enum_decl fmt (enum_name, (enum_cons : typ EnumConstructor.Map.t))
+        =
       let fmt_enum_name fmt _ = format_enum_name fmt enum_name in
       let fmt_module_enum_name fmt () =
         To_ocaml.format_to_module_name fmt (`Ename enum_name)

@@ -440,9 +440,9 @@ let rec format_statement
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
          (fun fmt (case_block, payload_var, cons_name) ->
            Format.fprintf fmt "%a.code == %a_Code.%a:@\n%a = %a.value@\n%a"
-             format_var tmp_var format_enum_name e_name
-             format_enum_cons_name cons_name format_var payload_var format_var
-             tmp_var (format_block ctx) case_block))
+             format_var tmp_var format_enum_name e_name format_enum_cons_name
+             cons_name format_var payload_var format_var tmp_var
+             (format_block ctx) case_block))
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx)

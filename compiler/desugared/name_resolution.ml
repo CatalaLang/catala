@@ -113,9 +113,11 @@ let get_var_io (ctxt : context) (uid : ScopeVar.t) :
     Surface.Ast.scope_decl_context_io =
   (ScopeVar.Map.find uid ctxt.var_typs).var_sig_io
 
-let get_scope_context (ctxt: context) (scope: ScopeName.t) : scope_context =
-  let rec remove_common_prefix curpath scpath = match curpath, scpath with
-    | m1 :: cp, m2 :: sp when ModuleName.equal m1 m2 -> remove_common_prefix cp sp
+let get_scope_context (ctxt : context) (scope : ScopeName.t) : scope_context =
+  let rec remove_common_prefix curpath scpath =
+    match curpath, scpath with
+    | m1 :: cp, m2 :: sp when ModuleName.equal m1 m2 ->
+      remove_common_prefix cp sp
     | _ -> scpath
   in
   let path = remove_common_prefix ctxt.path (ScopeName.path scope) in
@@ -776,8 +778,7 @@ let get_def_key
               ScopeVar.format x_uid
           else None )
   | [y; x] ->
-    let (subscope_uid, subscope_real_uid)
-          : SubScopeName.t * ScopeName.t =
+    let (subscope_uid, subscope_real_uid) : SubScopeName.t * ScopeName.t =
       match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
       | Some (SubScope (v, u)) -> v, u
       | Some _ ->
@@ -788,9 +789,7 @@ let get_def_key
         Message.raise_spanned_error pos "No definition found for subscope %a"
           Print.lit_style (Mark.remove y)
     in
-    let x_uid =
-      get_var_uid subscope_real_uid ctxt x
-    in
+    let x_uid = get_var_uid subscope_real_uid ctxt x in
     Ast.ScopeDef.SubScopeVar (subscope_uid, x_uid, pos)
   | _ ->
     Message.raise_spanned_error pos

@@ -23,9 +23,8 @@ let struc
     (fmt : Format.formatter)
     (name : StructName.t)
     (fields : typ StructField.Map.t) : unit =
-  Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword
-    "struct" StructName.format name Print.punctuation "="
-    Print.punctuation "{"
+  Format.fprintf fmt "%a %a %a %a@\n@[<hov 2>  %a@]@\n%a" Print.keyword "struct"
+    StructName.format name Print.punctuation "=" Print.punctuation "{"
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        (fun fmt (field_name, typ) ->

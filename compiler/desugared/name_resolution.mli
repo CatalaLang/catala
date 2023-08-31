@@ -69,7 +69,7 @@ type typedef =
 
 type context = {
   path : ModuleName.t list;
-  (** The current path being processed. Used for generating the Uids. *)
+      (** The current path being processed. Used for generating the Uids. *)
   typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructField.t StructName.Map.t Ident.Map.t;
@@ -108,7 +108,8 @@ val is_var_cond : context -> ScopeVar.t -> bool
 val get_var_io : context -> ScopeVar.t -> Surface.Ast.scope_decl_context_io
 
 val get_scope_context : context -> ScopeName.t -> scope_context
-(** Get the corresponding scope context from the context, looking up into nested submodules as necessary, following the path information in the scope name *)
+(** Get the corresponding scope context from the context, looking up into nested
+    submodules as necessary, following the path information in the scope name *)
 
 val get_var_uid : ScopeName.t -> context -> Ident.t Mark.pos -> ScopeVar.t
 (** Get the variable uid inside the scope given in argument *)

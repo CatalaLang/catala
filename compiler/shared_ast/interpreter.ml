@@ -549,7 +549,8 @@ let rec evaluate_expr :
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
   | EExternal { name } ->
-    let path = match Mark.remove name with
+    let path =
+      match Mark.remove name with
       | External_value td -> TopdefName.path td
       | External_scope s -> ScopeName.path s
     in
@@ -565,8 +566,7 @@ let rec evaluate_expr :
                 (TStruct scope_info.out_struct_name, pos) ),
             pos )
       with TopdefName.Map.Not_found _ | ScopeName.Map.Not_found _ ->
-        Message.raise_spanned_error pos
-          "Reference to %a could not be resolved"
+        Message.raise_spanned_error pos "Reference to %a could not be resolved"
           Print.external_ref name
     in
     let runtime_path =

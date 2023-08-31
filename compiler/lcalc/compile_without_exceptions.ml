@@ -754,7 +754,7 @@ let translate_program (prgm : typed D.program) : untyped A.program =
       ctx_structs =
         prgm.decl_ctx.ctx_structs
         |> StructName.Map.mapi (fun _n str ->
-            StructField.Map.map trans_typ_keep str);
+               StructField.Map.map trans_typ_keep str);
     }
   in
 

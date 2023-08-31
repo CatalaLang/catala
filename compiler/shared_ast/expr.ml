@@ -109,10 +109,7 @@ let subst binder vars =
   Bindlib.msubst binder (Array.of_list (List.map Mark.remove vars))
 
 let evar v mark = Mark.add mark (Bindlib.box_var v)
-
-let eexternal ~name mark =
-  Mark.add mark (Bindlib.box (EExternal { name }))
-
+let eexternal ~name mark = Mark.add mark (Bindlib.box (EExternal { name }))
 let etuple args = Box.appn args @@ fun args -> ETuple args
 
 let etupleaccess e index size =
@@ -540,8 +537,7 @@ let compare_location
       SubScopeVar { alias = ysubindex, _; var = ysubvar, _; _ } ) ->
     let c = SubScopeName.compare xsubindex ysubindex in
     if c = 0 then ScopeVar.compare xsubvar ysubvar else c
-  | ( ToplevelVar { name = vx, _ },
-      ToplevelVar { name = vy, _ } ) ->
+  | ToplevelVar { name = vx, _ }, ToplevelVar { name = vy, _ } ->
     TopdefName.compare vx vy
   | DesugaredScopeVar _, _ -> -1
   | _, DesugaredScopeVar _ -> 1
@@ -614,9 +610,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     StructName.equal s1 s2 && StructField.Map.equal equal fields1 fields2
   | ( EDStructAccess { e = e1; field = f1; name_opt = s1 },
       EDStructAccess { e = e2; field = f2; name_opt = s2 } ) ->
-    Option.equal StructName.equal s1 s2
-    && Ident.equal f1 f2
-    && equal e1 e2
+    Option.equal StructName.equal s1 s2 && Ident.equal f1 f2 && equal e1 e2
   | ( EStructAccess { e = e1; field = f1; name = s1 },
       EStructAccess { e = e2; field = f2; name = s2 } ) ->
     StructName.equal s1 s2 && StructField.equal f1 f2 && equal e1 e2
@@ -630,8 +624,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     && EnumConstructor.Map.equal equal cases1 cases2
   | ( EScopeCall { scope = s1; args = fields1 },
       EScopeCall { scope = s2; args = fields2 } ) ->
-    ScopeName.equal s1 s2
-    && ScopeVar.Map.equal equal fields1 fields2
+    ScopeName.equal s1 s2 && ScopeVar.Map.equal equal fields1 fields2
   | ( ECustom { obj = obj1; targs = targs1; tret = tret1 },
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2

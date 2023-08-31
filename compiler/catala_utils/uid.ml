@@ -81,14 +81,14 @@ module Gen () = Make (MarkedString) ()
 
 module Module = struct
   include String
+
   let to_string m = m
   let format ppf m = Format.fprintf ppf "@{<blue>%s@}" m
-
   let of_string m = m
 end
 (* TODO: should probably be turned into an uid once we implement module import
-   directives; that will incur an additional resolution work on all paths
-   though ([module Module = Gen ()]) *)
+   directives; that will incur an additional resolution work on all paths though
+   ([module Module = Gen ()]) *)
 
 module Path = struct
   type t = Module.t list
@@ -96,8 +96,7 @@ module Path = struct
   let format ppf p =
     Format.pp_print_list
       ~pp_sep:(fun _ () -> ())
-      (fun ppf m ->
-         Format.fprintf ppf "%a@{<cyan>.@}" Module.format m)
+      (fun ppf m -> Format.fprintf ppf "%a@{<cyan>.@}" Module.format m)
       ppf p
 
   let to_string p = String.concat "." p
@@ -110,14 +109,15 @@ module QualifiedMarkedString = struct
 
   let to_string (p, i) =
     Format.asprintf "%a%a" Path.format p MarkedString.format i
+
   let format fmt (p, i) =
-    Path.format fmt p; MarkedString.format fmt i
-  let equal (p1, i1) (p2, i2) =
-    Path.equal p1 p2 && MarkedString.equal i1 i2
+    Path.format fmt p;
+    MarkedString.format fmt i
+
+  let equal (p1, i1) (p2, i2) = Path.equal p1 p2 && MarkedString.equal i1 i2
+
   let compare (p1, i1) (p2, i2) =
-    match Path.compare p1 p2 with
-    | 0 -> MarkedString.compare i1 i2
-    | n -> n
+    match Path.compare p1 p2 with 0 -> MarkedString.compare i1 i2 | n -> n
 end
 
 module Gen_qualified () = struct
