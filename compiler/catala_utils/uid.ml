@@ -38,13 +38,21 @@ module type Id = sig
   module Map : Map.S with type key = t
 end
 
-module Make (X : Info) () : Id with type info = X.info = struct
+module type Style = sig
+  val style : Ocolor_types.style
+end
+
+module Make (X : Info) (S : Style) () : Id with type info = X.info = struct
   module Ordering = struct
     type t = { id : int; info : X.info }
 
     let compare (x : t) (y : t) : int = Int.compare x.id y.id
     let equal x y = Int.equal x.id y.id
-    let format ppf t = X.format ppf t.info
+
+    let format ppf t =
+      Format.pp_open_stag ppf (Ocolor_format.Ocolor_style_tag S.style);
+      X.format ppf t.info;
+      Format.pp_close_stag ppf ()
   end
 
   include Ordering
@@ -75,7 +83,7 @@ module MarkedString = struct
   let compare = Mark.compare String.compare
 end
 
-module Gen () = Make (MarkedString) ()
+module Gen (S : Style) () = Make (MarkedString) (S) ()
 
 (* - Modules, paths and qualified idents - *)
 
@@ -120,8 +128,8 @@ module QualifiedMarkedString = struct
     match Path.compare p1 p2 with 0 -> MarkedString.compare i1 i2 | n -> n
 end
 
-module Gen_qualified () = struct
-  include Make (QualifiedMarkedString) ()
+module Gen_qualified (S : Style) () = struct
+  include Make (QualifiedMarkedString) (S) ()
 
   let fresh path t = fresh (path, t)
   let path t = fst (get_info t)

@@ -55,8 +55,12 @@ module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes
      (forwarding their options as needed) *)
 
+  let debug_pass_name s =
+    Message.emit_debug "@{<bold;magenta>=@} @{<bold>%s@} @{<bold;magenta>=@}"
+      (String.uppercase_ascii s)
+
   let surface options ~link_modules : Surface.Ast.program * Cli.backend_lang =
-    Message.emit_debug "- SURFACE -";
+    debug_pass_name "surface";
     let language = get_lang options options.input_file in
     let prg =
       Surface.Parser_driver.parse_top_level_file options.input_file language
@@ -70,7 +74,7 @@ module Passes = struct
   let desugared options ~link_modules :
       Desugared.Ast.program * Desugared.Name_resolution.context =
     let prg, _ = surface options ~link_modules in
-    Message.emit_debug "- DESUGARED -";
+    debug_pass_name "desugared";
     Message.emit_debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context prg in
     (* let scope_uid = get_scope_uid options backend ctx in
@@ -93,7 +97,7 @@ module Passes = struct
       * Desugared.Dependency.ExceptionsDependencies.t
         Desugared.Ast.ScopeDef.Map.t =
     let prg, ctx = desugared options ~link_modules in
-    Message.emit_debug "- SCOPELANG -";
+    debug_pass_name "scopelang";
     let exceptions_graphs =
       Scopelang.From_desugared.build_exceptions_graph prg
     in
@@ -107,7 +111,7 @@ module Passes = struct
       * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
     let prg, ctx, _ = scopelang options ~link_modules in
-    Message.emit_debug "- DCALC -";
+    debug_pass_name "dcalc";
     let type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
         prg.program_ctx.ctx_enums
@@ -153,7 +157,7 @@ module Passes = struct
     let prg, ctx, type_ordering =
       dcalc options ~link_modules ~optimize ~check_invariants
     in
-    Message.emit_debug "- LCALC -";
+    debug_pass_name "lcalc";
     let avoid_exceptions = avoid_exceptions || closure_conversion in
     let optimize = optimize || closure_conversion in
     (* --closure_conversion implies --avoid_exceptions and --optimize *)
@@ -204,7 +208,7 @@ module Passes = struct
       lcalc options ~link_modules ~optimize ~check_invariants ~avoid_exceptions
         ~closure_conversion
     in
-    Message.emit_debug "- SCALC -";
+    debug_pass_name "scalc";
     Scalc.From_lcalc.translate_program prg, ctx, type_ordering
 end
 
@@ -899,7 +903,7 @@ let main () =
       | Some opts, _ -> opts.Cli.plugins_dirs
       | None, _ -> []
     in
-    Message.emit_debug "- INIT -";
+    Passes.debug_pass_name "init";
     List.iter
       (fun d ->
         if d = "" then ()

@@ -34,7 +34,7 @@ let format_exception_tree (fmt : Format.formatter) (t : exception_tree) =
       | Leaf l -> l.Dependency.ExceptionVertex.label, []
       | Node (sons, l) -> l.Dependency.ExceptionVertex.label, sons
     in
-    Format.fprintf fmt "@{<yellow>\"%a\"@}" LabelName.format label;
+    Format.fprintf fmt "\"%a\"" LabelName.format label;
     let w = String.width (fst (LabelName.get_info label)) + 2 in
     if sons != [] then
       let pref', prefsz' = pref ^ String.make (w + 1) ' ', prefsz + w + 2 in
@@ -87,14 +87,13 @@ let print_exceptions_graph
     (var : Ast.ScopeDef.t)
     (g : Dependency.ExceptionsDependencies.t) =
   Message.emit_result
-    "Printing the tree of exceptions for the definitions of variable \
-     @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@}."
+    "Printing the tree of exceptions for the definitions of variable \"%a\" of \
+     scope \"%a\"."
     Ast.ScopeDef.format var ScopeName.format scope;
   Dependency.ExceptionsDependencies.iter_vertex
     (fun ex ->
-      Message.emit_result
-        "@[<v>Definitions with label @{<yellow>\"%a\"@}:@,%a@]" LabelName.format
-        ex.Dependency.ExceptionVertex.label
+      Message.emit_result "@[<v>Definitions with label \"%a\":@,%a@]"
+        LabelName.format ex.Dependency.ExceptionVertex.label
         (RuleName.Map.format_values Pos.format_loc_text)
         ex.Dependency.ExceptionVertex.rules)
     g;

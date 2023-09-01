@@ -30,6 +30,9 @@ module Any =
       let equal _ _ = true
       let compare _ _ = 0
     end)
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_magenta))
+    end)
     ()
 
 type unionfind_typ = naked_typ Mark.pos UnionFind.elem

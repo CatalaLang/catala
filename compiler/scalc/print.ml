@@ -63,7 +63,7 @@ let rec format_expr
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" StructField.format field Print.punctuation "\""
   | EInj (e, cons, _) ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" Print.enum_constructor cons
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
       format_expr e
   | ELit l -> Print.lit fmt l
   | EApp ((EOp ((Map | Filter) as op), _), [arg1; arg2]) ->
@@ -150,7 +150,7 @@ let rec format_statement
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt ((case, _), (arm_block, payload_name)) ->
            Format.fprintf fmt "%a %a%a@ %a @[<v 2>%a@ %a@]" Print.punctuation
-             "|" Print.enum_constructor case Print.punctuation ":"
+             "|" EnumConstructor.format case Print.punctuation ":"
              format_var_name payload_name Print.punctuation "→"
              (format_block decl_ctx ~debug)
              arm_block))

@@ -71,7 +71,12 @@ module ScopeDef = struct
   module Set = Set.Make (Base)
 end
 
-module AssertionName = Uid.Gen ()
+module AssertionName =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_blue))
+    end)
+    ()
 
 (** {1 AST} *)
 
