@@ -36,9 +36,9 @@ let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   | LRat i ->
     Format.fprintf fmt "catala_decimal_from_fraction(%s,%s)"
       (if Z.fits_nativeint (Q.num i) then Z.to_string (Q.num i)
-      else "\"" ^ Z.to_string (Q.num i) ^ "\"")
+       else "\"" ^ Z.to_string (Q.num i) ^ "\"")
       (if Z.fits_nativeint (Q.den i) then Z.to_string (Q.den i)
-      else "\"" ^ Z.to_string (Q.den i) ^ "\"")
+       else "\"" ^ Z.to_string (Q.den i) ^ "\"")
   | LMoney e ->
     if Z.fits_nativeint e then
       Format.fprintf fmt "catala_money_from_cents(%s)"

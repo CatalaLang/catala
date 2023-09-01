@@ -902,7 +902,7 @@ and disambiguate_match_and_build_expression
     List.fold_left bind_match_cases (EnumConstructor.Map.empty, None, 0) cases
   in
   naked_expr, Option.get e_name
-  [@@ocamlformat "wrap-comments=false"]
+[@@ocamlformat "wrap-comments=false"]
 
 (** {1 Translating scope definitions} *)
 
@@ -988,7 +988,8 @@ let process_rule_parameters
     in
     local_vars, Some (params, pos_def)
 
-(** Translates a surface definition into condition into a desugared {!type:
+(** Translates a surface definition into condition into a desugared
+    {!type:
     Ast.rule} *)
 let process_default
     (ctxt : Name_resolution.context)

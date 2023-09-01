@@ -46,7 +46,7 @@ let rec transform_closures_expr :
       e
   | EVar v ->
     ( (if Var.Set.mem v ctx.globally_bound_vars then Var.Set.empty
-      else Var.Set.singleton v),
+       else Var.Set.singleton v),
       (Bindlib.box_var v, m) )
   | EMatch { e; cases; name } ->
     let free_vars, new_e = (transform_closures_expr ctx) e in
@@ -148,13 +148,13 @@ let rec transform_closures_expr :
                      (Mark.get e))
                   [
                     (if extra_vars_list = [] then Expr.elit LUnit binder_mark
-                    else
-                      Expr.etuple
-                        (List.map
-                           (fun extra_var ->
-                             Bindlib.box_var extra_var, binder_mark)
-                           extra_vars_list)
-                        m);
+                     else
+                       Expr.etuple
+                         (List.map
+                            (fun extra_var ->
+                              Bindlib.box_var extra_var, binder_mark)
+                            extra_vars_list)
+                         m);
                   ]
                   (Mark.get e);
               ])

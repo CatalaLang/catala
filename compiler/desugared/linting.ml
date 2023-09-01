@@ -94,7 +94,7 @@ let detect_identical_rules (p : program) : unit =
                   "These %s have identical justifications and consequences; is \
                    it a mistake?"
                   (if scope_def.scope_def_is_condition then "rules"
-                  else "definitions"))
+                   else "definitions"))
             rules_seen)
         scope.scope_defs)
     p.program_scopes

@@ -63,8 +63,8 @@ end
 
 (** {1 Ninja rules} *)
 
-(** Helper module to build {{:https://ninja-build.org/manual.html#_rules} ninja
-    rules}. *)
+(** Helper module to build
+    {{:https://ninja-build.org/manual.html#_rules} ninja rules}. *)
 module Rule : sig
   type t = { name : string; command : Expr.t; description : Expr.t option }
   (** Represents the minimal ninja rule representation for Clerk:

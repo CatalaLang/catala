@@ -15,8 +15,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Wrapping module around parser and lexer that offers the {!:
-    Parser_driver.parse_source_file} API. *)
+(** Wrapping module around parser and lexer that offers the
+    {!:Parser_driver.parse_source_file} API. *)
 
 open Sedlexing
 open Catala_utils

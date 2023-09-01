@@ -570,7 +570,7 @@ module Commands = struct
       (fun ((var, _), result) ->
         Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
           (if options.Cli.debug then Print.expr ~debug:false ()
-          else Print.UserFacing.value (get_lang options options.input_file))
+           else Print.UserFacing.value (get_lang options options.input_file))
           result)
       results
 

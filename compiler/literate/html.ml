@@ -188,9 +188,9 @@ let rec law_structure_to_html
              href=\"https://legifrance.gouv.fr/%s/id/%s\" \
              target=\"_blank\">Voir le texte sur Légifrance.gouv.fr</a>"
             (if String.starts_with ~prefix:"LEGIARTI" id then "codes"
-            else if String.starts_with ~prefix:"JORFARTI" id then "jorf"
-            else if String.starts_with ~prefix:"CETATEXT" id then "ceta"
-            else raise Not_found)
+             else if String.starts_with ~prefix:"JORFARTI" id then "jorf"
+             else if String.starts_with ~prefix:"CETATEXT" id then "ceta"
+             else raise Not_found)
             id
         with Not_found -> "")
       | _ -> "")

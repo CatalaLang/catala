@@ -14,8 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** Scope dependencies computations using {{:http://ocamlgraph.lri.fr/}
-    OCamlgraph} *)
+(** Scope dependencies computations using
+    {{:http://ocamlgraph.lri.fr/} OCamlgraph} *)
 
 open Catala_utils
 open Shared_ast

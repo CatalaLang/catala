@@ -51,7 +51,7 @@ let map_exprs_in_lets :
               scope_let_expr;
               scope_let_typ =
                 (if reset_types then Mark.copy scope_let.scope_let_typ TAny
-                else scope_let.scope_let_typ);
+                 else scope_let.scope_let_typ);
             })
         (Bindlib.bind_var (varf var_next) acc)
         (Expr.Box.lift (f scope_let.scope_let_expr)))

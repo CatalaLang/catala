@@ -27,7 +27,7 @@ let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
     (fun fmt info ->
       Format.fprintf fmt
         (if String.begins_with_uppercase (Mark.remove info) then "@{<red>%s@}"
-        else "%s")
+         else "%s")
         (Uid.MarkedString.to_string info))
     fmt infos
 
@@ -988,7 +988,7 @@ module UserFacing = struct
     in
     aux 0
       (if Z.equal int_part Z.zero then None
-      else Some (Cli.globals.max_prec_digits - ndigits int_part))
+       else Some (Cli.globals.max_prec_digits - ndigits int_part))
       rem
   (* It would be nice to print ratios as % but that's impossible to guess.
      Trying would lead to inconsistencies where some comparable numbers are in %
