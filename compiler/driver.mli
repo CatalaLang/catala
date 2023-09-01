@@ -25,7 +25,10 @@ val main : unit -> unit
     Each pass takes only its cli options, then calls upon its dependent passes
     (forwarding their options as needed) *)
 module Passes : sig
-  val surface : Cli.options -> Surface.Ast.program * Cli.backend_lang
+  val surface :
+    Cli.options ->
+    link_modules:string list ->
+    Surface.Ast.program * Cli.backend_lang
 
   val desugared :
     Cli.options ->

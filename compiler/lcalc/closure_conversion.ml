@@ -70,7 +70,7 @@ let rec transform_closures_expr :
         cases
         (free_vars, EnumConstructor.Map.empty)
     in
-    free_vars, Expr.ematch new_e name new_cases m
+    free_vars, Expr.ematch ~e:new_e ~name ~cases:new_cases m
   | EApp { f = EAbs { binder; tys }, e1_pos; args } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
@@ -394,7 +394,7 @@ let rec hoist_closures_expr :
         cases
         (collected_closures, EnumConstructor.Map.empty)
     in
-    collected_closures, Expr.ematch new_e name new_cases m
+    collected_closures, Expr.ematch ~e:new_e ~name ~cases:new_cases m
   | EApp { f = EAbs { binder; tys }, e1_pos; args } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
@@ -552,7 +552,7 @@ let rec hoist_closures_code_item_list
             (fun next_code_items closure ->
               Cons
                 ( Topdef
-                    ( TopdefName.fresh
+                    ( TopdefName.fresh []
                         ( Bindlib.name_of hoisted_closure.name,
                           Expr.mark_pos closure_mark ),
                       hoisted_closure.ty,

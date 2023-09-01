@@ -3957,45 +3957,11 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION 
 
 expected the next definition in scope
 
-source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON CONTEXT LIDENT CONDITION DEPENDS LIDENT CONTENT UIDENT DEFINED_AS
-##
-## Ends in an error in state: 344.
-##
-## scope_decl_item -> scope_decl_item_attribute lident CONDITION DEPENDS separated_nonempty_list(COMMA,var_content) . list(state) [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
-##
-## The known suffix of the stack is as follows:
-## scope_decl_item_attribute lident CONDITION DEPENDS separated_nonempty_list(COMMA,var_content)
-##
-## WARNING: This example involves spurious reductions.
-## This implies that, although the LR(1) items shown above provide an
-## accurate view of the past (what has been recognized so far), they
-## may provide an INCOMPLETE view of the future (what was expected next).
-## In state 21, spurious reduction of production quident -> UIDENT
-## In state 30, spurious reduction of production primitive_typ -> quident
-## In state 296, spurious reduction of production typ_data -> primitive_typ
-## In state 307, spurious reduction of production separated_nonempty_list(COMMA,var_content) -> lident CONTENT typ_data
-##
-
-expected the next definition in scope, or a comma followed by another argument declaration (', <ident> content <type>')
-
-source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT SCOPE UIDENT YEAR
-##
-## Ends in an error in state: 347.
-##
-## nonempty_list(addpos(scope_decl_item)) -> scope_decl_item . [ SCOPE END_CODE DECLARATION ]
-## nonempty_list(addpos(scope_decl_item)) -> scope_decl_item . nonempty_list(addpos(scope_decl_item)) [ SCOPE END_CODE DECLARATION ]
-##
-## The known suffix of the stack is as follows:
-## scope_decl_item
-##
-
-expected the next declaration for the scope
-
 source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT YEAR
 ##
 ## Ends in an error in state: 349.
 ##
-## scope_decl_item -> lident . SCOPE UIDENT [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> lident . SCOPE quident [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## lident
@@ -4007,7 +3973,7 @@ source_file: BEGIN_CODE DECLARATION SCOPE UIDENT COLON LIDENT SCOPE YEAR
 ##
 ## Ends in an error in state: 350.
 ##
-## scope_decl_item -> lident SCOPE . UIDENT [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
+## scope_decl_item -> lident SCOPE . quident [ SCOPE OUTPUT LIDENT INTERNAL INPUT END_CODE DECLARATION CONTEXT ]
 ##
 ## The known suffix of the stack is as follows:
 ## lident SCOPE

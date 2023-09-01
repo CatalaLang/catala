@@ -19,7 +19,7 @@ $ catala Interpret -s A
 This exception can refer to several definitions. Try using labels to disambiguate
 
 Ambiguous exception
-┌─⯈ tests/test_exception/bad/ambiguous_unlabeled_exception.catala_en:12.3-13.15:
+┌─⯈ ambiguous_unlabeled_exception.catala_en:12.3-13.15:
 └──┐
 12 │   exception
    │   ‾‾‾‾‾‾‾‾‾
@@ -28,14 +28,14 @@ Ambiguous exception
    └─ Test
 
 Candidate definition
-┌─⯈ tests/test_exception/bad/ambiguous_unlabeled_exception.catala_en:10.14-10.15:
+┌─⯈ ambiguous_unlabeled_exception.catala_en:10.14-10.15:
 └──┐
 10 │   definition x equals 1
    │              ‾
    └─ Test
 
 Candidate definition
-┌─⯈ tests/test_exception/bad/ambiguous_unlabeled_exception.catala_en:8.14-8.15:
+┌─⯈ ambiguous_unlabeled_exception.catala_en:8.14-8.15:
 └─┐
 8 │   definition x equals 0
   │              ‾

@@ -666,12 +666,8 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
        mk_struct. The accessors of this constructor correspond to the field
        accesses *)
     let accessors = List.hd (Datatype.get_accessors z3_struct) in
-    let idx_mappings =
-      List.combine
-        (StructField.Map.keys
-           (StructName.Map.find name ctx.ctx_decl.ctx_structs))
-        accessors
-    in
+    let fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
+    let idx_mappings = List.combine (StructField.Map.keys fields) accessors in
     let _, accessor =
       List.find (fun (field1, _) -> StructField.equal field field1) idx_mappings
     in
@@ -685,13 +681,9 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
     let ctx, z3_enum = find_or_create_enum ctx name in
     let ctx, z3_arg = translate_expr ctx e in
     let ctrs = Datatype.get_constructors z3_enum in
+    let cons_map = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
     (* This should always succeed if the expression is well-typed in dcalc *)
-    let idx_mappings =
-      List.combine
-        (EnumConstructor.Map.keys
-           (EnumName.Map.find name ctx.ctx_decl.ctx_enums))
-        ctrs
-    in
+    let idx_mappings = List.combine (EnumConstructor.Map.keys cons_map) ctrs in
     let _, ctr =
       List.find
         (fun (cons1, _) -> EnumConstructor.equal cons cons1)

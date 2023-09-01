@@ -12,19 +12,19 @@ Should be "catala Typecheck", see test err3
 $ catala ocaml
 [WARNING] The structure "Structure" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_typing/bad/common.catala_en:7.23-7.32:
+┌─⯈ ./common.catala_en:7.23-7.32:
 └─┐
 7 │ declaration structure Structure:
   │                       ‾‾‾‾‾‾‾‾‾
 [WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_typing/bad/common.catala_en:4.6-4.9:
+┌─⯈ ./common.catala_en:4.6-4.9:
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
 [WARNING] The constructor "Dat" of enumeration "Enum" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_typing/bad/common.catala_en:5.6-5.9:
+┌─⯈ ./common.catala_en:5.6-5.9:
 └─┐
 5 │   -- Dat content date
   │      ‾‾‾
@@ -34,19 +34,19 @@ Error during typechecking, incompatible types:
 └─⯈ Structure
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_typing/bad/err4.catala_en:5.25-5.38:
+┌─⯈ err4.catala_en:5.25-5.38:
 └─┐
 5 │   definition z equals [ Int content x ]
   │                         ‾‾‾‾‾‾‾‾‾‾‾‾‾
 
 Type Enum coming from expression:
-┌─⯈ tests/test_typing/bad/err4.catala_en:5.25-5.38:
+┌─⯈ err4.catala_en:5.25-5.38:
 └─┐
 5 │   definition z equals [ Int content x ]
   │                         ‾‾‾‾‾‾‾‾‾‾‾‾‾
 
 Type Structure coming from expression:
-┌─⯈ tests/test_typing/bad/common.catala_en:14.31-14.40:
+┌─⯈ ./common.catala_en:14.31-14.40:
 └──┐
 14 │   output z content collection Structure
    │                               ‾‾‾‾‾‾‾‾‾

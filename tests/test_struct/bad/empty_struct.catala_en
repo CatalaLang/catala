@@ -12,7 +12,7 @@ $ catala Typecheck
 [ERROR]
 The struct Foo does not have any fields; give it some for Catala to be able to accept it.
 
-┌─⯈ tests/test_struct/bad/empty_struct.catala_en:4.23-4.26:
+┌─⯈ empty_struct.catala_en:4.23-4.26:
 └─┐
 4 │ declaration structure Foo:
   │                       ‾‾‾

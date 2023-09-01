@@ -274,14 +274,14 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
   | EStruct (es, s) ->
+    let fields = StructName.Map.find s ctx.ctx_structs in
     Format.fprintf fmt "%a(%a)" format_struct_name s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (e, (struct_field, _)) ->
            Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
              (format_expression ctx) e))
-      (List.combine es
-         (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs)))
+      (List.combine es (StructField.Map.bindings fields))
   | EStructFieldAccess (e1, field, _) ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
@@ -426,11 +426,12 @@ let rec format_statement
       (format_block ctx) case_none format_var case_some_var format_var tmp_var
       (format_block ctx) case_some
   | SSwitch (e1, e_name, cases) ->
+    let cons_map = EnumName.Map.find e_name ctx.ctx_enums in
     let cases =
       List.map2
         (fun (x, y) (cons, _) -> x, y, cons)
         cases
-        (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
+        (EnumConstructor.Map.bindings cons_map)
     in
     let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
     Format.fprintf fmt "%a = %a@\n@[<hov 4>if %a@]" format_var tmp_var

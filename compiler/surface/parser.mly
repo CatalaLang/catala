@@ -574,7 +574,7 @@ let scope_decl_item :=
   scope_decl_context_item_states = states;
   }
 }
-| i = lident ; SCOPE ; c = uident ; {
+| i = lident ; SCOPE ; c = addpos(quident) ; {
   ContextScope{
     scope_decl_context_scope_name = i;
     scope_decl_context_scope_sub_scope = c;

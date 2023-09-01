@@ -70,20 +70,34 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TDuration -> "duration"
     | TDate -> "date")
 
+let module_name ppf m = Format.fprintf ppf "@{<blue>%a@}" ModuleName.format m
+
+let path ppf p =
+  Format.pp_print_list
+    ~pp_sep:(fun _ () -> ())
+    (fun ppf m ->
+      Format.fprintf ppf "%a@{<cyan>.@}" module_name (Mark.remove m))
+    ppf p
+
 let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
-  | DesugaredScopeVar (v, _st) -> ScopeVar.format fmt (Mark.remove v)
-  | ScopelangScopeVar v -> ScopeVar.format fmt (Mark.remove v)
-  | SubScopeVar (_, subindex, subvar) ->
+  | DesugaredScopeVar { name; _ } -> ScopeVar.format fmt (Mark.remove name)
+  | ScopelangScopeVar { name; _ } -> ScopeVar.format fmt (Mark.remove name)
+  | SubScopeVar { alias = subindex; var = subvar; _ } ->
     Format.fprintf fmt "%a.%a" SubScopeName.format (Mark.remove subindex)
       ScopeVar.format (Mark.remove subvar)
-  | ToplevelVar v -> TopdefName.format fmt (Mark.remove v)
+  | ToplevelVar { name } -> TopdefName.format fmt (Mark.remove name)
 
 let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
   Format.fprintf fmt "@{<magenta>%a@}" EnumConstructor.format c
 
 let struct_field (fmt : Format.formatter) (c : StructField.t) : unit =
   Format.fprintf fmt "@{<magenta>%a@}" StructField.format c
+
+let external_ref fmt er =
+  match Mark.remove er with
+  | External_value v -> TopdefName.format fmt v
+  | External_scope s -> ScopeName.format fmt s
 
 let rec typ_gen
     (ctx : decl_ctx option)
@@ -137,14 +151,14 @@ let rec typ_gen
     match ctx with
     | None -> Format.fprintf fmt "@[<hov 2>%a@]" EnumName.format e
     | Some ctx ->
+      let def = EnumName.Map.find e ctx.ctx_enums in
       Format.fprintf fmt "@[<hov 2>%a%a%a%a@]" EnumName.format e punctuation "["
         (EnumConstructor.Map.format_bindings
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ %a@ " punctuation "|")
            (fun fmt pp_case mty ->
              Format.fprintf fmt "%t%a@ %a" pp_case punctuation ":" (typ ~colors)
                mty))
-        (EnumName.Map.find e ctx.ctx_enums)
-        punctuation "]")
+        def punctuation "]")
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "eoption" (typ ~colors) t
   | TArrow ([t1], t2) ->
@@ -499,7 +513,7 @@ module ExprGen (C : EXPR_PARAM) = struct
     else
       match Mark.remove e with
       | EVar v -> var fmt v
-      | EExternal eref -> Qident.format fmt eref
+      | EExternal { name } -> external_ref fmt name
       | ETuple es ->
         Format.fprintf fmt "@[<hov 2>%a%a%a@]"
           (pp_color_string (List.hd colors))

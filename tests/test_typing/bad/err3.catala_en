@@ -14,7 +14,7 @@ scope S:
 $ catala Typecheck
 [WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_typing/bad/common.catala_en:4.6-4.9:
+┌─⯈ ./common.catala_en:4.6-4.9:
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
@@ -24,19 +24,19 @@ Error during typechecking, incompatible types:
 └─⯈ decimal
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
+┌─⯈ err3.catala_en:10.42-10.43:
 └──┐
 10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
 Type integer coming from expression:
-┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
+┌─⯈ err3.catala_en:10.42-10.43:
 └──┐
 10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
 Type decimal coming from expression:
-┌─⯈ tests/test_typing/bad/common.catala_en:15.20-15.27:
+┌─⯈ ./common.catala_en:15.20-15.27:
 └──┐
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾
@@ -49,7 +49,7 @@ Re-putting the same check again, to ensure that the `Typecheck` and `ocaml` subc
 $ catala ocaml
 [WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_typing/bad/common.catala_en:4.6-4.9:
+┌─⯈ ./common.catala_en:4.6-4.9:
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
@@ -59,19 +59,19 @@ Error during typechecking, incompatible types:
 └─⯈ decimal
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
+┌─⯈ err3.catala_en:10.42-10.43:
 └──┐
 10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
 Type integer coming from expression:
-┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
+┌─⯈ err3.catala_en:10.42-10.43:
 └──┐
 10 │   definition a equals number of (z ++ z) * 2
    │                                          ‾
 
 Type decimal coming from expression:
-┌─⯈ tests/test_typing/bad/common.catala_en:15.20-15.27:
+┌─⯈ ./common.catala_en:15.20-15.27:
 └──┐
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾

@@ -57,6 +57,9 @@ end
     Extend as needed *)
 module Map : sig
   type ('e, 'x) t
+  type k0
+
+  exception Not_found of k0
 
   val empty : ('e, 'x) t
   val singleton : 'e var -> 'x -> ('e, 'x) t
@@ -73,4 +76,10 @@ module Map : sig
   val fold : ('e var -> 'x -> 'acc -> 'acc) -> ('e, 'x) t -> 'acc -> 'acc
   val keys : ('e, 'x) t -> 'e var list
   val values : ('e, 'x) t -> 'x list
+
+  val format_keys :
+    ?pp_sep:(Format.formatter -> unit -> unit) ->
+    Format.formatter ->
+    ('e, 'x) t ->
+    unit
 end

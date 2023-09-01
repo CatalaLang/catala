@@ -19,22 +19,6 @@ open Shared_ast
 open Ast
 module D = Dcalc.Ast
 
-let find_struct (s : StructName.t) (ctx : decl_ctx) : typ StructField.Map.t =
-  try StructName.Map.find s ctx.ctx_structs
-  with Not_found ->
-    let s_name, pos = StructName.get_info s in
-    Message.raise_spanned_error pos
-      "Internal Error: Structure %s was not found in the current environment."
-      s_name
-
-let find_enum (en : EnumName.t) (ctx : decl_ctx) : typ EnumConstructor.Map.t =
-  try EnumName.Map.find en ctx.ctx_enums
-  with Not_found ->
-    let en_name, pos = EnumName.get_info en in
-    Message.raise_spanned_error pos
-      "Internal Error: Enumeration %s was not found in the current environment."
-      en_name
-
 let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
   | LBool b -> Print.lit fmt (LBool b)
@@ -159,11 +143,7 @@ let format_to_module_name
   | `Ename v -> Format.asprintf "%a" EnumName.format v
   | `Sname v -> Format.asprintf "%a" StructName.format v)
   |> String.to_ascii
-  |> String.to_snake_case
   |> avoid_keywords
-  |> String.split_on_char '_'
-  |> List.map String.capitalize_ascii
-  |> String.concat ""
   |> Format.fprintf fmt "%s"
 
 let format_struct_field_name
@@ -233,10 +213,8 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TAny -> Format.fprintf fmt "_"
   | TClosureEnv -> failwith "unimplemented!"
 
-let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
-  let lowercase_name =
-    String.to_snake_case (String.to_ascii (Bindlib.name_of v))
-  in
+let format_var_str (fmt : Format.formatter) (v : string) : unit =
+  let lowercase_name = String.to_snake_case (String.to_ascii v) in
   let lowercase_name =
     Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.")
       ~subst:(fun _ -> "_dot_")
@@ -245,10 +223,14 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
   let lowercase_name = String.to_ascii lowercase_name in
   if
     List.mem lowercase_name ["handle_default"; "handle_default_opt"]
-    || String.begins_with_uppercase (Bindlib.name_of v)
+    (* O_O *)
+    || String.begins_with_uppercase v
   then Format.pp_print_string fmt lowercase_name
   else if lowercase_name = "_" then Format.pp_print_string fmt lowercase_name
   else Format.fprintf fmt "%s_" lowercase_name
+
+let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
+  format_var_str fmt (Bindlib.name_of v)
 
 let needs_parens (e : 'm expr) : bool =
   match Mark.remove e with
@@ -288,7 +270,26 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   in
   match Mark.remove e with
   | EVar v -> Format.fprintf fmt "%a" format_var v
-  | EExternal qid -> Qident.format fmt qid
+  | EExternal { name } -> (
+    (* FIXME: this is wrong in general !! We assume the idents exposed by the
+       module depend only on the original name, while they actually get through
+       Bindlib and may have been renamed. A correct implem could use the runtime
+       registration used by the interpreter, but that would be distasteful and
+       incur a penalty ; or we would need to reproduce the same structure as in
+       the original module to ensure that bindlib performs the exact same
+       renamings ; or finally we could normalise the names at generation time
+       (either at toplevel or in a dedicated submodule ?) *)
+    let path =
+      match Mark.remove name with
+      | External_value name -> TopdefName.path name
+      | External_scope name -> ScopeName.path name
+    in
+    Uid.Path.format fmt path;
+    match Mark.remove name with
+    | External_value name ->
+      format_var_str fmt (Mark.remove (TopdefName.get_info name))
+    | External_scope name ->
+      format_var_str fmt (Mark.remove (ScopeName.get_info name)))
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
@@ -471,7 +472,7 @@ let format_struct_embedding
       StructName.format struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@\n")
-         (fun _fmt (struct_field, struct_field_type) ->
+         (fun fmt (struct_field, struct_field_type) ->
            Format.fprintf fmt "(\"%a\",@ %a@ x.%a)" StructField.format
              struct_field typ_embedding_name struct_field_type
              format_struct_field_name
@@ -493,7 +494,7 @@ let format_enum_embedding
       EnumName.format enum_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-         (fun _fmt (enum_cons, enum_cons_type) ->
+         (fun fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "@[<hov 2>| %a x ->@ (\"%a\", %a x)@]"
              format_enum_cons_name enum_cons EnumConstructor.format enum_cons
              typ_embedding_name enum_cons_type))
@@ -516,7 +517,7 @@ let format_ctx
         format_to_module_name (`Sname struct_name)
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-           (fun _fmt (struct_field, struct_field_type) ->
+           (fun fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
                (None, struct_field) format_typ struct_field_type))
         (StructField.Map.bindings struct_fields);
@@ -529,7 +530,7 @@ let format_ctx
       format_to_module_name (`Ename enum_name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-         (fun _fmt (enum_cons, enum_cons_type) ->
+         (fun fmt (enum_cons, enum_cons_type) ->
            Format.fprintf fmt "@[<hov 2>| %a@ of@ %a@]" format_enum_cons_name
              enum_cons format_typ enum_cons_type))
       (EnumConstructor.Map.bindings enum_cons);
@@ -555,9 +556,13 @@ let format_ctx
     (fun struct_or_enum ->
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
-        Format.fprintf fmt "%a@\n" format_struct_decl (s, find_struct s ctx)
+        let def = StructName.Map.find s ctx.ctx_structs in
+        if StructName.path s = [] then
+          Format.fprintf fmt "%a@\n" format_struct_decl (s, def)
       | Scopelang.Dependency.TVertex.Enum e ->
-        Format.fprintf fmt "%a@\n" format_enum_decl (e, find_enum e ctx))
+        let def = EnumName.Map.find e ctx.ctx_enums in
+        if EnumName.path e = [] then
+          Format.fprintf fmt "%a@\n" format_enum_decl (e, def))
     (type_ordering @ scope_structs)
 
 let rename_vars e =
@@ -594,7 +599,7 @@ let format_code_items
       | Topdef (name, typ, e) ->
         Format.fprintf fmt "@\n@\n@[<hov 2>let %a : %a =@\n%a@]" format_var var
           format_typ typ (format_expr ctx) e;
-        String.Map.add (Mark.remove (TopdefName.get_info name)) var bnd
+        String.Map.add (Format.asprintf "%a" TopdefName.format name) var bnd
       | ScopeDef (name, body) ->
         let scope_input_var, scope_body_expr =
           Bindlib.unbind body.scope_body_expr
@@ -605,7 +610,7 @@ let format_code_items
           (`Sname body.scope_body_output_struct)
           (format_scope_body_expr ctx)
           scope_body_expr;
-        String.Map.add (Mark.remove (ScopeName.get_info name)) var bnd)
+        String.Map.add (Format.asprintf "%a" ScopeName.format name) var bnd)
     ~init:String.Map.empty code_items
 
 let format_scope_exec
@@ -614,7 +619,7 @@ let format_scope_exec
     (bnd : 'm Ast.expr Var.t String.Map.t)
     scope_name
     scope_body =
-  let scope_name_str = Mark.remove (ScopeName.get_info scope_name) in
+  let scope_name_str = Format.asprintf "%a" ScopeName.format scope_name in
   let scope_var = String.Map.find scope_name_str bnd in
   let scope_input =
     StructName.Map.find scope_body.scope_body_input_struct ctx.ctx_structs

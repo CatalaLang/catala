@@ -41,7 +41,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] [A.x10] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/sat_solving.catala_en:15.10-15.13:
+┌─⯈ sat_solving.catala_en:15.10-15.13:
 └──┐
 15 │   output x10 content boolean
    │          ‾‾‾

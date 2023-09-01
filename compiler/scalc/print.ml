@@ -42,6 +42,7 @@ let rec format_expr
   | EVar v -> Format.fprintf fmt "%a" format_var_name v
   | EFunc v -> Format.fprintf fmt "%a" format_func_name v
   | EStruct (es, s) ->
+    let fields = StructName.Map.find s decl_ctx.ctx_structs in
     Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format s
       Print.punctuation "{"
       (Format.pp_print_list
@@ -50,8 +51,7 @@ let rec format_expr
            Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
              StructField.format struct_field Print.punctuation "\""
              Print.punctuation ":" format_expr e))
-      (List.combine es
-         (StructField.Map.bindings (StructName.Map.find s decl_ctx.ctx_structs)))
+      (List.combine es (StructField.Map.bindings fields))
       Print.punctuation "}"
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "["
@@ -142,6 +142,7 @@ let rec format_statement
       (format_expr decl_ctx ~debug)
       (naked_expr, Mark.get stmt)
   | SSwitch (e_switch, enum, arms) ->
+    let cons = EnumName.Map.find enum decl_ctx.ctx_enums in
     Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@]%a" Print.keyword "switch"
       (format_expr decl_ctx ~debug)
       e_switch Print.punctuation ":"
@@ -153,10 +154,7 @@ let rec format_statement
              format_var_name payload_name Print.punctuation "→"
              (format_block decl_ctx ~debug)
              arm_block))
-      (List.combine
-         (EnumConstructor.Map.bindings
-            (EnumName.Map.find enum decl_ctx.ctx_enums))
-         arms)
+      (List.combine (EnumConstructor.Map.bindings cons) arms)
 
 and format_block
     (decl_ctx : decl_ctx)

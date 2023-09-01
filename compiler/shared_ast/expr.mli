@@ -36,7 +36,11 @@ val rebox : ('a any, 'm) gexpr -> ('a, 'm) boxed_gexpr
 (** Rebuild the whole term, re-binding all variables and exposing free variables *)
 
 val evar : ('a, 'm) gexpr Var.t -> 'm mark -> ('a, 'm) boxed_gexpr
-val eexternal : Qident.t -> 'm mark -> ('a any, 'm) boxed_gexpr
+
+val eexternal :
+  name:external_ref Mark.pos ->
+  'm mark ->
+  (< explicitScopes : no ; .. >, 'm) boxed_gexpr
 
 val bind :
   ('a, 'm) gexpr Var.t array ->
@@ -108,42 +112,42 @@ val eraise : except -> 'm mark -> (< exceptions : yes ; .. >, 'm) boxed_gexpr
 val elocation : 'a glocation -> 'm mark -> ((< .. > as 'a), 'm) boxed_gexpr
 
 val estruct :
-  StructName.t ->
-  ('a, 'm) boxed_gexpr StructField.Map.t ->
+  name:StructName.t ->
+  fields:('a, 'm) boxed_gexpr StructField.Map.t ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
 val edstructaccess :
-  ('a, 'm) boxed_gexpr ->
-  Ident.t ->
-  StructName.t option ->
+  name_opt:StructName.t option ->
+  field:Ident.t ->
+  e:('a, 'm) boxed_gexpr ->
   'm mark ->
   ((< syntacticNames : yes ; .. > as 'a), 'm) boxed_gexpr
 
 val estructaccess :
-  ('a, 'm) boxed_gexpr ->
-  StructField.t ->
-  StructName.t ->
+  name:StructName.t ->
+  field:StructField.t ->
+  e:('a, 'm) boxed_gexpr ->
   'm mark ->
   ((< resolvedNames : yes ; .. > as 'a), 'm) boxed_gexpr
 
 val einj :
-  ('a, 'm) boxed_gexpr ->
-  EnumConstructor.t ->
-  EnumName.t ->
+  name:EnumName.t ->
+  cons:EnumConstructor.t ->
+  e:('a, 'm) boxed_gexpr ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
 val ematch :
-  ('a, 'm) boxed_gexpr ->
-  EnumName.t ->
-  ('a, 'm) boxed_gexpr EnumConstructor.Map.t ->
+  name:EnumName.t ->
+  e:('a, 'm) boxed_gexpr ->
+  cases:('a, 'm) boxed_gexpr EnumConstructor.Map.t ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
 val escopecall :
-  ScopeName.t ->
-  ('a, 'm) boxed_gexpr ScopeVar.Map.t ->
+  scope:ScopeName.t ->
+  args:('a, 'm) boxed_gexpr ScopeVar.Map.t ->
   'm mark ->
   ((< explicitScopes : yes ; .. > as 'a), 'm) boxed_gexpr
 

@@ -13,11 +13,11 @@ scope S:
 $ catala Lcalc --avoid_exceptions -O --closure_conversion
 type eoption =  | ENone of unit  | ESome of any
 
+type S_in = { x_in: eoption bool; }
+
 type S = {
   f: eoption ((closure_env, integer) → eoption integer * closure_env);
   }
-
-type S_in = { x_in: eoption bool; }
  
 let topval closure_f : (closure_env, integer) → eoption integer =
   λ (env: closure_env) (y: integer) →

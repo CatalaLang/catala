@@ -34,8 +34,12 @@ let empty_ctx =
     ctx_structs = StructName.Map.empty;
     ctx_struct_fields = Ident.Map.empty;
     ctx_scopes = ScopeName.Map.empty;
-    ctx_modules = Qident.Map.empty;
+    ctx_topdefs = TopdefName.Map.empty;
+    ctx_modules = ModuleName.Map.empty;
   }
+
+let module_ctx ctx path =
+  List.fold_left (fun ctx m -> ModuleName.Map.find m ctx.ctx_modules) ctx path
 
 let get_scope_body { code_items; _ } scope =
   match

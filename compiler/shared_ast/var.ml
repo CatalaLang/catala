@@ -88,7 +88,12 @@ end
    maps) *)
 module Map = struct
   open Generic
-  open Map.Make (Generic)
+  module M = Map.Make (Generic)
+  open M
+
+  type k0 = M.key
+
+  exception Not_found = M.Not_found
 
   type nonrec ('e, 'x) t = 'x t
 
@@ -104,6 +109,7 @@ module Map = struct
   let fold f m acc = fold (fun v x acc -> f (get v) x acc) m acc
   let keys m = keys m |> List.map get
   let values m = values m
+  let format_keys ?pp_sep m = format_keys ?pp_sep m
 
   (* Add more as needed *)
 end

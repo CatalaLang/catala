@@ -12,7 +12,7 @@ export
 # Dependencies
 ##########################################
 
-EXECUTABLES = groff python3 colordiff node node npm ninja pandoc
+EXECUTABLES = groff python3 node npm ninja pandoc
 K := $(foreach exec,$(EXECUTABLES),\
         $(if $(shell which $(exec)),some string,$(warning [WARNING] No "$(exec)" executable found. \
 				Please install this executable for everything to work smoothly)))
@@ -315,10 +315,10 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 
 .FORCE:
 
-test_suite: .FORCE compiler
+test_suite: .FORCE install
 	@$(MAKE) -C tests pass_all_tests
 
-test_examples: .FORCE compiler
+test_examples: .FORCE install
 	@$(MAKE) -C examples pass_all_tests
 
 #> tests					: Run interpreter tests

@@ -13,7 +13,7 @@ $ catala Interpret -s RecursiveFunc
 [ERROR]
 The variable f is used in one of its definitions, but recursion is forbidden in Catala
 
-┌─⯈ tests/test_func/bad/recursive.catala_en:8.28-8.29:
+┌─⯈ recursive.catala_en:8.28-8.29:
 └─┐
 8 │   definition f of x equals f of x + 1
   │                            ‾

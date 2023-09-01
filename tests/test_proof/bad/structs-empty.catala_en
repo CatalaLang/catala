@@ -22,7 +22,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] [A.x] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/structs-empty.catala_en:13.10-13.11:
+┌─⯈ structs-empty.catala_en:13.10-13.11:
 └──┐
 13 │   output x content integer
    │          ‾

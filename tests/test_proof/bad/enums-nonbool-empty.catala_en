@@ -23,13 +23,13 @@ scope A:
 $ catala Proof --disable_counterexamples
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
 
-┌─⯈ tests/test_proof/bad/enums-nonbool-empty.catala_en:5.7-5.8:
+┌─⯈ enums-nonbool-empty.catala_en:5.7-5.8:
 └─┐
 5 │    -- C content boolean
   │       ‾
   └─ Test
 [WARNING] [A.x] This variable might return an empty error:
-┌─⯈ tests/test_proof/bad/enums-nonbool-empty.catala_en:13.10-13.11:
+┌─⯈ enums-nonbool-empty.catala_en:13.10-13.11:
 └──┐
 13 │   output x content integer
    │          ‾

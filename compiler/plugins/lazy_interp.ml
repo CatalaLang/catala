@@ -75,7 +75,7 @@ let rec lazy_eval :
          (?) *)
       let v_env =
         try Env.find v env
-        with Not_found ->
+        with Var.Map.Not_found _ ->
           error e0 "Variable %a undefined [@[<hv>%a@]]" Print.var_debug v
             Env.print env
       in
@@ -233,16 +233,17 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
   log "=====================";
   let m = Mark.get e in
   let application_arg =
-    Expr.estruct scope_arg_struct
-      (StructField.Map.map
-         (function
-           | TArrow (ty_in, ty_out), _ ->
-             Expr.make_abs
-               [| Var.make "_" |]
-               (Bindlib.box EEmptyError, Expr.with_ty m ty_out)
-               ty_in (Expr.mark_pos m)
-           | ty -> Expr.evar (Var.make "undefined_input") (Expr.with_ty m ty))
-         (StructName.Map.find scope_arg_struct ctx.ctx_structs))
+    Expr.estruct ~name:scope_arg_struct
+      ~fields:
+        (StructField.Map.map
+           (function
+             | TArrow (ty_in, ty_out), _ ->
+               Expr.make_abs
+                 [| Var.make "_" |]
+                 (Bindlib.box EEmptyError, Expr.with_ty m ty_out)
+                 ty_in (Expr.mark_pos m)
+             | ty -> Expr.evar (Var.make "undefined_input") (Expr.with_ty m ty))
+           (StructName.Map.find scope_arg_struct ctx.ctx_structs))
       m
   in
   let e_app = Expr.eapp (Expr.box e) [application_arg] m in

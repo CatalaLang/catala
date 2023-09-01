@@ -136,7 +136,8 @@ let detect_unused_struct_fields (p : program) : unit =
   in
   StructName.Map.iter
     (fun s_name fields ->
-      if
+      if StructName.path s_name <> [] then ()
+      else if
         (not (StructField.Map.is_empty fields))
         && StructField.Map.for_all
              (fun field _ ->
@@ -191,7 +192,8 @@ let detect_unused_enum_constructors (p : program) : unit =
   in
   EnumName.Map.iter
     (fun e_name constructors ->
-      if
+      if EnumName.path e_name <> [] then ()
+      else if
         EnumConstructor.Map.for_all
           (fun cons _ ->
             not (EnumConstructor.Set.mem cons enum_constructors_used))

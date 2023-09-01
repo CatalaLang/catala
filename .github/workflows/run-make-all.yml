@@ -22,8 +22,8 @@ jobs:
           fetch-depth: 0
       - name: Prepare container with all dependencies
         run: git archive HEAD | docker build - --target dev-build-context
-      - name: Escape slashes in IMAGE_TAG (to avoid Docker issues)
-        run: echo "IMAGE_TAG=${IMAGE_TAG////--}" >> $GITHUB_ENV
+      - name: Escape chars in IMAGE_TAG (to avoid Docker issues)
+        run: sed 's/[^a-zA-Z0-9-]/-/g; s/^/IMAGE_TAG=/' <<<"${IMAGE_TAG}" >> $GITHUB_ENV
       - name: Run builds, checks and tests
         run: git archive HEAD | docker build - --force-rm -t "catalalang/catala-build:${IMAGE_TAG}"
       - name: Cleanup Docker image

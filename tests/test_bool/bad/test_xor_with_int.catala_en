@@ -16,21 +16,21 @@ Error during typechecking, incompatible types:
 └─⯈ bool
 
 Error coming from typechecking the following expression:
-┌─⯈ tests/test_bool/bad/test_xor_with_int.catala_en:8.30-8.32:
+┌─⯈ test_xor_with_int.catala_en:8.30-8.32:
 └─┐
 8 │   definition test_var equals 10 xor 20
   │                              ‾‾
   └─ 'xor' should be a boolean operator
 
 Type integer coming from expression:
-┌─⯈ tests/test_bool/bad/test_xor_with_int.catala_en:8.30-8.32:
+┌─⯈ test_xor_with_int.catala_en:8.30-8.32:
 └─┐
 8 │   definition test_var equals 10 xor 20
   │                              ‾‾
   └─ 'xor' should be a boolean operator
 
 Type bool coming from expression:
-┌─⯈ tests/test_bool/bad/test_xor_with_int.catala_en:8.33-8.36:
+┌─⯈ test_xor_with_int.catala_en:8.33-8.36:
 └─┐
 8 │   definition test_var equals 10 xor 20
   │                                 ‾‾‾

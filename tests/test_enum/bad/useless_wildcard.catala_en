@@ -21,7 +21,7 @@ scope A:
 $ catala Interpret -s A
 [WARNING] Unreachable match case, all constructors of the enumeration E are already specified
 
-┌─⯈ tests/test_enum/bad/useless_wildcard.catala_en:17.5-17.21:
+┌─⯈ useless_wildcard.catala_en:17.5-17.21:
 └──┐
 17 │     -- anything : 31
    │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

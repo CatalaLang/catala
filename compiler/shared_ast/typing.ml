@@ -125,13 +125,12 @@ let rec format_typ
       "("
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-         (fun fmt t ->
-           Format.fprintf fmt "%a" (format_typ ~colors:(List.tl colors)) t))
+         (fun fmt t -> format_typ fmt ~colors:(List.tl colors) t))
       ts
       (pp_color_string (List.hd colors))
       ")"
-  | TStruct s -> Format.fprintf fmt "%a" A.StructName.format s
-  | TEnum e -> Format.fprintf fmt "%a" A.EnumName.format e
+  | TStruct s -> A.StructName.format fmt s
+  | TEnum e -> A.EnumName.format fmt e
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>option %a@]"
       (format_typ_with_parens ~colors:(List.tl colors))
@@ -313,6 +312,7 @@ module Env = struct
     scope_vars : A.typ A.ScopeVar.Map.t;
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     toplevel_vars : A.typ A.TopdefName.Map.t;
+    modules : 'e t A.ModuleName.Map.t;
   }
 
   let empty (decl_ctx : A.decl_ctx) =
@@ -321,16 +321,17 @@ module Env = struct
     {
       structs =
         A.StructName.Map.map
-          (A.StructField.Map.map ast_to_typ)
+          (fun ty -> A.StructField.Map.map ast_to_typ ty)
           decl_ctx.ctx_structs;
       enums =
         A.EnumName.Map.map
-          (A.EnumConstructor.Map.map ast_to_typ)
+          (fun ty -> A.EnumConstructor.Map.map ast_to_typ ty)
           decl_ctx.ctx_enums;
       vars = Var.Map.empty;
       scope_vars = A.ScopeVar.Map.empty;
       scopes = A.ScopeName.Map.empty;
       toplevel_vars = A.TopdefName.Map.empty;
+      modules = A.ModuleName.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
@@ -340,6 +341,9 @@ module Env = struct
   let get_subscope_out_var t scope var =
     Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
         A.ScopeVar.Map.find_opt var vmap)
+
+  let module_env path env =
+    List.fold_left (fun env m -> A.ModuleName.Map.find m env.modules) env path
 
   let add v tau t = { t with vars = Var.Map.add v tau t.vars }
   let add_var v typ t = add v (ast_to_typ typ) t
@@ -353,6 +357,9 @@ module Env = struct
   let add_toplevel_var v typ t =
     { t with toplevel_vars = A.TopdefName.Map.add v typ t.toplevel_vars }
 
+  let add_module modname ~module_env t =
+    { t with modules = A.ModuleName.Map.add modname module_env t.modules }
+
   let open_scope scope_name t =
     let scope_vars =
       A.ScopeVar.Map.union
@@ -361,6 +368,26 @@ module Env = struct
         (A.ScopeName.Map.find scope_name t.scopes)
     in
     { t with scope_vars }
+
+  let rec dump ppf env =
+    let pp_sep = Format.pp_print_space in
+    Format.pp_open_vbox ppf 0;
+    (* Format.fprintf ppf "structs: @[<hov>%a@]@,"
+     *   (A.StructName.Map.format_keys ~pp_sep) env.structs;
+     * Format.fprintf ppf "enums: @[<hov>%a@]@,"
+     *   (A.EnumName.Map.format_keys ~pp_sep) env.enums;
+     * Format.fprintf ppf "vars: @[<hov>%a@]@,"
+     *   (Var.Map.format_keys ~pp_sep) env.vars; *)
+    Format.fprintf ppf "scopes: @[<hov>%a@]@,"
+      (A.ScopeName.Map.format_keys ~pp_sep)
+      env.scopes;
+    Format.fprintf ppf "topdefs: @[<hov>%a@]@,"
+      (A.TopdefName.Map.format_keys ~pp_sep)
+      env.toplevel_vars;
+    Format.fprintf ppf "@[<hv 2>modules:@ %a@]"
+      (A.ModuleName.Map.format dump)
+      env.modules;
+    Format.pp_close_box ppf ()
 end
 
 let add_pos e ty = Mark.add (Expr.pos e) ty
@@ -414,11 +441,14 @@ and typecheck_expr_top_down :
   | A.ELocation loc ->
     let ty_opt =
       match loc with
-      | DesugaredScopeVar (v, _) | ScopelangScopeVar v ->
-        Env.get_scope_var env (Mark.remove v)
-      | SubScopeVar (scope, _, v) ->
-        Env.get_subscope_out_var env scope (Mark.remove v)
-      | ToplevelVar v -> Env.get_toplevel_var env (Mark.remove v)
+      | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name } ->
+        Env.get_scope_var env (Mark.remove name)
+      | SubScopeVar { scope; var; _ } ->
+        let env = Env.module_env (A.ScopeName.path scope) env in
+        Env.get_subscope_out_var env scope (Mark.remove var)
+      | ToplevelVar { name } ->
+        let env = Env.module_env (A.TopdefName.path (Mark.remove name)) env in
+        Env.get_toplevel_var env (Mark.remove name)
     in
     let ty =
       match ty_opt with
@@ -463,14 +493,14 @@ and typecheck_expr_top_down :
           "Mismatching field definitions for structure %a" A.StructName.format
           name
     in
-    let fields' =
+    let fields =
       A.StructField.Map.mapi
         (fun f_name f_e ->
           let f_ty = A.StructField.Map.find f_name str in
           typecheck_expr_top_down ~leave_unresolved ctx env f_ty f_e)
         fields
     in
-    Expr.estruct name fields' mark
+    Expr.estruct ~name ~fields mark
   | A.EDStructAccess { e = e_struct; name_opt; field } ->
     let t_struct =
       match name_opt with
@@ -495,14 +525,14 @@ and typecheck_expr_top_down :
     let fld_ty =
       let str =
         try A.StructName.Map.find name env.structs
-        with Not_found ->
+        with A.StructName.Map.Not_found _ ->
           Message.raise_spanned_error pos_e "No structure %a found"
             A.StructName.format name
       in
       let field =
         let candidate_structs =
           try A.Ident.Map.find field ctx.ctx_struct_fields
-          with Not_found ->
+          with A.Ident.Map.Not_found _ ->
             Message.raise_spanned_error
               (Expr.mark_pos context_mark)
               "Field @{<yellow>\"%s\"@} does not belong to structure \
@@ -510,7 +540,7 @@ and typecheck_expr_top_down :
               field A.StructName.format name
         in
         try A.StructName.Map.find name candidate_structs
-        with Not_found ->
+        with A.StructName.Map.Not_found _ ->
           Message.raise_spanned_error
             (Expr.mark_pos context_mark)
             "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
@@ -526,17 +556,17 @@ and typecheck_expr_top_down :
       A.StructField.Map.find field str
     in
     let mark = mark_with_tau_and_unify fld_ty in
-    Expr.edstructaccess e_struct' field (Some name) mark
+    Expr.edstructaccess ~e:e_struct' ~name_opt:(Some name) ~field mark
   | A.EStructAccess { e = e_struct; name; field } ->
     let fld_ty =
       let str =
         try A.StructName.Map.find name env.structs
-        with Not_found ->
+        with A.StructName.Map.Not_found _ ->
           Message.raise_spanned_error pos_e "No structure %a found"
             A.StructName.format name
       in
       try A.StructField.Map.find field str
-      with Not_found ->
+      with A.StructField.Map.Not_found _ ->
         Message.raise_multispanned_error
           [
             None, pos_e;
@@ -551,7 +581,7 @@ and typecheck_expr_top_down :
       typecheck_expr_top_down ~leave_unresolved ctx env
         (unionfind (TStruct name)) e_struct
     in
-    Expr.estructaccess e_struct' field name mark
+    Expr.estructaccess ~e:e_struct' ~field ~name mark
   | A.EInj { name; cons; e = e_enum }
     when Definitions.EnumName.equal name Expr.option_enum ->
     if Definitions.EnumConstructor.equal cons Expr.some_constr then
@@ -560,7 +590,7 @@ and typecheck_expr_top_down :
       let e_enum' =
         typecheck_expr_top_down ~leave_unresolved ctx env cell_type e_enum
       in
-      Expr.einj e_enum' cons name mark
+      Expr.einj ~name ~cons ~e:e_enum' mark
     else
       (* None constructor *)
       let cell_type = unionfind (TAny (Any.fresh ())) in
@@ -569,7 +599,7 @@ and typecheck_expr_top_down :
         typecheck_expr_top_down ~leave_unresolved ctx env
           (unionfind (TLit TUnit)) e_enum
       in
-      Expr.einj e_enum' cons name mark
+      Expr.einj ~name ~cons ~e:e_enum' mark
   | A.EInj { name; cons; e = e_enum } ->
     let mark = mark_with_tau_and_unify (unionfind (TEnum name)) in
     let e_enum' =
@@ -577,7 +607,7 @@ and typecheck_expr_top_down :
         (A.EnumConstructor.Map.find cons (A.EnumName.Map.find name env.enums))
         e_enum
     in
-    Expr.einj e_enum' cons name mark
+    Expr.einj ~e:e_enum' ~cons ~name mark
   | A.EMatch { e = e1; name; cases }
     when Definitions.EnumName.equal name Expr.option_enum ->
     let cell_type = unionfind ~pos:e1 (TAny (Any.fresh ())) in
@@ -591,7 +621,7 @@ and typecheck_expr_top_down :
     let t_ret = unionfind ~pos:e (TAny (Any.fresh ())) in
     let mark = mark_with_tau_and_unify t_ret in
     let e1' = typecheck_expr_top_down ~leave_unresolved ctx env t_arg e1 in
-    let cases' =
+    let cases =
       A.EnumConstructor.Map.merge
         (fun _ e e_ty ->
           match e, e_ty with
@@ -603,8 +633,7 @@ and typecheck_expr_top_down :
           | _ -> assert false)
         cases cases_ty
     in
-
-    Expr.ematch e1' name cases' mark
+    Expr.ematch ~e:e1' ~name ~cases mark
   | A.EMatch { e = e1; name; cases } ->
     let cases_ty = A.EnumName.Map.find name ctx.A.ctx_enums in
     let t_ret = unionfind ~pos:e1 (TAny (Any.fresh ())) in
@@ -613,7 +642,7 @@ and typecheck_expr_top_down :
       typecheck_expr_top_down ~leave_unresolved ctx env (unionfind (TEnum name))
         e1
     in
-    let cases' =
+    let cases =
       A.EnumConstructor.Map.mapi
         (fun c_name e ->
           let c_ty = A.EnumConstructor.Map.find c_name cases_ty in
@@ -624,13 +653,18 @@ and typecheck_expr_top_down :
           typecheck_expr_top_down ~leave_unresolved ctx env e_ty e)
         cases
     in
-    Expr.ematch e1' name cases' mark
+    Expr.ematch ~e:e1' ~name ~cases mark
   | A.EScopeCall { scope; args } ->
+    let path = A.ScopeName.path scope in
     let scope_out_struct =
+      let ctx = Program.module_ctx ctx path in
       (A.ScopeName.Map.find scope ctx.ctx_scopes).out_struct_name
     in
     let mark = mark_with_tau_and_unify (unionfind (TStruct scope_out_struct)) in
-    let vars = A.ScopeName.Map.find scope env.scopes in
+    let vars =
+      let env = Env.module_env path env in
+      A.ScopeName.Map.find scope env.scopes
+    in
     let args' =
       A.ScopeVar.Map.mapi
         (fun name ->
@@ -638,7 +672,7 @@ and typecheck_expr_top_down :
             (ast_to_typ (A.ScopeVar.Map.find name vars)))
         args
     in
-    Expr.escopecall scope args' mark
+    Expr.escopecall ~scope ~args:args' mark
   | A.ERaise ex -> Expr.eraise ex context_mark
   | A.ECatch { body; exn; handler } ->
     let body' = typecheck_expr_top_down ~leave_unresolved ctx env tau body in
@@ -655,16 +689,36 @@ and typecheck_expr_top_down :
           "Variable %s not found in the current context" (Bindlib.name_of v)
     in
     Expr.evar (Var.translate v) (mark_with_tau_and_unify tau')
-  | A.EExternal eref ->
+  | A.EExternal { name } ->
+    let path =
+      match Mark.remove name with
+      | External_value td -> A.TopdefName.path td
+      | External_scope s -> A.ScopeName.path s
+    in
+    let ctx = Program.module_ctx ctx path in
     let ty =
-      try Qident.Map.find eref ctx.ctx_modules
-      with Not_found ->
+      let not_found pr x =
         Message.raise_spanned_error pos_e
           "Could not resolve the reference to %a.@ Make sure the corresponding \
            module was properly loaded?"
-          Qident.format eref
+          pr x
+      in
+      match Mark.remove name with
+      | A.External_value name -> (
+        try ast_to_typ (A.TopdefName.Map.find name ctx.ctx_topdefs)
+        with A.TopdefName.Map.Not_found _ ->
+          not_found A.TopdefName.format name)
+      | A.External_scope name -> (
+        try
+          let scope_info = A.ScopeName.Map.find name ctx.ctx_scopes in
+          ast_to_typ
+            ( TArrow
+                ( [TStruct scope_info.in_struct_name, pos_e],
+                  (TStruct scope_info.out_struct_name, pos_e) ),
+              pos_e )
+        with A.ScopeName.Map.Not_found _ -> not_found A.ScopeName.format name)
     in
-    Expr.eexternal eref (mark_with_tau_and_unify (ast_to_typ ty))
+    Expr.eexternal ~name (mark_with_tau_and_unify ty)
   | A.ELit lit -> Expr.elit lit (ty_mark (lit_type lit))
   | A.ETuple es ->
     let tys = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) es in

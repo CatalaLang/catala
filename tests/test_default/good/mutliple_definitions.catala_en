@@ -13,12 +13,12 @@ scope A:
 $ catala Interpret -s A
 [WARNING] These definitions have identical justifications and consequences; is it a mistake?
 
-┌─⯈ tests/test_default/good/mutliple_definitions.catala_en:9.3-9.15:
+┌─⯈ mutliple_definitions.catala_en:9.3-9.15:
 └─┐
 9 │   definition w equals 3
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
 
-┌─⯈ tests/test_default/good/mutliple_definitions.catala_en:6.3-6.15:
+┌─⯈ mutliple_definitions.catala_en:6.3-6.15:
 └─┐
 6 │   definition w equals 3
   │   ‾‾‾‾‾‾‾‾‾‾‾‾

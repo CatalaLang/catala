@@ -116,6 +116,7 @@ type program = {
   program_scopes : scope ScopeName.Map.t;
   program_topdefs : (expr option * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
+  program_modules : program ModuleName.Map.t;
 }
 
 (** {1 Helpers} *)

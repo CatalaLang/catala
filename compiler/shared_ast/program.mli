@@ -15,11 +15,16 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+open Catala_utils
 open Definitions
 
 (** {2 Program declaration context helpers} *)
 
 val empty_ctx : decl_ctx
+
+val module_ctx : decl_ctx -> Uid.Path.t -> decl_ctx
+(** Follows a path to get the corresponding context for type and value
+    declarations. *)
 
 (** {2 Transformations} *)
 
@@ -47,3 +52,4 @@ val to_expr : ((_ any, _) gexpr as 'e) program -> ScopeName.t -> 'e boxed
 
 val equal :
   (('a any, _) gexpr as 'e) program -> (('a any, _) gexpr as 'e) program -> bool
+(** Warning / todo: only compares program scopes at the moment *)

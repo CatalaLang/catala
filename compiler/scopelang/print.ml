@@ -48,7 +48,7 @@ let enum
            (Print.typ ctx) typ))
     (EnumConstructor.Map.bindings cases)
 
-let scope ?debug ctx fmt (name, decl) =
+let scope ?debug ctx fmt (name, (decl, _pos)) =
   Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]"
     Print.keyword "let" Print.keyword "scope" ScopeName.format name
     (Format.pp_print_list ~pp_sep:Format.pp_print_space
@@ -78,7 +78,7 @@ let scope ?debug ctx fmt (name, decl) =
              (fun fmt e ->
                match Mark.remove loc with
                | SubScopeVar _ | ToplevelVar _ -> Print.expr () fmt e
-               | ScopelangScopeVar v -> (
+               | ScopelangScopeVar { name = v } -> (
                  match
                    Mark.remove
                      (snd (ScopeVar.Map.find (Mark.remove v) decl.scope_sig))

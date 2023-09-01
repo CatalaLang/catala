@@ -29,6 +29,10 @@ end
 module type S = sig
   include Stdlib.Map.S
 
+  exception Not_found of key
+  (* Slightly more informative [Not_found] exception *)
+
+  val find : key -> 'a t -> 'a
   val keys : 'a t -> key list
   val values : 'a t -> 'a list
   val of_list : (key * 'a) list -> 'a t
@@ -70,6 +74,16 @@ end
 module Make (Ord : OrderedType) : S with type key = Ord.t = struct
   include Stdlib.Map.Make (Ord)
 
+  exception Not_found of key
+
+  let () =
+    Printexc.register_printer
+    @@ function
+    | Not_found k ->
+      Some (Format.asprintf "key '%a' not found in map" Ord.format k)
+    | _ -> None
+
+  let find k t = try find k t with Stdlib.Not_found -> raise (Not_found k)
   let keys t = fold (fun k _ acc -> k :: acc) t [] |> List.rev
   let values t = fold (fun _ v acc -> v :: acc) t [] |> List.rev
   let of_list l = List.fold_left (fun m (k, v) -> add k v m) empty l

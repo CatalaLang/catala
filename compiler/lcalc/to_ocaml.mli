@@ -19,8 +19,6 @@ open Shared_ast
 (** Formats a lambda calculus program into a valid OCaml program *)
 
 val avoid_keywords : string -> string
-val find_struct : StructName.t -> decl_ctx -> typ StructField.Map.t
-val find_enum : EnumName.t -> decl_ctx -> typ EnumConstructor.Map.t
 val typ_needs_parens : typ -> bool
 
 (* val needs_parens : 'm expr -> bool *)

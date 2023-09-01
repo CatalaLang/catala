@@ -49,23 +49,23 @@ type Result = {
   q: eoption integer;
   }
 
+type SubFoo1_in = { x_in: eoption integer; }
+
 type SubFoo1 = {
   x: eoption integer;
   y: eoption ((closure_env, integer) → eoption integer * closure_env);
   }
+
+type SubFoo2_in = { x1_in: eoption integer; x2_in: eoption integer; }
 
 type SubFoo2 = {
   x1: eoption integer;
   y: eoption ((closure_env, integer) → eoption integer * closure_env);
   }
 
-type Foo = { z: eoption integer; }
-
-type SubFoo1_in = { x_in: eoption integer; }
-
-type SubFoo2_in = { x1_in: eoption integer; x2_in: eoption integer; }
-
 type Foo_in = { b_in: eoption bool; }
+
+type Foo = { z: eoption integer; }
  
 let topval closure_y : (closure_env, integer) → eoption integer =
   λ (env: closure_env) (z: integer) →
