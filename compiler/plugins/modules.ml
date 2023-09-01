@@ -77,7 +77,7 @@ let ocaml_libdir =
      with Failure _ -> (
        try String.trim (File.process_out "ocamlc" ["-where"])
        with Failure _ -> (
-         match File.(check_directory (Sys.executable_name / ".." / "lib")) with
+         match File.(check_directory (dirname Sys.argv.(0) /../ "lib")) with
          | Some d -> d
          | None ->
            Message.raise_error
@@ -87,7 +87,7 @@ let ocaml_libdir =
 let rec find_catala_project_root dir =
   if Sys.file_exists File.(dir / "catala.opam") then Some dir
   else
-    let dir' = Unix.realpath File.(dir / Filename.parent_dir_name) in
+    let dir' = File.dirname dir in
     if dir' = dir then None else find_catala_project_root dir'
 
 let runtime_dir =
@@ -104,7 +104,13 @@ let runtime_dir =
            / "lib"
            / "catala"
            / "runtime_ocaml")
-       | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime")
+       | None -> (
+         match
+           File.check_directory
+             File.(dirname Sys.argv.(0) /../ "lib" / "catala" / "runtime_ocaml")
+         with
+         | Some d -> d
+         | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime"))
      in
      match File.check_directory d with
      | Some dir ->
@@ -128,7 +134,7 @@ let compile options link_modules optimize check_invariants =
     gen_ocaml options link_modules optimize check_invariants (Some modname) None
   in
   let flags = ["-I"; Lazy.force runtime_dir] in
-  let shared_out = File.((Filename.dirname ml_file / basename) ^ ".cmxs") in
+  let shared_out = File.((ml_file /../ basename) ^ ".cmxs") in
   Message.emit_debug "Compiling OCaml shared object file @{<bold>%s@}..."
     shared_out;
   run_process "ocamlopt" ("-shared" :: ml_file :: "-o" :: shared_out :: flags);
@@ -176,7 +182,7 @@ let link options link_modules optimize check_invariants output ex_scope_opt =
   in
   let runtime_lib = File.(runtime_dir / "runtime_ocaml.cmxa") in
   let modules =
-    List.map (fun m -> Filename.remove_extension m ^ ".ml") link_modules
+    List.map (fun m -> Filename.remove_extension m ^ ".cmx") link_modules
   in
   let output =
     match output with
@@ -185,6 +191,8 @@ let link options link_modules optimize check_invariants output ex_scope_opt =
   in
   let args =
     with_flag "-I" link_libdirs
+    @ with_flag "-I"
+        (List.sort_uniq compare (List.map Filename.dirname modules))
     @ List.map
         (fun lib -> String.map (function '-' -> '_' | c -> c) lib ^ ".cmxa")
         link_libs

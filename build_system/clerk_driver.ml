@@ -261,12 +261,8 @@ let inline_test_rule catala_exe catala_opts =
          [
            Lit Sys.argv.(0);
            Lit "runtest";
-           Seq [Lit "--exe"; Lit catala_exe];
-           Seq
-             [
-               Lit "--catala-opts";
-               Lit ("\"" ^ String.escaped catala_opts ^ "\"");
-             ];
+           Lit ("--exe=" ^ catala_exe);
+           Lit ("--catala-opts=\"" ^ String.escaped catala_opts ^ "\"");
            Var.tested_file;
            pipe_diff_cmd;
          ])

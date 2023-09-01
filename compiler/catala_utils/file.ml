@@ -116,3 +116,5 @@ let check_directory d =
   with Unix.Unix_error _ | Sys_error _ -> None
 
 let ( / ) = Filename.concat
+let dirname = Filename.dirname
+let ( /../ ) a b = dirname a / b

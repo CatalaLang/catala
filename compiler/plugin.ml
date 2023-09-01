@@ -39,17 +39,20 @@ let load_file f =
   | e ->
     Message.emit_warning "Could not load plugin %S: %s" f (Printexc.to_string e)
 
-let rec load_dir d =
+let load_dir d =
   Message.emit_debug "Loading plugins from %s" d;
   let dynlink_exts =
     if Dynlink.is_native then [".cmxs"] else [".cmo"; ".cma"]
   in
-  Array.iter
-    (fun f ->
-      if f.[0] = '.' then ()
-      else
-        let f = Filename.concat d f in
-        if Sys.is_directory f then load_dir f
-        else if List.exists (Filename.check_suffix f) dynlink_exts then
-          load_file f)
-    (Sys.readdir d)
+  let rec aux d =
+    Array.iter
+      (fun f ->
+        if f.[0] = '.' then ()
+        else
+          let f = Filename.concat d f in
+          if Sys.is_directory f then aux f
+          else if List.exists (Filename.check_suffix f) dynlink_exts then
+            load_file f)
+      (Sys.readdir d)
+  in
+  aux d

@@ -87,3 +87,9 @@ val check_directory : string -> string option
 val ( / ) : string -> string -> string
 (** [Filename.concat]: Sugar to allow writing
     [File.("some" / "relative" / "path")] *)
+
+val dirname : string -> string
+(** [Filename.dirname], re-exported for convenience *)
+
+val ( /../ ) : string -> string -> string
+(** Sugar for [Filename.dirname "a" / b] *)

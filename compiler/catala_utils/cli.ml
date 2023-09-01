@@ -174,14 +174,16 @@ module Flags = struct
       let env = Cmd.Env.info "CATALA_PLUGINS" in
       let default =
         let ( / ) = Filename.concat in
-        [
-          Filename.dirname Sys.executable_name
-          / Filename.parent_dir_name
-          / "lib"
-          / "catala"
-          / "plugins";
-          "_build" / "default" / "compiler" / "plugins";
-        ]
+        let exec_dir = Filename.(dirname Sys.argv.(0)) in
+        let dev_plugin_dir = exec_dir / "plugins" in
+        if Sys.file_exists dev_plugin_dir then
+          (* When running tests in place, may need to lookup in _build/default
+             besides the exec *)
+          [dev_plugin_dir]
+        else
+          (* Otherwise, assume a standard layout: "<prefix>/bin/catala" besides
+             "<prefix>/lib/catala" *)
+          [Filename.(dirname exec_dir) / "lib" / "catala" / "plugins"]
       in
       value & opt_all string default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc
 
