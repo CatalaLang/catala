@@ -23,17 +23,64 @@
 open Catala_utils
 module Runtime = Runtime_ocaml.Runtime
 module ModuleName = Uid.Module
-module ScopeName = Uid.Gen_qualified ()
-module TopdefName = Uid.Gen_qualified ()
-module StructName = Uid.Gen_qualified ()
-module StructField = Uid.Gen ()
-module EnumName = Uid.Gen_qualified ()
-module EnumConstructor = Uid.Gen ()
+
+module ScopeName =
+  Uid.Gen_qualified
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_magenta))
+    end)
+    ()
+
+module TopdefName =
+  Uid.Gen_qualified
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_green))
+    end)
+    ()
+
+module StructName =
+  Uid.Gen_qualified
+    (struct
+      let style = Ocolor_types.(Fg (C4 cyan))
+    end)
+    ()
+
+module StructField =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 magenta))
+    end)
+    ()
+
+module EnumName =
+  Uid.Gen_qualified
+    (struct
+      let style = Ocolor_types.(Fg (C4 cyan))
+    end)
+    ()
+
+module EnumConstructor =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 magenta))
+    end)
+    ()
 
 (** Only used by surface *)
 
-module RuleName = Uid.Gen ()
-module LabelName = Uid.Gen ()
+module RuleName =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_white))
+    end)
+    ()
+
+module LabelName =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_cyan))
+    end)
+    ()
 
 (** Used for unresolved structs/maps in desugared *)
 
@@ -41,9 +88,26 @@ module Ident = String
 
 (** Only used by desugared/scopelang *)
 
-module ScopeVar = Uid.Gen ()
-module SubScopeName = Uid.Gen ()
-module StateName = Uid.Gen ()
+module ScopeVar =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_white))
+    end)
+    ()
+
+module SubScopeName =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_magenta))
+    end)
+    ()
+
+module StateName =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_cyan))
+    end)
+    ()
 
 (** {1 Abstract syntax tree} *)
 

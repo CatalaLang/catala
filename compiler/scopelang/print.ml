@@ -61,9 +61,9 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
            | OnlyInput -> "input"
            | Reentrant -> "context")
            (if Mark.remove vis.Desugared.Ast.io_output then fun fmt () ->
-            Format.fprintf fmt "%a@,%a" Print.punctuation "|" Print.keyword
-              "output"
-           else fun fmt () -> Format.fprintf fmt "@<0>")
+              Format.fprintf fmt "%a@,%a" Print.punctuation "|" Print.keyword
+                "output"
+            else fun fmt () -> Format.fprintf fmt "@<0>")
            () Print.punctuation ")"))
     (ScopeVar.Map.bindings decl.scope_sig)
     Print.punctuation "="

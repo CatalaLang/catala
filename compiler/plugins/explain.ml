@@ -1219,15 +1219,15 @@ let to_dot lang ppf ctx env base_vars g ~base_src_url =
       in
       `Label (vertex_label v (* ^ "\n" ^ loc_text *))
       :: `Comment loc_text
-      (* :: `Url
-       *      ("http://localhost:8080/fr/examples/housing-benefits#"
-       *      ^ Re.(
-       *          replace_string
-       *            (compile
-       *               (seq [char '/'; rep1 (diff any (char '/')); str "/../"]))
-       *            ~by:"/" (Pos.get_file pos))
-       *      ^ "-"
-       *      ^ string_of_int (Pos.get_start_line pos)) *)
+         (* :: `Url
+          *      ("http://localhost:8080/fr/examples/housing-benefits#"
+          *      ^ Re.(
+          *          replace_string
+          *            (compile
+          *               (seq [char '/'; rep1 (diff any (char '/')); str "/../"]))
+          *            ~by:"/" (Pos.get_file pos))
+          *      ^ "-"
+          *      ^ string_of_int (Pos.get_start_line pos)) *)
       :: `Url
            (base_src_url
            ^ "/"

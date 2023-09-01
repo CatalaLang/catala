@@ -27,7 +27,7 @@ let uid_list (fmt : Format.formatter) (infos : Uid.MarkedString.info list) :
     (fun fmt info ->
       Format.fprintf fmt
         (if String.begins_with_uppercase (Mark.remove info) then "@{<red>%s@}"
-        else "%s")
+         else "%s")
         (Uid.MarkedString.to_string info))
     fmt infos
 
@@ -70,15 +70,6 @@ let tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TDuration -> "duration"
     | TDate -> "date")
 
-let module_name ppf m = Format.fprintf ppf "@{<blue>%a@}" ModuleName.format m
-
-let path ppf p =
-  Format.pp_print_list
-    ~pp_sep:(fun _ () -> ())
-    (fun ppf m ->
-      Format.fprintf ppf "%a@{<cyan>.@}" module_name (Mark.remove m))
-    ppf p
-
 let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
   match l with
   | DesugaredScopeVar { name; _ } -> ScopeVar.format fmt (Mark.remove name)
@@ -87,12 +78,6 @@ let location (type a) (fmt : Format.formatter) (l : a glocation) : unit =
     Format.fprintf fmt "%a.%a" SubScopeName.format (Mark.remove subindex)
       ScopeVar.format (Mark.remove subvar)
   | ToplevelVar { name } -> TopdefName.format fmt (Mark.remove name)
-
-let enum_constructor (fmt : Format.formatter) (c : EnumConstructor.t) : unit =
-  Format.fprintf fmt "@{<magenta>%a@}" EnumConstructor.format c
-
-let struct_field (fmt : Format.formatter) (c : StructField.t) : unit =
-  Format.fprintf fmt "@{<magenta>%a@}" StructField.format c
 
 let external_ref fmt er =
   match Mark.remove er with
@@ -688,7 +673,7 @@ module ExprGen (C : EXPR_PARAM) = struct
             fields punctuation "}"
       | EStructAccess { e; field; _ } ->
         Format.fprintf fmt "@[<hv 2>%a%a@,%a@]" (lhs exprc) e punctuation "."
-          struct_field field
+          StructField.format field
       | EInj { e; cons; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
           (rhs exprc) e
@@ -1003,7 +988,7 @@ module UserFacing = struct
     in
     aux 0
       (if Z.equal int_part Z.zero then None
-      else Some (Cli.globals.max_prec_digits - ndigits int_part))
+       else Some (Cli.globals.max_prec_digits - ndigits int_part))
       rem
   (* It would be nice to print ratios as % but that's impossible to guess.
      Trying would lead to inconsistencies where some comparable numbers are in %

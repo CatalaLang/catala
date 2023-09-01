@@ -43,7 +43,7 @@ depends: [
   "crunch" {>= "3.0.0"}
   "alcotest" {>= "1.5.0"}
   "odoc" {with-doc}
-  "ocamlformat" {cataladevmode & = "0.21.0"}
+  "ocamlformat" {cataladevmode & = "0.26.0"}
   "obelisk" {cataladevmode}
   "conf-npm" {cataladevmode}
   "conf-python-3-dev" {cataladevmode}

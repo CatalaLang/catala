@@ -43,45 +43,39 @@ val equal : ('a -> 'a -> bool) -> ('a, 'm) ed -> ('a, 'm) ed -> bool
 
 (** Visitors *)
 
-class ['self] marked_map :
-  object ('self)
-    constraint
-    'self = < visit_marked :
-                'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
-            ; .. >
+class ['self] marked_map : object ('self)
+  constraint
+  'self = < visit_marked :
+              'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
+          ; .. >
 
-    method visit_marked :
-      'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
-  end
+  method visit_marked :
+    'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
+end
 
-class ['self] marked_iter :
-  object ('self)
-    constraint
-    'self = < visit_marked :
-                'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
-            ; .. >
+class ['self] marked_iter : object ('self)
+  constraint
+  'self = < visit_marked :
+              'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
+          ; .. >
 
-    method visit_marked :
-      'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
-  end
+  method visit_marked : 'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
+end
 
-class ['self] pos_map :
-  object ('self)
-    constraint
-    'self = < visit_pos :
-                'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
-            ; .. >
+class ['self] pos_map : object ('self)
+  constraint
+  'self = < visit_pos :
+              'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
+          ; .. >
 
-    method visit_pos :
-      'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
-  end
+  method visit_pos :
+    'a. ('env -> 'a -> 'a) -> 'env -> ('a, 'm) ed -> ('a, 'm) ed
+end
 
-class ['self] pos_iter :
-  object ('self)
-    constraint
-    'self = < visit_pos :
-                'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
-            ; .. >
+class ['self] pos_iter : object ('self)
+  constraint
+  'self = < visit_pos : 'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
+          ; .. >
 
-    method visit_pos : 'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
-  end
+  method visit_pos : 'a. ('env -> 'a -> unit) -> 'env -> ('a, 'm) ed -> unit
+end

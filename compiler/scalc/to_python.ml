@@ -498,21 +498,21 @@ let format_ctx
              format_typ struct_field_type))
       fields
       (if StructField.Map.is_empty struct_fields then fun fmt _ ->
-       Format.fprintf fmt "        pass"
-      else
-        Format.pp_print_list
-          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-          (fun fmt (struct_field, _) ->
-            Format.fprintf fmt "        self.%a = %a" format_struct_field_name
-              struct_field format_struct_field_name struct_field))
+         Format.fprintf fmt "        pass"
+       else
+         Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+           (fun fmt (struct_field, _) ->
+             Format.fprintf fmt "        self.%a = %a" format_struct_field_name
+               struct_field format_struct_field_name struct_field))
       fields format_struct_name struct_name
       (if not (StructField.Map.is_empty struct_fields) then
-       Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
-         (fun fmt (struct_field, _) ->
-           Format.fprintf fmt "self.%a == other.%a" format_struct_field_name
-             struct_field format_struct_field_name struct_field)
-      else fun fmt _ -> Format.fprintf fmt "True")
+         Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
+           (fun fmt (struct_field, _) ->
+             Format.fprintf fmt "self.%a == other.%a" format_struct_field_name
+               struct_field format_struct_field_name struct_field)
+       else fun fmt _ -> Format.fprintf fmt "True")
       fields format_struct_name struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")

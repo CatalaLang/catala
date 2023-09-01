@@ -23,10 +23,11 @@ open Catala_utils
 (** {1 Visitor classes for programs} *)
 
 (** To allow for quick traversal and/or modification of this AST structure, we
-    provide a {{:https://en.wikipedia.org/wiki/Visitor_pattern} visitor design
-    pattern}. This feature is implemented via
+    provide a
+    {{:https://en.wikipedia.org/wiki/Visitor_pattern} visitor design pattern}.
+    This feature is implemented via
     {{:https://gitlab.inria.fr/fpottier/visitors} François Pottier's OCaml
-    visitors library}. *)
+      visitors library}. *)
 
 (** {1 Type definitions} *)
 

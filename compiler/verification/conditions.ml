@@ -99,7 +99,7 @@ let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
         mark ))
     acc list
 
-(** [half_product \[a1,...,an\] \[b1,...,bm\] returns \[(a1,b1),...(a1,bn),...(an,b1),...(an,bm)\]] *)
+(** [half_product [a1,...,an] [b1,...,bm] returns [(a1,b1),...(a1,bn),...(an,b1),...(an,bm)]] *)
 let half_product (l1 : 'a list) (l2 : 'b list) : ('a * 'b) list =
   l1
   |> List.mapi (fun i ei ->

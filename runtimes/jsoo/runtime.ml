@@ -17,36 +17,32 @@
 open Js_of_ocaml
 module R_ocaml = Runtime_ocaml.Runtime
 
-class type source_position =
-  object
-    method fileName : Js.js_string Js.t Js.prop
-    method startLine : int Js.prop
-    method endLine : int Js.prop
-    method startColumn : int Js.prop
-    method endColumn : int Js.prop
-    method lawHeadings : Js.js_string Js.t Js.js_array Js.t Js.prop
-  end
+class type source_position = object
+  method fileName : Js.js_string Js.t Js.prop
+  method startLine : int Js.prop
+  method endLine : int Js.prop
+  method startColumn : int Js.prop
+  method endColumn : int Js.prop
+  method lawHeadings : Js.js_string Js.t Js.js_array Js.t Js.prop
+end
 
-class type raw_event =
-  object
-    method eventType : Js.js_string Js.t Js.prop
-    method information : Js.js_string Js.t Js.js_array Js.t Js.prop
-    method sourcePosition : source_position Js.t Js.optdef Js.prop
-    method loggedIOJson : Js.js_string Js.t Js.prop
-    method loggedValueJson : Js.js_string Js.t Js.prop
-  end
+class type raw_event = object
+  method eventType : Js.js_string Js.t Js.prop
+  method information : Js.js_string Js.t Js.js_array Js.t Js.prop
+  method sourcePosition : source_position Js.t Js.optdef Js.prop
+  method loggedIOJson : Js.js_string Js.t Js.prop
+  method loggedValueJson : Js.js_string Js.t Js.prop
+end
 
-class type event =
-  object
-    method data : Js.js_string Js.t Js.prop
-  end
+class type event = object
+  method data : Js.js_string Js.t Js.prop
+end
 
-class type duration =
-  object
-    method years : int Js.readonly_prop
-    method months : int Js.readonly_prop
-    method days : int Js.readonly_prop
-  end
+class type duration = object
+  method years : int Js.readonly_prop
+  method months : int Js.readonly_prop
+  method days : int Js.readonly_prop
+end
 
 let duration_of_jsoo d =
   R_ocaml.duration_of_numbers d##.years d##.months d##.days
@@ -73,16 +69,15 @@ let date_of_jsoo d =
 
 let date_to_jsoo d = Js.string @@ R_ocaml.date_to_string d
 
-class type event_manager =
-  object
-    method resetLog : (unit, unit) Js.meth_callback Js.meth
+class type event_manager = object
+  method resetLog : (unit, unit) Js.meth_callback Js.meth
 
-    method retrieveEvents :
-      (unit, event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+  method retrieveEvents :
+    (unit, event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
 
-    method retrieveRawEvents :
-      (unit, raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
-  end
+  method retrieveRawEvents :
+    (unit, raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+end
 
 let event_manager : event_manager Js.t =
   object%js

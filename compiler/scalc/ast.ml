@@ -18,8 +18,20 @@ open Catala_utils
 open Shared_ast
 module D = Dcalc.Ast
 module L = Lcalc.Ast
-module FuncName = Uid.Gen ()
-module VarName = Uid.Gen ()
+
+module FuncName =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 green))
+    end)
+    ()
+
+module VarName =
+  Uid.Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 hi_green))
+    end)
+    ()
 
 let dead_value = VarName.fresh ("dead_value", Pos.no_pos)
 let handle_default = FuncName.fresh ("handle_default", Pos.no_pos)

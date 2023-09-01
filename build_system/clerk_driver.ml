@@ -410,7 +410,7 @@ let collect_inline_ninja_builds
     let test_name =
       tested_file
       |> (if reset_test_outputs then Printf.sprintf "reset_file_%s"
-         else Printf.sprintf "test_file_%s")
+          else Printf.sprintf "test_file_%s")
       |> Nj.Build.unpath
     in
     Some
@@ -479,7 +479,7 @@ let collect_all_ninja_build
     let test_name =
       tested_file
       |> (if reset_test_outputs then Printf.sprintf "reset_file_%s"
-         else Printf.sprintf "test_file_%s")
+          else Printf.sprintf "test_file_%s")
       |> Nj.Build.unpath
     in
     Some

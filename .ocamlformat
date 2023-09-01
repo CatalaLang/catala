@@ -4,7 +4,7 @@ exp-grouping = preserve
 break-fun-decl = fit-or-vertical
 wrap-comments
 parse-docstrings
-version=0.21.0
+version=0.26.0
 cases-exp-indent=2
 indicate-multiline-delimiters=no
 parens-tuple=multi-line-only

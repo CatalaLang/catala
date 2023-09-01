@@ -27,8 +27,8 @@ val get_token : string -> string -> access_token Lwt.t
 (** [get_token cliend_id client_secret] retrieves the access token from the
     LegiFrance API. You have to register on the
     {{:https://developer.aife.economie.gouv.fr/} the official website of the
-    French government} to get your OAuth client ID and Secret for the LegiFrance
-    API *)
+      French government} to get your OAuth client ID and Secret for the
+    LegiFrance API *)
 
 type article
 type article_id

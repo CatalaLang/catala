@@ -24,7 +24,7 @@
             buildInputs = [
               pkgs.inotify-tools
               ocamlPackages.merlin
-              pkgs.ocamlformat_0_21_0
+              pkgs.ocamlformat_0_26_0
               ocamlPackages.ocp-indent
               ocamlPackages.utop
               ocamlPackages.odoc

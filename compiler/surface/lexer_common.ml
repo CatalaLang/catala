@@ -106,6 +106,6 @@ module type LocalisedLexer = sig
 
   val lexer : Sedlexing.lexbuf -> Tokens.token
   (** Entry point of the lexer, distributes to {!val: lex_code} or
-      {!val:lex_law} depending of the current {!val:
-      Surface.Lexer_common.context}. *)
+      {!val:lex_law} depending of the current
+      {!val:Surface.Lexer_common.context}. *)
 end

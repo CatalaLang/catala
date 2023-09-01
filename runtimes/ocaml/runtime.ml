@@ -109,7 +109,7 @@ let decimal_to_string ~(max_prec_digits : int) (i : decimal) : string =
        (fun fmt digit -> Format.fprintf fmt "%a" Z.pp_print digit))
     (List.rev !digits)
     (if List.length !digits - leading_zeroes !digits = max_prec_digits then "…"
-    else "")
+     else "")
 
 let decimal_round (q : decimal) : decimal =
   (* Implements the workaround by
