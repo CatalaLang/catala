@@ -200,6 +200,7 @@ let rec law_structure_to_html
          (law_structure_to_html language print_only_law complete_headings))
       children fmt_details_close ()
   | A.LawInclude _ -> ()
+  | A.ModuleDef _ | A.ModuleUse _ -> () (* TODO: show somehow ?*)
 
 let rec fmt_toc
     (parents_headings : string list)

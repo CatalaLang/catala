@@ -693,6 +693,26 @@ let law_heading :=
 let law_text :=
 | lines = nonempty_list(LAW_TEXT) ; { String.trim (String.concat "" lines) }
 
+let directive :=
+| LAW_INCLUDE ; COLON ;
+  args = nonempty_list(DIRECTIVE_ARG) ;
+  page = option(AT_PAGE) ; {
+  let filename = String.trim (String.concat "" args) in
+  let pos = Pos.from_lpos $sloc in
+  let jorftext = Re.Pcre.regexp "(JORFARTI\\d{12}|LEGIARTI\\d{12}|CETATEXT\\d{12})" in
+  if Re.Pcre.pmatch ~rex:jorftext filename && page = None then
+    LawInclude (Ast.LegislativeText (filename, pos))
+  else if Filename.extension filename = ".pdf" || page <> None then
+    LawInclude (Ast.PdfFile ((filename, pos), page))
+  else
+    LawInclude (Ast.CatalaFile (filename, pos))
+}
+| MODULE_DEF ; m = addpos(DIRECTIVE_ARG) ; { ModuleDef m }
+| MODULE_USE ; m = addpos(DIRECTIVE_ARG) ;
+  alias = option (preceded(MODULE_ALIAS,addpos(DIRECTIVE_ARG))) ; {
+  ModuleUse (m, alias)
+}
+
 let source_file_item :=
 | text = law_text ; { LawText text }
 | BEGIN_CODE ;
@@ -707,20 +727,7 @@ let source_file_item :=
   let (code, source_repr) = code in
   CodeBlock (code, source_repr, true)
 }
-| BEGIN_DIRECTIVE ; LAW_INCLUDE ; COLON ;
-  args = nonempty_list(DIRECTIVE_ARG) ;
-  page = option(AT_PAGE) ;
-  END_DIRECTIVE ; {
-  let filename = String.trim (String.concat "" args) in
-  let pos = Pos.from_lpos $sloc in
-  let jorftext = Re.Pcre.regexp "(JORFARTI\\d{12}|LEGIARTI\\d{12}|CETATEXT\\d{12})" in
-  if Re.Pcre.pmatch ~rex:jorftext filename && page = None then
-    LawInclude (Ast.LegislativeText (filename, pos))
-  else if Filename.extension filename = ".pdf" || page <> None then
-    LawInclude (Ast.PdfFile ((filename, pos), page))
-  else
-    LawInclude (Ast.CatalaFile (filename, pos))
-}
+| BEGIN_DIRECTIVE ; ~ = directive ; END_DIRECTIVE ; { directive }
 
 let source_file :=
 | hd = source_file_item ; tl = source_file ; { hd::tl }

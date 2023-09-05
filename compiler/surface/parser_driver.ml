@@ -35,7 +35,7 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
     | [] -> assert false (* there should be at least one rest element *)
     | rest_head :: rest_tail -> (
       match first_item with
-      | CodeBlock _ | LawText _ | LawInclude _ ->
+      | CodeBlock _ | LawText _ | LawInclude _ | ModuleDef _ | ModuleUse _ ->
         (* if an article or an include is just before a new heading , then we
            don't merge it with what comes next *)
         first_item :: rest_head :: rest_tail
@@ -285,28 +285,49 @@ and expand_includes
 (** {2 Handling interfaces} *)
 
 let get_interface program =
-  let rec filter acc = function
-    | Ast.LawInclude _ -> acc
-    | Ast.LawHeading (_, str) -> List.fold_left filter acc str
-    | Ast.LawText _ -> acc
+  let rec filter (modname, acc) = function
+    | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleUse _ -> modname, acc
+    | Ast.ModuleDef (_, pos2 as mdef) ->
+      (match modname with
+       | None -> Some mdef, acc
+       | Some (_, pos1) ->
+         Message.raise_multispanned_error
+           [None, pos1; None, pos2]
+           "Multiple definitions of the module name")
+    | Ast.LawHeading (_, str) -> List.fold_left filter (modname, acc) str
     | Ast.CodeBlock (code, _, true) ->
-      List.fold_left
-        (fun acc -> function
-          | Ast.ScopeUse _, _ -> acc
-          | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e -> e :: acc
-          | Ast.Topdef def, m ->
-            (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
-        acc code
+      let acc =
+        List.fold_left
+          (fun acc -> function
+             | Ast.ScopeUse _, _ -> acc
+             | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
+               e :: acc
+             | Ast.Topdef def, m ->
+               ((Ast.Topdef { def with topdef_expr = None }, m) :: acc))
+          acc code
+      in
+      modname, acc
     | Ast.CodeBlock (_, _, false) ->
       (* Non-metadata blocks are ignored *)
-      acc
+      modname, acc
   in
-  List.fold_left filter [] program.Ast.program_items
+  List.fold_left filter (None, []) program.Ast.program_items
 
 (** {1 API} *)
 
 let load_interface source_file language =
-  parse_source_file source_file language |> get_interface
+  let modname, intf =
+    parse_source_file source_file language |> get_interface
+  in
+  match modname with
+  | Some m -> m, intf
+  | None ->
+    Message.raise_error "%s doesn't define a module name. It should contain a '@{<cyan>> Module %s@}' directive."
+      (match source_file with FileName s -> "File "^s | Contents _ -> "Source input")
+      (match source_file with FileName s ->
+         String.capitalize_ascii Filename.(basename (remove_extension s))
+      | Contents _ -> "Module_name")
+
 
 let parse_top_level_file
     (source_file : Cli.input_file)

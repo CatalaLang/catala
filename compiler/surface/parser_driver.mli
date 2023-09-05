@@ -21,7 +21,7 @@ open Catala_utils
 
 val load_interface : Cli.input_file -> Cli.backend_lang -> Ast.interface
 (** Reads only declarations in metadata in the supplied input file, and only
-    keeps type information *)
+    keeps type information ; returns the declared module name as well *)
 
 val parse_top_level_file : Cli.input_file -> Cli.backend_lang -> Ast.program
 (** Parses a catala file (handling file includes) and returns a program. Modules

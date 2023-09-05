@@ -730,6 +730,7 @@ let rec lex_directive_args (lexbuf : lexbuf) : token =
       let s = Utf8.lexeme lexbuf in
       let i = String.index s '.' in
       AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
+  | MR_MODULE_ALIAS -> MODULE_ALIAS
   | Plus (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
   | Plus hspace -> lex_directive_args lexbuf
   | '\n' | eof ->
@@ -743,6 +744,8 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
   | Plus hspace -> lex_directive lexbuf
   | MR_LAW_INCLUDE -> LAW_INCLUDE
+  | MR_MODULE_DEF -> MODULE_DEF
+  | MR_MODULE_USE -> MODULE_USE
   | ":" ->
       L.context := Directive_args;
       COLON

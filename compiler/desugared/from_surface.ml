@@ -1525,10 +1525,11 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         prgm children
     | S.CodeBlock (block, _, _) -> process_code_block ctxt prgm block
     | S.LawInclude _ | S.LawText _ -> prgm
+    | S.ModuleDef _ | S.ModuleUse _ -> prgm
   in
   let desugared =
     List.fold_left
-      (fun acc (id, intf) ->
+      (fun acc ((id, _pos), intf) ->
         let id = ModuleName.of_string id in
         let modul = ModuleName.Map.find id acc.Ast.program_modules in
         let modul =

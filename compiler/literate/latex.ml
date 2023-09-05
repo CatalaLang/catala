@@ -271,6 +271,7 @@ let rec law_structure_to_latex
       (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
       file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
+  | A.ModuleDef _ | A.ModuleUse _ -> () (* TODO: show somehow ? *)
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
     let start_line = Pos.get_start_line (Mark.get c) - 1 in

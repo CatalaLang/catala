@@ -138,6 +138,9 @@
 (* Directives *)
 
 #define MR_LAW_INCLUDE "Inclusion"
+#define MR_MODULE_DEF "Module"
+#define MR_MODULE_USE "Usage", space_plus, "de"
+#define MR_MODULE_ALIAS "en", space_plus, "tant", space_plus, "que"
 #define MX_AT_PAGE \
    '@', Star hspace, "p.", Star hspace, Plus digit -> \
       let s = Utf8.lexeme lexbuf in \

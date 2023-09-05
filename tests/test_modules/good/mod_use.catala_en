@@ -1,5 +1,7 @@
 # Test modules + inclusions 2
 
+> Using Mod_def
+
 ```catala
 declaration scope T2:
   t1 scope Mod_def.S

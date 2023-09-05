@@ -742,6 +742,7 @@ let rec process_law_structure
   | Surface.Ast.CodeBlock (block, _, _) ->
     process_code_block process_item ctxt block
   | Surface.Ast.LawInclude _ | Surface.Ast.LawText _ -> ctxt
+  | Surface.Ast.ModuleDef _ | Surface.Ast.ModuleUse _ -> ctxt
 
 (** {1 Scope uses pass} *)
 
@@ -955,7 +956,7 @@ let empty_ctxt =
   }
 
 let import_module modules (name, intf) =
-  let mname = ModuleName.of_string name in
+  let mname = ModuleName.of_string (Mark.remove name) in
   let ctxt = { empty_ctxt with modules; path = [mname] } in
   let ctxt = List.fold_left process_name_item ctxt intf in
   let ctxt = List.fold_left process_decl_item ctxt intf in
