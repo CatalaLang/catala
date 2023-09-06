@@ -65,6 +65,8 @@
         (catala-mode-fr)
       (catala-mode-en)))
   (run-mode-hooks 'catala-code-mode-hook))
+;; needed due to <https://github.com/jrblevin/markdown-mode/pull/764>
+(add-to-list 'auto-mode-alist '("\\.catala" . catala-code-mode))
 
 (provide 'catala-code-mode)
 
