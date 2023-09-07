@@ -1,0 +1,14 @@
+(executable
+ (name api_web)
+ (modes byte js)
+ (modules
+  (:standard \ bench api))
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries
+  catala.runtime_ocaml
+  catala.runtime_jsoo
+  js_of_ocaml
+  yojson
+  foo))
+

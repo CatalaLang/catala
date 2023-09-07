@@ -1,0 +1,19 @@
+```catala-metadata
+declaration structure Bar:
+  data test1 content boolean
+  data test2 content boolean
+
+declaration scope Foo:
+  internal bar content Bar
+  output test_out_flat1 content boolean
+  output test_out_flat2 content boolean
+```
+
+```catala
+scope Foo:
+  definition bar equals Bar { 
+          -- test1: true
+          -- test2: false } 
+  definition test_out_flat1 equals bar.test1
+  definition test_out_flat2 equals bar.test2
+```

@@ -1,0 +1,30 @@
+(rule
+ (targets test.ml test_api_web.ml)
+ (deps
+  (source_tree ..)
+  %{workspace_root}/compiler/plugins/api_web%{ext_plugin})
+ (action
+  (chdir
+   %{workspace_root}
+   (run
+    catala
+    api_web
+    -t
+    --plugin-dir=compiler/plugins
+    %{dep:test.catala_en}))))
+
+(rule
+ (target test_schema.json)
+ (deps
+  (source_tree ..)
+  %{workspace_root}/compiler/plugins/json_schema%{ext_plugin})
+ (action
+  (chdir
+   %{workspace_root}
+   (run
+    catala
+    json_schema
+    -t
+    --plugin-dir=compiler/plugins
+    "--scope=Foo"
+    %{dep:test.catala_en}))))
