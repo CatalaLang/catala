@@ -1,4 +1,4 @@
-(dirs runtimes compiler french_law build_system examples)
+(dirs runtimes compiler french_law build_system examples foo)
 
 (data_only_dirs tests syntax_highlighting)
 

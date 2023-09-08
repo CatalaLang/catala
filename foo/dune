@@ -1,0 +1,18 @@
+(executable
+ (modes byte js)
+ (name test_api_web)
+ (preprocess
+  (pps js_of_ocaml-ppx))
+ (libraries catala.runtime_ocaml catala.runtime_jsoo js_of_ocaml))
+
+(rule
+ (target test.ml)
+ (mode promote)
+ (action
+  (copy ../examples/foo/%{target} %{target})))
+
+(rule
+ (target test_api_web.ml)
+ (mode promote)
+ (action
+  (copy ../examples/foo/%{target} %{target})))
