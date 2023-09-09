@@ -26,7 +26,6 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
      reference *)
   let result = ref true in
   let name, inv = inv in
-  let _ = name in
   let total = ref 0 in
   let ok = ref 0 in
   let p' =

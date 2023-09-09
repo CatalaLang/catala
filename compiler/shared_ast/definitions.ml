@@ -604,7 +604,7 @@ type scope_let_kind =
           subscope variables. *)
   | CallingSubScope  (** [let result = s ({ x = s.x; y = s.x; ...}) ]*)
   | DestructuringSubScopeResults  (** [let s.x = result.x ]**)
-  | Assertion  (** [let _ = assert e]*)
+  | Assertion  (** [let () = assert e]*)
 
 type 'e scope_let = {
   scope_let_kind : scope_let_kind;

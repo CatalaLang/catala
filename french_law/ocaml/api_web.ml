@@ -23,7 +23,7 @@ module AF_web = Allocations_familiales_api_web
 module AL = Aides_logement
 module AL_web = Aides_logement_api_web
 
-let _ =
+let () =
   Js.export_all
     (object%js
        val eventsManager = event_manager

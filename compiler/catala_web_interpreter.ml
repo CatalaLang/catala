@@ -2,7 +2,7 @@ open Catala_utils
 open Driver
 open Js_of_ocaml
 
-let _ =
+let () =
   Js.export_all
     (object%js
        method interpret

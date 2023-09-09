@@ -228,19 +228,19 @@ let run_test_aides_logement () =
   | Runtime.AssertionFailed _ -> ()
 
 let _test =
-  let _ = run_test_aides_logement () in
+  let () = run_test_aides_logement () in
   let raw_events = Runtime.retrieve_log () in
   Runtime.EventParser.parse_raw_events raw_events
 
 let _test =
-  let _ = run_test_allocations_familiales () in
+  let () = run_test_allocations_familiales () in
   let raw_events = Runtime.retrieve_log () in
   Runtime.EventParser.parse_raw_events raw_events
 
 let _bench =
   Random.init (int_of_float (Unix.time ()));
   let num_iter = 10000 in
-  let _ =
+  let (_ : Benchmark.samples) =
     Benchmark.latency1 ~style:Auto ~name:"Allocations familiales"
       (Int64.of_int num_iter) run_test_allocations_familiales ()
   in
@@ -254,7 +254,7 @@ let _bench =
        100.)
     !total_amount
     (Float.div !total_amount (float_of_int !num_successful));
-  let _ =
+  let (_ : Benchmark.samples) =
     Benchmark.latency1 ~style:Auto ~name:"Aides au logement"
       (Int64.of_int num_iter) run_test_aides_logement ()
   in

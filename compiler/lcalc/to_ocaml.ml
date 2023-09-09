@@ -630,7 +630,7 @@ let format_scope_exec
        for a main scope at the moment."
       scope_name_str;
   Format.pp_open_vbox fmt 2;
-  Format.pp_print_string fmt "let _ =";
+  Format.pp_print_string fmt "let () =";
   (* TODO: dump the output using yojson that should be already available from
      the runtime *)
   Format.pp_print_space fmt ();

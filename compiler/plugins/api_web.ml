@@ -414,7 +414,7 @@ module To_jsoo = struct
        %a@\n\
        %a@\n\
        @\n\
-       @[<v 2>let _ =@ @[<hov 2> Js.export \"%a\"@\n\
+       @[<v 2>let () =@ @[<hov 2> Js.export \"%a\"@\n\
        @[<v 2>(object%%js@ %a@]@\n\
        end)@]@]@?"
       (Option.fold ~none:"" ~some:(fun name -> name) module_name)
