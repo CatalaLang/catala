@@ -132,17 +132,20 @@ let scan_tree f t =
       false
   in
   let not_hidden t = match t.[0] with '.' | '_' -> false | _ -> true in
-  let rec do_dir acc d =
-    let items = Sys.readdir d |> Array.map (fun t -> d / t) |> Array.to_list in
-    do_files acc items
-  and do_files acc flist =
+  let rec do_dir d =
+    Sys.readdir d
+    |> Array.to_list
+    |> List.filter not_hidden
+    |> List.map (fun t -> d / t)
+    |> do_files
+  and do_files flist =
     let dirs, files =
       flist
-      |> List.filter not_hidden
       |> List.sort (fun a b -> -compare a b)
       |> List.partition is_dir
     in
-    let acc = List.rev_append (List.filter_map f files) acc in
-    List.fold_left do_dir acc dirs
+    Seq.append
+      (Seq.concat (Seq.map do_dir (List.to_seq dirs)))
+      (Seq.filter_map f (List.to_seq files))
   in
-  do_dir [] t
+  do_dir t

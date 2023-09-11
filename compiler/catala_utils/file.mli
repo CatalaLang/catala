@@ -105,7 +105,7 @@ val format : Format.formatter -> t -> unit
 (** Formats a filename in a consistent style, with double-quotes and color (when
     the output supports) *)
 
-val scan_tree : (t -> 'a option) -> t -> 'a list
+val scan_tree : (t -> 'a option) -> t -> 'a Seq.t
 (** Recursively scans a directory for files. Directories or files matching ".*"
     or "_*" are ignored. Unreadable files or subdirectories are ignored with a
     debug message. *)

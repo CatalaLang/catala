@@ -240,7 +240,7 @@ let get_lang file =
   Option.bind (Re.exec_opt catala_suffix_regex file) @@ fun g ->
   List.assoc_opt (Re.Group.get g 1) Cli.languages
 
-let scan_tree (dir : File.t) : catala_build_item list =
+let scan_tree (dir : File.t) : catala_build_item Seq.t =
   File.scan_tree
     (fun f ->
       match get_lang f with
@@ -602,7 +602,7 @@ let collect_in_folder
       | Some (test_file_name, ninja) ->
         ninja, test_file_names ^ " $\n  " ^ test_file_name
     in
-    List.fold_left
+    Seq.fold_left
       (fun acc (file, lang) ->
         let acc = collect collect_all_ninja_build acc file lang in
         collect collect_inline_ninja_builds acc file lang)
