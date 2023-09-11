@@ -260,9 +260,8 @@ let detect_dead_code (p : program) : unit =
             Message.emit_spanned_warning
               (Mark.get (ScopeVar.get_info var))
               "This variable is dead code; it does not contribute to computing \
-               any of scope @{<yellow>\"%s\"@} outputs. Did you forget \
-               something?"
-              (Mark.remove (ScopeName.get_info scope_name))
+               any of scope \"%a\" outputs. Did you forget something?"
+              ScopeName.format scope_name
           in
           match states with
           | WholeVar ->

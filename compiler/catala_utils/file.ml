@@ -14,6 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+type t = string
+
 (** Run finaliser [f] unconditionally after running [k ()], propagating any
     raised exception. *)
 let finally f k =
@@ -118,3 +120,29 @@ let check_directory d =
 let ( / ) = Filename.concat
 let dirname = Filename.dirname
 let ( /../ ) a b = dirname a / b
+let equal = String.equal
+let compare = String.compare
+let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
+
+let scan_tree f t =
+  let is_dir t =
+    try Sys.is_directory t
+    with Sys_error _ ->
+      Message.emit_debug "Cannot read %s, skipping" t;
+      false
+  in
+  let not_hidden t = match t.[0] with '.' | '_' -> false | _ -> true in
+  let rec do_dir acc d =
+    let items = Sys.readdir d |> Array.map (fun t -> d / t) |> Array.to_list in
+    do_files acc items
+  and do_files acc flist =
+    let dirs, files =
+      flist
+      |> List.filter not_hidden
+      |> List.sort (fun a b -> -compare a b)
+      |> List.partition is_dir
+    in
+    let acc = List.rev_append (List.filter_map f files) acc in
+    List.fold_left do_dir acc dirs
+  in
+  do_dir [] t

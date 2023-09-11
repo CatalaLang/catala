@@ -349,6 +349,9 @@ let digit = [%sedlex.regexp? '0' .. '9']
 (** Regexp matching at least one space. *)
 let space_plus = [%sedlex.regexp? Plus white_space]
 
+(** characters that can be present in idents (excluding first char) *)
+let idchar = [%sedlex.regexp? uppercase | lowercase | digit | '_' | '\'']
+
 (** Regexp matching white space but not newlines *)
 let hspace = [%sedlex.regexp? Sub (white_space, Chars "\n\r")]
 
@@ -708,11 +711,11 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | ',' ->
       L.update_acc lexbuf;
       COMMA
-  | uppercase, Star (uppercase | lowercase | digit | '_' | '\'') ->
+  | uppercase, Star idchar ->
       (* Name of constructor *)
       L.update_acc lexbuf;
       UIDENT (Utf8.lexeme lexbuf)
-  | lowercase, Star (lowercase | uppercase | digit | '_' | '\'') ->
+  | lowercase, Star idchar ->
       (* Name of variable *)
       L.update_acc lexbuf;
       LIDENT (Utf8.lexeme lexbuf)
@@ -744,8 +747,8 @@ let rec lex_directive (lexbuf : lexbuf) : token =
   match%sedlex lexbuf with
   | Plus hspace -> lex_directive lexbuf
   | MR_LAW_INCLUDE -> LAW_INCLUDE
-  | MR_MODULE_DEF -> MODULE_DEF
-  | MR_MODULE_USE -> MODULE_USE
+  | MR_MODULE_DEF -> L.context := Directive_args; MODULE_DEF
+  | MR_MODULE_USE -> L.context := Directive_args; MODULE_USE
   | ":" ->
       L.context := Directive_args;
       COLON
@@ -797,3 +800,53 @@ let lexer (lexbuf : lexbuf) : token =
   | Code -> lex_code lexbuf
   | Directive -> lex_directive lexbuf
   | Directive_args -> lex_directive_args lexbuf
+
+
+(* -- Shallow lexing for dependency extraction -- *)
+
+let line_test_id_re =
+  Re.(compile @@ seq [
+      char '{'; rep space; str "id"; rep space; char '='; rep space;
+      char '"'; group (seq [rep1 (diff any (char '"'))]); char '"';
+    ])
+
+let line_dir_arg_re =
+  Re.(compile @@ seq [
+      bos; char '>'; rep space; rep1 alpha;
+      alt [rep1 space; seq [rep space; char ':'; rep space]];
+      group (rep1 (diff any space))
+    ])
+
+let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
+  match%sedlex lexbuf with
+  | eof -> None
+  | "```catala-test", Star (Compl '\n'), ('\n' | eof) ->
+    let str = Utf8.lexeme lexbuf in
+    (try
+       let id = Re.Group.get (Re.exec line_test_id_re str) 1 in
+       Some (str, LINE_TEST id)
+     with Not_found -> Some (str, LINE_ANY))
+  | "```catala-test-inline", Star hspace, ('\n' | eof) ->
+    Some (Utf8.lexeme lexbuf, LINE_INLINE_TEST)
+  | "```", Star hspace, ('\n' | eof) ->
+    Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
+  | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus (Compl '\n'), ('\n' | eof)  ->
+    let str = Utf8.lexeme lexbuf in
+    (try
+       let file = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
+       Some (str, LINE_INCLUDE file)
+     with Not_found -> Some (str, LINE_ANY))
+  | '>', Star hspace, MR_MODULE_DEF, Plus hspace, uppercase, Star (Compl '\n'), ('\n' | eof)  ->
+    let str = Utf8.lexeme lexbuf in
+    (try
+       let mdl = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
+       Some (str, LINE_MODULE_DEF mdl)
+     with Not_found -> Some (str, LINE_ANY))
+  | '>', Star hspace, MR_MODULE_USE, Plus hspace, uppercase, Star (Compl '\n'), ('\n' | eof)  ->
+    let str = Utf8.lexeme lexbuf in
+    (try
+       let mdl = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
+       Some (str, LINE_MODULE_USE mdl)
+     with Not_found -> Some (str, LINE_ANY))
+  | Star (Compl '\n'), ('\n' | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)
+  | _ -> assert false

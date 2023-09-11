@@ -46,7 +46,9 @@ let load_module_interfaces options link_modules =
   List.map
     (fun f ->
       let lang = get_lang options (FileName f) in
-      let modname, intf = Surface.Parser_driver.load_interface (FileName f) lang in
+      let modname, intf =
+        Surface.Parser_driver.load_interface (FileName f) lang
+      in
       (* maybe warn here if [modname_of_file f <> modname] ? *)
       modname, intf)
     link_modules

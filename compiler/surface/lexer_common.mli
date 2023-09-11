@@ -45,6 +45,16 @@ val calc_precedence : string -> int
 val get_law_heading : Sedlexing.lexbuf -> Tokens.token
 (** Gets the [LAW_HEADING] token from the current [lexbuf] *)
 
+(** Simplified tokens for dependency extraction *)
+type line_token =
+  | LINE_TEST of string (* ```catala-test { id = xx } *)
+  | LINE_INLINE_TEST (* ```catala-test-inline *)
+  | LINE_BLOCK_END (* ``` *)
+  | LINE_INCLUDE of string (* > Include foo.catala_en *)
+  | LINE_MODULE_DEF of string (* > Module Xxx *)
+  | LINE_MODULE_USE of string (* > Using Xxx [as Yyy] *)
+  | LINE_ANY (* anything else *)
+
 module type LocalisedLexer = sig
   val token_list : (string * Tokens.token) list
   (** Same as {!val:Surface.Lexer_common.token_list_language_agnostic}, but with
@@ -62,4 +72,7 @@ module type LocalisedLexer = sig
   val lexer : Sedlexing.lexbuf -> Tokens.token
   (** Entry point of the lexer, distributes to {!val:lex_code} or {!val:lex_law}
       depending of the current {!val:Surface.Lexer_common.context}. *)
+
+  val lex_line : Sedlexing.lexbuf -> (string * line_token) option
+  (** Low-level lexer intended for dependency extraction. The whole line (including ["\n"] is always returned together with the token. [None] for EOF. *)
 end

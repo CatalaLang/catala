@@ -10,6 +10,7 @@
  (libraries
   catala.runtime_ocaml
   catala.catala_utils
+  catala.surface
   ninja_utils
   cmdliner
   re

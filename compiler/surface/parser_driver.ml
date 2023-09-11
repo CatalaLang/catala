@@ -203,6 +203,29 @@ let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
   | Fr -> Parser_Fr.commands_or_includes
   | Pl -> Parser_Pl.commands_or_includes
 
+(** Lightweight lexer for dependency *)
+
+let lines (file : File.t) (language : Cli.backend_lang) =
+  let lex_line = match language with
+    | En -> Lexer_en.lex_line
+    | Fr -> Lexer_fr.lex_line
+    | Pl -> Lexer_pl.lex_line
+  in
+  let input = open_in file in
+  try
+    let lexbuf = Sedlexing.Utf8.from_channel input in
+    Sedlexing.set_filename lexbuf file;
+    let rec aux () =
+      match lex_line lexbuf with
+      | Some line -> Seq.Cons (line, aux)
+      | None -> close_in input; Seq.Nil
+    in
+    aux
+  with exc ->
+    let bt = Printexc.get_raw_backtrace () in
+    close_in input;
+    Printexc.raise_with_backtrace exc bt
+
 (** {1 Parsing multiple files} *)
 
 (** Parses a single source file *)
@@ -224,7 +247,6 @@ let rec parse_source_file
     match source_file with FileName s -> s | Contents _ -> "stdin"
   in
   Sedlexing.set_filename lexbuf source_file_name;
-  Parse_utils.current_file := source_file_name;
   let commands = localised_parser language lexbuf in
   (match input with Some input -> close_in input | None -> ());
   let program = expand_includes source_file_name commands language in
@@ -287,23 +309,23 @@ and expand_includes
 let get_interface program =
   let rec filter (modname, acc) = function
     | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleUse _ -> modname, acc
-    | Ast.ModuleDef (_, pos2 as mdef) ->
-      (match modname with
-       | None -> Some mdef, acc
-       | Some (_, pos1) ->
-         Message.raise_multispanned_error
-           [None, pos1; None, pos2]
-           "Multiple definitions of the module name")
+    | Ast.ModuleDef ((_, pos2) as mdef) -> (
+      match modname with
+      | None -> Some mdef, acc
+      | Some (_, pos1) ->
+        Message.raise_multispanned_error
+          [None, pos1; None, pos2]
+          "Multiple definitions of the module name")
     | Ast.LawHeading (_, str) -> List.fold_left filter (modname, acc) str
     | Ast.CodeBlock (code, _, true) ->
       let acc =
         List.fold_left
           (fun acc -> function
-             | Ast.ScopeUse _, _ -> acc
-             | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
-               e :: acc
-             | Ast.Topdef def, m ->
-               ((Ast.Topdef { def with topdef_expr = None }, m) :: acc))
+            | Ast.ScopeUse _, _ -> acc
+            | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
+              e :: acc
+            | Ast.Topdef def, m ->
+              (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
           acc code
       in
       modname, acc
@@ -316,18 +338,20 @@ let get_interface program =
 (** {1 API} *)
 
 let load_interface source_file language =
-  let modname, intf =
-    parse_source_file source_file language |> get_interface
-  in
+  let modname, intf = parse_source_file source_file language |> get_interface in
   match modname with
   | Some m -> m, intf
   | None ->
-    Message.raise_error "%s doesn't define a module name. It should contain a '@{<cyan>> Module %s@}' directive."
-      (match source_file with FileName s -> "File "^s | Contents _ -> "Source input")
-      (match source_file with FileName s ->
-         String.capitalize_ascii Filename.(basename (remove_extension s))
+    Message.raise_error
+      "%s doesn't define a module name. It should contain a '@{<cyan>> Module \
+       %s@}' directive."
+      (match source_file with
+      | FileName s -> "File " ^ s
+      | Contents _ -> "Source input")
+      (match source_file with
+      | FileName s ->
+        String.capitalize_ascii Filename.(basename (remove_extension s))
       | Contents _ -> "Module_name")
-
 
 let parse_top_level_file
     (source_file : Cli.input_file)

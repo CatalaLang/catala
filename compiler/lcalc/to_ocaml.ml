@@ -144,7 +144,7 @@ let format_to_module_name
   | `Sname v -> Format.asprintf "%a" StructName.format v)
   |> String.to_ascii
   |> avoid_keywords
-  |> Format.fprintf fmt "%s"
+  |> Format.pp_print_string fmt
 
 let format_struct_field_name
     (fmt : Format.formatter)

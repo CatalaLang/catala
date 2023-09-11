@@ -31,8 +31,8 @@ let files_or_folders =
 let command =
   Arg.(
     required
-    & pos 0 (some string) None
-    & info [] ~docv:"COMMAND" ~doc:"Command selection among: test, run")
+    & pos 0 (some (enum ["test", `Test; "run", `Run; "runtest", `Runtest])) None
+    & info [] ~docv:"COMMAND" ~doc:"Main command to run")
 
 let debug =
   Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information")
@@ -148,7 +148,7 @@ let info =
   let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
   Cmd.info "clerk" ~version ~doc ~exits ~man
 
-(**{1 Testing}*)
+(**{1 Collecting items from files}*)
 
 type expected_output_descr = {
   tested_filename : string;  (** Name of the file that's being tested *)
@@ -161,71 +161,94 @@ type expected_output_descr = {
       (** Catala command to launch to run the test, excluding "catala" at the
           begin, and the name of the file to test *)
 }
+(** Structure describing a single "legacy test", ie test with a separate output
+    file *)
 
-let catala_suffix_regex = Re.Pcre.regexp "\\.catala_(\\w){2}$"
+type catala_build_item = {
+  file_name : File.t;
+  module_def : string option;
+  used_modules : string list;
+  included_files : File.t list;
+  legacy_tests : expected_output_descr list;
+  has_inline_tests : bool;
+}
+(** Contains all the data extracted from a single Catala file. Lists are in reverse file order. *)
 
-(** [readdir_sort dirname] returns the sorted subdirectories of [dirname] in an
-    array or an empty array if the [dirname] doesn't exist. *)
-let readdir_sort (dirname : string) : string array =
-  try
-    let dirs = Sys.readdir dirname in
-    Array.fast_sort String.compare dirs;
-    dirs
-  with Sys_error _ -> [||]
+let catala_suffix_regex =
+  Re.(compile (seq [str ".catala_"; group (seq [alpha; alpha]); eos]))
 
-(** Given a file, looks in the relative [output] directory if there are files
-    with the same base name that contain expected outputs for different *)
-let search_for_expected_outputs (file : string) : expected_output_descr list =
-  let output_dir = Filename.dirname file ^ Filename.dir_sep ^ "output/" in
-  File.with_in_channel file (fun ic ->
-    (* Matches something of the form: {v
-    ```catala-test { id="foo" }
-    catala Interpret -s A
-    ```
-    v} *)
-      let test_rex =
-        Re.compile (Re.(
-          seq
-            [
-              bol;
-              str "```catala-test";
-              opt
-              @@ seq
-                   [
-                     rep space;
-                     char '{';
-                     rep space;
-                     str "id";
-                     rep space;
-                     char '=';
-                     rep space;
-                     char '"';
-                     group (rep1 (diff any (char '"')));
-                     char '"';
-                     rep space;
-                     char '}';
-                   ];
-              rep space;
-              char '\n';
-              seq [str "catala"; rep space; group (rep1 notnl)];
-            ]))
-      in
-      let file_str = really_input_string ic (in_channel_length ic) in
-      let test_declarations = Re.all test_rex file_str in
-      List.map
-        (fun groups ->
-          let id =
-            match Re.Group.get_opt groups 1 with
-            | Some x -> x
-            | None ->
-              Message.raise_error
-                "A test declaration is missing its identifier in the file %s"
-                file
-          in
-          let cmd = Re.Group.get groups 2 in
-          { tested_filename = file; output_dir; cmd; id })
-        test_declarations)
-        [@ocamlformat "disable"]
+let scan_catala_file (file : File.t) (lang : Cli.backend_lang) :
+    catala_build_item =
+  let module L = Surface.Lexer_common in
+  let rec parse lines n acc =
+    match Seq.uncons lines with
+    | None -> acc
+    | Some ((_, L.LINE_TEST id), lines) ->
+      let test, lines, n = parse_test id lines (n+1) in
+      parse lines n { acc with legacy_tests = test :: acc.legacy_tests }
+    | Some ((_, line), lines) ->
+      parse lines (n+1) @@
+      match line with
+      | L.LINE_INCLUDE f ->
+        { acc with included_files = f :: acc.included_files }
+      | L.LINE_MODULE_DEF m ->
+        { acc with module_def = Some m }
+      | L.LINE_MODULE_USE m ->
+        { acc with used_modules = m :: acc.used_modules }
+      | L.LINE_INLINE_TEST ->
+        { acc with has_inline_tests = true }
+      | _ -> acc
+  and parse_test id lines n =
+    let test =
+      { id;
+        tested_filename = file;
+        output_dir = File.(file /../ "output" / "");
+        cmd = "" }
+    in
+    let err n =
+      Format.asprintf "\"<invalid test syntax at %a:%d>\"" File.format file n
+    in
+    match Seq.uncons lines with
+    | Some ((str, L.LINE_ANY), lines)
+      when String.starts_with ~prefix:"catala " str ->
+      let cmd = String.trim (String.remove_prefix ~prefix:"catala " str) in
+      let cmd, lines, n = parse_block lines (n+1) [cmd] in
+      { test with cmd = String.concat " " cmd },
+      lines, (n+1)
+    | Some (_, lines) ->
+      { test with cmd = err n}, lines, n+1
+    | None ->
+      { test with cmd = err n}, lines, n
+  and parse_block lines n acc =
+    match Seq.uncons lines with
+    | Some ((_, L.LINE_BLOCK_END), lines) -> List.rev acc, lines, n+1
+    | Some ((str, _), lines) -> String.trim str :: acc, lines, n+1
+    | None -> List.rev acc, lines, n
+  in
+  parse
+    (Surface.Parser_driver.lines file lang) 1
+    {
+      file_name = file;
+      module_def = None;
+      used_modules = [];
+      included_files = [];
+      legacy_tests = [];
+      has_inline_tests = false;
+    }
+
+let get_lang file =
+  Option.bind (Re.exec_opt catala_suffix_regex file) @@ fun g ->
+  List.assoc_opt (Re.Group.get g 1) Cli.languages
+
+let scan_tree (dir : File.t) : catala_build_item list =
+  File.scan_tree
+    (fun f ->
+      match get_lang f with
+      | None -> None
+      | Some lang -> Some (scan_catala_file f lang))
+    dir
+
+(**{1 Testing}*)
 
 (** Var references used in the Clerk file *)
 module Var = struct
@@ -363,7 +386,7 @@ let add_test_rules (catala_exe_opts : string) (rules : Rule.t Nj.RuleMap.t) :
     rules needed to reset and test files. *)
 let ninja_start (catala_exe : string) (catala_opts : string) : ninja =
   let catala_exe_opts = catala_exe ^ " " ^ catala_opts in
-  let add_rule r rules = Nj.RuleMap.(rules |> add r.Nj.Rule.name r) in
+  let add_rule r rules = Nj.RuleMap.add r.Nj.Rule.name r rules in
   let run_and_display_final_message =
     Nj.Rule.make "run_and_display_final_message"
       ~command:Nj.Expr.(Seq [Lit ":"])
@@ -385,6 +408,7 @@ let ninja_start (catala_exe : string) (catala_opts : string) : ninja =
 let collect_inline_ninja_builds
     (ninja : ninja)
     (tested_file : string)
+    _lang
     (reset_test_outputs : bool) : (string * ninja) option =
   if not (Clerk_runtest.has_inline_tests tested_file) then None
   else
@@ -427,8 +451,11 @@ let collect_inline_ninja_builds
 let collect_all_ninja_build
     (ninja : ninja)
     (tested_file : string)
+    lang
     (reset_test_outputs : bool) : (string * ninja) option =
-  let expected_outputs = search_for_expected_outputs tested_file in
+  let expected_outputs =
+    (scan_catala_file tested_file lang).legacy_tests
+  in
   if expected_outputs = [] then (
     Message.emit_debug "No expected outputs were found for test file %s"
       tested_file;
@@ -536,27 +563,6 @@ let run_file
 
 (** {1 Driver} *)
 
-let get_catala_files_in_folder (dir : string) : string list =
-  let rec loop result = function
-    | f :: fs ->
-      let f_is_dir =
-        try Sys.is_directory f
-        with Sys_error e ->
-          Message.emit_warning "skipping %s" e;
-          false
-      in
-      if f_is_dir then
-        readdir_sort f
-        |> Array.to_list
-        |> List.map (Filename.concat f)
-        |> List.append fs
-        |> loop result
-      else loop (f :: result) fs
-    | [] -> result
-  in
-  let all_files_in_folder = loop [] [dir] in
-  List.filter (Re.Pcre.pmatch ~rex:catala_suffix_regex) all_files_in_folder
-
 type ninja_building_context = {
   last_valid_ninja : ninja;
   curr_ninja : ninja option;
@@ -588,8 +594,8 @@ let collect_in_folder
     (ninja_start : Nj.ninja)
     (reset_test_outputs : bool) : ninja_building_context =
   let ninja, test_file_names =
-    let collect f (ninja, test_file_names) file =
-      match f ninja file reset_test_outputs with
+    let collect f (ninja, test_file_names) file lang =
+      match f ninja file lang reset_test_outputs with
       | None ->
         (* Skips none Catala file. *)
         ninja, test_file_names
@@ -597,11 +603,11 @@ let collect_in_folder
         ninja, test_file_names ^ " $\n  " ^ test_file_name
     in
     List.fold_left
-      (fun acc file ->
-        let acc = collect collect_all_ninja_build acc file in
-        collect collect_inline_ninja_builds acc file)
+      (fun acc (file, lang) ->
+        let acc = collect collect_all_ninja_build acc file lang in
+        collect collect_inline_ninja_builds acc file lang)
       (ninja_start, "")
-      (get_catala_files_in_folder folder)
+      (File.scan_tree (fun f -> match get_lang f with Some l -> Some (f, l) | None -> None) folder)
   in
   let test_dir_name =
     Printf.sprintf "test_dir_%s" (folder |> Nj.Build.unpath)
@@ -648,10 +654,11 @@ let collect_in_folder
 let collect_in_file
     (ctx : ninja_building_context)
     (tested_file : string)
+    lang
     (ninja_start : Nj.ninja)
     (reset_test_outputs : bool) : ninja_building_context =
   let add ctx f ninja_start tested_file =
-    match f ninja_start tested_file reset_test_outputs with
+    match f ninja_start tested_file lang reset_test_outputs with
     | Some (test_file_name, ninja) ->
       {
         last_valid_ninja = ninja;
@@ -696,7 +703,7 @@ let add_test_builds
          in
          if Sys.is_directory file_or_folder then
            collect_in_folder ctx file_or_folder curr_ninja reset_test_outputs
-         else collect_in_file ctx file_or_folder curr_ninja reset_test_outputs)
+         else collect_in_file ctx file_or_folder (Option.get (get_lang file_or_folder)) curr_ninja reset_test_outputs)
        ctx
 
 let makeflags_to_ninja_flags (makeflags : string option) =
@@ -713,7 +720,7 @@ let makeflags_to_ninja_flags (makeflags : string option) =
 
 let driver
     (files_or_folders : string list)
-    (command : string)
+    (command : [> ])
     (catala_exe : string option)
     (catala_opts : string option)
     (makeflags : string option)
@@ -735,13 +742,14 @@ let driver
         match k f with
         | exception e ->
           if not debug then Sys.remove f;
+          Message.emit_debug "Ninja file left in @{<yellow>%s@} for reference" f;
           raise e
         | r ->
-          Sys.remove f;
+          (* Sys.remove f; *)
           r)
     in
-    match String.lowercase_ascii command with
-    | "test" -> (
+    match command with
+    | `Test -> (
       Message.emit_debug "building ninja rules...";
       let ctx =
         add_test_builds
@@ -765,7 +773,6 @@ let driver
         @@ fun nin ->
         match
           File.with_formatter_of_file nin (fun fmt ->
-              Message.emit_debug "writing %s..." nin;
               Nj.format fmt
                 (add_root_test_build ninja ctx.all_file_names
                    ctx.all_test_builds))
@@ -777,7 +784,7 @@ let driver
           Message.emit_debug "executing '%s'..." ninja_cmd;
           Sys.command ninja_cmd
         | exception Sys_error e -> Message.raise_error "can not write in %s" e)
-    | "run" -> (
+    | `Run -> (
       match scope with
       | Some scope ->
         let res =
@@ -788,14 +795,13 @@ let driver
         if 0 <> res then return_err else return_ok
       | None ->
         Message.raise_error "Please provide a scope to run with the -s option")
-    | "runtest" -> (
+    | `Runtest -> (
       match files_or_folders with
       | [f] ->
         Clerk_runtest.run_inline_tests ~reset:reset_test_outputs f catala_exe
           (List.filter (( <> ) "") (String.split_on_char ' ' catala_opts));
         0
       | _ -> Message.raise_error "Please specify a single catala file to test")
-    | _ -> Message.raise_error "The command \"%s\" is unknown to clerk." command
   with Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit content Error;
