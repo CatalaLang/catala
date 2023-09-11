@@ -25,3 +25,4 @@ french_law/python/src/allocations_familiales.py
 french_law/ocaml/law_source/aides_logement.ml
 french_law/ocaml/law_source/aides_logement_api_web.ml
 french_law/python/src/aides_logement.py
+french_law/python/src/runtime.py
