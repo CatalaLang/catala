@@ -20,6 +20,10 @@ open Catala_utils
 open Ninja_utils
 module Nj = Ninja_utils
 
+(* Retrieve current version from dune *)
+let version =
+  Catala_utils.Cli.version
+
 (** {1 Command line interface} *)
 
 let files_or_folders =
@@ -100,8 +104,6 @@ let clerk_t f =
     $ scope
     $ reset_test_outputs
     $ ninja_output)
-
-let version = "0.5.0"
 
 let info =
   let doc =

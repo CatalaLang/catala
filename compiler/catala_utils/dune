@@ -1,7 +1,7 @@
 (library
  (name catala_utils)
  (public_name catala.catala_utils)
- (libraries unix cmdliner ubase ocolor re bindlib catala.runtime_ocaml))
+ (libraries unix cmdliner ubase ocolor re bindlib catala.runtime_ocaml dune-build-info))
 
 (documentation
  (package catala)
