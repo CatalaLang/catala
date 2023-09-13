@@ -40,7 +40,7 @@ jobs:
               sudo apk add font-dejavu >&2
               opam --cli=2.1 exec -- make -C doc/syntax >&2
               opam --cli=2.1 exec -- make literate_tutorial_en literate_tutoriel_fr >&2
-              opam --cli=2.1 exec -- dune build --profile=release grammar.html catala.html clerk.html catala_legifrance.html >&2
+              opam --cli=2.1 exec -- dune build --profile=release grammar.html catala.html clerk.html >&2
               mkdir -p artifacts >&2
               mv _build/default/compiler/catala.bc.js artifacts/catala_'"${RELEASE_TAG}"'_node.js >&2
               mv _build/default/_doc/_html artifacts/api-doc >&2

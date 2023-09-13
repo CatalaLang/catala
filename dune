@@ -44,14 +44,6 @@
     (run clerk --help=groff)
     (run groff -P -l -P -r -mandoc -Thtml)))))
 
-(rule
- (action
-  (with-stdout-to
-   catala_legifrance.html
-   (pipe-stdout
-    (run catala_legifrance --help=groff)
-    (run groff -P -l -P -r -mandoc -Thtml)))))
-
 (alias
  (name exec)
  (deps compiler/catala.exe build_system/clerk.exe))
