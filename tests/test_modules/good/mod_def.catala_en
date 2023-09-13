@@ -22,5 +22,6 @@ scope S:
 ```
 
 ```catala-test-inline
-$ catala module --compile --plugin-dir=../../../_build/default/compiler/plugins --disable_warnings
+$ catala typecheck --disable_warnings
+[RESULT] Typechecking successful!
 ```

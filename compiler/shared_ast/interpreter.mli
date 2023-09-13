@@ -74,4 +74,4 @@ val interpret_program_lcalc :
 
 val load_runtime_modules : string list -> unit
 (** Dynlink the given runtime modules, in order to make them callable by the
-    interpreter *)
+    interpreter. If Cli.globals.build_dir is specified, the runtime module names are assumed to be relative and looked up there. *)

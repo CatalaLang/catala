@@ -14,18 +14,41 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+(** Ninja variable names *)
+module Var = struct
+  type t = V of string
+
+  let make s = V s
+
+  let name (V v) = v
+
+  let v (V v) = Printf.sprintf "${%s}" v
+
+end
+
 module Expr = struct
-  type t = Lit of string | Var of string | Seq of t list
+  type t = string list
 
-  let rec format fmt = function
-    | Lit s -> Format.pp_print_string fmt s
-    | Var s -> Format.fprintf fmt "$%s" s
-    | Seq ls -> format_list fmt ls
-
-  and format_list fmt ls =
+  let format =
     Format.pp_print_list
       ~pp_sep:(fun fmt () -> Format.pp_print_char fmt ' ')
-      format fmt ls
+      (fun fmt s ->
+         Format.pp_print_string fmt
+           (Re.replace_string Re.(compile space) ~by:"$ " s))
+end
+
+module Binding = struct
+  type t = Var.t * Expr.t
+  let make var e = var, e
+  let format ~global ppf (v, e) =
+    if not global then Format.pp_print_string ppf "  ";
+    Format.fprintf ppf "%s = %a"
+      (Var.name v)
+      Expr.format e;
+    if global then Format.pp_print_newline ppf ()
+
+  let format_list ~global ppf l =
+    Format.pp_print_list ~pp_sep:Format.pp_print_newline (format ~global) ppf l
 end
 
 module Rule = struct
@@ -35,62 +58,78 @@ module Rule = struct
     { name; command; description = Option.some description }
 
   let format fmt rule =
-    let format_description fmt = function
-      | Some e -> Format.fprintf fmt "  description = %a\n" Expr.format e
-      | None -> Format.fprintf fmt "\n"
+    let bindings =
+      Binding.make (Var.make "command") rule.command ::
+      Option.(to_list (map (fun d -> Binding.make (Var.make "description") d) rule.description))
     in
-    Format.fprintf fmt "rule %s\n  command = %a\n%a" rule.name Expr.format
-      rule.command format_description rule.description
+    Format.fprintf fmt "rule %s\n%a"
+      rule.name (Binding.format_list ~global:false) bindings
 end
 
 module Build = struct
   type t = {
-    outputs : Expr.t list;
     rule : string;
-    inputs : Expr.t list option;
-    vars : (string * Expr.t) list;
+    inputs : Expr.t option;
+    implicit_in : Expr.t;
+    outputs : Expr.t;
+    implicit_out : Expr.t option;
+    vars : Binding.t list;
   }
 
-  let make ~outputs ~rule = { outputs; rule; inputs = Option.none; vars = [] }
+  let make ?inputs ?(implicit_in=[]) ~outputs ?implicit_out ?(vars=[]) rule =
+    { rule; inputs; implicit_in; outputs; implicit_out; vars }
 
-  let make_with_vars ~outputs ~rule ~vars =
-    { outputs; rule; inputs = Option.none; vars }
-
-  let make_with_inputs ~outputs ~rule ~inputs =
-    { outputs; rule; inputs = Option.some inputs; vars = [] }
-
-  let make_with_vars_and_inputs ~outputs ~rule ~inputs ~vars =
-    { outputs; rule; inputs = Option.some inputs; vars }
-
-  let empty = make ~outputs:[Expr.Lit "empty"] ~rule:"phony"
+  let empty = make ~outputs:["empty"] "phony"
 
   let unpath ?(sep = "-") path =
     Re.Pcre.(substitute ~rex:(regexp "/") ~subst:(fun _ -> sep)) path
 
-  let format fmt build =
-    let format_inputs fmt = function
-      | Some exs -> Format.fprintf fmt " %a" Expr.format_list exs
-      | None -> ()
-    and format_vars fmt vars =
-      List.iter
-        (fun (name, exp) ->
-          Format.fprintf fmt "  %s = %a\n" name Expr.format exp)
-        vars
-    in
-    Format.fprintf fmt "build %a: %s%a\n%a" Expr.format_list build.outputs
-      build.rule format_inputs build.inputs format_vars build.vars
+  let format fmt t =
+    Format.fprintf fmt "build %a%a: %s%a%a%a%a"
+      Expr.format t.outputs
+      (Format.pp_print_option
+         (fun fmt i ->
+            Format.pp_print_string fmt " | ";
+            Expr.format fmt i))
+      t.implicit_out
+      t.rule
+      (Format.pp_print_option
+         (fun ppf e -> Format.pp_print_char ppf ' '; Expr.format ppf e))
+      t.inputs
+      (fun ppf -> function [] -> () | e -> Format.pp_print_string ppf " | "; Expr.format ppf e)
+      t.implicit_in
+      (if t.vars = [] then fun _ () -> () else Format.pp_print_newline) ()
+      (Binding.format_list ~global:false)
+      t.vars
 end
 
-module RuleMap : Map.S with type key = String.t = Map.Make (String)
-module BuildMap : Map.S with type key = String.t = Map.Make (String)
+type def = Comment of string | Binding of Binding.t | Rule of Rule.t | Build of Build.t
 
-type ninja = { rules : Rule.t RuleMap.t; builds : Build.t BuildMap.t }
+let comment s = Comment s
+let binding v e = Binding (Binding.make v e)
+let rule name ~command ~description =
+  Rule (Rule.make name ~command ~description)
+let build ?inputs ?implicit_in ~outputs ?implicit_out ?vars rule =
+  Build (Build.make ?inputs ?implicit_in ~outputs ?implicit_out ?vars rule)
 
-let empty = { rules = RuleMap.empty; builds = BuildMap.empty }
 
-let format fmt ninja =
-  let format_for_all iter format =
-    iter (fun _name rule -> Format.fprintf fmt "%a\n" format rule)
+let format_def ppf def =
+  let () = match def with
+    | Comment s ->
+      Format.pp_print_list ~pp_sep:Format.pp_print_newline
+        (fun ppf s ->
+           if s <> "" then Format.pp_print_string ppf "# ";
+           Format.pp_print_string ppf s)
+        ppf
+        (String.split_on_char '\n' s)
+    | Binding b -> Binding.format ~global:true ppf b
+    | Rule r -> Rule.format ppf r; Format.pp_print_newline ppf ()
+    | Build b -> Build.format ppf b
   in
-  format_for_all RuleMap.iter Rule.format ninja.rules;
-  format_for_all BuildMap.iter Build.format ninja.builds
+  Format.pp_print_flush ppf ()
+
+type ninja = def Seq.t
+
+let format ppf t =
+  Format.pp_print_seq ~pp_sep:Format.pp_print_newline format_def ppf t;
+  Format.pp_print_newline ppf ()

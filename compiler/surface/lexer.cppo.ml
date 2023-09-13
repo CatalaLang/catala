@@ -820,7 +820,7 @@ let line_dir_arg_re =
 let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
   match%sedlex lexbuf with
   | eof -> None
-  | "```catala-test", Star (Compl '\n'), ('\n' | eof) ->
+  | "```catala-test", hspace, Star (Compl '\n'), ('\n' | eof) ->
     let str = Utf8.lexeme lexbuf in
     (try
        let id = Re.Group.get (Re.exec line_test_id_re str) 1 in

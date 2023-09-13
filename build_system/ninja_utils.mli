@@ -34,31 +34,35 @@
 
 (** {1 Ninja expressions} *)
 
+(** Ninja variable names, distinguishing binding name ("x") from references in expressions ("$x") *)
+module Var : sig
+  type t
+
+  val make: string -> t
+
+  (** Var base name, used when binding it *)
+  val name: t -> string
+
+  (** Var reference with a preceding "$", for use in expressoins *)
+  val v: t -> string
+end
+
+
 (** Helper module to build ninja expressions. *)
 module Expr : sig
-  (** Represents a ninja expression. Which could be either a literal, a
-      {{:https://ninja-build.org/manual.html#_variables} variable references}
-      ($_) or a sequence of sub-expressions.
-
-      {b Note:} for now, there are no visible differences between an [Expr.Seq]
-      and a list of {!type: Expr.t}, indeed, in both cases, one space is added
-      between each expression -- resp. sub-expression. The difference only comes
-      from the semantic: an [Expr.Seq] is {b a unique} Ninja expression. *)
-  type t =
-    | Lit of string
-    (* Literal string. *)
-    | Var of string
-    (* Variable reference. *)
-    | Seq of t list
-  (* Sequence of sub-expressions. *)
+  (** Ninja expressions are represented as raw string lists, which may contain variables or "$-escapes" *)
+  type t = string list
 
   val format : Format.formatter -> t -> unit
   (** [format fmt exp] outputs in [fmt] the string representation of the ninja
-      expression [exp]. *)
+      expression [exp]. Spaces in individual elements are escaped (but no check is made for e.g. newlines) *)
 
-  val format_list : Format.formatter -> t list -> unit
-  (** [format fmt ls] outputs in [fmt] the string representation of a list [ls]
-      of ninja expressions [exp] by adding a space between each expression. *)
+end
+
+module Binding : sig
+  type t = Var.t * Expr.t
+  val make: Var.t -> Expr.t -> t
+  val format: global:bool -> Format.formatter -> t -> unit
 end
 
 (** {1 Ninja rules} *)
@@ -66,7 +70,7 @@ end
 (** Helper module to build
     {{:https://ninja-build.org/manual.html#_rules} ninja rules}. *)
 module Rule : sig
-  type t = { name : string; command : Expr.t; description : Expr.t option }
+  type t
   (** Represents the minimal ninja rule representation for Clerk:
 
       {[
@@ -89,12 +93,7 @@ end
 (** Helper module to build ninja
     {{:https://ninja-build.org/manual.html#_build_statements} build statements}. *)
 module Build : sig
-  type t = {
-    outputs : Expr.t list;
-    rule : string;
-    inputs : Expr.t list option;
-    vars : (string * Expr.t) list;
-  }
+  type t
   (** Represents the minimal ninja build statement representation for Clerk:
 
       {[
@@ -102,28 +101,15 @@ module Build : sig
           [<vars>]
       ]}*)
 
-  val make : outputs:Expr.t list -> rule:string -> t
-  (** [make ~outputs ~rule] returns the corresponding ninja {!type:Build.t} with
-      no {!field:inputs} or {!field:vars}. *)
-
-  val make_with_vars :
-    outputs:Expr.t list -> rule:string -> vars:(string * Expr.t) list -> t
-  (** [make_with_vars ~outputs ~rule ~vars] returns the corresponding ninja
-      {!type:Build.t} with no {!field:inputs}. *)
-
-  val make_with_inputs :
-    outputs:Expr.t list -> rule:string -> inputs:Expr.t list -> t
-  (** [make_with_vars ~outputs ~rule ~inputs] returns the corresponding ninja
-      {!type:Build.t} with no {!field:vars}. *)
-
-  val make_with_vars_and_inputs :
-    outputs:Expr.t list ->
-    rule:string ->
-    inputs:Expr.t list ->
-    vars:(string * Expr.t) list ->
+  val make :
+    ?inputs:Expr.t ->
+    ?implicit_in:Expr.t ->
+    outputs:Expr.t ->
+    ?implicit_out:Expr.t ->
+    ?vars:(Var.t * Expr.t) list ->
+    string ->
     t
-  (** [make_with_vars ~outputs ~rule ~inputs ~vars] returns the corresponding
-      ninja {!type: Build.t}. *)
+  (** [make ~outputs rule] returns the corresponding ninja {!type:Build.t}. *)
 
   val empty : t
   (** [empty] is the minimal ninja {!type:Build.t} with ["empty"] as
@@ -139,20 +125,22 @@ module Build : sig
       [build]. *)
 end
 
-(** {1 Maps} *)
+type def = Comment of string | Binding of Binding.t | Rule of Rule.t | Build of Build.t
 
-module RuleMap : Map.S with type key = String.t
-module BuildMap : Map.S with type key = String.t
+val comment: string -> def
+val binding: Var.t -> Expr.t -> def
+val rule: string -> command:Expr.t -> description:Expr.t -> def
+val build:
+  ?inputs:Expr.t ->
+  ?implicit_in:Expr.t ->
+  outputs:Expr.t ->
+  ?implicit_out:Expr.t ->
+  ?vars:(Var.t * Expr.t) list ->
+  string ->
+  def
 
-(** {1 Ninja} *)
+val format_def: Format.formatter -> def -> unit
 
-type ninja = { rules : Rule.t RuleMap.t; builds : Build.t BuildMap.t }
-(** Represents the minimal ninja architecture (list of rule and build
-    statements) needed for clerk. *)
+type ninja = def Seq.t
 
-val empty : ninja
-(** [empty] returns the empty empty ninja structure. *)
-
-val format : Format.formatter -> ninja -> unit
-(** [format fmt build] outputs in [fmt] the string representation of all
-    [ninja.rules] and [ninja.builds]. *)
+val format: Format.formatter -> ninja -> unit

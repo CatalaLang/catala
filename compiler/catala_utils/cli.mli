@@ -20,6 +20,8 @@ type backend_lang = En | Fr | Pl
 (** The usual auto/always/never option argument *)
 type when_enum = Auto | Always | Never
 
+val when_opt: when_enum Cmdliner.Arg.conv
+
 type message_format_enum =
   | Human
   | GNU  (** Format of error and warning messages output by the compiler. *)
@@ -41,6 +43,7 @@ type options = private {
   mutable message_format : message_format_enum;
   mutable trace : bool;
   mutable plugins_dirs : string list;
+  mutable build_dir : string option;
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
 }
@@ -60,6 +63,7 @@ val enforce_globals :
   ?message_format:message_format_enum ->
   ?trace:bool ->
   ?plugins_dirs:string list ->
+  ?build_dir:string option ->
   ?disable_warnings:bool ->
   ?max_prec_digits:int ->
   unit ->

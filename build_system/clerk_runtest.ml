@@ -205,7 +205,9 @@ let run_inline_tests
             else catala_exe
           in
           let cmd =
-            Array.of_list ((catala_exe :: catala_opts) @ test.params @ [file])
+            match test.params with
+            | cmd0 :: flags -> Array.of_list (catala_exe :: cmd0 :: catala_opts @ flags @ [file])
+            | [] -> Array.of_list (catala_exe :: catala_opts @ [file])
           in
           let env =
             Unix.environment ()

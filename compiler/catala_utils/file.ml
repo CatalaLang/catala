@@ -120,9 +120,16 @@ let check_directory d =
 let ( / ) = Filename.concat
 let dirname = Filename.dirname
 let ( /../ ) a b = dirname a / b
+let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
+
 let equal = String.equal
 let compare = String.compare
 let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
+
+module Set = Set.Make(struct
+    type nonrec t = t
+    let compare = compare
+end)
 
 let scan_tree f t =
   let is_dir t =
@@ -136,7 +143,7 @@ let scan_tree f t =
     Sys.readdir d
     |> Array.to_list
     |> List.filter not_hidden
-    |> List.map (fun t -> d / t)
+    |> (if d = "." then fun t -> t else List.map (fun t -> d / t))
     |> do_files
   and do_files flist =
     let dirs, files =
@@ -148,4 +155,4 @@ let scan_tree f t =
       (Seq.concat (Seq.map do_dir (List.to_seq dirs)))
       (Seq.filter_map f (List.to_seq files))
   in
-  do_dir t
+  do_files [t]

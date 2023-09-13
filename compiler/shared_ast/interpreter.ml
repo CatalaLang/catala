@@ -947,7 +947,7 @@ let load_runtime_modules = function
     List.iter
       Dynlink.(
         fun m ->
-          try loadfile (adapt_filename (Filename.remove_extension m ^ ".cmo"))
+          try loadfile (adapt_filename File.(match Cli.globals.build_dir with None -> m -.- "cmo" | Some d -> d / m -.- "cmo"))
           with Dynlink.Error dl_err ->
             Message.raise_error
               "Could not load module %s, has it been suitably compiled?@;\
