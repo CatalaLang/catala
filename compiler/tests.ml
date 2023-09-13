@@ -1,4 +1,4 @@
-let _ =
+let () =
   let open Alcotest in
   run "Optimizations"
     [

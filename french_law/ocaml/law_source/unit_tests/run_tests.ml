@@ -8,7 +8,7 @@ let try_test msg test =
     failure := true;
     Format.printf "@{<red>FAIL@} @{<magenta>%s@}\n" msg
 
-let _ =
+let () =
   try_test "Allocations familiales #1" Tests_allocations_familiales.test1;
   try_test "Allocations familiales #2" Tests_allocations_familiales.test2;
   try_test "Allocations familiales #3" Tests_allocations_familiales.test3;

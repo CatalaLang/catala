@@ -298,7 +298,7 @@ let driver file debug diff expiration custom_date client_id client_secret =
     -1
 
 (** Hook for the executable *)
-let _ =
+let () =
   Stdlib.exit
   @@ Cmdliner.Cmd.eval' ~catch:false
        (Cmdliner.Cmd.v Legifrance_cli.info
