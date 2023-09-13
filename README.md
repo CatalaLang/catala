@@ -123,10 +123,11 @@ want to compile it from the sources of this repository or use nix. For that, see
 
 ### Catala
 
-Use `catala --help` if you have installed it to get more information about the command line
-options available. The man page is also [available online](https://catala-lang.org/en/doc/catala).
-To get the development version of the help, run `make help_catala`
-after `make build`. The `catala` binary corresponds to the Catala compiler.
+Use `catala --help` if you have installed it to get more information about the
+command line options available. The man page is also [available
+online](https://catala-lang.org/en/doc/catala). To get the development version
+of the help, run `make help_catala` after `make build`. The `catala` binary
+corresponds to the Catala compiler.
 
 The top-level `Makefile` contains a lot of useful targets to run. To display
 them, use
@@ -142,12 +143,19 @@ linking: see [the dedicated README](compiler/plugins/README.md).
 
 ### Clerk
 
-Use `clerk --help` if you have installed it to get more information about the command line
-options available. To get the development version of the help, run `make help_clerk`
-after `make build`. The `clerk` binary corresponds to the Catala build system,
-responsible for testing among other things.
+Use `clerk --help` if you have installed it to get more information about the
+command line options available. To get the development version of the help, run
+`make help_clerk` after `make build`. The `clerk` binary corresponds to the
+Catala build system, responsible for testing among other things.
 
 To get more information about Clerk, see [the dedicated readme](https://github.com/CatalaLang/catala/tree/master/build_system/README.md)
+
+### Catleg
+
+Catleg is a command line utility providing useful integration with
+[LégiFrance](https://legifrance.gouv.fr), the official repository of French
+legal documentation. See the [decidated
+repository](https://github.com/catalaLang/catleg) for more information.
 
 ## Documentation
 

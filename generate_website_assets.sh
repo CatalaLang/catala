@@ -24,7 +24,6 @@ rsync $BUILD/examples/tutoriel_fr/tutoriel_fr.html $1/
 rsync $BUILD/grammar.html $1/
 rsync $BUILD/catala.html $1/
 rsync $BUILD/clerk.html $1/
-rsync $BUILD/catala_legifrance.html $1/
 
 rsync $BUILD/examples/allocations_familiales/allocations_familiales_schema.json $1/
 rsync $BUILD/examples/aides_logement/aides_logement_schema.json $1/

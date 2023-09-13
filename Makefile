@@ -66,15 +66,13 @@ dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js dependencies-py
 
 COMPILER_DIR=compiler
 BUILD_SYSTEM_DIR=build_system
-CATALA_LEGIFRANCE_DIR=french_law/catala_legifrance
 
 #> build_dev				: Builds the Catala compiler, without formatting code
 build_dev: parser-messages
 	dune build \
 		$(COMPILER_DIR)/catala.exe \
 		$(COMPILER_DIR)/plugins/ \
-		$(BUILD_SYSTEM_DIR)/clerk.exe \
-		$(CATALA_LEGIFRANCE_DIR)/catala_legifrance.exe
+		$(BUILD_SYSTEM_DIR)/clerk.exe 
 
 # Just the base compiler as needed to run the tests
 compiler: parser-messages
@@ -307,7 +305,6 @@ CLERK_OPTS?=--makeflags="$(MAKEFLAGS)"
 
 CATALA_BIN=_build/default/$(COMPILER_DIR)/catala.exe
 CLERK_BIN=_build/default/$(BUILD_SYSTEM_DIR)/clerk.exe
-CATALA_LEGIFRANCE_BIN=_build/default/$(CATALA_LEGIFRANCE_DIR)/catala_legifrance.exe
 
 CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),)
@@ -343,7 +340,7 @@ tests/%: .FORCE
 # Website assets
 ##########################################
 
-WEBSITE_ASSETS = grammar.html catala.html clerk.html catala_legifrance.html
+WEBSITE_ASSETS = grammar.html catala.html clerk.html
 
 $(addprefix _build/default/,$(WEBSITE_ASSETS)):
 	dune build $@
@@ -395,11 +392,6 @@ help_clerk:
 #> help_catala				: Display the catala man page
 help_catala:
 	$(CATALA_BIN) --help
-
-#> help_catala_legifrance			: Display the catala_legifrance man page
-help_catala_legifrance:
-	$(CATALA_LEGIFRANCE_BIN) --help
-
 
 ##########################################
 # Special targets
