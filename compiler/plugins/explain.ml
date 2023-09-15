@@ -1386,11 +1386,11 @@ let options =
     $ base_src_url)
 
 let run link_modules optimize ex_scope explain_options global_options =
-  Interpreter.load_runtime_modules link_modules;
   let prg, ctx, _ =
     Driver.Passes.dcalc global_options ~link_modules ~optimize
       ~check_invariants:false
   in
+  Interpreter.load_runtime_modules prg;
   let scope = Driver.Commands.get_scope_uid ctx ex_scope in
   (* let result_expr, env = interpret_program prg scope in *)
   let g, base_vars, env = program_to_graph explain_options prg scope in

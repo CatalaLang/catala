@@ -580,7 +580,7 @@ module Commands = struct
     let prg, ctx, _ =
       Passes.dcalc options ~link_modules ~optimize ~check_invariants
     in
-    Interpreter.load_runtime_modules link_modules;
+    Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scope_uid ctx ex_scope)
 

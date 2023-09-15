@@ -70,13 +70,15 @@ module Gen (S : Style) () : Id with type info = MarkedString.info
 (** {2 Handling of Uids with additional path information} *)
 
 module Module : sig
-  type t = private string (* TODO: this will become an uid at some point *)
+  type t = private string Mark.pos
+  (* TODO: this will become an uid at some point *)
 
   val to_string : t -> string
   val format : Format.formatter -> t -> unit
+  val pos: t -> Pos.t
   val equal : t -> t -> bool
   val compare : t -> t -> int
-  val of_string : string -> t
+  val of_string : string * Pos.t -> t
 
   module Set : Set.S with type elt = t
   module Map : Map.S with type key = t

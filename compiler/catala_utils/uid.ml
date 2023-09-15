@@ -88,11 +88,21 @@ module Gen (S : Style) () = Make (MarkedString) (S) ()
 (* - Modules, paths and qualified idents - *)
 
 module Module = struct
-  include String
+  module Ordering = struct
+    type t = string Mark.pos
 
-  let to_string m = m
-  let format ppf m = Format.fprintf ppf "@{<blue>%s@}" m
+    let equal = Mark.equal String.equal
+    let compare = Mark.compare String.compare
+    let format ppf m = Format.fprintf ppf "@{<blue>%s@}" (Mark.remove m)
+  end
+  include Ordering
+
+  let to_string m = Mark.remove m
   let of_string m = m
+  let pos m = Mark.get m
+
+  module Set = Set.Make(Ordering)
+  module Map = Map.Make(Ordering)
 end
 (* TODO: should probably be turned into an uid once we implement module import
    directives; that will incur an additional resolution work on all paths though
@@ -107,9 +117,9 @@ module Path = struct
       (fun ppf m -> Format.fprintf ppf "%a@{<cyan>.@}" Module.format m)
       ppf p
 
-  let to_string p = String.concat "." p
-  let equal = List.equal String.equal
-  let compare = List.compare String.compare
+  let to_string p = String.concat "." (List.map Module.to_string p)
+  let equal = List.equal Module.equal
+  let compare = List.compare Module.compare
 end
 
 module QualifiedMarkedString = struct

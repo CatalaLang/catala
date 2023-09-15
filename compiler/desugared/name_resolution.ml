@@ -254,11 +254,11 @@ let get_scope ctxt id =
 let rec module_ctx ctxt path =
   match path with
   | [] -> ctxt
-  | (modname, mpos) :: path -> (
+  | modname :: path -> (
     let modname = ModuleName.of_string modname in
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
-      Message.raise_spanned_error mpos "Module \"%a\" not found"
+      Message.raise_spanned_error (ModuleName.pos modname) "Module \"%a\" not found"
         ModuleName.format modname
     | Some ctxt -> module_ctx ctxt path)
 
@@ -338,11 +338,11 @@ let rec process_base_typ
           "Unknown type @{<yellow>\"%s\"@}, not a struct or enum previously \
            declared"
           ident)
-    | Surface.Ast.Named ((modul, mpos) :: path, id) -> (
+    | Surface.Ast.Named (modul :: path, id) -> (
       let modul = ModuleName.of_string modul in
       match ModuleName.Map.find_opt modul ctxt.modules with
       | None ->
-        Message.raise_spanned_error mpos
+        Message.raise_spanned_error (ModuleName.pos modul)
           "This refers to module %a, which was not found" ModuleName.format
           modul
       | Some mod_ctxt ->
@@ -956,7 +956,7 @@ let empty_ctxt =
   }
 
 let import_module modules (name, intf) =
-  let mname = ModuleName.of_string (Mark.remove name) in
+  let mname = ModuleName.of_string name in
   let ctxt = { empty_ctxt with modules; path = [mname] } in
   let ctxt = List.fold_left process_name_item ctxt intf in
   let ctxt = List.fold_left process_decl_item ctxt intf in

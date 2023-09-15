@@ -481,7 +481,7 @@ let static_base_rules =
       ~description:["<catala>"; "inline-tests"; "⇐"; !input];
 
     Nj.rule "inline-reset"
-      ~command:[!clerk_exe; "runtest"; !clerk_flags; !input; !modules_use; "--reset"]
+      ~command:[!clerk_exe; "runtest"; !clerk_flags; "--catala-opts=--build-dir=" ^ !builddir; !input; !modules_use; "--reset"]
       ~description:["<catala>"; "inline-reset"; "⇐"; !input]
   ]
 

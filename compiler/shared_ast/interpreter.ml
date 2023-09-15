@@ -940,17 +940,26 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
    reflect that. *)
 let evaluate_expr ctx lang e = delcustom (evaluate_expr ctx lang (addcustom e))
 
-let load_runtime_modules = function
+let load_runtime_modules prg =
+  match ModuleName.Map.keys prg.decl_ctx.ctx_modules with
   | [] -> ()
   | modules ->
     Message.emit_debug "Loading shared modules...";
     List.iter
-      Dynlink.(
-        fun m ->
-          try loadfile (adapt_filename File.(match Cli.globals.build_dir with None -> m -.- "cmo" | Some d -> d / m -.- "cmo"))
-          with Dynlink.Error dl_err ->
-            Message.raise_error
-              "Could not load module %s, has it been suitably compiled?@;\
-               <1 2>@[<hov>%a@]" m Format.pp_print_text
-              (Dynlink.error_message dl_err))
+      (fun m ->
+         let srcfile = Pos.get_file (ModuleName.pos m) in
+         let obj_file =
+           File.(srcfile /../ ModuleName.to_string m ^ ".cmo")
+           |> Dynlink.adapt_filename
+         in
+         let obj_file = match Cli.globals.build_dir with
+           | None -> obj_file
+           | Some d -> File.(d / obj_file)
+         in
+         try Dynlink.loadfile obj_file
+         with Dynlink.Error dl_err ->
+           Message.raise_error
+             "Could not load module %a, has it been suitably compiled?@;\
+              <1 2>@[<hov>%a@]" ModuleName.format m Format.pp_print_text
+             (Dynlink.error_message dl_err))
       modules

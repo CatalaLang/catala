@@ -168,11 +168,11 @@ let rec disambiguate_constructor
     with EnumName.Map.Not_found _ ->
       Message.raise_spanned_error pos "Enum %s does not contain case %s"
         (Mark.remove enum) (Mark.remove constructor))
-  | (modname, mpos) :: path -> (
+  | modname :: path -> (
     let modname = ModuleName.of_string modname in
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
-      Message.raise_spanned_error mpos "Module \"%a\" not found"
+      Message.raise_spanned_error (ModuleName.pos modname) "Module \"%a\" not found"
         ModuleName.format modname
     | Some ctxt ->
       let constructor =
@@ -415,11 +415,11 @@ let rec translate_expr
       let rec get_str ctxt = function
         | [] -> None
         | [c] -> Some (Name_resolution.get_struct ctxt c)
-        | (modname, mpos) :: path -> (
+        | modname :: path -> (
           let modname = ModuleName.of_string modname in
           match ModuleName.Map.find_opt modname ctxt.modules with
           | None ->
-            Message.raise_spanned_error mpos "Module \"%a\" not found"
+            Message.raise_spanned_error (ModuleName.pos modname) "Module \"%a\" not found"
               ModuleName.format modname
           | Some ctxt -> get_str ctxt path)
       in
@@ -1529,7 +1529,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
   in
   let desugared =
     List.fold_left
-      (fun acc ((id, _pos), intf) ->
+      (fun acc (id, intf) ->
         let id = ModuleName.of_string id in
         let modul = ModuleName.Map.find id acc.Ast.program_modules in
         let modul =

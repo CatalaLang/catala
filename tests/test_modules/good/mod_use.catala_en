@@ -22,10 +22,8 @@ scope T2:
   assertion o4 = 5.0
 ```
 
-The following test is disabled at the moment because it requires prior compilation of the module. This will be fixed with the new Clerk version that handles dependencies transparently.
-
-```disabled catala-test-inline
-$ catala interpret -s T2 --disable_warnings --use mod_def.catala_en
+```catala-test-inline
+$ catala interpret -s T2
 [RESULT] Computation successful! Results:
 [RESULT] o1 = No ()
 [RESULT] o2 = Maybe ()
