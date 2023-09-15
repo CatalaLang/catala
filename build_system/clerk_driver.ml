@@ -423,6 +423,7 @@ module Var = struct
   let input = make "in"
   let output = make "out"
   let modules_src = make "modules_src"
+  let modules_use = make "modules_use"
   let include_flags = make "include_flags"
 
   (* let scope = make "scope" *)
@@ -468,19 +469,19 @@ let static_base_rules =
       ~description:["<ocaml>"; "⇒"; !output];
 
     Nj.rule "out-test"
-      ~command:[!catala_exe; !test_command; !catala_flags; !input; "2>&1"; "|"; !diff; !test_out; "/dev/stdin"]
+      ~command:[!catala_exe; !test_command; !catala_flags; !input; !modules_use; "2>&1"; "|"; !diff; !test_out; "/dev/stdin"]
       ~description:["<catala>"; "test"; !test_id; "⇐"; !input; "("^ !test_command ^ ")"];
 
     Nj.rule "out-reset"
-      ~command:[!catala_exe; !test_command; !catala_flags; !input; ">"; !output; "2>&1"; "||"; "true"]
+      ~command:[!catala_exe; !test_command; !catala_flags; !input; !modules_use; ">"; !output; "2>&1"; "||"; "true"]
       ~description:["<catala>"; "reset"; !test_id; "⇐"; !input; "("^ !test_command ^ ")"];
 
     Nj.rule "inline-tests"
-      ~command:[!clerk_exe; "runtest"; !clerk_flags; !input; "2>&1"; "|"; !diff; !input; "/dev/stdin"]
+      ~command:[!clerk_exe; "runtest"; !clerk_flags; "--catala-opts=--build-dir=" ^ !builddir; !input; !modules_use; "2>&1"; "|"; !diff; !input; "/dev/stdin"]
       ~description:["<catala>"; "inline-tests"; "⇐"; !input];
 
     Nj.rule "inline-reset"
-      ~command:[!clerk_exe; "runtest"; !clerk_flags; !input; "--reset"]
+      ~command:[!clerk_exe; "runtest"; !clerk_flags; !input; !modules_use; "--reset"]
       ~description:["<catala>"; "inline-reset"; "⇐"; !input]
   ]
 
@@ -546,9 +547,13 @@ let gen_build_statements (item: catala_build_item) : Nj.ninja =
       List.map (fun m -> !Var.builddir / !(Var.module_dir m) / m ^ ".cmxs") modules @
       item.included_files
     in
+    let vars = [
+      Var.modules_use, List.map (fun m -> "--catala-opts=--use=" ^ !(Var.module_dir m) / !(Var.module_src m)) item.used_modules
+    ]
+    in
     let legacy_tests =
       List.fold_left (fun acc test ->
-          let vars = [
+          let vars = vars @ [
             Var.test_id, [test.id];
             Var.test_command, test.cmd;
             Var.test_out, [Filename.dirname src / Filename.basename src -.- "out" / !Var.test_id];
@@ -562,8 +567,8 @@ let gen_build_statements (item: catala_build_item) : Nj.ninja =
     let inline_tests =
       if not item.has_inline_tests then [] else
         [
-          Nj.build "inline-tests" ~inputs ~implicit_in ~outputs:["inline@" ^ src];
-          Nj.build "inline-reset" ~inputs ~implicit_in ~outputs:["inline-reset@" ^ src];
+          Nj.build "inline-tests" ~inputs ~implicit_in ~vars ~outputs:["inline@" ^ src];
+          Nj.build "inline-reset" ~inputs ~implicit_in ~vars ~outputs:["inline-reset@" ^ src];
         ]
     in
     let tests =

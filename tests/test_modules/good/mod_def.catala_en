@@ -1,5 +1,7 @@
 # Test modules + inclusions 1
 
+> Module Mod_def
+
 ```catala-metadata
 declaration enumeration Enum1:
   -- Yes

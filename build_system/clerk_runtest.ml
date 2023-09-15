@@ -196,7 +196,7 @@ let run_inline_tests
           output_string oc test.text_before;
           let cmd_out_rd, cmd_out_wr = Unix.pipe () in
           let ic = Unix.in_channel_of_descr cmd_out_rd in
-          let file_dir, file = Filename.dirname file, Filename.basename file in
+          (* let file_dir, file = Filename.dirname file, Filename.basename file in *)
           let catala_exe =
             (* If the exe name contains directories, make it absolute. Otherwise
                don't modify it so that it can be looked up in PATH. *)
@@ -220,22 +220,23 @@ let run_inline_tests
             |> Array.of_seq
           in
           let pid =
-            let cwd = Unix.getcwd () in
-            (* Catala depends on the CWD when printing relative file locations
-               in error messages. Here we are dealing with inline tests, and it
-               would be inconvenient for the file to contain its own location
-               relative to where the test was run from ; to avoid that, we
-               ensure to always run the catala exec from the directory where the
-               test file was found. *)
-            Unix.chdir file_dir;
-            Fun.protect ~finally:(fun () -> Unix.chdir cwd)
-            @@ fun () ->
+            (* let cwd = Unix.getcwd () in
+             * (\* Catala depends on the CWD when printing relative file locations
+             *    in error messages. Here we are dealing with inline tests, and it
+             *    would be inconvenient for the file to contain its own location
+             *    relative to where the test was run from ; to avoid that, we
+             *    ensure to always run the catala exec from the directory where the
+             *    test file was found. *\)
+             * Unix.chdir file_dir;
+             * Fun.protect ~finally:(fun () -> Unix.chdir cwd)
+             * @@ fun () -> *)
             Unix.create_process_env catala_exe cmd env Unix.stdin cmd_out_wr
               cmd_out_wr
           in
           Unix.close cmd_out_wr;
           let rec process_cmd_out () =
             let s = input_line ic in
+            let s = Re.(replace_string (compile (str File.(file /../ ""))) ~by:"" s) in
             if s = "```" || String.starts_with ~prefix:"#return code" s then
               output_char oc '\\';
             let rec trail s i =
