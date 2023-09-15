@@ -79,7 +79,7 @@ module Rule : sig
           [description = <description>]
       ]} *)
 
-  val make : string -> command:Expr.t -> description:Expr.t -> t
+  val make : ?vars:Binding.t list -> string -> command:Expr.t -> description:Expr.t -> t
   (** [make name ~command ~description] returns the corresponding ninja
       {!type:Rule.t}. *)
 
@@ -125,11 +125,17 @@ module Build : sig
       [build]. *)
 end
 
-type def = Comment of string | Binding of Binding.t | Rule of Rule.t | Build of Build.t
+module Default: sig
+  type t
+  val make: Expr.t -> t
+  val format: Format.formatter -> t -> unit
+end
+
+type def = Comment of string | Binding of Binding.t | Rule of Rule.t | Build of Build.t | Default of Default.t
 
 val comment: string -> def
 val binding: Var.t -> Expr.t -> def
-val rule: string -> command:Expr.t -> description:Expr.t -> def
+val rule: ?vars:Binding.t list -> string -> command:Expr.t -> description:Expr.t -> def
 val build:
   ?inputs:Expr.t ->
   ?implicit_in:Expr.t ->
@@ -138,6 +144,7 @@ val build:
   ?vars:(Var.t * Expr.t) list ->
   string ->
   def
+val default: Expr.t -> def
 
 val format_def: Format.formatter -> def -> unit
 

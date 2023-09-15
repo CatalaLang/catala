@@ -52,15 +52,16 @@ module Binding = struct
 end
 
 module Rule = struct
-  type t = { name : string; command : Expr.t; description : Expr.t option }
+  type t = { name : string; command : Expr.t; description : Expr.t option; vars : Binding.t list }
 
-  let make name ~command ~description =
-    { name; command; description = Option.some description }
+  let make ?(vars=[]) name ~command ~description =
+    { name; command; description = Option.some description; vars }
 
   let format fmt rule =
     let bindings =
       Binding.make (Var.make "command") rule.command ::
-      Option.(to_list (map (fun d -> Binding.make (Var.make "description") d) rule.description))
+      Option.(to_list (map (fun d -> Binding.make (Var.make "description") d) rule.description)) @
+      rule.vars
     in
     Format.fprintf fmt "rule %s\n%a"
       rule.name (Binding.format_list ~global:false) bindings
@@ -103,15 +104,22 @@ module Build = struct
       t.vars
 end
 
-type def = Comment of string | Binding of Binding.t | Rule of Rule.t | Build of Build.t
+module Default = struct
+  type t = Expr.t
+  let make rules = rules
+  let format ppf t = Format.fprintf ppf "default %a" Expr.format t
+end
+
+type def = Comment of string | Binding of Binding.t | Rule of Rule.t | Build of Build.t | Default of Default.t
 
 let comment s = Comment s
 let binding v e = Binding (Binding.make v e)
-let rule name ~command ~description =
-  Rule (Rule.make name ~command ~description)
+let rule ?vars name ~command ~description =
+  Rule (Rule.make ?vars name ~command ~description)
 let build ?inputs ?implicit_in ~outputs ?implicit_out ?vars rule =
   Build (Build.make ?inputs ?implicit_in ~outputs ?implicit_out ?vars rule)
-
+let default rules =
+  Default (Default.make rules)
 
 let format_def ppf def =
   let () = match def with
@@ -125,6 +133,7 @@ let format_def ppf def =
     | Binding b -> Binding.format ~global:true ppf b
     | Rule r -> Rule.format ppf r; Format.pp_print_newline ppf ()
     | Build b -> Build.format ppf b
+    | Default d -> Default.format ppf d
   in
   Format.pp_print_flush ppf ()
 
