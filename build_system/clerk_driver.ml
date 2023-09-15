@@ -452,10 +452,6 @@ let base_bindings catala_exe catala_flags =
 let static_base_rules =
   let open Var in
   [
-    (* Nj.rule "interpret-scope"
-     *   ~command:[!catala_exe; "interpret"; !catala_flags; !modules_src; !input; "-s"; !scope]
-     *   ~description:["<catala>"; "run"; !scope; "⇐"; !input]; *)
-
     Nj.rule "ocaml"
       ~command:[!catala_exe; "ocaml"; !catala_flags; !modules_src; !input; "-o"; !output]
       ~description:["<catala>"; "ocaml"; "⇒"; !output];
@@ -623,6 +619,45 @@ let gen_build_statements (item: catala_build_item) : Nj.ninja =
     Seq.return interpret;
   ]
 
+let test_targets_by_dir items =
+  let stmt target_pfx dir sub = Nj.build "phony" ~outputs:[target_pfx ^ dir]
+      ~inputs:(List.map (( ^ ) target_pfx) sub)
+  in
+  let alias dir sub =
+    List.to_seq [ stmt "test@" dir sub; stmt "test-reset@" dir sub; Nj.comment "" ]
+  in
+  (* This relies on the fact that the sequence is returned ordered by directory *)
+  let rec aux curdir seq =
+    let prefix = if curdir = "" then "" else curdir ^ "/" in
+    match seq () with
+    | Seq.Cons (item, seq) as node when
+        String.starts_with ~prefix item.file_name ->
+      if item.legacy_tests = [] && not item.has_inline_tests then aux curdir seq else
+      (match String.split_on_char '/' (String.remove_prefix ~prefix item.file_name) with
+       | [] -> assert false
+       | [_] ->
+         let rules, cur, seq = aux curdir seq in
+         rules, (item.file_name :: cur), seq
+       | subdir :: _ ->
+         let subdir = File.(curdir / subdir) in
+         let rules, sub, seq = aux subdir (fun () -> node) in
+         let rules =
+           if sub = [] then rules else
+             Seq.append rules (alias subdir sub)
+         in
+         let rules1, cur, seq = aux curdir seq in
+         Seq.append rules rules1,
+         (subdir :: cur),
+         seq)
+    | node -> Seq.empty, [], (fun () -> node)
+  in
+  let rules, top, seq = aux "" items in
+  assert (Seq.is_empty seq);
+  Seq.append rules @@ List.to_seq [
+    Nj.build "phony" ~outputs:["test"] ~inputs:(List.map (( ^ ) "test@") top);
+    Nj.build "phony" ~outputs:["test-reset"] ~inputs:(List.map (( ^ ) "test-reset@") top);
+  ]
+
 let build_statements dir =
   (* Unfortunately we need to express the module name bindings first, so need to iterate twice using Seq.memoize *)
   scan_tree dir |> Seq.memoize |> fun items ->
@@ -630,17 +665,7 @@ let build_statements dir =
     Seq.flat_map gen_module_def items;
     Seq.flat_map gen_build_statements items;
     Seq.return (Nj.comment "\n- Global targets - #\n");
-    let items_with_tests = Seq.filter
-        (fun item -> item.legacy_tests <> [] || item.has_inline_tests)
-        items
-    in
-    if Seq.is_empty items_with_tests then Seq.empty
-    else
-      let get_targets prefix = Seq.map (fun item -> prefix ^ item.file_name) items_with_tests |> List.of_seq in
-      List.to_seq [
-        Nj.build "phony" ~outputs:["test"] ~inputs:(get_targets "test@");
-        Nj.build "phony" ~outputs:["test-reset"] ~inputs:(get_targets "test-reset@");
-      ]
+    test_targets_by_dir items;
   ]
 
 let gen_ninja_file catala_exe catala_flags dir =
