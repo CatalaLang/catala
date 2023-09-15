@@ -62,8 +62,9 @@ let s (s_in: S_in.t) : S.t =
                  a_)))))
     with
     EmptyError -> (raise (NoValueProvided
-      {filename = "let_in2.catala_en"; start_line=5; start_column=18;
-        end_line=5; end_column=19; law_headings=["Article"]})) in
+      {filename = "let_in2.catala_en";
+        start_line=5; start_column=18; end_line=5; end_column=19;
+        law_headings=["Article"]})) in
   {S.a = a_}
 let () =
   Runtime_ocaml.Runtime.register_module "Let_in2"

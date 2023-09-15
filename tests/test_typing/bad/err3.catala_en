@@ -14,7 +14,7 @@ scope S:
 $ catala Typecheck
 [WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
 
-┌─⯈ ./common.catala_en:4.6-4.9:
+┌─⯈ common.catala_en:4.6-4.9:
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
@@ -36,7 +36,7 @@ Type integer coming from expression:
    │                                          ‾
 
 Type decimal coming from expression:
-┌─⯈ ./common.catala_en:15.20-15.27:
+┌─⯈ common.catala_en:15.20-15.27:
 └──┐
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾
@@ -49,7 +49,7 @@ Re-putting the same check again, to ensure that the `Typecheck` and `ocaml` subc
 $ catala ocaml
 [WARNING] The constructor "Dec" of enumeration "Enum" is never used; maybe it's unnecessary?
 
-┌─⯈ ./common.catala_en:4.6-4.9:
+┌─⯈ common.catala_en:4.6-4.9:
 └─┐
 4 │   -- Dec content decimal
   │      ‾‾‾
@@ -71,7 +71,7 @@ Type integer coming from expression:
    │                                          ‾
 
 Type decimal coming from expression:
-┌─⯈ ./common.catala_en:15.20-15.27:
+┌─⯈ common.catala_en:15.20-15.27:
 └──┐
 15 │   output a content decimal
    │                    ‾‾‾‾‾‾‾

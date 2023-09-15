@@ -245,7 +245,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   | ConflictError ->
     let pos = Mark.get exc in
     Format.fprintf fmt
-      "(ConflictError@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
+      "(ConflictError@ @[<hov 2>{filename = \"%s\";@\nstart_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
