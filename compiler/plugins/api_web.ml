@@ -355,7 +355,9 @@ module To_jsoo = struct
         | Topdef _ -> ()
         | ScopeDef (_name, body) ->
           let fmt_fun_call fmt _ =
-            Format.fprintf fmt "@[<hv>%a@ |> %a_of_jsoo@ |> %a@ |> %a_to_jsoo@]"
+            Format.fprintf fmt
+              "@[<hv>@[<hv 2>execute_or_throw_error@ (@[<hv 2>fun () ->@ %a@ \
+               |> %a_of_jsoo@ |> %a@ |> %a_to_jsoo@])@]@]"
               fmt_input_struct_name body fmt_input_struct_name body format_var
               var fmt_output_struct_name body
           in
