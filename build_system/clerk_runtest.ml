@@ -114,7 +114,7 @@ let [@ocamlformat "disable"] rec scan_for_inline_tests
       Re.(compile @@
           seq
             [
-              seq [char '$'; rep space; str "catala"; group (rep1 notnl);
+              seq [char '$'; rep space; str "catala"; rep space; group (rep1 notnl);
                    char '\n'];
               group (non_greedy (rep any));
               seq [bol; str "```\n"];

@@ -196,6 +196,11 @@ type catala_build_item = {
 let catala_suffix_regex =
   Re.(compile (seq [str ".catala_"; group (seq [alpha; alpha]); eos]))
 
+let test_command_re =
+  let open Re in
+  compile @@
+  seq [bos; char '$'; rep space; str "catala"; rep space; group (rep1 notnl); char '\n']
+
 let scan_catala_file (file : File.t) (lang : Cli.backend_lang) :
     catala_build_item =
   let module L = Surface.Lexer_common in
@@ -226,15 +231,17 @@ let scan_catala_file (file : File.t) (lang : Cli.backend_lang) :
         cmd = [] }
     in
     let err n =
-      [Format.asprintf "<invalid test syntax at %a:%d>" File.format file n]
+      [Format.asprintf "'invalid test syntax at %a:%d'" File.format file n]
     in
     match Seq.uncons lines with
-    | Some ((str, L.LINE_ANY), lines)
-      when String.starts_with ~prefix:"catala " str ->
-      let cmd = String.trim (String.remove_prefix ~prefix:"catala " str) in
-      let cmd, lines, n = parse_block lines (n+1) [cmd] in
-      { test with cmd = List.flatten (List.map (String.split_on_char ' ') cmd) },
-      lines, (n+1)
+    | Some ((str, L.LINE_ANY), lines) ->
+      (match Re.exec_opt test_command_re str with
+       | Some args_grp ->
+         let cmd = String.trim (Re.Group.get args_grp 1) in
+         let cmd, lines, n = parse_block lines (n+1) [cmd] in
+         { test with cmd = List.flatten (List.map (String.split_on_char ' ') cmd) },
+         lines, (n+1)
+       | None -> { test with cmd = err n}, lines, n+1)
     | Some (_, lines) ->
       { test with cmd = err n}, lines, n+1
     | None ->
@@ -569,10 +576,11 @@ let gen_build_statements (item: catala_build_item) : Nj.ninja =
           let vars = vars @ [
             Var.test_id, [test.id];
             Var.test_command, test.cmd;
-            Var.test_out, [Filename.dirname src / Filename.basename src -.- "out" / !Var.test_id];
+            Var.test_out, [src /../ "output" / Filename.basename src -.- test.id];
           ] in
           Nj.build "out-test"  ~inputs ~implicit_in ~outputs:["outtest@"^src^"@"^test.id] ~vars ::
-          Nj.build "out-reset" ~inputs ~implicit_in ~outputs:["outtest-reset@"^src^"@"^test.id] ~implicit_out:[!Var.test_out] ~vars ::
+          Nj.build "out-reset" ~inputs ~implicit_in ~outputs:[!Var.test_out]
+            ~implicit_out:["outtest-reset@"^src^"@"^test.id] ~vars ::
           acc
         )
         [] item.legacy_tests

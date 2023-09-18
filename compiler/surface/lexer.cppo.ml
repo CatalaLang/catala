@@ -820,14 +820,17 @@ let line_dir_arg_re =
 let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
   match%sedlex lexbuf with
   | eof -> None
-  | "```catala-test", hspace, Star (Compl '\n'), ('\n' | eof) ->
+  | "```catala-test-inline", Star hspace, ('\n' | eof) ->
+    Some (Utf8.lexeme lexbuf, LINE_INLINE_TEST)
+  | "```catala-test", Star (Compl '\n'), ('\n' | eof) ->
     let str = Utf8.lexeme lexbuf in
     (try
        let id = Re.Group.get (Re.exec line_test_id_re str) 1 in
        Some (str, LINE_TEST id)
-     with Not_found -> Some (str, LINE_ANY))
-  | "```catala-test-inline", Star hspace, ('\n' | eof) ->
-    Some (Utf8.lexeme lexbuf, LINE_INLINE_TEST)
+     with Not_found ->
+       Message.emit_spanned_warning (Pos.from_lpos (lexing_positions lexbuf))
+         "Ignored invalid test section, must have an explicit `{ id = \"name\" }` specification";
+       Some (str, LINE_ANY))
   | "```", Star hspace, ('\n' | eof) ->
     Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
   | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus (Compl '\n'), ('\n' | eof)  ->

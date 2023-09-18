@@ -27,3 +27,7 @@ scope S:
 $ catala typecheck --disable_warnings
 [RESULT] Typechecking successful!
 ```
+
+```catala-test { id="ml" }
+$ catala ocaml --disable_warnings -o -
+```
