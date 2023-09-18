@@ -32,6 +32,7 @@ depends: [
   "ocaml" {>= "4.13.0"}
   "ocamlfind" {!= "1.9.5"}
   "ocamlgraph" {>= "1.8.8"}
+  "yojson" {>= "2.0" }
   "ppx_yojson_conv" {>= "0.14.0"}
   "re" {>= "1.9.0"}
   "sedlex" {>= "2.4"}

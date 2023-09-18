@@ -354,8 +354,6 @@ module Poll = struct
   let ocaml_link_flags: string list Lazy.t = lazy (
     let link_libs =
       [
-        "biniou";
-        "easy-format";
         "yojson";
         "ppx_yojson_conv_lib";
         "zarith";
