@@ -1,3 +1,130 @@
+# Archives du code de la construction et de l'habitation
+
+## Articles en vigueur du 1er septembre 2019 au 1er septembre 2023
+
+### Article R823-4 | LEGIARTI000038878933 [archive]
+
+Sont considérés comme personnes à charge, sous réserve qu'ils vivent
+habituellement au foyer :
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-09-01|:
+  définition personnes_à_charge_prises_en_compte égal à
+    personne_à_charge parmi ménage.personnes_à_charge tel que
+      prise_en_compte_personne_à_charge de personne_à_charge
+```
+
+1° Les enfants de moins de vingt et un ans et considérés comme à charge au
+sens des 1° et 2° de l'article L. 512-3 du code de la sécurité sociale et de
+l'article L. 823-2 du présent code ;
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-09-01|:
+  # L'âge limite de 21 ans établi ici vient écraser la valeur de l'âge limite
+  # prévue par L512-3 du CSS et définie par défaut par R512-2 du CSS.
+  étiquette r823_4_enfants
+  définition prestations_familiales.âge_l512_3_2 égal à 21 an
+
+  étiquette r823_4_enfants
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+    selon personne_à_charge sous forme
+    -- EnfantÀCharge de enfant:
+      # Pour être considéré à charge pour les aides personnelles au logement,
+      # l'enfant doit en plus d'avoir moins de 21 ans mais aussi selon le
+      # 7e alinéa de L823-1 être éligible aux prestations familiales.
+      prestations_familiales.droit_ouvert de
+        EnfantPrestationsFamiliales {
+        -- identifiant: enfant.identifiant
+        -- obligation_scolaire: enfant.obligation_scolaire
+        -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
+        -- date_de_naissance: enfant.date_de_naissance
+        -- a_déjà_ouvert_droit_aux_allocations_familiales:
+          enfant.a_déjà_ouvert_droit_aux_allocations_familiales
+      }
+    -- AutrePersonneÀCharge de parent: faux
+  conséquence rempli
+```
+
+2° Les ascendants du bénéficiaire ou de son conjoint dont les ressources
+déterminées dans les conditions prévues aux articles R. 822-3 à R. 822-6
+n'excèdent pas le plafond individuel prévu à l' article L. 815-9 du code de
+la sécurité sociale , en vigueur au 31 décembre de l'année de référence
+multiplié par 1,25 :
+
+a) Ayant au moins l'âge prévu par le 1° de l'article L. 351-8 du code de la
+sécurité sociale ou, s'ils sont titulaires de l'allocation de solidarité aux
+personnes âgées, soixante-cinq ans ;
+
+b) Ayant au moins l'âge prévu par l' article L. 161-17-2 du code de la sécurité
+sociale et bénéficiaires des articles L. 161-19 , L. 351-8 ou L. 643-3 du même
+code ;
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-09-01|:
+  règle condition_2_r823_4 de personne_à_charge sous condition
+    selon personne_à_charge sous forme
+      -- EnfantÀCharge de enfant: faux
+      -- AutrePersonneÀCharge de parent:
+        parent.parenté = Ascendant et
+        parent.ressources <=
+          plafond_individuel_l815_9_sécu * 1,25 et
+        (
+          # VERIF: parent.date_naissance + âge_l351_8_1_sécu est ambiguë,
+          # à détecter
+          (parent.date_naissance +
+            âge_l351_8_1_sécu <= date_courante ou
+              (parent.titulaire_allocation_personne_âgée et
+               (résultat de VérificationÂgeInférieurOuÉgalÀ avec
+                { -- date_naissance: parent.date_naissance
+                  -- date_courante: date_courante
+                  -- années: 65 an }).est_inférieur_ou_égal
+              )
+          ) ou
+          # VERIF: parent.date_naissance + âge_l161_17_2_sécu est ambiguë,
+          # à détecter
+          (parent.date_naissance +
+            âge_l161_17_2_sécu <= date_courante et
+              parent.bénéficiaire_l161_19_l351_8_l643_3_sécu)
+        )
+  conséquence rempli
+
+  étiquette r823_4_2
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+    condition_2_r823_4 de personne_à_charge
+  conséquence rempli
+```
+
+3° Les ascendants, descendants ou collatéraux au deuxième ou au troisième degré
+du bénéficiaire ou de son conjoint dont l'incapacité permanente est au moins
+égale à 80 % ou qui présentent, compte tenu de leur handicap, une restriction
+substantielle et durable dans l'accès à l'emploi au sens de l' article L. 821-2
+du code de la sécurité sociale reconnue par la commission des droits et de
+l'autonomie des personnes handicapées prévue par l' article L. 146-9 du code
+de l'action sociale et des familles , et dont les ressources déterminées dans
+les conditions prévues aux articles R. 822-3 à R. 822-6 n'excèdent pas le plafond
+individuel prévu à l'article L. 815-9 du code de la sécurité sociale en vigueur
+au 31 décembre de l'année de référence multiplié par 1,25.
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
+  date_courante >= |2019-09-01| et date_courante < |2023-09-01|:
+  exception r823_4_2
+  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+   selon personne_à_charge sous forme
+      -- EnfantÀCharge de enfant: faux
+      -- AutrePersonneÀCharge de parent:
+        (parent.parenté sous forme Ascendant ou
+        parent.parenté sous forme Descendant ou
+        parent.parenté sous forme CollatéralDeuxièmeTroisièmeDegré) et
+        parent.incapacité_80_pourcent_ou_restriction_emploi et
+        parent.ressources <=
+          plafond_individuel_l815_9_sécu * 1,25
+  conséquence rempli
+```
+
 # Archives de l'arrêté du 27 septembre 2019 relatif au calcul des aides personnelles au logement et de la prime de déménagement
 
 ```catala
