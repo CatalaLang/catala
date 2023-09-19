@@ -5647,7 +5647,11 @@ sont remplacés par les mots : " soixante-sept ans " et les mots : " celui menti
 à l'article L. 351-1-5 du même code " sont remplacés par les mots : " soixante-deux ans " ;
 
 ```catala
-# TODO juridique et informatique : implémenter ceci.
+# Fait la correspondance avec le droit local mais ne change pas le calcul, on ne
+# code donc rien ici.
+# Invariant : l'âge de l'article  L. 351-1-5 est bien 62 au 1er septembre 2023
+# mais si jamais l'âge de L. 351-1-5 changeait par la suite sans que
+# le " soixante-deux ans " ici soit changé cela casserait le code Catala.
 ```
 
 2° Les mots : " l'allocation mentionnée à l'article L. 815-1 du code de la sécurité sociale "
