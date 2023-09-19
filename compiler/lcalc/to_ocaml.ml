@@ -647,7 +647,7 @@ let format_module_registration
   Format.pp_print_string fmt "let () =";
   Format.pp_print_space fmt ();
   Format.pp_open_hvbox fmt 2;
-  Format.fprintf fmt "Runtime_ocaml.Runtime.register_module %S" modname;
+  Format.fprintf fmt "Runtime_ocaml.Runtime.register_module \"%a\"" ModuleName.format modname;
   Format.pp_print_space fmt ();
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "[ ";
@@ -664,7 +664,8 @@ let format_module_registration
   Format.pp_print_space fmt ();
   Format.pp_print_string fmt "\"todo-module-hash\"";
   Format.pp_close_box fmt ();
-  Format.pp_close_box fmt ()
+  Format.pp_close_box fmt ();
+  Format.pp_print_newline fmt ()
 
 let header =
   {ocaml|
@@ -678,7 +679,6 @@ open Runtime_ocaml.Runtime
 
 let format_program
     (fmt : Format.formatter)
-    ?register_module
     ?exec_scope
     (p : 'm Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
@@ -686,7 +686,7 @@ let format_program
   format_ctx type_ordering fmt p.decl_ctx;
   let bnd = format_code_items p.decl_ctx fmt p.code_items in
   Format.pp_print_newline fmt ();
-  match register_module, exec_scope with
+  match p.module_name, exec_scope with
   | Some modname, None -> format_module_registration fmt bnd modname
   | None, Some scope_name ->
     let scope_body = Program.get_scope_body p scope_name in

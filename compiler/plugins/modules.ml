@@ -40,7 +40,7 @@ let action_flag =
                silent. Assertions will be checked, though." );
       ]
 
-let gen_ocaml options link_modules optimize check_invariants modname main =
+let gen_ocaml options link_modules optimize check_invariants main =
   let prg, ctx, type_ordering =
     Driver.Passes.lcalc options ~link_modules ~optimize ~check_invariants
       ~avoid_exceptions:false ~closure_conversion:false
@@ -51,7 +51,7 @@ let gen_ocaml options link_modules optimize check_invariants modname main =
   in
   with_output
   @@ fun ppf ->
-  Lcalc.To_ocaml.format_program ppf ?register_module:modname ?exec_scope prg
+  Lcalc.To_ocaml.format_program ppf ?exec_scope prg
     type_ordering;
   Option.get filename
 
@@ -131,7 +131,7 @@ let compile options link_modules optimize check_invariants =
   in
   let basename = String.uncapitalize_ascii modname in
   let ml_file =
-    gen_ocaml options link_modules optimize check_invariants (Some modname) None
+    gen_ocaml options link_modules optimize check_invariants None
   in
   let flags = ["-I"; Lazy.force runtime_dir] in
   let shared_out = File.((ml_file /../ basename) ^ ".cmxs") in
@@ -148,7 +148,7 @@ let compile options link_modules optimize check_invariants =
 
 let link options link_modules optimize check_invariants output ex_scope_opt =
   let ml_file =
-    gen_ocaml options link_modules optimize check_invariants None ex_scope_opt
+    gen_ocaml options link_modules optimize check_invariants ex_scope_opt
   in
   (* NOTE: assuming native target at the moment *)
   let cmd = "ocamlopt" in

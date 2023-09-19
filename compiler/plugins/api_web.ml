@@ -457,7 +457,7 @@ let run
     Message.emit_debug "Compiling program into OCaml...";
     Message.emit_debug "Writing to %s..."
       (Option.value ~default:"stdout" output_file);
-    Lcalc.To_ocaml.format_program fmt ?register_module:modname prg type_ordering
+    Lcalc.To_ocaml.format_program fmt prg type_ordering
   in
   let jsoo_output_file, with_formatter =
     Driver.Commands.get_output_format options ~ext:"_api_web.ml" output

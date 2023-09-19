@@ -251,9 +251,10 @@ let rec parse_source_file
   (match input with Some input -> close_in input | None -> ());
   let program = expand_includes source_file_name commands language in
   {
+    program_module_name = program.Ast.program_module_name;
     program_items = program.Ast.program_items;
     program_source_files = source_file_name :: program.Ast.program_source_files;
-    program_modules = [];
+    program_modules = program.program_modules;
     program_lang = language;
   }
 
@@ -263,95 +264,124 @@ and expand_includes
     (source_file : string)
     (commands : Ast.law_structure list)
     (language : Cli.backend_lang) : Ast.program =
-  List.fold_left
-    (fun acc command ->
-      match command with
-      | Ast.LawInclude (Ast.CatalaFile sub_source) ->
-        let source_dir = Filename.dirname source_file in
-        let sub_source = File.(source_dir / Mark.remove sub_source) in
-        let includ_program = parse_source_file (FileName sub_source) language in
-        {
-          Ast.program_source_files =
-            acc.Ast.program_source_files @ includ_program.program_source_files;
-          Ast.program_items =
-            acc.Ast.program_items @ includ_program.program_items;
-          Ast.program_modules =
-            acc.Ast.program_modules @ includ_program.program_modules;
+  let rprg =
+    List.fold_left
+      (fun acc command ->
+         match command with
+         | Ast.ModuleDef id ->
+           (match acc.Ast.program_module_name with
+            | None -> { acc with Ast.program_module_name = Some id }
+            | Some id2 ->
+              Message.raise_multispanned_error
+                [None, Mark.get id; None, Mark.get id2]
+                "Multiple definitions of the module name")
+         | Ast.ModuleUse (id, _alias) ->
+           { acc with
+             Ast.program_modules = (id, []) :: acc.Ast.program_modules;
+             Ast.program_items = command :: acc.Ast.program_items }
+         | Ast.LawInclude (Ast.CatalaFile inc_file) ->
+           let source_dir = Filename.dirname source_file in
+           let sub_source = File.(source_dir / Mark.remove inc_file) in
+           let includ_program = parse_source_file (FileName sub_source) language in
+           let () =
+             includ_program.Ast.program_module_name |> Option.iter @@ fun id ->
+             Message.raise_multispanned_error
+               [ Some "File include", Mark.get inc_file;
+                 Some "Module declaration", Mark.get id ]
+               "A file that declares a module cannot be used through the raw '@{<yellow>> Include@}' directive. You should use it as a module with '@{<yellow>> Use %a@}' instead." Uid.Module.format (Uid.Module.of_string id)
+           in
+           {
+             Ast.program_module_name = None;
+             Ast.program_source_files =
+               List.rev_append includ_program.program_source_files acc.Ast.program_source_files;
+             Ast.program_items =
+               List.rev_append includ_program.program_items acc.Ast.program_items;
+             Ast.program_modules =
+               List.rev_append includ_program.program_modules acc.Ast.program_modules;
           Ast.program_lang = language;
-        }
-      | Ast.LawHeading (heading, commands') ->
-        let {
-          Ast.program_items = commands';
-          Ast.program_source_files = new_sources;
-          Ast.program_modules = new_modules;
+           }
+         | Ast.LawHeading (heading, commands') ->
+           let {
+             Ast.program_module_name;
+             Ast.program_items = commands';
+             Ast.program_source_files = new_sources;
+             Ast.program_modules = new_modules;
           Ast.program_lang = _;
-        } =
-          expand_includes source_file commands' language
-        in
-        {
-          Ast.program_source_files = acc.Ast.program_source_files @ new_sources;
-          Ast.program_items =
-            acc.Ast.program_items @ [Ast.LawHeading (heading, commands')];
-          Ast.program_modules = acc.Ast.program_modules @ new_modules;
+           } =
+             expand_includes source_file commands' language
+           in
+           {
+             Ast.program_module_name;
+             Ast.program_source_files = List.rev_append new_sources acc.Ast.program_source_files;
+             Ast.program_items =
+               Ast.LawHeading (heading, commands') :: acc.Ast.program_items;
+             Ast.program_modules = List.rev_append new_modules acc.Ast.program_modules;
           Ast.program_lang = language;
-        }
-      | i -> { acc with Ast.program_items = acc.Ast.program_items @ [i] })
-    {
-      Ast.program_source_files = [];
-      Ast.program_items = [];
-      Ast.program_modules = [];
-      Ast.program_lang = language;
-    }
-    commands
+           }
+         | i -> { acc with Ast.program_items = i :: acc.Ast.program_items })
+      {
+        Ast.program_module_name = None;
+        Ast.program_source_files = [];
+        Ast.program_items = [];
+        Ast.program_modules = [];
+        Ast.program_lang = language;
+      }
+      commands
+  in
+  {
+    Ast.program_lang = language;
+    Ast.program_module_name = rprg.Ast.program_module_name;
+    Ast.program_source_files = List.rev rprg.Ast.program_source_files;
+    Ast.program_items = List.rev rprg.Ast.program_items;
+    Ast.program_modules = List.rev rprg.Ast.program_modules;
+  }
+
 
 (** {2 Handling interfaces} *)
 
 let get_interface program =
-  let rec filter (modname, acc) = function
-    | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleUse _ -> modname, acc
-    | Ast.ModuleDef ((_, pos2) as mdef) -> (
-      match modname with
-      | None -> Some mdef, acc
-      | Some (_, pos1) ->
-        Message.raise_multispanned_error
-          [None, pos1; None, pos2]
-          "Multiple definitions of the module name")
-    | Ast.LawHeading (_, str) -> List.fold_left filter (modname, acc) str
+  let rec filter (req, acc) = function
+    | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ ->
+      req, acc
+    | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
+    | Ast.ModuleUse (m, _) -> (m::req), acc
     | Ast.CodeBlock (code, _, true) ->
-      let acc =
-        List.fold_left
-          (fun acc -> function
-            | Ast.ScopeUse _, _ -> acc
-            | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
-              e :: acc
-            | Ast.Topdef def, m ->
-              (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
-          acc code
-      in
-      modname, acc
+      req,
+      List.fold_left
+        (fun acc -> function
+           | Ast.ScopeUse _, _ -> acc
+           | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
+             e :: acc
+           | Ast.Topdef def, m ->
+             (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
+        acc code
     | Ast.CodeBlock (_, _, false) ->
       (* Non-metadata blocks are ignored *)
-      modname, acc
+      req, acc
   in
-  List.fold_left filter (None, []) program.Ast.program_items
+  List.fold_left filter ([], []) program.Ast.program_items
 
 (** {1 API} *)
 
 let load_interface source_file language =
-  let modname, intf = parse_source_file source_file language |> get_interface in
-  match modname with
-  | Some m -> m, intf
-  | None ->
-    Message.raise_error
-      "%s doesn't define a module name. It should contain a '@{<cyan>> Module \
-       %s@}' directive."
-      (match source_file with
-      | FileName s -> "File " ^ s
-      | Contents _ -> "Source input")
-      (match source_file with
-      | FileName s ->
-        String.capitalize_ascii Filename.(basename (remove_extension s))
-      | Contents _ -> "Module_name")
+  let program = parse_source_file source_file language in
+  let modname =
+    match program.Ast.program_module_name with
+    | Some mname -> mname
+    | None ->
+      Message.raise_error
+        "%s doesn't define a module name. It should contain a '@{<cyan>> Module \
+         %s@}' directive."
+        (match source_file with
+         | FileName s -> "File " ^ s
+         | Contents _ -> "Source input")
+        (match source_file with
+         | FileName s ->
+           String.capitalize_ascii Filename.(basename (remove_extension s))
+         | Contents _ -> "Module_name")
+  in
+  let used_modules, intf = get_interface program in
+  (modname, intf), used_modules
 
 let parse_top_level_file
     (source_file : Cli.input_file)

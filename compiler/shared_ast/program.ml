@@ -17,9 +17,9 @@
 
 open Definitions
 
-let map_exprs ~f ~varf { code_items; decl_ctx; lang } =
+let map_exprs ~f ~varf { code_items; decl_ctx; lang; module_name } =
   Bindlib.box_apply
-    (fun code_items -> { code_items; decl_ctx; lang })
+    (fun code_items -> { code_items; decl_ctx; lang; module_name })
     (Scope.map_exprs ~f ~varf code_items)
 
 let fold_left_exprs ~f ~init { code_items; _ } =

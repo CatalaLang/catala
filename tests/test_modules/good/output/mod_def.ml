@@ -50,3 +50,8 @@ let s (s_in: S_in.t) : S.t =
 
 let half_ : integer -> decimal =
   fun (x_: integer) -> o_div_int_int x_ (integer_of_string "2")
+let () =
+  Runtime_ocaml.Runtime.register_module "Mod_def"
+    [ "S", Obj.repr s;
+      "half", Obj.repr half_ ]
+    "todo-module-hash"

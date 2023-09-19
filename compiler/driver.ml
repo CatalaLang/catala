@@ -42,16 +42,60 @@ let get_lang options file =
          @{<yellow>%s@}, and @{<bold>--language@} was not specified"
         filename)
 
-let load_module_interfaces options link_modules =
-  List.map
-    (fun f ->
-      let lang = get_lang options (FileName f) in
-      let modname, intf =
-        Surface.Parser_driver.load_interface (FileName f) lang
-      in
-      (* maybe warn here if [modname_of_file f <> modname] ? *)
-      modname, intf)
-    link_modules
+let load_module_interfaces options program files =
+  let module MS = ModuleName.Set in
+  let to_set intf_list =
+    MS.of_list
+      (List.map (fun (mname, _) -> ModuleName.of_string mname)
+         intf_list)
+  in
+  let used_modules =
+    to_set program.Surface.Ast.program_modules
+  in
+  let load_file f =
+    let lang = get_lang options (FileName f) in
+    let (mname, intf), using =
+      Surface.Parser_driver.load_interface (FileName f) lang
+    in
+    (ModuleName.of_string mname, intf), using
+  in
+  let module_interfaces = List.map load_file files in
+  let rec check (required, acc) interfaces =
+    let required, acc, remaining =
+      List.fold_left (fun (required, acc, skipped) ((modname, intf), using as modl) ->
+          if MS.mem modname required then
+            let required =
+              List.fold_left (fun req m -> MS.add (ModuleName.of_string m) req) required using
+            in
+            required, (((modname :> string Mark.pos), intf) :: acc), skipped
+          else
+            required, acc, (modl :: skipped))
+        (required, acc, [])
+        interfaces
+    in
+    if List.length remaining < List.length interfaces then
+      (* Loop until fixpoint *)
+      check (required, acc) remaining
+    else
+      required, acc, remaining
+  in
+  let required, loaded, unused = check (used_modules, []) module_interfaces in
+  let missing =
+    MS.diff required (MS.of_list (List.map (fun (m,_) -> ModuleName.of_string m) loaded)) in
+  if not (MS.is_empty missing) || unused <> [] then
+    Message.raise_multispanned_error
+      (List.map (fun m ->
+           Some (Format.asprintf "Required module not found: %a"
+                   ModuleName.format m),
+           ModuleName.pos m)
+          (ModuleName.Set.elements missing) @
+       List.map (fun ((m, _), _) ->
+           Some (Format.asprintf "No use was found for this module: %a"
+                   ModuleName.format m),
+           ModuleName.pos m)
+         unused)
+      "Modules used from the program don't match the command-line";
+  loaded
 
 module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes
@@ -68,10 +112,8 @@ module Passes = struct
       Surface.Parser_driver.parse_top_level_file options.input_file language
     in
     let prg = Surface.Fill_positions.fill_pos_with_legislative_info prg in
-    let prg =
-      { prg with program_modules = load_module_interfaces options link_modules }
-    in
-    prg, language
+    let program_modules = load_module_interfaces options prg link_modules in
+    { prg with program_modules }, language
 
   let desugared options ~link_modules :
       Desugared.Ast.program * Desugared.Name_resolution.context =
@@ -695,13 +737,7 @@ module Commands = struct
     Message.emit_debug "Compiling program into OCaml...";
     Message.emit_debug "Writing to %s..."
       (Option.value ~default:"stdout" output_file);
-    let modname =
-      (* TODO: module directive *)
-      match options.Cli.input_file with
-      | FileName n -> Some (modname_of_file n)
-      | _ -> None
-    in
-    Lcalc.To_ocaml.format_program fmt ?register_module:modname prg type_ordering
+    Lcalc.To_ocaml.format_program fmt prg type_ordering
 
   let ocaml_cmd =
     Cmd.v

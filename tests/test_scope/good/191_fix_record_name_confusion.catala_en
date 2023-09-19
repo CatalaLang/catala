@@ -60,9 +60,4 @@ let scope_b (scope_b_in: ScopeB_in.t) : ScopeB.t =
         start_line=8; start_column=10; end_line=8; end_column=11;
         law_headings=["Article"]})) in
   {ScopeB.a = a_}
-let () =
-  Runtime_ocaml.Runtime.register_module "191_fix_record_name_confusion"
-    [ "ScopeA", Obj.repr scope_a;
-      "ScopeB", Obj.repr scope_b ]
-    "todo-module-hash"
 ```

@@ -1469,6 +1469,8 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       in
       {
         Ast.program_lang = surface.program_lang;
+        Ast.program_module_name =
+          Option.map ModuleName.of_string surface.Surface.Ast.program_module_name;
         Ast.program_ctx =
           {
             (* After name resolution, type definitions (structs and enums) are
@@ -1524,8 +1526,8 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         (fun prgm child -> process_structure prgm child)
         prgm children
     | S.CodeBlock (block, _, _) -> process_code_block ctxt prgm block
-    | S.LawInclude _ | S.LawText _ -> prgm
-    | S.ModuleDef _ | S.ModuleUse _ -> prgm
+    | S.LawInclude _ | S.LawText _
+    | S.ModuleUse _ | S.ModuleDef _ -> prgm
   in
   let desugared =
     List.fold_left

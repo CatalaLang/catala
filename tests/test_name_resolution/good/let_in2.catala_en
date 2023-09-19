@@ -66,8 +66,4 @@ let s (s_in: S_in.t) : S.t =
         start_line=5; start_column=18; end_line=5; end_column=19;
         law_headings=["Article"]})) in
   {S.a = a_}
-let () =
-  Runtime_ocaml.Runtime.register_module "Let_in2"
-    [ "S", Obj.repr s ]
-    "todo-module-hash"
 ```

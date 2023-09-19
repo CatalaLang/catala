@@ -944,7 +944,9 @@ let load_runtime_modules prg =
   match ModuleName.Map.keys prg.decl_ctx.ctx_modules with
   | [] -> ()
   | modules ->
-    Message.emit_debug "Loading shared modules...";
+    Message.emit_debug "Loading shared modules... %a"
+      (fun ppf -> ModuleName.Map.format_keys ppf)
+      prg.decl_ctx.ctx_modules;
     List.iter
       (fun m ->
          let srcfile = Pos.get_file (ModuleName.pos m) in

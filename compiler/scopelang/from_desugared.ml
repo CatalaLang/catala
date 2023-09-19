@@ -821,6 +821,7 @@ let translate_program
       (fun modname m_desugared ->
         let ctx = ModuleName.Map.find modname ctx.modules in
         {
+          Ast.program_module_name = Some modname;
           Ast.program_topdefs = TopdefName.Map.empty;
           program_scopes =
             ScopeName.Map.map
@@ -852,6 +853,7 @@ let translate_program
       desugared.D.program_scopes
   in
   {
+    Ast.program_module_name = desugared.D.program_module_name;
     Ast.program_topdefs;
     Ast.program_scopes;
     Ast.program_ctx;

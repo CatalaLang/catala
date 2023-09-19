@@ -103,6 +103,7 @@ let detect_unused_struct_fields (p : program) : unit =
   (* TODO: this analysis should be finer grained: a false negative is if the
      field is used to define itself, for passing data around but that never gets
      really used or defined. *)
+  if p.program_module_name <> None then () else (* Disabled on modules *)
   let struct_fields_used =
     Ast.fold_exprs
       ~f:(fun struct_fields_used e ->
@@ -167,6 +168,7 @@ let detect_unused_struct_fields (p : program) : unit =
     p.program_ctx.ctx_structs
 
 let detect_unused_enum_constructors (p : program) : unit =
+  if p.program_module_name <> None then () else (* Disabled on modules *)
   let enum_constructors_used =
     Ast.fold_exprs
       ~f:(fun enum_constructors_used e ->
