@@ -51,8 +51,7 @@ let gen_ocaml options link_modules optimize check_invariants main =
   in
   with_output
   @@ fun ppf ->
-  Lcalc.To_ocaml.format_program ppf ?exec_scope prg
-    type_ordering;
+  Lcalc.To_ocaml.format_program ppf ?exec_scope prg type_ordering;
   Option.get filename
 
 let run_process cmd args =
@@ -130,9 +129,7 @@ let compile options link_modules optimize check_invariants =
     | _ -> Message.raise_error "Input must be a file name for this command"
   in
   let basename = String.uncapitalize_ascii modname in
-  let ml_file =
-    gen_ocaml options link_modules optimize check_invariants None
-  in
+  let ml_file = gen_ocaml options link_modules optimize check_invariants None in
   let flags = ["-I"; Lazy.force runtime_dir] in
   let shared_out = File.((ml_file /../ basename) ^ ".cmxs") in
   Message.emit_debug "Compiling OCaml shared object file @{<bold>%s@}..."

@@ -245,8 +245,9 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   | ConflictError ->
     let pos = Mark.get exc in
     Format.fprintf fmt
-      "(ConflictError@ @[<hov 2>{filename = \"%s\";@\nstart_line=%d;@ \
-       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
+      "(ConflictError@ @[<hov 2>{filename = \"%s\";@\n\
+       start_line=%d;@ start_column=%d;@ end_line=%d; end_column=%d;@ \
+       law_headings=%a}@])"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
@@ -647,7 +648,8 @@ let format_module_registration
   Format.pp_print_string fmt "let () =";
   Format.pp_print_space fmt ();
   Format.pp_open_hvbox fmt 2;
-  Format.fprintf fmt "Runtime_ocaml.Runtime.register_module \"%a\"" ModuleName.format modname;
+  Format.fprintf fmt "Runtime_ocaml.Runtime.register_module \"%a\""
+    ModuleName.format modname;
   Format.pp_print_space fmt ();
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "[ ";

@@ -320,8 +320,7 @@ and program = {
   program_module_name : uident Mark.pos option;
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
-  program_modules : interface list;
-  (** Modules being used by the program *)
+  program_modules : interface list;  (** Modules being used by the program *)
   program_lang : Cli.backend_lang; [@opaque]
 }
 

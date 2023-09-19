@@ -258,8 +258,8 @@ let rec module_ctx ctxt path =
     let modname = ModuleName.of_string modname in
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
-      Message.raise_spanned_error (ModuleName.pos modname) "Module \"%a\" not found"
-        ModuleName.format modname
+      Message.raise_spanned_error (ModuleName.pos modname)
+        "Module \"%a\" not found" ModuleName.format modname
     | Some ctxt -> module_ctx ctxt path)
 
 (** {1 Declarations pass} *)

@@ -96,7 +96,8 @@ val ( /../ ) : t -> t -> t
 (** Sugar for [Filename.dirname "a" / b] *)
 
 val ( -.- ) : t -> string -> t
-(** Extension replacement: chops the given filename extension, and replaces it with the given one (which shouldn't contain a dot) *)
+(** Extension replacement: chops the given filename extension, and replaces it
+    with the given one (which shouldn't contain a dot) *)
 
 val equal : t -> t -> bool
 (** String comparison no fancy file resolution *)
@@ -108,7 +109,7 @@ val format : Format.formatter -> t -> unit
 (** Formats a filename in a consistent style, with double-quotes and color (when
     the output supports) *)
 
-module Set: Set.S with type elt = t
+module Set : Set.S with type elt = t
 
 val scan_tree : (t -> 'a option) -> t -> 'a Seq.t
 (** Recursively scans a directory for files. Directories or files matching ".*"

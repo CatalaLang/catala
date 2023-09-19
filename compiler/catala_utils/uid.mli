@@ -75,7 +75,7 @@ module Module : sig
 
   val to_string : t -> string
   val format : Format.formatter -> t -> unit
-  val pos: t -> Pos.t
+  val pos : t -> Pos.t
   val equal : t -> t -> bool
   val compare : t -> t -> int
   val of_string : string * Pos.t -> t

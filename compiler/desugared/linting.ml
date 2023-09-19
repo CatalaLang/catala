@@ -103,123 +103,129 @@ let detect_unused_struct_fields (p : program) : unit =
   (* TODO: this analysis should be finer grained: a false negative is if the
      field is used to define itself, for passing data around but that never gets
      really used or defined. *)
-  if p.program_module_name <> None then () else (* Disabled on modules *)
-  let struct_fields_used =
-    Ast.fold_exprs
-      ~f:(fun struct_fields_used e ->
-        let rec structs_fields_used_expr e struct_fields_used =
-          match Mark.remove e with
-          | EDStructAccess { name_opt = Some name; e = e_struct; field } ->
-            let field =
-              StructName.Map.find name
-                (Ident.Map.find field p.program_ctx.ctx_struct_fields)
-            in
-            StructField.Set.add field
-              (structs_fields_used_expr e_struct struct_fields_used)
-          | EStruct { name = _; fields } ->
-            StructField.Map.fold
-              (fun field e_field struct_fields_used ->
-                StructField.Set.add field
-                  (structs_fields_used_expr e_field struct_fields_used))
-              fields struct_fields_used
-          | _ -> Expr.shallow_fold structs_fields_used_expr e struct_fields_used
-        in
-        structs_fields_used_expr e struct_fields_used)
-      ~init:StructField.Set.empty p
-  in
-  let scope_out_structs_fields =
-    ScopeName.Map.fold
-      (fun _ out_struct acc ->
-        ScopeVar.Map.fold
-          (fun _ field acc -> StructField.Set.add field acc)
-          out_struct.out_struct_fields acc)
-      p.program_ctx.ctx_scopes StructField.Set.empty
-  in
-  StructName.Map.iter
-    (fun s_name fields ->
-      if StructName.path s_name <> [] then
-        (* Only check structs from the current module *)
-        ()
-      else if
-        (not (StructField.Map.is_empty fields))
-        && StructField.Map.for_all
-             (fun field _ ->
-               (not (StructField.Set.mem field struct_fields_used))
-               && not (StructField.Set.mem field scope_out_structs_fields))
-             fields
-      then
-        Message.emit_spanned_warning
-          (snd (StructName.get_info s_name))
-          "The structure \"%a\" is never used; maybe it's unnecessary?"
-          StructName.format s_name
-      else
-        StructField.Map.iter
-          (fun field _ ->
-            if
-              (not (StructField.Set.mem field struct_fields_used))
-              && not (StructField.Set.mem field scope_out_structs_fields)
-            then
-              Message.emit_spanned_warning
-                (snd (StructField.get_info field))
-                "The field \"%a\" of struct @{<yellow>\"%a\"@} is never used; \
-                 maybe it's unnecessary?"
-                StructField.format field StructName.format s_name)
-          fields)
-    p.program_ctx.ctx_structs
+  if p.program_module_name <> None then ()
+  else
+    (* Disabled on modules *)
+    let struct_fields_used =
+      Ast.fold_exprs
+        ~f:(fun struct_fields_used e ->
+          let rec structs_fields_used_expr e struct_fields_used =
+            match Mark.remove e with
+            | EDStructAccess { name_opt = Some name; e = e_struct; field } ->
+              let field =
+                StructName.Map.find name
+                  (Ident.Map.find field p.program_ctx.ctx_struct_fields)
+              in
+              StructField.Set.add field
+                (structs_fields_used_expr e_struct struct_fields_used)
+            | EStruct { name = _; fields } ->
+              StructField.Map.fold
+                (fun field e_field struct_fields_used ->
+                  StructField.Set.add field
+                    (structs_fields_used_expr e_field struct_fields_used))
+                fields struct_fields_used
+            | _ ->
+              Expr.shallow_fold structs_fields_used_expr e struct_fields_used
+          in
+          structs_fields_used_expr e struct_fields_used)
+        ~init:StructField.Set.empty p
+    in
+    let scope_out_structs_fields =
+      ScopeName.Map.fold
+        (fun _ out_struct acc ->
+          ScopeVar.Map.fold
+            (fun _ field acc -> StructField.Set.add field acc)
+            out_struct.out_struct_fields acc)
+        p.program_ctx.ctx_scopes StructField.Set.empty
+    in
+    StructName.Map.iter
+      (fun s_name fields ->
+        if StructName.path s_name <> [] then
+          (* Only check structs from the current module *)
+          ()
+        else if
+          (not (StructField.Map.is_empty fields))
+          && StructField.Map.for_all
+               (fun field _ ->
+                 (not (StructField.Set.mem field struct_fields_used))
+                 && not (StructField.Set.mem field scope_out_structs_fields))
+               fields
+        then
+          Message.emit_spanned_warning
+            (snd (StructName.get_info s_name))
+            "The structure \"%a\" is never used; maybe it's unnecessary?"
+            StructName.format s_name
+        else
+          StructField.Map.iter
+            (fun field _ ->
+              if
+                (not (StructField.Set.mem field struct_fields_used))
+                && not (StructField.Set.mem field scope_out_structs_fields)
+              then
+                Message.emit_spanned_warning
+                  (snd (StructField.get_info field))
+                  "The field \"%a\" of struct @{<yellow>\"%a\"@} is never \
+                   used; maybe it's unnecessary?"
+                  StructField.format field StructName.format s_name)
+            fields)
+      p.program_ctx.ctx_structs
 
 let detect_unused_enum_constructors (p : program) : unit =
-  if p.program_module_name <> None then () else (* Disabled on modules *)
-  let enum_constructors_used =
-    Ast.fold_exprs
-      ~f:(fun enum_constructors_used e ->
-        let rec enum_constructors_used_expr e enum_constructors_used =
-          match Mark.remove e with
-          | EInj { name = _; e = e_enum; cons } ->
-            EnumConstructor.Set.add cons
-              (enum_constructors_used_expr e_enum enum_constructors_used)
-          | EMatch { e = e_match; name = _; cases } ->
-            let enum_constructors_used =
-              enum_constructors_used_expr e_match enum_constructors_used
-            in
-            EnumConstructor.Map.fold
-              (fun cons e_cons enum_constructors_used ->
-                EnumConstructor.Set.add cons
-                  (enum_constructors_used_expr e_cons enum_constructors_used))
-              cases enum_constructors_used
-          | _ ->
-            Expr.shallow_fold enum_constructors_used_expr e
-              enum_constructors_used
-        in
-        enum_constructors_used_expr e enum_constructors_used)
-      ~init:EnumConstructor.Set.empty p
-  in
-  EnumName.Map.iter
-    (fun e_name constructors ->
-      if EnumName.path e_name <> [] then
-        (* Only check enums from the current module *)
-        ()
-      else if
-        EnumConstructor.Map.for_all
-          (fun cons _ ->
-            not (EnumConstructor.Set.mem cons enum_constructors_used))
-          constructors
-      then
-        Message.emit_spanned_warning
-          (snd (EnumName.get_info e_name))
-          "The enumeration \"%a\" is never used; maybe it's unnecessary?"
-          EnumName.format e_name
-      else
-        EnumConstructor.Map.iter
-          (fun constructor _ ->
-            if not (EnumConstructor.Set.mem constructor enum_constructors_used)
-            then
-              Message.emit_spanned_warning
-                (snd (EnumConstructor.get_info constructor))
-                "The constructor \"%a\" of enumeration \"%a\" is never used; \
-                 maybe it's unnecessary?"
-                EnumConstructor.format constructor EnumName.format e_name)
-          constructors)
-    p.program_ctx.ctx_enums
+  if p.program_module_name <> None then ()
+  else
+    (* Disabled on modules *)
+    let enum_constructors_used =
+      Ast.fold_exprs
+        ~f:(fun enum_constructors_used e ->
+          let rec enum_constructors_used_expr e enum_constructors_used =
+            match Mark.remove e with
+            | EInj { name = _; e = e_enum; cons } ->
+              EnumConstructor.Set.add cons
+                (enum_constructors_used_expr e_enum enum_constructors_used)
+            | EMatch { e = e_match; name = _; cases } ->
+              let enum_constructors_used =
+                enum_constructors_used_expr e_match enum_constructors_used
+              in
+              EnumConstructor.Map.fold
+                (fun cons e_cons enum_constructors_used ->
+                  EnumConstructor.Set.add cons
+                    (enum_constructors_used_expr e_cons enum_constructors_used))
+                cases enum_constructors_used
+            | _ ->
+              Expr.shallow_fold enum_constructors_used_expr e
+                enum_constructors_used
+          in
+          enum_constructors_used_expr e enum_constructors_used)
+        ~init:EnumConstructor.Set.empty p
+    in
+    EnumName.Map.iter
+      (fun e_name constructors ->
+        if EnumName.path e_name <> [] then
+          (* Only check enums from the current module *)
+          ()
+        else if
+          EnumConstructor.Map.for_all
+            (fun cons _ ->
+              not (EnumConstructor.Set.mem cons enum_constructors_used))
+            constructors
+        then
+          Message.emit_spanned_warning
+            (snd (EnumName.get_info e_name))
+            "The enumeration \"%a\" is never used; maybe it's unnecessary?"
+            EnumName.format e_name
+        else
+          EnumConstructor.Map.iter
+            (fun constructor _ ->
+              if
+                not (EnumConstructor.Set.mem constructor enum_constructors_used)
+              then
+                Message.emit_spanned_warning
+                  (snd (EnumConstructor.get_info constructor))
+                  "The constructor \"%a\" of enumeration \"%a\" is never used; \
+                   maybe it's unnecessary?"
+                  EnumConstructor.format constructor EnumName.format e_name)
+            constructors)
+      p.program_ctx.ctx_enums
 
 (* Reachability in a graph can be implemented as a simple fixpoint analysis with
    backwards propagation. *)

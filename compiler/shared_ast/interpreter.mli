@@ -73,5 +73,7 @@ val interpret_program_lcalc :
     the computed values for the scope variables of the executed scope. *)
 
 val load_runtime_modules : _ program -> unit
-(** Dynlink the runtime modules required by the given program, in order to make them callable by the
-    interpreter. If Cli.globals.build_dir is specified, the runtime module names (as obtained by looking up the positions in the program's module bindings) are assumed to be relative and looked up there. *)
+(** Dynlink the runtime modules required by the given program, in order to make
+    them callable by the interpreter. If Cli.globals.build_dir is specified, the
+    runtime module names (as obtained by looking up the positions in the
+    program's module bindings) are assumed to be relative and looked up there. *)

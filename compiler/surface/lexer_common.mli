@@ -74,5 +74,7 @@ module type LocalisedLexer = sig
       depending of the current {!val:Surface.Lexer_common.context}. *)
 
   val lex_line : Sedlexing.lexbuf -> (string * line_token) option
-  (** Low-level lexer intended for dependency extraction. The whole line (including ["\n"] is always returned together with the token. [None] for EOF. *)
+  (** Low-level lexer intended for dependency extraction. The whole line
+      (including ["\n"] is always returned together with the token. [None] for
+      EOF. *)
 end

@@ -34,35 +34,37 @@
 
 (** {1 Ninja expressions} *)
 
-(** Ninja variable names, distinguishing binding name ("x") from references in expressions ("$x") *)
+(** Ninja variable names, distinguishing binding name ("x") from references in
+    expressions ("$x") *)
 module Var : sig
   type t
 
-  val make: string -> t
+  val make : string -> t
 
+  val name : t -> string
   (** Var base name, used when binding it *)
-  val name: t -> string
 
+  val v : t -> string
   (** Var reference with a preceding "$", for use in expressoins *)
-  val v: t -> string
 end
-
 
 (** Helper module to build ninja expressions. *)
 module Expr : sig
-  (** Ninja expressions are represented as raw string lists, which may contain variables or "$-escapes" *)
   type t = string list
+  (** Ninja expressions are represented as raw string lists, which may contain
+      variables or "$-escapes" *)
 
   val format : Format.formatter -> t -> unit
   (** [format fmt exp] outputs in [fmt] the string representation of the ninja
-      expression [exp]. Spaces in individual elements are escaped (but no check is made for e.g. newlines) *)
-
+      expression [exp]. Spaces in individual elements are escaped (but no check
+      is made for e.g. newlines) *)
 end
 
 module Binding : sig
   type t = Var.t * Expr.t
-  val make: Var.t -> Expr.t -> t
-  val format: global:bool -> Format.formatter -> t -> unit
+
+  val make : Var.t -> Expr.t -> t
+  val format : global:bool -> Format.formatter -> t -> unit
 end
 
 (** {1 Ninja rules} *)
@@ -79,7 +81,8 @@ module Rule : sig
           [description = <description>]
       ]} *)
 
-  val make : ?vars:Binding.t list -> string -> command:Expr.t -> description:Expr.t -> t
+  val make :
+    ?vars:Binding.t list -> string -> command:Expr.t -> description:Expr.t -> t
   (** [make name ~command ~description] returns the corresponding ninja
       {!type:Rule.t}. *)
 
@@ -125,18 +128,27 @@ module Build : sig
       [build]. *)
 end
 
-module Default: sig
+module Default : sig
   type t
-  val make: Expr.t -> t
-  val format: Format.formatter -> t -> unit
+
+  val make : Expr.t -> t
+  val format : Format.formatter -> t -> unit
 end
 
-type def = Comment of string | Binding of Binding.t | Rule of Rule.t | Build of Build.t | Default of Default.t
+type def =
+  | Comment of string
+  | Binding of Binding.t
+  | Rule of Rule.t
+  | Build of Build.t
+  | Default of Default.t
 
-val comment: string -> def
-val binding: Var.t -> Expr.t -> def
-val rule: ?vars:Binding.t list -> string -> command:Expr.t -> description:Expr.t -> def
-val build:
+val comment : string -> def
+val binding : Var.t -> Expr.t -> def
+
+val rule :
+  ?vars:Binding.t list -> string -> command:Expr.t -> description:Expr.t -> def
+
+val build :
   ?inputs:Expr.t ->
   ?implicit_in:Expr.t ->
   outputs:Expr.t ->
@@ -144,10 +156,10 @@ val build:
   ?vars:(Var.t * Expr.t) list ->
   string ->
   def
-val default: Expr.t -> def
 
-val format_def: Format.formatter -> def -> unit
+val default : Expr.t -> def
+val format_def : Format.formatter -> def -> unit
 
 type ninja = def Seq.t
 
-val format: Format.formatter -> ninja -> unit
+val format : Format.formatter -> ninja -> unit

@@ -20,7 +20,7 @@ type backend_lang = En | Fr | Pl
 (** The usual auto/always/never option argument *)
 type when_enum = Auto | Always | Never
 
-val when_opt: when_enum Cmdliner.Arg.conv
+val when_opt : when_enum Cmdliner.Arg.conv
 
 type message_format_enum =
   | Human

@@ -46,12 +46,9 @@ let load_module_interfaces options program files =
   let module MS = ModuleName.Set in
   let to_set intf_list =
     MS.of_list
-      (List.map (fun (mname, _) -> ModuleName.of_string mname)
-         intf_list)
+      (List.map (fun (mname, _) -> ModuleName.of_string mname) intf_list)
   in
-  let used_modules =
-    to_set program.Surface.Ast.program_modules
-  in
+  let used_modules = to_set program.Surface.Ast.program_modules in
   let load_file f =
     let lang = get_lang options (FileName f) in
     let (mname, intf), using =
@@ -62,38 +59,44 @@ let load_module_interfaces options program files =
   let module_interfaces = List.map load_file files in
   let rec check (required, acc) interfaces =
     let required, acc, remaining =
-      List.fold_left (fun (required, acc, skipped) ((modname, intf), using as modl) ->
+      List.fold_left
+        (fun (required, acc, skipped) (((modname, intf), using) as modl) ->
           if MS.mem modname required then
             let required =
-              List.fold_left (fun req m -> MS.add (ModuleName.of_string m) req) required using
+              List.fold_left
+                (fun req m -> MS.add (ModuleName.of_string m) req)
+                required using
             in
-            required, (((modname :> string Mark.pos), intf) :: acc), skipped
-          else
-            required, acc, (modl :: skipped))
-        (required, acc, [])
-        interfaces
+            required, ((modname :> string Mark.pos), intf) :: acc, skipped
+          else required, acc, modl :: skipped)
+        (required, acc, []) interfaces
     in
     if List.length remaining < List.length interfaces then
       (* Loop until fixpoint *)
       check (required, acc) remaining
-    else
-      required, acc, remaining
+    else required, acc, remaining
   in
   let required, loaded, unused = check (used_modules, []) module_interfaces in
   let missing =
-    MS.diff required (MS.of_list (List.map (fun (m,_) -> ModuleName.of_string m) loaded)) in
-  if not (MS.is_empty missing) || unused <> [] then
+    MS.diff required
+      (MS.of_list (List.map (fun (m, _) -> ModuleName.of_string m) loaded))
+  in
+  if (not (MS.is_empty missing)) || unused <> [] then
     Message.raise_multispanned_error
-      (List.map (fun m ->
-           Some (Format.asprintf "Required module not found: %a"
+      (List.map
+         (fun m ->
+           ( Some
+               (Format.asprintf "Required module not found: %a"
+                  ModuleName.format m),
+             ModuleName.pos m ))
+         (ModuleName.Set.elements missing)
+      @ List.map
+          (fun ((m, _), _) ->
+            ( Some
+                (Format.asprintf "No use was found for this module: %a"
                    ModuleName.format m),
-           ModuleName.pos m)
-          (ModuleName.Set.elements missing) @
-       List.map (fun ((m, _), _) ->
-           Some (Format.asprintf "No use was found for this module: %a"
-                   ModuleName.format m),
-           ModuleName.pos m)
-         unused)
+              ModuleName.pos m ))
+          unused)
       "Modules used from the program don't match the command-line";
   loaded
 

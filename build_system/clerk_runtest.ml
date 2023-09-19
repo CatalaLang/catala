@@ -196,7 +196,8 @@ let run_inline_tests
           output_string oc test.text_before;
           let cmd_out_rd, cmd_out_wr = Unix.pipe () in
           let ic = Unix.in_channel_of_descr cmd_out_rd in
-          (* let file_dir, file = Filename.dirname file, Filename.basename file in *)
+          (* let file_dir, file = Filename.dirname file, Filename.basename file
+             in *)
           let catala_exe =
             (* If the exe name contains directories, make it absolute. Otherwise
                don't modify it so that it can be looked up in PATH. *)
@@ -206,8 +207,10 @@ let run_inline_tests
           in
           let cmd =
             match test.params with
-            | cmd0 :: flags -> Array.of_list (catala_exe :: cmd0 :: catala_opts @ flags @ [file])
-            | [] -> Array.of_list (catala_exe :: catala_opts @ [file])
+            | cmd0 :: flags ->
+              Array.of_list
+                ((catala_exe :: cmd0 :: catala_opts) @ flags @ [file])
+            | [] -> Array.of_list ((catala_exe :: catala_opts) @ [file])
           in
           let env =
             Unix.environment ()
@@ -236,7 +239,9 @@ let run_inline_tests
           Unix.close cmd_out_wr;
           let rec process_cmd_out () =
             let s = input_line ic in
-            let s = Re.(replace_string (compile (str File.(file /../ ""))) ~by:"" s) in
+            let s =
+              Re.(replace_string (compile (str File.(file /../ ""))) ~by:"" s)
+            in
             if s = "```" || String.starts_with ~prefix:"#return code" s then
               output_char oc '\\';
             let rec trail s i =

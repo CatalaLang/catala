@@ -121,14 +121,14 @@ let ( / ) = Filename.concat
 let dirname = Filename.dirname
 let ( /../ ) a b = dirname a / b
 let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
-
 let equal = String.equal
 let compare = String.compare
 let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
 
-module Set = Set.Make(struct
-    type nonrec t = t
-    let compare = compare
+module Set = Set.Make (struct
+  type nonrec t = t
+
+  let compare = compare
 end)
 
 let scan_tree f t =
@@ -147,9 +147,7 @@ let scan_tree f t =
     |> do_files
   and do_files flist =
     let dirs, files =
-      flist
-      |> List.sort (fun a b -> -compare a b)
-      |> List.partition is_dir
+      flist |> List.sort (fun a b -> -compare a b) |> List.partition is_dir
     in
     Seq.append
       (Seq.concat (Seq.map do_dir (List.to_seq dirs)))

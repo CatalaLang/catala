@@ -172,8 +172,8 @@ let rec disambiguate_constructor
     let modname = ModuleName.of_string modname in
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
-      Message.raise_spanned_error (ModuleName.pos modname) "Module \"%a\" not found"
-        ModuleName.format modname
+      Message.raise_spanned_error (ModuleName.pos modname)
+        "Module \"%a\" not found" ModuleName.format modname
     | Some ctxt ->
       let constructor =
         List.map (Mark.map (fun (_, c) -> path, c)) constructor0
@@ -419,8 +419,8 @@ let rec translate_expr
           let modname = ModuleName.of_string modname in
           match ModuleName.Map.find_opt modname ctxt.modules with
           | None ->
-            Message.raise_spanned_error (ModuleName.pos modname) "Module \"%a\" not found"
-              ModuleName.format modname
+            Message.raise_spanned_error (ModuleName.pos modname)
+              "Module \"%a\" not found" ModuleName.format modname
           | Some ctxt -> get_str ctxt path)
       in
       Expr.edstructaccess ~e ~field:(Mark.remove x)
@@ -1470,7 +1470,8 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       {
         Ast.program_lang = surface.program_lang;
         Ast.program_module_name =
-          Option.map ModuleName.of_string surface.Surface.Ast.program_module_name;
+          Option.map ModuleName.of_string
+            surface.Surface.Ast.program_module_name;
         Ast.program_ctx =
           {
             (* After name resolution, type definitions (structs and enums) are
@@ -1526,8 +1527,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         (fun prgm child -> process_structure prgm child)
         prgm children
     | S.CodeBlock (block, _, _) -> process_code_block ctxt prgm block
-    | S.LawInclude _ | S.LawText _
-    | S.ModuleUse _ | S.ModuleDef _ -> prgm
+    | S.LawInclude _ | S.LawText _ | S.ModuleUse _ | S.ModuleDef _ -> prgm
   in
   let desugared =
     List.fold_left

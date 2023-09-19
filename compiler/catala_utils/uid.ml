@@ -95,14 +95,15 @@ module Module = struct
     let compare = Mark.compare String.compare
     let format ppf m = Format.fprintf ppf "@{<blue>%s@}" (Mark.remove m)
   end
+
   include Ordering
 
   let to_string m = Mark.remove m
   let of_string m = m
   let pos m = Mark.get m
 
-  module Set = Set.Make(Ordering)
-  module Map = Map.Make(Ordering)
+  module Set = Set.Make (Ordering)
+  module Map = Map.Make (Ordering)
 end
 (* TODO: should probably be turned into an uid once we implement module import
    directives; that will incur an additional resolution work on all paths though

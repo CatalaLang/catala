@@ -194,7 +194,11 @@ module Flags = struct
     let build_dir =
       value
       & opt (some string) None
-      & info ["build-dir"] ~docv:"DIR" ~doc:"Directory where build artefacts are expected to be found. This doesn't affect outptuts, but is used when looking up compiled modules."
+      & info ["build-dir"] ~docv:"DIR"
+          ~doc:
+            "Directory where build artefacts are expected to be found. This \
+             doesn't affect outptuts, but is used when looking up compiled \
+             modules."
 
     let disable_warnings =
       value
@@ -330,7 +334,6 @@ module Flags = struct
           "Disables the search for counterexamples. Useful when you want a \
            deterministic output from the Catala compiler, since provers can \
            have some randomness in them."
-
 end
 
 (* Retrieve current version from dune *)
