@@ -752,6 +752,11 @@ and partially_evaluate_expr_for_assertion_failure_message :
     type d e.
     decl_ctx -> ((d, e, yes) astk, 't) gexpr -> ((d, e, yes) astk, 't) gexpr =
  fun ctx e ->
+  (* Here we want to print an expression that explains why an assertion has
+     failed. Since assertions have type [bool] and are usually constructed with
+     comparisons and logical operators, we leave those unevaluated at the top of
+     the AST while evaluating everything below. This makes for a good error
+     message. *)
   match Mark.remove e with
   | EApp { f = EOp ({ op = op_kind; _ } as op), m; args = [e1; e2] }
     when match op_kind with
