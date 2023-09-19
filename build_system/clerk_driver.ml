@@ -15,7 +15,6 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-open Cmdliner
 open Catala_utils
 open Ninja_utils
 module Nj = Ninja_utils
@@ -26,146 +25,149 @@ let version =
 
 (** {1 Command line interface} *)
 
-let files_or_folders =
-  Arg.(
-    value
-    & pos_right 0 file []
-    & info [] ~docv:"FILE(S)" ~doc:"File(s) or folder(s) to process")
+module Cli = struct
 
-let command =
-  Arg.(
-    required
-    & pos 0 (some (enum ["test", `Test; "run", `Run; "runtest", `Runtest])) None
-    & info [] ~docv:"COMMAND" ~doc:"Main command to run")
+  open Cmdliner
 
-let debug =
-  Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information")
+  let catala_exe =
+    Arg.(
+      value
+      & opt (some string) None
+      & info ["e"; "exe"] ~docv:"EXE"
+        ~doc:"Catala compiler executable.")
 
-let chdir =
-  Arg.(value & opt (some string) None
-       & info ["C"] ~docv:"DIR"
-         ~doc:"Change to the given directory before processing")
+  let catala_opts =
+    Arg.(
+      value
+      & opt_all string []
+      & info ["c"; "catala-opts"] ~docv:"FLAG"
+        ~doc:"Option to pass to the Catala compiler. Can be repeated.")
 
-let reset_test_outputs =
-  Arg.(
-    value
-    & flag
-    & info ["r"; "reset"]
+  module Global: sig
+    val term:
+      (chdir:File.t option -> catala_exe:File.t option -> catala_opts:string list -> color:Cli.when_enum -> debug:bool -> ninja_output:File.t option -> 'a) -> 'a Term.t
+  end = struct
+
+    let chdir =
+      Arg.(value & opt (some string) None
+           & info ["C"] ~docv:"DIR"
+             ~doc:"Change to the given directory before processing")
+
+    let color =
+      Arg.(value
+           & opt ~vopt:Cli.Always Cli.when_opt Auto
+           & info ["color"]
+             ~env:(Cmd.Env.info "CATALA_COLOR")
+             ~doc:
+               "Allow output of colored and styled text. Use $(i,auto), to \
+                enable when the standard output is to a terminal, $(i,never) to \
+                disable.")
+
+    let debug =
+      Arg.(value & flag & info ["debug"; "d"] ~doc:"Prints debug information")
+
+    let ninja_output =
+      Arg.(
+        value
+        & opt (some string) None
+        & info ["o"; "output"] ~docv:"FILE"
+          ~doc:
+            "$(i,FILE) is the file that will contain the build.ninja file \
+             output. If not specified, the build.ninja file will be output in \
+             the temporary directory of the system and cleaned up on exit.")
+
+    let term f =
+      Term.(const
+              (fun chdir catala_exe catala_opts color debug ninja_output ->
+                 f ~chdir ~catala_exe ~catala_opts ~color ~debug ~ninja_output)
+            $ chdir $ catala_exe $ catala_opts $ color $ debug $ ninja_output)
+
+  end
+
+  let files_or_folders =
+    Arg.(
+      value
+      & pos_all file []
+      & info [] ~docv:"FILE(S)" ~doc:"File(s) or folder(s) to process")
+
+  let single_file =
+    Arg.(
+      required
+      & pos 0 (some file) None
+      & info [] ~docv:"FILE" ~doc:"File to process")
+
+  let reset_test_outputs =
+    Arg.(
+      value
+      & flag
+      & info ["r"; "reset"]
         ~doc:
           "Used with the `test` command, resets the test output to whatever is \
            output by the Catala compiler.")
 
-let catalac =
-  Arg.(
-    value
-    & opt (some string) None
-    & info ["e"; "exe"] ~docv:"EXE"
-        ~doc:"Catala compiler executable.")
-
-let ninja_output =
-  Arg.(
-    value
-    & opt (some string) None
-    & info ["o"; "output"] ~docv:"FILE"
-        ~doc:
-          "$(i,FILE) is the file that will contain the build.ninja file \
-           output. If not specified, the build.ninja file will be output in \
-           the temporary directory of the system and cleaned up on exit.")
-
-let scope =
-  Arg.(
-    value
-    & opt (some string) None
-    & info ["s"; "scope"] ~docv:"SCOPE"
+  let scope =
+    Arg.(
+      required
+      & opt (some string) None
+      & info ["s"; "scope"] ~docv:"SCOPE"
         ~doc:
           "Used with the `run` command, selects which scope of a given Catala \
            file to run.")
 
-let makeflags =
-  Arg.(
-    value
-    & opt (some string) None
-    & info ["makeflags"] ~docv:"FLAG"
-        ~doc:
-          "Provides the contents of a $(i, MAKEFLAGS) variable to pass on to \
-           Ninja. Currently recognizes the -i and -j options.")
+  let ninja_flags =
+    let env =
+      Cmd.Env.info ~doc:("make-compatible flags handling. Currently recognizes the -i and -j options and forwards them through to Ninja.")
+        "MAKEFLAGS"
+    in
+    let makeflags =
+      Arg.(
+        value
+        & opt (some string) None
+        & info ["makeflags"] ~env ~docv:"FLAG"
+          ~doc:
+            "Provides the contents of a $(i, MAKEFLAGS) variable to pass on to \
+             Ninja. Currently recognizes the -i and -j options.")
+    in
+    let makeflags_to_ninja_flags (makeflags : string option) =
+      match makeflags with
+      | None -> ""
+      | Some makeflags ->
+        let ignore_rex = Re.(compile @@ word (char 'i')) in
+        let has_ignore = Re.execp ignore_rex makeflags in
+        let jobs_rex = Re.(compile @@ seq [str "-j"; group (rep digit)]) in
+        let number_of_jobs =
+          try ["-j" ^ Re.Group.get (Re.exec jobs_rex makeflags) 1] with _ -> []
+        in
+        String.concat " " ((if has_ignore then ["-k0"] else []) @ number_of_jobs)
+    in
+    Term.(const makeflags_to_ninja_flags $ makeflags)
 
-let catala_opts =
-  Arg.(
-    value
-    & opt_all string []
-    & info ["c"; "catala-opts"] ~docv:"FLAG"
-        ~doc:"Option to pass to the Catala compiler. Can be repeated.")
-
-let color =
-  Arg.(value
-       & opt ~vopt:Cli.Always Cli.when_opt Auto
-       & info ["color"]
-         ~env:(Cmd.Env.info "CATALA_COLOR")
-         ~doc:
-           "Allow output of colored and styled text. Use $(i,auto), to \
-            enable when the standard output is to a terminal, $(i,never) to \
-            disable.")
-
-let clerk_t f =
-  Term.(
-    const f
-    $ files_or_folders
-    $ command
-    $ chdir
-    $ catalac
-    $ catala_opts
-    $ makeflags
-    $ debug
-    $ color
-    $ scope
-    $ reset_test_outputs
-    $ ninja_output)
-
-let info =
-  let doc =
-    "Build system for Catala, a specification language for tax and social \
-     benefits computation rules."
-  in
-  let man =
-    [
-      `S Manpage.s_description;
-      `P
-        "$(b,clerk) is a build system for Catala, a specification language for \
-         tax and social benefits computation rules";
-      `S Manpage.s_commands;
-      `I
-        ( "test",
-          "Tests a Catala source file given expected outputs provided in a \
-           directory called `output` at the same level that the tested file. \
-           If the tested file is `foo.catala_en`, then `output` should contain \
-           expected output files like `foo.catala_en.$(i,BACKEND)` where  \
-           $(i,BACKEND) is chosen among: `Interpret`, `Dcalc`, `Scalc`, \
-           `Lcalc`, `Typecheck, `Scopelang`, `html`, `tex`, `py`, `ml` and `d` \
-           (for Makefile dependencies). For the `Interpret` backend, the scope \
-           to test is selected by naming the expected output file \
-           `foo.catala_en.$(i,SCOPE).interpret`. When the argument of \
-           $(b,clerk) is a folder, it recursively looks for Catala files \
-           coupled with `output` directories and matching expected output on \
-           which to perform tests." );
-      `I
-        ( "run",
-          "Runs the Catala interpreter on a given scope of a given file. See \
-           the `-s` option." );
-      (* "runtest" is for internal use and not documented here *)
-      `S Manpage.s_authors;
-      `P "Denis Merigoux <denis.merigoux@inria.fr>";
-      `P "Emile Rolley <emile.rolley@tuta.io>";
-      `S Manpage.s_examples;
-      `P "Typical usage:";
-      `Pre "clerk test file.catala_en";
-      `S Manpage.s_bugs;
-      `P
-        "Please file bug reports at https://github.com/CatalaLang/catala/issues";
-    ]
-  in
-  let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
-  Cmd.info "clerk" ~version ~doc ~exits ~man
+  let info =
+    let doc =
+      "Build system for Catala, a specification language for tax and social \
+       benefits computation rules."
+    in
+    let man =
+      [
+        `S Manpage.s_description;
+        `P
+          "$(b,clerk) is a build system for Catala, a specification language for \
+           tax and social benefits computation rules";
+        `S Manpage.s_authors;
+        `P "Denis Merigoux <denis.merigoux@inria.fr>";
+        `P "Emile Rolley <emile.rolley@tuta.io>";
+        `P "Louis Gesbert <louis.gesbert@inria.fr>";
+        `S Manpage.s_examples;
+        `P "Typical usage:";
+        `Pre "clerk test file.catala_en";
+        `S Manpage.s_bugs;
+        `P
+          "Please file bug reports at https://github.com/CatalaLang/catala/issues";
+      ]
+    in
+    let exits = Cmd.Exit.defaults @ [Cmd.Exit.info ~doc:"on error." 1] in
+    Cmd.info "clerk" ~version ~doc ~exits ~man
+end
 
 (**{1 Collecting items from files}*)
 
@@ -201,7 +203,7 @@ let test_command_re =
   compile @@
   seq [bos; char '$'; rep space; str "catala"; rep space; group (rep1 notnl); char '\n']
 
-let scan_catala_file (file : File.t) (lang : Cli.backend_lang) :
+let scan_catala_file (file : File.t) (lang : Catala_utils.Cli.backend_lang) :
     catala_build_item =
   let module L = Surface.Lexer_common in
   let rec parse lines n acc =
@@ -265,7 +267,7 @@ let scan_catala_file (file : File.t) (lang : Cli.backend_lang) :
 
 let get_lang file =
   Option.bind (Re.exec_opt catala_suffix_regex file) @@ fun g ->
-  List.assoc_opt (Re.Group.get g 1) Cli.languages
+  List.assoc_opt (Re.Group.get g 1) Catala_utils.Cli.languages
 
 let scan_tree (dir : File.t) : catala_build_item Seq.t =
   File.scan_tree
@@ -707,96 +709,101 @@ let return_err = 1
 
 (** {1 Driver} *)
 
-let makeflags_to_ninja_flags (makeflags : string option) =
-  match makeflags with
-  | None -> ""
-  | Some makeflags ->
-    let ignore_rex = Re.(compile @@ word (char 'i')) in
-    let has_ignore = Re.execp ignore_rex makeflags in
-    let jobs_rex = Re.(compile @@ seq [str "-j"; group (rep digit)]) in
-    let number_of_jobs =
-      try ["-j" ^ Re.Group.get (Re.exec jobs_rex makeflags) 1] with _ -> []
-    in
-    String.concat " " ((if has_ignore then ["-k0"] else []) @ number_of_jobs)
+let ninja_init ~chdir ~catala_exe ~catala_opts ~color ~debug ~ninja_output :
+  extra:def Seq.t -> (File.t -> 'a) -> 'a
+  =
+  Option.iter Sys.chdir chdir;
+  let _options = Catala_utils.Cli.enforce_globals ~debug ~color () in
+  let with_ninja_output k =
+    match ninja_output with
+    | Some f -> k f
+    | None -> File.with_temp_file "clerk_build_" ".ninja" k
+  in
+  fun ~extra k ->
+    Message.emit_debug "building ninja rules...";
+    with_ninja_output
+    @@ fun nin_file ->
+    File.with_formatter_of_file nin_file (fun nin_ppf ->
+        let ninja_contents =
+          Seq.concat @@ List.to_seq [
+            gen_ninja_file catala_exe catala_opts ".";
+            Seq.return (Nj.comment "\n - Command-specific targets - #");
+            extra
+          ]
+        in
+        Nj.format nin_ppf ninja_contents);
+    k nin_file
 
-let driver
-    (files_or_folders : string list)
-    (command : [> ])
-    (chdir : string option)
-    (catala_exe : string option)
-    (catala_opts : string list)
-    (makeflags : string option)
-    (debug : bool)
-    (color : Cli.when_enum)
-    (scope : string option)
-    (reset_test_outputs : bool)
-    (ninja_output : string option) : int =
-  try
-    Option.iter Sys.chdir chdir;
-    let _options = Cli.enforce_globals ~debug ~color () in
-    let ninja_flags = makeflags_to_ninja_flags makeflags in
-    let with_ninja_file ?(extra=Seq.empty) k =
-      let with_ninja_output k =
-        match ninja_output with
-        | Some f -> k f
-        | None -> File.with_temp_file "clerk_build_" ".ninja" k
-      in
-      Message.emit_debug "building ninja rules...";
-      with_ninja_output
-      @@ fun nin_file ->
-      File.with_formatter_of_file nin_file (fun nin_ppf ->
-          let ninja_contents =
-            Seq.concat @@ List.to_seq [
-              gen_ninja_file catala_exe catala_opts ".";
-              Seq.return (Nj.comment "\n - Command-specific targets - #");
-              extra
-            ]
-          in
-          Nj.format nin_ppf ninja_contents);
-      k nin_file
-    in
-    match command with
-    | `Test ->
-      let targets =
-        let target = if reset_test_outputs then "test-reset" else "test" in
-        match files_or_folders with
-        | [] -> [target]
-        | files -> List.map (fun f -> target ^ "@" ^ f) files
-      in
-      let extra = Seq.return (Nj.default targets) in
-      with_ninja_file ~extra @@ fun nin_file ->
-      let ninja_cmd =
-        String.concat " " ["ninja -k 0 -f"; nin_file; ninja_flags]
-      in
-      Message.emit_debug "executing '%s'..." ninja_cmd;
-      Sys.command ninja_cmd
-    | `Run ->
-      let extra =
-        Seq.append
-          (match scope with
-           | Some scope -> Seq.return (Nj.binding Var.scope [scope])
-           | None -> Seq.empty)
-          (Seq.return
-             (Nj.default (List.map (fun file -> "interpret@"^file) files_or_folders)))
-      in
-      with_ninja_file ~extra @@ fun nin_file ->
-      let ninja_cmd =
-        String.concat " " ["ninja -k 0 -f"; nin_file; ninja_flags]
-      in
-      Message.emit_debug "executing '%s'..." ninja_cmd;
-      Sys.command ninja_cmd
-    | `Runtest -> (
-        match files_or_folders with
-        | [f] ->
-          Clerk_runtest.run_inline_tests ~reset:reset_test_outputs f
-            (Option.value ~default:"catala" catala_exe)
-            catala_opts;
-          0
-        | _ -> Message.raise_error "Please specify a single catala file to test")
-  with Message.CompilerError content ->
-    let bt = Printexc.get_raw_backtrace () in
-    Message.Content.emit content Error;
-    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
-    return_err
+open Cmdliner
 
-let main () = exit (Cmdliner.Cmd.eval' (Cmdliner.Cmd.v info (clerk_t driver)))
+let test_cmd =
+  let run ninja_init
+      (files_or_folders : string list)
+      (reset_test_outputs : bool)
+      (ninja_flags : string)
+    =
+    let targets =
+      let target = if reset_test_outputs then "test-reset" else "test" in
+      match files_or_folders with
+      | [] -> [target]
+      | files -> List.map (fun f -> target ^ "@" ^ f) files
+    in
+    let extra = Seq.return (Nj.default targets) in
+    ninja_init ~extra @@ fun nin_file ->
+    let ninja_cmd =
+      String.concat " " ["ninja -k 0 -f"; nin_file; ninja_flags]
+    in
+    Message.emit_debug "executing '%s'..." ninja_cmd;
+    Sys.command ninja_cmd
+  in
+  let doc =
+    "Scan the given files or directories for catala tests, build their requirement and run them all. With $(b,--reset) the expected results are updated in-place ; otherwise, 0 is returned if the output matches the reference, or 1 is returned and a diff is printed to stdout"
+  in
+  Cmd.v
+    (Cmd.info ~doc "test")
+    Term.(const run $ Cli.Global.term ninja_init $ Cli.files_or_folders $ Cli.reset_test_outputs $ Cli.ninja_flags)
+
+let run_cmd =
+  let run ninja_init
+      (files_or_folders : string list)
+      (scope: string)
+      (ninja_flags : string)
+    =
+    let extra =
+      Seq.cons (Nj.binding Var.scope [scope])
+        (Seq.return
+           (Nj.default (List.map (fun file -> "interpret@"^file) files_or_folders)))
+    in
+    ninja_init ~extra @@ fun nin_file ->
+    let ninja_cmd =
+      String.concat " " ["ninja -k 0 -f"; nin_file; ninja_flags]
+    in
+    Message.emit_debug "executing '%s'..." ninja_cmd;
+    Sys.command ninja_cmd
+  in
+  let doc =
+    "Runs the Catala interpreter on the given files, after building their dependencies. The scope to be executed must be specified using the $(i,-s) option."
+  in
+  Cmd.v
+    (Cmd.info ~doc "run")
+    Term.(const run $ Cli.Global.term ninja_init $ Cli.files_or_folders $ Cli.scope $ Cli.ninja_flags)
+
+let runtest_cmd =
+  let run catala_exe catala_opts reset file =
+    Clerk_runtest.run_inline_tests file ~reset
+      (Option.value ~default:"catala" catala_exe)
+      catala_opts;
+    0
+  in
+  let doc =
+    "Mainly for internal purposes. Runs inline tests from a Catala file, and outputs their results to stdout"
+  in
+  Cmd.v
+    (Cmd.info ~doc "runtest")
+    Term.(const run $ Cli.catala_exe $ Cli.catala_opts $ Cli.reset_test_outputs $ Cli.single_file)
+
+let main_cmd =
+  Cmd.group Cli.info [(* build_cmd; *) test_cmd; run_cmd; runtest_cmd]
+
+let main () = exit (Cmdliner.Cmd.eval' main_cmd)
+
