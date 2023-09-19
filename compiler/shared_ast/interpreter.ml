@@ -700,20 +700,11 @@ let rec evaluate_expr :
     propagate_empty_error (evaluate_expr ctx e') (fun e ->
         match Mark.remove e with
         | ELit (LBool true) -> Mark.add m (ELit LUnit)
-        | ELit (LBool false) -> (
-          match Mark.remove (Expr.skip_wrappers e') with
-          | EApp
-              {
-                f = EOp { op; _ }, _;
-                args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
-              } ->
-            Message.raise_spanned_error (Expr.pos e')
-              "Assertion failed: %a %a %a" (Print.expr ()) e1
-              (Print.operator ~debug:Cli.globals.debug)
-              op (Print.expr ()) e2
-          | _ ->
-            Message.emit_debug "%a" (Print.expr ()) e';
-            Message.raise_spanned_error (Expr.mark_pos m) "Assertion failed")
+        | ELit (LBool false) ->
+          Message.raise_spanned_error (Expr.pos e') "Assertion failed:@\n%a"
+            (Print.expr ())
+            (partially_evaluate_expr_for_assertion_failure_message ctx
+               (Expr.skip_wrappers e'))
         | _ ->
           Message.raise_spanned_error (Expr.pos e')
             "Expected a boolean literal for the result of this assertion \
@@ -756,6 +747,33 @@ let rec evaluate_expr :
     with CatalaException caught when Expr.equal_except caught exn ->
       evaluate_expr ctx handler)
   | _ -> .
+
+and partially_evaluate_expr_for_assertion_failure_message :
+    type d e.
+    decl_ctx -> ((d, e, yes) astk, 't) gexpr -> ((d, e, yes) astk, 't) gexpr =
+ fun ctx e ->
+  match Mark.remove e with
+  | EApp { f = EOp ({ op = op_kind; _ } as op), m; args = [e1; e2] }
+    when match op_kind with
+         | And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
+         | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
+         | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
+         | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
+         | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
+         | Eq_dur_dur | Eq_dat_dat ->
+           true
+         | _ -> false ->
+    ( EApp
+        {
+          f = EOp op, m;
+          args =
+            [
+              partially_evaluate_expr_for_assertion_failure_message ctx e1;
+              partially_evaluate_expr_for_assertion_failure_message ctx e2;
+            ];
+        },
+      Mark.get e )
+  | _ -> evaluate_expr ctx e
 
 (* Typing shenanigan to add custom terms to the AST type. This is an identity
    and could be optimised into [Obj.magic]. *)
