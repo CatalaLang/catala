@@ -147,6 +147,44 @@ l'article 18 sont applicables aux pensions prenant effet à compter du 1er juill
 
 ##### Chapitre 1er : Ouverture du droit, liquidation et calcul des pensions de retraite
 
+###### Section 1 : Conditions d'âge
+
+####### Article L351-1-5 | LEGIARTI000047449233
+
+La condition d'âge prévue au premier alinéa de l'article L. 351-1 est abaissée,
+dans des conditions fixées par décret, pour les assurés reconnus inaptes au
+travail dans les conditions prévues à l'article L. 351-7 et pour ceux justifiant
+d'une incapacité permanente au moins égale à un taux fixé par décret.
+
+```catala
+# Définit ÉligibilitéAidesPersonnelleLogement.âge_l351_1_5_sécu,
+# mais valeur dans un décret.
+```
+
+###### Section 2 : Périodes d'assurance, périodes équivalentes et périodes assimilées
+
+####### Sous-section 1 : Dispositions générales.
+
+######## Article D351-1-14 | LEGIARTI000047634688
+
+L'âge prévu au premier alinéa de l'article L. 351-1 est abaissé, en application
+de l'article L. 351-1-5, à soixante-deux ans pour les assurés reconnus inaptes
+au travail dans les conditions prévues à l'article L. 351-7 et pour les assurés
+dont l'incapacité permanente est supérieure ou égale au pourcentage prévu pour
+l'application de l'article L. 821-2.
+
+```catala
+champ d'application ÉligibilitéAidesPersonnelleLogement
+  sous condition date_courante >= |2023-09-01|:
+
+  définition âge_l351_1_5_sécu égal à 62 an
+```
+
+NOTA :
+Conformément à l'article 9 du décret n° 2023-436 du 3 juin 2023,
+ces dispositions s'appliquent aux pensions prenant effet à compter
+du 1er septembre 2023.
+
 ###### Section 5 : Taux et montant de la pension
 
 ####### Article L351-8 | LEGIARTI000028498855
