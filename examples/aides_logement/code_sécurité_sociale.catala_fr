@@ -175,7 +175,16 @@ l'application de l'article L. 821-2.
 
 ```catala
 champ d'application ÉligibilitéAidesPersonnelleLogement
-  sous condition date_courante >= |2023-09-01|:
+  sous condition date_courante >= |2023-09-01|
+    # L'article L351-1-5 du CCS est entré en vigueur au 1er septembre 2023,
+    # aussi le code Catala appelé avec une date antérieure ne devrait pas avoir
+    # besoin de cette valeur. Cependant, la sémantique de Catala fait que
+    # la variable "âge_l351_1_5_sécu" est calculée quelque soit la date,
+    # même si elle n'est pas utilisée ; or si nous ne donnons pas de définition
+    # à "âge_l351_1_5_sécu" avant le 1er septembre 2023 nous allons avoir une
+    # erreur à l'exécution. Ainsi, nous définissons rétroactivement cette
+    # valeur avec la condition ci-dessous, même si c'est un anachronisme.
+    ou date_courante <= |2023-09-01|:
 
   définition âge_l351_1_5_sécu égal à 62 an
 ```
