@@ -31,21 +31,19 @@ let () =
        method computeAllocationsFamiliales
            : (AF_web.interface_allocations_familiales_in -> float) Js.callback =
          Js.wrap_callback (fun interface_allocations_familiales_in ->
-             execute_or_throw_error (fun () ->
-                 let result =
-                   interface_allocations_familiales_in
-                   |> AF_web.interface_allocations_familiales
-                 in
-                 result##.iMontantVerse))
+             let result =
+               interface_allocations_familiales_in
+               |> AF_web.interface_allocations_familiales
+             in
+             result##.iMontantVerse)
 
        method computeAidesAuLogement
            : (AL_web.calculette_aides_au_logement_garde_alternee_in -> float)
              Js.callback =
          Js.wrap_callback (fun calculette_aides_au_logement_garde_alternee_in ->
-             execute_or_throw_error (fun () ->
-                 let result =
-                   calculette_aides_au_logement_garde_alternee_in
-                   |> AL_web.calculette_aides_au_logement_garde_alternee
-                 in
-                 result##.aideFinale))
+             let result =
+               calculette_aides_au_logement_garde_alternee_in
+               |> AL_web.calculette_aides_au_logement_garde_alternee
+             in
+             result##.aideFinale)
     end)
