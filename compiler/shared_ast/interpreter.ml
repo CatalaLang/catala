@@ -800,17 +800,11 @@ let delcustom e =
   in
   Expr.unbox (f e)
 
-(* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
-   external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
-   and [delcustom] are needed to expand and shrink the type of the terms to
-   reflect that. *)
-let evaluate_expr ctx e = delcustom (evaluate_expr ctx (addcustom e))
-
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let e = Expr.unbox @@ Program.to_expr p s in
   let ctx = p.decl_ctx in
-  match evaluate_expr ctx e with
+  match evaluate_expr ctx (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -843,7 +837,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     match Mark.remove (evaluate_expr ctx (Expr.unbox to_interpret)) with
     | EStruct { fields; _ } ->
       List.map
-        (fun (fld, e) -> StructField.get_info fld, e)
+        (fun (fld, e) -> StructField.get_info fld, delcustom e)
         (StructField.Map.bindings fields)
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
@@ -860,7 +854,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
-  match evaluate_expr p.decl_ctx e with
+  match evaluate_expr p.decl_ctx (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -894,7 +888,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     match Mark.remove (evaluate_expr ctx (Expr.unbox to_interpret)) with
     | EStruct { fields; _ } ->
       List.map
-        (fun (fld, e) -> StructField.get_info fld, e)
+        (fun (fld, e) -> StructField.get_info fld, delcustom e)
         (StructField.Map.bindings fields)
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
@@ -905,6 +899,12 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     Message.raise_spanned_error (Expr.pos e)
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
+
+(* Evaluation may introduce intermediate custom terms ([ECustom], pointers to
+   external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
+   and [delcustom] are needed to expand and shrink the type of the terms to
+   reflect that. *)
+let evaluate_expr ctx e = delcustom (evaluate_expr ctx (addcustom e))
 
 let load_runtime_modules = function
   | [] -> ()
