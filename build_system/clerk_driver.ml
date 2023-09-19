@@ -114,6 +114,13 @@ module Cli = struct
           "Used with the `run` command, selects which scope of a given Catala \
            file to run.")
 
+  let targets =
+    Arg.(
+      value
+      & pos_all string []
+      & info [] ~docv:"TARGETS"
+        ~doc:"Flags or targets to forward to Ninja directly (use $(b,-- ninja_flags) to separate Ninja flags from Clerk flags)")
+
   let ninja_flags =
     let env =
       Cmd.Env.info ~doc:("make-compatible flags handling. Currently recognizes the -i and -j options and forwards them through to Ninja.")
@@ -308,7 +315,8 @@ module Poll = struct
   )
 
   let build_dir: File.t Lazy.t = lazy (
-    File.(Sys.getcwd () / "_build")
+    "_build"
+    (* Note: it could be safer here to use File.(Sys.getcwd () / "_build"), but Ninja treats relative and absolute paths separately so that you wouldn't then be able to build target _build/foo.ml but would have to write the full path every time *)
   )
   (* TODO: probably detect the project root and put this there instead *)
 
@@ -736,6 +744,25 @@ let ninja_init ~chdir ~catala_exe ~catala_opts ~color ~debug ~ninja_output :
 
 open Cmdliner
 
+let build_cmd =
+  let run ninja_init
+      (targets : string list)
+      (ninja_flags : string)
+    =
+    ninja_init ~extra:Seq.empty @@ fun nin_file ->
+    let ninja_cmd =
+      String.concat " " (["ninja -k 0 -f"; nin_file; ninja_flags] @ targets)
+    in
+    Message.emit_debug "executing '%s'..." ninja_cmd;
+    Sys.command ninja_cmd
+  in
+  let doc =
+    "Low-level build command: can be used to forward build targets or options directly to Ninja"
+  in
+  Cmd.v
+    (Cmd.info ~doc "build")
+    Term.(const run $ Cli.Global.term ninja_init $ Cli.targets $ Cli.ninja_flags)
+
 let test_cmd =
   let run ninja_init
       (files_or_folders : string list)
@@ -803,7 +830,7 @@ let runtest_cmd =
     Term.(const run $ Cli.catala_exe $ Cli.catala_opts $ Cli.reset_test_outputs $ Cli.single_file)
 
 let main_cmd =
-  Cmd.group Cli.info [(* build_cmd; *) test_cmd; run_cmd; runtest_cmd]
+  Cmd.group Cli.info [build_cmd; test_cmd; run_cmd; runtest_cmd]
 
 let main () = exit (Cmdliner.Cmd.eval' main_cmd)
 
