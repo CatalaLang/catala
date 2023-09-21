@@ -58,7 +58,7 @@ let wrap_latex
 \usepackage{fontspec}
 \usepackage[hidelinks]{hyperref}
 %s
-\usepackage{fancyvrb}
+\usepackage{fancyvrb,fvextra}
 \usepackage{color}
 \usepackage{longtable}
 \usepackage{booktabs,tabularx}
@@ -127,10 +127,17 @@ let wrap_latex
 \newcommand*\FancyVerbStartString{\PY{l+s}{```catala}}
 \newcommand*\FancyVerbStopString{\PY{l+s}{```}}
 
+%% We have to do that to enable line breaks in pygmentize outputs:
+\let\oldPY\PY
+\renewcommand{\PY}[2]{%%
+  \expandafter\FancyVerbBreakStart\oldPY{#1}{#2}\FancyVerbBreakStop}
+
 \fvset{
 numbers=left,
 frame=lines,
 framesep=3mm,
+breaklines,
+breakanywhere,
 rulecolor=\color{gray!70},
 firstnumber=last,
 codes={\catcode`\$=3\catcode`\^=7}
@@ -220,7 +227,7 @@ let code_block ~meta lang fmt (code, pos) =
     Re.replace_string env_rex ~by:"" output
   in
   Format.fprintf fmt
-    {latex|\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=%d,stepnumber=1,breaklines=true,label={\hspace*{\fill}\texttt{%s}}%s]|latex}
+    {latex|\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=%d,stepnumber=1,label={\hspace*{\fill}\texttt{%s}}%s]|latex}
     (Pos.get_start_line pos + 1)
     (pre_latexify (Filename.basename (Pos.get_file pos)))
     (if meta then ",numbersep=9mm" else "");
