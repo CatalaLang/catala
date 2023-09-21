@@ -130,7 +130,7 @@ let wrap_latex
 %% We have to do that to enable line breaks in pygmentize outputs:
 \let\oldPY\PY
 \renewcommand{\PY}[2]{%%
-  \expandafter\FancyVerbBreakStart\oldPY{#1}{#2}\FancyVerbBreakStop}
+  \oldPY{#1}{\FancyVerbBreakStart{}#2\FancyVerbBreakStop{}}}
 
 \fvset{
 numbers=left,
