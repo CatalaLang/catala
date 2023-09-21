@@ -220,7 +220,7 @@ let code_block ~meta lang fmt (code, pos) =
     Re.replace_string env_rex ~by:"" output
   in
   Format.fprintf fmt
-    {latex|\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=%d,stepnumber=1,breaklines=true,label={\hspace*{\fill}\texttt{%s}}%s]|latex}
+    {latex|\begin{Verbatim}[commandchars=\\\{\},numbers=left,firstnumber=%d,stepnumber=1,label={\hspace*{\fill}\texttt{%s}}%s]|latex}
     (Pos.get_start_line pos + 1)
     (pre_latexify (Filename.basename (Pos.get_file pos)))
     (if meta then ",numbersep=9mm" else "");
