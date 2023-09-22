@@ -710,7 +710,7 @@ let rec evaluate_expr :
         | ELit (LBool true) -> Mark.add m (ELit LUnit)
         | ELit (LBool false) ->
           Message.raise_spanned_error (Expr.pos e') "Assertion failed:@\n%a"
-            (Print.UserFacing.expr (assert false))
+            (Print.UserFacing.expr lang)
             (partially_evaluate_expr_for_assertion_failure_message ctx lang
                (Expr.skip_wrappers e'))
         | _ ->
