@@ -1385,12 +1385,12 @@ let options =
     $ Cli.Flags.output
     $ base_src_url)
 
-let run link_modules optimize ex_scope explain_options global_options =
+let run includes optimize ex_scope explain_options global_options =
   let prg, ctx, _ =
-    Driver.Passes.dcalc global_options ~link_modules ~optimize
+    Driver.Passes.dcalc global_options ~includes ~optimize
       ~check_invariants:false
   in
-  Interpreter.load_runtime_modules prg;
+  Interpreter.load_runtime_modules ~includes prg;
   let scope = Driver.Commands.get_scope_uid ctx ex_scope in
   (* let result_expr, env = interpret_program prg scope in *)
   let g, base_vars, env = program_to_graph explain_options prg scope in
@@ -1436,7 +1436,7 @@ let run link_modules optimize ex_scope explain_options global_options =
 let term =
   let open Cmdliner.Term in
   const run
-  $ Cli.Flags.link_modules
+  $ Driver.Commands.include_flags
   $ Cli.Flags.optimize
   $ Cli.Flags.ex_scope
   $ options

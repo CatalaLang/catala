@@ -27,24 +27,24 @@ val main : unit -> unit
 module Passes : sig
   val surface :
     Cli.options ->
-    link_modules:string list ->
+    includes:File.Tree.t ->
     Surface.Ast.program * Cli.backend_lang
 
   val desugared :
     Cli.options ->
-    link_modules:string list ->
+    includes:File.Tree.t ->
     Desugared.Ast.program * Desugared.Name_resolution.context
 
   val scopelang :
     Cli.options ->
-    link_modules:string list ->
+    includes:File.Tree.t ->
     Shared_ast.untyped Scopelang.Ast.program
     * Desugared.Name_resolution.context
     * Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t
 
   val dcalc :
     Cli.options ->
-    link_modules:string list ->
+    includes:File.Tree.t ->
     optimize:bool ->
     check_invariants:bool ->
     Shared_ast.typed Dcalc.Ast.program
@@ -53,7 +53,7 @@ module Passes : sig
 
   val lcalc :
     Cli.options ->
-    link_modules:string list ->
+    includes:File.Tree.t ->
     optimize:bool ->
     check_invariants:bool ->
     avoid_exceptions:bool ->
@@ -64,7 +64,7 @@ module Passes : sig
 
   val scalc :
     Cli.options ->
-    link_modules:string list ->
+    includes:File.Tree.t ->
     optimize:bool ->
     check_invariants:bool ->
     avoid_exceptions:bool ->
@@ -98,6 +98,8 @@ module Commands : sig
     Shared_ast.ScopeName.t ->
     string ->
     Desugared.Ast.ScopeDef.t
+
+  val include_flags : File.Tree.t Cmdliner.Term.t
 
   val commands : unit Cmdliner.Cmd.t list
   (** The list of built-in catala subcommands, as expected by

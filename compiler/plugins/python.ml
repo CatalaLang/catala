@@ -23,7 +23,7 @@
 open Catala_utils
 
 let run
-    link_modules
+    includes
     output
     optimize
     check_invariants
@@ -32,7 +32,7 @@ let run
     options =
   let open Driver.Commands in
   let prg, _, type_ordering =
-    Driver.Passes.scalc options ~link_modules ~optimize ~check_invariants
+    Driver.Passes.scalc options ~includes ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion
   in
 
@@ -45,7 +45,7 @@ let run
 let term =
   let open Cmdliner.Term in
   const run
-  $ Cli.Flags.link_modules
+  $ Driver.Commands.include_flags
   $ Cli.Flags.output
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants

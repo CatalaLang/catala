@@ -39,7 +39,6 @@ type options = {
   mutable message_format : message_format_enum;
   mutable trace : bool;
   mutable plugins_dirs : string list;
-  mutable build_dir : string option;
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
 }
@@ -58,7 +57,6 @@ let globals =
     message_format = Human;
     trace = false;
     plugins_dirs = [];
-    build_dir = None;
     disable_warnings = false;
     max_prec_digits = 20;
   }
@@ -71,7 +69,6 @@ let enforce_globals
     ?message_format
     ?trace
     ?plugins_dirs
-    ?build_dir
     ?disable_warnings
     ?max_prec_digits
     () =
@@ -82,7 +79,6 @@ let enforce_globals
   Option.iter (fun x -> globals.message_format <- x) message_format;
   Option.iter (fun x -> globals.trace <- x) trace;
   Option.iter (fun x -> globals.plugins_dirs <- x) plugins_dirs;
-  Option.iter (fun x -> globals.build_dir <- x) build_dir;
   Option.iter (fun x -> globals.disable_warnings <- x) disable_warnings;
   Option.iter (fun x -> globals.max_prec_digits <- x) max_prec_digits;
   globals
@@ -112,7 +108,7 @@ module Flags = struct
               | _ -> assert false )
       in
       required
-      & pos 0 (some converter) None
+      & pos ~rev:true 0 (some converter) None
       & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
           ~doc:"Catala master file to be compiled."
 
@@ -191,15 +187,6 @@ module Flags = struct
       in
       value & opt_all string default & info ["plugin-dir"] ~docv:"DIR" ~env ~doc
 
-    let build_dir =
-      value
-      & opt (some string) None
-      & info ["build-dir"] ~docv:"DIR"
-          ~doc:
-            "Directory where build artefacts are expected to be found. This \
-             doesn't affect outptuts, but is used when looking up compiled \
-             modules."
-
     let disable_warnings =
       value
       & flag
@@ -223,14 +210,13 @@ module Flags = struct
           message_format
           trace
           plugins_dirs
-          build_dir
           disable_warnings
           max_prec_digits : options =
         if debug then Printexc.record_backtrace true;
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
         enforce_globals ~language ~debug ~color ~message_format ~trace
-          ~plugins_dirs ~build_dir ~disable_warnings ~max_prec_digits ()
+          ~plugins_dirs ~disable_warnings ~max_prec_digits ()
       in
       Term.(
         const make
@@ -240,7 +226,6 @@ module Flags = struct
         $ message_format
         $ trace
         $ plugins_dirs
-        $ build_dir
         $ disable_warnings
         $ max_prec_digits)
 
@@ -252,6 +237,13 @@ module Flags = struct
       in
       Term.(const make $ input_file $ flags)
   end
+
+  let include_dirs =
+    value
+    & opt_all string []
+    & info ["I";"include"] ~docv:"DIR"
+      ~doc:
+        "Include directory to lookup for compiled module files."
 
   let check_invariants =
     value
@@ -314,17 +306,6 @@ module Flags = struct
           "Performs closure conversion on the lambda calculus. Implies \
            $(b,--avoid-exceptions) and $(b,--optimize)."
 
-  let link_modules =
-    value
-    & opt_all file []
-    & info ["use"; "u"] ~docv:"FILE"
-        ~doc:
-          "Specifies an additional module to be linked to the Catala program. \
-           $(i,FILE) must be a catala file with a metadata section expressing \
-           what is exported ; for interpretation, a compiled OCaml shared \
-           module by the same basename (either .cmo or .cmxs) will be \
-           expected."
-
   let disable_counterexamples =
     value
     & flag
@@ -334,6 +315,14 @@ module Flags = struct
           "Disables the search for counterexamples. Useful when you want a \
            deterministic output from the Catala compiler, since provers can \
            have some randomness in them."
+
+  let build_dirs =
+    value
+    & opt_all string ["."; "_build"]
+    & info ["build-dir"] ~docv:"DIR"
+      ~env:(Cmd.Env.info "CATALA_BUILD_DIR")
+      ~doc:
+        "Directory where compiled modules are expected to be found (this option does not affect catala outputs)"
 end
 
 (* Retrieve current version from dune *)

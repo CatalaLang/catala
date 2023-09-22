@@ -273,7 +273,10 @@ and expand_includes
         match command with
         | Ast.ModuleDef id -> (
           match acc.Ast.program_module_name with
-          | None -> { acc with Ast.program_module_name = Some id }
+          | None ->
+            { acc with Ast.program_module_name = Some id;
+                       Ast.program_items = command :: acc.Ast.program_items;
+            }
           | Some id2 ->
             Message.raise_multispanned_error
               [None, Mark.get id; None, Mark.get id2]

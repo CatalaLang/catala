@@ -43,7 +43,6 @@ type options = private {
   mutable message_format : message_format_enum;
   mutable trace : bool;
   mutable plugins_dirs : string list;
-  mutable build_dir : string option;
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
 }
@@ -63,7 +62,6 @@ val enforce_globals :
   ?message_format:message_format_enum ->
   ?trace:bool ->
   ?plugins_dirs:string list ->
-  ?build_dir:string option ->
   ?disable_warnings:bool ->
   ?max_prec_digits:int ->
   unit ->
@@ -101,8 +99,9 @@ module Flags : sig
   val optimize : bool Term.t
   val avoid_exceptions : bool Term.t
   val closure_conversion : bool Term.t
-  val link_modules : string list Term.t
+  val include_dirs : string list Term.t
   val disable_counterexamples : bool Term.t
+  val build_dirs : string list Term.t
 end
 
 (** {2 Command-line application} *)

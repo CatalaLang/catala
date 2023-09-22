@@ -117,18 +117,40 @@ let check_directory d =
     if Sys.is_directory d then Some d else None
   with Unix.Unix_error _ | Sys_error _ -> None
 
-let ( / ) = Filename.concat
+let check_file f =
+  try if Sys.is_directory f then None else Some f
+  with Unix.Unix_error _ | Sys_error _ -> None
+
+let ( / ) a b =
+  if a = "" || a = Filename.current_dir_name then b
+  else Filename.concat a b
 let dirname = Filename.dirname
 let ( /../ ) a b = dirname a / b
 let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
-let equal = String.equal
-let compare = String.compare
+
+let path_to_list path =
+  String.split_on_char Filename.dir_sep.[0] path
+  |> List.filter (fun d -> d <> "")
+
+let equal a b =
+  String.equal (String.lowercase_ascii a) (String.lowercase_ascii b)
+
+let compare a b =
+  String.compare (String.lowercase_ascii a) (String.lowercase_ascii b)
+
 let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
 
 module Set = Set.Make (struct
   type nonrec t = t
 
   let compare = compare
+end)
+
+module Map = Map.Make (struct
+  type nonrec t = t
+
+  let compare = compare
+  let format = format
 end)
 
 let scan_tree f t =
@@ -143,7 +165,7 @@ let scan_tree f t =
     Sys.readdir d
     |> Array.to_list
     |> List.filter not_hidden
-    |> (if d = "." then fun t -> t else List.map (fun t -> d / t))
+    |> List.map (fun t -> d / t)
     |> do_files
   and do_files flist =
     let dirs, files =
@@ -154,3 +176,42 @@ let scan_tree f t =
       (Seq.filter_map f (List.to_seq files))
   in
   do_files [t]
+
+module Tree = struct
+  type path = t
+
+  type item = F | D of t
+  and t = (path * item) Map.t Lazy.t
+
+  let empty = lazy Map.empty
+
+  let rec build path = lazy
+    (Array.fold_left
+       (fun m f ->
+          let path = path / f in
+          match Sys.is_directory path with
+          | true -> Map.add f (path, D (build path)) m
+          | false -> Map.add f (path, F) m
+          | exception Sys_error _ -> m)
+       Map.empty
+       (Sys.readdir path))
+
+  let subtree t path =
+    let rec aux t = function
+      | [] -> t
+      | dir :: path ->
+        match Map.find_opt dir (Lazy.force t) with
+        | Some (_, D sub) -> aux sub path
+        | Some (_, F) | None -> raise Not_found
+    in
+    aux t (path_to_list path)
+
+  let lookup t path =
+    try
+      let t = subtree t (dirname path) in
+      match Map.find_opt (Filename.basename path) (Lazy.force t) with
+      | Some (path, F) -> Some path
+      | Some (_, D _) | None -> None
+    with Not_found -> None
+
+end

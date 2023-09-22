@@ -206,7 +206,7 @@ module To_json = struct
 end
 
 let run
-    link_modules
+    includes
     output
     optimize
     check_invariants
@@ -215,7 +215,7 @@ let run
     ex_scope
     options =
   let prg, ctx, _ =
-    Driver.Passes.lcalc options ~link_modules ~optimize ~check_invariants
+    Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion
   in
   let output_file, with_output =
@@ -233,7 +233,7 @@ let run
 let term =
   let open Cmdliner.Term in
   const run
-  $ Cli.Flags.link_modules
+  $ Driver.Commands.include_flags
   $ Cli.Flags.output
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants
