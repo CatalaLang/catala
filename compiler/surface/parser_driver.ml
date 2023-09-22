@@ -232,6 +232,7 @@ let rec parse_source_file
     program_items = program.Ast.program_items;
     program_source_files = source_file_name :: program.Ast.program_source_files;
     program_modules = [];
+    program_lang = language;
   }
 
 (** Expands the include directives in a parsing result, thus parsing new source
@@ -254,12 +255,14 @@ and expand_includes
             acc.Ast.program_items @ includ_program.program_items;
           Ast.program_modules =
             acc.Ast.program_modules @ includ_program.program_modules;
+          Ast.program_lang = language;
         }
       | Ast.LawHeading (heading, commands') ->
         let {
           Ast.program_items = commands';
           Ast.program_source_files = new_sources;
           Ast.program_modules = new_modules;
+          Ast.program_lang = _;
         } =
           expand_includes source_file commands' language
         in
@@ -268,12 +271,14 @@ and expand_includes
           Ast.program_items =
             acc.Ast.program_items @ [Ast.LawHeading (heading, commands')];
           Ast.program_modules = acc.Ast.program_modules @ new_modules;
+          Ast.program_lang = language;
         }
       | i -> { acc with Ast.program_items = acc.Ast.program_items @ [i] })
     {
       Ast.program_source_files = [];
       Ast.program_items = [];
       Ast.program_modules = [];
+      Ast.program_lang = language;
     }
     commands
 

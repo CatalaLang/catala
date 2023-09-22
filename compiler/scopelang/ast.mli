@@ -51,6 +51,7 @@ type 'm program = {
      expressions. They won't contain any rules or topdefs, but will still have
      the scope signatures needed to respect the call convention *)
   program_ctx : decl_ctx;
+  program_lang : Cli.backend_lang;
 }
 
 val type_program : 'm program -> typed program

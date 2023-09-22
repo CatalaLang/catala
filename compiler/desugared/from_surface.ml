@@ -1468,6 +1468,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         ModuleName.Map.map make_ctx ctxt.Name_resolution.modules
       in
       {
+        Ast.program_lang = surface.program_lang;
         Ast.program_ctx =
           {
             (* After name resolution, type definitions (structs and enums) are

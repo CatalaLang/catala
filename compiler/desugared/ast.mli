@@ -117,6 +117,7 @@ type program = {
   program_topdefs : (expr option * typ) TopdefName.Map.t;
   program_ctx : decl_ctx;
   program_modules : program ModuleName.Map.t;
+  program_lang : Cli.backend_lang;
 }
 
 (** {1 Helpers} *)

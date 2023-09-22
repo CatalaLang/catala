@@ -1254,4 +1254,8 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
         ctx )
   in
   let items, ctx = translate_defs top_ctx defs_ordering in
-  { code_items = Bindlib.unbox items; decl_ctx = ctx.decl_ctx }
+  {
+    code_items = Bindlib.unbox items;
+    decl_ctx = ctx.decl_ctx;
+    lang = prgm.program_lang;
+  }

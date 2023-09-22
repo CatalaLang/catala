@@ -17,15 +17,15 @@
 
 open Definitions
 
-let map_exprs ~f ~varf { code_items; decl_ctx } =
+let map_exprs ~f ~varf { code_items; decl_ctx; lang } =
   Bindlib.box_apply
-    (fun code_items -> { code_items; decl_ctx })
+    (fun code_items -> { code_items; decl_ctx; lang })
     (Scope.map_exprs ~f ~varf code_items)
 
-let fold_left_exprs ~f ~init { code_items; decl_ctx = _ } =
+let fold_left_exprs ~f ~init { code_items; _ } =
   Scope.fold_left ~f:(fun acc e _ -> f acc e) ~init code_items
 
-let fold_right_exprs ~f ~init { code_items; decl_ctx = _ } =
+let fold_right_exprs ~f ~init { code_items; _ } =
   Scope.fold_right ~f:(fun e _ acc -> f e acc) ~init code_items
 
 let empty_ctx =

@@ -1041,6 +1041,7 @@ let program ~leave_unresolved prg =
       prg.A.code_items
   in
   {
+    A.lang = prg.lang;
     A.code_items = Bindlib.unbox code_items;
     decl_ctx =
       {
