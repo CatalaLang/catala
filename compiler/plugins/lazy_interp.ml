@@ -130,7 +130,11 @@ let rec lazy_eval :
             renv := env;
             e
           in
-          Interpreter.evaluate_operator eval op m args, !renv
+          ( Interpreter.evaluate_operator eval op m Cli.En
+              (* Default language to English but this should not raise any error
+                 messages so we don't care. *)
+              args,
+            !renv )
       (* fixme: this forwards eempty *)
       | e, _ -> error e "Invalid apply on %a" Expr.format e)
   | (EAbs _ | ELit _ | EOp _ | EEmptyError), _ -> e0, env (* these are values *)

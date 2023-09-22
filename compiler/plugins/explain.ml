@@ -310,7 +310,12 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
             renv := env;
             e
           in
-          let e = Interpreter.evaluate_operator eval op m args in
+          let e =
+            Interpreter.evaluate_operator eval op m Cli.En
+              (* Default language to English but this should not raise any error
+                 messages so we don't care. *)
+              args
+          in
           e, !renv
       (* fixme: this forwards eempty *)
       | e, _ -> error e "Invalid apply on %a" Expr.format e)

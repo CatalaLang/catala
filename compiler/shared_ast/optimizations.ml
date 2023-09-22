@@ -228,7 +228,12 @@ let rec optimize_expr :
         (* at this point we know a conflict error will be triggered so we just
            feed the expression to the interpreter that will print the beautiful
            right error message *)
-        let (_ : _ gexpr) = Interpreter.evaluate_expr ctx.decl_ctx e in
+        let (_ : _ gexpr) =
+          Interpreter.evaluate_expr ctx.decl_ctx Cli.En
+            (* Default language to English, no errors should be raised normally
+               so we don't care *)
+            e
+        in
         assert false
       else
         match excepts, just with

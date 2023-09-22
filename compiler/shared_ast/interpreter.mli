@@ -39,6 +39,7 @@ val evaluate_operator :
   (((< features ; .. > as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator ->
   'm mark ->
+  Cli.backend_lang ->
   ('a, 'm) gexpr list ->
   ('a, 'm) gexpr
 (** Evaluates the result of applying the given operator to the given arguments,
@@ -47,7 +48,10 @@ val evaluate_operator :
     operator. *)
 
 val evaluate_expr :
-  decl_ctx -> (((_, _) dcalc_lcalc as 'a), 'm) gexpr -> ('a, 'm) gexpr
+  decl_ctx ->
+  Cli.backend_lang ->
+  (((_, _) dcalc_lcalc as 'a), 'm) gexpr ->
+  ('a, 'm) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program_dcalc :
