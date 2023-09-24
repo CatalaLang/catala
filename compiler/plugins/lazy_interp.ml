@@ -257,11 +257,11 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
 
 (* -- Plugin registration -- *)
 
-let run includes optimize check_invariants ex_scope options =
+let run includes build_dirs optimize check_invariants ex_scope options =
   let prg, ctx, _ =
     Driver.Passes.dcalc options ~includes ~optimize ~check_invariants
   in
-  Interpreter.load_runtime_modules ~includes prg;
+  Interpreter.load_runtime_modules ~build_dirs prg;
   let scope = Driver.Commands.get_scope_uid ctx ex_scope in
   let result_expr, _env = interpret_program prg scope in
   let fmt = Format.std_formatter in
@@ -271,6 +271,7 @@ let term =
   let open Cmdliner.Term in
   const run
   $ Driver.Commands.include_flags
+  $ Cli.Flags.build_dirs
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants
   $ Cli.Flags.ex_scope

@@ -141,4 +141,7 @@ module Tree: sig
 
   val lookup: t -> path -> path option
   (** Checks if there is a matching plain file (case-insensitively) ; and returns its path with the correct case if so *)
+
+  val union: t -> t -> t
+  (** Merges two trees. In case of conflict, lhs entry wins *)
 end

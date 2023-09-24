@@ -50,8 +50,11 @@ let load_module_interfaces includes program =
   let find_module req_chain m =
     let fname_base = ModuleName.to_string m in
     let required_from_file = Pos.get_file (ModuleName.pos m) in
+    let includes =
+      File.Tree.union includes
+        (File.Tree.build (File.dirname required_from_file))
+    in
     match
-      Option.to_list (File.check_file File.(required_from_file /../ fname_base)) @
       List.filter_map
         (fun (ext, _) ->
            File.Tree.lookup includes (fname_base ^ ext))
@@ -360,9 +363,9 @@ module Commands = struct
 
   let include_flags =
     let mk dirs =
-      lazy (dirs
-            |> List.map (fun d -> Lazy.force (File.Tree.build d))
-            |> List.fold_left (File.Map.union (fun _ x _ -> Some x)) File.Map.empty)
+      dirs
+      |> List.map (fun d -> File.Tree.build d)
+      |> List.fold_left File.Tree.union File.Tree.empty
     in
     Term.(const mk $ Cli.Flags.include_dirs)
 

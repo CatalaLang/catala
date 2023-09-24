@@ -130,7 +130,7 @@ let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
 
 let path_to_list path =
   String.split_on_char Filename.dir_sep.[0] path
-  |> List.filter (fun d -> d <> "")
+  |> List.filter (function "" | "." -> false | _ -> true)
 
 let equal a b =
   String.equal (String.lowercase_ascii a) (String.lowercase_ascii b)
@@ -213,5 +213,7 @@ module Tree = struct
       | Some (path, F) -> Some path
       | Some (_, D _) | None -> None
     with Not_found -> None
+
+  let union t1 t2 = lazy (Map.union (fun _ x _ -> Some x) (Lazy.force t1) (Lazy.force t2))
 
 end

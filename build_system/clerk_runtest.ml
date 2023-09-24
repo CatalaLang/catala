@@ -180,6 +180,7 @@ let run_inline_tests
     ~(reset : bool)
     (file : string)
     (catala_exe : string)
+    (build_dir : File.t)
     (catala_opts : string list) =
   let _, file = checkfile [] file in
   match scan_for_inline_tests file with
@@ -220,6 +221,7 @@ let run_inline_tests
             |> Seq.cons "CATALA_OUT=-"
             |> Seq.cons "CATALA_COLOR=never"
             |> Seq.cons "CATALA_PLUGINS="
+            |> Seq.cons ("CATALA_BUILD_DIR="^build_dir)
             |> Array.of_seq
           in
           let pid =

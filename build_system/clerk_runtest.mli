@@ -24,7 +24,7 @@ val has_inline_tests : string -> bool
 (** Checks if the given named file contains inline tests (either directly or
     through includes) *)
 
-val run_inline_tests : reset:bool -> string -> string -> string list -> unit
+val run_inline_tests : reset:bool -> string -> string -> string -> string list -> unit
 (** [run_inline_tests ~reset file catala_exe catala_opts] runs the tests in
     Catala [file] using the given path to the Catala executable and the provided
     options. Output is printed to [stdout] if [reset] is false, otherwise [file]

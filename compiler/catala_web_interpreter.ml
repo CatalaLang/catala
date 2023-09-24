@@ -23,7 +23,7 @@ let () =
              ~language:(Some language) ~debug:false ~color:Never ~trace ()
          in
          let prg, ctx, _type_order =
-           Passes.dcalc options ~includes:File.Tree.empty ~optimize:false
+           Passes.dcalc options ~includes:Catala_utils.File.Tree.empty ~optimize:false
              ~check_invariants:false
          in
          Shared_ast.Interpreter.interpret_program_dcalc prg
