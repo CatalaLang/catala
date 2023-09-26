@@ -15,6 +15,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+type file = string
+(** File names ; equal to [File.t] but let's avoid cyclic dependencies *)
+
 type backend_lang = En | Fr | Pl
 
 (** The usual auto/always/never option argument *)
@@ -26,17 +29,27 @@ type message_format_enum =
   | Human
   | GNU  (** Format of error and warning messages output by the compiler. *)
 
-type input_file = FileName of string | Contents of string
+(** Sources for program input *)
+type input_src =
+  | FileName of file (** A file path to read from disk *)
+  | Contents of string * file (** A raw string containing the code, and the corresponding (fake) filename *)
+  | Stdin of file (** Read from stdin; the specified filename will be used for file lookups, error reportings, etc. *)
 
 val languages : (string * backend_lang) list
 
 val language_code : backend_lang -> string
 (** Returns the lowercase two-letter language code *)
 
+(** Associates a file extension with its corresponding {!type: Cli.backend_lang}
+    string representation. *)
+val file_lang : file -> backend_lang
+
+val input_src_file : input_src -> file
+
 (** {2 Configuration globals} *)
 
 type options = private {
-  mutable input_file : input_file;
+  mutable input_src : input_src;
   mutable language : backend_lang option;
   mutable debug : bool;
   mutable color : when_enum;
@@ -55,7 +68,7 @@ val globals : options
     options returned by the command-line parsing whenever possible. *)
 
 val enforce_globals :
-  ?input_file:input_file ->
+  ?input_src:input_src ->
   ?language:backend_lang option ->
   ?debug:bool ->
   ?color:when_enum ->
@@ -80,7 +93,7 @@ module Flags : sig
     val flags : options Term.t
     (** Global flags available to all commands. Note that parsing this term also
         performs some side-effects into [GlobalRefs] and sets up signal/error
-        processing. Sets [input_file] to [FileName "-"], use [options] for the
+        processing. Sets [input_src] to [Stdin "-stdin-"], use [options] for the
         full parser *)
 
     val options : options Term.t

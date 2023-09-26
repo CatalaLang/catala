@@ -19,7 +19,7 @@ $ catala Typecheck
 [ERROR]
 Unknown label for the scope variable foo.baz: "thing"
 
-┌─⯈ no_cross_exceptions.catala_en:14.13-14.18:
+┌─⯈ tests/test_variable_state/bad/no_cross_exceptions.catala_en:14.13-14.18:
 └──┐
 14 │   exception thing definition foo state baz under condition true consequence equals 3
    │             ‾‾‾‾‾

@@ -16,7 +16,7 @@ scope A:
 $ catala Interpret -s A
 [WARNING] The constructor "Rec" of enumeration "E" is never used; maybe it's unnecessary?
 
-┌─⯈ nested.catala_en:6.6-6.9:
+┌─⯈ tests/test_struct/bad/nested.catala_en:6.6-6.9:
 └─┐
 6 │   -- Rec content E
   │      ‾‾‾
@@ -24,7 +24,7 @@ $ catala Interpret -s A
 [ERROR]
 The type E is defined using itself, which is forbidden since Catala does not provide recursive types
 
-┌─⯈ nested.catala_en:6.18-6.19:
+┌─⯈ tests/test_struct/bad/nested.catala_en:6.18-6.19:
 └─┐
 6 │   -- Rec content E
   │                  ‾

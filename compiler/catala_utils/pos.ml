@@ -129,12 +129,15 @@ let format_loc_text ppf (pos : t) =
       let sline = get_start_line pos in
       let eline = get_end_line pos in
       let ic, input_line_opt =
-        if filename = "stdin" then
+        let from_contents =
+          match Cli.globals.input_src with
+          | Contents (str, _) when str = filename -> Some str
+          | _ -> None
+        in
+        match from_contents with
+        | Some str ->
           let line_index = ref 0 in
-          let lines =
-            String.split_on_char '\n'
-              (match Cli.globals.input_file with Contents s -> s | _ -> "")
-          in
+          let lines = String.split_on_char '\n' str in
           let input_line_opt () : string option =
             match List.nth_opt lines !line_index with
             | Some l ->
@@ -143,12 +146,14 @@ let format_loc_text ppf (pos : t) =
             | None -> None
           in
           None, input_line_opt
-        else
-          let ic = open_in filename in
-          let input_line_opt () : string option =
-            try Some (input_line ic) with End_of_file -> None
-          in
-          Some ic, input_line_opt
+        | None ->
+          try
+            let ic = open_in filename in
+            let input_line_opt () : string option =
+              try Some (input_line ic) with End_of_file -> None
+            in
+            Some ic, input_line_opt
+          with Sys_error _ -> None, (fun () -> None)
       in
       let include_extra_count = 0 in
       let rec get_lines (n : int) : (int * string) list =

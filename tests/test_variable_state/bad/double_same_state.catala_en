@@ -16,14 +16,14 @@ $ catala Typecheck
 There are two states with the same name for the same variable: this is ambiguous. Please change the name of either states.
 
 First instance of state "bar":
-┌─⯈ double_same_state.catala_en:6.11-6.14:
+┌─⯈ tests/test_variable_state/bad/double_same_state.catala_en:6.11-6.14:
 └─┐
 6 │     state bar
   │           ‾‾‾
   └─ Test
 
 Second instance of state "bar":
-┌─⯈ double_same_state.catala_en:7.11-7.14:
+┌─⯈ tests/test_variable_state/bad/double_same_state.catala_en:7.11-7.14:
 └─┐
 7 │     state bar
   │           ‾‾‾

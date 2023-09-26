@@ -19,7 +19,7 @@ let () =
              Message.raise_error "Unrecognised input locale %S" language
          in
          let options =
-           Cli.enforce_globals ~input_file:(Contents contents)
+           Cli.enforce_globals ~input_src:(Contents (contents, "-inline-"))
              ~language:(Some language) ~debug:false ~color:Never ~trace ()
          in
          let prg, ctx, _type_order =

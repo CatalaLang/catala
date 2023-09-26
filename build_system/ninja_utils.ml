@@ -41,8 +41,7 @@ module Binding = struct
 
   let format ~global ppf (v, e) =
     if not global then Format.pp_print_string ppf "  ";
-    Format.fprintf ppf "%s = %a" (Var.name v) Expr.format e;
-    if global then Format.pp_print_newline ppf ()
+    Format.fprintf ppf "%s = %a" (Var.name v) Expr.format e
 
   let format_list ~global ppf l =
     Format.pp_print_list ~pp_sep:Format.pp_print_newline (format ~global) ppf l

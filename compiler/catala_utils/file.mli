@@ -44,7 +44,7 @@ val with_formatter_of_opt_file : t option -> (Format.formatter -> 'a) -> 'a
     {!with_formatter_of_file}), otherwise, uses the [Format.std_formatter]. *)
 
 val get_out_channel :
-  source_file:Cli.input_file ->
+  source_file:Cli.input_src ->
   output_file:t option ->
   ?ext:string ->
   unit ->
@@ -54,7 +54,7 @@ val get_out_channel :
     equal to [Some "-"] returns a wrapper around [stdout]. *)
 
 val get_formatter_of_out_channel :
-  source_file:Cli.input_file ->
+  source_file:Cli.input_src ->
   output_file:t option ->
   ?ext:string ->
   unit ->

@@ -19,7 +19,7 @@ $ catala Interpret -s A
 [ERROR]
 This constructor name is ambiguous, it can belong to E or F. Desambiguate it by prefixing it with the enum name.
 
-┌─⯈ ambiguous_cases.catala_en:14.23-14.28:
+┌─⯈ tests/test_enum/bad/ambiguous_cases.catala_en:14.23-14.28:
 └──┐
 14 │   definition e equals Case1
    │                       ‾‾‾‾‾

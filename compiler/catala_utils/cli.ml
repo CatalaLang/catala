@@ -17,10 +17,15 @@
 
 (* Types used by flags & options *)
 
+type file = string
+
 type backend_lang = En | Fr | Pl
 type when_enum = Auto | Always | Never
 type message_format_enum = Human | GNU
-type input_file = FileName of string | Contents of string
+type input_src =
+  | FileName of file
+  | Contents of string * file
+  | Stdin of file
 
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
 let languages = ["en", En; "fr", Fr; "pl", Pl]
@@ -29,16 +34,19 @@ let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
   fun l -> List.assoc l rl
 
+let input_src_file = function
+  | FileName f | Contents (_, f) | Stdin f -> f
+
 let message_format_opt = ["human", Human; "gnu", GNU]
 
 type options = {
-  mutable input_file : input_file;
+  mutable input_src : input_src;
   mutable language : backend_lang option;
   mutable debug : bool;
   mutable color : when_enum;
   mutable message_format : message_format_enum;
   mutable trace : bool;
-  mutable plugins_dirs : string list;
+  mutable plugins_dirs : file list;
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
 }
@@ -50,7 +58,7 @@ type options = {
    globals further would be nice though. *)
 let globals =
   {
-    input_file = Contents "";
+    input_src = Stdin "-stdin-";
     language = None;
     debug = false;
     color = Auto;
@@ -62,7 +70,7 @@ let globals =
   }
 
 let enforce_globals
-    ?input_file
+    ?input_src
     ?language
     ?debug
     ?color
@@ -72,7 +80,7 @@ let enforce_globals
     ?disable_warnings
     ?max_prec_digits
     () =
-  Option.iter (fun x -> globals.input_file <- x) input_file;
+  Option.iter (fun x -> globals.input_src <- x) input_src;
   Option.iter (fun x -> globals.language <- x) language;
   Option.iter (fun x -> globals.debug <- x) debug;
   Option.iter (fun x -> globals.color <- x) color;
@@ -89,6 +97,23 @@ open Cmdliner
 
 let when_opt = Arg.enum ["auto", Auto; "always", Always; "never", Never]
 
+(* Some helpers for catala sources *)
+
+let extensions = [".catala_fr", Fr; ".catala_en", En; ".catala_pl", Pl]
+
+let file_lang filename =
+  List.assoc_opt (Filename.extension filename) extensions
+  |> function
+  | Some lang -> lang
+  | None -> (
+    match globals.language with
+    | Some lang -> lang
+    | None ->
+      Format.kasprintf failwith
+        "Could not infer language variant from the extension of \
+         @{<yellow>%s@}, and @{<bold>--language@} was not specified"
+        filename)
+
 (** CLI flags and options *)
 
 module Flags = struct
@@ -98,19 +123,21 @@ module Flags = struct
   module Global = struct
     let info = info ~docs:Manpage.s_common_options
 
-    let input_file =
+    let input_src =
       let converter =
         conv ~docv:"FILE"
           ( (fun s ->
-              Result.map (fun f -> FileName f) (conv_parser non_dir_file s)),
+                if s = "-" then Ok (Stdin "-stdin-") else
+                  Result.map (fun f -> FileName f) (conv_parser non_dir_file s)),
             fun ppf -> function
+              | Stdin _ -> Format.pp_print_string ppf "-"
               | FileName f -> conv_printer non_dir_file ppf f
               | _ -> assert false )
       in
       required
       & pos ~rev:true 0 (some converter) None
       & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
-          ~doc:"Catala master file to be compiled."
+          ~doc:"Catala master file to be compiled ($(b,-) for stdin)."
 
     let language =
       value
@@ -202,6 +229,12 @@ module Flags = struct
           ~doc:
             "Maximum number of significant digits printed for decimal results."
 
+    let name_flag =
+      value
+      & opt (some string) None
+      & info ["name"] ~docv:"FILE"
+        ~doc:"Treat the input as coming from a file with the given name. Useful e.g. when reading from stdin"
+
     let flags =
       let make
           language
@@ -211,7 +244,7 @@ module Flags = struct
           trace
           plugins_dirs
           disable_warnings
-          max_prec_digits : options =
+          max_prec_digits: options =
         if debug then Printexc.record_backtrace true;
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
@@ -230,12 +263,21 @@ module Flags = struct
         $ max_prec_digits)
 
     let options =
-      let make input_file options : options =
+      let make input_src name options : options =
         (* Set some global refs for convenience *)
-        globals.input_file <- input_file;
-        { options with input_file }
+        let input_src =
+          match name with
+          | None -> input_src
+          | Some name ->
+            match input_src with
+            | FileName f -> FileName f
+            | Contents (str, _) -> Contents (str, name)
+            | Stdin _ -> Stdin name
+        in
+        globals.input_src <- input_src;
+        { options with input_src }
       in
-      Term.(const make $ input_file $ flags)
+      Term.(const make $ input_src $ name_flag $ flags)
   end
 
   let include_dirs =
@@ -323,6 +365,7 @@ module Flags = struct
       ~env:(Cmd.Env.info "CATALA_BUILD_DIR")
       ~doc:
         "Directory where compiled modules are expected to be found (this option does not affect catala outputs)"
+
 end
 
 (* Retrieve current version from dune *)

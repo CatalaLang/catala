@@ -19,7 +19,7 @@ $ catala dcalc -s Titi
 [ERROR]
 Duplicate definition of scope input variable 'bar'
 
-┌─⯈ scope_call_duplicate.catala_en:14.70-14.73:
+┌─⯈ tests/test_scope/bad/scope_call_duplicate.catala_en:14.70-14.73:
 └──┐
 14 │   definition fizz equals output of Toto with {--bar: 1 --baz: 2.1 -- bar: 3}
    │                                                                      ‾‾‾

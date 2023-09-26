@@ -18,19 +18,19 @@ Error during typechecking, incompatible types:
 └─⯈ collection
 
 Error coming from typechecking the following expression:
-┌─⯈ err2.catala_en:10.39-10.42:
+┌─⯈ tests/test_typing/bad/err2.catala_en:10.39-10.42:
 └──┐
 10 │   definition a equals number of (z ++ 1.1) / 2
    │                                       ‾‾‾
 
 Type decimal coming from expression:
-┌─⯈ err2.catala_en:10.39-10.42:
+┌─⯈ tests/test_typing/bad/err2.catala_en:10.39-10.42:
 └──┐
 10 │   definition a equals number of (z ++ 1.1) / 2
    │                                       ‾‾‾
 
 Type collection coming from expression:
-┌─⯈ err2.catala_en:10.36-10.38:
+┌─⯈ tests/test_typing/bad/err2.catala_en:10.36-10.38:
 └──┐
 10 │   definition a equals number of (z ++ 1.1) / 2
    │                                    ‾‾

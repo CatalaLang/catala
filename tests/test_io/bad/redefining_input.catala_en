@@ -13,14 +13,14 @@ $ catala Typecheck
 It is impossible to give a definition to a scope variable tagged as input.
 
 Incriminated variable:
-┌─⯈ redefining_input.catala_en:5.16-5.17:
+┌─⯈ tests/test_io/bad/redefining_input.catala_en:5.16-5.17:
 └─┐
 5 │   input output a content integer
   │                ‾
   └─ Test
 
 Incriminated variable definition:
-┌─⯈ redefining_input.catala_en:8.3-8.15:
+┌─⯈ tests/test_io/bad/redefining_input.catala_en:8.3-8.15:
 └─┐
 8 │   definition a equals 0
   │   ‾‾‾‾‾‾‾‾‾‾‾‾

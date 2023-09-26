@@ -20,7 +20,7 @@ scope RentComputation:
 $ catala Interpret -t -s HousingComputation --debug
 [DEBUG] = INIT =
 [DEBUG] = SURFACE =
-[DEBUG] Parsing scope_call3.catala_en
+[DEBUG] Parsing "tests/test_scope/good/scope_call3.catala_en"
 [DEBUG] = DESUGARED =
 [DEBUG] Name resolution...
 [DEBUG] Desugaring...
@@ -34,14 +34,14 @@ $ catala Interpret -t -s HousingComputation --debug
 [DEBUG] Starting interpretation...
 [LOG] ≔  HousingComputation.f: <function>
 [LOG] ☛ Definition applied:
-      ┌─⯈ scope_call3.catala_en:8.14-8.20:
+      ┌─⯈ tests/test_scope/good/scope_call3.catala_en:8.14-8.20:
       └─┐
       8 │   definition result equals f of 1
         │              ‾‾‾‾‾‾
 [LOG] →  HousingComputation.f
 [LOG]   ≔  HousingComputation.f.input0: 1
 [LOG]   ☛ Definition applied:
-        ┌─⯈ scope_call3.catala_en:7.14-7.15:
+        ┌─⯈ tests/test_scope/good/scope_call3.catala_en:7.14-7.15:
         └─┐
         7 │   definition f of x equals (output of RentComputation).f of x
           │              ‾
@@ -50,7 +50,7 @@ $ catala Interpret -t -s HousingComputation --debug
 [LOG]     ≔  RentComputation.g: <function>
 [LOG]     ≔  RentComputation.f: <function>
 [LOG]     ☛ Definition applied:
-          ┌─⯈ scope_call3.catala_en:7.29-7.54:
+          ┌─⯈ tests/test_scope/good/scope_call3.catala_en:7.29-7.54:
           └─┐
           7 │   definition f of x equals (output of RentComputation).f of x
             │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
@@ -59,14 +59,14 @@ $ catala Interpret -t -s HousingComputation --debug
 [LOG]   →  RentComputation.f
 [LOG]     ≔  RentComputation.f.input0: 1
 [LOG]     ☛ Definition applied:
-          ┌─⯈ scope_call3.catala_en:16.14-16.15:
+          ┌─⯈ tests/test_scope/good/scope_call3.catala_en:16.14-16.15:
           └──┐
           16 │   definition f of x equals g of (x + 1)
              │              ‾
 [LOG]     →  RentComputation.g
 [LOG]       ≔  RentComputation.g.input0: 2
 [LOG]       ☛ Definition applied:
-            ┌─⯈ scope_call3.catala_en:15.14-15.15:
+            ┌─⯈ tests/test_scope/good/scope_call3.catala_en:15.14-15.15:
             └──┐
             15 │   definition g of x equals x + 1
                │              ‾

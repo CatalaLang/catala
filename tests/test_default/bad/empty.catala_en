@@ -13,7 +13,7 @@ scope A:
 $ catala Interpret -s A
 [WARNING] In scope "A", the variable "y" is declared but never defined; did you forget something?
 
-┌─⯈ empty.catala_en:6.10-6.11:
+┌─⯈ tests/test_default/bad/empty.catala_en:6.10-6.11:
 └─┐
 6 │   output y content boolean
   │          ‾
@@ -21,7 +21,7 @@ $ catala Interpret -s A
 [ERROR]
 This variable evaluated to an empty term (no rule that defined it applied in this situation)
 
-┌─⯈ empty.catala_en:6.10-6.11:
+┌─⯈ tests/test_default/bad/empty.catala_en:6.10-6.11:
 └─┐
 6 │   output y content boolean
   │          ‾

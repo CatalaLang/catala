@@ -15,14 +15,14 @@ $ catala Typecheck
 [ERROR]
 This definition does not indicate which state has to be considered for variable foo.
 
-┌─⯈ def_no_state.catala_en:10.14-10.17:
+┌─⯈ tests/test_variable_state/bad/def_no_state.catala_en:10.14-10.17:
 └──┐
 10 │   definition foo equals 2
    │              ‾‾‾
    └─ Test
 
 Variable declaration:
-┌─⯈ def_no_state.catala_en:5.10-5.13:
+┌─⯈ tests/test_variable_state/bad/def_no_state.catala_en:5.10-5.13:
 └─┐
 5 │   output foo content integer
   │          ‾‾‾

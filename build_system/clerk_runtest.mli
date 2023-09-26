@@ -20,12 +20,9 @@
     Ninja, which in turn might need to evaluate tests as part of some rules and
     can run `clerk runtest` in a reentrant way. *)
 
-val has_inline_tests : string -> bool
-(** Checks if the given named file contains inline tests (either directly or
-    through includes) *)
+open Catala_utils
 
-val run_inline_tests : reset:bool -> string -> string -> string -> string list -> unit
-(** [run_inline_tests ~reset file catala_exe catala_opts] runs the tests in
+val run_inline_tests : string -> string list -> File.t -> File.t -> unit
+(** [run_inline_tests catala_exe catala_opts build_dir file] runs the tests in
     Catala [file] using the given path to the Catala executable and the provided
-    options. Output is printed to [stdout] if [reset] is false, otherwise [file]
-    is replaced with the updated test results. *)
+    options. Output is printed to [stdout]. *)

@@ -28,7 +28,7 @@ module Passes : sig
   val surface :
     Cli.options ->
     includes:File.Tree.t ->
-    Surface.Ast.program * Cli.backend_lang
+    Surface.Ast.program
 
   val desugared :
     Cli.options ->
@@ -109,7 +109,6 @@ end
 (** Various helpers *)
 
 val modname_of_file : string -> string
-val get_lang : Cli.options -> Cli.input_file -> Cli.backend_lang
 
 (** API available to plugins for their own registration *)
 

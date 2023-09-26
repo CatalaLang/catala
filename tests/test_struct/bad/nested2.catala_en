@@ -17,21 +17,21 @@ declaration scope A:
 $ catala Interpret -s A
 [WARNING] In scope "A", the variable "x" is declared but never defined; did you forget something?
 
-┌─⯈ nested2.catala_en:13.10-13.11:
+┌─⯈ tests/test_struct/bad/nested2.catala_en:13.10-13.11:
 └──┐
 13 │   output x content E
    │          ‾
    └─ Article
 [WARNING] The structure "S" is never used; maybe it's unnecessary?
 
-┌─⯈ nested2.catala_en:4.23-4.24:
+┌─⯈ tests/test_struct/bad/nested2.catala_en:4.23-4.24:
 └─┐
 4 │ declaration structure S:
   │                       ‾
   └─ Article
 [WARNING] The enumeration "E" is never used; maybe it's unnecessary?
 
-┌─⯈ nested2.catala_en:8.25-8.26:
+┌─⯈ tests/test_struct/bad/nested2.catala_en:8.25-8.26:
 └─┐
 8 │ declaration enumeration E:
   │                         ‾
@@ -40,28 +40,28 @@ $ catala Interpret -s A
 Cyclic dependency detected between types!
 
 Cycle type S, declared:
-┌─⯈ nested2.catala_en:4.23-4.24:
+┌─⯈ tests/test_struct/bad/nested2.catala_en:4.23-4.24:
 └─┐
 4 │ declaration structure S:
   │                       ‾
   └─ Article
 
 Used here in the definition of another cycle type E:
-┌─⯈ nested2.catala_en:10.20-10.21:
+┌─⯈ tests/test_struct/bad/nested2.catala_en:10.20-10.21:
 └──┐
 10 │   -- Case2 content S
    │                    ‾
    └─ Article
 
 Cycle type E, declared:
-┌─⯈ nested2.catala_en:8.25-8.26:
+┌─⯈ tests/test_struct/bad/nested2.catala_en:8.25-8.26:
 └─┐
 8 │ declaration enumeration E:
   │                         ‾
   └─ Article
 
 Used here in the definition of another cycle type S:
-┌─⯈ nested2.catala_en:5.18-5.19:
+┌─⯈ tests/test_struct/bad/nested2.catala_en:5.18-5.19:
 └─┐
 5 │   data x content E
   │                  ‾

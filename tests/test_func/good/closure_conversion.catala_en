@@ -13,7 +13,7 @@ scope S:
 
 ```catala-test-inline
 $ catala Lcalc --avoid_exceptions -O --closure_conversion
-type eoption =  | ENone of unit  | ESome of any
+type eoption =  | ENone of unit  | ESome of any 
 
 type S_in = { x_in: eoption bool; }
 
@@ -28,7 +28,7 @@ let topval closure_f : (closure_env, integer) → eoption integer =
        | ESome x → if x then ESome y else ESome - y)
       with
     | ENone _ → raise NoValueProvided
-    | ESome f → f
+    | ESome f → f 
 let scope S (S_in: S_in {x_in: eoption bool}): S {z: eoption integer} =
   let get x : eoption bool = S_in.x_in in
   let set f :
@@ -50,6 +50,6 @@ let scope S (S_in: S_in {x_in: eoption bool}): S {z: eoption integer} =
       | ENone _ → raise NoValueProvided
       | ESome z → z
   in
-  return { S z = z; }
+  return { S z = z; } 
 
 ```

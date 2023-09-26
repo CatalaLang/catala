@@ -231,28 +231,24 @@ let lines (file : File.t) (language : Cli.backend_lang) =
 
 (** {1 Parsing multiple files} *)
 
+let lexbuf_file lexbuf =
+  (fst (Sedlexing.lexing_positions lexbuf)).Lexing.pos_fname
+
+let with_sedlex_file file f =
+  let ic = open_in file in
+  let lexbuf = Sedlexing.Utf8.from_channel ic in
+  Sedlexing.set_filename lexbuf file;
+  Fun.protect ~finally:(fun () -> close_in ic) (fun () -> f lexbuf)
+
 (** Parses a single source file *)
-let rec parse_source_file
-    (source_file : Cli.input_file)
-    (language : Cli.backend_lang) : Ast.program =
-  Message.emit_debug "Parsing %s"
-    (match source_file with FileName s | Contents s -> s);
-  let lexbuf, input =
-    match source_file with
-    | FileName source_file -> (
-      try
-        let input = open_in source_file in
-        Sedlexing.Utf8.from_channel input, Some input
-      with Sys_error msg -> Message.raise_error "System error: %s" msg)
-    | Contents contents -> Sedlexing.Utf8.from_string contents, None
-  in
-  let source_file_name =
-    match source_file with FileName s -> s | Contents _ -> "stdin"
-  in
-  Sedlexing.set_filename lexbuf source_file_name;
+let rec parse_source
+    (lexbuf: Sedlexing.lexbuf)
+  : Ast.program =
+  let source_file_name = lexbuf_file lexbuf in
+  Message.emit_debug "Parsing %a" File.format source_file_name;
+  let language = Cli.file_lang source_file_name in
   let commands = localised_parser language lexbuf in
-  (match input with Some input -> close_in input | None -> ());
-  let program = expand_includes source_file_name commands language in
+  let program = expand_includes source_file_name commands in
   {
     program_module_name = program.Ast.program_module_name;
     program_items = program.Ast.program_items;
@@ -265,8 +261,8 @@ let rec parse_source_file
     files *)
 and expand_includes
     (source_file : string)
-    (commands : Ast.law_structure list)
-    (language : Cli.backend_lang) : Ast.program =
+    (commands : Ast.law_structure list) : Ast.program =
+  let language = Cli.file_lang source_file in
   let rprg =
     List.fold_left
       (fun acc command ->
@@ -290,9 +286,8 @@ and expand_includes
         | Ast.LawInclude (Ast.CatalaFile inc_file) ->
           let source_dir = Filename.dirname source_file in
           let sub_source = File.(source_dir / Mark.remove inc_file) in
-          let includ_program =
-            parse_source_file (FileName sub_source) language
-          in
+          with_sedlex_file sub_source @@ fun lexbuf ->
+          let includ_program = parse_source lexbuf in
           let () =
             includ_program.Ast.program_module_name
             |> Option.iter
@@ -327,7 +322,7 @@ and expand_includes
             Ast.program_modules = new_modules;
             Ast.program_lang = _;
           } =
-            expand_includes source_file commands' language
+            expand_includes source_file commands'
           in
           {
             Ast.program_module_name;
@@ -382,30 +377,44 @@ let get_interface program =
 
 (** {1 API} *)
 
-let load_interface source_file language =
-  let program = parse_source_file source_file language in
+let with_sedlex_source source_file f =
+  match source_file with
+  | Cli.FileName file -> with_sedlex_file file f
+  | Cli.Contents (str, file) ->
+    let lexbuf = Sedlexing.Utf8.from_string str in
+    Sedlexing.set_filename lexbuf file;
+    f lexbuf
+  | Cli.Stdin file ->
+    let lexbuf = Sedlexing.Utf8.from_channel stdin in
+    Sedlexing.set_filename lexbuf file;
+    f lexbuf
+
+let load_interface source_file =
+  let program =
+    with_sedlex_source source_file parse_source
+  in
   let modname =
     match program.Ast.program_module_name with
     | Some mname -> mname
     | None ->
       Message.raise_error
-        "%s doesn't define a module name. It should contain a '@{<cyan>> \
+        "%a doesn't define a module name. It should contain a '@{<cyan>> \
          Module %s@}' directive."
-        (match source_file with
-        | FileName s -> "File " ^ s
-        | Contents _ -> "Source input")
+        File.format
+        (Cli.input_src_file source_file)
         (match source_file with
         | FileName s ->
           String.capitalize_ascii Filename.(basename (remove_extension s))
-        | Contents _ -> "Module_name")
+        | _ -> "Module_name")
   in
   let used_modules, intf = get_interface program in
   (modname, intf), used_modules
 
 let parse_top_level_file
-    (source_file : Cli.input_file)
-    (language : Cli.backend_lang) : Ast.program =
-  let program = parse_source_file source_file language in
+    (source_file : Cli.input_src)
+    : Ast.program =
+  let program =
+    with_sedlex_source source_file parse_source in
   {
     program with
     Ast.program_items = law_struct_list_to_tree program.Ast.program_items;

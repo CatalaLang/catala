@@ -59,9 +59,7 @@ let get_out_channel ~source_file ~output_file ?ext () =
   | Some "-", _ | None, None -> None, fun f -> f stdout
   | Some f, _ -> Some f, with_out_channel f
   | None, Some ext ->
-    let src =
-      match source_file with Cli.FileName f -> f | Cli.Contents _ -> "a"
-    in
+    let src = Cli.input_src_file source_file in
     let f = Filename.remove_extension src ^ ext in
     Some f, with_out_channel f
 

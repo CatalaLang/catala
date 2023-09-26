@@ -14,7 +14,7 @@ $ catala Interpret -s A
 [ERROR]
 This exception does not have a corresponding definition
 
-┌─⯈ missing_unlabeled_definition.catala_en:8.3-9.15:
+┌─⯈ tests/test_exception/bad/missing_unlabeled_definition.catala_en:8.3-9.15:
 └─┐
 8 │   exception
   │   ‾‾‾‾‾‾‾‾‾

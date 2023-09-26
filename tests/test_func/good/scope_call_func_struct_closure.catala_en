@@ -42,7 +42,7 @@ two closures in Foo.r are different even with optimizations enabled.
 
 ```catala-test-inline
 $ catala Lcalc --avoid_exceptions -O --closure_conversion 
-type eoption =  | ENone of unit  | ESome of any
+type eoption =  | ENone of unit  | ESome of any 
 
 type Result = {
   r: eoption ((closure_env, integer) → eoption integer * closure_env);
@@ -76,7 +76,7 @@ let topval closure_y : (closure_env, integer) → eoption integer =
        | ESome x_0 → ESome (x_0 + z))
       with
     | ENone _ → raise NoValueProvided
-    | ESome y → y
+    | ESome y → y 
 let scope SubFoo1
   (SubFoo1_in: SubFoo1_in {x_in: eoption integer})
   : SubFoo1 {
@@ -89,7 +89,7 @@ let scope SubFoo1
       eoption ((closure_env, integer) → eoption integer * closure_env) =
     ESome (closure_y, to_closure_env (x))
   in
-  return { SubFoo1 x = x; y = y; }
+  return { SubFoo1 x = x; y = y; } 
 let topval closure_y : (closure_env, integer) → eoption integer =
   λ (env: closure_env) (z: integer) →
   let env1 : (eoption integer * eoption integer) = from_closure_env env in
@@ -107,7 +107,7 @@ let topval closure_y : (closure_env, integer) → eoption integer =
        | ESome y_0 → ESome (y_0 + z))
       with
     | ENone _ → raise NoValueProvided
-    | ESome y → y
+    | ESome y → y 
 let scope SubFoo2
   (SubFoo2_in: SubFoo2_in {x1_in: eoption integer; x2_in: eoption integer})
   : SubFoo2 {
@@ -121,7 +121,7 @@ let scope SubFoo2
       eoption ((closure_env, integer) → eoption integer * closure_env) =
     ESome (closure_y, to_closure_env (x2, x1))
   in
-  return { SubFoo2 x1 = x1; y = y; }
+  return { SubFoo2 x1 = x1; y = y; } 
 let topval closure_r : (closure_env, integer) → eoption integer =
   λ (env: closure_env) (param0: integer) →
   match (SubFoo2 { SubFoo2_in x1_in = ESome 10; x2_in = ESome 10; }).y with
@@ -131,7 +131,7 @@ let topval closure_r : (closure_env, integer) → eoption integer =
         ((closure_env, integer) → eoption integer * closure_env) =
       result
     in
-    code_and_env.0 code_and_env.1 param0
+    code_and_env.0 code_and_env.1 param0 
 let topval closure_r : (closure_env, integer) → eoption integer =
   λ (env: closure_env) (param0: integer) →
   match (SubFoo1 { SubFoo1_in x_in = ESome 10; }).y with
@@ -141,7 +141,7 @@ let topval closure_r : (closure_env, integer) → eoption integer =
         ((closure_env, integer) → eoption integer * closure_env) =
       result
     in
-    code_and_env.0 code_and_env.1 param0
+    code_and_env.0 code_and_env.1 param0 
 let scope Foo
   (Foo_in: Foo_in {b_in: eoption bool})
   : Foo {z: eoption integer}
@@ -233,7 +233,7 @@ let scope Foo
       | ENone _ → raise NoValueProvided
       | ESome z → z
   in
-  return { Foo z = z; }
+  return { Foo z = z; } 
 
 ```
 

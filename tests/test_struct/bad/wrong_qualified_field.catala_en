@@ -22,7 +22,7 @@ $ catala Interpret -s A
 [ERROR]
 Field "g" does not belong to structure "Foo", but to "Bar"
 
-┌─⯈ wrong_qualified_field.catala_en:17.23-17.30:
+┌─⯈ tests/test_struct/bad/wrong_qualified_field.catala_en:17.23-17.30:
 └──┐
 17 │   definition y equals x.Foo.g
    │                       ‾‾‾‾‾‾‾

@@ -23,13 +23,13 @@ $ catala Interpret -s A
 [ERROR]
 The constructor Case3 has been matched twice:
 
-┌─⯈ duplicate_case.catala_en:18.16-18.20:
+┌─⯈ tests/test_enum/bad/duplicate_case.catala_en:18.16-18.20:
 └──┐
 18 │     -- Case3 : true
    │                ‾‾‾‾
    └─ Article
 
-┌─⯈ duplicate_case.catala_en:17.16-17.21:
+┌─⯈ tests/test_enum/bad/duplicate_case.catala_en:17.16-17.21:
 └──┐
 17 │     -- Case3 : false
    │                ‾‾‾‾‾

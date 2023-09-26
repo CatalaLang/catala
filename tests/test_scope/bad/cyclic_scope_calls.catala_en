@@ -33,19 +33,19 @@ Cyclic dependency detected between the following scopes:
   S4 → S3 → S2 → S4
 
 S4 is used here in the definition of S3:
-┌─⯈ cyclic_scope_calls.catala_en:21.24-21.36:
+┌─⯈ tests/test_scope/bad/cyclic_scope_calls.catala_en:21.24-21.36:
 └──┐
 21 │   definition o equals (output of S4).o
    │                        ‾‾‾‾‾‾‾‾‾‾‾‾
 
 S3 is used here in the definition of S2:
-┌─⯈ cyclic_scope_calls.catala_en:18.43-18.55:
+┌─⯈ tests/test_scope/bad/cyclic_scope_calls.catala_en:18.43-18.55:
 └──┐
 18 │   definition o equals (output of S1).o + (output of S3).o
    │                                           ‾‾‾‾‾‾‾‾‾‾‾‾
 
 S2 is used here in the definition of S4:
-┌─⯈ cyclic_scope_calls.catala_en:24.24-24.36:
+┌─⯈ tests/test_scope/bad/cyclic_scope_calls.catala_en:24.24-24.36:
 └──┐
 24 │   definition o equals (output of S2).o
    │                        ‾‾‾‾‾‾‾‾‾‾‾‾

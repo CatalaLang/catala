@@ -21,21 +21,21 @@ Cyclic dependency detected between the following variables of scope A:
   z → x → y → z
 
 z is used here in the definition of x:
-┌─⯈ cycle_in_scope.catala_en:14.23-14.24:
+┌─⯈ tests/test_scope/bad/cycle_in_scope.catala_en:14.23-14.24:
 └──┐
 14 │   definition x equals z
    │                       ‾
    └─ Article
 
 x is used here in the definition of y:
-┌─⯈ cycle_in_scope.catala_en:11.32-11.33:
+┌─⯈ tests/test_scope/bad/cycle_in_scope.catala_en:11.32-11.33:
 └──┐
 11 │   definition y under condition x >= 0 consequence equals x
    │                                ‾
    └─ Article
 
 y is used here in the definition of z:
-┌─⯈ cycle_in_scope.catala_en:13.32-13.33:
+┌─⯈ tests/test_scope/bad/cycle_in_scope.catala_en:13.32-13.33:
 └──┐
 13 │   definition z under condition y < 1 consequence equals y
    │                                ‾

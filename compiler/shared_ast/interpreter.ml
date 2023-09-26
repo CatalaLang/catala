@@ -951,7 +951,7 @@ let load_runtime_modules ~build_dirs prg =
       Message.raise_spanned_error
         ~span_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
         (ModuleName.pos m)
-        "Compiled OCaml object %a not found. Make sure it has been suitably compiled, and use @{<blue>-I DIR@} if necessary." File.format obj_base
+        "Compiled OCaml object %a not found. Make sure it has been suitably compiled, and use @{<blue>--build-dir@} if necessary." File.format obj_base
     | [f] ->
       (try Dynlink.loadfile f
        with Dynlink.Error dl_err ->
@@ -979,8 +979,9 @@ let load_runtime_modules ~build_dirs prg =
           loaded)
       decl_ctx.ctx_modules loaded
   in
-  Message.emit_debug "Loading shared modules... %a"
-    (fun ppf -> ModuleName.Map.format_keys ppf)
-    prg.decl_ctx.ctx_modules;
+  if not (ModuleName.Map.is_empty prg.decl_ctx.ctx_modules) then
+    Message.emit_debug "Loading shared modules... %a"
+      (fun ppf -> ModuleName.Map.format_keys ppf)
+      prg.decl_ctx.ctx_modules;
   let (_loaded: ModuleName.Set.t) = aux ModuleName.Set.empty prg.decl_ctx in
   ()

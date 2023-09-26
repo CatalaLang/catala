@@ -25,11 +25,11 @@ val lines :
     structure as is *)
 
 val load_interface :
-  Cli.input_file -> Cli.backend_lang -> Ast.interface * string Mark.pos list
+  Cli.input_src -> Ast.interface * string Mark.pos list
 (** Reads only declarations in metadata in the supplied input file, and only
     keeps type information ; returns the modules used as well *)
 
-val parse_top_level_file : Cli.input_file -> Cli.backend_lang -> Ast.program
+val parse_top_level_file : Cli.input_src -> Ast.program
 (** Parses a catala file (handling file includes) and returns a program.
     Interfaces of the used modules are returned empty, use [load_interface] to
     fill them. *)

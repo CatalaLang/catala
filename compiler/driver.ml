@@ -26,22 +26,6 @@ let modname_of_file f =
   (* Fixme: make this more robust *)
   String.capitalize_ascii Filename.(basename (remove_extension f))
 
-let get_lang options file =
-  let filename = match file with Cli.FileName s -> s | Contents _ -> "-" in
-  Option.bind
-    (List.assoc_opt (Filename.extension filename) extensions)
-    (fun l -> List.assoc_opt l Cli.languages)
-  |> function
-  | Some lang -> lang
-  | None -> (
-    match options.Cli.language with
-    | Some lang -> lang
-    | None ->
-      Message.raise_error
-        "Could not infer language variant from the extension of \
-         @{<yellow>%s@}, and @{<bold>--language@} was not specified"
-        filename)
-
 let load_module_interfaces includes program =
   (* Recurse into program modules, looking up files in [using] and loading them *)
   let err_req_pos chain =
@@ -75,13 +59,8 @@ let load_module_interfaces includes program =
         ms
   in
   let load_file f =
-    let lang =
-      List.assoc
-        (List.assoc (Filename.extension f) extensions)
-        Cli.languages
-    in
     let (mname, intf), using =
-      Surface.Parser_driver.load_interface (Cli.FileName f) lang
+      Surface.Parser_driver.load_interface (Cli.FileName f)
     in
     (ModuleName.of_string mname, intf), using
   in
@@ -116,19 +95,17 @@ module Passes = struct
     Message.emit_debug "@{<bold;magenta>=@} @{<bold>%s@} @{<bold;magenta>=@}"
       (String.uppercase_ascii s)
 
-  let surface options ~includes : Surface.Ast.program * Cli.backend_lang =
+  let surface options ~includes : Surface.Ast.program =
     debug_pass_name "surface";
-    let language = get_lang options options.input_file in
     let prg =
-      Surface.Parser_driver.parse_top_level_file options.input_file language
+      Surface.Parser_driver.parse_top_level_file options.Cli.input_src
     in
     let prg = Surface.Fill_positions.fill_pos_with_legislative_info prg in
-    let prg = load_module_interfaces includes prg in
-    prg, language
+    load_module_interfaces includes prg
 
   let desugared options ~includes :
       Desugared.Ast.program * Desugared.Name_resolution.context =
-    let prg, _ = surface options ~includes in
+    let prg = surface options ~includes in
     debug_pass_name "desugared";
     Message.emit_debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context prg in
@@ -370,22 +347,17 @@ module Commands = struct
     Term.(const mk $ Cli.Flags.include_dirs)
 
   let get_output ?ext options output_file =
-    File.get_out_channel ~source_file:options.Cli.input_file ~output_file ?ext
+    File.get_out_channel ~source_file:options.Cli.input_src ~output_file ?ext
       ()
 
   let get_output_format ?ext options output_file =
-    File.get_formatter_of_out_channel ~source_file:options.Cli.input_file
+    File.get_formatter_of_out_channel ~source_file:options.Cli.input_src
       ~output_file ?ext ()
 
   let makefile options output =
-    let prg, _ = Passes.surface options ~includes:File.Tree.empty in
+    let prg = Passes.surface options ~includes:File.Tree.empty in
     let backend_extensions_list = [".tex"] in
-    let source_file =
-      match options.Cli.input_file with
-      | FileName f -> f
-      | Contents _ ->
-        Message.raise_error "The Makefile backend requires a filename as input"
-    in
+    let source_file = Cli.input_src_file options.Cli.input_src in
     let output_file, with_output = get_output options ~ext:".d" output in
     Message.emit_debug "Writing list of dependencies to %s..."
       (Option.value ~default:"stdout" output_file);
@@ -409,13 +381,14 @@ module Commands = struct
       Term.(const makefile $ Cli.Flags.Global.options $ Cli.Flags.output)
 
   let html options output print_only_law wrap_weaved_output =
-    let prg, language = Passes.surface options ~includes:File.Tree.empty in
+    let prg = Passes.surface options ~includes:File.Tree.empty in
     Message.emit_debug "Weaving literate program into HTML";
     let output_file, with_output =
       get_output_format options ~ext:".html" output
     in
     with_output
     @@ fun fmt ->
+    let language = Cli.file_lang (Cli.input_src_file options.Cli.input_src) in
     let weave_output = Literate.Html.ast_to_html language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -437,13 +410,14 @@ module Commands = struct
         $ Cli.Flags.wrap_weaved_output)
 
   let latex options output print_only_law wrap_weaved_output =
-    let prg, language = Passes.surface options ~includes:File.Tree.empty in
+    let prg = Passes.surface options ~includes:File.Tree.empty in
     Message.emit_debug "Weaving literate program into LaTeX";
     let output_file, with_output =
       get_output_format options ~ext:".tex" output
     in
     with_output
     @@ fun fmt ->
+    let language = Cli.file_lang (Cli.input_src_file options.Cli.input_src) in
     let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -629,11 +603,12 @@ module Commands = struct
     in
     Message.emit_result "Computation successful!%s"
       (if List.length results > 0 then " Results:" else "");
+    let language = Cli.file_lang (Cli.input_src_file options.Cli.input_src) in
     List.iter
       (fun ((var, _), result) ->
         Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
           (if options.Cli.debug then Print.expr ~debug:false ()
-           else Print.UserFacing.value (get_lang options options.input_file))
+           else Print.UserFacing.value language)
           result)
       results
 

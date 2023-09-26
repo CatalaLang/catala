@@ -443,7 +443,7 @@ let run
   in
   let modname =
     (* TODO: module directive support *)
-    match options.Cli.input_file with
+    match options.Cli.input_src with
     | FileName n -> Some (Driver.modname_of_file n)
     | _ -> None
   in

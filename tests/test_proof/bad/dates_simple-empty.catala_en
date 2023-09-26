@@ -15,7 +15,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] [A.y] This variable might return an empty error:
-┌─⯈ dates_simple-empty.catala_en:6.10-6.11:
+┌─⯈ tests/test_proof/bad/dates_simple-empty.catala_en:6.10-6.11:
 └─┐
 6 │   output y content boolean
   │          ‾
