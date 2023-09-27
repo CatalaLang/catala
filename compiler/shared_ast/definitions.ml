@@ -666,4 +666,8 @@ type decl_ctx = {
   ctx_modules : decl_ctx ModuleName.Map.t;
 }
 
-type 'e program = { decl_ctx : decl_ctx; code_items : 'e code_item_list }
+type 'e program = {
+  decl_ctx : decl_ctx;
+  code_items : 'e code_item_list;
+  lang : Cli.backend_lang;
+}

@@ -356,7 +356,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
   in
   Bindlib.box_apply
     (fun new_code_items ->
-      { code_items = new_code_items; decl_ctx = new_decl_ctx })
+      { code_items = new_code_items; decl_ctx = new_decl_ctx; lang = p.lang })
     new_code_items
 
 (** {1 Hoisting closures}*)

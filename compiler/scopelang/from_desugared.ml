@@ -831,6 +831,7 @@ let translate_program
             process_modules
               (ModuleName.Map.find modname program_ctx.ctx_modules)
               m_desugared;
+          Ast.program_lang = desugared.program_lang;
         })
       desugared.D.program_modules
   in
@@ -855,4 +856,5 @@ let translate_program
     Ast.program_scopes;
     Ast.program_ctx;
     Ast.program_modules;
+    Ast.program_lang = desugared.program_lang;
   }

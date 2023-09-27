@@ -102,7 +102,7 @@ exception CatalaException of except
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
    builtin equality function instead of this. *)
-let handle_eq evaluate_operator pos e1 e2 =
+let handle_eq evaluate_operator pos lang e1 e2 =
   let open Runtime.Oper in
   match e1, e2 with
   | ELit LUnit, ELit LUnit -> true
@@ -116,7 +116,7 @@ let handle_eq evaluate_operator pos e1 e2 =
     try
       List.for_all2
         (fun e1 e2 ->
-          match Mark.remove (evaluate_operator Eq pos [e1; e2]) with
+          match Mark.remove (evaluate_operator Eq pos lang [e1; e2]) with
           | ELit (LBool b) -> b
           | _ -> assert false
           (* should not happen *))
@@ -126,7 +126,7 @@ let handle_eq evaluate_operator pos e1 e2 =
     StructName.equal s1 s2
     && StructField.Map.equal
          (fun e1 e2 ->
-           match Mark.remove (evaluate_operator Eq pos [e1; e2]) with
+           match Mark.remove (evaluate_operator Eq pos lang [e1; e2]) with
            | ELit (LBool b) -> b
            | _ -> assert false
            (* should not happen *))
@@ -137,7 +137,7 @@ let handle_eq evaluate_operator pos e1 e2 =
       EnumName.equal en1 en2
       && EnumConstructor.equal i1 i2
       &&
-      match Mark.remove (evaluate_operator Eq pos [e1; e2]) with
+      match Mark.remove (evaluate_operator Eq pos lang [e1; e2]) with
       | ELit (LBool b) -> b
       | _ -> assert false
       (* should not happen *)
@@ -149,6 +149,7 @@ let rec evaluate_operator
     evaluate_expr
     (op : < overloaded : no ; .. > operator)
     m
+    lang
     args =
   let pos = Expr.mark_pos m in
   let protect f x y =
@@ -183,7 +184,8 @@ let rec evaluate_operator
           (fun i arg ->
             ( Some
                 (Format.asprintf "Argument n°%d, value %a" (i + 1)
-                   (Print.expr ()) arg),
+                   (Print.UserFacing.expr lang)
+                   arg),
               Expr.pos arg ))
           args)
       "Operator %a applied to the wrong arguments\n\
@@ -210,7 +212,7 @@ let rec evaluate_operator
     Mark.remove e'
   | (ToClosureEnv | FromClosureEnv), _ -> err ()
   | Eq, [(e1, _); (e2, _)] ->
-    ELit (LBool (handle_eq (evaluate_operator evaluate_expr) m e1 e2))
+    ELit (LBool (handle_eq (evaluate_operator evaluate_expr) m lang e1 e2))
   | Map, [f; (EArray es, _)] ->
     EArray
       (List.map
@@ -539,8 +541,11 @@ and val_to_runtime :
 
 let rec evaluate_expr :
     type d e.
-    decl_ctx -> ((d, e, yes) astk, 't) gexpr -> ((d, e, yes) astk, 't) gexpr =
- fun ctx e ->
+    decl_ctx ->
+    Cli.backend_lang ->
+    ((d, e, yes) astk, 't) gexpr ->
+    ((d, e, yes) astk, 't) gexpr =
+ fun ctx lang e ->
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
   match Mark.remove e with
@@ -578,32 +583,33 @@ let rec evaluate_expr :
          have different capitalisation rules inherited from the input *)
     in
     let o = Runtime.lookup_value runtime_path in
-    runtime_to_val evaluate_expr ctx m ty o
+    runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o
   | EApp { f = e1; args } -> (
-    let e1 = evaluate_expr ctx e1 in
-    let args = List.map (evaluate_expr ctx) args in
+    let e1 = evaluate_expr ctx lang e1 in
+    let args = List.map (evaluate_expr ctx lang) args in
     propagate_empty_error e1
     @@ fun e1 ->
     match Mark.remove e1 with
     | EAbs { binder; _ } ->
       if Bindlib.mbinder_arity binder = List.length args then
-        evaluate_expr ctx
+        evaluate_expr ctx lang
           (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
       else
         Message.raise_spanned_error pos
           "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | EOp { op; _ } -> evaluate_operator (evaluate_expr ctx) op m args
+    | EOp { op; _ } -> evaluate_operator (evaluate_expr ctx lang) op m lang args
     | ECustom { obj; targs; tret } ->
       (* Applies the arguments one by one to the curried form *)
       List.fold_left2
         (fun fobj targ arg ->
           (Obj.obj fobj : Obj.t -> Obj.t)
-            (val_to_runtime evaluate_expr ctx targ arg))
+            (val_to_runtime (fun ctx -> evaluate_expr ctx lang) ctx targ arg))
         obj targs args
       |> Obj.obj
-      |> fun o -> runtime_to_val evaluate_expr ctx m tret o
+      |> fun o ->
+      runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m tret o
     | _ ->
       Message.raise_spanned_error pos
         "function has not been reduced to a lambda at evaluation (should not \
@@ -614,7 +620,7 @@ let rec evaluate_expr :
   (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
-    let es = List.map (evaluate_expr ctx) es in
+    let es = List.map (evaluate_expr ctx lang) es in
     propagate_empty_error_list es
     @@ fun es ->
     Mark.add m
@@ -626,7 +632,7 @@ let rec evaluate_expr :
            name;
          })
   | EStructAccess { e; name = s; field } -> (
-    propagate_empty_error (evaluate_expr ctx e)
+    propagate_empty_error (evaluate_expr ctx lang e)
     @@ fun e ->
     match Mark.remove e with
     | EStruct { fields = es; name } -> (
@@ -646,21 +652,23 @@ let rec evaluate_expr :
       Message.raise_spanned_error (Expr.pos e)
         "The expression %a should be a struct %a but is not (should not happen \
          if the term was well-typed)"
-        (Print.expr ()) e StructName.format s)
-  | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx) es))
+        (Print.UserFacing.expr lang)
+        e StructName.format s)
+  | ETuple es -> Mark.add m (ETuple (List.map (evaluate_expr ctx lang) es))
   | ETupleAccess { e = e1; index; size } -> (
-    match evaluate_expr ctx e1 with
+    match evaluate_expr ctx lang e1 with
     | ETuple es, _ when List.length es = size -> List.nth es index
     | e ->
       Message.raise_spanned_error (Expr.pos e)
         "The expression %a was expected to be a tuple of size %d (should not \
          happen if the term was well-typed)"
-        (Print.expr ()) e size)
+        (Print.UserFacing.expr lang)
+        e size)
   | EInj { e; name; cons } ->
-    propagate_empty_error (evaluate_expr ctx e)
+    propagate_empty_error (evaluate_expr ctx lang e)
     @@ fun e -> Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
-    propagate_empty_error (evaluate_expr ctx e)
+    propagate_empty_error (evaluate_expr ctx lang e)
     @@ fun e ->
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
@@ -678,42 +686,33 @@ let rec evaluate_expr :
              well-typed)"
       in
       let new_e = Mark.add m (EApp { f = es_n; args = [e1] }) in
-      evaluate_expr ctx new_e
+      evaluate_expr ctx lang new_e
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
         "Expected a term having a sum type as an argument to a match (should \
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
-    propagate_empty_error (evaluate_expr ctx cond)
+    propagate_empty_error (evaluate_expr ctx lang cond)
     @@ fun cond ->
     match Mark.remove cond with
-    | ELit (LBool true) -> evaluate_expr ctx etrue
-    | ELit (LBool false) -> evaluate_expr ctx efalse
+    | ELit (LBool true) -> evaluate_expr ctx lang etrue
+    | ELit (LBool false) -> evaluate_expr ctx lang efalse
     | _ ->
       Message.raise_spanned_error (Expr.pos cond)
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
-    propagate_empty_error_list (List.map (evaluate_expr ctx) es)
+    propagate_empty_error_list (List.map (evaluate_expr ctx lang) es)
     @@ fun es -> Mark.add m (EArray es)
   | EAssert e' ->
-    propagate_empty_error (evaluate_expr ctx e') (fun e ->
+    propagate_empty_error (evaluate_expr ctx lang e') (fun e ->
         match Mark.remove e with
         | ELit (LBool true) -> Mark.add m (ELit LUnit)
-        | ELit (LBool false) -> (
-          match Mark.remove (Expr.skip_wrappers e') with
-          | EApp
-              {
-                f = EOp { op; _ }, _;
-                args = [((ELit _, _) as e1); ((ELit _, _) as e2)];
-              } ->
-            Message.raise_spanned_error (Expr.pos e')
-              "Assertion failed: %a %a %a" (Print.expr ()) e1
-              (Print.operator ~debug:Cli.globals.debug)
-              op (Print.expr ()) e2
-          | _ ->
-            Message.emit_debug "%a" (Print.expr ()) e';
-            Message.raise_spanned_error (Expr.mark_pos m) "Assertion failed")
+        | ELit (LBool false) ->
+          Message.raise_spanned_error (Expr.pos e') "Assertion failed:@\n%a"
+            (Print.UserFacing.expr lang)
+            (partially_evaluate_expr_for_assertion_failure_message ctx lang
+               (Expr.skip_wrappers e'))
         | _ ->
           Message.raise_spanned_error (Expr.pos e')
             "Expected a boolean literal for the result of this assertion \
@@ -721,21 +720,21 @@ let rec evaluate_expr :
   | ECustom _ -> e
   | EEmptyError -> Mark.copy e EEmptyError
   | EErrorOnEmpty e' -> (
-    match evaluate_expr ctx e' with
+    match evaluate_expr ctx lang e' with
     | EEmptyError, _ ->
       Message.raise_spanned_error (Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
          applied in this situation)"
     | e -> e)
   | EDefault { excepts; just; cons } -> (
-    let excepts = List.map (evaluate_expr ctx) excepts in
+    let excepts = List.map (evaluate_expr ctx lang) excepts in
     let empty_count = List.length (List.filter is_empty_error excepts) in
     match List.length excepts - empty_count with
     | 0 -> (
-      let just = evaluate_expr ctx just in
+      let just = evaluate_expr ctx lang just in
       match Mark.remove just with
       | EEmptyError -> Mark.add m EEmptyError
-      | ELit (LBool true) -> evaluate_expr ctx cons
+      | ELit (LBool true) -> evaluate_expr ctx lang cons
       | ELit (LBool false) -> Mark.copy e EEmptyError
       | _ ->
         Message.raise_spanned_error (Expr.pos e)
@@ -752,10 +751,45 @@ let rec evaluate_expr :
          the same variable.")
   | ERaise exn -> raise (CatalaException exn)
   | ECatch { body; exn; handler } -> (
-    try evaluate_expr ctx body
+    try evaluate_expr ctx lang body
     with CatalaException caught when Expr.equal_except caught exn ->
-      evaluate_expr ctx handler)
+      evaluate_expr ctx lang handler)
   | _ -> .
+
+and partially_evaluate_expr_for_assertion_failure_message :
+    type d e.
+    decl_ctx ->
+    Cli.backend_lang ->
+    ((d, e, yes) astk, 't) gexpr ->
+    ((d, e, yes) astk, 't) gexpr =
+ fun ctx lang e ->
+  (* Here we want to print an expression that explains why an assertion has
+     failed. Since assertions have type [bool] and are usually constructed with
+     comparisons and logical operators, we leave those unevaluated at the top of
+     the AST while evaluating everything below. This makes for a good error
+     message. *)
+  match Mark.remove e with
+  | EApp { f = EOp ({ op = op_kind; _ } as op), m; args = [e1; e2] }
+    when match op_kind with
+         | And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
+         | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
+         | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
+         | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
+         | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
+         | Eq_dur_dur | Eq_dat_dat ->
+           true
+         | _ -> false ->
+    ( EApp
+        {
+          f = EOp op, m;
+          args =
+            [
+              partially_evaluate_expr_for_assertion_failure_message ctx lang e1;
+              partially_evaluate_expr_for_assertion_failure_message ctx lang e2;
+            ];
+        },
+      Mark.get e )
+  | _ -> evaluate_expr ctx lang e
 
 (* Typing shenanigan to add custom terms to the AST type. This is an identity
    and could be optimised into [Obj.magic]. *)
@@ -804,7 +838,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let e = Expr.unbox @@ Program.to_expr p s in
   let ctx = p.decl_ctx in
-  match evaluate_expr ctx (addcustom e) with
+  match evaluate_expr ctx p.lang (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -834,7 +868,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         [Expr.estruct ~name:s_in ~fields:application_term mark_e]
         (Expr.pos e)
     in
-    match Mark.remove (evaluate_expr ctx (Expr.unbox to_interpret)) with
+    match Mark.remove (evaluate_expr ctx p.lang (Expr.unbox to_interpret)) with
     | EStruct { fields; _ } ->
       List.map
         (fun (fld, e) -> StructField.get_info fld, delcustom e)
@@ -854,7 +888,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
-  match evaluate_expr p.decl_ctx (addcustom e) with
+  match evaluate_expr p.decl_ctx p.lang (addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -885,7 +919,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
         [Expr.estruct ~name:s_in ~fields:application_term mark_e]
         (Expr.pos e)
     in
-    match Mark.remove (evaluate_expr ctx (Expr.unbox to_interpret)) with
+    match Mark.remove (evaluate_expr ctx p.lang (Expr.unbox to_interpret)) with
     | EStruct { fields; _ } ->
       List.map
         (fun (fld, e) -> StructField.get_info fld, delcustom e)
@@ -904,7 +938,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
    and [delcustom] are needed to expand and shrink the type of the terms to
    reflect that. *)
-let evaluate_expr ctx e = delcustom (evaluate_expr ctx (addcustom e))
+let evaluate_expr ctx lang e = delcustom (evaluate_expr ctx lang (addcustom e))
 
 let load_runtime_modules = function
   | [] -> ()

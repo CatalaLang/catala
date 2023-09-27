@@ -55,6 +55,7 @@ type 'm program = {
   program_topdefs : ('m expr * typ) TopdefName.Map.t;
   program_modules : nil program ModuleName.Map.t;
   program_ctx : decl_ctx;
+  program_lang : Cli.backend_lang;
 }
 
 let type_rule decl_ctx env = function
