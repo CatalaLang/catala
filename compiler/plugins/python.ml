@@ -45,7 +45,7 @@ let run
 let term =
   let open Cmdliner.Term in
   const run
-  $ Driver.Commands.include_flags
+  $ Cli.Flags.include_dirs
   $ Cli.Flags.output
   $ Cli.Flags.optimize
   $ Cli.Flags.check_invariants

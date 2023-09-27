@@ -23,7 +23,7 @@ type flags = {
   merge_level : int;
   format : [ `Dot | `Convert of string ];
   show : string option;
-  output : string option;
+  output : Cli.raw_file option;
   base_src_url : string;
 }
 
@@ -1385,12 +1385,12 @@ let options =
     $ Cli.Flags.output
     $ base_src_url)
 
-let run includes build_dirs optimize ex_scope explain_options global_options =
+let run includes optimize ex_scope explain_options global_options =
   let prg, ctx, _ =
     Driver.Passes.dcalc global_options ~includes ~optimize
       ~check_invariants:false
   in
-  Interpreter.load_runtime_modules ~build_dirs prg;
+  Interpreter.load_runtime_modules prg;
   let scope = Driver.Commands.get_scope_uid ctx ex_scope in
   (* let result_expr, env = interpret_program prg scope in *)
   let g, base_vars, env = program_to_graph explain_options prg scope in
@@ -1416,7 +1416,7 @@ let run includes build_dirs optimize ex_scope explain_options global_options =
     | { output; _ } ->
       let _, with_out = Driver.Commands.get_output global_options output in
       with_out (fun oc -> output_string oc dot_content);
-      fun f -> f (Option.value ~default:"-" output)
+      fun f -> f (Option.value ~default:"-" (Option.map Cli.globals.path_rewrite output))
   in
   with_dot_file
   @@ fun dotfile ->
@@ -1436,8 +1436,7 @@ let run includes build_dirs optimize ex_scope explain_options global_options =
 let term =
   let open Cmdliner.Term in
   const run
-  $ Driver.Commands.include_flags
-  $ Cli.Flags.build_dirs
+  $ Cli.Flags.include_dirs
   $ Cli.Flags.optimize
   $ Cli.Flags.ex_scope
   $ options

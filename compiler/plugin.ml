@@ -50,9 +50,12 @@ let load_dir d =
         if f.[0] = '.' then ()
         else
           let f = Filename.concat d f in
-          if Sys.is_directory f then aux f
-          else if List.exists (Filename.check_suffix f) dynlink_exts then
-            load_file f)
+          match Sys.is_directory f with
+          | true -> aux f
+          | false ->
+            if List.exists (Filename.check_suffix f) dynlink_exts then
+              load_file f
+          | exception (Sys_error _) -> ())
       (Sys.readdir d)
   in
   aux d
