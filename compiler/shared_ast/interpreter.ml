@@ -940,35 +940,24 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
    reflect that. *)
 let evaluate_expr ctx lang e = delcustom (evaluate_expr ctx lang (addcustom e))
 
-let load_runtime_modules ~build_dirs prg =
+let load_runtime_modules prg =
   let load m =
-    let obj_base =
+    let obj_file =
       Dynlink.adapt_filename File.(Pos.get_file (ModuleName.pos m) /../ ModuleName.to_string m ^ ".cmo")
     in
-    let possible_files = List.map File.(fun d -> d / obj_base) build_dirs in
-    match List.filter Sys.file_exists possible_files with
-    | [] ->
+    if not (Sys.file_exists obj_file) then
       Message.raise_spanned_error
         ~span_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
         (ModuleName.pos m)
-        "Compiled OCaml object %a not found. Make sure it has been suitably compiled, and use @{<blue>--build-dir@} if necessary." File.format obj_base
-    | [f] ->
-      (try Dynlink.loadfile f
-       with Dynlink.Error dl_err ->
-         Message.raise_error
-           "Error loading compiled module from %a:@;\
-            <1 2>@[<hov>%a@]" File.format f
-           Format.pp_print_text
-           (Dynlink.error_message dl_err))
-    | fs ->
-      Message.raise_spanned_error
-        ~span_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
-        (ModuleName.pos m)
-        "@[<v>Multiple compiled OCaml objects for %a found:@,- %a@]"
-        ModuleName.format m
-        (Format.pp_print_list ~pp_sep:(fun ppf () -> Format.fprintf ppf "@,- ")
-           File.format)
-        fs
+        "Compiled OCaml object %a not found. Make sure it has been suitably compiled." File.format obj_file
+    else
+      try Dynlink.loadfile obj_file
+      with Dynlink.Error dl_err ->
+        Message.raise_error
+          "Error loading compiled module from %a:@;\
+           <1 2>@[<hov>%a@]" File.format obj_file
+          Format.pp_print_text
+          (Dynlink.error_message dl_err)
   in
   let rec aux loaded decl_ctx =
     ModuleName.Map.fold (fun mname sub_decl_ctx loaded ->

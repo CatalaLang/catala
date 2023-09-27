@@ -611,12 +611,11 @@ module Commands = struct
           result)
       results
 
-  let interpret_dcalc options includes optimize check_invariants build_dirs ex_scope =
-    let build_dirs = List.map options.Cli.path_rewrite build_dirs in
+  let interpret_dcalc options includes optimize check_invariants ex_scope =
     let prg, ctx, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants
     in
-    Interpreter.load_runtime_modules ~build_dirs prg;
+    Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scope_uid ctx ex_scope)
 
@@ -633,7 +632,6 @@ module Commands = struct
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.build_dirs
         $ Cli.Flags.ex_scope)
 
   let lcalc
@@ -687,14 +685,12 @@ module Commands = struct
       check_invariants
       avoid_exceptions
       closure_conversion
-      build_dirs
       ex_scope =
-    let build_dirs = List.map options.Cli.path_rewrite build_dirs in
     let prg, ctx, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
     in
-    Interpreter.load_runtime_modules ~build_dirs prg;
+    Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
       (get_scope_uid ctx ex_scope)
 
@@ -713,7 +709,6 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
-        $ Cli.Flags.build_dirs
         $ Cli.Flags.ex_scope)
 
   let ocaml

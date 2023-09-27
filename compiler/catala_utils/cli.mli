@@ -119,7 +119,6 @@ module Flags : sig
   val closure_conversion : bool Term.t
   val include_dirs : raw_file list Term.t
   val disable_counterexamples : bool Term.t
-  val build_dirs : raw_file list Term.t
 end
 
 (** {2 Command-line application} *)

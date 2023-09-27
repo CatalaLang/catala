@@ -72,8 +72,6 @@ val interpret_program_lcalc :
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
 
-val load_runtime_modules : build_dirs:File.t list -> _ program -> unit
+val load_runtime_modules : _ program -> unit
 (** Dynlink the runtime modules required by the given program, in order to make
-    them callable by the interpreter.
-
-    The specified build dirs are used as prefixes to the catala files defining the modules: with {[["."; "_build"]]}, this means that the compiled artifact of [foo/bar.catala_en] will be searched in [foo/bar.cmxs] and [_build/foo/bar.cmxs] *)
+    them callable by the interpreter. *)

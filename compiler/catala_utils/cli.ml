@@ -411,14 +411,6 @@ module Flags = struct
            deterministic output from the Catala compiler, since provers can \
            have some randomness in them."
 
-  let build_dirs =
-    value
-    & opt_all string ["."; "_build"]
-    & info ["build-dir"] ~docv:"DIR"
-      ~env:(Cmd.Env.info "CATALA_BUILD_DIR")
-      ~doc:
-        "Directory where compiled modules are expected to be found (this option does not affect catala outputs)"
-
 end
 
 (* Retrieve current version from dune *)
