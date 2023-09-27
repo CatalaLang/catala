@@ -369,13 +369,12 @@ module Var = struct
   let src = make "src"
   let scope = make "scope"
   let test_id = make "test-id"
-  let test_reference = make "test-reference"
   let test_command = make "test-command"
   let ( ! ) = Var.v
 end
 
 let base_bindings catala_exe catala_flags =
-  let catala_flags = "-C" :: Var.(!builddir) :: catala_flags
+  let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags
   in  [
     Nj.binding Var.ninja_required_version ["1.7"];
     (* use of implicit outputs *)
@@ -451,7 +450,6 @@ let static_base_rules =
           "2>&1";
           "||";
           "true";
-          ";"; !post_test; !test_reference; !output
         ]
       ~description:
         ["<catala>"; "test"; !test_id; "⇐"; !input; "(" ^ !test_command ^ ")"];
@@ -464,9 +462,12 @@ let static_base_rules =
           !input;
           ">"; !output;
           "2>&1";
-          ";"; !post_test; !input; !output
         ]
       ~description:["<catala>"; "inline-tests"; "⇐"; !input];
+    Nj.rule "post-test"
+      ~command:
+        [!post_test; !input]
+      ~description:["<test-validation>"];
     Nj.rule "interpret"
       ~command:
         [
@@ -486,7 +487,7 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
   let src = item.file_name in
   let modules = List.rev item.used_modules in
   let inc x = File.(!Var.builddir / x) in
-  let modd x = File.(!Var.builddir / src /../ x ^ "@mod") in
+  let modd x = "module@" ^ File.(src /../ x) in
   let def_src =
     Nj.binding Var.src [Filename.remove_extension src]
   in
@@ -548,22 +549,28 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
       ~inputs:[inc srcv]
       ~implicit_in:interp_deps
   in
+  let legacy_test_reference test =
+    src /../ "output" / Filename.basename src -.- test.Scan.id
+  in
   let tests =
     let legacy_tests =
       List.fold_left
         (fun acc test ->
            let vars = [
              Var.test_id, [test.Scan.id];
-             Var.test_reference, [src /../ "output" / Filename.basename src -.- test.id];
              Var.test_command, test.Scan.cmd;
            ]
            in
-           (* The test reference is an implicit input because of the cases when we run diff;
-              it should actually be an implicit output for the cases when we reset. *)
-           Nj.build "out-test" ~inputs:[inc srcv] ~implicit_in:(interp_deps @ [!Var.test_reference])
-             ~outputs:[!Var.builddir / src /../ "output" / Filename.basename src -.- test.id]
-             (* ~implicit_out:[!Var.test_reference] *)
-             ~vars
+           let reference = legacy_test_reference test in
+           let test_out = !Var.builddir / src /../ "output" / Filename.basename src -.- test.id in
+           Nj.build "out-test" ~inputs:[inc srcv] ~implicit_in:interp_deps
+             ~outputs:[test_out]
+             ~vars ::
+           (* The test reference is an input because of the cases when we run diff;
+              it should actually be an output for the cases when we reset but that shouldn't cause trouble. *)
+           Nj.build "post-test"
+             ~inputs:[reference; test_out]
+             ~outputs:["post@" ^ reference]
            :: acc)
         [] item.legacy_tests
     in
@@ -571,27 +578,28 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
       if not item.has_inline_tests then []
       else
         [
-          (* Same remark as for legacy, but here the reference is [srcv] *)
           Nj.build "inline-tests" ~inputs:[inc srcv]
-            ~implicit_in:(!Var.clerk_exe :: srcv :: interp_deps)
-            (* ~implicit_out:[srcv] *)
+            ~implicit_in:(!Var.clerk_exe :: interp_deps)
             ~outputs:[!Var.builddir / srcv ^ "@out"];
         ]
     in
     let tests =
-      if item.legacy_tests = [] && not item.has_inline_tests then []
-      else
+      if item.has_inline_tests then
+        [
+          Nj.build "post-test"
+            ~outputs:["test@" ^ srcv]
+            ~inputs:[srcv; inc (srcv ^ "@out")]
+            ~implicit_in:
+              (List.map (fun test -> "post@" ^ legacy_test_reference test) item.legacy_tests);
+        ]
+      else if item.legacy_tests <> [] then
         [
           Nj.build "phony"
             ~outputs:["test@" ^ srcv]
             ~inputs:
-              ((if item.has_inline_tests then [!Var.builddir / srcv ^ "@out"]
-                else [])
-              @ List.map
-                  (fun test ->
-                    !Var.builddir / src /../ "output" / Filename.basename src -.- test.Scan.id)
-                  item.legacy_tests);
+              (List.map (fun test -> "post@" ^ legacy_test_reference test) item.legacy_tests)
         ]
+      else []
     in
     legacy_tests @ inline_tests @ tests
   in
@@ -651,8 +659,6 @@ let test_targets_by_dir items =
        [
          Nj.build "phony" ~outputs:["test"]
            ~inputs:(List.map (( ^ ) "test@") top);
-         Nj.build "phony" ~outputs:["test-reset"]
-           ~inputs:(List.map (( ^ ) "test-reset@") top);
        ]
 
 let build_statements dir =
@@ -753,7 +759,7 @@ let test_cmd =
         (if reset_test_outputs
          then
            [Nj.binding Var.post_test
-              ["test_reset() { cp -f $$2 $$1; }"; ";" ; "test_reset" ]]
+              ["test_reset() { if ! diff -q $$1 $$2; then cp -f $$2 $$1; fi; }"; ";" ; "test_reset" ]]
          else [])
         @
         [Nj.default targets]
