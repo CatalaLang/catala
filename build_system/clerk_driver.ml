@@ -375,7 +375,8 @@ module Var = struct
 end
 
 let base_bindings catala_exe catala_flags =
-  [
+  let catala_flags = "-C" :: Var.(!builddir) :: catala_flags
+  in  [
     Nj.binding Var.ninja_required_version ["1.7"];
     (* use of implicit outputs *)
     Nj.binding Var.builddir [Lazy.force Poll.build_dir];
@@ -401,11 +402,11 @@ let base_bindings catala_exe catala_flags =
 let static_base_rules =
   let open Var in
   [
-    Nj.rule "stamp"
-      ~command:[ "touch"; !output ]
-      ~description:["<stamp>"; !input ];
+    Nj.rule "copy"
+      ~command:[ "cp"; "-f"; !input; !output ]
+      ~description:["<copy>"; !input ];
 
-    Nj.rule "ocaml"
+    Nj.rule "catala-ocaml"
       ~command:
         [
           !catala_exe;
@@ -460,7 +461,6 @@ let static_base_rules =
           !clerk_exe;
           "runtest";
           !clerk_flags;
-          "--build-dir=" ^ !builddir;
           !input;
           ">"; !output;
           "2>&1";
@@ -473,7 +473,6 @@ let static_base_rules =
           !catala_exe;
           "interpret";
           !catala_flags;
-          "--build-dir=" ^ !builddir;
           !input;
           "--scope=" ^ !scope;
         ]
@@ -486,17 +485,18 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
   let ( ! ) = Var.( ! ) in
   let src = item.file_name in
   let modules = List.rev item.used_modules in
-  let inc x = File.(!Var.builddir / x ^ "@inc") in
+  let inc x = File.(!Var.builddir / x) in
   let modd x = File.(!Var.builddir / src /../ x ^ "@mod") in
   let def_src =
     Nj.binding Var.src [Filename.remove_extension src]
   in
   let srcv = !Var.src ^ Filename.extension src in
   let include_deps =
-    Nj.build "stamp"
-      ~inputs:(!Var.catala_exe :: srcv ::
-               List.map inc item.included_files @
-               List.map modd modules)
+    Nj.build "copy"
+      ~inputs:[srcv]
+      ~implicit_in:
+        (List.map inc item.included_files @
+         List.map modd modules)
       ~outputs:[inc srcv]
   in
   let module_deps =
@@ -509,22 +509,22 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
   let ml_file =
     match item.module_def with
     | Some m ->
-      !Var.builddir / src /../ m ^ ".ml"
+      src /../ m ^ ".ml"
     | None ->
-      !Var.builddir / !Var.src ^ ".ml"
+      !Var.src ^ ".ml"
   in
   let ocaml =
-    Nj.build "ocaml" ~inputs:[srcv]
-      ~implicit_in:[inc srcv]
-      ~outputs:[ml_file]
+    Nj.build "catala-ocaml" ~inputs:[inc srcv]
+      ~implicit_in:[!Var.catala_exe]
+      ~outputs:[!Var.builddir / ml_file]
   in
   let ocamlopt =
-    let implicit_out_exts = ["cmi"; "cmx"; (* "cmt"; "o" *)] in
+    let implicit_out_exts = ["cmi"; "cmx"; "cmt"; "o"] in
     match item.module_def with
     | Some m ->
       let target ext = !Var.builddir / src /../ m ^ "." ^ ext in
       Nj.build "ocaml-module"
-        ~inputs:[ml_file]
+        ~inputs:[!Var.builddir / ml_file]
         ~implicit_in:(List.map (fun m -> !Var.builddir / src /../ m ^ ".cmi") modules)
         ~outputs:[target "cmxs"]
         ~implicit_out:(List.map target implicit_out_exts)
@@ -540,12 +540,12 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
         ~implicit_out:(List.map target implicit_out_exts)
   in
   let interp_deps =
-    inc srcv :: List.map (fun m -> !Var.builddir /src /../ m ^ ".cmxs") modules
+    !Var.catala_exe :: List.map (fun m -> !Var.builddir /src /../ m ^ ".cmxs") modules
   in
   let interpret =
     Nj.build "interpret"
       ~outputs:["interpret@" ^ srcv]
-      ~inputs:[srcv]
+      ~inputs:[inc srcv]
       ~implicit_in:interp_deps
   in
   let tests =
@@ -558,8 +558,11 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
              Var.test_command, test.Scan.cmd;
            ]
            in
-           Nj.build "out-test" ~inputs:[srcv] ~implicit_in:(interp_deps @ [!Var.test_reference])
+           (* The test reference is an implicit input because of the cases when we run diff;
+              it should actually be an implicit output for the cases when we reset. *)
+           Nj.build "out-test" ~inputs:[inc srcv] ~implicit_in:(interp_deps @ [!Var.test_reference])
              ~outputs:[!Var.builddir / src /../ "output" / Filename.basename src -.- test.id]
+             (* ~implicit_out:[!Var.test_reference] *)
              ~vars
            :: acc)
         [] item.legacy_tests
@@ -568,7 +571,10 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
       if not item.has_inline_tests then []
       else
         [
-          Nj.build "inline-tests" ~inputs:[srcv] ~implicit_in:(!Var.clerk_exe :: interp_deps)
+          (* Same remark as for legacy, but here the reference is [srcv] *)
+          Nj.build "inline-tests" ~inputs:[inc srcv]
+            ~implicit_in:(!Var.clerk_exe :: srcv :: interp_deps)
+            (* ~implicit_out:[srcv] *)
             ~outputs:[!Var.builddir / srcv ^ "@out"];
         ]
     in

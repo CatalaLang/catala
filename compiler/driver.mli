@@ -27,24 +27,24 @@ val main : unit -> unit
 module Passes : sig
   val surface :
     Cli.options ->
-    includes:File.Tree.t ->
+    includes:Cli.raw_file list ->
     Surface.Ast.program
 
   val desugared :
     Cli.options ->
-    includes:File.Tree.t ->
+    includes:Cli.raw_file list ->
     Desugared.Ast.program * Desugared.Name_resolution.context
 
   val scopelang :
     Cli.options ->
-    includes:File.Tree.t ->
+    includes:Cli.raw_file list ->
     Shared_ast.untyped Scopelang.Ast.program
     * Desugared.Name_resolution.context
     * Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t
 
   val dcalc :
     Cli.options ->
-    includes:File.Tree.t ->
+    includes:Cli.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
     Shared_ast.typed Dcalc.Ast.program
@@ -53,7 +53,7 @@ module Passes : sig
 
   val lcalc :
     Cli.options ->
-    includes:File.Tree.t ->
+    includes:Cli.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
     avoid_exceptions:bool ->
@@ -64,7 +64,7 @@ module Passes : sig
 
   val scalc :
     Cli.options ->
-    includes:File.Tree.t ->
+    includes:Cli.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
     avoid_exceptions:bool ->
@@ -80,14 +80,14 @@ module Commands : sig
   val get_output :
     ?ext:string ->
     Cli.options ->
-    string option ->
+    Cli.raw_file option ->
     string option * ((out_channel -> 'a) -> 'a)
   (** bounded open of the expected output file *)
 
   val get_output_format :
     ?ext:string ->
     Cli.options ->
-    string option ->
+    Cli.raw_file option ->
     string option * ((Format.formatter -> 'a) -> 'a)
 
   val get_scope_uid :
@@ -98,8 +98,6 @@ module Commands : sig
     Shared_ast.ScopeName.t ->
     string ->
     Desugared.Ast.ScopeDef.t
-
-  val include_flags : File.Tree.t Cmdliner.Term.t
 
   val commands : unit Cmdliner.Cmd.t list
   (** The list of built-in catala subcommands, as expected by

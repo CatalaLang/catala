@@ -26,8 +26,13 @@ let modname_of_file f =
   (* Fixme: make this more robust *)
   String.capitalize_ascii Filename.(basename (remove_extension f))
 
-let load_module_interfaces includes program =
+let load_module_interfaces options includes program =
   (* Recurse into program modules, looking up files in [using] and loading them *)
+  let includes =
+    includes
+    |> List.map (fun d -> File.Tree.build (options.Cli.path_rewrite d))
+    |> List.fold_left File.Tree.union File.Tree.empty
+  in
   let err_req_pos chain =
     List.map (fun m -> Some "Module required from", ModuleName.pos m) chain
   in
@@ -67,7 +72,7 @@ let load_module_interfaces includes program =
   let rec aux req_chain acc modules =
     List.fold_left (fun acc mname ->
         let m = ModuleName.of_string mname in
-        if List.mem_assoc m acc then acc else
+        if List.exists (fun (m1, _) -> ModuleName.equal m m1) acc then acc else
           let f = find_module req_chain m in
           let (m', intf), using = load_file f in
           if not (ModuleName.equal m m') then
@@ -101,7 +106,7 @@ module Passes = struct
       Surface.Parser_driver.parse_top_level_file options.Cli.input_src
     in
     let prg = Surface.Fill_positions.fill_pos_with_legislative_info prg in
-    load_module_interfaces includes prg
+    load_module_interfaces options includes prg
 
   let desugared options ~includes :
       Desugared.Ast.program * Desugared.Name_resolution.context =
@@ -338,24 +343,18 @@ module Commands = struct
                   second_part first_part ScopeName.format scope_uid)
             second_part )
 
-  let include_flags =
-    let mk dirs =
-      dirs
-      |> List.map (fun d -> File.Tree.build d)
-      |> List.fold_left File.Tree.union File.Tree.empty
-    in
-    Term.(const mk $ Cli.Flags.include_dirs)
-
   let get_output ?ext options output_file =
+    let output_file = Option.map options.Cli.path_rewrite output_file in
     File.get_out_channel ~source_file:options.Cli.input_src ~output_file ?ext
       ()
 
   let get_output_format ?ext options output_file =
+    let output_file = Option.map options.Cli.path_rewrite output_file in
     File.get_formatter_of_out_channel ~source_file:options.Cli.input_src
       ~output_file ?ext ()
 
   let makefile options output =
-    let prg = Passes.surface options ~includes:File.Tree.empty in
+    let prg = Passes.surface options ~includes:[] in
     let backend_extensions_list = [".tex"] in
     let source_file = Cli.input_src_file options.Cli.input_src in
     let output_file, with_output = get_output options ~ext:".d" output in
@@ -381,7 +380,7 @@ module Commands = struct
       Term.(const makefile $ Cli.Flags.Global.options $ Cli.Flags.output)
 
   let html options output print_only_law wrap_weaved_output =
-    let prg = Passes.surface options ~includes:File.Tree.empty in
+    let prg = Passes.surface options ~includes:[] in
     Message.emit_debug "Weaving literate program into HTML";
     let output_file, with_output =
       get_output_format options ~ext:".html" output
@@ -410,7 +409,7 @@ module Commands = struct
         $ Cli.Flags.wrap_weaved_output)
 
   let latex options output print_only_law wrap_weaved_output =
-    let prg = Passes.surface options ~includes:File.Tree.empty in
+    let prg = Passes.surface options ~includes:[] in
     Message.emit_debug "Weaving literate program into LaTeX";
     let output_file, with_output =
       get_output_format options ~ext:".tex" output
@@ -457,7 +456,7 @@ module Commands = struct
       Term.(
         const exceptions
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.ex_scope
         $ Cli.Flags.ex_variable)
 
@@ -486,7 +485,7 @@ module Commands = struct
       Term.(
         const scopelang
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.ex_scope_opt)
 
@@ -509,7 +508,7 @@ module Commands = struct
     Cmd.v
       (Cmd.info "typecheck"
          ~doc:"Parses and typechecks a Catala program, without interpreting it.")
-      Term.(const typecheck $ Cli.Flags.Global.options $ include_flags)
+      Term.(const typecheck $ Cli.Flags.Global.options $ Cli.Flags.include_dirs)
 
   let dcalc options includes output optimize ex_scope_opt check_invariants =
     let prg, ctx, _ =
@@ -550,7 +549,7 @@ module Commands = struct
       Term.(
         const dcalc
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.ex_scope_opt
@@ -582,7 +581,7 @@ module Commands = struct
       Term.(
         const proof
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.ex_scope_opt
         $ Cli.Flags.check_invariants
@@ -613,6 +612,7 @@ module Commands = struct
       results
 
   let interpret_dcalc options includes optimize check_invariants build_dirs ex_scope =
+    let build_dirs = List.map options.Cli.path_rewrite build_dirs in
     let prg, ctx, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants
     in
@@ -630,7 +630,7 @@ module Commands = struct
       Term.(
         const interpret_dcalc
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.build_dirs
@@ -672,7 +672,7 @@ module Commands = struct
       Term.(
         const lcalc
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -689,6 +689,7 @@ module Commands = struct
       closure_conversion
       build_dirs
       ex_scope =
+    let build_dirs = List.map options.Cli.path_rewrite build_dirs in
     let prg, ctx, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
@@ -707,7 +708,7 @@ module Commands = struct
       Term.(
         const interpret_lcalc
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.avoid_exceptions
@@ -744,7 +745,7 @@ module Commands = struct
       Term.(
         const ocaml
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -790,7 +791,7 @@ module Commands = struct
       Term.(
         const scalc
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -827,7 +828,7 @@ module Commands = struct
       Term.(
         const python
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -853,7 +854,7 @@ module Commands = struct
       Term.(
         const r
         $ Cli.Flags.Global.options
-        $ include_flags
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants

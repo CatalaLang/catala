@@ -18,6 +18,9 @@
 type file = string
 (** File names ; equal to [File.t] but let's avoid cyclic dependencies *)
 
+type raw_file
+(** A file name that has not yet been resolved, [options.path_rewrite] must be called on it *)
+
 type backend_lang = En | Fr | Pl
 
 (** The usual auto/always/never option argument *)
@@ -58,6 +61,7 @@ type options = private {
   mutable plugins_dirs : string list;
   mutable disable_warnings : bool;
   mutable max_prec_digits : int;
+  mutable path_rewrite : raw_file -> file;
 }
 (** Global options, common to all subcommands (note: the fields are internally
     mutable only for purposes of the [globals] toplevel value defined below) *)
@@ -77,6 +81,7 @@ val enforce_globals :
   ?plugins_dirs:string list ->
   ?disable_warnings:bool ->
   ?max_prec_digits:int ->
+  ?path_rewrite:(file -> file) ->
   unit ->
   options
 (** Sets up the global options (side-effect); for specific use-cases only, this
@@ -108,13 +113,13 @@ module Flags : sig
   val ex_scope : string Term.t
   val ex_scope_opt : string option Term.t
   val ex_variable : string Term.t
-  val output : string option Term.t
+  val output : raw_file option Term.t
   val optimize : bool Term.t
   val avoid_exceptions : bool Term.t
   val closure_conversion : bool Term.t
-  val include_dirs : string list Term.t
+  val include_dirs : raw_file list Term.t
   val disable_counterexamples : bool Term.t
-  val build_dirs : string list Term.t
+  val build_dirs : raw_file list Term.t
 end
 
 (** {2 Command-line application} *)
