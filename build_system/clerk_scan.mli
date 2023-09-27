@@ -14,7 +14,9 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** This module is responsible for scanning Catala files, extracting dependency and test information. It is based on the lightweight "line-parser" ([Surface.Parser_driver.line]) *)
+(** This module is responsible for scanning Catala files, extracting dependency
+    and test information. It is based on the lightweight "line-parser"
+    ([Surface.Parser_driver.line]) *)
 
 open Catala_utils
 
@@ -43,14 +45,16 @@ type item = {
 (** Contains all the data extracted from a single Catala file. Lists are in
     reverse file order. *)
 
-val get_lang: File.t -> Cli.backend_lang option
+val get_lang : File.t -> Cli.backend_lang option
 (** Guesses Catala dialect from file-name and global options *)
 
-val catala_file: File.t -> Catala_utils.Cli.backend_lang -> item
+val catala_file : File.t -> Catala_utils.Cli.backend_lang -> item
 (** Scans a single Catala file into an item *)
 
-val tree: File.t -> item Seq.t
-(** Recursively scans a directory, and returns the corresponding items in sequence. *)
+val tree : File.t -> item Seq.t
+(** Recursively scans a directory, and returns the corresponding items in
+    sequence. *)
 
-val test_command_args: string -> string option
-(** Parses a test command-line (in the form "$ catala <args>") and returns the arguments as a string, or [None] if there is no match *)
+val test_command_args : string -> string option
+(** Parses a test command-line (in the form "$ catala <args>") and returns the
+    arguments as a string, or [None] if there is no match *)

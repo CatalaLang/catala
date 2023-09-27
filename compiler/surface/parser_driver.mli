@@ -24,8 +24,7 @@ val lines :
 (** Raw file parser that doesn't interpret any includes and returns the flat law
     structure as is *)
 
-val load_interface :
-  Cli.input_src -> Ast.interface * string Mark.pos list
+val load_interface : Cli.input_src -> Ast.interface * string Mark.pos list
 (** Reads only declarations in metadata in the supplied input file, and only
     keeps type information ; returns the modules used as well *)
 

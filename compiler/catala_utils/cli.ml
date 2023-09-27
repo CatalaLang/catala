@@ -18,16 +18,11 @@
 (* Types used by flags & options *)
 
 type file = string
-
 type raw_file = file
-
 type backend_lang = En | Fr | Pl
 type when_enum = Auto | Always | Never
 type message_format_enum = Human | GNU
-type input_src =
-  | FileName of file
-  | Contents of string * file
-  | Stdin of file
+type input_src = FileName of file | Contents of string * file | Stdin of file
 
 (** Associates a {!type: Cli.backend_lang} with its string represtation. *)
 let languages = ["en", En; "fr", Fr; "pl", Pl]
@@ -36,9 +31,7 @@ let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
   fun l -> List.assoc l rl
 
-let input_src_file = function
-  | FileName f | Contents (_, f) | Stdin f -> f
-
+let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
 let message_format_opt = ["human", Human; "gnu", GNU]
 
 type options = {
@@ -120,28 +113,34 @@ let file_lang filename =
          @{<yellow>%s@}, and @{<bold>--language@} was not specified"
         filename)
 
-(** If [to_dir] is a path to a given directory and [f] a path to a file as seen from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path leading to [f] from [to_dir]. The results attempts to be relative to [to_dir]. *)
-let reverse_path ?(from_dir=Sys.getcwd()) ~to_dir f =
-  if Filename.is_relative from_dir then invalid_arg "File.with_reverse_path" else
-  if not (Filename.is_relative f) then f else
-  if not (Filename.is_relative to_dir) then Filename.concat from_dir f else
+(** If [to_dir] is a path to a given directory and [f] a path to a file as seen
+    from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path
+    leading to [f] from [to_dir]. The results attempts to be relative to
+    [to_dir]. *)
+let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
+  if Filename.is_relative from_dir then invalid_arg "File.with_reverse_path"
+  else if not (Filename.is_relative f) then f
+  else if not (Filename.is_relative to_dir) then Filename.concat from_dir f
+  else
     let rec aux acc rbase = function
       | [] -> acc
-      | dir :: p ->
-        if dir = Filename.parent_dir_name then match rbase with
+      | dir :: p -> (
+        if dir = Filename.parent_dir_name then
+          match rbase with
           | base1 :: rbase -> aux (base1 :: acc) rbase p
           | [] -> aux acc [] p
         else
           match acc with
           | dir1 :: acc when dir1 = dir -> aux acc rbase p
-          | _ -> aux (Filename.parent_dir_name :: acc) rbase p
+          | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
     in
     let path_to_list path =
       String.split_on_char Filename.dir_sep.[0] path
       |> List.filter (function "" | "." -> false | _ -> true)
     in
-    let rbase = List.rev (path_to_list (from_dir)) in
-    String.concat Filename.dir_sep (aux (path_to_list f) rbase (path_to_list to_dir))
+    let rbase = List.rev (path_to_list from_dir) in
+    String.concat Filename.dir_sep
+      (aux (path_to_list f) rbase (path_to_list to_dir))
 
 (** CLI flags and options *)
 
@@ -156,8 +155,8 @@ module Flags = struct
       let converter =
         conv ~docv:"FILE"
           ( (fun s ->
-                if s = "-" then Ok (Stdin "-stdin-") else
-                  Result.map (fun f -> FileName f) (conv_parser non_dir_file s)),
+              if s = "-" then Ok (Stdin "-stdin-")
+              else Result.map (fun f -> FileName f) (conv_parser non_dir_file s)),
             fun ppf -> function
               | Stdin _ -> Format.pp_print_string ppf "-"
               | FileName f -> conv_printer non_dir_file ppf f
@@ -262,13 +261,17 @@ module Flags = struct
       value
       & opt (some string) None
       & info ["name"] ~docv:"FILE"
-        ~doc:"Treat the input as coming from a file with the given name. Useful e.g. when reading from stdin"
+          ~doc:
+            "Treat the input as coming from a file with the given name. Useful \
+             e.g. when reading from stdin"
 
     let directory =
       value
       & opt (some dir) None
       & info ["C"; "directory"] ~docv:"DIR"
-        ~doc:"Behave as if run from the given directory for file and error reporting. Does not affect resolution of files in arguments."
+          ~doc:
+            "Behave as if run from the given directory for file and error \
+             reporting. Does not affect resolution of files in arguments."
 
     let flags =
       let make
@@ -280,14 +283,13 @@ module Flags = struct
           plugins_dirs
           disable_warnings
           max_prec_digits
-          directory: options =
+          directory : options =
         if debug then Printexc.record_backtrace true;
         let path_rewrite =
           match directory with
           | None -> fun f -> f
-          | Some to_dir -> function
-            | "-" -> "-"
-            | f -> reverse_path ~to_dir f
+          | Some to_dir -> (
+            function "-" -> "-" | f -> reverse_path ~to_dir f)
         in
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)
@@ -312,16 +314,16 @@ module Flags = struct
         let input_src =
           match name with
           | None -> input_src
-          | Some name ->
+          | Some name -> (
             match input_src with
             | FileName f -> FileName f
             | Contents (str, _) -> Contents (str, name)
-            | Stdin _ -> Stdin name
+            | Stdin _ -> Stdin name)
         in
         let input_src =
           match input_src with
           | FileName f -> FileName (options.path_rewrite f)
-          | Contents (str, f) -> Contents (str, (options.path_rewrite f))
+          | Contents (str, f) -> Contents (str, options.path_rewrite f)
           | Stdin f -> Stdin (options.path_rewrite f)
         in
         let plugins_dirs = List.map options.path_rewrite options.plugins_dirs in
@@ -336,9 +338,8 @@ module Flags = struct
   let include_dirs =
     value
     & opt_all string []
-    & info ["I";"include"] ~docv:"DIR"
-      ~doc:
-        "Include directory to lookup for compiled module files."
+    & info ["I"; "include"] ~docv:"DIR"
+        ~doc:"Include directory to lookup for compiled module files."
 
   let check_invariants =
     value
@@ -378,11 +379,11 @@ module Flags = struct
     value
     & opt (some string) None
     & info ["output"; "o"] ~docv:"OUTPUT"
-      ~env:(Cmd.Env.info "CATALA_OUT")
-      ~doc:
-        "$(i, OUTPUT) is the file that will contain the output of the \
-         compiler. Defaults to $(i,FILE).$(i,EXT) where $(i,EXT) depends on \
-         the chosen backend. Use $(b,-o -) for stdout."
+        ~env:(Cmd.Env.info "CATALA_OUT")
+        ~doc:
+          "$(i, OUTPUT) is the file that will contain the output of the \
+           compiler. Defaults to $(i,FILE).$(i,EXT) where $(i,EXT) depends on \
+           the chosen backend. Use $(b,-o -) for stdout."
 
   let optimize =
     value & flag & info ["optimize"; "O"] ~doc:"Run compiler optimizations."
@@ -410,7 +411,6 @@ module Flags = struct
           "Disables the search for counterexamples. Useful when you want a \
            deterministic output from the Catala compiler, since provers can \
            have some randomness in them."
-
 end
 
 (* Retrieve current version from dune *)

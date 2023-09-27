@@ -14,5 +14,5 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-val main_cmd: int Cmdliner.Cmd.t
-val main: unit -> unit
+val main_cmd : int Cmdliner.Cmd.t
+val main : unit -> unit

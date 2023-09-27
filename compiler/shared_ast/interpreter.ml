@@ -943,25 +943,30 @@ let evaluate_expr ctx lang e = delcustom (evaluate_expr ctx lang (addcustom e))
 let load_runtime_modules prg =
   let load m =
     let obj_file =
-      Dynlink.adapt_filename File.(Pos.get_file (ModuleName.pos m) /../ ModuleName.to_string m ^ ".cmo")
+      Dynlink.adapt_filename
+        File.(
+          (Pos.get_file (ModuleName.pos m) /../ ModuleName.to_string m) ^ ".cmo")
     in
     if not (Sys.file_exists obj_file) then
       Message.raise_spanned_error
         ~span_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
         (ModuleName.pos m)
-        "Compiled OCaml object %a not found. Make sure it has been suitably compiled." File.format obj_file
+        "Compiled OCaml object %a not found. Make sure it has been suitably \
+         compiled."
+        File.format obj_file
     else
       try Dynlink.loadfile obj_file
       with Dynlink.Error dl_err ->
         Message.raise_error
-          "Error loading compiled module from %a:@;\
-           <1 2>@[<hov>%a@]" File.format obj_file
-          Format.pp_print_text
+          "Error loading compiled module from %a:@;<1 2>@[<hov>%a@]" File.format
+          obj_file Format.pp_print_text
           (Dynlink.error_message dl_err)
   in
   let rec aux loaded decl_ctx =
-    ModuleName.Map.fold (fun mname sub_decl_ctx loaded ->
-        if ModuleName.Set.mem mname loaded then loaded else
+    ModuleName.Map.fold
+      (fun mname sub_decl_ctx loaded ->
+        if ModuleName.Set.mem mname loaded then loaded
+        else
           let loaded = ModuleName.Set.add mname loaded in
           let loaded = aux loaded sub_decl_ctx in
           load mname;
@@ -972,5 +977,5 @@ let load_runtime_modules prg =
     Message.emit_debug "Loading shared modules... %a"
       (fun ppf -> ModuleName.Map.format_keys ppf)
       prg.decl_ctx.ctx_modules;
-  let (_loaded: ModuleName.Set.t) = aux ModuleName.Set.empty prg.decl_ctx in
+  let (_loaded : ModuleName.Set.t) = aux ModuleName.Set.empty prg.decl_ctx in
   ()

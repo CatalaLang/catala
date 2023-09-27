@@ -120,8 +120,8 @@ let check_file f =
   with Unix.Unix_error _ | Sys_error _ -> None
 
 let ( / ) a b =
-  if a = "" || a = Filename.current_dir_name then b
-  else Filename.concat a b
+  if a = "" || a = Filename.current_dir_name then b else Filename.concat a b
+
 let dirname = Filename.dirname
 let ( /../ ) a b = dirname a / b
 let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
@@ -183,24 +183,24 @@ module Tree = struct
 
   let empty = lazy Map.empty
 
-  let rec build path = lazy
-    (Array.fold_left
-       (fun m f ->
-          let path = path / f in
-          match Sys.is_directory path with
-          | true -> Map.add f (path, D (build path)) m
-          | false -> Map.add f (path, F) m
-          | exception Sys_error _ -> m)
-       Map.empty
-       (Sys.readdir path))
+  let rec build path =
+    lazy
+      (Array.fold_left
+         (fun m f ->
+           let path = path / f in
+           match Sys.is_directory path with
+           | true -> Map.add f (path, D (build path)) m
+           | false -> Map.add f (path, F) m
+           | exception Sys_error _ -> m)
+         Map.empty (Sys.readdir path))
 
   let subtree t path =
     let rec aux t = function
       | [] -> t
-      | dir :: path ->
+      | dir :: path -> (
         match Map.find_opt dir (Lazy.force t) with
         | Some (_, D sub) -> aux sub path
-        | Some (_, F) | None -> raise Not_found
+        | Some (_, F) | None -> raise Not_found)
     in
     aux t (path_to_list path)
 
@@ -212,6 +212,6 @@ module Tree = struct
       | Some (_, D _) | None -> None
     with Not_found -> None
 
-  let union t1 t2 = lazy (Map.union (fun _ x _ -> Some x) (Lazy.force t1) (Lazy.force t2))
-
+  let union t1 t2 =
+    lazy (Map.union (fun _ x _ -> Some x) (Lazy.force t1) (Lazy.force t2))
 end

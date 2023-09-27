@@ -21,8 +21,8 @@ let run_catala_test catala_exe catala_opts build_dir file program args oc =
   Unix.set_close_on_exec cmd_in_wr;
   let command_oc = Unix.out_channel_of_descr cmd_in_wr in
   let catala_exe =
-    (* If the exe name contains directories, make it absolute. Otherwise
-       don't modify it so that it can be looked up in PATH. *)
+    (* If the exe name contains directories, make it absolute. Otherwise don't
+       modify it so that it can be looked up in PATH. *)
     if String.contains catala_exe Filename.dir_sep.[0] then
       Unix.realpath catala_exe
     else catala_exe
@@ -31,25 +31,22 @@ let run_catala_test catala_exe catala_opts build_dir file program args oc =
     match args with
     | cmd0 :: flags ->
       Array.of_list
-        ((catala_exe :: cmd0 :: catala_opts) @ flags @ ["--name="^file; "-"])
+        ((catala_exe :: cmd0 :: catala_opts) @ flags @ ["--name=" ^ file; "-"])
     | [] -> Array.of_list ((catala_exe :: catala_opts) @ [file])
   in
   let env =
     Unix.environment ()
     |> Array.to_seq
-    |> Seq.filter (fun s ->
-        not (String.starts_with ~prefix:"OCAMLRUNPARAM=" s))
+    |> Seq.filter (fun s -> not (String.starts_with ~prefix:"OCAMLRUNPARAM=" s))
     |> Seq.cons "CATALA_OUT=-"
     (* |> Seq.cons "CATALA_COLOR=never" *)
     |> Seq.cons "CATALA_PLUGINS="
-    |> Seq.cons ("CATALA_BUILD_DIR="^build_dir)
+    |> Seq.cons ("CATALA_BUILD_DIR=" ^ build_dir)
     |> Array.of_seq
   in
   flush oc;
   let ocfd = Unix.descr_of_out_channel oc in
-  let pid =
-    Unix.create_process_env catala_exe cmd env cmd_in_rd ocfd ocfd
-  in
+  let pid = Unix.create_process_env catala_exe cmd env cmd_in_rd ocfd ocfd in
   Unix.close cmd_in_rd;
   Queue.iter (output_string command_oc) program;
   close_out command_oc;
@@ -58,16 +55,18 @@ let run_catala_test catala_exe catala_opts build_dir file program args oc =
     | _, Unix.WEXITED n -> n
     | _, (Unix.WSIGNALED n | Unix.WSTOPPED n) -> 128 - n
   in
-  if return_code <> 0 then
-    Printf.fprintf oc "#return code %d#\n" return_code
+  if return_code <> 0 then Printf.fprintf oc "#return code %d#\n" return_code
 
 (** Directly runs the test (not using ninja, this will be called by ninja rules
     through the "clerk runtest" command) *)
 let run_inline_tests catala_exe catala_opts build_dir filename =
   let module L = Surface.Lexer_common in
-  let lang = match Clerk_scan.get_lang filename with
+  let lang =
+    match Clerk_scan.get_lang filename with
     | Some l -> l
-    | None -> Message.raise_error "Can't infer catala dialect from file extension of %a" File.format filename
+    | None ->
+      Message.raise_error "Can't infer catala dialect from file extension of %a"
+        File.format filename
   in
   let lines = Surface.Parser_driver.lines filename lang in
   let oc = stdout in
@@ -79,21 +78,26 @@ let run_inline_tests catala_exe catala_opts build_dir filename =
   let rec run_test lines =
     match Seq.uncons lines with
     | None ->
-      output_string oc "[INVALID TEST] Missing test command, use '$ catala <args>'\n"
+      output_string oc
+        "[INVALID TEST] Missing test command, use '$ catala <args>'\n"
     | Some ((str, L.LINE_BLOCK_END), lines) ->
-      output_string oc "[INVALID TEST] Missing test command, use '$ catala <args>'\n";
+      output_string oc
+        "[INVALID TEST] Missing test command, use '$ catala <args>'\n";
       push str;
       process lines
-    | Some ((str, _), lines) ->
+    | Some ((str, _), lines) -> (
       push str;
       match Clerk_scan.test_command_args str with
       | None ->
-        output_string oc "[INVALID TEST] Invalid test command syntax, must match '$ catala <args>'\n";
+        output_string oc
+          "[INVALID TEST] Invalid test command syntax, must match '$ catala \
+           <args>'\n";
         skip_block lines
       | Some args ->
         let args = String.split_on_char ' ' args in
-        run_catala_test catala_exe catala_opts build_dir filename lines_until_now args oc;
-        skip_block lines
+        run_catala_test catala_exe catala_opts build_dir filename
+          lines_until_now args oc;
+        skip_block lines)
   and skip_block lines =
     match Seq.uncons lines with
     | None -> ()
@@ -109,7 +113,8 @@ let run_inline_tests catala_exe catala_opts build_dir filename =
       push str;
       run_test lines
     | Some ((str, _), lines) ->
-      push str; process lines
+      push str;
+      process lines
     | None -> ()
   in
   process lines

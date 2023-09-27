@@ -46,7 +46,7 @@ module Cli = struct
       value
       & opt string "_build"
       & info ["build-dir"] ~docv:"DIR"
-        ~doc:"Directory where compilation artifacts should be written")
+          ~doc:"Directory where compilation artifacts should be written")
 
   module Global : sig
     val term :
@@ -87,7 +87,9 @@ module Cli = struct
         & info ["o"; "output"] ~docv:"FILE"
             ~doc:
               "$(i,FILE) is the file that will contain the build.ninja file \
-               output. If not specified, the build.ninja file is set to $(i,<builddir>/clerk.ninja) in debug mode, and a temporary file otherwise")
+               output. If not specified, the build.ninja file is set to \
+               $(i,<builddir>/clerk.ninja) in debug mode, and a temporary file \
+               otherwise")
 
     let term f =
       Term.(
@@ -228,14 +230,18 @@ module Poll = struct
        else
          match Lazy.force catala_project_root with
          | Some root ->
-           Unix.realpath File.(root / "_build" / "default" / "compiler" / "catala.exe")
+           Unix.realpath
+             File.(root / "_build" / "default" / "compiler" / "catala.exe")
          | None ->
-           Unix.realpath @@
-           File.process_out
-             ~check_exit:(function 0 -> () | _ ->
-                 Message.raise_error
-                   "Could not find the @{<yellow>catala@} program, please fix your installation")
-             "command" ["-v"; "catala"])
+           Unix.realpath
+           @@ File.process_out
+                ~check_exit:(function
+                  | 0 -> ()
+                  | _ ->
+                    Message.raise_error
+                      "Could not find the @{<yellow>catala@} program, please \
+                       fix your installation")
+                "command" ["-v"; "catala"])
 
   let build_dir : File.t Lazy.t = lazy "_build"
   (* Note: it could be safer here to use File.(Sys.getcwd () / "_build"), but
@@ -374,8 +380,8 @@ module Var = struct
 end
 
 let base_bindings catala_exe catala_flags =
-  let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags
-  in  [
+  let catala_flags = ("--directory=" ^ Var.(!builddir)) :: catala_flags in
+  [
     Nj.binding Var.ninja_required_version ["1.7"];
     (* use of implicit outputs *)
     Nj.binding Var.builddir [Lazy.force Poll.build_dir];
@@ -402,30 +408,14 @@ let static_base_rules =
   let open Var in
   [
     Nj.rule "copy"
-      ~command:[ "cp"; "-f"; !input; !output ]
-      ~description:["<copy>"; !input ];
-
+      ~command:["cp"; "-f"; !input; !output]
+      ~description:["<copy>"; !input];
     Nj.rule "catala-ocaml"
-      ~command:
-        [
-          !catala_exe;
-          "ocaml";
-          !catala_flags;
-          !input;
-          "-o";
-          !output;
-        ]
+      ~command:[!catala_exe; "ocaml"; !catala_flags; !input; "-o"; !output]
       ~description:["<catala>"; "ocaml"; "⇒"; !output];
     Nj.rule "ocaml-module"
       ~command:
-        [
-          !ocamlopt_exe;
-          "-shared";
-          !ocamlopt_flags;
-          !input;
-          "-o";
-          !output;
-        ]
+        [!ocamlopt_exe; "-shared"; !ocamlopt_flags; !input; "-o"; !output]
       ~description:["<ocaml>"; "⇒"; !output];
     Nj.rule "ocaml-exec"
       ~command:
@@ -455,28 +445,13 @@ let static_base_rules =
         ["<catala>"; "test"; !test_id; "⇐"; !input; "(" ^ !test_command ^ ")"];
     Nj.rule "inline-tests"
       ~command:
-        [
-          !clerk_exe;
-          "runtest";
-          !clerk_flags;
-          !input;
-          ">"; !output;
-          "2>&1";
-        ]
+        [!clerk_exe; "runtest"; !clerk_flags; !input; ">"; !output; "2>&1"]
       ~description:["<catala>"; "inline-tests"; "⇐"; !input];
-    Nj.rule "post-test"
-      ~command:
-        [!post_test; !input]
+    Nj.rule "post-test" ~command:[!post_test; !input]
       ~description:["<test-validation>"];
     Nj.rule "interpret"
       ~command:
-        [
-          !catala_exe;
-          "interpret";
-          !catala_flags;
-          !input;
-          "--scope=" ^ !scope;
-        ]
+        [!catala_exe; "interpret"; !catala_flags; !input; "--scope=" ^ !scope]
       ~description:["<catala>"; "interpret"; !scope; "⇐"; !input]
       ~vars:[pool, ["console"]];
   ]
@@ -488,34 +463,26 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
   let modules = List.rev item.used_modules in
   let inc x = File.(!Var.builddir / x) in
   let modd x = "module@" ^ File.(src /../ x) in
-  let def_src =
-    Nj.binding Var.src [Filename.remove_extension src]
-  in
+  let def_src = Nj.binding Var.src [Filename.remove_extension src] in
   let srcv = !Var.src ^ Filename.extension src in
   let include_deps =
-    Nj.build "copy"
-      ~inputs:[srcv]
-      ~implicit_in:
-        (List.map inc item.included_files @
-         List.map modd modules)
+    Nj.build "copy" ~inputs:[srcv]
+      ~implicit_in:(List.map inc item.included_files @ List.map modd modules)
       ~outputs:[inc srcv]
   in
   let module_deps =
-    Option.map (fun m ->
-        Nj.build "phony"
-          ~inputs:[inc srcv]
-          ~outputs:[modd m]
-      ) item.module_def
+    Option.map
+      (fun m -> Nj.build "phony" ~inputs:[inc srcv] ~outputs:[modd m])
+      item.module_def
   in
   let ml_file =
     match item.module_def with
-    | Some m ->
-      src /../ m ^ ".ml"
-    | None ->
-      !Var.src ^ ".ml"
+    | Some m -> (src /../ m) ^ ".ml"
+    | None -> !Var.src ^ ".ml"
   in
   let ocaml =
-    Nj.build "catala-ocaml" ~inputs:[inc srcv]
+    Nj.build "catala-ocaml"
+      ~inputs:[inc srcv]
       ~implicit_in:[!Var.catala_exe]
       ~outputs:[!Var.builddir / ml_file]
   in
@@ -523,25 +490,31 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
     let implicit_out_exts = ["cmi"; "cmx"; "cmt"; "o"] in
     match item.module_def with
     | Some m ->
-      let target ext = !Var.builddir / src /../ m ^ "." ^ ext in
+      let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
       Nj.build "ocaml-module"
         ~inputs:[!Var.builddir / ml_file]
-        ~implicit_in:(List.map (fun m -> !Var.builddir / src /../ m ^ ".cmi") modules)
+        ~implicit_in:
+          (List.map (fun m -> (!Var.builddir / src /../ m) ^ ".cmi") modules)
         ~outputs:[target "cmxs"]
         ~implicit_out:(List.map target implicit_out_exts)
-        ~vars:[Var.ocamlopt_flags,
-               [ !Var.ocamlopt_flags; "-I" ; File.(!Var.builddir / src /../ "") ]]
+        ~vars:
+          [
+            ( Var.ocamlopt_flags,
+              [!Var.ocamlopt_flags; "-I"; File.(!Var.builddir / src /../ "")] );
+          ]
     | None ->
-      let target ext = !Var.builddir / !Var.src ^"."^ ext in
+      let target ext = (!Var.builddir / !Var.src) ^ "." ^ ext in
       let inputs =
-        List.map (fun m -> !Var.builddir / src /../ m ^ ".cmx") modules
+        List.map (fun m -> (!Var.builddir / src /../ m) ^ ".cmx") modules
         @ [ml_file]
       in
-      Nj.build "ocaml-exec" ~inputs ~outputs:[target "exe"]
+      Nj.build "ocaml-exec" ~inputs
+        ~outputs:[target "exe"]
         ~implicit_out:(List.map target implicit_out_exts)
   in
   let interp_deps =
-    !Var.catala_exe :: List.map (fun m -> !Var.builddir /src /../ m ^ ".cmxs") modules
+    !Var.catala_exe
+    :: List.map (fun m -> (!Var.builddir / src /../ m) ^ ".cmxs") modules
   in
   let interpret =
     Nj.build "interpret"
@@ -550,37 +523,39 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
       ~implicit_in:interp_deps
   in
   let legacy_test_reference test =
-    src /../ "output" / Filename.basename src -.- test.Scan.id
+    (src /../ "output" / Filename.basename src) -.- test.Scan.id
   in
   let tests =
     let legacy_tests =
       List.fold_left
         (fun acc test ->
-           let vars = [
-             Var.test_id, [test.Scan.id];
-             Var.test_command, test.Scan.cmd;
-           ]
-           in
-           let reference = legacy_test_reference test in
-           let test_out = !Var.builddir / src /../ "output" / Filename.basename src -.- test.id in
-           Nj.build "out-test" ~inputs:[inc srcv] ~implicit_in:interp_deps
-             ~outputs:[test_out]
-             ~vars ::
-           (* The test reference is an input because of the cases when we run diff;
-              it should actually be an output for the cases when we reset but that shouldn't cause trouble. *)
-           Nj.build "post-test"
-             ~inputs:[reference; test_out]
-             ~outputs:["post@" ^ reference]
-           :: acc)
+          let vars =
+            [Var.test_id, [test.Scan.id]; Var.test_command, test.Scan.cmd]
+          in
+          let reference = legacy_test_reference test in
+          let test_out =
+            (!Var.builddir / src /../ "output" / Filename.basename src)
+            -.- test.id
+          in
+          Nj.build "out-test"
+            ~inputs:[inc srcv]
+            ~implicit_in:interp_deps ~outputs:[test_out] ~vars
+          :: (* The test reference is an input because of the cases when we run
+                diff; it should actually be an output for the cases when we
+                reset but that shouldn't cause trouble. *)
+             Nj.build "post-test" ~inputs:[reference; test_out]
+               ~outputs:["post@" ^ reference]
+          :: acc)
         [] item.legacy_tests
     in
     let inline_tests =
       if not item.has_inline_tests then []
       else
         [
-          Nj.build "inline-tests" ~inputs:[inc srcv]
+          Nj.build "inline-tests"
+            ~inputs:[inc srcv]
             ~implicit_in:(!Var.clerk_exe :: interp_deps)
-            ~outputs:[!Var.builddir / srcv ^ "@out"];
+            ~outputs:[(!Var.builddir / srcv) ^ "@out"];
         ]
     in
     let tests =
@@ -590,14 +565,18 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
             ~outputs:["test@" ^ srcv]
             ~inputs:[srcv; inc (srcv ^ "@out")]
             ~implicit_in:
-              (List.map (fun test -> "post@" ^ legacy_test_reference test) item.legacy_tests);
+              (List.map
+                 (fun test -> "post@" ^ legacy_test_reference test)
+                 item.legacy_tests);
         ]
       else if item.legacy_tests <> [] then
         [
           Nj.build "phony"
             ~outputs:["test@" ^ srcv]
             ~inputs:
-              (List.map (fun test -> "post@" ^ legacy_test_reference test) item.legacy_tests)
+              (List.map
+                 (fun test -> "post@" ^ legacy_test_reference test)
+                 item.legacy_tests);
         ]
       else []
     in
@@ -622,10 +601,7 @@ let test_targets_by_dir items =
       ~outputs:[target_pfx ^ dir]
       ~inputs:(List.map (( ^ ) target_pfx) sub)
   in
-  let alias dir sub =
-    List.to_seq
-      [stmt "test@" dir sub; Nj.comment ""]
-  in
+  let alias dir sub = List.to_seq [stmt "test@" dir sub; Nj.comment ""] in
   (* This relies on the fact that the sequence is returned ordered by
      directory *)
   let rec aux curdir seq =
@@ -633,10 +609,12 @@ let test_targets_by_dir items =
     match seq () with
     | Seq.Cons (item, seq) as node
       when String.starts_with ~prefix item.Scan.file_name -> (
-      if item.Scan.legacy_tests = [] && not item.Scan.has_inline_tests then aux curdir seq
+      if item.Scan.legacy_tests = [] && not item.Scan.has_inline_tests then
+        aux curdir seq
       else
         match
-          String.split_on_char '/' (String.remove_prefix ~prefix item.Scan.file_name)
+          String.split_on_char '/'
+            (String.remove_prefix ~prefix item.Scan.file_name)
         with
         | [] -> assert false
         | [_] ->
@@ -695,10 +673,8 @@ let ninja_init ~chdir ~catala_exe ~catala_opts ~color ~debug ~ninja_output :
   let with_ninja_output k =
     match ninja_output with
     | Some f -> k f
-    | None when debug ->
-      k File.(Lazy.force Poll.build_dir / "clerk.ninja")
-    | None ->
-      File.with_temp_file "clerk_build_" ".ninja" k
+    | None when debug -> k File.(Lazy.force Poll.build_dir / "clerk.ninja")
+    | None -> File.with_temp_file "clerk_build_" ".ninja" k
   in
   fun ~extra k ->
     Message.emit_debug "building ninja rules...";
@@ -719,12 +695,14 @@ let ninja_init ~chdir ~catala_exe ~catala_opts ~color ~debug ~ninja_output :
 
 let ninja_cmdline ninja_flags nin_file targets =
   String.concat " "
-    ("ninja" :: "-k" :: "0" ::
-     "-f" :: nin_file ::
-     (if ninja_flags = "" then [] else [ninja_flags]) @
-     (if Catala_utils.Cli.globals.debug then ["-v"] else [])
-     @ targets)
-
+    ("ninja"
+     :: "-k"
+     :: "0"
+     :: "-f"
+     :: nin_file
+     :: (if ninja_flags = "" then [] else [ninja_flags])
+    @ (if Catala_utils.Cli.globals.debug then ["-v"] else [])
+    @ targets)
 
 open Cmdliner
 
@@ -755,15 +733,20 @@ let test_cmd =
       | [] -> ["test"]
       | files -> List.map (fun f -> "test@" ^ f) files
     in
-    let extra = List.to_seq (
-        (if reset_test_outputs
-         then
-           [Nj.binding Var.post_test
-              ["test_reset() { if ! diff -q $$1 $$2; then cp -f $$2 $$1; fi; }"; ";" ; "test_reset" ]]
-         else [])
-        @
-        [Nj.default targets]
-      )
+    let extra =
+      List.to_seq
+        ((if reset_test_outputs then
+            [
+              Nj.binding Var.post_test
+                [
+                  "test_reset() { if ! diff -q $$1 $$2; then cp -f $$2 $$1; \
+                   fi; }";
+                  ";";
+                  "test_reset";
+                ];
+            ]
+          else [])
+        @ [Nj.default targets])
     in
     ninja_init ~extra
     @@ fun nin_file ->
@@ -821,9 +804,7 @@ let runtest_cmd =
   let run catala_exe catala_opts build_dir file =
     Clerk_runtest.run_inline_tests
       (Option.value ~default:"catala" catala_exe)
-      catala_opts
-      build_dir
-      file;
+      catala_opts build_dir file;
     0
   in
   let doc =

@@ -55,7 +55,7 @@ let load_dir d =
           | false ->
             if List.exists (Filename.check_suffix f) dynlink_exts then
               load_file f
-          | exception (Sys_error _) -> ())
+          | exception Sys_error _ -> ())
       (Sys.readdir d)
   in
   aux d

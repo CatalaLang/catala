@@ -27,7 +27,8 @@ let modname_of_file f =
   String.capitalize_ascii Filename.(basename (remove_extension f))
 
 let load_module_interfaces options includes program =
-  (* Recurse into program modules, looking up files in [using] and loading them *)
+  (* Recurse into program modules, looking up files in [using] and loading
+     them *)
   let includes =
     includes
     |> List.map (fun d -> File.Tree.build (options.Cli.path_rewrite d))
@@ -45,21 +46,18 @@ let load_module_interfaces options includes program =
     in
     match
       List.filter_map
-        (fun (ext, _) ->
-           File.Tree.lookup includes (fname_base ^ ext))
+        (fun (ext, _) -> File.Tree.lookup includes (fname_base ^ ext))
         extensions
     with
     | [] ->
-      Message.raise_multispanned_error (err_req_pos (m::req_chain))
-        "Required module not found: %a"
-        ModuleName.format m
-    | [f] ->
-      f
+      Message.raise_multispanned_error
+        (err_req_pos (m :: req_chain))
+        "Required module not found: %a" ModuleName.format m
+    | [f] -> f
     | ms ->
       Message.raise_multispanned_error
-        (err_req_pos (m::req_chain))
-        "Required module %a matches multiple files: %a"
-        ModuleName.format m
+        (err_req_pos (m :: req_chain))
+        "Required module %a matches multiple files: %a" ModuleName.format m
         (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
         ms
   in
@@ -70,27 +68,27 @@ let load_module_interfaces options includes program =
     (ModuleName.of_string mname, intf), using
   in
   let rec aux req_chain acc modules =
-    List.fold_left (fun acc mname ->
+    List.fold_left
+      (fun acc mname ->
         let m = ModuleName.of_string mname in
-        if List.exists (fun (m1, _) -> ModuleName.equal m m1) acc then acc else
+        if List.exists (fun (m1, _) -> ModuleName.equal m m1) acc then acc
+        else
           let f = find_module req_chain m in
           let (m', intf), using = load_file f in
           if not (ModuleName.equal m m') then
             Message.raise_multispanned_error
-              ((Some "Module name declaration", ModuleName.pos m') ::
-               err_req_pos (m::req_chain))
+              ((Some "Module name declaration", ModuleName.pos m')
+              :: err_req_pos (m :: req_chain))
               "Mismatching module name declaration:";
           let acc = (m', intf) :: acc in
-          aux (m::req_chain) acc using
-      )
+          aux (m :: req_chain) acc using)
       acc modules
   in
   let program_modules =
     aux [] [] (List.map fst program.Surface.Ast.program_modules)
     |> List.map (fun (m, i) -> (m : ModuleName.t :> string Mark.pos), i)
   in
-  { program with
-    Surface.Ast.program_modules }
+  { program with Surface.Ast.program_modules }
 
 module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes
@@ -345,8 +343,7 @@ module Commands = struct
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Cli.path_rewrite output_file in
-    File.get_out_channel ~source_file:options.Cli.input_src ~output_file ?ext
-      ()
+    File.get_out_channel ~source_file:options.Cli.input_src ~output_file ?ext ()
 
   let get_output_format ?ext options output_file =
     let output_file = Option.map options.Cli.path_rewrite output_file in
@@ -830,8 +827,7 @@ module Commands = struct
         $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion)
 
-  let r options includes output optimize check_invariants closure_conversion
-      =
+  let r options includes output optimize check_invariants closure_conversion =
     let prg, _, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions:false ~closure_conversion

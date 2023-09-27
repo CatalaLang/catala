@@ -1416,7 +1416,10 @@ let run includes optimize ex_scope explain_options global_options =
     | { output; _ } ->
       let _, with_out = Driver.Commands.get_output global_options output in
       with_out (fun oc -> output_string oc dot_content);
-      fun f -> f (Option.value ~default:"-" (Option.map Cli.globals.path_rewrite output))
+      fun f ->
+        f
+          (Option.value ~default:"-"
+             (Option.map Cli.globals.path_rewrite output))
   in
   with_dot_file
   @@ fun dotfile ->

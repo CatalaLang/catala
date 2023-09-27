@@ -19,7 +19,8 @@ type file = string
 (** File names ; equal to [File.t] but let's avoid cyclic dependencies *)
 
 type raw_file
-(** A file name that has not yet been resolved, [options.path_rewrite] must be called on it *)
+(** A file name that has not yet been resolved, [options.path_rewrite] must be
+    called on it *)
 
 type backend_lang = En | Fr | Pl
 
@@ -34,18 +35,22 @@ type message_format_enum =
 
 (** Sources for program input *)
 type input_src =
-  | FileName of file (** A file path to read from disk *)
-  | Contents of string * file (** A raw string containing the code, and the corresponding (fake) filename *)
-  | Stdin of file (** Read from stdin; the specified filename will be used for file lookups, error reportings, etc. *)
+  | FileName of file  (** A file path to read from disk *)
+  | Contents of string * file
+      (** A raw string containing the code, and the corresponding (fake)
+          filename *)
+  | Stdin of file
+      (** Read from stdin; the specified filename will be used for file lookups,
+          error reportings, etc. *)
 
 val languages : (string * backend_lang) list
 
 val language_code : backend_lang -> string
 (** Returns the lowercase two-letter language code *)
 
+val file_lang : file -> backend_lang
 (** Associates a file extension with its corresponding {!type: Cli.backend_lang}
     string representation. *)
-val file_lang : file -> backend_lang
 
 val input_src_file : input_src -> file
 

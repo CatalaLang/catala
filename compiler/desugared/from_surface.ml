@@ -1529,11 +1529,11 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     | S.CodeBlock (block, _, _) -> process_code_block ctxt prgm block
     | S.ModuleDef ((name, pos) as mname) ->
       let file = Filename.basename (Pos.get_file pos) in
-      if not File.(equal name (Filename.remove_extension file))
-      then
+      if not File.(equal name (Filename.remove_extension file)) then
         Message.raise_spanned_error pos
           "Module declared as %a, which does not match the file name %a"
-          ModuleName.format (ModuleName.of_string mname)
+          ModuleName.format
+          (ModuleName.of_string mname)
           File.format file
       else prgm
     | S.LawInclude _ | S.LawText _ | S.ModuleUse _ -> prgm

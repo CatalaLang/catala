@@ -146,14 +146,14 @@ let format_loc_text ppf (pos : t) =
             | None -> None
           in
           None, input_line_opt
-        | None ->
+        | None -> (
           try
             let ic = open_in filename in
             let input_line_opt () : string option =
               try Some (input_line ic) with End_of_file -> None
             in
             Some ic, input_line_opt
-          with Sys_error _ -> None, (fun () -> None)
+          with Sys_error _ -> None, fun () -> None)
       in
       let include_extra_count = 0 in
       let rec get_lines (n : int) : (int * string) list =

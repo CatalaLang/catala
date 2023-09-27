@@ -40,22 +40,20 @@ let test_command_args =
   let re =
     compile
     @@ seq
-      [
-        bos;
-        char '$';
-        rep space;
-        str "catala";
-        rep space;
-        group (rep1 notnl);
-        char '\n';
-      ]
+         [
+           bos;
+           char '$';
+           rep space;
+           str "catala";
+           rep space;
+           group (rep1 notnl);
+           char '\n';
+         ]
   in
   fun str ->
-    exec_opt re str |>
-    Option.map (fun g -> String.trim (Re.Group.get g 1))
+    exec_opt re str |> Option.map (fun g -> String.trim (Re.Group.get g 1))
 
-let catala_file (file : File.t) (lang : Catala_utils.Cli.backend_lang) :
-    item =
+let catala_file (file : File.t) (lang : Catala_utils.Cli.backend_lang) : item =
   let module L = Surface.Lexer_common in
   let rec parse lines n acc =
     match Seq.uncons lines with

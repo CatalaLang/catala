@@ -86,11 +86,13 @@ val check_directory : t -> t option
     [Unix.realpath]). *)
 
 val check_file : t -> t option
-(** Returns its argument if it exists and is a plain file, [None] otherwise. Does not do resolution like [check_directory]. *)
+(** Returns its argument if it exists and is a plain file, [None] otherwise.
+    Does not do resolution like [check_directory]. *)
 
 val ( / ) : t -> t -> t
 (** [Filename.concat]: Sugar to allow writing
-    [File.("some" / "relative" / "path")]. As an exception, if the lhs is [.], returns the rhs unchanged. *)
+    [File.("some" / "relative" / "path")]. As an exception, if the lhs is [.],
+    returns the rhs unchanged. *)
 
 val dirname : t -> t
 (** [Filename.dirname], re-exported for convenience *)
@@ -120,28 +122,33 @@ val scan_tree : (t -> 'a option) -> t -> 'a Seq.t
     or "_*" are ignored. Unreadable files or subdirectories are ignored with a
     debug message. If [t] is a plain file, scan just that non-recursively. *)
 
-module Tree: sig
-  (** A lazy tree structure mirroring the filesystem ; uses the comparison from File, so paths are case-insensitive. *)
+module Tree : sig
+  (** A lazy tree structure mirroring the filesystem ; uses the comparison from
+      File, so paths are case-insensitive. *)
 
-  type path = t (** Alias for [File.t] *)
+  type path = t
+  (** Alias for [File.t] *)
 
-  type item =
-    | F (** Plain file *)
-    | D of t (** Directory with subtree *)
+  type item = F  (** Plain file *) | D of t  (** Directory with subtree *)
+
   and t = (path * item) Map.t Lazy.t
-  (** Contents of a directory, lazily loaded. The map keys are the basenames of the files and subdirectories, while the values contain the original path (with correct capitalisation) *)
+  (** Contents of a directory, lazily loaded. The map keys are the basenames of
+      the files and subdirectories, while the values contain the original path
+      (with correct capitalisation) *)
 
-  val empty: t
+  val empty : t
 
-  val build: path -> t
-  (** Lazily builds a [Tree.path] from the files read at [path]. The names in the maps are qualified (i.e. they all start with ["path/"]) *)
+  val build : path -> t
+  (** Lazily builds a [Tree.path] from the files read at [path]. The names in
+      the maps are qualified (i.e. they all start with ["path/"]) *)
 
-  val subtree: t -> path -> t
+  val subtree : t -> path -> t
   (** Looks up a path within a lazy tree *)
 
-  val lookup: t -> path -> path option
-  (** Checks if there is a matching plain file (case-insensitively) ; and returns its path with the correct case if so *)
+  val lookup : t -> path -> path option
+  (** Checks if there is a matching plain file (case-insensitively) ; and
+      returns its path with the correct case if so *)
 
-  val union: t -> t -> t
+  val union : t -> t -> t
   (** Merges two trees. In case of conflict, lhs entry wins *)
 end

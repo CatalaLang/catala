@@ -241,9 +241,7 @@ let with_sedlex_file file f =
   Fun.protect ~finally:(fun () -> close_in ic) (fun () -> f lexbuf)
 
 (** Parses a single source file *)
-let rec parse_source
-    (lexbuf: Sedlexing.lexbuf)
-  : Ast.program =
+let rec parse_source (lexbuf : Sedlexing.lexbuf) : Ast.program =
   let source_file_name = lexbuf_file lexbuf in
   Message.emit_debug "Parsing %a" File.format source_file_name;
   let language = Cli.file_lang source_file_name in
@@ -259,9 +257,8 @@ let rec parse_source
 
 (** Expands the include directives in a parsing result, thus parsing new source
     files *)
-and expand_includes
-    (source_file : string)
-    (commands : Ast.law_structure list) : Ast.program =
+and expand_includes (source_file : string) (commands : Ast.law_structure list) :
+    Ast.program =
   let language = Cli.file_lang source_file in
   let rprg =
     List.fold_left
@@ -270,8 +267,10 @@ and expand_includes
         | Ast.ModuleDef id -> (
           match acc.Ast.program_module_name with
           | None ->
-            { acc with Ast.program_module_name = Some id;
-                       Ast.program_items = command :: acc.Ast.program_items;
+            {
+              acc with
+              Ast.program_module_name = Some id;
+              Ast.program_items = command :: acc.Ast.program_items;
             }
           | Some id2 ->
             Message.raise_multispanned_error
@@ -286,7 +285,8 @@ and expand_includes
         | Ast.LawInclude (Ast.CatalaFile inc_file) ->
           let source_dir = Filename.dirname source_file in
           let sub_source = File.(source_dir / Mark.remove inc_file) in
-          with_sedlex_file sub_source @@ fun lexbuf ->
+          with_sedlex_file sub_source
+          @@ fun lexbuf ->
           let includ_program = parse_source lexbuf in
           let () =
             includ_program.Ast.program_module_name
@@ -390,9 +390,7 @@ let with_sedlex_source source_file f =
     f lexbuf
 
 let load_interface source_file =
-  let program =
-    with_sedlex_source source_file parse_source
-  in
+  let program = with_sedlex_source source_file parse_source in
   let modname =
     match program.Ast.program_module_name with
     | Some mname -> mname
@@ -410,11 +408,8 @@ let load_interface source_file =
   let used_modules, intf = get_interface program in
   (modname, intf), used_modules
 
-let parse_top_level_file
-    (source_file : Cli.input_src)
-    : Ast.program =
-  let program =
-    with_sedlex_source source_file parse_source in
+let parse_top_level_file (source_file : Cli.input_src) : Ast.program =
+  let program = with_sedlex_source source_file parse_source in
   {
     program with
     Ast.program_items = law_struct_list_to_tree program.Ast.program_items;
