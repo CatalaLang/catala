@@ -814,7 +814,8 @@ let line_dir_arg_re =
   Re.(compile @@ seq [
       bos; char '>'; rep space; rep1 alpha;
       alt [rep1 space; seq [rep space; char ':'; rep space]];
-      group (rep1 (diff any space))
+      group (rep1 (diff any space));
+      eol
     ])
 
 let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =

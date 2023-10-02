@@ -243,7 +243,17 @@ module Poll = struct
                        fix your installation")
                 "command" ["-v"; "catala"])
 
-  let build_dir : File.t Lazy.t = lazy "_build"
+  let build_dir : File.t Lazy.t =
+    lazy
+      (let d = "_build" in
+       match Sys.is_directory d with
+       | exception Sys_error _ ->
+         Sys.mkdir d 0o770;
+         d
+       | true -> d
+       | false ->
+         Message.raise_error "Build directory %a exists but is not a directory"
+           File.format d)
   (* Note: it could be safer here to use File.(Sys.getcwd () / "_build"), but
      Ninja treats relative and absolute paths separately so that you wouldn't
      then be able to build target _build/foo.ml but would have to write the full
@@ -477,22 +487,20 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
   in
   let ml_file =
     match item.module_def with
-    | Some m -> (src /../ m) ^ ".ml"
-    | None -> !Var.src ^ ".ml"
+    | Some m -> (!Var.builddir / src /../ m) ^ ".ml"
+    | None -> (!Var.builddir / !Var.src) ^ ".ml"
   in
   let ocaml =
     Nj.build "catala-ocaml"
       ~inputs:[inc srcv]
-      ~implicit_in:[!Var.catala_exe]
-      ~outputs:[!Var.builddir / ml_file]
+      ~implicit_in:[!Var.catala_exe] ~outputs:[ml_file]
   in
   let ocamlopt =
     let implicit_out_exts = ["cmi"; "cmx"; "cmt"; "o"] in
     match item.module_def with
     | Some m ->
       let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
-      Nj.build "ocaml-module"
-        ~inputs:[!Var.builddir / ml_file]
+      Nj.build "ocaml-module" ~inputs:[ml_file]
         ~implicit_in:
           (List.map (fun m -> (!Var.builddir / src /../ m) ^ ".cmi") modules)
         ~outputs:[target "cmxs"]

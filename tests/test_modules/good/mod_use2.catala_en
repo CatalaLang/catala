@@ -1,0 +1,32 @@
+> Using Mod_middle
+
+```catala
+declaration scope T:
+  t1 scope Mod_middle.S
+#  input i content Enum1
+  output o1 content Mod_def.S
+  output o2 content money
+
+scope T:
+  definition t1.x equals 3
+  definition o1 equals t1.o1
+  definition o2 equals t1.o2
+```
+
+```catala-test-inline
+$ catala interpret -s T
+[RESULT] Computation successful! Results:
+[RESULT] o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }
+[RESULT] o2 = $132.00
+```
+
+> Include: mod_use.catala_en
+
+```catala-test-inline
+$ catala interpret -s T2
+[RESULT] Computation successful! Results:
+[RESULT] o1 = No ()
+[RESULT] o2 = Maybe ()
+[RESULT] o3 = $1,000.00
+[RESULT] o4 = 5.0
+```

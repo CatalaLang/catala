@@ -1,0 +1,23 @@
+> Module Mod_middle
+
+> Using Mod_def
+
+```catala-metadata
+declaration scope S:
+  input x content integer
+  output o1 content Mod_def.S
+  # context -- this should work
+  output o2 content money
+```
+
+```catala
+scope S:
+  definition o1 equals output of Mod_def.S
+#  definition o2 equals o1.Mod_def.S.sr * 2 -- this should work ?
+  definition o2 equals $44 * (decimal of x)
+```
+
+```catala-test-inline
+$ catala typecheck
+[RESULT] Typechecking successful!
+```
