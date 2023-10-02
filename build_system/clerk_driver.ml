@@ -472,7 +472,7 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
   let src = item.file_name in
   let modules = List.rev item.used_modules in
   let inc x = File.(!Var.builddir / x) in
-  let modd x = "module@" ^ File.(src /../ x) in
+  let modd x = File.(src /../ x) ^ "@module" in
   let def_src = Nj.binding Var.src [Filename.remove_extension src] in
   let srcv = !Var.src ^ Filename.extension src in
   let include_deps =
@@ -526,7 +526,7 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
   in
   let interpret =
     Nj.build "interpret"
-      ~outputs:["interpret@" ^ srcv]
+      ~outputs:[srcv ^ "@interpret"]
       ~inputs:[inc srcv]
       ~implicit_in:interp_deps
   in
@@ -552,7 +552,7 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
                 diff; it should actually be an output for the cases when we
                 reset but that shouldn't cause trouble. *)
              Nj.build "post-test" ~inputs:[reference; test_out]
-               ~outputs:["post@" ^ reference]
+               ~outputs:[reference ^ "@post"]
           :: acc)
         [] item.legacy_tests
     in
@@ -570,20 +570,20 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
       if item.has_inline_tests then
         [
           Nj.build "post-test"
-            ~outputs:["test@" ^ srcv]
+            ~outputs:[srcv ^ "@test"]
             ~inputs:[srcv; inc (srcv ^ "@out")]
             ~implicit_in:
               (List.map
-                 (fun test -> "post@" ^ legacy_test_reference test)
+                 (fun test -> legacy_test_reference test ^ "@post")
                  item.legacy_tests);
         ]
       else if item.legacy_tests <> [] then
         [
           Nj.build "phony"
-            ~outputs:["test@" ^ srcv]
+            ~outputs:[srcv ^ "@test"]
             ~inputs:
               (List.map
-                 (fun test -> "post@" ^ legacy_test_reference test)
+                 (fun test -> legacy_test_reference test ^ "@post")
                  item.legacy_tests);
         ]
       else []
@@ -604,12 +604,12 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
        ]
 
 let test_targets_by_dir items =
-  let stmt target_pfx dir sub =
+  let stmt target_sfx dir sub =
     Nj.build "phony"
-      ~outputs:[target_pfx ^ dir]
-      ~inputs:(List.map (( ^ ) target_pfx) sub)
+      ~outputs:[dir ^ target_sfx]
+      ~inputs:(List.map (fun s -> s ^ target_sfx) sub)
   in
-  let alias dir sub = List.to_seq [stmt "test@" dir sub; Nj.comment ""] in
+  let alias dir sub = List.to_seq [stmt "@test" dir sub; Nj.comment ""] in
   (* This relies on the fact that the sequence is returned ordered by
      directory *)
   let rec aux curdir seq =
@@ -644,7 +644,7 @@ let test_targets_by_dir items =
   @@ List.to_seq
        [
          Nj.build "phony" ~outputs:["test"]
-           ~inputs:(List.map (( ^ ) "test@") top);
+           ~inputs:(List.map (fun s -> s ^ "@test") top);
        ]
 
 let build_statements dir =
@@ -739,7 +739,7 @@ let test_cmd =
     let targets =
       match files_or_folders with
       | [] -> ["test"]
-      | files -> List.map (fun f -> "test@" ^ f) files
+      | files -> List.map (fun f -> f ^ "@test") files
     in
     let extra =
       List.to_seq
@@ -787,7 +787,7 @@ let run_cmd =
         (Nj.binding Var.scope [scope])
         (Seq.return
            (Nj.default
-              (List.map (fun file -> "interpret@" ^ file) files_or_folders)))
+              (List.map (fun file -> file ^ "@interpret") files_or_folders)))
     in
     ninja_init ~extra
     @@ fun nin_file ->
