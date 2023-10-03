@@ -747,8 +747,8 @@ let test_cmd =
             [
               Nj.binding Var.post_test
                 [
-                  "test_reset() { if ! diff -q $$1 $$2 >/dev/null; then cp -f $$2 $$1; \
-                   fi; }";
+                  "test_reset() { if ! diff -q $$1 $$2 >/dev/null; then cp -f \
+                   $$2 $$1; fi; }";
                   ";";
                   "test_reset";
                 ];

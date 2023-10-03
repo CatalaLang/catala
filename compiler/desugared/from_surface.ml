@@ -483,7 +483,6 @@ let rec translate_expr
         Message.raise_spanned_error (Mark.get s_name)
           "This identifier should refer to a struct name"
     in
-
     let s_fields =
       List.fold_left
         (fun s_fields (f_name, f_e) ->
