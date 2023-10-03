@@ -8,6 +8,10 @@ declaration enumeration Enum1:
   -- No
   -- Maybe
 
+declaration structure Str1:
+  data fld1 content Enum1
+  data fld2 content integer
+
 declaration scope S:
   output sr content money
   output e1 content Enum1

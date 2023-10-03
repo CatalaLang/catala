@@ -474,7 +474,8 @@ let rec translate_expr
     (* This type will be resolved in Scopelang.Desambiguation *)
     let fn = Expr.make_abs [| v |] (rec_helper ~local_vars e2) [tau] pos in
     Expr.eapp fn [rec_helper e1] emark
-  | StructLit ((([], s_name), _), fields) ->
+  | StructLit (((path, s_name), _), fields) ->
+    let ctxt = Name_resolution.module_ctx ctxt path in
     let s_uid =
       match Ident.Map.find_opt (Mark.remove s_name) ctxt.typedefs with
       | Some (Name_resolution.TStruct s_uid) -> s_uid
@@ -515,8 +516,6 @@ let rec translate_expr
       expected_s_fields;
 
     Expr.estruct ~name:s_uid ~fields:s_fields emark
-  | StructLit (((_, _s_name), _), _fields) ->
-    Message.raise_spanned_error pos "Qualified paths are not supported yet"
   | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let get_possible_c_uids ctxt =
       try Ident.Map.find constructor ctxt.Name_resolution.constructor_idmap
@@ -1425,6 +1424,7 @@ let init_scope_defs
 (** Main function of this module *)
 let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     Ast.program =
+  let top_ctx = ctxt in
   let desugared =
     let get_program_scopes ctxt =
       ScopeName.Map.mapi
@@ -1455,7 +1455,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
           {
             Ast.scope_vars;
             scope_sub_scopes;
-            scope_defs = init_scope_defs ctxt s_context.var_idmap;
+            scope_defs = init_scope_defs top_ctx s_context.var_idmap;
             scope_assertions = Ast.AssertionName.Map.empty;
             scope_meta_assertions = [];
             scope_options = [];

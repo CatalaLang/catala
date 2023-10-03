@@ -6,19 +6,24 @@ declaration scope T:
 #  input i content Enum1
   output o1 content Mod_def.S
   output o2 content money
+  output o3 content money
 
 scope T:
   definition t1.x equals 3
   definition o1 equals t1.o1
   definition o2 equals t1.o2
+  definition o3 equals t1.o3
 ```
 
 ```catala-test-inline
 $ catala interpret -s T
 [RESULT] Computation successful! Results:
 [RESULT] o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }
-[RESULT] o2 = $132.00
+[RESULT] o2 = $2,500.00
+[RESULT] o3 = $132.00
 ```
+
+The following tests multiple inclusion of the same module (Mod_def is used through Mod_middle here, and also directly by mod_use.catala_en included below)
 
 > Include: mod_use.catala_en
 

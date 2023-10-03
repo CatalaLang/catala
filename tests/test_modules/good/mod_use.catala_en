@@ -16,6 +16,7 @@ scope T2:
   definition o2 equals t1.e1
   definition o3 equals t1.sr
   definition o4 equals Mod_def.half of 10
+  assertion (Mod_def.Str1 { -- fld1: No -- fld2: 1 }).Mod_def.Str1.fld1 = No
   assertion o1 = Mod_def.Enum1.No
   assertion o2 = Mod_def.Enum1.Maybe
   assertion o3 = $1000
