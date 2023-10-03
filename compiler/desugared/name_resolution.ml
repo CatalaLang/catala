@@ -998,4 +998,26 @@ let form_context (prgm : Surface.Ast.program) : context =
       (process_law_structure process_use_item)
       ctxt prgm.program_items
   in
-  ctxt
+  let rec gather_all_constrs ctxt =
+    (* Gather struct fields and enum constrs from modules: this helps with disambiguation *)
+    let modules, constructor_idmap, field_idmap =
+      ModuleName.Map.fold
+        (fun m ctx (mmap, constrs, fields) ->
+           let ctx = gather_all_constrs ctx in
+           ModuleName.Map.add m ctx mmap,
+           Ident.Map.union
+             (fun _ enu1 enu2 ->
+                Some (EnumName.Map.union (fun _ _ -> assert false)
+                        enu1 enu2))
+             constrs ctx.constructor_idmap,
+           Ident.Map.union
+             (fun _ str1 str2 ->
+                Some (StructName.Map.union (fun _ _ -> assert false)
+                        str1 str2))
+             fields ctx.field_idmap
+        )
+        ctxt.modules (ModuleName.Map.empty, ctxt.constructor_idmap, ctxt.field_idmap)
+    in
+    { ctxt with modules; constructor_idmap; field_idmap }
+  in
+  gather_all_constrs ctxt
