@@ -813,7 +813,8 @@ let line_test_id_re =
 let line_dir_arg_re =
   Re.(compile @@ seq [
       bos; char '>'; rep space; rep1 alpha;
-      alt [rep1 space; seq [rep space; char ':'; rep space]];
+      rep1 any;
+      alt [space; char ':'];
       group (rep1 (diff any space));
       eol
     ])
