@@ -18,7 +18,7 @@ scope A:
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] [A.y] At least two exceptions overlap for this variable:
-┌─⯈ money-overlap.catala_en:8.10-8.11:
+┌─⯈ tests/test_proof/bad/money-overlap.catala_en:8.10-8.11:
 └─┐
 8 │   output y content boolean
   │          ‾

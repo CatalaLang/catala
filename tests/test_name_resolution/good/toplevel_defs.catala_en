@@ -384,7 +384,7 @@ def s2(s2_in:S2In):
                                   law_headings=[]), [], temp_a_1, temp_a)
     except EmptyError:
         temp_a_2 = dead_value
-        raise NoValueProvided(SourcePosition(filename="toplevel_defs.catala_en",
+        raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
                                              start_line=37, start_column=10,
                                              end_line=37, end_column=11,
                                              law_headings=["Test toplevel function defs"]))
@@ -404,7 +404,7 @@ def s3(s3_in:S3In):
                                   law_headings=[]), [], temp_a_4, temp_a_3)
     except EmptyError:
         temp_a_5 = dead_value
-        raise NoValueProvided(SourcePosition(filename="toplevel_defs.catala_en",
+        raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
                                              start_line=57, start_column=10,
                                              end_line=57, end_column=11,
                                              law_headings=["Test function def with two args"]))
@@ -422,7 +422,7 @@ def s4(s4_in:S4In):
                                   law_headings=[]), [], temp_a_7, temp_a_6)
     except EmptyError:
         temp_a_8 = dead_value
-        raise NoValueProvided(SourcePosition(filename="toplevel_defs.catala_en",
+        raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
                                              start_line=80, start_column=10,
                                              end_line=80, end_column=11,
                                              law_headings=["Test inline defs in toplevel defs"]))
@@ -440,7 +440,7 @@ def s(s_in:SIn):
                                    law_headings=[]), [], temp_a_10, temp_a_9)
     except EmptyError:
         temp_a_11 = dead_value
-        raise NoValueProvided(SourcePosition(filename="toplevel_defs.catala_en",
+        raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
                                              start_line=7, start_column=10,
                                              end_line=7, end_column=11,
                                              law_headings=["Test basic toplevel values defs"]))
@@ -455,7 +455,7 @@ def s(s_in:SIn):
                                   law_headings=[]), [], temp_b_1, temp_b)
     except EmptyError:
         temp_b_2 = dead_value
-        raise NoValueProvided(SourcePosition(filename="toplevel_defs.catala_en",
+        raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
                                              start_line=8, start_column=10,
                                              end_line=8, end_column=11,
                                              law_headings=["Test basic toplevel values defs"]))

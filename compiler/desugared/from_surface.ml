@@ -168,12 +168,12 @@ let rec disambiguate_constructor
     with EnumName.Map.Not_found _ ->
       Message.raise_spanned_error pos "Enum %s does not contain case %s"
         (Mark.remove enum) (Mark.remove constructor))
-  | (modname, mpos) :: path -> (
+  | modname :: path -> (
     let modname = ModuleName.of_string modname in
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
-      Message.raise_spanned_error mpos "Module \"%a\" not found"
-        ModuleName.format modname
+      Message.raise_spanned_error (ModuleName.pos modname)
+        "Module \"%a\" not found" ModuleName.format modname
     | Some ctxt ->
       let constructor =
         List.map (Mark.map (fun (_, c) -> path, c)) constructor0
@@ -415,12 +415,12 @@ let rec translate_expr
       let rec get_str ctxt = function
         | [] -> None
         | [c] -> Some (Name_resolution.get_struct ctxt c)
-        | (modname, mpos) :: path -> (
+        | modname :: path -> (
           let modname = ModuleName.of_string modname in
           match ModuleName.Map.find_opt modname ctxt.modules with
           | None ->
-            Message.raise_spanned_error mpos "Module \"%a\" not found"
-              ModuleName.format modname
+            Message.raise_spanned_error (ModuleName.pos modname)
+              "Module \"%a\" not found" ModuleName.format modname
           | Some ctxt -> get_str ctxt path)
       in
       Expr.edstructaccess ~e ~field:(Mark.remove x)
@@ -474,7 +474,8 @@ let rec translate_expr
     (* This type will be resolved in Scopelang.Desambiguation *)
     let fn = Expr.make_abs [| v |] (rec_helper ~local_vars e2) [tau] pos in
     Expr.eapp fn [rec_helper e1] emark
-  | StructLit ((([], s_name), _), fields) ->
+  | StructLit (((path, s_name), _), fields) ->
+    let ctxt = Name_resolution.module_ctx ctxt path in
     let s_uid =
       match Ident.Map.find_opt (Mark.remove s_name) ctxt.typedefs with
       | Some (Name_resolution.TStruct s_uid) -> s_uid
@@ -482,7 +483,6 @@ let rec translate_expr
         Message.raise_spanned_error (Mark.get s_name)
           "This identifier should refer to a struct name"
     in
-
     let s_fields =
       List.fold_left
         (fun s_fields (f_name, f_e) ->
@@ -515,8 +515,6 @@ let rec translate_expr
       expected_s_fields;
 
     Expr.estruct ~name:s_uid ~fields:s_fields emark
-  | StructLit (((_, _s_name), _), _fields) ->
-    Message.raise_spanned_error pos "Qualified paths are not supported yet"
   | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let get_possible_c_uids ctxt =
       try Ident.Map.find constructor ctxt.Name_resolution.constructor_idmap
@@ -1425,6 +1423,7 @@ let init_scope_defs
 (** Main function of this module *)
 let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     Ast.program =
+  let top_ctx = ctxt in
   let desugared =
     let get_program_scopes ctxt =
       ScopeName.Map.mapi
@@ -1455,7 +1454,7 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
           {
             Ast.scope_vars;
             scope_sub_scopes;
-            scope_defs = init_scope_defs ctxt s_context.var_idmap;
+            scope_defs = init_scope_defs top_ctx s_context.var_idmap;
             scope_assertions = Ast.AssertionName.Map.empty;
             scope_meta_assertions = [];
             scope_options = [];
@@ -1469,6 +1468,9 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       in
       {
         Ast.program_lang = surface.program_lang;
+        Ast.program_module_name =
+          Option.map ModuleName.of_string
+            surface.Surface.Ast.program_module_name;
         Ast.program_ctx =
           {
             (* After name resolution, type definitions (structs and enums) are
@@ -1524,7 +1526,16 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         (fun prgm child -> process_structure prgm child)
         prgm children
     | S.CodeBlock (block, _, _) -> process_code_block ctxt prgm block
-    | S.LawInclude _ | S.LawText _ -> prgm
+    | S.ModuleDef ((name, pos) as mname) ->
+      let file = Filename.basename (Pos.get_file pos) in
+      if not File.(equal name (Filename.remove_extension file)) then
+        Message.raise_spanned_error pos
+          "Module declared as %a, which does not match the file name %a"
+          ModuleName.format
+          (ModuleName.of_string mname)
+          File.format file
+      else prgm
+    | S.LawInclude _ | S.LawText _ | S.ModuleUse _ -> prgm
   in
   let desugared =
     List.fold_left

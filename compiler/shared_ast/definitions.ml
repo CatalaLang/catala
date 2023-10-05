@@ -670,4 +670,5 @@ type 'e program = {
   decl_ctx : decl_ctx;
   code_items : 'e code_item_list;
   lang : Cli.backend_lang;
+  module_name : ModuleName.t option;
 }

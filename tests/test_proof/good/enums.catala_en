@@ -22,7 +22,7 @@ scope A:
 $ catala Proof --disable_counterexamples 
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
 
-┌─⯈ enums.catala_en:5.7-5.8:
+┌─⯈ tests/test_proof/good/enums.catala_en:5.7-5.8:
 └─┐
 5 │    -- C content boolean
   │       ‾

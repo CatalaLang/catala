@@ -75,7 +75,7 @@ let name : type a. a t -> string = function
   | Div_int_int -> "o_div_int_int"
   | Div_rat_rat -> "o_div_rat_rat"
   | Div_mon_mon -> "o_div_mon_mon"
-  | Div_mon_rat -> "o_div_mon_mon"
+  | Div_mon_rat -> "o_div_mon_rat"
   | Div_dur_dur -> "o_div_dur_dur"
   | Lt -> "o_lt"
   | Lt_int_int -> "o_lt_int_int"

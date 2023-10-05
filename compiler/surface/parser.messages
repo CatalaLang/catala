@@ -944,7 +944,7 @@ expected the name of the scope being used
 
 source_file: BEGIN_CODE YEAR
 ##
-## Ends in an error in state: 393.
+## Ends in an error in state: 401.
 ##
 ## source_file_item -> BEGIN_CODE . code END_CODE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
@@ -4182,7 +4182,7 @@ source_file: BEGIN_DIRECTIVE YEAR
 ##
 ## Ends in an error in state: 384.
 ##
-## source_file_item -> BEGIN_DIRECTIVE . LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
+## source_file_item -> BEGIN_DIRECTIVE . directive END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
 ## The known suffix of the stack is as follows:
 ## BEGIN_DIRECTIVE
@@ -4192,31 +4192,31 @@ expected a directive, e.g. 'Include: <filename>'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE YEAR
 ##
-## Ends in an error in state: 385.
+## Ends in an error in state: 392.
 ##
-## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE . COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
+## directive -> LAW_INCLUDE . COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) [ END_DIRECTIVE ]
 ##
 ## The known suffix of the stack is as follows:
-## BEGIN_DIRECTIVE LAW_INCLUDE
+## LAW_INCLUDE
 ##
 
 expected ':', then a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON YEAR
 ##
-## Ends in an error in state: 386.
+## Ends in an error in state: 393.
 ##
-## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON . nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
+## directive -> LAW_INCLUDE COLON . nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) [ END_DIRECTIVE ]
 ##
 ## The known suffix of the stack is as follows:
-## BEGIN_DIRECTIVE LAW_INCLUDE COLON
+## LAW_INCLUDE COLON
 ##
 
 expected a file name or 'JORFTEXTNNNNNNNNNNNN'
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG YEAR
 ##
-## Ends in an error in state: 387.
+## Ends in an error in state: 394.
 ##
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . [ END_DIRECTIVE AT_PAGE ]
 ## nonempty_list(DIRECTIVE_ARG) -> DIRECTIVE_ARG . nonempty_list(DIRECTIVE_ARG) [ END_DIRECTIVE AT_PAGE ]
@@ -4229,19 +4229,19 @@ expected a page specification in the form '@p.<number>', or a newline
 
 source_file: BEGIN_DIRECTIVE LAW_INCLUDE COLON DIRECTIVE_ARG AT_PAGE YEAR
 ##
-## Ends in an error in state: 391.
+## Ends in an error in state: 399.
 ##
-## source_file_item -> BEGIN_DIRECTIVE LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE) . END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
+## source_file_item -> BEGIN_DIRECTIVE directive . END_DIRECTIVE [ LAW_TEXT LAW_HEADING EOF BEGIN_METADATA BEGIN_DIRECTIVE BEGIN_CODE ]
 ##
 ## The known suffix of the stack is as follows:
-## BEGIN_DIRECTIVE LAW_INCLUDE COLON nonempty_list(DIRECTIVE_ARG) option(AT_PAGE)
+## BEGIN_DIRECTIVE directive
 ##
 
 expected a newline
 
 source_file: LAW_HEADING YEAR
 ##
-## Ends in an error in state: 396.
+## Ends in an error in state: 404.
 ##
 ## source_file -> source_file_item . source_file [ # ]
 ##

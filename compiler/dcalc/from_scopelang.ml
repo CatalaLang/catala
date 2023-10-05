@@ -1257,5 +1257,6 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
   {
     code_items = Bindlib.unbox items;
     decl_ctx = ctx.decl_ctx;
+    module_name = prgm.Scopelang.Ast.program_module_name;
     lang = prgm.program_lang;
   }

@@ -35,13 +35,13 @@ You could have written : "condition",
 or "content"
 
 Error token:
-┌─⯈ test_nsw_social_housie.catala_en:11.21-11.26:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 Last good token:
-┌─⯈ test_nsw_social_housie.catala_en:11.11-11.20:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.11-11.20:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
@@ -79,13 +79,13 @@ You could have written : "condition",
 or "content"
 
 Error token:
-┌─⯈ test_nsw_social_housie.catala_en:11.21-11.26:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 Last good token:
-┌─⯈ test_nsw_social_housie.catala_en:11.11-11.20:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.11-11.20:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
@@ -123,13 +123,13 @@ You could have written : "condition",
 or "content"
 
 Error token:
-┌─⯈ test_nsw_social_housie.catala_en:11.21-11.26:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 Last good token:
-┌─⯈ test_nsw_social_housie.catala_en:11.11-11.20:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.11-11.20:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾
@@ -169,13 +169,13 @@ You could have written : "condition",
 or "content"
 
 Error token:
-┌─⯈ test_nsw_social_housie.catala_en:11.21-11.26:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.21-11.26:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │                     ‾‾‾‾‾
 
 Last good token:
-┌─⯈ test_nsw_social_housie.catala_en:11.11-11.20:
+┌─⯈ examples/NSW_community_gaming/tests/test_nsw_social_housie.catala_en:11.11-11.20:
 └──┐
 11 │   context my_gaming scope GamingAuthorized
    │           ‾‾‾‾‾‾‾‾‾

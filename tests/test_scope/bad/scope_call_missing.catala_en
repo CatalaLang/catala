@@ -19,13 +19,13 @@ $ catala dcalc -s Titi
 [ERROR]
 Definition of input variable 'baz' missing in this scope call
 
-┌─⯈ scope_call_missing.catala_en:14.26-14.56:
+┌─⯈ tests/test_scope/bad/scope_call_missing.catala_en:14.26-14.56:
 └──┐
 14 │   definition fizz equals output of Toto with {--bar: 1}
    │                          ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
 Declaration of the missing input variable
-┌─⯈ scope_call_missing.catala_en:4.16-4.19:
+┌─⯈ tests/test_scope/bad/scope_call_missing.catala_en:4.16-4.19:
 └─┐
 4 │   input output baz content decimal
   │                ‾‾‾

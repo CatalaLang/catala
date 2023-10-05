@@ -23,7 +23,7 @@ type flags = {
   merge_level : int;
   format : [ `Dot | `Convert of string ];
   show : string option;
-  output : string option;
+  output : Cli.raw_file option;
   base_src_url : string;
 }
 
@@ -1385,12 +1385,12 @@ let options =
     $ Cli.Flags.output
     $ base_src_url)
 
-let run link_modules optimize ex_scope explain_options global_options =
-  Interpreter.load_runtime_modules link_modules;
+let run includes optimize ex_scope explain_options global_options =
   let prg, ctx, _ =
-    Driver.Passes.dcalc global_options ~link_modules ~optimize
+    Driver.Passes.dcalc global_options ~includes ~optimize
       ~check_invariants:false
   in
+  Interpreter.load_runtime_modules prg;
   let scope = Driver.Commands.get_scope_uid ctx ex_scope in
   (* let result_expr, env = interpret_program prg scope in *)
   let g, base_vars, env = program_to_graph explain_options prg scope in
@@ -1402,7 +1402,7 @@ let run link_modules optimize ex_scope explain_options global_options =
       graph_cleanup explain_options g base_vars
     else g
   in
-  let lang = Driver.get_lang global_options global_options.Cli.input_file in
+  let lang = Cli.file_lang (Cli.input_src_file global_options.Cli.input_src) in
   let dot_content =
     to_dot lang Format.str_formatter prg.decl_ctx env base_vars g
       ~base_src_url:explain_options.base_src_url;
@@ -1416,7 +1416,10 @@ let run link_modules optimize ex_scope explain_options global_options =
     | { output; _ } ->
       let _, with_out = Driver.Commands.get_output global_options output in
       with_out (fun oc -> output_string oc dot_content);
-      fun f -> f (Option.value ~default:"-" output)
+      fun f ->
+        f
+          (Option.value ~default:"-"
+             (Option.map Cli.globals.path_rewrite output))
   in
   with_dot_file
   @@ fun dotfile ->
@@ -1436,7 +1439,7 @@ let run link_modules optimize ex_scope explain_options global_options =
 let term =
   let open Cmdliner.Term in
   const run
-  $ Cli.Flags.link_modules
+  $ Cli.Flags.include_dirs
   $ Cli.Flags.optimize
   $ Cli.Flags.ex_scope
   $ options

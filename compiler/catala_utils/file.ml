@@ -14,6 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
+type t = string
+
 (** Run finaliser [f] unconditionally after running [k ()], propagating any
     raised exception. *)
 let finally f k =
@@ -57,9 +59,7 @@ let get_out_channel ~source_file ~output_file ?ext () =
   | Some "-", _ | None, None -> None, fun f -> f stdout
   | Some f, _ -> Some f, with_out_channel f
   | None, Some ext ->
-    let src =
-      match source_file with Cli.FileName f -> f | Cli.Contents _ -> "a"
-    in
+    let src = Cli.input_src_file source_file in
     let f = Filename.remove_extension src ^ ext in
     Some f, with_out_channel f
 
@@ -115,6 +115,103 @@ let check_directory d =
     if Sys.is_directory d then Some d else None
   with Unix.Unix_error _ | Sys_error _ -> None
 
-let ( / ) = Filename.concat
+let check_file f =
+  try if Sys.is_directory f then None else Some f
+  with Unix.Unix_error _ | Sys_error _ -> None
+
+let ( / ) a b =
+  if a = "" || a = Filename.current_dir_name then b else Filename.concat a b
+
 let dirname = Filename.dirname
 let ( /../ ) a b = dirname a / b
+let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
+
+let path_to_list path =
+  String.split_on_char Filename.dir_sep.[0] path
+  |> List.filter (function "" | "." -> false | _ -> true)
+
+let equal a b =
+  String.equal (String.lowercase_ascii a) (String.lowercase_ascii b)
+
+let compare a b =
+  String.compare (String.lowercase_ascii a) (String.lowercase_ascii b)
+
+let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
+
+module Set = Set.Make (struct
+  type nonrec t = t
+
+  let compare = compare
+end)
+
+module Map = Map.Make (struct
+  type nonrec t = t
+
+  let compare = compare
+  let format = format
+end)
+
+let scan_tree f t =
+  let is_dir t =
+    try Sys.is_directory t
+    with Sys_error _ ->
+      Message.emit_debug "Cannot read %s, skipping" t;
+      false
+  in
+  let not_hidden t = match t.[0] with '.' | '_' -> false | _ -> true in
+  let rec do_dir d =
+    Sys.readdir d
+    |> Array.to_list
+    |> List.filter not_hidden
+    |> List.map (fun t -> d / t)
+    |> do_files
+  and do_files flist =
+    let dirs, files =
+      flist |> List.sort (fun a b -> -compare a b) |> List.partition is_dir
+    in
+    Seq.append
+      (Seq.concat (Seq.map do_dir (List.to_seq dirs)))
+      (Seq.filter_map f (List.to_seq files))
+  in
+  do_files [t]
+
+module Tree = struct
+  type path = t
+
+  type item = F | D of t
+  and t = (path * item) Map.t Lazy.t
+
+  let empty = lazy Map.empty
+
+  let rec build path =
+    lazy
+      (Array.fold_left
+         (fun m f ->
+           let path = path / f in
+           match Sys.is_directory path with
+           | true -> Map.add f (path, D (build path)) m
+           | false -> Map.add f (path, F) m
+           | exception Sys_error _ -> m)
+         Map.empty (Sys.readdir path))
+
+  let subtree t path =
+    let rec aux t = function
+      | [] -> t
+      | dir :: path -> (
+        match Map.find_opt dir (Lazy.force t) with
+        | Some (_, D sub) -> aux sub path
+        | Some (_, F) | None -> raise Not_found)
+    in
+    aux t (path_to_list path)
+
+  let lookup t path =
+    try
+      let t = subtree t (dirname path) in
+      match Map.find_opt (Filename.basename path) (Lazy.force t) with
+      | Some (path, F) -> Some path
+      | Some (_, D _) | None -> None
+    with Not_found -> None
+
+  let union t1 t2 =
+    lazy (Map.union (fun _ x _ -> Some x) (Lazy.force t1) (Lazy.force t2))
+end

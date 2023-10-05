@@ -18,7 +18,7 @@ $ catala Interpret -s A
 [ERROR]
 No struct named Fo found
 
-┌─⯈ nonexisting_struct.catala_en:13.25-13.27:
+┌─⯈ tests/test_struct/bad/nonexisting_struct.catala_en:13.25-13.27:
 └──┐
 13 │   definition y equals x.Fo.f
    │                         ‾‾

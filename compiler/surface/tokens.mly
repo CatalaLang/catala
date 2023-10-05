@@ -24,7 +24,7 @@
 %token EOF
 %token<string * string option * bool * int> LAW_HEADING
 
-%token BEGIN_DIRECTIVE END_DIRECTIVE LAW_INCLUDE
+%token BEGIN_DIRECTIVE END_DIRECTIVE LAW_INCLUDE MODULE_DEF MODULE_USE MODULE_ALIAS
 %token<int> AT_PAGE
 %token<string> DIRECTIVE_ARG
 

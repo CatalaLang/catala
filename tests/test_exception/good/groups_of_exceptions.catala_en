@@ -50,36 +50,36 @@ $ catala Exceptions -s Foo -v x
 Printing the tree of exceptions for the definitions of variable "x" of scope "Foo".
 [RESULT]
 Definitions with label "base":
-┌─⯈ groups_of_exceptions.catala_en:9.3-9.26:
+┌─⯈ tests/test_exception/good/groups_of_exceptions.catala_en:9.3-9.26:
 └─┐
 9 │   label base definition x under condition
   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
   └─ Test
-┌─⯈ groups_of_exceptions.catala_en:13.3-13.26:
+┌─⯈ tests/test_exception/good/groups_of_exceptions.catala_en:13.3-13.26:
 └──┐
 13 │   label base definition x under condition
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
 [RESULT]
 Definitions with label "intermediate":
-┌─⯈ groups_of_exceptions.catala_en:17.3-17.49:
+┌─⯈ tests/test_exception/good/groups_of_exceptions.catala_en:17.3-17.49:
 └──┐
 17 │   label intermediate exception base definition x under condition
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
-┌─⯈ groups_of_exceptions.catala_en:21.3-21.49:
+┌─⯈ tests/test_exception/good/groups_of_exceptions.catala_en:21.3-21.49:
 └──┐
 21 │   label intermediate exception base definition x under condition
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
 [RESULT]
 Definitions with label "exception_to_intermediate":
-┌─⯈ groups_of_exceptions.catala_en:25.3-25.38:
+┌─⯈ tests/test_exception/good/groups_of_exceptions.catala_en:25.3-25.38:
 └──┐
 25 │   exception intermediate definition x under condition
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
    └─ Test
-┌─⯈ groups_of_exceptions.catala_en:29.3-29.38:
+┌─⯈ tests/test_exception/good/groups_of_exceptions.catala_en:29.3-29.38:
 └──┐
 29 │   exception intermediate definition x under condition
    │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾

@@ -26,30 +26,69 @@ let modname_of_file f =
   (* Fixme: make this more robust *)
   String.capitalize_ascii Filename.(basename (remove_extension f))
 
-let get_lang options file =
-  let filename = match file with Cli.FileName s -> s | Contents _ -> "-" in
-  Option.bind
-    (List.assoc_opt (Filename.extension filename) extensions)
-    (fun l -> List.assoc_opt l Cli.languages)
-  |> function
-  | Some lang -> lang
-  | None -> (
-    match options.Cli.language with
-    | Some lang -> lang
-    | None ->
-      Message.raise_error
-        "Could not infer language variant from the extension of \
-         @{<yellow>%s@}, and @{<bold>--language@} was not specified"
-        filename)
-
-let load_module_interfaces options link_modules =
-  List.map
-    (fun f ->
-      let lang = get_lang options (FileName f) in
-      let modname = modname_of_file f in
-      let intf = Surface.Parser_driver.load_interface (FileName f) lang in
-      modname, intf)
-    link_modules
+let load_module_interfaces options includes program =
+  (* Recurse into program modules, looking up files in [using] and loading
+     them *)
+  let includes =
+    includes
+    |> List.map (fun d -> File.Tree.build (options.Cli.path_rewrite d))
+    |> List.fold_left File.Tree.union File.Tree.empty
+  in
+  let err_req_pos chain =
+    List.map (fun m -> Some "Module required from", ModuleName.pos m) chain
+  in
+  let find_module req_chain m =
+    let fname_base = ModuleName.to_string m in
+    let required_from_file = Pos.get_file (ModuleName.pos m) in
+    let includes =
+      File.Tree.union includes
+        (File.Tree.build (File.dirname required_from_file))
+    in
+    match
+      List.filter_map
+        (fun (ext, _) -> File.Tree.lookup includes (fname_base ^ ext))
+        extensions
+    with
+    | [] ->
+      Message.raise_multispanned_error
+        (err_req_pos (m :: req_chain))
+        "Required module not found: %a" ModuleName.format m
+    | [f] -> f
+    | ms ->
+      Message.raise_multispanned_error
+        (err_req_pos (m :: req_chain))
+        "Required module %a matches multiple files: %a" ModuleName.format m
+        (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
+        ms
+  in
+  let load_file f =
+    let (mname, intf), using =
+      Surface.Parser_driver.load_interface (Cli.FileName f)
+    in
+    (ModuleName.of_string mname, intf), using
+  in
+  let rec aux req_chain acc modules =
+    List.fold_left
+      (fun acc mname ->
+        let m = ModuleName.of_string mname in
+        if List.exists (fun (m1, _) -> ModuleName.equal m m1) acc then acc
+        else
+          let f = find_module req_chain m in
+          let (m', intf), using = load_file f in
+          if not (ModuleName.equal m m') then
+            Message.raise_multispanned_error
+              ((Some "Module name declaration", ModuleName.pos m')
+              :: err_req_pos (m :: req_chain))
+              "Mismatching module name declaration:";
+          let acc = (m', intf) :: acc in
+          aux (m :: req_chain) acc using)
+      acc modules
+  in
+  let program_modules =
+    aux [] [] (List.map fst program.Surface.Ast.program_modules)
+    |> List.map (fun (m, i) -> (m : ModuleName.t :> string Mark.pos), i)
+  in
+  { program with Surface.Ast.program_modules }
 
 module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes
@@ -59,21 +98,17 @@ module Passes = struct
     Message.emit_debug "@{<bold;magenta>=@} @{<bold>%s@} @{<bold;magenta>=@}"
       (String.uppercase_ascii s)
 
-  let surface options ~link_modules : Surface.Ast.program * Cli.backend_lang =
+  let surface options ~includes : Surface.Ast.program =
     debug_pass_name "surface";
-    let language = get_lang options options.input_file in
     let prg =
-      Surface.Parser_driver.parse_top_level_file options.input_file language
+      Surface.Parser_driver.parse_top_level_file options.Cli.input_src
     in
     let prg = Surface.Fill_positions.fill_pos_with_legislative_info prg in
-    let prg =
-      { prg with program_modules = load_module_interfaces options link_modules }
-    in
-    prg, language
+    load_module_interfaces options includes prg
 
-  let desugared options ~link_modules :
+  let desugared options ~includes :
       Desugared.Ast.program * Desugared.Name_resolution.context =
-    let prg, _ = surface options ~link_modules in
+    let prg = surface options ~includes in
     debug_pass_name "desugared";
     Message.emit_debug "Name resolution...";
     let ctx = Desugared.Name_resolution.form_context prg in
@@ -91,12 +126,12 @@ module Passes = struct
      uids from strings. Maybe a reduced form should be included directly in
      [prg] for that purpose *)
 
-  let scopelang options ~link_modules :
+  let scopelang options ~includes :
       untyped Scopelang.Ast.program
       * Desugared.Name_resolution.context
       * Desugared.Dependency.ExceptionsDependencies.t
         Desugared.Ast.ScopeDef.Map.t =
-    let prg, ctx = desugared options ~link_modules in
+    let prg, ctx = desugared options ~includes in
     debug_pass_name "scopelang";
     let exceptions_graphs =
       Scopelang.From_desugared.build_exceptions_graph prg
@@ -106,11 +141,11 @@ module Passes = struct
     in
     prg, ctx, exceptions_graphs
 
-  let dcalc options ~link_modules ~optimize ~check_invariants :
+  let dcalc options ~includes ~optimize ~check_invariants :
       typed Dcalc.Ast.program
       * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
-    let prg, ctx, _ = scopelang options ~link_modules in
+    let prg, ctx, _ = scopelang options ~includes in
     debug_pass_name "dcalc";
     let type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
@@ -146,7 +181,7 @@ module Passes = struct
 
   let lcalc
       options
-      ~link_modules
+      ~includes
       ~optimize
       ~check_invariants
       ~avoid_exceptions
@@ -155,7 +190,7 @@ module Passes = struct
       * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
     let prg, ctx, type_ordering =
-      dcalc options ~link_modules ~optimize ~check_invariants
+      dcalc options ~includes ~optimize ~check_invariants
     in
     debug_pass_name "lcalc";
     let avoid_exceptions = avoid_exceptions || closure_conversion in
@@ -196,7 +231,7 @@ module Passes = struct
 
   let scalc
       options
-      ~link_modules
+      ~includes
       ~optimize
       ~check_invariants
       ~avoid_exceptions
@@ -205,7 +240,7 @@ module Passes = struct
       * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
     let prg, ctx, type_ordering =
-      lcalc options ~link_modules ~optimize ~check_invariants ~avoid_exceptions
+      lcalc options ~includes ~optimize ~check_invariants ~avoid_exceptions
         ~closure_conversion
     in
     debug_pass_name "scalc";
@@ -307,22 +342,18 @@ module Commands = struct
             second_part )
 
   let get_output ?ext options output_file =
-    File.get_out_channel ~source_file:options.Cli.input_file ~output_file ?ext
-      ()
+    let output_file = Option.map options.Cli.path_rewrite output_file in
+    File.get_out_channel ~source_file:options.Cli.input_src ~output_file ?ext ()
 
   let get_output_format ?ext options output_file =
-    File.get_formatter_of_out_channel ~source_file:options.Cli.input_file
+    let output_file = Option.map options.Cli.path_rewrite output_file in
+    File.get_formatter_of_out_channel ~source_file:options.Cli.input_src
       ~output_file ?ext ()
 
   let makefile options output =
-    let prg, _ = Passes.surface options ~link_modules:[] in
+    let prg = Passes.surface options ~includes:[] in
     let backend_extensions_list = [".tex"] in
-    let source_file =
-      match options.Cli.input_file with
-      | FileName f -> f
-      | Contents _ ->
-        Message.raise_error "The Makefile backend requires a filename as input"
-    in
+    let source_file = Cli.input_src_file options.Cli.input_src in
     let output_file, with_output = get_output options ~ext:".d" output in
     Message.emit_debug "Writing list of dependencies to %s..."
       (Option.value ~default:"stdout" output_file);
@@ -346,13 +377,14 @@ module Commands = struct
       Term.(const makefile $ Cli.Flags.Global.options $ Cli.Flags.output)
 
   let html options output print_only_law wrap_weaved_output =
-    let prg, language = Passes.surface options ~link_modules:[] in
+    let prg = Passes.surface options ~includes:[] in
     Message.emit_debug "Weaving literate program into HTML";
     let output_file, with_output =
       get_output_format options ~ext:".html" output
     in
     with_output
     @@ fun fmt ->
+    let language = Cli.file_lang (Cli.input_src_file options.Cli.input_src) in
     let weave_output = Literate.Html.ast_to_html language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -374,13 +406,14 @@ module Commands = struct
         $ Cli.Flags.wrap_weaved_output)
 
   let latex options output print_only_law wrap_weaved_output =
-    let prg, language = Passes.surface options ~link_modules:[] in
+    let prg = Passes.surface options ~includes:[] in
     Message.emit_debug "Weaving literate program into LaTeX";
     let output_file, with_output =
       get_output_format options ~ext:".tex" output
     in
     with_output
     @@ fun fmt ->
+    let language = Cli.file_lang (Cli.input_src_file options.Cli.input_src) in
     let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -401,8 +434,8 @@ module Commands = struct
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output)
 
-  let exceptions options link_modules ex_scope ex_variable =
-    let _, ctxt, exceptions_graphs = Passes.scopelang options ~link_modules in
+  let exceptions options includes ex_scope ex_variable =
+    let _, ctxt, exceptions_graphs = Passes.scopelang options ~includes in
     let scope_uid = get_scope_uid ctxt ex_scope in
     let variable_uid = get_variable_uid ctxt scope_uid ex_variable in
     Desugared.Print.print_exceptions_graph scope_uid variable_uid
@@ -420,12 +453,12 @@ module Commands = struct
       Term.(
         const exceptions
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.ex_scope
         $ Cli.Flags.ex_variable)
 
-  let scopelang options link_modules output ex_scope_opt =
-    let prg, ctx, _ = Passes.scopelang options ~link_modules in
+  let scopelang options includes output ex_scope_opt =
+    let prg, ctx, _ = Passes.scopelang options ~includes in
     let _output_file, with_output = get_output_format options output in
     with_output
     @@ fun fmt ->
@@ -449,12 +482,12 @@ module Commands = struct
       Term.(
         const scopelang
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.ex_scope_opt)
 
-  let typecheck options link_modules =
-    let prg, _, _ = Passes.scopelang options ~link_modules in
+  let typecheck options includes =
+    let prg, _, _ = Passes.scopelang options ~includes in
     Message.emit_debug "Typechecking...";
     let _type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
@@ -472,11 +505,11 @@ module Commands = struct
     Cmd.v
       (Cmd.info "typecheck"
          ~doc:"Parses and typechecks a Catala program, without interpreting it.")
-      Term.(const typecheck $ Cli.Flags.Global.options $ Cli.Flags.link_modules)
+      Term.(const typecheck $ Cli.Flags.Global.options $ Cli.Flags.include_dirs)
 
-  let dcalc options link_modules output optimize ex_scope_opt check_invariants =
+  let dcalc options includes output optimize ex_scope_opt check_invariants =
     let prg, ctx, _ =
-      Passes.dcalc options ~link_modules ~optimize ~check_invariants
+      Passes.dcalc options ~includes ~optimize ~check_invariants
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -513,7 +546,7 @@ module Commands = struct
       Term.(
         const dcalc
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.ex_scope_opt
@@ -521,13 +554,13 @@ module Commands = struct
 
   let proof
       options
-      link_modules
+      includes
       optimize
       ex_scope_opt
       check_invariants
       disable_counterexamples =
     let prg, ctx, _ =
-      Passes.dcalc options ~link_modules ~optimize ~check_invariants
+      Passes.dcalc options ~includes ~optimize ~check_invariants
     in
     Verification.Globals.setup ~optimize ~disable_counterexamples;
     let vcs =
@@ -545,7 +578,7 @@ module Commands = struct
       Term.(
         const proof
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.ex_scope_opt
         $ Cli.Flags.check_invariants
@@ -566,19 +599,20 @@ module Commands = struct
     in
     Message.emit_result "Computation successful!%s"
       (if List.length results > 0 then " Results:" else "");
+    let language = Cli.file_lang (Cli.input_src_file options.Cli.input_src) in
     List.iter
       (fun ((var, _), result) ->
         Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
           (if options.Cli.debug then Print.expr ~debug:false ()
-           else Print.UserFacing.value (get_lang options options.input_file))
+           else Print.UserFacing.value language)
           result)
       results
 
-  let interpret_dcalc options link_modules optimize check_invariants ex_scope =
+  let interpret_dcalc options includes optimize check_invariants ex_scope =
     let prg, ctx, _ =
-      Passes.dcalc options ~link_modules ~optimize ~check_invariants
+      Passes.dcalc options ~includes ~optimize ~check_invariants
     in
-    Interpreter.load_runtime_modules link_modules;
+    Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scope_uid ctx ex_scope)
 
@@ -592,14 +626,14 @@ module Commands = struct
       Term.(
         const interpret_dcalc
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.ex_scope)
 
   let lcalc
       options
-      link_modules
+      includes
       output
       optimize
       check_invariants
@@ -607,7 +641,7 @@ module Commands = struct
       closure_conversion
       ex_scope_opt =
     let prg, ctx, _ =
-      Passes.lcalc options ~link_modules ~optimize ~check_invariants
+      Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
     in
     let _output_file, with_output = get_output_format options output in
@@ -633,7 +667,7 @@ module Commands = struct
       Term.(
         const lcalc
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -643,16 +677,17 @@ module Commands = struct
 
   let interpret_lcalc
       options
-      link_modules
+      includes
       optimize
       check_invariants
       avoid_exceptions
       closure_conversion
       ex_scope =
     let prg, ctx, _ =
-      Passes.lcalc options ~link_modules ~optimize ~check_invariants
+      Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
     in
+    Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
       (get_scope_uid ctx ex_scope)
 
@@ -666,7 +701,7 @@ module Commands = struct
       Term.(
         const interpret_lcalc
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.avoid_exceptions
@@ -675,14 +710,14 @@ module Commands = struct
 
   let ocaml
       options
-      link_modules
+      includes
       output
       optimize
       check_invariants
       avoid_exceptions
       closure_conversion =
     let prg, _, type_ordering =
-      Passes.lcalc options ~link_modules ~optimize ~check_invariants
+      Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
     in
     let output_file, with_output =
@@ -693,13 +728,7 @@ module Commands = struct
     Message.emit_debug "Compiling program into OCaml...";
     Message.emit_debug "Writing to %s..."
       (Option.value ~default:"stdout" output_file);
-    let modname =
-      (* TODO: module directive *)
-      match options.Cli.input_file with
-      | FileName n -> Some (modname_of_file n)
-      | _ -> None
-    in
-    Lcalc.To_ocaml.format_program fmt ?register_module:modname prg type_ordering
+    Lcalc.To_ocaml.format_program fmt prg type_ordering
 
   let ocaml_cmd =
     Cmd.v
@@ -708,7 +737,7 @@ module Commands = struct
       Term.(
         const ocaml
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -717,7 +746,7 @@ module Commands = struct
 
   let scalc
       options
-      link_modules
+      includes
       output
       optimize
       check_invariants
@@ -725,7 +754,7 @@ module Commands = struct
       closure_conversion
       ex_scope_opt =
     let prg, ctx, _ =
-      Passes.scalc options ~link_modules ~optimize ~check_invariants
+      Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
     in
     let _output_file, with_output = get_output_format options output in
@@ -754,7 +783,7 @@ module Commands = struct
       Term.(
         const scalc
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
@@ -764,14 +793,14 @@ module Commands = struct
 
   let python
       options
-      link_modules
+      includes
       output
       optimize
       check_invariants
       avoid_exceptions
       closure_conversion =
     let prg, _, type_ordering =
-      Passes.scalc options ~link_modules ~optimize ~check_invariants
+      Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
     in
 
@@ -791,17 +820,16 @@ module Commands = struct
       Term.(
         const python
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion)
 
-  let r options link_modules output optimize check_invariants closure_conversion
-      =
+  let r options includes output optimize check_invariants closure_conversion =
     let prg, _, type_ordering =
-      Passes.scalc options ~link_modules ~optimize ~check_invariants
+      Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions:false ~closure_conversion
     in
 
@@ -817,7 +845,7 @@ module Commands = struct
       Term.(
         const r
         $ Cli.Flags.Global.options
-        $ Cli.Flags.link_modules
+        $ Cli.Flags.include_dirs
         $ Cli.Flags.output
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants

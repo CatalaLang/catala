@@ -19,14 +19,14 @@ $ catala Proof --disable_counterexamples
 It is impossible to give a definition to a scope variable tagged as input.
 
 Incriminated variable:
-┌─⯈ dates_get_year-empty.catala_en:5.9-5.10:
+┌─⯈ tests/test_proof/bad/dates_get_year-empty.catala_en:5.9-5.10:
 └─┐
 5 │   input x content date
   │         ‾
   └─ Test
 
 Incriminated variable definition:
-┌─⯈ dates_get_year-empty.catala_en:9.3-9.15:
+┌─⯈ tests/test_proof/bad/dates_get_year-empty.catala_en:9.3-9.15:
 └─┐
 9 │   definition x equals |2022-01-16|
   │   ‾‾‾‾‾‾‾‾‾‾‾‾

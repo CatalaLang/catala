@@ -35,7 +35,7 @@ let rec law_struct_list_to_tree (f : Ast.law_structure list) :
     | [] -> assert false (* there should be at least one rest element *)
     | rest_head :: rest_tail -> (
       match first_item with
-      | CodeBlock _ | LawText _ | LawInclude _ ->
+      | CodeBlock _ | LawText _ | LawInclude _ | ModuleDef _ | ModuleUse _ ->
         (* if an article or an include is just before a new heading , then we
            don't merge it with what comes next *)
         first_item :: rest_head :: rest_tail
@@ -203,115 +203,213 @@ let localised_parser : Cli.backend_lang -> lexbuf -> Ast.source_file = function
   | Fr -> Parser_Fr.commands_or_includes
   | Pl -> Parser_Pl.commands_or_includes
 
+(** Lightweight lexer for dependency *)
+
+let lines (file : File.t) (language : Cli.backend_lang) =
+  let lex_line =
+    match language with
+    | En -> Lexer_en.lex_line
+    | Fr -> Lexer_fr.lex_line
+    | Pl -> Lexer_pl.lex_line
+  in
+  let input = open_in file in
+  try
+    let lexbuf = Sedlexing.Utf8.from_channel input in
+    Sedlexing.set_filename lexbuf file;
+    let rec aux () =
+      match lex_line lexbuf with
+      | Some line -> Seq.Cons (line, aux)
+      | None ->
+        close_in input;
+        Seq.Nil
+    in
+    aux
+  with exc ->
+    let bt = Printexc.get_raw_backtrace () in
+    close_in input;
+    Printexc.raise_with_backtrace exc bt
+
 (** {1 Parsing multiple files} *)
 
+let lexbuf_file lexbuf =
+  (fst (Sedlexing.lexing_positions lexbuf)).Lexing.pos_fname
+
+let with_sedlex_file file f =
+  let ic = open_in file in
+  let lexbuf = Sedlexing.Utf8.from_channel ic in
+  Sedlexing.set_filename lexbuf file;
+  Fun.protect ~finally:(fun () -> close_in ic) (fun () -> f lexbuf)
+
 (** Parses a single source file *)
-let rec parse_source_file
-    (source_file : Cli.input_file)
-    (language : Cli.backend_lang) : Ast.program =
-  Message.emit_debug "Parsing %s"
-    (match source_file with FileName s | Contents s -> s);
-  let lexbuf, input =
-    match source_file with
-    | FileName source_file -> (
-      try
-        let input = open_in source_file in
-        Sedlexing.Utf8.from_channel input, Some input
-      with Sys_error msg -> Message.raise_error "System error: %s" msg)
-    | Contents contents -> Sedlexing.Utf8.from_string contents, None
-  in
-  let source_file_name =
-    match source_file with FileName s -> s | Contents _ -> "stdin"
-  in
-  Sedlexing.set_filename lexbuf source_file_name;
-  Parse_utils.current_file := source_file_name;
+let rec parse_source (lexbuf : Sedlexing.lexbuf) : Ast.program =
+  let source_file_name = lexbuf_file lexbuf in
+  Message.emit_debug "Parsing %a" File.format source_file_name;
+  let language = Cli.file_lang source_file_name in
   let commands = localised_parser language lexbuf in
-  (match input with Some input -> close_in input | None -> ());
-  let program = expand_includes source_file_name commands language in
+  let program = expand_includes source_file_name commands in
   {
+    program_module_name = program.Ast.program_module_name;
     program_items = program.Ast.program_items;
     program_source_files = source_file_name :: program.Ast.program_source_files;
-    program_modules = [];
+    program_modules = program.program_modules;
     program_lang = language;
   }
 
 (** Expands the include directives in a parsing result, thus parsing new source
     files *)
-and expand_includes
-    (source_file : string)
-    (commands : Ast.law_structure list)
-    (language : Cli.backend_lang) : Ast.program =
-  List.fold_left
-    (fun acc command ->
-      match command with
-      | Ast.LawInclude (Ast.CatalaFile sub_source) ->
-        let source_dir = Filename.dirname source_file in
-        let sub_source = File.(source_dir / Mark.remove sub_source) in
-        let includ_program = parse_source_file (FileName sub_source) language in
-        {
-          Ast.program_source_files =
-            acc.Ast.program_source_files @ includ_program.program_source_files;
-          Ast.program_items =
-            acc.Ast.program_items @ includ_program.program_items;
-          Ast.program_modules =
-            acc.Ast.program_modules @ includ_program.program_modules;
-          Ast.program_lang = language;
-        }
-      | Ast.LawHeading (heading, commands') ->
-        let {
-          Ast.program_items = commands';
-          Ast.program_source_files = new_sources;
-          Ast.program_modules = new_modules;
-          Ast.program_lang = _;
-        } =
-          expand_includes source_file commands' language
-        in
-        {
-          Ast.program_source_files = acc.Ast.program_source_files @ new_sources;
-          Ast.program_items =
-            acc.Ast.program_items @ [Ast.LawHeading (heading, commands')];
-          Ast.program_modules = acc.Ast.program_modules @ new_modules;
-          Ast.program_lang = language;
-        }
-      | i -> { acc with Ast.program_items = acc.Ast.program_items @ [i] })
-    {
-      Ast.program_source_files = [];
-      Ast.program_items = [];
-      Ast.program_modules = [];
-      Ast.program_lang = language;
-    }
-    commands
+and expand_includes (source_file : string) (commands : Ast.law_structure list) :
+    Ast.program =
+  let language = Cli.file_lang source_file in
+  let rprg =
+    List.fold_left
+      (fun acc command ->
+        match command with
+        | Ast.ModuleDef id -> (
+          match acc.Ast.program_module_name with
+          | None ->
+            {
+              acc with
+              Ast.program_module_name = Some id;
+              Ast.program_items = command :: acc.Ast.program_items;
+            }
+          | Some id2 ->
+            Message.raise_multispanned_error
+              [None, Mark.get id; None, Mark.get id2]
+              "Multiple definitions of the module name")
+        | Ast.ModuleUse (id, _alias) ->
+          {
+            acc with
+            Ast.program_modules = (id, []) :: acc.Ast.program_modules;
+            Ast.program_items = command :: acc.Ast.program_items;
+          }
+        | Ast.LawInclude (Ast.CatalaFile inc_file) ->
+          let source_dir = Filename.dirname source_file in
+          let sub_source = File.(source_dir / Mark.remove inc_file) in
+          with_sedlex_file sub_source
+          @@ fun lexbuf ->
+          let includ_program = parse_source lexbuf in
+          let () =
+            includ_program.Ast.program_module_name
+            |> Option.iter
+               @@ fun id ->
+               Message.raise_multispanned_error
+                 [
+                   Some "File include", Mark.get inc_file;
+                   Some "Module declaration", Mark.get id;
+                 ]
+                 "A file that declares a module cannot be used through the raw \
+                  '@{<yellow>> Include@}' directive. You should use it as a \
+                  module with '@{<yellow>> Use %a@}' instead."
+                 Uid.Module.format (Uid.Module.of_string id)
+          in
+          {
+            Ast.program_module_name = None;
+            Ast.program_source_files =
+              List.rev_append includ_program.program_source_files
+                acc.Ast.program_source_files;
+            Ast.program_items =
+              List.rev_append includ_program.program_items acc.Ast.program_items;
+            Ast.program_modules =
+              List.rev_append includ_program.program_modules
+                acc.Ast.program_modules;
+            Ast.program_lang = language;
+          }
+        | Ast.LawHeading (heading, commands') ->
+          let {
+            Ast.program_module_name;
+            Ast.program_items = commands';
+            Ast.program_source_files = new_sources;
+            Ast.program_modules = new_modules;
+            Ast.program_lang = _;
+          } =
+            expand_includes source_file commands'
+          in
+          {
+            Ast.program_module_name;
+            Ast.program_source_files =
+              List.rev_append new_sources acc.Ast.program_source_files;
+            Ast.program_items =
+              Ast.LawHeading (heading, commands') :: acc.Ast.program_items;
+            Ast.program_modules =
+              List.rev_append new_modules acc.Ast.program_modules;
+            Ast.program_lang = language;
+          }
+        | i -> { acc with Ast.program_items = i :: acc.Ast.program_items })
+      {
+        Ast.program_module_name = None;
+        Ast.program_source_files = [];
+        Ast.program_items = [];
+        Ast.program_modules = [];
+        Ast.program_lang = language;
+      }
+      commands
+  in
+  {
+    Ast.program_lang = language;
+    Ast.program_module_name = rprg.Ast.program_module_name;
+    Ast.program_source_files = List.rev rprg.Ast.program_source_files;
+    Ast.program_items = List.rev rprg.Ast.program_items;
+    Ast.program_modules = List.rev rprg.Ast.program_modules;
+  }
 
 (** {2 Handling interfaces} *)
 
 let get_interface program =
-  let rec filter acc = function
-    | Ast.LawInclude _ -> acc
-    | Ast.LawHeading (_, str) -> List.fold_left filter acc str
-    | Ast.LawText _ -> acc
+  let rec filter (req, acc) = function
+    | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
+    | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
+    | Ast.ModuleUse (m, _) -> m :: req, acc
     | Ast.CodeBlock (code, _, true) ->
-      List.fold_left
-        (fun acc -> function
-          | Ast.ScopeUse _, _ -> acc
-          | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e -> e :: acc
-          | Ast.Topdef def, m ->
-            (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
-        acc code
+      ( req,
+        List.fold_left
+          (fun acc -> function
+            | Ast.ScopeUse _, _ -> acc
+            | ((Ast.ScopeDecl _ | StructDecl _ | EnumDecl _), _) as e ->
+              e :: acc
+            | Ast.Topdef def, m ->
+              (Ast.Topdef { def with topdef_expr = None }, m) :: acc)
+          acc code )
     | Ast.CodeBlock (_, _, false) ->
       (* Non-metadata blocks are ignored *)
-      acc
+      req, acc
   in
-  List.fold_left filter [] program.Ast.program_items
+  List.fold_left filter ([], []) program.Ast.program_items
 
 (** {1 API} *)
 
-let load_interface source_file language =
-  parse_source_file source_file language |> get_interface
+let with_sedlex_source source_file f =
+  match source_file with
+  | Cli.FileName file -> with_sedlex_file file f
+  | Cli.Contents (str, file) ->
+    let lexbuf = Sedlexing.Utf8.from_string str in
+    Sedlexing.set_filename lexbuf file;
+    f lexbuf
+  | Cli.Stdin file ->
+    let lexbuf = Sedlexing.Utf8.from_channel stdin in
+    Sedlexing.set_filename lexbuf file;
+    f lexbuf
 
-let parse_top_level_file
-    (source_file : Cli.input_file)
-    (language : Cli.backend_lang) : Ast.program =
-  let program = parse_source_file source_file language in
+let load_interface source_file =
+  let program = with_sedlex_source source_file parse_source in
+  let modname =
+    match program.Ast.program_module_name with
+    | Some mname -> mname
+    | None ->
+      Message.raise_error
+        "%a doesn't define a module name. It should contain a '@{<cyan>> \
+         Module %s@}' directive."
+        File.format
+        (Cli.input_src_file source_file)
+        (match source_file with
+        | FileName s ->
+          String.capitalize_ascii Filename.(basename (remove_extension s))
+        | _ -> "Module_name")
+  in
+  let used_modules, intf = get_interface program in
+  (modname, intf), used_modules
+
+let parse_top_level_file (source_file : Cli.input_src) : Ast.program =
+  let program = with_sedlex_source source_file parse_source in
   {
     program with
     Ast.program_items = law_struct_list_to_tree program.Ast.program_items;

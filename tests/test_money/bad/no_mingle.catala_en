@@ -18,21 +18,21 @@ $ catala Interpret -s A
 I don't know how to apply operator * on types money and
 money
 
-┌─⯈ no_mingle.catala_en:12.26-12.27:
+┌─⯈ tests/test_money/bad/no_mingle.catala_en:12.26-12.27:
 └──┐
 12 │   definition z equals (x * y)
    │                          ‾
    └─ Article
 
 Type money coming from expression:
-┌─⯈ no_mingle.catala_en:5.21-5.26:
+┌─⯈ tests/test_money/bad/no_mingle.catala_en:5.21-5.26:
 └─┐
 5 │   context x content money
   │                     ‾‾‾‾‾
   └─ Article
 
 Type money coming from expression:
-┌─⯈ no_mingle.catala_en:6.21-6.26:
+┌─⯈ tests/test_money/bad/no_mingle.catala_en:6.21-6.26:
 └─┐
 6 │   context y content money
   │                     ‾‾‾‾‾

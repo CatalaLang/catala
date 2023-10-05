@@ -44,6 +44,7 @@ type 'm scope_decl = {
 }
 
 type 'm program = {
+  program_module_name : ModuleName.t option;
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
   program_topdefs : ('m expr * typ) TopdefName.Map.t;
   program_modules : nil program ModuleName.Map.t;

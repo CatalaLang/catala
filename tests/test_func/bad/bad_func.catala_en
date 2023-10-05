@@ -33,14 +33,14 @@ $ catala Interpret -s S
 There is a conflict between multiple valid consequences for assigning the same variable.
 
 This consequence has a valid justification:
-┌─⯈ bad_func.catala_en:14.65-14.70:
+┌─⯈ tests/test_func/bad/bad_func.catala_en:14.65-14.70:
 └──┐
 14 │   definition f of x under condition (x >= x) consequence equals x + x
    │                                                                 ‾‾‾‾‾
    └─ Article
 
 This consequence has a valid justification:
-┌─⯈ bad_func.catala_en:15.62-15.67:
+┌─⯈ tests/test_func/bad/bad_func.catala_en:15.62-15.67:
 └──┐
 15 │   definition f of x under condition not b consequence equals x * x
    │                                                              ‾‾‾‾‾

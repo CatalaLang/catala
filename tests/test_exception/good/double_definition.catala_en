@@ -14,13 +14,13 @@ scope Foo:
 $ catala Scopelang -s Foo
 [WARNING] These definitions have identical justifications and consequences; is it a mistake?
 
-┌─⯈ double_definition.catala_en:9.3-9.15:
+┌─⯈ tests/test_exception/good/double_definition.catala_en:9.3-9.15:
 └─┐
 9 │   definition x equals 1
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
   └─ Foo
 
-┌─⯈ double_definition.catala_en:8.3-8.15:
+┌─⯈ tests/test_exception/good/double_definition.catala_en:8.3-8.15:
 └─┐
 8 │   definition x equals 1
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
@@ -39,13 +39,13 @@ Dcalc translation below.
 $ catala Dcalc -s Foo
 [WARNING] These definitions have identical justifications and consequences; is it a mistake?
 
-┌─⯈ double_definition.catala_en:9.3-9.15:
+┌─⯈ tests/test_exception/good/double_definition.catala_en:9.3-9.15:
 └─┐
 9 │   definition x equals 1
   │   ‾‾‾‾‾‾‾‾‾‾‾‾
   └─ Foo
 
-┌─⯈ double_definition.catala_en:8.3-8.15:
+┌─⯈ tests/test_exception/good/double_definition.catala_en:8.3-8.15:
 └─┐
 8 │   definition x equals 1
   │   ‾‾‾‾‾‾‾‾‾‾‾‾

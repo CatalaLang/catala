@@ -306,18 +306,21 @@ and law_include =
 
 and law_structure =
   | LawInclude of law_include
+  | ModuleDef of uident Mark.pos
+  | ModuleUse of uident Mark.pos * uident Mark.pos option
   | LawHeading of law_heading * law_structure list
   | LawText of (string[@opaque])
   | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
 
-and interface = code_block
+and interface = uident Mark.pos * code_block
 (** Invariant: an interface shall only contain [*Decl] elements, or [Topdef]
     elements with [topdef_expr = None] *)
 
 and program = {
+  program_module_name : uident Mark.pos option;
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
-  program_modules : (uident * interface) list;
+  program_modules : interface list;  (** Modules being used by the program *)
   program_lang : Cli.backend_lang; [@opaque]
 }
 

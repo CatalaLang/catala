@@ -769,4 +769,4 @@ let translate_program (prgm : typed D.program) : untyped A.program =
   (* program is closed here. *)
   let code_items = Bindlib.unbox code_items in
 
-  Program.untype { decl_ctx; code_items; lang = prgm.lang }
+  Program.untype { prgm with decl_ctx; code_items }

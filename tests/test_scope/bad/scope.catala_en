@@ -20,14 +20,14 @@ $ catala Interpret -s A
 There is a conflict between multiple valid consequences for assigning the same variable.
 
 This consequence has a valid justification:
-┌─⯈ scope.catala_en:13.57-13.61:
+┌─⯈ tests/test_scope/bad/scope.catala_en:13.57-13.61:
 └──┐
 13 │   definition b under condition not c consequence equals 1337
    │                                                         ‾‾‾‾
    └─ Article
 
 This consequence has a valid justification:
-┌─⯈ scope.catala_en:14.57-14.58:
+┌─⯈ tests/test_scope/bad/scope.catala_en:14.57-14.58:
 └──┐
 14 │   definition b under condition not c consequence equals 0
    │                                                         ‾

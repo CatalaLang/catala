@@ -25,26 +25,23 @@ val main : unit -> unit
     Each pass takes only its cli options, then calls upon its dependent passes
     (forwarding their options as needed) *)
 module Passes : sig
-  val surface :
-    Cli.options ->
-    link_modules:string list ->
-    Surface.Ast.program * Cli.backend_lang
+  val surface : Cli.options -> includes:Cli.raw_file list -> Surface.Ast.program
 
   val desugared :
     Cli.options ->
-    link_modules:string list ->
+    includes:Cli.raw_file list ->
     Desugared.Ast.program * Desugared.Name_resolution.context
 
   val scopelang :
     Cli.options ->
-    link_modules:string list ->
+    includes:Cli.raw_file list ->
     Shared_ast.untyped Scopelang.Ast.program
     * Desugared.Name_resolution.context
     * Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t
 
   val dcalc :
     Cli.options ->
-    link_modules:string list ->
+    includes:Cli.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
     Shared_ast.typed Dcalc.Ast.program
@@ -53,7 +50,7 @@ module Passes : sig
 
   val lcalc :
     Cli.options ->
-    link_modules:string list ->
+    includes:Cli.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
     avoid_exceptions:bool ->
@@ -64,7 +61,7 @@ module Passes : sig
 
   val scalc :
     Cli.options ->
-    link_modules:string list ->
+    includes:Cli.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
     avoid_exceptions:bool ->
@@ -80,14 +77,14 @@ module Commands : sig
   val get_output :
     ?ext:string ->
     Cli.options ->
-    string option ->
+    Cli.raw_file option ->
     string option * ((out_channel -> 'a) -> 'a)
   (** bounded open of the expected output file *)
 
   val get_output_format :
     ?ext:string ->
     Cli.options ->
-    string option ->
+    Cli.raw_file option ->
     string option * ((Format.formatter -> 'a) -> 'a)
 
   val get_scope_uid :
@@ -107,7 +104,6 @@ end
 (** Various helpers *)
 
 val modname_of_file : string -> string
-val get_lang : Cli.options -> Cli.input_file -> Cli.backend_lang
 
 (** API available to plugins for their own registration *)
 

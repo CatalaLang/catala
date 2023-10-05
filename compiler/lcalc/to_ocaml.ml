@@ -144,7 +144,7 @@ let format_to_module_name
   | `Sname v -> Format.asprintf "%a" StructName.format v)
   |> String.to_ascii
   |> avoid_keywords
-  |> Format.fprintf fmt "%s"
+  |> Format.pp_print_string fmt
 
 let format_struct_field_name
     (fmt : Format.formatter)
@@ -245,8 +245,9 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   | ConflictError ->
     let pos = Mark.get exc in
     Format.fprintf fmt
-      "(ConflictError@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
-       start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@])"
+      "(ConflictError@ @[<hov 2>{filename = \"%s\";@\n\
+       start_line=%d;@ start_column=%d;@ end_line=%d; end_column=%d;@ \
+       law_headings=%a}@])"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
@@ -647,7 +648,8 @@ let format_module_registration
   Format.pp_print_string fmt "let () =";
   Format.pp_print_space fmt ();
   Format.pp_open_hvbox fmt 2;
-  Format.fprintf fmt "Runtime_ocaml.Runtime.register_module %S" modname;
+  Format.fprintf fmt "Runtime_ocaml.Runtime.register_module \"%a\""
+    ModuleName.format modname;
   Format.pp_print_space fmt ();
   Format.pp_open_vbox fmt 2;
   Format.pp_print_string fmt "[ ";
@@ -664,7 +666,8 @@ let format_module_registration
   Format.pp_print_space fmt ();
   Format.pp_print_string fmt "\"todo-module-hash\"";
   Format.pp_close_box fmt ();
-  Format.pp_close_box fmt ()
+  Format.pp_close_box fmt ();
+  Format.pp_print_newline fmt ()
 
 let header =
   {ocaml|
@@ -678,7 +681,6 @@ open Runtime_ocaml.Runtime
 
 let format_program
     (fmt : Format.formatter)
-    ?register_module
     ?exec_scope
     (p : 'm Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
@@ -686,7 +688,7 @@ let format_program
   format_ctx type_ordering fmt p.decl_ctx;
   let bnd = format_code_items p.decl_ctx fmt p.code_items in
   Format.pp_print_newline fmt ();
-  match register_module, exec_scope with
+  match p.module_name, exec_scope with
   | Some modname, None -> format_module_registration fmt bnd modname
   | None, Some scope_name ->
     let scope_body = Program.get_scope_body p scope_name in

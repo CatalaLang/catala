@@ -16,7 +16,7 @@ $ catala typecheck
 [ERROR]
 Scope calls are not allowed outside of a scope
 
-┌─⯈ toplevel_defs.catala_en:11.11-11.23:
+┌─⯈ tests/test_name_resolution/bad/toplevel_defs.catala_en:11.11-11.23:
 └──┐
 11 │   equals (output of S1).a
    │           ‾‾‾‾‾‾‾‾‾‾‾‾

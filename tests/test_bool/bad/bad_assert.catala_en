@@ -18,21 +18,21 @@ Error during typechecking, incompatible types:
 └─⯈ bool
 
 Error coming from typechecking the following expression:
-┌─⯈ bad_assert.catala_en:9.13-9.14:
+┌─⯈ tests/test_bool/bad/bad_assert.catala_en:9.13-9.14:
 └─┐
 9 │   assertion x
   │             ‾
   └─ Test
 
 Type integer coming from expression:
-┌─⯈ bad_assert.catala_en:5.20-5.27:
+┌─⯈ tests/test_bool/bad/bad_assert.catala_en:5.20-5.27:
 └─┐
 5 │   output x content integer
   │                    ‾‾‾‾‾‾‾
   └─ Test
 
 Type bool coming from expression:
-┌─⯈ bad_assert.catala_en:9.13-9.14:
+┌─⯈ tests/test_bool/bad/bad_assert.catala_en:9.13-9.14:
 └─┐
 9 │   assertion x
   │             ‾

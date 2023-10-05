@@ -72,6 +72,6 @@ val interpret_program_lcalc :
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
 
-val load_runtime_modules : string list -> unit
-(** Dynlink the given runtime modules, in order to make them callable by the
-    interpreter *)
+val load_runtime_modules : _ program -> unit
+(** Dynlink the runtime modules required by the given program, in order to make
+    them callable by the interpreter. *)

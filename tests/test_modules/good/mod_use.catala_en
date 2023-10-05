@@ -1,5 +1,7 @@
 # Test modules + inclusions 2
 
+> Using Mod_def
+
 ```catala
 declaration scope T2:
   t1 scope Mod_def.S
@@ -10,20 +12,19 @@ declaration scope T2:
   output o4 content decimal
 
 scope T2:
-  definition o1 equals Mod_def.Enum1.No
+  definition o1 equals No
   definition o2 equals t1.e1
   definition o3 equals t1.sr
   definition o4 equals Mod_def.half of 10
+  assertion (Mod_def.Str1 { -- fld1: No -- fld2: 1 }).fld1 = No
   assertion o1 = Mod_def.Enum1.No
-  assertion o2 = Mod_def.Enum1.Maybe
+  assertion o2 = Maybe
   assertion o3 = $1000
   assertion o4 = 5.0
 ```
 
-The following test is disabled at the moment because it requires prior compilation of the module. This will be fixed with the new Clerk version that handles dependencies transparently.
-
-```disabled catala-test-inline
-$ catala interpret -s T2 --disable_warnings --use mod_def.catala_en
+```catala-test-inline
+$ catala interpret -s T2
 [RESULT] Computation successful! Results:
 [RESULT] o1 = No ()
 [RESULT] o2 = Maybe ()

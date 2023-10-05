@@ -254,12 +254,12 @@ let get_scope ctxt id =
 let rec module_ctx ctxt path =
   match path with
   | [] -> ctxt
-  | (modname, mpos) :: path -> (
+  | modname :: path -> (
     let modname = ModuleName.of_string modname in
     match ModuleName.Map.find_opt modname ctxt.modules with
     | None ->
-      Message.raise_spanned_error mpos "Module \"%a\" not found"
-        ModuleName.format modname
+      Message.raise_spanned_error (ModuleName.pos modname)
+        "Module \"%a\" not found" ModuleName.format modname
     | Some ctxt -> module_ctx ctxt path)
 
 (** {1 Declarations pass} *)
@@ -338,11 +338,11 @@ let rec process_base_typ
           "Unknown type @{<yellow>\"%s\"@}, not a struct or enum previously \
            declared"
           ident)
-    | Surface.Ast.Named ((modul, mpos) :: path, id) -> (
+    | Surface.Ast.Named (modul :: path, id) -> (
       let modul = ModuleName.of_string modul in
       match ModuleName.Map.find_opt modul ctxt.modules with
       | None ->
-        Message.raise_spanned_error mpos
+        Message.raise_spanned_error (ModuleName.pos modul)
           "This refers to module %a, which was not found" ModuleName.format
           modul
       | Some mod_ctxt ->
@@ -742,6 +742,7 @@ let rec process_law_structure
   | Surface.Ast.CodeBlock (block, _, _) ->
     process_code_block process_item ctxt block
   | Surface.Ast.LawInclude _ | Surface.Ast.LawText _ -> ctxt
+  | Surface.Ast.ModuleDef _ | Surface.Ast.ModuleUse _ -> ctxt
 
 (** {1 Scope uses pass} *)
 
@@ -997,4 +998,25 @@ let form_context (prgm : Surface.Ast.program) : context =
       (process_law_structure process_use_item)
       ctxt prgm.program_items
   in
-  ctxt
+  let rec gather_all_constrs ctxt =
+    (* Gather struct fields and enum constrs from modules: this helps with
+       disambiguation *)
+    let modules, constructor_idmap, field_idmap =
+      ModuleName.Map.fold
+        (fun m ctx (mmap, constrs, fields) ->
+          let ctx = gather_all_constrs ctx in
+          ( ModuleName.Map.add m ctx mmap,
+            Ident.Map.union
+              (fun _ enu1 enu2 ->
+                Some (EnumName.Map.union (fun _ _ -> assert false) enu1 enu2))
+              constrs ctx.constructor_idmap,
+            Ident.Map.union
+              (fun _ str1 str2 ->
+                Some (StructName.Map.union (fun _ _ -> assert false) str1 str2))
+              fields ctx.field_idmap ))
+        ctxt.modules
+        (ModuleName.Map.empty, ctxt.constructor_idmap, ctxt.field_idmap)
+    in
+    { ctxt with modules; constructor_idmap; field_idmap }
+  in
+  gather_all_constrs ctxt

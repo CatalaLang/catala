@@ -22,14 +22,14 @@ $ catala Interpret -s A
 struct name "S" already defined
 
 First definition:
-┌─⯈ bug_107.catala_en:4.23-4.24:
+┌─⯈ tests/test_struct/bad/bug_107.catala_en:4.23-4.24:
 └─┐
 4 │ declaration structure S:
   │                       ‾
   └─ https://github.com/CatalaLang/catala/issues/107
 
 Second definition:
-┌─⯈ bug_107.catala_en:8.23-8.24:
+┌─⯈ tests/test_struct/bad/bug_107.catala_en:8.23-8.24:
 └─┐
 8 │ declaration structure S:
   │                       ‾

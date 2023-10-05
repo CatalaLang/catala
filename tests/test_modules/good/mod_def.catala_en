@@ -1,10 +1,16 @@
 # Test modules + inclusions 1
 
+> Module Mod_def
+
 ```catala-metadata
 declaration enumeration Enum1:
   -- Yes
   -- No
   -- Maybe
+
+declaration structure Str1:
+  data fld1 content Enum1
+  data fld2 content integer
 
 declaration scope S:
   output sr content money
@@ -22,5 +28,10 @@ scope S:
 ```
 
 ```catala-test-inline
-$ catala module --compile --plugin-dir=../../../_build/default/compiler/plugins --disable_warnings
+$ catala typecheck --disable_warnings
+[RESULT] Typechecking successful!
+```
+
+```catala-test { id="ml" }
+$ catala ocaml --disable_warnings -o -
 ```

@@ -105,9 +105,10 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
   | EDStructAccess { e; field; name_opt = Some name } ->
     let e' = translate_expr ctx e in
     let field =
+      let decl_ctx = Program.module_ctx ctx.decl_ctx (StructName.path name) in
       try
         StructName.Map.find name
-          (Ident.Map.find field ctx.decl_ctx.ctx_struct_fields)
+          (Ident.Map.find field decl_ctx.ctx_struct_fields)
       with StructName.Map.Not_found _ | Ident.Map.Not_found _ ->
         (* Should not happen after disambiguation *)
         Message.raise_spanned_error (Expr.mark_pos m)
@@ -821,6 +822,7 @@ let translate_program
       (fun modname m_desugared ->
         let ctx = ModuleName.Map.find modname ctx.modules in
         {
+          Ast.program_module_name = Some modname;
           Ast.program_topdefs = TopdefName.Map.empty;
           program_scopes =
             ScopeName.Map.map
@@ -852,6 +854,7 @@ let translate_program
       desugared.D.program_scopes
   in
   {
+    Ast.program_module_name = desugared.D.program_module_name;
     Ast.program_topdefs;
     Ast.program_scopes;
     Ast.program_ctx;

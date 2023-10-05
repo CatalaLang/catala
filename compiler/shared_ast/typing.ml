@@ -533,6 +533,7 @@ and typecheck_expr_top_down :
             A.StructName.format name
       in
       let field =
+        let ctx = Program.module_ctx ctx (A.StructName.path name) in
         let candidate_structs =
           try A.Ident.Map.find field ctx.ctx_struct_fields
           with A.Ident.Map.Not_found _ ->
@@ -1042,6 +1043,7 @@ let program ~leave_unresolved prg =
   in
   {
     A.lang = prg.lang;
+    A.module_name = prg.A.module_name;
     A.code_items = Bindlib.unbox code_items;
     decl_ctx =
       {

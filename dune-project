@@ -2,8 +2,6 @@
 
 (name catala)
 
-(version 0.8.0)
-
 (generate_opam_files false)
 
 (formatting)

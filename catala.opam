@@ -25,12 +25,14 @@ depends: [
   "cppo" {>= "1"}
   "dates_calc" {>= "0.0.4"}
   "dune" {>= "2.8"}
+  "dune-build-info" {>= "2.8"}
   "js_of_ocaml-ppx" {= "4.1.0"}
   "menhir" {>= "20200211"}
   "menhirLib" {>= "20200211"}
   "ocaml" {>= "4.13.0"}
   "ocamlfind" {!= "1.9.5"}
   "ocamlgraph" {>= "1.8.8"}
+  "yojson" {>= "2.0" }
   "ppx_yojson_conv" {>= "0.14.0"}
   "re" {>= "1.9.0"}
   "sedlex" {>= "2.4"}

@@ -38,7 +38,6 @@ val format_var : Format.formatter -> 'm Var.t -> unit
 
 val format_program :
   Format.formatter ->
-  ?register_module:string ->
   ?exec_scope:ScopeName.t ->
   'm Ast.program ->
   Scopelang.Dependency.TVertex.t list ->
@@ -46,7 +45,5 @@ val format_program :
 (** Usage [format_program fmt p type_dependencies_ordering]. Either one of these
     may be set:
 
-    - [register_module] will register the module for dynamic loading under the
-      given name
     - [exec_scope] will mark the named scope as "main" and execute it at the end
       of the program. It must have no inputs. *)
