@@ -425,12 +425,13 @@ let rec evaluate_operator
 (* /S\ dark magic here. This relies both on internals of [Lcalc.to_ocaml] *and*
    of the OCaml runtime *)
 let rec runtime_to_val :
-    (decl_ctx -> ('a, 'm) gexpr -> ('a, 'm) gexpr) ->
+  type d e.
+    (decl_ctx -> ((d, e, _) astk, 'm) gexpr -> ((d, e, _) astk, 'm) gexpr) ->
     decl_ctx ->
     'm mark ->
     typ ->
     Obj.t ->
-    (((_, _, yes) astk as 'a), 'm) gexpr =
+    (((d, e, yes) astk as 'a), 'm) gexpr =
  fun eval_expr ctx m ty o ->
   let m = Expr.map_ty (fun _ -> ty) m in
   match Mark.remove ty with
@@ -480,13 +481,15 @@ let rec runtime_to_val :
   | TAny -> assert false
 
 and val_to_runtime :
-    (decl_ctx -> ('a, 'm) gexpr -> ('a, 'm) gexpr) ->
+  type d e .
+    (decl_ctx -> ((d, e, _) astk, 'm) gexpr -> ((d, e, _) astk, 'm) gexpr) ->
     decl_ctx ->
     typ ->
-    ('b, 'm) gexpr ->
+    ((d, e, _) astk, 'm) gexpr ->
     Obj.t =
  fun eval_expr ctx ty v ->
   match Mark.remove ty, Mark.remove v with
+  | _, EEmptyError -> raise Runtime.EmptyError
   | TLit TBool, ELit (LBool b) -> Obj.repr b
   | TLit TUnit, ELit LUnit -> Obj.repr ()
   | TLit TInt, ELit (LInt i) -> Obj.repr i
@@ -537,7 +540,11 @@ and val_to_runtime :
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
     in
     curry [] targs
-  | _ -> assert false
+  | _ ->
+    Message.raise_internal_error
+      "Could not convert value of type %a to runtime: %a"
+      (Print.typ ctx) ty
+      Expr.format v
 
 let rec evaluate_expr :
     type d e.
