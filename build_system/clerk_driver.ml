@@ -828,4 +828,27 @@ let runtest_cmd =
       $ Cli.single_file)
 
 let main_cmd = Cmd.group Cli.info [build_cmd; test_cmd; run_cmd; runtest_cmd]
-let main () = exit (Cmdliner.Cmd.eval' main_cmd)
+
+let main () =
+  try exit (Cmdliner.Cmd.eval' ~catch:false main_cmd) with
+  | Catala_utils.Cli.Exit_with n -> exit n
+  | Message.CompilerError content ->
+    let bt = Printexc.get_raw_backtrace () in
+    Message.Content.emit content Error;
+    if Catala_utils.Cli.globals.debug then
+      Printexc.print_raw_backtrace stderr bt;
+    exit Cmd.Exit.some_error
+  | Sys_error msg ->
+    let bt = Printexc.get_raw_backtrace () in
+    Message.Content.emit
+      (Message.Content.of_string ("System error: " ^ msg))
+      Error;
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
+    exit Cmd.Exit.internal_error
+  | e ->
+    let bt = Printexc.get_raw_backtrace () in
+    Message.Content.emit
+      (Message.Content.of_string ("Unexpected error: " ^ Printexc.to_string e))
+      Error;
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
+    exit Cmd.Exit.internal_error
