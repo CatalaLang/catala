@@ -295,8 +295,8 @@ module Poll = struct
                File.(exec_dir /../ "lib" / "catala" / "runtime_ocaml")
            with
            | Some d -> d
-           | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime"))
-         (* FIXME check this, not "runtime_ocaml" ?? *)
+           | None -> File.(Lazy.force ocaml_libdir / "catala" / "runtime_ocaml")
+           )
        in
        match File.check_directory d with
        | Some dir ->
