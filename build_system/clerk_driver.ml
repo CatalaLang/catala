@@ -241,7 +241,8 @@ module Poll = struct
                     Message.raise_error
                       "Could not find the @{<yellow>catala@} program, please \
                        fix your installation")
-                "command" ["-v"; "catala"])
+                "/bin/sh"
+                ["-c"; "command -v catala"])
 
   let build_dir : File.t Lazy.t =
     lazy
