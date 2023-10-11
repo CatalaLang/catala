@@ -64,24 +64,16 @@ let propagate_empty_error_list elist f =
 let indent_str = ref ""
 
 (** {1 Evaluation} *)
-let print_log entry infos pos e =
+let print_log lang entry infos pos e =
   if Cli.globals.trace then
     match entry with
     | VarDef _ ->
-      let module Printer = Print.ExprGen (struct
-        include Print.ExprConciseParam
-
-        let bypass : type a. Format.formatter -> (a, 't) gexpr -> bool =
-         fun ppf e ->
-          match e with
-          | EAbs _, _ ->
-            Print.op_style ppf "<function>";
-            true
-          | _ -> false
-      end) in
       Message.emit_log "%s%a %a: @{<green>%s@}" !indent_str Print.log_entry
         entry Print.uid_list infos
-        (Message.unformat (fun ppf -> Printer.expr ppf e))
+        (Message.unformat (fun ppf ->
+             (if Cli.globals.debug then Print.expr ~debug:true ()
+              else Print.UserFacing.expr lang)
+               ppf e))
     | PosRecordIfTrueBool -> (
       match pos <> Pos.no_pos, Mark.remove e with
       | true, ELit (LBool true) ->
@@ -203,7 +195,7 @@ let rec evaluate_operator
   | Length, [(EArray es, _)] ->
     ELit (LInt (Runtime.integer_of_int (List.length es)))
   | Log (entry, infos), [e'] ->
-    print_log entry infos pos e';
+    print_log lang entry infos pos e';
     Mark.remove e'
   | (FromClosureEnv | ToClosureEnv), [e'] ->
     (* [FromClosureEnv] and [ToClosureEnv] are just there to bypass the need for
