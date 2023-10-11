@@ -234,6 +234,7 @@ module Poll = struct
              File.(root / "_build" / "default" / "compiler" / "catala.exe")
          | None ->
            Unix.realpath
+           @@ String.trim
            @@ File.process_out
                 ~check_exit:(function
                   | 0 -> ()
