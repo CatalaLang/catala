@@ -22,7 +22,6 @@ $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT]
 x = ESome [ESome 0; ESome 1; ESome 2; ESome 3; ESome 4; ESome 5; ESome 6]
 [RESULT]
-y =
-  ESome [ESome 0; ESome 1; ESome 2; ESome 3; ESome 4; ESome 5; ESome 6;
-         ESome 7; ESome 8; ESome 9; ESome 10]
+y = ESome [ESome 0; ESome 1; ESome 2; ESome 3; ESome 4; ESome 5; ESome 6;
+  ESome 7; ESome 8; ESome 9; ESome 10]
 ```

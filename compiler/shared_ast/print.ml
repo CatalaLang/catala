@@ -1052,7 +1052,7 @@ module UserFacing = struct
     match Mark.remove e with
     | ELit l -> lit lang ppf l
     | EArray l | ETuple l ->
-      Format.fprintf ppf "@[<hov 1>[@;<0 1>%a@;<0 -1>]@]"
+      Format.fprintf ppf "[@;<0 2>%a@;<0 -2>]"
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
            (value ~fallback lang))
