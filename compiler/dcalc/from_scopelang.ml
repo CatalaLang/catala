@@ -1237,6 +1237,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
         def next_bind
   in
   let items = translate_defs top_ctx defs_ordering in
+  Expr.Box.assert_closed items;
   {
     code_items = Bindlib.unbox items;
     decl_ctx;
