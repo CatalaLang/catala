@@ -1,27 +1,8 @@
-Testing adequacy of the scope calling convention with various types of
-parameters (reentrant, functions ...) ; and different calls (through subscopes
-or direct scope calls). The main part of the test is in `mod_use_context`.
+Running the same tests as in `mod_def_context`, but through module calls
 
-> Module Mod_def_context
-
-```catala-metadata
-declaration scope S:
-  context output ci content integer
-  context output cm content money
-  context output cfun1 content decimal depends on x content integer
-  input output cfun2 content decimal depends on x content integer
-```
+> Using Mod_def_context
 
 ```catala
-scope S:
-  definition ci equals 0
-  definition cm equals $0
-  definition cfun1 of x equals x / 2
-```
-
-Now testing direct calls within the same module
-
-```catala-metadata
 declaration third content decimal
   depends on x content integer
   equals x / 3
@@ -31,49 +12,65 @@ declaration quarter content decimal
   equals x / 4
 ```
 
+### Testing direct scope calls (with and without context override)
+
 ```catala
-declaration scope Stest:
-  output o1 content S
-  output o2 content S
+declaration scope TestCall:
+  output o_default content Mod_def_context.S
+  output o_override content Mod_def_context.S
   output x11 content decimal
   output x12 content decimal
   output x21 content decimal
   output x22 content decimal
-
-scope Stest:
-  definition o1 equals
-      output of S with { -- cfun2: quarter }
-  definition o2 equals
-      output of S with {
+scope TestCall:
+  definition o_default equals
+      output of Mod_def_context.S with {
+        -- cfun2: Mod_def_context.quarter
+      }
+  definition o_override equals
+      output of Mod_def_context.S with {
         -- ci: 1
         -- cm: $1
         -- cfun1: third
         -- cfun2: quarter
       }
-  definition x11 equals o1.cfun1 of 24
-  definition x12 equals o1.cfun2 of 24
-  definition x21 equals o2.cfun1 of 24
-  definition x22 equals o2.cfun2 of 24
+  definition x11 equals o_default.cfun1 of 24
+  definition x12 equals o_default.cfun2 of 24
+  definition x21 equals o_override.cfun1 of 24
+  definition x22 equals o_override.cfun2 of 24
 ```
 
 ```catala-test-inline
-$ catala interpret -s Stest
+$ catala interpret -sTestCall
 [RESULT] Computation successful! Results:
 [RESULT]
-o1 = S { -- ci: 0 -- cm: $0.00 -- cfun1: <function> -- cfun2: <function> }
+o_default =
+  Mod_def_context.S {
+    -- ci: 0
+    -- cm: $0.00
+    -- cfun1: <function>
+    -- cfun2: <function>
+  }
 [RESULT]
-o2 = S { -- ci: 1 -- cm: $1.00 -- cfun1: <function> -- cfun2: <function> }
+o_override =
+  Mod_def_context.S {
+    -- ci: 1
+    -- cm: $1.00
+    -- cfun1: <function>
+    -- cfun2: <function>
+  }
 [RESULT] x11 = 12.0
 [RESULT] x12 = 6.0
 [RESULT] x21 = 8.0
 [RESULT] x22 = 6.0
 ```
 
+
 ### Testing subscopes (with and without context override)
 
 ```catala
 declaration scope TestSubDefault:
-  sub scope S
+  sub scope Mod_def_context.S
   output ci content integer
   output cm content money
   output x11 content decimal
@@ -98,7 +95,7 @@ $ catala interpret -s TestSubDefault
 
 ```catala
 declaration scope TestSubOverride:
-  sub scope S
+  sub scope Mod_def_context.S
   output ci content integer
   output cm content money
   output x21 content decimal
@@ -108,7 +105,7 @@ scope TestSubOverride:
   definition sub.ci equals 1
   definition sub.cm equals $1
   definition sub.cfun1 of x equals third of x
-  definition sub.cfun2 of x equals quarter of x
+  definition sub.cfun2 of x equals Mod_def_context.quarter of x
   definition ci equals sub.ci
   definition cm equals sub.cm
   definition x21 equals sub.cfun1 of 24
