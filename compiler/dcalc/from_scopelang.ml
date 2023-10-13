@@ -660,10 +660,8 @@ let translate_rule
             ctx.scope_vars;
       } )
   | Definition
-      ( (SubScopeVar { alias = subs_index; var = subs_var; _ }, var_def_pos),
-        tau,
-        a_io,
-        e ) ->
+      ((SubScopeVar { alias = subs_index; var = subs_var; _ }, _), tau, a_io, e)
+    ->
     let a_name =
       Mark.map
         (fun str ->
