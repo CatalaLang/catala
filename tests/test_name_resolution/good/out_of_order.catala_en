@@ -29,9 +29,7 @@ $ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT]
 a =
-  ESome A {
-          -- x: ESome 0
-          -- y: ESome B { -- y: ESome true -- z: ESome 0.0 }
-        }
+  ESome
+    A { -- x: ESome 0 -- y: ESome B { -- y: ESome true -- z: ESome 0.0 } }
 [RESULT] b = ESome B { -- y: ESome true -- z: ESome 0.0 }
 ```

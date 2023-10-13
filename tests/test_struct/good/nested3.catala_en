@@ -53,10 +53,11 @@ $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT]
 t =
-  ESome T {
-          -- a: ESome S { -- x: ESome 0 -- y: ESome false }
-          -- b: ESome S { -- x: ESome 1 -- y: ESome true }
-        }
+  ESome
+    T {
+      -- a: ESome S { -- x: ESome 0 -- y: ESome false }
+      -- b: ESome S { -- x: ESome 1 -- y: ESome true }
+    }
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
@@ -64,8 +65,9 @@ $ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
 [RESULT] out = ESome 1
 [RESULT]
 t =
-  ESome T {
-          -- a: ESome S { -- x: ESome 0 -- y: ESome false }
-          -- b: ESome S { -- x: ESome 1 -- y: ESome true }
-        }
+  ESome
+    T {
+      -- a: ESome S { -- x: ESome 0 -- y: ESome false }
+      -- b: ESome S { -- x: ESome 1 -- y: ESome true }
+    }
 ```
