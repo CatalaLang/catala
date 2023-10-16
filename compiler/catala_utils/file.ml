@@ -119,6 +119,22 @@ let check_file f =
   try if Sys.is_directory f then None else Some f
   with Unix.Unix_error _ | Sys_error _ -> None
 
+let get_command t =
+  String.trim
+  @@ process_out
+       ~check_exit:(function 0 -> () | _ -> raise Not_found)
+       "/bin/sh"
+       ["-c"; "command -v " ^ Filename.quote t]
+
+let dir_sep_char = Filename.dir_sep.[0]
+
+let check_exec t =
+  try if String.contains t dir_sep_char then Unix.realpath t else get_command t
+  with Unix.Unix_error _ | Sys_error _ ->
+    Message.raise_error
+      "Could not find the @{<yellow>%s@} program, please fix your installation"
+      (Filename.quote t)
+
 let ( / ) a b =
   if a = "" || a = Filename.current_dir_name then b else Filename.concat a b
 
@@ -127,7 +143,7 @@ let ( /../ ) a b = dirname a / b
 let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
 
 let path_to_list path =
-  String.split_on_char Filename.dir_sep.[0] path
+  String.split_on_char dir_sep_char path
   |> List.filter (function "" | "." -> false | _ -> true)
 
 let equal a b =

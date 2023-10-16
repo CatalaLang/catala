@@ -232,18 +232,7 @@ module Poll = struct
          | Some root ->
            Unix.realpath
              File.(root / "_build" / "default" / "compiler" / "catala.exe")
-         | None ->
-           Unix.realpath
-           @@ String.trim
-           @@ File.process_out
-                ~check_exit:(function
-                  | 0 -> ()
-                  | _ ->
-                    Message.raise_error
-                      "Could not find the @{<yellow>catala@} program, please \
-                       fix your installation")
-                "/bin/sh"
-                ["-c"; "command -v catala"])
+         | None -> File.check_exec "catala")
 
   let build_dir : File.t Lazy.t =
     lazy
@@ -401,7 +390,7 @@ let base_bindings catala_exe catala_flags =
     Nj.binding Var.catala_exe
       [
         (match catala_exe with
-        | Some e -> e
+        | Some e -> File.check_exec e
         | None -> Lazy.force Poll.catala_exe);
       ];
     Nj.binding Var.catala_flags catala_flags;
@@ -518,6 +507,12 @@ let gen_build_statements (item : Scan.item) : Nj.ninja =
         List.map (fun m -> (!Var.builddir / src /../ m) ^ ".cmx") modules
         @ [ml_file]
       in
+      (* Note: this rule is incomplete in that it only provide the direct module
+         dependencies, and ocamlopt needs the transitive closure of dependencies
+         for linking, which we can't provide here ; catala does that work for
+         the interpret case, so we should probably add a [catala link] (or
+         [clerk link]) command that gathers these dependencies and wraps
+         [ocamlopt]. *)
       Nj.build "ocaml-exec" ~inputs
         ~outputs:[target "exe"]
         ~implicit_out:(List.map target implicit_out_exts)
@@ -650,8 +645,8 @@ let test_targets_by_dir items =
        ]
 
 let build_statements dir =
-  (* Unfortunately we need to express the module name bindings first, so need to
-     iterate twice using Seq.memoize *)
+  (* Todo: generate the targets_by_dir alongside the targets, avoiding the need
+     for [memoize] and two traversals here *)
   Scan.tree dir
   |> Seq.memoize
   |> fun items ->

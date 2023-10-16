@@ -89,6 +89,12 @@ val check_file : t -> t option
 (** Returns its argument if it exists and is a plain file, [None] otherwise.
     Does not do resolution like [check_directory]. *)
 
+val check_exec : t -> t
+(** Resolves a command:
+    - if [t] is a plain name, resolve in PATH
+    - if [t] is relative, returns its absolute path
+    - fails with an error explaining that [t] was not found *)
+
 val ( / ) : t -> t -> t
 (** [Filename.concat]: Sugar to allow writing
     [File.("some" / "relative" / "path")]. As an exception, if the lhs is [.],
