@@ -32,7 +32,7 @@ $ catala Interpret -t -s HousingComputation --debug
 [DEBUG] Translating to default calculus...
 [DEBUG] Typechecking again...
 [DEBUG] Starting interpretation...
-[LOG] ≔  HousingComputation.f: <function>
+[LOG] ≔  HousingComputation.f: λ (x_90: integer) → error_empty ⟨#{☛ } true ⊢ (let result_91 : RentComputation = (#{→ RentComputation.direct} (λ (RentComputation_in_92: RentComputation_in) → let g_93 : integer → integer = #{≔ RentComputation.g} (λ (x1_94: integer) → error_empty ⟨#{☛ } true ⊢ x1_94 +! 1⟩) in let f_95 : integer → integer = #{≔ RentComputation.f} (λ (x1_96: integer) → error_empty ⟨#{☛ } true ⊢ #{← RentComputation.g} #{≔ RentComputation.g.output} (#{→ RentComputation.g} g_93) #{≔ RentComputation.g.input0} (x1_96 +! 1)⟩) in { RentComputation f = f_95; })) #{≔ RentComputation.direct.input} {RentComputation_in} in let result1_97 : RentComputation = { RentComputation f = λ (param0_98: integer) → #{← RentComputation.f} #{≔ RentComputation.f.output} (#{→ RentComputation.f} result_91.f) #{≔ RentComputation.f.input0} param0_98; } in #{← RentComputation.direct} #{≔ RentComputation.direct.output} if #{☛ RentComputation.direct.output} true then result1_97 else result1_97).f x_90⟩
 [LOG] ☛ Definition applied:
       ┌─⯈ tests/test_scope/good/scope_call3.catala_en:8.14-8.20:
       └─┐
@@ -47,14 +47,14 @@ $ catala Interpret -t -s HousingComputation --debug
           │              ‾
 [LOG]   →  RentComputation.direct
 [LOG]     ≔  RentComputation.direct.input: {RentComputation_in}
-[LOG]     ≔  RentComputation.g: <function>
-[LOG]     ≔  RentComputation.f: <function>
+[LOG]     ≔  RentComputation.g: λ (x_99: integer) → error_empty ⟨#{☛ } true ⊢ x_99 +! 1⟩
+[LOG]     ≔  RentComputation.f: λ (x_100: integer) → error_empty ⟨#{☛ } true ⊢ #{← RentComputation.g} #{≔ RentComputation.g.output} (#{→ RentComputation.g} (λ (x1_101: integer) → error_empty ⟨#{☛ } true ⊢ x1_101 +! 1⟩)) #{≔ RentComputation.g.input0} (x_100 +! 1)⟩
 [LOG]     ☛ Definition applied:
           ┌─⯈ tests/test_scope/good/scope_call3.catala_en:7.29-7.54:
           └─┐
           7 │   definition f of x equals (output of RentComputation).f of x
             │                             ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-[LOG]     ≔  RentComputation.direct.output: { RentComputation f = <function>; }
+[LOG]     ≔  RentComputation.direct.output: { RentComputation f = λ (param0_102: integer) → #{← RentComputation.f} #{≔ RentComputation.f.output} (#{→ RentComputation.f} { RentComputation f = λ (x_103: integer) → error_empty ⟨#{☛ } true ⊢ #{← RentComputation.g} #{≔ RentComputation.g.output} (#{→ RentComputation.g} (λ (x1_104: integer) → error_empty ⟨#{☛ } true ⊢ x1_104 +! 1⟩)) #{≔ RentComputation.g.input0} (x_103 +! 1)⟩; }.f) #{≔ RentComputation.f.input0} param0_102; }
 [LOG]   ←  RentComputation.direct
 [LOG]   →  RentComputation.f
 [LOG]     ≔  RentComputation.f.input0: 1
