@@ -2,6 +2,10 @@
 # Use `git config --global blame.ignoreRevsFile .git-blame-ignore-revs` to use it
 # Add new reformatting commits at the top
 
+2708fa53b23bde545e7378a660cdb99e8671f1de
+a79acd1fa8b701a5688c7fa985c7064cd6d81acf
+4bce4e6322ede5cddb7384511f2fc0d05416f97f
+
 4910158aeadad66fd9e542b736bf81fab66cd26d
 8e33355eadabe2a95478c419884fab899244766b
 72882f82dfc75888470a9415a5b51a7ab38e140e

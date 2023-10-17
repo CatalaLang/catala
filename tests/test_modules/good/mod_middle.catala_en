@@ -7,8 +7,7 @@ declaration scope S:
   input x content integer
   output o1 content Mod_def.S
   output o2 content money
-  # context -- this should work
-  output o3 content money
+  context output o3 content money
 ```
 
 ```catala

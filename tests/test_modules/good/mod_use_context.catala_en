@@ -1,0 +1,122 @@
+Running the same tests as in `mod_def_context`, but through module calls
+
+> Using Mod_def_context
+
+```catala
+declaration third content decimal
+  depends on x content integer
+  equals x / 3
+
+declaration quarter content decimal
+  depends on x content integer
+  equals x / 4
+```
+
+### Testing direct scope calls (with and without context override)
+
+```catala
+declaration scope TestCall:
+  output o_default content Mod_def_context.S
+  output o_override content Mod_def_context.S
+  output x11 content decimal
+  output x12 content decimal
+  output x21 content decimal
+  output x22 content decimal
+scope TestCall:
+  definition o_default equals
+      output of Mod_def_context.S with {
+        -- cfun2: Mod_def_context.quarter
+      }
+  definition o_override equals
+      output of Mod_def_context.S with {
+        -- ci: 1
+        -- cm: $1
+        -- cfun1: third
+        -- cfun2: quarter
+      }
+  definition x11 equals o_default.cfun1 of 24
+  definition x12 equals o_default.cfun2 of 24
+  definition x21 equals o_override.cfun1 of 24
+  definition x22 equals o_override.cfun2 of 24
+```
+
+```catala-test-inline
+$ catala interpret -sTestCall
+[RESULT] Computation successful! Results:
+[RESULT]
+o_default =
+  Mod_def_context.S {
+    -- ci: 0
+    -- cm: $0.00
+    -- cfun1: <function>
+    -- cfun2: <function>
+  }
+[RESULT]
+o_override =
+  Mod_def_context.S {
+    -- ci: 1
+    -- cm: $1.00
+    -- cfun1: <function>
+    -- cfun2: <function>
+  }
+[RESULT] x11 = 12.0
+[RESULT] x12 = 6.0
+[RESULT] x21 = 8.0
+[RESULT] x22 = 6.0
+```
+
+
+### Testing subscopes (with and without context override)
+
+```catala
+declaration scope TestSubDefault:
+  sub scope Mod_def_context.S
+  output ci content integer
+  output cm content money
+  output x11 content decimal
+  output x12 content decimal
+
+scope TestSubDefault:
+  definition sub.cfun2 of x equals quarter of x
+  definition ci equals sub.ci
+  definition cm equals sub.cm
+  definition x11 equals sub.cfun1 of 24
+  definition x12 equals sub.cfun2 of 24
+```
+
+```catala-test-inline
+$ catala interpret -s TestSubDefault
+[RESULT] Computation successful! Results:
+[RESULT] ci = 0
+[RESULT] cm = $0.00
+[RESULT] x11 = 12.0
+[RESULT] x12 = 6.0
+```
+
+```catala
+declaration scope TestSubOverride:
+  sub scope Mod_def_context.S
+  output ci content integer
+  output cm content money
+  output x21 content decimal
+  output x22 content decimal
+
+scope TestSubOverride:
+  definition sub.ci equals 1
+  definition sub.cm equals $1
+  definition sub.cfun1 of x equals third of x
+  definition sub.cfun2 of x equals Mod_def_context.quarter of x
+  definition ci equals sub.ci
+  definition cm equals sub.cm
+  definition x21 equals sub.cfun1 of 24
+  definition x22 equals sub.cfun2 of 24
+```
+
+```catala-test-inline
+$ catala interpret -s TestSubOverride
+[RESULT] Computation successful! Results:
+[RESULT] ci = 1
+[RESULT] cm = $1.00
+[RESULT] x21 = 8.0
+[RESULT] x22 = 6.0
+```

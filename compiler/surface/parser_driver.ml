@@ -263,19 +263,21 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
   let rprg =
     List.fold_left
       (fun acc command ->
-        match command with
-        | Ast.ModuleDef id -> (
-          match acc.Ast.program_module_name with
-          | None ->
-            {
-              acc with
-              Ast.program_module_name = Some id;
-              Ast.program_items = command :: acc.Ast.program_items;
-            }
-          | Some id2 ->
+        let join_module_names name_opt =
+          match acc.Ast.program_module_name, name_opt with
+          | opt, None | None, opt -> opt
+          | Some id1, Some id2 ->
             Message.raise_multispanned_error
-              [None, Mark.get id; None, Mark.get id2]
-              "Multiple definitions of the module name")
+              [None, Mark.get id1; None, Mark.get id2]
+              "Multiple definitions of the module name"
+        in
+        match command with
+        | Ast.ModuleDef id ->
+          {
+            acc with
+            Ast.program_module_name = join_module_names (Some id);
+            Ast.program_items = command :: acc.Ast.program_items;
+          }
         | Ast.ModuleUse (id, _alias) ->
           {
             acc with
@@ -303,7 +305,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
                  Uid.Module.format (Uid.Module.of_string id)
           in
           {
-            Ast.program_module_name = None;
+            Ast.program_module_name = acc.program_module_name;
             Ast.program_source_files =
               List.rev_append includ_program.program_source_files
                 acc.Ast.program_source_files;
@@ -325,7 +327,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
             expand_includes source_file commands'
           in
           {
-            Ast.program_module_name;
+            Ast.program_module_name = join_module_names program_module_name;
             Ast.program_source_files =
               List.rev_append new_sources acc.Ast.program_source_files;
             Ast.program_items =

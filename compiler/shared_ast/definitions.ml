@@ -193,7 +193,7 @@ type 'a any = < .. > as 'a
 (** ['a any] is 'a, but adds the constraint that it should be restricted to
     valid AST kinds *)
 
-type ('a, 'b) dcalc_lcalc =
+type dcalc_lcalc_features =
   < monomorphic : yes
   ; polymorphic : yes
   ; overloaded : no
@@ -203,11 +203,17 @@ type ('a, 'b) dcalc_lcalc =
   ; scopeVarStates : no
   ; scopeVarSimpl : no
   ; explicitScopes : no
-  ; assertions : yes
-  ; defaultTerms : 'a
-  ; exceptions : 'b
-  ; custom : no >
+  ; assertions : yes >
+(** Features that are common to Dcalc and Lcalc *)
+
+type ('a, 'b) dcalc_lcalc =
+  < dcalc_lcalc_features ; defaultTerms : 'a ; exceptions : 'b ; custom : no >
 (** This type regroups Dcalc and Lcalc ASTs. *)
+
+type ('a, 'b, 'c) interpr_kind =
+  < dcalc_lcalc_features ; defaultTerms : 'a ; exceptions : 'b ; custom : 'c >
+(** This type corresponds to the types handled by the interpreter: it regroups
+    Dcalc and Lcalc ASTs and may have custom terms *)
 
 (** {2 Types} *)
 

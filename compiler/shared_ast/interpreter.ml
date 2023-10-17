@@ -23,21 +23,6 @@ open Definitions
 open Op
 module Runtime = Runtime_ocaml.Runtime
 
-type features =
-  < monomorphic : yes
-  ; polymorphic : yes
-  ; overloaded : no
-  ; resolved : yes
-  ; syntacticNames : no
-  ; resolvedNames : yes
-  ; scopeVarStates : no
-  ; scopeVarSimpl : no
-  ; explicitScopes : no
-  ; assertions : yes >
-
-type ('d, 'e, 'c) astk =
-  < features ; defaultTerms : 'd ; exceptions : 'e ; custom : 'c >
-
 (** {1 Helpers} *)
 
 let is_empty_error : type a. (a, 'm) gexpr -> bool =
@@ -417,12 +402,15 @@ let rec evaluate_operator
 (* /S\ dark magic here. This relies both on internals of [Lcalc.to_ocaml] *and*
    of the OCaml runtime *)
 let rec runtime_to_val :
-    (decl_ctx -> ('a, 'm) gexpr -> ('a, 'm) gexpr) ->
+    type d e.
+    (decl_ctx ->
+    ((d, e, _) interpr_kind, 'm) gexpr ->
+    ((d, e, _) interpr_kind, 'm) gexpr) ->
     decl_ctx ->
     'm mark ->
     typ ->
     Obj.t ->
-    (((_, _, yes) astk as 'a), 'm) gexpr =
+    (((d, e, yes) interpr_kind as 'a), 'm) gexpr =
  fun eval_expr ctx m ty o ->
   let m = Expr.map_ty (fun _ -> ty) m in
   match Mark.remove ty with
@@ -472,13 +460,17 @@ let rec runtime_to_val :
   | TAny -> assert false
 
 and val_to_runtime :
-    (decl_ctx -> ('a, 'm) gexpr -> ('a, 'm) gexpr) ->
+    type d e.
+    (decl_ctx ->
+    ((d, e, _) interpr_kind, 'm) gexpr ->
+    ((d, e, _) interpr_kind, 'm) gexpr) ->
     decl_ctx ->
     typ ->
-    ('b, 'm) gexpr ->
+    ((d, e, _) interpr_kind, 'm) gexpr ->
     Obj.t =
  fun eval_expr ctx ty v ->
   match Mark.remove ty, Mark.remove v with
+  | _, EEmptyError -> raise Runtime.EmptyError
   | TLit TBool, ELit (LBool b) -> Obj.repr b
   | TLit TUnit, ELit LUnit -> Obj.repr ()
   | TLit TInt, ELit (LInt i) -> Obj.repr i
@@ -529,14 +521,17 @@ and val_to_runtime :
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
     in
     curry [] targs
-  | _ -> assert false
+  | _ ->
+    Message.raise_internal_error
+      "Could not convert value of type %a to runtime: %a" (Print.typ ctx) ty
+      Expr.format v
 
 let rec evaluate_expr :
     type d e.
     decl_ctx ->
     Cli.backend_lang ->
-    ((d, e, yes) astk, 't) gexpr ->
-    ((d, e, yes) astk, 't) gexpr =
+    ((d, e, yes) interpr_kind, 't) gexpr ->
+    ((d, e, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
@@ -752,8 +747,8 @@ and partially_evaluate_expr_for_assertion_failure_message :
     type d e.
     decl_ctx ->
     Cli.backend_lang ->
-    ((d, e, yes) astk, 't) gexpr ->
-    ((d, e, yes) astk, 't) gexpr =
+    ((d, e, yes) interpr_kind, 't) gexpr ->
+    ((d, e, yes) interpr_kind, 't) gexpr =
  fun ctx lang e ->
   (* Here we want to print an expression that explains why an assertion has
      failed. Since assertions have type [bool] and are usually constructed with
@@ -788,8 +783,8 @@ and partially_evaluate_expr_for_assertion_failure_message :
 let addcustom e =
   let rec f :
       type c d e.
-      ((d, e, c) astk, 't) gexpr -> ((d, e, yes) astk, 't) gexpr boxed =
-    function
+      ((d, e, c) interpr_kind, 't) gexpr ->
+      ((d, e, yes) interpr_kind, 't) gexpr boxed = function
     | (ECustom _, _) as e -> Expr.map ~f e
     | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
     | (EDefault _, _) as e -> Expr.map ~f e
@@ -809,7 +804,8 @@ let addcustom e =
 let delcustom e =
   let rec f :
       type c d e.
-      ((d, e, c) astk, 't) gexpr -> ((d, e, no) astk, 't) gexpr boxed = function
+      ((d, e, c) interpr_kind, 't) gexpr ->
+      ((d, e, no) interpr_kind, 't) gexpr boxed = function
     | ECustom _, _ -> invalid_arg "Custom term remaining in evaluated term"
     | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
     | (EDefault _, _) as e -> Expr.map ~f e
@@ -863,7 +859,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     match Mark.remove (evaluate_expr ctx p.lang (Expr.unbox to_interpret)) with
     | EStruct { fields; _ } ->
       List.map
-        (fun (fld, e) -> StructField.get_info fld, delcustom e)
+        (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
@@ -914,7 +910,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     match Mark.remove (evaluate_expr ctx p.lang (Expr.unbox to_interpret)) with
     | EStruct { fields; _ } ->
       List.map
-        (fun (fld, e) -> StructField.get_info fld, delcustom e)
+        (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
@@ -930,7 +926,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
    external functions), straying away from the DCalc and LCalc ASTS. [addcustom]
    and [delcustom] are needed to expand and shrink the type of the terms to
    reflect that. *)
-let evaluate_expr ctx lang e = delcustom (evaluate_expr ctx lang (addcustom e))
+let evaluate_expr ctx lang e = evaluate_expr ctx lang (addcustom e)
 
 let load_runtime_modules prg =
   let load m =

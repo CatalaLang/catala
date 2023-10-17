@@ -22,21 +22,8 @@ open Definitions
 
 exception CatalaException of except
 
-type features =
-  < monomorphic : yes
-  ; polymorphic : yes
-  ; overloaded : no
-  ; resolved : yes
-  ; syntacticNames : no
-  ; resolvedNames : yes
-  ; scopeVarStates : no
-  ; scopeVarSimpl : no
-  ; explicitScopes : no
-  ; assertions : yes >
-(** The interpreter only works on dcalc and lcalc, which share these features *)
-
 val evaluate_operator :
-  (((< features ; .. > as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
+  ((((_, _, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator ->
   'm mark ->
   Cli.backend_lang ->
@@ -50,14 +37,14 @@ val evaluate_operator :
 val evaluate_expr :
   decl_ctx ->
   Cli.backend_lang ->
-  (((_, _) dcalc_lcalc as 'a), 'm) gexpr ->
-  ('a, 'm) gexpr
+  (('a, 'b, _) interpr_kind, 'm) gexpr ->
+  (('a, 'b, yes) interpr_kind, 'm) gexpr
 (** Evaluates an expression according to the semantics of the default calculus. *)
 
 val interpret_program_dcalc :
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * (dcalc, 'm) gexpr) list
+  (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
@@ -66,11 +53,16 @@ val interpret_program_dcalc :
 val interpret_program_lcalc :
   (lcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * (lcalc, 'm) gexpr) list
+  (Uid.MarkedString.info * ((no, yes, yes) interpr_kind, 'm) gexpr) list
 (** Interprets a program. This function expects an expression typed as a
     function whose argument are all thunked. The function is executed by
     providing for each argument a thunked empty default. Returns a list of all
     the computed values for the scope variables of the executed scope. *)
+
+val delcustom :
+  (('a, 'b, 'c) interpr_kind, 'm) gexpr -> (('a, 'b, no) interpr_kind, 'm) gexpr
+(** Runtime check that the term contains no custom terms (raises
+    [Invalid_argument] if that is the case *)
 
 val load_runtime_modules : _ program -> unit
 (** Dynlink the runtime modules required by the given program, in order to make
