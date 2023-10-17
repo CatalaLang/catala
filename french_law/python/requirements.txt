@@ -1,1 +1,0 @@
--e ../../runtimes/python/catala

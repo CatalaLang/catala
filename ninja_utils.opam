@@ -5,7 +5,7 @@ synopsis:
 description:
   "This library contains the implementations of utility functions used to generate Ninja build files -- see https://ninja-build.org. It's currently used by the Catala build system (see https://github.com/CatalaLang/catala/tree/master/build_system)"
 maintainer: ["contact@catala-lang.org"]
-authors: ["Emile Rolley"]
+authors: ["Emile Rolley" "Louis Gesbert"]
 license: "Apache-2.0"
 homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
@@ -16,7 +16,6 @@ depends: [
   "odoc" {with-doc}
 ]
 build: [
-  ["dune" "subst"] {dev}
   [
     "dune"
     "build"
@@ -30,3 +29,7 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/CatalaLang/catala.git"
+depexts: [
+  ["ninja-build"] {os-family = "debian"}
+  ["samurai"] {os-distribution = "alpine"}
+]

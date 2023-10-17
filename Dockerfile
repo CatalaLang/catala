@@ -34,7 +34,7 @@ FROM dev-build-context
 ADD --chown=ocaml:ocaml . .
 
 # Prepare extra local dependencies
-RUN opam exec -- make dependencies-python dependencies-js pygments
+RUN opam exec -- make dependencies-python pygments
 
 # OCaml backtraces may be useful on failure
 ENV OCAMLRUNPARAM=b

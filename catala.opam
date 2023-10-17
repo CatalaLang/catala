@@ -44,12 +44,14 @@ depends: [
   "zarith_stubs_js" {>= "v0.14.1"}
   "crunch" {>= "3.0.0"}
   "alcotest" {>= "1.5.0"}
+  "ninja_utils" {= version}
   "odoc" {with-doc}
   "ocamlformat" {cataladevmode & = "0.26.0"}
   "obelisk" {cataladevmode}
   "conf-npm" {cataladevmode}
   "conf-python-3-dev" {cataladevmode}
   "cpdf" {cataladevmode}
+  "conf-diffutils" {cataladevmode}
   "z3" {catalaz3mode}
 ]
 depopts: ["z3"]
@@ -58,7 +60,6 @@ conflicts: [
   "base" {>= "v0.16.0"}
 ]
 build: [
-  ["dune" "subst"] {dev}
   [
     "dune"
     "build"
@@ -79,4 +80,9 @@ depexts: [
     {cataladevmode & os-distribution = "alpine"}
   ["groff" "latex-mk" "python-pygments" "pandoc"]
     {cataladevmode & os-family = "arch"}
+  # The following should be replaced by a dependency upon `conf-ninja` once that
+  # is published
+  ["ninja-build"] {os-family = "debian" | os-family = "fedora"}
+  ["samurai"] {os-distribution = "alpine"}
+  ["ninja"] {os-family = "arch" | os-family = "suse" | os-family = "opensuse" | os-family = "bsd"}
 ]

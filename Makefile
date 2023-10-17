@@ -29,9 +29,6 @@ dependencies-ocaml-with-z3:
 	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --depext-only
 	OPAMVAR_cataladevmode=1 OPAMVAR_catalaz3mode=1 $(OPAM) install . --with-doc --with-test --update-invariant --deps-only
 
-dependencies-js:
-	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) dependencies
-
 PY_VENV_DIR = _python_venv
 
 PY_VENV_ACTIVATE = . $(PY_VENV_DIR)/bin/activate;
@@ -167,135 +164,7 @@ vscode: vscode_fr vscode_en
 
 syntax:
 	$(MAKE) -C doc/syntax
-
-##########################################
-# Literate programming and examples
-##########################################
-
-EXAMPLES_DIR=examples
-ALLOCATIONS_FAMILIALES_DIR=$(EXAMPLES_DIR)/allocations_familiales
-AIDES_LOGEMENT_DIR=$(EXAMPLES_DIR)/aides_logement
-US_TAX_CODE_DIR=$(EXAMPLES_DIR)/us_tax_code
-TUTORIAL_EN_DIR=$(EXAMPLES_DIR)/tutorial_en
-TUTORIEL_FR_DIR=$(EXAMPLES_DIR)/tutoriel_fr
-POLISH_TAXES_DIR=$(EXAMPLES_DIR)/polish_taxes
-
-literate_aides_logement: build $(PY_VENV_DIR)
-	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.tex
-	$(MAKE) -C $(AIDES_LOGEMENT_DIR) aides_logement.html
-
-literate_allocations_familiales: build
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.tex
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) allocations_familiales.html
-
-literate_us_tax_code: build
-	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.tex
-	$(MAKE) -C $(US_TAX_CODE_DIR) us_tax_code.html
-
-literate_tutorial_en: build
-	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.tex
-	$(MAKE) -C $(TUTORIAL_EN_DIR) tutorial_en.html
-
-literate_tutoriel_fr: build
-	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.tex
-	$(MAKE) -C $(TUTORIEL_FR_DIR) tutoriel_fr.html
-
-literate_polish_taxes: build
-	$(MAKE) -C $(POLISH_TAXES_DIR) polish_taxes.tex
-	$(MAKE) -C $(POLISH_TAXES_DIR) polish_taxes.html
-
-#> literate_examples			: Builds the .tex and .html versions of the examples code. Needs pygments to be installed and patched with Catala.
-literate_examples: literate_allocations_familiales \
-	literate_us_tax_code literate_tutorial_en literate_tutoriel_fr \
-	literate_polish_taxes literate_aides_logement
-
-##########################################
-# French law library
-##########################################
-
-#-----------------------------------------
-# OCaml
-#-----------------------------------------
-
-FRENCH_LAW_OCAML_LIB_DIR = french_law/ocaml
-
-FRENCH_LAW_LIBRARY_OCAML = \
-  $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/allocations_familiales_api_web.ml \
-  $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/tests_allocations_familiales.ml \
-  $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/aides_logement_api_web.ml
-
-$(addprefix _build/default/,$(FRENCH_LAW_LIBRARY_OCAML)) :
-	dune build $@
-
-#> generate_french_law_library_ocaml	: Generates the French law library OCaml sources from Catala
-generate_french_law_library_ocaml:
-	dune build $(FRENCH_LAW_LIBRARY_OCAML)
-
-#> build_french_law_library_ocaml		: Builds the OCaml French law library
-build_french_law_library_ocaml:
-	dune build $(FRENCH_LAW_OCAML_LIB_DIR)/api.a
-
-run_french_law_library_benchmark_ocaml:
-	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/bench.exe
-
-run_french_law_library_ocaml_tests:
-	dune exec $(FRENCH_LAW_OCAML_LIB_DIR)/law_source/unit_tests/run_tests.exe
-
-#-----------------------------------------
-# JSON schemas
-#-----------------------------------------
-
-JSON_SCHEMAS = \
-  $(AIDES_LOGEMENT_DIR)/aides_logement_schema.json \
-  $(ALLOCATIONS_FAMILIALES_DIR)/allocations_familiales_schema.json
-
-#> generate_french_law_json_schemas	: Generates the French law library JSON schemas
-$(addprefix _build/default/,$(JSON_SCHEMAS)):
-	dune build $@
-
-generate_french_law_json_schemas:
-	dune build $(JSON_SCHEMAS)
-
-#-----------------------------------------
-# JS
-#-----------------------------------------
-
-FRENCH_LAW_JS_LIB_DIR=french_law/js
-
-run_french_law_library_benchmark_js: build_french_law_library_js
 	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) bench
-
-#> build_french_law_library_js		: Builds the JS version of the OCaml French law library
-build_french_law_library_js:
-	dune build $(FRENCH_LAW_JS_LIB_DIR)/src/french_law.js
-	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) bench
-
-#> build_french_law_library_web_api	: Builds the web API of the French law library
-build_french_law_library_web_api: build_french_law_library_js generate_french_law_json_schemas
-
-#-----------------------------------------
-# Python
-#-----------------------------------------
-
-FRENCH_LAW_PYTHON_LIB_DIR=french_law/python
-
-FRENCH_LAW_LIBRARY_PYTHON = \
-  $(FRENCH_LAW_PYTHON_LIB_DIR)/src/allocations_familiales.py \
-  $(FRENCH_LAW_PYTHON_LIB_DIR)/src/aides_logement.py
-
-$(FRENCH_LAW_LIBRARY_PYTHON):
-	dune build $@
-
-#> generate_french_law_library_python	: Generates the French law library Python sources from Catala
-generate_french_law_library_python:
-	dune build $(FRENCH_LAW_LIBRARY_PYTHON)
-
-#> type_french_law_library_python		: Types the French law library Python sources with mypy
-type_french_law_library_python: $(PY_VENV_DIR) generate_french_law_library_python
-	$(PY_VENV_ACTIVATE) $(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) type
-
-run_french_law_library_benchmark_python: $(PY_ENV_DIR) type_french_law_library_python
-	$(PY_VENV_ACTIVATE) $(MAKE) -C $(FRENCH_LAW_PYTHON_LIB_DIR) bench
 
 ##########################################
 # High-level test and benchmarks commands
