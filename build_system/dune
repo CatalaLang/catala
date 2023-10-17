@@ -1,10 +1,4 @@
 (library
- (name ninja_utils)
- (public_name ninja_utils)
- (modules ninja_utils)
- (libraries re))
-
-(library
  (name clerk_driver)
  (public_name catala.clerk_driver)
  (libraries
