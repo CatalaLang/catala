@@ -37,14 +37,14 @@ PY_VENV_ACTIVATE = . $(PY_VENV_DIR)/bin/activate;
 $(PY_VENV_DIR): $(PY_VENV_DIR)/stamp
 
 $(PY_VENV_DIR)/stamp: \
-    runtimes/python/catala/pyproject.toml \
+    runtimes/python/pyproject.toml \
     syntax_highlighting/en/pygments/pyproject.toml \
     syntax_highlighting/fr/pygments/pyproject.toml \
     syntax_highlighting/pl/pygments/pyproject.toml
 	test -d $(PY_VENV_DIR) || python3 -m venv $(PY_VENV_DIR)
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U pip
 	$(PY_VENV_ACTIVATE) python3 -m pip install -U \
-	  -e runtimes/python/catala \
+	  -e runtimes/python \
 	  -e syntax_highlighting/en/pygments \
 	  -e syntax_highlighting/fr/pygments \
 	  -e syntax_highlighting/pl/pygments
@@ -52,10 +52,18 @@ $(PY_VENV_DIR)/stamp: \
 
 dependencies-python: $(PY_VENV_DIR)
 
-#> dependencies				: Install the Catala OCaml, JS and Git dependencies
-dependencies: dependencies-ocaml dependencies-js dependencies-python
+build-runtime-python: dependencies-python
+	$(PY_VENV_ACTIVATE) python3 -m pip install -U build
+	$(PY_VENV_ACTIVATE) python -m build runtimes/python -o _build/python-runtime/
 
-dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-js dependencies-python
+publish-runtime-python:
+	$(PY_VENV_ACTIVATE) python3 -m pip install -U twine
+	$(PY_VENV_ACTIVATE) python -m twine upload _build/python-runtime/*
+
+#> dependencies				: Install the Catala OCaml, JS and Git dependencies
+dependencies: dependencies-ocaml dependencies-python
+
+dependencies-with-z3: dependencies-ocaml-with-z3 dependencies-python
 
 ##########################################
 # Catala compiler rules

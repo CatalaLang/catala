@@ -26,8 +26,7 @@
   (:standard
    (:include custom_linking.sexp)))
  (libraries clerk_driver)
- (link_deps
-  (package catala))
+ (link_deps ../compiler/catala.exe)
  ; not a real dependency, but when running clerk in practice you always want the catala binary to be up-to-date (e.g. `dune exec -- ckerk test`)
  (modules clerk)
  (package catala))

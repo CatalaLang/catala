@@ -6,6 +6,8 @@
 
 (formatting)
 
+(subst disabled)
+
 (source
  (uri git+https://github.com/CatalaLang/catala.git))
 
@@ -27,3 +29,4 @@
 (license Apache-2.0)
 
 (using menhir 2.1)
+(using directory-targets 0.1)
