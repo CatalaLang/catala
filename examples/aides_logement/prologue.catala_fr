@@ -129,7 +129,6 @@ déclaration structure LogementFoyer:
   donnée logement_meublé_d842_2 contenu booléen
   donnée logement_est_chambre contenu booléen
   donnée colocation contenu booléen
-
 ```
 
 #### Calcul et éligibilité pour tous les secteurs

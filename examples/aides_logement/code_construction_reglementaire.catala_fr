@@ -3900,7 +3900,6 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
   définition calcul_nombre_parts.date_courante égal à date_courante
   définition n_nombre_parts_d832_25 égal à
     calcul_nombre_parts.n_nombre_parts_d832_25
-
 ```
 
 2°
@@ -4113,7 +4112,6 @@ champ d'application CalculAidePersonnaliséeLogementFoyer:
     si dépense_nette_minimale <= montant_forfaitaire_d832_27
     alors montant_forfaitaire_d832_27 - dépense_nette_minimale
     sinon 0€
-
 ```
 ######## Article D832-28 | LEGIARTI000038878704
 
