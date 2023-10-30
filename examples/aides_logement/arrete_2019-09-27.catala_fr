@@ -139,7 +139,6 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
       370,32€ + 53,90€ * multiplicateur_majoration_plafond_loyer_d823_16_2
     --Zone3:
       342,52€ + 49,09€ * multiplicateur_majoration_plafond_loyer_d823_16_2
-
 ```
 
 ### Article 8 | LEGIARTI000046206214
@@ -204,7 +203,6 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
     -- Zone1: 231,38€
     -- Zone2: 201,65€
     -- Zone3: 189,00€
-
 ```
 
 ### Article 9 | LEGIARTI000046206211
@@ -4598,7 +4596,6 @@ NOTA : Conformément à l’article 3 de l’arrêté du 26 décembre 2022
 dues à compter du 1er janvier 2023.
 
 ```catala
-
 # Ici nous modifions le champ d'application
 # "CalculAidePersonnaliséeLogementLocatif" au lieu de
 # "CalculAllocationLogementLocatif", même si il n'existe pas de convention-
