@@ -31,9 +31,10 @@ let rec equal ty1 ty2 =
   | TOption t1, TOption t2 -> equal t1 t2
   | TArrow (t1, t1'), TArrow (t2, t2') -> equal_list t1 t2 && equal t1' t2'
   | TArray t1, TArray t2 -> equal t1 t2
+  | TDefault t1, TDefault t2 -> equal t1 t2
   | TClosureEnv, TClosureEnv | TAny, TAny -> true
   | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
-      | TArray _ | TAny | TClosureEnv ),
+      | TArray _ | TDefault _ | TAny | TClosureEnv ),
       _ ) ->
     false
 
@@ -52,9 +53,10 @@ let rec unifiable ty1 ty2 =
   | TArrow (t1, t1'), TArrow (t2, t2') ->
     unifiable_list t1 t2 && unifiable t1' t2'
   | TArray t1, TArray t2 -> unifiable t1 t2
+  | TDefault t1, TDefault t2 -> unifiable t1 t2
   | TClosureEnv, TClosureEnv -> true
   | ( ( TLit _ | TTuple _ | TStruct _ | TEnum _ | TOption _ | TArrow _
-      | TArray _ | TClosureEnv ),
+      | TArray _ | TDefault _ | TClosureEnv ),
       _ ) ->
     false
 
@@ -86,6 +88,8 @@ let rec compare ty1 ty2 =
   | _, TArrow _ -> 1
   | TArray _, _ -> -1
   | _, TArray _ -> 1
+  | TDefault _, _ -> -1
+  | _, TDefault _ -> 1
   | TClosureEnv, _ -> -1
   | _, TClosureEnv -> 1
 
