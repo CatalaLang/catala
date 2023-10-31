@@ -48,6 +48,7 @@ and naked_typ =
   | TEnum of A.EnumName.t
   | TOption of unionfind_typ
   | TArray of unionfind_typ
+  | TDefault of unionfind_typ
   | TAny of Any.t
   | TClosureEnv
 
@@ -62,6 +63,7 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
   | TOption t -> A.TOption (typ_to_ast t), pos
   | TArrow (t1, t2) -> A.TArrow (List.map typ_to_ast t1, typ_to_ast t2), pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
+  | TDefault t1 -> A.TDefault (typ_to_ast t1), pos
   | TAny _ ->
     if leave_unresolved then A.TAny, pos
     else
@@ -82,6 +84,7 @@ let rec ast_to_typ (ty : A.typ) : unionfind_typ =
     | A.TEnum e -> TEnum e
     | A.TOption t -> TOption (ast_to_typ t)
     | A.TArray t -> TArray (ast_to_typ t)
+    | A.TDefault t -> TDefault (ast_to_typ t)
     | A.TAny -> TAny (Any.fresh ())
     | A.TClosureEnv -> TClosureEnv
   in
@@ -157,6 +160,10 @@ let rec format_typ
     | TAny _ when not Cli.globals.debug ->
       Format.pp_print_string fmt "collection"
     | _ -> Format.fprintf fmt "@[collection@ %a@]" (format_typ ~colors) t1)
+  | TDefault t1 ->
+    Format.pp_print_as fmt 1 "⟨";
+    format_typ ~colors fmt t1;
+    Format.pp_print_as fmt 1 "⟩"
   | TAny v ->
     if Cli.globals.debug then Format.fprintf fmt "<a%d>" (Any.hash v)
     else Format.pp_print_string fmt "<any>"
@@ -199,10 +206,11 @@ let rec unify
       if not (A.EnumName.equal e1 e2) then raise_type_error ()
     | TOption t1, TOption t2 -> unify e t1 t2
     | TArray t1', TArray t2' -> unify e t1' t2'
+    | TDefault t1', TDefault t2' -> unify e t1' t2'
     | TClosureEnv, TClosureEnv -> ()
     | TAny _, _ | _, TAny _ -> ()
     | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
-        | TArray _ | TClosureEnv ),
+        | TArray _ | TDefault _ | TClosureEnv ),
         _ ) ->
       raise_type_error ()
   in
@@ -881,7 +889,9 @@ and typecheck_expr_top_down :
     in
     Expr.eop op tys mark
   | A.EDefault { excepts; just; cons } ->
-    let cons' = typecheck_expr_top_down ~leave_unresolved ctx env tau cons in
+    let inner_ty = unionfind (TAny (Any.fresh ())) in
+    unify ctx e (unionfind (TDefault inner_ty)) tau;
+    let cons' = typecheck_expr_top_down ~leave_unresolved ctx env inner_ty cons in
     let just' =
       typecheck_expr_top_down ~leave_unresolved ctx env
         (unionfind ~pos:just (TLit TBool))
@@ -908,9 +918,11 @@ and typecheck_expr_top_down :
         e1
     in
     Expr.eassert e1' mark
-  | A.EEmptyError -> Expr.eemptyerror (ty_mark (TAny (Any.fresh ())))
+  | A.EEmptyError ->
+    Expr.eemptyerror (ty_mark (TDefault (unionfind (TAny (Any.fresh ())))))
   | A.EErrorOnEmpty e1 ->
-    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env tau e1 in
+    let tau' = unionfind (TDefault tau) in
+    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env tau' e1 in
     Expr.eerroronempty e1' context_mark
   | A.EArray es ->
     let cell_type = unionfind (TAny (Any.fresh ())) in

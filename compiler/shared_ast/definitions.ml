@@ -229,6 +229,7 @@ and naked_typ =
   | TOption of typ
   | TArrow of typ list * typ
   | TArray of typ
+  | TDefault of typ
   | TAny
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 

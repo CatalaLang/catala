@@ -164,6 +164,10 @@ let rec typ_gen
   | TArray t1 ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" (typ ~colors)
       t1
+  | TDefault t1 ->
+    punctuation fmt "⟨";
+    typ ~colors fmt t1;
+    punctuation fmt "⟩"
   | TAny -> base_type fmt "any"
   | TClosureEnv -> base_type fmt "closure_env"
 
