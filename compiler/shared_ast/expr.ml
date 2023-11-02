@@ -248,6 +248,9 @@ let maybe_ty (type m) ?(typ = TAny) (m : m mark) : typ =
   | Untyped { pos } | Custom { pos; _ } -> Mark.add pos typ
   | Typed { ty; _ } -> ty
 
+let untyped = Untyped { pos = Pos.no_pos }
+let typed = Typed { pos = Pos.no_pos; ty = TLit TUnit, Pos.no_pos }
+
 (* - Predefined types (option) - *)
 
 let option_enum = EnumName.fresh [] ("eoption", Pos.no_pos)
