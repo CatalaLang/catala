@@ -141,20 +141,32 @@ module Passes = struct
     in
     prg, ctx, exceptions_graphs
 
-  let dcalc options ~includes ~optimize ~check_invariants :
-      typed Dcalc.Ast.program
-      * Desugared.Name_resolution.context
-      * Scopelang.Dependency.TVertex.t list =
+  let dcalc:
+    type ty.
+    Cli.options -> includes:Cli.raw_file list -> optimize:bool -> check_invariants:bool ->
+    typed: ty mark ->
+    ty Dcalc.Ast.program
+    * Desugared.Name_resolution.context
+    * Scopelang.Dependency.TVertex.t list =
+    fun options ~includes ~optimize ~check_invariants ~typed ->
     let prg, ctx, _ = scopelang options ~includes in
     debug_pass_name "dcalc";
     let type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
         prg.program_ctx.ctx_enums
     in
-    Message.emit_debug "Typechecking...";
-    let prg = Scopelang.Ast.type_program prg in
+    let (prg: ty Scopelang.Ast.program) =
+      match typed with
+      | Typed _ ->
+        Message.emit_debug "Typechecking...";
+        Scopelang.Ast.type_program prg
+      | Untyped _ -> prg
+      | Custom _ -> invalid_arg "Driver.Passes.dcalc"
+    in
     Message.emit_debug "Translating to default calculus...";
-    let prg = Dcalc.From_scopelang.translate_program prg in
+    let prg =
+      Dcalc.From_scopelang.translate_program prg
+    in
     let prg =
       if optimize then begin
         Message.emit_debug "Optimizing default calculus...";
@@ -162,47 +174,64 @@ module Passes = struct
       end
       else prg
     in
-    Message.emit_debug "Typechecking again...";
-    let prg =
-      try Typing.program ~leave_unresolved:false prg
-      with Message.CompilerError error_content ->
-        let bt = Printexc.get_raw_backtrace () in
-        Printexc.raise_with_backtrace
-          (Message.CompilerError
-             (Message.Content.to_internal_error error_content))
-          bt
+    let (prg: ty Dcalc.Ast.program) =
+      match typed with
+      | Typed _ ->
+        Message.emit_debug "Typechecking again...";
+        (try Typing.program ~leave_unresolved:false prg
+         with Message.CompilerError error_content ->
+           let bt = Printexc.get_raw_backtrace () in
+           Printexc.raise_with_backtrace
+             (Message.CompilerError
+                (Message.Content.to_internal_error error_content))
+             bt)
+      | Untyped _ -> prg
+      | Custom _ -> assert false
     in
     if check_invariants then (
       Message.emit_debug "Checking invariants...";
-      let result = Dcalc.Invariants.check_all_invariants prg in
-      if not result then
-        raise (Message.raise_internal_error "Some Dcalc invariants are invalid"));
+      match typed with
+      | Typed _ ->
+        let result = Dcalc.Invariants.check_all_invariants prg in
+        if not result then
+          raise (Message.raise_internal_error "Some Dcalc invariants are invalid")
+      | _ ->
+        Message.raise_error "--check_invariants cannot be used with --no-typing");
     prg, ctx, type_ordering
 
-  let lcalc
+  let lcalc (type ty)
       options
       ~includes
       ~optimize
       ~check_invariants
+      ~(typed: ty mark)
       ~avoid_exceptions
       ~closure_conversion :
       untyped Lcalc.Ast.program
       * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
     let prg, ctx, type_ordering =
-      dcalc options ~includes ~optimize ~check_invariants
+      dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     debug_pass_name "lcalc";
     let avoid_exceptions = avoid_exceptions || closure_conversion in
     let optimize = optimize || closure_conversion in
     (* --closure_conversion implies --avoid_exceptions and --optimize *)
     let prg =
-      if avoid_exceptions then (
-        if options.trace then
-          Message.raise_error
-            "Option --avoid_exceptions is not compatible with option --trace";
-        Lcalc.Compile_without_exceptions.translate_program prg)
-      else Program.untype (Lcalc.Compile_with_exceptions.translate_program prg)
+      match avoid_exceptions, options.trace, typed with
+      | true, true, _ ->
+        Message.raise_error
+          "Option --avoid_exceptions is not compatible with option --trace"
+      | true, _, Untyped _ ->
+        Message.raise_error
+          "Option --avoid_exceptions is not compatible with option --no-typing"
+      | true, _, Typed _ ->
+        Lcalc.Compile_without_exceptions.translate_program prg
+      | false, _, Typed _ ->
+        Program.untype (Lcalc.Compile_with_exceptions.translate_program prg)
+      | false, _, Untyped _ ->
+        Lcalc.Compile_with_exceptions.translate_program prg
+      | _, _, Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     let prg =
       if optimize then begin
@@ -240,7 +269,7 @@ module Passes = struct
       * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
     let prg, ctx, type_ordering =
-      lcalc options ~includes ~optimize ~check_invariants ~avoid_exceptions
+      lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed ~avoid_exceptions
         ~closure_conversion
     in
     debug_pass_name "scalc";
@@ -507,9 +536,10 @@ module Commands = struct
          ~doc:"Parses and typechecks a Catala program, without interpreting it.")
       Term.(const typecheck $ Cli.Flags.Global.options $ Cli.Flags.include_dirs)
 
-  let dcalc options includes output optimize ex_scope_opt check_invariants =
+  let dcalc typed options includes output optimize ex_scope_opt check_invariants
+    =
     let prg, ctx, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants
+      Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -537,6 +567,9 @@ module Commands = struct
         prg_dcalc_expr
 
   let dcalc_cmd =
+    let f no_typing =
+      if no_typing then dcalc Expr.untyped else dcalc Expr.typed
+    in
     Cmd.v
       (Cmd.info "dcalc"
          ~doc:
@@ -544,7 +577,8 @@ module Commands = struct
             representation of the Catala program. Use the $(b,-s) option to \
             restrict the output to a particular scope.")
       Term.(
-        const dcalc
+        const f
+        $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.output
@@ -560,7 +594,7 @@ module Commands = struct
       check_invariants
       disable_counterexamples =
     let prg, ctx, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants
+      Passes.dcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
     in
     Verification.Globals.setup ~optimize ~disable_counterexamples;
     let vcs =
@@ -608,15 +642,16 @@ module Commands = struct
           result)
       results
 
-  let interpret_dcalc options includes optimize check_invariants ex_scope =
+  let interpret_dcalc typed options includes optimize check_invariants ex_scope =
     let prg, ctx, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants
+      Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scope_uid ctx ex_scope)
 
   let interpret_cmd =
+    let f no_typing = if no_typing then interpret_dcalc Expr.untyped else interpret_dcalc Expr.typed in
     Cmd.v
       (Cmd.info "interpret"
          ~doc:
@@ -624,7 +659,8 @@ module Commands = struct
             specified by the $(b,-s) option assuming no additional external \
             inputs.")
       Term.(
-        const interpret_dcalc
+        const f
+        $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
@@ -632,6 +668,7 @@ module Commands = struct
         $ Cli.Flags.ex_scope)
 
   let lcalc
+      typed
       options
       includes
       output
@@ -642,7 +679,7 @@ module Commands = struct
       ex_scope_opt =
     let prg, ctx, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion
+        ~avoid_exceptions ~closure_conversion ~typed
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -658,6 +695,9 @@ module Commands = struct
       Format.pp_print_newline fmt ()
 
   let lcalc_cmd =
+    let f no_typing =
+      if no_typing then lcalc Expr.untyped else lcalc Expr.typed
+    in
     Cmd.v
       (Cmd.info "lcalc"
          ~doc:
@@ -665,7 +705,8 @@ module Commands = struct
             representation of the Catala program. Use the $(b,-s) option to \
             restrict the output to a particular scope.")
       Term.(
-        const lcalc
+        const f
+        $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.output
@@ -676,6 +717,7 @@ module Commands = struct
         $ Cli.Flags.ex_scope_opt)
 
   let interpret_lcalc
+      typed
       options
       includes
       optimize
@@ -685,13 +727,16 @@ module Commands = struct
       ex_scope =
     let prg, ctx, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion
+        ~avoid_exceptions ~closure_conversion ~typed
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
       (get_scope_uid ctx ex_scope)
 
   let interpret_lcalc_cmd =
+    let f no_typing =
+      if no_typing then interpret_lcalc Expr.untyped else interpret_lcalc Expr.typed
+    in
     Cmd.v
       (Cmd.info "interpret_lcalc"
          ~doc:
@@ -699,7 +744,8 @@ module Commands = struct
             executing the scope specified by the $(b,-s) option assuming no \
             additional external inputs.")
       Term.(
-        const interpret_lcalc
+        const f
+        $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
@@ -718,7 +764,7 @@ module Commands = struct
       closure_conversion =
     let prg, _, type_ordering =
       Passes.lcalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion
+        ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
     in
     let output_file, with_output =
       get_output_format options ~ext:".ml" output

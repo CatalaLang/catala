@@ -193,6 +193,9 @@ val maybe_ty : ?typ:naked_typ -> 'm mark -> typ
 (** Returns the corresponding type on a typed expr, or [typ] (defaulting to
     [TAny]) at the current position on an untyped one *)
 
+val untyped : untyped mark (** Type witness for untyped marks *)
+val typed : typed mark (** Type witness for untyped marks *)
+
 (** {2 Predefined types} *)
 
 val option_enum : EnumName.t

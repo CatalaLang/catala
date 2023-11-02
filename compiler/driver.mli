@@ -44,7 +44,8 @@ module Passes : sig
     includes:Cli.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
-    Shared_ast.typed Dcalc.Ast.program
+    typed:'m Shared_ast.mark ->
+    'm Dcalc.Ast.program
     * Desugared.Name_resolution.context
     * Scopelang.Dependency.TVertex.t list
 
@@ -53,6 +54,7 @@ module Passes : sig
     includes:Cli.raw_file list ->
     optimize:bool ->
     check_invariants:bool ->
+    typed:'m Shared_ast.mark ->
     avoid_exceptions:bool ->
     closure_conversion:bool ->
     Shared_ast.untyped Lcalc.Ast.program
