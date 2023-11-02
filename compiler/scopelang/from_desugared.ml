@@ -620,6 +620,17 @@ let translate_rule
                 (D.ScopeDef.Map.find def_key exc_graphs)
                 ~is_cond ~is_subscope_var:true
             in
+            let def_typ =
+              match scope_def.D.scope_def_io.D.io_input with
+              | Runtime.NoInput, _ -> assert false
+              | Runtime.OnlyInput, _ -> def_typ
+              | Runtime.Reentrant, pos ->
+                match def_typ with
+                | TArrow (args, ret), tpos ->
+                  TArrow (args, (TDefault ret, pos)), tpos
+                | _ ->
+                  TDefault def_typ, pos
+            in
             let subscop_real_name =
               SubScopeName.Map.find sub_scope_index scope.scope_sub_scopes
             in
