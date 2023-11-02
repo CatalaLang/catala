@@ -222,8 +222,10 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
     [
       ( Some
           (fun ppf ->
-            Format.pp_print_string ppf
-              "Error coming from typechecking the following expression:"),
+            Format.fprintf ppf
+              "@[<hv 2>Error coming from typechecking the following expression:";
+            if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
+            else Format.pp_close_box ppf ()),
         Expr.pos e );
       ( Some
           (fun ppf ->
