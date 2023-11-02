@@ -1052,7 +1052,7 @@ module UserFacing = struct
     match Mark.remove e with
     | ELit l -> lit lang ppf l
     | EArray l | ETuple l ->
-      Format.fprintf ppf "@[<hov 1>[@;<0 1>%a@;<0 -1>]@]"
+      Format.fprintf ppf "@[<hv 2>[@,@[<hov>%a@]@;<0 -2>]@]"
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
            (value ~fallback lang))
@@ -1061,10 +1061,11 @@ module UserFacing = struct
       Format.fprintf ppf "@[<hv 2>%a {@ %a@;<1 -2>}@]" StructName.format name
         (StructField.Map.format_bindings ~pp_sep:Format.pp_print_space
            (fun ppf pp_fld e ->
-             Format.fprintf ppf "-- %t: %a" pp_fld (value ~fallback lang) e))
+             Format.fprintf ppf "@[<hov 2>-- %t:@ %a@]" pp_fld
+               (value ~fallback lang) e))
         fields
     | EInj { name = _; cons; e } ->
-      Format.fprintf ppf "%a %a" EnumConstructor.format cons
+      Format.fprintf ppf "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
         (value ~fallback lang) e
     | EEmptyError -> Format.pp_print_string ppf "ø"
     | EAbs _ -> Format.pp_print_string ppf "<function>"
