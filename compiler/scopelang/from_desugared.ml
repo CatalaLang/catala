@@ -412,12 +412,11 @@ let rec rule_tree_to_expr
              (* Here we insert the logging command that records when a decision
                 is taken for the value of a variable. *)
              (tag_with_log_entry base_just PosRecordIfTrueBool [])
-             base_cons emark)
+             base_cons)
          (translate_and_unbox_list base_just_list)
          (translate_and_unbox_list base_cons_list))
       (Expr.elit (LBool false) emark)
       (Expr.eerroronempty (Expr.eemptyerror emark) emark)
-      emark
   in
   let exceptions =
     List.map
@@ -431,7 +430,6 @@ let rec rule_tree_to_expr
     Expr.make_default exceptions
       (Expr.elit (LBool true) emark)
       (Expr.eerroronempty default_containing_base_cases emark)
-      emark
   in
   let default =
     if toplevel && subscope && is_reentrant_var then default

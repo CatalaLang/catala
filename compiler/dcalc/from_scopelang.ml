@@ -118,8 +118,7 @@ let merge_defaults
              (Mark.add (Expr.mark_pos m_callee) (TLit TBool)))
       in
       let d =
-        Expr.edefault [caller] ltrue (Expr.rebox body)
-          (Expr.map_ty (fun (_, pos as t) -> TDefault t, pos) m_body)
+        Expr.make_default [caller] ltrue (Expr.rebox body)
       in
       Expr.make_abs vars
         (Expr.make_erroronempty d)
@@ -141,8 +140,7 @@ let merge_defaults
         Expr.elit (LBool true)
           (Expr.with_ty m (Mark.add (Expr.mark_pos m) (TLit TBool)))
       in
-      Expr.make_erroronempty (Expr.edefault [caller] ltrue callee
-          (Expr.map_ty (fun (_, pos as t) -> TDefault t, pos) m))
+      Expr.make_erroronempty (Expr.make_default [caller] ltrue callee)
     in
     body
 

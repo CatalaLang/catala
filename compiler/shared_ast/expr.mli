@@ -345,20 +345,8 @@ val make_default :
   ('a, 'm) boxed_gexpr list ->
   ('a, 'm) boxed_gexpr ->
   ('a, 'm) boxed_gexpr ->
-  'm mark ->
+  (* 'm mark -> *)
   ((< polymorphic : yes ; defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
-(** [make_default ?pos exceptions just cons] builds a term semantically
-    equivalent to [<exceptions | just :- cons>] (the [EDefault] constructor)
-    while avoiding redundant nested constructions. The position is extracted
-    from [just] by default.
-
-    Note that some simplifications take place here, even though all of them
-    return an [EDefault] term:
-
-    - [<ex | true :- def>], when [def] is a default term [<j :- c>] without
-      exceptions, is collapsed into [<ex | def>]
-    - [<ex | false :- _>], when [ex] is a single exception of the form
-      [EDefault], is rewritten as [ex] *)
 
 val make_tuple :
   ('a any, 'm) boxed_gexpr list -> 'm mark -> ('a, 'm) boxed_gexpr
