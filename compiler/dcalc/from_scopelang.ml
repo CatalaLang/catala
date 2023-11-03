@@ -220,7 +220,7 @@ let input_var_typ typ io_in =
 let thunk_scope_arg var_ctx e =
   match var_ctx.scope_input_io, var_ctx.scope_input_thunked with
   | (Runtime.NoInput, _), _ -> invalid_arg "thunk_scope_arg"
-  | (Runtime.OnlyInput, _), false -> Expr.make_erroronempty e
+  | (Runtime.OnlyInput, _), false -> e
   | (Runtime.Reentrant, _), false -> e
   | (Runtime.Reentrant, pos), true ->
     Expr.make_abs [| Var.make "_" |] e [TLit TUnit, pos] pos
@@ -619,7 +619,7 @@ let translate_rule
     * 'm ctx =
   match rule with
   | Definition ((ScopelangScopeVar { name = a }, var_def_pos), tau, a_io, e) ->
-    let pos_mark, pos_mark_as = pos_mark_mk e in
+    let pos_mark, _ = pos_mark_mk e in
     let a_name = ScopeVar.get_info (Mark.remove a) in
     let a_var = Var.make (Mark.remove a_name) in
     let new_e = translate_expr ctx e in
@@ -685,7 +685,7 @@ let translate_rule
     let thunked_or_nonempty_new_e =
       match a_io.Desugared.Ast.io_input with
       | Runtime.NoInput, _ -> assert false
-      | Runtime.OnlyInput, _ -> Expr.make_erroronempty (new_e)
+      | Runtime.OnlyInput, _ -> new_e
       | Runtime.Reentrant, pos -> (
         match Mark.remove tau with
         | TArrow _ -> (new_e)

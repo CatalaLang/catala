@@ -29,6 +29,7 @@ type target_scope_vars =
 type ctx = {
   decl_ctx : decl_ctx;
   scope_var_mapping : target_scope_vars ScopeVar.Map.t;
+  reentrant_vars : ScopeVar.Set.t;
   var_mapping : (D.expr, untyped Ast.expr Var.t) Var.Map.t;
   modules : ctx ModuleName.Map.t;
 }
@@ -131,7 +132,13 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                  v'
                | States [] -> assert false
              in
-             ScopeVar.Map.add v' (translate_expr ctx e) args')
+             let e' = translate_expr ctx e in
+             let e' =
+               if ScopeVar.Set.mem v ctx.reentrant_vars then
+                 Expr.edefault [] (Expr.elit (LBool false) m) e' m
+               else e'
+             in
+             ScopeVar.Map.add v' e' args')
            args ScopeVar.Map.empty)
       m
   | EApp { f = EOp { op; tys }, m1; args } ->
@@ -786,16 +793,34 @@ let translate_program
                 in
                 States (List.map (fun state -> state, state_var state) states)
             in
+            let reentrant =
+              let state = match states with
+                | D.WholeVar -> None
+                | States (s::_) -> Some s
+                | States [] -> assert false
+              in
+              match
+                D.ScopeDef.Map.find_opt (Var (scope_var, state))
+                  scope_decl.D.scope_defs
+              with
+              | Some {scope_def_io = {io_input = (Runtime.Reentrant, _); _}; _} ->
+                true
+              | _ -> false
+            in
             {
               ctx with
               scope_var_mapping =
                 ScopeVar.Map.add scope_var new_var ctx.scope_var_mapping;
+              reentrant_vars =
+                if reentrant then ScopeVar.Set.add scope_var ctx.reentrant_vars
+                else ctx.reentrant_vars
             })
           scope_decl.D.scope_vars ctx)
       desugared.D.program_scopes
       {
         scope_var_mapping = ScopeVar.Map.empty;
         var_mapping = Var.Map.empty;
+        reentrant_vars = ScopeVar.Set.empty;
         decl_ctx = desugared.program_ctx;
         modules;
       }

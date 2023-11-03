@@ -213,6 +213,9 @@ let rec optimize_expr :
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when StructName.equal name name1 ->
       Mark.remove (StructField.Map.find field fields)
+    | EErrorOnEmpty
+        (EDefault { excepts = [];  just = ELit (LBool true), _; cons}, _) ->
+      Mark.remove cons
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct *)
       let excepts =
@@ -241,15 +244,6 @@ let rec optimize_expr :
           (* if there is only one exception and it is a non-empty value it is
              always chosen *)
           Mark.remove except
-        | ( [],
-            ( ( ELit (LBool true)
-              | EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(ELit (LBool true), _)];
-                  } ),
-              _ ) ) ->
-          Mark.remove cons
         | ( [],
             ( ( ELit (LBool false)
               | EApp
