@@ -739,10 +739,22 @@ let translate_rule
           | _ -> true)
         all_subscope_vars
     in
+    let called_scope_input_struct = subscope_sig.scope_sig_input_struct in
+    let called_scope_return_struct = subscope_sig.scope_sig_output_struct in
     let all_subscope_output_vars =
-      List.filter
+      List.filter_map
         (fun var_ctx ->
-          Mark.remove var_ctx.scope_var_io.Desugared.Ast.io_output)
+           if Mark.remove var_ctx.scope_var_io.Desugared.Ast.io_output then
+             (* Retrieve the actual expected output type through the scope output struct definition *)
+             let str =
+               StructName.Map.find called_scope_return_struct ctx.decl_ctx.ctx_structs
+             in
+             let fld =
+               ScopeVar.Map.find var_ctx.scope_var_name scope_sig_decl.out_struct_fields
+             in
+             let ty = StructField.Map.find fld str in
+             Some {var_ctx with scope_var_typ = Mark.remove ty}
+           else None)
         all_subscope_vars
     in
     let pos_call = Mark.get (SubScopeName.get_info subindex) in
@@ -753,8 +765,6 @@ let translate_rule
       | External_scope_ref name ->
         Expr.eexternal ~name:(Mark.map (fun n -> External_scope n) name) m
     in
-    let called_scope_input_struct = subscope_sig.scope_sig_input_struct in
-    let called_scope_return_struct = subscope_sig.scope_sig_output_struct in
     let subscope_vars_defined =
       try SubScopeName.Map.find subindex ctx.subscope_vars
       with SubScopeName.Map.Not_found _ -> ScopeVar.Map.empty
@@ -891,7 +901,7 @@ let translate_rule
                      defined, we add an check "ErrorOnEmpty" here. *)
                   Mark.add
                     (Expr.map_ty (fun _ -> scope_let_typ) (Mark.get e))
-                    (EAssert (Expr.unbox (Expr.make_erroronempty (Expr.box new_e))));
+                    (EAssert new_e);
                 scope_let_kind = Assertion;
               })
           (Bindlib.bind_var (Var.make "_") next)
