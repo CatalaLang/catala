@@ -333,6 +333,7 @@ let def_map_to_tree
 let rec rule_tree_to_expr
     ~(toplevel : bool)
     ~(is_reentrant_var : bool)
+    ~(subscope : bool)
     (ctx : ctx)
     (def_pos : Pos.t)
     (params : D.expr Var.t list option)
@@ -408,17 +409,26 @@ let rec rule_tree_to_expr
          (translate_and_unbox_list base_just_list)
          (translate_and_unbox_list base_cons_list))
       (Expr.elit (LBool false) emark)
-      (Expr.eemptyerror emark) emark
+      (Expr.eerroronempty (Expr.eemptyerror emark) emark)
+      emark
   in
   let exceptions =
     List.map
-      (rule_tree_to_expr ~toplevel:false ~is_reentrant_var ctx def_pos params)
+      (rule_tree_to_expr ~toplevel:false ~is_reentrant_var ~subscope
+         ctx def_pos params)
       exceptions
   in
   let default =
+    if exceptions = [] then default_containing_base_cases
+    else
     Expr.make_default exceptions
       (Expr.elit (LBool true) emark)
-      default_containing_base_cases emark
+      (Expr.eerroronempty default_containing_base_cases emark)
+      emark
+  in
+  let default =
+    if toplevel && subscope && is_reentrant_var then default
+    else Expr.eerroronempty default emark
   in
   match params, (List.hd base_rules).D.rule_parameter with
   | None, None -> default
@@ -430,9 +440,6 @@ let rec rule_tree_to_expr
          dealing with a context variable which is reentrant (either in the
          caller or callee). In this case the ErrorOnEmpty will be added later in
          the scopelang->dcalc translation. *)
-      let default =
-        if is_reentrant_var then default else Expr.eerroronempty default emark
-      in
 
       Expr.make_abs
         (new_params
@@ -510,7 +517,8 @@ let translate_def
         empty_error tys (Expr.mark_pos m)
     | _ -> empty_error
   else
-    rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant ctx
+    rule_tree_to_expr ~toplevel:true ~is_reentrant_var:is_reentrant
+      ~subscope:is_subscope_var ctx
       (D.ScopeDef.get_position def_info)
       (Option.map
          (fun (ps, _) ->
@@ -677,17 +685,24 @@ let translate_scope_interface ctx scope =
   let scope_sig =
     ScopeVar.Map.fold
       (fun var (states : D.var_or_states) acc ->
+        let get_typ scope_def =
+          match scope_def.D.scope_def_io.io_input, scope_def.D.scope_def_typ with
+          | (Runtime.Reentrant, iopos), (TArrow (args, ret), tpos) ->
+            TArrow (args, (TDefault ret, iopos)), tpos
+          | (Runtime.Reentrant, iopos), (ty, tpos) ->
+            TDefault (ty, tpos), iopos
+          | _, ty -> ty
+        in
         match states with
         | WholeVar ->
           let scope_def =
             D.ScopeDef.Map.find (D.ScopeDef.Var (var, None)) scope.D.scope_defs
           in
-          let typ = scope_def.scope_def_typ in
           ScopeVar.Map.add
             (match ScopeVar.Map.find var ctx.scope_var_mapping with
             | WholeVar v -> v
             | States _ -> failwith "should not happen")
-            (typ, scope_def.scope_def_io)
+            (get_typ scope_def, scope_def.scope_def_io)
             acc
         | States states ->
           (* What happens in the case of variables with multiple states is
@@ -704,7 +719,7 @@ let translate_scope_interface ctx scope =
                 (match ScopeVar.Map.find var ctx.scope_var_mapping with
                 | WholeVar _ -> failwith "should not happen"
                 | States states' -> List.assoc state states')
-                (scope_def.scope_def_typ, scope_def.scope_def_io)
+                (get_typ scope_def, scope_def.scope_def_io)
                 acc)
             acc states)
       scope.scope_vars ScopeVar.Map.empty

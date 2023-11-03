@@ -928,6 +928,22 @@ let make_app e args pos =
   in
   eapp e args mark
 
+let make_erroronempty e =
+  let mark =
+    map_mark
+      (fun pos -> pos)
+      (function
+        | TDefault ty, _ -> ty
+        | TAny, pos -> TAny, pos
+        | ty ->
+          Message.raise_internal_error
+            "wrong type: found %a while expecting a TDefault on@;<1 2>%a"
+            Print.typ_debug ty
+            format (unbox e))
+      (Mark.get e)
+  in
+  eerroronempty e mark
+
 let thunk_term term mark =
   let silent = Var.make "_" in
   let pos = mark_pos mark in

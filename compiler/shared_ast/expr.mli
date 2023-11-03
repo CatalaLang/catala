@@ -194,6 +194,7 @@ val maybe_ty : ?typ:naked_typ -> 'm mark -> typ
     [TAny]) at the current position on an untyped one *)
 
 val untyped : untyped mark (** Type witness for untyped marks *)
+
 val typed : typed mark (** Type witness for untyped marks *)
 
 (** {2 Predefined types} *)
@@ -313,6 +314,10 @@ val make_app :
   ('a, 'm) boxed_gexpr list ->
   Pos.t ->
   ('a any, 'm) boxed_gexpr
+
+val make_erroronempty :
+  ('a, 'm) boxed_gexpr ->
+  ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
 
 val empty_thunked_term :
   'm mark -> (< defaultTerms : yes ; .. >, 'm) boxed_gexpr

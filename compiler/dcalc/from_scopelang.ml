@@ -117,9 +117,12 @@ let merge_defaults
           (Expr.with_ty m_callee
              (Mark.add (Expr.mark_pos m_callee) (TLit TBool)))
       in
-      let d = Expr.edefault [caller] ltrue (Expr.rebox body) m_body in
+      let d =
+        Expr.edefault [caller] ltrue (Expr.rebox body)
+          (Expr.map_ty (fun (_, pos as t) -> TDefault t, pos) m_body)
+      in
       Expr.make_abs vars
-        (Expr.eerroronempty d m_body)
+        (Expr.make_erroronempty d)
         tys (Expr.mark_pos m_callee)
     | _ -> assert false
     (* should not happen because there should always be a lambda at the
@@ -138,7 +141,8 @@ let merge_defaults
         Expr.elit (LBool true)
           (Expr.with_ty m (Mark.add (Expr.mark_pos m) (TLit TBool)))
       in
-      Expr.eerroronempty (Expr.edefault [caller] ltrue callee m) m
+      Expr.make_erroronempty (Expr.edefault [caller] ltrue callee
+          (Expr.map_ty (fun (_, pos as t) -> TDefault t, pos) m))
     in
     body
 
@@ -216,7 +220,7 @@ let input_var_typ typ io_in =
 let thunk_scope_arg var_ctx e =
   match var_ctx.scope_input_io, var_ctx.scope_input_thunked with
   | (Runtime.NoInput, _), _ -> invalid_arg "thunk_scope_arg"
-  | (Runtime.OnlyInput, _), false -> Expr.eerroronempty e (Mark.get e)
+  | (Runtime.OnlyInput, _), false -> Expr.make_erroronempty e
   | (Runtime.Reentrant, _), false -> e
   | (Runtime.Reentrant, pos), true ->
     Expr.make_abs [| Var.make "_" |] e [TLit TUnit, pos] pos
@@ -626,8 +630,7 @@ let translate_rule
       | OnlyInput -> failwith "should not happen"
       (* scopelang should not contain any definitions of input only variables *)
       | Reentrant -> merge_defaults ~is_func a_expr new_e
-      | NoInput ->
-        if is_func then new_e else Expr.eerroronempty new_e (pos_mark_as a_name)
+      | NoInput -> new_e
     in
     let merged_expr =
       tag_with_log_entry merged_expr
@@ -682,11 +685,11 @@ let translate_rule
     let thunked_or_nonempty_new_e =
       match a_io.Desugared.Ast.io_input with
       | Runtime.NoInput, _ -> assert false
-      | Runtime.OnlyInput, _ -> Expr.eerroronempty new_e (Mark.get new_e)
+      | Runtime.OnlyInput, _ -> Expr.make_erroronempty (new_e)
       | Runtime.Reentrant, pos -> (
         match Mark.remove tau with
-        | TArrow _ -> new_e
-        | _ -> Expr.thunk_term new_e (Expr.with_pos pos (Mark.get new_e)))
+        | TArrow _ -> (new_e)
+        | _ -> Expr.thunk_term (new_e) (Expr.with_pos pos (Mark.get new_e)))
     in
     ( (fun next ->
         Bindlib.box_apply2
@@ -890,7 +893,7 @@ let translate_rule
                      defined, we add an check "ErrorOnEmpty" here. *)
                   Mark.add
                     (Expr.map_ty (fun _ -> scope_let_typ) (Mark.get e))
-                    (EAssert (Mark.copy e (EErrorOnEmpty new_e)));
+                    (EAssert (Expr.unbox (Expr.make_erroronempty (Expr.box new_e))));
                 scope_let_kind = Assertion;
               })
           (Bindlib.bind_var (Var.make "_") next)
