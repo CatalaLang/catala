@@ -1093,9 +1093,10 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
            as the return type of ScopeCalls) ; but input fields are used purely
            internally and need to be created here to implement the call
            convention for scopes. *)
+        let module S = Scopelang.Ast in
         ScopeVar.Map.filter_map
-          (fun dvar (typ, vis) ->
-            match Mark.remove vis.Desugared.Ast.io_input with
+          (fun dvar svar ->
+            match Mark.remove svar.S.svar_io.Desugared.Ast.io_input with
             | NoInput -> None
             | OnlyInput | Reentrant ->
               let info = ScopeVar.get_info dvar in
@@ -1103,22 +1104,22 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
               Some
                 {
                   scope_input_name = StructField.fresh (s, Mark.get info);
-                  scope_input_io = vis.Desugared.Ast.io_input;
+                  scope_input_io = svar.S.svar_io.Desugared.Ast.io_input;
                   scope_input_typ =
-                    Mark.remove (input_var_typ (Mark.remove typ) vis);
+                    Mark.remove (input_var_typ (Mark.remove svar.S.svar_in_ty) svar.S.svar_io);
                   scope_input_thunked =
-                    input_var_needs_thunking (Mark.remove typ) vis;
+                    input_var_needs_thunking (Mark.remove svar.S.svar_in_ty) svar.S.svar_io;
                 })
-          scope.Scopelang.Ast.scope_sig
+          scope.S.scope_sig
       in
       {
         scope_sig_local_vars =
           List.map
-            (fun (scope_var, (tau, vis)) ->
+            (fun (scope_var, svar) ->
               {
                 scope_var_name = scope_var;
-                scope_var_typ = Mark.remove tau;
-                scope_var_io = vis;
+                scope_var_typ = Mark.remove svar.Scopelang.Ast.svar_in_ty;
+                scope_var_io = svar.Scopelang.Ast.svar_io;
               })
             (ScopeVar.Map.bindings scope.scope_sig);
         scope_sig_scope_ref = scope_ref;

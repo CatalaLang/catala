@@ -690,13 +690,20 @@ let translate_scope_interface ctx scope =
   let scope_sig =
     ScopeVar.Map.fold
       (fun var (states : D.var_or_states) acc ->
-        let get_typ scope_def =
-          match scope_def.D.scope_def_io.io_input, scope_def.D.scope_def_typ with
-          | (Runtime.Reentrant, iopos), (TArrow (args, ret), tpos) ->
-            TArrow (args, (TDefault ret, iopos)), tpos
-          | (Runtime.Reentrant, iopos), (ty, tpos) ->
-            TDefault (ty, tpos), iopos
-          | _, ty -> ty
+        let get_svar scope_def =
+          let svar_in_ty =
+            match scope_def.D.scope_def_io.io_input, scope_def.D.scope_def_typ with
+            | (Runtime.Reentrant, iopos), (TArrow (args, ret), tpos) ->
+              TArrow (args, (TDefault ret, iopos)), tpos
+            | (Runtime.Reentrant, iopos), (ty, tpos) ->
+              TDefault (ty, tpos), iopos
+            | _, ty -> ty
+          in
+          { Ast.
+            svar_in_ty;
+            svar_out_ty = scope_def.D.scope_def_typ;
+            svar_io = scope_def.scope_def_io;
+          }
         in
         match states with
         | WholeVar ->
@@ -707,7 +714,7 @@ let translate_scope_interface ctx scope =
             (match ScopeVar.Map.find var ctx.scope_var_mapping with
             | WholeVar v -> v
             | States _ -> failwith "should not happen")
-            (get_typ scope_def, scope_def.scope_def_io)
+            (get_svar scope_def)
             acc
         | States states ->
           (* What happens in the case of variables with multiple states is
@@ -724,7 +731,7 @@ let translate_scope_interface ctx scope =
                 (match ScopeVar.Map.find var ctx.scope_var_mapping with
                 | WholeVar _ -> failwith "should not happen"
                 | States states' -> List.assoc state states')
-                (get_typ scope_def, scope_def.scope_def_io)
+                (get_svar scope_def)
                 acc)
             acc states)
       scope.scope_vars ScopeVar.Map.empty
