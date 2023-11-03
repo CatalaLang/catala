@@ -176,6 +176,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TOption some_typ ->
     (* We translate the option type with an overloading by Python's [None] *)
     Format.fprintf fmt "Optional[%a]" format_typ some_typ
+  | TDefault t -> format_typ fmt t
   | TEnum e -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (t1, t2) ->
     Format.fprintf fmt "Callable[[%a], %a]"

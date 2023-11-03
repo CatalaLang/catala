@@ -202,6 +202,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TOption t ->
     Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
       format_enum_name Expr.option_enum
+  | TDefault t -> format_typ fmt t
   | TEnum e -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
   | TArrow (t1, t2) ->
     Format.fprintf fmt "@[<hov 2>%a@]"

@@ -259,7 +259,7 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
 
 let run includes optimize check_invariants ex_scope options =
   let prg, ctx, _ =
-    Driver.Passes.dcalc options ~includes ~optimize ~check_invariants
+    Driver.Passes.dcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg;
   let scope = Driver.Commands.get_scope_uid ctx ex_scope in

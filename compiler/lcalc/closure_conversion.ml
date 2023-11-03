@@ -326,7 +326,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
       match Mark.remove t with
       | TArrow _ -> true
       | TAny -> true
-      | TOption t' -> type_contains_arrow t'
+      | TDefault t' | TOption t' -> type_contains_arrow t'
       | TClosureEnv | TLit _ -> false
       | TArray ts -> type_contains_arrow ts
       | TTuple ts -> List.exists type_contains_arrow ts
