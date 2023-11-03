@@ -457,6 +457,7 @@ let rec runtime_to_val :
            (Array.to_list (Obj.obj o))),
       m )
   | TArrow (targs, tret) -> ECustom { obj = o; targs; tret }, m
+  | TDefault ty -> runtime_to_val eval_expr ctx m ty o
   | TAny -> assert false
 
 and val_to_runtime :

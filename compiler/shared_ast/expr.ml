@@ -928,6 +928,22 @@ let make_app e args pos =
   in
   eapp e args mark
 
+let make_erroronempty e =
+  let mark =
+    map_mark
+      (fun pos -> pos)
+      (function
+        | TDefault ty, _ -> ty
+        | TAny, pos -> TAny, pos
+        | ty ->
+          Message.raise_internal_error
+            "wrong type: found %a while expecting a TDefault on@;<1 2>%a"
+            Print.typ_debug ty
+            format (unbox e))
+      (Mark.get e)
+  in
+  eerroronempty e mark
+
 let thunk_term term mark =
   let silent = Var.make "_" in
   let pos = mark_pos mark in
@@ -944,25 +960,15 @@ let make_let_in x tau e1 e2 mpos =
 let make_multiple_let_in xs taus e1s e2 mpos =
   make_app (make_abs xs e2 taus mpos) e1s (pos e2)
 
-let make_default_unboxed excepts just cons =
-  let rec bool_value = function
-    | ELit (LBool b), _ -> Some b
-    | EApp { f = EOp { op = Log (l, _); _ }, _; args = [e]; _ }, _
-      when l <> PosRecordIfTrueBool
-           (* we don't remove the log calls corresponding to source code
-              definitions !*) ->
-      bool_value e
-    | _ -> None
+let make_default exc just cons =
+  let mark =
+    map_mark
+      (fun pos -> pos)
+      (fun cty -> TDefault cty, (Mark.get cty))
+      (Mark.get cons)
   in
-  match excepts, bool_value just, cons with
-  | excepts, Some true, (EDefault { excepts = []; just; cons }, _) ->
-    EDefault { excepts; just; cons }
-  | [((EDefault _, _) as except)], Some false, _ -> Mark.remove except
-  | excepts, _, cons -> EDefault { excepts; just; cons }
+  edefault exc just cons mark
 
-let make_default exceptions just cons =
-  Box.app2n just cons exceptions
-  @@ fun just cons exceptions -> make_default_unboxed exceptions just cons
 
 let make_tuple el m0 =
   match el with
