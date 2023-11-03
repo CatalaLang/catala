@@ -67,6 +67,7 @@ module To_jsoo = struct
     | TOption t ->
       Format.fprintf fmt "@[<hov 2>(%a)@] %a" format_typ_with_parens t
         format_enum_name Expr.option_enum
+    | TDefault t -> format_typ fmt t
     | TEnum e -> Format.fprintf fmt "%a Js.t" format_enum_name e
     | TArray t1 ->
       Format.fprintf fmt "@[%a@ Js.js_array Js.t@]" format_typ_with_parens t1
@@ -439,7 +440,7 @@ let run
     Message.raise_error "This plugin requires the --trace flag.";
   let prg, _, type_ordering =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
-      ~avoid_exceptions ~closure_conversion
+      ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
   in
   let modname =
     (* TODO: module directive support *)

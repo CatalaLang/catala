@@ -61,6 +61,7 @@ let rec trans_typ_keep (tau : typ) : typ =
           "The types option and closure_env should not appear before the dcalc \
            -> lcalc translation step."
       | TAny -> TAny
+      | TDefault t -> TDefault t
       | TArray ts ->
         TArray (TOption (trans_typ_keep ts), m) (* catala is not polymorphic *)
       | TArrow ([(TLit TUnit, _)], t2) -> Mark.remove (trans_typ_keep t2)

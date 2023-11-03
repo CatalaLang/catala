@@ -1388,7 +1388,7 @@ let options =
 let run includes optimize ex_scope explain_options global_options =
   let prg, ctx, _ =
     Driver.Passes.dcalc global_options ~includes ~optimize
-      ~check_invariants:false
+      ~check_invariants:false ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg;
   let scope = Driver.Commands.get_scope_uid ctx ex_scope in
