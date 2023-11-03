@@ -78,11 +78,14 @@ let program prg =
             ScopeDef.Map.fold
               (fun var def vars ->
                 match var with
-                | Var (v, _states) -> ScopeVar.Map.add v def.scope_def_typ vars
-                | SubScopeVar _ -> vars)
+                | Var (v, _states) ->
+                  ScopeVar.Map.add v def.scope_def_typ vars
+                | SubScopeVar _ ->
+                  vars)
               scope.scope_defs ScopeVar.Map.empty
           in
-          Typing.Env.add_scope scope_name ~vars env)
+          (* at this stage, rule resolution and the corresponding encapsulation into default terms hasn't taken place, so input and output variables don't need different typing *)
+          Typing.Env.add_scope scope_name ~vars ~in_vars:vars env)
         prg.program_scopes env
     in
     env

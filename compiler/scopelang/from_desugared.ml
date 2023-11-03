@@ -29,7 +29,7 @@ type target_scope_vars =
 type ctx = {
   decl_ctx : decl_ctx;
   scope_var_mapping : target_scope_vars ScopeVar.Map.t;
-  reentrant_vars : ScopeVar.Set.t;
+  reentrant_vars : typ ScopeVar.Map.t;
   var_mapping : (D.expr, untyped Ast.expr Var.t) Var.Map.t;
   modules : ctx ModuleName.Map.t;
 }
@@ -133,10 +133,23 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                | States [] -> assert false
              in
              let e' = translate_expr ctx e in
+             let m = Mark.get e in
              let e' =
-               if ScopeVar.Set.mem v ctx.reentrant_vars then
-                 Expr.edefault [] (Expr.elit (LBool false) m) e' m
-               else e'
+               match ScopeVar.Map.find_opt v ctx.reentrant_vars with
+               | Some (TArrow (targs, _), _) ->
+                 (* Functions are treated specially: the default only applies to their return type *)
+                 let arg = Var.make "arg" in
+                 let pos = Expr.mark_pos m in
+                 Expr.make_abs [|arg|]
+                   (Expr.edefault [] (Expr.elit (LBool true) m)
+                      (Expr.make_app e' [Expr.evar arg m] pos)
+                      m)
+                   targs
+                   pos
+               | Some _ ->
+                 Expr.edefault [] (Expr.elit (LBool true) m) e' m
+               | None ->
+                 e'
              in
              ScopeVar.Map.add v' e' args')
            args ScopeVar.Map.empty)
@@ -432,8 +445,9 @@ let rec rule_tree_to_expr
       (Expr.eerroronempty default_containing_base_cases emark)
   in
   let default =
-    if toplevel && subscope && is_reentrant_var then default
-    else Expr.eerroronempty default emark
+    if toplevel && not (subscope && is_reentrant_var)
+    then Expr.eerroronempty default emark
+    else default
   in
   match params, (List.hd base_rules).D.rule_parameter with
   | None, None -> default
@@ -634,15 +648,7 @@ let translate_rule
                 ~is_cond ~is_subscope_var:true
             in
             let def_typ =
-              match scope_def.D.scope_def_io.D.io_input with
-              | Runtime.NoInput, _ -> assert false
-              | Runtime.OnlyInput, _ -> def_typ
-              | Runtime.Reentrant, pos ->
-                match def_typ with
-                | TArrow (args, ret), tpos ->
-                  TArrow (args, (TDefault ret, pos)), tpos
-                | _ ->
-                  TDefault def_typ, pos
+              Scope.input_type def_typ scope_def.D.scope_def_io.D.io_input
             in
             let subscop_real_name =
               SubScopeName.Map.find sub_scope_index scope.scope_sub_scopes
@@ -690,13 +696,15 @@ let translate_scope_interface ctx scope =
   let scope_sig =
     ScopeVar.Map.fold
       (fun var (states : D.var_or_states) acc ->
-        let get_typ scope_def =
-          match scope_def.D.scope_def_io.io_input, scope_def.D.scope_def_typ with
-          | (Runtime.Reentrant, iopos), (TArrow (args, ret), tpos) ->
-            TArrow (args, (TDefault ret, iopos)), tpos
-          | (Runtime.Reentrant, iopos), (ty, tpos) ->
-            TDefault (ty, tpos), iopos
-          | _, ty -> ty
+        let get_svar scope_def =
+          let svar_in_ty =
+            Scope.input_type scope_def.D.scope_def_typ scope_def.D.scope_def_io.io_input
+          in
+          { Ast.
+            svar_in_ty;
+            svar_out_ty = scope_def.D.scope_def_typ;
+            svar_io = scope_def.scope_def_io;
+          }
         in
         match states with
         | WholeVar ->
@@ -707,7 +715,7 @@ let translate_scope_interface ctx scope =
             (match ScopeVar.Map.find var ctx.scope_var_mapping with
             | WholeVar v -> v
             | States _ -> failwith "should not happen")
-            (get_typ scope_def, scope_def.scope_def_io)
+            (get_svar scope_def)
             acc
         | States states ->
           (* What happens in the case of variables with multiple states is
@@ -724,7 +732,7 @@ let translate_scope_interface ctx scope =
                 (match ScopeVar.Map.find var ctx.scope_var_mapping with
                 | WholeVar _ -> failwith "should not happen"
                 | States states' -> List.assoc state states')
-                (get_typ scope_def, scope_def.scope_def_io)
+                (get_svar scope_def)
                 acc)
             acc states)
       scope.scope_vars ScopeVar.Map.empty
@@ -801,24 +809,27 @@ let translate_program
                 D.ScopeDef.Map.find_opt (Var (scope_var, state))
                   scope_decl.D.scope_defs
               with
-              | Some {scope_def_io = {io_input = (Runtime.Reentrant, _); _}; _} ->
-                true
-              | _ -> false
+              | Some {scope_def_io = {io_input = (Runtime.Reentrant, _); _};
+                      scope_def_typ; _} ->
+                Some scope_def_typ
+              | _ -> None
             in
             {
               ctx with
               scope_var_mapping =
                 ScopeVar.Map.add scope_var new_var ctx.scope_var_mapping;
               reentrant_vars =
-                if reentrant then ScopeVar.Set.add scope_var ctx.reentrant_vars
-                else ctx.reentrant_vars
+                Option.fold reentrant
+                  ~some:(fun ty -> ScopeVar.Map.add scope_var ty
+                            ctx.reentrant_vars)
+                  ~none:ctx.reentrant_vars
             })
           scope_decl.D.scope_vars ctx)
       desugared.D.program_scopes
       {
         scope_var_mapping = ScopeVar.Map.empty;
         var_mapping = Var.Map.empty;
-        reentrant_vars = ScopeVar.Set.empty;
+        reentrant_vars = ScopeVar.Map.empty;
         decl_ctx = desugared.program_ctx;
         modules;
       }

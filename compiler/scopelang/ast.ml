@@ -43,9 +43,15 @@ type 'm rule =
   | Assertion of 'm expr
   | Call of ScopeName.t * SubScopeName.t * 'm mark
 
+type scope_var_ty = {
+  svar_in_ty: typ;
+  svar_out_ty: typ;
+  svar_io: Desugared.Ast.io;
+}
+
 type 'm scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (typ * Desugared.Ast.io) ScopeVar.Map.t;
+  scope_sig : scope_var_ty ScopeVar.Map.t;
   scope_decl_rules : 'm rule list;
   scope_options : Desugared.Ast.catala_option Mark.pos list;
 }
@@ -84,8 +90,14 @@ let type_program (prg : 'm program) : typed program =
     let env =
       ScopeName.Map.fold
         (fun scope_name scope_decl env ->
-          let vars = ScopeVar.Map.map fst (Mark.remove scope_decl).scope_sig in
-          Typing.Env.add_scope scope_name ~vars env)
+           let sg = (Mark.remove scope_decl).scope_sig in
+           let vars =
+             ScopeVar.Map.map (fun {svar_out_ty; _} -> svar_out_ty) sg
+           in
+           let in_vars =
+             ScopeVar.Map.map (fun {svar_in_ty; _} -> svar_in_ty) sg
+           in
+           Typing.Env.add_scope scope_name ~vars ~in_vars env)
         prg.program_scopes env
     in
     env
@@ -115,7 +127,8 @@ let type_program (prg : 'm program) : typed program =
       (Mark.map (fun scope_decl ->
            let env =
              ScopeVar.Map.fold
-               (fun svar (typ, _) env -> Typing.Env.add_scope_var svar typ env)
+               (fun svar {svar_out_ty; _} env ->
+                  Typing.Env.add_scope_var svar svar_out_ty env)
                scope_decl.scope_sig env
            in
            let scope_decl_rules =

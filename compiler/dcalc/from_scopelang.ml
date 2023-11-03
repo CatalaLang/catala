@@ -739,10 +739,22 @@ let translate_rule
           | _ -> true)
         all_subscope_vars
     in
+    let called_scope_input_struct = subscope_sig.scope_sig_input_struct in
+    let called_scope_return_struct = subscope_sig.scope_sig_output_struct in
     let all_subscope_output_vars =
-      List.filter
+      List.filter_map
         (fun var_ctx ->
-          Mark.remove var_ctx.scope_var_io.Desugared.Ast.io_output)
+           if Mark.remove var_ctx.scope_var_io.Desugared.Ast.io_output then
+             (* Retrieve the actual expected output type through the scope output struct definition *)
+             let str =
+               StructName.Map.find called_scope_return_struct ctx.decl_ctx.ctx_structs
+             in
+             let fld =
+               ScopeVar.Map.find var_ctx.scope_var_name scope_sig_decl.out_struct_fields
+             in
+             let ty = StructField.Map.find fld str in
+             Some {var_ctx with scope_var_typ = Mark.remove ty}
+           else None)
         all_subscope_vars
     in
     let pos_call = Mark.get (SubScopeName.get_info subindex) in
@@ -753,8 +765,6 @@ let translate_rule
       | External_scope_ref name ->
         Expr.eexternal ~name:(Mark.map (fun n -> External_scope n) name) m
     in
-    let called_scope_input_struct = subscope_sig.scope_sig_input_struct in
-    let called_scope_return_struct = subscope_sig.scope_sig_output_struct in
     let subscope_vars_defined =
       try SubScopeName.Map.find subindex ctx.subscope_vars
       with SubScopeName.Map.Not_found _ -> ScopeVar.Map.empty
@@ -891,7 +901,7 @@ let translate_rule
                      defined, we add an check "ErrorOnEmpty" here. *)
                   Mark.add
                     (Expr.map_ty (fun _ -> scope_let_typ) (Mark.get e))
-                    (EAssert (Expr.unbox (Expr.make_erroronempty (Expr.box new_e))));
+                    (EAssert new_e);
                 scope_let_kind = Assertion;
               })
           (Bindlib.bind_var (Var.make "_") next)
@@ -1093,9 +1103,10 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
            as the return type of ScopeCalls) ; but input fields are used purely
            internally and need to be created here to implement the call
            convention for scopes. *)
+        let module S = Scopelang.Ast in
         ScopeVar.Map.filter_map
-          (fun dvar (typ, vis) ->
-            match Mark.remove vis.Desugared.Ast.io_input with
+          (fun dvar svar ->
+            match Mark.remove svar.S.svar_io.Desugared.Ast.io_input with
             | NoInput -> None
             | OnlyInput | Reentrant ->
               let info = ScopeVar.get_info dvar in
@@ -1103,22 +1114,22 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
               Some
                 {
                   scope_input_name = StructField.fresh (s, Mark.get info);
-                  scope_input_io = vis.Desugared.Ast.io_input;
+                  scope_input_io = svar.S.svar_io.Desugared.Ast.io_input;
                   scope_input_typ =
-                    Mark.remove (input_var_typ (Mark.remove typ) vis);
+                    Mark.remove (input_var_typ (Mark.remove svar.S.svar_in_ty) svar.S.svar_io);
                   scope_input_thunked =
-                    input_var_needs_thunking (Mark.remove typ) vis;
+                    input_var_needs_thunking (Mark.remove svar.S.svar_in_ty) svar.S.svar_io;
                 })
-          scope.Scopelang.Ast.scope_sig
+          scope.S.scope_sig
       in
       {
         scope_sig_local_vars =
           List.map
-            (fun (scope_var, (tau, vis)) ->
+            (fun (scope_var, svar) ->
               {
                 scope_var_name = scope_var;
-                scope_var_typ = Mark.remove tau;
-                scope_var_io = vis;
+                scope_var_typ = Mark.remove svar.Scopelang.Ast.svar_in_ty;
+                scope_var_io = svar.Scopelang.Ast.svar_io;
               })
             (ScopeVar.Map.bindings scope.scope_sig);
         scope_sig_scope_ref = scope_ref;

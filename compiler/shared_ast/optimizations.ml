@@ -214,7 +214,18 @@ let rec optimize_expr :
       when StructName.equal name name1 ->
       Mark.remove (StructField.Map.find field fields)
     | EErrorOnEmpty
-        (EDefault { excepts = [];  just = ELit (LBool true), _; cons}, _) ->
+        (EDefault { excepts = [];  just = ELit (LBool true), _; cons}, _)
+      when false
+      (* FIXME: this optimisation is correct and useful, but currently breaks expectations of the without-exceptions backend *)
+      ->
+      (* No exceptions, always true *)
+      Mark.remove cons
+    | EErrorOnEmpty
+        (EDefault {
+            excepts =
+              [EDefault { excepts = []; just = ELit (LBool true), _; cons }, _];
+            _}, _) ->
+      (* Single, always true exception *)
       Mark.remove cons
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct *)
@@ -240,10 +251,9 @@ let rec optimize_expr :
         assert false
       else
         match excepts, just with
-        | [except], _ when Expr.is_value except ->
-          (* if there is only one exception and it is a non-empty value it is
-             always chosen *)
-          Mark.remove except
+        | [EDefault { excepts = []; just = ELit (LBool true), _; _} as dft, _], _ ->
+          (* Single exception with condition [true] *)
+          dft
         | ( [],
             ( ( ELit (LBool false)
               | EApp
@@ -252,6 +262,7 @@ let rec optimize_expr :
                     args = [(ELit (LBool false), _)];
                   } ),
               _ ) ) ->
+          (* No exceptions and condition false *)
           EEmptyError
         | excepts, just -> EDefault { excepts; just; cons })
     | EIfThenElse
