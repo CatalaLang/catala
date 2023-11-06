@@ -216,28 +216,45 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
      persistent version of the union-find data structure. *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
+  let e_pos = Expr.pos e in
   let t1_pos = Mark.get t1_repr in
   let t2_pos = Mark.get t2_repr in
-  Message.raise_multispanned_error_full
-    [
-      ( Some
-          (fun ppf ->
-            Format.fprintf ppf
-              "@[<hv 2>Error coming from typechecking the following expression:";
+  let pos_msgs =
+    if e_pos = t1_pos then
+      [ (fun ppf ->
+            Format.fprintf ppf "@[<hv 2>@[<hov>%a@ %a@]:"
+              Format.pp_print_text "This expression has type"
+              (format_typ ctx) t1;
             if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
-            else Format.pp_close_box ppf ()),
-        Expr.pos e );
-      ( Some
-          (fun ppf ->
-            Format.fprintf ppf "Type @{<yellow>%a@} coming from expression:"
-              (format_typ ctx) t1),
-        t1_pos );
-      ( Some
-          (fun ppf ->
-            Format.fprintf ppf "Type @{<yellow>%a@} coming from expression:"
-              (format_typ ctx) t2),
-        t2_pos );
-    ]
+             else Format.pp_close_box ppf ()),
+        e_pos;
+        (fun ppf ->
+           Format.fprintf ppf "@[<hov>Expected@ type@ %a@ coming@ from@ expression:@]"
+             (format_typ ctx) t2),
+        t2_pos;
+      ]
+     else [
+       ( (fun ppf ->
+             Format.fprintf ppf
+               "@[<hv 2>@[<hov>%a:@]"
+               Format.pp_print_text
+               "While typechecking the following expression";
+             if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
+             else Format.pp_close_box ppf ()),
+         e_pos );
+       (fun ppf ->
+          Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
+            (format_typ ctx) t1),
+       t1_pos;
+       (fun ppf ->
+          Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
+            (format_typ ctx) t2),
+       t2_pos;
+
+     ]
+  in
+  Message.raise_multispanned_error_full
+    (List.map (fun (a, b) -> Some a, b) pos_msgs)
     "@[<v>Error during typechecking, incompatible types:@,\
      @[<v>@{<bold;blue>@<3>%s@} @[<hov>%a@]@,\
      @{<bold;blue>@<3>%s@} @[<hov>%a@]@]@]" "┌─⯈" (format_typ ctx) t1 "└─⯈"
