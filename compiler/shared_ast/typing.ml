@@ -341,6 +341,7 @@ module Env = struct
     vars : ('e, unionfind_typ) Var.Map.t;
     scope_vars : A.typ A.ScopeVar.Map.t;
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
+    scopes_input : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     toplevel_vars : A.typ A.TopdefName.Map.t;
     modules : 'e t A.ModuleName.Map.t;
   }
@@ -360,6 +361,7 @@ module Env = struct
       vars = Var.Map.empty;
       scope_vars = A.ScopeVar.Map.empty;
       scopes = A.ScopeName.Map.empty;
+      scopes_input = A.ScopeName.Map.empty;
       toplevel_vars = A.TopdefName.Map.empty;
       modules = A.ModuleName.Map.empty;
     }
@@ -381,8 +383,10 @@ module Env = struct
   let add_scope_var v typ t =
     { t with scope_vars = A.ScopeVar.Map.add v typ t.scope_vars }
 
-  let add_scope scope_name ~vars t =
-    { t with scopes = A.ScopeName.Map.add scope_name vars t.scopes }
+  let add_scope scope_name ~vars ~in_vars t =
+    { t with
+      scopes = A.ScopeName.Map.add scope_name vars t.scopes;
+      scopes_input = A.ScopeName.Map.add scope_name in_vars t.scopes_input }
 
   let add_toplevel_var v typ t =
     { t with toplevel_vars = A.TopdefName.Map.add v typ t.toplevel_vars }
@@ -694,7 +698,7 @@ and typecheck_expr_top_down :
     let mark = mark_with_tau_and_unify (unionfind (TStruct scope_out_struct)) in
     let vars =
       let env = Env.module_env path env in
-      A.ScopeName.Map.find scope env.scopes
+      A.ScopeName.Map.find scope env.scopes_input
     in
     let args' =
       A.ScopeVar.Map.mapi
