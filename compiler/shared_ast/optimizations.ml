@@ -214,7 +214,10 @@ let rec optimize_expr :
       when StructName.equal name name1 ->
       Mark.remove (StructField.Map.find field fields)
     | EErrorOnEmpty
-        (EDefault { excepts = [];  just = ELit (LBool true), _; cons}, _) ->
+        (EDefault { excepts = [];  just = ELit (LBool true), _; cons}, _)
+      when false
+      (* FIXME: this optimisation is correct and useful, but currently breaks expectations of the without-exceptions backend *)
+      ->
       (* No exceptions, always true *)
       Mark.remove cons
     | EErrorOnEmpty

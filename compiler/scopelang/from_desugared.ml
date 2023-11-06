@@ -445,8 +445,9 @@ let rec rule_tree_to_expr
       (Expr.eerroronempty default_containing_base_cases emark)
   in
   let default =
-    if toplevel && subscope && is_reentrant_var then default
-    else Expr.eerroronempty default emark
+    if toplevel && not (subscope && is_reentrant_var)
+    then Expr.eerroronempty default emark
+    else default
   in
   match params, (List.hd base_rules).D.rule_parameter with
   | None, None -> default
