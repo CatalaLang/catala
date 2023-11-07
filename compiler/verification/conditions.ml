@@ -142,12 +142,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
         (Print.expr ()) e)
   | EErrorOnEmpty d ->
     d (* input subscope variables and non-input scope variable *)
-  | _ ->
-    Message.raise_spanned_error (Expr.pos e)
-      "Internal error: this expression does not have the structure expected by \
-       the VC generator:\n\
-       %a"
-      (Print.expr ()) e
+  | _ -> e
 
 (** {1 Verification conditions generator}*)
 
