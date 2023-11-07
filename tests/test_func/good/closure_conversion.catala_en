@@ -23,9 +23,13 @@ let topval closure_f : (closure_env, integer) → eoption integer =
   λ (env: closure_env) (y: integer) →
   ESome
     match
-      (match (from_closure_env env).0 with
-       | ENone _ → ENone _
-       | ESome x → if x then ESome y else ESome - y)
+      (handle_default_opt
+         [  ]
+         (λ (_: unit) → ESome true)
+         (λ (_: unit) →
+          match (from_closure_env env).0 with
+          | ENone _1 → ENone _1
+          | ESome x → if x then ESome y else ESome - y))
       with
     | ENone _ → raise NoValueProvided
     | ESome f → f 
@@ -38,14 +42,19 @@ let scope S (S_in: S_in {x_in: eoption bool}): S {z: eoption integer} =
   let set z : eoption integer =
     ESome
       match
-        (match f with
-         | ENone _ → ENone _
-         | ESome f →
-           let code_and_env :
-               ((closure_env, integer) → eoption integer * closure_env) =
-             f
-           in
-           code_and_env.0 code_and_env.1 -1)
+        (handle_default_opt
+           [  ]
+           (λ (_: unit) → ESome true)
+           (λ (_: unit) →
+            match f with
+            | ENone _1 → ENone _1
+            | ESome f →
+              let code_and_env :
+                  ((closure_env, integer) → eoption integer * closure_env)
+                  =
+                f
+              in
+              code_and_env.0 code_and_env.1 -1))
         with
       | ENone _ → raise NoValueProvided
       | ESome z → z
