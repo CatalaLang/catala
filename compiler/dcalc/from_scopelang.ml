@@ -293,11 +293,13 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
               ]
               "Definition of input variable '%a' missing in this scope call"
               ScopeVar.format var_name
-          | None, Some _ ->
-            Message.raise_multispanned_error
+          | None, Some e ->
+            Message.raise_multispanned_error_full
+              ~suggestion:(List.map (fun v -> Mark.remove (ScopeVar.get_info v))
+                             (ScopeVar.Map.keys sc_sig.scope_sig_in_fields))
               [
-                None, pos;
-                ( Some "Declaration of scope '%a'",
+                None, Expr.pos e;
+                ( Some (fun ppf -> Format.fprintf ppf "Declaration of scope %a" ScopeName.format scope),
                   Mark.get (ScopeName.get_info scope) );
               ]
               "Unknown input variable '%a' in scope call of '%a'"

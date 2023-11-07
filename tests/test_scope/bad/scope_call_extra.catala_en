@@ -29,5 +29,9 @@ Scope Toto declared here
 └─┐
 2 │ declaration scope Toto:
   │                   ‾‾‾‾
+
+Maybe you wanted to write : "bar",
+or "baz",
+or "foo"
 #return code 123#
 ```
