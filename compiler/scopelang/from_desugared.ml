@@ -137,19 +137,17 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
              let e' =
                match ScopeVar.Map.find_opt v ctx.reentrant_vars with
                | Some (TArrow (targs, _), _) ->
-                 (* Functions are treated specially: the default only applies to their return type *)
+                 (* Functions are treated specially: the default only applies to
+                    their return type *)
                  let arg = Var.make "arg" in
                  let pos = Expr.mark_pos m in
-                 Expr.make_abs [|arg|]
+                 Expr.make_abs [| arg |]
                    (Expr.edefault [] (Expr.elit (LBool true) m)
                       (Expr.make_app e' [Expr.evar arg m] pos)
                       m)
-                   targs
-                   pos
-               | Some _ ->
-                 Expr.edefault [] (Expr.elit (LBool true) m) e' m
-               | None ->
-                 e'
+                   targs pos
+               | Some _ -> Expr.edefault [] (Expr.elit (LBool true) m) e' m
+               | None -> e'
              in
              ScopeVar.Map.add v' e' args')
            args ScopeVar.Map.empty)
@@ -433,20 +431,20 @@ let rec rule_tree_to_expr
   in
   let exceptions =
     List.map
-      (rule_tree_to_expr ~toplevel:false ~is_reentrant_var ~subscope
-         ctx def_pos params)
+      (rule_tree_to_expr ~toplevel:false ~is_reentrant_var ~subscope ctx def_pos
+         params)
       exceptions
   in
   let default =
     if exceptions = [] then default_containing_base_cases
     else
-    Expr.make_default exceptions
-      (Expr.elit (LBool true) emark)
-      (Expr.eerroronempty default_containing_base_cases emark)
+      Expr.make_default exceptions
+        (Expr.elit (LBool true) emark)
+        (Expr.eerroronempty default_containing_base_cases emark)
   in
   let default =
-    if toplevel && not (subscope && is_reentrant_var)
-    then Expr.eerroronempty default emark
+    if toplevel && not (subscope && is_reentrant_var) then
+      Expr.eerroronempty default emark
     else default
   in
   match params, (List.hd base_rules).D.rule_parameter with
@@ -459,7 +457,6 @@ let rec rule_tree_to_expr
          dealing with a context variable which is reentrant (either in the
          caller or callee). In this case the ErrorOnEmpty will be added later in
          the scopelang->dcalc translation. *)
-
       Expr.make_abs
         (new_params
         |> List.map (fun x -> Var.Map.find x ctx.var_mapping)
@@ -698,10 +695,11 @@ let translate_scope_interface ctx scope =
       (fun var (states : D.var_or_states) acc ->
         let get_svar scope_def =
           let svar_in_ty =
-            Scope.input_type scope_def.D.scope_def_typ scope_def.D.scope_def_io.io_input
+            Scope.input_type scope_def.D.scope_def_typ
+              scope_def.D.scope_def_io.io_input
           in
-          { Ast.
-            svar_in_ty;
+          {
+            Ast.svar_in_ty;
             svar_out_ty = scope_def.D.scope_def_typ;
             svar_io = scope_def.scope_def_io;
           }
@@ -715,8 +713,7 @@ let translate_scope_interface ctx scope =
             (match ScopeVar.Map.find var ctx.scope_var_mapping with
             | WholeVar v -> v
             | States _ -> failwith "should not happen")
-            (get_svar scope_def)
-            acc
+            (get_svar scope_def) acc
         | States states ->
           (* What happens in the case of variables with multiple states is
              interesting. We need to create as many Var entries in the scope
@@ -732,8 +729,7 @@ let translate_scope_interface ctx scope =
                 (match ScopeVar.Map.find var ctx.scope_var_mapping with
                 | WholeVar _ -> failwith "should not happen"
                 | States states' -> List.assoc state states')
-                (get_svar scope_def)
-                acc)
+                (get_svar scope_def) acc)
             acc states)
       scope.scope_vars ScopeVar.Map.empty
   in
@@ -800,17 +796,23 @@ let translate_program
                 States (List.map (fun state -> state, state_var state) states)
             in
             let reentrant =
-              let state = match states with
+              let state =
+                match states with
                 | D.WholeVar -> None
-                | States (s::_) -> Some s
+                | States (s :: _) -> Some s
                 | States [] -> assert false
               in
               match
-                D.ScopeDef.Map.find_opt (Var (scope_var, state))
+                D.ScopeDef.Map.find_opt
+                  (Var (scope_var, state))
                   scope_decl.D.scope_defs
               with
-              | Some {scope_def_io = {io_input = (Runtime.Reentrant, _); _};
-                      scope_def_typ; _} ->
+              | Some
+                  {
+                    scope_def_io = { io_input = Runtime.Reentrant, _; _ };
+                    scope_def_typ;
+                    _;
+                  } ->
                 Some scope_def_typ
               | _ -> None
             in
@@ -820,9 +822,9 @@ let translate_program
                 ScopeVar.Map.add scope_var new_var ctx.scope_var_mapping;
               reentrant_vars =
                 Option.fold reentrant
-                  ~some:(fun ty -> ScopeVar.Map.add scope_var ty
-                            ctx.reentrant_vars)
-                  ~none:ctx.reentrant_vars
+                  ~some:(fun ty ->
+                    ScopeVar.Map.add scope_var ty ctx.reentrant_vars)
+                  ~none:ctx.reentrant_vars;
             })
           scope_decl.D.scope_vars ctx)
       desugared.D.program_scopes
@@ -839,8 +841,12 @@ let translate_program
     ModuleName.Map.fold
       (fun _modname mctx (vmap, reentr) ->
         let vmap, reentr = gather_scope_vars (vmap, reentr) mctx.modules in
-        ScopeVar.Map.union (fun _ _ -> assert false) vmap mctx.scope_var_mapping,
-        ScopeVar.Map.union (fun _ _ -> assert false) reentr mctx.reentrant_vars)
+        ( ScopeVar.Map.union
+            (fun _ _ -> assert false)
+            vmap mctx.scope_var_mapping,
+          ScopeVar.Map.union
+            (fun _ _ -> assert false)
+            reentr mctx.reentrant_vars ))
       modules acc
   in
   let ctx =

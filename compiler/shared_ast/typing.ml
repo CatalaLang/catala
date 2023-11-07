@@ -229,37 +229,36 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
   let t2_pos = Mark.get t2_repr in
   let pos_msgs =
     if e_pos = t1_pos then
-      [ (fun ppf ->
-            Format.fprintf ppf "@[<hv 2>@[<hov>%a@ %a@]:"
-              Format.pp_print_text "This expression has type"
-              (format_typ ctx) t1;
+      [
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hv 2>@[<hov>%a@ %a@]:" Format.pp_print_text
+              "This expression has type" (format_typ ctx) t1;
             if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
-             else Format.pp_close_box ppf ()),
-        e_pos;
-        (fun ppf ->
-           Format.fprintf ppf "@[<hov>Expected@ type@ %a@ coming@ from@ expression:@]"
-             (format_typ ctx) t2),
-        t2_pos;
+            else Format.pp_close_box ppf ()),
+          e_pos );
+        ( (fun ppf ->
+            Format.fprintf ppf
+              "@[<hov>Expected@ type@ %a@ coming@ from@ expression:@]"
+              (format_typ ctx) t2),
+          t2_pos );
       ]
-     else [
-       ( (fun ppf ->
-             Format.fprintf ppf
-               "@[<hv 2>@[<hov>%a:@]"
-               Format.pp_print_text
-               "While typechecking the following expression";
-             if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
-             else Format.pp_close_box ppf ()),
-         e_pos );
-       (fun ppf ->
-          Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
-            (format_typ ctx) t1),
-       t1_pos;
-       (fun ppf ->
-          Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
-            (format_typ ctx) t2),
-       t2_pos;
-
-     ]
+    else
+      [
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hv 2>@[<hov>%a:@]" Format.pp_print_text
+              "While typechecking the following expression";
+            if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
+            else Format.pp_close_box ppf ()),
+          e_pos );
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
+              (format_typ ctx) t1),
+          t1_pos );
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
+              (format_typ ctx) t2),
+          t2_pos );
+      ]
   in
   Message.raise_multispanned_error_full
     (List.map (fun (a, b) -> Some a, b) pos_msgs)
@@ -313,7 +312,12 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | HandleDefault ->
       [array ([ut] @-> default any); [ut] @-> bt; [ut] @-> any] @-> default any
     | HandleDefaultOpt ->
-      (* FIXME: when translating with avoid_exceptions, defaults morally become options everywhere. However, this is not reflected in the environment at the moment, so this operator may have to mix-and-match options and default terms ; since the typing of default is expected to guide a simplification of the avoid-exceptions backend anyway, this is left untyped at the moment *)
+      (* FIXME: when translating with avoid_exceptions, defaults morally become
+         options everywhere. However, this is not reflected in the environment
+         at the moment, so this operator may have to mix-and-match options and
+         default terms ; since the typing of default is expected to guide a
+         simplification of the avoid-exceptions backend anyway, this is left
+         untyped at the moment *)
       any
     (* [array (option any); [ut] @-> option bt; [ut] @-> option any]
      * @-> option any *)
@@ -388,9 +392,11 @@ module Env = struct
     { t with scope_vars = A.ScopeVar.Map.add v typ t.scope_vars }
 
   let add_scope scope_name ~vars ~in_vars t =
-    { t with
+    {
+      t with
       scopes = A.ScopeName.Map.add scope_name vars t.scopes;
-      scopes_input = A.ScopeName.Map.add scope_name in_vars t.scopes_input }
+      scopes_input = A.ScopeName.Map.add scope_name in_vars t.scopes_input;
+    }
 
   let add_toplevel_var v typ t =
     { t with toplevel_vars = A.TopdefName.Map.add v typ t.toplevel_vars }
@@ -716,8 +722,7 @@ and typecheck_expr_top_down :
   | A.ECatch { body; exn; handler } ->
     let body' =
       typecheck_expr_top_down ~leave_unresolved ctx env
-        (unionfind (TDefault tau))
-        body
+        (unionfind (TDefault tau)) body
     in
     let handler' =
       typecheck_expr_top_down ~leave_unresolved ctx env tau handler
@@ -903,7 +908,9 @@ and typecheck_expr_top_down :
   | A.EDefault { excepts; just; cons } ->
     let inner_ty = unionfind (TAny (Any.fresh ())) in
     unify ctx e (unionfind (TDefault inner_ty)) tau;
-    let cons' = typecheck_expr_top_down ~leave_unresolved ctx env inner_ty cons in
+    let cons' =
+      typecheck_expr_top_down ~leave_unresolved ctx env inner_ty cons
+    in
     let just' =
       typecheck_expr_top_down ~leave_unresolved ctx env
         (unionfind ~pos:just (TLit TBool))

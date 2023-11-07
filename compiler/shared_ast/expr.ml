@@ -938,8 +938,7 @@ let make_erroronempty e =
         | ty ->
           Message.raise_internal_error
             "wrong type: found %a while expecting a TDefault on@;<1 2>%a"
-            Print.typ_debug ty
-            format (unbox e))
+            Print.typ_debug ty format (unbox e))
       (Mark.get e)
   in
   eerroronempty e mark
@@ -964,11 +963,10 @@ let make_default exc just cons =
   let mark =
     map_mark
       (fun pos -> pos)
-      (fun cty -> TDefault cty, (Mark.get cty))
+      (fun cty -> TDefault cty, Mark.get cty)
       (Mark.get cons)
   in
   edefault exc just cons mark
-
 
 let make_tuple el m0 =
   match el with

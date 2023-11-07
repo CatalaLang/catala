@@ -54,14 +54,14 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
     (Format.pp_print_list ~pp_sep:Format.pp_print_space
        (fun fmt (scope_var, svar) ->
          Format.fprintf fmt "%a%a%a %a%a%a%a%a" Print.punctuation "("
-           ScopeVar.format scope_var Print.punctuation ":"
-           (Print.typ ctx) svar.svar_in_ty
-           Print.punctuation "|" Print.keyword
+           ScopeVar.format scope_var Print.punctuation ":" (Print.typ ctx)
+           svar.svar_in_ty Print.punctuation "|" Print.keyword
            (match Mark.remove svar.svar_io.Desugared.Ast.io_input with
            | NoInput -> "internal"
            | OnlyInput -> "input"
            | Reentrant -> "context")
-           (if Mark.remove svar.svar_io.Desugared.Ast.io_output then fun fmt () ->
+           (if Mark.remove svar.svar_io.Desugared.Ast.io_output then
+              fun fmt () ->
               Format.fprintf fmt "%a@,%a" Print.punctuation "|" Print.keyword
                 "output"
             else fun fmt () -> Format.fprintf fmt "@<0>")
@@ -82,8 +82,8 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
                | ScopelangScopeVar { name = v } -> (
                  match
                    Mark.remove
-                     (ScopeVar.Map.find (Mark.remove v) decl.scope_sig)
-                     .svar_io.io_input
+                     (ScopeVar.Map.find (Mark.remove v) decl.scope_sig).svar_io
+                       .io_input
                  with
                  | Reentrant ->
                    Format.fprintf fmt "%a@ %a" Print.op_style
