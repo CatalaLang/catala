@@ -522,6 +522,7 @@ and val_to_runtime :
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
     in
     curry [] targs
+  | TDefault ty, _ -> val_to_runtime eval_expr ctx ty v
   | _ ->
     Message.raise_internal_error
       "Could not convert value of type %a to runtime: %a" (Print.typ ctx) ty
