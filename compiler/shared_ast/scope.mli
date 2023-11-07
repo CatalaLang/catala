@@ -131,7 +131,11 @@ val build_typ_from_sig :
     the specified scope *)
 
 val input_type : typ -> Runtime.io_input Mark.pos -> typ
-(** Returns the correct input type for scope input variables: this is [typ] for non-reentrant variables, but for reentrant variables, it is nested in a [TDefault], which only applies to the return type on functions. Note that this doesn't take thunking into account (thunking is added during the scopelang->dcalc translation) *)
+(** Returns the correct input type for scope input variables: this is [typ] for
+    non-reentrant variables, but for reentrant variables, it is nested in a
+    [TDefault], which only applies to the return type on functions. Note that
+    this doesn't take thunking into account (thunking is added during the
+    scopelang->dcalc translation) *)
 
 (** {2 Analysis and tests} *)
 

@@ -37,9 +37,9 @@ type 'm rule =
   | Call of ScopeName.t * SubScopeName.t * 'm mark
 
 type scope_var_ty = {
-  svar_in_ty: typ;
-  svar_out_ty: typ;
-  svar_io: Desugared.Ast.io;
+  svar_in_ty : typ;
+  svar_out_ty : typ;
+  svar_io : Desugared.Ast.io;
 }
 
 type 'm scope_decl = {

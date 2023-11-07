@@ -141,21 +141,24 @@ module Passes = struct
     in
     prg, ctx, exceptions_graphs
 
-  let dcalc:
-    type ty.
-    Cli.options -> includes:Cli.raw_file list -> optimize:bool -> check_invariants:bool ->
-    typed: ty mark ->
-    ty Dcalc.Ast.program
-    * Desugared.Name_resolution.context
-    * Scopelang.Dependency.TVertex.t list =
-    fun options ~includes ~optimize ~check_invariants ~typed ->
+  let dcalc :
+      type ty.
+      Cli.options ->
+      includes:Cli.raw_file list ->
+      optimize:bool ->
+      check_invariants:bool ->
+      typed:ty mark ->
+      ty Dcalc.Ast.program
+      * Desugared.Name_resolution.context
+      * Scopelang.Dependency.TVertex.t list =
+   fun options ~includes ~optimize ~check_invariants ~typed ->
     let prg, ctx, _ = scopelang options ~includes in
     debug_pass_name "dcalc";
     let type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
         prg.program_ctx.ctx_enums
     in
-    let (prg: ty Scopelang.Ast.program) =
+    let (prg : ty Scopelang.Ast.program) =
       match typed with
       | Typed _ ->
         Message.emit_debug "Typechecking...";
@@ -164,9 +167,7 @@ module Passes = struct
       | Custom _ -> invalid_arg "Driver.Passes.dcalc"
     in
     Message.emit_debug "Translating to default calculus...";
-    let prg =
-      Dcalc.From_scopelang.translate_program prg
-    in
+    let prg = Dcalc.From_scopelang.translate_program prg in
     let prg =
       if optimize then begin
         Message.emit_debug "Optimizing default calculus...";
@@ -174,17 +175,17 @@ module Passes = struct
       end
       else prg
     in
-    let (prg: ty Dcalc.Ast.program) =
+    let (prg : ty Dcalc.Ast.program) =
       match typed with
-      | Typed _ ->
+      | Typed _ -> (
         Message.emit_debug "Typechecking again...";
-        (try Typing.program ~leave_unresolved:false prg
-         with Message.CompilerError error_content ->
-           let bt = Printexc.get_raw_backtrace () in
-           Printexc.raise_with_backtrace
-             (Message.CompilerError
-                (Message.Content.to_internal_error error_content))
-             bt)
+        try Typing.program ~leave_unresolved:false prg
+        with Message.CompilerError error_content ->
+          let bt = Printexc.get_raw_backtrace () in
+          Printexc.raise_with_backtrace
+            (Message.CompilerError
+               (Message.Content.to_internal_error error_content))
+            bt)
       | Untyped _ -> prg
       | Custom _ -> assert false
     in
@@ -194,17 +195,19 @@ module Passes = struct
       | Typed _ ->
         let result = Dcalc.Invariants.check_all_invariants prg in
         if not result then
-          raise (Message.raise_internal_error "Some Dcalc invariants are invalid")
+          raise
+            (Message.raise_internal_error "Some Dcalc invariants are invalid")
       | _ ->
         Message.raise_error "--check_invariants cannot be used with --no-typing");
     prg, ctx, type_ordering
 
-  let lcalc (type ty)
+  let lcalc
+      (type ty)
       options
       ~includes
       ~optimize
       ~check_invariants
-      ~(typed: ty mark)
+      ~(typed : ty mark)
       ~avoid_exceptions
       ~closure_conversion :
       untyped Lcalc.Ast.program
@@ -269,8 +272,8 @@ module Passes = struct
       * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
     let prg, ctx, type_ordering =
-      lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed ~avoid_exceptions
-        ~closure_conversion
+      lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
+        ~avoid_exceptions ~closure_conversion
     in
     debug_pass_name "scalc";
     Scalc.From_lcalc.translate_program prg, ctx, type_ordering
@@ -537,7 +540,7 @@ module Commands = struct
       Term.(const typecheck $ Cli.Flags.Global.options $ Cli.Flags.include_dirs)
 
   let dcalc typed options includes output optimize ex_scope_opt check_invariants
-    =
+      =
     let prg, ctx, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
@@ -594,7 +597,8 @@ module Commands = struct
       check_invariants
       disable_counterexamples =
     let prg, ctx, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
+      Passes.dcalc options ~includes ~optimize ~check_invariants
+        ~typed:Expr.typed
     in
     Verification.Globals.setup ~optimize ~disable_counterexamples;
     let vcs =
@@ -642,7 +646,8 @@ module Commands = struct
           result)
       results
 
-  let interpret_dcalc typed options includes optimize check_invariants ex_scope =
+  let interpret_dcalc typed options includes optimize check_invariants ex_scope
+      =
     let prg, ctx, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
@@ -651,7 +656,10 @@ module Commands = struct
       (get_scope_uid ctx ex_scope)
 
   let interpret_cmd =
-    let f no_typing = if no_typing then interpret_dcalc Expr.untyped else interpret_dcalc Expr.typed in
+    let f no_typing =
+      if no_typing then interpret_dcalc Expr.untyped
+      else interpret_dcalc Expr.typed
+    in
     Cmd.v
       (Cmd.info "interpret"
          ~doc:
@@ -735,7 +743,8 @@ module Commands = struct
 
   let interpret_lcalc_cmd =
     let f no_typing =
-      if no_typing then interpret_lcalc Expr.untyped else interpret_lcalc Expr.typed
+      if no_typing then interpret_lcalc Expr.untyped
+      else interpret_lcalc Expr.typed
     in
     Cmd.v
       (Cmd.info "interpret_lcalc"

@@ -27,7 +27,9 @@ let rec translate_default
     (cons : 'm D.expr)
     (mark_default : 'm mark) : 'm A.expr boxed =
   let exceptions =
-    List.map (fun except -> Expr.thunk_term (translate_expr except) (Mark.get except)) exceptions
+    List.map
+      (fun except -> Expr.thunk_term (translate_expr except) (Mark.get except))
+      exceptions
   in
   let pos = Expr.mark_pos mark_default in
   let exceptions =

@@ -117,12 +117,8 @@ let merge_defaults
           (Expr.with_ty m_callee
              (Mark.add (Expr.mark_pos m_callee) (TLit TBool)))
       in
-      let d =
-        Expr.make_default [caller] ltrue (Expr.rebox body)
-      in
-      Expr.make_abs vars
-        (Expr.make_erroronempty d)
-        tys (Expr.mark_pos m_callee)
+      let d = Expr.make_default [caller] ltrue (Expr.rebox body) in
+      Expr.make_abs vars (Expr.make_erroronempty d) tys (Expr.mark_pos m_callee)
     | _ -> assert false
     (* should not happen because there should always be a lambda at the
        beginning of a default with a function type *)
@@ -295,11 +291,16 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
               ScopeVar.format var_name
           | None, Some e ->
             Message.raise_multispanned_error_full
-              ~suggestion:(List.map (fun v -> Mark.remove (ScopeVar.get_info v))
-                             (ScopeVar.Map.keys sc_sig.scope_sig_in_fields))
+              ~suggestion:
+                (List.map
+                   (fun v -> Mark.remove (ScopeVar.get_info v))
+                   (ScopeVar.Map.keys sc_sig.scope_sig_in_fields))
               [
                 None, Expr.pos e;
-                ( Some (fun ppf -> Format.fprintf ppf "Declaration of scope %a" ScopeName.format scope),
+                ( Some
+                    (fun ppf ->
+                      Format.fprintf ppf "Declaration of scope %a"
+                        ScopeName.format scope),
                   Mark.get (ScopeName.get_info scope) );
               ]
               "Unknown input variable '%a' in scope call of '%a'"
@@ -688,8 +689,8 @@ let translate_rule
       | Runtime.OnlyInput, _ -> new_e
       | Runtime.Reentrant, pos -> (
         match Mark.remove tau with
-        | TArrow _ -> (new_e)
-        | _ -> Expr.thunk_term (new_e) (Expr.with_pos pos (Mark.get new_e)))
+        | TArrow _ -> new_e
+        | _ -> Expr.thunk_term new_e (Expr.with_pos pos (Mark.get new_e)))
     in
     ( (fun next ->
         Bindlib.box_apply2
@@ -746,17 +747,20 @@ let translate_rule
     let all_subscope_output_vars =
       List.filter_map
         (fun var_ctx ->
-           if Mark.remove var_ctx.scope_var_io.Desugared.Ast.io_output then
-             (* Retrieve the actual expected output type through the scope output struct definition *)
-             let str =
-               StructName.Map.find called_scope_return_struct ctx.decl_ctx.ctx_structs
-             in
-             let fld =
-               ScopeVar.Map.find var_ctx.scope_var_name scope_sig_decl.out_struct_fields
-             in
-             let ty = StructField.Map.find fld str in
-             Some {var_ctx with scope_var_typ = Mark.remove ty}
-           else None)
+          if Mark.remove var_ctx.scope_var_io.Desugared.Ast.io_output then
+            (* Retrieve the actual expected output type through the scope output
+               struct definition *)
+            let str =
+              StructName.Map.find called_scope_return_struct
+                ctx.decl_ctx.ctx_structs
+            in
+            let fld =
+              ScopeVar.Map.find var_ctx.scope_var_name
+                scope_sig_decl.out_struct_fields
+            in
+            let ty = StructField.Map.find fld str in
+            Some { var_ctx with scope_var_typ = Mark.remove ty }
+          else None)
         all_subscope_vars
     in
     let pos_call = Mark.get (SubScopeName.get_info subindex) in
@@ -1118,9 +1122,14 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
                   scope_input_name = StructField.fresh (s, Mark.get info);
                   scope_input_io = svar.S.svar_io.Desugared.Ast.io_input;
                   scope_input_typ =
-                    Mark.remove (input_var_typ (Mark.remove svar.S.svar_in_ty) svar.S.svar_io);
+                    Mark.remove
+                      (input_var_typ
+                         (Mark.remove svar.S.svar_in_ty)
+                         svar.S.svar_io);
                   scope_input_thunked =
-                    input_var_needs_thunking (Mark.remove svar.S.svar_in_ty) svar.S.svar_io;
+                    input_var_needs_thunking
+                      (Mark.remove svar.S.svar_in_ty)
+                      svar.S.svar_io;
                 })
           scope.S.scope_sig
       in

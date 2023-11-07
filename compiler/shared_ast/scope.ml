@@ -170,8 +170,7 @@ let input_type ty io =
   match io, ty with
   | (Runtime.Reentrant, iopos), (TArrow (args, ret), tpos) ->
     TArrow (args, (TDefault ret, iopos)), tpos
-  | (Runtime.Reentrant, iopos), (ty, tpos) ->
-    TDefault (ty, tpos), iopos
+  | (Runtime.Reentrant, iopos), (ty, tpos) -> TDefault (ty, tpos), iopos
   | _, ty -> ty
 
 type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t

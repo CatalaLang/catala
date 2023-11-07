@@ -347,8 +347,9 @@ module Flags = struct
     & info ["check_invariants"] ~doc:"Check structural invariants on the AST."
 
   let no_typing =
-    value & flag & info ["no-typing"] ~doc:
-      "Don't check the consistency of types"
+    value
+    & flag
+    & info ["no-typing"] ~doc:"Don't check the consistency of types"
 
   let wrap_weaved_output =
     value
