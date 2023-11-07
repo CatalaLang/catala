@@ -32,15 +32,12 @@ let scope T (T_in: T_in): T {y: eoption integer} =
   in
   let call result :
       eoption
-        S {
-          f:
-            eoption
-              ((closure_env, integer) → eoption integer * closure_env)
-        } =
+        S {f: eoption ((closure_env, integer) → eoption any * closure_env)}
+      =
     ESome S { S_in x_in = ESome s.x; }
   in
   let sub_get s.f :
-      eoption ((closure_env, integer) → eoption integer * closure_env) =
+      eoption ((closure_env, integer) → eoption any * closure_env) =
     match result with
     | ENone _ → ENone _
     | ESome result → result.f
@@ -56,8 +53,7 @@ let scope T (T_in: T_in): T {y: eoption integer} =
             | ENone _1 → ENone _1
             | ESome s.f →
               let code_and_env :
-                  ((closure_env, integer) → eoption integer * closure_env)
-                  =
+                  ((closure_env, integer) → eoption any * closure_env) =
                 s.f
               in
               code_and_env.0 code_and_env.1 2))

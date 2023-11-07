@@ -294,7 +294,8 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
-  let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
+  (* let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in *)
+  let default a = lazy (UnionFind.make (TDefault (Lazy.force a), pos)) in
   let ( @-> ) x y =
     lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
   in
@@ -309,10 +310,13 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
+    | HandleDefault ->
+      [array ([ut] @-> default any); [ut] @-> bt; [ut] @-> any] @-> default any
     | HandleDefaultOpt ->
-      [array (option any); [ut] @-> option bt; [ut] @-> option any]
-      @-> option any
+      (* FIXME: when translating with avoid_exceptions, defaults morally become options everywhere. However, this is not reflected in the environment at the moment, so this operator may have to mix-and-match options and default terms ; since the typing of default is expected to guide a simplification of the avoid-exceptions backend anyway, this is left untyped at the moment *)
+      any
+    (* [array (option any); [ut] @-> option bt; [ut] @-> option any]
+     * @-> option any *)
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in
@@ -710,7 +714,11 @@ and typecheck_expr_top_down :
     Expr.escopecall ~scope ~args:args' mark
   | A.ERaise ex -> Expr.eraise ex context_mark
   | A.ECatch { body; exn; handler } ->
-    let body' = typecheck_expr_top_down ~leave_unresolved ctx env tau body in
+    let body' =
+      typecheck_expr_top_down ~leave_unresolved ctx env
+        (unionfind (TDefault tau))
+        body
+    in
     let handler' =
       typecheck_expr_top_down ~leave_unresolved ctx env tau handler
     in
