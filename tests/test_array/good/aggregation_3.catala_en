@@ -34,7 +34,7 @@ scope S:
 ```catala-test-inline
 $ catala scopelang -s S
 let scope S (x: integer|internal|output) =
-  let x : integer = ⟨true ⊢ 0⟩;
+  let x : integer = error_empty ⟨ ⟨true ⊢ 0⟩ | false ⊢ error_empty ∅ ⟩;
   assert (map (λ (i: integer) → i + 2) [ 1; 2; 3 ]) = [ 3; 4; 5 ];
   assert (filter (λ (i: integer) → i >= 2) [ 1; 2; 3 ]) = [ 2; 3 ];
   assert (map (λ (i: integer) → i + 2)

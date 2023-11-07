@@ -39,9 +39,13 @@ struct Foo = {
 
 let scope Foo (y: integer|input) (x: integer|internal|output) =
   let x : integer =
-    ⟨ ⟨ ⟨true ⊢ ⟨ ⟨y = 4 ⊢ 4⟩, ⟨y = 5 ⊢ 5⟩ | false ⊢ ∅ ⟩⟩
-      | true ⊢ ⟨ ⟨y = 2 ⊢ 2⟩, ⟨y = 3 ⊢ 3⟩ | false ⊢ ∅ ⟩ ⟩
-    | true ⊢ ⟨ ⟨y = 0 ⊢ 0⟩, ⟨y = 1 ⊢ 1⟩ | false ⊢ ∅ ⟩ ⟩
+    error_empty
+      ⟨ ⟨ ⟨ ⟨y = 4 ⊢ 4⟩, ⟨y = 5 ⊢ 5⟩ | false ⊢ error_empty ∅ ⟩
+        | true
+          ⊢ error_empty
+              ⟨ ⟨y = 2 ⊢ 2⟩, ⟨y = 3 ⊢ 3⟩ | false ⊢ error_empty ∅ ⟩ ⟩
+      | true
+        ⊢ error_empty ⟨ ⟨y = 0 ⊢ 0⟩, ⟨y = 1 ⊢ 1⟩ | false ⊢ error_empty ∅ ⟩ ⟩
 ```
 
 ```catala-test-inline

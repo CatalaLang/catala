@@ -23,9 +23,13 @@ let topval closure_f : (closure_env, integer) → eoption integer =
   λ (env: closure_env) (y: integer) →
   ESome
     match
-      (match (from_closure_env env).0 with
-       | ENone _ → ENone _
-       | ESome x → if x then ESome y else ESome - y)
+      (handle_default_opt
+         [  ]
+         (λ (_: unit) → ESome true)
+         (λ (_: unit) →
+          match (from_closure_env env).0 with
+          | ENone _1 → ENone _1
+          | ESome x → if x then ESome y else ESome - y))
       with
     | ENone _ → raise NoValueProvided
     | ESome f → f 

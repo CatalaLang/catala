@@ -20,7 +20,16 @@ scope T:
 ```catala-test-inline
 $ catala Lcalc -s T --avoid_exceptions -O --closure_conversion
 let scope T (T_in: T_in): T {y: eoption integer} =
-  let sub_set s.x : bool = false in
+  let sub_set s.x : bool =
+    match
+      (handle_default_opt
+         [  ]
+         (λ (_: unit) → ESome true)
+         (λ (_: unit) → ESome false))
+      with
+    | ENone _ → raise NoValueProvided
+    | ESome T_in → T_in
+  in
   let call result :
       eoption
         S {
@@ -39,14 +48,19 @@ let scope T (T_in: T_in): T {y: eoption integer} =
   let set y : eoption integer =
     ESome
       match
-        (match s.f with
-         | ENone _ → ENone _
-         | ESome s.f →
-           let code_and_env :
-               ((closure_env, integer) → eoption integer * closure_env) =
-             s.f
-           in
-           code_and_env.0 code_and_env.1 2)
+        (handle_default_opt
+           [  ]
+           (λ (_: unit) → ESome true)
+           (λ (_: unit) →
+            match s.f with
+            | ENone _1 → ENone _1
+            | ESome s.f →
+              let code_and_env :
+                  ((closure_env, integer) → eoption integer * closure_env)
+                  =
+                s.f
+              in
+              code_and_env.0 code_and_env.1 2))
         with
       | ENone _ → raise NoValueProvided
       | ESome y → y
