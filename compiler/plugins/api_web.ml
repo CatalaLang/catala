@@ -93,6 +93,7 @@ module To_jsoo = struct
     | TArray t ->
       Format.fprintf fmt "Js.array %@%@ Array.map (fun x -> %a x)"
         format_typ_to_jsoo t
+    | TDefault t -> format_typ_to_jsoo fmt t
     | TAny | TTuple _ -> Format.fprintf fmt "Js.Unsafe.inject"
     | _ -> Format.fprintf fmt ""
 
