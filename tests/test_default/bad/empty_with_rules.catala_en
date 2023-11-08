@@ -15,7 +15,9 @@ scope A:
 ```catala-test-inline
 $ catala Interpret -s A
 [ERROR]
-This variable evaluated to an empty term (no rule that defined it applied in this situation)
+This variable evaluated to an empty term (no rule that defined it applied in this situation): 
+error_empty
+  ⟨ ⟨ ⟨ ⟨1 = 4 ⊢ ⟨1⟩⟩ | 1 = 3 ⊢ ⟨1⟩ ⟩ | 1 = 2 ⊢ ⟨1⟩ ⟩ | false ⊢ ∅ ⟩
 
 ┌─⯈ tests/test_default/bad/empty_with_rules.catala_en:5.10-5.11:
 └─┐

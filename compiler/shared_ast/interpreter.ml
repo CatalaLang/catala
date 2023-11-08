@@ -713,7 +713,8 @@ let rec evaluate_expr :
     | EEmptyError, _ ->
       Message.raise_spanned_error (Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
-         applied in this situation)"
+         applied in this situation): %a"
+        Expr.format e
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -722,7 +723,6 @@ let rec evaluate_expr :
     | 0 -> (
       let just = evaluate_expr ctx lang just in
       match Mark.remove just with
-      | EEmptyError -> Mark.add m EEmptyError
       | ELit (LBool true) -> evaluate_expr ctx lang cons
       | ELit (LBool false) -> Mark.copy e EEmptyError
       | _ ->
@@ -738,6 +738,7 @@ let rec evaluate_expr :
            (List.filter (fun sub -> not (is_empty_error sub)) excepts))
         "There is a conflict between multiple valid consequences for assigning \
          the same variable.")
+  | EPureDefault e -> evaluate_expr ctx lang e
   | ERaise exn -> raise (CatalaException exn)
   | ECatch { body; exn; handler } -> (
     try evaluate_expr ctx lang body
@@ -790,6 +791,7 @@ let addcustom e =
     | (ECustom _, _) as e -> Expr.map ~f e
     | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
     | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmptyError, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
     | (ECatch _, _) as e -> Expr.map ~f e
@@ -811,6 +813,7 @@ let delcustom e =
     | ECustom _, _ -> invalid_arg "Custom term remaining in evaluated term"
     | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
     | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmptyError, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
     | (ECatch _, _) as e -> Expr.map ~f e

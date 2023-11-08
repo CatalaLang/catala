@@ -17,8 +17,7 @@ let scope Foo (Foo_in: Foo_in): Foo {bar: integer} =
         [ λ (_: unit) →
           handle_default [  ] (λ (_1: unit) → true) (λ (_1: unit) → 0) ]
         (λ (_: unit) → false)
-        (λ (_: unit) →
-         try raise EmptyError with EmptyError -> raise NoValueProvided)
+        (λ (_: unit) → raise EmptyError)
     with EmptyError -> raise NoValueProvided
   in
   return { Foo bar = bar; }

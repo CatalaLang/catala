@@ -142,11 +142,14 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                  let arg = Var.make "arg" in
                  let pos = Expr.mark_pos m in
                  Expr.make_abs [| arg |]
-                   (Expr.edefault [] (Expr.elit (LBool true) m)
-                      (Expr.make_app e' [Expr.evar arg m] pos)
+                   (Expr.edefault ~excepts:[] ~just:(Expr.elit (LBool true) m)
+                      ~cons:
+                        (Expr.epuredefault
+                           (Expr.make_app e' [Expr.evar arg m] pos)
+                           m)
                       m)
                    targs pos
-               | Some _ -> Expr.edefault [] (Expr.elit (LBool true) m) e' m
+               | Some _ -> Expr.epuredefault e' m
                | None -> e'
              in
              ScopeVar.Map.add v' e' args')
@@ -166,8 +169,8 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
           Expr.eapp (Expr.eop op (List.rev tys) m1) (List.rev args) m)
   | EOp _ -> assert false (* Only allowed within [EApp] *)
   | ( EStruct _ | ETuple _ | ETupleAccess _ | EInj _ | EMatch _ | ELit _
-    | EApp _ | EDefault _ | EIfThenElse _ | EArray _ | EEmptyError
-    | EErrorOnEmpty _ ) as e ->
+    | EApp _ | EDefault _ | EPureDefault _ | EIfThenElse _ | EArray _
+    | EEmptyError | EErrorOnEmpty _ ) as e ->
     Expr.map ~f:(translate_expr ctx) (e, m)
 
 (** {1 Rule tree construction} *)
@@ -416,18 +419,19 @@ let rec rule_tree_to_expr
       list
   in
   let default_containing_base_cases =
-    Expr.make_default
-      (List.map2
-         (fun base_just base_cons ->
-           Expr.make_default []
-             (* Here we insert the logging command that records when a decision
-                is taken for the value of a variable. *)
-             (tag_with_log_entry base_just PosRecordIfTrueBool [])
-             base_cons)
-         (translate_and_unbox_list base_just_list)
-         (translate_and_unbox_list base_cons_list))
-      (Expr.elit (LBool false) emark)
-      (Expr.eerroronempty (Expr.eemptyerror emark) emark)
+    Expr.edefault
+      ~excepts:
+        (List.map2
+           (fun base_just base_cons ->
+             Expr.make_default []
+               (* Here we insert the logging command that records when a
+                  decision is taken for the value of a variable. *)
+               (tag_with_log_entry base_just PosRecordIfTrueBool [])
+               base_cons)
+           (translate_and_unbox_list base_just_list)
+           (translate_and_unbox_list base_cons_list))
+      ~just:(Expr.elit (LBool false) emark)
+      ~cons:(Expr.eemptyerror emark) emark
   in
   let exceptions =
     List.map
@@ -438,9 +442,12 @@ let rec rule_tree_to_expr
   let default =
     if exceptions = [] then default_containing_base_cases
     else
-      Expr.make_default exceptions
-        (Expr.elit (LBool true) emark)
-        (Expr.eerroronempty default_containing_base_cases emark)
+      Expr.edefault ~excepts:exceptions
+        ~just:(Expr.elit (LBool true) emark)
+        ~cons:
+          (* if toplevel then Expr.eerroronempty default_containing_base_cases emark
+           * else *)
+          default_containing_base_cases emark
   in
   let default =
     if toplevel && not (subscope && is_reentrant_var) then

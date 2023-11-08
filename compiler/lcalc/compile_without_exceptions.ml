@@ -155,6 +155,7 @@ let rec trans (ctx : typed ctx) (e : typed D.expr) : (lcalc, typed) boxed_gexpr
       (Expr.eop Op.HandleDefaultOpt [TAny, pos; TAny, pos; TAny, pos] m')
       [Expr.earray excepts' m; Expr.thunk_term just' m; Expr.thunk_term cons' m]
       pos
+  | EPureDefault e -> trans ctx e
   | ELit l -> Ast.OptionMonad.return ~mark (Expr.elit l m)
   | EEmptyError -> Ast.OptionMonad.empty ~mark
   | EErrorOnEmpty arg ->

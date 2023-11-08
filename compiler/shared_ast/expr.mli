@@ -80,8 +80,13 @@ val eassert :
 val eop : 'a operator -> typ list -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 val edefault :
-  ('a, 'm) boxed_gexpr list ->
-  ('a, 'm) boxed_gexpr ->
+  excepts:('a, 'm) boxed_gexpr list ->
+  just:('a, 'm) boxed_gexpr ->
+  cons:('a, 'm) boxed_gexpr ->
+  'm mark ->
+  ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
+
+val epuredefault :
   ('a, 'm) boxed_gexpr ->
   'm mark ->
   ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
@@ -317,6 +322,9 @@ val make_app :
   Pos.t ->
   ('a any, 'm) boxed_gexpr
 
+val make_puredefault :
+  ('a, 'm) boxed_gexpr -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
+
 val make_erroronempty :
   ('a, 'm) boxed_gexpr -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
 
@@ -348,6 +356,8 @@ val make_default :
   ('a, 'm) boxed_gexpr ->
   (* 'm mark -> *)
   ((< polymorphic : yes ; defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
+(** The [cons] argument is implicitely made into a [EPureDefault] by this
+    function *)
 
 val make_tuple :
   ('a any, 'm) boxed_gexpr list -> 'm mark -> ('a, 'm) boxed_gexpr

@@ -38,12 +38,7 @@ let s (s_in: S_in.t) : S.t =
                    end_line=0; end_column=1; law_headings=[]} ([||])
                  (fun (_: unit) -> true)
                  (fun (_: unit) -> money_of_cents_string "100000"))|])
-         (fun (_: unit) -> false)
-         (fun (_: unit) -> try (raise EmptyError) with
-            EmptyError -> (raise (NoValueProvided
-              {filename = "tests/test_modules/good/mod_def.catala_en";
-                start_line=16; start_column=10; end_line=16; end_column=12;
-                law_headings=["Test modules + inclusions 1"]}))))
+         (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "tests/test_modules/good/mod_def.catala_en"; start_line=16;
@@ -59,12 +54,7 @@ let s (s_in: S_in.t) : S.t =
                  {filename = ""; start_line=0; start_column=1;
                    end_line=0; end_column=1; law_headings=[]} ([||])
                  (fun (_: unit) -> true) (fun (_: unit) -> Enum1.Maybe ()))|])
-         (fun (_: unit) -> false)
-         (fun (_: unit) -> try (raise EmptyError) with
-            EmptyError -> (raise (NoValueProvided
-              {filename = "tests/test_modules/good/mod_def.catala_en";
-                start_line=17; start_column=10; end_line=17; end_column=12;
-                law_headings=["Test modules + inclusions 1"]}))))
+         (fun (_: unit) -> false) (fun (_: unit) -> raise EmptyError))
     with
     EmptyError -> (raise (NoValueProvided
       {filename = "tests/test_modules/good/mod_def.catala_en"; start_line=17;
