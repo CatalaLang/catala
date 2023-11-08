@@ -114,10 +114,7 @@ let S2_6 (S2_in_11: S2_in) =
   try:
     decl temp_a_22 : any;
     let temp_a_22 (__23 : unit) =
-      try:
-        raise EmptyError
-      with EmptyError:
-        raise NoValueProvided;
+      raise EmptyError;
     decl temp_a_20 : any;
     let temp_a_20 (__21 : unit) =
       return false;
@@ -143,10 +140,7 @@ let S3_7 (S3_in_24: S3_in) =
   try:
     decl temp_a_35 : any;
     let temp_a_35 (__36 : unit) =
-      try:
-        raise EmptyError
-      with EmptyError:
-        raise NoValueProvided;
+      raise EmptyError;
     decl temp_a_33 : any;
     let temp_a_33 (__34 : unit) =
       return false;
@@ -172,10 +166,7 @@ let S4_8 (S4_in_37: S4_in) =
   try:
     decl temp_a_48 : any;
     let temp_a_48 (__49 : unit) =
-      try:
-        raise EmptyError
-      with EmptyError:
-        raise NoValueProvided;
+      raise EmptyError;
     decl temp_a_46 : any;
     let temp_a_46 (__47 : unit) =
       return false;
@@ -201,10 +192,7 @@ let S_9 (S_in_50: S_in) =
   try:
     decl temp_a_73 : any;
     let temp_a_73 (__74 : unit) =
-      try:
-        raise EmptyError
-      with EmptyError:
-        raise NoValueProvided;
+      raise EmptyError;
     decl temp_a_71 : any;
     let temp_a_71 (__72 : unit) =
       return false;
@@ -227,10 +215,7 @@ let S_9 (S_in_50: S_in) =
   try:
     decl temp_b_62 : any;
     let temp_b_62 (__63 : unit) =
-      try:
-        raise EmptyError
-      with EmptyError:
-        raise NoValueProvided;
+      raise EmptyError;
     decl temp_b_60 : any;
     let temp_b_60 (__61 : unit) =
       return false;
@@ -435,15 +420,7 @@ glob2 = (
 def s2(s2_in:S2In):
     try:
         def temp_a(_:Unit):
-            try:
-                raise EmptyError
-            except EmptyError:
-                raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                                     start_line=37,
-                                                     start_column=10,
-                                                     end_line=37,
-                                                     end_column=11,
-                                                     law_headings=["Test toplevel function defs"]))
+            raise EmptyError
         def temp_a_1(_:Unit):
             return False
         def temp_a_2(_:Unit):
@@ -471,15 +448,7 @@ def s2(s2_in:S2In):
 def s3(s3_in:S3In):
     try:
         def temp_a_6(_:Unit):
-            try:
-                raise EmptyError
-            except EmptyError:
-                raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                                     start_line=57,
-                                                     start_column=10,
-                                                     end_line=57,
-                                                     end_column=11,
-                                                     law_headings=["Test function def with two args"]))
+            raise EmptyError
         def temp_a_7(_:Unit):
             return False
         def temp_a_8(_:Unit):
@@ -508,15 +477,7 @@ def s3(s3_in:S3In):
 def s4(s4_in:S4In):
     try:
         def temp_a_12(_:Unit):
-            try:
-                raise EmptyError
-            except EmptyError:
-                raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                                     start_line=80,
-                                                     start_column=10,
-                                                     end_line=80,
-                                                     end_column=11,
-                                                     law_headings=["Test inline defs in toplevel defs"]))
+            raise EmptyError
         def temp_a_13(_:Unit):
             return False
         def temp_a_14(_:Unit):
@@ -543,15 +504,7 @@ def s4(s4_in:S4In):
 def s(s_in:SIn):
     try:
         def temp_a_18(_:Unit):
-            try:
-                raise EmptyError
-            except EmptyError:
-                raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                                     start_line=7,
-                                                     start_column=10,
-                                                     end_line=7,
-                                                     end_column=11,
-                                                     law_headings=["Test basic toplevel values defs"]))
+            raise EmptyError
         def temp_a_19(_:Unit):
             return False
         def temp_a_20(_:Unit):
@@ -575,15 +528,7 @@ def s(s_in:SIn):
     a_3 = temp_a_23
     try:
         def temp_b(_:Unit):
-            try:
-                raise EmptyError
-            except EmptyError:
-                raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                                     start_line=8,
-                                                     start_column=10,
-                                                     end_line=8,
-                                                     end_column=11,
-                                                     law_headings=["Test basic toplevel values defs"]))
+            raise EmptyError
         def temp_b_1(_:Unit):
             return False
         def temp_b_2(_:Unit):

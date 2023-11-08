@@ -117,7 +117,11 @@ let merge_defaults
           (Expr.with_ty m_callee
              (Mark.add (Expr.mark_pos m_callee) (TLit TBool)))
       in
-      let d = Expr.make_default [caller] ltrue (Expr.rebox body) in
+
+      let cons = Expr.make_puredefault (Expr.rebox body) in
+      let d =
+        Expr.edefault ~excepts:[caller] ~just:ltrue ~cons (Mark.get cons)
+      in
       Expr.make_abs vars (Expr.make_erroronempty d) tys (Expr.mark_pos m_callee)
     | _ -> assert false
     (* should not happen because there should always be a lambda at the
@@ -136,7 +140,9 @@ let merge_defaults
         Expr.elit (LBool true)
           (Expr.with_ty m (Mark.add (Expr.mark_pos m) (TLit TBool)))
       in
-      Expr.make_erroronempty (Expr.make_default [caller] ltrue callee)
+      let cons = Expr.make_puredefault callee in
+      Expr.make_erroronempty
+        (Expr.edefault ~excepts:[caller] ~just:ltrue ~cons (Mark.get cons))
     in
     body
 
@@ -567,8 +573,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
   | EDefault { excepts; just; cons } ->
     let excepts = collapse_similar_outcomes excepts in
     Expr.edefault
-      (List.map (translate_expr ctx) excepts)
-      (translate_expr ctx just) (translate_expr ctx cons) m
+      ~excepts:(List.map (translate_expr ctx) excepts)
+      ~just:(translate_expr ctx just) ~cons:(translate_expr ctx cons) m
+  | EPureDefault e -> Expr.epuredefault (translate_expr ctx e) m
   | ELocation (ScopelangScopeVar { name = a }) ->
     let v, _, _ = ScopeVar.Map.find (Mark.remove a) ctx.scope_vars in
     Expr.evar v m

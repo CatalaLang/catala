@@ -764,6 +764,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EAssert e -> translate_expr ctx e
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
+  | EPureDefault _ -> failwith "[Z3 encoding] EPureDefault unsupported"
   | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
     (* We rely on Z3's native encoding for ite to encode this node. There might
        be some interesting optimization in the future about when to split this

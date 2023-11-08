@@ -126,9 +126,11 @@ let eapp f args = Box.app1n f args @@ fun f args -> EApp { f; args }
 let eassert e1 = Box.app1 e1 @@ fun e1 -> EAssert e1
 let eop op tys = Box.app0 @@ EOp { op; tys }
 
-let edefault excepts just cons =
+let edefault ~excepts ~just ~cons =
   Box.app2n just cons excepts
   @@ fun just cons excepts -> EDefault { excepts; just; cons }
+
+let epuredefault e = Box.app1 e @@ fun e1 -> EPureDefault e1
 
 let eifthenelse cond etrue efalse =
   Box.app3 cond etrue efalse
@@ -288,7 +290,8 @@ let map
   | EInj { name; cons; e } -> einj ~name ~cons ~e:(f e) m
   | EAssert e1 -> eassert (f e1) m
   | EDefault { excepts; just; cons } ->
-    edefault (List.map f excepts) (f just) (f cons) m
+    edefault ~excepts:(List.map f excepts) ~just:(f just) ~cons:(f cons) m
+  | EPureDefault e1 -> epuredefault (f e1) m
   | EEmptyError -> eemptyerror m
   | EErrorOnEmpty e1 -> eerroronempty (f e1) m
   | ECatch { body; exn; handler } -> ecatch (f body) exn (f handler) m
@@ -333,6 +336,7 @@ let shallow_fold
   | EInj { e; _ } -> acc |> f e
   | EAssert e -> acc |> f e
   | EDefault { excepts; just; cons } -> acc |> lfold excepts |> f just |> f cons
+  | EPureDefault e -> acc |> f e
   | EErrorOnEmpty e -> acc |> f e
   | ECatch { body; handler; _ } -> acc |> f body |> f handler
   | EStruct { fields; _ } -> acc |> StructField.Map.fold (fun _ -> f) fields
@@ -399,7 +403,10 @@ let map_gather
     let acc1, excepts = lfoldmap excepts in
     let acc2, just = f just in
     let acc3, cons = f cons in
-    join (join acc1 acc2) acc3, edefault excepts just cons m
+    join (join acc1 acc2) acc3, edefault ~excepts ~just ~cons m
+  | EPureDefault e ->
+    let acc, e = f e in
+    acc, epuredefault e m
   | EEmptyError -> acc, eemptyerror m
   | EErrorOnEmpty e ->
     let acc, e = f e in
@@ -597,6 +604,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ( EDefault { excepts = exc1; just = def1; cons = cons1 },
       EDefault { excepts = exc2; just = def2; cons = cons2 } ) ->
     equal def1 def2 && equal cons1 cons2 && equal_list exc1 exc2
+  | EPureDefault e1, EPureDefault e2 -> equal e1 e2
   | ( EIfThenElse { cond = if1; etrue = then1; efalse = else1 },
       EIfThenElse { cond = if2; etrue = then2; efalse = else2 } ) ->
     equal if1 if2 && equal then1 then2 && equal else1 else2
@@ -632,10 +640,10 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
-      | EAbs _ | EApp _ | EAssert _ | EOp _ | EDefault _ | EIfThenElse _
-      | EEmptyError | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _
-      | EStruct _ | EDStructAccess _ | EStructAccess _ | EInj _ | EMatch _
-      | EScopeCall _ | ECustom _ ),
+      | EAbs _ | EApp _ | EAssert _ | EOp _ | EDefault _ | EPureDefault _
+      | EIfThenElse _ | EEmptyError | EErrorOnEmpty _ | ERaise _ | ECatch _
+      | ELocation _ | EStruct _ | EDStructAccess _ | EStructAccess _ | EInj _
+      | EMatch _ | EScopeCall _ | ECustom _ ),
       _ ) ->
     false
 
@@ -714,6 +722,8 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     compare just1 just2 @@< fun () ->
     compare cons1 cons2 @@< fun () ->
     List.compare compare exs1 exs2
+  | EPureDefault e1, EPureDefault e2 ->
+    compare e1 e2
   | EEmptyError, EEmptyError -> 0
   | EErrorOnEmpty e1, EErrorOnEmpty e2 ->
     compare e1 e2
@@ -746,6 +756,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EInj _, _ -> -1 | _, EInj _ -> 1
   | EAssert _, _ -> -1 | _, EAssert _ -> 1
   | EDefault _, _ -> -1 | _, EDefault _ -> 1
+  | EPureDefault _, _ -> -1 | _, EPureDefault _ -> 1
   | EEmptyError , _ -> -1 | _, EEmptyError  -> 1
   | EErrorOnEmpty _, _ -> -1 | _, EErrorOnEmpty _ -> 1
   | ERaise _, _ -> -1 | _, ERaise _ -> 1
@@ -766,6 +777,7 @@ let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
   | EErrorOnEmpty e, _ -> skip_wrappers e
   | EDefault { excepts = []; just = ELit (LBool true), _; cons = e }, _ ->
     skip_wrappers e
+  | EPureDefault e, _ -> skip_wrappers e
   | e -> e
 
 let remove_logging_calls e =
@@ -871,6 +883,7 @@ let rec size : type a. (a, 't) gexpr -> int =
   | EInj { e; _ } -> size e + 1
   | EAssert e -> size e + 1
   | EErrorOnEmpty e -> size e + 1
+  | EPureDefault e -> size e + 1
   | EApp { f; args } ->
     List.fold_left (fun acc arg -> acc + size arg) (1 + size f) args
   | EAbs { binder; _ } ->
@@ -959,14 +972,15 @@ let make_let_in x tau e1 e2 mpos =
 let make_multiple_let_in xs taus e1s e2 mpos =
   make_app (make_abs xs e2 taus mpos) e1s (pos e2)
 
-let make_default exc just cons =
+let make_puredefault e =
   let mark =
-    map_mark
-      (fun pos -> pos)
-      (fun cty -> TDefault cty, Mark.get cty)
-      (Mark.get cons)
+    map_mark (fun pos -> pos) (fun ty -> TDefault ty, Mark.get ty) (Mark.get e)
   in
-  edefault exc just cons mark
+  epuredefault e mark
+
+let make_default excepts just cons =
+  let cons = make_puredefault cons in
+  edefault ~excepts ~just ~cons (Mark.get cons)
 
 let make_tuple el m0 =
   match el with

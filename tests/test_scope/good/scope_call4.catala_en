@@ -44,16 +44,16 @@ $ catala Interpret -s RentComputation --debug
 f1 = λ (x: integer) →
   error_empty
     ⟨ ⟨true
-       ⊢ let x1 : integer = x + 1 in
-         error_empty ⟨ ⟨true ⊢ x1 + 1⟩ | false ⊢ error_empty ∅ ⟩⟩
-    | false ⊢ error_empty ∅ ⟩
+       ⊢ ⟨let x1 : integer = x + 1 in
+          error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
+    | false ⊢ ∅ ⟩
 [RESULT]
 f2 = λ (x: integer) →
   error_empty
     ⟨ ⟨true
-       ⊢ let x1 : integer = x + 1 in
-         error_empty ⟨ ⟨true ⊢ x1 + 1⟩ | false ⊢ error_empty ∅ ⟩⟩
-    | false ⊢ error_empty ∅ ⟩
+       ⊢ ⟨let x1 : integer = x + 1 in
+          error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
+    | false ⊢ ∅ ⟩
 ```
 
 ```catala-test-inline

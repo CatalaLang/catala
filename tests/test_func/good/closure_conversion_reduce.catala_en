@@ -94,7 +94,7 @@ let scope S
                     ESome -1
                     y_2) ]
            (λ (_: unit) → ESome false)
-           (λ (_: unit) → ESome raise NoValueProvided))
+           (λ (_: unit) → ENone ()))
         with
       | ENone _ → raise NoValueProvided
       | ESome y → y

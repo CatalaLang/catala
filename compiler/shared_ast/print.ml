@@ -428,6 +428,7 @@ module Precedence = struct
     | EDStructAccess _ | EStructAccess _ -> Dot
     | EAssert _ -> App
     | EDefault _ -> Contained
+    | EPureDefault _ -> Contained
     | EEmptyError -> Contained
     | EErrorOnEmpty _ -> App
     | ERaise _ -> App
@@ -645,6 +646,12 @@ module ExprGen (C : EXPR_PARAM) = struct
             cons
             (default_punct (List.hd colors))
             "⟩"
+      | EPureDefault e ->
+        Format.fprintf fmt "%a%a%a"
+          (default_punct (List.hd colors))
+          "⟨" expr e
+          (default_punct (List.hd colors))
+          "⟩"
       | EEmptyError -> lit_style fmt "∅"
       | EErrorOnEmpty e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" op_style "error_empty"
@@ -1075,8 +1082,9 @@ module UserFacing = struct
     | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EApp _ | EOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
-    | EStructAccess _ | EAssert _ | EDefault _ | EErrorOnEmpty _ | ERaise _
-    | ECatch _ | ELocation _ | EScopeCall _ | EDStructAccess _ | ECustom _ ->
+    | EStructAccess _ | EAssert _ | EDefault _ | EPureDefault _
+    | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _ | EScopeCall _
+    | EDStructAccess _ | ECustom _ ->
       fallback ppf e
 
   (* This function is already in module [Expr], but [Expr] depends on this

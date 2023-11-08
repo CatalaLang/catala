@@ -550,6 +550,9 @@ and ('a, 'b, 'm) base_gexpr =
       cons : ('a, 'm) gexpr;
     }
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
+  | EPureDefault :
+      ('a, 'm) gexpr
+      -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   | EEmptyError : ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   | EErrorOnEmpty :
       ('a, 'm) gexpr

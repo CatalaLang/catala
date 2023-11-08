@@ -906,11 +906,7 @@ and typecheck_expr_top_down :
     in
     Expr.eop op tys mark
   | A.EDefault { excepts; just; cons } ->
-    let inner_ty = unionfind (TAny (Any.fresh ())) in
-    unify ctx e (unionfind (TDefault inner_ty)) tau;
-    let cons' =
-      typecheck_expr_top_down ~leave_unresolved ctx env inner_ty cons
-    in
+    let cons' = typecheck_expr_top_down ~leave_unresolved ctx env tau cons in
     let just' =
       typecheck_expr_top_down ~leave_unresolved ctx env
         (unionfind ~pos:just (TLit TBool))
@@ -919,7 +915,14 @@ and typecheck_expr_top_down :
     let excepts' =
       List.map (typecheck_expr_top_down ~leave_unresolved ctx env tau) excepts
     in
-    Expr.edefault excepts' just' cons' context_mark
+    Expr.edefault ~excepts:excepts' ~just:just' ~cons:cons' context_mark
+  | A.EPureDefault e1 ->
+    let inner_ty = unionfind ~pos:e1 (TAny (Any.fresh ())) in
+    let mark =
+      mark_with_tau_and_unify (unionfind ~pos:e1 (TDefault inner_ty))
+    in
+    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env inner_ty e1 in
+    Expr.epuredefault e1' mark
   | A.EIfThenElse { cond; etrue = et; efalse = ef } ->
     let et' = typecheck_expr_top_down ~leave_unresolved ctx env tau et in
     let ef' = typecheck_expr_top_down ~leave_unresolved ctx env tau ef in

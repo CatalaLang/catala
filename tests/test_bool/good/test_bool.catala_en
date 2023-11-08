@@ -19,16 +19,14 @@ let TestBool : TestBool_in → TestBool =
   let bar : unit → ⟨integer⟩ = TestBool_in.bar_in in
   let bar1 : integer =
     error_empty
-      ⟨ bar ()
-      | true ⊢ error_empty ⟨ ⟨true ⊢ 1⟩ | false ⊢ error_empty ∅ ⟩ ⟩
+      ⟨ bar () | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
   let foo1 : bool =
     error_empty
       ⟨ foo ()
       | true
-        ⊢ error_empty
-            ⟨ ⟨bar1 >= 0 ⊢ true⟩, ⟨bar1 < 0 ⊢ false⟩
-            | false ⊢ error_empty ∅ ⟩ ⟩
+        ⊢ ⟨error_empty
+             ⟨ ⟨bar1 >= 0 ⊢ ⟨true⟩⟩, ⟨bar1 < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
   { TestBool foo = foo1; bar = bar1; }
 in
@@ -52,10 +50,9 @@ struct TestBool = {
 let scope TestBool (foo: ⟨bool⟩|context|output) (bar: ⟨integer⟩|context|
   output) =
   let bar : integer = reentrant or by default
-    error_empty ⟨ ⟨true ⊢ 1⟩ | false ⊢ error_empty ∅ ⟩;
+    error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
   let foo : bool = reentrant or by default
-    error_empty
-      ⟨ ⟨bar >= 0 ⊢ true⟩, ⟨bar < 0 ⊢ false⟩ | false ⊢ error_empty ∅ ⟩
+    error_empty ⟨ ⟨bar >= 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s TestBool --avoid_exceptions --optimize

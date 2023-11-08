@@ -56,6 +56,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
       m
   | EDefault { excepts; just; cons } ->
     translate_default excepts just cons (Mark.get e)
+  | EPureDefault e -> translate_expr e
   | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
   | ( ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _ | EIfThenElse _
     | ETuple _ | ETupleAccess _ | EInj _ | EAssert _ | EStruct _
