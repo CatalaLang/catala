@@ -293,7 +293,6 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
-  (* let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in *)
   let default a = lazy (UnionFind.make (TDefault (Lazy.force a), pos)) in
   let ( @-> ) x y =
     lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))

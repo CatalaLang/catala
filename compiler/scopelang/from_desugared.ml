@@ -421,15 +421,22 @@ let rec rule_tree_to_expr
   let default_containing_base_cases =
     Expr.edefault
       ~excepts:
-        (List.map2
-           (fun base_just base_cons ->
-             Expr.make_default []
-               (* Here we insert the logging command that records when a
-                  decision is taken for the value of a variable. *)
-               (tag_with_log_entry base_just PosRecordIfTrueBool [])
-               base_cons)
+        (List.fold_right2
+           (fun base_just base_cons acc ->
+             match Expr.unbox base_just with
+             | ELit (LBool false), _ -> acc
+             | _ ->
+               Expr.edefault
+                 ~excepts:[]
+                   (* Here we insert the logging command that records when a
+                      decision is taken for the value of a variable. *)
+                 ~just:(tag_with_log_entry base_just PosRecordIfTrueBool [])
+                 ~cons:(Expr.epuredefault base_cons emark)
+                 emark
+               :: acc)
            (translate_and_unbox_list base_just_list)
-           (translate_and_unbox_list base_cons_list))
+           (translate_and_unbox_list base_cons_list)
+           [])
       ~just:(Expr.elit (LBool false) emark)
       ~cons:(Expr.eemptyerror emark) emark
   in

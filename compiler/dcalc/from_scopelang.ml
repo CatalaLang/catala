@@ -910,8 +910,6 @@ let translate_rule
                 scope_let_pos;
                 scope_let_typ;
                 scope_let_expr =
-                  (* To ensure that we throw an error if the value is not
-                     defined, we add an check "ErrorOnEmpty" here. *)
                   Mark.add
                     (Expr.map_ty (fun _ -> scope_let_typ) (Mark.get e))
                     (EAssert new_e);

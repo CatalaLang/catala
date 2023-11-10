@@ -978,10 +978,6 @@ let make_puredefault e =
   in
   epuredefault e mark
 
-let make_default excepts just cons =
-  let cons = make_puredefault cons in
-  edefault ~excepts ~just ~cons (Mark.get cons)
-
 let make_tuple el m0 =
   match el with
   | [] -> etuple [] (with_ty m0 (TTuple [], mark_pos m0))
