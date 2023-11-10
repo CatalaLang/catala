@@ -32,7 +32,7 @@ let is_empty_error : type a. (a, 'm) gexpr -> bool =
     [EEmptyError], else it apply [f] on not-empty term [e]. *)
 let propagate_empty_error :
     type a. (a, 'm) gexpr -> ((a, 'm) gexpr -> (a, 'm) gexpr) -> (a, 'm) gexpr =
- fun e f -> match e with (EEmptyError, _) as e -> e | e -> f e
+ fun e f -> (* match e with (EEmptyError, _) as e -> e | e -> *) f e
 
 (** [e' = propagate_empty_error_list elist f] return [EEmptyError] if one lement
     of [es] is [EEmptyError], else it apply [f] on not-empty term list [elist]. *)
@@ -576,6 +576,7 @@ let rec evaluate_expr :
   | EApp { f = e1; args } -> (
     let e1 = evaluate_expr ctx lang e1 in
     let args = List.map (evaluate_expr ctx lang) args in
+    assert (not (is_empty_error e1));
     propagate_empty_error e1
     @@ fun e1 ->
     match Mark.remove e1 with
@@ -898,6 +899,11 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
               (Bindlib.box EEmptyError, Expr.with_ty mark_e ty_out)
               ty_in (Expr.mark_pos mark_e)
+          | TDefault _ -> Expr.eemptyerror mark_e
+            (* Expr.make_abs
+             *   (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+             *   (Bindlib.box EEmptyError, Expr.with_ty mark_e ty_out)
+             *   ty_in (Expr.mark_pos mark_e) *)
           | _ ->
             Message.raise_spanned_error (Mark.get ty)
               "This scope needs input arguments to be executed. But the Catala \

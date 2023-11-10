@@ -956,15 +956,15 @@ let make_erroronempty e =
   in
   eerroronempty e mark
 
-let thunk_term term mark =
-  let silent = Var.make "_" in
-  let pos = mark_pos mark in
-  make_abs [| silent |] term [TLit TUnit, pos] pos
+let thunk_term term _mark = term
+  (* let silent = Var.make "_" in
+   * let pos = mark_pos mark in
+   * make_abs [| silent |] term [TLit TUnit, pos] pos *)
 
 let empty_thunked_term mark = thunk_term (Bindlib.box EEmptyError, mark) mark
 
-let unthunk_term_nobox term mark =
-  Mark.add mark (EApp { f = term; args = [ELit LUnit, mark] })
+let unthunk_term_nobox term _mark = term
+  (* Mark.add mark (EApp { f = term; args = [ELit LUnit, mark] }) *)
 
 let make_let_in x tau e1 e2 mpos =
   make_app (make_abs [| x |] e2 [tau] mpos) [e1] (pos e2)

@@ -127,13 +127,13 @@ let merge_defaults
     (* should not happen because there should always be a lambda at the
        beginning of a default with a function type *)
   else
-    let caller =
-      let m = Mark.get caller in
-      let pos = Expr.mark_pos m in
-      Expr.make_app caller
-        [Expr.elit LUnit (Expr.with_ty m (Mark.add pos (TLit TUnit)))]
-        pos
-    in
+    (* let caller =
+     *   let m = Mark.get caller in
+     *   let pos = Expr.mark_pos m in
+     *   Expr.make_app caller
+     *     [Expr.elit LUnit (Expr.with_ty m (Mark.add pos (TLit TUnit)))]
+     *     pos
+     * in *)
     let body =
       let m = Mark.get callee in
       let ltrue =
@@ -201,30 +201,30 @@ let collapse_similar_outcomes (type m) (excepts : m Scopelang.Ast.expr list) :
   in
   excepts
 
-let input_var_needs_thunking typ io_in =
+let input_var_needs_thunking _typ _io_in = false
   (* For "context" (or reentrant) variables, we thunk them as [(fun () -> e)] so
-     that we can put them in default terms at the initialisation of the function
-     body, allowing an empty error to recover the default value. *)
-  match Mark.remove io_in.Desugared.Ast.io_input, typ with
-  | Runtime.Reentrant, TArrow _ ->
-    false (* we don't need to thunk expressions that are already functions *)
-  | Runtime.Reentrant, _ -> true
-  | _ -> false
+   *    that we can put them in default terms at the initialisation of the function
+   *    body, allowing an empty error to recover the default value. *\)
+   * match Mark.remove io_in.Desugared.Ast.io_input, typ with
+   * | Runtime.Reentrant, TArrow _ ->
+   *   false (\* we don't need to thunk expressions that are already functions *\)
+   * | Runtime.Reentrant, _ -> true
+   * | _ -> false *)
 
-let input_var_typ typ io_in =
-  let pos = Mark.get io_in.Desugared.Ast.io_input in
-  if input_var_needs_thunking typ io_in then
-    TArrow ([TLit TUnit, pos], (typ, pos)), pos
-  else typ, pos
+let input_var_typ typ io_in = typ, Mark.get io_in.Desugared.Ast.io_input
+  (* let pos = Mark.get io_in.Desugared.Ast.io_input in
+   * if input_var_needs_thunking typ io_in then
+   *   TArrow ([TLit TUnit, pos], (typ, pos)), pos
+   * else typ, pos *)
 
-let thunk_scope_arg var_ctx e =
-  match var_ctx.scope_input_io, var_ctx.scope_input_thunked with
-  | (Runtime.NoInput, _), _ -> invalid_arg "thunk_scope_arg"
-  | (Runtime.OnlyInput, _), false -> e
-  | (Runtime.Reentrant, _), false -> e
-  | (Runtime.Reentrant, pos), true ->
-    Expr.make_abs [| Var.make "_" |] e [TLit TUnit, pos] pos
-  | _ -> assert false
+let thunk_scope_arg _var_ctx e = e
+  (* match var_ctx.scope_input_io, var_ctx.scope_input_thunked with
+   * | (Runtime.NoInput, _), _ -> invalid_arg "thunk_scope_arg"
+   * | (Runtime.OnlyInput, _), false -> e
+   * | (Runtime.Reentrant, _), false -> e
+   * | (Runtime.Reentrant, pos), true ->
+   *   Expr.make_abs [| Var.make "_" |] e [TLit TUnit, pos] pos
+   * | _ -> assert false *)
 
 let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     'm Ast.expr boxed =
@@ -267,21 +267,18 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         (fun var_name (str_field : scope_input_var_ctx option) expr ->
           match str_field, expr with
           | None, None -> assert false
-          | Some ({ scope_input_io = Reentrant, iopos; _ } as var_ctx), None ->
+          | Some ({ scope_input_io = Reentrant, pos; _ } as var_ctx), None ->
             let ty0 =
               match var_ctx.scope_input_typ with
-              | TArrow ([_], ty) -> ty
+              | TArrow ([_], (TDefault _, _ as ty)) -> ty
+              | (TDefault _ as ty) -> ty, pos
               | _ -> assert false
               (* reentrant field must be thunked with correct function type at
                  this point *)
             in
             Some
               ( var_ctx.scope_input_name,
-                Expr.make_abs
-                  [| Var.make "_" |]
-                  (Expr.eemptyerror (Expr.with_ty m ty0))
-                  [TAny, iopos]
-                  pos )
+                Expr.eemptyerror (Expr.with_ty m ty0) )
           | Some var_ctx, Some e ->
             Some
               ( var_ctx.scope_input_name,
