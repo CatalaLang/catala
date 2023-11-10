@@ -389,6 +389,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         ((None, Expr.mark_pos m)
         :: List.map (fun (e, _) -> None, Expr.pos e) excs)
         "Conflicting exceptions")
+  | EPureDefault e, _ -> lazy_eval ctx env llevel e
   | EIfThenElse { cond; etrue; efalse }, _ -> (
     match eval_to_value env cond with
     | (ELit (LBool true), _), _ ->
