@@ -110,6 +110,9 @@ val ( -.- ) : t -> string -> t
 (** Extension replacement: chops the given filename extension, and replaces it
     with the given one (which shouldn't contain a dot) *)
 
+val path_to_list : t -> string list
+(** Empty elements or current-directory (".") are skipped in the resulting list *)
+
 val equal : t -> t -> bool
 (** Case-insensitive string comparison (no file resolution whatsoever) *)
 
@@ -123,10 +126,14 @@ val format : Format.formatter -> t -> unit
 module Set : Set.S with type elt = t
 module Map : Map.S with type key = t
 
-val scan_tree : (t -> 'a option) -> t -> 'a Seq.t
+val scan_tree : (t -> 'a option) -> t -> (t * t list * 'a list) Seq.t
 (** Recursively scans a directory for files. Directories or files matching ".*"
     or "_*" are ignored. Unreadable files or subdirectories are ignored with a
-    debug message. If [t] is a plain file, scan just that non-recursively. *)
+    debug message. If [t] is a plain file, scan just that non-recursively.
+
+    The matching results are returned grouped by directory, case-insensitively
+    ordered by filename, as a list of non-empty subdirs and a list of extracted
+    items. *)
 
 module Tree : sig
   (** A lazy tree structure mirroring the filesystem ; uses the comparison from

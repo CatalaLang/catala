@@ -135,9 +135,7 @@ let check_exec t =
       "Could not find the @{<yellow>%s@} program, please fix your installation"
       (Filename.quote t)
 
-let ( / ) a b =
-  if a = "" || a = Filename.current_dir_name then b else Filename.concat a b
-
+let ( / ) a b = if a = Filename.current_dir_name then b else Filename.concat a b
 let dirname = Filename.dirname
 let ( /../ ) a b = dirname a / b
 let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
@@ -180,16 +178,30 @@ let scan_tree f t =
     |> Array.to_list
     |> List.filter not_hidden
     |> List.map (fun t -> d / t)
-    |> do_files
-  and do_files flist =
+    |> do_files d
+  and do_files d flist =
     let dirs, files =
       flist |> List.sort (fun a b -> -compare a b) |> List.partition is_dir
     in
-    Seq.append
-      (Seq.concat (Seq.map do_dir (List.to_seq dirs)))
-      (Seq.filter_map f (List.to_seq files))
+    let rec gather_subdirs subdirs_list_acc subdirs_seq () =
+      match subdirs_seq () with
+      | Seq.Nil -> (
+        match List.rev subdirs_list_acc, List.filter_map f files with
+        | [], [] -> Seq.Nil
+        | sdirs, items -> Seq.return (d, sdirs, items) ())
+      | Seq.Cons (subdir_name, subdir_next) -> (
+        match do_dir subdir_name () with
+        | Seq.Nil -> gather_subdirs subdirs_list_acc subdir_next ()
+        | Seq.Cons (sd0, sds) ->
+          Seq.Cons
+            ( sd0,
+              Seq.append sds
+                (gather_subdirs (subdir_name :: subdirs_list_acc) subdir_next)
+            ))
+    in
+    gather_subdirs [] (List.to_seq dirs)
   in
-  do_files [t]
+  if is_dir t then do_dir t else Seq.return (dirname t, [], Option.to_list (f t))
 
 module Tree = struct
   type path = t

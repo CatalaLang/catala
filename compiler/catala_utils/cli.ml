@@ -113,10 +113,6 @@ let file_lang filename =
          @{<yellow>%s@}, and @{<bold>--language@} was not specified"
         filename)
 
-(** If [to_dir] is a path to a given directory and [f] a path to a file as seen
-    from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path
-    leading to [f] from [to_dir]. The results attempts to be relative to
-    [to_dir]. *)
 let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
   if Filename.is_relative from_dir then invalid_arg "File.with_reverse_path"
   else if not (Filename.is_relative f) then f

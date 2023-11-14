@@ -123,6 +123,8 @@ val unformat : (Format.formatter -> unit) -> string
 (** Converts [f] to a string, discarding formatting and skipping newlines and
     indents *)
 
+val has_color : out_channel -> bool
+
 (* {1 More general color-enabled formatting helpers}*)
 
 val formatter_of_out_channel : out_channel -> Format.formatter

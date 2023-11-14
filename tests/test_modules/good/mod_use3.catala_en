@@ -1,0 +1,28 @@
+> Using Mod_def
+> Using Mod_middle
+
+Somehow there is a bug when multiple modules are declared in this order, so this
+test completes mod_use2
+
+```catala
+declaration scope T:
+  t1 scope Mod_middle.S
+#  input i content Enum1
+  output o1 content Mod_def.S
+  output o2 content money
+  output o3 content money
+
+scope T:
+  definition t1.x equals 3
+  definition o1 equals t1.o1
+  definition o2 equals t1.o2
+  definition o3 equals t1.o3
+```
+
+```catala-test-inline
+$ catala interpret -s T
+[RESULT] Computation successful! Results:
+[RESULT] o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }
+[RESULT] o2 = $2,500.00
+[RESULT] o3 = $132.00
+```
