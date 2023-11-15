@@ -1,6 +1,7 @@
 (* This file is part of the Catala compiler, a specification language for tax
    and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
-   Louis Gesbert <louis.gesbert@inria.fr>
+   Denis Merigoux <denis.merigoux@inria.fr>, Alain Delaët
+   <alain.delaet--tixeuil@inria.Fr>, Louis Gesbert <louis.gesbert@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -14,17 +15,14 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-include Definitions
-module Var = Var
-module Qident = Qident
-module Type = Type
-module Operator = Operator
-module Expr = Expr
-module Scope = Scope
-module Program = Program
-module Print = Print
-module Typing = Typing
-module Interpreter = Interpreter
-module Optimizations = Optimizations
-module Concolic = Concolic
+(** Reference interpreter for the default calculus *)
+
+open Catala_utils
+open Definitions
+
+val interpret_program_concolic :
+  (dcalc, 'm) gexpr program ->
+  ScopeName.t ->
+  (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
+(** Concolic interpreter *)
 
