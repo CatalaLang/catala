@@ -29,6 +29,29 @@ module A = Ast
     The typing translation is to simply trnsform defult type into option types. *)
 
 let translate_var : 'm D.expr Var.t -> 'm A.expr Var.t = Var.translate
+let translate_var : 'm D.expr Var.t -> 'm A.expr Var.t = Var.translate
+
+let rec translate_typ (tau : typ) : typ =
+  Mark.copy tau
+    begin
+      match Mark.remove tau with
+      | TDefault t -> TOption (translate_typ t)
+      | TLit l -> TLit l
+      | TTuple ts -> TTuple (List.map translate_typ ts)
+      | TStruct s -> TStruct s
+      | TEnum en -> TEnum en
+      | TOption _ ->
+        Message.raise_internal_error
+          "The types option should not appear before the dcalc -> lcalc \
+           translation step."
+      | TClosureEnv ->
+        Message.raise_internal_error
+          "The types closure_env should not appear before the dcalc -> lcalc \
+           translation step."
+      | TAny -> TAny
+      | TArray ts -> TArray (translate_typ ts)
+      | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
+    end
 
 let rec translate_default
     (exceptions : 'm D.expr list)
