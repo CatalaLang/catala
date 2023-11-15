@@ -25,5 +25,5 @@ $ catala Interpret -s Caller
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Caller --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] y = ESome 1
+[RESULT] y = 1
 ```

@@ -25,8 +25,8 @@ $ catala Interpret -s TestXor
 ```catala-test-inline
 $ catala Interpret_Lcalc -s TestXor --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] f_xor_f = ESome false
-[RESULT] f_xor_t = ESome true
-[RESULT] t_xor_f = ESome true
-[RESULT] t_xor_t = ESome false
+[RESULT] f_xor_f = false
+[RESULT] f_xor_t = true
+[RESULT] t_xor_f = true
+[RESULT] t_xor_t = false
 ```
