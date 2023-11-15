@@ -1,6 +1,6 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2020-2023 Inria,
-   contributor: Alain Delaët-Tixeuil <alain.delaet--tixeuil@inria.fr>
+   and social benefits computation rules. Copyright (C) 2020 Inria, contributor:
+   Alain Delaët-Tixeuil <alain.delaet--tixeuil@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
    use this file except in compliance with the License. You may obtain a copy of
@@ -28,7 +28,6 @@ module A = Ast
 
     The typing translation is to simply trnsform defult type into option types. *)
 
-let translate_var : 'm D.expr Var.t -> 'm A.expr Var.t = Var.translate
 let translate_var : 'm D.expr Var.t -> 'm A.expr Var.t = Var.translate
 
 let rec translate_typ (tau : typ) : typ =
@@ -58,19 +57,20 @@ let rec translate_default
     (just : 'm D.expr)
     (cons : 'm D.expr)
     (mark_default : 'm mark) : 'm A.expr boxed =
-  let exceptions =
-    List.map
-      (fun except -> Expr.thunk_term (translate_expr except) (Mark.get except))
-      exceptions
-  in
+  (* Since the program is well typed, all exceptions have as type [option 't] *)
+  let exceptions = List.map translate_expr exceptions in
   let pos = Expr.mark_pos mark_default in
   let exceptions =
     Expr.make_app
-      (Expr.eop Op.HandleDefault
+      (Expr.eop Op.HandleDefaultOpt
          [TAny, pos; TAny, pos; TAny, pos]
          (Expr.no_mark mark_default))
       [
         Expr.earray exceptions mark_default;
+        (* In call-by-value programming languages, as lcalc, arguments are
+           evalulated before calling the function. Since we don't want to
+           execute the justification and conclusion while before checking every
+           exceptions, we need to thunk them. *)
         Expr.thunk_term (translate_expr just) (Mark.get just);
         Expr.thunk_term (translate_expr cons) (Mark.get cons);
       ]
@@ -79,22 +79,30 @@ let rec translate_default
   exceptions
 
 and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
-  let m = Mark.get e in
+  let mark = Mark.get e in
   match Mark.remove e with
-  | EEmptyError -> assert false
+  | EEmptyError -> Ast.OptionMonad.empty ~mark
   | EErrorOnEmpty arg ->
-    Expr.ecatch (translate_expr arg) EmptyError
-      (Expr.eraise NoValueProvided m)
-      m
+    Ast.OptionMonad.error_on_empty ~mark ~var_name:"arg" (translate_expr arg)
   | EDefault { excepts; just; cons } ->
     translate_default excepts just cons (Mark.get e)
-  | EPureDefault e -> translate_expr e
-  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
-  | ( ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _ | EIfThenElse _
+  | EPureDefault e -> Ast.OptionMonad.return ~mark (translate_expr e)
+  (* As we need to translate types as well as terms, we cannot simply use
+     [Expr.map] for terms that contains types. *)
+  | EOp { op; tys } ->
+    Expr.eop (Operator.translate op) (List.map translate_typ tys) mark
+  | EAbs { binder; tys } ->
+    let vars, body = Bindlib.unmbind binder in
+    let body = translate_expr body in
+    let binder = Expr.bind (Array.map Var.translate vars) body in
+    let tys = List.map translate_typ tys in
+    Expr.eabs binder tys mark
+  | ( ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EIfThenElse _
     | ETuple _ | ETupleAccess _ | EInj _ | EAssert _ | EStruct _
     | EStructAccess _ | EMatch _ ) as e ->
-    Expr.map ~f:translate_expr (Mark.add m e)
+    Expr.map ~f:translate_expr (Mark.add mark e)
   | _ -> .
 
-let translate_program (prg : 'm D.program) : 'm A.program =
-  Bindlib.unbox (Program.map_exprs ~f:translate_expr ~varf:translate_var prg)
+let translate_program (prg : typed D.program) : untyped A.program =
+  Program.untype
+  @@ Bindlib.unbox (Program.map_exprs ~f:translate_expr ~varf:translate_var prg)

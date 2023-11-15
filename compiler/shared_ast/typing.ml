@@ -293,6 +293,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
+  let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
   let default a = lazy (UnionFind.make (TDefault (Lazy.force a), pos)) in
   let ( @-> ) x y =
     lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
@@ -311,15 +312,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | HandleDefault ->
       [array ([ut] @-> default any); [ut] @-> bt; [ut] @-> any] @-> default any
     | HandleDefaultOpt ->
-      (* FIXME: when translating with avoid_exceptions, defaults morally become
-         options everywhere. However, this is not reflected in the environment
-         at the moment, so this operator may have to mix-and-match options and
-         default terms ; since the typing of default is expected to guide a
-         simplification of the avoid-exceptions backend anyway, this is left
-         untyped at the moment *)
-      any
-    (* [array (option any); [ut] @-> option bt; [ut] @-> option any]
-     * @-> option any *)
+      [array (option any); [ut] @-> bt; [ut] @-> option any] @-> option any
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in
