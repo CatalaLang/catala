@@ -221,7 +221,7 @@ $ catala Interpret -s Exemple1 --disable_warnings
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] éligible = ESome vrai
+[RESULT] éligible = vrai
 ```
 
 
@@ -234,7 +234,7 @@ $ catala Interpret -s Exemple2 --disable_warnings
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple2 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] éligible = ESome AllocationLogementFamiliale ()
+[RESULT] éligible = AllocationLogementFamiliale ()
 ```
 
 
@@ -247,7 +247,7 @@ $ catala Interpret -s Exemple3 --disable_warnings
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple3 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] éligible = ESome AllocationLogementFamiliale ()
+[RESULT] éligible = AllocationLogementFamiliale ()
 ```
 
 ```catala-test-inline
