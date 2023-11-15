@@ -555,21 +555,21 @@ def s(s_in:SIn):
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] a = ESome 1,946.574,4
-[RESULT] b = ESome A { -- y: ESome true -- z: ESome 2,091.0 }
+[RESULT] a = 1,946.574,4
+[RESULT] b = A { -- y: true -- z: 2,091.0 }
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S2 --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] a = ESome 154.0
+[RESULT] a = 154.0
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S3 --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] a = ESome 2,480.0
+[RESULT] a = 2,480.0
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S4 --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] a = ESome 6,001.0
+[RESULT] a = 6,001.0
 ```

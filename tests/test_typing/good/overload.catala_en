@@ -70,10 +70,10 @@ $ catala Interpret -s S
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] o_b = ESome true
-[RESULT] o_d = ESome [-13 days]
-[RESULT] o_i = ESome -5
-[RESULT] o_m = ESome $-5.75
-[RESULT] o_t = ESome 2022-01-24
-[RESULT] o_x = ESome 0.142,857,142,857,142,857,14…
+[RESULT] o_b = true
+[RESULT] o_d = [-13 days]
+[RESULT] o_i = -5
+[RESULT] o_m = $-5.75
+[RESULT] o_t = 2022-01-24
+[RESULT] o_x = 0.142,857,142,857,142,857,14…
 ```

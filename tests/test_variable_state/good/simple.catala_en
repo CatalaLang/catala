@@ -28,5 +28,5 @@ $ catala Typecheck
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] foo = ESome 3
+[RESULT] foo = 3
 ```

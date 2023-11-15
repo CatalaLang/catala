@@ -38,13 +38,13 @@ $ catala Interpret -s B
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] x = ESome [ESome 0; ESome 9; ESome 64]
+[RESULT] x = [0; 9; 64]
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] v = ESome 3
-[RESULT] w = ESome true
-[RESULT] y = ESome true
-[RESULT] z = ESome false
+[RESULT] v = 3
+[RESULT] w = true
+[RESULT] y = true
+[RESULT] z = false
 ```

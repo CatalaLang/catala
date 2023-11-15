@@ -27,6 +27,6 @@ $ catala Interpret -s Titi
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Titi --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] fizz = ESome Toto { -- foo: ESome 1,213 }
-[RESULT] fuzz = ESome Toto { -- foo: ESome 1,323 }
+[RESULT] fizz = Toto { -- foo: 1,213 }
+[RESULT] fuzz = Toto { -- foo: 1,323 }
 ```
