@@ -306,7 +306,7 @@ val handle_default :
 val handle_default_opt :
   source_position ->
   'a eoption array ->
-  (unit -> bool eoption) ->
+  (unit -> bool) ->
   (unit -> 'a eoption) ->
   'a eoption
 (** @raise ConflictError *)

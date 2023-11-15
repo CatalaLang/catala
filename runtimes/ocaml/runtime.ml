@@ -592,7 +592,7 @@ let handle_default :
 let handle_default_opt
     (pos : source_position)
     (exceptions : 'a eoption array)
-    (just : unit -> bool eoption)
+    (just : unit -> bool)
     (cons : unit -> 'a eoption) : 'a eoption =
   let except =
     Array.fold_left
@@ -605,10 +605,7 @@ let handle_default_opt
   in
   match except with
   | ESome _ -> except
-  | ENone _ -> (
-    match just () with
-    | ESome b -> if b then cons () else ENone ()
-    | ENone _ -> ENone ())
+  | ENone _ -> (if just () then cons () else ENone ())
 
 let no_input : unit -> 'a = fun _ -> raise EmptyError
 
