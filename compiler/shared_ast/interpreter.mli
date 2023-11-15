@@ -60,9 +60,10 @@ val interpret_program_lcalc :
     the computed values for the scope variables of the executed scope. *)
 
 val addcustom :
-  (('a, 'b, 'c) interpr_kind, 't) gexpr -> (('a, 'b, yes) interpr_kind, 't) gexpr
+  (('a, 'b, 'c) interpr_kind, 't) gexpr ->
+  (('a, 'b, yes) interpr_kind, 't) gexpr
 (** Typing shenanigan to add custom terms to the AST type. This is an identity
-   and could be optimised into [Obj.magic]. *)
+    and could be optimised into [Obj.magic]. *)
 
 val delcustom :
   (('a, 'b, 'c) interpr_kind, 'm) gexpr -> (('a, 'b, no) interpr_kind, 'm) gexpr

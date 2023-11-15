@@ -26,5 +26,3 @@ module Print = Print
 module Typing = Typing
 module Interpreter = Interpreter
 module Optimizations = Optimizations
-module Concolic = Concolic
-

@@ -18,11 +18,10 @@
 (** Reference interpreter for the default calculus *)
 
 open Catala_utils
-open Definitions
+open Shared_ast
 
 val interpret_program_concolic :
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
   (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
 (** Concolic interpreter *)
-

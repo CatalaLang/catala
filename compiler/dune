@@ -11,7 +11,8 @@
   lcalc
   scalc
   catala.runtime_ocaml
-  verification)
+  verification
+  concolic)
  (modules plugin driver))
 
 (executable

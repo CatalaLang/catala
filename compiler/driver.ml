@@ -636,14 +636,13 @@ module Commands = struct
       Passes.dcalc options ~includes ~optimize ~check_invariants
     in
     Interpreter.load_runtime_modules prg;
-    print_interpretation_results options Concolic.interpret_program_concolic prg
+    print_interpretation_results options
+      Concolic.Interpreter.interpret_program_concolic prg
       (get_scope_uid ctx ex_scope)
 
   let concolic_cmd =
     Cmd.v
-      (Cmd.info "concolic"
-         ~doc:
-           "Runs the concolic interpreter")
+      (Cmd.info "concolic" ~doc:"Runs the concolic interpreter")
       Term.(
         const interpret_concolic
         $ Cli.Flags.Global.options
@@ -651,7 +650,6 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.ex_scope)
-
 
   let lcalc
       options

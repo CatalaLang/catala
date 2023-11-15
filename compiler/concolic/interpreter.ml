@@ -19,18 +19,15 @@
 (** Concolic interpreter for the default calculus *)
 
 open Catala_utils
-open Definitions
-(* open Op *)
-open Interpreter
-(* module Runtime = Runtime_ocaml.Runtime *)
-
+open Shared_ast
+module Concrete = Shared_ast.Interpreter
 
 (* For now, this is only a copy of the dcalc interpreter *)
-let interpret_program_concolic p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
-    =
+let interpret_program_concolic p s :
+    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
   let ctx = p.decl_ctx in
   let e = Expr.unbox (Program.to_expr p s) in
-  match evaluate_expr p.decl_ctx p.lang (addcustom e) with
+  match Concrete.evaluate_expr p.decl_ctx p.lang (Concrete.addcustom e) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
@@ -61,7 +58,9 @@ let interpret_program_concolic p s : (Uid.MarkedString.info * ('a, 'm) gexpr) li
         [Expr.estruct ~name:s_in ~fields:application_term mark_e]
         (Expr.pos e)
     in
-    match Mark.remove (evaluate_expr ctx p.lang (Expr.unbox to_interpret)) with
+    match
+      Mark.remove (Concrete.evaluate_expr ctx p.lang (Expr.unbox to_interpret))
+    with
     | EStruct { fields; _ } ->
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
@@ -75,4 +74,3 @@ let interpret_program_concolic p s : (Uid.MarkedString.info * ('a, 'm) gexpr) li
     Message.raise_spanned_error (Expr.pos e)
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
-
