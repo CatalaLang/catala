@@ -838,17 +838,20 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       StructField.Map.map
         (fun ty ->
           match Mark.remove ty with
-          | TOption _ ->
-            (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
-               ~name:Expr.option_enum mark_e
-              : (_, _) boxed_gexpr)
+          | TArrow (ty_in, (TOption _, _)) ->
+            Expr.make_abs
+              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+              (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
+                 ~name:Expr.option_enum mark_e
+                : (_, _) boxed_gexpr)
+              ty_in (Expr.mark_pos mark_e)
           | _ ->
             Message.raise_spanned_error (Mark.get ty)
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
                Please create another scope that provides the input arguments \
-               to this one and execute it instead. ")
+               to this one and execute it instead.")
         taus
     in
     let to_interpret =
