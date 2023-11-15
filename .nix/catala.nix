@@ -26,6 +26,7 @@
 , ocaml-crunch
 , cohttp-lwt-unix
 , ocolor
+, dune-build-info
 }:
 
 buildDunePackage {
@@ -64,6 +65,7 @@ buildDunePackage {
     zarith_stubs_js
     cohttp-lwt-unix
     ocolor
+    dune-build-info
   ];
 
   # Currently there is no unit tests in catala and Cram tests are handled by clerk
