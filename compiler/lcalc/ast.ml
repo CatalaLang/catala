@@ -122,5 +122,5 @@ module OptionMonad = struct
         ]
     in
     if toplevel then Expr.ematch ~e:arg ~name:Expr.option_enum ~cases mark
-    else return ~mark (Expr.ematch ~e:arg ~name:Expr.option_enum ~cases mark)
+    else Expr.ematch ~e:arg ~name:Expr.option_enum ~cases mark
 end
