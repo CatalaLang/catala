@@ -353,21 +353,16 @@ let rec evaluate_operator
     in
     match valid_exceptions with
     | [] -> (
-      match
-        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox justification m))
-      with
-      | EInj { name; cons; e = ELit (LBool true), _ }
-        when EnumName.equal name Expr.option_enum
-             && EnumConstructor.equal cons Expr.some_constr ->
+      let e = evaluate_expr (Expr.unthunk_term_nobox justification m) in
+      match Mark.remove e with
+      | ELit (LBool true) ->
         Mark.remove (evaluate_expr (Expr.unthunk_term_nobox conclusion m))
-      | EInj { name; cons; e = (ELit (LBool false), _) as e }
-        when EnumName.equal name Expr.option_enum
-             && EnumConstructor.equal cons Expr.some_constr ->
+      | ELit (LBool false) ->
         EInj
           {
             name = Expr.option_enum;
             cons = Expr.none_constr;
-            e = Mark.copy e (ELit LUnit);
+            e = Mark.copy justification (ELit LUnit);
           }
       | EInj { name; cons; e }
         when EnumName.equal name Expr.option_enum
