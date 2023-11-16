@@ -25,7 +25,9 @@ type decimal = Q.t
 type date = Dates_calc.Dates.date
 type date_rounding = Dates_calc.Dates.date_rounding
 type duration = Dates_calc.Dates.period
-type 'a eoption = ENone of unit | ESome of 'a
+module Eoption = struct
+  type 'a t = ENone of unit | ESome of 'a
+end
 type io_input = NoInput | OnlyInput | Reentrant [@@deriving yojson_of]
 type io_log = { io_input : io_input; io_output : bool } [@@deriving yojson_of]
 
@@ -591,21 +593,21 @@ let handle_default :
 
 let handle_default_opt
     (pos : source_position)
-    (exceptions : 'a eoption array)
+    (exceptions : 'a Eoption.t array)
     (just : unit -> bool)
-    (cons : unit -> 'a eoption) : 'a eoption =
+    (cons : unit -> 'a Eoption.t) : 'a Eoption.t =
   let except =
     Array.fold_left
       (fun acc except ->
         match acc, except with
-        | ENone _, _ -> except
-        | ESome _, ENone _ -> acc
-        | ESome _, ESome _ -> raise (ConflictError pos))
-      (ENone ()) exceptions
+        | Eoption.ENone _, _ -> except
+        | Eoption.ESome _, Eoption.ENone _ -> acc
+        | Eoption.ESome _, Eoption.ESome _ -> raise (ConflictError pos))
+      (Eoption.ENone ()) exceptions
   in
   match except with
-  | ESome _ -> except
-  | ENone _ -> (if just () then cons () else ENone ())
+  | Eoption.ESome _ -> except
+  | Eoption.ENone _ -> (if just () then cons () else Eoption.ENone ())
 
 let no_input : unit -> 'a = fun _ -> raise EmptyError
 

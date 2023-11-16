@@ -40,7 +40,9 @@ type source_position = {
   law_headings : string list;
 }
 
-type 'a eoption = ENone of unit | ESome of 'a
+module Eoption : sig
+  type 'a t = ENone of unit | ESome of 'a
+end
 
 (** This type characterizes the three levels of visibility for a given scope
     variable with regards to the scope's input and possible redefinitions inside
@@ -305,10 +307,10 @@ val handle_default :
 
 val handle_default_opt :
   source_position ->
-  'a eoption array ->
+  'a Eoption.t array ->
   (unit -> bool) ->
-  (unit -> 'a eoption) ->
-  'a eoption
+  (unit -> 'a Eoption.t) ->
+  'a Eoption.t
 (** @raise ConflictError *)
 
 val no_input : unit -> 'a
