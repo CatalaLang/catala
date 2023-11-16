@@ -13,50 +13,76 @@ scope S:
 
 ```catala-test-inline
 $ catala Lcalc --avoid_exceptions -O --closure_conversion
-type eoption =  | ENone of unit  | ESome of any 
 
-type S_in = { x_in: eoption bool; }
 
-type S = { z: eoption integer; }
+type S_in = { x_in: bool; }
+
+type S = { z: integer; }
  
-let topval closure_f : (closure_env, integer) → eoption any =
-  λ (env: closure_env) (y: integer) →
-  ESome
+let topval closure_f : (closure_env, integer) → any =
+  λ (env_171: closure_env) (y_172: integer) →
+  match
+    (handle_default_opt
+       [  ]
+       (λ (__192: unit) → true)
+       (λ (__193: unit) →
+        ESome if (from_closure_env env_171).0 then y_172 else -! y_172))
+    with
+  | ENone __194 → raise NoValueProvided
+  | ESome arg_195 → arg_195 
+let scope S (S_in_197: S_in): S =
+  let get x_198 : any = S_in_197.x_in in
+  let set f_200 : any = (closure_f_170, to_closure_env (x_198)) in
+  let set z_202 : any =
     match
       (handle_default_opt
          [  ]
-         (λ (_: unit) → ESome true)
+         (λ (__203: unit) → true)
+         (λ (__204: unit) →
+          ESome
+            let code_and_env_209 : any = f_200 in
+            code_and_env_209.0 code_and_env_209.1 -1))
+      with
+    | ENone __213 → raise NoValueProvided
+    | ESome arg_214 → arg_214
+  in
+  return { S z = z_202; } 
+
+
+type S_in = { x_in: bool; }
+
+type S = { z: integer; }
+ 
+let topval closure_f : (closure_env, integer) → integer =
+  λ (env: closure_env) (y: integer) →
+  match
+    (handle_default_opt
+       [  ]
+       (λ (_: unit) → true)
+       (λ (_: unit) → ESome if (from_closure_env env).0 then y else - y))
+    with
+  | ENone _ → raise NoValueProvided
+  | ESome arg → arg 
+let scope S (S_in: S_in {x_in: bool}): S {z: integer} =
+  let get x : bool = S_in.x_in in
+  let set f : ((closure_env, integer) → integer * closure_env) =
+    (closure_f, to_closure_env (x))
+  in
+  let set z : integer =
+    match
+      (handle_default_opt
+         [  ]
+         (λ (_: unit) → true)
          (λ (_: unit) →
-          match (from_closure_env env).0 with
-          | ENone _1 → ENone _1
-          | ESome x → if x then ESome y else ESome - y))
+          ESome
+            let code_and_env :
+                ((closure_env, integer) → integer * closure_env) =
+              f
+            in
+            code_and_env.0 code_and_env.1 -1))
       with
     | ENone _ → raise NoValueProvided
-    | ESome f → f 
-let scope S (S_in: S_in {x_in: eoption bool}): S {z: eoption integer} =
-  let get x : eoption bool = S_in.x_in in
-  let set f : eoption ((closure_env, integer) → eoption any * closure_env)
-      =
-    ESome (closure_f, to_closure_env (x))
-  in
-  let set z : eoption integer =
-    ESome
-      match
-        (handle_default_opt
-           [  ]
-           (λ (_: unit) → ESome true)
-           (λ (_: unit) →
-            match f with
-            | ENone _1 → ENone _1
-            | ESome f →
-              let code_and_env :
-                  ((closure_env, integer) → eoption any * closure_env) =
-                f
-              in
-              code_and_env.0 code_and_env.1 -1))
-        with
-      | ENone _ → raise NoValueProvided
-      | ESome z → z
+    | ESome arg → arg
   in
   return { S z = z; } 
 
