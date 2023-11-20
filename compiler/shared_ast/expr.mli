@@ -134,7 +134,7 @@ val estructaccess :
   field:StructField.t ->
   e:('a, 'm) boxed_gexpr ->
   'm mark ->
-  ((< resolvedNames : yes ; .. > as 'a), 'm) boxed_gexpr
+  ('a any, 'm) boxed_gexpr
 
 val einj :
   name:EnumName.t ->

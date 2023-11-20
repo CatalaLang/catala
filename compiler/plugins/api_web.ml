@@ -439,7 +439,7 @@ let run
     options =
   if not options.Cli.trace then
     Message.raise_error "This plugin requires the --trace flag.";
-  let prg, _, type_ordering =
+  let prg, type_ordering =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
   in

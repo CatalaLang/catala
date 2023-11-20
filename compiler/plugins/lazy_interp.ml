@@ -259,12 +259,12 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
 (* -- Plugin registration -- *)
 
 let run includes optimize check_invariants ex_scope options =
-  let prg, ctx, _ =
+  let prg, _ =
     Driver.Passes.dcalc options ~includes ~optimize ~check_invariants
       ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg;
-  let scope = Driver.Commands.get_scope_uid ctx ex_scope in
+  let scope = Driver.Commands.get_scope_uid prg.decl_ctx ex_scope in
   let result_expr, _env = interpret_program prg scope in
   let fmt = Format.std_formatter in
   Expr.format fmt result_expr

@@ -29,66 +29,86 @@ let modname_of_file f =
 let load_module_interfaces options includes program =
   (* Recurse into program modules, looking up files in [using] and loading
      them *)
+  if program.Surface.Ast.program_used_modules <> [] then
+    Message.emit_debug "Loading module interfaces...";
   let includes =
     includes
     |> List.map (fun d -> File.Tree.build (options.Cli.path_rewrite d))
     |> List.fold_left File.Tree.union File.Tree.empty
   in
   let err_req_pos chain =
-    List.map (fun m -> Some "Module required from", ModuleName.pos m) chain
+    List.map (fun mpos -> Some "Module required from", mpos) chain
   in
-  let find_module req_chain m =
-    let fname_base = ModuleName.to_string m in
-    let required_from_file = Pos.get_file (ModuleName.pos m) in
+  let find_module req_chain (mname, mpos) =
+    let required_from_file = Pos.get_file mpos in
     let includes =
       File.Tree.union includes
         (File.Tree.build (File.dirname required_from_file))
     in
     match
       List.filter_map
-        (fun (ext, _) -> File.Tree.lookup includes (fname_base ^ ext))
+        (fun (ext, _) -> File.Tree.lookup includes (mname ^ ext))
         extensions
     with
     | [] ->
       Message.raise_multispanned_error
-        (err_req_pos (m :: req_chain))
-        "Required module not found: %a" ModuleName.format m
+        (err_req_pos (mpos :: req_chain))
+        "Required module not found: @{<blue>%s@}" mname
     | [f] -> f
     | ms ->
       Message.raise_multispanned_error
-        (err_req_pos (m :: req_chain))
-        "Required module %a matches multiple files: %a" ModuleName.format m
+        (err_req_pos (mpos :: req_chain))
+        "Required module @{<blue>%s@} matches multiple files:@;<1 2>%a" mname
         (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
         ms
   in
-  let load_file f =
-    let (mname, intf), using =
-      Surface.Parser_driver.load_interface (Cli.FileName f)
-    in
-    (ModuleName.of_string mname, intf), using
+  (* modulename * program * (id -> modulename) *)
+  let rec aux req_chain seen uses =
+    List.fold_left (fun (seen, use_map) use ->
+        let f = find_module req_chain use.Surface.Ast.mod_use_name in
+        match File.Map.find_opt f seen with
+        | Some (Some (modname, _, _)) ->
+          seen,
+          Ident.Map.add
+            (Mark.remove use.Surface.Ast.mod_use_alias) modname use_map
+        | Some None ->
+          Message.raise_multispanned_error
+            (err_req_pos (Mark.get use.Surface.Ast.mod_use_name :: req_chain))
+            "Circular module dependency"
+        | None ->
+          let intf = Surface.Parser_driver.load_interface (Cli.FileName f) in
+          let modname = ModuleName.fresh use.Surface.Ast.mod_use_name in
+          let seen = File.Map.add f None seen in
+          let seen, sub_use_map =
+            aux
+              (Mark.get use.Surface.Ast.mod_use_name :: req_chain)
+              seen
+              intf.Surface.Ast.intf_submodules
+          in
+          File.Map.add f (Some (modname, intf, sub_use_map)) seen,
+          Ident.Map.add
+            (Mark.remove use.Surface.Ast.mod_use_alias) modname use_map)
+      (seen, Ident.Map.empty) uses
   in
-  let rec aux req_chain acc modules =
-    List.fold_left
-      (fun acc mname ->
-        let m = ModuleName.of_string mname in
-        if List.exists (fun (m1, _) -> ModuleName.equal m m1) acc then acc
-        else
-          let f = find_module req_chain m in
-          let (m', intf), using = load_file f in
-          if not (ModuleName.equal m m') then
-            Message.raise_multispanned_error
-              ((Some "Module name declaration", ModuleName.pos m')
-              :: err_req_pos (m :: req_chain))
-              "Mismatching module name declaration:";
-          let acc = (m', intf) :: acc in
-          aux (m :: req_chain) acc using)
-      acc modules
+  let seen =
+    match program.Surface.Ast.program_module_name with
+    | Some m ->
+      let file = Pos.get_file (Mark.get m) in
+      File.Map.singleton file None
+    | None -> File.Map.empty
   in
-  let program_modules =
-    aux [] [] (List.map fst program.Surface.Ast.program_modules)
-    |> List.map (fun (m, i) -> (m : ModuleName.t :> string Mark.pos), i)
+  let file_module_map, root_uses =
+    aux [] seen program.Surface.Ast.program_used_modules
   in
-  { program with Surface.Ast.program_modules }
+  let modules =
+    File.Map.fold
+      (fun _ info acc -> match info with
+         | None -> acc
+         | Some (mname, intf, use_map) ->
+           ModuleName.Map.add mname (intf, use_map) acc)
+      file_module_map ModuleName.Map.empty
+  in
+  root_uses, modules
 
 module Passes = struct
   (* Each pass takes only its cli options, then calls upon its dependent passes
@@ -98,23 +118,20 @@ module Passes = struct
     Message.emit_debug "@{<bold;magenta>=@} @{<bold>%s@} @{<bold;magenta>=@}"
       (String.uppercase_ascii s)
 
-  let surface options ~includes : Surface.Ast.program =
+  let surface options : Surface.Ast.program =
     debug_pass_name "surface";
     let prg =
       Surface.Parser_driver.parse_top_level_file options.Cli.input_src
     in
-    let prg = Surface.Fill_positions.fill_pos_with_legislative_info prg in
-    load_module_interfaces options includes prg
+    Surface.Fill_positions.fill_pos_with_legislative_info prg
 
   let desugared options ~includes :
       Desugared.Ast.program * Desugared.Name_resolution.context =
-    let prg = surface options ~includes in
+    let prg = surface options in
+    let mod_uses, modules = load_module_interfaces options includes prg in
     debug_pass_name "desugared";
     Message.emit_debug "Name resolution...";
-    let ctx = Desugared.Name_resolution.form_context prg in
-    (* let scope_uid = get_scope_uid options backend ctx in
-     * (\* This uid is a Desugared identifier *\)
-     * let variable_uid = get_variable_uid options backend ctx scope_uid in *)
+    let ctx = Desugared.Name_resolution.form_context (prg, mod_uses) modules in
     Message.emit_debug "Desugaring...";
     let prg = Desugared.From_surface.translate_program ctx prg in
     Message.emit_debug "Disambiguating...";
@@ -122,16 +139,10 @@ module Passes = struct
     Message.emit_debug "Linting...";
     Desugared.Linting.lint_program prg;
     prg, ctx
-  (* Note: we forward the name resolution context throughout in order to locate
-     uids from strings. Maybe a reduced form should be included directly in
-     [prg] for that purpose *)
 
   let scopelang options ~includes :
-      untyped Scopelang.Ast.program
-      * Desugared.Name_resolution.context
-      * Desugared.Dependency.ExceptionsDependencies.t
-        Desugared.Ast.ScopeDef.Map.t =
-    let prg, ctx = desugared options ~includes in
+      untyped Scopelang.Ast.program =
+    let prg, _ = desugared options ~includes in
     debug_pass_name "scopelang";
     let exceptions_graphs =
       Scopelang.From_desugared.build_exceptions_graph prg
@@ -139,7 +150,7 @@ module Passes = struct
     let prg =
       Scopelang.From_desugared.translate_program prg exceptions_graphs
     in
-    prg, ctx, exceptions_graphs
+    prg
 
   let dcalc :
       type ty.
@@ -149,10 +160,9 @@ module Passes = struct
       check_invariants:bool ->
       typed:ty mark ->
       ty Dcalc.Ast.program
-      * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
    fun options ~includes ~optimize ~check_invariants ~typed ->
-    let prg, ctx, _ = scopelang options ~includes in
+    let prg = scopelang options ~includes in
     debug_pass_name "dcalc";
     let type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
@@ -199,7 +209,7 @@ module Passes = struct
             (Message.raise_internal_error "Some Dcalc invariants are invalid")
       | _ ->
         Message.raise_error "--check_invariants cannot be used with --no-typing");
-    prg, ctx, type_ordering
+    prg, type_ordering
 
   let lcalc
       (type ty)
@@ -211,9 +221,8 @@ module Passes = struct
       ~avoid_exceptions
       ~closure_conversion :
       untyped Lcalc.Ast.program
-      * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
-    let prg, ctx, type_ordering =
+    let prg, type_ordering =
       dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     debug_pass_name "lcalc";
@@ -265,7 +274,7 @@ module Passes = struct
           prg
         | Custom _ -> assert false)
     in
-    prg, ctx, type_ordering
+    prg, type_ordering
 
   let scalc
       options
@@ -275,42 +284,34 @@ module Passes = struct
       ~avoid_exceptions
       ~closure_conversion :
       Scalc.Ast.program
-      * Desugared.Name_resolution.context
       * Scopelang.Dependency.TVertex.t list =
-    let prg, ctx, type_ordering =
+    let prg, type_ordering =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
         ~avoid_exceptions ~closure_conversion
     in
     debug_pass_name "scalc";
-    Scalc.From_lcalc.translate_program prg, ctx, type_ordering
+    Scalc.From_lcalc.translate_program prg, type_ordering
 end
 
 module Commands = struct
   open Cmdliner
 
-  let get_scope_uid (ctxt : Desugared.Name_resolution.context) (scope : string)
-      =
-    match Ident.Map.find_opt scope ctxt.typedefs with
-    | Some (Desugared.Name_resolution.TScope (uid, _)) -> uid
-    | _ ->
+  let get_scope_uid (ctx: decl_ctx) (scope : string): ScopeName.t
+    =
+    if String.contains scope '.' then
+      Message.raise_error "Only references to the top-level module are allowed";
+    try Ident.Map.find scope ctx.ctx_scope_index with
+    | Ident.Map.Not_found _ ->
       Message.raise_error
         "There is no scope @{<yellow>\"%s\"@} inside the program." scope
 
   (* TODO: this is very weird but I'm trying to maintain the current behaviour
      for now *)
-  let get_random_scope_uid (ctxt : Desugared.Name_resolution.context) =
-    let _, scope =
-      try
-        Shared_ast.Ident.Map.filter_map
-          (fun _ -> function
-            | Desugared.Name_resolution.TScope (uid, _) -> Some uid
-            | _ -> None)
-          ctxt.typedefs
-        |> Shared_ast.Ident.Map.choose
-      with Not_found ->
-        Message.raise_error "There isn't any scope inside the program."
-    in
-    scope
+  let get_random_scope_uid (ctx: decl_ctx): ScopeName.t =
+    match Ident.Map.choose_opt ctx.ctx_scope_index with
+    | Some (_, name) -> name
+    | None ->
+      Message.raise_error "There isn't any scope inside the program."
 
   let get_variable_uid
       (ctxt : Desugared.Name_resolution.context)
@@ -333,7 +334,7 @@ module Commands = struct
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
         variable ScopeName.format scope_uid
     | Some
-        (Desugared.Name_resolution.SubScope (subscope_var_name, subscope_name))
+        (SubScope (subscope_var_name, subscope_name))
       -> (
       match second_part with
       | None ->
@@ -353,7 +354,7 @@ module Commands = struct
           Ident.Map.find_opt second_part
             (ScopeName.Map.find subscope_name ctxt.scopes).var_idmap
         with
-        | Some (Desugared.Name_resolution.ScopeVar v) ->
+        | Some (ScopeVar v) ->
           Desugared.Ast.ScopeDef.SubScopeVar (subscope_var_name, v, Pos.no_pos)
         | _ ->
           Message.raise_error
@@ -362,7 +363,7 @@ module Commands = struct
              arguments."
             second_part SubScopeName.format subscope_var_name ScopeName.format
             scope_uid))
-    | Some (Desugared.Name_resolution.ScopeVar v) ->
+    | Some (ScopeVar v) ->
       Desugared.Ast.ScopeDef.Var
         ( v,
           Option.map
@@ -389,7 +390,7 @@ module Commands = struct
       ~output_file ?ext ()
 
   let makefile options output =
-    let prg = Passes.surface options ~includes:[] in
+    let prg = Passes.surface options in
     let backend_extensions_list = [".tex"] in
     let source_file = Cli.input_src_file options.Cli.input_src in
     let output_file, with_output = get_output options ~ext:".d" output in
@@ -415,7 +416,7 @@ module Commands = struct
       Term.(const makefile $ Cli.Flags.Global.options $ Cli.Flags.output)
 
   let html options output print_only_law wrap_weaved_output =
-    let prg = Passes.surface options ~includes:[] in
+    let prg = Passes.surface options in
     Message.emit_debug "Weaving literate program into HTML";
     let output_file, with_output =
       get_output_format options ~ext:".html" output
@@ -444,7 +445,7 @@ module Commands = struct
         $ Cli.Flags.wrap_weaved_output)
 
   let latex options output print_only_law wrap_weaved_output =
-    let prg = Passes.surface options ~includes:[] in
+    let prg = Passes.surface options in
     Message.emit_debug "Weaving literate program into LaTeX";
     let output_file, with_output =
       get_output_format options ~ext:".tex" output
@@ -473,8 +474,12 @@ module Commands = struct
         $ Cli.Flags.wrap_weaved_output)
 
   let exceptions options includes ex_scope ex_variable =
-    let _, ctxt, exceptions_graphs = Passes.scopelang options ~includes in
-    let scope_uid = get_scope_uid ctxt ex_scope in
+    let prg, ctxt = Passes.desugared options ~includes in
+    Passes.debug_pass_name "scopelang";
+    let exceptions_graphs =
+      Scopelang.From_desugared.build_exceptions_graph prg
+    in
+    let scope_uid = get_scope_uid prg.program_ctx ex_scope in
     let variable_uid = get_variable_uid ctxt scope_uid ex_variable in
     Desugared.Print.print_exceptions_graph scope_uid variable_uid
       (Desugared.Ast.ScopeDef.Map.find variable_uid exceptions_graphs)
@@ -496,13 +501,13 @@ module Commands = struct
         $ Cli.Flags.ex_variable)
 
   let scopelang options includes output ex_scope_opt =
-    let prg, ctx, _ = Passes.scopelang options ~includes in
+    let prg = Passes.scopelang options ~includes in
     let _output_file, with_output = get_output_format options output in
     with_output
     @@ fun fmt ->
     match ex_scope_opt with
     | Some scope ->
-      let scope_uid = get_scope_uid ctx scope in
+      let scope_uid = get_scope_uid prg.program_ctx scope in
       Scopelang.Print.scope ~debug:options.Cli.debug prg.program_ctx fmt
         (scope_uid, ScopeName.Map.find scope_uid prg.program_scopes);
       Format.pp_print_newline fmt ()
@@ -525,7 +530,7 @@ module Commands = struct
         $ Cli.Flags.ex_scope_opt)
 
   let typecheck options includes =
-    let prg, _, _ = Passes.scopelang options ~includes in
+    let prg = Passes.scopelang options ~includes in
     Message.emit_debug "Typechecking...";
     let _type_ordering =
       Scopelang.Dependency.check_type_cycles prg.program_ctx.ctx_structs
@@ -547,7 +552,7 @@ module Commands = struct
 
   let dcalc typed options includes output optimize ex_scope_opt check_invariants
       =
-    let prg, ctx, _ =
+    let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     let _output_file, with_output = get_output_format options output in
@@ -555,7 +560,7 @@ module Commands = struct
     @@ fun fmt ->
     match ex_scope_opt with
     | Some scope ->
-      let scope_uid = get_scope_uid ctx scope in
+      let scope_uid = get_scope_uid prg.decl_ctx scope in
       Print.scope ~debug:options.Cli.debug prg.decl_ctx fmt
         ( scope_uid,
           Option.get
@@ -568,7 +573,7 @@ module Commands = struct
                prg.code_items) );
       Format.pp_print_newline fmt ()
     | None ->
-      let scope_uid = get_random_scope_uid ctx in
+      let scope_uid = get_random_scope_uid prg.decl_ctx in
       (* TODO: ??? *)
       let prg_dcalc_expr = Expr.unbox (Program.to_expr prg scope_uid) in
       Format.fprintf fmt "%a\n"
@@ -602,14 +607,14 @@ module Commands = struct
       ex_scope_opt
       check_invariants
       disable_counterexamples =
-    let prg, ctx, _ =
+    let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants
         ~typed:Expr.typed
     in
     Verification.Globals.setup ~optimize ~disable_counterexamples;
     let vcs =
       Verification.Conditions.generate_verification_conditions prg
-        (Option.map (get_scope_uid ctx) ex_scope_opt)
+        (Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt)
     in
     Verification.Solver.solve_vc prg.decl_ctx vcs
 
@@ -654,12 +659,12 @@ module Commands = struct
 
   let interpret_dcalc typed options includes optimize check_invariants ex_scope
       =
-    let prg, ctx, _ =
+    let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
-      (get_scope_uid ctx ex_scope)
+      (get_scope_uid prg.decl_ctx ex_scope)
 
   let interpret_cmd =
     let f no_typing =
@@ -691,7 +696,7 @@ module Commands = struct
       avoid_exceptions
       closure_conversion
       ex_scope_opt =
-    let prg, ctx, _ =
+    let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion ~typed
     in
@@ -700,7 +705,7 @@ module Commands = struct
     @@ fun fmt ->
     match ex_scope_opt with
     | Some scope ->
-      let scope_uid = get_scope_uid ctx scope in
+      let scope_uid = get_scope_uid prg.decl_ctx scope in
       Print.scope ~debug:options.Cli.debug prg.decl_ctx fmt
         (scope_uid, Program.get_scope_body prg scope_uid);
       Format.pp_print_newline fmt ()
@@ -739,13 +744,13 @@ module Commands = struct
       avoid_exceptions
       closure_conversion
       ex_scope =
-    let prg, ctx, _ =
+    let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion ~typed
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
-      (get_scope_uid ctx ex_scope)
+      (get_scope_uid prg.decl_ctx ex_scope)
 
   let interpret_lcalc_cmd =
     let f no_typing =
@@ -777,7 +782,7 @@ module Commands = struct
       check_invariants
       avoid_exceptions
       closure_conversion =
-    let prg, _, type_ordering =
+    let prg, type_ordering =
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
     in
@@ -814,7 +819,7 @@ module Commands = struct
       avoid_exceptions
       closure_conversion
       ex_scope_opt =
-    let prg, ctx, _ =
+    let prg, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
     in
@@ -823,7 +828,7 @@ module Commands = struct
     @@ fun fmt ->
     match ex_scope_opt with
     | Some scope ->
-      let scope_uid = get_scope_uid ctx scope in
+      let scope_uid = get_scope_uid prg.decl_ctx scope in
       Scalc.Print.format_item ~debug:options.Cli.debug prg.decl_ctx fmt
         (List.find
            (function
@@ -860,7 +865,7 @@ module Commands = struct
       check_invariants
       avoid_exceptions
       closure_conversion =
-    let prg, _, type_ordering =
+    let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion
     in
@@ -889,7 +894,7 @@ module Commands = struct
         $ Cli.Flags.closure_conversion)
 
   let r options includes output optimize check_invariants closure_conversion =
-    let prg, _, type_ordering =
+    let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions:false ~closure_conversion
     in

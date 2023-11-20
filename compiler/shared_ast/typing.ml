@@ -343,7 +343,6 @@ module Env = struct
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     scopes_input : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     toplevel_vars : A.typ A.TopdefName.Map.t;
-    modules : 'e t A.ModuleName.Map.t;
   }
 
   let empty (decl_ctx : A.decl_ctx) =
@@ -363,7 +362,6 @@ module Env = struct
       scopes = A.ScopeName.Map.empty;
       scopes_input = A.ScopeName.Map.empty;
       toplevel_vars = A.TopdefName.Map.empty;
-      modules = A.ModuleName.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
@@ -373,9 +371,6 @@ module Env = struct
   let get_subscope_out_var t scope var =
     Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
         A.ScopeVar.Map.find_opt var vmap)
-
-  let module_env path env =
-    List.fold_left (fun env m -> A.ModuleName.Map.find m env.modules) env path
 
   let add v tau t = { t with vars = Var.Map.add v tau t.vars }
   let add_var v typ t = add v (ast_to_typ typ) t
@@ -393,19 +388,15 @@ module Env = struct
   let add_toplevel_var v typ t =
     { t with toplevel_vars = A.TopdefName.Map.add v typ t.toplevel_vars }
 
-  let add_module modname ~module_env t =
-    { t with modules = A.ModuleName.Map.add modname module_env t.modules }
-
   let open_scope scope_name t =
     let scope_vars =
-      A.ScopeVar.Map.union
-        (fun _ _ -> assert false)
+      A.ScopeVar.Map.disjoint_union
         t.scope_vars
         (A.ScopeName.Map.find scope_name t.scopes)
     in
     { t with scope_vars }
 
-  let rec dump ppf env =
+  let dump ppf env =
     let pp_sep = Format.pp_print_space in
     Format.pp_open_vbox ppf 0;
     (* Format.fprintf ppf "structs: @[<hov>%a@]@,"
@@ -420,9 +411,6 @@ module Env = struct
     Format.fprintf ppf "topdefs: @[<hov>%a@]@,"
       (A.TopdefName.Map.format_keys ~pp_sep)
       env.toplevel_vars;
-    Format.fprintf ppf "@[<hv 2>modules:@ %a@]"
-      (A.ModuleName.Map.format dump)
-      env.modules;
     Format.pp_close_box ppf ()
 end
 
@@ -480,10 +468,8 @@ and typecheck_expr_top_down :
       | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name } ->
         Env.get_scope_var env (Mark.remove name)
       | SubScopeVar { scope; var; _ } ->
-        let env = Env.module_env (A.ScopeName.path scope) env in
         Env.get_subscope_out_var env scope (Mark.remove var)
       | ToplevelVar { name } ->
-        let env = Env.module_env (A.TopdefName.path (Mark.remove name)) env in
         Env.get_toplevel_var env (Mark.remove name)
     in
     let ty =
@@ -558,42 +544,39 @@ and typecheck_expr_top_down :
           "This is not a structure, cannot access field %s (%a)" field
           (format_typ ctx) (ty e_struct')
     in
-    let fld_ty =
-      let str =
-        try A.StructName.Map.find name env.structs
-        with A.StructName.Map.Not_found _ ->
-          Message.raise_spanned_error pos_e "No structure %a found"
-            A.StructName.format name
-      in
-      let field =
-        let ctx = Program.module_ctx ctx (A.StructName.path name) in
-        let candidate_structs =
-          try A.Ident.Map.find field ctx.ctx_struct_fields
-          with A.Ident.Map.Not_found _ ->
-            Message.raise_spanned_error
-              (Expr.mark_pos context_mark)
-              "Field @{<yellow>\"%s\"@} does not belong to structure \
-               @{<yellow>\"%a\"@} (no structure defines it)"
-              field A.StructName.format name
-        in
-        try A.StructName.Map.find name candidate_structs
-        with A.StructName.Map.Not_found _ ->
+    let str =
+      try A.StructName.Map.find name env.structs
+      with A.StructName.Map.Not_found _ ->
+        Message.raise_spanned_error pos_e "No structure %a found"
+          A.StructName.format name
+    in
+    let field =
+      let candidate_structs =
+        try A.Ident.Map.find field ctx.ctx_struct_fields
+        with A.Ident.Map.Not_found _ ->
           Message.raise_spanned_error
             (Expr.mark_pos context_mark)
-            "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
-             @{<yellow>\"%a\"@},@ but to %a@]"
+            "Field @{<yellow>\"%s\"@} does not belong to structure \
+             @{<yellow>\"%a\"@} (no structure defines it)"
             field A.StructName.format name
-            (Format.pp_print_list
-               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
-               (fun fmt s_name ->
-                 Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format
-                   s_name))
-            (A.StructName.Map.keys candidate_structs)
       in
-      A.StructField.Map.find field str
+      try A.StructName.Map.find name candidate_structs
+      with A.StructName.Map.Not_found _ ->
+        Message.raise_spanned_error
+          (Expr.mark_pos context_mark)
+          "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
+           @{<yellow>\"%a\"@},@ but to %a@]"
+          field A.StructName.format name
+          (Format.pp_print_list
+             ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
+             (fun fmt s_name ->
+                Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format
+                  s_name))
+          (A.StructName.Map.keys candidate_structs)
     in
+    let fld_ty = A.StructField.Map.find field str in
     let mark = mark_with_tau_and_unify fld_ty in
-    Expr.edstructaccess ~e:e_struct' ~name_opt:(Some name) ~field mark
+    Expr.estructaccess ~name ~e:e_struct' ~field mark
   | A.EStructAccess { e = e_struct; name; field } ->
     let fld_ty =
       let str =
@@ -692,16 +675,11 @@ and typecheck_expr_top_down :
     in
     Expr.ematch ~e:e1' ~name ~cases mark
   | A.EScopeCall { scope; args } ->
-    let path = A.ScopeName.path scope in
     let scope_out_struct =
-      let ctx = Program.module_ctx ctx path in
       (A.ScopeName.Map.find scope ctx.ctx_scopes).out_struct_name
     in
     let mark = mark_with_tau_and_unify (unionfind (TStruct scope_out_struct)) in
-    let vars =
-      let env = Env.module_env path env in
-      A.ScopeName.Map.find scope env.scopes_input
-    in
+    let vars = A.ScopeName.Map.find scope env.scopes_input in
     let args' =
       A.ScopeVar.Map.mapi
         (fun name ->
@@ -730,12 +708,6 @@ and typecheck_expr_top_down :
     in
     Expr.evar (Var.translate v) (mark_with_tau_and_unify tau')
   | A.EExternal { name } ->
-    let path =
-      match Mark.remove name with
-      | External_value td -> A.TopdefName.path td
-      | External_scope s -> A.ScopeName.path s
-    in
-    let ctx = Program.module_ctx ctx path in
     let ty =
       let not_found pr x =
         Message.raise_spanned_error pos_e

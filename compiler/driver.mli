@@ -25,7 +25,8 @@ val main : unit -> unit
     Each pass takes only its cli options, then calls upon its dependent passes
     (forwarding their options as needed) *)
 module Passes : sig
-  val surface : Cli.options -> includes:Cli.raw_file list -> Surface.Ast.program
+
+  val surface : Cli.options -> Surface.Ast.program
 
   val desugared :
     Cli.options ->
@@ -36,8 +37,6 @@ module Passes : sig
     Cli.options ->
     includes:Cli.raw_file list ->
     Shared_ast.untyped Scopelang.Ast.program
-    * Desugared.Name_resolution.context
-    * Desugared.Dependency.ExceptionsDependencies.t Desugared.Ast.ScopeDef.Map.t
 
   val dcalc :
     Cli.options ->
@@ -46,7 +45,6 @@ module Passes : sig
     check_invariants:bool ->
     typed:'m Shared_ast.mark ->
     'm Dcalc.Ast.program
-    * Desugared.Name_resolution.context
     * Scopelang.Dependency.TVertex.t list
 
   val lcalc :
@@ -58,7 +56,6 @@ module Passes : sig
     avoid_exceptions:bool ->
     closure_conversion:bool ->
     Shared_ast.untyped Lcalc.Ast.program
-    * Desugared.Name_resolution.context
     * Scopelang.Dependency.TVertex.t list
 
   val scalc :
@@ -69,7 +66,6 @@ module Passes : sig
     avoid_exceptions:bool ->
     closure_conversion:bool ->
     Scalc.Ast.program
-    * Desugared.Name_resolution.context
     * Scopelang.Dependency.TVertex.t list
 end
 
@@ -90,7 +86,7 @@ module Commands : sig
     string option * ((Format.formatter -> 'a) -> 'a)
 
   val get_scope_uid :
-    Desugared.Name_resolution.context -> string -> Shared_ast.ScopeName.t
+    Shared_ast.decl_ctx -> string -> Shared_ast.ScopeName.t
 
   val get_variable_uid :
     Desugared.Name_resolution.context ->

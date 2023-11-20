@@ -32,6 +32,7 @@ module type Id = sig
   val compare : t -> t -> int
   val equal : t -> t -> bool
   val format : Format.formatter -> t -> unit
+  val to_string : t -> string
   val hash : t -> int
 
   module Set : Set.S with type elt = t
@@ -68,6 +69,8 @@ module Make (X : Info) (S : Style) () : Id with type info = X.info = struct
   let get_info (uid : t) : X.info = uid.info
   let hash (x : t) : int = x.id
 
+  let to_string t = X.to_string t.info
+
   module Set = Set.Make (Ordering)
   module Map = Map.Make (Ordering)
 end
@@ -87,27 +90,12 @@ module Gen (S : Style) () = Make (MarkedString) (S) ()
 
 (* - Modules, paths and qualified idents - *)
 
-module Module = struct
-  module Ordering = struct
-    type t = string Mark.pos
-
-    let equal = Mark.equal String.equal
-    let compare = Mark.compare String.compare
-    let format ppf m = Format.fprintf ppf "@{<blue>%s@}" (Mark.remove m)
-  end
-
-  include Ordering
-
-  let to_string m = Mark.remove m
-  let of_string m = m
-  let pos m = Mark.get m
-
-  module Set = Set.Make (Ordering)
-  module Map = Map.Make (Ordering)
-end
-(* TODO: should probably be turned into an uid once we implement module import
-   directives; that will incur an additional resolution work on all paths though
-   ([module Module = Gen ()]) *)
+module Module =
+  Gen
+    (struct
+      let style = Ocolor_types.(Fg (C4 blue))
+    end)
+    ()
 
 module Path = struct
   type t = Module.t list

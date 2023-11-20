@@ -248,10 +248,8 @@ let rec parse_source (lexbuf : Sedlexing.lexbuf) : Ast.program =
   let commands = localised_parser language lexbuf in
   let program = expand_includes source_file_name commands in
   {
-    program_module_name = program.Ast.program_module_name;
-    program_items = program.Ast.program_items;
+    program with
     program_source_files = source_file_name :: program.Ast.program_source_files;
-    program_modules = program.program_modules;
     program_lang = language;
   }
 
@@ -278,10 +276,12 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
             Ast.program_module_name = join_module_names (Some id);
             Ast.program_items = command :: acc.Ast.program_items;
           }
-        | Ast.ModuleUse (id, _alias) ->
+        | Ast.ModuleUse (mod_use_name, alias) ->
+          let mod_use_alias = Option.value ~default:mod_use_name alias in
           {
             acc with
-            Ast.program_modules = (id, []) :: acc.Ast.program_modules;
+            Ast.program_used_modules = { mod_use_name; mod_use_alias }
+                                       :: acc.Ast.program_used_modules;
             Ast.program_items = command :: acc.Ast.program_items;
           }
         | Ast.LawInclude (Ast.CatalaFile inc_file) ->
@@ -301,8 +301,8 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
                  ]
                  "A file that declares a module cannot be used through the raw \
                   '@{<yellow>> Include@}' directive. You should use it as a \
-                  module with '@{<yellow>> Use %a@}' instead."
-                 Uid.Module.format (Uid.Module.of_string id)
+                  module with '@{<yellow>> Use @{<blue>%s@}@}' instead."
+                 (Mark.remove id)
           in
           {
             Ast.program_module_name = acc.program_module_name;
@@ -311,9 +311,9 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
                 acc.Ast.program_source_files;
             Ast.program_items =
               List.rev_append includ_program.program_items acc.Ast.program_items;
-            Ast.program_modules =
-              List.rev_append includ_program.program_modules
-                acc.Ast.program_modules;
+            Ast.program_used_modules =
+              List.rev_append includ_program.program_used_modules
+                acc.Ast.program_used_modules;
             Ast.program_lang = language;
           }
         | Ast.LawHeading (heading, commands') ->
@@ -321,7 +321,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
             Ast.program_module_name;
             Ast.program_items = commands';
             Ast.program_source_files = new_sources;
-            Ast.program_modules = new_modules;
+            Ast.program_used_modules = new_used_modules;
             Ast.program_lang = _;
           } =
             expand_includes source_file commands'
@@ -332,8 +332,8 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
               List.rev_append new_sources acc.Ast.program_source_files;
             Ast.program_items =
               Ast.LawHeading (heading, commands') :: acc.Ast.program_items;
-            Ast.program_modules =
-              List.rev_append new_modules acc.Ast.program_modules;
+            Ast.program_used_modules =
+              List.rev_append new_used_modules acc.Ast.program_used_modules;
             Ast.program_lang = language;
           }
         | i -> { acc with Ast.program_items = i :: acc.Ast.program_items })
@@ -341,7 +341,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
         Ast.program_module_name = None;
         Ast.program_source_files = [];
         Ast.program_items = [];
-        Ast.program_modules = [];
+        Ast.program_used_modules = [];
         Ast.program_lang = language;
       }
       commands
@@ -351,7 +351,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
     Ast.program_module_name = rprg.Ast.program_module_name;
     Ast.program_source_files = List.rev rprg.Ast.program_source_files;
     Ast.program_items = List.rev rprg.Ast.program_items;
-    Ast.program_modules = List.rev rprg.Ast.program_modules;
+    Ast.program_used_modules = List.rev rprg.Ast.program_used_modules;
   }
 
 (** {2 Handling interfaces} *)
@@ -360,7 +360,9 @@ let get_interface program =
   let rec filter (req, acc) = function
     | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
     | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
-    | Ast.ModuleUse (m, _) -> m :: req, acc
+    | Ast.ModuleUse (mod_use_name, alias) ->
+      { Ast.mod_use_name; mod_use_alias = Option.value ~default:mod_use_name alias }
+      :: req, acc
     | Ast.CodeBlock (code, _, true) ->
       ( req,
         List.fold_left
@@ -394,9 +396,17 @@ let with_sedlex_source source_file f =
 let load_interface source_file =
   let program = with_sedlex_source source_file parse_source in
   let modname =
-    match program.Ast.program_module_name with
-    | Some mname -> mname
-    | None ->
+    match program.Ast.program_module_name, source_file with
+    | Some (mname, pos), Cli.FileName file ->
+      if File.(equal mname Filename.(remove_extension (basename file)))
+      then mname, pos
+      else
+        Message.raise_spanned_error pos
+          "Module declared as @{<blue>%s@}, which does not match the file name %a"
+          mname
+          File.format file
+    | Some mname, _ -> mname
+    | None, _ ->
       Message.raise_error
         "%a doesn't define a module name. It should contain a '@{<cyan>> \
          Module %s@}' directive."
@@ -408,7 +418,9 @@ let load_interface source_file =
         | _ -> "Module_name")
   in
   let used_modules, intf = get_interface program in
-  (modname, intf), used_modules
+  { Ast.intf_modname = modname;
+    Ast.intf_code = intf;
+    Ast.intf_submodules = used_modules; }
 
 let parse_top_level_file (source_file : Cli.input_src) : Ast.program =
   let program = with_sedlex_source source_file parse_source in

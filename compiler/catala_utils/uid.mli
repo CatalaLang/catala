@@ -47,6 +47,7 @@ module type Id = sig
   val compare : t -> t -> int
   val equal : t -> t -> bool
   val format : Format.formatter -> t -> unit
+  val to_string : t -> string
   val hash : t -> int
 
   module Set : Set.S with type elt = t
@@ -62,27 +63,14 @@ end
 (** This is the generative functor that ensures that two modules resulting from
     two different calls to [Make] will be viewed as different types [t] by the
     OCaml typechecker. Prevents mixing up different sorts of identifiers. *)
-module Make (X : Info) (S : Style) () : Id with type info = X.info
+module Make (X : Info) (_ : Style) () : Id with type info = X.info
 
 (** Shortcut for creating a kind of uids over marked strings *)
-module Gen (S : Style) () : Id with type info = MarkedString.info
+module Gen (_ : Style) () : Id with type info = MarkedString.info
 
 (** {2 Handling of Uids with additional path information} *)
 
-module Module : sig
-  type t = private string Mark.pos
-  (* TODO: this will become an uid at some point *)
-
-  val to_string : t -> string
-  val format : Format.formatter -> t -> unit
-  val pos : t -> Pos.t
-  val equal : t -> t -> bool
-  val compare : t -> t -> int
-  val of_string : string * Pos.t -> t
-
-  module Set : Set.S with type elt = t
-  module Map : Map.S with type key = t
-end
+module Module : Id with type info = MarkedString.info
 
 module Path : sig
   type t = Module.t list
@@ -94,7 +82,7 @@ module Path : sig
 end
 
 (** Same as [Gen] but also registers path information *)
-module Gen_qualified (S : Style) () : sig
+module Gen_qualified (_ : Style) () : sig
   include Id with type info = Path.t * MarkedString.info
 
   val fresh : Path.t -> MarkedString.info -> t

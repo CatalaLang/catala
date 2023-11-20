@@ -4,7 +4,7 @@
 declaration scope T:
   t1 scope Mod_middle.S
 #  input i content Enum1
-  output o1 content Mod_def.S
+  output o1 content Mod_middle.Mod_def.S
   output o2 content money
   output o3 content money
 

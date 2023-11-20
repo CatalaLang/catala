@@ -545,6 +545,14 @@ let[@ocamlformat "disable"] static_base_rules =
         "fi";
       ]
       ~description:["<test>"; !output];
+  (* Note: this last rule looks horrible, but the processing is pretty simple:
+     in the rules above, we output the returning code of diffing individual
+     tests to a [<testfile>@test] file, then the rules for directories just
+     concat these files. What this last rule does is then just count the number
+     of `0` and the total number of characters in the file, and print a readable
+     message. Instead of this disgusting shell code embedded in the ninja file,
+     this could be a specialised subcommand of clerk, e.g. `clerk
+     test-diagnostic <results-file@test>` *)
   ]
 
 let gen_build_statements
@@ -641,7 +649,7 @@ let gen_build_statements
                        (if Filename.is_relative d then !Var.builddir / d else d);
                      ])
                    include_dirs
-              @ (List.map (fun m -> m ^".cmx") modules) );
+              @ List.map (fun m -> m ^ ".cmx") modules );
           ]
   in
   let expose_module =
@@ -694,6 +702,7 @@ let gen_build_statements
                 diff; it should actually be an output for the cases when we
                 reset but that shouldn't cause trouble. *)
              Nj.build "post-test" ~inputs:[reference; test_out]
+               ~implicit_in:["always"]
                ~outputs:[reference ^ "@post"]
           :: acc)
         [] item.legacy_tests
@@ -720,7 +729,8 @@ let gen_build_statements
             ~outputs:[inc (srcv ^ "@test")]
             ~inputs:[srcv; inc (srcv ^ "@out")]
             ~implicit_in:
-              (List.map
+              ("always" ::
+               List.map
                  (fun test -> legacy_test_reference test ^ "@post")
                  item.legacy_tests);
           results;
@@ -801,7 +811,8 @@ let gen_ninja_file catala_exe catala_flags build_dir include_dirs dir =
   @+ List.to_seq (base_bindings catala_exe catala_flags build_dir include_dirs)
   @+ Seq.return (Nj.Comment "\n- Base rules - #\n")
   @+ List.to_seq static_base_rules
-  @+ Seq.return (Nj.Comment "- Project-specific build statements - #")
+  @+ Seq.return (Nj.build "phony" ~outputs:["always"])
+  @+ Seq.return (Nj.Comment "\n- Project-specific build statements - #")
   @+ build_statements include_dirs dir
   @+ Seq.return (Nj.build "phony" ~outputs:["test"] ~inputs:[".@test"])
 

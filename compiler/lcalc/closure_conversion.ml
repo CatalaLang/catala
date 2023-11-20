@@ -405,26 +405,20 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
     let replace_fun_typs t =
       if type_contains_arrow t then Mark.copy t TAny else t
     in
-    let rec convert_ctx ctx =
-      {
-        ctx_struct_fields = ctx.ctx_struct_fields;
-        ctx_modules = ModuleName.Map.map convert_ctx ctx.ctx_modules;
-        ctx_structs =
-          StructName.Map.map
-            (StructField.Map.map replace_fun_typs)
-            ctx.ctx_structs;
-        ctx_enums =
-          EnumName.Map.map
-            (EnumConstructor.Map.map replace_fun_typs)
-            ctx.ctx_enums;
-        ctx_scopes = ctx.ctx_scopes;
-        ctx_topdefs = ctx.ctx_topdefs;
-        (* Toplevel definitions may not contain scope calls or take functions as
-           arguments at the moment, which ensures that their interfaces aren't
-           changed by the conversion *)
-      }
-    in
-    convert_ctx p.decl_ctx
+    {
+      p.decl_ctx with
+      ctx_structs =
+        StructName.Map.map
+          (StructField.Map.map replace_fun_typs)
+          p.decl_ctx.ctx_structs;
+      ctx_enums =
+        EnumName.Map.map
+          (EnumConstructor.Map.map replace_fun_typs)
+          p.decl_ctx.ctx_enums;
+      (* Toplevel definitions may not contain scope calls or take functions as
+         arguments at the moment, which ensures that their interfaces aren't
+         changed by the conversion *)
+    }
   in
   Bindlib.box_apply
     (fun new_code_items ->
