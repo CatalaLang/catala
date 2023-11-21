@@ -17,7 +17,7 @@ def generate_random_input() -> CnafSimulatorInput:
         zone = Zone.Zone2
     else:  # zone_i == 3
         zone = Zone.Zone3
-    loyer = random.randint(300, 1800)
+    loyer = random.randint(300, 1000)
     revenus_pris_en_compte = random.randint(0, 200) * 100
     seul_ou_couple_i = random.randint(1, 2)
     if seul_ou_couple_i == 1:
