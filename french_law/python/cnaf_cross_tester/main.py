@@ -1,9 +1,7 @@
-
-
-from cnaf_to_catala import run_catala_by_converting_cnaf_input
-from pupeteer import run_simulator
-from input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, SeulOuCouple, Zone
-from random_input_generator import generate_random_input
+from .random_input_generator import generate_random_input
+from .input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, SeulOuCouple, Zone
+from .pupeteer import run_simulator
+from .cnaf_to_catala import run_catala_by_converting_cnaf_input
 
 # input identical to the JS test of the housing benefits
 sample_input = CnafSimulatorInput(

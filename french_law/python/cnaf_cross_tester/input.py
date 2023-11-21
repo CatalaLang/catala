@@ -1,18 +1,22 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, List, Optional
 
 
 class Logement(ABC):
+    @abstractmethod
     def residence(self) -> str:
         pass
 
+    @abstractmethod
     def typ(self) -> Optional[str]:
         pass
 
+    @abstractmethod
     def meublee(self) -> Optional[bool]:
         pass
 
+    @abstractmethod
     def __str__(self) -> str:
         pass
 

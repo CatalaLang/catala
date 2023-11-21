@@ -1,5 +1,5 @@
 import random
-from input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, Logement, LogementChambre, LogementCrous, LogementCrousType, LogementFoyer, LogementMaisonRetraite, LogementResidenceSocialeFJT, SeulOuCouple, Zone
+from .input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, Logement, LogementChambre, LogementCrous, LogementCrousType, LogementFoyer, LogementMaisonRetraite, LogementResidenceSocialeFJT, SeulOuCouple, Zone
 
 
 def generate_random_child() -> Enfant:

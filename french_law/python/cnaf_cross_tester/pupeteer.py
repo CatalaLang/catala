@@ -2,7 +2,7 @@
 
 from pdb import runeval
 from playwright.sync_api import sync_playwright
-from input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, LogementCrous, SeulOuCouple
+from .input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, LogementCrous, SeulOuCouple
 import re
 
 HOME_PAGE = 'https://wwwd.caf.fr/wps/portal/caffr/aidesetservices/lesservicesenligne/estimervosdroits/lelogement'
@@ -189,17 +189,21 @@ def run_simulator(input: CnafSimulatorInput) -> int:
         page.wait_for_selector("section[id=\"resultat\"]")
 
         # Retrieve the amount
-        result = page.query_selector('text=/\\d+ € par mois/').text_content()
+        result = page.query_selector('text=/\\d+ € par mois/')
         if result is None:
             # Then no benefits!
             housing_benefits = 0
         else:
-            match = re.search("(\\d+) € par mois", result)
-            if match is None:
-                raise RuntimeError
-            housing_benefits = match.group(1)
-            if housing_benefits is None:
-                raise RuntimeError
+            result_text = result.text_content()
+            if result_text is None:
+                housing_benefits = 0
+            else:
+                match = re.search("(\\d+) € par mois", result_text)
+                if match is None:
+                    raise RuntimeError
+                housing_benefits = int(match.group(1))
+                if housing_benefits is None:
+                    raise RuntimeError
 
         browser.close()
-        return int(housing_benefits)
+        return housing_benefits
