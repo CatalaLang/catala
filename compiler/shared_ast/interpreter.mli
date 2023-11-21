@@ -22,6 +22,21 @@ open Definitions
 
 exception CatalaException of except
 
+val is_empty_error : ('a, 'm) gexpr -> bool
+
+val propagate_empty_error :
+  ('a, 'm) gexpr -> (('a, 'm) gexpr -> ('a, 'm) gexpr) -> ('a, 'm) gexpr
+(** [e' = propagate_empty_error e f] return [EEmptyError] if [e] is
+    [EEmptyError], else it apply [f] on not-empty term [e]. *)
+
+val propagate_empty_error_list :
+  (('a, 'a, 'b) base_gexpr * 'b mark) list ->
+  ((('a, 'a, 'b) base_gexpr * 'b mark) list ->
+  ('a, 'a, 'b) base_gexpr * 'b mark) ->
+  ('a, 'a, 'b) base_gexpr * 'b mark
+(** [e' = propagate_empty_error_list elist f] return [EEmptyError] if one lement
+    of [es] is [EEmptyError], else it apply [f] on not-empty term list [elist]. *)
+
 val evaluate_operator :
   ((((_, _, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->
   'a operator ->

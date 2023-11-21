@@ -22,6 +22,396 @@ open Catala_utils
 open Shared_ast
 module Concrete = Shared_ast.Interpreter
 
+type s_expr = Z3.Expr.expr (* TODO use real Z3 expression type here *)
+type _conc_info = { symb_expr : s_expr option; constraints : s_expr list }
+type conc_info = _conc_info custom
+
+type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
+(** A concolic expression is a concrete DCalc expression that carries its
+    symbolic representation and the constraints necessary to compute it. Upon
+    initialization, [symb_expr] is [None], except for inputs whose [symb_expr]
+    is a Z3 symbol constant. Then [symb_expr] is set by evaluation, except for
+    inputs which stay the same *)
+
+(* taken from z3backend but with the right types *)
+(* TODO check if some should be used or removed *)
+type context = {
+  ctx_z3 : Z3.context;
+  (* The Z3 context, used to create symbols and expressions *)
+  ctx_decl : decl_ctx;
+  (* The declaration context from the Catala program, containing information to
+     precisely pretty print Catala expressions *)
+  (* XXX ctx_funcdecl : (typed expr, FuncDecl.func_decl) Var.Map.t; *)
+  (* A map from Catala function names (represented as variables) to Z3 function
+     declarations, used to only define once functions in Z3 queries *)
+  (* XXX ctx_z3vars : (typed expr Var.t * typ) StringMap.t; *)
+  (* A map from strings, corresponding to Z3 symbol names, to the Catala
+     variable they represent. Used when to pretty-print Z3 models when a
+     counterexample is generated *)
+  (* XXX ctx_z3datatypes : Sort.sort EnumName.Map.t; *)
+  (* A map from Catala enumeration names to the corresponding Z3 sort, from
+     which we can retrieve constructors and accessors *)
+  (* XXX ctx_z3matchsubsts : (typed expr, Expr.expr) Var.Map.t; *)
+  (* A map from Catala temporary variables, generated when translating a match,
+     to the corresponding enum accessor call as a Z3 expression *)
+  ctx_z3structs : Z3.Sort.sort StructName.Map.t;
+      (* A map from Catala struct names to the corresponding Z3 sort, from which
+         we can retrieve the constructor and the accessors *)
+      (* XXX ctx_z3unit : Sort.sort * Expr.expr; *)
+      (* A pair containing the Z3 encodings of the unit type, encoded as a tuple
+         of 0 elements, and the unit value *)
+      (* XXX ctx_z3constraints : Expr.expr list; *)
+      (* A list of constraints about the created Z3 expressions accumulated
+         during their initialization, for instance, that the length of an array
+         is an integer which always is greater than 0 *)
+}
+
+(* TODO CONC taken from z3backend *)
+
+(** [add_z3struct] adds the mapping between the Catala struct [s] and the
+    corresponding Z3 datatype [sort] to the context **)
+let add_z3struct (s : StructName.t) (sort : Z3.Sort.sort) (ctx : context) :
+    context =
+  { ctx with ctx_z3structs = StructName.Map.add s sort ctx.ctx_z3structs }
+
+(* TODO CONC taken from z3backend: should I expose it there instead? *)
+let create_z3unit (z3_ctx : Z3.context) : Z3.Sort.sort * Z3.Expr.expr =
+  let unit_sort =
+    Z3.Tuple.mk_sort z3_ctx (Z3.Symbol.mk_string z3_ctx "unit") [] []
+  in
+  let mk_unit = Z3.Tuple.get_mk_decl unit_sort in
+  let unit_val = Z3.Expr.mk_app z3_ctx mk_unit [] in
+  unit_sort, unit_val
+
+(* TODO CONC taken from z3backend *)
+
+(** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal
+    type [t] **)
+let translate_typ_lit (ctx : context) (t : typ_lit) : Z3.Sort.sort =
+  match t with
+  | TBool -> Z3.Boolean.mk_sort ctx.ctx_z3
+  | TUnit -> failwith "TUnit not implemented"
+  | TInt -> Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
+  | TRat -> failwith "TRat not implemented"
+  | TMoney -> failwith "TMoney not implemented"
+  | TDate -> failwith "TDate not implemented"
+  | TDuration -> failwith "TDuration not implemented"
+
+(* TODO CONC taken from z3backend *)
+
+(** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
+let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
+  match t with
+  | TLit t -> ctx, translate_typ_lit ctx t
+  | TStruct name -> find_or_create_struct ctx name
+  | TTuple _ -> failwith "TTuple not implemented"
+  | TEnum _ -> failwith "TEnum not implemented"
+  | TOption _ -> failwith "TOption not implemented"
+  | TArrow _ -> failwith "TArrow not implemented"
+  | TArray _ -> failwith "TArray not implemented"
+  | TAny -> failwith "TAny not implemented"
+  | TClosureEnv -> failwith "TClosureEnv not implemented"
+
+(* TODO CONC taken from z3backend's find_or_create_struct *)
+and find_or_create_struct (ctx : context) (s : StructName.t) :
+    context * Z3.Sort.sort =
+  match StructName.Map.find_opt s ctx.ctx_z3structs with
+  | Some s -> ctx, s
+  | None ->
+    let s_name = Mark.remove (StructName.get_info s) in
+    let fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
+    let z3_fieldnames =
+      List.map
+        (fun f ->
+          Mark.remove (StructField.get_info f) |> Z3.Symbol.mk_string ctx.ctx_z3)
+        (StructField.Map.keys fields)
+    in
+    let ctx, z3_fieldtypes_rev =
+      StructField.Map.fold
+        (fun _ ty (ctx, ftypes) ->
+          let ctx, ftype = translate_typ ctx (Mark.remove ty) in
+          ctx, ftype :: ftypes)
+        fields (ctx, [])
+    in
+    let z3_fieldtypes = List.rev z3_fieldtypes_rev in
+    let z3_sortrefs = List.map (fun _ -> 0) z3_fieldtypes in
+    (* will not be used *)
+    let mk_struct_s = "mk!" ^ s_name in
+    let is_struct_s = "is!" ^ s_name in
+    (* recognizer *)
+    let z3_mk_struct =
+      Z3.Datatype.mk_constructor_s ctx.ctx_z3 mk_struct_s
+        (Z3.Symbol.mk_string ctx.ctx_z3 mk_struct_s)
+        z3_fieldnames
+        (List.map Option.some z3_fieldtypes)
+        z3_sortrefs
+    in
+
+    let z3_struct = Z3.Datatype.mk_sort_s ctx.ctx_z3 s_name [z3_mk_struct] in
+    add_z3struct s z3_struct ctx, z3_struct
+
+(* taken from z3backend, but without the option check *)
+let make_empty_context (decl_ctx : decl_ctx) : context =
+  let z3_cfg = ["model", "true"; "proof", "false"] in
+  let z3_ctx = Z3.mk_context z3_cfg in
+  {
+    ctx_z3 = z3_ctx;
+    ctx_decl = decl_ctx;
+    (*     ctx_funcdecl = Var.Map.empty; *)
+    (*     ctx_z3vars = StringMap.empty; *)
+    (*     ctx_z3datatypes = EnumName.Map.empty; *)
+    (*     ctx_z3matchsubsts = Var.Map.empty; *)
+    ctx_z3structs = StructName.Map.empty;
+    (*     ctx_z3unit = create_z3unit z3_ctx; *)
+    (*     ctx_z3constraints = []; *)
+  }
+
+let init_context (ctx : context) : context =
+  (* create all struct sorts *)
+  let ctx =
+    StructName.Map.fold
+      (fun s _ ctx -> fst (find_or_create_struct ctx s))
+      ctx.ctx_decl.ctx_structs ctx
+  in
+  (* TODO add things when needed *)
+  ctx
+
+let hard_set_conc_info
+    (type m)
+    (symb_expr : s_expr option)
+    (constraints : s_expr list)
+    (x : ('a, m) marked) : ('a, conc_info) marked =
+  let custom = { symb_expr; constraints } in
+  Mark.add
+    (match Mark.get x with
+    | Untyped { pos } -> Custom { pos; custom }
+    | Typed { pos; ty } ->
+      Custom { pos; custom }
+      (* TODO CONC should we keep the type information ? *)
+    | Custom m -> Custom { m with custom })
+    (Mark.remove x)
+
+(** Add the constraints, and safely replace the symbolic expression from former
+    mark *)
+let add_conc_info
+    (former_mark : conc_info mark)
+    (symb_expr : s_expr)
+    (constraints : s_expr list) : 'a -> ('a, conc_info) marked =
+  let (Custom { pos; custom = { symb_expr = s; _ } }) = former_mark in
+  let symb_expr = Some (Option.value s ~default:symb_expr) in
+  Mark.add (Custom { pos; custom = { symb_expr; constraints } })
+
+(** Replace the constraints, and safely replace the symbolic expression *)
+let replace_conc_info
+    (symb_expr : s_expr)
+    (constraints : s_expr list)
+    (x : ('a, conc_info) marked) : ('a, conc_info) marked =
+  let m = Mark.get x in
+  add_conc_info m symb_expr constraints (Mark.remove x)
+
+(* TODO CONC loosely taken from z3backend, could be exposed instead? *)
+let symb_of_lit ctx (l : lit) : s_expr =
+  match l with
+  | LBool b -> Z3.Boolean.mk_val ctx.ctx_z3 b
+  | LInt n ->
+    Z3.Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
+    (* TODO CONC this can technically overflow even though neither [Z] nor Z3
+       integers do, but does the case happen in real use? *)
+  | LRat _ -> failwith "LRat not implemented"
+  | LMoney _ -> failwith "LMoney not implemented"
+  | LUnit -> failwith "LUnit not implemented"
+  | LDate _ -> failwith "LDate not implemented"
+  | LDuration _ -> failwith "LDuration not implemented"
+
+let get_constraints (e : 'c conc_expr) : s_expr list =
+  let (Custom { custom; _ }) = Mark.get e in
+  custom.constraints
+
+(** Get the symbolic expression corresponding to concolic expression [e] This
+    should only be called if the symbolic expression has already been computed,
+    and fails otherwise *)
+let get_symb_expr (e : 'c conc_expr) : s_expr =
+  let (Custom { custom; _ }) = Mark.get e in
+  Option.get custom.symb_expr
+(* TODO use a more explicit exception? this should not happen anyway *)
+
+let gather_constraints (es : 'c conc_expr list) =
+  let constraints = List.map get_constraints es in
+  List.flatten constraints
+
+let make_z3_struct ctx (name : StructName.t) (es : s_expr list) : s_expr =
+  let sort = StructName.Map.find name ctx.ctx_z3structs in
+  let constructor = List.hd (Z3.Datatype.get_constructors sort) in
+  Z3.Expr.mk_app ctx.ctx_z3 constructor es
+
+(* taken from z3backend *)
+let make_z3_struct_access
+    ctx
+    (name : StructName.t)
+    (field : StructField.t)
+    (s : s_expr) : s_expr =
+  let sort = StructName.Map.find name ctx.ctx_z3structs in
+  let fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
+  let accessors = List.hd (Z3.Datatype.get_accessors sort) in
+  let idx_mappings = List.combine (StructField.Map.keys fields) accessors in
+  let _, accessor =
+    List.find (fun (field1, _) -> StructField.equal field field1) idx_mappings
+  in
+  Z3.Expr.mk_app ctx.ctx_z3 accessor [s]
+
+let rec evaluate_expr :
+    context -> Cli.backend_lang -> yes conc_expr -> yes conc_expr =
+ fun ctx lang e ->
+  let m = Mark.get e in
+  let pos = Expr.mark_pos m in
+  match Mark.remove e with
+  | EVar _ ->
+    (* TODO eval *)
+    Message.raise_spanned_error pos
+      "free variable found at evaluation (should not happen if term was \
+       well-typed)"
+  | EExternal _ -> failwith "EExternal not implemented"
+  | EApp { f = e1; args } -> (
+    (* TODO eval *)
+    let e1 = evaluate_expr ctx lang e1 in
+    let c1 = get_constraints e1 in
+    let args = List.map (evaluate_expr ctx lang) args in
+    Concrete.propagate_empty_error e1
+    (* TODO I don't like that "Concrete" has to appear here because this
+       function is not specific to concrete evaluation. maybe let p... =
+       Concrete.p...? *)
+    @@ fun e1 ->
+    match Mark.remove e1 with
+
+    | EAbs { binder; _ } ->
+    (* TODO CONC constraints from evaluating e1 must be added here, but
+       constraints from evaluating the arguments shall be combined adequately
+       by the evaluation of the substituted expression. Otherwise, I think
+       there would be a duplication
+       TODO is this even true? *)
+      if Bindlib.mbinder_arity binder = List.length args then
+        evaluate_expr ctx lang
+          (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
+      else
+        Message.raise_spanned_error pos
+          "wrong function call, expected %d arguments, got %d"
+          (Bindlib.mbinder_arity binder)
+          (List.length args)
+    | EOp _ -> failwith "EApp of EOp not implemented"
+    | ECustom _ -> failwith "EApp of ECustom not implemented"
+    | _ ->
+      Message.raise_spanned_error pos
+        "function has not been reduced to a lambda at evaluation (should not \
+         happen if the term was well-typed")
+  | EAbs { binder; tys } ->
+    Expr.unbox (Expr.eabs (Bindlib.box binder) tys m)
+    (* DONE eval *)
+    (* TODO check if this typing shenanigan is really necessary... *)
+  | ELit l as e ->
+    (* DONE eval *)
+    let symb_expr = symb_of_lit ctx l in
+    add_conc_info m symb_expr [] e
+  | EOp _ -> failwith "EOp not implemented"
+  (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
+  | EStruct { fields = es; name } ->
+    (* DONE eval *)
+    let fields, es = List.split (StructField.Map.bindings es) in
+
+    (* compute all subexpressions *)
+    let es = List.map (evaluate_expr ctx lang) es in
+
+    (* make symbolic expression using the symbolic sub-expressions *)
+    let symb_exprs = List.map get_symb_expr es in
+    let symb_expr = make_z3_struct ctx name symb_exprs in
+
+    (* gather all constraints from sub-expressions *)
+    let constraints = gather_constraints es in
+
+    Concrete.propagate_empty_error_list es
+    @@ fun es ->
+    add_conc_info m symb_expr constraints
+      (EStruct
+         {
+           fields =
+             StructField.Map.of_seq
+               (Seq.zip (List.to_seq fields) (List.to_seq es));
+           name;
+         })
+  | EStructAccess { e; name = s; field } -> (
+    (* DONE eval *)
+    Concrete.propagate_empty_error (evaluate_expr ctx lang e)
+    @@ fun e ->
+    match Mark.remove e with
+    | EStruct { fields = es; name } ->
+      if not (StructName.equal s name) then
+        Message.raise_multispanned_error
+          [None, pos; None, Expr.pos e]
+          "Error during struct access: not the same structs (should not happen \
+           if the term was well-typed)";
+      let concrete_expr =
+        match StructField.Map.find_opt field es with
+        | Some e' -> e'
+        | None ->
+          Message.raise_spanned_error (Expr.pos e)
+            "Invalid field access %a in struct %a (should not happen if the \
+             term was well-typed)"
+            StructField.format field StructName.format s
+      in
+      let symb_expr = make_z3_struct_access ctx s field (get_symb_expr e) in
+      let constraints = get_constraints e in
+      (* TODO CONC is it e or concrete_expr ? *)
+      add_conc_info m symb_expr constraints (Mark.remove concrete_expr)
+    | _ ->
+      Message.raise_spanned_error (Expr.pos e)
+        "The expression %a should be a struct %a but is not (should not happen \
+         if the term was well-typed)"
+        (Print.UserFacing.expr lang)
+        e StructName.format s)
+  | ETuple _ -> failwith "ETuple not implemented"
+  | ETupleAccess _ -> failwith "ETupleAccess not implemented"
+  | EInj _ -> failwith "EInj not implemented"
+  | EMatch _ -> failwith "EMatch not implemented"
+  | EIfThenElse _ -> failwith "EIfThenElse not implemented"
+  | EArray _ -> failwith "EArray not implemented"
+  | EAssert _ -> failwith "EAssert not implemented"
+  | ECustom _ -> failwith "ECustom not implemented"
+  | EEmptyError -> Mark.copy e EEmptyError (* TODO eval *)
+  | EErrorOnEmpty e' -> (
+    (* TODO eval *)
+    match evaluate_expr ctx lang e' with
+    | EEmptyError, _ ->
+      Message.raise_spanned_error (Expr.pos e')
+        "This variable evaluated to an empty term (no rule that defined it \
+         applied in this situation)"
+    | e -> e)
+  | EDefault { excepts; just; cons } -> (
+    (* TODO eval *)
+    let excepts = List.map (evaluate_expr ctx lang) excepts in
+    let empty_count =
+      List.length (List.filter Concrete.is_empty_error excepts)
+    in
+    match List.length excepts - empty_count with
+    | 0 -> (
+      let just = evaluate_expr ctx lang just in
+      match Mark.remove just with
+      | EEmptyError -> Mark.add m EEmptyError
+      | ELit (LBool true) -> evaluate_expr ctx lang cons
+      | ELit (LBool false) -> Mark.copy e EEmptyError
+      | _ ->
+        Message.raise_spanned_error (Expr.pos e)
+          "Default justification has not been reduced to a boolean at \
+           evaluation (should not happen if the term was well-typed")
+    | 1 -> List.find (fun sub -> not (Concrete.is_empty_error sub)) excepts
+    | _ ->
+      Message.raise_multispanned_error
+        (List.map
+           (fun except ->
+             Some "This consequence has a valid justification:", Expr.pos except)
+           (List.filter (fun sub -> not (Concrete.is_empty_error sub)) excepts))
+        "There is a conflict between multiple valid consequences for assigning \
+         the same variable.")
+  | _ -> .
+
 let lit_of_tlit t =
   match t with
   | TBool -> LBool true
