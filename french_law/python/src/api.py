@@ -1,5 +1,5 @@
 from abc import ABC
-from catala.runtime import *
+from catala.runtime import * # type: ignore
 from .allocations_familiales import Collectivite, Collectivite_Code, InterfaceAllocationsFamilialesIn, PriseEnCharge, interface_allocations_familiales, PriseEnCharge_Code, EnfantEntree, InterfaceAllocationsFamilialesIn
 from .aides_logement import AutrePersonneACharge, CategorieEquivalenceLoyerAllocationLogementFoyer, CategorieEquivalenceLoyerAllocationLogementFoyer_Code, ChangementLogementD8424, ChangementLogementD8424_Code, ConventionANHA, ConventionBailleurSocial, EnfantACharge, InfosChangementLogementD8424, Location, Logement, LogementFoyer, LoueOuSousLoueADesTiers, LoueOuSousLoueADesTiers_Code, Menage, ModeOccupation, ModeOccupation_Code, Nationalite, Nationalite_Code, NeufOuAncien, NeufOuAncien_Code, ParentOuAutre, ParentOuAutre_Code, Parente, Parente_Code, PersonneACharge, PersonneSousLocation, PrestationRecue, PrestationRecue_Code, Pret, Proprietaire, SituationFamiliale, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TitulairePret, TitulairePret_Code, TypeBailleur, TypeBailleur_Code, TypeLogementFoyer, TypeLogementFoyer_Code, TypePret, TypePret_Code, TypeTravauxLogementD83215, TypeTravauxLogementD83215_Code, TypeTravauxLogementR8425, TypeTravauxLogementR8425_Code, ZoneDHabitation, ZoneDHabitation_Code, calculette_aides_au_logement_garde_alternee, CalculetteAidesAuLogementGardeAlterneeIn, Demandeur, PersonneACharge_Code, SituationObligationScolaire, SituationGardeAlternee, AccordFinancementRepresentantEtatOutreMer_Code, AccordFinancementRepresentantEtatOutreMer
 from .aides_logement import Collectivite_Code as Collectivite_Code_APL
@@ -64,6 +64,9 @@ def allocations_familiales(
 class PersonneAChargeAPL(ABC):
     pass
 
+class PersonneAChargeAPL_Code(Enum):
+    CodeEnfant = 0
+    CodeParent = 1
 
 class EnfantAPL(PersonneAChargeAPL):
     def __init__(self, identifiant: int,
@@ -84,6 +87,7 @@ class EnfantAPL(PersonneAChargeAPL):
         self.coefficient_garde_alternee = coefficient_garde_alternee
         self.nationalite = nationalite
         self.etudes_apprentissage_stage_formation_pro_impossibilite_travail = etudes_apprentissage_stage_formation_pro_impossibilite_travail
+        self.code = PersonneAChargeAPL_Code.CodeEnfant
 
 
 class ParentAPL(PersonneAChargeAPL):
@@ -101,7 +105,12 @@ class ParentAPL(PersonneAChargeAPL):
         self.incapacite_80_pourcent_ou_restriction_emploi = incapacite_80_pourcent_ou_restriction_emploi
         self.beneficiaire_l161_19_l351_8_l643_3_secu = beneficiaire_l161_19_l351_8_l643_3_secu
         self.titulaire_allocation_personne_agee = titulaire_allocation_personne_agee
+        self.code = PersonneAChargeAPL_Code.CodeParent
 
+class InfosSpecifiques_Code(Enum):
+    CodeLocation = 0
+    CodeLogementFoyer = 1
+    CodeAccessionPropriete = 2
 
 class InfosSpecifiques(ABC):
     pass
@@ -129,6 +138,7 @@ class InfosLocation(InfosSpecifiques):
         self.type_bailleur = type_bailleur
         self.bailleur_conventionne = bailleur_conventionne
         self.reduction_loyer_solidarite = reduction_loyer_solidarite
+        self.code = InfosSpecifiques_Code.CodeLocation
 
 
 class InfosLogementFoyer(InfosSpecifiques):
@@ -159,6 +169,7 @@ class InfosLogementFoyer(InfosSpecifiques):
         self.logement_meuble_d842_2 = logement_meuble_d842_2
         self.logement_est_chambre = logement_est_chambre
         self.colocation = colocation
+        self.code = InfosSpecifiques_Code.CodeLogementFoyer
 
 
 class InfosAccessionPropriete(InfosSpecifiques):
@@ -195,6 +206,7 @@ class InfosAccessionPropriete(InfosSpecifiques):
         self.titulaire_pret = titulaire_pret
         self.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat = operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat
         self.accord_financement_representant_Etat_outre_mer = accord_financement_representant_Etat_outre_mer
+        self.code = InfosSpecifiques_Code.CodeAccessionPropriete
 
 
 def aides_logement(
@@ -261,7 +273,7 @@ def aides_logement(
                                 if infos_specifiques.type_bailleur == TypeBailleur_Code.BailleurPriveAvecConventionnementSocial else
                                 None  # type: ignore
                             ))
-                    ) if isinstance(infos_specifiques, InfosLocation) else
+                    ) if infos_specifiques.code == InfosSpecifiques_Code.CodeLocation else
                         (LogementFoyer(
                             logement_foyer_jeunes_travailleurs=infos_specifiques.logement_foyer_jeunes_travailleurs,
                             type=TypeLogementFoyer(
@@ -281,7 +293,7 @@ def aides_logement(
                                 value=Unit()),
                             logement_est_chambre=infos_specifiques.logement_est_chambre,
                             colocation=infos_specifiques.colocation
-                        ) if isinstance(infos_specifiques, InfosLogementFoyer) else
+                        ) if infos_specifiques.code == InfosSpecifiques_Code.CodeLogementFoyer else
                             (Proprietaire(
                                 mensualite_principale=money_of_units_int(
                                     infos_specifiques.mensualite_principale),
@@ -312,7 +324,7 @@ def aides_logement(
                                         value=Unit())
                                 ),
                                 operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat=infos_specifiques.operations_logement_evolutifs_sociaux_accession_propriete_aidee_Etat
-                            ) if isinstance(infos_specifiques, InfosAccessionPropriete)
+                            ) if infos_specifiques.code == InfosSpecifiques_Code.CodeAccessionPropriete
                             else None  # type: ignore
                         )))
                 ),
@@ -352,7 +364,7 @@ def aides_logement(
                                      situation_garde_alternee=SituationGardeAlternee(code=personne_a_charge.situation_garde_alternee,
                                                                                      value=Unit() if personne_a_charge.coefficient_garde_alternee is None else personne_a_charge.coefficient_garde_alternee)
                                  ))
-                 if isinstance(personne_a_charge, EnfantAPL)
+                 if personne_a_charge.code == PersonneAChargeAPL_Code.CodeEnfant
                  else (PersonneACharge(
                      code=PersonneACharge_Code.AutrePersonneACharge,
                      value=AutrePersonneACharge(
@@ -366,7 +378,7 @@ def aides_logement(
                          titulaire_allocation_personne_agee=personne_a_charge.titulaire_allocation_personne_agee,
                          parente=Parente(
                              code=personne_a_charge.parente, value=Unit())
-                     )) if isinstance(personne_a_charge, ParentAPL)
+                     )) if personne_a_charge.code == PersonneAChargeAPL_Code.CodeParent
                      else None  # type: ignore
                 )) for personne_a_charge in personnes_a_charge],
             nombre_autres_occupants_logement=integer_of_int(

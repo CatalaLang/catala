@@ -2,8 +2,8 @@ import datetime
 from typing import List
 from catala.runtime import Unit  # type: ignore
 from ..src.aides_logement import Collectivite, Collectivite_Code, Nationalite, CategorieEquivalenceLoyerAllocationLogementFoyer_Code, LogementFoyer, ModeOccupation_Code, Nationalite_Code, SituationFamiliale_Code, SituationGardeAlternee_Code, SituationObligationScolaire_Code, TypeBailleur_Code, TypeLogementFoyer_Code, ZoneDHabitation_Code
-from .input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, LogementCrous, LogementCrousType, LogementMaisonRetraite, LogementResidenceSocialeFJT, SeulOuCouple, Zone
 from ..src.api import EnfantAPL, InfosLocation, InfosLogementFoyer, InfosSpecifiques, PersonneAChargeAPL, aides_logement
+from .input import Logement_Code, AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, LogementCrous, LogementCrousType, LogementMaisonRetraite, LogementResidenceSocialeFJT, SeulOuCouple, Zone
 
 
 def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> float:
@@ -14,8 +14,7 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
             identifiant=i,
             a_deja_ouvert_droit_aux_allocations_familiales=False,
             date_de_naissance=datetime.date.today() - datetime.timedelta(days=366 * enfant.age),
-            remuneration_mensuelle=int(
-                enfant.remuneration_derniere_annee / 12),
+            remuneration_mensuelle=int(0),
             obligation_scolaire=SituationObligationScolaire_Code.Avant if enfant.age < 3 else (
                 SituationObligationScolaire_Code.Apres if enfant.age > 16 else SituationObligationScolaire_Code.Pendant),
             situation_garde_alternee=SituationGardeAlternee_Code.PasDeGardeAlternee,
@@ -28,7 +27,7 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
 
     mode_occupation: ModeOccupation_Code
     infos_specifiques: InfosSpecifiques
-    if isinstance(sample_input.logement, AppartementOuMaison):
+    if sample_input.logement.code() == Logement_Code.CodeAppartementOuMaison:
         mode_occupation = ModeOccupation_Code.Locataire
         infos_specifiques = InfosLocation(
             loyer_principal=sample_input.loyer,
@@ -42,7 +41,7 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
             bailleur_conventionne=None,
             reduction_loyer_solidarite=None
         )
-    elif isinstance(sample_input.logement, LogementCrous):
+    elif sample_input.logement.code() == Logement_Code.CodeLogementCrous:
         # Les correspondances avec les catégories réglementaires sont faites selon DGALN/DHUP/FE4 (mail du 26/07/2022)
         mode_occupation = ModeOccupation_Code.Locataire if sample_input.logement.typ_v == LogementCrousType.Studio else ModeOccupation_Code.ResidentLogementFoyer
         infos_specifiques = InfosLocation(
@@ -73,7 +72,7 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
             logement_meuble_d842_2=False,
             logement_foyer_jeunes_travailleurs=False
         )
-    elif isinstance(sample_input.logement, LogementFoyer):
+    elif sample_input.logement.code() == Logement_Code.CodeLogementFoyer:
         mode_occupation = ModeOccupation_Code.ResidentLogementFoyer
         infos_specifiques = InfosLogementFoyer(
             conventionne_selon_regles_drom=False,
@@ -83,14 +82,14 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
             logement_meuble_d842_2=False,
             logement_foyer_jeunes_travailleurs=False,
             type=TypeLogementFoyer_Code.Autre,
-            remplit_conditions_r832_21=True,
-            conventionne_livre_III_titre_V_chap_III=True,
+            remplit_conditions_r832_21=False,
+            conventionne_livre_III_titre_V_chap_III=False,
             date_conventionnement=datetime.date(2000, 1, 1),
             construit_application_loi_1957_12_III=False,
             redevance=sample_input.loyer,
             categorie_equivalence_loyer_d842_16=CategorieEquivalenceLoyerAllocationLogementFoyer_Code.AutresPersonnes
         )
-    elif isinstance(sample_input.logement, LogementResidenceSocialeFJT):
+    elif sample_input.logement.code() == Logement_Code.CodeLogementResidenceSocialeFJT:
         # Correspond au 2° du D832-25 selon DGALN/DHUP/FE4 (mail du 26/07/2022)
         mode_occupation = ModeOccupation_Code.ResidentLogementFoyer
         infos_specifiques = InfosLogementFoyer(
@@ -108,7 +107,7 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
             redevance=sample_input.loyer,
             categorie_equivalence_loyer_d842_16=CategorieEquivalenceLoyerAllocationLogementFoyer_Code.AutresPersonnes
         )
-    elif isinstance(sample_input.logement, LogementMaisonRetraite):
+    elif sample_input.logement.code() == Logement_Code.CodeLogementMaisonRetraite:
         # Correspond au 3° du D842-16 et au 1° du R832-20 selon DGALN/DHUP/FE4 (mail du 26/07/2022)
         mode_occupation = ModeOccupation_Code.ResidentLogementFoyer
         infos_specifiques = InfosLogementFoyer(
@@ -118,15 +117,15 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
             colocation=False,
             logement_meuble_d842_2=False,
             logement_foyer_jeunes_travailleurs=False,
-            type=TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees,
+            type=TypeLogementFoyer_Code.LogementPersonnesAgeesOuHandicapees if sample_input.logement.conventionne else TypeLogementFoyer_Code.Autre,
             remplit_conditions_r832_21=True,
-            conventionne_livre_III_titre_V_chap_III=True,
+            conventionne_livre_III_titre_V_chap_III=sample_input.logement.conventionne,
             date_conventionnement=datetime.date(2000, 1, 1),
             construit_application_loi_1957_12_III=False,
             redevance=sample_input.loyer,
             categorie_equivalence_loyer_d842_16=CategorieEquivalenceLoyerAllocationLogementFoyer_Code.PersonnesAgeesSelon3DeD842_16
         )
-    else:  # isinstance(sample_input.logement, LogementChambre):
+    else: # sample_input.logement.code() == Logement_Code.CodeLogementChambre:
         mode_occupation = ModeOccupation_Code.Locataire
         infos_specifiques = InfosLocation(
             loyer_principal=sample_input.loyer,

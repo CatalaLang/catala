@@ -1,6 +1,6 @@
 # This code is ported from https://github.com/jboillot/apl-fetcher
 
-from .input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, LogementCrousType, LogementCrous, SeulOuCouple
+from .input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, LogementCrousType, Logement_Code, SeulOuCouple
 import json
 import requests  # type: ignore
 
@@ -56,12 +56,11 @@ def get_simulation(bearer, payload_json):
 
 
 def format_payload(input: CnafSimulatorInput):
-    # C'est un exemple de fichier attendu
-    # Les variables parlent d'elles mêmes et ont un type contraint
+
     flgLogementConventionne = False
-    if isinstance(input.logement, LogementCrous):
-        if input.logement.typ_v == LogementCrousType.Chambre_rehabilitee:
-            flgLogementConventionne = False
+    if input.logement.code() == Logement_Code.CodeLogementMaisonRetraite:
+        if input.logement.conventionne:
+            flgLogementConventionne = True
 
     if input.logement.meublee() is None:
         flgMeubleLogement = False
@@ -133,14 +132,8 @@ def format_payload(input: CnafSimulatorInput):
             "role": "ENF",
             "personne": {
                 "role": "ENF",
-                "enfantACharge": enfant.age <= 21 and
-                    enfant.remuneration_derniere_annee <= 4500,
+                "enfantACharge": enfant.age <= 21,
                 "flgDemandeur": False,
-                "situationProfessionnelleList": [
-                    {
-                        "situationProfessionnelle": "ETU"
-                    }
-                ],
                 "ressourceList": []
             }
         }
@@ -149,7 +142,7 @@ def format_payload(input: CnafSimulatorInput):
     household_members.extend(children)
 
     flgColocation = False
-    if isinstance(input.logement, AppartementOuMaison):
+    if input.logement.code() == Logement_Code.CodeAppartementOuMaison:
         if input.logement.typ_v == AppartementOuMaisonType.Colocation:
             flgColocation = True
     result = {
