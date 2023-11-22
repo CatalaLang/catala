@@ -36,4 +36,4 @@
  (action
   (chdir
    %{workspace_root}
-   (run catala Python -O %{dep:aides_logement.catala_fr}))))
+   (run catala Python -O -t %{dep:aides_logement.catala_fr}))))

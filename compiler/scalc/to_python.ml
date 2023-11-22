@@ -319,13 +319,15 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EApp ((EOp (Log (VarDef var_def_info, info)), _), [arg1])
     when Cli.globals.trace ->
     Format.fprintf fmt
-      "log_variable_definition(%a,@ LogIO(io_input=%s,@ io_output=%b),@ %a)"
+      "log_variable_definition(%a,@ LogIO(input_io=InputIO.%s,@ \
+       output_io=%s),@ %a)"
       format_uid_list info
       (match var_def_info.log_io_input with
       | Runtime.NoInput -> "NoInput"
       | Runtime.OnlyInput -> "OnlyInput"
       | Runtime.Reentrant -> "Reentrant")
-      var_def_info.log_io_output (format_expression ctx) arg1
+      (if var_def_info.log_io_output then "True" else "False")
+      (format_expression ctx) arg1
   | EApp ((EOp (Log (PosRecordIfTrueBool, _)), pos), [arg1])
     when Cli.globals.trace ->
     Format.fprintf fmt

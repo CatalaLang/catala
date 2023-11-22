@@ -431,7 +431,7 @@ def money_of_decimal(d: Decimal) -> Money:
     """
     Warning: rounds to the nearest cent
     """
-    return Money(Integer(mpz(d.value)))
+    return Money(Integer(mpz(d.value) * mpz(100)))
 
 
 # --------
