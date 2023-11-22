@@ -48,7 +48,7 @@ def get_simulation(bearer, payload_json):
 
     response = requests.request("POST", url, headers=headers, data=payload)
     response_json = response.json()
-    print(response_json)
+    # print(response_json)
     if response_json['possedeDesDroits']:
         return int(response_json['montantDroit'])
     else:
@@ -149,8 +149,8 @@ def format_payload(input: CnafSimulatorInput):
     household_members.extend(children)
 
     flgColocation = False
-    if isinstance(logement, AppartementOuMaison):
-        if logement.typ_v == AppartementOuMaisonType.Colocation:
+    if isinstance(input.logement, AppartementOuMaison):
+        if input.logement.typ_v == AppartementOuMaisonType.Colocation:
             flgColocation = True
     result = {
         "rattachementLogementList": [
@@ -173,6 +173,6 @@ def format_payload(input: CnafSimulatorInput):
 
 def run_simulator(input: CnafSimulatorInput) -> int:
     payload = format_payload(input)
-    print(payload)
+    # print(payload)
     bearer = get_bearer()
     return (get_simulation(bearer, payload))
