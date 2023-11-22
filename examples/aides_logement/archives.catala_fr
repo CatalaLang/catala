@@ -663,7 +663,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   définition taux_loyer_éligible état formule égal à
     si rapport_loyers < 45% alors 0% sinon (
     si rapport_loyers >= 45% et rapport_loyers < 75% alors
-      0,45% * (rapport_loyers - 0,45%)
+      0,45% * (rapport_loyers - 45%)
     sinon (si rapport_loyers >= 75% alors
       0,45% * 30% + 0,68% * (rapport_loyers - 75%)
     sinon 0,0))
@@ -2372,7 +2372,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   définition taux_loyer_éligible état formule égal à
     si rapport_loyers < 45% alors 0% sinon (
     si rapport_loyers >= 45% et rapport_loyers < 75% alors
-      0,45% * (rapport_loyers - 0,45%)
+      0,45% * (rapport_loyers - 45%)
     sinon (si rapport_loyers >= 75% alors
       0,45% * 30% + 0,68% * (rapport_loyers - 75%)
     sinon 0,0))
@@ -3471,7 +3471,7 @@ champ d'application CalculAidePersonnaliséeLogementLocatif
   définition taux_loyer_éligible état formule égal à
     si rapport_loyers < 45% alors 0% sinon (
     si rapport_loyers >= 45% et rapport_loyers < 75% alors
-      0,45% * (rapport_loyers - 0,45%)
+      0,45% * (rapport_loyers - 45%)
     sinon (si rapport_loyers >= 75% alors
       0,45% * 30% + 0,68% * (rapport_loyers - 75%)
     sinon 0,0))
