@@ -154,10 +154,11 @@ class Enfant():
         return "Enfant(age={},remuneration_derniere_annee={})".format(self.age, self.remuneration_derniere_annee)
 
 
+# Le simulateur de la CNAF prend les codes INSEE des communes
 class Zone(Enum):
-    Zone1 = "75001"
-    Zone2 = "69001"
-    Zone3 = "46800"
+    Zone1 = "75101"
+    Zone2 = "69381"
+    Zone3 = "46201"
 
 
 class CnafSimulatorInput():

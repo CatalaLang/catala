@@ -133,7 +133,8 @@ def format_payload(input: CnafSimulatorInput):
             "role": "ENF",
             "personne": {
                 "role": "ENF",
-                "enfantACharge": True,
+                "enfantACharge": enfant.age <= 21 and
+                    enfant.remuneration_derniere_annee <= 4500,
                 "flgDemandeur": False,
                 "situationProfessionnelleList": [
                     {
