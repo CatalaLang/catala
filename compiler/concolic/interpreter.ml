@@ -33,6 +33,8 @@ type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
     is a Z3 symbol constant. Then [symb_expr] is set by evaluation, except for
     inputs which stay the same *)
 
+type 'c conc_naked_expr = ((yes, no, 'c) interpr_kind, conc_info) naked_gexpr
+
 (* taken from z3backend but with the right types *)
 (* TODO check if some should be used or removed *)
 type context = {
@@ -103,7 +105,9 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Z3.Sort.sort =
 let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   match t with
   | TLit t -> ctx, translate_typ_lit ctx t
-  | TStruct name -> find_or_create_struct ctx name
+  | TStruct name ->
+    find_or_create_struct ctx
+      name (* TODO CONC are declaration sorted in topological order? *)
   | TTuple _ -> failwith "TTuple not implemented"
   | TEnum _ -> failwith "TEnum not implemented"
   | TOption _ -> failwith "TOption not implemented"
@@ -187,12 +191,13 @@ let hard_set_conc_info
     | Untyped { pos } -> Custom { pos; custom }
     | Typed { pos; ty } ->
       Custom { pos; custom }
-      (* TODO CONC should we keep the type information ? *)
+      (* TODO CONC should we keep the type information? maybe for the symb
+         exprs *)
     | Custom m -> Custom { m with custom })
     (Mark.remove x)
 
-(** Add the constraints, and safely replace the symbolic expression from former
-    mark *)
+(** Replace the constraints, and safely replace the symbolic expression from
+    former mark *)
 let add_conc_info
     (former_mark : conc_info mark)
     (symb_expr : s_expr)
@@ -259,6 +264,24 @@ let make_z3_struct_access
   in
   Z3.Expr.mk_app ctx.ctx_z3 accessor [s]
 
+let make_vars_args_map
+    (vars : 'c conc_naked_expr Bindlib.var array)
+    (args : 'c conc_expr list) : ('c conc_expr, conc_info mark) Var.Map.t =
+  let marks = List.map Mark.get args in
+  let zipped = Array.combine vars (Array.of_list marks) in
+  Array.fold_left (fun acc (v, m) -> Var.Map.add v m acc) Var.Map.empty zipped
+
+let replace_EVar_mark
+    (vars_args : ('c conc_expr, conc_info mark) Var.Map.t)
+    (e : 'c conc_expr) : 'c conc_expr =
+  match Mark.remove e with
+  | EVar v as e ->
+    let m = Var.Map.find v vars_args in
+    (* TODO raise exception when find fails *)
+    Mark.add m e
+    (* TODO CONC be more subtle and keep the original position from var? *)
+  | _ -> e
+
 let rec evaluate_expr :
     context -> Cli.backend_lang -> yes conc_expr -> yes conc_expr =
  fun ctx lang e ->
@@ -272,26 +295,46 @@ let rec evaluate_expr :
        well-typed)"
   | EExternal _ -> failwith "EExternal not implemented"
   | EApp { f = e1; args } -> (
-    (* TODO eval *)
+    (* DONE eval *)
     let e1 = evaluate_expr ctx lang e1 in
     let c1 = get_constraints e1 in
     let args = List.map (evaluate_expr ctx lang) args in
+    let constraints = gather_constraints args in
     Concrete.propagate_empty_error e1
     (* TODO I don't like that "Concrete" has to appear here because this
        function is not specific to concrete evaluation. maybe let p... =
        Concrete.p...? *)
     @@ fun e1 ->
     match Mark.remove e1 with
-
     | EAbs { binder; _ } ->
-    (* TODO CONC constraints from evaluating e1 must be added here, but
-       constraints from evaluating the arguments shall be combined adequately
-       by the evaluation of the substituted expression. Otherwise, I think
-       there would be a duplication
-       TODO is this even true? *)
+      (* TODO CONC should constraints from the args be added, or should we trust
+         the call to return them? We could take both for safety but there will
+         be duplication... I think we should trust the recursive call, and we'll
+         see if it's better not to *)
+      (* TODO CONC How to pass down the symbolic expressions and the constraints
+         anyway? The arguments as passed to [Bindlib.msubst] are unmarked. Maybe
+         a way is to change the corresponding marks in the receiving expression
+         in which substitution happens. 1/ change marks 2/ substitute concrete
+         expressions *)
       if Bindlib.mbinder_arity binder = List.length args then
-        evaluate_expr ctx lang
-          (Bindlib.msubst binder (Array.of_list (List.map Mark.remove args)))
+        let vars, eb = Bindlib.unmbind binder in
+        let vars_args_map = make_vars_args_map vars args in
+        let marked_eb =
+          Expr.map_top_down ~f:(replace_EVar_mark vars_args_map) eb
+        in
+        let marked_binder = Bindlib.unbox (Expr.bind vars marked_eb) in
+        let result =
+          evaluate_expr ctx lang
+            (Bindlib.msubst marked_binder
+               (Array.of_list (List.map Mark.remove args)))
+        in
+        (* TODO [Expr.subst]? *)
+        let r_symb = get_symb_expr result in
+        let r_constraints = get_constraints result in
+        replace_conc_info r_symb (c1 @ r_constraints) result
+        (* NOTE that here the position comes from [result], while in other cases
+           of this function the position comes from the input expression. This
+           is the behaviour of the concrete interpreter *)
       else
         Message.raise_spanned_error pos
           "wrong function call, expected %d arguments, got %d"
@@ -386,6 +429,9 @@ let rec evaluate_expr :
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     (* TODO eval *)
+    (* TODO CONC how did Rohan do? maybe contact him? *)
+    (* TODO CONC look into litterature for exceptions in concolic exec (Java?)
+       or symb exec (symbolic pathfinder) *)
     let excepts = List.map (evaluate_expr ctx lang) excepts in
     let empty_count =
       List.length (List.filter Concrete.is_empty_error excepts)
