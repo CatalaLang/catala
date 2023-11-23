@@ -125,7 +125,7 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
             redevance=sample_input.loyer,
             categorie_equivalence_loyer_d842_16=CategorieEquivalenceLoyerAllocationLogementFoyer_Code.PersonnesAgeesSelon3DeD842_16
         )
-    else: # sample_input.logement.code() == Logement_Code.CodeLogementChambre:
+    else:  # sample_input.logement.code() == Logement_Code.CodeLogementChambre:
         mode_occupation = ModeOccupation_Code.Locataire
         infos_specifiques = InfosLocation(
             loyer_principal=sample_input.loyer,
@@ -133,7 +133,7 @@ def run_catala_by_converting_cnaf_input(sample_input: CnafSimulatorInput) -> flo
             logement_est_chambre=True,
             colocation=False,
             agees_ou_handicap_adultes_hebergees_onereux_particuliers=False,
-            logement_meuble_d842_2=False,
+            logement_meuble_d842_2=sample_input.logement.meuble_v,
             ancien_loyer_et_apl_relogement=None,
             type_bailleur=TypeBailleur_Code.BailleurPrive,
             bailleur_conventionne=None,
