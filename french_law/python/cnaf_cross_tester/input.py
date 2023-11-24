@@ -1,20 +1,36 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, List, Optional
 
+class Logement_Code(Enum):
+    CodeAppartementOuMaison = 0
+    CodeLogementCrous = 1
+    CodeLogementFoyer = 2
+    CodeLogementResidenceSocialeFJT = 3
+    CodeLogementMaisonRetraite = 4
+    CodeLogementChambre = 5
 
 class Logement(ABC):
+    @abstractmethod
     def residence(self) -> str:
         pass
 
+    @abstractmethod
+    def code(self) -> Logement_Code:
+        pass
+
+    @abstractmethod
     def typ(self) -> Optional[str]:
         pass
 
+    @abstractmethod
     def meublee(self) -> Optional[bool]:
         pass
 
+    @abstractmethod
     def __str__(self) -> str:
         pass
+
 
 
 class AppartementOuMaisonType(Enum):
@@ -27,9 +43,13 @@ class AppartementOuMaison(Logement):
         self.residence_v = "APPARTEMENT_OU_MAISON"
         self.typ_v = typ
         self.meuble_v = meuble
+        self.code_v = Logement_Code.CodeAppartementOuMaison
 
     def residence(self) -> str:
         return self.residence_v
+
+    def code(self) -> Logement_Code:
+        return self.code_v
 
     def typ(self) -> Optional[str]:
         return self.typ_v.value
@@ -51,9 +71,13 @@ class LogementCrous(Logement):
     def __init__(self, typ: LogementCrousType):
         self.residence_v = 'LOGEMENT_CROUS'
         self.typ_v = typ
+        self.code_v = Logement_Code.CodeLogementCrous
 
     def residence(self) -> str:
         return self.residence_v
+
+    def code(self) -> Logement_Code:
+        return self.code_v
 
     def typ(self) -> Optional[str]:
         return self.typ_v.value
@@ -68,9 +92,13 @@ class LogementCrous(Logement):
 class LogementFoyer(Logement):
     def __init__(self):
         self.residence_v = 'FOYER'
+        self.code_v = Logement_Code.CodeLogementFoyer
 
     def residence(self) -> str:
         return self.residence_v
+
+    def code(self) -> Logement_Code:
+        return self.code_v
 
     def typ(self) -> Optional[str]:
         return None
@@ -85,12 +113,16 @@ class LogementFoyer(Logement):
 class LogementResidenceSocialeFJT(Logement):
     def __init__(self):
         self.residence_v = 'RESIDENCE_SOCIALE_FJT'
+        self.code_v = Logement_Code.CodeLogementResidenceSocialeFJT
 
     def residence(self) -> str:
         return self.residence_v
 
     def typ(self) -> Optional[str]:
         return None
+
+    def code(self) -> Logement_Code:
+        return self.code_v
 
     def meublee(self) -> Optional[bool]:
         return None
@@ -100,11 +132,16 @@ class LogementResidenceSocialeFJT(Logement):
 
 
 class LogementMaisonRetraite(Logement):
-    def __init__(self):
+    def __init__(self, conventionne : bool):
         self.residence_v = 'MAISON_RETRAITE_EHPAD'
+        self.code_v = Logement_Code.CodeLogementMaisonRetraite
+        self.conventionne = conventionne
 
     def residence(self) -> str:
         return self.residence_v
+
+    def code(self) -> Logement_Code:
+        return self.code_v
 
     def typ(self) -> Optional[str]:
         return None
@@ -120,9 +157,13 @@ class LogementChambre(Logement):
     def __init__(self, meuble: bool):
         self.residence_v = 'CHAMBRE'
         self.meuble_v = meuble
+        self.code_v = Logement_Code.CodeLogementChambre
 
     def residence(self) -> str:
         return self.residence_v
+
+    def code(self) -> Logement_Code:
+        return self.code_v
 
     def typ(self) -> Optional[str]:
         return None
@@ -141,19 +182,18 @@ class SeulOuCouple(Enum):
 
 class Enfant():
     def __init__(self,
-                 age: int,
-                 remuneration_derniere_annee: int):
+                 age: int):
         self.age = age
-        self.remuneration_derniere_annee = remuneration_derniere_annee
 
     def __str__(self) -> str:
-        return "Enfant(age={},remuneration_derniere_annee={})".format(self.age, self.remuneration_derniere_annee)
+        return "Enfant(age={})".format(self.age)
 
 
+# Le simulateur de la CNAF prend les codes INSEE des communes
 class Zone(Enum):
-    Zone1 = "75001"
-    Zone2 = "69001"
-    Zone3 = "46800"
+    Zone1 = "75101"
+    Zone2 = "69381"
+    Zone3 = "46201"
 
 
 class CnafSimulatorInput():

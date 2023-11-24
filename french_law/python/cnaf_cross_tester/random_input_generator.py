@@ -1,12 +1,11 @@
 import random
-from input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, Logement, LogementChambre, LogementCrous, LogementCrousType, LogementFoyer, LogementMaisonRetraite, LogementResidenceSocialeFJT, SeulOuCouple, Zone
+from .input import AppartementOuMaison, AppartementOuMaisonType, CnafSimulatorInput, Enfant, Logement, LogementChambre, LogementCrous, LogementCrousType, LogementFoyer, LogementMaisonRetraite, LogementResidenceSocialeFJT, SeulOuCouple, Zone
 
 
 def generate_random_child() -> Enfant:
     age = random.randint(0, 25)
     # For now we don't put income for children for simplicity
-    remuneration_derniere_annee = random.randint(0, 0)
-    return Enfant(age, remuneration_derniere_annee)
+    return Enfant(age)
 
 
 def generate_random_input() -> CnafSimulatorInput:
@@ -17,7 +16,7 @@ def generate_random_input() -> CnafSimulatorInput:
         zone = Zone.Zone2
     else:  # zone_i == 3
         zone = Zone.Zone3
-    loyer = random.randint(300, 1800)
+    loyer = random.randint(300, 1000)
     revenus_pris_en_compte = random.randint(0, 200) * 100
     seul_ou_couple_i = random.randint(1, 2)
     if seul_ou_couple_i == 1:
