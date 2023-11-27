@@ -198,7 +198,7 @@ let hard_set_conc_info
 
 (** Replace the constraints, and safely replace the symbolic expression from
     former mark *)
-let add_conc_info
+let add_conc_info_m
     (former_mark : conc_info mark)
     (symb_expr : s_expr)
     (constraints : s_expr list) : 'a -> ('a, conc_info) marked =
@@ -206,13 +206,21 @@ let add_conc_info
   let symb_expr = Some (Option.value s ~default:symb_expr) in
   Mark.add (Custom { pos; custom = { symb_expr; constraints } })
 
-(** Replace the constraints, and safely replace the symbolic expression *)
-let replace_conc_info
+(** Replace the constraints, and safely replace the symbolic expression from
+    former expression *)
+let add_conc_info_e
     (symb_expr : s_expr)
     (constraints : s_expr list)
     (x : ('a, conc_info) marked) : ('a, conc_info) marked =
   let m = Mark.get x in
-  add_conc_info m symb_expr constraints (Mark.remove x)
+  add_conc_info_m m symb_expr constraints (Mark.remove x)
+
+let concat_constraints_m
+    (former_mark : conc_info mark)
+    (constraints : s_expr list) : 'a -> ('a, conc_info) marked =
+  let (Custom { pos; custom = { symb_expr; constraints = c } }) = former_mark in
+  let constraints = constraints @ c in
+  Mark.add (Custom { pos; custom = { symb_expr; constraints } })
 
 (* TODO CONC loosely taken from z3backend, could be exposed instead? *)
 let symb_of_lit ctx (l : lit) : s_expr =
@@ -228,17 +236,17 @@ let symb_of_lit ctx (l : lit) : s_expr =
   | LDate _ -> failwith "LDate not implemented"
   | LDuration _ -> failwith "LDuration not implemented"
 
-let get_constraints (e : 'c conc_expr) : s_expr list =
-  let (Custom { custom; _ }) = Mark.get e in
-  custom.constraints
-
 (** Get the symbolic expression corresponding to concolic expression [e] This
     should only be called if the symbolic expression has already been computed,
-    and fails otherwise *)
+    and usually fails otherwise *)
 let get_symb_expr (e : 'c conc_expr) : s_expr =
   let (Custom { custom; _ }) = Mark.get e in
   Option.get custom.symb_expr
 (* TODO use a more explicit exception? this should not happen anyway *)
+
+let get_constraints (e : 'c conc_expr) : s_expr list =
+  let (Custom { custom; _ }) = Mark.get e in
+  custom.constraints
 
 let gather_constraints (es : 'c conc_expr list) =
   let constraints = List.map get_constraints es in
@@ -331,7 +339,7 @@ let rec evaluate_expr :
         (* TODO [Expr.subst]? *)
         let r_symb = get_symb_expr result in
         let r_constraints = get_constraints result in
-        replace_conc_info r_symb (c1 @ r_constraints) result
+        add_conc_info_e r_symb (c1 @ r_constraints) result
         (* NOTE that here the position comes from [result], while in other cases
            of this function the position comes from the input expression. This
            is the behaviour of the concrete interpreter *)
@@ -353,7 +361,7 @@ let rec evaluate_expr :
   | ELit l as e ->
     (* DONE eval *)
     let symb_expr = symb_of_lit ctx l in
-    add_conc_info m symb_expr [] e
+    add_conc_info_m m symb_expr [] e
   | EOp _ -> failwith "EOp not implemented"
   (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
   | EStruct { fields = es; name } ->
@@ -372,7 +380,7 @@ let rec evaluate_expr :
 
     Concrete.propagate_empty_error_list es
     @@ fun es ->
-    add_conc_info m symb_expr constraints
+    add_conc_info_m m symb_expr constraints
       (EStruct
          {
            fields =
@@ -403,7 +411,7 @@ let rec evaluate_expr :
       let symb_expr = make_z3_struct_access ctx s field (get_symb_expr e) in
       let constraints = get_constraints e in
       (* TODO CONC is it e or concrete_expr ? *)
-      add_conc_info m symb_expr constraints (Mark.remove concrete_expr)
+      add_conc_info_m m symb_expr constraints (Mark.remove concrete_expr)
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
         "The expression %a should be a struct %a but is not (should not happen \
@@ -418,44 +426,51 @@ let rec evaluate_expr :
   | EArray _ -> failwith "EArray not implemented"
   | EAssert _ -> failwith "EAssert not implemented"
   | ECustom _ -> failwith "ECustom not implemented"
-  | EEmptyError -> Mark.copy e EEmptyError (* TODO eval *)
+  | EEmptyError ->
+    e
+    (* DONE eval *)
+    (* TODO CONC just pass along the symbolic values and constraints *)
   | EErrorOnEmpty e' -> (
-    (* TODO eval *)
+    (* DONE eval *)
     match evaluate_expr ctx lang e' with
     | EEmptyError, _ ->
       Message.raise_spanned_error (Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
          applied in this situation)"
-    | e -> e)
-  | EDefault { excepts; just; cons } -> (
+    | e -> e (* TODO CONC just pass along the symbolic values and constraints *)
+    )
+  | EDefault { excepts; just; cons } ->
     (* TODO eval *)
     (* TODO CONC how did Rohan do? maybe contact him? *)
     (* TODO CONC look into litterature for exceptions in concolic exec (Java?)
        or symb exec (symbolic pathfinder) *)
-    let excepts = List.map (evaluate_expr ctx lang) excepts in
-    let empty_count =
-      List.length (List.filter Concrete.is_empty_error excepts)
-    in
-    match List.length excepts - empty_count with
-    | 0 -> (
+    if excepts = [] then
       let just = evaluate_expr ctx lang just in
+      let j_symb = get_symb_expr just in
+      let j_constraints = get_constraints just in
       match Mark.remove just with
-      | EEmptyError -> Mark.add m EEmptyError
-      | ELit (LBool true) -> evaluate_expr ctx lang cons
-      | ELit (LBool false) -> Mark.copy e EEmptyError
+      | EEmptyError ->
+        concat_constraints_m m (j_symb :: j_constraints) EEmptyError
+      | ELit (LBool true) ->
+        let cons = evaluate_expr ctx lang cons in
+        let c_symb = get_symb_expr cons in
+        let c_constraints = get_constraints cons in
+        let c_mark = Mark.get cons in
+        let c_concr = Mark.remove cons in
+        add_conc_info_m c_mark c_symb
+          ((j_symb :: j_constraints) @ c_constraints) c_concr
+      | ELit (LBool false) ->
+        let not_j_symb = Z3.Boolean.mk_not ctx.ctx_z3 j_symb in
+        concat_constraints_m m
+          (not_j_symb :: j_constraints)
+          EEmptyError (* TODO concat?? *)
       | _ ->
         Message.raise_spanned_error (Expr.pos e)
           "Default justification has not been reduced to a boolean at \
-           evaluation (should not happen if the term was well-typed")
-    | 1 -> List.find (fun sub -> not (Concrete.is_empty_error sub)) excepts
-    | _ ->
-      Message.raise_multispanned_error
-        (List.map
-           (fun except ->
-             Some "This consequence has a valid justification:", Expr.pos except)
-           (List.filter (fun sub -> not (Concrete.is_empty_error sub)) excepts))
-        "There is a conflict between multiple valid consequences for assigning \
-         the same variable.")
+           evaluation (should not happen if the term was well-typed"
+    else
+      Message.raise_spanned_error (Expr.pos e)
+        "Concolic execution does not support excepts in defaults yet"
   | _ -> .
 
 let lit_of_tlit t =
