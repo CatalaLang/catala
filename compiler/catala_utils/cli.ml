@@ -405,7 +405,7 @@ module Flags = struct
     & info ["closure_conversion"]
         ~doc:
           "Performs closure conversion on the lambda calculus. Implies \
-           $(b,--avoid-exceptions) and $(b,--optimize)."
+           $(b,--avoid-exceptions)."
 
   let disable_counterexamples =
     value

@@ -218,16 +218,16 @@ module Passes = struct
     in
     debug_pass_name "lcalc";
     let avoid_exceptions = avoid_exceptions || closure_conversion in
-    let optimize = optimize || closure_conversion in
-    (* --closure_conversion implies --avoid_exceptions and --optimize *)
+    (* --closure_conversion implies --avoid_exceptions *)
     let prg =
       match avoid_exceptions, options.trace, typed with
       | true, true, _ ->
         Message.raise_error
           "Option --avoid_exceptions is not compatible with option --trace"
       | true, _, Untyped _ ->
-        Message.raise_error
-          "Option --avoid_exceptions is not compatible with option --no-typing"
+        Program.untype
+          (Lcalc.Compile_without_exceptions.translate_program
+             (Shared_ast.Typing.program ~leave_unresolved:false prg))
       | true, _, Typed _ ->
         Lcalc.Compile_without_exceptions.translate_program prg
       | false, _, Typed _ ->
@@ -255,9 +255,15 @@ module Passes = struct
             Optimizations.optimize_program prg)
           else prg
         in
-        Message.emit_debug "Retyping lambda calculus...";
-        let prg = Program.untype (Typing.program ~leave_unresolved:true prg) in
-        prg)
+        match typed with
+        | Untyped _ -> prg
+        | Typed _ ->
+          Message.emit_debug "Retyping lambda calculus...";
+          let prg =
+            Program.untype (Typing.program ~leave_unresolved:true prg)
+          in
+          prg
+        | Custom _ -> assert false)
     in
     prg, ctx, type_ordering
 
