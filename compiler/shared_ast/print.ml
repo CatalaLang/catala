@@ -867,12 +867,11 @@ let struct_
     fmt
     (pp_name : Format.formatter -> unit)
     (c : typ StructField.Map.t) =
-  Format.fprintf fmt "@[<hv 0>@[<hv 2>@[<h>%a %t %a@;%a@]@;%a@]%a@]@;" keyword
-    "type" pp_name punctuation "=" punctuation "{"
-    (StructField.Map.format_bindings
-       ~pp_sep:(fun _ _ -> ())
+  Format.fprintf fmt "@[<hv 2>%a %t %a %a@ %a@;<1 -2>%a@]@," keyword "type"
+    pp_name punctuation "=" punctuation "{"
+    (StructField.Map.format_bindings ~pp_sep:Format.pp_print_space
        (fun fmt pp_n ty ->
-         Format.fprintf fmt "@[<h 2>%t%a %a%a@]@ " pp_n keyword ":"
+         Format.fprintf fmt "@[<h 2>%t%a %a%a@]" pp_n keyword ":"
            (if debug then typ_debug else typ decl_ctx)
            ty punctuation ";"))
     c punctuation "}"
@@ -895,10 +894,21 @@ let scope
   scope_body ~debug ctx fmt (n, s);
   Format.pp_close_box fmt ()
 
-let code_item ?(debug = false) decl_ctx fmt c =
+let code_item ?(debug = false) ?name decl_ctx fmt c =
   match c with
-  | ScopeDef (n, b) -> scope ~debug decl_ctx fmt (n, b)
+  | ScopeDef (n, b) ->
+    let n =
+      match debug, name with
+      | true, Some n -> ScopeName.fresh [] (n, Pos.no_pos)
+      | _ -> n
+    in
+    scope ~debug decl_ctx fmt (n, b)
   | Topdef (n, ty, e) ->
+    let n =
+      match debug, name with
+      | true, Some n -> TopdefName.fresh [] (n, Pos.no_pos)
+      | _ -> n
+    in
     Format.fprintf fmt "@[<v 2>@[<hov 2>%a@ %a@ %a@ %a@ %a@]@ %a@]" keyword
       "let topval" TopdefName.format n op_style ":" (typ decl_ctx) ty op_style
       "=" (expr ~debug ()) e
@@ -907,9 +917,9 @@ let rec code_item_list ?(debug = false) decl_ctx fmt c =
   match c with
   | Nil -> ()
   | Cons (c, b) ->
-    let _x, cl = Bindlib.unbind b in
+    let x, cl = Bindlib.unbind b in
     Format.fprintf fmt "%a @.%a"
-      (code_item ~debug decl_ctx)
+      (code_item ~debug ~name:(Format.asprintf "%a" var_debug x) decl_ctx)
       c
       (code_item_list ~debug decl_ctx)
       cl
