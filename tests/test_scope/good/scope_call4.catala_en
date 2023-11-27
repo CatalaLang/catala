@@ -78,59 +78,43 @@ $ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize --debu
 [DEBUG] End of interpretation
 [RESULT] Computation successful! Results:
 [RESULT]
-f1 =
-  ESome
-    (λ (x: integer) →
-     ESome
-       match
-         (handle_default_opt
-            [  ]
-            (λ (_: unit) → ESome true)
-            (λ (_: unit) →
-             match
-               (ESome
-                  (λ (x1: integer) →
-                   ESome
-                     match
-                       (handle_default_opt
-                          [  ]
-                          (λ (_1: unit) → ESome true)
-                          (λ (_1: unit) → ESome (x1 + 1)))
-                       with
-                     | ENone _1 → raise NoValueProvided
-                     | ESome g → g))
-               with
-             | ENone _1 → ENone _1
-             | ESome g → g (x + 1)))
-         with
-       | ENone _ → raise NoValueProvided
-       | ESome f1 → f1)
+f1 = λ (x: integer) →
+  match
+    (handle_default_opt
+       [  ]
+       (λ (_: unit) → true)
+       (λ (_: unit) →
+        ESome
+          let x1 : integer = x + 1 in
+          match
+            (handle_default_opt
+               [  ]
+               (λ (_1: unit) → true)
+               (λ (_1: unit) → ESome (x1 + 1)))
+            with
+          | ENone _1 → raise NoValueProvided
+          | ESome arg → arg))
+    with
+  | ENone _ → raise NoValueProvided
+  | ESome arg → arg
 [RESULT]
-f2 =
-  ESome
-    (λ (x: integer) →
-     ESome
-       match
-         (handle_default_opt
-            [  ]
-            (λ (_: unit) → ESome true)
-            (λ (_: unit) →
-             match
-               (ESome
-                  (λ (x1: integer) →
-                   ESome
-                     match
-                       (handle_default_opt
-                          [  ]
-                          (λ (_1: unit) → ESome true)
-                          (λ (_1: unit) → ESome (x1 + 1)))
-                       with
-                     | ENone _1 → raise NoValueProvided
-                     | ESome g → g))
-               with
-             | ENone _1 → ENone _1
-             | ESome g → g (x + 1)))
-         with
-       | ENone _ → raise NoValueProvided
-       | ESome f2 → f2)
+f2 = λ (x: integer) →
+  match
+    (handle_default_opt
+       [  ]
+       (λ (_: unit) → true)
+       (λ (_: unit) →
+        ESome
+          let x1 : integer = x + 1 in
+          match
+            (handle_default_opt
+               [  ]
+               (λ (_1: unit) → true)
+               (λ (_1: unit) → ESome (x1 + 1)))
+            with
+          | ENone _1 → raise NoValueProvided
+          | ESome arg → arg))
+    with
+  | ENone _ → raise NoValueProvided
+  | ESome arg → arg
 ```

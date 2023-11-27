@@ -19,40 +19,6 @@ type S_in = { x_in: bool; }
 
 type S = { z: integer; }
  
-let topval closure_f : (closure_env, integer) → any =
-  λ (env_171: closure_env) (y_172: integer) →
-  match
-    (handle_default_opt
-       [  ]
-       (λ (__192: unit) → true)
-       (λ (__193: unit) →
-        ESome if (from_closure_env env_171).0 then y_172 else -! y_172))
-    with
-  | ENone __194 → raise NoValueProvided
-  | ESome arg_195 → arg_195 
-let scope S (S_in_197: S_in): S =
-  let get x_198 : any = S_in_197.x_in in
-  let set f_200 : any = (closure_f_170, to_closure_env (x_198)) in
-  let set z_202 : any =
-    match
-      (handle_default_opt
-         [  ]
-         (λ (__203: unit) → true)
-         (λ (__204: unit) →
-          ESome
-            let code_and_env_209 : any = f_200 in
-            code_and_env_209.0 code_and_env_209.1 -1))
-      with
-    | ENone __213 → raise NoValueProvided
-    | ESome arg_214 → arg_214
-  in
-  return { S z = z_202; } 
-
-
-type S_in = { x_in: bool; }
-
-type S = { z: integer; }
- 
 let topval closure_f : (closure_env, integer) → integer =
   λ (env: closure_env) (y: integer) →
   match
