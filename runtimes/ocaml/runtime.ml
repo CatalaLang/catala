@@ -25,9 +25,11 @@ type decimal = Q.t
 type date = Dates_calc.Dates.date
 type date_rounding = Dates_calc.Dates.date_rounding
 type duration = Dates_calc.Dates.period
+
 module Eoption = struct
   type 'a t = ENone of unit | ESome of 'a
 end
+
 type io_input = NoInput | OnlyInput | Reentrant [@@deriving yojson_of]
 type io_log = { io_input : io_input; io_output : bool } [@@deriving yojson_of]
 
@@ -607,7 +609,7 @@ let handle_default_opt
   in
   match except with
   | Eoption.ESome _ -> except
-  | Eoption.ENone _ -> (if just () then cons () else Eoption.ENone ())
+  | Eoption.ENone _ -> if just () then cons () else Eoption.ENone ()
 
 let no_input : unit -> 'a = fun _ -> raise EmptyError
 
