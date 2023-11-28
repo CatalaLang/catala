@@ -516,7 +516,7 @@ module ExprGen (C : EXPR_PARAM) = struct
           (pp_color_string (List.hd colors))
           ")"
       | EArray es ->
-        Format.fprintf fmt "@[<hov 2>%a %a@] %a" punctuation "["
+        Format.fprintf fmt "@[<hv 2>%a@,@[<hov>%a@]@;<0 -2>%a@]" punctuation "["
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
              (fun fmt e -> lhs exprc fmt e))
@@ -689,8 +689,8 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
           (rhs exprc) e
       | EMatch { e; cases; _ } ->
-        Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@ %a@]@ %a@]" keyword "match"
-          (lhs exprc) e keyword "with"
+        Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]" keyword
+          "match" (lhs exprc) e keyword "with"
           (EnumConstructor.Map.format_bindings
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt pp_cons_name case_expr ->

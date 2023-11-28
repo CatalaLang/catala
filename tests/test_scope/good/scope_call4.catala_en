@@ -81,40 +81,40 @@ $ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize --debu
 f1 = λ (x: integer) →
   match
     (handle_default_opt
-       [  ]
+       []
        (λ (_: unit) → true)
        (λ (_: unit) →
         ESome
           let x1 : integer = x + 1 in
           match
             (handle_default_opt
-               [  ]
+               []
                (λ (_1: unit) → true)
                (λ (_1: unit) → ESome (x1 + 1)))
-            with
+          with
           | ENone _1 → raise NoValueProvided
           | ESome arg → arg))
-    with
+  with
   | ENone _ → raise NoValueProvided
   | ESome arg → arg
 [RESULT]
 f2 = λ (x: integer) →
   match
     (handle_default_opt
-       [  ]
+       []
        (λ (_: unit) → true)
        (λ (_: unit) →
         ESome
           let x1 : integer = x + 1 in
           match
             (handle_default_opt
-               [  ]
+               []
                (λ (_1: unit) → true)
                (λ (_1: unit) → ESome (x1 + 1)))
-            with
+          with
           | ENone _1 → raise NoValueProvided
           | ESome arg → arg))
-    with
+  with
   | ENone _ → raise NoValueProvided
   | ESome arg → arg
 ```

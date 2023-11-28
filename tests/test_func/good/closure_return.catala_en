@@ -21,10 +21,10 @@ let topval closure_f : (closure_env, integer) → integer =
   λ (env: closure_env) (y: integer) →
   match
     (handle_default_opt
-       [  ]
+       []
        (λ (_: unit) → true)
        (λ (_: unit) → ESome if (from_closure_env env).0 then y else - y))
-    with
+  with
   | ENone _ → raise NoValueProvided
   | ESome arg → arg 
 let scope S
