@@ -208,5 +208,5 @@ let scope Foo
 ```catala-test-inline
 $ catala Interpret_lcalc -s Foo --avoid_exceptions -O --closure_conversion
 [RESULT] Computation successful! Results:
-[RESULT] z = ESome 11
+[RESULT] z = 11
 ```

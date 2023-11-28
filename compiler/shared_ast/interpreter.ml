@@ -338,12 +338,13 @@ let rec evaluate_operator
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (protect o_eq_dur_dur x y))
   | HandleDefault, _ ->
-    Message.raise_internal_error
-      "The interpreter is trying to evaluate the \"handle_default\" operator, \
-       which is the leftover from the dcalc->lcalc compilation pass. This \
-       indicates that you are trying to interpret the lcalc without having \
-       activating --avoid_exceptions. This interpretation is not implemented, \
-       just try to interpret the dcalc (with \"Interpret\") instead."
+    (* TODO ? *)
+    Message.raise_error
+      "Command @{<cyan>interpret_lcalc@} is not supported without the \
+       @{<cyan>--avoid_exceptions@} flag. (the interpreter was found trying to \
+       evaluate the \"handle_default\" operator, which is a leftover from the \
+       dcalc->lcalc compilation pass and shouldn't happen with \
+       @{<cyan>--avoid_exceptions@})."
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -835,23 +836,47 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
        cannot provide anything so we have to fail. *)
     let taus = StructName.Map.find s_in ctx.ctx_structs in
     let application_term =
+      let pos = Expr.mark_pos mark_e in
       StructField.Map.map
         (fun ty ->
           match Mark.remove ty with
+          | TArrow (ty_in, ((TDefault _, _) as ty_out)) ->
+            (* Context args may return an option if avoid_exceptions is off *)
+            Expr.make_abs
+              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+              (Expr.eraise NoValueProvided (Expr.with_ty mark_e ty_out))
+              ty_in (Expr.mark_pos mark_e)
           | TArrow (ty_in, (TOption _, _)) ->
+            (* ... or an option if it is on *)
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
               (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
                  ~name:Expr.option_enum mark_e
                 : (_, _) boxed_gexpr)
-              ty_in (Expr.mark_pos mark_e)
+              ty_in pos
+          | TTuple ((TArrow (ty_in, (TOption _, _)), _) :: _) ->
+            (* ... or a closure if closure conversion is enabled *)
+            Expr.make_tuple
+              [
+                Expr.make_abs
+                  (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+                  (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
+                     ~name:Expr.option_enum mark_e)
+                  ty_in (Expr.mark_pos mark_e);
+                Expr.eapp
+                  (Expr.eop Operator.ToClosureEnv [TClosureEnv, pos] mark_e)
+                  [Expr.etuple [] mark_e]
+                  mark_e;
+              ]
+              mark_e
           | _ ->
             Message.raise_spanned_error (Mark.get ty)
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
                Please create another scope that provides the input arguments \
-               to this one and execute it instead.")
+               to this one and execute it instead."
+              Print.typ_debug ty)
         taus
     in
     let to_interpret =
