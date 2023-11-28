@@ -20,8 +20,13 @@
 open Catala_utils
 open Shared_ast
 
+type s_expr = Z3.Expr.expr
+type _conc_info = { symb_expr : s_expr option; constraints : s_expr list }
+type conc_info = _conc_info custom
+type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
+
 val interpret_program_concolic :
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * ((yes, no, yes) interpr_kind, 'm) gexpr) list
+  (Uid.MarkedString.info * yes conc_expr) list
 (** Concolic interpreter *)

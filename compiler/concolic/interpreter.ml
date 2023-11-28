@@ -22,7 +22,7 @@ open Catala_utils
 open Shared_ast
 module Concrete = Shared_ast.Interpreter
 
-type s_expr = Z3.Expr.expr (* TODO use real Z3 expression type here *)
+type s_expr = Z3.Expr.expr
 type _conc_info = { symb_expr : s_expr option; constraints : s_expr list }
 type conc_info = _conc_info custom
 
@@ -34,6 +34,53 @@ type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
     inputs which stay the same *)
 
 type 'c conc_naked_expr = ((yes, no, 'c) interpr_kind, conc_info) naked_gexpr
+type 'c conc_boxed_expr = ((yes, no, 'c) interpr_kind, conc_info) boxed_gexpr
+
+let set_conc_info
+    (type m)
+    (symb_expr : s_expr option)
+    (constraints : s_expr list)
+    (mk : m mark) : conc_info mark =
+  let custom = { symb_expr; constraints } in
+  match mk with
+  | Untyped { pos } -> Custom { pos; custom }
+  | Typed { pos; _ } ->
+    Custom { pos; custom }
+    (* TODO CONC should we keep the type information? maybe for the symb
+       exprs *)
+  | Custom m -> Custom { m with custom }
+
+(** Add the constraints, and safely replace the symbolic expression from
+    former mark *)
+let add_conc_info_m
+    (former_mark : conc_info mark)
+    (symb_expr : s_expr option)
+    (constraints : s_expr list) : 'a -> ('a, conc_info) marked =
+  let (Custom { pos; custom = { symb_expr = s; constraints = c } }) = former_mark in
+  let symb_expr = Option.fold ~none:symb_expr ~some:Option.some s in
+  let constraints = constraints @ c in
+  Mark.add (Custom { pos; custom = { symb_expr; constraints } })
+
+(** Replace the constraints, and safely replace the symbolic expression from
+    former expression *)
+let add_conc_info_e
+    (symb_expr : s_expr option)
+    (constraints : s_expr list)
+    (x : ('a, conc_info) marked) : ('a, conc_info) marked =
+  add_conc_info_m (Mark.get x) symb_expr constraints (Mark.remove x)
+
+let concat_constraints_m
+    (former_mark : conc_info mark)
+    (constraints : s_expr list) : 'a -> ('a, conc_info) marked =
+  let (Custom { pos; custom = { symb_expr; constraints = c } }) = former_mark in
+  let constraints = constraints @ c in
+  Mark.add (Custom { pos; custom = { symb_expr; constraints } })
+
+(** Transform any DCalc expression into a concolic expression with no symbolic
+    expression and no constraints *)
+let init_conc_expr (e : ((yes, no, 'c) interpr_kind, 'm) gexpr) : 'c conc_expr =
+  let f = set_conc_info None [] in
+  Expr.unbox (Expr.map_marks ~f e)
 
 (* taken from z3backend but with the right types *)
 (* TODO check if some should be used or removed *)
@@ -77,13 +124,10 @@ let add_z3struct (s : StructName.t) (sort : Z3.Sort.sort) (ctx : context) :
   { ctx with ctx_z3structs = StructName.Map.add s sort ctx.ctx_z3structs }
 
 (* TODO CONC taken from z3backend: should I expose it there instead? *)
-let create_z3unit (z3_ctx : Z3.context) : Z3.Sort.sort * Z3.Expr.expr =
-  let unit_sort =
-    Z3.Tuple.mk_sort z3_ctx (Z3.Symbol.mk_string z3_ctx "unit") [] []
-  in
-  let mk_unit = Z3.Tuple.get_mk_decl unit_sort in
-  let unit_val = Z3.Expr.mk_app z3_ctx mk_unit [] in
-  unit_sort, unit_val
+(* let create_z3unit (z3_ctx : Z3.context) : Z3.Sort.sort * Z3.Expr.expr = let
+   unit_sort = Z3.Tuple.mk_sort z3_ctx (Z3.Symbol.mk_string z3_ctx "unit") [] []
+   in let mk_unit = Z3.Tuple.get_mk_decl unit_sort in let unit_val =
+   Z3.Expr.mk_app z3_ctx mk_unit [] in unit_sort, unit_val *)
 
 (* TODO CONC taken from z3backend *)
 
@@ -116,7 +160,7 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   | TAny -> failwith "TAny not implemented"
   | TClosureEnv -> failwith "TClosureEnv not implemented"
 
-(* TODO CONC taken from z3backend's find_or_create_struct *)
+(* taken from z3backend's find_or_create_struct *)
 and find_or_create_struct (ctx : context) (s : StructName.t) :
     context * Z3.Sort.sort =
   match StructName.Map.find_opt s ctx.ctx_z3structs with
@@ -127,7 +171,9 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
     let z3_fieldnames =
       List.map
         (fun f ->
-          Mark.remove (StructField.get_info f) |> Z3.Symbol.mk_string ctx.ctx_z3)
+          let raw_field_name = Mark.remove (StructField.get_info f) in
+          let field_name = "fd!" ^ raw_field_name in
+          Z3.Symbol.mk_string ctx.ctx_z3 field_name)
         (StructField.Map.keys fields)
     in
     let ctx, z3_fieldtypes_rev =
@@ -140,12 +186,11 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
     let z3_fieldtypes = List.rev z3_fieldtypes_rev in
     let z3_sortrefs = List.map (fun _ -> 0) z3_fieldtypes in
     (* will not be used *)
-    let mk_struct_s = "mk!" ^ s_name in
-    let is_struct_s = "is!" ^ s_name in
-    (* recognizer *)
+    let mk_struct_s = "mk!" ^ s_name (* struct constructor *) in
+    let is_struct_s = "is!" ^ s_name (* recognizer *) in
     let z3_mk_struct =
       Z3.Datatype.mk_constructor_s ctx.ctx_z3 mk_struct_s
-        (Z3.Symbol.mk_string ctx.ctx_z3 mk_struct_s)
+        (Z3.Symbol.mk_string ctx.ctx_z3 is_struct_s)
         z3_fieldnames
         (List.map Option.some z3_fieldtypes)
         z3_sortrefs
@@ -180,49 +225,7 @@ let init_context (ctx : context) : context =
   (* TODO add things when needed *)
   ctx
 
-let hard_set_conc_info
-    (type m)
-    (symb_expr : s_expr option)
-    (constraints : s_expr list)
-    (x : ('a, m) marked) : ('a, conc_info) marked =
-  let custom = { symb_expr; constraints } in
-  Mark.add
-    (match Mark.get x with
-    | Untyped { pos } -> Custom { pos; custom }
-    | Typed { pos; ty } ->
-      Custom { pos; custom }
-      (* TODO CONC should we keep the type information? maybe for the symb
-         exprs *)
-    | Custom m -> Custom { m with custom })
-    (Mark.remove x)
-
-(** Replace the constraints, and safely replace the symbolic expression from
-    former mark *)
-let add_conc_info_m
-    (former_mark : conc_info mark)
-    (symb_expr : s_expr)
-    (constraints : s_expr list) : 'a -> ('a, conc_info) marked =
-  let (Custom { pos; custom = { symb_expr = s; _ } }) = former_mark in
-  let symb_expr = Some (Option.value s ~default:symb_expr) in
-  Mark.add (Custom { pos; custom = { symb_expr; constraints } })
-
-(** Replace the constraints, and safely replace the symbolic expression from
-    former expression *)
-let add_conc_info_e
-    (symb_expr : s_expr)
-    (constraints : s_expr list)
-    (x : ('a, conc_info) marked) : ('a, conc_info) marked =
-  let m = Mark.get x in
-  add_conc_info_m m symb_expr constraints (Mark.remove x)
-
-let concat_constraints_m
-    (former_mark : conc_info mark)
-    (constraints : s_expr list) : 'a -> ('a, conc_info) marked =
-  let (Custom { pos; custom = { symb_expr; constraints = c } }) = former_mark in
-  let constraints = constraints @ c in
-  Mark.add (Custom { pos; custom = { symb_expr; constraints } })
-
-(* TODO CONC loosely taken from z3backend, could be exposed instead? *)
+(* loosely taken from z3backend, could be exposed instead? not necessarily, especially if they become plugins *)
 let symb_of_lit ctx (l : lit) : s_expr =
   match l with
   | LBool b -> Z3.Boolean.mk_val ctx.ctx_z3 b
@@ -236,13 +239,10 @@ let symb_of_lit ctx (l : lit) : s_expr =
   | LDate _ -> failwith "LDate not implemented"
   | LDuration _ -> failwith "LDuration not implemented"
 
-(** Get the symbolic expression corresponding to concolic expression [e] This
-    should only be called if the symbolic expression has already been computed,
-    and usually fails otherwise *)
-let get_symb_expr (e : 'c conc_expr) : s_expr =
+(** Get the symbolic expression corresponding to concolic expression [e] *)
+let get_symb_expr (e : 'c conc_expr) : s_expr option =
   let (Custom { custom; _ }) = Mark.get e in
-  Option.get custom.symb_expr
-(* TODO use a more explicit exception? this should not happen anyway *)
+  custom.symb_expr
 
 let get_constraints (e : 'c conc_expr) : s_expr list =
   let (Custom { custom; _ }) = Mark.get e in
@@ -266,6 +266,7 @@ let make_z3_struct_access
   let sort = StructName.Map.find name ctx.ctx_z3structs in
   let fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
   let accessors = List.hd (Z3.Datatype.get_accessors sort) in
+  Message.emit_debug "accessors %s" (List.fold_left (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc) "" accessors);
   let idx_mappings = List.combine (StructField.Map.keys fields) accessors in
   let _, accessor =
     List.find (fun (field1, _) -> StructField.equal field field1) idx_mappings
@@ -283,31 +284,36 @@ let replace_EVar_mark
     (vars_args : ('c conc_expr, conc_info mark) Var.Map.t)
     (e : 'c conc_expr) : 'c conc_expr =
   match Mark.remove e with
-  | EVar v as e ->
-    let m = Var.Map.find v vars_args in
-    (* TODO raise exception when find fails *)
-    Mark.add m e
+  | EVar v as e' -> (
+    match Var.Map.find_opt v vars_args with
+    | Some m ->
+      Message.emit_debug "put mark %s on var %a"
+        (Option.fold ~none:"None" ~some:Z3.Expr.to_string (match m with Custom {custom={symb_expr;_};_} -> symb_expr))
+        Expr.format e;
+      Mark.add m e'
     (* TODO CONC be more subtle and keep the original position from var? *)
+    | None -> e)
   | _ -> e
 
 let rec evaluate_expr :
     context -> Cli.backend_lang -> yes conc_expr -> yes conc_expr =
  fun ctx lang e ->
+  Message.emit_debug "eval %a" Expr.format e;
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
   match Mark.remove e with
   | EVar _ ->
-    (* TODO eval *)
     Message.raise_spanned_error pos
       "free variable found at evaluation (should not happen if term was \
        well-typed)"
   | EExternal _ -> failwith "EExternal not implemented"
   | EApp { f = e1; args } -> (
-    (* DONE eval *)
+    Message.emit_debug "... it's an EApp";
     let e1 = evaluate_expr ctx lang e1 in
+    Message.emit_debug "EApp f evaluated";
     let c1 = get_constraints e1 in
     let args = List.map (evaluate_expr ctx lang) args in
-    let constraints = gather_constraints args in
+    Message.emit_debug "EApp args evaluated";
     Concrete.propagate_empty_error e1
     (* TODO I don't like that "Concrete" has to appear here because this
        function is not specific to concrete evaluation. maybe let p... =
@@ -324,13 +330,27 @@ let rec evaluate_expr :
          a way is to change the corresponding marks in the receiving expression
          in which substitution happens. 1/ change marks 2/ substitute concrete
          expressions *)
-      if Bindlib.mbinder_arity binder = List.length args then
+      if Bindlib.mbinder_arity binder = List.length args then (
         let vars, eb = Bindlib.unmbind binder in
         let vars_args_map = make_vars_args_map vars args in
+        Message.emit_debug "EApp>EAbs vars are %s"
+          (Array.fold_left
+             (fun acc s -> s ^ "," ^ acc)
+             "" (Bindlib.names_of vars));
+        Message.emit_debug "EApp>EAbs args are";
+        List.iter
+          (fun arg ->
+            Message.emit_debug "EApp>EAbs arg %a | %s | %i" Expr.format arg
+              (Option.fold ~none:"None" ~some:Z3.Expr.to_string
+                 (get_symb_expr arg))
+              (List.length (get_constraints arg)))
+          args;
         let marked_eb =
           Expr.map_top_down ~f:(replace_EVar_mark vars_args_map) eb
         in
+        Message.emit_debug "EApp>EAbs vars replaced in box";
         let marked_binder = Bindlib.unbox (Expr.bind vars marked_eb) in
+        Message.emit_debug "EApp>EAbs binder reconstructed";
         let result =
           evaluate_expr ctx lang
             (Bindlib.msubst marked_binder
@@ -342,7 +362,7 @@ let rec evaluate_expr :
         add_conc_info_e r_symb (c1 @ r_constraints) result
         (* NOTE that here the position comes from [result], while in other cases
            of this function the position comes from the input expression. This
-           is the behaviour of the concrete interpreter *)
+           is the behaviour of the concrete interpreter *))
       else
         Message.raise_spanned_error pos
           "wrong function call, expected %d arguments, got %d"
@@ -355,17 +375,17 @@ let rec evaluate_expr :
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
   | EAbs { binder; tys } ->
+    Message.emit_debug "... it's an EAbs";
     Expr.unbox (Expr.eabs (Bindlib.box binder) tys m)
-    (* DONE eval *)
     (* TODO check if this typing shenanigan is really necessary... *)
   | ELit l as e ->
-    (* DONE eval *)
+    Message.emit_debug "... it's an ELit";
     let symb_expr = symb_of_lit ctx l in
-    add_conc_info_m m symb_expr [] e
+    add_conc_info_m m (Some symb_expr) [] e
   | EOp _ -> failwith "EOp not implemented"
   (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
   | EStruct { fields = es; name } ->
-    (* DONE eval *)
+    Message.emit_debug "... it's an EStruct";
     let fields, es = List.split (StructField.Map.bindings es) in
 
     (* compute all subexpressions *)
@@ -373,6 +393,8 @@ let rec evaluate_expr :
 
     (* make symbolic expression using the symbolic sub-expressions *)
     let symb_exprs = List.map get_symb_expr es in
+    let symb_exprs = List.map Option.get symb_exprs in
+    (* TODO catch error... should not happen *)
     let symb_expr = make_z3_struct ctx name symb_exprs in
 
     (* gather all constraints from sub-expressions *)
@@ -380,7 +402,7 @@ let rec evaluate_expr :
 
     Concrete.propagate_empty_error_list es
     @@ fun es ->
-    add_conc_info_m m symb_expr constraints
+    add_conc_info_m m (Some symb_expr) constraints
       (EStruct
          {
            fields =
@@ -389,7 +411,7 @@ let rec evaluate_expr :
            name;
          })
   | EStructAccess { e; name = s; field } -> (
-    (* DONE eval *)
+    Message.emit_debug "... it's an EStructAccess";
     Concrete.propagate_empty_error (evaluate_expr ctx lang e)
     @@ fun e ->
     match Mark.remove e with
@@ -408,10 +430,13 @@ let rec evaluate_expr :
              term was well-typed)"
             StructField.format field StructName.format s
       in
-      let symb_expr = make_z3_struct_access ctx s field (get_symb_expr e) in
+      let symb_expr =
+        make_z3_struct_access ctx s field (Option.get (get_symb_expr e))
+      in
+      (* TODO catch error... should not happen *)
       let constraints = get_constraints e in
       (* TODO CONC is it e or concrete_expr ? *)
-      add_conc_info_m m symb_expr constraints (Mark.remove concrete_expr)
+      add_conc_info_m m (Some symb_expr) constraints (Mark.remove concrete_expr)
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
         "The expression %a should be a struct %a but is not (should not happen \
@@ -427,11 +452,10 @@ let rec evaluate_expr :
   | EAssert _ -> failwith "EAssert not implemented"
   | ECustom _ -> failwith "ECustom not implemented"
   | EEmptyError ->
-    e
-    (* DONE eval *)
-    (* TODO CONC just pass along the symbolic values and constraints *)
+    Message.emit_debug "... it's an EEmptyError";
+    e (* TODO CONC just pass along the symbolic values and constraints *)
   | EErrorOnEmpty e' -> (
-    (* DONE eval *)
+    Message.emit_debug "... it's an EErrorOnEmpty";
     match evaluate_expr ctx lang e' with
     | EEmptyError, _ ->
       Message.raise_spanned_error (Expr.pos e')
@@ -440,13 +464,15 @@ let rec evaluate_expr :
     | e -> e (* TODO CONC just pass along the symbolic values and constraints *)
     )
   | EDefault { excepts; just; cons } ->
-    (* TODO eval *)
+    Message.emit_debug "... it's an EDefault";
     (* TODO CONC how did Rohan do? maybe contact him? *)
     (* TODO CONC look into litterature for exceptions in concolic exec (Java?)
        or symb exec (symbolic pathfinder) *)
     if excepts = [] then
       let just = evaluate_expr ctx lang just in
-      let j_symb = get_symb_expr just in
+      let j_symb_opt = get_symb_expr just in
+      let j_symb = Option.get j_symb_opt in
+      (* TODO catch error... should not happen *)
       let j_constraints = get_constraints just in
       match Mark.remove just with
       | EEmptyError ->
@@ -458,7 +484,8 @@ let rec evaluate_expr :
         let c_mark = Mark.get cons in
         let c_concr = Mark.remove cons in
         add_conc_info_m c_mark c_symb
-          ((j_symb :: j_constraints) @ c_constraints) c_concr
+          ((j_symb :: j_constraints) @ c_constraints)
+          c_concr
       | ELit (LBool false) ->
         let not_j_symb = Z3.Boolean.mk_not ctx.ctx_z3 j_symb in
         concat_constraints_m m
@@ -491,6 +518,18 @@ let expr_of_typ mark ty =
 
 let make_default_inputs (input_typs : typ StructField.Map.t) mark =
   StructField.Map.map (expr_of_typ mark) input_typs
+
+let conc_expr_of_typ ctx mark field ty : 'c conc_boxed_expr =
+  let concrete = expr_of_typ mark ty in
+  let name = Mark.remove (StructField.get_info field) in
+  let _, sort = translate_typ ctx (Mark.remove ty) in
+  let symbol = Z3.Expr.mk_const_s ctx.ctx_z3 name sort in
+  add_conc_info_e (Some symbol) [] concrete
+
+(** TODO CONC for now, just like default inputs, but concolic *)
+let make_conc_inputs ctx (input_typs : typ StructField.Map.t) mark :
+    'c conc_boxed_expr StructField.Map.t =
+  StructField.Map.mapi (conc_expr_of_typ ctx mark) input_typs
 
 let input_of_list = StructField.Map.of_list
 
@@ -537,29 +576,49 @@ let interpret_concrete_with_inputs :
       "The interpreter can only interpret terms starting with functions having \
        thunked arguments"
 
-let interpret_program_concolic p s :
-    (Uid.MarkedString.info * ('a, 'm) gexpr) list =
+let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
+    (Uid.MarkedString.info * yes conc_expr) list =
+  Message.emit_debug "Start concolic interpretation...";
   let ctx = p.decl_ctx in
+  let ctx = make_empty_context ctx in
+  let ctx = init_context ctx in
+
+  Message.emit_debug "simply help:\n%s" (Z3.Expr.get_simplify_help ctx.ctx_z3);
+
+  (* let s = StructName.Map.fold (fun struct_name sort acc -> let struct_s =
+     Mark.remove (StructName.get_info struct_name) in let sort_s =
+     Z3.Sort.to_string sort in struct_s ^ " : " ^ sort_s ^ "\n" ^ acc)
+     ctx.ctx_z3structs "" in print_endline s; *)
   let e = Expr.unbox (Program.to_expr p s) in
-  match Concrete.evaluate_expr p.decl_ctx p.lang (Concrete.addcustom e) with
+  let e_conc = init_conc_expr e in
+  Message.emit_debug "...program expression made concolic...";
+  match evaluate_expr ctx p.lang (Concrete.addcustom e_conc) with
   | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
     (* At this point, the interpreter seeks to execute the scope but does not
        have a way to retrieve input values from the command line. [taus] contain
        the types of the scope arguments. For [context] arguments, we can provide
        an empty thunked term. But for [input] arguments of another type, we
        cannot provide anything so we have to fail. *)
-    let taus = StructName.Map.find s_in ctx.ctx_structs in
+    Message.emit_debug "...pre-evaluation done...";
+    let taus = StructName.Map.find s_in ctx.ctx_decl.ctx_structs in
     let application_term =
-      make_default_inputs taus mark_e (* TODO CONC should this mark change? *)
+      make_conc_inputs ctx taus mark_e (* TODO CONC should this mark change? *)
     in
+    Message.emit_debug "...inputs generated...";
     let to_interpret =
-      Expr.make_app (Expr.box e)
+      Expr.eapp
+        (Expr.box e) (* TODO CONC originally [make_app] but it folds marks... *)
         [Expr.estruct ~name:s_in ~fields:application_term mark_e]
-        (Expr.pos e)
+        (set_conc_info None [] (Mark.get e))
     in
-    match
-      Mark.remove (Concrete.evaluate_expr ctx p.lang (Expr.unbox to_interpret))
-    with
+    Message.emit_debug "...inputs applied...";
+    let res = evaluate_expr ctx p.lang (Expr.unbox to_interpret) in
+    Message.emit_debug "...interepred with inputs...";
+    Message.emit_result "Constraints: %s"
+      (List.fold_left
+         (fun acc z -> Z3.Expr.to_string (Z3.Expr.simplify z None) ^ "," ^ acc) (* TODO CONC should I always simplify? Rohan does it *)
+         "" (get_constraints res));
+    match Mark.remove res with
     | EStruct { fields; _ } ->
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
