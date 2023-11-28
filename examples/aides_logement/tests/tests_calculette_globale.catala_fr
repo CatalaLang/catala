@@ -164,15 +164,15 @@ $ catala Interpret -s Exemple1
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant_versé = ESome 246,23 €
-[RESULT] éligibilité = ESome vrai
+[RESULT] montant_versé = 246,23 €
+[RESULT] éligibilité = vrai
 ```
 
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions -O --closure_conversion
 [RESULT] Computation successful! Results:
-[RESULT] montant_versé = ESome 246,23 €
-[RESULT] éligibilité = ESome vrai
+[RESULT] montant_versé = 246,23 €
+[RESULT] éligibilité = vrai
 ```
 
 ```catala-test-inline
@@ -185,13 +185,13 @@ $ catala Interpret -s Exemple2
 ```catala-test-inline
 $ catala Interpret_lcalc -s Exemple2 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant_versé = ESome 230,63 €
-[RESULT] éligibilité = ESome vrai
+[RESULT] montant_versé = 230,63 €
+[RESULT] éligibilité = vrai
 ```
 
 ```catala-test-inline
 $ catala Interpret_lcalc -s Exemple2 -O --avoid_exceptions --closure_conversion
 [RESULT] Computation successful! Results:
-[RESULT] montant_versé = ESome 230,63 €
-[RESULT] éligibilité = ESome vrai
+[RESULT] montant_versé = 230,63 €
+[RESULT] éligibilité = vrai
 ```

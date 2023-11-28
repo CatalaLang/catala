@@ -32,11 +32,14 @@ scope B:
 
 ```catala-test-inline
 $ catala Scopelang -s A
-let scope A (foo_bar: integer|context) (foo_baz: integer|internal)
+let scope A (foo_bar: ⟨integer⟩|context) (foo_baz: integer|internal)
   (foo_fizz: integer|internal|output) =
-  let foo_bar : integer = reentrant or by default ⟨true ⊢ 1⟩;
-  let foo_baz : integer = ⟨true ⊢ foo_bar + 1⟩;
-  let foo_fizz : integer = ⟨true ⊢ foo_baz + 1⟩
+  let foo_bar : integer = reentrant or by default
+    error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
+  let foo_baz : integer =
+    error_empty ⟨ ⟨true ⊢ ⟨foo_bar + 1⟩⟩ | false ⊢ ∅ ⟩;
+  let foo_fizz : integer =
+    error_empty ⟨ ⟨true ⊢ ⟨foo_baz + 1⟩⟩ | false ⊢ ∅ ⟩
 ```
 
 ```catala-test-inline
@@ -48,6 +51,6 @@ $ catala Interpret -s B
 ```catala-test-inline
 $ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] foofoo = ESome 4
-[RESULT] foofoofoo = ESome 6
+[RESULT] foofoo = 4
+[RESULT] foofoofoo = 6
 ```

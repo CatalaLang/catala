@@ -172,7 +172,7 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
          format_typ)
       ts
   | TStruct s -> Format.fprintf fmt "\"catala_struct_%a\"" format_struct_name s
-  | TOption some_typ ->
+  | TOption some_typ | TDefault some_typ ->
     (* We loose track of optional value as they're crammed into NULL *)
     format_typ fmt some_typ
   | TEnum e -> Format.fprintf fmt "\"catala_enum_%a\"" format_enum_name e

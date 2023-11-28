@@ -130,6 +130,13 @@ val build_typ_from_sig :
 (** [build_typ_from_sig ctx in_struct out_struct pos] builds the arrow type for
     the specified scope *)
 
+val input_type : typ -> Runtime.io_input Mark.pos -> typ
+(** Returns the correct input type for scope input variables: this is [typ] for
+    non-reentrant variables, but for reentrant variables, it is nested in a
+    [TDefault], which only applies to the return type on functions. Note that
+    this doesn't take thunking into account (thunking is added during the
+    scopelang->dcalc translation) *)
+
 (** {2 Analysis and tests} *)
 
 val free_vars_body_expr : 'e scope_body_expr -> 'e Var.Set.t

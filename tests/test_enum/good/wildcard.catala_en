@@ -52,12 +52,12 @@ $ catala Interpret -s Simple_case
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Simple_case_2 --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] x = ESome Case3 ()
-[RESULT] y = ESome 31
+[RESULT] x = Case3 ()
+[RESULT] y = 31
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Simple_case --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] x = ESome Case1 2
-[RESULT] y = ESome 31
+[RESULT] x = Case1 2
+[RESULT] y = 31
 ```

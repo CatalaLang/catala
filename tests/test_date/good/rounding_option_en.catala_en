@@ -27,3 +27,9 @@ $ catala Interpret -s Test
 [RESULT] Computation successful! Results:
 [RESULT] r = true
 ```
+
+```catala-test-inline
+$ catala Interpret_Lcalc -s Test --avoid_exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] r = true
+```

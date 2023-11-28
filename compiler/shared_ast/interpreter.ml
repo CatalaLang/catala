@@ -338,12 +338,13 @@ let rec evaluate_operator
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (protect o_eq_dur_dur x y))
   | HandleDefault, _ ->
-    Message.raise_internal_error
-      "The interpreter is trying to evaluate the \"handle_default\" operator, \
-       which is the leftover from the dcalc->lcalc compilation pass. This \
-       indicates that you are trying to interpret the lcalc without having \
-       activating --avoid_exceptions. This interpretation is not implemented, \
-       just try to interpret the dcalc (with \"Interpret\") instead."
+    (* TODO ? *)
+    Message.raise_error
+      "Command @{<cyan>interpret_lcalc@} is not supported without the \
+       @{<cyan>--avoid_exceptions@} flag. (the interpreter was found trying to \
+       evaluate the \"handle_default\" operator, which is a leftover from the \
+       dcalc->lcalc compilation pass and shouldn't happen with \
+       @{<cyan>--avoid_exceptions@})."
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -353,21 +354,16 @@ let rec evaluate_operator
     in
     match valid_exceptions with
     | [] -> (
-      match
-        Mark.remove (evaluate_expr (Expr.unthunk_term_nobox justification m))
-      with
-      | EInj { name; cons; e = ELit (LBool true), _ }
-        when EnumName.equal name Expr.option_enum
-             && EnumConstructor.equal cons Expr.some_constr ->
+      let e = evaluate_expr (Expr.unthunk_term_nobox justification m) in
+      match Mark.remove e with
+      | ELit (LBool true) ->
         Mark.remove (evaluate_expr (Expr.unthunk_term_nobox conclusion m))
-      | EInj { name; cons; e = (ELit (LBool false), _) as e }
-        when EnumName.equal name Expr.option_enum
-             && EnumConstructor.equal cons Expr.some_constr ->
+      | ELit (LBool false) ->
         EInj
           {
             name = Expr.option_enum;
             cons = Expr.none_constr;
-            e = Mark.copy e (ELit LUnit);
+            e = Mark.copy justification (ELit LUnit);
           }
       | EInj { name; cons; e }
         when EnumName.equal name Expr.option_enum
@@ -457,6 +453,7 @@ let rec runtime_to_val :
            (Array.to_list (Obj.obj o))),
       m )
   | TArrow (targs, tret) -> ECustom { obj = o; targs; tret }, m
+  | TDefault ty -> runtime_to_val eval_expr ctx m ty o
   | TAny -> assert false
 
 and val_to_runtime :
@@ -521,6 +518,7 @@ and val_to_runtime :
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
     in
     curry [] targs
+  | TDefault ty, _ -> val_to_runtime eval_expr ctx ty v
   | _ ->
     Message.raise_internal_error
       "Could not convert value of type %a to runtime: %a" (Print.typ ctx) ty
@@ -711,7 +709,8 @@ let rec evaluate_expr :
     | EEmptyError, _ ->
       Message.raise_spanned_error (Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
-         applied in this situation)"
+         applied in this situation): %a"
+        Expr.format e
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -720,7 +719,6 @@ let rec evaluate_expr :
     | 0 -> (
       let just = evaluate_expr ctx lang just in
       match Mark.remove just with
-      | EEmptyError -> Mark.add m EEmptyError
       | ELit (LBool true) -> evaluate_expr ctx lang cons
       | ELit (LBool false) -> Mark.copy e EEmptyError
       | _ ->
@@ -736,6 +734,7 @@ let rec evaluate_expr :
            (List.filter (fun sub -> not (is_empty_error sub)) excepts))
         "There is a conflict between multiple valid consequences for assigning \
          the same variable.")
+  | EPureDefault e -> evaluate_expr ctx lang e
   | ERaise exn -> raise (CatalaException exn)
   | ECatch { body; exn; handler } -> (
     try evaluate_expr ctx lang body
@@ -788,6 +787,7 @@ let addcustom e =
     | (ECustom _, _) as e -> Expr.map ~f e
     | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
     | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmptyError, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
     | (ECatch _, _) as e -> Expr.map ~f e
@@ -809,6 +809,7 @@ let delcustom e =
     | ECustom _, _ -> invalid_arg "Custom term remaining in evaluated term"
     | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
     | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmptyError, _) as e -> Expr.map ~f e
     | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
     | (ECatch _, _) as e -> Expr.map ~f e
@@ -835,20 +836,47 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
        cannot provide anything so we have to fail. *)
     let taus = StructName.Map.find s_in ctx.ctx_structs in
     let application_term =
+      let pos = Expr.mark_pos mark_e in
       StructField.Map.map
         (fun ty ->
           match Mark.remove ty with
-          | TOption _ ->
-            (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
-               ~name:Expr.option_enum mark_e
-              : (_, _) boxed_gexpr)
+          | TArrow (ty_in, ((TDefault _, _) as ty_out)) ->
+            (* Context args may return an option if avoid_exceptions is off *)
+            Expr.make_abs
+              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+              (Expr.eraise NoValueProvided (Expr.with_ty mark_e ty_out))
+              ty_in (Expr.mark_pos mark_e)
+          | TArrow (ty_in, (TOption _, _)) ->
+            (* ... or an option if it is on *)
+            Expr.make_abs
+              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+              (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
+                 ~name:Expr.option_enum mark_e
+                : (_, _) boxed_gexpr)
+              ty_in pos
+          | TTuple ((TArrow (ty_in, (TOption _, _)), _) :: _) ->
+            (* ... or a closure if closure conversion is enabled *)
+            Expr.make_tuple
+              [
+                Expr.make_abs
+                  (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+                  (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
+                     ~name:Expr.option_enum mark_e)
+                  ty_in (Expr.mark_pos mark_e);
+                Expr.eapp
+                  (Expr.eop Operator.ToClosureEnv [TClosureEnv, pos] mark_e)
+                  [Expr.etuple [] mark_e]
+                  mark_e;
+              ]
+              mark_e
           | _ ->
             Message.raise_spanned_error (Mark.get ty)
               "This scope needs input arguments to be executed. But the Catala \
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
                Please create another scope that provides the input arguments \
-               to this one and execute it instead. ")
+               to this one and execute it instead."
+              Print.typ_debug ty)
         taus
     in
     let to_interpret =

@@ -229,6 +229,7 @@ and naked_typ =
   | TOption of typ
   | TArrow of typ list * typ
   | TArray of typ
+  | TDefault of typ
   | TAny
   | TClosureEnv  (** Hides an existential type needed for closure conversion *)
 
@@ -548,6 +549,9 @@ and ('a, 'b, 'm) base_gexpr =
       just : ('a, 'm) gexpr;
       cons : ('a, 'm) gexpr;
     }
+      -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
+  | EPureDefault :
+      ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   | EEmptyError : ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   | EErrorOnEmpty :

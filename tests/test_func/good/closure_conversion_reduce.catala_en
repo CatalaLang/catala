@@ -13,35 +13,24 @@ scope S:
 
 ```catala-test-inline
 $ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
-let scope S
-  (S_in: S_in {x_in: eoption collection eoption integer})
-  : S {y: eoption integer}
-  =
-  let get x : eoption collection eoption integer = S_in.x_in in
-  let set y : eoption integer =
-    ESome
-      match
-        (match x with
-         | ENone _ → ENone _
-         | ESome y_2 →
-           reduce
-             (λ (f: eoption integer) (init: eoption integer) →
-              match init with
-              | ENone _ → ENone _
-              | ESome y_3 →
-                match f with
-                | ENone _ → ENone _
-                | ESome y_0 →
-                  let potential_max_1 : integer = y_0 in
-                  let potential_max_2 : integer = y_3 in
-                  if potential_max_1 < potential_max_2 then
-                    ESome potential_max_1
-                  else ESome potential_max_2)
-             ESome -1
-             y_2)
-        with
-      | ENone _ → raise NoValueProvided
-      | ESome y → y
+let scope S (S_in: S_in {x_in: collection integer}): S {y: integer} =
+  let get x : collection integer = S_in.x_in in
+  let set y : integer =
+    match
+      (handle_default_opt
+         []
+         (λ (_: unit) → true)
+         (λ (_: unit) →
+          ESome
+            reduce
+              (λ (potential_max_1: integer) (potential_max_2: integer) →
+               if potential_max_1 < potential_max_2 then potential_max_1
+               else potential_max_2)
+              -1
+              x))
+    with
+    | ENone _ → raise NoValueProvided
+    | ESome arg → arg
   in
   return { S y = y; }
 ```
@@ -58,39 +47,35 @@ with optimizations on passes.
 
 ```catala-test-inline
 $ catala Lcalc -s S --closure_conversion
-let scope S
-  (S_in: S_in {x_in: eoption collection eoption integer})
-  : S {y: eoption integer}
-  =
-  let get x : eoption collection eoption integer = S_in.x_in in
-  let set y : eoption integer =
-    ESome
-      match
-        (handle_default_opt
-           [  ]
-           (λ (_: unit) → ESome true)
-           (λ (_: unit) →
-            match x with
-            | ENone _1 → ENone _1
-            | ESome y_2 →
-              reduce
-                (λ (f: eoption integer) (init: eoption integer) →
-                 match init with
-                 | ENone _1 → ENone _1
-                 | ESome y_3 →
-                   match f with
-                   | ENone _1 → ENone _1
-                   | ESome y_0 →
-                     let potential_max_1 : integer = y_0 in
-                     let potential_max_2 : integer = y_3 in
-                     if potential_max_1 < potential_max_2 then
-                       ESome potential_max_1
-                     else ESome potential_max_2)
-                ESome -1
-                y_2))
-        with
-      | ENone _ → raise NoValueProvided
-      | ESome y → y
+let scope S (S_in: S_in {x_in: collection integer}): S {y: integer} =
+  let get x : collection integer = S_in.x_in in
+  let set y : integer =
+    match
+      (handle_default_opt
+         [
+           handle_default_opt
+             []
+             (λ (_: unit) → true)
+             (λ (_: unit) →
+              ESome
+                reduce
+                  (λ (potential_max_1: integer) (potential_max_2: integer) →
+                   if
+                     (let potential_max : integer = potential_max_1 in
+                      potential_max)
+                     < let potential_max : integer = potential_max_2 in
+                       potential_max
+                   then
+                     potential_max_1
+                   else potential_max_2)
+                  -1
+                  x)
+         ]
+         (λ (_: unit) → false)
+         (λ (_: unit) → ENone ()))
+    with
+    | ENone _ → raise NoValueProvided
+    | ESome arg → arg
   in
   return { S y = y; }
 ```

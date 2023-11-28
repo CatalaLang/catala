@@ -48,6 +48,7 @@ and naked_typ =
   | TEnum of A.EnumName.t
   | TOption of unionfind_typ
   | TArray of unionfind_typ
+  | TDefault of unionfind_typ
   | TAny of Any.t
   | TClosureEnv
 
@@ -62,6 +63,7 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
   | TOption t -> A.TOption (typ_to_ast t), pos
   | TArrow (t1, t2) -> A.TArrow (List.map typ_to_ast t1, typ_to_ast t2), pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
+  | TDefault t1 -> A.TDefault (typ_to_ast t1), pos
   | TAny _ ->
     if leave_unresolved then A.TAny, pos
     else
@@ -82,6 +84,7 @@ let rec ast_to_typ (ty : A.typ) : unionfind_typ =
     | A.TEnum e -> TEnum e
     | A.TOption t -> TOption (ast_to_typ t)
     | A.TArray t -> TArray (ast_to_typ t)
+    | A.TDefault t -> TDefault (ast_to_typ t)
     | A.TAny -> TAny (Any.fresh ())
     | A.TClosureEnv -> TClosureEnv
   in
@@ -157,6 +160,10 @@ let rec format_typ
     | TAny _ when not Cli.globals.debug ->
       Format.pp_print_string fmt "collection"
     | _ -> Format.fprintf fmt "@[collection@ %a@]" (format_typ ~colors) t1)
+  | TDefault t1 ->
+    Format.pp_print_as fmt 1 "⟨";
+    format_typ ~colors fmt t1;
+    Format.pp_print_as fmt 1 "⟩"
   | TAny v ->
     if Cli.globals.debug then Format.fprintf fmt "<a%d>" (Any.hash v)
     else Format.pp_print_string fmt "<any>"
@@ -199,10 +206,11 @@ let rec unify
       if not (A.EnumName.equal e1 e2) then raise_type_error ()
     | TOption t1, TOption t2 -> unify e t1 t2
     | TArray t1', TArray t2' -> unify e t1' t2'
+    | TDefault t1', TDefault t2' -> unify e t1' t2'
     | TClosureEnv, TClosureEnv -> ()
     | TAny _, _ | _, TAny _ -> ()
     | ( ( TLit _ | TArrow _ | TTuple _ | TStruct _ | TEnum _ | TOption _
-        | TArray _ | TClosureEnv ),
+        | TArray _ | TDefault _ | TClosureEnv ),
         _ ) ->
       raise_type_error ()
   in
@@ -216,26 +224,44 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
      persistent version of the union-find data structure. *)
   let t1_repr = UnionFind.get (UnionFind.find t1) in
   let t2_repr = UnionFind.get (UnionFind.find t2) in
+  let e_pos = Expr.pos e in
   let t1_pos = Mark.get t1_repr in
   let t2_pos = Mark.get t2_repr in
-  Message.raise_multispanned_error_full
-    [
-      ( Some
-          (fun ppf ->
-            Format.pp_print_string ppf
-              "Error coming from typechecking the following expression:"),
-        Expr.pos e );
-      ( Some
-          (fun ppf ->
-            Format.fprintf ppf "Type @{<yellow>%a@} coming from expression:"
-              (format_typ ctx) t1),
-        t1_pos );
-      ( Some
-          (fun ppf ->
-            Format.fprintf ppf "Type @{<yellow>%a@} coming from expression:"
+  let pos_msgs =
+    if e_pos = t1_pos then
+      [
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hv 2>@[<hov>%a@ %a@]:" Format.pp_print_text
+              "This expression has type" (format_typ ctx) t1;
+            if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
+            else Format.pp_close_box ppf ()),
+          e_pos );
+        ( (fun ppf ->
+            Format.fprintf ppf
+              "@[<hov>Expected@ type@ %a@ coming@ from@ expression:@]"
               (format_typ ctx) t2),
-        t2_pos );
-    ]
+          t2_pos );
+      ]
+    else
+      [
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hv 2>@[<hov>%a:@]" Format.pp_print_text
+              "While typechecking the following expression";
+            if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
+            else Format.pp_close_box ppf ()),
+          e_pos );
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
+              (format_typ ctx) t1),
+          t1_pos );
+        ( (fun ppf ->
+            Format.fprintf ppf "@[<hov>Type@ %a@ is@ coming@ from:@]"
+              (format_typ ctx) t2),
+          t2_pos );
+      ]
+  in
+  Message.raise_multispanned_error_full
+    (List.map (fun (a, b) -> Some a, b) pos_msgs)
     "@[<v>Error during typechecking, incompatible types:@,\
      @[<v>@{<bold;blue>@<3>%s@} @[<hov>%a@]@,\
      @{<bold;blue>@<3>%s@} @[<hov>%a@]@]@]" "┌─⯈" (format_typ ctx) t1 "└─⯈"
@@ -268,6 +294,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
   let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
+  let default a = lazy (UnionFind.make (TDefault (Lazy.force a), pos)) in
   let ( @-> ) x y =
     lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
   in
@@ -282,10 +309,10 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
+    | HandleDefault ->
+      [array ([ut] @-> default any); [ut] @-> bt; [ut] @-> any] @-> default any
     | HandleDefaultOpt ->
-      [array (option any); [ut] @-> option bt; [ut] @-> option any]
-      @-> option any
+      [array (option any); [ut] @-> bt; [ut] @-> option any] @-> option any
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in
@@ -314,6 +341,7 @@ module Env = struct
     vars : ('e, unionfind_typ) Var.Map.t;
     scope_vars : A.typ A.ScopeVar.Map.t;
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
+    scopes_input : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     toplevel_vars : A.typ A.TopdefName.Map.t;
     modules : 'e t A.ModuleName.Map.t;
   }
@@ -333,6 +361,7 @@ module Env = struct
       vars = Var.Map.empty;
       scope_vars = A.ScopeVar.Map.empty;
       scopes = A.ScopeName.Map.empty;
+      scopes_input = A.ScopeName.Map.empty;
       toplevel_vars = A.TopdefName.Map.empty;
       modules = A.ModuleName.Map.empty;
     }
@@ -354,8 +383,12 @@ module Env = struct
   let add_scope_var v typ t =
     { t with scope_vars = A.ScopeVar.Map.add v typ t.scope_vars }
 
-  let add_scope scope_name ~vars t =
-    { t with scopes = A.ScopeName.Map.add scope_name vars t.scopes }
+  let add_scope scope_name ~vars ~in_vars t =
+    {
+      t with
+      scopes = A.ScopeName.Map.add scope_name vars t.scopes;
+      scopes_input = A.ScopeName.Map.add scope_name in_vars t.scopes_input;
+    }
 
   let add_toplevel_var v typ t =
     { t with toplevel_vars = A.TopdefName.Map.add v typ t.toplevel_vars }
@@ -667,7 +700,7 @@ and typecheck_expr_top_down :
     let mark = mark_with_tau_and_unify (unionfind (TStruct scope_out_struct)) in
     let vars =
       let env = Env.module_env path env in
-      A.ScopeName.Map.find scope env.scopes
+      A.ScopeName.Map.find scope env.scopes_input
     in
     let args' =
       A.ScopeVar.Map.mapi
@@ -679,7 +712,10 @@ and typecheck_expr_top_down :
     Expr.escopecall ~scope ~args:args' mark
   | A.ERaise ex -> Expr.eraise ex context_mark
   | A.ECatch { body; exn; handler } ->
-    let body' = typecheck_expr_top_down ~leave_unresolved ctx env tau body in
+    let body' =
+      typecheck_expr_top_down ~leave_unresolved ctx env
+        (unionfind (TDefault tau)) body
+    in
     let handler' =
       typecheck_expr_top_down ~leave_unresolved ctx env tau handler
     in
@@ -871,7 +907,14 @@ and typecheck_expr_top_down :
     let excepts' =
       List.map (typecheck_expr_top_down ~leave_unresolved ctx env tau) excepts
     in
-    Expr.edefault excepts' just' cons' context_mark
+    Expr.edefault ~excepts:excepts' ~just:just' ~cons:cons' context_mark
+  | A.EPureDefault e1 ->
+    let inner_ty = unionfind ~pos:e1 (TAny (Any.fresh ())) in
+    let mark =
+      mark_with_tau_and_unify (unionfind ~pos:e1 (TDefault inner_ty))
+    in
+    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env inner_ty e1 in
+    Expr.epuredefault e1' mark
   | A.EIfThenElse { cond; etrue = et; efalse = ef } ->
     let et' = typecheck_expr_top_down ~leave_unresolved ctx env tau et in
     let ef' = typecheck_expr_top_down ~leave_unresolved ctx env tau ef in
@@ -889,9 +932,11 @@ and typecheck_expr_top_down :
         e1
     in
     Expr.eassert e1' mark
-  | A.EEmptyError -> Expr.eemptyerror (ty_mark (TAny (Any.fresh ())))
+  | A.EEmptyError ->
+    Expr.eemptyerror (ty_mark (TDefault (unionfind (TAny (Any.fresh ())))))
   | A.EErrorOnEmpty e1 ->
-    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env tau e1 in
+    let tau' = unionfind (TDefault tau) in
+    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env tau' e1 in
     Expr.eerroronempty e1' context_mark
   | A.EArray es ->
     let cell_type = unionfind (TAny (Any.fresh ())) in

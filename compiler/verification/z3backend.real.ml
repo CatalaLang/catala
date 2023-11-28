@@ -206,6 +206,8 @@ let rec print_z3model_expr (ctx : context) (ty : typ) (e : Expr.expr) : string =
   | TAny -> failwith "[Z3 model]: Pretty-printing of Any not supported"
   | TClosureEnv ->
     failwith "[Z3 model]: Pretty-printing of closure_env not supported"
+  | TDefault _ ->
+    failwith "[Z3 model]: Pretty-printing of default terms not supported"
 
 (** [print_model] pretty prints a Z3 model, used to exhibit counter examples
     where verification conditions are not satisfied. The context [ctx] is useful
@@ -273,6 +275,7 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Sort.sort =
   | TTuple _ -> failwith "[Z3 encoding] TTuple type not supported"
   | TEnum e -> find_or_create_enum ctx e
   | TOption _ -> failwith "[Z3 encoding] TOption type not supported"
+  | TDefault _ -> failwith "[Z3 encoding] TDefault type not supported"
   | TArrow _ -> failwith "[Z3 encoding] TArrow type not supported"
   | TArray _ ->
     (* For now, we are only encoding the (symbolic) length of an array.
@@ -761,6 +764,7 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EAssert e -> translate_expr ctx e
   | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
+  | EPureDefault _ -> failwith "[Z3 encoding] EPureDefault unsupported"
   | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
     (* We rely on Z3's native encoding for ite to encode this node. There might
        be some interesting optimization in the future about when to split this
