@@ -337,14 +337,38 @@ let rec evaluate_operator
     ELit (LBool (o_eq_dat_dat x y))
   | Eq_dur_dur, [(ELit (LDuration x), _); (ELit (LDuration y), _)] ->
     ELit (LBool (protect o_eq_dur_dur x y))
-  | HandleDefault, _ ->
-    (* TODO ? *)
-    Message.raise_error
-      "Command @{<cyan>interpret_lcalc@} is not supported without the \
-       @{<cyan>--avoid_exceptions@} flag. (the interpreter was found trying to \
-       evaluate the \"handle_default\" operator, which is a leftover from the \
-       dcalc->lcalc compilation pass and shouldn't happen with \
-       @{<cyan>--avoid_exceptions@})."
+  | HandleDefault, [(EArray excepts, _); just; cons] -> (
+    (* This case is for lcalc with exceptions: we rely OCaml exception handling
+       here *)
+    match
+      List.filter_map
+        (fun e ->
+          try Some (evaluate_expr (Expr.unthunk_term_nobox e m))
+          with CatalaException EmptyError -> None)
+        excepts
+    with
+    | [] -> (
+      let just = evaluate_expr (Expr.unthunk_term_nobox just m) in
+      match Mark.remove just with
+      | ELit (LBool true) ->
+        Mark.remove
+          (evaluate_expr (Expr.unthunk_term_nobox cons (Mark.get cons)))
+      | ELit (LBool false) -> raise (CatalaException EmptyError)
+      | _ ->
+        Message.raise_spanned_error pos
+          "Default justification has not been reduced to a boolean at \
+           evaluation (should not happen if the term was well-typed@\n\
+           %a@."
+          Expr.format just)
+    | [e] -> Mark.remove e
+    | es ->
+      Message.raise_multispanned_error
+        (List.map
+           (fun except ->
+             Some "This consequence has a valid justification:", Expr.pos except)
+           es)
+        "There is a conflict between multiple valid consequences for assigning \
+         the same variable.")
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -391,7 +415,8 @@ let rec evaluate_operator
       | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat
       | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat
       | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat
-      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefaultOpt ),
+      | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur | HandleDefault | HandleDefaultOpt
+        ),
       _ ) ->
     err ()
 
@@ -844,7 +869,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
             (* Context args may return an option if avoid_exceptions is off *)
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-              (Expr.eraise NoValueProvided (Expr.with_ty mark_e ty_out))
+              (Expr.eraise EmptyError (Expr.with_ty mark_e ty_out))
               ty_in (Expr.mark_pos mark_e)
           | TArrow (ty_in, (TOption _, _)) ->
             (* ... or an option if it is on *)
