@@ -934,6 +934,28 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.closure_conversion)
 
+  let c options includes output optimize check_invariants =
+    let prg, _, type_ordering =
+      Passes.scalc options ~includes ~optimize ~check_invariants
+        ~avoid_exceptions:true ~closure_conversion:true
+    in
+    let output_file, with_output = get_output_format options ~ext:".c" output in
+    Message.emit_debug "Compiling program into C...";
+    Message.emit_debug "Writing to %s..."
+      (Option.value ~default:"stdout" output_file);
+    with_output @@ fun fmt -> Scalc.To_c.format_program fmt prg type_ordering
+
+  let c_cmd =
+    Cmd.v
+      (Cmd.info "c" ~doc:"Generates an C translation of the Catala program.")
+      Term.(
+        const c
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants)
+
   let pygmentize_cmd =
     Cmd.v
       (Cmd.info "pygmentize"
@@ -956,6 +978,7 @@ module Commands = struct
       ocaml_cmd;
       python_cmd;
       r_cmd;
+      c_cmd;
       latex_cmd;
       html_cmd;
       makefile_cmd;
