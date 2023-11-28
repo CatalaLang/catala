@@ -59,7 +59,13 @@ let scope S (S_in: S_in {x_in: collection integer}): S {y: integer} =
               ESome
                 reduce
                   (λ (potential_max_1: integer) (potential_max_2: integer) →
-                   if potential_max_1 < potential_max_2 then potential_max_1
+                   if
+                     (let potential_max : integer = potential_max_1 in
+                      potential_max)
+                     < let potential_max : integer = potential_max_2 in
+                       potential_max
+                   then
+                     potential_max_1
                    else potential_max_2)
                   -1
                   x) ]
