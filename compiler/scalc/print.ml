@@ -53,6 +53,12 @@ let rec format_expr
              Print.punctuation ":" format_expr e))
       (List.combine es (StructField.Map.bindings fields))
       Print.punctuation "}"
+  | ETuple es ->
+    Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "()"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
+      es Print.punctuation ")"
   | EArray es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "["
       (Format.pp_print_list
@@ -62,6 +68,9 @@ let rec format_expr
   | EStructFieldAccess (e1, field, _) ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" StructField.format field Print.punctuation "\""
+  | ETupleAccess (e1, index) ->
+    Format.fprintf fmt "%a%a%a%d%a" format_expr e1 Print.punctuation "."
+      Print.punctuation "\"" index Print.punctuation "\""
   | EInj (e, cons, _) ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
       format_expr e

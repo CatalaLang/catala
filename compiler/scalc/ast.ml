@@ -44,15 +44,17 @@ type operator =
 type expr = naked_expr Mark.pos
 
 and naked_expr =
-  | EVar : VarName.t -> naked_expr
-  | EFunc : FuncName.t -> naked_expr
-  | EStruct : expr list * StructName.t -> naked_expr
-  | EStructFieldAccess : expr * StructField.t * StructName.t -> naked_expr
-  | EInj : expr * EnumConstructor.t * EnumName.t -> naked_expr
-  | EArray : expr list -> naked_expr
-  | ELit : lit -> naked_expr
-  | EApp : expr * expr list -> naked_expr
-  | EOp : operator -> naked_expr
+  | EVar of VarName.t
+  | EFunc of FuncName.t
+  | EStruct of expr list * StructName.t
+  | EStructFieldAccess of expr * StructField.t * StructName.t
+  | ETuple of expr list
+  | ETupleAccess of expr * int
+  | EInj of expr * EnumConstructor.t * EnumName.t
+  | EArray of expr list
+  | ELit of lit
+  | EApp of expr * expr list
+  | EOp of operator
 
 type stmt =
   | SInnerFuncDef of VarName.t Mark.pos * func

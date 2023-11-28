@@ -57,11 +57,22 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     let new_args = List.rev new_args in
     let args_stmts = List.rev args_stmts in
     args_stmts, (A.EStruct (new_args, name), Expr.pos expr)
-  | ETuple _ -> failwith "Tuples cannot be compiled to scalc"
+  | ETuple args ->
+    let args_stmts, new_args =
+      List.fold_left
+        (fun (args_stmts, new_args) arg ->
+          let arg_stmts, new_arg = translate_expr ctxt arg in
+          arg_stmts @ args_stmts, new_arg :: new_args)
+        ([], []) args
+    in
+    let new_args = List.rev new_args in
+    args_stmts, (A.ETuple new_args, Expr.pos expr)
   | EStructAccess { e = e1; field; name } ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
     e1_stmts, (A.EStructFieldAccess (new_e1, field, name), Expr.pos expr)
-  | ETupleAccess _ -> failwith "Non-struct tuples cannot be compiled to scalc"
+  | ETupleAccess { e = e1; index; _ } ->
+    let e1_stmts, new_e1 = translate_expr ctxt e1 in
+    e1_stmts, (A.ETupleAccess (new_e1, index), Expr.pos expr)
   | EInj { e = e1; cons; name } ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
     e1_stmts, (A.EInj (new_e1, cons, name), Expr.pos expr)
