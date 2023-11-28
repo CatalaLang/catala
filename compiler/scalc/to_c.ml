@@ -65,7 +65,8 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     |> String.to_snake_case
     |> avoid_keywords)
 
-let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
+let rec format_typ (decl_ctx : decl_ctx) (fmt : Format.formatter) (typ : typ) :
+    unit =
   match Mark.remove typ with
   | TLit TUnit -> Format.fprintf fmt "void * /* Unit */"
   | TLit TMoney -> Format.fprintf fmt "int"
@@ -75,26 +76,24 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TLit TDuration -> Format.fprintf fmt "double"
   | TLit TBool -> Format.fprintf fmt "char"
   | TTuple ts ->
-    Format.fprintf fmt "@[<v 2>struct { %a }@]"
+    Format.fprintf fmt "@[<v 2>struct {@,%a @]@,}"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
-         (fun fmt (t, i) -> Format.fprintf fmt "%a arg_%d" format_typ t i))
+         (fun fmt (t, i) ->
+           Format.fprintf fmt "%a arg_%d" (format_typ decl_ctx) t i))
       (List.mapi (fun x y -> y, x) ts)
   | TStruct s -> Format.fprintf fmt "%a" format_struct_name s
   | TOption some_typ ->
     (* We translate the option type with an overloading to C's [NULL] *)
-    Format.fprintf fmt "@[<h 2>union { %a;@ void * }@]" format_typ some_typ
-  | TDefault t -> format_typ fmt t
+    Format.fprintf fmt "@[<h 2>union { %a;@ void * @]@,} /* eoption %a */"
+      (format_typ decl_ctx) some_typ (Print.typ decl_ctx) some_typ
+  | TDefault t -> format_typ decl_ctx fmt t
   | TEnum e -> Format.fprintf fmt "%a" format_enum_name e
-  | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<h 2>function<(%a) ->@ %a>@]"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         format_typ)
-      t1 format_typ t2
-  | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ t1
-  | TAny -> Format.fprintf fmt "void * /* Any */"
-  | TClosureEnv -> Format.fprintf fmt "void * /* ClosureEnv */"
+  | TArrow (_t1, _t2) ->
+    Format.fprintf fmt "void * /* %a */" (Print.typ decl_ctx) typ
+  | TArray t1 -> Format.fprintf fmt "%a *" (format_typ decl_ctx) t1
+  | TAny -> Format.fprintf fmt "void * /* any */"
+  | TClosureEnv -> Format.fprintf fmt "void * /* closure_env */"
 
 let format_ctx
     (type_ordering : Scopelang.Dependency.TVertex.t list)
@@ -102,12 +101,12 @@ let format_ctx
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
-    Format.fprintf fmt "@[<v 2>typedef struct %a {@ %a@]@,} %a;"
+    Format.fprintf fmt "@[<v 2>typedef struct %a {@ %a;@]@,} %a;"
       format_struct_name struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
          (fun fmt (struct_field, struct_field_type) ->
-           Format.fprintf fmt "@[<v>%a %a@]" format_typ struct_field_type
+           Format.fprintf fmt "@[<v>%a %a@]" (format_typ ctx) struct_field_type
              format_struct_field_name struct_field))
       fields format_struct_name struct_name;
     if false then
@@ -132,7 +131,7 @@ let format_ctx
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
            (fun fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "%a: %a" format_struct_field_name struct_field
-               format_typ struct_field_type))
+               (format_typ ctx) struct_field_type))
         fields
         (if StructField.Map.is_empty struct_fields then fun fmt _ ->
            Format.fprintf fmt "        pass"
