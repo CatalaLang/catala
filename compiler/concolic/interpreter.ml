@@ -50,31 +50,32 @@ let set_conc_info
        exprs *)
   | Custom m -> Custom { m with custom }
 
-(** Add the constraints, and safely replace the symbolic expression from
+(** Maby replace constraints, and safely replace the symbolic expression from
     former mark *)
 let add_conc_info_m
     (former_mark : conc_info mark)
     (symb_expr : s_expr option)
-    (constraints : s_expr list) : 'a -> ('a, conc_info) marked =
-  let (Custom { pos; custom = { symb_expr = s; constraints = c } }) = former_mark in
+    ?(constraints : s_expr list option)
+    (x : 'a) : ('a, conc_info) marked =
+  let (Custom { pos; custom = { symb_expr = s; constraints = c } }) =
+    former_mark
+  in
   let symb_expr = Option.fold ~none:symb_expr ~some:Option.some s in
-  let constraints = constraints @ c in
-  Mark.add (Custom { pos; custom = { symb_expr; constraints } })
+  (* only update symb_expr if it does not exist already *)
+  let constraints = Option.value ~default:c constraints in
+  (* only change constraints if new ones are provided *)
+  Mark.add (Custom { pos; custom = { symb_expr; constraints } }) x
 
-(** Replace the constraints, and safely replace the symbolic expression from
-    former expression *)
+(** Maybe replace the constraints, and safely replace the symbolic expression
+    from former expression *)
 let add_conc_info_e
     (symb_expr : s_expr option)
-    (constraints : s_expr list)
+    ?(constraints : s_expr list option)
     (x : ('a, conc_info) marked) : ('a, conc_info) marked =
-  add_conc_info_m (Mark.get x) symb_expr constraints (Mark.remove x)
-
-let concat_constraints_m
-    (former_mark : conc_info mark)
-    (constraints : s_expr list) : 'a -> ('a, conc_info) marked =
-  let (Custom { pos; custom = { symb_expr; constraints = c } }) = former_mark in
-  let constraints = constraints @ c in
-  Mark.add (Custom { pos; custom = { symb_expr; constraints } })
+  match constraints with
+  | None -> add_conc_info_m (Mark.get x) symb_expr (Mark.remove x)
+  | Some constraints ->
+    add_conc_info_m (Mark.get x) symb_expr ~constraints (Mark.remove x)
 
 (** Transform any DCalc expression into a concolic expression with no symbolic
     expression and no constraints *)
@@ -115,21 +116,16 @@ type context = {
          is an integer which always is greater than 0 *)
 }
 
-(* TODO CONC taken from z3backend *)
-
 (** [add_z3struct] adds the mapping between the Catala struct [s] and the
     corresponding Z3 datatype [sort] to the context **)
 let add_z3struct (s : StructName.t) (sort : Z3.Sort.sort) (ctx : context) :
     context =
   { ctx with ctx_z3structs = StructName.Map.add s sort ctx.ctx_z3structs }
 
-(* TODO CONC taken from z3backend: should I expose it there instead? *)
 (* let create_z3unit (z3_ctx : Z3.context) : Z3.Sort.sort * Z3.Expr.expr = let
    unit_sort = Z3.Tuple.mk_sort z3_ctx (Z3.Symbol.mk_string z3_ctx "unit") [] []
    in let mk_unit = Z3.Tuple.get_mk_decl unit_sort in let unit_val =
    Z3.Expr.mk_app z3_ctx mk_unit [] in unit_sort, unit_val *)
-
-(* TODO CONC taken from z3backend *)
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal
     type [t] **)
@@ -143,15 +139,13 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Z3.Sort.sort =
   | TDate -> failwith "TDate not implemented"
   | TDuration -> failwith "TDuration not implemented"
 
-(* TODO CONC taken from z3backend *)
-
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
 let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   match t with
   | TLit t -> ctx, translate_typ_lit ctx t
   | TStruct name ->
     find_or_create_struct ctx
-      name (* TODO CONC are declaration sorted in topological order? *)
+      name (* TODO CONC are declarations sorted in topological order? *)
   | TTuple _ -> failwith "TTuple not implemented"
   | TEnum _ -> failwith "TEnum not implemented"
   | TOption _ -> failwith "TOption not implemented"
@@ -225,7 +219,8 @@ let init_context (ctx : context) : context =
   (* TODO add things when needed *)
   ctx
 
-(* loosely taken from z3backend, could be exposed instead? not necessarily, especially if they become plugins *)
+(* loosely taken from z3backend, could be exposed instead? not necessarily,
+   especially if they become plugins *)
 let symb_of_lit ctx (l : lit) : s_expr =
   match l with
   | LBool b -> Z3.Boolean.mk_val ctx.ctx_z3 b
@@ -250,6 +245,7 @@ let get_constraints (e : 'c conc_expr) : s_expr list =
 
 let gather_constraints (es : 'c conc_expr list) =
   let constraints = List.map get_constraints es in
+  Message.emit_debug "gather_constraints is concatenating constraints";
   List.flatten constraints
 
 let make_z3_struct ctx (name : StructName.t) (es : s_expr list) : s_expr =
@@ -266,7 +262,10 @@ let make_z3_struct_access
   let sort = StructName.Map.find name ctx.ctx_z3structs in
   let fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
   let accessors = List.hd (Z3.Datatype.get_accessors sort) in
-  Message.emit_debug "accessors %s" (List.fold_left (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc) "" accessors);
+  Message.emit_debug "accessors %s"
+    (List.fold_left
+       (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc)
+       "" accessors);
   let idx_mappings = List.combine (StructField.Map.keys fields) accessors in
   let _, accessor =
     List.find (fun (field1, _) -> StructField.equal field field1) idx_mappings
@@ -275,23 +274,24 @@ let make_z3_struct_access
 
 let make_vars_args_map
     (vars : 'c conc_naked_expr Bindlib.var array)
-    (args : 'c conc_expr list) : ('c conc_expr, conc_info mark) Var.Map.t =
-  let marks = List.map Mark.get args in
-  let zipped = Array.combine vars (Array.of_list marks) in
-  Array.fold_left (fun acc (v, m) -> Var.Map.add v m acc) Var.Map.empty zipped
+    (args : 'c conc_expr list) : ('c conc_expr, 'c conc_expr) Var.Map.t =
+  let zipped = Array.combine vars (Array.of_list args) in
+  Array.fold_left (fun acc (v, a) -> Var.Map.add v a acc) Var.Map.empty zipped
 
 let replace_EVar_mark
-    (vars_args : ('c conc_expr, conc_info mark) Var.Map.t)
+    (vars_args : ('c conc_expr, 'c conc_expr) Var.Map.t)
     (e : 'c conc_expr) : 'c conc_expr =
   match Mark.remove e with
-  | EVar v as e' -> (
+  | EVar v -> (
     match Var.Map.find_opt v vars_args with
-    | Some m ->
-      Message.emit_debug "put mark %s on var %a"
-        (Option.fold ~none:"None" ~some:Z3.Expr.to_string (match m with Custom {custom={symb_expr;_};_} -> symb_expr))
+    | Some arg ->
+      let symb_expr = get_symb_expr arg in
+      Message.emit_debug "EApp>binder put mark %s on var %a"
+        (Option.fold ~none:"None" ~some:Z3.Expr.to_string symb_expr)
         Expr.format e;
-      Mark.add m e'
-    (* TODO CONC be more subtle and keep the original position from var? *)
+      add_conc_info_e symb_expr ~constraints:[] e
+    (* TODO CONC REU copy down symb_expr, reset constraints *)
+    (* TODO CONC note that we keep the position from the var *)
     | None -> e)
   | _ -> e
 
@@ -311,8 +311,9 @@ let rec evaluate_expr :
     Message.emit_debug "... it's an EApp";
     let e1 = evaluate_expr ctx lang e1 in
     Message.emit_debug "EApp f evaluated";
-    let c1 = get_constraints e1 in
+    let f_constraints = get_constraints e1 in
     let args = List.map (evaluate_expr ctx lang) args in
+    let args_constraints = gather_constraints args in
     Message.emit_debug "EApp args evaluated";
     Concrete.propagate_empty_error e1
     (* TODO I don't like that "Concrete" has to appear here because this
@@ -321,15 +322,17 @@ let rec evaluate_expr :
     @@ fun e1 ->
     match Mark.remove e1 with
     | EAbs { binder; _ } ->
-      (* TODO CONC should constraints from the args be added, or should we trust
+      (* DONE CONC should constraints from the args be added, or should we trust
          the call to return them? We could take both for safety but there will
          be duplication... I think we should trust the recursive call, and we'll
-         see if it's better not to *)
-      (* TODO CONC How to pass down the symbolic expressions and the constraints
-         anyway? The arguments as passed to [Bindlib.msubst] are unmarked. Maybe
-         a way is to change the corresponding marks in the receiving expression
-         in which substitution happens. 1/ change marks 2/ substitute concrete
-         expressions *)
+         see if it's better not to TODO CONC REU actually it's better not to :
+         it can lead to duplication, and the subespression does not need the
+         constraints anyway =>> see the big concatenation below *)
+      (* DONE CONC REU How to pass down the symbolic expressions and the
+         constraints anyway? The arguments as passed to [Bindlib.msubst] are
+         unmarked. Maybe a way is to change the corresponding marks in the
+         receiving expression in which substitution happens. 1/ change marks 2/
+         substitute concrete expressions *)
       if Bindlib.mbinder_arity binder = List.length args then (
         let vars, eb = Bindlib.unmbind binder in
         let vars_args_map = make_vars_args_map vars args in
@@ -359,7 +362,21 @@ let rec evaluate_expr :
         (* TODO [Expr.subst]? *)
         let r_symb = get_symb_expr result in
         let r_constraints = get_constraints result in
-        add_conc_info_e r_symb (c1 @ r_constraints) result
+        (* TODO CONC REU the constraints generated by the evaluation of the application are:
+         * - those generated by the evaluation of the function
+         * - those generated by the evaluation of the arguments
+         * - the NEW ones generated by the evaluation of the subexpression
+         *   (where the ones of the arguments are neither passed down, nor
+         *   re-generated as this is cbv)
+         *)
+        let constraints = r_constraints @ args_constraints @ f_constraints in
+        Message.emit_debug
+          "EApp>EAbs concatenated r_constraints(%i), args_constraints(%i), and \
+           f_constraints(%i)"
+          (List.length r_constraints)
+          (List.length args_constraints)
+          (List.length f_constraints);
+        add_conc_info_e r_symb ~constraints result
         (* NOTE that here the position comes from [result], while in other cases
            of this function the position comes from the input expression. This
            is the behaviour of the concrete interpreter *))
@@ -381,7 +398,8 @@ let rec evaluate_expr :
   | ELit l as e ->
     Message.emit_debug "... it's an ELit";
     let symb_expr = symb_of_lit ctx l in
-    add_conc_info_m m (Some symb_expr) [] e
+    (* TODO CONC REU no constraints generated *)
+    add_conc_info_m m (Some symb_expr) ~constraints:[] e
   | EOp _ -> failwith "EOp not implemented"
   (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
   | EStruct { fields = es; name } ->
@@ -402,7 +420,7 @@ let rec evaluate_expr :
 
     Concrete.propagate_empty_error_list es
     @@ fun es ->
-    add_conc_info_m m (Some symb_expr) constraints
+    add_conc_info_m m (Some symb_expr) ~constraints
       (EStruct
          {
            fields =
@@ -421,7 +439,7 @@ let rec evaluate_expr :
           [None, pos; None, Expr.pos e]
           "Error during struct access: not the same structs (should not happen \
            if the term was well-typed)";
-      let concrete_expr =
+      let field_expr =
         match StructField.Map.find_opt field es with
         | Some e' -> e'
         | None ->
@@ -432,11 +450,12 @@ let rec evaluate_expr :
       in
       let symb_expr =
         make_z3_struct_access ctx s field (Option.get (get_symb_expr e))
+        (* TODO catch error... should not happen *)
       in
-      (* TODO catch error... should not happen *)
+      (* TODO CONC REU the constraints generated by struct access are only those
+         generated by the subcall, as the field expression is already a value *)
       let constraints = get_constraints e in
-      (* TODO CONC is it e or concrete_expr ? *)
-      add_conc_info_m m (Some symb_expr) constraints (Mark.remove concrete_expr)
+      add_conc_info_m m (Some symb_expr) ~constraints (Mark.remove field_expr)
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
         "The expression %a should be a struct %a but is not (should not happen \
@@ -453,7 +472,7 @@ let rec evaluate_expr :
   | ECustom _ -> failwith "ECustom not implemented"
   | EEmptyError ->
     Message.emit_debug "... it's an EEmptyError";
-    e (* TODO CONC just pass along the symbolic values and constraints *)
+    e (* TODO CONC REU just pass along the symbolic values and constraints? *)
   | EErrorOnEmpty e' -> (
     Message.emit_debug "... it's an EErrorOnEmpty";
     match evaluate_expr ctx lang e' with
@@ -461,11 +480,12 @@ let rec evaluate_expr :
       Message.raise_spanned_error (Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
          applied in this situation)"
-    | e -> e (* TODO CONC just pass along the symbolic values and constraints *)
-    )
+    | e -> e
+    (* TODO CONC REU just pass along the concrete and symbolic values, and the
+       constraints *))
   | EDefault { excepts; just; cons } ->
     Message.emit_debug "... it's an EDefault";
-    (* TODO CONC how did Rohan do? maybe contact him? *)
+    (* TODO CONC REU how did Rohan do? maybe contact him? => `*)
     (* TODO CONC look into litterature for exceptions in concolic exec (Java?)
        or symb exec (symbolic pathfinder) *)
     if excepts = [] then
@@ -476,21 +496,44 @@ let rec evaluate_expr :
       let j_constraints = get_constraints just in
       match Mark.remove just with
       | EEmptyError ->
-        concat_constraints_m m (j_symb :: j_constraints) EEmptyError
+        Message.emit_debug "EDefault>empty adding %s to constraints"
+          (Z3.Expr.to_string j_symb);
+        (* TODO CONC REU the constraints generated by the default when [just] is empty are :
+         * - those generated by the evaluation of [just]
+         * - a new constraint corresponding to [just] itself
+         *)
+        let constraints = j_symb :: j_constraints in
+        add_conc_info_m m None ~constraints EEmptyError
       | ELit (LBool true) ->
+        Message.emit_debug "EDefault>true adding %s to constraints"
+          (Z3.Expr.to_string j_symb);
         let cons = evaluate_expr ctx lang cons in
         let c_symb = get_symb_expr cons in
         let c_constraints = get_constraints cons in
         let c_mark = Mark.get cons in
         let c_concr = Mark.remove cons in
-        add_conc_info_m c_mark c_symb
-          ((j_symb :: j_constraints) @ c_constraints)
-          c_concr
+        (* TODO CONC REU the constraints generated by the default when [just] is true are :
+         * - those generated by the evaluation of [just]
+         * - a new constraint corresponding to [just] itself
+         * - those generated by the evaluation of [cons]
+         *)
+        let constraints = c_constraints @ (j_symb :: j_constraints) in
+        Message.emit_debug
+          "EDefault>true concatenated j_symb::j_constraints(%i) to \
+           c_constraints(%i)"
+          (1 + List.length j_constraints)
+          (List.length c_constraints);
+        add_conc_info_m c_mark c_symb ~constraints c_concr
       | ELit (LBool false) ->
         let not_j_symb = Z3.Boolean.mk_not ctx.ctx_z3 j_symb in
-        concat_constraints_m m
-          (not_j_symb :: j_constraints)
-          EEmptyError (* TODO concat?? *)
+        Message.emit_debug "EDefault>false adding %s to constraints"
+          (Z3.Expr.to_string not_j_symb);
+        (* TODO CONC REU the constraints generated by the default when [just] is false are :
+         * - those generated by the evaluation of [just]
+         * - a new constraint corresponding to [just] itself
+         *)
+        let constraints = not_j_symb :: j_constraints in
+        add_conc_info_m m None ~constraints EEmptyError
       | _ ->
         Message.raise_spanned_error (Expr.pos e)
           "Default justification has not been reduced to a boolean at \
@@ -524,9 +567,9 @@ let conc_expr_of_typ ctx mark field ty : 'c conc_boxed_expr =
   let name = Mark.remove (StructField.get_info field) in
   let _, sort = translate_typ ctx (Mark.remove ty) in
   let symbol = Z3.Expr.mk_const_s ctx.ctx_z3 name sort in
-  add_conc_info_e (Some symbol) [] concrete
+  add_conc_info_e (Some symbol) concrete
 
-(** TODO CONC for now, just like default inputs, but concolic *)
+(** for now, just like default inputs, but concolic *)
 let make_conc_inputs ctx (input_typs : typ StructField.Map.t) mark :
     'c conc_boxed_expr StructField.Map.t =
   StructField.Map.mapi (conc_expr_of_typ ctx mark) input_typs
@@ -583,8 +626,6 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
   let ctx = make_empty_context ctx in
   let ctx = init_context ctx in
 
-  Message.emit_debug "simply help:\n%s" (Z3.Expr.get_simplify_help ctx.ctx_z3);
-
   (* let s = StructName.Map.fold (fun struct_name sort acc -> let struct_s =
      Mark.remove (StructName.get_info struct_name) in let sort_s =
      Z3.Sort.to_string sort in struct_s ^ " : " ^ sort_s ^ "\n" ^ acc)
@@ -606,17 +647,18 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     in
     Message.emit_debug "...inputs generated...";
     let to_interpret =
-      Expr.eapp
-        (Expr.box e) (* TODO CONC originally [make_app] but it folds marks... *)
+      Expr.eapp (Expr.box e)
+        (* TODO CONC REU originally [make_app] but it folds marks... *)
         [Expr.estruct ~name:s_in ~fields:application_term mark_e]
         (set_conc_info None [] (Mark.get e))
     in
     Message.emit_debug "...inputs applied...";
     let res = evaluate_expr ctx p.lang (Expr.unbox to_interpret) in
-    Message.emit_debug "...interepred with inputs...";
+    Message.emit_debug "...scope interepred with inputs...";
     Message.emit_result "Constraints: %s"
       (List.fold_left
-         (fun acc z -> Z3.Expr.to_string (Z3.Expr.simplify z None) ^ "," ^ acc) (* TODO CONC should I always simplify? Rohan does it *)
+         (fun acc z -> Z3.Expr.to_string (Z3.Expr.simplify z None) ^ "," ^ acc)
+           (* TODO CONC REU should I always simplify? Rohan does it *)
          "" (get_constraints res));
     match Mark.remove res with
     | EStruct { fields; _ } ->
