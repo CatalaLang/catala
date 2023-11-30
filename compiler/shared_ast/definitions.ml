@@ -146,9 +146,13 @@ type desugared =
   ; defaultTerms : yes
   ; exceptions : no
   ; custom : no >
-(* Technically, desugared before name resolution has [syntacticNames: yes; resolvedNames: no], and after name resolution has the opposite; but the disambiguation being done by the typer, we don't encode this invariant at the type level.
+(* Technically, desugared before name resolution has [syntacticNames: yes;
+   resolvedNames: no], and after name resolution has the opposite; but the
+   disambiguation being done by the typer, we don't encode this invariant at the
+   type level.
 
-Indeed, unfortunately, we cannot express the [<resolvedNames: _; 'a> -> <resolvedNames: yes; 'a>] that would be needed for the typing function. *)
+   Indeed, unfortunately, we cannot express the [<resolvedNames: _; 'a> ->
+   <resolvedNames: yes; 'a>] that would be needed for the typing function. *)
 
 type scopelang =
   < monomorphic : yes
@@ -653,7 +657,8 @@ type 'e code_item =
   | ScopeDef of ScopeName.t * 'e scope_body
   | Topdef of TopdefName.t * typ * 'e
 
-(** A chained list, but with a binder for each element into the next: [x := let a
+(** A chained list, but with a binder for each element into the next:
+    [x := let a
     = e1 in e2] is thus [Cons (e1, {a. Cons (e2, {x. Nil})})] *)
 type 'e code_item_list =
   | Nil
@@ -668,8 +673,8 @@ type scope_info = {
   out_struct_fields : StructField.t ScopeVar.Map.t;
 }
 
-type module_tree = M of module_tree ModuleName.Map.t [@@caml.unboxed]
 (** In practice, this is a DAG: beware of repeated names *)
+type module_tree = M of module_tree ModuleName.Map.t [@@caml.unboxed]
 
 type decl_ctx = {
   ctx_enums : enum_ctx;
@@ -677,10 +682,10 @@ type decl_ctx = {
   ctx_scopes : scope_info ScopeName.Map.t;
   ctx_topdefs : typ TopdefName.Map.t;
   ctx_struct_fields : StructField.t StructName.Map.t Ident.Map.t;
-  (** needed for disambiguation (desugared -> scope) *)
+      (** needed for disambiguation (desugared -> scope) *)
   ctx_enum_constrs : EnumConstructor.t EnumName.Map.t Ident.Map.t;
   ctx_scope_index : ScopeName.t Ident.Map.t;
-  (** only used to lookup scopes (in the root module) specified from the cli *)
+      (** only used to lookup scopes (in the root module) specified from the cli *)
   ctx_modules : module_tree;
 }
 

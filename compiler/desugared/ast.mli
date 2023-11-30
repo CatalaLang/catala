@@ -93,7 +93,7 @@ type io = {
 
 type scope_def = {
   scope_def_rules : rule RuleName.Map.t;
-  (** empty outside of the root module *)
+      (** empty outside of the root module *)
   scope_def_typ : typ;
   scope_def_parameters :
     (Uid.MarkedString.info * Shared_ast.typ) list Mark.pos option;
@@ -109,7 +109,7 @@ type scope = {
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion AssertionName.Map.t;
-  (** empty outside of the root module *)
+      (** empty outside of the root module *)
   scope_options : catala_option Mark.pos list;
   scope_meta_assertions : meta_assertion list;
 }
@@ -117,13 +117,14 @@ type scope = {
 type modul = {
   module_scopes : scope ScopeName.Map.t;
   module_topdefs : (expr option * typ) TopdefName.Map.t;
-  (** the expr is [None] outside of the root module *)
+      (** the expr is [None] outside of the root module *)
 }
 
 type program = {
   program_module_name : Ident.t Mark.pos option;
   program_ctx : decl_ctx;
-  program_modules : modul ModuleName.Map.t; (** Contains all submodules of the program, in a flattened structure *)
+  program_modules : modul ModuleName.Map.t;
+      (** Contains all submodules of the program, in a flattened structure *)
   program_root : modul;
   program_lang : Cli.backend_lang;
 }

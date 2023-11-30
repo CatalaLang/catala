@@ -313,16 +313,16 @@ and law_structure =
   | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
 
 and interface = {
-  intf_modname: uident Mark.pos;
-  intf_code: code_block;
-  (** Invariant: an interface shall only contain [*Decl] elements, or [Topdef]
-      elements with [topdef_expr = None] *)
-  intf_submodules: module_use list;
+  intf_modname : uident Mark.pos;
+  intf_code : code_block;
+      (** Invariant: an interface shall only contain [*Decl] elements, or
+          [Topdef] elements with [topdef_expr = None] *)
+  intf_submodules : module_use list;
 }
 
 and module_use = {
-  mod_use_name: uident Mark.pos;
-  mod_use_alias: uident Mark.pos;
+  mod_use_name : uident Mark.pos;
+  mod_use_alias : uident Mark.pos;
 }
 
 and program = {

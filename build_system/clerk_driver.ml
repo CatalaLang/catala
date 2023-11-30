@@ -729,10 +729,10 @@ let gen_build_statements
             ~outputs:[inc (srcv ^ "@test")]
             ~inputs:[srcv; inc (srcv ^ "@out")]
             ~implicit_in:
-              ("always" ::
-               List.map
-                 (fun test -> legacy_test_reference test ^ "@post")
-                 item.legacy_tests);
+              ("always"
+              :: List.map
+                   (fun test -> legacy_test_reference test ^ "@post")
+                   item.legacy_tests);
           results;
         ]
       else if item.legacy_tests <> [] then

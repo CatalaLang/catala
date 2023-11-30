@@ -509,7 +509,8 @@ let rec translate_expr
     Expr.estruct ~name:s_uid ~fields:s_fields emark
   | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let get_possible_c_uids ctxt =
-      try Ident.Map.find constructor ctxt.Name_resolution.local.constructor_idmap
+      try
+        Ident.Map.find constructor ctxt.Name_resolution.local.constructor_idmap
       with Ident.Map.Not_found _ ->
         raise_error_cons_not_found ctxt (constructor, pos_constructor)
     in
@@ -1018,7 +1019,9 @@ let process_def
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)
     (def : S.definition) : Ast.program =
-  let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_root.module_scopes in
+  let scope : Ast.scope =
+    ScopeName.Map.find scope_uid prgm.program_root.module_scopes
+  in
   let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
   let def_key =
     Name_resolution.get_def_key
@@ -1083,13 +1086,9 @@ let process_def
     }
   in
   let module_scopes =
-    ScopeName.Map.add scope_uid scope_updated
-      prgm.program_root.module_scopes
+    ScopeName.Map.add scope_uid scope_updated prgm.program_root.module_scopes
   in
-  {
-    prgm with
-    program_root = { prgm.program_root with module_scopes }
-  }
+  { prgm with program_root = { prgm.program_root with module_scopes } }
 
 (** Translates a {!type: S.rule} from the surface language *)
 let process_rule
@@ -1108,7 +1107,9 @@ let process_assert
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)
     (ass : S.assertion) : Ast.program =
-  let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_root.module_scopes in
+  let scope : Ast.scope =
+    ScopeName.Map.find scope_uid prgm.program_root.module_scopes
+  in
   let ass =
     translate_expr (Some scope_uid) None ctxt Ident.Map.empty
       (match ass.S.assertion_condition with
@@ -1140,12 +1141,10 @@ let process_assert
           scope.scope_assertions;
     }
   in
-  let module_scopes = ScopeName.Map.add scope_uid new_scope prgm.program_root.module_scopes
+  let module_scopes =
+    ScopeName.Map.add scope_uid new_scope prgm.program_root.module_scopes
   in
-  {
-    prgm with
-    program_root = { prgm.program_root with module_scopes }
-  }
+  { prgm with program_root = { prgm.program_root with module_scopes } }
 
 (** Translates a surface definition, rule or assertion *)
 let process_scope_use_item
@@ -1163,7 +1162,9 @@ let process_scope_use_item
   | S.Assertion ass -> process_assert precond scope ctxt prgm ass
   | S.DateRounding (r, _) ->
     let scope_uid = scope in
-    let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_root.module_scopes in
+    let scope : Ast.scope =
+      ScopeName.Map.find scope_uid prgm.program_root.module_scopes
+    in
     let r =
       match r with
       | S.Increasing -> Ast.Increasing
@@ -1188,11 +1189,10 @@ let process_scope_use_item
             Mark.copy item (Ast.DateRounding r) :: scope.scope_options;
         }
     in
-    let module_scopes = ScopeName.Map.add scope_uid new_scope prgm.program_root.module_scopes in
-    {
-      prgm with
-      program_root = { prgm.program_root with module_scopes }
-    }
+    let module_scopes =
+      ScopeName.Map.add scope_uid new_scope prgm.program_root.module_scopes
+    in
+    { prgm with program_root = { prgm.program_root with module_scopes } }
   | _ -> prgm
 
 (** {1 Translating top-level items} *)
@@ -1267,7 +1267,9 @@ let process_topdef
     (prgm : Ast.program)
     (def : S.top_def) : Ast.program =
   let id =
-    Ident.Map.find (Mark.remove def.S.topdef_name) ctxt.Name_resolution.local.topdefs
+    Ident.Map.find
+      (Mark.remove def.S.topdef_name)
+      ctxt.Name_resolution.local.topdefs
   in
   let translate_typ t = Name_resolution.process_type ctxt t in
   let translate_tbase (tbase, m) = translate_typ (Base tbase, m) in
@@ -1391,7 +1393,10 @@ let init_scope_defs
       let ctxt =
         List.fold_left
           (fun ctx m ->
-             { ctxt with local = ModuleName.Map.find m ctx.Name_resolution.modules })
+            {
+              ctxt with
+              local = ModuleName.Map.find m ctx.Name_resolution.modules;
+            })
           ctxt
           (ScopeName.path subscope_uid)
       in
@@ -1427,24 +1432,22 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     let scope_vars =
       Ident.Map.fold
         (fun _ v acc ->
-           match v with
-           | SubScope _ -> acc
-           | ScopeVar v -> (
-               let v_sig =
-                 ScopeVar.Map.find v ctxt.Name_resolution.var_typs
-               in
-               match v_sig.Name_resolution.var_sig_states_list with
-               | [] -> ScopeVar.Map.add v Ast.WholeVar acc
-               | states -> ScopeVar.Map.add v (Ast.States states) acc))
+          match v with
+          | SubScope _ -> acc
+          | ScopeVar v -> (
+            let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
+            match v_sig.Name_resolution.var_sig_states_list with
+            | [] -> ScopeVar.Map.add v Ast.WholeVar acc
+            | states -> ScopeVar.Map.add v (Ast.States states) acc))
         s_context.Name_resolution.var_idmap ScopeVar.Map.empty
     in
     let scope_sub_scopes =
       Ident.Map.fold
         (fun _ v acc ->
-           match v with
-           | ScopeVar _ -> acc
-           | SubScope (sub_var, sub_scope) ->
-             SubScopeName.Map.add sub_var sub_scope acc)
+          match v with
+          | ScopeVar _ -> acc
+          | SubScope (sub_var, sub_scope) ->
+            SubScopeName.Map.add sub_var sub_scope acc)
         s_context.Name_resolution.var_idmap SubScopeName.Map.empty
     in
     {
@@ -1458,39 +1461,45 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     }
   in
   let get_scopes mctx =
-    Ident.Map.fold (fun _ tydef acc -> match tydef with
+    Ident.Map.fold
+      (fun _ tydef acc ->
+        match tydef with
         | Name_resolution.TScope (s_uid, _) ->
           ScopeName.Map.add s_uid (get_scope s_uid) acc
         | _ -> acc)
-      mctx.Name_resolution.typedefs ScopeName.Map.empty;
+      mctx.Name_resolution.typedefs ScopeName.Map.empty
   in
   let program_modules =
-    ModuleName.Map.map (fun mctx ->
-        { Ast.module_scopes = get_scopes mctx;
+    ModuleName.Map.map
+      (fun mctx ->
+        {
+          Ast.module_scopes = get_scopes mctx;
           Ast.module_topdefs =
-            Ident.Map.fold (fun _ name acc ->
+            Ident.Map.fold
+              (fun _ name acc ->
                 TopdefName.Map.add name
-                  (None,
-                   TopdefName.Map.find name ctxt.Name_resolution.topdef_types)
-                  acc;
-              )
-              mctx.topdefs TopdefName.Map.empty 
+                  ( None,
+                    TopdefName.Map.find name ctxt.Name_resolution.topdef_types
+                  )
+                  acc)
+              mctx.topdefs TopdefName.Map.empty;
         })
       ctxt.modules
   in
   let program_ctx =
     let open Name_resolution in
     let ctx_scopes mctx acc =
-      Ident.Map.fold (fun _ tydef acc ->
+      Ident.Map.fold
+        (fun _ tydef acc ->
           match tydef with
-          | TScope (s_uid, info) ->
-            ScopeName.Map.add s_uid info acc
+          | TScope (s_uid, info) -> ScopeName.Map.add s_uid info acc
           | _ -> acc)
         mctx.Name_resolution.typedefs acc
     in
     let ctx_modules =
       let rec aux mctx =
-        Ident.Map.fold (fun _ m (M acc) ->
+        Ident.Map.fold
+          (fun _ m (M acc) ->
             let sub = aux (ModuleName.Map.find m ctxt.modules) in
             M (ModuleName.Map.add m sub acc))
           mctx.used_modules (M ModuleName.Map.empty)
@@ -1501,14 +1510,16 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       ctx_structs = ctxt.structs;
       ctx_enums = ctxt.enums;
       ctx_scopes =
-        ModuleName.Map.fold (fun _ -> ctx_scopes)
+        ModuleName.Map.fold
+          (fun _ -> ctx_scopes)
           ctxt.modules
           (ctx_scopes ctxt.local ScopeName.Map.empty);
       ctx_topdefs = ctxt.topdef_types;
       ctx_struct_fields = ctxt.local.field_idmap;
       ctx_enum_constrs = ctxt.local.constructor_idmap;
       ctx_scope_index =
-        Ident.Map.filter_map (fun _ -> function
+        Ident.Map.filter_map
+          (fun _ -> function
             | Name_resolution.TScope (s, _) -> Some s
             | _ -> None)
           ctxt.local.typedefs;
@@ -1521,10 +1532,11 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
       Ast.program_module_name = surface.Surface.Ast.program_module_name;
       Ast.program_modules;
       Ast.program_ctx;
-      Ast.program_root = {
-        Ast.module_scopes = get_scopes ctxt.Name_resolution.local;
-        Ast.module_topdefs = TopdefName.Map.empty;
-      };
+      Ast.program_root =
+        {
+          Ast.module_scopes = get_scopes ctxt.Name_resolution.local;
+          Ast.module_topdefs = TopdefName.Map.empty;
+        };
     }
   in
   let process_code_block ctxt prgm block =

@@ -88,10 +88,11 @@ module Make (Ord : OrderedType) : S with type key = Ord.t = struct
   let keys t = fold (fun k _ acc -> k :: acc) t [] |> List.rev
   let values t = fold (fun _ v acc -> v :: acc) t [] |> List.rev
   let of_list l = List.fold_left (fun m (k, v) -> add k v m) empty l
+
   let disjoint_union t1 t2 =
-    union (fun k _ _ ->
-        Format.kasprintf failwith
-          "Maps are not disjoint: conflict on key %a"
+    union
+      (fun k _ _ ->
+        Format.kasprintf failwith "Maps are not disjoint: conflict on key %a"
           Ord.format k)
       t1 t2
 

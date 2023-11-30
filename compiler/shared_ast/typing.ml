@@ -390,8 +390,7 @@ module Env = struct
 
   let open_scope scope_name t =
     let scope_vars =
-      A.ScopeVar.Map.disjoint_union
-        t.scope_vars
+      A.ScopeVar.Map.disjoint_union t.scope_vars
         (A.ScopeName.Map.find scope_name t.scopes)
     in
     { t with scope_vars }
@@ -469,8 +468,7 @@ and typecheck_expr_top_down :
         Env.get_scope_var env (Mark.remove name)
       | SubScopeVar { scope; var; _ } ->
         Env.get_subscope_out_var env scope (Mark.remove var)
-      | ToplevelVar { name } ->
-        Env.get_toplevel_var env (Mark.remove name)
+      | ToplevelVar { name } -> Env.get_toplevel_var env (Mark.remove name)
     in
     let ty =
       match ty_opt with
@@ -570,8 +568,8 @@ and typecheck_expr_top_down :
           (Format.pp_print_list
              ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
              (fun fmt s_name ->
-                Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format
-                  s_name))
+               Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format
+                 s_name))
           (A.StructName.Map.keys candidate_structs)
     in
     let fld_ty = A.StructField.Map.find field str in

@@ -26,7 +26,8 @@ val lines :
 
 val load_interface : Cli.input_src -> Ast.interface
 (** Reads only declarations in metadata in the supplied input file, and only
-    keeps type information. The list of submodules is initialised with names only and empty contents. *)
+    keeps type information. The list of submodules is initialised with names
+    only and empty contents. *)
 
 val parse_top_level_file : Cli.input_src -> Ast.program
 (** Parses a catala file (handling file includes) and returns a program.

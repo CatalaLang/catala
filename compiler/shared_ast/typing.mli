@@ -61,8 +61,9 @@ val expr :
     filling the gaps ([TAny]) if any. Use [Expr.untype] first if this is not
     what you want.
 
-    Note that typing also transparently performs disambiguation of constructors: [EDStructAccess] nodes are translated into [EStructAccess] with the suitable structure and field idents (this only concerns [desugared] expressions).
-*)
+    Note that typing also transparently performs disambiguation of constructors:
+    [EDStructAccess] nodes are translated into [EStructAccess] with the suitable
+    structure and field idents (this only concerns [desugared] expressions). *)
 
 val check_expr :
   leave_unresolved:bool ->

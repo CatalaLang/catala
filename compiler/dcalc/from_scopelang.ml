@@ -509,7 +509,9 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         |> SubScopeName.Map.find (Mark.remove alias)
         |> retrieve_in_and_out_typ_or_any var
       | ELocation (ToplevelVar { name }) -> (
-        let typ = TopdefName.Map.find (Mark.remove name) ctx.decl_ctx.ctx_topdefs in
+        let typ =
+          TopdefName.Map.find (Mark.remove name) ctx.decl_ctx.ctx_topdefs
+        in
         match Mark.remove typ with
         | TArrow (tin, (tout, _)) -> List.map Mark.remove tin, tout
         | _ ->
@@ -720,9 +722,7 @@ let translate_rule
        didn't seem worth it *)
   | Call (subname, subindex, m) ->
     let subscope_sig = ScopeName.Map.find subname ctx.scopes_parameters in
-    let scope_sig_decl =
-      ScopeName.Map.find subname ctx.decl_ctx.ctx_scopes
-    in
+    let scope_sig_decl = ScopeName.Map.find subname ctx.decl_ctx.ctx_scopes in
     let all_subscope_vars = subscope_sig.scope_sig_local_vars in
     let all_subscope_input_vars =
       List.filter
@@ -1082,9 +1082,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
           External_scope_ref
             (Mark.copy (ScopeName.get_info scope_name) scope_name)
       in
-      let scope_info =
-        ScopeName.Map.find scope_name decl_ctx.ctx_scopes
-      in
+      let scope_info = ScopeName.Map.find scope_name decl_ctx.ctx_scopes in
       let scope_sig_in_fields =
         (* Output fields have already been generated and added to the program
            ctx at this point, because they are visible to the user (manipulated
@@ -1134,35 +1132,34 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
     let process_scopes scopes =
       ScopeName.Map.mapi
         (fun scope_name (scope_decl, _) ->
-           process_scope_sig decl_ctx scope_name scope_decl)
+          process_scope_sig decl_ctx scope_name scope_decl)
         scopes
     in
-    ModuleName.Map.fold (fun _ s ->
-        ScopeName.Map.disjoint_union
-          (process_scopes s))
+    ModuleName.Map.fold
+      (fun _ s -> ScopeName.Map.disjoint_union (process_scopes s))
       prgm.Scopelang.Ast.program_modules
       (process_scopes prgm.Scopelang.Ast.program_scopes)
   in
   let ctx_structs =
     ScopeName.Map.fold
       (fun _ scope_sig_ctx acc ->
-         let fields =
-           ScopeVar.Map.fold
-             (fun _ sivc acc ->
-                let pos = Mark.get (StructField.get_info sivc.scope_input_name) in
-                StructField.Map.add sivc.scope_input_name
-                  (sivc.scope_input_typ, pos)
-                  acc)
-             scope_sig_ctx.scope_sig_in_fields StructField.Map.empty
-         in
-         StructName.Map.add scope_sig_ctx.scope_sig_input_struct fields acc)
+        let fields =
+          ScopeVar.Map.fold
+            (fun _ sivc acc ->
+              let pos = Mark.get (StructField.get_info sivc.scope_input_name) in
+              StructField.Map.add sivc.scope_input_name
+                (sivc.scope_input_typ, pos)
+                acc)
+            scope_sig_ctx.scope_sig_in_fields StructField.Map.empty
+        in
+        StructName.Map.add scope_sig_ctx.scope_sig_input_struct fields acc)
       scopes_parameters decl_ctx.ctx_structs
   in
   let decl_ctx = { decl_ctx with ctx_structs } in
   let toplevel_vars =
     TopdefName.Map.mapi
       (fun name (_, ty) ->
-         Var.make (Mark.remove (TopdefName.get_info name)), Mark.remove ty)
+        Var.make (Mark.remove (TopdefName.get_info name)), Mark.remove ty)
       prgm.Scopelang.Ast.program_topdefs
   in
   let ctx =

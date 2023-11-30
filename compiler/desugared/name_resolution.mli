@@ -65,17 +65,21 @@ type typedef =
 
 type module_context = {
   path : Uid.Path.t;
-  (** The current path being processed. Used for generating the Uids. *)
+      (** The current path being processed. Used for generating the Uids. *)
   typedefs : typedef Ident.Map.t;
-  (** Gathers the names of the scopes, structs and enums *)
+      (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructField.t StructName.Map.t Ident.Map.t;
-  (** The names of the struct fields. Names of fields can be shared between
-      different structs. Note that fields from submodules are included here for the root module, because disambiguating there is helpful. *)
+      (** The names of the struct fields. Names of fields can be shared between
+          different structs. Note that fields from submodules are included here
+          for the root module, because disambiguating there is helpful. *)
   constructor_idmap : EnumConstructor.t EnumName.Map.t Ident.Map.t;
-  (** The names of the enum constructors. Constructor names can be shared
-      between different enums. Note that constructors from its submodules are included here for the root module, because disambiguating there is helpful. *)
+      (** The names of the enum constructors. Constructor names can be shared
+          between different enums. Note that constructors from its submodules
+          are included here for the root module, because disambiguating there is
+          helpful. *)
   topdefs : TopdefName.t Ident.Map.t;  (** Global definitions *)
-  used_modules : ModuleName.t Ident.Map.t; (** Module aliases and the modules they point to *)
+  used_modules : ModuleName.t Ident.Map.t;
+      (** Module aliases and the modules they point to *)
 }
 (** Context for name resolution, valid within a given module *)
 
@@ -89,9 +93,11 @@ type context = {
   var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
   modules : module_context ModuleName.Map.t;
-  (** The map to the interfaces of all modules (transitively) used by the program. References are made through [local.used_modules] *)
+      (** The map to the interfaces of all modules (transitively) used by the
+          program. References are made through [local.used_modules] *)
   local : module_context;
-  (** Local context of the root module corresponding to the program being analysed *)
+      (** Local context of the root module corresponding to the program being
+          analysed *)
 }
 (** Global context used throughout {!module: Surface.Desugaring} *)
 
@@ -177,7 +183,7 @@ val process_type : context -> Surface.Ast.typ -> typ
 (** {1 API} *)
 
 val form_context :
-  Surface.Ast.program * ModuleName.t Ident.Map.t
-  -> (Surface.Ast.interface * ModuleName.t Ident.Map.t) ModuleName.Map.t
-  -> context
+  Surface.Ast.program * ModuleName.t Ident.Map.t ->
+  (Surface.Ast.interface * ModuleName.t Ident.Map.t) ModuleName.Map.t ->
+  context
 (** Derive the context from metadata, in one pass over the declarations *)

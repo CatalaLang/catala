@@ -68,7 +68,6 @@ module Make (X : Info) (S : Style) () : Id with type info = X.info = struct
 
   let get_info (uid : t) : X.info = uid.info
   let hash (x : t) : int = x.id
-
   let to_string t = X.to_string t.info
 
   module Set = Set.Make (Ordering)

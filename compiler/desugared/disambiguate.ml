@@ -73,24 +73,25 @@ let program prg =
   let env =
     ScopeName.Map.fold
       (fun scope_name _info env ->
-         let modul =
-           List.fold_left
-             (fun _ m -> ModuleName.Map.find m prg.program_modules)
-             prg.program_root (ScopeName.path scope_name)
-         in
-         let scope = ScopeName.Map.find scope_name modul.module_scopes in
-         let vars =
-           ScopeDef.Map.fold
-             (fun var def vars ->
-                match var with
-                | Var (v, _states) -> ScopeVar.Map.add v def.scope_def_typ vars
-                | SubScopeVar _ -> vars)
-             scope.scope_defs ScopeVar.Map.empty
-         in
-          (* at this stage, rule resolution and the corresponding encapsulation
-             into default terms hasn't taken place, so input and output
-             variables don't need different typing *)
-          Typing.Env.add_scope scope_name ~vars ~in_vars:vars env)
+        let modul =
+          List.fold_left
+            (fun _ m -> ModuleName.Map.find m prg.program_modules)
+            prg.program_root
+            (ScopeName.path scope_name)
+        in
+        let scope = ScopeName.Map.find scope_name modul.module_scopes in
+        let vars =
+          ScopeDef.Map.fold
+            (fun var def vars ->
+              match var with
+              | Var (v, _states) -> ScopeVar.Map.add v def.scope_def_typ vars
+              | SubScopeVar _ -> vars)
+            scope.scope_defs ScopeVar.Map.empty
+        in
+        (* at this stage, rule resolution and the corresponding encapsulation
+           into default terms hasn't taken place, so input and output variables
+           don't need different typing *)
+        Typing.Env.add_scope scope_name ~vars ~in_vars:vars env)
       prg.program_ctx.ctx_scopes env
   in
   let module_topdefs =
@@ -102,7 +103,6 @@ let program prg =
       prg.program_root.module_topdefs
   in
   let module_scopes =
-    ScopeName.Map.map (scope prg.program_ctx env)
-      prg.program_root.module_scopes
+    ScopeName.Map.map (scope prg.program_ctx env) prg.program_root.module_scopes
   in
   { prg with program_root = { module_topdefs; module_scopes } }

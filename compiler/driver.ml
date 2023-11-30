@@ -64,13 +64,15 @@ let load_module_interfaces options includes program =
   in
   (* modulename * program * (id -> modulename) *)
   let rec aux req_chain seen uses =
-    List.fold_left (fun (seen, use_map) use ->
+    List.fold_left
+      (fun (seen, use_map) use ->
         let f = find_module req_chain use.Surface.Ast.mod_use_name in
         match File.Map.find_opt f seen with
         | Some (Some (modname, _, _)) ->
-          seen,
-          Ident.Map.add
-            (Mark.remove use.Surface.Ast.mod_use_alias) modname use_map
+          ( seen,
+            Ident.Map.add
+              (Mark.remove use.Surface.Ast.mod_use_alias)
+              modname use_map )
         | Some None ->
           Message.raise_multispanned_error
             (err_req_pos (Mark.get use.Surface.Ast.mod_use_name :: req_chain))
@@ -82,12 +84,12 @@ let load_module_interfaces options includes program =
           let seen, sub_use_map =
             aux
               (Mark.get use.Surface.Ast.mod_use_name :: req_chain)
-              seen
-              intf.Surface.Ast.intf_submodules
+              seen intf.Surface.Ast.intf_submodules
           in
-          File.Map.add f (Some (modname, intf, sub_use_map)) seen,
-          Ident.Map.add
-            (Mark.remove use.Surface.Ast.mod_use_alias) modname use_map)
+          ( File.Map.add f (Some (modname, intf, sub_use_map)) seen,
+            Ident.Map.add
+              (Mark.remove use.Surface.Ast.mod_use_alias)
+              modname use_map ))
       (seen, Ident.Map.empty) uses
   in
   let seen =
@@ -102,10 +104,11 @@ let load_module_interfaces options includes program =
   in
   let modules =
     File.Map.fold
-      (fun _ info acc -> match info with
-         | None -> acc
-         | Some (mname, intf, use_map) ->
-           ModuleName.Map.add mname (intf, use_map) acc)
+      (fun _ info acc ->
+        match info with
+        | None -> acc
+        | Some (mname, intf, use_map) ->
+          ModuleName.Map.add mname (intf, use_map) acc)
       file_module_map ModuleName.Map.empty
   in
   root_uses, modules
@@ -140,8 +143,7 @@ module Passes = struct
     Desugared.Linting.lint_program prg;
     prg, ctx
 
-  let scopelang options ~includes :
-      untyped Scopelang.Ast.program =
+  let scopelang options ~includes : untyped Scopelang.Ast.program =
     let prg, _ = desugared options ~includes in
     debug_pass_name "scopelang";
     let exceptions_graphs =
@@ -159,8 +161,7 @@ module Passes = struct
       optimize:bool ->
       check_invariants:bool ->
       typed:ty mark ->
-      ty Dcalc.Ast.program
-      * Scopelang.Dependency.TVertex.t list =
+      ty Dcalc.Ast.program * Scopelang.Dependency.TVertex.t list =
    fun options ~includes ~optimize ~check_invariants ~typed ->
     let prg = scopelang options ~includes in
     debug_pass_name "dcalc";
@@ -220,8 +221,7 @@ module Passes = struct
       ~(typed : ty mark)
       ~avoid_exceptions
       ~closure_conversion :
-      untyped Lcalc.Ast.program
-      * Scopelang.Dependency.TVertex.t list =
+      untyped Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       dcalc options ~includes ~optimize ~check_invariants ~typed
     in
@@ -283,8 +283,7 @@ module Passes = struct
       ~check_invariants
       ~avoid_exceptions
       ~closure_conversion :
-      Scalc.Ast.program
-      * Scopelang.Dependency.TVertex.t list =
+      Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
         ~avoid_exceptions ~closure_conversion
@@ -296,22 +295,20 @@ end
 module Commands = struct
   open Cmdliner
 
-  let get_scope_uid (ctx: decl_ctx) (scope : string): ScopeName.t
-    =
+  let get_scope_uid (ctx : decl_ctx) (scope : string) : ScopeName.t =
     if String.contains scope '.' then
       Message.raise_error "Only references to the top-level module are allowed";
-    try Ident.Map.find scope ctx.ctx_scope_index with
-    | Ident.Map.Not_found _ ->
+    try Ident.Map.find scope ctx.ctx_scope_index
+    with Ident.Map.Not_found _ ->
       Message.raise_error
         "There is no scope @{<yellow>\"%s\"@} inside the program." scope
 
   (* TODO: this is very weird but I'm trying to maintain the current behaviour
      for now *)
-  let get_random_scope_uid (ctx: decl_ctx): ScopeName.t =
+  let get_random_scope_uid (ctx : decl_ctx) : ScopeName.t =
     match Ident.Map.choose_opt ctx.ctx_scope_index with
     | Some (_, name) -> name
-    | None ->
-      Message.raise_error "There isn't any scope inside the program."
+    | None -> Message.raise_error "There isn't any scope inside the program."
 
   let get_variable_uid
       (ctxt : Desugared.Name_resolution.context)
@@ -333,9 +330,7 @@ module Commands = struct
       Message.raise_error
         "Variable @{<yellow>\"%s\"@} not found inside scope @{<yellow>\"%a\"@}"
         variable ScopeName.format scope_uid
-    | Some
-        (SubScope (subscope_var_name, subscope_name))
-      -> (
+    | Some (SubScope (subscope_var_name, subscope_name)) -> (
       match second_part with
       | None ->
         Message.raise_error

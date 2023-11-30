@@ -280,8 +280,8 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
           let mod_use_alias = Option.value ~default:mod_use_name alias in
           {
             acc with
-            Ast.program_used_modules = { mod_use_name; mod_use_alias }
-                                       :: acc.Ast.program_used_modules;
+            Ast.program_used_modules =
+              { mod_use_name; mod_use_alias } :: acc.Ast.program_used_modules;
             Ast.program_items = command :: acc.Ast.program_items;
           }
         | Ast.LawInclude (Ast.CatalaFile inc_file) ->
@@ -361,8 +361,12 @@ let get_interface program =
     | Ast.LawInclude _ | Ast.LawText _ | Ast.ModuleDef _ -> req, acc
     | Ast.LawHeading (_, str) -> List.fold_left filter (req, acc) str
     | Ast.ModuleUse (mod_use_name, alias) ->
-      { Ast.mod_use_name; mod_use_alias = Option.value ~default:mod_use_name alias }
-      :: req, acc
+      ( {
+          Ast.mod_use_name;
+          mod_use_alias = Option.value ~default:mod_use_name alias;
+        }
+        :: req,
+        acc )
     | Ast.CodeBlock (code, _, true) ->
       ( req,
         List.fold_left
@@ -395,12 +399,12 @@ let with_sedlex_source source_file f =
 
 let check_modname program source_file =
   match program.Ast.program_module_name, source_file with
-  | Some (mname, pos), (Cli.FileName file | Cli.Contents (_, file) | Cli.Stdin file)
+  | ( Some (mname, pos),
+      (Cli.FileName file | Cli.Contents (_, file) | Cli.Stdin file) )
     when not File.(equal mname Filename.(remove_extension (basename file))) ->
     Message.raise_spanned_error pos
       "Module declared as @{<blue>%s@}, which does not match the file name %a"
-      mname
-      File.format file
+      mname File.format file
   | _ -> ()
 
 let load_interface source_file =
@@ -416,14 +420,16 @@ let load_interface source_file =
         File.format
         (Cli.input_src_file source_file)
         (match source_file with
-         | FileName s ->
-           String.capitalize_ascii Filename.(basename (remove_extension s))
-         | _ -> "Module_name")
+        | FileName s ->
+          String.capitalize_ascii Filename.(basename (remove_extension s))
+        | _ -> "Module_name")
   in
   let used_modules, intf = get_interface program in
-  { Ast.intf_modname = modname;
+  {
+    Ast.intf_modname = modname;
     Ast.intf_code = intf;
-    Ast.intf_submodules = used_modules; }
+    Ast.intf_submodules = used_modules;
+  }
 
 let parse_top_level_file (source_file : Cli.input_src) : Ast.program =
   let program = with_sedlex_source source_file parse_source in

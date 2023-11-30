@@ -89,21 +89,26 @@ let type_program (type m) (prg : m program) : typed program =
   let env =
     ScopeName.Map.fold
       (fun scope_name _info env ->
-         let scope_sig =
-           match ScopeName.path scope_name with
-           | [] -> (Mark.remove (ScopeName.Map.find scope_name prg.program_scopes)).scope_sig
-           | p ->
-             let m = List.hd (List.rev p) in
-             let scope = ScopeName.Map.find scope_name (ModuleName.Map.find m prg.program_modules) in
-             (Mark.remove scope).scope_sig
-          in
-          let vars =
-            ScopeVar.Map.map (fun { svar_out_ty; _ } -> svar_out_ty) scope_sig
-          in
-          let in_vars =
-            ScopeVar.Map.map (fun { svar_in_ty; _ } -> svar_in_ty) scope_sig
-          in
-          Typing.Env.add_scope scope_name ~vars ~in_vars env)
+        let scope_sig =
+          match ScopeName.path scope_name with
+          | [] ->
+            (Mark.remove (ScopeName.Map.find scope_name prg.program_scopes))
+              .scope_sig
+          | p ->
+            let m = List.hd (List.rev p) in
+            let scope =
+              ScopeName.Map.find scope_name
+                (ModuleName.Map.find m prg.program_modules)
+            in
+            (Mark.remove scope).scope_sig
+        in
+        let vars =
+          ScopeVar.Map.map (fun { svar_out_ty; _ } -> svar_out_ty) scope_sig
+        in
+        let in_vars =
+          ScopeVar.Map.map (fun { svar_in_ty; _ } -> svar_in_ty) scope_sig
+        in
+        Typing.Env.add_scope scope_name ~vars ~in_vars env)
       prg.program_ctx.ctx_scopes env
   in
   let program_topdefs =

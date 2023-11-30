@@ -985,8 +985,9 @@ let load_runtime_modules prg =
     let obj_file =
       Dynlink.adapt_filename
         File.(
-          (Pos.get_file (Mark.get (ModuleName.get_info m))
-           /../ ModuleName.to_string m) ^ ".cmo")
+          Pos.get_file (Mark.get (ModuleName.get_info m))
+          /../ ModuleName.to_string m
+          ^ ".cmo")
     in
     if not (Sys.file_exists obj_file) then
       Message.raise_spanned_error
@@ -1007,8 +1008,8 @@ let load_runtime_modules prg =
     let rec aux acc (M mtree) =
       ModuleName.Map.fold
         (fun mname sub acc ->
-           if List.exists (ModuleName.equal mname) acc then acc else
-             mname :: aux acc sub)
+          if List.exists (ModuleName.equal mname) acc then acc
+          else mname :: aux acc sub)
         mtree acc
     in
     List.rev (aux [] prg.decl_ctx.ctx_modules)

@@ -88,7 +88,7 @@ type context = {
       (** The signatures of each scope variable declared *)
   modules : module_context ModuleName.Map.t;
   local : module_context;
-  (** Module being currently analysed (at the end: the root module) *)
+      (** Module being currently analysed (at the end: the root module) *)
 }
 (** Global context used throughout {!module: Surface.Desugaring} *)
 
@@ -257,8 +257,7 @@ let get_module_ctx ctxt id =
 let rec module_ctx ctxt path0 =
   match path0 with
   | [] -> ctxt
-  | mod_id :: path ->
-    module_ctx (get_module_ctx ctxt mod_id) path
+  | mod_id :: path -> module_ctx (get_module_ctx ctxt mod_id) path
 
 (** {1 Declarations pass} *)
 
@@ -343,7 +342,8 @@ let rec process_base_typ
           "This refers to module @{<blue>%s@}, which was not found" modul
       | Some mname ->
         let mod_ctxt = ModuleName.Map.find mname ctxt.modules in
-        process_base_typ { ctxt with local = mod_ctxt }
+        process_base_typ
+          { ctxt with local = mod_ctxt }
           Surface.Ast.(Data (Primitive (Named (path, id))), typ_pos)))
 
 (** Process a type (function or not) *)
@@ -463,16 +463,16 @@ let process_struct_decl (ctxt : context) (sdecl : Surface.Ast.struct_decl) :
       let structs =
         StructName.Map.update s_uid
           (fun fields ->
-             match fields with
-             | None ->
-               Some
-                 (StructField.Map.singleton f_uid
-                    (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ))
-             | Some fields ->
-               Some
-                 (StructField.Map.add f_uid
-                    (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ)
-                    fields))
+            match fields with
+            | None ->
+              Some
+                (StructField.Map.singleton f_uid
+                   (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ))
+            | Some fields ->
+              Some
+                (StructField.Map.add f_uid
+                   (process_type ctxt fdecl.Surface.Ast.struct_decl_field_typ)
+                   fields))
           ctxt.structs
       in
       { ctxt with structs })
@@ -508,14 +508,14 @@ let process_enum_decl (ctxt : context) (edecl : Surface.Ast.enum_decl) : context
       let enums =
         EnumName.Map.update e_uid
           (fun cases ->
-             let typ =
-               match cdecl.Surface.Ast.enum_decl_case_typ with
-               | None -> TLit TUnit, cdecl_pos
-               | Some typ -> process_type ctxt typ
-             in
-             match cases with
-             | None -> Some (EnumConstructor.Map.singleton c_uid typ)
-             | Some fields -> Some (EnumConstructor.Map.add c_uid typ fields))
+            let typ =
+              match cdecl.Surface.Ast.enum_decl_case_typ with
+              | None -> TLit TUnit, cdecl_pos
+              | Some typ -> process_type ctxt typ
+            in
+            match cases with
+            | None -> Some (EnumConstructor.Map.singleton c_uid typ)
+            | Some fields -> Some (EnumConstructor.Map.add c_uid typ fields))
           ctxt.enums
       in
       { ctxt with enums })
@@ -602,7 +602,8 @@ let process_scope_decl (ctxt : context) (decl : Surface.Ast.scope_decl) :
           | ScopeVar v -> (
             try
               let field =
-                StructName.Map.find str (Ident.Map.find id ctxt.local.field_idmap)
+                StructName.Map.find str
+                  (Ident.Map.find id ctxt.local.field_idmap)
               in
               ScopeVar.Map.add v field svmap
             with StructName.Map.Not_found _ | Ident.Map.Not_found _ -> svmap))
@@ -669,11 +670,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
         }
         ctxt.scopes
     in
-    {
-      ctxt with
-      local = { ctxt.local with typedefs };
-      scopes;
-    }
+    { ctxt with local = { ctxt.local with typedefs }; scopes }
   | StructDecl sdecl ->
     let name, pos = sdecl.struct_decl_name in
     Option.iter
@@ -684,9 +681,9 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     let typedefs =
       Ident.Map.add
         (Mark.remove sdecl.struct_decl_name)
-        (TStruct s_uid) ctxt.local.typedefs;
+        (TStruct s_uid) ctxt.local.typedefs
     in
-    { ctxt with local = { ctxt.local with typedefs} }
+    { ctxt with local = { ctxt.local with typedefs } }
   | EnumDecl edecl ->
     let name, pos = edecl.enum_decl_name in
     Option.iter
@@ -699,7 +696,7 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
         (Mark.remove edecl.enum_decl_name)
         (TEnum e_uid) ctxt.local.typedefs
     in
-    { ctxt with local = { ctxt.local with typedefs} }
+    { ctxt with local = { ctxt.local with typedefs } }
   | ScopeUse _ -> ctxt
   | Topdef def ->
     let name, pos = def.topdef_name in
@@ -940,48 +937,62 @@ let process_use_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
 
 (** {1 API} *)
 
-let empty_module_ctxt = {
-  path = [];
-  typedefs = Ident.Map.empty;
-  field_idmap = Ident.Map.empty;
-  constructor_idmap = Ident.Map.empty;
-  topdefs = Ident.Map.empty;
-  used_modules = Ident.Map.empty;
-}
+let empty_module_ctxt =
+  {
+    path = [];
+    typedefs = Ident.Map.empty;
+    field_idmap = Ident.Map.empty;
+    constructor_idmap = Ident.Map.empty;
+    topdefs = Ident.Map.empty;
+    used_modules = Ident.Map.empty;
+  }
 
-let empty_ctxt = {
-  scopes = ScopeName.Map.empty;
-  topdef_types = TopdefName.Map.empty;
-  var_typs = ScopeVar.Map.empty;
-  structs = StructName.Map.empty;
-  enums = EnumName.Map.empty;
-  modules = ModuleName.Map.empty;
-  local = empty_module_ctxt;
-}
+let empty_ctxt =
+  {
+    scopes = ScopeName.Map.empty;
+    topdef_types = TopdefName.Map.empty;
+    var_typs = ScopeVar.Map.empty;
+    structs = StructName.Map.empty;
+    enums = EnumName.Map.empty;
+    modules = ModuleName.Map.empty;
+    local = empty_module_ctxt;
+  }
 
 (** Derive the context from metadata, in one pass over the declarations *)
 let form_context (surface, mod_uses) surface_modules : context =
   let rec process_modules ctxt mod_uses =
-    (* Recursing on [mod_uses] rather than folding on [modules] ensures a topological traversal. *)
-    Ident.Map.fold (fun _alias m ctxt ->
+    (* Recursing on [mod_uses] rather than folding on [modules] ensures a
+       topological traversal. *)
+    Ident.Map.fold
+      (fun _alias m ctxt ->
         match ModuleName.Map.find_opt m ctxt.modules with
         | Some _ -> ctxt
         | None ->
           let intf, mod_uses = ModuleName.Map.find m surface_modules in
           let ctxt = process_modules ctxt mod_uses in
-          let ctxt = { ctxt with
-                       local = { ctxt.local with used_modules = mod_uses;
-                                                 path = [m] } } in
-          let ctxt = List.fold_left process_name_item ctxt intf.Surface.Ast.intf_code in
-          let ctxt = List.fold_left process_decl_item ctxt intf.Surface.Ast.intf_code in
-          { ctxt with
+          let ctxt =
+            {
+              ctxt with
+              local = { ctxt.local with used_modules = mod_uses; path = [m] };
+            }
+          in
+          let ctxt =
+            List.fold_left process_name_item ctxt intf.Surface.Ast.intf_code
+          in
+          let ctxt =
+            List.fold_left process_decl_item ctxt intf.Surface.Ast.intf_code
+          in
+          {
+            ctxt with
             modules = ModuleName.Map.add m ctxt.local ctxt.modules;
-            local = empty_module_ctxt }
-      )
+            local = empty_module_ctxt;
+          })
       mod_uses ctxt
   in
   let ctxt = process_modules empty_ctxt mod_uses in
-  let ctxt = { ctxt with local = { empty_module_ctxt with used_modules = mod_uses } } in
+  let ctxt =
+    { ctxt with local = { empty_module_ctxt with used_modules = mod_uses } }
+  in
   let ctxt =
     List.fold_left
       (process_law_structure process_name_item)
@@ -998,9 +1009,12 @@ let form_context (surface, mod_uses) surface_modules : context =
       ctxt surface.Surface.Ast.program_items
   in
   (* Gather struct fields and enum constrs from direct modules: this helps with
-     disambiguation. This is only done towards the root context, because submodules are only interfaces which don't need disambiguation ; and transitive dependencies shouldn't be visible here. *)
+     disambiguation. This is only done towards the root context, because
+     submodules are only interfaces which don't need disambiguation ; and
+     transitive dependencies shouldn't be visible here. *)
   let sub_constructor_idmap, sub_field_idmap =
-    Ident.Map.fold (fun _ m (cmap, fmap) ->
+    Ident.Map.fold
+      (fun _ m (cmap, fmap) ->
         let lctx = ModuleName.Map.find m ctxt.modules in
         let cmap =
           Ident.Map.union
@@ -1013,17 +1027,23 @@ let form_context (surface, mod_uses) surface_modules : context =
             fmap lctx.field_idmap
         in
         cmap, fmap)
-      mod_uses (Ident.Map.empty, Ident.Map.empty)
+      mod_uses
+      (Ident.Map.empty, Ident.Map.empty)
   in
-  { ctxt with
+  {
+    ctxt with
     local =
-      { ctxt.local with
-        (* In the root context, don't disambiguate on submodules structs/enums when there is a conflict *)
+      {
+        ctxt.local with
+        (* In the root context, don't disambiguate on submodules structs/enums
+           when there is a conflict *)
         constructor_idmap =
-          Ident.Map.union (fun _ base _ -> Some base)
+          Ident.Map.union
+            (fun _ base _ -> Some base)
             ctxt.local.constructor_idmap sub_constructor_idmap;
         field_idmap =
-          Ident.Map.union (fun _ base _ -> Some base)
+          Ident.Map.union
+            (fun _ base _ -> Some base)
             ctxt.local.field_idmap sub_field_idmap;
-      }
+      };
   }
