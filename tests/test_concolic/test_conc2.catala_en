@@ -1,0 +1,12 @@
+## Article
+
+```catala
+declaration scope TestConc2:
+  input b content boolean
+  output o content integer
+
+scope TestConc2:
+  definition o equals 10
+  exception definition o under condition b consequence equals 20
+```
+
