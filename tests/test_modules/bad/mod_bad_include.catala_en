@@ -1,0 +1,21 @@
+> Include: mod_badname.catala_en
+
+
+```catala-test-inline
+$ catala typecheck
+[ERROR]
+A file that declares a module cannot be used through the raw '> Include' directive. You should use it as a module with '> Use This_is_not_the_file_name' instead.
+
+File include
+┌─⯈ tests/test_modules/bad/mod_bad_include.catala_en:1.3-1.33:
+└─┐
+1 │ > Include: mod_badname.catala_en
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+
+Module declaration
+┌─⯈ tests/test_modules/bad/mod_badname.catala_en:1.10-1.35:
+└─┐
+1 │ > Module This_is_not_the_file_name
+  │          ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+#return code 123#
+```

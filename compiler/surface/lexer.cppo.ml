@@ -819,6 +819,15 @@ let line_dir_arg_re =
       eol
     ])
 
+let line_dir_arg_upcase_re =
+  Re.(compile @@ seq [
+      bos; char '>'; rep space; rep1 alpha;
+      rep (alt [space; lower]); space;
+      group (seq [rep1 upper; rep (diff any space)]);
+      rep any;
+      eol
+    ])
+
 let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
   match%sedlex lexbuf with
   | eof -> None
@@ -844,13 +853,13 @@ let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
   | '>', Star hspace, MR_MODULE_DEF, Plus hspace, uppercase, Star (Compl '\n'), ('\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
-       let mdl = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
+       let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
        Some (str, LINE_MODULE_DEF mdl)
      with Not_found -> Some (str, LINE_ANY))
   | '>', Star hspace, MR_MODULE_USE, Plus hspace, uppercase, Star (Compl '\n'), ('\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
-       let mdl = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
+       let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
        Some (str, LINE_MODULE_USE mdl)
      with Not_found -> Some (str, LINE_ANY))
   | Star (Compl '\n'), ('\n' | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)

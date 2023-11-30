@@ -1,10 +1,10 @@
-> Using Mod_middle
+> Using Mod_middle as M
 
 ```catala
 declaration scope T:
-  t1 scope Mod_middle.S
+  t1 scope M.S
 #  input i content Enum1
-  output o1 content Mod_middle.Mod_def.S
+  output o1 content M.Mod_def.S
   output o2 content money
   output o3 content money
 

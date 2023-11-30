@@ -393,29 +393,32 @@ let with_sedlex_source source_file f =
     Sedlexing.set_filename lexbuf file;
     f lexbuf
 
+let check_modname program source_file =
+  match program.Ast.program_module_name, source_file with
+  | Some (mname, pos), (Cli.FileName file | Cli.Contents (_, file) | Cli.Stdin file)
+    when not File.(equal mname Filename.(remove_extension (basename file))) ->
+    Message.raise_spanned_error pos
+      "Module declared as @{<blue>%s@}, which does not match the file name %a"
+      mname
+      File.format file
+  | _ -> ()
+
 let load_interface source_file =
   let program = with_sedlex_source source_file parse_source in
+  check_modname program source_file;
   let modname =
-    match program.Ast.program_module_name, source_file with
-    | Some (mname, pos), Cli.FileName file ->
-      if File.(equal mname Filename.(remove_extension (basename file)))
-      then mname, pos
-      else
-        Message.raise_spanned_error pos
-          "Module declared as @{<blue>%s@}, which does not match the file name %a"
-          mname
-          File.format file
-    | Some mname, _ -> mname
-    | None, _ ->
+    match program.Ast.program_module_name with
+    | Some mname -> mname
+    | None ->
       Message.raise_error
         "%a doesn't define a module name. It should contain a '@{<cyan>> \
          Module %s@}' directive."
         File.format
         (Cli.input_src_file source_file)
         (match source_file with
-        | FileName s ->
-          String.capitalize_ascii Filename.(basename (remove_extension s))
-        | _ -> "Module_name")
+         | FileName s ->
+           String.capitalize_ascii Filename.(basename (remove_extension s))
+         | _ -> "Module_name")
   in
   let used_modules, intf = get_interface program in
   { Ast.intf_modname = modname;
@@ -424,6 +427,7 @@ let load_interface source_file =
 
 let parse_top_level_file (source_file : Cli.input_src) : Ast.program =
   let program = with_sedlex_source source_file parse_source in
+  check_modname program source_file;
   {
     program with
     Ast.program_items = law_struct_list_to_tree program.Ast.program_items;

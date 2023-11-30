@@ -598,7 +598,7 @@ let gen_build_statements
     | Some m ->
       let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
       Nj.build "ocaml-module" ~inputs:[ml_file]
-        ~implicit_in:(List.map modd modules)
+        ~implicit_in:(List.map (modfile ".cmi") modules)
         ~outputs:[target "cmxs"]
         ~implicit_out:(List.map target implicit_out_exts)
         ~vars:
