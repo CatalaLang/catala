@@ -20,6 +20,7 @@
 
 open Catala_utils
 open Shared_ast
+open Op
 module Concrete = Shared_ast.Interpreter
 
 type s_expr = Z3.Expr.expr
@@ -295,6 +296,268 @@ let replace_EVar_mark
     | None -> e)
   | _ -> e
 
+let handle_eq evaluate_operator pos lang e1 e2 =
+  let open Runtime.Oper in
+  match e1, e2 with
+  | ELit LUnit, ELit LUnit -> failwith "EOp Eq LUnit not implemented"
+  | ELit (LBool b1), ELit (LBool b2) -> not (o_xor b1 b2)
+  | ELit (LInt x1), ELit (LInt x2) -> o_eq_int_int x1 x2
+  | ELit (LRat _), ELit (LRat _) -> failwith "EOp Eq LRat not implemented"
+  | ELit (LMoney _), ELit (LMoney _) -> failwith "EOp Eq LMoney not implemented"
+  | ELit (LDuration _), ELit (LDuration _) ->
+    failwith "EOp Eq LDuration not implemented"
+  | ELit (LDate _), ELit (LDate _) -> failwith "EOp Eq LDate not implemented"
+  | EArray _, EArray _ -> failwith "EOp Eq EArray not implemented"
+  | EStruct { fields = es1; name = s1 }, EStruct { fields = es2; name = s2 } ->
+    StructName.equal s1 s2
+    && StructField.Map.equal
+         (fun e1 e2 ->
+           match Mark.remove (evaluate_operator Eq pos lang [e1; e2]) with
+           | ELit (LBool b) -> b
+           | _ -> assert false
+           (* should not happen *))
+         es1 es2
+  | EInj _, EInj _ -> failwith "EOp Eq EInj not implemented"
+  | _, _ -> false (* comparing anything else return false *)
+
+(* Call-by-value: the arguments are expected to be already evaluated here *)
+let rec evaluate_operator
+    evaluate_expr
+    ctx
+    (op : < overloaded : no ; .. > operator)
+    m
+    lang
+    args =
+  let pos = Expr.mark_pos m in
+  let err () =
+    Message.raise_multispanned_error
+      ([
+         ( Some
+             (Format.asprintf "Operator (value %a):"
+                (Print.operator ~debug:true)
+                op),
+           pos );
+       ]
+      @ List.mapi
+          (fun i arg ->
+            ( Some
+                (Format.asprintf "Argument n°%d, value %a" (i + 1)
+                   (Print.UserFacing.expr lang)
+                   arg),
+              Expr.pos arg ))
+          args)
+      "Operator %a applied to the wrong arguments\n\
+       (should not happen if the term was well-typed)%a"
+      (Print.operator ~debug:true)
+      op Expr.format
+      (EApp { f = EOp { op; tys = [] }, m; args }, m)
+  in
+  Concrete.propagate_empty_error_list args
+  @@ fun args ->
+  let open Runtime.Oper in
+  (* Mark.add m @@ *)
+  match op, args with
+  | Length, _ -> failwith "EOp Length not implemented"
+  | Log _, _ -> failwith "Eop Log not implemented"
+  | (FromClosureEnv | ToClosureEnv), _ ->
+    failwith
+      "Eop From/ToClosureEnv not implemented" (* TODO CONC will they ever be? *)
+  (* | (ToClosureEnv | FromClosureEnv), _ -> err () *)
+  | Eq, [e1; e2] ->
+    let e1' = Mark.remove e1 in
+    let e2' = Mark.remove e2 in
+    let concrete =
+      ELit
+        (LBool (handle_eq (evaluate_operator evaluate_expr ctx) m lang e1' e2'))
+    in
+    (* TODO CONC catch errors here, or maybe propagate [None]? *)
+    let s_e1 = Option.get (get_symb_expr e1) in
+    let s_e2 = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Boolean.mk_eq ctx.ctx_z3 s_e1 s_e2 in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Map, _ -> failwith "Eop Map not implemented"
+  | Reduce, _ -> failwith "Eop Reduce not implemented"
+  (* | Reduce, _ -> failwith "Eop Reduce not implemented" *)
+  | Concat, _ -> failwith "Eop Concat not implemented"
+  | Filter, _ -> failwith "Eop Filter not implemented"
+  | Fold, _ -> failwith "Eop Fold not implemented"
+  (* Length | Log _ *)
+  | Eq (* | Map | Concat | Filter | Fold | Reduce *), _ -> err ()
+  | Not, [((ELit (LBool b), _) as e)] ->
+    let concrete = ELit (LBool (o_not b)) in
+    let e_symb = Option.get (get_symb_expr e) in
+    (* TODO handle error *)
+    let symb_expr = Z3.Boolean.mk_not ctx.ctx_z3 e_symb in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | GetDay, _ -> failwith "Eop GetDay not implemented"
+  | GetMonth, _ -> failwith "Eop GetMonth not implemented"
+  | GetYear, _ -> failwith "Eop GetYear not implemented"
+  | FirstDayOfMonth, _ -> failwith "Eop FirstDayOfMonth not implemented"
+  | LastDayOfMonth, _ -> failwith "Eop LastDayOfMonth not implemented"
+  | And, [((ELit (LBool b1), _) as e1); ((ELit (LBool b2), _) as e2)] ->
+    let concrete = ELit (LBool (o_and b1 b2)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Boolean.mk_and ctx.ctx_z3 [e1_symb; e2_symb] in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Or, [((ELit (LBool b1), _) as e1); ((ELit (LBool b2), _) as e2)] ->
+    let concrete = ELit (LBool (o_or b1 b2)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Boolean.mk_or ctx.ctx_z3 [e1_symb; e2_symb] in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Xor, [((ELit (LBool b1), _) as e1); ((ELit (LBool b2), _) as e2)] ->
+    let concrete = ELit (LBool (o_xor b1 b2)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Boolean.mk_xor ctx.ctx_z3 e1_symb e2_symb in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | ( ( Not
+        (* | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth *)
+      | And | Or | Xor ),
+      _ ) ->
+    err ()
+  | Minus_int, [((ELit (LInt x), _) as e)] ->
+    let concrete = ELit (LInt (o_minus_int x)) in
+    (* TODO handle error *)
+    let e_symb = Option.get (get_symb_expr e) in
+    let symb_expr = Z3.Arithmetic.mk_unary_minus ctx.ctx_z3 e_symb in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Minus_rat, _ -> failwith "Eop Minus_rat not implemented"
+  | Minus_mon, _ -> failwith "Eop Minus_mon not implemented"
+  | Minus_dur, _ -> failwith "Eop Minus_dur not implemented"
+  | ToRat_int, _ -> failwith "Eop ToRat_int not implemented"
+  | ToRat_mon, _ -> failwith "Eop ToRat_mon not implemented"
+  | ToMoney_rat, _ -> failwith "Eop ToMoney_rat not implemented"
+  | Round_mon, _ -> failwith "Eop Round_mon not implemented"
+  | Round_rat, _ -> failwith "Eop Round_rat not implemented"
+  | Add_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    let concrete = ELit (LInt (o_add_int_int x y)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Arithmetic.mk_add ctx.ctx_z3 [e1_symb; e2_symb] in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Add_rat_rat, _ -> failwith "Eop Add_rat_rat not implemented"
+  | Add_mon_mon, _ -> failwith "Eop Add_mon_mon not implemented"
+  | Add_dat_dur _, _ -> failwith "Eop Add_dat_dur not implemented"
+  | Add_dur_dur, _ -> failwith "Eop Add_dur_dur not implemented"
+  | Sub_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    let concrete = ELit (LInt (o_sub_int_int x y)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Arithmetic.mk_sub ctx.ctx_z3 [e1_symb; e2_symb] in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Sub_rat_rat, _ -> failwith "Eop Sub_rat_rat not implemented"
+  | Sub_mon_mon, _ -> failwith "Eop Sub_mon_mon not implemented"
+  | Sub_dat_dat, _ -> failwith "Eop Sub_dat_dat not implemented"
+  | Sub_dat_dur, _ -> failwith "Eop Sub_dat_dur not implemented"
+  | Sub_dur_dur, _ -> failwith "Eop Sub_dur_dur not implemented"
+  | Mult_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    let concrete = ELit (LInt (o_mult_int_int x y)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Arithmetic.mk_mul ctx.ctx_z3 [e1_symb; e2_symb] in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Mult_rat_rat, _ -> failwith "Eop Mult_rat_rat not implemented"
+  | Mult_mon_rat, _ -> failwith "Eop Mult_mon_rat not implemented"
+  | Mult_dur_int, _ -> failwith "Eop Mult_dur_int not implemented"
+  | Div_int_int, _ -> failwith "Eop Div_int_int not implemented"
+  | Div_rat_rat, _ -> failwith "Eop Div_rat_rat not implemented"
+  | Div_mon_mon, _ -> failwith "Eop Div_mon_mon not implemented"
+  | Div_mon_rat, _ -> failwith "Eop Div_mon_rat not implemented"
+  | Div_dur_dur, _ -> failwith "Eop Div_dur_dur not implemented"
+  | Lt_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    let concrete = ELit (LBool (o_lt_int_int x y)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Arithmetic.mk_lt ctx.ctx_z3 e1_symb e2_symb in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Lt_rat_rat, _ -> failwith "Eop Lt_rat_rat not implemented"
+  | Lt_mon_mon, _ -> failwith "Eop Lt_mon_mon not implemented"
+  | Lt_dat_dat, _ -> failwith "Eop Lt_dat_dat not implemented"
+  | Lt_dur_dur, _ -> failwith "Eop Lt_dur_dur not implemented"
+  | Lte_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    let concrete = ELit (LBool (o_lte_int_int x y)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Arithmetic.mk_le ctx.ctx_z3 e1_symb e2_symb in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Lte_rat_rat, _ -> failwith "Eop Lte_rat_rat not implemented"
+  | Lte_mon_mon, _ -> failwith "Eop Lte_mon_mon not implemented"
+  | Lte_dat_dat, _ -> failwith "Eop Lte_dat_dat not implemented"
+  | Lte_dur_dur, _ -> failwith "Eop Lte_dur_dur not implemented"
+  | Gt_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    let concrete = ELit (LBool (o_gt_int_int x y)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Arithmetic.mk_gt ctx.ctx_z3 e1_symb e2_symb in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Gt_rat_rat, _ -> failwith "Eop Gt_rat_rat not implemented"
+  | Gt_mon_mon, _ -> failwith "Eop Gt_mon_mon not implemented"
+  | Gt_dat_dat, _ -> failwith "Eop Gt_dat_dat not implemented"
+  | Gt_dur_dur, _ -> failwith "Eop Gt_dur_dur not implemented"
+  | Gte_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    let concrete = ELit (LBool (o_gte_int_int x y)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Arithmetic.mk_ge ctx.ctx_z3 e1_symb e2_symb in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Gte_rat_rat, _ -> failwith "Eop Gte_rat_rat not implemented"
+  | Gte_mon_mon, _ -> failwith "Eop Gte_mon_mon not implemented"
+  | Gte_dat_dat, _ -> failwith "Eop Gte_dat_dat not implemented"
+  | Gte_dur_dur, _ -> failwith "Eop Gte_dur_dur not implemented"
+  | Eq_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    let concrete = ELit (LBool (o_eq_int_int x y)) in
+    (* TODO handle errors *)
+    let e1_symb = Option.get (get_symb_expr e1) in
+    let e2_symb = Option.get (get_symb_expr e2) in
+    let symb_expr = Z3.Boolean.mk_eq ctx.ctx_z3 e1_symb e2_symb in
+    add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  | Eq_rat_rat, _ -> failwith "Eop Eq_rat_rat not implemented"
+  | Eq_mon_mon, _ -> failwith "Eop Eq_mon_mon not implemented"
+  | Eq_dat_dat, _ -> failwith "Eop Eq_dat_dat not implemented"
+  | Eq_dur_dur, _ -> failwith "Eop Eq_dur_dur not implemented"
+  | HandleDefault, _ ->
+    (* TODO change error message *)
+    Message.raise_internal_error
+      "The concolic interpreter is trying to evaluate the \"handle_default\" \
+       operator, which should not happen with a DCalc AST"
+  | HandleDefaultOpt, _ ->
+    Message.raise_internal_error
+      "The concolic interpreter is trying to evaluate the \
+       \"handle_default_opt\" operator, which should not happen with a DCalc \
+       AST"
+  | ( ( Minus_int
+        (* | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon |
+           ToMoney_rat | Round_rat | Round_mon *)
+      | Add_int_int
+        (* | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur *)
+      | Sub_int_int
+        (* | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur |
+           Sub_dur_dur *)
+      | Mult_int_int
+        (* | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int |
+           Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur *)
+      | Lt_int_int (* | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur *)
+      | Lte_int_int
+        (* | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur *)
+      | Gt_int_int (* | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur *)
+      | Gte_int_int
+        (* | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur *)
+      | Eq_int_int (* | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur *) ),
+      _ ) ->
+    err ()
+
 let rec evaluate_expr :
     context -> Cli.backend_lang -> yes conc_expr -> yes conc_expr =
  fun ctx lang e ->
@@ -385,7 +648,17 @@ let rec evaluate_expr :
           "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | EOp _ -> failwith "EApp of EOp not implemented"
+    | EOp { op; _ } ->
+      let result =
+        evaluate_operator (evaluate_expr ctx lang) ctx op m lang args
+      in
+      let r_symb = get_symb_expr result in
+      (* TODO CONC the constraints generated by the evaluation of the application are:
+       * - those generated by the evaluation of the operator
+       * - those generated by the evaluation of the arguments
+       * NB: [evaluate_operator] is cbv so we don't care what constraints it returns *)
+      let constraints = args_constraints @ f_constraints in
+      add_conc_info_e r_symb ~constraints result
     | ECustom _ -> failwith "EApp of ECustom not implemented"
     | _ ->
       Message.raise_spanned_error pos
@@ -400,7 +673,9 @@ let rec evaluate_expr :
     let symb_expr = symb_of_lit ctx l in
     (* TODO CONC REU no constraints generated *)
     add_conc_info_m m (Some symb_expr) ~constraints:[] e
-  | EOp _ -> failwith "EOp not implemented"
+  | EOp { op; tys } -> Expr.unbox (Expr.eop (Operator.translate op) tys m)
+  (* TODO CONC is this "typing shenanigan" needed? I removed it from the
+     concrete interpreter and nothing broke... *)
   (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
   | EStruct { fields = es; name } ->
     Message.emit_debug "... it's an EStruct";
@@ -571,7 +846,7 @@ let rec evaluate_expr :
 
 let lit_of_tlit t =
   match t with
-  | TBool -> LBool false
+  | TBool -> LBool true
   | TInt -> LInt (Z.of_int 42)
   | _ -> failwith "not implemented"
 
