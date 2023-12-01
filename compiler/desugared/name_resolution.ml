@@ -699,13 +699,14 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     { ctxt with local = { ctxt.local with typedefs } }
   | ScopeUse _ -> ctxt
   | Topdef def ->
-    let name, pos = def.topdef_name in
-    Option.iter
-      (fun use ->
-        raise_already_defined_error (TopdefName.get_info use) name pos
-          "toplevel definition")
-      (Ident.Map.find_opt name ctxt.local.topdefs);
-    let uid = TopdefName.fresh ctxt.local.path def.topdef_name in
+    let name, _ = def.topdef_name in
+    let uid =
+      match Ident.Map.find_opt name ctxt.local.topdefs with
+      | None -> TopdefName.fresh ctxt.local.path def.topdef_name
+      | Some uid -> uid
+      (* Topdef declaration may appear multiple times as long as their types
+         match and only one contains an expression defining it *)
+    in
     let topdefs = Ident.Map.add name uid ctxt.local.topdefs in
     { ctxt with local = { ctxt.local with topdefs } }
 

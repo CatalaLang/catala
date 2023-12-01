@@ -1307,7 +1307,10 @@ let process_topdef
         | Some (eopt0, ty0), eopt -> (
           let err msg =
             Message.raise_multispanned_error
-              [None, Mark.get ty0; None, Mark.get typ]
+              [
+                None, Mark.get (TopdefName.get_info id);
+                None, Mark.get def.S.topdef_name;
+              ]
               (msg ^^ " for %a") TopdefName.format id
           in
           if not (Type.equal ty0 typ) then err "Conflicting type definitions"
