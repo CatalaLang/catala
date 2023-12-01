@@ -306,7 +306,7 @@ and law_include =
 
 and law_structure =
   | LawInclude of law_include
-  | ModuleDef of uident Mark.pos
+  | ModuleDef of uident Mark.pos * bool (* External if true *)
   | ModuleUse of uident Mark.pos * uident Mark.pos option
   | LawHeading of law_heading * law_structure list
   | LawText of (string[@opaque])

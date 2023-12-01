@@ -1,0 +1,24 @@
+> Using Prorata_external as Ext
+
+
+```catala
+declaration scope S:
+  internal weights content collection money
+  output result1 content collection money
+  output result2 content collection money
+
+scope S:
+  definition weights equals [$4;$1;$1;$4;$1;$1]
+  definition result1 equals Ext.prorata of $10, weights
+  assertion sum money of result1 = $10
+  definition result2 equals Ext.prorata2 of $10, weights
+  assertion sum money of result2 = $10
+```
+
+
+```catala-test-inline
+$ catala interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT] result1 = [$3.33; $0.83; $0.83; $3.33; $0.83; $0.85]
+[RESULT] result2 = [$3.33; $0.83; $0.83; $3.34; $0.84; $0.83]
+```

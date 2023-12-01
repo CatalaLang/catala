@@ -37,6 +37,7 @@ type expected_output_descr = {
 type item = {
   file_name : File.t;
   module_def : string option;
+  extrnal : bool;
   used_modules : string list;
   included_files : File.t list;
   legacy_tests : expected_output_descr list;

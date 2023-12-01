@@ -707,7 +707,10 @@ let directive :=
   else
     LawInclude (Ast.CatalaFile (filename, pos))
 }
-| MODULE_DEF ; m = addpos(DIRECTIVE_ARG) ; { ModuleDef m }
+| MODULE_DEF ; m = addpos(DIRECTIVE_ARG) ;
+  ext = option (MODULE_EXTERNAL) ; {
+  ModuleDef (m, ext <> None)
+}
 | MODULE_USE ; m = addpos(DIRECTIVE_ARG) ;
   alias = option (preceded(MODULE_ALIAS,addpos(DIRECTIVE_ARG))) ; {
   ModuleUse (m, alias)

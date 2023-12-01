@@ -588,9 +588,15 @@ let gen_build_statements
     | None -> (!Var.builddir / !Var.src) ^ ".ml"
   in
   let ocaml =
-    Nj.build "catala-ocaml"
-      ~inputs:[inc srcv]
-      ~implicit_in:[!Var.catala_exe] ~outputs:[ml_file]
+    if item.extrnal then
+      Nj.build "copy"
+        ~implicit_in:[inc srcv]
+        ~inputs:[src -.- "ml"]
+        ~outputs:[ml_file]
+    else
+      Nj.build "catala-ocaml"
+        ~inputs:[inc srcv]
+        ~implicit_in:[!Var.catala_exe] ~outputs:[ml_file]
   in
   let ocamlopt =
     let implicit_out_exts = ["cmi"; "cmx"; "cmt"; "o"] in

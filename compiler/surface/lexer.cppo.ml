@@ -734,6 +734,7 @@ let rec lex_directive_args (lexbuf : lexbuf) : token =
       let i = String.index s '.' in
       AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
   | MR_MODULE_ALIAS -> MODULE_ALIAS
+  | MR_EXTERNAL -> MODULE_EXTERNAL
   | Plus (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
   | Plus hspace -> lex_directive_args lexbuf
   | '\n' | eof ->
@@ -857,12 +858,20 @@ let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
        let file = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
        Some (str, LINE_INCLUDE file)
      with Not_found -> Some (str, LINE_ANY))
+  | '>', Star hspace, MR_MODULE_DEF, Plus hspace,
+    uppercase, Star (Compl white_space), Plus hspace,
+    MR_EXTERNAL, Star hspace, ('\n' | eof)  ->
+    let str = Utf8.lexeme lexbuf in
+    (try
+       let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
+       Some (str, LINE_MODULE_DEF (mdl, true))
+     with Not_found -> Some (str, LINE_ANY))
   | '>', Star hspace, MR_MODULE_DEF, Plus hspace, uppercase, Star (Compl '\n'),
     ('\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
        let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
-       Some (str, LINE_MODULE_DEF mdl)
+       Some (str, LINE_MODULE_DEF (mdl, false))
      with Not_found -> Some (str, LINE_ANY))
   | '>', Star hspace, MR_MODULE_USE, Plus hspace, uppercase, Star (Compl '\n'),
     ('\n' | eof)  ->
