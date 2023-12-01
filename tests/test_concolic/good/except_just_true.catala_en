@@ -1,0 +1,34 @@
+## Article
+
+```catala
+declaration scope A:
+    input x content integer
+    output o content integer
+
+scope A:
+    definition o under condition x=42 consequence equals 0
+    exception definition o under condition x=1 consequence equals 1
+    exception definition o under condition x=2 consequence equals 2
+    exception definition o under condition x=3 consequence equals 3
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A (A_in: A_in {x_in: integer}): A {o: integer} =
+  let get x : integer = A_in.x_in in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨true ⊢ ⟨ ⟨x = 1 ⊢ 1⟩, ⟨x = 2 ⊢ 2⟩, ⟨x = 3 ⊢ 3⟩ | false ⊢ ∅ ⟩⟩
+      | x = 42 ⊢ 0 ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT]
+Constraints: true,(not (= x_in 3)),(not (= x_in 2)),(not (= x_in 1)),true,(= x_in 42),
+[RESULT] Computation successful! Results:
+[RESULT] o = 0
+```
+

@@ -1,0 +1,54 @@
+## Article
+
+```catala
+declaration scope A:
+    input x content integer
+    output o content integer
+
+scope A:
+    definition o under condition x=x consequence equals 0
+    exception definition o under condition x<=42 consequence equals 1
+    exception definition o under condition x=42 consequence equals 2
+    exception definition o under condition x>=42 consequence equals 3
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A (A_in: A_in {x_in: integer}): A {o: integer} =
+  let get x : integer = A_in.x_in in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨true ⊢ ⟨ ⟨x <= 42 ⊢ 1⟩, ⟨x = 42 ⊢ 2⟩, ⟨x >= 42 ⊢ 3⟩ | false ⊢ ∅ ⟩⟩
+      | x = x ⊢ 0 ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[ERROR]
+There is a conflict between multiple valid consequences for assigning the same variable.
+
+This consequence has a valid justification:
+┌─⯈ tests/test_concolic/bad/except_conflict.catala_en:10.69-10.70:
+└──┐
+10 │     exception definition o under condition x<=42 consequence equals 1
+   │                                                                     ‾
+   └─ Article
+
+This consequence has a valid justification:
+┌─⯈ tests/test_concolic/bad/except_conflict.catala_en:11.68-11.69:
+└──┐
+11 │     exception definition o under condition x=42 consequence equals 2
+   │                                                                    ‾
+   └─ Article
+
+This consequence has a valid justification:
+┌─⯈ tests/test_concolic/bad/except_conflict.catala_en:12.69-12.70:
+└──┐
+12 │     exception definition o under condition x>=42 consequence equals 3
+   │                                                                     ‾
+   └─ Article
+#return code 123#
+```
+

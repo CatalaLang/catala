@@ -1,0 +1,18 @@
+## Article
+
+```catala
+declaration scope A:
+  output x content integer
+
+scope A:
+  definition x under condition (6*7 = 42) and (false or (true and 1458 + 27 = 1485))
+  consequence equals 0
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] Constraints: true,
+[RESULT] Computation successful! Results:
+[RESULT] x = 0
+```
+

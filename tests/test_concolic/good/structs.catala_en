@@ -1,0 +1,51 @@
+## Test
+
+```catala
+declaration structure T:
+   data c content boolean
+   data d content integer
+
+declaration structure S:
+    data a content integer
+    data b content T
+
+declaration scope A:
+  input n content integer
+  input m content integer
+  input b content boolean
+  output x content integer
+  internal y content S
+
+scope A:
+  definition y equals S { -- a : n -- b : T { -- c : false -- d: 0}}
+  definition x under condition (y.a = m) or y.b.c consequence equals 0
+  definition x under condition (y.a = m) and not b consequence equals 1
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A
+  (A_in: A_in {n_in: integer; m_in: integer; b_in: bool})
+  : A {x: integer}
+  =
+  let get n : integer = A_in.n_in in
+  let get m : integer = A_in.m_in in
+  let get b : bool = A_in.b_in in
+  let set y : S {a: integer; b: T {c: bool; d: integer}} =
+    error_empty ⟨true ⊢ { S a = n; b = { T c = false; d = 0; }; }⟩
+  in
+  let set x : integer =
+    error_empty
+      ⟨true ⊢ ⟨ ⟨y.a = m || y.b.c ⊢ 0⟩, ⟨y.a = m && ~ b ⊢ 1⟩ | false ⊢ ∅ ⟩⟩
+  in
+  return { A x = x; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT]
+Constraints: true,true,(not (and (= n_in m_in) (not b_in))),(= n_in m_in),
+[RESULT] Computation successful! Results:
+[RESULT] x = 0
+```
+
