@@ -81,7 +81,7 @@ let load_module_interfaces options includes program =
             "Circular module dependency"
         | None ->
           let intf = Surface.Parser_driver.load_interface (Cli.FileName f) in
-          let modname = ModuleName.fresh use.Surface.Ast.mod_use_name in
+          let modname = ModuleName.fresh intf.intf_modname in
           let seen = File.Map.add f None seen in
           let seen, sub_use_map =
             aux

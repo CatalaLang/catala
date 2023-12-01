@@ -1013,7 +1013,7 @@ let form_context (surface, mod_uses) surface_modules : context =
      disambiguation. This is only done towards the root context, because
      submodules are only interfaces which don't need disambiguation ; and
      transitive dependencies shouldn't be visible here. *)
-  let sub_constructor_idmap, sub_field_idmap =
+  let constructor_idmap, field_idmap =
     Ident.Map.fold
       (fun _ m (cmap, fmap) ->
         let lctx = ModuleName.Map.find m ctxt.modules in
@@ -1029,22 +1029,14 @@ let form_context (surface, mod_uses) surface_modules : context =
         in
         cmap, fmap)
       mod_uses
-      (Ident.Map.empty, Ident.Map.empty)
+      (ctxt.local.constructor_idmap, ctxt.local.field_idmap)
   in
   {
     ctxt with
     local =
       {
         ctxt.local with
-        (* In the root context, don't disambiguate on submodules structs/enums
-           when there is a conflict *)
-        constructor_idmap =
-          Ident.Map.union
-            (fun _ base _ -> Some base)
-            ctxt.local.constructor_idmap sub_constructor_idmap;
-        field_idmap =
-          Ident.Map.union
-            (fun _ base _ -> Some base)
-            ctxt.local.field_idmap sub_field_idmap;
+        constructor_idmap;
+        field_idmap;
       };
   }

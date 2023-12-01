@@ -578,8 +578,13 @@ let gen_build_statements
       ~outputs:[inc srcv]
   in
   let module_deps =
-    Option.map
-      (fun m -> Nj.build "phony" ~inputs:[inc srcv] ~outputs:[modd m])
+    Option.map (fun m ->
+        Nj.build "phony"
+          ~inputs:[inc srcv;
+                   (!Var.builddir / src /../ m) ^ ".cmi";
+                   (!Var.builddir / src /../ m) ^ ".cmxs";
+                  ]
+          ~outputs:[modd m])
       item.module_def
   in
   let ml_file =
@@ -604,7 +609,7 @@ let gen_build_statements
     | Some m ->
       let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
       Nj.build "ocaml-module" ~inputs:[ml_file]
-        ~implicit_in:(List.map (modfile ".cmi") modules)
+        ~implicit_in:(List.map modd modules)
         ~outputs:[target "cmxs"]
         ~implicit_out:(List.map target implicit_out_exts)
         ~vars:
@@ -656,6 +661,7 @@ let gen_build_statements
                      ])
                    include_dirs
               @ List.map (fun m -> m ^ ".cmx") modules );
+            (* FIXME: This doesn't work for module used through file inclusion *)
           ]
   in
   let expose_module =
@@ -664,11 +670,7 @@ let gen_build_statements
       Some
         (Nj.build "phony"
            ~outputs:[m ^ "@module"]
-           ~inputs:
-             [
-               (!Var.builddir / src /../ m) ^ ".cmi";
-               (!Var.builddir / src /../ m) ^ ".cmxs";
-             ])
+           ~inputs:[modd m])
     | _ -> None
   in
   let interp_deps =
