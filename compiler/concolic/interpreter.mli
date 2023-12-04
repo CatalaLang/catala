@@ -21,7 +21,13 @@ open Catala_utils
 open Shared_ast
 
 type s_expr = Z3.Expr.expr
-type path_constraint = { expr : s_expr; pos : Pos.t }
+
+type path_constraint = {
+  expr : s_expr;
+  pos : Pos.t;
+  branch : bool;
+  complete : bool;
+}
 
 type _conc_info = {
   symb_expr : s_expr option;
