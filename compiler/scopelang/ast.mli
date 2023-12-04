@@ -36,9 +36,15 @@ type 'm rule =
   | Assertion of 'm expr
   | Call of ScopeName.t * SubScopeName.t * 'm mark
 
+type scope_var_ty = {
+  svar_in_ty : typ;
+  svar_out_ty : typ;
+  svar_io : Desugared.Ast.io;
+}
+
 type 'm scope_decl = {
   scope_decl_name : ScopeName.t;
-  scope_sig : (typ * Desugared.Ast.io) ScopeVar.Map.t;
+  scope_sig : scope_var_ty ScopeVar.Map.t;
   scope_decl_rules : 'm rule list;
   scope_options : Desugared.Ast.catala_option Mark.pos list;
 }

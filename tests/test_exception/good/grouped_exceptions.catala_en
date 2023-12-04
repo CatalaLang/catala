@@ -55,6 +55,6 @@ $ catala Interpret -s Benefit
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Benefit --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] benefit = ESome $2,000.00
-[RESULT] person = ESome Person { -- age: ESome 26 -- disabled: ESome true }
+[RESULT] benefit = $2,000.00
+[RESULT] person = Person { -- age: 26 -- disabled: true }
 ```

@@ -38,5 +38,5 @@ $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
   │                       ‾‾‾
   └─ Article
 [RESULT] Computation successful! Results:
-[RESULT] y = ESome 1
+[RESULT] y = 1
 ```

@@ -42,10 +42,10 @@ $ catala Interpret -s S
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S2 --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] b = ESome B ()
+[RESULT] b = B ()
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] a = ESome A ()
+[RESULT] a = A ()
 ```

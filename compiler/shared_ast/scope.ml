@@ -166,6 +166,13 @@ let build_typ_from_sig
   let result_typ = Mark.add pos (TStruct scope_return_struct_name) in
   Mark.add pos (TArrow ([input_typ], result_typ))
 
+let input_type ty io =
+  match io, ty with
+  | (Runtime.Reentrant, iopos), (TArrow (args, ret), tpos) ->
+    TArrow (args, (TDefault ret, iopos)), tpos
+  | (Runtime.Reentrant, iopos), (ty, tpos) -> TDefault (ty, tpos), iopos
+  | _, ty -> ty
+
 type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
 
 let to_expr (ctx : decl_ctx) (body : 'e scope_body) (mark_scope : 'm) : 'e boxed

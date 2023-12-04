@@ -80,8 +80,13 @@ val eassert :
 val eop : 'a operator -> typ list -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 val edefault :
-  ('a, 'm) boxed_gexpr list ->
-  ('a, 'm) boxed_gexpr ->
+  excepts:('a, 'm) boxed_gexpr list ->
+  just:('a, 'm) boxed_gexpr ->
+  cons:('a, 'm) boxed_gexpr ->
+  'm mark ->
+  ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
+
+val epuredefault :
   ('a, 'm) boxed_gexpr ->
   'm mark ->
   ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
@@ -192,6 +197,12 @@ val fold_marks :
 val maybe_ty : ?typ:naked_typ -> 'm mark -> typ
 (** Returns the corresponding type on a typed expr, or [typ] (defaulting to
     [TAny]) at the current position on an untyped one *)
+
+val untyped : untyped mark
+(** Type witness for untyped marks *)
+
+val typed : typed mark
+(** Type witness for untyped marks *)
 
 (** {2 Predefined types} *)
 
@@ -311,6 +322,12 @@ val make_app :
   Pos.t ->
   ('a any, 'm) boxed_gexpr
 
+val make_puredefault :
+  ('a, 'm) boxed_gexpr -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
+
+val make_erroronempty :
+  ('a, 'm) boxed_gexpr -> ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
+
 val empty_thunked_term :
   'm mark -> (< defaultTerms : yes ; .. >, 'm) boxed_gexpr
 
@@ -332,25 +349,6 @@ val make_multiple_let_in :
   ('a, 'm) boxed_gexpr ->
   Pos.t ->
   ('a any, 'm) boxed_gexpr
-
-val make_default :
-  ('a, 'm) boxed_gexpr list ->
-  ('a, 'm) boxed_gexpr ->
-  ('a, 'm) boxed_gexpr ->
-  'm mark ->
-  ((< polymorphic : yes ; defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
-(** [make_default ?pos exceptions just cons] builds a term semantically
-    equivalent to [<exceptions | just :- cons>] (the [EDefault] constructor)
-    while avoiding redundant nested constructions. The position is extracted
-    from [just] by default.
-
-    Note that some simplifications take place here, even though all of them
-    return an [EDefault] term:
-
-    - [<ex | true :- def>], when [def] is a default term [<j :- c>] without
-      exceptions, is collapsed into [<ex | def>]
-    - [<ex | false :- _>], when [ex] is a single exception of the form
-      [EDefault], is rewritten as [ex] *)
 
 val make_tuple :
   ('a any, 'm) boxed_gexpr list -> 'm mark -> ('a, 'm) boxed_gexpr

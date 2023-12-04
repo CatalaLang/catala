@@ -47,15 +47,15 @@ $ catala Interpret -s A
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] literate_parsing_is_ok = ESome true
+[RESULT] literate_parsing_is_ok = true
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] literate_parsing_is_ok = ESome true
+[RESULT] literate_parsing_is_ok = true
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] literate_parsing_is_ok = ESome true
+[RESULT] literate_parsing_is_ok = true
 ```

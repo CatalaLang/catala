@@ -12,7 +12,7 @@ bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "dune" {>= "2.8"}
   "dune-build-info" {>= "2.8"}
-  "ocaml" {>= "4.11.0"}
+  "ocaml" {>= "4.14.0"}
   "cmdliner" {>= "1.1.0"}
   "re" {>= "1.9.0"}
   "ocolor" {>= "1.3.0"}

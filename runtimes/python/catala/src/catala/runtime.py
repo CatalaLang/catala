@@ -431,7 +431,7 @@ def money_of_decimal(d: Decimal) -> Money:
     """
     Warning: rounds to the nearest cent
     """
-    return Money(Integer(mpz(d.value)))
+    return Money(Integer(mpz(d.value) * mpz(100)))
 
 
 # --------
@@ -618,7 +618,7 @@ def handle_default(
 def handle_default_opt(
     pos: SourcePosition,
     exceptions: List[Optional[Any]],
-    just: Callable[[Unit], Optional[bool]],
+    just: Callable[[Unit], bool],
     cons: Callable[[Unit], Optional[Alpha]]
 ) -> Optional[Alpha]:
     acc: Optional[Alpha] = None
@@ -631,13 +631,10 @@ def handle_default_opt(
             raise ConflictError(pos)
     if acc is None:
         b = just(Unit())
-        if b is None:
-            return None
+        if b:
+            return cons(Unit())
         else:
-            if b:
-                return cons(Unit())
-            else:
-                return None
+            return None
     else:
         return acc
 

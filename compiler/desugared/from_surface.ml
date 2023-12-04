@@ -446,6 +446,7 @@ let rec translate_expr
             | Some (ScopeVar v) -> v
             | Some (SubScope _) | None ->
               Message.raise_multispanned_error
+                ~suggestion:(Ident.Map.keys scope_def.var_idmap)
                 [
                   None, Mark.get fld_id;
                   ( Some

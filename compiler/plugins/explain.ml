@@ -389,6 +389,7 @@ let rec lazy_eval : decl_ctx -> Env.t -> laziness_level -> expr -> expr * Env.t
         ((None, Expr.mark_pos m)
         :: List.map (fun (e, _) -> None, Expr.pos e) excs)
         "Conflicting exceptions")
+  | EPureDefault e, _ -> lazy_eval ctx env llevel e
   | EIfThenElse { cond; etrue; efalse }, _ -> (
     match eval_to_value env cond with
     | (ELit (LBool true), _), _ ->
@@ -1388,7 +1389,7 @@ let options =
 let run includes optimize ex_scope explain_options global_options =
   let prg, ctx, _ =
     Driver.Passes.dcalc global_options ~includes ~optimize
-      ~check_invariants:false
+      ~check_invariants:false ~typed:Expr.typed
   in
   Interpreter.load_runtime_modules prg;
   let scope = Driver.Commands.get_scope_uid ctx ex_scope in

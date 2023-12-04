@@ -18,27 +18,27 @@ help : ../Makefile.common.mk
 # Targets
 ##########################################
 
-#> SCOPE=<ScopeName> <target_file>.run	: Runs the interpeter for the scope of the file
+#> SCOPE=<ScopeName> <target_file>.run		: Runs the interpeter for the scope of the file
 %.run: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CATALA_OPTS) $(CURR_DIR)$<
 	$(CATALA) Interpret $(CATALA_OPTS) \
 		-s $(SCOPE) \
 		$(CURR_DIR)$<
 
-#> <target_file>.ml			: Compiles the file to OCaml
+#> <target_file>.ml				: Compiles the file to OCaml
 %.ml: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CATALA_OPTS) $(CURR_DIR)$<
 	$(CATALA) OCaml $(CATALA_OPTS) \
 		$(CURR_DIR)$<
 
-#> <target_file>_api_web.ml	 : Compiles the file to OCaml + generates the API web
+#> <target_file>_api_web.ml			: Compiles the file to OCaml + generates the API web
 %_api_web.ml: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CATALA_OPTS) $(CURR_DIR)$<
 	$(CATALA) api_web $(CATALA_OPTS) \
 		--plugin-dir=$(PLUGIN_DIR) \
 		$(CURR_DIR)$<
 
-#> SCOPE=<ScopeName> <target_file>_api_web.ml	 : Generates the JSON schema
+#> SCOPE=<ScopeName> <target_file>_api_web.ml	: Generates the JSON schema
 %_schema.json: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CATALA_OPTS) $(CURR_DIR)$<
 	$(CATALA) json_schema $(CATALA_OPTS) \
@@ -46,24 +46,24 @@ help : ../Makefile.common.mk
 		-s $(SCOPE) \
 		$(CURR_DIR)$<
 
-#> <target_file>.py			: Compiles the file to Python
+#> <target_file>.py				: Compiles the file to Python
 %.py: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CATALA_OPTS) $(CURR_DIR)$<
 	$(CATALA) Python $(CATALA_OPTS) \
 		$(CURR_DIR)$<
 
-#> <target_file>.tex			: Weaves the file to LaTeX
+#> <target_file>.tex				: Weaves the file to LaTeX
 %.tex: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CATALA_OPTS) $(CURR_DIR)$<
 	$(CATALA) LaTeX $(CATALA_OPTS) \
 		--wrap \
 		$(CURR_DIR)$<
 
-#> <target_file>.pdf			: Weaves the file to PDF (via XeLaTeX)
+#> <target_file>.pdf				: Weaves the file to PDF (via XeLaTeX)
 %.pdf: %.tex
 	cd $(@D) && $(LATEXMK) -g -xelatex -halt-on-error -shell-escape $(%F)
 
-#> <target_file>.html			: Weaves the file to HTML
+#> <target_file>.html				: Weaves the file to HTML
 %.html: %.catala_$(CATALA_LANG)
 	@$(CATALA) Makefile $(CATALA_OPTS) $(CURR_DIR)$<
 	$(CATALA) HTML $(CATALA_OPTS) \
@@ -81,7 +81,7 @@ help : ../Makefile.common.mk
 # Misceallenous
 ##########################################
 
-#> clean				: Removes intermediate files
+#> clean						: Removes intermediate files
 clean:
 	$(LATEXMK) -f -C $(SRC:.catala_$(CATALA_LANG)=.tex)
 	rm -rf $(SRC:.catala_$(CATALA_LANG)=.tex) \

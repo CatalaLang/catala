@@ -140,13 +140,13 @@ $ catala Interpret -s Exemple2 --disable_warnings
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome 345,73 €
+[RESULT] montant = 345,73 €
 ```
 
 ```catala-test-inline
 $ catala Interpret_Lcalc -s Exemple2 --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome 352,77 €
+[RESULT] montant = 352,77 €
 ```
 
 ```catala-test-inline
@@ -164,11 +164,11 @@ $ catala Interpret -s Exemple4 --disable_warnings
 ```catala-test-inline
 $ catala Interpret_lcalc -s Exemple3 --disable_warnings --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome 339,70 €
+[RESULT] montant = 339,70 €
 ```
 
 ```catala-test-inline
 $ catala Interpret_lcalc -s Exemple4 --disable_warnings --avoid_exceptions
 [RESULT] Computation successful! Results:
-[RESULT] montant = ESome 230,63 €
+[RESULT] montant = 230,63 €
 ```

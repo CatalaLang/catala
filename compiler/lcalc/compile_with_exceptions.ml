@@ -19,12 +19,6 @@ open Shared_ast
 module D = Dcalc.Ast
 module A = Ast
 
-let thunk_expr (type m) (e : m A.expr boxed) : m A.expr boxed =
-  let dummy_var = Var.make "_" in
-  let pos = Expr.pos e in
-  let arg_t = Mark.add pos (TLit TUnit) in
-  Expr.make_abs [| dummy_var |] e [arg_t] pos
-
 let translate_var : 'm D.expr Var.t -> 'm A.expr Var.t = Var.translate
 
 let rec translate_default
@@ -33,7 +27,9 @@ let rec translate_default
     (cons : 'm D.expr)
     (mark_default : 'm mark) : 'm A.expr boxed =
   let exceptions =
-    List.map (fun except -> thunk_expr (translate_expr except)) exceptions
+    List.map
+      (fun except -> Expr.thunk_term (translate_expr except) (Mark.get except))
+      exceptions
   in
   let pos = Expr.mark_pos mark_default in
   let exceptions =
@@ -43,8 +39,8 @@ let rec translate_default
          (Expr.no_mark mark_default))
       [
         Expr.earray exceptions mark_default;
-        thunk_expr (translate_expr just);
-        thunk_expr (translate_expr cons);
+        Expr.thunk_term (translate_expr just) (Mark.get just);
+        Expr.thunk_term (translate_expr cons) (Mark.get cons);
       ]
       pos
   in
@@ -60,6 +56,7 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
       m
   | EDefault { excepts; just; cons } ->
     translate_default excepts just cons (Mark.get e)
+  | EPureDefault e -> translate_expr e
   | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
   | ( ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _ | EIfThenElse _
     | ETuple _ | ETupleAccess _ | EInj _ | EAssert _ | EStruct _

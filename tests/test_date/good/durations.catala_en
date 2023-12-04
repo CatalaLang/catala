@@ -37,11 +37,11 @@ $ catala Interpret -s A
 ```catala-test-inline
 $ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] m = ESome [11874 days]
-[RESULT] m2 = ESome [6 months]
-[RESULT] x = ESome 2019-01-01
-[RESULT] y = ESome 2002-09-30
-[RESULT] z = ESome true
-[RESULT] z2 = ESome true
-[RESULT] z3 = ESome [5937 days]
+[RESULT] m = [11874 days]
+[RESULT] m2 = [6 months]
+[RESULT] x = 2019-01-01
+[RESULT] y = 2002-09-30
+[RESULT] z = true
+[RESULT] z2 = true
+[RESULT] z3 = [5937 days]
 ```

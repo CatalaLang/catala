@@ -1,4 +1,4 @@
 CATALA_LANG=fr
-SRC=allocations_logement.catala_fr
+SRC=aides_logement.catala_fr
 
 include ../Makefile.common.mk

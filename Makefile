@@ -345,7 +345,7 @@ WEBSITE_ASSETS = grammar.html catala.html clerk.html
 $(addprefix _build/default/,$(WEBSITE_ASSETS)):
 	dune build $@
 
-website-assets-base: build_french_law_library_web_api doc literate_examples build
+website-assets-base: build_french_law_library_web_api literate_examples build
 	dune build $(WEBSITE_ASSETS)
 
 #> website-assets				: Builds all the assets necessary for the Catala website
@@ -375,6 +375,7 @@ all: \
 clean:
 	dune clean
 	rm -rf artifacts
+	$(MAKE) -C $(AIDES_LOGEMENT_DIR) clean
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
 	$(MAKE) -C $(US_TAX_CODE_DIR) clean
 	$(MAKE) -C $(TUTORIEL_FR_DIR) clean

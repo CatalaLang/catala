@@ -164,6 +164,10 @@ let rec typ_gen
   | TArray t1 ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" (typ ~colors)
       t1
+  | TDefault t1 ->
+    punctuation fmt "⟨";
+    typ ~colors fmt t1;
+    punctuation fmt "⟩"
   | TAny -> base_type fmt "any"
   | TClosureEnv -> base_type fmt "closure_env"
 
@@ -424,6 +428,7 @@ module Precedence = struct
     | EDStructAccess _ | EStructAccess _ -> Dot
     | EAssert _ -> App
     | EDefault _ -> Contained
+    | EPureDefault _ -> Contained
     | EEmptyError -> Contained
     | EErrorOnEmpty _ -> App
     | ERaise _ -> App
@@ -511,7 +516,7 @@ module ExprGen (C : EXPR_PARAM) = struct
           (pp_color_string (List.hd colors))
           ")"
       | EArray es ->
-        Format.fprintf fmt "@[<hov 2>%a %a@] %a" punctuation "["
+        Format.fprintf fmt "@[<hv 2>%a@,@[<hov>%a@]@;<0 -2>%a@]" punctuation "["
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
              (fun fmt e -> lhs exprc fmt e))
@@ -641,6 +646,12 @@ module ExprGen (C : EXPR_PARAM) = struct
             cons
             (default_punct (List.hd colors))
             "⟩"
+      | EPureDefault e ->
+        Format.fprintf fmt "%a%a%a"
+          (default_punct (List.hd colors))
+          "⟨" expr e
+          (default_punct (List.hd colors))
+          "⟩"
       | EEmptyError -> lit_style fmt "∅"
       | EErrorOnEmpty e' ->
         Format.fprintf fmt "@[<hov 2>%a@ %a@]" op_style "error_empty"
@@ -678,8 +689,8 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
           (rhs exprc) e
       | EMatch { e; cases; _ } ->
-        Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@ %a@]@ %a@]" keyword "match"
-          (lhs exprc) e keyword "with"
+        Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]" keyword
+          "match" (lhs exprc) e keyword "with"
           (EnumConstructor.Map.format_bindings
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt pp_cons_name case_expr ->
@@ -856,12 +867,11 @@ let struct_
     fmt
     (pp_name : Format.formatter -> unit)
     (c : typ StructField.Map.t) =
-  Format.fprintf fmt "@[<hv 0>@[<hv 2>@[<h>%a %t %a@;%a@]@;%a@]%a@]@;" keyword
-    "type" pp_name punctuation "=" punctuation "{"
-    (StructField.Map.format_bindings
-       ~pp_sep:(fun _ _ -> ())
+  Format.fprintf fmt "@[<hv 2>%a %t %a %a@ %a@;<1 -2>%a@]@," keyword "type"
+    pp_name punctuation "=" punctuation "{"
+    (StructField.Map.format_bindings ~pp_sep:Format.pp_print_space
        (fun fmt pp_n ty ->
-         Format.fprintf fmt "@[<h 2>%t%a %a%a@]@ " pp_n keyword ":"
+         Format.fprintf fmt "@[<h 2>%t%a %a%a@]" pp_n keyword ":"
            (if debug then typ_debug else typ decl_ctx)
            ty punctuation ";"))
     c punctuation "}"
@@ -884,10 +894,21 @@ let scope
   scope_body ~debug ctx fmt (n, s);
   Format.pp_close_box fmt ()
 
-let code_item ?(debug = false) decl_ctx fmt c =
+let code_item ?(debug = false) ?name decl_ctx fmt c =
   match c with
-  | ScopeDef (n, b) -> scope ~debug decl_ctx fmt (n, b)
+  | ScopeDef (n, b) ->
+    let n =
+      match debug, name with
+      | true, Some n -> ScopeName.fresh [] (n, Pos.no_pos)
+      | _ -> n
+    in
+    scope ~debug decl_ctx fmt (n, b)
   | Topdef (n, ty, e) ->
+    let n =
+      match debug, name with
+      | true, Some n -> TopdefName.fresh [] (n, Pos.no_pos)
+      | _ -> n
+    in
     Format.fprintf fmt "@[<v 2>@[<hov 2>%a@ %a@ %a@ %a@ %a@]@ %a@]" keyword
       "let topval" TopdefName.format n op_style ":" (typ decl_ctx) ty op_style
       "=" (expr ~debug ()) e
@@ -896,9 +917,9 @@ let rec code_item_list ?(debug = false) decl_ctx fmt c =
   match c with
   | Nil -> ()
   | Cons (c, b) ->
-    let _x, cl = Bindlib.unbind b in
+    let x, cl = Bindlib.unbind b in
     Format.fprintf fmt "%a @.%a"
-      (code_item ~debug decl_ctx)
+      (code_item ~debug ~name:(Format.asprintf "%a" var_debug x) decl_ctx)
       c
       (code_item_list ~debug decl_ctx)
       cl
@@ -1071,8 +1092,9 @@ module UserFacing = struct
     | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
     | EApp _ | EOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
-    | EStructAccess _ | EAssert _ | EDefault _ | EErrorOnEmpty _ | ERaise _
-    | ECatch _ | ELocation _ | EScopeCall _ | EDStructAccess _ | ECustom _ ->
+    | EStructAccess _ | EAssert _ | EDefault _ | EPureDefault _
+    | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _ | EScopeCall _
+    | EDStructAccess _ | ECustom _ ->
       fallback ppf e
 
   (* This function is already in module [Expr], but [Expr] depends on this

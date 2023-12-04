@@ -15,14 +15,18 @@ scope TestBool:
 $ catala Dcalc 
 let TestBool : TestBool_in → TestBool =
   λ (TestBool_in: TestBool_in) →
-  let foo : unit → bool = TestBool_in.foo_in in
-  let bar : unit → integer = TestBool_in.bar_in in
-  let bar1 : integer = error_empty ⟨ bar () | true ⊢ ⟨true ⊢ 1⟩ ⟩ in
+  let foo : unit → ⟨bool⟩ = TestBool_in.foo_in in
+  let bar : unit → ⟨integer⟩ = TestBool_in.bar_in in
+  let bar1 : integer =
+    error_empty
+      ⟨ bar () | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+  in
   let foo1 : bool =
     error_empty
       ⟨ foo ()
       | true
-        ⊢ ⟨true ⊢ ⟨ ⟨bar1 >= 0 ⊢ true⟩, ⟨bar1 < 0 ⊢ false⟩ | false ⊢ ∅ ⟩⟩ ⟩
+        ⊢ ⟨error_empty
+             ⟨ ⟨bar1 >= 0 ⊢ ⟨true⟩⟩, ⟨bar1 < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
   in
   { TestBool foo = foo1; bar = bar1; }
 in
@@ -43,14 +47,16 @@ struct TestBool = {
   bar: integer
 }
 
-let scope TestBool (foo: bool|context|output) (bar: integer|context|output) =
-  let bar : integer = reentrant or by default ⟨true ⊢ 1⟩;
+let scope TestBool (foo: ⟨bool⟩|context|output) (bar: ⟨integer⟩|context|
+  output) =
+  let bar : integer = reentrant or by default
+    error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
   let foo : bool = reentrant or by default
-    ⟨true ⊢ ⟨ ⟨bar >= 0 ⊢ true⟩, ⟨bar < 0 ⊢ false⟩ | false ⊢ ∅ ⟩⟩
+    error_empty ⟨ ⟨bar >= 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩
 ```
 ```catala-test-inline
 $ catala Interpret_Lcalc -s TestBool --avoid_exceptions --optimize
 [RESULT] Computation successful! Results:
-[RESULT] bar = ESome 1
-[RESULT] foo = ESome true
+[RESULT] bar = 1
+[RESULT] foo = true
 ```
