@@ -32,9 +32,11 @@ let scope A
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT]
-Constraints: (let ((a!1 (not (<= (* (- 1) t_in) (+ (* x_in y_in) z_in)))))
+Constraints:
+(let ((a!1 (not (<= (* (- 1) t_in) (+ (* x_in y_in) z_in)))))
 (let ((a!2 (not (and a!1 (not (<= x_in y_in))))))
-  (or a!2 (not (= (<= z_in t_in) (>= x_in z_in)))))),
+  (or a!2 (not (= (<= z_in t_in) (>= x_in z_in))))))
+
 [RESULT] Computation successful! Results:
 [RESULT] o = 0
 ```

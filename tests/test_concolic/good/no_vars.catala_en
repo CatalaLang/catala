@@ -11,7 +11,9 @@ scope A:
 
 ```catala-test-inline
 $ catala Concolic -s A
-[RESULT] Constraints: true,
+[RESULT] Constraints:
+true
+
 [RESULT] Computation successful! Results:
 [RESULT] x = 0
 ```

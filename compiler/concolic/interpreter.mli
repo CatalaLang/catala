@@ -21,7 +21,13 @@ open Catala_utils
 open Shared_ast
 
 type s_expr = Z3.Expr.expr
-type _conc_info = { symb_expr : s_expr option; constraints : s_expr list }
+type path_constraint = { expr : s_expr; pos : Pos.t }
+
+type _conc_info = {
+  symb_expr : s_expr option;
+  constraints : path_constraint list;
+}
+
 type conc_info = _conc_info custom
 type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
 

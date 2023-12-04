@@ -21,7 +21,9 @@ let scope A (A_in: A_in {b_in: bool; x_in: integer}): A {o: integer} =
 
 ```catala-test-inline
 $ catala Concolic -s A
-[RESULT] Constraints: b_in,
+[RESULT] Constraints:
+b_in
+
 [RESULT] Computation successful! Results:
 [RESULT] o = 42
 ```

@@ -44,7 +44,12 @@ let scope A
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT]
-Constraints: true,true,(not (and (= n_in m_in) (not b_in))),(= n_in m_in),
+Constraints:
+true
+true
+(not (and (= n_in m_in) (not b_in)))
+(= n_in m_in)
+
 [RESULT] Computation successful! Results:
 [RESULT] x = 0
 ```
