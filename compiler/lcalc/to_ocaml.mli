@@ -39,6 +39,7 @@ val format_var : Format.formatter -> 'm Var.t -> unit
 val format_program :
   Format.formatter ->
   ?exec_scope:ScopeName.t ->
+  ?exec_args:bool ->
   'm Ast.program ->
   Scopelang.Dependency.TVertex.t list ->
   unit
@@ -46,4 +47,6 @@ val format_program :
     may be set:
 
     - [exec_scope] will mark the named scope as "main" and execute it at the end
-      of the program. It must have no inputs. *)
+      of the program. It must have no inputs.
+    - [exec_args] will add support for executing scopes passed on Argv (default
+      true if [exec_scope] is [None] *)

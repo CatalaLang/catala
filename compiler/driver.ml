@@ -781,7 +781,8 @@ module Commands = struct
       optimize
       check_invariants
       avoid_exceptions
-      closure_conversion =
+      closure_conversion
+      ex_scope_opt =
     let prg, type_ordering =
       Passes.lcalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
@@ -794,7 +795,8 @@ module Commands = struct
     Message.emit_debug "Compiling program into OCaml...";
     Message.emit_debug "Writing to %s..."
       (Option.value ~default:"stdout" output_file);
-    Lcalc.To_ocaml.format_program fmt prg type_ordering
+    let exec_scope = Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt in
+    Lcalc.To_ocaml.format_program fmt prg ?exec_scope type_ordering
 
   let ocaml_cmd =
     Cmd.v
@@ -808,7 +810,8 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
         $ Cli.Flags.avoid_exceptions
-        $ Cli.Flags.closure_conversion)
+        $ Cli.Flags.closure_conversion
+        $ Cli.Flags.ex_scope_opt)
 
   let scalc
       options

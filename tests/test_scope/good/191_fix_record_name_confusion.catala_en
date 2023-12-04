@@ -72,4 +72,30 @@ let scope_b (scope_b_in: ScopeB_in.t) : ScopeB.t =
         start_line=8; start_column=10; end_line=8; end_column=11;
         law_headings=["Article"]})) in
   {ScopeB.a = a_}
+Generating entry points for scopes: ScopeA ScopeB
+
+let entry_scopes = [
+  "ScopeA";
+  "ScopeB";
+]
+
+let commands =
+  List.map (fun c ->
+      if List.mem c entry_scopes then c else (
+        print_endline "Specify scopes from the following list (or no argument for running them all):";
+        List.iter (fun n -> print_endline ("  - " ^ n)) entry_scopes;
+        exit 1
+      ))
+    (List.tl (Array.to_list Sys.argv))
+
+let commands = if commands = [] then entry_scopes else commands
+
+let () = if List.mem "ScopeA" commands then (
+  ignore (scope_a ());
+  print_endline "Scope ScopeA executed successfully."
+)
+let () = if List.mem "ScopeB" commands then (
+  ignore (scope_b ());
+  print_endline "Scope ScopeB executed successfully."
+)
 ```

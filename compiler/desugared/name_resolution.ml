@@ -1031,12 +1031,4 @@ let form_context (surface, mod_uses) surface_modules : context =
       mod_uses
       (ctxt.local.constructor_idmap, ctxt.local.field_idmap)
   in
-  {
-    ctxt with
-    local =
-      {
-        ctxt.local with
-        constructor_idmap;
-        field_idmap;
-      };
-  }
+  { ctxt with local = { ctxt.local with constructor_idmap; field_idmap } }

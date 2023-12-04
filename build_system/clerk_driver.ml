@@ -578,12 +578,15 @@ let gen_build_statements
       ~outputs:[inc srcv]
   in
   let module_deps =
-    Option.map (fun m ->
+    Option.map
+      (fun m ->
         Nj.build "phony"
-          ~inputs:[inc srcv;
-                   (!Var.builddir / src /../ m) ^ ".cmi";
-                   (!Var.builddir / src /../ m) ^ ".cmxs";
-                  ]
+          ~inputs:
+            [
+              inc srcv;
+              (!Var.builddir / src /../ m) ^ ".cmi";
+              (!Var.builddir / src /../ m) ^ ".cmxs";
+            ]
           ~outputs:[modd m])
       item.module_def
   in
@@ -661,16 +664,14 @@ let gen_build_statements
                      ])
                    include_dirs
               @ List.map (fun m -> m ^ ".cmx") modules );
-            (* FIXME: This doesn't work for module used through file inclusion *)
+            (* FIXME: This doesn't work for module used through file
+               inclusion *)
           ]
   in
   let expose_module =
     match item.module_def with
     | Some m when List.mem (dirname src) include_dirs ->
-      Some
-        (Nj.build "phony"
-           ~outputs:[m ^ "@module"]
-           ~inputs:[modd m])
+      Some (Nj.build "phony" ~outputs:[m ^ "@module"] ~inputs:[modd m])
     | _ -> None
   in
   let interp_deps =
