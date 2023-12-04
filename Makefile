@@ -375,6 +375,7 @@ all: \
 clean:
 	dune clean
 	rm -rf artifacts
+	$(MAKE) -C $(AIDES_LOGEMENT_DIR) clean
 	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
 	$(MAKE) -C $(US_TAX_CODE_DIR) clean
 	$(MAKE) -C $(TUTORIEL_FR_DIR) clean
