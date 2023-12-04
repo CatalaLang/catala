@@ -35,6 +35,7 @@ type path_constraint = {
 type _conc_info = {
   symb_expr : s_expr option;
   constraints : path_constraint list;
+  ty : typ option;
 }
 
 type conc_info = _conc_info custom
@@ -62,13 +63,13 @@ let set_conc_info
     (constraints : path_constraint list)
     (mk : m mark) : conc_info mark =
   let symb_expr = Option.map (fun z -> Z3.Expr.simplify z None) symb_expr in
-  let custom = { symb_expr; constraints } in
+  let custom = { symb_expr; constraints; ty = None } in
   match mk with
   | Untyped { pos } -> Custom { pos; custom }
-  | Typed { pos; _ } ->
+  | Typed { pos; ty } ->
+    let custom = { custom with ty = Some ty } in
     Custom { pos; custom }
-    (* TODO CONC REU should we keep the type information? maybe for the symb
-       exprs *)
+    (* NOTE CONC keep type information *)
   | Custom m -> Custom { m with custom }
 
 (** Maby replace constraints, and safely replace the symbolic expression from
@@ -78,15 +79,15 @@ let add_conc_info_m
     (symb_expr : s_expr option)
     ?(constraints : path_constraint list option)
     (x : 'a) : ('a, conc_info) marked =
-  let (Custom { pos; custom = { symb_expr = s; constraints = c } }) =
-    former_mark
-  in
+  let (Custom { pos; custom }) = former_mark in
   let symb_expr = Option.map (fun z -> Z3.Expr.simplify z None) symb_expr in
-  let symb_expr = Option.fold ~none:symb_expr ~some:Option.some s in
+  let symb_expr =
+    Option.fold ~none:symb_expr ~some:Option.some custom.symb_expr
+  in
   (* only update symb_expr if it does not exist already *)
-  let constraints = Option.value ~default:c constraints in
+  let constraints = Option.value ~default:custom.constraints constraints in
   (* only change constraints if new ones are provided *)
-  Mark.add (Custom { pos; custom = { symb_expr; constraints } }) x
+  Mark.add (Custom { pos; custom = { custom with symb_expr; constraints } }) x
 
 (** Maybe replace the constraints, and safely replace the symbolic expression
     from former expression *)
@@ -166,8 +167,9 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   match t with
   | TLit t -> ctx, translate_typ_lit ctx t
   | TStruct name ->
-    find_or_create_struct ctx
-      name (* TODO CONC REU are declarations sorted in topological order? *)
+    find_or_create_struct ctx name
+    (* DONE CONC REU are declarations sorted in topological order? *)
+    (* TODO use [type_ordering] from Driver to make sure *)
   | TTuple _ -> failwith "TTuple not implemented"
   | TEnum _ -> failwith "TEnum not implemented"
   | TOption _ -> failwith "TOption not implemented"
@@ -247,9 +249,9 @@ let symb_of_lit ctx (l : lit) : s_expr =
   match l with
   | LBool b -> Z3.Boolean.mk_val ctx.ctx_z3 b
   | LInt n ->
-    Z3.Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 (Runtime.integer_to_int n)
-    (* TODO CONC REU this can technically overflow even though neither [Z] nor
-       Z3 integers do, but does the case happen in real use? *)
+    Z3.Arithmetic.Integer.mk_numeral_s ctx.ctx_z3 (Runtime.integer_to_string n)
+    (* NOTE CONC I use string instead of int to translate without overflows, as
+       both [Runtime.integer] and Z3 integers are big *)
   | LRat _ -> failwith "LRat not implemented"
   | LMoney _ -> failwith "LMoney not implemented"
   | LUnit -> failwith "LUnit not implemented"
@@ -312,7 +314,8 @@ let replace_EVar_mark
         (Option.fold ~none:"None" ~some:Z3.Expr.to_string symb_expr)
         Expr.format e;
       add_conc_info_e symb_expr ~constraints:[] e
-    (* TODO CONC REU note that we keep the position from the var *)
+    (* NOTE CONC we keep the position from the var, as in concrete
+       interpreter *)
     | None -> e)
   | _ -> e
 
@@ -380,9 +383,8 @@ let rec evaluate_operator
   | Length, _ -> failwith "EOp Length not implemented"
   | Log _, _ -> failwith "Eop Log not implemented"
   | (FromClosureEnv | ToClosureEnv), _ ->
-    failwith "Eop From/ToClosureEnv not implemented"
-  (* TODO CONC REU will they ever be? *)
-  (* | (ToClosureEnv | FromClosureEnv), _ -> err () *)
+    (* NOTE CONC used for typing only *)
+    failwith "Eop From/ToClosureEnv should not appear in concolic evaluation"
   | Eq, [e1; e2] ->
     let e1' = Mark.remove e1 in
     let e2' = Mark.remove e2 in
@@ -605,17 +607,17 @@ let rec evaluate_expr :
     @@ fun e1 ->
     match Mark.remove e1 with
     | EAbs { binder; _ } ->
-      (* DONE CONC should constraints from the args be added, or should we trust
-         the call to return them? We could take both for safety but there will
-         be duplication... I think we should trust the recursive call, and we'll
-         see if it's better not to =>> actually it's better not to : it can lead
-         to duplication, and the subexpression does not need the constraints
-         anyway =>> see the big concatenation below *)
-      (* DONE CONC REU How to pass down the symbolic expressions and the
-         constraints anyway? The arguments as passed to [Bindlib.msubst] are
-         unmarked. Maybe a way is to change the corresponding marks in the
-         receiving expression in which substitution happens. 1/ change marks 2/
-         substitute concrete expressions *)
+      (* TODO make this discussion into a doc? should constraints from the args
+         be added, or should we trust the call to return them? We could take
+         both for safety but there will be duplication... I think we should
+         trust the recursive call, and we'll see if it's better not to =>>
+         actually it's better not to : it can lead to duplication, and the
+         subexpression does not need the constraints anyway =>> see the big
+         concatenation below *)
+      (* The arguments passed to [Bindlib.msubst] are unmarked. To circumvent
+         this, I change the corresponding marks in the receiving expression, ie
+         the expression in which substitution happens: 1/ unbind 2/ change marks
+         3/ rebind 4/ substitute concrete expressions normally *)
       if Bindlib.mbinder_arity binder = List.length args then (
         let vars, eb = Bindlib.unmbind binder in
         let vars_args_map = make_vars_args_map vars args in
@@ -687,15 +689,13 @@ let rec evaluate_expr :
   | EAbs { binder; tys } ->
     Message.emit_debug "... it's an EAbs";
     Expr.unbox (Expr.eabs (Bindlib.box binder) tys m)
-    (* TODO check if this typing shenanigan is really necessary... *)
+    (* TODO simplify this once issue #540 is resolved *)
   | ELit l as e ->
     Message.emit_debug "... it's an ELit";
     let symb_expr = symb_of_lit ctx l in
     (* no constraints generated *)
     add_conc_info_m m (Some symb_expr) ~constraints:[] e
   | EOp { op; tys } -> Expr.unbox (Expr.eop (Operator.translate op) tys m)
-  (* TODO CONC REU is this "typing shenanigan" needed? I removed it from the
-     concrete interpreter and nothing broke... *)
   (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
   | EStruct { fields = es; name } ->
     Message.emit_debug "... it's an EStruct";
@@ -800,6 +800,7 @@ let rec evaluate_expr :
       | EEmptyError ->
         Message.emit_debug "EDefault>empty";
         (* TODO test this case *)
+        (* TODO mettre à jour pour que ces cas n'arrivent pas *)
         (* the constraints generated by the default when [just] is empty are :
          * - those generated by the evaluation of the excepts
          * - those generated by the evaluation of [just]
@@ -979,8 +980,8 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     in
     Message.emit_debug "...inputs generated...";
     let to_interpret =
-      Expr.eapp (Expr.box e)
-        (* TODO CONC REU originally [make_app] but it folds marks... *)
+      Expr.eapp
+        (Expr.box e) (* box instead of rebox because the term is closed *)
         [Expr.estruct ~name:s_in ~fields:application_term mark_e]
         (set_conc_info None [] (Mark.get e))
     in

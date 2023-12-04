@@ -32,6 +32,7 @@ type path_constraint = {
 type _conc_info = {
   symb_expr : s_expr option;
   constraints : path_constraint list;
+  ty : typ option;
 }
 
 type conc_info = _conc_info custom
