@@ -403,8 +403,13 @@ let check_modname program source_file =
       (Cli.FileName file | Cli.Contents (_, file) | Cli.Stdin file) )
     when not File.(equal mname Filename.(remove_extension (basename file))) ->
     Message.raise_spanned_error pos
-      "Module declared as @{<blue>%s@}, which does not match the file name %a"
+      "@[<hov>Module declared as@ @{<blue>%s@},@ which@ does@ not@ match@ the@ \
+       file@ name@ %a.@ Rename the module to@ @{<blue>%s@}@ or@ the@ file@ to@ \
+       %a.@]"
       mname File.format file
+      (String.capitalize_ascii Filename.(remove_extension (basename file)))
+      File.format
+      File.((dirname file / mname) ^ Filename.extension file)
   | _ -> ()
 
 let load_interface source_file =

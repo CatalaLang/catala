@@ -62,8 +62,10 @@ let load_module_interfaces options includes program =
         (Format.pp_print_list ~pp_sep:Format.pp_print_space File.format)
         ms
   in
-  (* modulename * program * (id -> modulename) *)
-  let rec aux req_chain seen uses =
+  let rec aux req_chain seen uses :
+      (ModuleName.t * Surface.Ast.interface * ModuleName.t Ident.Map.t) option
+      File.Map.t
+      * ModuleName.t Ident.Map.t =
     List.fold_left
       (fun (seen, use_map) use ->
         let f = find_module req_chain use.Surface.Ast.mod_use_name in
@@ -297,11 +299,14 @@ module Commands = struct
 
   let get_scope_uid (ctx : decl_ctx) (scope : string) : ScopeName.t =
     if String.contains scope '.' then
-      Message.raise_error "Only references to the top-level module are allowed";
+      Message.raise_error
+        "Bad scope argument @{<yellow>%s@}: only references to the top-level \
+         module are allowed"
+        scope;
     try Ident.Map.find scope ctx.ctx_scope_index
     with Ident.Map.Not_found _ ->
       Message.raise_error
-        "There is no scope @{<yellow>\"%s\"@} inside the program." scope
+        "There is no scope \"@{<yellow>%s@}\" inside the program." scope
 
   (* TODO: this is very weird but I'm trying to maintain the current behaviour
      for now *)
