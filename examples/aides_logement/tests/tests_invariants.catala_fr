@@ -1,42 +1,27 @@
-## Test
-
-```catala
-declaration scope A:
-  output x content boolean
-
-scope A:
-  definition x under condition
-    let y equals true in
-    y 
-  consequence equals true
-```
+> Inclusion: ../aides_logement.catala_fr
 
 
+# Ce fichier est uniquement là pour vérifier que les invariants structurels sont bien garanties par les differences phases de compilation.
 
 ```catala-test-inline
 $ catala Typecheck --check_invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
-   checked. result: [13/13]
+   checked. result: [28966/28966]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_match_inversion
-   checked. result: [0/0]
+   checked. result: [771/771]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_app_inversion
-   checked. result: [1/1]
+   checked. result: [4559/4559]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_no_return_a_function
-   checked. result: [1/1]
+   checked. result: [3046/3046]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_no_partial_evaluation
-   checked. result: [1/1]
+   checked. result: [4559/4559]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_default_no_arrow
-   checked. result: [2/2]
+   checked. result: [1332/1332]
 [RESULT] Typechecking successful!
-```
-
-```catala-test-inline
-$ catala Proof --disable_counterexamples
-[RESULT] No errors found during the proof mode run.
 ```

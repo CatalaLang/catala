@@ -18,6 +18,31 @@ scope S:
    definition a equals A { -- x: 0 -- y : b }
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check_invariants
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [41/41]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [2/2]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [2/2]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [6/6]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Interpret -s S
 [RESULT] Computation successful! Results:

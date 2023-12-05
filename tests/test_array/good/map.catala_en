@@ -10,6 +10,31 @@ scope B:
    definition z equals (m >= $4.95) for m among x
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check_invariants
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [28/28]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [2/2]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [1/1]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [2/2]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [4/4]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Interpret -s B
 [RESULT] Computation successful! Results:

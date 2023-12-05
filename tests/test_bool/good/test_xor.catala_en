@@ -14,6 +14,31 @@ scope TestXor:
   definition f_xor_f equals false xor false
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check_invariants
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [85/85]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [8/8]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [8/8]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [12/12]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Interpret -s TestXor
 [RESULT] Computation successful! Results:

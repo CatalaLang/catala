@@ -18,6 +18,31 @@ scope A:
   definition x under condition (y.a = 0) and y.b.c consequence equals 0
   definition x under condition not (y.a = 0) or not y.b.c consequence equals 1
 ```
+
+
+```catala-test-inline
+$ catala Typecheck --check_invariants
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [48/48]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [6/6]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [6/6]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [5/5]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [RESULT] No errors found during the proof mode run.

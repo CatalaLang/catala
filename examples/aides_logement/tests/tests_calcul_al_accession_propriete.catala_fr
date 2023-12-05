@@ -73,6 +73,29 @@ champ d'application Exemple2:
 ```
 
 ```catala-test-inline
+$ catala Typecheck --check_invariants
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [29344/29344]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [771/771]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [4573/4573]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [3046/3046]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [4573/4573]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [1396/1396]
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
 $ catala Interpret -s Exemple1
 [RESULT] Computation successful! Results:
 [RESULT] montant = 96,48 €
