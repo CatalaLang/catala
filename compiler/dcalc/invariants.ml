@@ -133,6 +133,14 @@ let invariant_match_inversion () : string * invariant_expr =
    * On the right-hand side of the arrow at the root of the type (occurs for
    rentrant variables).
 
+   For instance, the following types do follow the invariant:
+
+   int; bool; int -> bool; <bool>; <int -> bool>; int -> <bool>; S_in {x: int -> <bool>} -> S {y: bool}
+
+   While the following types does not follow the invariant:
+
+   <<int>>; <int -> <bool>>; <bool> -> int; S_in {x: int -> <bool>} -> S {y: <bool>}
+
    This is crucial to maintain the safety of the type system, as demonstrated in
    the formal development. *)
 
@@ -151,41 +159,59 @@ let rec check_typ_no_default ctx ty =
     List.for_all (check_typ_no_default ctx) args && check_typ_no_default ctx res
   | TArray ty -> check_typ_no_default ctx ty
   | TDefault _t -> false
-  | TAny -> true
+  | TAny ->
+    Message.emit_warning
+      "The typing default invariant was checked too late in the compilation \
+       scheme. It is impossible to check whenever the type verify this \
+       invariant.";
+    true
   | TClosureEnv ->
-    assert false (* we should not check this one. It is at least an warning *)
+    Message.emit_warning
+      "In the compilation process, the default invariant for typing was not \
+       checked early enough. Since it's impossible to verify this invariant at \
+       any point due to the closure environment holding an existential type.";
+    true (* we should not check this one. *)
 
-let rec check_type ctx ty =
+let check_type_thunked_or_nodefault ctx ty =
+  check_typ_no_default ctx ty
+  ||
+  match Mark.remove ty with
+  | TArrow (args, res) -> (
+    List.for_all (check_typ_no_default ctx) args
+    &&
+    match Mark.remove res with
+    | TDefault ty -> check_typ_no_default ctx ty
+    | _ -> check_typ_no_default ctx ty)
+  | _ -> false
+
+let check_type_root ctx ty =
+  check_type_thunked_or_nodefault ctx ty
+  ||
   match Mark.remove ty with
   | TStruct n ->
     let s = StructName.Map.find n ctx.ctx_structs in
-    StructField.Map.for_all (fun _k ty -> check_type ctx ty) s
-  | TArrow (args, res) ->
-    List.exists Fun.id
-      [
-        (match args with
-        | [(TStruct n, _)] ->
-          ScopeName.Map.exists
-            (fun _k info -> StructName.equal info.in_struct_name n)
-            ctx.ctx_scopes
-          &&
-          let s = StructName.Map.find n ctx.ctx_structs in
-          StructField.Map.for_all (fun _k ty -> check_type ctx ty) s
-        | _ -> false)
-        && check_typ_no_default ctx res;
-        (List.for_all (check_typ_no_default ctx) args
-        &&
-        match Mark.remove res with
-        | TDefault ty -> check_typ_no_default ctx ty
-        | _ -> check_typ_no_default ctx ty);
-      ]
+    ScopeName.Map.exists
+      (fun _k info -> StructName.equal info.in_struct_name n)
+      ctx.ctx_scopes
+    && StructField.Map.for_all
+         (fun _k ty -> check_type_thunked_or_nodefault ctx ty)
+         s
+  | TArrow ([(TStruct n, _)], res) ->
+    let s = StructName.Map.find n ctx.ctx_structs in
+    ScopeName.Map.exists
+      (fun _k info -> StructName.equal info.in_struct_name n)
+      ctx.ctx_scopes
+    && StructField.Map.for_all
+         (fun _k ty -> check_type_thunked_or_nodefault ctx ty)
+         s
+    && check_typ_no_default ctx res
   | TDefault arg -> check_typ_no_default ctx arg
-  | _ -> check_typ_no_default ctx ty
+  | _ -> false
 
 let invariant_typing_defaults () : string * invariant_expr =
   ( __FUNCTION__,
     fun ctx e ->
-      if check_type ctx (Expr.ty e) then Pass
+      if check_type_root ctx (Expr.ty e) then Pass
       else (
         Message.emit_warning "typing error %a@." (Print.typ ctx) (Expr.ty e);
         Fail) )
