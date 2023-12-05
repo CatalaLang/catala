@@ -24,9 +24,10 @@ val lines :
 (** Raw file parser that doesn't interpret any includes and returns the flat law
     structure as is *)
 
-val load_interface : Cli.input_src -> Ast.interface * string Mark.pos list
+val load_interface : Cli.input_src -> Ast.interface
 (** Reads only declarations in metadata in the supplied input file, and only
-    keeps type information ; returns the modules used as well *)
+    keeps type information. The list of submodules is initialised with names
+    only and empty contents. *)
 
 val parse_top_level_file : Cli.input_src -> Ast.program
 (** Parses a catala file (handling file includes) and returns a program.

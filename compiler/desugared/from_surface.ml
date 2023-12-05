@@ -123,7 +123,7 @@ let translate_unop (op : S.unop) pos : Ast.expr boxed =
 let raise_error_cons_not_found
     (ctxt : Name_resolution.context)
     (constructor : string Mark.pos) =
-  let constructors = Ident.Map.keys ctxt.constructor_idmap in
+  let constructors = Ident.Map.keys ctxt.local.constructor_idmap in
   let closest_constructors =
     Suggestions.suggestion_minimum_levenshtein_distance_association constructors
       (Mark.remove constructor)
@@ -146,7 +146,7 @@ let rec disambiguate_constructor
         "The deep pattern matching syntactic sugar is not yet supported"
   in
   let possible_c_uids =
-    try Ident.Map.find (Mark.remove constructor) ctxt.constructor_idmap
+    try Ident.Map.find (Mark.remove constructor) ctxt.local.constructor_idmap
     with Ident.Map.Not_found _ -> raise_error_cons_not_found ctxt constructor
   in
   match path with
@@ -168,17 +168,13 @@ let rec disambiguate_constructor
     with EnumName.Map.Not_found _ ->
       Message.raise_spanned_error pos "Enum %s does not contain case %s"
         (Mark.remove enum) (Mark.remove constructor))
-  | modname :: path -> (
-    let modname = ModuleName.of_string modname in
-    match ModuleName.Map.find_opt modname ctxt.modules with
-    | None ->
-      Message.raise_spanned_error (ModuleName.pos modname)
-        "Module \"%a\" not found" ModuleName.format modname
-    | Some ctxt ->
-      let constructor =
-        List.map (Mark.map (fun (_, c) -> path, c)) constructor0
-      in
-      disambiguate_constructor ctxt constructor pos)
+  | mod_id :: path ->
+    let constructor =
+      List.map (Mark.map (fun (_, c) -> path, c)) constructor0
+    in
+    disambiguate_constructor
+      (Name_resolution.get_module_ctx ctxt mod_id)
+      constructor pos
 
 let int100 = Runtime.integer_of_int 100
 let rat100 = Runtime.decimal_of_integer int100
@@ -370,7 +366,7 @@ let rec translate_expr
       (* Note: allowing access to a global variable with the same name as a
          subscope is disputable, but I see no good reason to forbid it either *)
       | None -> (
-        match Ident.Map.find_opt x ctxt.topdefs with
+        match Ident.Map.find_opt x ctxt.local.topdefs with
         | Some v ->
           Expr.elocation
             (ToplevelVar { name = v, Mark.get (TopdefName.get_info v) })
@@ -380,7 +376,7 @@ let rec translate_expr
             "for a local, scope-wide or global variable" (x, pos))))
   | Ident (path, name) -> (
     let ctxt = Name_resolution.module_ctx ctxt path in
-    match Ident.Map.find_opt (Mark.remove name) ctxt.topdefs with
+    match Ident.Map.find_opt (Mark.remove name) ctxt.local.topdefs with
     | Some v ->
       Expr.elocation
         (ToplevelVar { name = v, Mark.get (TopdefName.get_info v) })
@@ -415,13 +411,8 @@ let rec translate_expr
       let rec get_str ctxt = function
         | [] -> None
         | [c] -> Some (Name_resolution.get_struct ctxt c)
-        | modname :: path -> (
-          let modname = ModuleName.of_string modname in
-          match ModuleName.Map.find_opt modname ctxt.modules with
-          | None ->
-            Message.raise_spanned_error (ModuleName.pos modname)
-              "Module \"%a\" not found" ModuleName.format modname
-          | Some ctxt -> get_str ctxt path)
+        | mod_id :: path ->
+          get_str (Name_resolution.get_module_ctx ctxt mod_id) path
       in
       Expr.edstructaccess ~e ~field:(Mark.remove x)
         ~name_opt:(get_str ctxt path) emark)
@@ -478,7 +469,7 @@ let rec translate_expr
   | StructLit (((path, s_name), _), fields) ->
     let ctxt = Name_resolution.module_ctx ctxt path in
     let s_uid =
-      match Ident.Map.find_opt (Mark.remove s_name) ctxt.typedefs with
+      match Ident.Map.find_opt (Mark.remove s_name) ctxt.local.typedefs with
       | Some (Name_resolution.TStruct s_uid) -> s_uid
       | _ ->
         Message.raise_spanned_error (Mark.get s_name)
@@ -490,7 +481,7 @@ let rec translate_expr
           let f_uid =
             try
               StructName.Map.find s_uid
-                (Ident.Map.find (Mark.remove f_name) ctxt.field_idmap)
+                (Ident.Map.find (Mark.remove f_name) ctxt.local.field_idmap)
             with StructName.Map.Not_found _ | Ident.Map.Not_found _ ->
               Message.raise_spanned_error (Mark.get f_name)
                 "This identifier should refer to a field of struct %s"
@@ -518,7 +509,8 @@ let rec translate_expr
     Expr.estruct ~name:s_uid ~fields:s_fields emark
   | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
     let get_possible_c_uids ctxt =
-      try Ident.Map.find constructor ctxt.Name_resolution.constructor_idmap
+      try
+        Ident.Map.find constructor ctxt.Name_resolution.local.constructor_idmap
       with Ident.Map.Not_found _ ->
         raise_error_cons_not_found ctxt (constructor, pos_constructor)
     in
@@ -1027,7 +1019,9 @@ let process_def
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)
     (def : S.definition) : Ast.program =
-  let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_scopes in
+  let scope : Ast.scope =
+    ScopeName.Map.find scope_uid prgm.program_root.module_scopes
+  in
   let scope_ctxt = ScopeName.Map.find scope_uid ctxt.scopes in
   let def_key =
     Name_resolution.get_def_key
@@ -1091,11 +1085,10 @@ let process_def
       scope_defs = Ast.ScopeDef.Map.add def_key scope_def scope.scope_defs;
     }
   in
-  {
-    prgm with
-    program_scopes =
-      ScopeName.Map.add scope_uid scope_updated prgm.program_scopes;
-  }
+  let module_scopes =
+    ScopeName.Map.add scope_uid scope_updated prgm.program_root.module_scopes
+  in
+  { prgm with program_root = { prgm.program_root with module_scopes } }
 
 (** Translates a {!type: S.rule} from the surface language *)
 let process_rule
@@ -1114,7 +1107,9 @@ let process_assert
     (ctxt : Name_resolution.context)
     (prgm : Ast.program)
     (ass : S.assertion) : Ast.program =
-  let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_scopes in
+  let scope : Ast.scope =
+    ScopeName.Map.find scope_uid prgm.program_root.module_scopes
+  in
   let ass =
     translate_expr (Some scope_uid) None ctxt Ident.Map.empty
       (match ass.S.assertion_condition with
@@ -1146,10 +1141,10 @@ let process_assert
           scope.scope_assertions;
     }
   in
-  {
-    prgm with
-    program_scopes = ScopeName.Map.add scope_uid new_scope prgm.program_scopes;
-  }
+  let module_scopes =
+    ScopeName.Map.add scope_uid new_scope prgm.program_root.module_scopes
+  in
+  { prgm with program_root = { prgm.program_root with module_scopes } }
 
 (** Translates a surface definition, rule or assertion *)
 let process_scope_use_item
@@ -1167,7 +1162,9 @@ let process_scope_use_item
   | S.Assertion ass -> process_assert precond scope ctxt prgm ass
   | S.DateRounding (r, _) ->
     let scope_uid = scope in
-    let scope : Ast.scope = ScopeName.Map.find scope_uid prgm.program_scopes in
+    let scope : Ast.scope =
+      ScopeName.Map.find scope_uid prgm.program_root.module_scopes
+    in
     let r =
       match r with
       | S.Increasing -> Ast.Increasing
@@ -1192,10 +1189,10 @@ let process_scope_use_item
             Mark.copy item (Ast.DateRounding r) :: scope.scope_options;
         }
     in
-    {
-      prgm with
-      program_scopes = ScopeName.Map.add scope_uid new_scope prgm.program_scopes;
-    }
+    let module_scopes =
+      ScopeName.Map.add scope_uid new_scope prgm.program_root.module_scopes
+    in
+    { prgm with program_root = { prgm.program_root with module_scopes } }
   | _ -> prgm
 
 (** {1 Translating top-level items} *)
@@ -1254,7 +1251,7 @@ let process_scope_use
   let scope_uid = Name_resolution.get_scope ctxt use.scope_use_name in
   (* Make sure the scope exists *)
   let prgm =
-    match ScopeName.Map.find_opt scope_uid prgm.program_scopes with
+    match ScopeName.Map.find_opt scope_uid prgm.program_root.module_scopes with
     | Some _ -> prgm
     | None -> assert false
     (* should not happen *)
@@ -1270,7 +1267,9 @@ let process_topdef
     (prgm : Ast.program)
     (def : S.top_def) : Ast.program =
   let id =
-    Ident.Map.find (Mark.remove def.S.topdef_name) ctxt.Name_resolution.topdefs
+    Ident.Map.find
+      (Mark.remove def.S.topdef_name)
+      ctxt.Name_resolution.local.topdefs
   in
   let translate_typ t = Name_resolution.process_type ctxt t in
   let translate_tbase (tbase, m) = translate_typ (Base tbase, m) in
@@ -1300,7 +1299,7 @@ let process_topdef
       in
       Some (Expr.unbox_closed e)
   in
-  let program_topdefs =
+  let module_topdefs =
     TopdefName.Map.update id
       (fun def0 ->
         match def0, expr_opt with
@@ -1318,9 +1317,9 @@ let process_topdef
             | Some _, Some _ -> err "Multiple definitions"
             | Some e, None -> Some (Some e, typ)
             | None, Some e -> Some (Some e, ty0)))
-      prgm.Ast.program_topdefs
+      prgm.Ast.program_root.module_topdefs
   in
-  { prgm with Ast.program_topdefs }
+  { prgm with program_root = { prgm.program_root with module_topdefs } }
 
 let attribute_to_io (attr : S.scope_decl_context_io) : Ast.io =
   {
@@ -1337,13 +1336,13 @@ let attribute_to_io (attr : S.scope_decl_context_io) : Ast.io =
 
 let init_scope_defs
     (ctxt : Name_resolution.context)
-    (scope_idmap : Name_resolution.scope_var_or_subscope Ident.Map.t) :
+    (scope_idmap : scope_var_or_subscope Ident.Map.t) :
     Ast.scope_def Ast.ScopeDef.Map.t =
   (* Initializing the definitions of all scopes and subscope vars, with no rules
      yet inside *)
   let add_def _ v scope_def_map =
     match v with
-    | Name_resolution.ScopeVar v -> (
+    | ScopeVar v -> (
       let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
       match v_sig.var_sig_states_list with
       | [] ->
@@ -1389,19 +1388,23 @@ let init_scope_defs
             (scope_def_map, 0) states
         in
         scope_def)
-    | Name_resolution.SubScope (v0, subscope_uid) ->
+    | SubScope (v0, subscope_uid) ->
       let sub_scope_def = Name_resolution.get_scope_context ctxt subscope_uid in
       let ctxt =
         List.fold_left
-          (fun ctx m -> ModuleName.Map.find m ctx.Name_resolution.modules)
+          (fun ctx m ->
+            {
+              ctxt with
+              local = ModuleName.Map.find m ctx.Name_resolution.modules;
+            })
           ctxt
           (ScopeName.path subscope_uid)
       in
       Ident.Map.fold
         (fun _ v scope_def_map ->
           match v with
-          | Name_resolution.SubScope _ -> scope_def_map
-          | Name_resolution.ScopeVar v ->
+          | SubScope _ -> scope_def_map
+          | ScopeVar v ->
             (* TODO: shouldn't we ignore internal variables too at this point
                ? *)
             let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
@@ -1424,91 +1427,117 @@ let init_scope_defs
 (** Main function of this module *)
 let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
     Ast.program =
-  let top_ctx = ctxt in
-  let desugared =
-    let get_program_scopes ctxt =
-      ScopeName.Map.mapi
-        (fun s_uid s_context ->
-          let scope_vars =
-            Ident.Map.fold
-              (fun _ v acc ->
-                match v with
-                | Name_resolution.SubScope _ -> acc
-                | Name_resolution.ScopeVar v -> (
-                  let v_sig =
-                    ScopeVar.Map.find v ctxt.Name_resolution.var_typs
-                  in
-                  match v_sig.Name_resolution.var_sig_states_list with
-                  | [] -> ScopeVar.Map.add v Ast.WholeVar acc
-                  | states -> ScopeVar.Map.add v (Ast.States states) acc))
-              s_context.Name_resolution.var_idmap ScopeVar.Map.empty
-          in
-          let scope_sub_scopes =
-            Ident.Map.fold
-              (fun _ v acc ->
-                match v with
-                | Name_resolution.ScopeVar _ -> acc
-                | Name_resolution.SubScope (sub_var, sub_scope) ->
-                  SubScopeName.Map.add sub_var sub_scope acc)
-              s_context.Name_resolution.var_idmap SubScopeName.Map.empty
-          in
-          {
-            Ast.scope_vars;
-            scope_sub_scopes;
-            scope_defs = init_scope_defs top_ctx s_context.var_idmap;
-            scope_assertions = Ast.AssertionName.Map.empty;
-            scope_meta_assertions = [];
-            scope_options = [];
-            scope_uid = s_uid;
-          })
-        ctxt.Name_resolution.scopes
+  let get_scope s_uid =
+    let s_context = ScopeName.Map.find s_uid ctxt.scopes in
+    let scope_vars =
+      Ident.Map.fold
+        (fun _ v acc ->
+          match v with
+          | SubScope _ -> acc
+          | ScopeVar v -> (
+            let v_sig = ScopeVar.Map.find v ctxt.Name_resolution.var_typs in
+            match v_sig.Name_resolution.var_sig_states_list with
+            | [] -> ScopeVar.Map.add v Ast.WholeVar acc
+            | states -> ScopeVar.Map.add v (Ast.States states) acc))
+        s_context.Name_resolution.var_idmap ScopeVar.Map.empty
     in
-    let rec make_ctx ctxt =
-      let submodules =
-        ModuleName.Map.map make_ctx ctxt.Name_resolution.modules
+    let scope_sub_scopes =
+      Ident.Map.fold
+        (fun _ v acc ->
+          match v with
+          | ScopeVar _ -> acc
+          | SubScope (sub_var, sub_scope) ->
+            SubScopeName.Map.add sub_var sub_scope acc)
+        s_context.Name_resolution.var_idmap SubScopeName.Map.empty
+    in
+    {
+      Ast.scope_vars;
+      scope_sub_scopes;
+      scope_defs = init_scope_defs ctxt s_context.var_idmap;
+      scope_assertions = Ast.AssertionName.Map.empty;
+      scope_meta_assertions = [];
+      scope_options = [];
+      scope_uid = s_uid;
+    }
+  in
+  let get_scopes mctx =
+    Ident.Map.fold
+      (fun _ tydef acc ->
+        match tydef with
+        | Name_resolution.TScope (s_uid, _) ->
+          ScopeName.Map.add s_uid (get_scope s_uid) acc
+        | _ -> acc)
+      mctx.Name_resolution.typedefs ScopeName.Map.empty
+  in
+  let program_modules =
+    ModuleName.Map.map
+      (fun mctx ->
+        {
+          Ast.module_scopes = get_scopes mctx;
+          Ast.module_topdefs =
+            Ident.Map.fold
+              (fun _ name acc ->
+                TopdefName.Map.add name
+                  ( None,
+                    TopdefName.Map.find name ctxt.Name_resolution.topdef_types
+                  )
+                  acc)
+              mctx.topdefs TopdefName.Map.empty;
+        })
+      ctxt.modules
+  in
+  let program_ctx =
+    let open Name_resolution in
+    let ctx_scopes mctx acc =
+      Ident.Map.fold
+        (fun _ tydef acc ->
+          match tydef with
+          | TScope (s_uid, info) -> ScopeName.Map.add s_uid info acc
+          | _ -> acc)
+        mctx.Name_resolution.typedefs acc
+    in
+    let ctx_modules =
+      let rec aux mctx =
+        Ident.Map.fold
+          (fun _ m (M acc) ->
+            let sub = aux (ModuleName.Map.find m ctxt.modules) in
+            M (ModuleName.Map.add m sub acc))
+          mctx.used_modules (M ModuleName.Map.empty)
       in
-      {
-        Ast.program_lang = surface.program_lang;
-        Ast.program_module_name =
-          Option.map ModuleName.of_string
-            surface.Surface.Ast.program_module_name;
-        Ast.program_ctx =
-          {
-            (* After name resolution, type definitions (structs and enums) are
-               exposed at toplevel for easier lookup *)
-            ctx_structs =
-              ModuleName.Map.fold
-                (fun _ prg acc ->
-                  StructName.Map.union
-                    (fun _ _ _ -> assert false)
-                    acc prg.Ast.program_ctx.ctx_structs)
-                submodules ctxt.Name_resolution.structs;
-            ctx_enums =
-              ModuleName.Map.fold
-                (fun _ prg acc ->
-                  EnumName.Map.union
-                    (fun _ _ _ -> assert false)
-                    acc prg.Ast.program_ctx.ctx_enums)
-                submodules ctxt.Name_resolution.enums;
-            ctx_scopes =
-              Ident.Map.fold
-                (fun _ def acc ->
-                  match def with
-                  | Name_resolution.TScope (scope, scope_info) ->
-                    ScopeName.Map.add scope scope_info acc
-                  | _ -> acc)
-                ctxt.Name_resolution.typedefs ScopeName.Map.empty;
-            ctx_struct_fields = ctxt.Name_resolution.field_idmap;
-            ctx_topdefs = ctxt.Name_resolution.topdef_types;
-            ctx_modules =
-              ModuleName.Map.map (fun s -> s.Ast.program_ctx) submodules;
-          };
-        Ast.program_topdefs = TopdefName.Map.empty;
-        Ast.program_scopes = get_program_scopes ctxt;
-        Ast.program_modules = submodules;
-      }
+      aux ctxt.local
     in
-    make_ctx ctxt
+    {
+      ctx_structs = ctxt.structs;
+      ctx_enums = ctxt.enums;
+      ctx_scopes =
+        ModuleName.Map.fold
+          (fun _ -> ctx_scopes)
+          ctxt.modules
+          (ctx_scopes ctxt.local ScopeName.Map.empty);
+      ctx_topdefs = ctxt.topdef_types;
+      ctx_struct_fields = ctxt.local.field_idmap;
+      ctx_enum_constrs = ctxt.local.constructor_idmap;
+      ctx_scope_index =
+        Ident.Map.filter_map
+          (fun _ -> function
+            | Name_resolution.TScope (s, _) -> Some s
+            | _ -> None)
+          ctxt.local.typedefs;
+      ctx_modules;
+    }
+  in
+  let desugared =
+    {
+      Ast.program_lang = surface.program_lang;
+      Ast.program_module_name = surface.Surface.Ast.program_module_name;
+      Ast.program_modules;
+      Ast.program_ctx;
+      Ast.program_root =
+        {
+          Ast.module_scopes = get_scopes ctxt.Name_resolution.local;
+          Ast.module_topdefs = TopdefName.Map.empty;
+        };
+    }
   in
   let process_code_block ctxt prgm block =
     List.fold_left
@@ -1527,29 +1556,6 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
         (fun prgm child -> process_structure prgm child)
         prgm children
     | S.CodeBlock (block, _, _) -> process_code_block ctxt prgm block
-    | S.ModuleDef ((name, pos) as mname) ->
-      let file = Filename.basename (Pos.get_file pos) in
-      if not File.(equal name (Filename.remove_extension file)) then
-        Message.raise_spanned_error pos
-          "Module declared as %a, which does not match the file name %a"
-          ModuleName.format
-          (ModuleName.of_string mname)
-          File.format file
-      else prgm
-    | S.LawInclude _ | S.LawText _ | S.ModuleUse _ -> prgm
-  in
-  let desugared =
-    List.fold_left
-      (fun acc (id, intf) ->
-        let id = ModuleName.of_string id in
-        let modul = ModuleName.Map.find id acc.Ast.program_modules in
-        let modul =
-          process_code_block (ModuleName.Map.find id ctxt.modules) modul intf
-        in
-        {
-          acc with
-          program_modules = ModuleName.Map.add id modul acc.program_modules;
-        })
-      desugared surface.S.program_modules
+    | S.ModuleDef _ | S.LawInclude _ | S.LawText _ | S.ModuleUse _ -> prgm
   in
   List.fold_left process_structure desugared surface.S.program_items

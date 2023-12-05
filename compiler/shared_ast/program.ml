@@ -32,14 +32,13 @@ let empty_ctx =
   {
     ctx_enums = EnumName.Map.empty;
     ctx_structs = StructName.Map.empty;
-    ctx_struct_fields = Ident.Map.empty;
     ctx_scopes = ScopeName.Map.empty;
     ctx_topdefs = TopdefName.Map.empty;
-    ctx_modules = ModuleName.Map.empty;
+    ctx_struct_fields = Ident.Map.empty;
+    ctx_enum_constrs = Ident.Map.empty;
+    ctx_scope_index = Ident.Map.empty;
+    ctx_modules = M ModuleName.Map.empty;
   }
-
-let module_ctx ctx path =
-  List.fold_left (fun ctx m -> ModuleName.Map.find m ctx.ctx_modules) ctx path
 
 let get_scope_body { code_items; _ } scope =
   match

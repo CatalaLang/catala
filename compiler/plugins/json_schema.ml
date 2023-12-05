@@ -214,7 +214,7 @@ let run
     closure_conversion
     ex_scope
     options =
-  let prg, ctx, _ =
+  let prg, _ =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
   in
@@ -223,7 +223,7 @@ let run
   in
   with_output
   @@ fun fmt ->
-  let scope_uid = Driver.Commands.get_scope_uid ctx ex_scope in
+  let scope_uid = Driver.Commands.get_scope_uid prg.decl_ctx ex_scope in
   Message.emit_debug
     "Writing JSON schema corresponding to the scope '%a' to the file %s..."
     ScopeName.format scope_uid

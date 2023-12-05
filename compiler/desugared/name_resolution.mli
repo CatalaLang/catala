@@ -30,10 +30,6 @@ type scope_def_context = {
   label_idmap : LabelName.t Ident.Map.t;
 }
 
-type scope_var_or_subscope =
-  | ScopeVar of ScopeVar.t
-  | SubScope of SubScopeName.t * ScopeName.t
-
 type scope_context = {
   var_idmap : scope_var_or_subscope Ident.Map.t;
       (** All variables, including scope variables and subscopes *)
@@ -67,19 +63,28 @@ type typedef =
   | TEnum of EnumName.t
   | TScope of ScopeName.t * scope_info  (** Implicitly defined output struct *)
 
-type context = {
-  path : ModuleName.t list;
+type module_context = {
+  path : Uid.Path.t;
       (** The current path being processed. Used for generating the Uids. *)
   typedefs : typedef Ident.Map.t;
       (** Gathers the names of the scopes, structs and enums *)
   field_idmap : StructField.t StructName.Map.t Ident.Map.t;
       (** The names of the struct fields. Names of fields can be shared between
-          different structs *)
+          different structs. Note that fields from submodules are included here
+          for the root module, because disambiguating there is helpful. *)
   constructor_idmap : EnumConstructor.t EnumName.Map.t Ident.Map.t;
       (** The names of the enum constructors. Constructor names can be shared
-          between different enums *)
-  scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
+          between different enums. Note that constructors from its submodules
+          are included here for the root module, because disambiguating there is
+          helpful. *)
   topdefs : TopdefName.t Ident.Map.t;  (** Global definitions *)
+  used_modules : ModuleName.t Ident.Map.t;
+      (** Module aliases and the modules they point to *)
+}
+(** Context for name resolution, valid within a given module *)
+
+type context = {
+  scopes : scope_context ScopeName.Map.t;  (** For each scope, its context *)
   topdef_types : typ TopdefName.Map.t;
       (** Types associated with the global definitions *)
   structs : struct_context StructName.Map.t;
@@ -87,9 +92,14 @@ type context = {
   enums : enum_context EnumName.Map.t;  (** For each enum, its context *)
   var_typs : var_sig ScopeVar.Map.t;
       (** The signatures of each scope variable declared *)
-  modules : context ModuleName.Map.t;
+  modules : module_context ModuleName.Map.t;
+      (** The map to the interfaces of all modules (transitively) used by the
+          program. References are made through [local.used_modules] *)
+  local : module_context;
+      (** Local context of the root module corresponding to the program being
+          analysed *)
 }
-(** Main context used throughout {!module: Desugared.From_surface} *)
+(** Global context used throughout {!module: Surface.Desugaring} *)
 
 (** {1 Helpers} *)
 
@@ -100,6 +110,12 @@ val raise_unsupported_feature : string -> Pos.t -> 'a
 val raise_unknown_identifier : string -> Ident.t Mark.pos -> 'a
 (** Function to call whenever an identifier used somewhere has not been declared
     in the program previously *)
+
+val get_modname : context -> Ident.t Mark.pos -> ModuleName.t
+(** Emits a user error if the module name is not found *)
+
+val get_module_ctx : context -> Ident.t Mark.pos -> context
+(** Emits a user error if the module name is not found *)
 
 val get_var_typ : context -> ScopeVar.t -> typ
 (** Gets the type associated to an uid *)
@@ -166,5 +182,8 @@ val process_type : context -> Surface.Ast.typ -> typ
 
 (** {1 API} *)
 
-val form_context : Surface.Ast.program -> context
+val form_context :
+  Surface.Ast.program * ModuleName.t Ident.Map.t ->
+  (Surface.Ast.interface * ModuleName.t Ident.Map.t) ModuleName.Map.t ->
+  context
 (** Derive the context from metadata, in one pass over the declarations *)

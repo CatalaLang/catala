@@ -120,7 +120,7 @@ let get_lang file =
   Option.bind (Re.exec_opt catala_suffix_regex file)
   @@ fun g -> List.assoc_opt (Re.Group.get g 1) Catala_utils.Cli.languages
 
-let tree (dir : File.t) : item Seq.t =
+let tree (dir : File.t) : (File.t * File.t list * item list) Seq.t =
   File.scan_tree
     (fun f ->
       match get_lang f with

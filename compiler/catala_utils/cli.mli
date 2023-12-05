@@ -54,6 +54,12 @@ val file_lang : file -> backend_lang
 
 val input_src_file : input_src -> file
 
+val reverse_path : ?from_dir:file -> to_dir:file -> file -> file
+(** If [to_dir] is a path to a given directory and [f] a path to a file as seen
+    from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path
+    leading to [f] from [to_dir]. The results attempts to be relative to
+    [to_dir]. *)
+
 (** {2 Configuration globals} *)
 
 type options = private {

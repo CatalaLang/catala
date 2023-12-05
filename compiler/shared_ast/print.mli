@@ -74,7 +74,7 @@ module type EXPR_PARAM = sig
   (** pre-processing on expressions: can be used to skip log calls, etc. *)
 end
 
-module ExprGen (C : EXPR_PARAM) : sig
+module ExprGen (_ : EXPR_PARAM) : sig
   val expr : Format.formatter -> ('a, 't) gexpr -> unit
 end
 

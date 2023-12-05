@@ -10,7 +10,7 @@
  ; don't stop building because of warnings
  (dev
   (flags
-   (:standard -warn-error -a)))
+   (:standard -warn-error -a -w -67)))
  ; for CI runs: must fail on warnings
  (check
   (flags
