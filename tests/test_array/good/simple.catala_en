@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-   output x content collection integer
+   output x content list of integer
 
 scope A:
    definition x equals [0; 4+5; 8*8]

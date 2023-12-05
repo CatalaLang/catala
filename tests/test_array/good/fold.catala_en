@@ -6,7 +6,7 @@ declaration structure S:
   data income content money
 
 declaration scope A:
-   context output x content collection S
+   context output x content list of S
 
 scope A:
    definition x equals [
@@ -23,10 +23,10 @@ declaration scope B:
 scope B:
    definition argmax equals
      (m among a.x such that m.income * 2.0 is maximum
-      or if collection empty then S { -- id: -1 --income: $0 })
+      or if list empty then S { -- id: -1 --income: $0 })
    definition argmin equals
      (m among a.x such that m.income + $5 is minimum
-      or if collection empty then S { -- id: -1 --income: $20 })
+      or if list empty then S { -- id: -1 --income: $20 })
 ```
 
 

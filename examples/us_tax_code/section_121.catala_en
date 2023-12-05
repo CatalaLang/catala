@@ -6,9 +6,9 @@ declaration structure Period:
   data end content date
 
 declaration scope PeriodMerge:
-  context periods1 content collection Period
-  context periods2 content collection Period
-  output output_periods content collection Period
+  context periods1 content list of Period
+  context periods2 content list of Period
+  output output_periods content list of Period
 
 scope PeriodMerge:
   # Placeholders, overwritten by caller
@@ -34,13 +34,13 @@ declaration scope Section121SinglePerson:
   output requirements_ownership_met condition
   output requirements_usage_met condition
   input date_of_sale_or_exchange content date
-  input property_ownage content collection Period
+  input property_ownage content list of Period
   # Invariant: the periods in the collection are disjoint
   input property_usage_as_principal_residence
-    content collection Period
+    content list of Period
   # Invariant: the periods in the collection are disjoint
   internal aggregate_periods_from_last_five_years content duration
-    depends on periods content collection Period
+    depends on periods content list of Period
   context output gain_cap content money
   input gain_from_sale_or_exchange_of_property content money
   output income_excluded_from_gross_income_uncapped content money
@@ -49,9 +49,9 @@ declaration scope Section121SinglePerson:
   input other_section_121a_sale content OtherSection121aSale
 
 declaration structure PersonalData:
-  data property_ownage content collection Period
+  data property_ownage content list of Period
   data property_usage_as_principal_residence
-    content collection Period
+    content list of Period
   data other_section_121a_sale content OtherSection121aSale
 
 declaration structure JointReturn:

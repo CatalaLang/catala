@@ -11,6 +11,6 @@ declaration structure Structure:
 declaration scope S:
   input x content integer
   input output y content Enum
-  output z content collection Structure
+  output z content list of Structure
   output a content decimal
 ```

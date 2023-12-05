@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-   output x content collection money
+   output x content list of money
 
 scope A:
    definition x equals [$0; $4 + $5; $8 * 0.65]
@@ -16,9 +16,9 @@ declaration scope B:
 
 scope B:
    definition max equals maximum of (m * 2.0) for m among a.x
-                         or if collection empty then $0
+                         or if list empty then $0
    definition min equals minimum of (m + $5) for m among a.x
-                         or if collection empty then $20
+                         or if list empty then $20
    definition y equals sum money of (m + $1) for m among a.x
    definition z equals number of m among a.x such that m >= $8.95
 ```

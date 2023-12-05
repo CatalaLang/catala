@@ -22,7 +22,7 @@ syn match Include "^\s*>\s*Include:.*$"
 
 syn match sc_id_def contained "\<\([a-zéèàâùîôêœç][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
 syn match cc_id contained "\<\([A-ZÉÈÀÂÙÎÔÊŒÇ][a-zéèàâùîôêœçA-ZÉÈÀÂÙÎÔÊŒÇ0-9_\']*\)\>"
-syn match Keyword contained "\<\(scope\|depends\s\+on\|declaration\|includes\|collection\|content\|optional\|structure\|enumeration\|context\|rule\|under\s\+condition\|condition\|data\|consequence\|fulfilled\|equals\|assertion\|definition\|state\|label\|exception\|anything\)\>"
+syn match Keyword contained "\<\(scope\|depends\s\+on\|declaration\|includes\|list\s\+of\|content\|optional\|structure\|enumeration\|context\|rule\|under\s\+condition\|condition\|data\|consequence\|fulfilled\|equals\|assertion\|definition\|state\|label\|exception\|anything\)\>"
 syn match Statement contained "\<\(match\|with\s\+pattern\|fixed\|by\|decreasing\|increasing\|varies\|with\|we\s\+have\|let\|in\|such\s\+that\|exists\|for\|all\|of\|if\|then\|else\|initial\)\>"
 syn keyword Conditional contained if then else
 syn match Comment contained "#.*$"

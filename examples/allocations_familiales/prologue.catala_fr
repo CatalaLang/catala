@@ -65,7 +65,7 @@ déclaration champ d'application AllocationFamilialesAvril2008:
   résultat âge_minimum_alinéa_1_l521_3 contenu durée
 
 déclaration champ d'application EnfantLePlusÂgé:
-  entrée enfants contenu collection Enfant
+  entrée enfants contenu liste de Enfant
   résultat le_plus_âgé contenu Enfant
 
 déclaration champ d'application AllocationsFamiliales:
@@ -80,9 +80,9 @@ déclaration champ d'application AllocationsFamiliales:
   entrée date_courante contenu date
 
   # Variables concernant les enfants du ménage
-  entrée enfants_à_charge contenu collection Enfant
+  entrée enfants_à_charge contenu liste de Enfant
   interne enfants_à_charge_droit_ouvert_prestation_familiale
-    contenu collection Enfant
+    contenu liste de Enfant
   interne prise_en_compte contenu PriseEnCompte dépend de enfant contenu Enfant
   résultat versement contenu VersementAllocations
     dépend de enfant contenu Enfant
