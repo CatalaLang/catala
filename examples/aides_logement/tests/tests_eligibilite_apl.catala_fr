@@ -1,57 +1,57 @@
-> Inclusion: ../aides_logement.catala_fr
+> Usage de Aides_logement
 
 # Tests
 
 ```catala
 déclaration champ d'application Exemple1 :
-  éligibilité champ d'application ÉligibilitéAidePersonnaliséeLogement
+  éligibilité champ d'application Aides_logement.ÉligibilitéAidePersonnaliséeLogement
   résultat éligible contenu booléen
 
 champ d'application Exemple1 :
   définition éligible égal à éligibilité.éligibilité
   assertion éligible
   définition éligibilité.date_courante égal à |2020-03-10|
-  définition éligibilité.ménage égal à Ménage {
-    -- résidence: Métropole
+  définition éligibilité.ménage égal à Aides_logement.Ménage {
+    -- résidence: Aides_logement.France.Collectivité.Métropole
     -- prestations_reçues: [
-      PrestationReçue.AllocationSoutienEnfantHandicapé;
-      PrestationReçue.ComplémentFamilial;
-      PrestationReçue.AllocationsFamiliales
+      Aides_logement.PrestationReçue.AllocationSoutienEnfantHandicapé;
+      Aides_logement.PrestationReçue.ComplémentFamilial;
+      Aides_logement.PrestationReçue.AllocationsFamiliales
     ]
     -- situation_familiale: Mariés contenu |2010-11-26|
     -- personnes_à_charge: [
-      EnfantÀCharge contenu (EnfantÀCharge {
+      EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
         -- nationalité: Française
         -- identifiant: 0
         -- études_apprentissage_stage_formation_pro_impossibilité_travail: vrai
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2001-01-01|
         -- rémuneration_mensuelle: 0€
-        -- obligation_scolaire: Après
+        -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Après
         -- situation_garde_alternée: PasDeGardeAlternée
-      }); EnfantÀCharge contenu (EnfantÀCharge {
+      }); EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
         -- nationalité: Française
         -- identifiant: 1
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2009-01-01|
         -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
         -- rémuneration_mensuelle: 0€
-        -- obligation_scolaire: Pendant
+        -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Pendant
         -- situation_garde_alternée: PasDeGardeAlternée
-      }); EnfantÀCharge contenu (EnfantÀCharge {
+      }); EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
         -- nationalité: Française
         -- identifiant: 2
         -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2012-01-01|
         -- rémuneration_mensuelle: 0€
-        -- obligation_scolaire: Pendant
+        -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Pendant
         -- situation_garde_alternée: PasDeGardeAlternée
       })]
-    -- logement: Logement {
+    -- logement: Aides_logement.Logement {
       -- zone: Zone1
       -- résidence_principale : vrai
-      -- mode_occupation : Locataire contenu (Location {
+      -- mode_occupation : Locataire contenu (Aides_logement.Location {
         -- loyer_principal: 750 €
         -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
         -- logement_est_chambre: faux
@@ -59,14 +59,14 @@ champ d'application Exemple1 :
         -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
         -- logement_meublé_d842_2: faux
         -- changement_logement_d842_4: PasDeChangement
-        -- bailleur: BailleurSocial contenu (ConventionBailleurSocial{
+        -- bailleur: BailleurSocial contenu (Aides_logement.ConventionBailleurSocial{
           -- conventionné_livre_III_titre_V_chap_III: vrai
           -- réduction_loyer_solidarité_perçue: 0 €
         })
       })
-      -- propriétaire : ParentOuAutre.Autre
-      -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
-      -- usufruit : ParentOuAutre.Autre
+      -- propriétaire : Aides_logement.ParentOuAutre.Autre
+      -- loué_ou_sous_loué_à_des_tiers : Aides_logement.LouéOuSousLouéÀDesTiers.Non
+      -- usufruit : Aides_logement.ParentOuAutre.Autre
       -- logement_decent_l89_462 : vrai
       -- surface_m_carrés : 80
     }
@@ -75,7 +75,7 @@ champ d'application Exemple1 :
     -- enfant_à_naître_après_quatrième_mois_grossesse: faux
     -- personnes_âgées_handicapées_foyer_r844_4: faux
   }
-  définition éligibilité.demandeur égal à Demandeur {
+  définition éligibilité.demandeur égal à Aides_logement.Demandeur {
     -- date_naissance : |1970-05-02|
     -- est_non_salarié_agricole_l781_8_l_781_46_code_rural: faux
     -- magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte: faux
@@ -84,44 +84,44 @@ champ d'application Exemple1 :
   }
 
 déclaration champ d'application Exemple2 :
-  éligibilité champ d'application ÉligibilitéAllocationLogement
-  résultat éligible contenu TypeÉligibilitéAllocationLogement
+  éligibilité champ d'application Aides_logement.ÉligibilitéAllocationLogement
+  résultat éligible contenu Aides_logement.TypeÉligibilitéAllocationLogement
 
 champ d'application Exemple2 :
   définition éligible égal à éligibilité.éligibilité
-  assertion éligible = TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale
+  assertion éligible = Aides_logement.TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale
   définition éligibilité.date_courante égal à |2022-05-01|
-  définition éligibilité.ménage égal à Ménage {
-    -- résidence: Métropole
+  définition éligibilité.ménage égal à Aides_logement.Ménage {
+    -- résidence: Aides_logement.France.Collectivité.Métropole
     -- prestations_reçues: [
-      PrestationReçue.AllocationsFamiliales
+      Aides_logement.PrestationReçue.AllocationsFamiliales
     ]
     -- situation_familiale: Concubins
     -- personnes_à_charge: [
-      EnfantÀCharge contenu (EnfantÀCharge {
+      EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
         -- identifiant: 0
         -- nationalité: Française
         -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2016-01-01|
         -- rémuneration_mensuelle: 0€
-        -- obligation_scolaire: Pendant
+        -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Pendant
         -- situation_garde_alternée: PasDeGardeAlternée
-      }); EnfantÀCharge contenu (EnfantÀCharge {
+      }); EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
         -- nationalité: Française
         -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
         -- identifiant: 1
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2015-01-01|
         -- rémuneration_mensuelle: 0€
-        -- obligation_scolaire: Pendant
+        -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Pendant
         -- situation_garde_alternée: PasDeGardeAlternée
       })]
-    -- logement: Logement {
+    -- logement: Aides_logement.Logement {
       -- zone: Zone2
       -- résidence_principale : vrai
-      -- mode_occupation : Locataire contenu (Location {
-        -- bailleur: BailleurSocial contenu (ConventionBailleurSocial{
+      -- mode_occupation : Locataire contenu (Aides_logement.Location {
+        -- bailleur: BailleurSocial contenu (Aides_logement.ConventionBailleurSocial{
           -- conventionné_livre_III_titre_V_chap_III: vrai
           -- réduction_loyer_solidarité_perçue: 0 €
         })
@@ -133,9 +133,9 @@ champ d'application Exemple2 :
         -- logement_meublé_d842_2: faux
         -- changement_logement_d842_4: PasDeChangement
       })
-      -- propriétaire : ParentOuAutre.Autre
-      -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
-      -- usufruit : ParentOuAutre.Autre
+      -- propriétaire : Aides_logement.ParentOuAutre.Autre
+      -- loué_ou_sous_loué_à_des_tiers : Aides_logement.LouéOuSousLouéÀDesTiers.Non
+      -- usufruit : Aides_logement.ParentOuAutre.Autre
       -- logement_decent_l89_462 : vrai
       -- surface_m_carrés : 60
     }
@@ -144,7 +144,7 @@ champ d'application Exemple2 :
     -- enfant_à_naître_après_quatrième_mois_grossesse: faux
     -- personnes_âgées_handicapées_foyer_r844_4: faux
   }
-  définition éligibilité.demandeur égal à Demandeur {
+  définition éligibilité.demandeur égal à Aides_logement.Demandeur {
     -- est_non_salarié_agricole_l781_8_l_781_46_code_rural: faux
     -- magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte: faux
     -- date_naissance : |1992-01-01|
@@ -154,34 +154,34 @@ champ d'application Exemple2 :
   définition éligibilité.bénéficie_aide_personnalisée_logement égal à faux
 
 déclaration champ d'application Exemple3 :
-  éligibilité champ d'application ÉligibilitéAllocationLogement
-  résultat éligible contenu TypeÉligibilitéAllocationLogement
+  éligibilité champ d'application Aides_logement.ÉligibilitéAllocationLogement
+  résultat éligible contenu Aides_logement.TypeÉligibilitéAllocationLogement
 
 champ d'application Exemple3 :
   définition éligible égal à éligibilité.éligibilité
-  assertion éligible = TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale
+  assertion éligible = Aides_logement.TypeÉligibilitéAllocationLogement.AllocationLogementFamiliale
   définition éligibilité.date_courante égal à |2023-04-01|
-  définition éligibilité.ménage égal à Ménage {
-    -- résidence: LaRéunion
+  définition éligibilité.ménage égal à Aides_logement.Ménage {
+    -- résidence: Aides_logement.France.Collectivité.LaRéunion
     -- prestations_reçues: [
-      PrestationReçue.AllocationsFamiliales
+      Aides_logement.PrestationReçue.AllocationsFamiliales
     ]
     -- situation_familiale: Concubins
     -- personnes_à_charge: [
-      EnfantÀCharge contenu (EnfantÀCharge {
+      EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
         -- identifiant: 0
         -- nationalité: Française
         -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
         -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
         -- date_de_naissance: |2016-01-01|
         -- rémuneration_mensuelle: 0€
-        -- obligation_scolaire: Pendant
+        -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Pendant
         -- situation_garde_alternée: PasDeGardeAlternée
       })]
-    -- logement: Logement {
+    -- logement: Aides_logement.Logement {
       -- zone: Zone2
       -- résidence_principale : vrai
-      -- mode_occupation : Locataire contenu (Location {
+      -- mode_occupation : Locataire contenu (Aides_logement.Location {
         -- bailleur: BailleurPrivé
         -- loyer_principal: 375 €
         -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
@@ -191,9 +191,9 @@ champ d'application Exemple3 :
         -- logement_meublé_d842_2: faux
         -- changement_logement_d842_4: PasDeChangement
       })
-      -- propriétaire : ParentOuAutre.Autre
-      -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
-      -- usufruit : ParentOuAutre.Autre
+      -- propriétaire : Aides_logement.ParentOuAutre.Autre
+      -- loué_ou_sous_loué_à_des_tiers : Aides_logement.LouéOuSousLouéÀDesTiers.Non
+      -- usufruit : Aides_logement.ParentOuAutre.Autre
       -- logement_decent_l89_462 : vrai
       -- surface_m_carrés : 60
     }
@@ -202,7 +202,7 @@ champ d'application Exemple3 :
     -- enfant_à_naître_après_quatrième_mois_grossesse: faux
     -- personnes_âgées_handicapées_foyer_r844_4: faux
   }
-  définition éligibilité.demandeur égal à Demandeur {
+  définition éligibilité.demandeur égal à Aides_logement.Demandeur {
     -- est_non_salarié_agricole_l781_8_l_781_46_code_rural: faux
     -- magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte: faux
     -- date_naissance : |1992-01-01|

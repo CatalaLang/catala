@@ -4,21 +4,21 @@ CLERK_OPTS?=--makeflags="$(MAKEFLAGS)"
 CLERK=_build/default/build_system/clerk.exe test --exe "_build/default/compiler/catala.exe" \
 	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),)
 
+CLERK_OPTS += -I base_mensuelle_allocations_familiales -I smic -I allocations_familiales -I prologue_france -I prestations_familiales -I aides_logement
+
+
 ################################
 # Running legislation unit tests
 ################################
 
 pass_all_tests:
-	@cd ..; $(CLERK) examples
+	@$(CLERK) test .
 
-reset_all_tests: CLERK_OPTS+=--reset
 reset_all_tests:
-	@cd ..; $(CLERK) examples
+	@$(CLERK) test . --reset
 
 %.catala_en %.catala_fr %.catala_pl: .FORCE
-    # Here we cd to the root of the Catala repository such that the paths \
-	# displayed in error messages start with `examples/` uniformly.
-	@cd ..; $(CLERK) examples/$@
+	@$(CLERK) test $@
 
 .FORCE:
 

@@ -1,17 +1,17 @@
-> Inclusion: ../aides_logement.catala_fr
+> Usage de Aides_logement
 
 # Test
 
 ```catala
 déclaration champ d'application CasTest1 :
-  calcul champ d'application CalculAidePersonnaliséeLogementFoyer
+  calcul champ d'application Aides_logement.CalculAidePersonnaliséeLogementFoyer
   résultat montant contenu argent
 
 champ d'application CasTest1:
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.date_conventionnement égal à |2022-01-01|
   définition calcul.logement_foyer_jeunes_travailleurs égal à faux
-  définition calcul.type_logement_foyer égal à TypeLogementFoyer.Autre
+  définition calcul.type_logement_foyer égal à Aides_logement.TypeLogementFoyer.Autre
   définition calcul.redevance égal à 360 €
   définition calcul.ressources_ménage_arrondies égal à 15 000€
   définition calcul.nombre_personnes_à_charge égal à 0
@@ -28,14 +28,14 @@ champ d'application CasTest1:
   assertion montant = 12,06 €
 
 déclaration champ d'application CasTest2 :
-  calcul champ d'application CalculAllocationLogementFoyer
+  calcul champ d'application Aides_logement.CalculAllocationLogementFoyer
   résultat montant contenu argent
 
 champ d'application CasTest2:
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.date_conventionnement égal à |2022-01-01|
   définition calcul.logement_foyer_jeunes_travailleurs égal à faux
-  définition calcul.type_logement_foyer égal à TypeLogementFoyer.Autre
+  définition calcul.type_logement_foyer égal à Aides_logement.TypeLogementFoyer.Autre
   définition calcul.redevance égal à 360 €
   définition calcul.ressources_ménage_arrondies égal à 15 000€
   définition calcul.nombre_personnes_à_charge égal à 0
@@ -58,14 +58,14 @@ champ d'application CasTest2:
 # Tiré de la page 34 de
 # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf#page=34
 déclaration champ d'application CasTest3 :
-  calcul champ d'application CalculAidePersonnaliséeLogementFoyer
+  calcul champ d'application Aides_logement.CalculAidePersonnaliséeLogementFoyer
   résultat montant contenu argent
 
 champ d'application CasTest3:
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.date_conventionnement égal à |2020-01-01|
   définition calcul.logement_foyer_jeunes_travailleurs égal à faux
-  définition calcul.type_logement_foyer égal à TypeLogementFoyer.Autre
+  définition calcul.type_logement_foyer égal à Aides_logement.TypeLogementFoyer.Autre
   définition calcul.redevance égal à 350 €
   définition calcul.ressources_ménage_arrondies égal à 7 500€
   définition calcul.nombre_personnes_à_charge égal à 0
@@ -84,14 +84,14 @@ champ d'application CasTest3:
 ```catala
 # Transmis par DGALN/DHUP/FE4 le 14/07/2022
 déclaration champ d'application CasTest4 :
-  calcul champ d'application CalculAidePersonnaliséeLogementFoyer
+  calcul champ d'application Aides_logement.CalculAidePersonnaliséeLogementFoyer
   résultat montant contenu argent
 
 champ d'application CasTest4:
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.date_conventionnement égal à |2020-01-01|
   définition calcul.logement_foyer_jeunes_travailleurs égal à faux
-  définition calcul.type_logement_foyer égal à TypeLogementFoyer.Autre
+  définition calcul.type_logement_foyer égal à Aides_logement.TypeLogementFoyer.Autre
   définition calcul.redevance égal à 350 €
   définition calcul.ressources_ménage_arrondies égal à 7 500€
   définition calcul.nombre_personnes_à_charge égal à 0
@@ -111,15 +111,15 @@ champ d'application CasTest4:
 ```catala
 # Transmis par DGALN/DHUP/FE4 le 14/07/2022
 déclaration champ d'application CasTest5 :
-  calcul champ d'application CalculAidePersonnaliséeLogementFoyer
+  calcul champ d'application Aides_logement.CalculAidePersonnaliséeLogementFoyer
   résultat montant contenu argent
 
 champ d'application CasTest5:
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.logement_foyer_jeunes_travailleurs égal à faux
   définition calcul.date_conventionnement égal à |2020-01-01|
   définition calcul.type_logement_foyer égal à
-    TypeLogementFoyer.RésidenceSociale
+    Aides_logement.TypeLogementFoyer.RésidenceSociale
   définition calcul.redevance égal à 350 €
   définition calcul.ressources_ménage_arrondies égal à 7 500€
   définition calcul.nombre_personnes_à_charge égal à 0

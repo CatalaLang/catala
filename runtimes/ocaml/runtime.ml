@@ -13,6 +13,9 @@
    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
    License for the specific language governing permissions and limitations under
    the License. *)
+
+module Dates = Dates_calc.Dates
+
 open Ppx_yojson_conv_lib.Yojson_conv.Primitives
 
 type nonrec unit = unit
@@ -22,9 +25,9 @@ type nonrec bool = bool
 type money = Z.t
 type integer = Z.t
 type decimal = Q.t
-type date = Dates_calc.Dates.date
-type date_rounding = Dates_calc.Dates.date_rounding
-type duration = Dates_calc.Dates.period
+type date = Dates.date
+type date_rounding = Dates.date_rounding
+type duration = Dates.period
 
 module Eoption = struct
   type 'a t = ENone of unit | ESome of 'a
@@ -133,36 +136,36 @@ let integer_exponentiation (i : integer) (e : int) : integer = Z.pow i e
 let integer_log2 = Z.log2
 
 let year_of_date (d : date) : integer =
-  let y, _, _ = Dates_calc.Dates.date_to_ymd d in
+  let y, _, _ = Dates.date_to_ymd d in
   Z.of_int y
 
 let month_number_of_date (d : date) : integer =
-  let _, m, _ = Dates_calc.Dates.date_to_ymd d in
+  let _, m, _ = Dates.date_to_ymd d in
   Z.of_int m
 
 let is_leap_year (y : integer) =
   let y = Z.to_int y in
-  Dates_calc.Dates.is_leap_year y
+  Dates.is_leap_year y
 
 let day_of_month_of_date (d : date) : integer =
-  let _, _, d = Dates_calc.Dates.date_to_ymd d in
+  let _, _, d = Dates.date_to_ymd d in
   Z.of_int d
 
 let date_of_numbers (year : int) (month : int) (day : int) : date =
-  try Dates_calc.Dates.make_date ~year ~month ~day
+  try Dates.make_date ~year ~month ~day
   with _ -> raise ImpossibleDate
 
 let date_to_string (d : date) : string =
-  Format.asprintf "%a" Dates_calc.Dates.format_date d
+  Format.asprintf "%a" Dates.format_date d
 
-let first_day_of_month = Dates_calc.Dates.first_day_of_month
-let last_day_of_month = Dates_calc.Dates.last_day_of_month
+let first_day_of_month = Dates.first_day_of_month
+let last_day_of_month = Dates.last_day_of_month
 
 let duration_of_numbers (year : int) (month : int) (day : int) : duration =
-  Dates_calc.Dates.make_period ~years:year ~months:month ~days:day
+  Dates.make_period ~years:year ~months:month ~days:day
 
 let duration_to_string (d : duration) : string =
-  Format.asprintf "%a" Dates_calc.Dates.format_period d
+  Format.asprintf "%a" Dates.format_period d
 (* breaks previous format *)
 (* let x, y, z = CalendarLib.Date.Period.ymd d in
  * let to_print =
@@ -178,7 +181,7 @@ let duration_to_string (d : duration) : string =
  *     to_print *)
 
 let duration_to_years_months_days (d : duration) : int * int * int =
-  Dates_calc.Dates.period_to_ymds d
+  Dates.period_to_ymds d
 
 let yojson_of_money (m : money) = `Float (money_to_float m)
 let yojson_of_integer (i : integer) = `Int (integer_to_int i)
@@ -617,17 +620,17 @@ let no_input : unit -> 'a = fun _ -> raise EmptyError
    [3 months, 4 months] *)
 let compare_periods (p1 : duration) (p2 : duration) : int =
   try
-    let p1_days = Dates_calc.Dates.period_to_days p1 in
-    let p2_days = Dates_calc.Dates.period_to_days p2 in
+    let p1_days = Dates.period_to_days p1 in
+    let p2_days = Dates.period_to_days p2 in
     compare p1_days p2_days
-  with Dates_calc.Dates.AmbiguousComputation -> raise UncomparableDurations
+  with Dates.AmbiguousComputation -> raise UncomparableDurations
 
 (* TODO: same here, although it was tweaked to never fail on equal dates.
    Comparing the difference to duration_0 is not a good idea because we still
    want to fail on [1 month, 30 days] rather than return [false] *)
 let equal_periods (p1 : duration) (p2 : duration) : bool =
-  try Dates_calc.Dates.period_to_days (Dates_calc.Dates.sub_periods p1 p2) = 0
-  with Dates_calc.Dates.AmbiguousComputation -> raise UncomparableDurations
+  try Dates.period_to_days (Dates.sub_periods p1 p2) = 0
+  with Dates.AmbiguousComputation -> raise UncomparableDurations
 
 module Oper = struct
   let o_not = Stdlib.not
@@ -645,7 +648,7 @@ module Oper = struct
   let o_minus_int i1 = Z.sub Z.zero i1
   let o_minus_rat i1 = Q.sub Q.zero i1
   let o_minus_mon m1 = Z.sub Z.zero m1
-  let o_minus_dur = Dates_calc.Dates.neg_period
+  let o_minus_dur = Dates.neg_period
   let o_and = ( && )
   let o_or = ( || )
   let o_xor : bool -> bool -> bool = ( <> )
@@ -667,14 +670,14 @@ module Oper = struct
   let o_add_int_int i1 i2 = Z.add i1 i2
   let o_add_rat_rat i1 i2 = Q.add i1 i2
   let o_add_mon_mon m1 m2 = Z.add m1 m2
-  let o_add_dat_dur r da du = Dates_calc.Dates.add_dates ~round:r da du
-  let o_add_dur_dur = Dates_calc.Dates.add_periods
+  let o_add_dat_dur r da du = Dates.add_dates ~round:r da du
+  let o_add_dur_dur = Dates.add_periods
   let o_sub_int_int i1 i2 = Z.sub i1 i2
   let o_sub_rat_rat i1 i2 = Q.sub i1 i2
   let o_sub_mon_mon m1 m2 = Z.sub m1 m2
-  let o_sub_dat_dat = Dates_calc.Dates.sub_dates
-  let o_sub_dat_dur dat dur = Dates_calc.Dates.(add_dates dat (neg_period dur))
-  let o_sub_dur_dur = Dates_calc.Dates.sub_periods
+  let o_sub_dat_dat = Dates.sub_dates
+  let o_sub_dat_dur dat dur = Dates.(add_dates dat (neg_period dur))
+  let o_sub_dur_dur = Dates.sub_periods
   let o_mult_int_int i1 i2 = Z.mul i1 i2
   let o_mult_rat_rat i1 i2 = Q.mul i1 i2
 
@@ -690,7 +693,7 @@ module Oper = struct
       Z.(add res (of_int 1) * of_int sign_int)
     else Z.(res * of_int sign_int)
 
-  let o_mult_dur_int d m = Dates_calc.Dates.mul_period d (Z.to_int m)
+  let o_mult_dur_int d m = Dates.mul_period d (Z.to_int m)
 
   let o_div_int_int i1 i2 =
     (* It's not on the ocamldoc, but Q.div likely already raises this ? *)
@@ -710,9 +713,9 @@ module Oper = struct
   let o_div_dur_dur d1 d2 =
     let i1, i2 =
       try
-        ( integer_of_int (Dates_calc.Dates.period_to_days d1),
-          integer_of_int (Dates_calc.Dates.period_to_days d2) )
-      with Dates_calc.Dates.AmbiguousComputation -> raise IndivisibleDurations
+        ( integer_of_int (Dates.period_to_days d1),
+          integer_of_int (Dates.period_to_days d2) )
+      with Dates.AmbiguousComputation -> raise IndivisibleDurations
     in
     o_div_int_int i1 i2
 
@@ -720,12 +723,12 @@ module Oper = struct
   let o_lt_rat_rat i1 i2 = Q.compare i1 i2 < 0
   let o_lt_mon_mon m1 m2 = Z.compare m1 m2 < 0
   let o_lt_dur_dur d1 d2 = compare_periods d1 d2 < 0
-  let o_lt_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 < 0
+  let o_lt_dat_dat d1 d2 = Dates.compare_dates d1 d2 < 0
   let o_lte_int_int i1 i2 = Z.compare i1 i2 <= 0
   let o_lte_rat_rat i1 i2 = Q.compare i1 i2 <= 0
   let o_lte_mon_mon m1 m2 = Z.compare m1 m2 <= 0
   let o_lte_dur_dur d1 d2 = compare_periods d1 d2 <= 0
-  let o_lte_dat_dat d1 d2 = Dates_calc.Dates.compare_dates d1 d2 <= 0
+  let o_lte_dat_dat d1 d2 = Dates.compare_dates d1 d2 <= 0
   let o_gt_int_int i1 i2 = Z.compare i1 i2 > 0
   let o_gt_rat_rat i1 i2 = Q.compare i1 i2 > 0
   let o_gt_mon_mon m1 m2 = Z.compare m1 m2 > 0

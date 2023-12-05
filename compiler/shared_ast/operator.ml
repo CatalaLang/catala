@@ -54,9 +54,9 @@ let name : type a. a t -> string = function
   | Add_mon_mon -> "o_add_mon_mon"
   | Add_dat_dur rm -> begin
     match rm with
-    | RoundUp -> "o_add_dat_dur RoundUp"
-    | RoundDown -> "o_add_dat_dur RoundDown"
-    | AbortOnRound -> "o_add_dat_dur AbortOnRound"
+    | RoundUp -> "o_add_dat_dur Dates.RoundUp"
+    | RoundDown -> "o_add_dat_dur Dates.RoundDown"
+    | AbortOnRound -> "o_add_dat_dur Dates.AbortOnRound"
   end
   | Add_dur_dur -> "o_add_dur_dur"
   | Sub -> "o_sub"

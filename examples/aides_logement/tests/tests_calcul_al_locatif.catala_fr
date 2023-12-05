@@ -1,4 +1,4 @@
-> Inclusion: ../aides_logement.catala_fr
+> Usage de Aides_logement
 
 # Tests
 
@@ -6,7 +6,7 @@
 # Tiré de la page 24 de
 # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf
 déclaration champ d'application Exemple1 :
-  calcul champ d'application CalculAllocationLogementLocatif
+  calcul champ d'application Aides_logement.CalculAllocationLogementLocatif
   résultat montant contenu argent
 
 champ d'application Exemple1 :
@@ -18,11 +18,11 @@ champ d'application Exemple1 :
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.zone égal à Zone2
   définition calcul.logement_est_chambre égal à faux
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     égal à faux
   définition calcul.type_aide égal à
-    TypeAidesPersonnelleLogement.AllocationLogementFamiliale
+    Aides_logement.TypeAidesPersonnelleLogement.AllocationLogementFamiliale
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.logement_meublé_d842_2 égal à faux
@@ -37,7 +37,7 @@ champ d'application Exemple1 :
 
 # Transmis par DGALN/DHUP/FE4 le 12/07/2022
 déclaration champ d'application Exemple2 :
-  calcul champ d'application CalculAllocationLogementLocatif
+  calcul champ d'application Aides_logement.CalculAllocationLogementLocatif
   résultat montant contenu argent
 
 champ d'application Exemple2 :
@@ -48,12 +48,12 @@ champ d'application Exemple2 :
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.zone égal à Zone2
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.logement_est_chambre égal à faux
   définition calcul.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     égal à faux
   définition calcul.type_aide égal à
-    TypeAidesPersonnelleLogement.AllocationLogementFamiliale
+    Aides_logement.TypeAidesPersonnelleLogement.AllocationLogementFamiliale
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.logement_meublé_d842_2 égal à faux
@@ -64,7 +64,7 @@ champ d'application Exemple2 :
 
 # Exemple aux DROM
 déclaration champ d'application Exemple3 :
-  calcul champ d'application CalculAllocationLogementLocatif
+  calcul champ d'application Aides_logement.CalculAllocationLogementLocatif
   résultat montant contenu argent
 
 champ d'application Exemple3 :
@@ -75,12 +75,12 @@ champ d'application Exemple3 :
   définition calcul.nombre_personnes_à_charge égal à 1
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.zone égal à Zone2
-  définition calcul.résidence égal à LaRéunion
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.LaRéunion
   définition calcul.logement_est_chambre égal à faux
   définition calcul.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
    égal à faux
   définition calcul.type_aide égal à
-   TypeAidesPersonnelleLogement.AllocationLogementFamiliale
+   Aides_logement.TypeAidesPersonnelleLogement.AllocationLogementFamiliale
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.logement_meublé_d842_2 égal à faux
@@ -93,7 +93,7 @@ champ d'application Exemple3 :
 ```catala
 # Exemple à Saint-Pierre-et-Miquelon
 déclaration champ d'application Exemple4 :
-  calcul champ d'application CalculAllocationLogementLocatif
+  calcul champ d'application Aides_logement.CalculAllocationLogementLocatif
   résultat montant contenu argent
 
 champ d'application Exemple4 :
@@ -104,12 +104,12 @@ champ d'application Exemple4 :
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à PersonneSeule
   définition calcul.zone égal à Zone2
-  définition calcul.résidence égal à SaintPierreEtMiquelon
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.SaintPierreEtMiquelon
   définition calcul.logement_est_chambre égal à faux
   définition calcul.âgées_ou_handicap_adultes_hébergées_onéreux_particuliers
     égal à faux
   définition calcul.type_aide égal à
-    TypeAidesPersonnelleLogement.AllocationLogementFamiliale
+    Aides_logement.TypeAidesPersonnelleLogement.AllocationLogementFamiliale
   définition calcul.colocation égal à faux
   définition calcul.réduction_loyer_solidarité égal à 0 €
   définition calcul.logement_meublé_d842_2 égal à faux

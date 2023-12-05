@@ -1,4 +1,4 @@
-> Inclusion: ../aides_logement.catala_fr
+> Usage de Aides_logement
 
 # Tests
 
@@ -6,7 +6,7 @@
 # Tiré de la page 54 de
 # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf#page=45
 déclaration champ d'application Exemple1:
-  calcul champ d'application CalculAllocationLogementAccessionPropriété
+  calcul champ d'application Aides_logement.CalculAllocationLogementAccessionPropriété
   résultat montant contenu argent
 
 champ d'application Exemple1:
@@ -17,11 +17,11 @@ champ d'application Exemple1:
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.date_courante égal à |2023-03-15|
-  définition calcul.résidence égal à Guadeloupe
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Guadeloupe
   définition calcul.charges_mensuelles_prêt égal à 450 €
 
   définition calcul.type_travaux_logement égal à
-    TypeTravauxLogementR842_5.PasDeTravaux
+    Aides_logement.TypeTravauxLogementR842_5.PasDeTravaux
   définition calcul.date_entrée_logement égal à |2015-10-10|
   définition calcul.local_habité_première_fois_bénéficiaire égal à faux
   définition calcul.copropriété égal à faux
@@ -40,7 +40,7 @@ champ d'application Exemple1:
 
 ```catala
 déclaration champ d'application Exemple2:
-  calcul champ d'application CalculAllocationLogementAccessionPropriété
+  calcul champ d'application Aides_logement.CalculAllocationLogementAccessionPropriété
   résultat montant contenu argent
 
 champ d'application Exemple2:
@@ -51,11 +51,11 @@ champ d'application Exemple2:
   définition calcul.nombre_personnes_à_charge égal à 4
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.date_courante égal à |2023-04-10|
-  définition calcul.résidence égal à SaintPierreEtMiquelon
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.SaintPierreEtMiquelon
   définition calcul.charges_mensuelles_prêt égal à 500 €
 
   définition calcul.type_travaux_logement égal à
-    TypeTravauxLogementR842_5.PrévuDansListeR321_15
+    Aides_logement.TypeTravauxLogementR842_5.PrévuDansListeR321_15
   définition calcul.date_entrée_logement égal à |2020-12-01|
   définition calcul.local_habité_première_fois_bénéficiaire égal à faux
   définition calcul.copropriété égal à faux

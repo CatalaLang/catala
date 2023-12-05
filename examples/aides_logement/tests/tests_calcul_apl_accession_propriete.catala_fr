@@ -1,4 +1,4 @@
-> Inclusion: ../aides_logement.catala_fr
+> Usage de Aides_logement
 
 # Tests
 
@@ -6,7 +6,7 @@
 # Tiré de la page 45 de
 # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf#page=45
 déclaration champ d'application Exemple1:
-  calcul champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  calcul champ d'application Aides_logement.CalculAidePersonnaliséeLogementAccessionPropriété
   résultat montant contenu argent
 
 champ d'application Exemple1:
@@ -17,11 +17,11 @@ champ d'application Exemple1:
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.date_courante égal à |2021-09-15|
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.type_prêt égal à D331_63_64
 
   définition calcul.type_travaux_logement égal à
-    TypeTravauxLogementD832_15.PasDeTravaux
+    Aides_logement.TypeTravauxLogementD832_15.PasDeTravaux
   définition calcul.ancienneté_logement égal à Neuf
   définition calcul.date_entrée_logement égal à |2017-12-15|
   définition calcul.local_habité_première_fois_bénéficiaire égal à faux
@@ -42,7 +42,7 @@ champ d'application Exemple1:
 # Tiré de la page 45 de
 # https://www.ecologie.gouv.fr/sites/default/files/les_aides_personnelles_au_logement_element_de_calcul_septembre_2021.pdf#page=45
 déclaration champ d'application Exemple2:
-  calcul champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  calcul champ d'application Aides_logement.CalculAidePersonnaliséeLogementAccessionPropriété
   résultat montant contenu argent
 
 champ d'application Exemple2:
@@ -53,12 +53,12 @@ champ d'application Exemple2:
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.date_courante égal à |2021-09-15|
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.type_prêt égal à D331_63_64
 
   définition calcul.type_travaux_logement égal à
-    TypeTravauxLogementD832_15.TravauxPourAcquisitionD832_15_1
-  définition calcul.ancienneté_logement égal à (Ancien contenu (AmélioréParOccupant.Oui))
+    Aides_logement.TypeTravauxLogementD832_15.TravauxPourAcquisitionD832_15_1
+  définition calcul.ancienneté_logement égal à (Ancien contenu (Aides_logement.AmélioréParOccupant.Oui))
   définition calcul.date_entrée_logement égal à |2020-03-02|
   définition calcul.local_habité_première_fois_bénéficiaire égal à faux
   définition calcul.copropriété égal à faux
@@ -80,14 +80,14 @@ champ d'application Exemple2:
 ```catala
 # Transmis par DGALN/DHUP/FE4 le 14/07/2022
 déclaration champ d'application Exemple3:
-  calcul champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  calcul champ d'application Aides_logement.CalculAidePersonnaliséeLogementAccessionPropriété
   résultat montant contenu argent
 
 champ d'application Exemple3:
   définition calcul.ressources_ménage_arrondies égal à 18 000 €
   définition calcul.date_signature_prêt égal à |2017-12-15|
   définition calcul.zone égal à Zone2
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.mensualité_principale égal à 650 €
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
@@ -95,7 +95,7 @@ champ d'application Exemple3:
   définition calcul.type_prêt égal à D331_63_64
 
   définition calcul.type_travaux_logement égal à
-    TypeTravauxLogementD832_15.PasDeTravaux
+    Aides_logement.TypeTravauxLogementD832_15.PasDeTravaux
   définition calcul.ancienneté_logement égal à Neuf
   définition calcul.date_entrée_logement égal à |2017-12-15|
   définition calcul.local_habité_première_fois_bénéficiaire égal à faux
@@ -115,7 +115,7 @@ champ d'application Exemple3:
 ```catala
 # Transmis par DGALN/DHUP/FE4 le 14/07/2022
 déclaration champ d'application Exemple4:
-  calcul champ d'application CalculAidePersonnaliséeLogementAccessionPropriété
+  calcul champ d'application Aides_logement.CalculAidePersonnaliséeLogementAccessionPropriété
   résultat montant contenu argent
 
 champ d'application Exemple4:
@@ -123,15 +123,15 @@ champ d'application Exemple4:
   définition calcul.date_signature_prêt égal à |2019-12-02|
   définition calcul.zone égal à Zone3
   définition calcul.mensualité_principale égal à 495 €
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.nombre_personnes_à_charge égal à 2
   définition calcul.situation_familiale_calcul_apl égal à Couple
   définition calcul.date_courante égal à |2022-05-01|
   définition calcul.type_prêt égal à D331_63_64
 
   définition calcul.type_travaux_logement égal à
-    TypeTravauxLogementD832_15.TravauxSurLogementDéjàAcquisD832_15_2
-  définition calcul.ancienneté_logement égal à (Ancien contenu (AmélioréParOccupant.Oui))
+    Aides_logement.TypeTravauxLogementD832_15.TravauxSurLogementDéjàAcquisD832_15_2
+  définition calcul.ancienneté_logement égal à (Ancien contenu (Aides_logement.AmélioréParOccupant.Oui))
   définition calcul.date_entrée_logement égal à |2020-03-02|
   définition calcul.local_habité_première_fois_bénéficiaire égal à faux
   définition calcul.copropriété égal à faux

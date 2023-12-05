@@ -1,3 +1,8 @@
+> Usage de Prologue_france en tant que France
+
+> Usage de Prestations_familiales en tant que PF
+> Usage de Bmaf
+
 # Prologue : aides au logement
 
 Avant de présenter les textes réglementaires qui régissent le calcul des
@@ -182,7 +187,7 @@ déclaration structure EnfantÀCharge:
   donnée a_déjà_ouvert_droit_aux_allocations_familiales contenu booléen
   donnée date_de_naissance contenu date
   donnée rémuneration_mensuelle contenu argent
-  donnée obligation_scolaire contenu SituationObligationScolaire
+  donnée obligation_scolaire contenu PF.SituationObligationScolaire
   donnée situation_garde_alternée contenu SituationGardeAlternée
   donnée études_apprentissage_stage_formation_pro_impossibilité_travail
     contenu booléen
@@ -224,7 +229,7 @@ déclaration structure Ménage:
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
   donnée enfant_à_naître_après_quatrième_mois_grossesse contenu booléen
   donnée personnes_âgées_handicapées_foyer_r844_4 contenu booléen
-  donnée résidence contenu Collectivité
+  donnée résidence contenu France.Collectivité
 
 
 déclaration structure Demandeur:
@@ -324,7 +329,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne âge_l351_1_5_sécu contenu durée
   interne plafond_individuel_l815_9_sécu contenu argent
 
-  prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
+  prestations_familiales champ d'application PF.ÉligibilitéPrestationsFamiliales
   ouverture_droits_retraite champ d'application OuvertureDroitsRetraite
 
   résultat éligibilité condition
@@ -428,7 +433,7 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
   interne éligibilité_allocation_logement_familiale condition
   interne durée_l841_1_3 contenu durée
 
-  prestations_familiales champ d'application ÉligibilitéPrestationsFamiliales
+  prestations_familiales champ d'application PF.ÉligibilitéPrestationsFamiliales
   éligibilité_commune champ d'application ÉligibilitéAidesPersonnelleLogement
 
 
@@ -479,7 +484,7 @@ déclaration champ d'application ÉligibilitéPrimeDeDéménagement:
 
   éligibilité_apl champ d'application ÉligibilitéAidesPersonnelleLogement
   base_mensuelle_allocations_familiales champ d'application
-    BaseMensuelleAllocationsFamiliales
+    Bmaf.BaseMensuelleAllocationsFamiliales
 
   résultat éligibilité condition
   résultat montant_prime_déménagement contenu argent
@@ -501,7 +506,7 @@ champ d'application ÉligibilitéPrimeDeDéménagement:
 ```catala-metadata
 déclaration champ d'application ContributionsSocialesAidesPersonnelleLogement:
   entrée date_courante contenu date
-  entrée lieu contenu Collectivité
+  entrée lieu contenu France.Collectivité
 
   interne taux_crds contenu décimal
   interne exonéré_csg condition
@@ -537,7 +542,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogementLocatif:
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
   entrée logement_meublé_d842_2 contenu booléen
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
 
   interne loyer_éligible contenu argent
   interne taux_loyer_éligible contenu décimal
@@ -629,7 +634,7 @@ déclaration champ d'application CalculNombrePartLogementFoyer:
   résultat n_nombre_parts_d832_25 contenu décimal
 
 déclaration champ d'application CalculAidePersonnaliséeLogementFoyer:
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
   entrée logement_foyer_jeunes_travailleurs contenu booléen
   entrée type_logement_foyer contenu TypeLogementFoyer
   entrée date_conventionnement contenu date
@@ -712,7 +717,7 @@ déclaration champ d'application
   entrée type_prêt contenu TypePrêt
   entrée ancienneté_logement contenu NeufOuAncien
   entrée date_courante contenu date
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
 
   résultat mensualité_éligible contenu argent
   résultat mensualité_minimale contenu argent
@@ -784,7 +789,7 @@ déclaration champ d'application CalculAidePersonnaliséeLogement:
   entrée nombre_personnes_à_charge contenu entier
   entrée zone contenu ZoneDHabitation
   entrée date_courante contenu date
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
 
   interne catégorie_calcul_apl contenu CatégorieCalculAPL
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
@@ -827,7 +832,7 @@ déclaration champ d'application CalculAllocationLogementLocatif:
   entrée colocation contenu booléen
   entrée réduction_loyer_solidarité contenu argent
   entrée logement_meublé_d842_2 contenu booléen
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
 
   # Entrées spécifiques
   entrée changement_logement_d842_4 contenu ChangementLogementD842_4
@@ -866,7 +871,7 @@ déclaration champ d'application CalculAllocationLogementAccessionPropriété:
   entrée nombre_personnes_à_charge contenu entier
   entrée situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL
   entrée zone contenu ZoneDHabitation
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
   entrée date_courante contenu date
   entrée mensualité_principale contenu argent
   entrée situation_r822_11_13_17 contenu booléen
@@ -973,7 +978,7 @@ déclaration champ d'application CalculAllocationLogementFoyer:
   entrée type_logement_foyer contenu TypeLogementFoyer
   entrée logement_foyer_jeunes_travailleurs contenu booléen
   entrée date_conventionnement contenu date
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
   entrée redevance contenu argent
   entrée ressources_ménage_arrondies contenu argent
   entrée nombre_personnes_à_charge contenu entier
@@ -1062,7 +1067,7 @@ déclaration champ d'application CalculAllocationLogement:
   entrée zone contenu ZoneDHabitation
   entrée date_courante contenu date
   entrée type_aide contenu TypeAidesPersonnelleLogement
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
 
   interne catégorie_calcul_apl contenu CatégorieCalculAPL
   interne situation_familiale_calcul_apl contenu SituationFamilialeCalculAPL

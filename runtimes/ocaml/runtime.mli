@@ -17,6 +17,10 @@
 
 (** The OCaml runtime. *)
 
+(** {1 Re-exported modules} *)
+
+module Dates: sig include module type of Dates_calc.Dates end
+
 (** {1 Types} *)
 
 type nonrec unit = unit
@@ -27,9 +31,9 @@ type money = Z.t
 
 type integer = Z.t
 type decimal = Q.t
-type date = Dates_calc.Dates.date
-type duration = Dates_calc.Dates.period
-type date_rounding = Dates_calc.Dates.date_rounding
+type date = Dates.date
+type duration = Dates.period
+type date_rounding = Dates.date_rounding
 
 type source_position = {
   filename : string;

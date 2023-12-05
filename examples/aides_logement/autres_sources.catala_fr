@@ -368,7 +368,7 @@ peuvent être modifiées par décret.
 ```catala
 déclaration montée_en_charge_saint_pierre_miquelon contenu argent dépend de
   aide_finale contenu argent,
-  résidence contenu Collectivité,
+  résidence contenu France.Collectivité,
   date_courante contenu date
 égal à
   si

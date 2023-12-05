@@ -1,3 +1,5 @@
+> Usage de Prologue_france en tant que France
+
 # Prologue : prestations familiales
 
 Avant de présenter les textes réglementaires qui régissent le calcul des
@@ -19,7 +21,7 @@ déclaration structure EnfantPrestationsFamiliales :
 
 déclaration champ d'application ÉligibilitéPrestationsFamiliales:
   entrée date_courante contenu date
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
 
   interne plafond_l512_3_2 contenu argent
 
@@ -30,7 +32,7 @@ déclaration champ d'application ÉligibilitéPrestationsFamiliales:
     dépend de enfant contenu EnfantPrestationsFamiliales
   résultat régime_outre_mer_l751_1 condition
 
-  smic champ d'application Smic
+  smic champ d'application Smic.Smic
 
 champ d'application ÉligibilitéPrestationsFamiliales:
   définition smic.résidence égal à résidence

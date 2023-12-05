@@ -1,13 +1,15 @@
+> Module Smic
+
+> Usage de Prologue_france en tant que France
+
 # Montant du salaire minimum de croissance
 
 ## Prologue
 
-> Inclusion: ../prologue_france/prologue.catala_fr
-
 ```catala-metadata
 déclaration champ d'application Smic :
   entrée date_courante contenu date
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
   résultat brut_horaire contenu argent
 
 champ d'application Smic :

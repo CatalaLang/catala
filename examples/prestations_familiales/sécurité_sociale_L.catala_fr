@@ -62,7 +62,7 @@ champ d'application ÉligibilitéPrestationsFamiliales :
   étiquette cas_base règle droit_ouvert de enfant sous condition
     enfant.obligation_scolaire sous forme Après et
     (enfant.rémuneration_mensuelle <= plafond_l512_3_2) et
-    (résultat de VérificationÂgeSupérieurÀ avec
+    (résultat de France.VérificationÂgeSupérieurÀ avec
                 { -- date_naissance: enfant.date_de_naissance
                   -- date_courante: date_courante
                   -- années: âge_l512_3_2 }).est_supérieur

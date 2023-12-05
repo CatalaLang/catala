@@ -1,11 +1,11 @@
-> Inclusion: ../aides_logement.catala_fr
+> Usage de Aides_logement
 
 # Tests
 
 ```catala
 # TODO juridique: test à vérifier
 déclaration champ d'application Exemple1 :
-  calculette champ d'application CalculetteAidesAuLogementGardeAlternée
+  calculette champ d'application Aides_logement.CalculetteAidesAuLogementGardeAlternée
   résultat éligibilité contenu booléen
   résultat montant_versé contenu argent
 
@@ -13,46 +13,46 @@ champ d'application Exemple1 :
   définition éligibilité égal à calculette.éligibilité
   définition montant_versé égal à calculette.aide_finale
   définition calculette.date_courante égal à |2022-01-01|
-  définition calculette.ménage égal à Ménage {
+  définition calculette.ménage égal à Aides_logement.Ménage {
    -- prestations_reçues: [
-     PrestationReçue.AllocationSoutienEnfantHandicapé;
-     PrestationReçue.ComplémentFamilial;
-     PrestationReçue.AllocationsFamiliales
+     Aides_logement.PrestationReçue.AllocationSoutienEnfantHandicapé;
+     Aides_logement.PrestationReçue.ComplémentFamilial;
+     Aides_logement.PrestationReçue.AllocationsFamiliales
    ]
    -- situation_familiale: Mariés contenu |2010-11-26|
    -- personnes_à_charge: [
-     EnfantÀCharge contenu (EnfantÀCharge {
+     EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
        -- identifiant: 0
        -- nationalité: Française
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2003-01-01|
        -- études_apprentissage_stage_formation_pro_impossibilité_travail: vrai
        -- rémuneration_mensuelle: 0€
-       -- obligation_scolaire: Après
+       -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Après
        -- situation_garde_alternée: GardeAlternéeCoefficientPriseEnCharge contenu 0,7
-     }); EnfantÀCharge contenu (EnfantÀCharge {
+     }); EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
        -- identifiant: 1
        -- nationalité: Française
        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2011-01-01|
        -- rémuneration_mensuelle: 0€
-       -- obligation_scolaire: Pendant
+       -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Pendant
        -- situation_garde_alternée: PasDeGardeAlternée
-     }); EnfantÀCharge contenu (EnfantÀCharge {
+     }); EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
        -- identifiant: 2
        -- nationalité: Française
        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2014-01-01|
        -- rémuneration_mensuelle: 0€
-       -- obligation_scolaire: Pendant
+       -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Pendant
        -- situation_garde_alternée: PasDeGardeAlternée
      })]
-   -- logement: Logement {
+   -- logement: Aides_logement.Logement {
       -- zone: Zone1
       -- résidence_principale : vrai
-      -- mode_occupation : Locataire contenu (Location {
+      -- mode_occupation : Locataire contenu (Aides_logement.Location {
       -- loyer_principal: 1700 €
       -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
       -- logement_est_chambre: faux
@@ -60,14 +60,14 @@ champ d'application Exemple1 :
       -- âgées_ou_handicap_adultes_hébergées_onéreux_particuliers: faux
       -- logement_meublé_d842_2: faux
       -- changement_logement_d842_4: PasDeChangement
-      -- bailleur: BailleurSocial contenu (ConventionBailleurSocial{
+      -- bailleur: BailleurSocial contenu (Aides_logement.ConventionBailleurSocial{
           -- conventionné_livre_III_titre_V_chap_III: vrai
           -- réduction_loyer_solidarité_perçue: 0 €
         })
      })
-     -- propriétaire : ParentOuAutre.Autre
-     -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
-     -- usufruit : ParentOuAutre.Autre
+     -- propriétaire : Aides_logement.ParentOuAutre.Autre
+     -- loué_ou_sous_loué_à_des_tiers : Aides_logement.LouéOuSousLouéÀDesTiers.Non
+     -- usufruit : Aides_logement.ParentOuAutre.Autre
      -- logement_decent_l89_462 : vrai
      -- surface_m_carrés : 80
    }
@@ -75,9 +75,9 @@ champ d'application Exemple1 :
    -- condition_rattaché_foyer_fiscal_parent_ifi: faux
    -- enfant_à_naître_après_quatrième_mois_grossesse: faux
    -- personnes_âgées_handicapées_foyer_r844_4: faux
-   -- résidence :Métropole
+   -- résidence: Aides_logement.France.Collectivité.Métropole
   }
-  définition calculette.demandeur égal à Demandeur {
+  définition calculette.demandeur égal à Aides_logement.Demandeur {
     -- est_non_salarié_agricole_l781_8_l_781_46_code_rural: faux
     -- magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte: faux
     -- personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale: faux
@@ -89,7 +89,7 @@ champ d'application Exemple1 :
 
 ```catala
 déclaration champ d'application Exemple2 :
-  calculette champ d'application CalculetteAidesAuLogementGardeAlternée
+  calculette champ d'application Aides_logement.CalculetteAidesAuLogementGardeAlternée
   résultat éligibilité contenu booléen
   résultat montant_versé contenu argent
 
@@ -97,33 +97,33 @@ champ d'application Exemple2 :
   définition éligibilité égal à calculette.éligibilité
   définition montant_versé égal à calculette.aide_finale
   définition calculette.date_courante égal à |2023-04-01|
-  définition calculette.ménage égal à Ménage {
+  définition calculette.ménage égal à Aides_logement.Ménage {
    -- prestations_reçues: []
    -- situation_familiale: Célibataire
    -- personnes_à_charge: [
-     EnfantÀCharge contenu (EnfantÀCharge {
+     EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
        -- identifiant: 0
        -- nationalité: Française
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2008-01-01|
        -- études_apprentissage_stage_formation_pro_impossibilité_travail: vrai
        -- rémuneration_mensuelle: 0€
-       -- obligation_scolaire: Après
+       -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Après
        -- situation_garde_alternée: PasDeGardeAlternée
-     }); EnfantÀCharge contenu (EnfantÀCharge {
+     }); EnfantÀCharge contenu (Aides_logement.EnfantÀCharge {
        -- identifiant: 1
        -- nationalité: Française
        -- études_apprentissage_stage_formation_pro_impossibilité_travail: faux
        -- a_déjà_ouvert_droit_aux_allocations_familiales: vrai
        -- date_de_naissance: |2011-01-01|
        -- rémuneration_mensuelle: 0€
-       -- obligation_scolaire: Pendant
+       -- obligation_scolaire: Aides_logement.PF.SituationObligationScolaire.Pendant
        -- situation_garde_alternée: PasDeGardeAlternée
      })]
-   -- logement: Logement {
+   -- logement: Aides_logement.Logement {
       -- zone: Zone2
       -- résidence_principale : vrai
-      -- mode_occupation : Locataire contenu (Location {
+      -- mode_occupation : Locataire contenu (Aides_logement.Location {
         -- loyer_principal: 500 €
         -- bénéficiaire_aide_adulte_ou_enfant_handicapés: faux
         -- logement_est_chambre: faux
@@ -133,9 +133,9 @@ champ d'application Exemple2 :
         -- changement_logement_d842_4: PasDeChangement
         -- bailleur: BailleurPrivé
      })
-     -- propriétaire : ParentOuAutre.Autre
-     -- loué_ou_sous_loué_à_des_tiers : LouéOuSousLouéÀDesTiers.Non
-     -- usufruit : ParentOuAutre.Autre
+     -- propriétaire : Aides_logement.ParentOuAutre.Autre
+     -- loué_ou_sous_loué_à_des_tiers : Aides_logement.LouéOuSousLouéÀDesTiers.Non
+     -- usufruit : Aides_logement.ParentOuAutre.Autre
      -- logement_decent_l89_462 : vrai
      -- surface_m_carrés : 60
    }
@@ -143,9 +143,9 @@ champ d'application Exemple2 :
    -- condition_rattaché_foyer_fiscal_parent_ifi: faux
    -- enfant_à_naître_après_quatrième_mois_grossesse: faux
    -- personnes_âgées_handicapées_foyer_r844_4: faux
-   -- résidence : SaintPierreEtMiquelon
+   -- résidence : Aides_logement.France.Collectivité.SaintPierreEtMiquelon
   }
-  définition calculette.demandeur égal à Demandeur {
+  définition calculette.demandeur égal à Aides_logement.Demandeur {
     -- est_non_salarié_agricole_l781_8_l_781_46_code_rural: faux
     -- magistrat_fonctionnaire_centre_intérêts_matériels_familiaux_hors_mayotte: faux
     -- personne_hébergée_centre_soin_l_L162_22_3_sécurité_sociale: faux

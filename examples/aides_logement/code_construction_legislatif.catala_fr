@@ -1,3 +1,5 @@
+> Usage de Prologue_france en tant que France
+> Usage de Prestations_familiales en tant que PF
 
 ## Partie législative
 
@@ -221,7 +223,7 @@ exception cas_base_l822_4 règle condition_logement_location_tiers
     selon ménage.logement.loué_ou_sous_loué_à_des_tiers sous forme
     -- LouéOuSousLouéÀDesTiers.Non: vrai
     -- LouéOuSousLouéÀDesTiers.Oui de personne:
-      (résultat de VérificationÂgeSupérieurÀ avec
+      (résultat de France.VérificationÂgeSupérieurÀ avec
         { -- date_naissance: personne.date_naissance_personne_sous_location
           -- date_courante: date_courante
           -- années: 30 an }).est_supérieur
@@ -920,7 +922,7 @@ champ d'application ÉligibilitéAllocationLogement:
        (selon personne_à_charge sous forme
         -- AutrePersonneÀCharge: faux
         -- EnfantÀCharge de enfant: prestations_familiales.droit_ouvert de
-          EnfantPrestationsFamiliales {
+          PF.EnfantPrestationsFamiliales {
           -- identifiant: enfant.identifiant
           -- obligation_scolaire: enfant.obligation_scolaire
           -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
@@ -944,7 +946,7 @@ champ d'application ÉligibilitéAllocationLogement:
        (selon personne_à_charge sous forme
         -- AutrePersonneÀCharge: faux
         -- EnfantÀCharge de enfant: non (prestations_familiales.droit_ouvert de
-          EnfantPrestationsFamiliales {
+          PF.EnfantPrestationsFamiliales {
           -- identifiant: enfant.identifiant
           -- obligation_scolaire: enfant.obligation_scolaire
           -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
@@ -1466,7 +1468,7 @@ champ d'application ÉligibilitéAllocationLogement sous condition
        (selon personne_à_charge sous forme
         -- AutrePersonneÀCharge: faux
         -- EnfantÀCharge de enfant: prestations_familiales.droit_ouvert de
-          EnfantPrestationsFamiliales {
+          PF.EnfantPrestationsFamiliales {
           -- identifiant: enfant.identifiant
           -- obligation_scolaire: enfant.obligation_scolaire
           -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
@@ -1543,7 +1545,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant:
-      enfant.obligation_scolaire sous forme Après et
+      enfant.obligation_scolaire sous forme PF.SituationObligationScolaire.Après et
       (enfant.date_de_naissance + prestations_familiales.âge_l512_3_2 >
         date_courante) et
       enfant.études_apprentissage_stage_formation_pro_impossibilité_travail
@@ -1755,7 +1757,7 @@ champ d'application ÉligibilitéAllocationLogement sous condition
        (selon personne_à_charge sous forme
         -- AutrePersonneÀCharge: faux
         -- EnfantÀCharge de enfant: prestations_familiales.droit_ouvert de
-          EnfantPrestationsFamiliales {
+          PF.EnfantPrestationsFamiliales {
           -- identifiant: enfant.identifiant
           -- obligation_scolaire: enfant.obligation_scolaire
           -- rémuneration_mensuelle: enfant.rémuneration_mensuelle
@@ -1809,7 +1811,7 @@ champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
   règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
     selon personne_à_charge sous forme
     -- EnfantÀCharge de enfant:
-      enfant.obligation_scolaire sous forme Après et
+      enfant.obligation_scolaire sous forme PF.SituationObligationScolaire.Après et
       (enfant.date_de_naissance + prestations_familiales.âge_l512_3_2 >
         date_courante) et
       enfant.études_apprentissage_stage_formation_pro_impossibilité_travail

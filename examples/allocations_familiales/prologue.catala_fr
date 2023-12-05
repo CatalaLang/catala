@@ -1,3 +1,9 @@
+> Usage de Smic
+
+> Usage de Prologue_france en tant que France
+
+> Usage de Bmaf
+
 # Prologue
 
 Avant de présenter les textes réglementaires qui régissent le calcul des
@@ -50,8 +56,8 @@ déclaration champ d'application PrestationsFamiliales:
   résultat âge_l512_3_2 contenu durée
   résultat régime_outre_mer_l751_1 condition
   entrée date_courante contenu date
-  entrée résidence contenu Collectivité
-  smic champ d'application Smic
+  entrée résidence contenu France.Collectivité
+  smic champ d'application Smic.Smic
 
 champ d'application PrestationsFamiliales:
   définition smic.résidence égal à résidence
@@ -74,7 +80,7 @@ déclaration champ d'application AllocationsFamiliales:
   entrée personne_charge_effective_permanente_est_parent condition
   entrée personne_charge_effective_permanente_remplit_titre_I condition
   entrée ressources_ménage contenu argent
-  entrée résidence contenu Collectivité
+  entrée résidence contenu France.Collectivité
 
   # Date à laquelle le calcul est effectué
   entrée date_courante contenu date
@@ -135,7 +141,7 @@ déclaration champ d'application AllocationsFamiliales:
   prestations_familiales champ d'application PrestationsFamiliales
   version_avril_2008 champ d'application AllocationFamilialesAvril2008
   enfant_le_plus_âgé champ d'application EnfantLePlusÂgé
-  bmaf champ d'application BaseMensuelleAllocationsFamiliales
+  bmaf champ d'application Bmaf.BaseMensuelleAllocationsFamiliales
 
   # Plafonds, âges limites et autres constantes
   interne âge_minimum_alinéa_1_l521_3 contenu durée

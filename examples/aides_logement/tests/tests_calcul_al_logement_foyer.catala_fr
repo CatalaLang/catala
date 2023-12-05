@@ -1,19 +1,19 @@
-> Inclusion: ../aides_logement.catala_fr
+> Usage de Aides_logement
 
 # Tests
 
 ```catala
 # Transmis par DGALN/DHUP/FE4 le 14/07/2022
 déclaration champ d'application CasTest1 :
-  calcul champ d'application CalculAllocationLogementFoyer
+  calcul champ d'application Aides_logement.CalculAllocationLogementFoyer
   résultat montant contenu argent
 
 champ d'application CasTest1:
   définition calcul.date_conventionnement égal à |2020-01-01|
   définition calcul.type_logement_foyer égal à
-    TypeLogementFoyer.RésidenceSociale
+    Aides_logement.TypeLogementFoyer.RésidenceSociale
   définition calcul.redevance égal à 350 €
-  définition calcul.résidence égal à Métropole
+  définition calcul.résidence égal à Aides_logement.France.Collectivité.Métropole
   définition calcul.logement_foyer_jeunes_travailleurs égal à faux
   définition calcul.ressources_ménage_arrondies égal à 7 500€
   définition calcul.nombre_personnes_à_charge égal à 0

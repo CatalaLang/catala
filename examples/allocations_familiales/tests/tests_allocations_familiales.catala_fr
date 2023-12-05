@@ -1,17 +1,18 @@
-> Inclusion: ../allocations_familiales.catala_fr
+> Usage de Prologue_france en tant que France
+> Usage de Allocations_familiales en tant que AF
 
 # Tests
 
 ```catala
 déclaration champ d'application Données:
-  résultat enfant1 contenu EnfantEntrée
-  résultat enfant2 contenu EnfantEntrée
-  résultat enfant3 contenu EnfantEntrée
-  résultat enfant4 contenu EnfantEntrée
-  résultat enfant5 contenu EnfantEntrée
+  résultat enfant1 contenu AF.EnfantEntrée
+  résultat enfant2 contenu AF.EnfantEntrée
+  résultat enfant3 contenu AF.EnfantEntrée
+  résultat enfant4 contenu AF.EnfantEntrée
+  résultat enfant5 contenu AF.EnfantEntrée
 
 champ d'application Données:
-  définition enfant1 égal à EnfantEntrée {
+  définition enfant1 égal à AF.EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2007-01-01|
     -- d_rémuneration_mensuelle: 0€
@@ -19,7 +20,7 @@ champ d'application Données:
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
-  définition enfant2 égal à EnfantEntrée {
+  définition enfant2 égal à AF.EnfantEntrée {
     -- d_identifiant: 2
     -- d_date_de_naissance: |2009-01-01|
     -- d_rémuneration_mensuelle: 0€
@@ -27,7 +28,7 @@ champ d'application Données:
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
-  définition enfant3 égal à EnfantEntrée {
+  définition enfant3 égal à AF.EnfantEntrée {
     -- d_identifiant: 3
     -- d_date_de_naissance: |2003-01-01|
     -- d_rémuneration_mensuelle: 400€
@@ -35,7 +36,7 @@ champ d'application Données:
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
-  définition enfant4 égal à EnfantEntrée {
+  définition enfant4 égal à AF.EnfantEntrée {
     -- d_identifiant: 4
     -- d_date_de_naissance: |2001-01-01|
     -- d_rémuneration_mensuelle: 1100€
@@ -43,7 +44,7 @@ champ d'application Données:
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   }
-  définition enfant5 égal à EnfantEntrée {
+  définition enfant5 égal à AF.EnfantEntrée {
     -- d_identifiant: 5
     -- d_date_de_naissance: |2000-01-01|
     -- d_rémuneration_mensuelle: 0€
@@ -53,7 +54,7 @@ champ d'application Données:
   }
 
 déclaration champ d'application Test1:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
   données champ d'application Données
 
 champ d'application Test1:
@@ -61,12 +62,12 @@ champ d'application Test1:
     [données.enfant1;données.enfant2;données.enfant3;données.enfant4]
   définition f.i_ressources_ménage égal à 30 000 €
   définition f.i_date_courante égal à |2020-05-01|
-  définition f.i_résidence égal à Métropole
+  définition f.i_résidence égal à France.Collectivité.Métropole
   règle f.i_personne_charge_effective_permanente_est_parent rempli
   assertion f.i_montant_versé = 351,54€
 
 déclaration champ d'application Test2:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
   données champ d'application Données
 
 champ d'application Test2:
@@ -80,7 +81,7 @@ champ d'application Test2:
 
 
 déclaration champ d'application Test3:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
   données champ d'application Données
 
 champ d'application Test3:
@@ -92,7 +93,7 @@ champ d'application Test3:
   assertion f.i_montant_versé = 24,37 €
 
 déclaration champ d'application Test4:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
   données champ d'application Données
 
 champ d'application Test4:
@@ -104,7 +105,7 @@ champ d'application Test4:
   assertion f.i_montant_versé = 99,46€
 
 déclaration champ d'application Test5:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
   données champ d'application Données
 
 champ d'application Test5:
@@ -116,17 +117,17 @@ champ d'application Test5:
   assertion f.i_montant_versé = 0,00€
 
 déclaration champ d'application Test6:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
 
 champ d'application Test6:
-  définition f.i_enfants égal à [EnfantEntrée {
+  définition f.i_enfants égal à [AF.EnfantEntrée {
     -- d_identifiant: 0
     -- d_date_de_naissance: |2009-11-10|
     -- d_rémuneration_mensuelle: 439€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
-  };EnfantEntrée {
+  };AF.EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2020-09-25|
     -- d_rémuneration_mensuelle: 1949€
@@ -141,7 +142,7 @@ champ d'application Test6:
   assertion f.i_montant_versé = 66,30€
 
 déclaration champ d'application Test7:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
   données champ d'application Données
 
 champ d'application Test7:
@@ -154,17 +155,17 @@ champ d'application Test7:
   assertion f.i_montant_versé = 417,84€
 
 déclaration champ d'application Test8:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
 
 champ d'application Test8:
-  définition f.i_enfants égal à [EnfantEntrée {
+  définition f.i_enfants égal à [AF.EnfantEntrée {
     -- d_identifiant: 0
     -- d_date_de_naissance: |2004-01-01|
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
-  };EnfantEntrée {
+  };AF.EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2005-01-01|
     -- d_rémuneration_mensuelle: 0€
@@ -179,17 +180,17 @@ champ d'application Test8:
   assertion f.i_montant_versé = 197,90 €
 
 déclaration champ d'application Test9:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
 
 champ d'application Test9:
-  définition f.i_enfants égal à [EnfantEntrée {
+  définition f.i_enfants égal à [AF.EnfantEntrée {
     -- d_identifiant: 0
     -- d_date_de_naissance: |2001-07-27|
     -- d_rémuneration_mensuelle: 1258€
     -- d_prise_en_charge: ServicesSociauxAllocationVerséeAuxServicesSociaux
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
-  };EnfantEntrée {
+  };AF.EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2008-04-27|
     -- d_rémuneration_mensuelle: 1766€
@@ -204,17 +205,17 @@ champ d'application Test9:
   assertion f.i_montant_versé = 0€
 
 déclaration champ d'application Test10:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
 
 champ d'application Test10:
-  définition f.i_enfants égal à [EnfantEntrée {
+  définition f.i_enfants égal à [AF.EnfantEntrée {
     -- d_identifiant: 0
     -- d_date_de_naissance: |2003-02-22|
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
-  };EnfantEntrée {
+  };AF.EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2013-09-30|
     -- d_rémuneration_mensuelle: 300€
@@ -229,17 +230,17 @@ champ d'application Test10:
   assertion f.i_montant_versé = 99,46€
 
 déclaration champ d'application Test11:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
 
 champ d'application Test11:
-  définition f.i_enfants égal à [EnfantEntrée {
+  définition f.i_enfants égal à [AF.EnfantEntrée {
     -- d_identifiant: 0
     -- d_date_de_naissance: |2003-02-22|
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
-  };EnfantEntrée {
+  };AF.EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2013-09-30|
     -- d_rémuneration_mensuelle: 300€
@@ -247,7 +248,7 @@ champ d'application Test11:
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };
-  EnfantEntrée {
+  AF.EnfantEntrée {
     -- d_identifiant: 2
     -- d_date_de_naissance: |2007-04-16|
     -- d_rémuneration_mensuelle: 0€
@@ -262,17 +263,17 @@ champ d'application Test11:
   assertion f.i_montant_versé = 435,55€
 
 déclaration champ d'application Test12:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
 
 champ d'application Test12:
-  définition f.i_enfants égal à [EnfantEntrée {
+  définition f.i_enfants égal à [AF.EnfantEntrée {
     -- d_identifiant: 0
     -- d_date_de_naissance: |2003-02-22|
     -- d_rémuneration_mensuelle: 0€
     -- d_prise_en_charge: EffectiveEtPermanente
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
-  };EnfantEntrée {
+  };AF.EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2013-09-30|
     -- d_rémuneration_mensuelle: 300€
@@ -280,7 +281,7 @@ champ d'application Test12:
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };
-  EnfantEntrée {
+  AF.EnfantEntrée {
     -- d_identifiant: 2
     -- d_date_de_naissance: |2007-04-16|
     -- d_rémuneration_mensuelle: 0€
@@ -288,7 +289,7 @@ champ d'application Test12:
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };
-  EnfantEntrée {
+  AF.EnfantEntrée {
     -- d_identifiant: 3
     -- d_date_de_naissance: |2012-02-02|
     -- d_rémuneration_mensuelle: 0€
@@ -304,10 +305,10 @@ champ d'application Test12:
   assertion f.i_montant_versé = 315,84€
 
 déclaration champ d'application Test13:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
 
 champ d'application Test13:
-  définition f.i_enfants égal à [EnfantEntrée {
+  définition f.i_enfants égal à [AF.EnfantEntrée {
     -- d_identifiant: 0
     -- d_date_de_naissance: |2008-02-22|
     -- d_rémuneration_mensuelle: 0€
@@ -322,10 +323,10 @@ champ d'application Test13:
   assertion f.i_montant_versé = 34,99€
 
 déclaration champ d'application Test14:
-  f champ d'application InterfaceAllocationsFamiliales
+  f champ d'application AF.InterfaceAllocationsFamiliales
 
 champ d'application Test14:
-  définition f.i_enfants égal à [EnfantEntrée {
+  définition f.i_enfants égal à [AF.EnfantEntrée {
     -- d_identifiant: 0
     -- d_date_de_naissance: |2004-12-22|
     -- d_rémuneration_mensuelle: 435€
@@ -333,7 +334,7 @@ champ d'application Test14:
     -- d_a_déjà_ouvert_droit_aux_allocations_familiales: vrai
     -- d_bénéficie_titre_personnel_aide_personnelle_logement: faux
   };
-  EnfantEntrée {
+  AF.EnfantEntrée {
     -- d_identifiant: 1
     -- d_date_de_naissance: |2001-12-05|
     -- d_rémuneration_mensuelle: 1682€
