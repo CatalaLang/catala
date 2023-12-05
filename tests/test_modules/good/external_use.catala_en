@@ -3,9 +3,9 @@
 
 ```catala
 declaration scope S:
-  internal weights content collection money
-  output result1 content collection money
-  output result2 content collection money
+  internal weights content list of money
+  output result1 content list of money
+  output result2 content list of money
 
 scope S:
   definition weights equals [$4;$1;$1;$4;$1;$1]

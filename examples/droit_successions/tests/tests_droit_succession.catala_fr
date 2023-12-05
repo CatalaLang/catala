@@ -69,20 +69,112 @@ champ d'application Test4:
 
 ```catala-test-inline
 $ catala Interpret -s Test1
-[RESULT] Computation successful!
+[ERROR]
+Syntax error at token "collection"
+Message: expected a type
+You could have written : "liste de",
+or "entier",
+or "argent",
+or "texte",
+or "décimal",
+or "date",
+or "durée",
+or "booléen"
+
+Error token:
+┌─⯈ examples/droit_successions/tests/../droit_successions.catala_fr:34.26-34.36:
+└──┐
+34 │   entrée enfants contenu collection Enfant
+   │                          ‾‾‾‾‾‾‾‾‾‾
+
+Last good token:
+┌─⯈ examples/droit_successions/tests/../droit_successions.catala_fr:34.18-34.25:
+└──┐
+34 │   entrée enfants contenu collection Enfant
+   │                  ‾‾‾‾‾‾‾
+#return code 123#
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Test2
-[RESULT] Computation successful!
+[ERROR]
+Syntax error at token "collection"
+Message: expected a type
+You could have written : "liste de",
+or "entier",
+or "argent",
+or "texte",
+or "décimal",
+or "date",
+or "durée",
+or "booléen"
+
+Error token:
+┌─⯈ examples/droit_successions/tests/../droit_successions.catala_fr:34.26-34.36:
+└──┐
+34 │   entrée enfants contenu collection Enfant
+   │                          ‾‾‾‾‾‾‾‾‾‾
+
+Last good token:
+┌─⯈ examples/droit_successions/tests/../droit_successions.catala_fr:34.18-34.25:
+└──┐
+34 │   entrée enfants contenu collection Enfant
+   │                  ‾‾‾‾‾‾‾
+#return code 123#
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Test3
-[RESULT] Computation successful!
+[ERROR]
+Syntax error at token "collection"
+Message: expected a type
+You could have written : "liste de",
+or "entier",
+or "argent",
+or "texte",
+or "décimal",
+or "date",
+or "durée",
+or "booléen"
+
+Error token:
+┌─⯈ examples/droit_successions/tests/../droit_successions.catala_fr:34.26-34.36:
+└──┐
+34 │   entrée enfants contenu collection Enfant
+   │                          ‾‾‾‾‾‾‾‾‾‾
+
+Last good token:
+┌─⯈ examples/droit_successions/tests/../droit_successions.catala_fr:34.18-34.25:
+└──┐
+34 │   entrée enfants contenu collection Enfant
+   │                  ‾‾‾‾‾‾‾
+#return code 123#
 ```
 
 ```catala-test-inline
 $ catala Interpret -s Test4
-[RESULT] Computation successful!
+[ERROR]
+Syntax error at token "collection"
+Message: expected a type
+You could have written : "liste de",
+or "entier",
+or "argent",
+or "texte",
+or "décimal",
+or "date",
+or "durée",
+or "booléen"
+
+Error token:
+┌─⯈ examples/droit_successions/tests/../droit_successions.catala_fr:34.26-34.36:
+└──┐
+34 │   entrée enfants contenu collection Enfant
+   │                          ‾‾‾‾‾‾‾‾‾‾
+
+Last good token:
+┌─⯈ examples/droit_successions/tests/../droit_successions.catala_fr:34.18-34.25:
+└──┐
+34 │   entrée enfants contenu collection Enfant
+   │                  ‾‾‾‾‾‾‾
+#return code 123#
 ```

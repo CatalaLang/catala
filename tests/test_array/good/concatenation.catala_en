@@ -1,9 +1,9 @@
-## Unit testing for collection concatenation.
+## Unit testing for list of concatenation.
 
 ```catala
 declaration scope A:
-   output x content collection integer
-   output y content collection integer
+   output x content list of integer
+   output y content list of integer
 
 scope A:
    definition x equals [0; 1; 2] ++ [3; 4; 5; 6]

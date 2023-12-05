@@ -56,8 +56,8 @@ module R = Re.Pcre
 #ifndef MR_OF
   #define MR_OF MS_OF
 #endif
-#ifndef MR_COLLECTION
-  #define MR_COLLECTION MS_COLLECTION
+#ifndef MR_LIST
+  #define MR_LIST MS_LIST
 #endif
 #ifndef MR_CONTAINS
   #define MR_CONTAINS MS_CONTAINS
@@ -203,8 +203,8 @@ module R = Re.Pcre
 #ifndef MR_IS
   #define MR_IS MS_IS
 #endif
-#ifndef MR_EMPTY
-  #define MR_EMPTY MS_EMPTY
+#ifndef MR_LIST_EMPTY
+  #define MR_LIST_EMPTY MS_LIST_EMPTY
 #endif
 #ifndef MR_CARDINAL
   #define MR_CARDINAL MS_CARDINAL
@@ -266,7 +266,7 @@ let token_list : (string * token) list =
     (MS_DECREASING, DECREASING);
     (MS_INCREASING, INCREASING);
     (MS_OF, OF);
-    (MS_COLLECTION, COLLECTION);
+    (MS_LIST, LIST);
     (MS_CONTAINS, CONTAINS);
     (MS_ENUM, ENUM);
     (MS_INTEGER, INTEGER);
@@ -315,7 +315,7 @@ let token_list : (string * token) list =
     (MS_MAXIMUM, MAXIMUM);
     (MS_MINIMUM, MINIMUM);
     (MS_IS, IS);
-    (MS_EMPTY, EMPTY);
+    (MS_LIST_EMPTY, LIST_EMPTY);
     (MS_CARDINAL, CARDINAL);
     (MS_YEAR, YEAR);
     (MS_MONTH, MONTH);
@@ -417,9 +417,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_OF ->
       L.update_acc lexbuf;
       OF
-  | MR_COLLECTION ->
+  | MR_LIST ->
       L.update_acc lexbuf;
-      COLLECTION
+      LIST
   | MR_CONTAINS ->
       L.update_acc lexbuf;
       CONTAINS
@@ -567,9 +567,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_IS ->
       L.update_acc lexbuf;
       IS
-  | MR_EMPTY ->
+  | MR_LIST_EMPTY ->
       L.update_acc lexbuf;
-      EMPTY
+      LIST_EMPTY
   | MR_CARDINAL ->
       L.update_acc lexbuf;
       CARDINAL

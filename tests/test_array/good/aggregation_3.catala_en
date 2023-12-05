@@ -21,13 +21,13 @@ scope S:
     assertion (number of i among [1; 2; 3] such that i >= 2) = 2
 
 # Extremum
-    assertion maximum of [1; 2; 3] or if collection empty then 10 = 3
-    assertion maximum of (decimal of i) for i among [1; 2; 3] or if collection empty then 10. = 3.
+    assertion maximum of [1; 2; 3] or if list empty then 10 = 3
+    assertion maximum of (decimal of i) for i among [1; 2; 3] or if list empty then 10. = 3.
 
 # Arg extremum
     assertion (i among [1; 2; 3]
                  such that decimal of ((2 - i) * (2 - i)) is minimum
-                 or if collection empty then 42)
+                 or if list empty then 42)
               = 2
 ```
 

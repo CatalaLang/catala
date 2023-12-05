@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-   output x content collection integer
+   output x content list of integer
    output w content boolean
 
 scope A:

@@ -2,14 +2,14 @@
 
 ```catala
 declaration scope A:
-   output x content collection money
+   output x content list of money
 
 scope A:
    definition x equals [$0; $4 + $5; $8 * 0.65]
 
 declaration scope B:
    a scope A
-   output y content collection money
+   output y content list of money
 
 scope B:
    definition y equals m among a.x such that m >= $4.95

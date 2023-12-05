@@ -162,8 +162,7 @@ let rec typ_gen
       (typ ~colors:(List.tl colors))
       t2
   | TArray t1 ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" (typ ~colors)
-      t1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "list of" (typ ~colors) t1
   | TDefault t1 ->
     punctuation fmt "⟨";
     typ ~colors fmt t1;

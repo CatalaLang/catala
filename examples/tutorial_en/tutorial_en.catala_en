@@ -819,20 +819,20 @@ scope DateValues:
     (value1 - |1999-12-31|) + 45 day # 367 + 45 days (2000 is bissextile)
 ```
 
-### Collections
+### Listes
 
 Often, Catala programs need to speak about a collection of data because the law
 talks about the number of children, the maximum of a list, etc. Catala features
-first-class support for collections, which are basically fixed-size lists.
+first-class support for lists.
 You can create a list, filter its elements but also aggregate over its contents
 to compute all sorts of values.
 
 ```catala
-declaration scope CollectionValues:
-  internal value1 content collection integer
+declaration scope ListValues:
+  internal value1 content list of integer
   internal value2 content integer
 
-scope CollectionValues:
+scope ListValues:
   definition value1 equals [45;-6;3;4;0;2155]
   definition value2 equals sum integer of (i * i) for i among value1
   # sum of squares

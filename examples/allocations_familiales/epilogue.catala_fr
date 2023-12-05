@@ -12,7 +12,7 @@ champ d'application EnfantLePlusÂgé:
   définition le_plus_âgé égal à
     potentiel_plus_âgé parmi enfants tel que
       potentiel_plus_âgé.date_de_naissance est minimum
-    ou si collection vide alors Enfant {
+    ou si liste vide alors Enfant {
       -- identifiant: -1
       -- obligation_scolaire: Pendant
       -- rémuneration_mensuelle: 0€
@@ -72,8 +72,8 @@ déclaration structure EnfantEntrée:
 
 déclaration champ d'application InterfaceAllocationsFamiliales:
   entrée i_date_courante contenu date
-  entrée i_enfants contenu collection EnfantEntrée
-  interne enfants_à_charge contenu collection Enfant
+  entrée i_enfants contenu liste de EnfantEntrée
+  interne enfants_à_charge contenu liste de Enfant
   allocations_familiales champ d'application AllocationsFamiliales
   entrée i_ressources_ménage contenu argent
   entrée i_résidence contenu Collectivité

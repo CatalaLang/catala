@@ -34,11 +34,11 @@ déclaration champ d'application RéserveHéréditaire:
   entrée enfants contenu collection Enfant
   interne enfant_pris_en_compte_réserve_héréditaire contenu booléen
     dépend de enfant contenu Enfant
-  interne enfants_réserve_héréditaire contenu collection Enfant
+  interne enfants_réserve_héréditaire contenu liste de Enfant
   entrée conjoint_survivant_non_divorcé condition
 
   entrée patrimoine_total contenu argent
-  entrée biens_usufruit_rente_viagère contenu collection BienUsufruitRenteViagère
+  entrée biens_usufruit_rente_viagère contenu liste de BienUsufruitRenteViagère
   résultat patrimoine_assiette_réserve_héréditaire contenu argent
   résultat montant_réserve_héréditaire contenu argent
 ```
