@@ -31,8 +31,13 @@ val check_all_invariants : typed program -> bool
     - [invariant_no_partial_evaluation] check there is no partial function.
     - [invariant_no_return_a_function] check no function return a function.
     - [invariant_app_inversion] : if the term is an function application, then
-      there is only 5 possibility : it is a let binding, it is an operator
+      there is only 6 possibility : it is a let binding, it is an operator
       application, it is an variable application, it is a struct access function
-      application (sub-scope call), or it is a operator application with trace.
+      application (sub-scope call), it is a operator application with trace, or
+      an external function.
     - [invariant_match_inversion] : if a term is a match, then every branch is
-      an function abstraction. *)
+      an function abstraction.
+    - [invariant_typing_default]: the type TDefault can only appear in some
+      positions.
+
+    The function prints as a side effect the different errors.*)

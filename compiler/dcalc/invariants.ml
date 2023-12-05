@@ -135,11 +135,13 @@ let invariant_match_inversion () : string * invariant_expr =
 
    For instance, the following types do follow the invariant:
 
-   int; bool; int -> bool; <bool>; <int -> bool>; int -> <bool>; S_in {x: int -> <bool>} -> S {y: bool}
+   int; bool; int -> bool; <bool>; <int -> bool>; int -> <bool>; S_in {x: int ->
+   <bool>} -> S {y: bool}
 
    While the following types does not follow the invariant:
 
-   <<int>>; <int -> <bool>>; <bool> -> int; S_in {x: int -> <bool>} -> S {y: <bool>}
+   <<int>>; <int -> <bool>>; <bool> -> int; S_in {x: int -> <bool>} -> S {y:
+   <bool>}
 
    This is crucial to maintain the safety of the type system, as demonstrated in
    the formal development. *)
@@ -160,16 +162,17 @@ let rec check_typ_no_default ctx ty =
   | TArray ty -> check_typ_no_default ctx ty
   | TDefault _t -> false
   | TAny ->
+    (* found TAny *)
     Message.emit_warning
-      "The typing default invariant was checked too late in the compilation \
-       scheme. It is impossible to check whenever the type verify this \
-       invariant.";
+      "Internal error: the type was not fully resolved, it is not possible to \
+       verify whenever the typing_default invariant holds.";
     true
   | TClosureEnv ->
     Message.emit_warning
-      "In the compilation process, the default invariant for typing was not \
-       checked early enough. Since it's impossible to verify this invariant at \
-       any point due to the closure environment holding an existential type.";
+      "Internal error: In the compilation process, the default invariant for \
+       typing was not checked early enough. Since it's impossible to verify \
+       this invariant at any point due to the closure environment holding an \
+       existential type.";
     true (* we should not check this one. *)
 
 let check_type_thunked_or_nodefault ctx ty =
