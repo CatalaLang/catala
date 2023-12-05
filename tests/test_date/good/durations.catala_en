@@ -26,7 +26,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [85/85]
@@ -60,7 +60,7 @@ $ catala Interpret -s A
 [RESULT] z3 = [5937 days]
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] m = [11874 days]
 [RESULT] m2 = [6 months]

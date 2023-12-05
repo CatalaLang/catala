@@ -49,7 +49,7 @@ scope Benefit:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [61/61]
@@ -78,7 +78,7 @@ $ catala Interpret -s Benefit
 [RESULT] person = Person { -- age: 26 -- disabled: true }
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Benefit --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Benefit --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] benefit = $2,000.00
 [RESULT] person = Person { -- age: 26 -- disabled: true }

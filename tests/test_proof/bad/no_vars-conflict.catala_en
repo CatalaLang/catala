@@ -16,7 +16,7 @@ scope A:
   
 ```
 ```catala-test-inline
-$ catala Proof --disable_counterexamples 
+$ catala Proof --disable-counterexamples 
 [WARNING] [A.y] At least two exceptions overlap for this variable:
 ┌─⯈ tests/test_proof/bad/no_vars-conflict.catala_en:8.10-8.11:
 └─┐

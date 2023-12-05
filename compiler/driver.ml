@@ -211,7 +211,7 @@ module Passes = struct
           raise
             (Message.raise_internal_error "Some Dcalc invariants are invalid")
       | _ ->
-        Message.raise_error "--check_invariants cannot be used with --no-typing");
+        Message.raise_error "--check-invariants cannot be used with --no-typing");
     prg, type_ordering
 
   let lcalc
@@ -229,12 +229,12 @@ module Passes = struct
     in
     debug_pass_name "lcalc";
     let avoid_exceptions = avoid_exceptions || closure_conversion in
-    (* --closure_conversion implies --avoid_exceptions *)
+    (* --closure-conversion implies --avoid-exceptions *)
     let prg =
       match avoid_exceptions, options.trace, typed with
       | true, true, _ ->
         Message.raise_error
-          "Option --avoid_exceptions is not compatible with option --trace"
+          "Option --avoid-exceptions is not compatible with option --trace"
       | true, _, Untyped _ ->
         Program.untype
           (Lcalc.Compile_without_exceptions.translate_program

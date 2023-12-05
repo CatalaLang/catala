@@ -17,7 +17,7 @@ scope TestXor:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [85/85]
@@ -48,7 +48,7 @@ $ catala Interpret -s TestXor
 [RESULT] t_xor_t = false
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s TestXor --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s TestXor --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] f_xor_f = false
 [RESULT] f_xor_t = true

@@ -15,7 +15,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [64/64]
@@ -45,7 +45,7 @@ $ catala Interpret -s A
 [RESULT] z = $7.23
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] x = $123.54
 [RESULT] y = $8,548,650.96

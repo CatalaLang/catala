@@ -19,7 +19,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [WARNING] The structure "Bar" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_struct/good/ambiguous_fields.catala_en:7.23-7.26:
@@ -61,7 +61,7 @@ $ catala Interpret -s A
 [RESULT] y = 1
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [WARNING] The structure "Bar" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_struct/good/ambiguous_fields.catala_en:7.23-7.26:

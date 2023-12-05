@@ -32,7 +32,7 @@ champ d'application CasTest1:
 ```
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [29117/29117]
@@ -55,12 +55,12 @@ Invariant Dcalc__Invariants.invariant_default_no_arrow
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest1 --disable_warnings
+$ catala Interpret -s CasTest1 --disable-warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 76,38 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest1 --avoid_exceptions
+$ catala Interpret_Lcalc -s CasTest1 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = 76,38 €
 ```

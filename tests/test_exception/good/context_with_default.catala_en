@@ -18,7 +18,7 @@ scope Bar:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [48/48]
@@ -45,6 +45,6 @@ $ catala Interpret -s Bar
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Bar --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Bar --avoid-exceptions --optimize
 [RESULT] Computation successful!
 ```
