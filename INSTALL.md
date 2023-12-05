@@ -28,7 +28,27 @@ by running:
 
     ./_build/install/default/bin/catala --help
 
-### With nix
+### With opam
+
+The Catala compiler is written using OCaml. First, you have to install `opam`,
+OCaml's distribution and package manager. Follow the [instructions on the `opam`
+website](https://opam.ocaml.org/doc/Install.html).
+
+Next, you will need to use the correct version of OCaml. Catala has been tested
+with OCaml compiler versions that are at least 4.14.0. To switch to OCaml 4.14.0,
+just use:
+
+    opam switch 4.14.0
+
+If you get a `No switch 4.14.0 is currently installed` error message, follow
+the hint and enter `opam switch create 4.14.0`.
+
+
+### With nix (best effort)
+
+> [!WARNING]
+> Nix support for the Catala compiler is now on a "best effort" basis due to maintenance demands.
+> Interested users are encouraged to contribute via pull requests.
 
 The repository provides nix files to build or develop the catala compiler.
 
@@ -58,20 +78,6 @@ To develop catala's compiler using vscode using ocaml's [lsp](https://microsoft.
 
 The nix build is updated weekly by an automatic github action.
 
-### With opam
-
-The Catala compiler is written using OCaml. First, you have to install `opam`,
-OCaml's distribution and package manager. Follow the [instructions on the `opam`
-website](https://opam.ocaml.org/doc/Install.html).
-
-Next, you will need to use the correct version of OCaml. Catala has been tested
-with OCaml compiler versions that are at least 4.14.0. To switch to OCaml 4.14.0,
-just use:
-
-    opam switch 4.14.0
-
-If you get a `No switch 4.14.0 is currently installed` error message, follow
-the hint and enter `opam switch create 4.14.0`.
 
 ## Dependencies
 
