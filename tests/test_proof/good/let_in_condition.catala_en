@@ -14,7 +14,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [13/13]
@@ -37,6 +37,6 @@ Invariant Dcalc__Invariants.invariant_default_no_arrow
 ```
 
 ```catala-test-inline
-$ catala Proof --disable_counterexamples
+$ catala Proof --disable-counterexamples
 [RESULT] No errors found during the proof mode run.
 ```

@@ -4,7 +4,7 @@
 # Ce fichier est uniquement là pour vérifier que les invariants structurels sont bien garanties par les differences phases de compilation.
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [28966/28966]

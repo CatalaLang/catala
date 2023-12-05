@@ -162,14 +162,14 @@ $ catala Interpret -s Exemple1
 [RESULT] éligibilité = vrai
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
+$ catala Interpret_Lcalc -s Exemple1 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant_versé = 246,23 €
 [RESULT] éligibilité = vrai
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions -O --closure_conversion
+$ catala Interpret_Lcalc -s Exemple1 --avoid-exceptions -O --closure-conversion
 [RESULT] Computation successful! Results:
 [RESULT] montant_versé = 246,23 €
 [RESULT] éligibilité = vrai
@@ -183,14 +183,14 @@ $ catala Interpret -s Exemple2
 ```
 
 ```catala-test-inline
-$ catala Interpret_lcalc -s Exemple2 --avoid_exceptions
+$ catala Interpret_lcalc -s Exemple2 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant_versé = 230,63 €
 [RESULT] éligibilité = vrai
 ```
 
 ```catala-test-inline
-$ catala Interpret_lcalc -s Exemple2 -O --avoid_exceptions --closure_conversion
+$ catala Interpret_lcalc -s Exemple2 -O --avoid-exceptions --closure-conversion
 [RESULT] Computation successful! Results:
 [RESULT] montant_versé = 230,63 €
 [RESULT] éligibilité = vrai

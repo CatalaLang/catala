@@ -39,7 +39,7 @@ scope Simple_case_2:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [90/90]
@@ -75,13 +75,13 @@ $ catala Interpret -s Simple_case
 [RESULT] y = 31
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Simple_case_2 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Simple_case_2 --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] x = Case3 ()
 [RESULT] y = 31
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Simple_case --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Simple_case --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] x = Case1 2
 [RESULT] y = 31

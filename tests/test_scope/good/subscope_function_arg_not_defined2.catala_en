@@ -22,7 +22,7 @@ scope Caller:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [96/96]
@@ -49,6 +49,6 @@ $ catala Interpret -s Caller
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Caller --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Caller --avoid-exceptions --optimize
 [RESULT] Computation successful!
 ```

@@ -21,7 +21,7 @@ scope Titi:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [94/94]
@@ -50,7 +50,7 @@ $ catala Interpret -s Titi
 [RESULT] fuzz = Toto { -- foo: 1,323 }
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Titi --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s Titi --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] fizz = Toto { -- foo: 1,213 }
 [RESULT] fuzz = Toto { -- foo: 1,323 }

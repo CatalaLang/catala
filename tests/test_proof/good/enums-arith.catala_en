@@ -22,7 +22,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_proof/good/enums-arith.catala_en:5.7-5.8:
@@ -52,7 +52,7 @@ Invariant Dcalc__Invariants.invariant_default_no_arrow
 ```
 
 ```catala-test-inline
-$ catala Proof --disable_counterexamples 
+$ catala Proof --disable-counterexamples 
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_proof/good/enums-arith.catala_en:5.7-5.8:
