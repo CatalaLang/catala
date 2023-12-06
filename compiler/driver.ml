@@ -681,9 +681,15 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.ex_scope)
 
-  let interpret_concolic options includes optimize check_invariants ex_scope =
+  let interpret_concolic
+      typed
+      options
+      includes
+      optimize
+      check_invariants
+      ex_scope =
     let prg, ctx, _ =
-      Passes.dcalc options ~includes ~optimize ~check_invariants
+      Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options
@@ -691,10 +697,15 @@ module Commands = struct
       (get_scope_uid ctx ex_scope)
 
   let concolic_cmd =
+    let f no_typing =
+      if no_typing then interpret_concolic Expr.untyped
+      else interpret_concolic Expr.typed
+    in
     Cmd.v
       (Cmd.info "concolic" ~doc:"Runs the concolic interpreter")
       Term.(
-        const interpret_concolic
+        const f
+        $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize

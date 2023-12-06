@@ -32,11 +32,12 @@ let scope A
   let get m : integer = A_in.m_in in
   let get b : bool = A_in.b_in in
   let set y : S {a: integer; b: T {c: bool; d: integer}} =
-    error_empty ⟨true ⊢ { S a = n; b = { T c = false; d = 0; }; }⟩
+    error_empty
+      ⟨ ⟨true ⊢ ⟨{ S a = n; b = { T c = false; d = 0; }; }⟩⟩ | false ⊢ ∅ ⟩
   in
   let set x : integer =
     error_empty
-      ⟨true ⊢ ⟨ ⟨y.a = m || y.b.c ⊢ 0⟩, ⟨y.a = m && ~ b ⊢ 1⟩ | false ⊢ ∅ ⟩⟩
+      ⟨ ⟨y.a = m || y.b.c ⊢ ⟨0⟩⟩, ⟨y.a = m && ~ b ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩
   in
   return { A x = x; }
 ```
@@ -45,7 +46,6 @@ let scope A
 $ catala Concolic -s A
 [RESULT]
 Constraints:
-true
 true
 (not (and (= n_in m_in) (not b_in)))
 (= n_in m_in)

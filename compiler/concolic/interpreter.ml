@@ -601,9 +601,6 @@ let rec evaluate_expr :
     let args_constraints = gather_constraints args in
     Message.emit_debug "EApp args evaluated";
     Concrete.propagate_empty_error e1
-    (* TODO I don't like that "Concrete" has to appear here because this
-       function is not specific to concrete evaluation. maybe let p... =
-       Concrete.p...? *)
     @@ fun e1 ->
     match Mark.remove e1 with
     | EAbs { binder; _ } ->
@@ -874,6 +871,9 @@ let rec evaluate_expr :
            (List.filter (fun sub -> not (Concrete.is_empty_error sub)) excepts))
         "There is a conflict between multiple valid consequences for assigning \
          the same variable.")
+  | EPureDefault e ->
+    Message.emit_debug "... it's an EPureDefault";
+    evaluate_expr ctx lang e
   | _ -> .
 
 let lit_of_tlit t =

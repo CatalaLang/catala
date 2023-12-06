@@ -24,7 +24,9 @@ let scope A
   let get z : integer = A_in.z_in in
   let get t : integer = A_in.t_in in
   let set o : integer =
-    error_empty ⟨(~ (x * y + z < - t && x > y)) || (z <= t xor x >= z) ⊢ 0⟩
+    error_empty
+      ⟨ ⟨(~ (x * y + z < - t && x > y)) || (z <= t xor x >= z) ⊢ ⟨0⟩⟩
+      | false ⊢ ∅ ⟩
   in
   return { A o = o; }
 ```

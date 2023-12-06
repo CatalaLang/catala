@@ -13,7 +13,7 @@ scope A:
 $ catala DCalc -s A
 let scope A (A_in: A_in {b_in: bool}): A {o: integer} =
   let get b : bool = A_in.b_in in
-  let set o : integer = error_empty ⟨b ⊢ 1⟩ in
+  let set o : integer = error_empty ⟨ ⟨b ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩ in
   return { A o = o; }
 ```
 

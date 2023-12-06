@@ -18,10 +18,10 @@ $ catala DCalc -s A
 let scope A (A_in: A_in {b_in: bool}): A {o: integer} =
   let get b : bool = A_in.b_in in
   let set x : integer =
-    error_empty ⟨true ⊢ ⟨ ⟨b ⊢ 0⟩, ⟨~ b ⊢ 1⟩ | false ⊢ ∅ ⟩⟩
+    error_empty ⟨ ⟨b ⊢ ⟨0⟩⟩, ⟨~ b ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩
   in
   let set o : integer =
-    error_empty ⟨true ⊢ ⟨ ⟨x = 0 ⊢ 10⟩, ⟨x = 1 ⊢ 11⟩ | false ⊢ ∅ ⟩⟩
+    error_empty ⟨ ⟨x = 0 ⊢ ⟨10⟩⟩, ⟨x = 1 ⊢ ⟨11⟩⟩ | false ⊢ ∅ ⟩
   in
   return { A o = o; }
 ```
@@ -29,10 +29,8 @@ let scope A (A_in: A_in {b_in: bool}): A {o: integer} =
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT] Constraints:
-true
 b_in
 b_in
-true
 true
 true
 
