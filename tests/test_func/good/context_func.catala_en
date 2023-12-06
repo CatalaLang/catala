@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  output f content integer depends on x content integer
+  context output f content integer depends on x content integer
 
 declaration scope B:
   input b content boolean
@@ -19,108 +19,59 @@ scope B:
 
 ```catala-test-inline
 $ catala Typecheck --check_invariants
-[ERROR]
-It is impossible to give a definition to a subscope variable not tagged as input or context.
-
-Incriminated subscope:
-┌─⯈ tests/test_func/good/context_func.catala_en:9.3-9.4:
-└─┐
-9 │   a scope A
-  │   ‾
-  └─ Test
-
-Incriminated variable:
-┌─⯈ tests/test_func/good/context_func.catala_en:5.10-5.11:
-└─┐
-5 │   output f content integer depends on x content integer
-  │          ‾
-  └─ Test
-
-Incriminated subscope variable definition:
-┌─⯈ tests/test_func/good/context_func.catala_en:15.3-15.17:
-└──┐
-15 │   definition a.f of x under condition b and x > 0 consequence equals x - 1
-   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-#return code 123#
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [49/49]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [6/6]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [2/2]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [6/6]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [5/5]
+[RESULT] Typechecking successful!
 ```
 
 ```catala-test-inline
 $ catala Scopelang -s B
-[ERROR]
-It is impossible to give a definition to a subscope variable not tagged as input or context.
-
-Incriminated subscope:
-┌─⯈ tests/test_func/good/context_func.catala_en:9.3-9.4:
-└─┐
-9 │   a scope A
-  │   ‾
-  └─ Test
-
-Incriminated variable:
-┌─⯈ tests/test_func/good/context_func.catala_en:5.10-5.11:
-└─┐
-5 │   output f content integer depends on x content integer
-  │          ‾
-  └─ Test
-
-Incriminated subscope variable definition:
-┌─⯈ tests/test_func/good/context_func.catala_en:15.3-15.17:
-└──┐
-15 │   definition a.f of x under condition b and x > 0 consequence equals x - 1
-   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-#return code 123#
+let scope B (b: bool|input) =
+  let a.f : integer → ⟨integer⟩ = λ (x: integer) →
+    ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩;
+  call A[a]
 ```
 
 ```catala-test-inline
 $ catala Dcalc -s A
-[ERROR]
-It is impossible to give a definition to a subscope variable not tagged as input or context.
-
-Incriminated subscope:
-┌─⯈ tests/test_func/good/context_func.catala_en:9.3-9.4:
-└─┐
-9 │   a scope A
-  │   ‾
-  └─ Test
-
-Incriminated variable:
-┌─⯈ tests/test_func/good/context_func.catala_en:5.10-5.11:
-└─┐
-5 │   output f content integer depends on x content integer
-  │          ‾
-  └─ Test
-
-Incriminated subscope variable definition:
-┌─⯈ tests/test_func/good/context_func.catala_en:15.3-15.17:
-└──┐
-15 │   definition a.f of x under condition b and x > 0 consequence equals x - 1
-   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-#return code 123#
+let scope A
+  (A_in: A_in {f_in: integer → ⟨integer⟩})
+  : A {f: integer → integer}
+  =
+  let get f : integer → ⟨integer⟩ = A_in.f_in in
+  let set f : integer → integer =
+    λ (x: integer) →
+    error_empty
+      ⟨ f x | true ⊢ ⟨error_empty ⟨ ⟨true ⊢ ⟨x + 1⟩⟩ | false ⊢ ∅ ⟩⟩ ⟩
+  in
+  return { A f = f; }
 ```
 
 ```catala-test-inline
 $ catala Dcalc -s B
-[ERROR]
-It is impossible to give a definition to a subscope variable not tagged as input or context.
-
-Incriminated subscope:
-┌─⯈ tests/test_func/good/context_func.catala_en:9.3-9.4:
-└─┐
-9 │   a scope A
-  │   ‾
-  └─ Test
-
-Incriminated variable:
-┌─⯈ tests/test_func/good/context_func.catala_en:5.10-5.11:
-└─┐
-5 │   output f content integer depends on x content integer
-  │          ‾
-  └─ Test
-
-Incriminated subscope variable definition:
-┌─⯈ tests/test_func/good/context_func.catala_en:15.3-15.17:
-└──┐
-15 │   definition a.f of x under condition b and x > 0 consequence equals x - 1
-   │   ‾‾‾‾‾‾‾‾‾‾‾‾‾‾
-#return code 123#
+let scope B (B_in: B_in {b_in: bool}): B =
+  let get b : bool = B_in.b_in in
+  let sub_set a.f : integer → ⟨integer⟩ =
+    λ (x: integer) →
+    ⟨ ⟨b && x > 0 ⊢ ⟨x - 1⟩⟩ | false ⊢ ∅ ⟩
+  in
+  let call result : A {f: integer → integer} = A { A_in f_in = a.f; } in
+  let sub_get a.f : integer → integer = result.f in
+  return {B}
 ```

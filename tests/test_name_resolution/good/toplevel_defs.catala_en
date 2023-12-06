@@ -464,8 +464,8 @@ def s2(s2_in:S2In):
     except EmptyError:
         temp_a_5 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                             start_line=43, start_column=10,
-                                             end_line=43, end_column=11,
+                                             start_line=62, start_column=10,
+                                             end_line=62, end_column=11,
                                              law_headings=["Test toplevel function defs"]))
     a = temp_a_5
     return S2(a = a)
@@ -493,8 +493,8 @@ def s3(s3_in:S3In):
     except EmptyError:
         temp_a_11 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                             start_line=63, start_column=10,
-                                             end_line=63, end_column=11,
+                                             start_line=82, start_column=10,
+                                             end_line=82, end_column=11,
                                              law_headings=["Test function def with two args"]))
     a_1 = temp_a_11
     return S3(a = a_1)
@@ -520,8 +520,8 @@ def s4(s4_in:S4In):
     except EmptyError:
         temp_a_17 = dead_value
         raise NoValueProvided(SourcePosition(filename="tests/test_name_resolution/good/toplevel_defs.catala_en",
-                                             start_line=86, start_column=10,
-                                             end_line=86, end_column=11,
+                                             start_line=105, start_column=10,
+                                             end_line=105, end_column=11,
                                              law_headings=["Test inline defs in toplevel defs"]))
     a_2 = temp_a_17
     return S4(a = a_2)
