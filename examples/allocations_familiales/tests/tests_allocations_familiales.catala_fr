@@ -423,58 +423,58 @@ $ catala Interpret -s Test13 --disable-warnings
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test1 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test1 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test2 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test2 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test3 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test3 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test4 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test4 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test5 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test5 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test6 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test6 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test7 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test7 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test8 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test8 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test9 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test9 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test10 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test10 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test11 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test11 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test12 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test12 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test13 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test13 
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test13 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test13 
 [RESULT] Computation successful!
 ```

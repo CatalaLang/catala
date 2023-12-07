@@ -65,6 +65,6 @@ $ catala Interpret -s Test1 --disable-warnings
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Test1 --avoid-exceptions
+$ catala Interpret_Lcalc -s Test1 
 [RESULT] Computation successful!
 ```

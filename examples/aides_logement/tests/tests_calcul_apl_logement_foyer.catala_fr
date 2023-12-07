@@ -166,27 +166,27 @@ $ catala Interpret -s CasTest5 --disable-warnings
 [RESULT] montant = 129,65 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest1 --avoid-exceptions
+$ catala Interpret_Lcalc -s CasTest1 
 [RESULT] Computation successful! Results:
 [RESULT] montant = 12,06 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest2 --avoid-exceptions
+$ catala Interpret_Lcalc -s CasTest2 
 [RESULT] Computation successful! Results:
 [RESULT] montant = 23,12 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest3 --avoid-exceptions
+$ catala Interpret_Lcalc -s CasTest3 
 [RESULT] Computation successful! Results:
 [RESULT] montant = 154,78 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest4 --avoid-exceptions
+$ catala Interpret_Lcalc -s CasTest4 
 [RESULT] Computation successful! Results:
 [RESULT] montant = 154,78 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest5 --avoid-exceptions
+$ catala Interpret_Lcalc -s CasTest5 
 [RESULT] Computation successful! Results:
 [RESULT] montant = 129,65 €
 ```
