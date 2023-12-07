@@ -129,22 +129,22 @@ champ d'application Exemple4 :
 $ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
-   checked. result: [29687/29687]
+   checked. result: [721/721]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_match_inversion
-   checked. result: [771/771]
+   checked. result: [0/0]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_app_inversion
-   checked. result: [4576/4576]
+   checked. result: [17/17]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_no_return_a_function
-   checked. result: [3046/3046]
+   checked. result: [0/0]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_no_partial_evaluation
-   checked. result: [4576/4576]
+   checked. result: [17/17]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_default_no_arrow
-   checked. result: [1460/1460]
+   checked. result: [128/128]
 [RESULT] Typechecking successful!
 ```
 

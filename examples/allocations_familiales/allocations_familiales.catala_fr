@@ -15,3 +15,26 @@
 > Inclusion: decrets_divers.catala_fr
 
 > Inclusion: epilogue.catala_fr
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [3140/3140]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [18/18]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [595/595]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [96/96]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [595/595]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [257/257]
+[RESULT] Typechecking successful!
+```
