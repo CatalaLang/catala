@@ -17,6 +17,31 @@ scope T:
   definition y equals s.f of 2
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check_invariants
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [44/44]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [3/3]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [1/1]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [3/3]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [6/6]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Lcalc -s T --avoid_exceptions -O --closure_conversion
 let scope T (T_in: T_in): T {y: integer} =

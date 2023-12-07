@@ -36,6 +36,31 @@ scope Simple_case_2:
     -- anything : 31
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check_invariants
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [90/90]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [2/2]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [4/4]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [6/6]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [4/4]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [12/12]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Interpret -s Simple_case_2
 [RESULT] Computation successful! Results:

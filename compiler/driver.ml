@@ -529,7 +529,7 @@ module Commands = struct
         $ Cli.Flags.output
         $ Cli.Flags.ex_scope_opt)
 
-  let typecheck options includes =
+  let typecheck options check_invariants includes =
     let prg = Passes.scopelang options ~includes in
     Message.emit_debug "Typechecking...";
     let _type_ordering =
@@ -541,14 +541,28 @@ module Commands = struct
     (* Strictly type-checking could stop here, but we also want this pass to
        check full name-resolution and cycle detection. These are checked during
        translation to dcalc so we run it here and drop the result. *)
-    let _prg = Dcalc.From_scopelang.translate_program prg in
+    let prg = Dcalc.From_scopelang.translate_program prg in
+
+    (* Additionally, we might want to check the invariants. *)
+    if check_invariants then (
+      let prg =
+        Shared_ast.Typing.program ~leave_unresolved:false (Program.untype prg)
+      in
+      Message.emit_debug "Checking invariants...";
+      let result = Dcalc.Invariants.check_all_invariants prg in
+      if not result then
+        raise (Message.raise_internal_error "Some Dcalc invariants are invalid"));
     Message.emit_result "Typechecking successful!"
 
   let typecheck_cmd =
     Cmd.v
       (Cmd.info "typecheck"
          ~doc:"Parses and typechecks a Catala program, without interpreting it.")
-      Term.(const typecheck $ Cli.Flags.Global.options $ Cli.Flags.include_dirs)
+      Term.(
+        const typecheck
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.include_dirs)
 
   let dcalc typed options includes output optimize ex_scope_opt check_invariants
       =

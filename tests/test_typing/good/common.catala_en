@@ -15,6 +15,61 @@ declaration scope S:
   output a content decimal
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check_invariants
+[WARNING] In scope "S", the variable "z" is declared but never defined; did you forget something?
+
+┌─⯈ tests/test_typing/good/common.catala_en:14.10-14.11:
+└──┐
+14 │   output z content collection Structure
+   │          ‾
+[WARNING] In scope "S", the variable "a" is declared but never defined; did you forget something?
+
+┌─⯈ tests/test_typing/good/common.catala_en:15.10-15.11:
+└──┐
+15 │   output a content decimal
+   │          ‾
+[WARNING] This variable is dead code; it does not contribute to computing any of scope "S" outputs. Did you forget something?
+
+┌─⯈ tests/test_typing/good/common.catala_en:12.9-12.10:
+└──┐
+12 │   input x content integer
+   │         ‾
+[WARNING] The structure "Structure" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_typing/good/common.catala_en:7.23-7.32:
+└─┐
+7 │ declaration structure Structure:
+  │                       ‾‾‾‾‾‾‾‾‾
+[WARNING] The enumeration "Enum" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_typing/good/common.catala_en:2.25-2.29:
+└─┐
+2 │ declaration enumeration Enum:
+  │                         ‾‾‾‾
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [16/16]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [2/2]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Typecheck --disable_warning
 [RESULT] Typechecking successful!

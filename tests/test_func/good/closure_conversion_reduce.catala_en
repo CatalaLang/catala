@@ -11,6 +11,31 @@ scope S:
     potential_max among x such that potential_max is minimum or if collection empty then -1
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check_invariants
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [29/29]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [0/0]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [4/4]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [3/3]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [4/4]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [2/2]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
 let scope S (S_in: S_in {x_in: collection integer}): S {y: integer} =

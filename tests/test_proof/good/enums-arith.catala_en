@@ -19,6 +19,38 @@ scope A:
   definition x under condition match y with pattern -- A of a: a < 0 -- B of b: true consequence equals 1
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check_invariants
+[WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_proof/good/enums-arith.catala_en:5.7-5.8:
+└─┐
+5 │    -- C content boolean
+  │       ‾
+  └─ Test
+[RESULT]
+Invariant Dcalc__Invariants.invariant_typing_defaults
+   checked. result: [40/40]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_match_inversion
+   checked. result: [2/2]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_app_inversion
+   checked. result: [2/2]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_return_a_function
+   checked. result: [4/4]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_no_partial_evaluation
+   checked. result: [2/2]
+[RESULT]
+Invariant Dcalc__Invariants.invariant_default_no_arrow
+   checked. result: [5/5]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Proof --disable_counterexamples 
 [WARNING] The constructor "C" of enumeration "T" is never used; maybe it's unnecessary?
