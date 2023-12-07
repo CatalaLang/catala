@@ -164,6 +164,8 @@ let rec format_statement
              (format_block decl_ctx ~debug)
              arm_block))
       (List.combine (EnumConstructor.Map.bindings cons) arms)
+  | SSpecialOp (OHandleDefaultOpt (_exceptions, _just, _cons)) ->
+    Format.fprintf fmt "handle_default_opt ..."
 
 and format_block
     (decl_ctx : decl_ctx)

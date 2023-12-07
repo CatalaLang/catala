@@ -464,6 +464,7 @@ let rec format_statement
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
+  | SSpecialOp _ -> failwith "should not happen"
 
 and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
   Format.pp_print_list

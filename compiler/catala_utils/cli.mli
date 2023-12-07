@@ -129,6 +129,7 @@ module Flags : sig
   val optimize : bool Term.t
   val avoid_exceptions : bool Term.t
   val closure_conversion : bool Term.t
+  val keep_special_ops : bool Term.t
   val include_dirs : raw_file list Term.t
   val disable_counterexamples : bool Term.t
 end

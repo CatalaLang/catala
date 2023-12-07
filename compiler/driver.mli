@@ -62,6 +62,7 @@ module Passes : sig
     check_invariants:bool ->
     avoid_exceptions:bool ->
     closure_conversion:bool ->
+    keep_special_ops:bool ->
     Scalc.Ast.program * Scopelang.Dependency.TVertex.t list
 end
 

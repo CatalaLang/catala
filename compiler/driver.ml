@@ -284,14 +284,15 @@ module Passes = struct
       ~optimize
       ~check_invariants
       ~avoid_exceptions
-      ~closure_conversion :
+      ~closure_conversion
+      ~keep_special_ops :
       Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
         ~avoid_exceptions ~closure_conversion
     in
     debug_pass_name "scalc";
-    Scalc.From_lcalc.translate_program prg, type_ordering
+    Scalc.From_lcalc.translate_program ~keep_special_ops prg, type_ordering
 end
 
 module Commands = struct
@@ -835,10 +836,11 @@ module Commands = struct
       check_invariants
       avoid_exceptions
       closure_conversion
+      keep_special_ops
       ex_scope_opt =
     let prg, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion
+        ~avoid_exceptions ~closure_conversion ~keep_special_ops
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -872,6 +874,7 @@ module Commands = struct
         $ Cli.Flags.check_invariants
         $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
+        $ Cli.Flags.keep_special_ops
         $ Cli.Flags.ex_scope_opt)
 
   let python
@@ -884,7 +887,7 @@ module Commands = struct
       closure_conversion =
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions ~closure_conversion
+        ~avoid_exceptions ~closure_conversion ~keep_special_ops:false
     in
 
     let output_file, with_output =
@@ -913,7 +916,7 @@ module Commands = struct
   let r options includes output optimize check_invariants closure_conversion =
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions:false ~closure_conversion
+        ~avoid_exceptions:false ~closure_conversion ~keep_special_ops:false
     in
 
     let output_file, with_output = get_output_format options ~ext:".r" output in
@@ -937,7 +940,7 @@ module Commands = struct
   let c options includes output optimize check_invariants =
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
-        ~avoid_exceptions:true ~closure_conversion:true
+        ~avoid_exceptions:true ~closure_conversion:true ~keep_special_ops:true
     in
     let output_file, with_output = get_output_format options ~ext:".c" output in
     Message.emit_debug "Compiling program into C...";

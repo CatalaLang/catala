@@ -344,7 +344,8 @@ let rec translate_scope_body_expr
     @ translate_scope_body_expr scope_name decl_ctx new_var_dict func_dict
         scope_let_next
 
-let translate_program (p : 'm L.program) : A.program =
+let translate_program ~(keep_special_ops : bool) (p : 'm L.program) : A.program
+    =
   let _, _, rev_items =
     Scope.fold_left
       ~f:(fun (func_dict, var_dict, rev_items) code_item var ->

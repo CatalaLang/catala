@@ -16,4 +16,9 @@
 
 open Shared_ast
 
-val translate_program : untyped Lcalc.Ast.program -> Ast.program
+(* When [keep_special_ops] is true, then this translation uses special Scalc AST
+   nodes for higher-order operators like map, fold, handle_default, etc. This is
+   useful if the target language after Scalc does not support nested functions
+   like C. *)
+val translate_program :
+  keep_special_ops:bool -> untyped Lcalc.Ast.program -> Ast.program

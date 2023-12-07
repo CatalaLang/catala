@@ -71,7 +71,9 @@ type stmt =
         list  (** Each block corresponds to one case of the enum *)
   | SReturn of naked_expr
   | SAssert of naked_expr
+  | SSpecialOp of special_operator
 
+and special_operator = OHandleDefaultOpt of expr list * expr * block
 and block = stmt Mark.pos list
 
 and func = {

@@ -395,6 +395,14 @@ module Flags = struct
     & info ["avoid_exceptions"]
         ~doc:"Compiles the default calculus without exceptions."
 
+  let keep_special_ops =
+    value
+    & flag
+    & info ["keep_special_ops"]
+        ~doc:
+          "During the Lcalc->Scalc translation, uses special AST nodes for \
+           higher-order operators rather than nested closures (useful for C)."
+
   let closure_conversion =
     value
     & flag
