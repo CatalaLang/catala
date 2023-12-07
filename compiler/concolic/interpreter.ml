@@ -177,6 +177,7 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   | TArray _ -> failwith "TArray not implemented"
   | TAny -> failwith "TAny not implemented"
   | TClosureEnv -> failwith "TClosureEnv not implemented"
+  | TDefault _ -> failwith "TDefault not implemented"
 
 (* taken from z3backend's find_or_create_struct *)
 and find_or_create_struct (ctx : context) (s : StructName.t) :
