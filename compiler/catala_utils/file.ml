@@ -213,14 +213,15 @@ module Tree = struct
 
   let rec build path =
     lazy
-      (Array.fold_left
+      (let entries = try Sys.readdir path with Sys_error _ -> [||] in
+       Array.fold_left
          (fun m f ->
-           let path = path / f in
-           match Sys.is_directory path with
-           | true -> Map.add f (path, D (build path)) m
-           | false -> Map.add f (path, F) m
-           | exception Sys_error _ -> m)
-         Map.empty (Sys.readdir path))
+            let path = path / f in
+            match Sys.is_directory path with
+            | true -> Map.add f (path, D (build path)) m
+            | false -> Map.add f (path, F) m
+            | exception Sys_error _ -> m)
+         Map.empty entries)
 
   let subtree t path =
     let rec aux t = function
