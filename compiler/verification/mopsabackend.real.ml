@@ -357,7 +357,10 @@ module Backend : Io.Backend = struct
         Some (Yojson.Basic.from_string new_json_to_parse)
       else
         let () =
-          Message.emit_warning "Something went wrong with Mopsa: %s"
+          Message.emit_warning "Mopsa failed to analyze %s"
+            prog_name in
+        let () =
+          Message.emit_debug "Mopsa failed with message:\n%s"
             (j |> member "exception" |> to_string)
         in
         None
