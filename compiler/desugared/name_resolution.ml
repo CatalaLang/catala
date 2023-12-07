@@ -699,13 +699,14 @@ let process_name_item (ctxt : context) (item : Surface.Ast.code_item Mark.pos) :
     { ctxt with local = { ctxt.local with typedefs } }
   | ScopeUse _ -> ctxt
   | Topdef def ->
-    let name, pos = def.topdef_name in
-    Option.iter
-      (fun use ->
-        raise_already_defined_error (TopdefName.get_info use) name pos
-          "toplevel definition")
-      (Ident.Map.find_opt name ctxt.local.topdefs);
-    let uid = TopdefName.fresh ctxt.local.path def.topdef_name in
+    let name, _ = def.topdef_name in
+    let uid =
+      match Ident.Map.find_opt name ctxt.local.topdefs with
+      | None -> TopdefName.fresh ctxt.local.path def.topdef_name
+      | Some uid -> uid
+      (* Topdef declaration may appear multiple times as long as their types
+         match and only one contains an expression defining it *)
+    in
     let topdefs = Ident.Map.add name uid ctxt.local.topdefs in
     { ctxt with local = { ctxt.local with topdefs } }
 
@@ -1012,7 +1013,7 @@ let form_context (surface, mod_uses) surface_modules : context =
      disambiguation. This is only done towards the root context, because
      submodules are only interfaces which don't need disambiguation ; and
      transitive dependencies shouldn't be visible here. *)
-  let sub_constructor_idmap, sub_field_idmap =
+  let constructor_idmap, field_idmap =
     Ident.Map.fold
       (fun _ m (cmap, fmap) ->
         let lctx = ModuleName.Map.find m ctxt.modules in
@@ -1028,22 +1029,6 @@ let form_context (surface, mod_uses) surface_modules : context =
         in
         cmap, fmap)
       mod_uses
-      (Ident.Map.empty, Ident.Map.empty)
+      (ctxt.local.constructor_idmap, ctxt.local.field_idmap)
   in
-  {
-    ctxt with
-    local =
-      {
-        ctxt.local with
-        (* In the root context, don't disambiguate on submodules structs/enums
-           when there is a conflict *)
-        constructor_idmap =
-          Ident.Map.union
-            (fun _ base _ -> Some base)
-            ctxt.local.constructor_idmap sub_constructor_idmap;
-        field_idmap =
-          Ident.Map.union
-            (fun _ base _ -> Some base)
-            ctxt.local.field_idmap sub_field_idmap;
-      };
-  }
+  { ctxt with local = { ctxt.local with constructor_idmap; field_idmap } }

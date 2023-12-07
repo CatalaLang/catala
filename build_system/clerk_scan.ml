@@ -26,6 +26,7 @@ type expected_output_descr = {
 type item = {
   file_name : File.t;
   module_def : string option;
+  extrnal : bool;
   used_modules : string list;
   included_files : File.t list;
   legacy_tests : expected_output_descr list;
@@ -68,7 +69,8 @@ let catala_file (file : File.t) (lang : Catala_utils.Cli.backend_lang) : item =
       | L.LINE_INCLUDE f ->
         let f = if Filename.is_relative f then File.(file /../ f) else f in
         { acc with included_files = f :: acc.included_files }
-      | L.LINE_MODULE_DEF m -> { acc with module_def = Some m }
+      | L.LINE_MODULE_DEF (m, extrnal) ->
+        { acc with module_def = Some m; extrnal }
       | L.LINE_MODULE_USE m -> { acc with used_modules = m :: acc.used_modules }
       | L.LINE_INLINE_TEST -> { acc with has_inline_tests = true }
       | _ -> acc)
@@ -110,6 +112,7 @@ let catala_file (file : File.t) (lang : Catala_utils.Cli.backend_lang) : item =
     {
       file_name = file;
       module_def = None;
+      extrnal = false;
       used_modules = [];
       included_files = [];
       legacy_tests = [];

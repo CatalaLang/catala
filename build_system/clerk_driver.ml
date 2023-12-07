@@ -579,7 +579,15 @@ let gen_build_statements
   in
   let module_deps =
     Option.map
-      (fun m -> Nj.build "phony" ~inputs:[inc srcv] ~outputs:[modd m])
+      (fun m ->
+        Nj.build "phony"
+          ~inputs:
+            [
+              inc srcv;
+              (!Var.builddir / src /../ m) ^ ".cmi";
+              (!Var.builddir / src /../ m) ^ ".cmxs";
+            ]
+          ~outputs:[modd m])
       item.module_def
   in
   let ml_file =
@@ -588,9 +596,15 @@ let gen_build_statements
     | None -> (!Var.builddir / !Var.src) ^ ".ml"
   in
   let ocaml =
-    Nj.build "catala-ocaml"
-      ~inputs:[inc srcv]
-      ~implicit_in:[!Var.catala_exe] ~outputs:[ml_file]
+    if item.extrnal then
+      Nj.build "copy"
+        ~implicit_in:[inc srcv]
+        ~inputs:[src -.- "ml"]
+        ~outputs:[ml_file]
+    else
+      Nj.build "catala-ocaml"
+        ~inputs:[inc srcv]
+        ~implicit_in:[!Var.catala_exe] ~outputs:[ml_file]
   in
   let ocamlopt =
     let implicit_out_exts = ["cmi"; "cmx"; "cmt"; "o"] in
@@ -598,7 +612,7 @@ let gen_build_statements
     | Some m ->
       let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
       Nj.build "ocaml-module" ~inputs:[ml_file]
-        ~implicit_in:(List.map (modfile ".cmi") modules)
+        ~implicit_in:(List.map modd modules)
         ~outputs:[target "cmxs"]
         ~implicit_out:(List.map target implicit_out_exts)
         ~vars:
@@ -650,19 +664,14 @@ let gen_build_statements
                      ])
                    include_dirs
               @ List.map (fun m -> m ^ ".cmx") modules );
+            (* FIXME: This doesn't work for module used through file
+               inclusion *)
           ]
   in
   let expose_module =
     match item.module_def with
     | Some m when List.mem (dirname src) include_dirs ->
-      Some
-        (Nj.build "phony"
-           ~outputs:[m ^ "@module"]
-           ~inputs:
-             [
-               (!Var.builddir / src /../ m) ^ ".cmi";
-               (!Var.builddir / src /../ m) ^ ".cmxs";
-             ])
+      Some (Nj.build "phony" ~outputs:[m ^ "@module"] ~inputs:[modd m])
     | _ -> None
   in
   let interp_deps =

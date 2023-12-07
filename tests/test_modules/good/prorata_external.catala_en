@@ -1,0 +1,15 @@
+> Module Prorata_external external
+
+Define a prototype for an external function in an ml file
+
+```catala-metadata
+# Trivial algorithm that cumulates all rounding errors to the last element
+declaration prorata content collection money
+  depends on amount content money,
+             weights content collection money
+
+# Another algorithm that distributes errors along the way
+declaration prorata2 content collection money
+  depends on amount content money,
+             weights content collection money
+```

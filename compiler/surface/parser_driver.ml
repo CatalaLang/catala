@@ -270,7 +270,7 @@ and expand_includes (source_file : string) (commands : Ast.law_structure list) :
               "Multiple definitions of the module name"
         in
         match command with
-        | Ast.ModuleDef id ->
+        | Ast.ModuleDef (id, _) ->
           {
             acc with
             Ast.program_module_name = join_module_names (Some id);

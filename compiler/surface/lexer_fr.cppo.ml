@@ -141,6 +141,7 @@
 #define MR_MODULE_DEF "Module"
 #define MR_MODULE_USE "Usage", Star hspace, "de"
 #define MR_MODULE_ALIAS "en", Star hspace, "tant", Star hspace, "que"
+#define MR_EXTERNAL "externe"
 #define MX_AT_PAGE \
    '@', Star hspace, "p.", Star hspace, Plus digit -> \
       let s = Utf8.lexeme lexbuf in \
