@@ -163,11 +163,11 @@ let rec check_typ_no_default ctx ty =
   | TDefault _t -> false
   | TAny ->
     Message.raise_internal_error
-      "Some Dcalc invariants are invalid: TAny was found wheras it the term \
-       was supposed to be well typed."
+      "Some Dcalc invariants are invalid: TAny was found whereas it should be \
+       fully resolved."
   | TClosureEnv ->
     Message.raise_internal_error
-      "Some Dcalc invariants are invalid: TClosureEnv was found wheras it \
+      "Some Dcalc invariants are invalid: TClosureEnv was found whereas it \
        should only appear later in the compilation process."
 
 let check_type_thunked_or_nodefault ctx ty =
