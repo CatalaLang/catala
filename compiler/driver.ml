@@ -935,7 +935,7 @@ module Commands = struct
         $ Cli.Flags.closure_conversion)
 
   let c options includes output optimize check_invariants =
-    let prg, _, type_ordering =
+    let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions:true ~closure_conversion:true
     in

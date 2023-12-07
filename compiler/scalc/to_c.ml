@@ -37,7 +37,7 @@ let avoid_keywords (s : string) : string =
 
 let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
   Format.fprintf fmt "%s"
-    (Format.asprintf "%a" StructName.format v
+    (Format.asprintf "%a_struct" StructName.format v
     |> String.to_ascii
     |> String.to_snake_case
     |> avoid_keywords)
@@ -45,13 +45,13 @@ let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
 let format_struct_field_name (fmt : Format.formatter) (v : StructField.t) : unit
     =
   Format.fprintf fmt "%s"
-    (Format.asprintf "%a" StructField.format v
+    (Format.asprintf "%a_field" StructField.format v
     |> String.to_ascii
     |> String.to_snake_case
     |> avoid_keywords)
 
 let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
-  Format.fprintf fmt "%s"
+  Format.fprintf fmt "%s_enum"
     (Format.asprintf "%a" EnumName.format v
     |> String.to_ascii
     |> String.to_snake_case
@@ -59,7 +59,7 @@ let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
 
 let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     unit =
-  Format.fprintf fmt "%s"
+  Format.fprintf fmt "%s_cons"
     (Format.asprintf "%a" EnumConstructor.format v
     |> String.to_ascii
     |> String.to_snake_case
@@ -68,25 +68,29 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
 let rec format_typ (decl_ctx : decl_ctx) (fmt : Format.formatter) (typ : typ) :
     unit =
   match Mark.remove typ with
-  | TLit TUnit -> Format.fprintf fmt "void * /* Unit */"
-  | TLit TMoney -> Format.fprintf fmt "int"
+  | TLit TUnit -> Format.fprintf fmt "char /* unit */"
+  | TLit TMoney -> Format.fprintf fmt "int /* money */"
   | TLit TInt -> Format.fprintf fmt "int"
   | TLit TRat -> Format.fprintf fmt "double"
   | TLit TDate -> Format.fprintf fmt "double"
   | TLit TDuration -> Format.fprintf fmt "double"
-  | TLit TBool -> Format.fprintf fmt "char"
+  | TLit TBool -> Format.fprintf fmt "char /* bool */"
   | TTuple ts ->
     Format.fprintf fmt "@[<v 2>struct {@,%a @]@,}"
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (t, i) ->
-           Format.fprintf fmt "%a arg_%d" (format_typ decl_ctx) t i))
+           Format.fprintf fmt "%a arg_%d;" (format_typ decl_ctx) t i))
       (List.mapi (fun x y -> y, x) ts)
   | TStruct s -> Format.fprintf fmt "%a" format_struct_name s
   | TOption some_typ ->
     (* We translate the option type with an overloading to C's [NULL] *)
-    Format.fprintf fmt "@[<h 2>union { %a;@ void * @]@,} /* eoption %a */"
-      (format_typ decl_ctx) some_typ (Print.typ decl_ctx) some_typ
+    Format.fprintf fmt
+      "@[<v 2>struct option { char some_tag;@ @[<v 2>union { void *none;@ %a \
+       some;@]@,\
+       } some@]@,\
+       } /* option %a */" (format_typ decl_ctx) some_typ (Print.typ decl_ctx)
+      some_typ
   | TDefault t -> format_typ decl_ctx fmt t
   | TEnum e -> Format.fprintf fmt "%a" format_enum_name e
   | TArrow (_t1, _t2) ->
@@ -101,104 +105,39 @@ let format_ctx
     (ctx : decl_ctx) : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
-    Format.fprintf fmt "@[<v 2>typedef struct %a {@ %a;@]@,} %a;"
+    Format.fprintf fmt "@[<v 2>typedef struct %a {@ %a@]@,} %a;"
       format_struct_name struct_name
       (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt (struct_field, struct_field_type) ->
-           Format.fprintf fmt "@[<v>%a %a@]" (format_typ ctx) struct_field_type
+           Format.fprintf fmt "@[<v>%a %a;@]" (format_typ ctx) struct_field_type
              format_struct_field_name struct_field))
-      fields format_struct_name struct_name;
-    if false then
-      Format.fprintf fmt
-        "class %a:@\n\
-        \    def __init__(self, %a) -> None:@\n\
-         %a@\n\
-         @\n\
-        \    def __eq__(self, other: object) -> bool:@\n\
-        \        if isinstance(other, %a):@\n\
-        \            return @[<hov>(%a)@]@\n\
-        \        else:@\n\
-        \            return False@\n\
-         @\n\
-        \    def __ne__(self, other: object) -> bool:@\n\
-        \        return not (self == other)@\n\
-         @\n\
-        \    def __str__(self) -> str:@\n\
-        \        @[<hov 4>return \"%a(%a)\".format(%a)@]" format_struct_name
-        struct_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-           (fun fmt (struct_field, struct_field_type) ->
-             Format.fprintf fmt "%a: %a" format_struct_field_name struct_field
-               (format_typ ctx) struct_field_type))
-        fields
-        (if StructField.Map.is_empty struct_fields then fun fmt _ ->
-           Format.fprintf fmt "        pass"
-         else
-           Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-             (fun fmt (struct_field, _) ->
-               Format.fprintf fmt "        self.%a = %a"
-                 format_struct_field_name struct_field format_struct_field_name
-                 struct_field))
-        fields format_struct_name struct_name
-        (if not (StructField.Map.is_empty struct_fields) then
-           Format.pp_print_list
-             ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
-             (fun fmt (struct_field, _) ->
-               Format.fprintf fmt "self.%a == other.%a" format_struct_field_name
-                 struct_field format_struct_field_name struct_field)
-         else fun fmt _ -> Format.fprintf fmt "True")
-        fields format_struct_name struct_name
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
-           (fun fmt (struct_field, _) ->
-             Format.fprintf fmt "%a={}" format_struct_field_name struct_field))
-        fields
-        (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-           (fun fmt (struct_field, _) ->
-             Format.fprintf fmt "self.%a" format_struct_field_name struct_field))
-        fields
+      fields format_struct_name struct_name
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
     if EnumConstructor.Map.is_empty enum_cons then
       failwith "no constructors in the enum"
     else
-      Format.fprintf fmt
-        "@[<hov 4>class %a_Code(Enum):@\n\
-         %a@]@\n\
-         @\n\
-         class %a:@\n\
-        \    def __init__(self, code: %a_Code, value: Any) -> None:@\n\
-        \        self.code = code@\n\
-        \        self.value = value@\n\
-         @\n\
-         @\n\
-        \    def __eq__(self, other: object) -> bool:@\n\
-        \        if isinstance(other, %a):@\n\
-        \            return self.code == other.code and self.value == \
-         other.value@\n\
-        \        else:@\n\
-        \            return False@\n\
-         @\n\
-         @\n\
-        \    def __ne__(self, other: object) -> bool:@\n\
-        \        return not (self == other)@\n\
-         @\n\
-        \    def __str__(self) -> str:@\n\
-        \        @[<hov 4>return \"{}({})\".format(self.code, self.value)@]"
+      Format.fprintf fmt "@[<v 2>enum %a_code {@,%a@]@,} %a_code;@\n@\n"
         format_enum_name enum_name
         (Format.pp_print_list
-           ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-           (fun fmt (i, enum_cons, _enum_cons_type) ->
-             Format.fprintf fmt "%a = %d" format_enum_cons_name enum_cons i))
-        (List.mapi
-           (fun i (x, y) -> i, x, y)
-           (EnumConstructor.Map.bindings enum_cons))
-        format_enum_name enum_name format_enum_name enum_name format_enum_name
-        enum_name
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+           (fun fmt (enum_cons, _) ->
+             Format.fprintf fmt "%a_%a" format_enum_name enum_name
+               format_enum_cons_name enum_cons))
+        (EnumConstructor.Map.bindings enum_cons)
+        format_enum_name enum_name;
+    Format.fprintf fmt
+      "@[<v 2>typedef struct %a {@ enum %a_code code;@ @[<v 2>union {@ %a@]@,\
+       } payload;@]@,\
+       } %a;" format_enum_name enum_name format_enum_name enum_name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+         (fun fmt (enum_cons, typ) ->
+           Format.fprintf fmt "%a %a;" (format_typ ctx) typ
+             format_enum_cons_name enum_cons))
+      (EnumConstructor.Map.bindings enum_cons)
+      format_enum_name enum_name
   in
 
   let is_in_type_ordering s =
