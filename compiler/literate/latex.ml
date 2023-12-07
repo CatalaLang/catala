@@ -62,6 +62,7 @@ let wrap_latex
 \usepackage{color}
 \usepackage{longtable}
 \usepackage{booktabs,tabularx}
+\usepackage{framed}
 \usepackage{newunicodechar}
 \usepackage{textcomp}
 \usepackage[hidelinks]{hyperref}
