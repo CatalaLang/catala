@@ -542,11 +542,12 @@ module Commands = struct
        check full name-resolution and cycle detection. These are checked during
        translation to dcalc so we run it here and drop the result. *)
     let prg = Dcalc.From_scopelang.translate_program prg in
-    let prg =
-      Shared_ast.Typing.program ~leave_unresolved:false (Program.untype prg)
-    in
+
     (* Additionally, we might want to check the invariants. *)
     if check_invariants then (
+      let prg =
+        Shared_ast.Typing.program ~leave_unresolved:false (Program.untype prg)
+      in
       Message.emit_debug "Checking invariants...";
       let result = Dcalc.Invariants.check_all_invariants prg in
       if not result then

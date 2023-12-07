@@ -162,18 +162,13 @@ let rec check_typ_no_default ctx ty =
   | TArray ty -> check_typ_no_default ctx ty
   | TDefault _t -> false
   | TAny ->
-    (* found TAny *)
-    Message.emit_warning
-      "Internal error: the type was not fully resolved, it is not possible to \
-       verify whenever the typing_default invariant holds.";
-    true
+    Message.raise_internal_error
+      "Some Dcalc invariants are invalid: TAny was found wheras it the term \
+       was supposed to be well typed."
   | TClosureEnv ->
-    Message.emit_warning
-      "Internal error: In the compilation process, the default invariant for \
-       typing was not checked early enough. Since it's impossible to verify \
-       this invariant at any point due to the closure environment holding an \
-       existential type.";
-    true (* we should not check this one. *)
+    Message.raise_internal_error
+      "Some Dcalc invariants are invalid: TClosureEnv was found wheras it \
+       should only appear later in the compilation process."
 
 let check_type_thunked_or_nodefault ctx ty =
   check_typ_no_default ctx ty
