@@ -53,7 +53,7 @@ module Cli = struct
   let include_dirs =
     Arg.(
       value
-      & opt_all dir []
+      & opt_all string []
       & info ["I"; "include"] ~docv:"DIR"
           ~doc:
             "Make modules from the given directory available from everywhere.")
