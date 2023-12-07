@@ -181,7 +181,7 @@ let format_item decl_ctx ?debug ppf def =
   Print.keyword ppf "let ";
   let () =
     match def with
-    | SVar { var; expr } ->
+    | SVar { var; expr; typ = _ } ->
       format_var_name ppf var;
       Print.punctuation ppf " =";
       Format.pp_close_box ppf ();
@@ -204,6 +204,14 @@ let format_item decl_ctx ?debug ppf def =
   Format.pp_print_cut ppf ()
 
 let format_program decl_ctx ?debug ppf prg =
+  let decl_ctx =
+    {
+      decl_ctx with
+      ctx_enums =
+        EnumName.Map.add Expr.option_enum Expr.option_enum_config
+          decl_ctx.ctx_enums;
+    }
+  in
   Format.pp_open_vbox ppf 0;
   Format.pp_print_list (format_item decl_ctx ?debug) ppf prg.code_items;
   Format.pp_close_box ppf ()

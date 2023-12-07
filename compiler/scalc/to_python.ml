@@ -392,7 +392,7 @@ let rec format_statement
     (fmt : Format.formatter)
     (s : stmt Mark.pos) : unit =
   match Mark.remove s with
-  | SInnerFuncDef (name, { func_params; func_body }) ->
+  | SInnerFuncDef (name, { func_params; func_body; _ }) ->
     Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_var
       (Mark.remove name)
       (Format.pp_print_list
@@ -615,13 +615,13 @@ let format_program
      %a@]@?"
     (format_ctx type_ordering) p.decl_ctx
     (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt -> function
-       | SVar { var; expr } ->
+       | SVar { var; expr; typ = _ } ->
          Format.fprintf fmt "@[<hv 4>%a = (@,%a@,@])@," format_var var
            (format_expression p.decl_ctx)
            expr
        | SFunc { var; func }
        | SScope { scope_body_var = var; scope_body_func = func; _ } ->
-         let { Ast.func_params; Ast.func_body } = func in
+         let { Ast.func_params; Ast.func_body; _ } = func in
          Format.fprintf fmt "@[<hv 4>def %a(%a):@\n%a@]@," format_func_name var
            (Format.pp_print_list
               ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")

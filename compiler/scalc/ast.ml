@@ -73,7 +73,12 @@ type stmt =
   | SAssert of naked_expr
 
 and block = stmt Mark.pos list
-and func = { func_params : (VarName.t Mark.pos * typ) list; func_body : block }
+
+and func = {
+  func_params : (VarName.t Mark.pos * typ) list;
+  func_body : block;
+  func_return_typ : typ;
+}
 
 type scope_body = {
   scope_body_name : ScopeName.t;
@@ -82,7 +87,7 @@ type scope_body = {
 }
 
 type code_item =
-  | SVar of { var : VarName.t; expr : expr }
+  | SVar of { var : VarName.t; expr : expr; typ : typ }
   | SFunc of { var : FuncName.t; func : func }
   | SScope of scope_body
 

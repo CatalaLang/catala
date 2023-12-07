@@ -211,6 +211,11 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
                     (Var.Map.find var ctxt.var_dict, binder_pos), tau)
                   vars_tau;
               func_body = new_body;
+              func_return_typ =
+                (match Expr.maybe_ty (Mark.get block_expr) with
+                | TArrow (_, t2), _ -> t2
+                | TAny, pos_any -> TAny, pos_any
+                | _ -> failwith "should not happen");
             } ),
         binder_pos );
     ]
@@ -374,10 +379,12 @@ let translate_program (p : 'm L.program) : A.program =
                           (TStruct body.scope_body_input_struct, input_pos) );
                       ];
                     A.func_body = new_scope_body;
+                    func_return_typ =
+                      TStruct body.scope_body_output_struct, input_pos;
                   };
               }
             :: rev_items )
-        | Topdef (name, _, (EAbs abs, _)) ->
+        | Topdef (name, topdef_ty, (EAbs abs, _)) ->
           (* Toplevel function def *)
           let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
           let args_a, expr = Bindlib.unmbind abs.binder in
@@ -412,10 +419,19 @@ let translate_program (p : 'm L.program) : A.program =
             A.SFunc
               {
                 var = func_id;
-                func = { A.func_params = args_id; A.func_body = body_block };
+                func =
+                  {
+                    A.func_params = args_id;
+                    A.func_body = body_block;
+                    A.func_return_typ =
+                      (match topdef_ty with
+                      | TArrow (_, t2), _ -> t2
+                      | TAny, pos_any -> TAny, pos_any
+                      | _ -> failwith "should not happen");
+                  };
               }
             :: rev_items )
-        | Topdef (name, _ty, expr) ->
+        | Topdef (name, topdef_ty, expr) ->
           (* Toplevel constant def *)
           let var_id = A.VarName.fresh (Bindlib.name_of var, Pos.no_pos) in
           let block, expr =
@@ -434,7 +450,7 @@ let translate_program (p : 'm L.program) : A.program =
              statements, we lift its computation into an auxiliary function *)
           let rev_items =
             match block with
-            | [] -> A.SVar { var = var_id; expr } :: rev_items
+            | [] -> A.SVar { var = var_id; expr; typ = topdef_ty } :: rev_items
             | block ->
               let pos = Mark.get expr in
               let func_id =
@@ -442,7 +458,11 @@ let translate_program (p : 'm L.program) : A.program =
               in
               (* The list is being built in reverse order *)
               A.SVar
-                { var = var_id; expr = A.EApp ((EFunc func_id, pos), []), pos }
+                {
+                  var = var_id;
+                  expr = A.EApp ((EFunc func_id, pos), []), pos;
+                  typ = topdef_ty;
+                }
               :: A.SFunc
                    {
                      var = func_id;
@@ -451,6 +471,11 @@ let translate_program (p : 'm L.program) : A.program =
                          A.func_params = [];
                          A.func_body =
                            block @ [A.SReturn (Mark.remove expr), Mark.get expr];
+                         A.func_return_typ =
+                           (match topdef_ty with
+                           | TArrow (_, t2), _ -> t2
+                           | TAny, pos_any -> TAny, pos_any
+                           | _ -> failwith "should not happen");
                        };
                    }
               :: rev_items
