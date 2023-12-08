@@ -1,0 +1,34 @@
+
+```catala
+declaration structure Str:
+  data x1 content (integer, date)
+
+declaration enumeration En:
+  -- One content Str
+  -- Two content (integer, Str)
+
+declaration str content Str equals
+  Str { --x1: (12, |2001-01-01|) }
+
+declaration f2 content decimal
+  depends on str content Str,
+             en content En
+  equals
+  match en with pattern
+  -- One of str1:
+     let a, w equals str.x1 in
+     let b, w equals str1.x1 in
+     a / b
+  -- Two of z:
+     let z1, z2 equals z in z1 / 2
+
+declaration scope Test:
+  output o content (date, decimal)
+
+scope Test:
+  definition o equals
+      (|2001-01-03|,
+        f2 of str, Two content (12, str))
+```
+
+Test in progress

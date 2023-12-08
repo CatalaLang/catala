@@ -254,10 +254,10 @@ let naked_expression ==
   ELSE ; e3 = expression ; {
   IfThenElse (e1, e2, e3)
 } %prec let_expr
-| LET ; id = lident ;
+| LET ; ids = separated_nonempty_list(COMMA,lident) ;
   DEFINED_AS ; e1 = expression ;
   IN ; e2 = expression ; {
-  LetIn (id, e1, e2)
+  LetIn (ids, e1, e2)
 } %prec let_expr
 | i = lident ;
   AMONG ; coll = expression ;

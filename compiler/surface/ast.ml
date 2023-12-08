@@ -181,7 +181,7 @@ and naked_expression =
   | FunCall of expression * expression list
   | ScopeCall of
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
-  | LetIn of lident Mark.pos * expression * expression
+  | LetIn of lident Mark.pos list * expression * expression
   | Builtin of builtin_expression
   | Literal of literal
   | EnumInject of (path * uident Mark.pos) Mark.pos * expression option

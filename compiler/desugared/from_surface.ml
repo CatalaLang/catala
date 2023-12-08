@@ -459,12 +459,18 @@ let rec translate_expr
         ScopeVar.Map.empty fields
     in
     Expr.escopecall ~scope:called_scope ~args:in_struct emark
-  | LetIn (x, e1, e2) ->
-    let v = Var.make (Mark.remove x) in
-    let local_vars = Ident.Map.add (Mark.remove x) v local_vars in
-    let tau = TAny, Mark.get x in
+  | LetIn (xs, e1, e2) ->
+    let vs = List.map (fun x -> Var.make (Mark.remove x)) xs in
+    let local_vars =
+      List.fold_left2
+        (fun local_vars x v -> Ident.Map.add (Mark.remove x) v local_vars)
+        local_vars xs vs
+    in
+    let taus = List.map (fun x -> TAny, Mark.get x) xs in
     (* This type will be resolved in Scopelang.Desambiguation *)
-    let fn = Expr.make_abs [| v |] (rec_helper ~local_vars e2) [tau] pos in
+    let fn =
+      Expr.make_abs (Array.of_list vs) (rec_helper ~local_vars e2) taus pos
+    in
     Expr.eapp fn [rec_helper e1] emark
   | StructLit (((path, s_name), _), fields) ->
     let ctxt = Name_resolution.module_ctx ctxt path in
