@@ -1041,16 +1041,16 @@ let print_path_constraints (prefix : string) : path_constraint list -> unit =
   List.iter (fun pc ->
       Message.emit_result "%s%s" prefix (string_of_path_constraint pc))
 
-let print_annotated_path_constraints (prefix : string) :
-    annotated_path_constraint list -> unit =
+let print_annotated_path_constraints (prefix : string) constraints : unit =
   let aux apc =
     Message.emit_result "%s%s" prefix
       (match apc with
-      | Normal pc -> "NOR " ^ string_of_path_constraint pc
-      | Done pc -> "DON " ^ string_of_path_constraint pc
-      | Negated pc -> "NEG " ^ string_of_path_constraint pc)
+      | Normal pc -> "       " ^ string_of_path_constraint pc
+      | Done pc -> "DONE   " ^ string_of_path_constraint pc
+      | Negated pc -> "NEGATE " ^ string_of_path_constraint pc)
   in
-  List.iter aux
+  if constraints = [] then Message.emit_result "%s[no constraints]" prefix
+  else List.iter aux constraints
 
 type solver_result = Sat of Z3.Model.model option | Unsat | Unknown
 
@@ -1137,8 +1137,12 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
         in
         print_fields p.lang "... " outputs_list;
 
+        (* TODO find a better way *)
         let new_path_constraints =
-          compare_paths path_constraints res_path_constraints
+          compare_paths
+            (List.rev path_constraints)
+            (List.rev res_path_constraints)
+          |> List.rev
           |> make_expected_path
         in
         if new_path_constraints = [] then ()
@@ -1158,8 +1162,7 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
 
     let _ = concolic_loop [] in
     Message.emit_result "";
-    Message.emit_result
-      "Concolic interpreter has successfully explored all paths";
+    Message.emit_result "Concolic interpreter done";
 
     (* XXX BROKEN output *)
     []
