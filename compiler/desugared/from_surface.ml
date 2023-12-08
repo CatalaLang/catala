@@ -588,6 +588,7 @@ let rec translate_expr
     in
     Expr.ematch ~e:(rec_helper e1) ~name:enum_uid ~cases emark
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
+  | Tuple es -> Expr.etuple (List.map rec_helper es) emark
   | CollectionOp (((S.Filter { f } | S.Map { f }) as op), collection) ->
     let collection = rec_helper collection in
     let param_name, predicate = f in

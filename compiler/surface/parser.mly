@@ -120,6 +120,11 @@ let primitive_typ :=
 let typ_data :=
 | t = primitive_typ ; <Primitive>
 | LIST ; t = addpos(typ_data) ; <Collection>
+| LPAREN ; tl = separated_nonempty_list(COMMA,addpos(typ_data)) ; RPAREN ; {
+  match tl with
+  | [t, _] -> t
+  | ts -> TTuple ts
+}
 
 let typ == t = typ_data ; <Data>
 
@@ -167,7 +172,11 @@ let naked_expression ==
 | l = literal ; {
   Literal l
 }
-| LPAREN ; e = expression ; RPAREN ; <Paren>
+| LPAREN ; el = separated_nonempty_list(COMMA, expression) ; RPAREN ; {
+  match el with
+  | [e] -> Paren e
+  | es -> Tuple es
+}
 | e = expression ;
   DOT ; i = addpos(qlident) ; <Dotted>
 | CARDINAL ; {

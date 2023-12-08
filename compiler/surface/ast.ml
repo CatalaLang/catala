@@ -55,6 +55,7 @@ and primitive_typ =
 and base_typ_data =
   | Primitive of primitive_typ
   | Collection of base_typ_data Mark.pos
+  | TTuple of base_typ_data Mark.pos list
 
 and base_typ = Condition | Data of base_typ_data
 
@@ -187,6 +188,7 @@ and naked_expression =
   | StructLit of
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
   | ArrayLit of expression list
+  | Tuple of expression list
   | Ident of path * lident Mark.pos
   | Dotted of expression * (path * lident Mark.pos) Mark.pos
       (** Dotted is for both struct field projection and sub-scope variables *)
