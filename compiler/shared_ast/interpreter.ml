@@ -537,7 +537,8 @@ and val_to_runtime :
       | [] ->
         let args = List.rev acc in
         val_to_runtime eval_expr ctx tret
-          (eval_expr ctx (EApp { f = v; args }, m))
+          (try eval_expr ctx (EApp { f = v; args }, m)
+           with CatalaException EmptyError -> raise Runtime.EmptyError)
       | targ :: targs ->
         Obj.repr (fun x ->
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
