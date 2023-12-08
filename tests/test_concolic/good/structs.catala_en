@@ -12,45 +12,89 @@ declaration structure S:
 declaration scope A:
   input n content integer
   input m content integer
-  input b content boolean
   output x content integer
   internal y content S
 
 scope A:
   definition y equals S { -- a : n -- b : T { -- c : false -- d: 0}}
-  definition x under condition (y.a = m) or y.b.c consequence equals 0
-  definition x under condition (y.a = m) and not b consequence equals 1
+  definition x equals 42
+  exception definition x under condition (y.a = m) or y.b.c consequence equals 0
 ```
 
 ```catala-test-inline
 $ catala DCalc -s A
-let scope A
-  (A_in: A_in {n_in: integer; m_in: integer; b_in: bool})
-  : A {x: integer}
-  =
+let scope A (A_in: A_in {n_in: integer; m_in: integer}): A {x: integer} =
   let get n : integer = A_in.n_in in
   let get m : integer = A_in.m_in in
-  let get b : bool = A_in.b_in in
   let set y : S {a: integer; b: T {c: bool; d: integer}} =
     error_empty
       ⟨ ⟨true ⊢ ⟨{ S a = n; b = { T c = false; d = 0; }; }⟩⟩ | false ⊢ ∅ ⟩
   in
   let set x : integer =
     error_empty
-      ⟨ ⟨y.a = m || y.b.c ⊢ ⟨0⟩⟩, ⟨y.a = m && ~ b ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩
+      ⟨ ⟨ ⟨y.a = m || y.b.c ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨42⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
   return { A x = x; }
 ```
 
 ```catala-test-inline
 $ catala Concolic -s A
-[RESULT]
-Constraints:
-true
-(not (and (= n_in m_in) (not b_in)))
-(= n_in m_in)
-
-[RESULT] Computation successful! Results:
-[RESULT] x = 0
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . [no constraints]
+[RESULT] .. Solver returned a model
+[RESULT] .. Evaluating with inputs:
+[RESULT] ... m_in = 42
+[RESULT] ... n_in = 42
+[RESULT] .. Path constraints after evaluation:
+[RESULT] ... (= n_in m_in)
+[RESULT] ... true
+[RESULT] .. Output of scope after evaluation:
+[RESULT] ... x = 0
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . NEGATE (= n_in m_in)
+[RESULT] .        true
+[RESULT] .. Solver returned a model
+[RESULT] .. Evaluating with inputs:
+[RESULT] ... m_in = 0
+[RESULT] ... n_in = 1
+[RESULT] .. Path constraints after evaluation:
+[RESULT] ... true
+[RESULT] ... true
+[RESULT] ... true
+[RESULT] ... (not (= n_in m_in))
+[RESULT] ... true
+[RESULT] .. Output of scope after evaluation:
+[RESULT] ... x = 42
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . NEGATE true
+[RESULT] .        true
+[RESULT] .        true
+[RESULT] . DONE   (not (= n_in m_in))
+[RESULT] .        true
+[RESULT] .. Solver returned Unsat
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . NEGATE true
+[RESULT] .        true
+[RESULT] . DONE   (not (= n_in m_in))
+[RESULT] .        true
+[RESULT] .. Solver returned Unsat
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . NEGATE true
+[RESULT] . DONE   (not (= n_in m_in))
+[RESULT] .        true
+[RESULT] .. Solver returned Unsat
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . NEGATE true
+[RESULT] .. Solver returned Unsat
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
 ```
 

@@ -7,7 +7,8 @@ declaration scope A:
   output o content integer
 
 scope A:
-  definition o under condition b consequence equals x
+  definition o equals 12
+  exception definition o under condition b consequence equals x
 ```
 
 ```catala-test-inline
@@ -15,16 +16,61 @@ $ catala DCalc -s A
 let scope A (A_in: A_in {b_in: bool; x_in: integer}): A {o: integer} =
   let get b : bool = A_in.b_in in
   let get x : integer = A_in.x_in in
-  let set o : integer = error_empty ⟨ ⟨b ⊢ ⟨x⟩⟩ | false ⊢ ∅ ⟩ in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨ ⟨b ⊢ ⟨x⟩⟩ | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨12⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
   return { A o = o; }
 ```
 
 ```catala-test-inline
 $ catala Concolic -s A
-[RESULT] Constraints:
-b_in
-
-[RESULT] Computation successful! Results:
-[RESULT] o = 42
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . [no constraints]
+[RESULT] .. Solver returned a model
+[RESULT] .. Evaluating with inputs:
+[RESULT] ... b_in = true
+[RESULT] ... x_in = 42
+[RESULT] .. Path constraints after evaluation:
+[RESULT] ... b_in
+[RESULT] .. Output of scope after evaluation:
+[RESULT] ... o = 42
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . NEGATE b_in
+[RESULT] .. Solver returned a model
+[RESULT] .. Evaluating with inputs:
+[RESULT] ... b_in = false
+[RESULT] ... x_in = 42
+[RESULT] .. Path constraints after evaluation:
+[RESULT] ... true
+[RESULT] ... true
+[RESULT] ... true
+[RESULT] ... (not b_in)
+[RESULT] .. Output of scope after evaluation:
+[RESULT] ... o = 12
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . NEGATE true
+[RESULT] .        true
+[RESULT] .        true
+[RESULT] . DONE   (not b_in)
+[RESULT] .. Solver returned Unsat
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . NEGATE true
+[RESULT] .        true
+[RESULT] . DONE   (not b_in)
+[RESULT] .. Solver returned Unsat
+[RESULT] 
+[RESULT] Trying new path constraints
+[RESULT] . NEGATE true
+[RESULT] . DONE   (not b_in)
+[RESULT] .. Solver returned Unsat
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
 ```
 
