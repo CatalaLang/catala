@@ -77,6 +77,7 @@ let add_conc_info_m
     (former_mark : conc_info mark)
     (symb_expr : s_expr option)
     ?(constraints : path_constraint list option)
+    ?(ty : typ option)
     (x : 'a) : ('a, conc_info) marked =
   let (Custom { pos; custom }) = former_mark in
   let symb_expr = Option.map (fun z -> Z3.Expr.simplify z None) symb_expr in
@@ -86,7 +87,8 @@ let add_conc_info_m
   (* only update symb_expr if it does not exist already *)
   let constraints = Option.value ~default:custom.constraints constraints in
   (* only change constraints if new ones are provided *)
-  Mark.add (Custom { pos; custom = { custom with symb_expr; constraints } }) x
+  let ty = Option.fold ~none:custom.ty ~some:Option.some ty in
+  Mark.add (Custom { pos; custom = { symb_expr; constraints; ty } }) x
 
 (** Maybe replace the constraints, and safely replace the symbolic expression
     from former expression *)
@@ -892,17 +894,47 @@ let expr_of_typ mark ty =
       ty_in (Expr.mark_pos mark)
   | _ -> failwith "not implemented"
 
-let conc_expr_of_typ ctx mark field ty : 'c conc_boxed_expr =
-  let concrete = expr_of_typ mark ty in
+let interp_in_model (m : Z3.Model.model) (v : Z3.Expr.expr) : s_expr option =
+  Z3.Model.get_const_interp_e m v
+
+let value_of_symb_expr m (e : s_expr) =
+  let lit =
+    match Z3.Sort.get_sort_kind (Z3.Expr.get_sort e) with
+    | Z3enums.INT_SORT -> LInt (Z3.Arithmetic.Integer.get_big_int e)
+    | Z3enums.BOOL_SORT -> begin
+      match Z3.Boolean.get_bool_value e with
+      | L_FALSE -> LBool false
+      | L_TRUE -> LBool true
+      | L_UNDEF -> failwith "boolean value undefined"
+    end
+    (* TODO Struct *)
+    | _ -> failwith "not a possible value"
+  in
+  Expr.elit lit m
+
+(** Get Catala values from a Z3 model, possibly with default values *)
+let inputs_of_model
+    (m : Z3.Model.model)
+    (input_marks : conc_info mark StructField.Map.t) :
+    'c conc_boxed_expr StructField.Map.t =
+  let f _ (mk : conc_info mark) =
+    let (Custom { custom; _ }) = mk in
+    let symb_expr_opt = interp_in_model m (Option.get custom.symb_expr) in
+    Option.fold
+      ~none:(expr_of_typ mk (Option.get custom.ty))
+      ~some:(value_of_symb_expr mk) symb_expr_opt
+  in
+  StructField.Map.mapi f input_marks
+
+let make_input_mark ctx m field ty : conc_info mark =
   let name = Mark.remove (StructField.get_info field) in
   let _, sort = translate_typ ctx (Mark.remove ty) in
-  let symbol = Z3.Expr.mk_const_s ctx.ctx_z3 name sort in
-  add_conc_info_e (Some symbol) concrete
-
-(** for now, just like default inputs, but concolic *)
-let make_default_conc_inputs ctx (input_typs : typ StructField.Map.t) mark :
-    'c conc_boxed_expr StructField.Map.t =
-  StructField.Map.mapi (conc_expr_of_typ ctx mark) input_typs
+  let symb_expr = Z3.Expr.mk_const_s ctx.ctx_z3 name sort in
+  Custom
+    {
+      pos = Expr.mark_pos m;
+      custom = { symb_expr = Some symb_expr; constraints = []; ty = Some ty };
+    }
 
 let simplify_program (type m) ctx (p : (dcalc, m) gexpr program) s :
     yes conc_expr =
@@ -987,20 +1019,24 @@ let constraint_list_of_path ctx (path : annotated_path_constraint list) :
   in
   List.map f path
 
-let string_of_constraints : path_constraint list -> string =
-  List.fold_left
-    (fun acc pc ->
-      Z3.Expr.to_string pc.expr
-      ^ (if Cli.globals.debug then
-           "@"
-           ^ Pos.to_string_short pc.pos
-           ^ " {"
-           ^ string_of_bool pc.branch
-           ^ "}"
-         else "")
-      ^ "\n"
-      ^ acc)
-    ""
+let string_of_annotated_path_constraints :
+    annotated_path_constraint list -> string =
+  let string_of_pc pc =
+    Z3.Expr.to_string pc.expr
+    ^
+    if Cli.globals.debug then
+      "@" ^ Pos.to_string_short pc.pos ^ " {" ^ string_of_bool pc.branch ^ "}"
+    else ""
+  in
+  let aux acc apc =
+    (match apc with
+    | Normal pc -> "NOR " ^ string_of_pc pc
+    | Done pc -> "DON " ^ string_of_pc pc
+    | Negated pc -> "NEG " ^ string_of_pc pc)
+    ^ "\n"
+    ^ acc
+  in
+  List.fold_left aux ""
 
 type solver_result = Sat of Z3.Model.model option | Unsat | Unknown
 
@@ -1021,7 +1057,7 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
 
   let scope_e = simplify_program ctx p s in
   match scope_e with
-  | (EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e) as e -> begin
+  | EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e -> begin
     (* [taus] contain the types of the scope arguments. For [context] arguments,
        we can provide an empty thunked term. For [input] arguments of another
        type, we provide an empty value. *)
@@ -1029,26 +1065,25 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
 
     (* first set of inputs *)
     let taus = StructName.Map.find s_in ctx.ctx_decl.ctx_structs in
-    let default_application_term =
-      make_default_conc_inputs ctx taus
-        mark_e (* TODO CONC should this mark change? *)
-    in
-    Message.emit_debug "...default inputs generated...";
 
-    let rec concolic_loop path_constraints =
+    let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
+    Message.emit_debug "...input marks generated...";
+
+    (* let default_application_term = make_default_conc_inputs ctx taus mark_e
+       (* TODO CONC should this mark change? *) in *)
+    let rec concolic_loop (path_constraints : annotated_path_constraint list) =
+      Message.emit_result "Trying path constraints:\n%s"
+        (string_of_annotated_path_constraints path_constraints);
       let solver_constraints = constraint_list_of_path ctx path_constraints in
 
       match solve_constraints ctx solver_constraints with
       | Sat (Some m) ->
         Message.emit_debug "...solver found model...";
-        (* let inputs = input_of_model m in *)
-        let inputs = make_default_conc_inputs ctx taus mark_e in
+        let inputs = inputs_of_model m input_marks in
         let res = eval_conc_with_input ctx p.lang s_in scope_e mark_e inputs in
         Message.emit_debug "...scope interepred with inputs...";
 
         let res_path_constraints = get_constraints res in
-        Message.emit_result "Constraints:\n%s"
-          (string_of_constraints res_path_constraints);
 
         let new_path_constraints =
           compare_paths path_constraints res_path_constraints
@@ -1057,12 +1092,13 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
         if new_path_constraints = [] then failwith "over"
         else concolic_loop new_path_constraints
       | Unsat -> begin
+        Message.emit_debug "...solver returned unsat...";
         match path_constraints with
         | [] -> failwith "[concolic] failed to solve without constraints"
         | _ :: new_path_constraints ->
           let new_expected_path = make_expected_path new_path_constraints in
-          if new_path_constraints = [] then failwith "over"
-          else concolic_loop new_path_constraints
+          if new_expected_path = [] then failwith "over"
+          else concolic_loop new_expected_path
       end
       | Sat None ->
         failwith "[concolic] Constraints satisfiable but no model was produced"
@@ -1072,9 +1108,9 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     let _ = concolic_loop [] in
 
     (* XXX BROKEN output *)
-    List.map
-      (fun (fld, e) -> StructField.get_info fld, Expr.unbox e)
-      (StructField.Map.bindings (make_default_conc_inputs ctx taus mark_e))
+    []
+    (* List.map (fun (fld, e) -> StructField.get_info fld, Expr.unbox e)
+       (StructField.Map.bindings (make_default_conc_inputs ctx taus mark_e)) *)
   end
   | _ ->
     Message.raise_spanned_error (Expr.pos scope_e)
