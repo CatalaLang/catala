@@ -30,6 +30,15 @@ module Backend = struct
 
   type vc_encoding = unit
 
+  let print_encoding _ _ = dummy ()
+
+  type model = unit
+  type solver_result = ProvenTrue | ProvenFalse of model option | Unknown
+
+  let solve_vc_encoding _ _ = dummy ()
+  let print_model _ _ = dummy ()
+  let is_model_empty _ = dummy () 
+
   let translate_expr _ _ _ = dummy ()
   let encode_asserts _ _ _ = dummy ()
 end

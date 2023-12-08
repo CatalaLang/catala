@@ -25,7 +25,7 @@ let solve_vcs
     (vcs : Conditions.verification_conditions_scope ScopeName.Map.t) : unit =
   (* Right now we only use the Z3 backend but the functorial interface should
      make it easy to mix and match different proof backends. *)
-  Z3backend.Backend.init_backend ();
+  (* Z3backend.Backend.init_backend (); *)
   Mopsabackend.Backend.init_backend ();
   let all_proven =
     ScopeName.Map.fold
