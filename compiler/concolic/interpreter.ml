@@ -585,7 +585,7 @@ let rec evaluate_operator
 let rec evaluate_expr :
     context -> Cli.backend_lang -> yes conc_expr -> yes conc_expr =
  fun ctx lang e ->
-  Message.emit_debug "eval %a" Expr.format e;
+  (* Message.emit_debug "eval %a" Expr.format e; *)
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
   match Mark.remove e with
@@ -894,9 +894,14 @@ let expr_of_typ mark ty =
       ty_in (Expr.mark_pos mark)
   | _ -> failwith "not implemented"
 
+(** Get the Z3 expression corresponding to the value of Z3 symbol constant [v]
+    in Z3 model [m]. [None] if [m] has not given a value. TODO CONC check that
+    the following hypothesis is correct : "get_const_interp_e only returns None
+    if the symbol constant can take any value" *)
 let interp_in_model (m : Z3.Model.model) (v : Z3.Expr.expr) : s_expr option =
   Z3.Model.get_const_interp_e m v
 
+(** Make a Catala value from a Z3 expression, if possible *)
 let value_of_symb_expr m (e : s_expr) =
   let lit =
     match Z3.Sort.get_sort_kind (Z3.Expr.get_sort e) with
@@ -926,6 +931,7 @@ let inputs_of_model
   in
   StructField.Map.mapi f input_marks
 
+(** Create the mark of an input field from its name [field] and its type [ty] *)
 let make_input_mark ctx m field ty : conc_info mark =
   let name = Mark.remove (StructField.get_info field) in
   let _, sort = translate_typ ctx (Mark.remove ty) in
@@ -936,6 +942,9 @@ let make_input_mark ctx m field ty : conc_info mark =
       custom = { symb_expr = Some symb_expr; constraints = []; ty = Some ty };
     }
 
+(** Do a "pre-evaluation" of the program. It compiles the target scope to a
+    function that takes the input struct of the scope and returns its output
+    struct *)
 let simplify_program (type m) ctx (p : (dcalc, m) gexpr program) s :
     yes conc_expr =
   let e = Expr.unbox (Program.to_expr p s) in
@@ -943,6 +952,8 @@ let simplify_program (type m) ctx (p : (dcalc, m) gexpr program) s :
   Message.emit_debug "...program expression made concolic...";
   evaluate_expr ctx p.lang (Concrete.addcustom e_conc)
 
+(** Evaluate pre-compiled scope [e] with its input struct [name] populated with
+    [fields] *)
 let eval_conc_with_input
     ctx
     lang
@@ -1019,24 +1030,27 @@ let constraint_list_of_path ctx (path : annotated_path_constraint list) :
   in
   List.map f path
 
-let string_of_annotated_path_constraints :
-    annotated_path_constraint list -> string =
-  let string_of_pc pc =
-    Z3.Expr.to_string pc.expr
-    ^
-    if Cli.globals.debug then
-      "@" ^ Pos.to_string_short pc.pos ^ " {" ^ string_of_bool pc.branch ^ "}"
-    else ""
+let string_of_path_constraint (pc : path_constraint) : string =
+  Z3.Expr.to_string pc.expr
+  ^
+  if Cli.globals.debug then
+    "@" ^ Pos.to_string_short pc.pos ^ " {" ^ string_of_bool pc.branch ^ "}"
+  else ""
+
+let print_path_constraints (prefix : string) : path_constraint list -> unit =
+  List.iter (fun pc ->
+      Message.emit_result "%s%s" prefix (string_of_path_constraint pc))
+
+let print_annotated_path_constraints (prefix : string) :
+    annotated_path_constraint list -> unit =
+  let aux apc =
+    Message.emit_result "%s%s" prefix
+      (match apc with
+      | Normal pc -> "NOR " ^ string_of_path_constraint pc
+      | Done pc -> "DON " ^ string_of_path_constraint pc
+      | Negated pc -> "NEG " ^ string_of_path_constraint pc)
   in
-  let aux acc apc =
-    (match apc with
-    | Normal pc -> "NOR " ^ string_of_pc pc
-    | Done pc -> "DON " ^ string_of_pc pc
-    | Negated pc -> "NEG " ^ string_of_pc pc)
-    ^ "\n"
-    ^ acc
-  in
-  List.fold_left aux ""
+  List.iter aux
 
 type solver_result = Sat of Z3.Model.model option | Unsat | Unknown
 
@@ -1048,9 +1062,21 @@ let solve_constraints ctx constraints : solver_result =
   | UNSATISFIABLE -> Unsat
   | UNKNOWN -> Unknown
 
+let print_fields language (prefix : string) fields =
+  let ordered_fields =
+    List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) fields
+  in
+  List.iter
+    (fun ((var, _), value) ->
+      Message.emit_result "%s@[<hov 2>%s@ =@ %a@]" prefix var
+        (if Cli.globals.debug then Print.expr ~debug:false ()
+         else Print.UserFacing.value language)
+        value)
+    ordered_fields
+
 let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     (Uid.MarkedString.info * yes conc_expr) list =
-  Message.emit_debug "Start concolic interpretation...";
+  Message.emit_debug "=== Start concolic interpretation... ===";
   let ctx = p.decl_ctx in
   let ctx = make_empty_context ctx in
   let ctx = init_context ctx in
@@ -1061,56 +1087,82 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     (* [taus] contain the types of the scope arguments. For [context] arguments,
        we can provide an empty thunked term. For [input] arguments of another
        type, we provide an empty value. *)
-    Message.emit_debug "...pre-evaluation done...";
+    Message.emit_debug "[CONC] Pre-evaluation done";
 
     (* first set of inputs *)
     let taus = StructName.Map.find s_in ctx.ctx_decl.ctx_structs in
 
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
-    Message.emit_debug "...input marks generated...";
 
     (* let default_application_term = make_default_conc_inputs ctx taus mark_e
        (* TODO CONC should this mark change? *) in *)
-    let rec concolic_loop (path_constraints : annotated_path_constraint list) =
-      Message.emit_result "Trying path constraints:\n%s"
-        (string_of_annotated_path_constraints path_constraints);
+    let rec concolic_loop (path_constraints : annotated_path_constraint list) :
+        unit =
+      Message.emit_result "";
+      Message.emit_result "Trying new path constraints";
+      print_annotated_path_constraints ". " path_constraints;
       let solver_constraints = constraint_list_of_path ctx path_constraints in
 
       match solve_constraints ctx solver_constraints with
       | Sat (Some m) ->
-        Message.emit_debug "...solver found model...";
+        Message.emit_result ".. Solver returned a model";
         let inputs = inputs_of_model m input_marks in
+
+        Message.emit_result ".. Evaluating with inputs:";
+        let inputs_list =
+          List.map
+            (fun (fld, e) -> StructField.get_info fld, Expr.unbox e)
+            (StructField.Map.bindings inputs)
+        in
+        print_fields p.lang "... " inputs_list;
+
         let res = eval_conc_with_input ctx p.lang s_in scope_e mark_e inputs in
-        Message.emit_debug "...scope interepred with inputs...";
 
         let res_path_constraints = get_constraints res in
+
+        Message.emit_result ".. Path constraints after evaluation:";
+        print_path_constraints "... " res_path_constraints;
+
+        Message.emit_result ".. Output of scope after evaluation:";
+        let outputs_list =
+          match Mark.remove res with
+          | EStruct { fields; _ } ->
+            List.map
+              (fun (fld, e) -> StructField.get_info fld, e)
+              (StructField.Map.bindings fields)
+          | _ ->
+            Message.raise_spanned_error (Expr.pos scope_e)
+              "The concolic interpretation of a program should always yield a \
+               struct corresponding to the scope variables"
+        in
+        print_fields p.lang "... " outputs_list;
 
         let new_path_constraints =
           compare_paths path_constraints res_path_constraints
           |> make_expected_path
         in
-        if new_path_constraints = [] then failwith "over"
+        if new_path_constraints = [] then ()
         else concolic_loop new_path_constraints
       | Unsat -> begin
-        Message.emit_debug "...solver returned unsat...";
+        Message.emit_result ".. Solver returned Unsat";
         match path_constraints with
-        | [] -> failwith "[concolic] failed to solve without constraints"
+        | [] -> failwith "[CONC] Failed to solve without constraints"
         | _ :: new_path_constraints ->
           let new_expected_path = make_expected_path new_path_constraints in
-          if new_expected_path = [] then failwith "over"
-          else concolic_loop new_expected_path
+          if new_expected_path = [] then () else concolic_loop new_expected_path
       end
       | Sat None ->
-        failwith "[concolic] Constraints satisfiable but no model was produced"
-      | Unknown -> failwith "[concolic] Unknown solver result"
+        failwith "[CONC] Constraints satisfiable but no model was produced"
+      | Unknown -> failwith "[CONC] Unknown solver result"
     in
 
     let _ = concolic_loop [] in
+    Message.emit_result "";
+    Message.emit_result
+      "Concolic interpreter has successfully explored all paths";
 
     (* XXX BROKEN output *)
     []
-    (* List.map (fun (fld, e) -> StructField.get_info fld, Expr.unbox e)
-       (StructField.Map.bindings (make_default_conc_inputs ctx taus mark_e)) *)
   end
   | _ ->
     Message.raise_spanned_error (Expr.pos scope_e)
