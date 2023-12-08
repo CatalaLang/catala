@@ -92,9 +92,9 @@ champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
   conséquence rempli
 
   étiquette r823_4_2
-  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
+  définition prise_en_compte_personne_à_charge de personne_à_charge
+  égal à
     condition_2_r823_4 de personne_à_charge
-  conséquence rempli
 ```
 
 3° Les ascendants, descendants ou collatéraux au deuxième ou au troisième degré
