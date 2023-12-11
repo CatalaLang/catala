@@ -32,79 +32,85 @@ type 'm ctxt = {
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
 let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
-  match Mark.remove expr with
-  | EVar v ->
-    let local_var =
-      try A.EVar (Var.Map.find v ctxt.var_dict)
-      with Var.Map.Not_found _ -> (
-        try A.EFunc (Var.Map.find v ctxt.func_dict)
-        with Var.Map.Not_found _ ->
-          Message.raise_spanned_error (Expr.pos expr)
-            "Var not found in lambda→scalc: %a@\nknown: @[<hov>%a@]@\n"
-            Print.var_debug v
-            (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf v ->
-                 Print.var_debug ppf v))
-            (Var.Map.keys ctxt.var_dict))
-    in
-    [], (local_var, Expr.pos expr)
-  | EStruct { fields; name } ->
-    let args_stmts, new_args =
-      StructField.Map.fold
-        (fun _ arg (args_stmts, new_args) ->
-          let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ args_stmts, new_arg :: new_args)
-        fields ([], [])
-    in
-    let new_args = List.rev new_args in
-    let args_stmts = List.rev args_stmts in
-    args_stmts, (A.EStruct (new_args, name), Expr.pos expr)
-  | ETuple args ->
-    let args_stmts, new_args =
-      List.fold_left
-        (fun (args_stmts, new_args) arg ->
-          let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ args_stmts, new_arg :: new_args)
-        ([], []) args
-    in
-    let new_args = List.rev new_args in
-    args_stmts, (A.ETuple new_args, Expr.pos expr)
-  | EStructAccess { e = e1; field; name } ->
-    let e1_stmts, new_e1 = translate_expr ctxt e1 in
-    e1_stmts, (A.EStructFieldAccess (new_e1, field, name), Expr.pos expr)
-  | ETupleAccess { e = e1; index; _ } ->
-    let e1_stmts, new_e1 = translate_expr ctxt e1 in
-    e1_stmts, (A.ETupleAccess (new_e1, index), Expr.pos expr)
-  | EInj { e = e1; cons; name } ->
-    let e1_stmts, new_e1 = translate_expr ctxt e1 in
-    e1_stmts, (A.EInj (new_e1, cons, name), Expr.pos expr)
-  | EApp
-      { f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark; args = _ }
-    when ctxt.keep_special_ops ->
-    assert false
-  | EApp { f; args } ->
-    let f_stmts, new_f = translate_expr ctxt f in
-    let args_stmts, new_args =
-      List.fold_left
-        (fun (args_stmts, new_args) arg ->
-          let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ args_stmts, new_arg :: new_args)
-        ([], []) args
-    in
-    let new_args = List.rev new_args in
-    f_stmts @ args_stmts, (A.EApp (new_f, new_args), Expr.pos expr)
-  | EArray args ->
-    let args_stmts, new_args =
-      List.fold_left
-        (fun (args_stmts, new_args) arg ->
-          let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ args_stmts, new_arg :: new_args)
-        ([], []) args
-    in
-    let new_args = List.rev new_args in
-    args_stmts, (A.EArray new_args, Expr.pos expr)
-  | EOp { op; _ } -> [], (A.EOp (Operator.translate op), Expr.pos expr)
-  | ELit l -> [], (A.ELit l, Expr.pos expr)
-  | _ ->
+  try
+    match Mark.remove expr with
+    | EVar v ->
+      let local_var =
+        try A.EVar (Var.Map.find v ctxt.var_dict)
+        with Var.Map.Not_found _ -> (
+          try A.EFunc (Var.Map.find v ctxt.func_dict)
+          with Var.Map.Not_found _ ->
+            Message.raise_spanned_error (Expr.pos expr)
+              "Var not found in lambda→scalc: %a@\nknown: @[<hov>%a@]@\n"
+              Print.var_debug v
+              (Format.pp_print_list ~pp_sep:Format.pp_print_space (fun ppf v ->
+                   Print.var_debug ppf v))
+              (Var.Map.keys ctxt.var_dict))
+      in
+      [], (local_var, Expr.pos expr)
+    | EStruct { fields; name } ->
+      let args_stmts, new_args =
+        StructField.Map.fold
+          (fun _ arg (args_stmts, new_args) ->
+            let arg_stmts, new_arg = translate_expr ctxt arg in
+            arg_stmts @ args_stmts, new_arg :: new_args)
+          fields ([], [])
+      in
+      let new_args = List.rev new_args in
+      let args_stmts = List.rev args_stmts in
+      args_stmts, (A.EStruct (new_args, name), Expr.pos expr)
+    | ETuple args ->
+      let args_stmts, new_args =
+        List.fold_left
+          (fun (args_stmts, new_args) arg ->
+            let arg_stmts, new_arg = translate_expr ctxt arg in
+            arg_stmts @ args_stmts, new_arg :: new_args)
+          ([], []) args
+      in
+      let new_args = List.rev new_args in
+      args_stmts, (A.ETuple new_args, Expr.pos expr)
+    | EStructAccess { e = e1; field; name } ->
+      let e1_stmts, new_e1 = translate_expr ctxt e1 in
+      e1_stmts, (A.EStructFieldAccess (new_e1, field, name), Expr.pos expr)
+    | ETupleAccess { e = e1; index; _ } ->
+      let e1_stmts, new_e1 = translate_expr ctxt e1 in
+      e1_stmts, (A.ETupleAccess (new_e1, index), Expr.pos expr)
+    | EInj { e = e1; cons; name } ->
+      let e1_stmts, new_e1 = translate_expr ctxt e1 in
+      e1_stmts, (A.EInj (new_e1, cons, name), Expr.pos expr)
+    | EApp
+        {
+          f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark;
+          args = [_exceptions; _just; _cons];
+        }
+      when ctxt.keep_special_ops ->
+      (* This should be translated as a statement *)
+      raise Not_found
+    | EApp { f; args } ->
+      let f_stmts, new_f = translate_expr ctxt f in
+      let args_stmts, new_args =
+        List.fold_left
+          (fun (args_stmts, new_args) arg ->
+            let arg_stmts, new_arg = translate_expr ctxt arg in
+            arg_stmts @ args_stmts, new_arg :: new_args)
+          ([], []) args
+      in
+      let new_args = List.rev new_args in
+      f_stmts @ args_stmts, (A.EApp (new_f, new_args), Expr.pos expr)
+    | EArray args ->
+      let args_stmts, new_args =
+        List.fold_left
+          (fun (args_stmts, new_args) arg ->
+            let arg_stmts, new_arg = translate_expr ctxt arg in
+            arg_stmts @ args_stmts, new_arg :: new_args)
+          ([], []) args
+      in
+      let new_args = List.rev new_args in
+      args_stmts, (A.EArray new_args, Expr.pos expr)
+    | EOp { op; _ } -> [], (A.EOp (Operator.translate op), Expr.pos expr)
+    | ELit l -> [], (A.ELit l, Expr.pos expr)
+    | _ -> raise Not_found
+  with Not_found ->
     let tmp_var =
       A.VarName.fresh
         ( (*This piece of logic is used to make the code more readable. TODO:
@@ -137,6 +143,31 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
     e_stmts @ [A.SAssert (Mark.remove new_e), Expr.pos block_expr]
+  | EApp
+      {
+        f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark;
+        args = [exceptions; just; cons];
+      }
+    when ctxt.keep_special_ops ->
+    let exceptions =
+      match Mark.remove exceptions with
+      | EArray exceptions -> exceptions
+      | _ -> failwith "should not happen"
+    in
+    List.iter
+      (fun ex ->
+        Message.emit_debug "exception: %a" (Print.expr ~debug:true ()) ex)
+      exceptions;
+    Message.emit_debug "just: %a" (Print.expr ~debug:true ()) just;
+    Message.emit_debug "cons: %a" (Print.expr ~debug:true ()) cons;
+    let exceptions_stmts, new_exceptions =
+      List.fold_left
+        (fun (exceptions_stmts, new_exceptions) arg ->
+          let arg_stmts, new_arg = translate_expr ctxt arg in
+          arg_stmts @ exceptions_stmts, new_arg :: new_exceptions)
+        ([], []) exceptions
+    in
+    assert false
   | EApp { f = EAbs { binder; tys }, binder_mark; args } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
