@@ -29,6 +29,13 @@ type 'm ctxt = {
   keep_special_ops : bool;
 }
 
+let unthunk e =
+  match Mark.remove e with
+  | EAbs { binder; tys = [(TLit TUnit, _)] } ->
+    let _, e = Bindlib.unmbind binder in
+    e
+  | _ -> failwith "should not happen"
+
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
 let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
@@ -132,7 +139,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       }
     in
     let tmp_stmts = translate_statements ctxt expr in
-    ( ( A.SLocalDecl ((tmp_var, Expr.pos expr), (TAny, Expr.pos expr)),
+    ( ( A.SLocalDecl ((tmp_var, Expr.pos expr), Expr.maybe_ty (Mark.get expr)),
         Expr.pos expr )
       :: tmp_stmts,
       (A.EVar tmp_var, Expr.pos expr) )
@@ -154,6 +161,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       | EArray exceptions -> exceptions
       | _ -> failwith "should not happen"
     in
+    let just = unthunk just in
+    let cons = unthunk cons in
     List.iter
       (fun ex ->
         Message.emit_debug "exception: %a" (Print.expr ~debug:true ()) ex)
@@ -167,7 +176,14 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           arg_stmts @ exceptions_stmts, new_arg :: new_exceptions)
         ([], []) exceptions
     in
-    assert false
+    let just_stmts, new_just = translate_expr ctxt just in
+    let new_cons = translate_statements ctxt cons in
+    exceptions_stmts
+    @ just_stmts
+    @ [
+        ( A.SSpecialOp (OHandleDefaultOpt (new_exceptions, new_just, new_cons)),
+          Expr.pos block_expr );
+      ]
   | EApp { f = EAbs { binder; tys }, binder_mark; args } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in

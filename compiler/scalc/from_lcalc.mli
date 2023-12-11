@@ -21,4 +21,4 @@ open Shared_ast
    useful if the target language after Scalc does not support nested functions
    like C. *)
 val translate_program :
-  keep_special_ops:bool -> untyped Lcalc.Ast.program -> Ast.program
+  keep_special_ops:bool -> typed Lcalc.Ast.program -> Ast.program

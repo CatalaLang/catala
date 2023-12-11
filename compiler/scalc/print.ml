@@ -152,20 +152,29 @@ let rec format_statement
       (naked_expr, Mark.get stmt)
   | SSwitch (e_switch, enum, arms) ->
     let cons = EnumName.Map.find enum decl_ctx.ctx_enums in
-    Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@]%a" Print.keyword "switch"
+    Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@,@]%a" Print.keyword "switch"
       (format_expr decl_ctx ~debug)
       e_switch Print.punctuation ":"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
          (fun fmt ((case, _), (arm_block, payload_name)) ->
-           Format.fprintf fmt "%a %a%a@ %a @[<v 2>%a@ %a@]" Print.punctuation
-             "|" EnumConstructor.format case Print.punctuation ":"
-             format_var_name payload_name Print.punctuation "→"
+           Format.fprintf fmt "@[<v 2>%a %a %a %a@ %a@]" Print.punctuation "|"
+             EnumConstructor.format case format_var_name payload_name
+             Print.punctuation "→"
              (format_block decl_ctx ~debug)
              arm_block))
       (List.combine (EnumConstructor.Map.bindings cons) arms)
-  | SSpecialOp (OHandleDefaultOpt (_exceptions, _just, _cons)) ->
-    Format.fprintf fmt "handle_default_opt ..."
+  | SSpecialOp (OHandleDefaultOpt (exceptions, just, cons)) ->
+    Format.fprintf fmt "@[<hov 2>%a %a%a%a@]@\n@[<hov 2>%a@ %a %a%a@\n%a@]"
+      Print.keyword "handle exceptions" Print.punctuation "["
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
+         (fun fmt e -> Format.fprintf fmt "%a" (format_expr decl_ctx ~debug) e))
+      exceptions Print.punctuation "]" Print.keyword "or if"
+      (format_expr decl_ctx ~debug)
+      just Print.keyword "then" Print.punctuation ":"
+      (format_block decl_ctx ~debug)
+      cons
 
 and format_block
     (decl_ctx : decl_ctx)

@@ -288,9 +288,11 @@ module Passes = struct
       ~keep_special_ops :
       Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
-      lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
+      lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.untyped
         ~avoid_exceptions ~closure_conversion
     in
+    Message.emit_debug "Retyping lambda calculus...";
+    let prg = Typing.program ~leave_unresolved:true prg in
     debug_pass_name "scalc";
     Scalc.From_lcalc.translate_program ~keep_special_ops prg, type_ordering
 end
