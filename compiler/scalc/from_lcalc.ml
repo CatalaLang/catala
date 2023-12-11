@@ -65,7 +65,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       in
       let new_args = List.rev new_args in
       let args_stmts = List.rev args_stmts in
-      args_stmts, (A.EStruct (new_args, name), Expr.pos expr)
+      args_stmts, (A.EStruct { fields = new_args; name }, Expr.pos expr)
     | ETuple args ->
       let args_stmts, new_args =
         List.fold_left
@@ -78,13 +78,14 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       args_stmts, (A.ETuple new_args, Expr.pos expr)
     | EStructAccess { e = e1; field; name } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
-      e1_stmts, (A.EStructFieldAccess (new_e1, field, name), Expr.pos expr)
+      ( e1_stmts,
+        (A.EStructFieldAccess { e1 = new_e1; field; name }, Expr.pos expr) )
     | ETupleAccess { e = e1; index; _ } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
-      e1_stmts, (A.ETupleAccess (new_e1, index), Expr.pos expr)
+      e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
     | EInj { e = e1; cons; name } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
-      e1_stmts, (A.EInj (new_e1, cons, name), Expr.pos expr)
+      e1_stmts, (A.EInj { e1 = new_e1; cons; name }, Expr.pos expr)
     | EApp
         {
           f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark;
@@ -103,7 +104,8 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
           ([], []) args
       in
       let new_args = List.rev new_args in
-      f_stmts @ args_stmts, (A.EApp (new_f, new_args), Expr.pos expr)
+      ( f_stmts @ args_stmts,
+        (A.EApp { f = new_f; args = new_args }, Expr.pos expr) )
     | EArray args ->
       let args_stmts, new_args =
         List.fold_left
@@ -139,7 +141,8 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       }
     in
     let tmp_stmts = translate_statements ctxt expr in
-    ( ( A.SLocalDecl ((tmp_var, Expr.pos expr), Expr.maybe_ty (Mark.get expr)),
+    ( ( A.SLocalDecl
+          { name = tmp_var, Expr.pos expr; typ = Expr.maybe_ty (Mark.get expr) },
         Expr.pos expr )
       :: tmp_stmts,
       (A.EVar tmp_var, Expr.pos expr) )
@@ -204,7 +207,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let local_decls =
       List.map
         (fun (x, tau) ->
-          ( A.SLocalDecl ((Var.Map.find x ctxt.var_dict, binder_pos), tau),
+          ( A.SLocalDecl
+              { name = Var.Map.find x ctxt.var_dict, binder_pos; typ = tau },
             binder_pos ))
         vars_tau
     in
@@ -225,7 +229,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             }
           in
           let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ [A.SLocalDef (x, new_arg), binder_pos])
+          arg_stmts @ [A.SLocalDef { name = x; expr = new_arg }, binder_pos])
         vars_args
     in
     let rest_of_block = translate_statements ctxt body in
@@ -255,20 +259,23 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let new_body = translate_statements ctxt body in
     [
       ( A.SInnerFuncDef
-          ( (closure_name, binder_pos),
-            {
-              func_params =
-                List.map
-                  (fun (var, tau) ->
-                    (Var.Map.find var ctxt.var_dict, binder_pos), tau)
-                  vars_tau;
-              func_body = new_body;
-              func_return_typ =
-                (match Expr.maybe_ty (Mark.get block_expr) with
-                | TArrow (_, t2), _ -> t2
-                | TAny, pos_any -> TAny, pos_any
-                | _ -> failwith "should not happen");
-            } ),
+          {
+            name = closure_name, binder_pos;
+            func =
+              {
+                func_params =
+                  List.map
+                    (fun (var, tau) ->
+                      (Var.Map.find var ctxt.var_dict, binder_pos), tau)
+                    vars_tau;
+                func_body = new_body;
+                func_return_typ =
+                  (match Expr.maybe_ty (Mark.get block_expr) with
+                  | TArrow (_, t2), _ -> t2
+                  | TAny, pos_any -> TAny, pos_any
+                  | _ -> failwith "should not happen");
+              };
+          },
         binder_pos );
     ]
   | EMatch { e = e1; cases; name } ->
@@ -288,23 +295,36 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               { ctxt with var_dict = Var.Map.add var scalc_var ctxt.var_dict }
             in
             let new_arg = translate_statements ctxt body in
-            (new_arg, scalc_var) :: new_args
+            { A.case_block = new_arg; payload_var_name = scalc_var } :: new_args
           | _ -> assert false
           (* should not happen *))
         cases []
     in
     let new_args = List.rev new_cases in
-    e1_stmts @ [A.SSwitch (new_e1, name, new_args), Expr.pos block_expr]
+    e1_stmts
+    @ [
+        ( A.SSwitch
+            { switch_expr = new_e1; enum_name = name; switch_cases = new_args },
+          Expr.pos block_expr );
+      ]
   | EIfThenElse { cond; etrue; efalse } ->
     let cond_stmts, s_cond = translate_expr ctxt cond in
     let s_e_true = translate_statements ctxt etrue in
     let s_e_false = translate_statements ctxt efalse in
     cond_stmts
-    @ [A.SIfThenElse (s_cond, s_e_true, s_e_false), Expr.pos block_expr]
+    @ [
+        ( A.SIfThenElse
+            { if_expr = s_cond; then_block = s_e_true; else_block = s_e_false },
+          Expr.pos block_expr );
+      ]
   | ECatch { body; exn; handler } ->
     let s_e_try = translate_statements ctxt body in
     let s_e_catch = translate_statements ctxt handler in
-    [A.STryExcept (s_e_try, exn, s_e_catch), Expr.pos block_expr]
+    [
+      ( A.STryExcept
+          { try_block = s_e_try; except = exn; with_block = s_e_catch },
+        Expr.pos block_expr );
+    ]
   | ERaise except ->
     (* Before raising the exception, we still give a dummy definition to the
        current variable so that tools like mypy don't complain. *)
@@ -313,8 +333,10 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     | Some x ->
       [
         ( A.SLocalDef
-            ( (x, Expr.pos block_expr),
-              (Ast.EVar Ast.dead_value, Expr.pos block_expr) ),
+            {
+              name = x, Expr.pos block_expr;
+              expr = Ast.EVar Ast.dead_value, Expr.pos block_expr;
+            },
           Expr.pos block_expr );
       ])
     @ [A.SRaise except, Expr.pos block_expr]
@@ -332,7 +354,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       [
         ( (match ctxt.inside_definition_of with
           | None -> A.SReturn (Mark.remove new_e)
-          | Some x -> A.SLocalDef (Mark.copy new_e x, new_e)),
+          | Some x -> A.SLocalDef { name = Mark.copy new_e x; expr = new_e }),
           Expr.pos block_expr );
       ])
 
@@ -392,9 +414,16 @@ let rec translate_scope_body_expr
       let_expr_stmts
       @ [
           ( A.SLocalDecl
-              ((let_var_id, scope_let.scope_let_pos), scope_let.scope_let_typ),
+              {
+                name = let_var_id, scope_let.scope_let_pos;
+                typ = scope_let.scope_let_typ;
+              },
             scope_let.scope_let_pos );
-          ( A.SLocalDef ((let_var_id, scope_let.scope_let_pos), new_let_expr),
+          ( A.SLocalDef
+              {
+                name = let_var_id, scope_let.scope_let_pos;
+                expr = new_let_expr;
+              },
             scope_let.scope_let_pos );
         ])
     @ translate_scope_body_expr ~keep_special_ops scope_name decl_ctx
@@ -520,7 +549,7 @@ let translate_program ~(keep_special_ops : bool) (p : 'm L.program) : A.program
               A.SVar
                 {
                   var = var_id;
-                  expr = A.EApp ((EFunc func_id, pos), []), pos;
+                  expr = A.EApp { f = EFunc func_id, pos; args = [] }, pos;
                   typ = topdef_ty;
                 }
               :: A.SFunc

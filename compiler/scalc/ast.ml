@@ -46,35 +46,39 @@ type expr = naked_expr Mark.pos
 and naked_expr =
   | EVar of VarName.t
   | EFunc of FuncName.t
-  | EStruct of expr list * StructName.t
-  | EStructFieldAccess of expr * StructField.t * StructName.t
+  | EStruct of { fields : expr list; name : StructName.t }
+  | EStructFieldAccess of {
+      e1 : expr;
+      field : StructField.t;
+      name : StructName.t;
+    }
   | ETuple of expr list
-  | ETupleAccess of expr * int
-  | EInj of expr * EnumConstructor.t * EnumName.t
+  | ETupleAccess of { e1 : expr; index : int }
+  | EInj of { e1 : expr; cons : EnumConstructor.t; name : EnumName.t }
   | EArray of expr list
   | ELit of lit
-  | EApp of expr * expr list
+  | EApp of { f : expr; args : expr list }
   | EOp of operator
 
 type stmt =
-  | SInnerFuncDef of VarName.t Mark.pos * func
-  | SLocalDecl of VarName.t Mark.pos * typ
-  | SLocalDef of VarName.t Mark.pos * expr
-  | STryExcept of block * except * block
+  | SInnerFuncDef of { name : VarName.t Mark.pos; func : func }
+  | SLocalDecl of { name : VarName.t Mark.pos; typ : typ }
+  | SLocalDef of { name : VarName.t Mark.pos; expr : expr }
+  | STryExcept of { try_block : block; except : except; with_block : block }
   | SRaise of except
-  | SIfThenElse of expr * block * block
-  | SSwitch of
-      expr
-      * EnumName.t
-      * (block (* Statements corresponding to arm closure body*)
-        * (* Variable instantiated with enum payload *) VarName.t)
-        list  (** Each block corresponds to one case of the enum *)
+  | SIfThenElse of { if_expr : expr; then_block : block; else_block : block }
+  | SSwitch of {
+      switch_expr : expr;
+      enum_name : EnumName.t;
+      switch_cases : switch_case list;
+    }
   | SReturn of naked_expr
   | SAssert of naked_expr
   | SSpecialOp of special_operator
 
 and special_operator = OHandleDefaultOpt of expr list * expr * block
 and block = stmt Mark.pos list
+and switch_case = { case_block : block; payload_var_name : VarName.t }
 
 and func = {
   func_params : (VarName.t Mark.pos * typ) list;

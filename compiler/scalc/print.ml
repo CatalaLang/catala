@@ -41,7 +41,7 @@ let rec format_expr
   match Mark.remove e with
   | EVar v -> Format.fprintf fmt "%a" format_var_name v
   | EFunc v -> Format.fprintf fmt "%a" format_func_name v
-  | EStruct (es, s) ->
+  | EStruct { fields = es; name = s } ->
     let fields = StructName.Map.find s decl_ctx.ctx_structs in
     Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format s
       Print.punctuation "{"
@@ -65,29 +65,30 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
          (fun fmt e -> Format.fprintf fmt "%a" format_expr e))
       es Print.punctuation "]"
-  | EStructFieldAccess (e1, field, _) ->
+  | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a%a%a%a%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" StructField.format field Print.punctuation "\""
-  | ETupleAccess (e1, index) ->
+  | ETupleAccess { e1; index } ->
     Format.fprintf fmt "%a%a%a%d%a" format_expr e1 Print.punctuation "."
       Print.punctuation "\"" index Print.punctuation "\""
-  | EInj (e, cons, _) ->
+  | EInj { e1 = e; cons; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
       format_expr e
   | ELit l -> Print.lit fmt l
-  | EApp ((EOp ((Map | Filter) as op), _), [arg1; arg2]) ->
+  | EApp { f = EOp ((Map | Filter) as op), _; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1 format_with_parens arg2
-  | EApp ((EOp op, _), [arg1; arg2]) ->
+  | EApp { f = EOp op, _; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       (Print.operator ~debug) op format_with_parens arg2
-  | EApp ((EOp (Log _), _), [arg1]) when not debug ->
+  | EApp { f = EOp (Log _), _; args = [arg1] } when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp ((EOp op, _), [arg1]) ->
+  | EApp { f = EOp op, _; args = [arg1] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1
-  | EApp (f, []) -> Format.fprintf fmt "@[<hov 2>%a@ ()@]" format_expr f
-  | EApp (f, args) ->
+  | EApp { f; args = [] } ->
+    Format.fprintf fmt "@[<hov 2>%a@ ()@]" format_expr f
+  | EApp { f; args } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_expr f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -102,7 +103,7 @@ let rec format_statement
     (stmt : stmt Mark.pos) : unit =
   if debug then () else ();
   match Mark.remove stmt with
-  | SInnerFuncDef (name, func) ->
+  | SInnerFuncDef { name; func } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Print.keyword
       "let" format_var_name (Mark.remove name)
       (Format.pp_print_list
@@ -114,16 +115,16 @@ let rec format_statement
       func.func_params Print.punctuation "="
       (format_block decl_ctx ~debug)
       func.func_body
-  | SLocalDecl (name, typ) ->
+  | SLocalDecl { name; typ } ->
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
       format_var_name (Mark.remove name) Print.punctuation ":"
       (Print.typ decl_ctx) typ
-  | SLocalDef (name, naked_expr) ->
+  | SLocalDef { name; expr = naked_expr } ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_var_name (Mark.remove name)
       Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
-  | STryExcept (b_try, except, b_with) ->
+  | STryExcept { try_block = b_try; except; with_block = b_with } ->
     Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]" Print.keyword
       "try" Print.punctuation ":"
       (format_block decl_ctx ~debug)
@@ -133,7 +134,7 @@ let rec format_statement
   | SRaise except ->
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "raise" Print.except
       except
-  | SIfThenElse (e_if, b_true, b_false) ->
+  | SIfThenElse { if_expr = e_if; then_block = b_true; else_block = b_false } ->
     Format.fprintf fmt "@[<v 2>%a @[<hov 2>%a@]%a@ %a@ @]@[<v 2>%a%a@ %a@]"
       Print.keyword "if"
       (format_expr decl_ctx ~debug)
@@ -150,19 +151,19 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "assert"
       (format_expr decl_ctx ~debug)
       (naked_expr, Mark.get stmt)
-  | SSwitch (e_switch, enum, arms) ->
+  | SSwitch { switch_expr = e_switch; enum_name = enum; switch_cases = arms } ->
     let cons = EnumName.Map.find enum decl_ctx.ctx_enums in
     Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@,@]%a" Print.keyword "switch"
       (format_expr decl_ctx ~debug)
       e_switch Print.punctuation ":"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-         (fun fmt ((case, _), (arm_block, payload_name)) ->
+         (fun fmt ((case, _), switch_case_data) ->
            Format.fprintf fmt "@[<v 2>%a %a %a %a@ %a@]" Print.punctuation "|"
-             EnumConstructor.format case format_var_name payload_name
-             Print.punctuation "→"
+             EnumConstructor.format case format_var_name
+             switch_case_data.payload_var_name Print.punctuation "→"
              (format_block decl_ctx ~debug)
-             arm_block))
+             switch_case_data.case_block))
       (List.combine (EnumConstructor.Map.bindings cons) arms)
   | SSpecialOp (OHandleDefaultOpt (exceptions, just, cons)) ->
     Format.fprintf fmt "@[<hov 2>%a %a%a%a@]@\n@[<hov 2>%a@ %a %a%a@\n%a@]"
