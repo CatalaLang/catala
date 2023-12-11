@@ -62,9 +62,9 @@ sociale et bénéficiaires des articles L. 161-19 , L. 351-8 ou L. 643-3 du mêm
 code ;
 
 ```catala
-champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
-  date_courante >= |2019-09-01| et date_courante < |2023-09-01|:
+champ d'application ÉligibilitéAidesPersonnelleLogement :
   règle condition_2_r823_4 de personne_à_charge sous condition
+    date_courante >= |2019-09-01| et date_courante < |2023-09-01| et
     selon personne_à_charge sous forme
       -- EnfantÀCharge de enfant: faux
       -- AutrePersonneÀCharge de parent:
@@ -92,8 +92,15 @@ champ d'application ÉligibilitéAidesPersonnelleLogement sous condition
   conséquence rempli
 
   étiquette r823_4_2
-  règle prise_en_compte_personne_à_charge de personne_à_charge sous condition
-    condition_2_r823_4 de personne_à_charge
+  règle prise_en_compte_personne_à_charge de personne_à_charge
+  sous condition
+    # On utilise le si ... alors ... sinon pour éviter que l'appel de
+    # la fonction "condition_2_r823_4" soit loggué deux fois lors
+    # de l'évaluation des différentes justifications de l'arbre de défauts
+    # avec les différentes dates.
+    si date_courante >= |2019-09-01| et date_courante < |2023-09-01| alors
+      condition_2_r823_4 de personne_à_charge
+    sinon faux
   conséquence rempli
 ```
 

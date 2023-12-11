@@ -41,13 +41,13 @@ Invariant Dcalc__Invariants.invariant_match_inversion
    checked. result: [771/771]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_app_inversion
-   checked. result: [4565/4565]
+   checked. result: [4563/4563]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_no_return_a_function
    checked. result: [3046/3046]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_no_partial_evaluation
-   checked. result: [4565/4565]
+   checked. result: [4563/4563]
 [RESULT]
 Invariant Dcalc__Invariants.invariant_default_no_arrow
    checked. result: [1356/1356]

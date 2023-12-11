@@ -41,7 +41,7 @@ function run_computation_AF(log) {
         showHidden: false,
         depth: null,
         colors: true,
-      })
+      }),
     );
   }
   Law.eventsManager.resetLog();
@@ -172,7 +172,7 @@ function run_computation_AL(log) {
         showHidden: false,
         depth: null,
         colors: true,
-      })
+      }),
     );
   }
   Law.eventsManager.resetLog();
@@ -183,7 +183,8 @@ try {
   run_computation_AF(false);
   run_computation_AL(false);
 } catch (error) {
-  console.log(error[2]);
+  console.error(error.message);
+  process.exit(1);
 }
 process.exit(0);
 
