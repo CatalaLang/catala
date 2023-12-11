@@ -398,10 +398,29 @@ module Flags = struct
   let keep_special_ops =
     value
     & flag
-    & info ["keep_special_ops"]
+    & info ["keep-special-ops"]
         ~doc:
           "During the Lcalc->Scalc translation, uses special AST nodes for \
            higher-order operators rather than nested closures (useful for C)."
+
+  let dead_value_assignment =
+    value
+    & flag
+    & info ["dead-value-assignment"]
+        ~doc:
+          "During the Lcalc->Scalc translation, insert dummy variable \
+           assignments before raising terminal exception to please gradual \
+           typing tools that check exhaustivity of variable definitions in \
+           every code branch."
+
+  let no_struct_literals =
+    value
+    & flag
+    & info ["no-struct-literals"]
+        ~doc:
+          "During the Lcalc->Scalc translation, insert temporary variable \
+           assignments to hold the result of structure initializations \
+           (matches the absence of struct literals of C89)."
 
   let closure_conversion =
     value

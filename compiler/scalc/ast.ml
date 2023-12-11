@@ -69,6 +69,7 @@ type stmt =
   | SIfThenElse of { if_expr : expr; then_block : block; else_block : block }
   | SSwitch of {
       switch_expr : expr;
+      switch_expr_typ : typ;
       enum_name : EnumName.t;
       switch_cases : switch_case list;
     }

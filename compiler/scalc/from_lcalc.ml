@@ -20,13 +20,19 @@ module A = Ast
 module L = Lcalc.Ast
 module D = Dcalc.Ast
 
+type translation_config = {
+  keep_special_ops : bool;
+  dead_value_assignment : bool;
+  no_struct_literals : bool;
+}
+
 type 'm ctxt = {
   func_dict : ('m L.expr, A.FuncName.t) Var.Map.t;
   decl_ctx : decl_ctx;
   var_dict : ('m L.expr, A.VarName.t) Var.Map.t;
   inside_definition_of : A.VarName.t option;
   context_name : string;
-  keep_special_ops : bool;
+  config : translation_config;
 }
 
 let unthunk e =
@@ -55,7 +61,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
               (Var.Map.keys ctxt.var_dict))
       in
       [], (local_var, Expr.pos expr)
-    | EStruct { fields; name } ->
+    | EStruct { fields; name } when not ctxt.config.no_struct_literals ->
       let args_stmts, new_args =
         StructField.Map.fold
           (fun _ arg (args_stmts, new_args) ->
@@ -91,7 +97,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
           f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark;
           args = [_exceptions; _just; _cons];
         }
-      when ctxt.keep_special_ops ->
+      when ctxt.config.keep_special_ops ->
       (* This should be translated as a statement *)
       raise Not_found
     | EApp { f; args } ->
@@ -158,7 +164,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
         f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark;
         args = [exceptions; just; cons];
       }
-    when ctxt.keep_special_ops ->
+    when ctxt.config.keep_special_ops ->
     let exceptions =
       match Mark.remove exceptions with
       | EArray exceptions -> exceptions
@@ -304,7 +310,12 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     e1_stmts
     @ [
         ( A.SSwitch
-            { switch_expr = new_e1; enum_name = name; switch_cases = new_args },
+            {
+              switch_expr = new_e1;
+              switch_expr_typ = Expr.maybe_ty (Mark.get e1);
+              enum_name = name;
+              switch_cases = new_args;
+            },
           Expr.pos block_expr );
       ]
   | EIfThenElse { cond; etrue; efalse } ->
@@ -329,8 +340,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     (* Before raising the exception, we still give a dummy definition to the
        current variable so that tools like mypy don't complain. *)
     (match ctxt.inside_definition_of with
-    | None -> []
-    | Some x ->
+    | Some x when ctxt.config.dead_value_assignment ->
       [
         ( A.SLocalDef
             {
@@ -338,8 +348,34 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               expr = Ast.EVar Ast.dead_value, Expr.pos block_expr;
             },
           Expr.pos block_expr );
-      ])
+      ]
+    | _ -> [])
     @ [A.SRaise except, Expr.pos block_expr]
+  | EStruct { fields; name } when ctxt.config.no_struct_literals ->
+    let args_stmts, new_args =
+      StructField.Map.fold
+        (fun _ arg (args_stmts, new_args) ->
+          let arg_stmts, new_arg = translate_expr ctxt arg in
+          arg_stmts @ args_stmts, new_arg :: new_args)
+        fields ([], [])
+    in
+    let new_args = List.rev new_args in
+    let args_stmts = List.rev args_stmts in
+    let struct_expr =
+      A.EStruct { fields = new_args; name }, Expr.pos block_expr
+    in
+    let tmp_struct_var_name =
+      match ctxt.inside_definition_of with
+      | None ->
+        failwith "should not happen"
+        (* [translate_expr] should create this [inside_definition_of]*)
+      | Some x -> x, Expr.pos block_expr
+    in
+    args_stmts
+    @ [
+        ( A.SLocalDef { name = tmp_struct_var_name; expr = struct_expr },
+          Expr.pos block_expr );
+      ]
   | _ -> (
     let e_stmts, new_e = translate_expr ctxt block_expr in
     e_stmts
@@ -359,7 +395,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       ])
 
 let rec translate_scope_body_expr
-    ~(keep_special_ops : bool)
+    ~(config : translation_config)
     (scope_name : ScopeName.t)
     (decl_ctx : decl_ctx)
     (var_dict : ('m L.expr, A.VarName.t) Var.Map.t)
@@ -375,7 +411,7 @@ let rec translate_scope_body_expr
           var_dict;
           inside_definition_of = None;
           context_name = Mark.remove (ScopeName.get_info scope_name);
-          keep_special_ops;
+          config;
         }
         e
     in
@@ -395,7 +431,7 @@ let rec translate_scope_body_expr
           var_dict;
           inside_definition_of = Some let_var_id;
           context_name = Mark.remove (ScopeName.get_info scope_name);
-          keep_special_ops;
+          config;
         }
         scope_let.scope_let_expr
     | _ ->
@@ -407,7 +443,7 @@ let rec translate_scope_body_expr
             var_dict;
             inside_definition_of = Some let_var_id;
             context_name = Mark.remove (ScopeName.get_info scope_name);
-            keep_special_ops;
+            config;
           }
           scope_let.scope_let_expr
       in
@@ -426,11 +462,11 @@ let rec translate_scope_body_expr
               },
             scope_let.scope_let_pos );
         ])
-    @ translate_scope_body_expr ~keep_special_ops scope_name decl_ctx
-        new_var_dict func_dict scope_let_next
+    @ translate_scope_body_expr ~config scope_name decl_ctx new_var_dict
+        func_dict scope_let_next
 
-let translate_program ~(keep_special_ops : bool) (p : 'm L.program) : A.program
-    =
+let translate_program ~(config : translation_config) (p : 'm L.program) :
+    A.program =
   let _, _, rev_items =
     Scope.fold_left
       ~f:(fun (func_dict, var_dict, rev_items) code_item var ->
@@ -447,8 +483,8 @@ let translate_program ~(keep_special_ops : bool) (p : 'm L.program) : A.program
             Var.Map.add scope_input_var scope_input_var_id var_dict
           in
           let new_scope_body =
-            translate_scope_body_expr ~keep_special_ops name p.decl_ctx
-              var_dict_local func_dict scope_body_expr
+            translate_scope_body_expr ~config name p.decl_ctx var_dict_local
+              func_dict scope_body_expr
           in
           let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
           ( Var.Map.add var func_id func_dict,
@@ -493,7 +529,7 @@ let translate_program ~(keep_special_ops : bool) (p : 'm L.program) : A.program
                     var_dict args args_id;
                 inside_definition_of = None;
                 context_name = Mark.remove (TopdefName.get_info name);
-                keep_special_ops;
+                config;
               }
             in
             translate_expr ctxt expr
@@ -529,7 +565,7 @@ let translate_program ~(keep_special_ops : bool) (p : 'm L.program) : A.program
                 var_dict;
                 inside_definition_of = None;
                 context_name = Mark.remove (TopdefName.get_info name);
-                keep_special_ops;
+                config;
               }
             in
             translate_expr ctxt expr

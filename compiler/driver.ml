@@ -285,7 +285,9 @@ module Passes = struct
       ~check_invariants
       ~avoid_exceptions
       ~closure_conversion
-      ~keep_special_ops :
+      ~keep_special_ops
+      ~dead_value_assignment
+      ~no_struct_literals :
       Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.untyped
@@ -294,7 +296,10 @@ module Passes = struct
     Message.emit_debug "Retyping lambda calculus...";
     let prg = Typing.program ~leave_unresolved:true prg in
     debug_pass_name "scalc";
-    Scalc.From_lcalc.translate_program ~keep_special_ops prg, type_ordering
+    ( Scalc.From_lcalc.translate_program
+        ~config:{ keep_special_ops; dead_value_assignment; no_struct_literals }
+        prg,
+      type_ordering )
 end
 
 module Commands = struct
@@ -839,10 +844,13 @@ module Commands = struct
       avoid_exceptions
       closure_conversion
       keep_special_ops
+      dead_value_assignment
+      no_struct_literals
       ex_scope_opt =
     let prg, _ =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion ~keep_special_ops
+        ~dead_value_assignment ~no_struct_literals
     in
     let _output_file, with_output = get_output_format options output in
     with_output
@@ -877,6 +885,8 @@ module Commands = struct
         $ Cli.Flags.avoid_exceptions
         $ Cli.Flags.closure_conversion
         $ Cli.Flags.keep_special_ops
+        $ Cli.Flags.dead_value_assignment
+        $ Cli.Flags.no_struct_literals
         $ Cli.Flags.ex_scope_opt)
 
   let python
@@ -890,6 +900,7 @@ module Commands = struct
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions ~closure_conversion ~keep_special_ops:false
+        ~dead_value_assignment:true ~no_struct_literals:false
     in
 
     let output_file, with_output =
@@ -919,6 +930,7 @@ module Commands = struct
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions:false ~closure_conversion ~keep_special_ops:false
+        ~dead_value_assignment:false ~no_struct_literals:false
     in
 
     let output_file, with_output = get_output_format options ~ext:".r" output in
@@ -943,6 +955,7 @@ module Commands = struct
     let prg, type_ordering =
       Passes.scalc options ~includes ~optimize ~check_invariants
         ~avoid_exceptions:true ~closure_conversion:true ~keep_special_ops:true
+        ~dead_value_assignment:false ~no_struct_literals:true
     in
     let output_file, with_output = get_output_format options ~ext:".c" output in
     Message.emit_debug "Compiling program into C...";

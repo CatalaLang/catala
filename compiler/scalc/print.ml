@@ -151,7 +151,8 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a %a@]" Print.keyword "assert"
       (format_expr decl_ctx ~debug)
       (naked_expr, Mark.get stmt)
-  | SSwitch { switch_expr = e_switch; enum_name = enum; switch_cases = arms } ->
+  | SSwitch { switch_expr = e_switch; enum_name = enum; switch_cases = arms; _ }
+    ->
     let cons = EnumName.Map.find enum decl_ctx.ctx_enums in
     Format.fprintf fmt "@[<v 0>%a @[<hov 2>%a@]%a@,@]%a" Print.keyword "switch"
       (format_expr decl_ctx ~debug)

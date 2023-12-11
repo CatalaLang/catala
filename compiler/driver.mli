@@ -63,6 +63,8 @@ module Passes : sig
     avoid_exceptions:bool ->
     closure_conversion:bool ->
     keep_special_ops:bool ->
+    dead_value_assignment:bool ->
+    no_struct_literals:bool ->
     Scalc.Ast.program * Scopelang.Dependency.TVertex.t list
 end
 

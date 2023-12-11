@@ -414,6 +414,7 @@ let rec format_statement
             { case_block = case_none; _ };
             { case_block = case_some; payload_var_name = case_some_var };
           ];
+        _;
       }
     when EnumName.equal e_name Expr.option_enum ->
     (* We translate the option type with an overloading by Python's [None] *)
@@ -429,7 +430,7 @@ let rec format_statement
       format_var tmp_var (format_expression ctx) e1 format_var tmp_var
       (format_block ctx) case_none format_var case_some_var format_var tmp_var
       (format_block ctx) case_some
-  | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases } ->
+  | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cases =
       List.map2
         (fun x (cons, _) -> x, cons)
