@@ -1,0 +1,19 @@
+```catala
+declaration structure Foo:
+  data x content boolean
+  data y content decimal
+
+declaration enumeration Bar:
+  -- No
+  -- Yes content Foo
+
+declaration scope Baz:
+  input a content Bar
+  output b content decimal
+
+scope Baz:
+  definition b equals
+    match a with pattern
+    -- No: 0.0
+    -- Yes of foo: foo.y + if foo.x then 1.0 else 0.0
+```
