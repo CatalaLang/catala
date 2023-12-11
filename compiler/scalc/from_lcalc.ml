@@ -469,6 +469,7 @@ let translate_program ~(keep_special_ops : bool) (p : 'm L.program) : A.program
                 A.FuncName.fresh (Bindlib.name_of var ^ "_aux", pos)
               in
               (* The list is being built in reverse order *)
+              (* FIXME: find a better way than a function with no parameters... *)
               A.SVar
                 {
                   var = var_id;
@@ -483,11 +484,7 @@ let translate_program ~(keep_special_ops : bool) (p : 'm L.program) : A.program
                          A.func_params = [];
                          A.func_body =
                            block @ [A.SReturn (Mark.remove expr), Mark.get expr];
-                         A.func_return_typ =
-                           (match topdef_ty with
-                           | TArrow (_, t2), _ -> t2
-                           | TAny, pos_any -> TAny, pos_any
-                           | _ -> failwith "should not happen");
+                         A.func_return_typ = topdef_ty;
                        };
                    }
               :: rev_items

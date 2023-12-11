@@ -33,7 +33,7 @@ let run
   let open Driver.Commands in
   let prg, type_ordering =
     Driver.Passes.scalc options ~includes ~optimize ~check_invariants
-      ~avoid_exceptions ~closure_conversion
+      ~avoid_exceptions ~closure_conversion ~keep_special_ops:false
   in
 
   let output_file, with_output = get_output_format options ~ext:".py" output in
