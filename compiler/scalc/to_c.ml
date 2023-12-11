@@ -153,12 +153,11 @@ let rec format_typ
   | TOption some_typ ->
     (* We translate the option type with an overloading to C's [NULL] *)
     Format.fprintf fmt
-      "@[<v 2>struct option {@ char some_tag;@ @[<v 2>union {@ void *none;@ \
-       %a;@]@,\
+      "@[<v 2>struct {@ char some_tag;@ @[<v 2>union {@ void *none;@ %a;@]@,\
        } some_value;@]@,\
-       } /* option %a */"
+       } /* option %a */ %t"
       (format_typ decl_ctx (fun fmt -> Format.fprintf fmt "some"))
-      some_typ (Print.typ decl_ctx) some_typ
+      some_typ (Print.typ decl_ctx) some_typ element_name
   | TDefault t -> format_typ decl_ctx element_name fmt t
   | TEnum e -> Format.fprintf fmt "%a %t" format_enum_name e element_name
   | TArrow (t1, t2) ->
@@ -357,7 +356,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       (List.combine es
          (StructField.Map.bindings (StructName.Map.find s ctx.ctx_structs)))
   | EStructFieldAccess (e1, field, _) ->
-    Format.fprintf fmt "%a@%a" (format_expression ctx) e1
+    Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
   | EInj (_, cons, e_name)
     when EnumName.equal e_name Expr.option_enum
@@ -449,7 +448,7 @@ let rec format_statement
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
       ty
   | SLocalDef (v, e) ->
-    Format.fprintf fmt "@[<hov 2>%a <- %a@]" format_var (Mark.remove v)
+    Format.fprintf fmt "@[<hov 2>%a = %a;@]" format_var (Mark.remove v)
       (format_expression ctx) e
   | STryExcept _ -> failwith "should not happen"
   | SRaise _ -> failwith "should not happen"
@@ -505,15 +504,12 @@ let rec format_statement
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
-  | SSpecialOp _ -> failwith "should not happen"
+  | SSpecialOp _ -> failwith "blabla"
 
 and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-    (format_statement ctx) fmt
-    (List.filter
-       (fun s -> match Mark.remove s with SLocalDecl _ -> false | _ -> true)
-       b)
+    (format_statement ctx) fmt b
 
 let format_program
     (fmt : Format.formatter)
