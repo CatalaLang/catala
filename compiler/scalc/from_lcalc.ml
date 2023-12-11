@@ -44,6 +44,11 @@ let unthunk e =
 
 (* Expressions can spill out side effect, hence this function also returns a
    list of statements to be prepended before the expression is evaluated *)
+
+exception NotAnExpr of { needs_a_local_decl : bool }
+(** Contains the LocalDecl of the temporary variable that will be defined by the
+    next block is it's here *)
+
 let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
   try
     match Mark.remove expr with
@@ -72,6 +77,10 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       let new_args = List.rev new_args in
       let args_stmts = List.rev args_stmts in
       args_stmts, (A.EStruct { fields = new_args; name }, Expr.pos expr)
+    | EStruct _ when ctxt.config.no_struct_literals ->
+      (* In C89, struct literates have to be initialized at variable
+         definition... *)
+      raise (NotAnExpr { needs_a_local_decl = false })
     | ETuple args ->
       let args_stmts, new_args =
         List.fold_left
@@ -99,7 +108,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
         }
       when ctxt.config.keep_special_ops ->
       (* This should be translated as a statement *)
-      raise Not_found
+      raise (NotAnExpr { needs_a_local_decl = true })
     | EApp { f; args } ->
       let f_stmts, new_f = translate_expr ctxt f in
       let args_stmts, new_args =
@@ -124,8 +133,8 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       args_stmts, (A.EArray new_args, Expr.pos expr)
     | EOp { op; _ } -> [], (A.EOp (Operator.translate op), Expr.pos expr)
     | ELit l -> [], (A.ELit l, Expr.pos expr)
-    | _ -> raise Not_found
-  with Not_found ->
+    | _ -> raise (NotAnExpr { needs_a_local_decl = true })
+  with NotAnExpr { needs_a_local_decl } ->
     let tmp_var =
       A.VarName.fresh
         ( (*This piece of logic is used to make the code more readable. TODO:
@@ -147,10 +156,17 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       }
     in
     let tmp_stmts = translate_statements ctxt expr in
-    ( ( A.SLocalDecl
-          { name = tmp_var, Expr.pos expr; typ = Expr.maybe_ty (Mark.get expr) },
-        Expr.pos expr )
-      :: tmp_stmts,
+    ( (if needs_a_local_decl then
+         [
+           ( A.SLocalDecl
+               {
+                 name = tmp_var, Expr.pos expr;
+                 typ = Expr.maybe_ty (Mark.get expr);
+               },
+             Expr.pos expr );
+         ]
+       else [])
+      @ tmp_stmts,
       (A.EVar tmp_var, Expr.pos expr) )
 
 and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
@@ -172,12 +188,6 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     in
     let just = unthunk just in
     let cons = unthunk cons in
-    List.iter
-      (fun ex ->
-        Message.emit_debug "exception: %a" (Print.expr ~debug:true ()) ex)
-      exceptions;
-    Message.emit_debug "just: %a" (Print.expr ~debug:true ()) just;
-    Message.emit_debug "cons: %a" (Print.expr ~debug:true ()) cons;
     let exceptions_stmts, new_exceptions =
       List.fold_left
         (fun (exceptions_stmts, new_exceptions) arg ->
@@ -373,7 +383,12 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     in
     args_stmts
     @ [
-        ( A.SLocalDef { name = tmp_struct_var_name; expr = struct_expr },
+        ( A.SLocalInit
+            {
+              name = tmp_struct_var_name;
+              expr = struct_expr;
+              typ = TStruct name, Expr.pos block_expr;
+            },
           Expr.pos block_expr );
       ]
   | _ -> (

@@ -410,7 +410,7 @@ let rec format_statement
       func_params (format_block ctx) func_body
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
-  | SLocalDef { name = v; expr = e } ->
+  | SLocalDef { name = v; expr = e } | SLocalInit { name = v; expr = e; _ } ->
     Format.fprintf fmt "@[<hov 4>%a = %a@]" format_var (Mark.remove v)
       (format_expression ctx) e
   | STryExcept { try_block = try_b; except; with_block = catch_b } ->

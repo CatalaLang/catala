@@ -124,6 +124,12 @@ let rec format_statement
       Print.punctuation "="
       (format_expr decl_ctx ~debug)
       naked_expr
+  | SLocalInit { name; typ; expr = naked_expr } ->
+    Format.fprintf fmt "@[<hov 2>%a %a %a %a@ %a@]" format_var_name
+      (Mark.remove name) Print.punctuation ":" (Print.typ decl_ctx) typ
+      Print.punctuation "="
+      (format_expr decl_ctx ~debug)
+      naked_expr
   | STryExcept { try_block = b_try; except; with_block = b_with } ->
     Format.fprintf fmt "@[<v 2>%a%a@ %a@]@\n@[<v 2>%a %a%a@ %a@]" Print.keyword
       "try" Print.punctuation ":"

@@ -445,9 +445,13 @@ let rec format_statement
     Message.raise_spanned_error (Mark.get s)
       "Internal error: this inner functions should have been hoisted in Scalc"
   | SLocalDecl { name = v; typ = ty } ->
-    Format.fprintf fmt "%a;"
+    Format.fprintf fmt "@[<hov 2>%a@];"
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
       ty
+  | SLocalInit { name = v; expr = e; typ } ->
+    Format.fprintf fmt "@[<hov 2>%a = %a;@]"
+      (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
+      typ (format_expression ctx) e
   | SLocalDef { name = v; expr = e } ->
     Format.fprintf fmt "@[<hov 2>%a = %a;@]" format_var (Mark.remove v)
       (format_expression ctx) e

@@ -63,6 +63,7 @@ and naked_expr =
 type stmt =
   | SInnerFuncDef of { name : VarName.t Mark.pos; func : func }
   | SLocalDecl of { name : VarName.t Mark.pos; typ : typ }
+  | SLocalInit of { name : VarName.t Mark.pos; typ : typ; expr : expr }
   | SLocalDef of { name : VarName.t Mark.pos; expr : expr }
   | STryExcept of { try_block : block; except : except; with_block : block }
   | SRaise of except
