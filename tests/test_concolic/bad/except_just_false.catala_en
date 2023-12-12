@@ -27,25 +27,13 @@ let scope A (A_in: A_in {x_in: integer}): A {o: integer} =
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . [no constraints]
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 42
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (= x_in 42)
-[RESULT] ... (not (= x_in 2))
-[RESULT] ... (not (= x_in 3))
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 1
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (= x_in 42)
-[RESULT] .        (not (= x_in 2))
-[RESULT] .        (not (= x_in 3))
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 4
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 4
 [ERROR]
 This variable evaluated to an empty term (no rule that defined it applied in this situation)
 

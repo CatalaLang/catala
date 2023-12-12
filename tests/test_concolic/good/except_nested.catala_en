@@ -35,160 +35,25 @@ let scope A (A_in: A_in {x_in: integer}): A {o: integer} =
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . [no constraints]
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 42
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (not (<= x_in 1))
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... (not (= x_in 30))
-[RESULT] ... true
-[RESULT] ... (not (= x_in 1))
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 2
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (not (<= x_in 1))
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 30))
-[RESULT] .        true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 0
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... (<= x_in 1)
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... (not (= x_in 30))
-[RESULT] ... true
-[RESULT] ... (not (= x_in 1))
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 0
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 0
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] . DONE   (<= x_in 1)
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 30))
-[RESULT] .        true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .. Solver returned Unsat
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 30
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        true
-[RESULT] . DONE   (<= x_in 1)
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 30))
-[RESULT] .        true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] . DONE   (<= x_in 1)
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 30))
-[RESULT] .        true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 30))
-[RESULT] .        true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        (not (= x_in 30))
-[RESULT] .        true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (not (= x_in 30))
-[RESULT] .        true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 30
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (= x_in 30)
-[RESULT] ... true
-[RESULT] ... (not (= x_in 1))
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 3
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (not (= x_in 1))
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 1
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... true
-[RESULT] ... (<= x_in 1)
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... (not (= x_in 30))
-[RESULT] ... (= x_in 1)
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 1
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        (<= x_in 1)
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 30))
-[RESULT] . DONE   (= x_in 1)
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (<= x_in 1)
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 30))
-[RESULT] . DONE   (= x_in 1)
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 30))
-[RESULT] . DONE   (= x_in 1)
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        (not (= x_in 30))
-[RESULT] . DONE   (= x_in 1)
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (not (= x_in 30))
-[RESULT] . DONE   (= x_in 1)
-[RESULT] .. Solver returned Unsat
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 1
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

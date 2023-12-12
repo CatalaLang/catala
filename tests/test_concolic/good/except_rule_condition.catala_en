@@ -24,46 +24,15 @@ let scope A (A_in: A_in {x_in: integer}): A {b: bool} =
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . [no constraints]
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 42
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (= x_in 42)
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... b = true
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . b = true
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (= x_in 42)
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 43
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... (not (= x_in 42))
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... b = false
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] . DONE   (not (= x_in 42))
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        true
-[RESULT] . DONE   (not (= x_in 42))
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] . DONE   (not (= x_in 42))
-[RESULT] .. Solver returned Unsat
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 43
+[RESULT] Output of scope after evaluation:
+[RESULT] . b = false
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

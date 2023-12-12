@@ -27,65 +27,20 @@ let scope A (A_in: A_in {x_in: integer}): A {o: integer} =
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . [no constraints]
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 42
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (<= 42 x_in)
-[RESULT] ... (= x_in 42)
-[RESULT] ... (<= x_in 42)
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 2
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (<= 42 x_in)
-[RESULT] .        (= x_in 42)
-[RESULT] .        (<= x_in 42)
-[RESULT] .. Solver returned Unsat
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 0
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (= x_in 42)
-[RESULT] .        (<= x_in 42)
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 0
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (not (<= 42 x_in))
-[RESULT] ... (not (= x_in 42))
-[RESULT] ... (<= x_in 42)
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 1
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (not (<= 42 x_in))
-[RESULT] . DONE   (not (= x_in 42))
-[RESULT] .        (<= x_in 42)
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (<= x_in 42)
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 43
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (<= 42 x_in)
-[RESULT] ... (not (= x_in 42))
-[RESULT] ... (not (<= x_in 42))
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 3
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (<= 42 x_in)
-[RESULT] .        (not (= x_in 42))
-[RESULT] . DONE   (not (<= x_in 42))
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (not (= x_in 42))
-[RESULT] . DONE   (not (<= x_in 42))
-[RESULT] .. Solver returned Unsat
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 43
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

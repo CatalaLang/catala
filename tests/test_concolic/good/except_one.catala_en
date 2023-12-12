@@ -24,46 +24,15 @@ let scope A (A_in: A_in {b_in: bool}): A {o: integer} =
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . [no constraints]
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... b_in = true
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... b_in
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... b_in
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 1
+[RESULT] Evaluating with inputs:
+[RESULT] . b_in = true
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE b_in
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] .        b_in
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        true
-[RESULT] .        b_in
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        b_in
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE b_in
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... b_in = false
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (not b_in)
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 0
+[RESULT] Evaluating with inputs:
+[RESULT] . b_in = false
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

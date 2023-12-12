@@ -1039,17 +1039,17 @@ let string_of_path_constraint (pc : path_constraint) : string =
 
 let print_path_constraints (prefix : string) : path_constraint list -> unit =
   List.iter (fun pc ->
-      Message.emit_result "%s%s" prefix (string_of_path_constraint pc))
+      Message.emit_debug "%s%s" prefix (string_of_path_constraint pc))
 
 let print_annotated_path_constraints (prefix : string) constraints : unit =
   let aux apc =
-    Message.emit_result "%s%s" prefix
+    Message.emit_debug "%s%s" prefix
       (match apc with
       | Normal pc -> "       " ^ string_of_path_constraint pc
       | Done pc -> "DONE   " ^ string_of_path_constraint pc
       | Negated pc -> "NEGATE " ^ string_of_path_constraint pc)
   in
-  if constraints = [] then Message.emit_result "%s[no constraints]" prefix
+  if constraints = [] then Message.emit_debug "%s[no constraints]" prefix
   else List.iter aux constraints
 
 type solver_result = Sat of Z3.Model.model option | Unsat | Unknown
@@ -1098,32 +1098,33 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
        (* TODO CONC should this mark change? *) in *)
     let rec concolic_loop (path_constraints : annotated_path_constraint list) :
         unit =
-      Message.emit_result "";
-      Message.emit_result "Trying new path constraints";
+      Message.emit_debug "";
+      Message.emit_debug "Trying new path constraints";
       print_annotated_path_constraints ". " path_constraints;
       let solver_constraints = constraint_list_of_path ctx path_constraints in
 
       match solve_constraints ctx solver_constraints with
       | Sat (Some m) ->
-        Message.emit_result ".. Solver returned a model";
+        Message.emit_debug "Solver returned a model";
         let inputs = inputs_of_model m input_marks in
 
-        Message.emit_result ".. Evaluating with inputs:";
+        if not Cli.globals.debug then Message.emit_result "";
+        Message.emit_result "Evaluating with inputs:";
         let inputs_list =
           List.map
             (fun (fld, e) -> StructField.get_info fld, Expr.unbox e)
             (StructField.Map.bindings inputs)
         in
-        print_fields p.lang "... " inputs_list;
+        print_fields p.lang ". " inputs_list;
 
         let res = eval_conc_with_input ctx p.lang s_in scope_e mark_e inputs in
 
         let res_path_constraints = get_constraints res in
 
-        Message.emit_result ".. Path constraints after evaluation:";
-        print_path_constraints "... " res_path_constraints;
+        Message.emit_debug "Path constraints after evaluation:";
+        print_path_constraints ". " res_path_constraints;
 
-        Message.emit_result ".. Output of scope after evaluation:";
+        Message.emit_result "Output of scope after evaluation:";
         let outputs_list =
           match Mark.remove res with
           | EStruct { fields; _ } ->
@@ -1135,7 +1136,7 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
               "The concolic interpretation of a program should always yield a \
                struct corresponding to the scope variables"
         in
-        print_fields p.lang "... " outputs_list;
+        print_fields p.lang ". " outputs_list;
 
         (* TODO find a better way *)
         let new_path_constraints =
@@ -1148,7 +1149,7 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
         if new_path_constraints = [] then ()
         else concolic_loop new_path_constraints
       | Unsat -> begin
-        Message.emit_result ".. Solver returned Unsat";
+        Message.emit_debug "Solver returned Unsat";
         match path_constraints with
         | [] -> failwith "[CONC] Failed to solve without constraints"
         | _ :: new_path_constraints ->

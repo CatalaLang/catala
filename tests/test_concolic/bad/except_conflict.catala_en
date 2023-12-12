@@ -28,74 +28,27 @@ let scope A (A_in: A_in {x_in: integer; y_in: integer}): A {o: integer} =
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . [no constraints]
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 42
-[RESULT] ... y_in = 42
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... true
-[RESULT] ... (not (= x_in 1))
-[RESULT] ... (not (= y_in 2))
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 0
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] . y_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .        (not (= y_in 2))
-[RESULT] .. Solver returned Unsat
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 1
+[RESULT] . y_in = 3
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .        (not (= y_in 2))
-[RESULT] .. Solver returned Unsat
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] . y_in = 2
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .        (not (= x_in 1))
-[RESULT] .        (not (= y_in 2))
-[RESULT] .. Solver returned Unsat
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (not (= x_in 1))
-[RESULT] .        (not (= y_in 2))
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 1
-[RESULT] ... y_in = 3
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (= x_in 1)
-[RESULT] ... (not (= y_in 2))
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 1
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (not (= y_in 2))
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 42
-[RESULT] ... y_in = 2
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... (not (= x_in 1))
-[RESULT] ... (= y_in 2)
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... o = 2
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE (not (= x_in 1))
-[RESULT] . DONE   (= y_in 2)
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] ... x_in = 1
-[RESULT] ... y_in = 2
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 1
+[RESULT] . y_in = 2
 [ERROR]
 There is a conflict between multiple valid consequences for assigning the same variable.
 

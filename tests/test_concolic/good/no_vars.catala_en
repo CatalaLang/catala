@@ -12,18 +12,9 @@ scope A:
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . [no constraints]
-[RESULT] .. Solver returned a model
-[RESULT] .. Evaluating with inputs:
-[RESULT] .. Path constraints after evaluation:
-[RESULT] ... true
-[RESULT] .. Output of scope after evaluation:
-[RESULT] ... x = 0
-[RESULT] 
-[RESULT] Trying new path constraints
-[RESULT] . NEGATE true
-[RESULT] .. Solver returned Unsat
+[RESULT] Evaluating with inputs:
+[RESULT] Output of scope after evaluation:
+[RESULT] . x = 0
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!
