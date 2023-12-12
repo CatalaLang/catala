@@ -78,7 +78,14 @@ type stmt =
   | SAssert of naked_expr
   | SSpecialOp of special_operator
 
-and special_operator = OHandleDefaultOpt of expr list * expr * block
+and special_operator =
+  | OHandleDefaultOpt of {
+      exceptions : expr list;
+      just : expr;
+      cons : block;
+      return_typ : typ;
+    }
+
 and block = stmt Mark.pos list
 and switch_case = { case_block : block; payload_var_name : VarName.t }
 

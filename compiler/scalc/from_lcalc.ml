@@ -200,7 +200,14 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     exceptions_stmts
     @ just_stmts
     @ [
-        ( A.SSpecialOp (OHandleDefaultOpt (new_exceptions, new_just, new_cons)),
+        ( A.SSpecialOp
+            (OHandleDefaultOpt
+               {
+                 exceptions = new_exceptions;
+                 just = new_just;
+                 cons = new_cons;
+                 return_typ = Expr.maybe_ty (Mark.get block_expr);
+               }),
           Expr.pos block_expr );
       ]
   | EApp { f = EAbs { binder; tys }, binder_mark; args } ->

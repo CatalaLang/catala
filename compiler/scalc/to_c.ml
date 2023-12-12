@@ -152,10 +152,11 @@ let rec format_typ
   | TStruct s -> Format.fprintf fmt "%a %t" format_struct_name s element_name
   | TOption some_typ ->
     (* We translate the option type with an overloading to C's [NULL] *)
+    let option = VarName.fresh ("option", Pos.no_pos) in
     Format.fprintf fmt
-      "@[<v 2>struct {@ char some_tag;@ @[<v 2>union {@ void *none;@ %a;@]@,\
+      "@[<v 2>struct %a {@ char some_tag;@ @[<v 2>union {@ void *none;@ %a;@]@,\
        } payload;@]@,\
-       } /* option %a */ %t"
+       } /* eoption %a */ %t" format_var option
       (format_typ decl_ctx (fun fmt -> Format.fprintf fmt "some"))
       some_typ (Print.typ decl_ctx) some_typ element_name
   | TDefault t -> format_typ decl_ctx element_name fmt t
@@ -249,29 +250,12 @@ let format_ctx
 
 let format_lit (fmt : Format.formatter) (l : lit Mark.pos) : unit =
   match Mark.remove l with
-  | LBool true -> Format.pp_print_string fmt "TRUE"
-  | LBool false -> Format.pp_print_string fmt "FALSE"
-  | LInt i ->
-    if Z.fits_nativeint i then
-      Format.fprintf fmt "catala_integer_from_numeric(%s)"
-        (Runtime.integer_to_string i)
-    else
-      Format.fprintf fmt "catala_integer_from_string(\"%s\")"
-        (Runtime.integer_to_string i)
-  | LUnit -> Format.pp_print_string fmt "new(\"catala_unit\",v=0)"
-  | LRat i ->
-    Format.fprintf fmt "catala_decimal_from_fraction(%s,%s)"
-      (if Z.fits_nativeint (Q.num i) then Z.to_string (Q.num i)
-       else "\"" ^ Z.to_string (Q.num i) ^ "\"")
-      (if Z.fits_nativeint (Q.den i) then Z.to_string (Q.den i)
-       else "\"" ^ Z.to_string (Q.den i) ^ "\"")
-  | LMoney e ->
-    if Z.fits_nativeint e then
-      Format.fprintf fmt "catala_money_from_cents(%s)"
-        (Runtime.integer_to_string (Runtime.money_to_cents e))
-    else
-      Format.fprintf fmt "catala_money_from_cents(\"%s\")"
-        (Runtime.integer_to_string (Runtime.money_to_cents e))
+  | LBool true -> Format.pp_print_string fmt "1 /* TRUE */"
+  | LBool false -> Format.pp_print_string fmt "0 /* FALSE */"
+  | LInt i -> Format.fprintf fmt "%d" (Runtime.integer_to_int i)
+  | LUnit -> Format.pp_print_string fmt "NULL"
+  | LRat i -> Format.fprintf fmt "%F" (Runtime.decimal_to_float i)
+  | LMoney e -> Format.fprintf fmt "%F" (Runtime.money_to_float e)
   | LDate d ->
     Format.fprintf fmt "catala_date_from_ymd(%d,%d,%d)"
       (Runtime.integer_to_int (Runtime.year_of_date d))
@@ -400,8 +384,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
   | EApp { f = EOp HandleDefaultOpt, _; args = _ } ->
-    Message.raise_internal_error
-      "R compilation does not currently support the avoiding of exceptions"
+    failwith "should not happen because of keep_special_ops"
   | EApp { f = EOp (HandleDefault as op), pos; args } ->
     Format.fprintf fmt
       "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
@@ -456,7 +439,23 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a = %a;@]" format_var (Mark.remove v)
       (format_expression ctx) e
   | STryExcept _ -> failwith "should not happen"
-  | SRaise _ -> Format.fprintf fmt "/* Raise */"
+  | SRaise e ->
+    let pos = Mark.get s in
+    Format.fprintf fmt
+      "catala_fatal_error_raised.code = %s;@,\
+       catala_fatal_error_raised.position.filename = \"%s\";@,\
+       catala_fatal_error_raised.position.start_line = %d;@,\
+       catala_fatal_error_raised.position.start_column = %d;@,\
+       catala_fatal_error_raised.position.end_line = %d;@,\
+       catala_fatal_error_raised.position.end_column = %d;@,\
+       longjmp(catala_fatal_error_jump_buffer, 0);"
+      (match e with
+      | ConflictError -> "catala_conflict"
+      | EmptyError -> "catala_empty"
+      | NoValueProvided -> "catala_no_value_provided"
+      | Crash -> "catala_crash")
+      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos)
   | SIfThenElse { if_expr = cond; then_block = b1; else_block = b2 } ->
     Format.fprintf fmt
       "@[<hov 2>if (%a) {@\n%a@]@\n@[<hov 2>} else {@\n%a@]@\n}"
@@ -524,8 +523,73 @@ let rec format_statement
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
-  | SSpecialOp (OHandleDefaultOpt (_exceptions, _just, _cons)) ->
-    Format.fprintf fmt "/* HandleDefaultOpt */"
+  | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; return_typ }) ->
+    let pos = Mark.get s in
+    let exception_acc_var = VarName.fresh ("exception_acc", Mark.get s) in
+    let exception_current = VarName.fresh ("exception_current", Mark.get s) in
+    let exception_conflict = VarName.fresh ("exception_conflict", Mark.get s) in
+    let variable_defined_in_cons =
+      match List.hd (List.rev cons) with
+      | SReturn (EVar v), _ -> v
+      | SLocalDef { name; _ }, _ -> Mark.remove name
+      | _ -> failwith "should not happen"
+    in
+    Format.fprintf fmt "%a = { 0, NULL };@,"
+      (format_typ ctx (fun fmt -> format_var fmt exception_acc_var))
+      return_typ;
+    Format.fprintf fmt "%a;@,"
+      (format_typ ctx (fun fmt -> format_var fmt exception_current))
+      return_typ;
+    Format.fprintf fmt "char %a = 0;@," format_var exception_conflict;
+    List.iter
+      (fun except ->
+        Format.fprintf fmt
+          "%a = %a@,\
+           @[<v 2>if (%a.some_tag) {@,\
+           @[<v 2>if (%a.some_tag){@,\
+           %a = 1;@,\
+           @]@,\
+           @[<v 2>} else {@,\
+           %a = %a@]@,\
+           }@]@,\
+           }"
+          format_var exception_current (format_expression ctx) except format_var
+          exception_current format_var exception_acc_var format_var
+          exception_conflict format_var exception_acc_var format_var
+          exception_current)
+      exceptions;
+    Format.fprintf fmt
+      "@[<v 2>if (%a) {@,\
+       catala_fatal_error_raised.code = catala_conflict;@,\
+       catala_fatal_error_raised.position.filename = \"%s\";@,\
+       catala_fatal_error_raised.position.start_line = %d;@,\
+       catala_fatal_error_raised.position.start_column = %d;@,\
+       catala_fatal_error_raised.position.end_line = %d;@,\
+       catala_fatal_error_raised.position.end_column = %d;@,\
+       longjmp(catala_fatal_error_jump_buffer, 0);@]@,\
+       }@,"
+      format_var exception_conflict (Pos.get_file pos) (Pos.get_start_line pos)
+      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos);
+    Format.fprintf fmt
+      "@[<v 2>if (%a.some_tag) {@,\
+       %a = %a;@]@,\
+       @[<v 2>} else {@,\
+       @[<v 2>if (%a) {@,\
+       %a@]@,\
+       @[<v 2>} else {@,\
+       catala_fatal_error_raised.code = catala_no_value_provided;@,\
+       catala_fatal_error_raised.position.filename = \"%s\";@,\
+       catala_fatal_error_raised.position.start_line = %d;@,\
+       catala_fatal_error_raised.position.start_column = %d;@,\
+       catala_fatal_error_raised.position.end_line = %d;@,\
+       catala_fatal_error_raised.position.end_column = %d;@,\
+       longjmp(catala_fatal_error_jump_buffer, 0);@]@,\
+       }@]@,\
+       }"
+      format_var exception_acc_var format_var variable_defined_in_cons
+      format_var exception_acc_var (format_expression ctx) just
+      (format_block ctx) cons (Pos.get_file pos) (Pos.get_start_line pos)
+      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
 
 and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
   Format.pp_print_list
@@ -542,6 +606,7 @@ let format_program
      @,\
      #include <stdio.h>@,\
      #include <stdlib.h>@,\
+     #include <runtime.c>@,\
      @,\
      %a@,\
      %a@,\

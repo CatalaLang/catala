@@ -172,7 +172,7 @@ let rec format_statement
              (format_block decl_ctx ~debug)
              switch_case_data.case_block))
       (List.combine (EnumConstructor.Map.bindings cons) arms)
-  | SSpecialOp (OHandleDefaultOpt (exceptions, just, cons)) ->
+  | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; _ }) ->
     Format.fprintf fmt "@[<hov 2>%a %a%a%a@]@\n@[<hov 2>%a@ %a %a%a@\n%a@]"
       Print.keyword "handle exceptions" Print.punctuation "["
       (Format.pp_print_list
