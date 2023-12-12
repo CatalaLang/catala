@@ -412,7 +412,7 @@ let rec format_statement
         switch_cases =
           [
             { case_block = case_none; _ };
-            { case_block = case_some; payload_var_name = case_some_var };
+            { case_block = case_some; payload_var_name = case_some_var; _ };
           ];
         _;
       }
@@ -442,7 +442,7 @@ let rec format_statement
       tmp_var (format_expression ctx) e1
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 2>} else if ")
-         (fun fmt ({ case_block; payload_var_name }, cons_name) ->
+         (fun fmt ({ case_block; payload_var_name; _ }, cons_name) ->
            Format.fprintf fmt "(%a@code == \"%a\") {@\n%a <- %a@value@\n%a"
              format_var tmp_var format_enum_cons_name cons_name format_var
              payload_var_name format_var tmp_var (format_block ctx) case_block))

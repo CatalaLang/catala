@@ -87,7 +87,12 @@ and special_operator =
     }
 
 and block = stmt Mark.pos list
-and switch_case = { case_block : block; payload_var_name : VarName.t }
+
+and switch_case = {
+  case_block : block;
+  payload_var_name : VarName.t;
+  payload_var_typ : typ;
+}
 
 and func = {
   func_params : (VarName.t Mark.pos * typ) list;

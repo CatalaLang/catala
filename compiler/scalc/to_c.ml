@@ -133,7 +133,7 @@ let rec format_typ
     (fmt : Format.formatter)
     (typ : typ) : unit =
   match Mark.remove typ with
-  | TLit TUnit -> Format.fprintf fmt "char /* unit */ %t" element_name
+  | TLit TUnit -> Format.fprintf fmt "void* /* unit */ %t" element_name
   | TLit TMoney -> Format.fprintf fmt "int /* money */ %t" element_name
   | TLit TInt -> Format.fprintf fmt "int %t" element_name
   | TLit TRat -> Format.fprintf fmt "double %t" element_name
@@ -467,7 +467,7 @@ let rec format_statement
         switch_cases =
           [
             { case_block = case_none; _ };
-            { case_block = case_some; payload_var_name = case_some_var };
+            { case_block = case_some; payload_var_name = case_some_var; _ };
           ];
         switch_expr_typ;
       }
@@ -498,14 +498,17 @@ let rec format_statement
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
     let tmp_var = VarName.fresh ("match_arg", Pos.no_pos) in
-    Format.fprintf fmt "@[<hov 2>%a <- %a@]@\n@[<hov 2>if %a@]@\n}" format_var
-      tmp_var (format_expression ctx) e1
+    Format.fprintf fmt "@[<hov 2>%a %a = %a;@]@\n@[<hov 2>if %a@]@\n}"
+      format_enum_name e_name format_var tmp_var (format_expression ctx) e1
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 2>} else if ")
-         (fun fmt ({ case_block; payload_var_name }, cons_name) ->
-           Format.fprintf fmt "(%a@code == \"%a\") {@\n%a <- %a@value@\n%a"
-             format_var tmp_var format_enum_cons_name cons_name format_var
-             payload_var_name format_var tmp_var (format_block ctx) case_block))
+         (fun fmt ({ case_block; payload_var_name; payload_var_typ }, cons_name) ->
+           Format.fprintf fmt "(%a.code == %a_%a) {@\n%a = %a.payload.%a;@\n%a"
+             format_var tmp_var format_enum_name e_name format_enum_cons_name
+             cons_name
+             (format_typ ctx (fun fmt -> format_var fmt payload_var_name))
+             payload_var_typ format_var tmp_var format_enum_cons_name cons_name
+             (format_block ctx) case_block))
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 2>return %a;@]" (format_expression ctx)
@@ -534,7 +537,7 @@ let rec format_statement
       | SLocalDef { name; _ }, _ -> Mark.remove name
       | _ -> failwith "should not happen"
     in
-    Format.fprintf fmt "%a = { 0, NULL };@,"
+    Format.fprintf fmt "%a = {0,{NULL}};@,"
       (format_typ ctx (fun fmt -> format_var fmt exception_acc_var))
       return_typ;
     Format.fprintf fmt "%a;@,"

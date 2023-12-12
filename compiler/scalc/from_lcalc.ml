@@ -307,7 +307,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       EnumConstructor.Map.fold
         (fun _ arg new_args ->
           match Mark.remove arg with
-          | EAbs { binder; _ } ->
+          | EAbs { binder; tys } ->
             let vars, body = Bindlib.unmbind binder in
             assert (Array.length vars = 1);
             let var = vars.(0) in
@@ -318,7 +318,12 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               { ctxt with var_dict = Var.Map.add var scalc_var ctxt.var_dict }
             in
             let new_arg = translate_statements ctxt body in
-            { A.case_block = new_arg; payload_var_name = scalc_var } :: new_args
+            {
+              A.case_block = new_arg;
+              payload_var_name = scalc_var;
+              payload_var_typ = List.hd tys;
+            }
+            :: new_args
           | _ -> assert false
           (* should not happen *))
         cases []
