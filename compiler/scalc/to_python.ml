@@ -291,12 +291,12 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          && EnumConstructor.equal cons Expr.none_constr ->
     (* We translate the option type with an overloading by Python's [None] *)
     Format.fprintf fmt "None"
-  | EInj { e1 = e; cons; name = e_name }
+  | EInj { e1 = e; cons; name = e_name; _ }
     when EnumName.equal e_name Expr.option_enum
          && EnumConstructor.equal cons Expr.some_constr ->
     (* We translate the option type with an overloading by Python's [None] *)
     format_expression ctx fmt e
-  | EInj { e1 = e; cons; name = enum_name } ->
+  | EInj { e1 = e; cons; name = enum_name; _ } ->
     Format.fprintf fmt "%a(%a_Code.%a,@ %a)" format_enum_name enum_name
       format_enum_name enum_name format_enum_cons_name cons
       (format_expression ctx) e
@@ -410,7 +410,8 @@ let rec format_statement
       func_params (format_block ctx) func_body
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
-  | SLocalDef { name = v; expr = e } | SLocalInit { name = v; expr = e; _ } ->
+  | SLocalDef { name = v; expr = e; _ } | SLocalInit { name = v; expr = e; _ }
+    ->
     Format.fprintf fmt "@[<hov 4>%a = %a@]" format_var (Mark.remove v)
       (format_expression ctx) e
   | STryExcept { try_block = try_b; except; with_block = catch_b } ->

@@ -119,7 +119,7 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a %a %a@ %a@]" Print.keyword "decl"
       format_var_name (Mark.remove name) Print.punctuation ":"
       (Print.typ decl_ctx) typ
-  | SLocalDef { name; expr = naked_expr } ->
+  | SLocalDef { name; expr = naked_expr; _ } ->
     Format.fprintf fmt "@[<hov 2>%a %a@ %a@]" format_var_name (Mark.remove name)
       Print.punctuation "="
       (format_expr decl_ctx ~debug)

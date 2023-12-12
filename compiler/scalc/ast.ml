@@ -54,7 +54,12 @@ and naked_expr =
     }
   | ETuple of expr list
   | ETupleAccess of { e1 : expr; index : int }
-  | EInj of { e1 : expr; cons : EnumConstructor.t; name : EnumName.t }
+  | EInj of {
+      e1 : expr;
+      cons : EnumConstructor.t;
+      name : EnumName.t;
+      expr_typ : typ;
+    }
   | EArray of expr list
   | ELit of lit
   | EApp of { f : expr; args : expr list }
@@ -64,7 +69,7 @@ type stmt =
   | SInnerFuncDef of { name : VarName.t Mark.pos; func : func }
   | SLocalDecl of { name : VarName.t Mark.pos; typ : typ }
   | SLocalInit of { name : VarName.t Mark.pos; typ : typ; expr : expr }
-  | SLocalDef of { name : VarName.t Mark.pos; expr : expr }
+  | SLocalDef of { name : VarName.t Mark.pos; expr : expr; typ : typ }
   | STryExcept of { try_block : block; except : except; with_block : block }
   | SRaise of except
   | SIfThenElse of { if_expr : expr; then_block : block; else_block : block }

@@ -100,7 +100,15 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
     | EInj { e = e1; cons; name } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
-      e1_stmts, (A.EInj { e1 = new_e1; cons; name }, Expr.pos expr)
+      ( e1_stmts,
+        ( A.EInj
+            {
+              e1 = new_e1;
+              cons;
+              name;
+              expr_typ = Expr.maybe_ty (Mark.get expr);
+            },
+          Expr.pos expr ) )
     | EApp
         {
           f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark;
@@ -197,6 +205,10 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     in
     let just_stmts, new_just = translate_expr ctxt just in
     let new_cons = translate_statements ctxt cons in
+    (* Be careful ! Here, [new_cons]'s last statement is the definition of the
+       final value we want from this expression. However, this final value is of
+       type [tau] instead of type [option tau]. We need to inject it
+       correctly... *)
     exceptions_stmts
     @ just_stmts
     @ [
@@ -252,7 +264,16 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             }
           in
           let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ [A.SLocalDef { name = x; expr = new_arg }, binder_pos])
+          arg_stmts
+          @ [
+              ( A.SLocalDef
+                  {
+                    name = x;
+                    expr = new_arg;
+                    typ = Expr.maybe_ty (Mark.get arg);
+                  },
+                binder_pos );
+            ])
         vars_args
     in
     let rest_of_block = translate_statements ctxt body in
@@ -368,6 +389,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             {
               name = x, Expr.pos block_expr;
               expr = Ast.EVar Ast.dead_value, Expr.pos block_expr;
+              typ = Expr.maybe_ty (Mark.get block_expr);
             },
           Expr.pos block_expr );
       ]
@@ -417,7 +439,13 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       [
         ( (match ctxt.inside_definition_of with
           | None -> A.SReturn (Mark.remove new_e)
-          | Some x -> A.SLocalDef { name = Mark.copy new_e x; expr = new_e }),
+          | Some x ->
+            A.SLocalDef
+              {
+                name = Mark.copy new_e x;
+                expr = new_e;
+                typ = Expr.maybe_ty (Mark.get block_expr);
+              }),
           Expr.pos block_expr );
       ])
 
@@ -486,6 +514,7 @@ let rec translate_scope_body_expr
               {
                 name = let_var_id, scope_let.scope_let_pos;
                 expr = new_let_expr;
+                typ = scope_let.scope_let_typ;
               },
             scope_let.scope_let_pos );
         ])

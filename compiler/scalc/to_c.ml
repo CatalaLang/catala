@@ -125,6 +125,15 @@ let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
   else if local_id = 0 then format_name_cleaned fmt v_str
   else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
 
+module TypMap = Map.Make (struct
+  type t = naked_typ
+
+  let compare x y = Type.compare (x, Pos.no_pos) (y, Pos.no_pos)
+  let format fmt x = Print.typ_debug fmt (x, Pos.no_pos)
+end)
+
+let option_monomorphized_instances = ref TypMap.empty
+
 (* Here, [element_name] is the struct field, union member or function parameter
    of which you're printing the type. *)
 let rec format_typ
@@ -151,14 +160,19 @@ let rec format_typ
       (List.mapi (fun x y -> y, x) ts)
   | TStruct s -> Format.fprintf fmt "%a %t" format_struct_name s element_name
   | TOption some_typ ->
-    (* We translate the option type with an overloading to C's [NULL] *)
-    let option = VarName.fresh ("option", Pos.no_pos) in
-    Format.fprintf fmt
-      "@[<v 2>struct %a {@ char some_tag;@ @[<v 2>union {@ void *none;@ %a;@]@,\
-       } payload;@]@,\
-       } /* eoption %a */ %t" format_var option
-      (format_typ decl_ctx (fun fmt -> Format.fprintf fmt "some"))
-      some_typ (Print.typ decl_ctx) some_typ element_name
+    (* Option is a polymorphic type but C doesn't support them; we'll then have
+       to monomorphize everything. This printer relies on a map all of
+       monomorphized instances of TOption that has been pre-computed and issued
+       as many [typedef] in C. *)
+    let option_monomorphized_instance =
+      match
+        TypMap.find_opt (Mark.remove some_typ) !option_monomorphized_instances
+      with
+      | Some instance_name -> instance_name
+      | None -> failwith "should not happen"
+    in
+    Format.fprintf fmt "%a %t" format_enum_name option_monomorphized_instance
+      element_name
   | TDefault t -> format_typ decl_ctx element_name fmt t
   | TEnum e -> Format.fprintf fmt "%a %t" format_enum_name e element_name
   | TArrow (t1, t2) ->
@@ -341,17 +355,28 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
-  | EInj { cons; name = e_name; _ }
-    when EnumName.equal e_name Expr.option_enum
-         && EnumConstructor.equal cons Expr.none_constr ->
-    (* We translate the option type with an overloading by R's [NULL] *)
-    Format.fprintf fmt "NULL"
-  | EInj { e1 = e; cons; name = e_name }
-    when EnumName.equal e_name Expr.option_enum
-         && EnumConstructor.equal cons Expr.some_constr ->
-    (* We translate the option type with an overloading by R's [NULL] *)
-    format_expression ctx fmt e
-  | EInj { e1 = e; cons; name = enum_name } ->
+  | EInj { e1 = _e; cons; name = e_name; expr_typ }
+    when EnumName.equal e_name Expr.option_enum ->
+    let e_name =
+      TypMap.find
+        (match Mark.remove expr_typ with
+        | TOption t -> Mark.remove t
+        | _ -> failwith "should not happen")
+        !option_monomorphized_instances
+    in
+    let option_config =
+      List.map fst
+        (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
+    in
+    let _some_cons, _none_cons =
+      match option_config with
+      | [some_cons; none_cons] -> some_cons, none_cons
+      | _ -> failwith "should not happen"
+    in
+    if EnumConstructor.equal cons Expr.none_constr then
+      Format.fprintf fmt "NONE"
+    else Format.fprintf fmt "SOME"
+  | EInj { e1 = e; cons; name = enum_name; _ } ->
     Format.fprintf fmt "new(\"catala_enum_%a\", code = \"%a\",@ value = %a)"
       format_enum_name enum_name format_enum_cons_name cons
       (format_expression ctx) e
@@ -435,7 +460,7 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a = %a;@]"
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
       typ (format_expression ctx) e
-  | SLocalDef { name = v; expr = e } ->
+  | SLocalDef { name = v; expr = e; _ } ->
     Format.fprintf fmt "@[<hov 2>%a = %a;@]" format_var (Mark.remove v)
       (format_expression ctx) e
   | STryExcept _ -> failwith "should not happen"
@@ -472,24 +497,43 @@ let rec format_statement
         switch_expr_typ;
       }
     when EnumName.equal e_name Expr.option_enum ->
-    (* We translate the option type with an overloading by Python's [None] *)
+    (* Options enums have been monomorphized so now here we have to determine
+       which one of the instances we have to fetch *)
+    let e_name =
+      TypMap.find
+        (match Mark.remove switch_expr_typ with
+        | TOption t -> Mark.remove t
+        | _ -> failwith "should not happen")
+        !option_monomorphized_instances
+    in
+    let option_config =
+      List.map fst
+        (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
+    in
+    let _some_cons, none_cons =
+      match option_config with
+      | [some_cons; none_cons] -> some_cons, none_cons
+      | _ -> failwith "should not happen"
+    in
     let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
     Format.fprintf fmt
       "%a = %a;@\n\
-       @[<hov 2>if (%a.some_tag != 0) {@\n\
+       @[<hov 2>if (%a.code == %a_%a) {@\n\
        %a@]@\n\
        @[<hov 2>} else {@\n\
-       %a = %a.payload.some;@\n\
+       %a = %a.payload.%a;@\n\
        %a@]@\n\
        }"
       (format_typ ctx (fun fmt -> format_var fmt tmp_var))
       switch_expr_typ (format_expression ctx) e1 format_var tmp_var
-      (format_block ctx) case_none
+      format_enum_name e_name format_enum_cons_name none_cons (format_block ctx)
+      case_none
       (format_typ ctx (fun fmt -> format_var fmt case_some_var))
       (match Mark.remove switch_expr_typ with
       | TOption tau -> tau
       | _ -> failwith "should not happen")
-      format_var tmp_var (format_block ctx) case_some
+      format_var tmp_var format_enum_cons_name none_cons (format_block ctx)
+      case_some
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cases =
       List.map2
@@ -527,6 +571,22 @@ let rec format_statement
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
   | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; return_typ }) ->
+    let e_name =
+      TypMap.find
+        (match Mark.remove return_typ with
+        | TOption t -> Mark.remove t
+        | _ -> failwith "should not happen")
+        !option_monomorphized_instances
+    in
+    let option_config =
+      List.map fst
+        (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
+    in
+    let some_cons, _none_cons =
+      match option_config with
+      | [some_cons; none_cons] -> some_cons, none_cons
+      | _ -> failwith "should not happen"
+    in
     let pos = Mark.get s in
     let exception_acc_var = VarName.fresh ("exception_acc", Mark.get s) in
     let exception_current = VarName.fresh ("exception_current", Mark.get s) in
@@ -574,7 +634,7 @@ let rec format_statement
       format_var exception_conflict (Pos.get_file pos) (Pos.get_start_line pos)
       (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos);
     Format.fprintf fmt
-      "@[<v 2>if (%a.some_tag) {@,\
+      "@[<v 2>if (%a.code == %a_%a) {@,\
        %a = %a;@]@,\
        @[<v 2>} else {@,\
        @[<v 2>if (%a) {@,\
@@ -589,20 +649,127 @@ let rec format_statement
        longjmp(catala_fatal_error_jump_buffer, 0);@]@,\
        }@]@,\
        }"
-      format_var exception_acc_var format_var variable_defined_in_cons
-      format_var exception_acc_var (format_expression ctx) just
-      (format_block ctx) cons (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
+      format_var exception_acc_var format_enum_name e_name format_enum_cons_name
+      some_cons format_var variable_defined_in_cons format_var exception_acc_var
+      (format_expression ctx) just (format_block ctx) cons (Pos.get_file pos)
+      (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
+      (Pos.get_end_column pos)
 
 and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
     (format_statement ctx) fmt b
 
+let monomorphize_option_instances (p : Ast.program) : EnumName.t TypMap.t =
+  let instances_counter = ref 0 in
+  let rec monomorphize_in_typ (acc : EnumName.t TypMap.t) (typ : typ) :
+      EnumName.t TypMap.t =
+    match Mark.remove typ with
+    | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> acc
+    | TTuple args -> List.fold_left monomorphize_in_typ acc args
+    | TArray t | TDefault t -> monomorphize_in_typ acc t
+    | TArrow (args, ret) ->
+      List.fold_left monomorphize_in_typ (monomorphize_in_typ acc ret) args
+    | TOption t ->
+      let new_acc =
+        TypMap.update (Mark.remove t)
+          (fun monomorphized_name ->
+            match monomorphized_name with
+            | Some e -> Some e
+            | None ->
+              incr instances_counter;
+              Some
+                (EnumName.fresh []
+                   ("option_" ^ string_of_int !instances_counter, Pos.no_pos)))
+          acc
+      in
+      monomorphize_in_typ new_acc t
+  in
+  let rec monomorphize_in_block (acc : EnumName.t TypMap.t) (b : block) =
+    List.fold_left monomorphize_in_statement acc b
+  and monomorphize_in_statement (acc : EnumName.t TypMap.t) (s : stmt Mark.pos)
+      =
+    match Mark.remove s with
+    | SInnerFuncDef { func; _ } -> monomorphize_in_func acc func
+    | SLocalDecl { typ; _ } | SLocalInit { typ; _ } ->
+      monomorphize_in_typ acc typ
+    | SIfThenElse { then_block = b1; else_block = b2; _ }
+    | STryExcept { try_block = b1; with_block = b2; _ } ->
+      monomorphize_in_block (monomorphize_in_block acc b1) b2
+    | SRaise _ | SReturn _ | SAssert _ | SLocalDef _ -> acc
+    | SSwitch { switch_expr_typ; switch_cases; _ } ->
+      List.fold_left
+        (fun acc switch_case ->
+          monomorphize_in_block
+            (monomorphize_in_typ acc switch_case.payload_var_typ)
+            switch_case.case_block)
+        (monomorphize_in_typ acc switch_expr_typ)
+        switch_cases
+    | SSpecialOp (OHandleDefaultOpt { cons; return_typ; _ }) ->
+      monomorphize_in_block (monomorphize_in_typ acc return_typ) cons
+  and monomorphize_in_func (acc : EnumName.t TypMap.t) (func : func) =
+    monomorphize_in_block
+      (monomorphize_in_typ
+         (List.fold_left
+            (fun acc (_, param) -> monomorphize_in_typ acc param)
+            acc func.func_params)
+         func.func_return_typ)
+      func.func_body
+  in
+  List.fold_left
+    (fun acc code_item ->
+      match code_item with
+      | SVar { typ; _ } -> monomorphize_in_typ acc typ
+      | SFunc { func; _ } | SScope { scope_body_func = func; _ } ->
+        monomorphize_in_func acc func)
+    (EnumName.Map.fold
+       (fun _ constructors acc ->
+         EnumConstructor.Map.fold
+           (fun _ t acc -> monomorphize_in_typ acc t)
+           constructors acc)
+       p.decl_ctx.ctx_enums
+       (StructName.Map.fold
+          (fun _ fields acc ->
+            StructField.Map.fold
+              (fun _ t acc -> monomorphize_in_typ acc t)
+              fields acc)
+          p.decl_ctx.ctx_structs TypMap.empty))
+    p.code_items
+
 let format_program
     (fmt : Format.formatter)
     (p : Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
+  option_monomorphized_instances := monomorphize_option_instances p;
+  let type_ordering =
+    type_ordering
+    @ TypMap.fold
+        (fun _ name acc -> Scopelang.Dependency.TVertex.Enum name :: acc)
+        !option_monomorphized_instances
+        []
+  in
+  let p =
+    {
+      p with
+      decl_ctx =
+        {
+          p.decl_ctx with
+          ctx_enums =
+            TypMap.fold
+              (fun payload_option name acc ->
+                let none_constr = EnumConstructor.fresh ("None", Pos.no_pos) in
+                let some_constr = EnumConstructor.fresh ("Some", Pos.no_pos) in
+                EnumName.Map.add name
+                  (EnumConstructor.Map.singleton none_constr
+                     (TLit TUnit, Pos.no_pos)
+                  |> EnumConstructor.Map.add some_constr
+                       (payload_option, Pos.no_pos))
+                  acc)
+              !option_monomorphized_instances
+              p.decl_ctx.ctx_enums;
+        };
+    }
+  in
   Format.fprintf fmt
     "@[<v>/* This file has been generated by the Catala compiler, do not edit! \
      */@,\
