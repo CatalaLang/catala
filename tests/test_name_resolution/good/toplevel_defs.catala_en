@@ -123,7 +123,7 @@ let glob3_3 (x_3: money) = return to_rat x_3 + 10.
 let glob4_4 (x_4: money) (y_5: decimal) = return to_rat x_4 * y_5 + 10.
 
 let glob5_aux_5 =
-  decl glob5_7 : any;
+  decl glob5_7 : decimal → decimal;
   let glob5_7 (x_8 : decimal) =
     decl y_9 : decimal;
     y_9 = 1000.;
@@ -135,127 +135,122 @@ let glob5_6 = glob5_aux_5 ()
 let glob2_10 = A {"y": glob1_2 >= 30., "z": 123. * 17.}
 
 let S2_6 (S2_in_11: S2_in) =
-  decl temp_a_13 : any;
+  decl temp_a_13 : decimal;
   try:
-    decl temp_a_22 : any;
+    decl temp_a_22 : unit → decimal;
     let temp_a_22 (__23 : unit) =
       raise EmptyError;
-    decl temp_a_20 : any;
+    decl temp_a_20 : unit → bool;
     let temp_a_20 (__21 : unit) =
       return false;
-    decl temp_a_14 : any;
+    decl temp_a_14 : unit → ⟨decimal⟩;
     let temp_a_14 (__15 : unit) =
-      decl temp_a_18 : any;
+      decl temp_a_18 : unit → decimal;
       let temp_a_18 (__19 : unit) =
         return glob3_3 ¤44.00 + 100.;
-      decl temp_a_16 : any;
+      decl temp_a_16 : unit → bool;
       let temp_a_16 (__17 : unit) =
         return true;
       return handle_default [] temp_a_16 temp_a_18;
     temp_a_13 = handle_default [temp_a_14] temp_a_20 temp_a_22
   with EmptyError:
-    temp_a_13 = dead_value_1;
     raise NoValueProvided;
   decl a_12 : decimal;
   a_12 = temp_a_13;
   return S2 {"a": a_12}
 
 let S3_7 (S3_in_24: S3_in) =
-  decl temp_a_26 : any;
+  decl temp_a_26 : decimal;
   try:
-    decl temp_a_35 : any;
+    decl temp_a_35 : unit → decimal;
     let temp_a_35 (__36 : unit) =
       raise EmptyError;
-    decl temp_a_33 : any;
+    decl temp_a_33 : unit → bool;
     let temp_a_33 (__34 : unit) =
       return false;
-    decl temp_a_27 : any;
+    decl temp_a_27 : unit → ⟨decimal⟩;
     let temp_a_27 (__28 : unit) =
-      decl temp_a_31 : any;
+      decl temp_a_31 : unit → decimal;
       let temp_a_31 (__32 : unit) =
         return 50. + glob4_4 ¤44.00 55.;
-      decl temp_a_29 : any;
+      decl temp_a_29 : unit → bool;
       let temp_a_29 (__30 : unit) =
         return true;
       return handle_default [] temp_a_29 temp_a_31;
     temp_a_26 = handle_default [temp_a_27] temp_a_33 temp_a_35
   with EmptyError:
-    temp_a_26 = dead_value_1;
     raise NoValueProvided;
   decl a_25 : decimal;
   a_25 = temp_a_26;
   return S3 {"a": a_25}
 
 let S4_8 (S4_in_37: S4_in) =
-  decl temp_a_39 : any;
+  decl temp_a_39 : decimal;
   try:
-    decl temp_a_48 : any;
+    decl temp_a_48 : unit → decimal;
     let temp_a_48 (__49 : unit) =
       raise EmptyError;
-    decl temp_a_46 : any;
+    decl temp_a_46 : unit → bool;
     let temp_a_46 (__47 : unit) =
       return false;
-    decl temp_a_40 : any;
+    decl temp_a_40 : unit → ⟨decimal⟩;
     let temp_a_40 (__41 : unit) =
-      decl temp_a_44 : any;
+      decl temp_a_44 : unit → decimal;
       let temp_a_44 (__45 : unit) =
         return glob5_6 + 1.;
-      decl temp_a_42 : any;
+      decl temp_a_42 : unit → bool;
       let temp_a_42 (__43 : unit) =
         return true;
       return handle_default [] temp_a_42 temp_a_44;
     temp_a_39 = handle_default [temp_a_40] temp_a_46 temp_a_48
   with EmptyError:
-    temp_a_39 = dead_value_1;
     raise NoValueProvided;
   decl a_38 : decimal;
   a_38 = temp_a_39;
   return S4 {"a": a_38}
 
 let S_9 (S_in_50: S_in) =
-  decl temp_a_64 : any;
+  decl temp_a_64 : decimal;
   try:
-    decl temp_a_73 : any;
+    decl temp_a_73 : unit → decimal;
     let temp_a_73 (__74 : unit) =
       raise EmptyError;
-    decl temp_a_71 : any;
+    decl temp_a_71 : unit → bool;
     let temp_a_71 (__72 : unit) =
       return false;
-    decl temp_a_65 : any;
+    decl temp_a_65 : unit → ⟨decimal⟩;
     let temp_a_65 (__66 : unit) =
-      decl temp_a_69 : any;
+      decl temp_a_69 : unit → decimal;
       let temp_a_69 (__70 : unit) =
         return glob1_2 * glob1_2;
-      decl temp_a_67 : any;
+      decl temp_a_67 : unit → bool;
       let temp_a_67 (__68 : unit) =
         return true;
       return handle_default [] temp_a_67 temp_a_69;
     temp_a_64 = handle_default [temp_a_65] temp_a_71 temp_a_73
   with EmptyError:
-    temp_a_64 = dead_value_1;
     raise NoValueProvided;
   decl a_51 : decimal;
   a_51 = temp_a_64;
-  decl temp_b_53 : any;
+  decl temp_b_53 : A {y: bool; z: decimal};
   try:
-    decl temp_b_62 : any;
+    decl temp_b_62 : unit → A {y: bool; z: decimal};
     let temp_b_62 (__63 : unit) =
       raise EmptyError;
-    decl temp_b_60 : any;
+    decl temp_b_60 : unit → bool;
     let temp_b_60 (__61 : unit) =
       return false;
-    decl temp_b_54 : any;
+    decl temp_b_54 : unit → ⟨A {y: bool; z: decimal}⟩;
     let temp_b_54 (__55 : unit) =
-      decl temp_b_58 : any;
+      decl temp_b_58 : unit → A {y: bool; z: decimal};
       let temp_b_58 (__59 : unit) =
         return glob2_10;
-      decl temp_b_56 : any;
+      decl temp_b_56 : unit → bool;
       let temp_b_56 (__57 : unit) =
         return true;
       return handle_default [] temp_b_56 temp_b_58;
     temp_b_53 = handle_default [temp_b_54] temp_b_60 temp_b_62
   with EmptyError:
-    temp_b_53 = dead_value_1;
     raise NoValueProvided;
   decl b_52 : A {y: bool; z: decimal};
   b_52 = temp_b_53;
