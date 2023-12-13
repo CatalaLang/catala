@@ -81,6 +81,21 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       (* In C89, struct literates have to be initialized at variable
          definition... *)
       raise (NotAnExpr { needs_a_local_decl = false })
+    | EInj { e = e1; cons; name } when not ctxt.config.no_struct_literals ->
+      let e1_stmts, new_e1 = translate_expr ctxt e1 in
+      ( e1_stmts,
+        ( A.EInj
+            {
+              e1 = new_e1;
+              cons;
+              name;
+              expr_typ = Expr.maybe_ty (Mark.get expr);
+            },
+          Expr.pos expr ) )
+    | EInj _ when ctxt.config.no_struct_literals ->
+      (* In C89, struct literates have to be initialized at variable
+         definition... *)
+      raise (NotAnExpr { needs_a_local_decl = false })
     | ETuple args ->
       let args_stmts, new_args =
         List.fold_left
@@ -98,17 +113,6 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     | ETupleAccess { e = e1; index; _ } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
-    | EInj { e = e1; cons; name } ->
-      let e1_stmts, new_e1 = translate_expr ctxt e1 in
-      ( e1_stmts,
-        ( A.EInj
-            {
-              e1 = new_e1;
-              cons;
-              name;
-              expr_typ = Expr.maybe_ty (Mark.get expr);
-            },
-          Expr.pos expr ) )
     | EApp
         {
           f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark;
@@ -204,11 +208,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
         ([], []) exceptions
     in
     let just_stmts, new_just = translate_expr ctxt just in
-    let new_cons = translate_statements ctxt cons in
-    (* Be careful ! Here, [new_cons]'s last statement is the definition of the
-       final value we want from this expression. However, this final value is of
-       type [tau] instead of type [option tau]. We need to inject it
-       correctly... *)
+    let cons_stmts, new_cons = translate_expr ctxt cons in
     exceptions_stmts
     @ just_stmts
     @ [
@@ -217,7 +217,20 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
                {
                  exceptions = new_exceptions;
                  just = new_just;
-                 cons = new_cons;
+                 cons =
+                   cons_stmts
+                   @ [
+                       ( (match ctxt.inside_definition_of with
+                         | None -> A.SReturn (Mark.remove new_cons)
+                         | Some x ->
+                           A.SLocalDef
+                             {
+                               name = Mark.copy new_cons x;
+                               expr = new_cons;
+                               typ = Expr.maybe_ty (Mark.get block_expr);
+                             }),
+                         Expr.pos block_expr );
+                     ];
                  return_typ = Expr.maybe_ty (Mark.get block_expr);
                }),
           Expr.pos block_expr );
@@ -395,6 +408,37 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
       ]
     | _ -> [])
     @ [A.SRaise except, Expr.pos block_expr]
+  | EInj { e = e1; cons; name } when ctxt.config.no_struct_literals ->
+    let e1_stmts, new_e1 = translate_expr ctxt e1 in
+    let tmp_struct_var_name =
+      match ctxt.inside_definition_of with
+      | None ->
+        failwith "should not happen"
+        (* [translate_expr] should create this [inside_definition_of]*)
+      | Some x -> x, Expr.pos block_expr
+    in
+    let inj_expr =
+      ( A.EInj
+          {
+            e1 = new_e1;
+            cons;
+            name;
+            expr_typ = Expr.maybe_ty (Mark.get block_expr);
+          },
+        Expr.pos block_expr )
+    in
+    e1_stmts
+    @ [
+        ( A.SLocalInit
+            {
+              name = tmp_struct_var_name;
+              expr = inj_expr;
+              typ =
+                ( Mark.remove (Expr.maybe_ty (Mark.get block_expr)),
+                  Expr.pos block_expr );
+            },
+          Expr.pos block_expr );
+      ]
   | EStruct { fields; name } when ctxt.config.no_struct_literals ->
     let args_stmts, new_args =
       StructField.Map.fold

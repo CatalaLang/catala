@@ -355,7 +355,8 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
-  | EInj { e1 = _e; cons; name = e_name; expr_typ }
+  | EInj { e1 = e; cons; name = e_name; expr_typ }
+  (* These should only appear when initializing a variable definition *)
     when EnumName.equal e_name Expr.option_enum ->
     let e_name =
       TypMap.find
@@ -368,14 +369,17 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       List.map fst
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
-    let _some_cons, _none_cons =
+    let some_cons, none_cons =
       match option_config with
       | [some_cons; none_cons] -> some_cons, none_cons
       | _ -> failwith "should not happen"
     in
     if EnumConstructor.equal cons Expr.none_constr then
-      Format.fprintf fmt "NONE"
-    else Format.fprintf fmt "SOME"
+      Format.fprintf fmt "{%a_%a,@ {none_cons: NULL}}" format_enum_name e_name
+        format_enum_cons_name none_cons
+    else
+      Format.fprintf fmt "{%a_%a,@ {some_cons: %a}}" format_enum_name e_name
+        format_enum_cons_name some_cons (format_expression ctx) e
   | EInj { e1 = e; cons; name = enum_name; _ } ->
     Format.fprintf fmt "new(\"catala_enum_%a\", code = \"%a\",@ value = %a)"
       format_enum_name enum_name format_enum_cons_name cons
@@ -582,7 +586,7 @@ let rec format_statement
       List.map fst
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
-    let some_cons, _none_cons =
+    let some_cons, none_cons =
       match option_config with
       | [some_cons; none_cons] -> some_cons, none_cons
       | _ -> failwith "should not happen"
@@ -594,12 +598,12 @@ let rec format_statement
     let variable_defined_in_cons =
       match List.hd (List.rev cons) with
       | SReturn (EVar v), _ -> v
-      | SLocalDef { name; _ }, _ -> Mark.remove name
+      | SLocalDef { name; _ }, _ | SLocalInit { name; _ }, _ -> Mark.remove name
       | _ -> failwith "should not happen"
     in
-    Format.fprintf fmt "%a = {0,{NULL}};@,"
+    Format.fprintf fmt "@[<hov 2>%a = {%a_%a,@ {none_cons: NULL}};@]@,"
       (format_typ ctx (fun fmt -> format_var fmt exception_acc_var))
-      return_typ;
+      return_typ format_enum_name e_name format_enum_cons_name none_cons;
     Format.fprintf fmt "%a;@,"
       (format_typ ctx (fun fmt -> format_var fmt exception_current))
       return_typ;
