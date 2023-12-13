@@ -134,6 +134,33 @@ end)
 
 let option_monomorphized_instances = ref TypMap.empty
 
+(* Returns [e_name, some_cons, none_cons] monorphized. *)
+let monomorphize_enum (ctx : decl_ctx) (option_typ : typ) =
+  let e_name =
+    TypMap.find
+      (match Mark.remove option_typ with
+      | TOption t -> Mark.remove t
+      | _ -> failwith "should not happen")
+      !option_monomorphized_instances
+  in
+  let option_config =
+    List.map fst
+      (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
+  in
+  let some_cons, none_cons =
+    match option_config with
+    | [c1; c2] -> (
+      match
+        ( Mark.remove (EnumConstructor.get_info c1),
+          Mark.remove (EnumConstructor.get_info c2) )
+      with
+      | "Some", "None" -> c1, c2
+      | "None", "Some" -> c2, c1
+      | _ -> failwith "should not happen")
+    | _ -> failwith "should not happen"
+  in
+  e_name, some_cons, none_cons
+
 (* Here, [element_name] is the struct field, union member or function parameter
    of which you're printing the type. *)
 let rec format_typ
@@ -358,22 +385,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EInj { e1 = e; cons; name = e_name; expr_typ }
   (* These should only appear when initializing a variable definition *)
     when EnumName.equal e_name Expr.option_enum ->
-    let e_name =
-      TypMap.find
-        (match Mark.remove expr_typ with
-        | TOption t -> Mark.remove t
-        | _ -> failwith "should not happen")
-        !option_monomorphized_instances
-    in
-    let option_config =
-      List.map fst
-        (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
-    in
-    let some_cons, none_cons =
-      match option_config with
-      | [some_cons; none_cons] -> some_cons, none_cons
-      | _ -> failwith "should not happen"
-    in
+    let e_name, some_cons, none_cons = monomorphize_enum ctx expr_typ in
     if EnumConstructor.equal cons Expr.none_constr then
       Format.fprintf fmt "{%a_%a,@ {none_cons: NULL}}" format_enum_name e_name
         format_enum_cons_name none_cons
@@ -503,22 +515,7 @@ let rec format_statement
     when EnumName.equal e_name Expr.option_enum ->
     (* Options enums have been monomorphized so now here we have to determine
        which one of the instances we have to fetch *)
-    let e_name =
-      TypMap.find
-        (match Mark.remove switch_expr_typ with
-        | TOption t -> Mark.remove t
-        | _ -> failwith "should not happen")
-        !option_monomorphized_instances
-    in
-    let option_config =
-      List.map fst
-        (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
-    in
-    let _some_cons, none_cons =
-      match option_config with
-      | [some_cons; none_cons] -> some_cons, none_cons
-      | _ -> failwith "should not happen"
-    in
+    let e_name, some_cons, none_cons = monomorphize_enum ctx switch_expr_typ in
     let tmp_var = VarName.fresh ("perhaps_none_arg", Pos.no_pos) in
     Format.fprintf fmt
       "%a = %a;@\n\
@@ -536,7 +533,7 @@ let rec format_statement
       (match Mark.remove switch_expr_typ with
       | TOption tau -> tau
       | _ -> failwith "should not happen")
-      format_var tmp_var format_enum_cons_name none_cons (format_block ctx)
+      format_var tmp_var format_enum_cons_name some_cons (format_block ctx)
       case_some
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
     let cases =
@@ -586,9 +583,9 @@ let rec format_statement
       List.map fst
         (EnumConstructor.Map.bindings (EnumName.Map.find e_name ctx.ctx_enums))
     in
-    let some_cons, none_cons =
+    let none_cons, some_cons =
       match option_config with
-      | [some_cons; none_cons] -> some_cons, none_cons
+      | [none_cons; some_cons] -> none_cons, some_cons
       | _ -> failwith "should not happen"
     in
     let pos = Mark.get s in
@@ -611,19 +608,19 @@ let rec format_statement
     List.iter
       (fun except ->
         Format.fprintf fmt
-          "%a = %a@,\
-           @[<v 2>if (%a.some_tag) {@,\
-           @[<v 2>if (%a.some_tag){@,\
-           %a = 1;@,\
-           @]@,\
+          "%a = %a;@,\
+           @[<v 2>if (%a.code == %a_%a) {@,\
+           @[<v 2>if (%a.code == %a_%a) {@,\
+           %a = 1;@]@,\
            @[<v 2>} else {@,\
-           %a = %a@]@,\
+           %a = %a;@]@,\
            }@]@,\
-           }"
+           }@,"
           format_var exception_current (format_expression ctx) except format_var
-          exception_current format_var exception_acc_var format_var
-          exception_conflict format_var exception_acc_var format_var
-          exception_current)
+          exception_current format_enum_name e_name format_enum_cons_name
+          some_cons format_var exception_acc_var format_enum_name e_name
+          format_enum_cons_name some_cons format_var exception_conflict
+          format_var exception_acc_var format_var exception_current)
       exceptions;
     Format.fprintf fmt
       "@[<v 2>if (%a) {@,\
@@ -644,20 +641,15 @@ let rec format_statement
        @[<v 2>if (%a) {@,\
        %a@]@,\
        @[<v 2>} else {@,\
-       catala_fatal_error_raised.code = catala_no_value_provided;@,\
-       catala_fatal_error_raised.position.filename = \"%s\";@,\
-       catala_fatal_error_raised.position.start_line = %d;@,\
-       catala_fatal_error_raised.position.start_column = %d;@,\
-       catala_fatal_error_raised.position.end_line = %d;@,\
-       catala_fatal_error_raised.position.end_column = %d;@,\
-       longjmp(catala_fatal_error_jump_buffer, 0);@]@,\
+       %a.code = %a_%a;@,\
+       %a.payload.none_cons = NULL;@]@,\
        }@]@,\
        }"
       format_var exception_acc_var format_enum_name e_name format_enum_cons_name
       some_cons format_var variable_defined_in_cons format_var exception_acc_var
-      (format_expression ctx) just (format_block ctx) cons (Pos.get_file pos)
-      (Pos.get_start_line pos) (Pos.get_start_column pos) (Pos.get_end_line pos)
-      (Pos.get_end_column pos)
+      (format_expression ctx) just (format_block ctx) cons format_var
+      variable_defined_in_cons format_enum_name e_name format_enum_cons_name
+      none_cons format_var variable_defined_in_cons
 
 and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
   Format.pp_print_list
@@ -789,7 +781,7 @@ let format_program
     (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt code_item ->
          match code_item with
          | SVar { var; expr; typ } ->
-           Format.fprintf fmt "@[<v 2>%a = %a@]"
+           Format.fprintf fmt "@[<v 2>%a = %a;@]"
              (format_typ p.decl_ctx (fun fmt -> format_var fmt var))
              typ
              (format_expression p.decl_ctx)

@@ -16,4 +16,8 @@ scope Baz:
     match a with pattern
     -- No: 0.0
     -- Yes of foo: foo.y + if foo.x then 1.0 else 0.0
+
+  exception definition b under condition
+    a with pattern No
+  consequence equals 42.0
 ```
