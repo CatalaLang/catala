@@ -614,6 +614,34 @@ module Commands = struct
         $ Cli.Flags.ex_scope_opt
         $ Cli.Flags.check_invariants)
 
+  let coq options includes output optimize check_invariants ex_scope_opt =
+    let prg, type_ordering =
+      Passes.dcalc options ~includes ~optimize ~check_invariants
+        ~typed:Expr.typed
+    in
+    let _output_file, with_output =
+      get_output_format options ~ext:".v" output
+    in
+    with_output
+    @@ fun fmt ->
+    Message.emit_debug "Compiling program into Coq...";
+    Message.emit_debug "Writing to %s..." (Option.value ~default:"stdout" None);
+    let exec_scope = Option.map (get_scope_uid prg.decl_ctx) ex_scope_opt in
+    Dcalc.To_coq.format_program fmt prg ?exec_scope type_ordering
+
+  let coq_cmd =
+    Cmd.v
+      (Cmd.info "coq"
+         ~doc:"Generates an OCaml translation of the Catala program.")
+      Term.(
+        const coq
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.output
+        $ Cli.Flags.optimize
+        $ Cli.Flags.check_invariants
+        $ Cli.Flags.ex_scope_opt)
+
   let proof
       options
       includes
@@ -953,6 +981,7 @@ module Commands = struct
       interpret_lcalc_cmd;
       typecheck_cmd;
       proof_cmd;
+      coq_cmd;
       ocaml_cmd;
       python_cmd;
       r_cmd;
