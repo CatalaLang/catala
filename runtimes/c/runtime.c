@@ -28,16 +28,3 @@ typedef struct catala_fatal_error
 catala_fatal_error catala_fatal_error_raised;
 
 jmp_buf catala_fatal_error_jump_buffer;
-
-catala_fatal_error catala_fatal_error_handling()
-{
-
-    if (setjmp(catala_fatal_error_jump_buffer))
-    {
-        return catala_fatal_error_raised;
-    }
-    else
-    {
-        return catala_fatal_error_raised;
-    }
-}
