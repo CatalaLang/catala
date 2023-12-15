@@ -167,9 +167,7 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
        (String.to_ascii (Format.asprintf "%a" EnumConstructor.format v)))
 
 let typ_needs_parens (e : typ) : bool =
-  match Mark.remove e with
-  | TDefault _ | TArrow _ | TArray _ -> true
-  | _ -> false
+  match Mark.remove e with TDefault _ | TArray _ -> true | _ -> false
 
 let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
   Format.fprintf fmt
@@ -189,13 +187,13 @@ let rec format_nested_arrows
   match args with
   | [] -> Format.fprintf fmt "%a" (format_typ_with_parens ctx) res
   | [arg] ->
-    Format.fprintf fmt "@[<hov 2>TFun %a %a@]"
+    Format.fprintf fmt "@[<hov 2>(TFun %a %a)@]"
       (format_typ_with_parens ctx)
       arg
       (format_typ_with_parens ctx)
       res
   | arg :: args ->
-    Format.fprintf fmt "@[<hov 2>TFun %a %a@]"
+    Format.fprintf fmt "@[<hov 2>(TFun %a %a)@]"
       (format_typ_with_parens ctx)
       arg (format_nested_arrows ctx) (args, res)
 
