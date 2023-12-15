@@ -183,39 +183,56 @@ let format_tlit (fmt : Format.formatter) (l : typ_lit) : unit =
     | TDate -> "TDate")
 
 let rec format_nested_arrows
+    (ctx : decl_ctx)
     (fmt : Format.formatter)
     ((args, res) : typ list * typ) : unit =
   match args with
-  | [] -> Format.fprintf fmt "%a" format_typ_with_parens res
+  | [] -> Format.fprintf fmt "%a" (format_typ_with_parens ctx) res
   | [arg] ->
-    Format.fprintf fmt "@[<hov 2>TFun %a %a@]" format_typ_with_parens arg
-      format_typ_with_parens res
+    Format.fprintf fmt "@[<hov 2>TFun %a %a@]"
+      (format_typ_with_parens ctx)
+      arg
+      (format_typ_with_parens ctx)
+      res
   | arg :: args ->
-    Format.fprintf fmt "@[<hov 2>TFun %a %a@]" format_typ_with_parens arg
-      format_nested_arrows (args, res)
+    Format.fprintf fmt "@[<hov 2>TFun %a %a@]"
+      (format_typ_with_parens ctx)
+      arg (format_nested_arrows ctx) (args, res)
 
-and format_typ_with_parens (fmt : Format.formatter) (t : typ) =
-  if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
-  else Format.fprintf fmt "%a" format_typ t
+and format_typ_with_parens (ctx : decl_ctx) (fmt : Format.formatter) (t : typ) =
+  if typ_needs_parens t then Format.fprintf fmt "(%a)" (format_typ ctx) t
+  else Format.fprintf fmt "%a" (format_typ ctx) t
 
-and format_typ (fmt : Format.formatter) (typ : typ) : unit =
+and format_typ (ctx : decl_ctx) (fmt : Format.formatter) (typ : typ) : unit =
   match Mark.remove typ with
   | TLit l -> Format.fprintf fmt "%a" format_tlit l
   | TTuple ts ->
     Format.fprintf fmt "@[<hov 2>(%a)@]"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ *@ ")
-         format_typ_with_parens)
+         (format_typ_with_parens ctx))
       ts
-  | TStruct s -> Format.fprintf fmt "%a.t" format_to_module_name (`Sname s)
+  | TStruct s -> begin
+    match
+      Option.map StructField.Map.bindings
+      @@ StructName.Map.find_opt s ctx.ctx_structs
+    with
+    | Some [] -> format_typ ctx fmt (TLit TUnit, Pos.no_pos)
+    | Some [(_n, t)] -> format_typ ctx fmt t
+    | _ ->
+      assert
+        false (* Format.fprintf fmt "%a.t" format_to_module_name (`Sname s) *)
+  end
   | TOption t ->
-    Format.fprintf fmt "@[<hov 2>(%a)@] %a.t" format_typ_with_parens t
-      format_to_module_name (`Ename Expr.option_enum)
-  | TDefault t -> Format.fprintf fmt "@[<hov 2>TDefault %a@]" format_typ t
-  | TEnum e -> Format.fprintf fmt "%a.t" format_to_module_name (`Ename e)
+    Format.fprintf fmt "@[<hov 2>(%a)@] %a.t"
+      (format_typ_with_parens ctx)
+      t format_to_module_name (`Ename Expr.option_enum)
+  | TDefault t -> Format.fprintf fmt "@[<hov 2>TDefault %a@]" (format_typ ctx) t
+  | TEnum _ -> assert false
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "@[<hov 2>%a@]" format_nested_arrows (t1, t2)
-  | TArray t1 -> Format.fprintf fmt "@[%a@ array@]" format_typ_with_parens t1
+    Format.fprintf fmt "@[<hov 2>%a@]" (format_nested_arrows ctx) (t1, t2)
+  | TArray t1 ->
+    Format.fprintf fmt "@[%a@ array@]" (format_typ_with_parens ctx) t1
   | TAny -> Format.fprintf fmt "_"
   | TClosureEnv -> failwith "unimplemented!"
 
@@ -303,8 +320,8 @@ let rec format_expr ctx (fmt : Format.formatter) (e : 'm expr) : unit =
      x, tau, arg) xs_tau args in Format.fprintf fmt "(%a%a)"
      (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "") (fun
      fmt (x, tau, arg) -> Format.fprintf fmt "@[<hov 2>let@ %a@ :@ %a@ =@ %a@]@
-     in@\n" format_var x format_typ tau format_with_parens arg)) xs_tau_arg
-     format_with_parens body *)
+     in@\n" format_var x (format_typ dctx) tau format_with_parens arg))
+     xs_tau_arg format_with_parens body *)
   | EAbs { binder; tys } ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in
@@ -312,7 +329,7 @@ let rec format_expr ctx (fmt : Format.formatter) (e : 'm expr) : unit =
     List.fold_right
       (fun (x, tau) pp (fmt : Format.formatter) () ->
         Format.fprintf fmt "@[<hov 2>Lam (* %a: %a -> *)@ %a@]" format_var x
-          format_typ tau pp ())
+          (format_typ dctx) tau pp ())
       xs_tau
       (fun fmt () ->
         format_with_parens'
@@ -325,7 +342,7 @@ let rec format_expr ctx (fmt : Format.formatter) (e : 'm expr) : unit =
     let x = xs.(0) in
 
     Format.fprintf fmt "@[<hov 2>Let (* %a: %a = *)@ %a@]@ In@\n%a" format_var x
-      format_typ ty format_expr e1
+      (format_typ dctx) ty format_expr e1
       (format_expr' (dctx, x :: debrin))
       e2
   | EApp { f = EOp { op; _ }, _; args = [e1; e2] } ->
@@ -338,9 +355,8 @@ let rec format_expr ctx (fmt : Format.formatter) (e : 'm expr) : unit =
          format_with_parens)
       args
   | EIfThenElse { cond; etrue; efalse } ->
-    Format.fprintf fmt
-      "@[<hov 2> if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]@]"
-      format_with_parens cond format_with_parens etrue format_with_parens efalse
+    Format.fprintf fmt "@[<hov 2>If@ %a@ %a@ %a@]" format_with_parens cond
+      format_with_parens etrue format_with_parens efalse
   | EOp { op; _ } -> Format.pp_print_string fmt (Operator.name op)
   | EAssert _ -> Format.fprintf fmt "@[<hov 2>Value@ VUnit (* assert *) @]"
   | EEmptyError -> Format.fprintf fmt "Empty"
@@ -369,7 +385,9 @@ let format_ctx
     | [(_n, t)] ->
       Format.fprintf fmt
         "@[<v 2>(* module %a = struct@\n@[<hov 2>type t = %a@]@]@\nend*)@\n"
-        format_to_module_name (`Sname struct_name) format_typ_with_parens t
+        format_to_module_name (`Sname struct_name)
+        (format_typ_with_parens ctx)
+        t
     | _ ->
       Message.emit_warning
         "Structure %a has multiple fields. This might not be supported by coq."
@@ -383,7 +401,7 @@ let format_ctx
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ";@ ")
            (fun fmt (struct_field, struct_field_type) ->
              Format.fprintf fmt "@[<hov 2>%a:@ %a@]" format_struct_field_name
-               (None, struct_field) format_typ struct_field_type))
+               (None, struct_field) (format_typ ctx) struct_field_type))
         (StructField.Map.bindings struct_fields)
   in
   let format_enum_decl _fmt (_enum_name, _enum_cons) = assert false in
@@ -425,18 +443,18 @@ let rename_vars e =
 let format_expr ctx fmt e = format_expr ctx fmt e
 
 let rec format_scope_body_expr
-    ctx
+    (ctx : decl_ctx * _ base_gexpr Bindlib.var list)
     (fmt : Format.formatter)
     (scope_lets : 'm Ast.expr scope_body_expr) : unit =
   let dctx, debrin = ctx in
   match scope_lets with
-  | Result e -> format_expr (ctx, debrin) fmt e
+  | Result e -> format_expr (dctx, debrin) fmt e
   | ScopeLet scope_let ->
     let scope_let_var, scope_let_next =
       Bindlib.unbind scope_let.scope_let_next
     in
     Format.fprintf fmt "@[<hov 2>Let (* %a: %a = *)@ %a@]@ In@\n%a" format_var
-      scope_let_var format_typ scope_let.scope_let_typ (format_expr ctx)
+      scope_let_var (format_typ dctx) scope_let.scope_let_typ (format_expr ctx)
       scope_let.scope_let_expr
       (format_scope_body_expr (dctx, scope_let_var :: debrin))
       scope_let_next
@@ -452,7 +470,7 @@ let format_code_items
         | Topdef _ (* name, typ, e *) ->
           assert false
           (* Format.fprintf fmt "@\n@\n@[<hov 2>let %a : %a =@\n%a@]" format_var
-             var format_typ typ (format_expr (ctx, [])) e; String.Map.add
+             var (format_typ dctx) typ (format_expr (ctx, [])) e; String.Map.add
              (Format.asprintf "%a" TopdefName.format name) var bnd *)
         | ScopeDef (name, body) ->
           let scope_input_var, scope_body_expr =
@@ -473,9 +491,9 @@ let format_code_items
             "@\n\
              @\n\
              @[<hov 2>Let (* %a: %a = *)@\n\
-             @[<hov 2>Lam (* %a: %a -> *)@ %a@]@]@ In@\n"
-            format_var var format_typ scope_type format_var scope_input_var
-            format_typ
+             @[<hov 2>Lam (* %a: %a -> *)@ (%a)@]@]@ In@\n"
+            format_var var (format_typ ctx) scope_type format_var
+            scope_input_var (format_typ ctx)
             (TStruct body.scope_body_input_struct, Pos.no_pos)
             (format_scope_body_expr (ctx, scope_input_var :: debrin))
             scope_body_expr;
@@ -493,23 +511,17 @@ let format_code_items
   res
 
 let header =
-  {ocaml|
-   (** This file has been generated by the Catala compiler, do not edit! *)
-   
-   open Runtime_ocaml.Runtime
-   
-   [@@@ocaml.warning "-4-26-27-32-41-42"]
-   
-   |ocaml}
+  "(** This expression has been generated by the Catala compiler, do not edit! \
+   *)"
 
 let format_program
     (fmt : Format.formatter)
     ?exec_scope
     (p : 'm Ast.program)
-    (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
+    (_type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
   let _ = exec_scope in
   Format.pp_print_string fmt header;
-  format_ctx type_ordering fmt p.decl_ctx;
+  (* format_ctx type_ordering fmt p.decl_ctx; *)
   let _ = format_code_items p.decl_ctx fmt p.code_items in
   Format.fprintf fmt "(Var 0)";
   Format.pp_print_newline fmt ()
