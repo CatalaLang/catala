@@ -244,7 +244,8 @@ module Passes = struct
       | false, _, Typed _ ->
         Program.untype (Lcalc.Compile_with_exceptions.translate_program prg)
       | false, _, Untyped _ ->
-        Lcalc.Compile_with_exceptions.translate_program prg
+        Lcalc.Compile_with_exceptions.translate_program
+          (Shared_ast.Typing.program ~leave_unresolved:false prg)
       | _, _, Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     let prg =

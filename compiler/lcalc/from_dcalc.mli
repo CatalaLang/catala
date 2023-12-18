@@ -14,7 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-val translate_program_with_exceptions : 'm Dcalc.Ast.program -> 'm Ast.program
+val translate_program_with_exceptions :
+  Shared_ast.typed Dcalc.Ast.program -> Shared_ast.untyped Ast.program
 (** Translation from the default calculus to the lambda calculus. This
     translation uses exceptions to handle empty default terms. *)
 

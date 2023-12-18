@@ -19,7 +19,27 @@ open Shared_ast
 module D = Dcalc.Ast
 module A = Ast
 
-let translate_var : 'm D.expr Var.t -> 'm A.expr Var.t = Var.translate
+let rec translate_typ (tau : typ) : typ =
+  Mark.copy tau
+    begin
+      match Mark.remove tau with
+      | TDefault t -> Mark.remove (translate_typ t)
+      | TLit l -> TLit l
+      | TTuple ts -> TTuple (List.map translate_typ ts)
+      | TStruct s -> TStruct s
+      | TEnum en -> TEnum en
+      | TOption _ ->
+        Message.raise_internal_error
+          "The types option should not appear before the dcalc -> lcalc \
+           translation step."
+      | TClosureEnv ->
+        Message.raise_internal_error
+          "The types closure_env should not appear before the dcalc -> lcalc \
+           translation step."
+      | TAny -> TAny
+      | TArray ts -> TArray (translate_typ ts)
+      | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
+    end
 
 let rec translate_default
     (exceptions : 'm D.expr list)
@@ -64,5 +84,63 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
     Expr.map ~f:translate_expr (Mark.add m e)
   | _ -> .
 
-let translate_program (prg : 'm D.program) : 'm A.program =
-  Bindlib.unbox (Program.map_exprs ~f:translate_expr ~varf:translate_var prg)
+let translate_scope_body_expr (scope_body_expr : 'expr1 scope_body_expr) :
+    'expr2 scope_body_expr Bindlib.box =
+  Scope.fold_right_lets
+    ~f:(fun scope_let var_next acc ->
+      Bindlib.box_apply2
+        (fun scope_let_next scope_let_expr ->
+          ScopeLet
+            {
+              scope_let with
+              scope_let_next;
+              scope_let_expr;
+              scope_let_typ = translate_typ scope_let.scope_let_typ;
+            })
+        (Bindlib.bind_var (Var.translate var_next) acc)
+        (Expr.Box.lift (translate_expr scope_let.scope_let_expr)))
+    ~init:(fun res ->
+      Bindlib.box_apply
+        (fun res -> Result res)
+        (Expr.Box.lift (translate_expr res)))
+    scope_body_expr
+
+let translate_code_items scopes =
+  let f = function
+    | ScopeDef (name, body) ->
+      let scope_input_var, scope_lets = Bindlib.unbind body.scope_body_expr in
+      let new_body_expr = translate_scope_body_expr scope_lets in
+      let new_body_expr =
+        Bindlib.bind_var (Var.translate scope_input_var) new_body_expr
+      in
+      Bindlib.box_apply
+        (fun scope_body_expr -> ScopeDef (name, { body with scope_body_expr }))
+        new_body_expr
+    | Topdef (name, typ, expr) ->
+      Bindlib.box_apply
+        (fun e -> Topdef (name, typ, e))
+        (Expr.Box.lift (translate_expr expr))
+  in
+  Scope.map ~f ~varf:Var.translate scopes
+
+let translate_program (prg : typed D.program) : untyped A.program =
+  Program.untype
+  @@ Bindlib.unbox
+  @@ Bindlib.box_apply
+       (fun code_items ->
+         let ctx_enums =
+           EnumName.Map.map
+             (EnumConstructor.Map.map translate_typ)
+             prg.decl_ctx.ctx_enums
+         in
+         let ctx_structs =
+           StructName.Map.map
+             (StructField.Map.map translate_typ)
+             prg.decl_ctx.ctx_structs
+         in
+         {
+           prg with
+           code_items;
+           decl_ctx = { prg.decl_ctx with ctx_enums; ctx_structs };
+         })
+       (translate_code_items prg.code_items)
