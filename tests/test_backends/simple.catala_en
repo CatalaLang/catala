@@ -20,8 +20,4 @@ scope Baz:
   exception definition b under condition
     a with pattern No
   consequence equals 42.0
-
-  exception definition b under condition
-    a with pattern No
-  consequence equals 43.0
 ```

@@ -598,58 +598,62 @@ let rec format_statement
       | SLocalDef { name; _ }, _ | SLocalInit { name; _ }, _ -> Mark.remove name
       | _ -> failwith "should not happen"
     in
-    Format.fprintf fmt "@[<hov 2>%a = {%a_%a,@ {none_cons: NULL}};@]@,"
-      (format_typ ctx (fun fmt -> format_var fmt exception_acc_var))
-      return_typ format_enum_name e_name format_enum_cons_name none_cons;
-    Format.fprintf fmt "%a;@,"
-      (format_typ ctx (fun fmt -> format_var fmt exception_current))
-      return_typ;
-    Format.fprintf fmt "char %a = 0;@," format_var exception_conflict;
-    List.iter
-      (fun except ->
-        Format.fprintf fmt
-          "%a = %a;@,\
-           @[<v 2>if (%a.code == %a_%a) {@,\
-           @[<v 2>if (%a.code == %a_%a) {@,\
-           %a = 1;@]@,\
-           @[<v 2>} else {@,\
-           %a = %a;@]@,\
-           }@]@,\
-           }@,"
-          format_var exception_current (format_expression ctx) except format_var
-          exception_current format_enum_name e_name format_enum_cons_name
-          some_cons format_var exception_acc_var format_enum_name e_name
-          format_enum_cons_name some_cons format_var exception_conflict
-          format_var exception_acc_var format_var exception_current)
-      exceptions;
+    if exceptions <> [] then begin
+      Format.fprintf fmt "@[<hov 2>%a = {%a_%a,@ {none_cons: NULL}};@]@,"
+        (format_typ ctx (fun fmt -> format_var fmt exception_acc_var))
+        return_typ format_enum_name e_name format_enum_cons_name none_cons;
+      Format.fprintf fmt "%a;@,"
+        (format_typ ctx (fun fmt -> format_var fmt exception_current))
+        return_typ;
+      Format.fprintf fmt "char %a = 0;@," format_var exception_conflict;
+      List.iter
+        (fun except ->
+          Format.fprintf fmt
+            "%a = %a;@,\
+             @[<v 2>if (%a.code == %a_%a) {@,\
+             @[<v 2>if (%a.code == %a_%a) {@,\
+             %a = 1;@]@,\
+             @[<v 2>} else {@,\
+             %a = %a;@]@,\
+             }@]@,\
+             }@,"
+            format_var exception_current (format_expression ctx) except
+            format_var exception_current format_enum_name e_name
+            format_enum_cons_name some_cons format_var exception_acc_var
+            format_enum_name e_name format_enum_cons_name some_cons format_var
+            exception_conflict format_var exception_acc_var format_var
+            exception_current)
+        exceptions;
+      Format.fprintf fmt
+        "@[<v 2>if (%a) {@,\
+         catala_fatal_error_raised.code = catala_conflict;@,\
+         catala_fatal_error_raised.position.filename = \"%s\";@,\
+         catala_fatal_error_raised.position.start_line = %d;@,\
+         catala_fatal_error_raised.position.start_column = %d;@,\
+         catala_fatal_error_raised.position.end_line = %d;@,\
+         catala_fatal_error_raised.position.end_column = %d;@,\
+         longjmp(catala_fatal_error_jump_buffer, 0);@]@,\
+         }@,"
+        format_var exception_conflict (Pos.get_file pos)
+        (Pos.get_start_line pos) (Pos.get_start_column pos)
+        (Pos.get_end_line pos) (Pos.get_end_column pos);
+      Format.fprintf fmt
+        "@[<v 2>if (%a.code == %a_%a) {@,%a = %a;@]@,@[<v 2>} else {@,"
+        format_var exception_acc_var format_enum_name e_name
+        format_enum_cons_name some_cons format_var variable_defined_in_cons
+        format_var exception_acc_var
+    end;
     Format.fprintf fmt
       "@[<v 2>if (%a) {@,\
-       catala_fatal_error_raised.code = catala_conflict;@,\
-       catala_fatal_error_raised.position.filename = \"%s\";@,\
-       catala_fatal_error_raised.position.start_line = %d;@,\
-       catala_fatal_error_raised.position.start_column = %d;@,\
-       catala_fatal_error_raised.position.end_line = %d;@,\
-       catala_fatal_error_raised.position.end_column = %d;@,\
-       longjmp(catala_fatal_error_jump_buffer, 0);@]@,\
-       }@,"
-      format_var exception_conflict (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos);
-    Format.fprintf fmt
-      "@[<v 2>if (%a.code == %a_%a) {@,\
-       %a = %a;@]@,\
-       @[<v 2>} else {@,\
-       @[<v 2>if (%a) {@,\
        %a@]@,\
        @[<v 2>} else {@,\
        %a.code = %a_%a;@,\
        %a.payload.none_cons = NULL;@]@,\
-       }@]@,\
        }"
-      format_var exception_acc_var format_enum_name e_name format_enum_cons_name
-      some_cons format_var variable_defined_in_cons format_var exception_acc_var
       (format_expression ctx) just (format_block ctx) cons format_var
       variable_defined_in_cons format_enum_name e_name format_enum_cons_name
-      none_cons format_var variable_defined_in_cons
+      none_cons format_var variable_defined_in_cons;
+    if exceptions <> [] then Format.fprintf fmt "@]@,}"
 
 and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
   Format.pp_print_list

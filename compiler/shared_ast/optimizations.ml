@@ -213,26 +213,7 @@ let rec optimize_expr :
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when StructName.equal name name1 ->
       Mark.remove (StructField.Map.find field fields)
-    | EErrorOnEmpty
-        (EDefault { excepts = []; just = ELit (LBool true), _; cons }, _)
-      when false
-           (* FIXME: this optimisation is correct and useful, but currently
-              breaks expectations of the without-exceptions backend *) ->
-      (* No exceptions, always true *)
-      Mark.remove cons
-    | EErrorOnEmpty
-        ( EDefault
-            {
-              excepts =
-                [
-                  ( EDefault { excepts = []; just = ELit (LBool true), _; cons },
-                    _ );
-                ];
-              _;
-            },
-          _ ) ->
-      (* Single, always true exception *)
-      Mark.remove cons
+    | EErrorOnEmpty (EPureDefault (e, _), _) -> e
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct *)
       let excepts =
@@ -257,13 +238,10 @@ let rec optimize_expr :
         assert false
       else
         match excepts, just with
-        | ( [
-              ( (EDefault { excepts = []; just = ELit (LBool true), _; _ } as dft),
-                _ );
-            ],
-            _ ) ->
-          (* Single exception with condition [true] *)
-          dft
+        | [(EDefault { excepts = []; just = ELit (LBool true), _; cons }, _)], _
+          ->
+          (* No exceptions with condition [true] *)
+          Mark.remove cons
         | ( [],
             ( ( ELit (LBool false)
               | EApp
@@ -274,6 +252,16 @@ let rec optimize_expr :
               _ ) ) ->
           (* No exceptions and condition false *)
           EEmptyError
+        | ( [except],
+            ( ( ELit (LBool false)
+              | EApp
+                  {
+                    f = EOp { op = Log _; _ }, _;
+                    args = [(ELit (LBool false), _)];
+                  } ),
+              _ ) ) ->
+          (* Single exception and condition false *)
+          Mark.remove except
         | excepts, just -> EDefault { excepts; just; cons })
     | EIfThenElse
         {
