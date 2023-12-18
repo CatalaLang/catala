@@ -68,10 +68,11 @@ let set_conc_info
   | Typed { pos; ty } ->
     let custom = { custom with ty = Some ty } in
     Custom { pos; custom }
-    (* NOTE CONC keep type information *)
+    (* NOTE we keep type information. This information is used for instance in
+       generating concolic input values, eg in [inputs_of_model] *)
   | Custom m -> Custom { m with custom }
 
-(** Maby replace constraints, and safely replace the symbolic expression from
+(** Maybe replace constraints, and safely replace the symbolic expression from
     former mark *)
 let add_conc_info_m
     (former_mark : conc_info mark)
@@ -169,8 +170,10 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   | TLit t -> ctx, translate_typ_lit ctx t
   | TStruct name ->
     find_or_create_struct ctx name
-    (* DONE CONC REU are declarations sorted in topological order? *)
-    (* TODO use [type_ordering] from Driver to make sure *)
+    (* DONE CONC REU are declarations sorted in topological order? "Yes" *)
+    (* TODO CONC use [type_ordering] from Driver to make sure =>> actually it
+       does not work because the input struct for scope [A], called [A_in], is
+       not a part of this order *)
   | TTuple _ -> failwith "TTuple not implemented"
   | TEnum _ -> failwith "TEnum not implemented"
   | TOption _ -> failwith "TOption not implemented"
@@ -780,9 +783,6 @@ let rec evaluate_expr :
     (* just pass along the concrete and symbolic values, and the constraints *))
   | EDefault { excepts; just; cons } -> (
     Message.emit_debug "... it's an EDefault";
-    (* TODO CONC how did Rohan do? maybe contact him? *)
-    (* TODO CONC look into litterature for exceptions in concolic exec (Java?)
-       or symb exec (symbolic pathfinder) *)
     let excepts = List.map (evaluate_expr ctx lang) excepts in
     let exc_constraints = gather_constraints excepts in
     let empty_count =
@@ -927,11 +927,15 @@ let inputs_of_model
     let symb_expr_opt = interp_in_model m (Option.get custom.symb_expr) in
     Option.fold
       ~none:(expr_of_typ mk (Option.get custom.ty))
+        (* this get should not fail because [make_input_mark] always adds the
+           type information *)
       ~some:(value_of_symb_expr mk) symb_expr_opt
   in
   StructField.Map.mapi f input_marks
 
-(** Create the mark of an input field from its name [field] and its type [ty] *)
+(** Create the mark of an input field from its name [field] and its type [ty].
+    Note that this function guarantees that the type information will be present
+    when calling [inputs_of_model] *)
 let make_input_mark ctx m field ty : conc_info mark =
   let name = Mark.remove (StructField.get_info field) in
   let _, sort = translate_typ ctx (Mark.remove ty) in
@@ -1092,10 +1096,9 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     (* first set of inputs *)
     let taus = StructName.Map.find s_in ctx.ctx_decl.ctx_structs in
 
+    (* TODO CONC should it be [mark_e] or something else? *)
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
 
-    (* let default_application_term = make_default_conc_inputs ctx taus mark_e
-       (* TODO CONC should this mark change? *) in *)
     let rec concolic_loop (path_constraints : annotated_path_constraint list) :
         unit =
       Message.emit_debug "";
