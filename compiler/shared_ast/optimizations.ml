@@ -206,9 +206,17 @@ let rec optimize_expr :
           cases1 cases2
       in
       EMatch { e = arg; cases; name = n1 }
+    | EApp { f = EAbs { binder; _ }, _; args = [(ELit _, _)] as args } ->
+      (* beta reduction when let-binding a literal *)
+      Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
+    | EApp { f = EAbs { binder; _ }, _; args = [(EVar _, _)] as args } ->
+      (* beta reduction when let-binding a variable *)
+      Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
     | EApp { f = EAbs { binder; _ }, _; args }
-      when binder_vars_used_at_most_once binder ->
-      (* beta reduction when variables not used. *)
+      when binder_vars_used_at_most_once binder
+           (* when variables not used *)
+           || match args with [((EVar _ | ELit _), _)] -> true | _ -> false ->
+      (* beta reduction for special cases *)
       Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when StructName.equal name name1 ->

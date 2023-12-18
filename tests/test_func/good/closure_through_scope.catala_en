@@ -53,12 +53,7 @@ let scope T (T_in: T_in): T {y: integer} =
   let sub_get s.f : ((closure_env, integer) → integer * closure_env) =
     result.f
   in
-  let set y : integer =
-    let code_and_env : ((closure_env, integer) → integer * closure_env) =
-      s.f
-    in
-    code_and_env.0 code_and_env.1 2
-  in
+  let set y : integer = s.f.0 s.f.1 2 in
   return { T y = y; }
 ```
 
