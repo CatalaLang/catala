@@ -235,9 +235,7 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
 
 let needs_parens (e : 'm expr) : bool =
   match Mark.remove e with
-  | EApp { f = EAbs _, _; _ }
-  | ELit (LBool _ | LUnit)
-  | EVar _ | ETuple _ | EOp _ ->
+  | EApp { f = EAbs _, _; _ } | ELit (LBool _ | LUnit) | EVar _ | ETuple _ ->
     false
   | _ -> true
 
@@ -349,7 +347,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
              e))
       (EnumConstructor.Map.bindings cases)
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.add (Expr.pos e) l)
-  | EApp { f = EAbs { binder; tys }, _; args } ->
+  | EApp { f = EAbs { binder; tys }, _; args; _ } ->
     let xs, body = Bindlib.unmbind binder in
     let xs_tau = List.map2 (fun x tau -> x, tau) (Array.to_list xs) tys in
     let xs_tau_arg = List.map2 (fun (x, tau) arg -> x, tau, arg) xs_tau args in
@@ -371,14 +369,14 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       xs_tau format_expr body
   | EApp
       {
-        f = EApp { f = EOp { op = Log (BeginCall, info); _ }, _; args = [f] }, _;
+        f = EAppOp { op = Log (BeginCall, info); args = [f]; _ }, _;
         args = [arg];
+        _;
       }
     when Cli.globals.trace ->
     Format.fprintf fmt "(log_begin_call@ %a@ %a)@ %a" format_uid_list info
       format_with_parens f format_with_parens arg
-  | EApp
-      { f = EOp { op = Log (VarDef var_def_info, info); _ }, _; args = [arg1] }
+  | EAppOp { op = Log (VarDef var_def_info, info); args = [arg1]; _ }
     when Cli.globals.trace ->
     Format.fprintf fmt
       "(log_variable_definition@ %a@ {io_input=%s;@ io_output=%b}@ (%a)@ %a)"
@@ -390,42 +388,35 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       var_def_info.log_io_output typ_embedding_name
       (var_def_info.log_typ, Pos.no_pos)
       format_with_parens arg1
-  | EApp { f = EOp { op = Log (PosRecordIfTrueBool, _); _ }, m; args = [arg1] }
+  | EAppOp { op = Log (PosRecordIfTrueBool, _); args = [arg1]; _ }
     when Cli.globals.trace ->
-    let pos = Expr.mark_pos m in
+    let pos = Expr.pos e in
     Format.fprintf fmt
       "(log_decision_taken@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a)"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) format_with_parens arg1
-  | EApp { f = EOp { op = Log (EndCall, info); _ }, _; args = [arg1] }
-    when Cli.globals.trace ->
+  | EAppOp { op = Log (EndCall, info); args = [arg1]; _ } when Cli.globals.trace
+    ->
     Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
       format_with_parens arg1
-  | EApp { f = EOp { op = Log _; _ }, _; args = [arg1] } ->
+  | EAppOp { op = Log _; args = [arg1]; _ } ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp
-      {
-        f = EOp { op = (HandleDefault | HandleDefaultOpt) as op; _ }, pos;
-        args;
-      } ->
+  | EAppOp { op = (HandleDefault | HandleDefaultOpt) as op; args; _ } ->
+    let pos = Expr.pos e in
     Format.fprintf fmt
       "@[<hov 2>%s@ @[<hov 2>{filename = \"%s\";@ start_line=%d;@ \
        start_column=%d;@ end_line=%d; end_column=%d;@ law_headings=%a}@]@ %a@]"
       (Print.operator_to_string op)
-      (Pos.get_file (Expr.mark_pos pos))
-      (Pos.get_start_line (Expr.mark_pos pos))
-      (Pos.get_start_column (Expr.mark_pos pos))
-      (Pos.get_end_line (Expr.mark_pos pos))
-      (Pos.get_end_column (Expr.mark_pos pos))
-      format_string_list
-      (Pos.get_law_info (Expr.mark_pos pos))
+      (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
+      (Pos.get_law_info pos)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EApp { f; args } ->
+  | EApp { f; args; _ } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" format_with_parens f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -435,7 +426,12 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
     Format.fprintf fmt
       "@[<hov 2> if@ @[<hov 2>%a@]@ then@ @[<hov 2>%a@]@ else@ @[<hov 2>%a@]@]"
       format_with_parens cond format_with_parens etrue format_with_parens efalse
-  | EOp { op; _ } -> Format.pp_print_string fmt (Operator.name op)
+  | EAppOp { op; args; _ } ->
+    Format.fprintf fmt "@[<hov 2>%s@ %a@]" (Operator.name op)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+         format_with_parens)
+      args
   | EAssert e' ->
     Format.fprintf fmt
       "@[<hov 2>if@ %a@ then@ ()@ else@ raise (AssertionFailed @[<hov \

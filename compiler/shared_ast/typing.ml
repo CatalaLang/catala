@@ -327,7 +327,6 @@ let resolve_overload_ret_type
     Operator.overload_type ctx
       (Mark.add (Expr.pos e) op)
       (List.map (typ_to_ast ~leave_unresolved) tys)
-    (* We use [unsafe] because the error is caught below *)
   in
   ast_to_typ (Type.arrow_return op_ty)
 
@@ -750,7 +749,7 @@ and typecheck_expr_top_down :
         (unionfind ~pos:e1 tuple_ty)
         e1
     in
-    Expr.etupleaccess e1' index size context_mark
+    Expr.etupleaccess ~e:e1' ~index ~size context_mark
   | A.EAbs { binder; tys = t_args } ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.raise_spanned_error (Expr.pos e)
@@ -774,98 +773,72 @@ and typecheck_expr_top_down :
       in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
       Expr.eabs binder' (List.map (typ_to_ast ~leave_unresolved) tau_args) mark
-  | A.EApp { f = (EOp { op; tys }, _) as e1; args } ->
+  | A.EApp { f = e1; args; tys } ->
+    (* Here we type the arguments first (in order), to ensure we know the types
+       of the arguments if [f] is [EAbs] before disambiguation. This is also the
+       right order for the [let-in] form. *)
+    let t_args =
+      match tys with
+      | [] -> List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args
+      | tys -> List.map ast_to_typ tys
+    in
+    let args' =
+      List.map2 (typecheck_expr_top_down ~leave_unresolved ctx env) t_args args
+    in
+    let t_args =
+      match t_args with
+      | [t] -> (
+        match UnionFind.get t with TTuple tys, _ -> tys | _ -> t_args)
+      | _ -> t_args
+    in
+    let t_func = unionfind ~pos:e1 (TArrow (t_args, tau)) in
+    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env t_func e1 in
+    Expr.eapp ~f:e1' ~args:args'
+      ~tys:(List.map (typ_to_ast ~leave_unresolved) t_args)
+      context_mark
+  | A.EAppOp { op; tys; args } ->
     let t_args = List.map ast_to_typ tys in
     let t_func = unionfind (TArrow (t_args, tau)) in
-    let e1', args' =
+    let args =
       Operator.kind_dispatch op
-        ~polymorphic:(fun _ ->
+        ~polymorphic:(fun op ->
           (* Type the operator first, then right-to-left: polymorphic operators
              are required to allow the resolution of all type variables this
              way *)
-          let e1' =
-            typecheck_expr_top_down ~leave_unresolved ctx env t_func e1
-          in
-          let args' =
-            List.rev_map2
-              (typecheck_expr_top_down ~leave_unresolved ctx env)
-              (List.rev t_args) (List.rev args)
-          in
-          e1', args')
-        ~overloaded:(fun _ ->
+          unify ctx e (polymorphic_op_type (Mark.add pos_e op)) t_func;
+          List.rev_map2
+            (typecheck_expr_top_down ~leave_unresolved ctx env)
+            (List.rev t_args) (List.rev args))
+        ~overloaded:(fun op ->
           (* Typing the arguments first is required to resolve the operator *)
           let args' =
             List.map2
               (typecheck_expr_top_down ~leave_unresolved ctx env)
               t_args args
           in
-          let e1' =
-            typecheck_expr_top_down ~leave_unresolved ctx env t_func e1
-          in
-          e1', args')
-        ~monomorphic:(fun _ ->
-          (* Here it doesn't matter but may affect the error messages *)
-          let e1' =
-            typecheck_expr_top_down ~leave_unresolved ctx env t_func e1
-          in
-          let args' =
-            List.map2
-              (typecheck_expr_top_down ~leave_unresolved ctx env)
-              t_args args
-          in
-          e1', args')
-        ~resolved:(fun _ ->
-          (* This case should not fail *)
-          let e1' =
-            typecheck_expr_top_down ~leave_unresolved ctx env t_func e1
-          in
-          let args' =
-            List.map2
-              (typecheck_expr_top_down ~leave_unresolved ctx env)
-              t_args args
-          in
-          e1', args')
-    in
-    Expr.eapp e1' args' context_mark
-  | A.EApp { f = e1; args } ->
-    (* Here we type the arguments first (in order), to ensure we know the types
-       of the arguments if [f] is [EAbs] before disambiguation. This is also the
-       right order for the [let-in] form. *)
-    let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
-    let t_func = unionfind (TArrow (t_args, tau)) in
-    let args' =
-      List.map2 (typecheck_expr_top_down ~leave_unresolved ctx env) t_args args
-    in
-    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env t_func e1 in
-    Expr.eapp e1' args' context_mark
-  | A.EOp { op; tys } ->
-    let tys' = List.map ast_to_typ tys in
-    let t_ret = unionfind (TAny (Any.fresh ())) in
-    let t_func = unionfind (TArrow (tys', t_ret)) in
-    unify ctx e t_func tau;
-    let tys, mark =
-      Operator.kind_dispatch op
-        ~polymorphic:(fun op ->
-          tys, mark_with_tau_and_unify (polymorphic_op_type (Mark.add pos_e op)))
+          unify ctx e tau
+            (resolve_overload_ret_type ~leave_unresolved ctx e op t_args);
+          args')
         ~monomorphic:(fun op ->
-          let mark =
-            mark_with_tau_and_unify
-              (ast_to_typ (Operator.monomorphic_type (Mark.add pos_e op)))
-          in
-          List.map (typ_to_ast ~leave_unresolved) tys', mark)
-        ~overloaded:(fun op ->
-          unify ctx e t_ret
-            (resolve_overload_ret_type ~leave_unresolved ctx e op tys');
-          ( List.map (typ_to_ast ~leave_unresolved) tys',
-            A.Custom { A.custom = t_func; pos = pos_e } ))
+          (* Here it doesn't matter but may affect the error messages *)
+          unify ctx e
+            (ast_to_typ (Operator.monomorphic_type (Mark.add pos_e op)))
+            t_func;
+          List.map2
+            (typecheck_expr_top_down ~leave_unresolved ctx env)
+            t_args args)
         ~resolved:(fun op ->
-          let mark =
-            mark_with_tau_and_unify
-              (ast_to_typ (Operator.resolved_type (Mark.add pos_e op)))
-          in
-          List.map (typ_to_ast ~leave_unresolved) tys', mark)
+          (* This case should not fail *)
+          unify ctx e
+            (ast_to_typ (Operator.resolved_type (Mark.add pos_e op)))
+            t_func;
+          List.map2
+            (typecheck_expr_top_down ~leave_unresolved ctx env)
+            t_args args)
     in
-    Expr.eop op tys mark
+    (* All operator applications are monomorphised at this point *)
+    let tys = List.map (typ_to_ast ~leave_unresolved) t_args in
+    Expr.eappop ~op ~args ~tys context_mark
   | A.EDefault { excepts; just; cons } ->
     let cons' = typecheck_expr_top_down ~leave_unresolved ctx env tau cons in
     let just' =

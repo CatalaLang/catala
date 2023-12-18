@@ -57,7 +57,7 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
 
 (* Structural invariant: no default can have as type A -> B *)
 let invariant_default_no_arrow () : string * invariant_expr =
-  ( __FUNCTION__,
+  ( "default_no_arrow",
     fun _ctx e ->
       match Mark.remove e with
       | EDefault _ -> begin
@@ -67,19 +67,18 @@ let invariant_default_no_arrow () : string * invariant_expr =
 
 (* Structural invariant: no partial evaluation *)
 let invariant_no_partial_evaluation () : string * invariant_expr =
-  ( __FUNCTION__,
+  ( "no_partial_evaluation",
     fun _ctx e ->
       match Mark.remove e with
-      | EApp { f = EOp { op = Op.Log _; _ }, _; _ } ->
-        (* logs are differents. *) Pass
-      | EApp _ -> begin
-        match Mark.remove (Expr.ty e) with TArrow _ -> Fail | _ -> Pass
-      end
+      | EApp { f; args; _ } -> (
+        match Mark.remove (Expr.ty f) with
+        | TArrow (tl, _) when List.length args = List.length tl -> Pass
+        | _ -> Fail)
       | _ -> Ignore )
 
 (* Structural invariant: no function can return an function *)
 let invariant_no_return_a_function () : string * invariant_expr =
-  ( __FUNCTION__,
+  ( "no_return_a_function",
     fun _ctx e ->
       match Mark.remove e with
       | EAbs _ -> begin
@@ -90,16 +89,13 @@ let invariant_no_return_a_function () : string * invariant_expr =
       | _ -> Ignore )
 
 let invariant_app_inversion () : string * invariant_expr =
-  ( __FUNCTION__,
+  ( "app_inversion",
     fun _ctx e ->
       match Mark.remove e with
-      | EApp { f = EOp _, _; _ } -> Pass
-      | EApp { f = EAbs { binder; _ }, _; args } ->
+      | EApp { f = EAbs { binder; _ }, _; args; _ } ->
         if Bindlib.mbinder_arity binder = 1 && List.length args = 1 then Pass
         else Fail
       | EApp { f = EVar _, _; _ } -> Pass
-      | EApp { f = EApp { f = EOp { op = Op.Log _; _ }, _; args = _ }, _; _ } ->
-        Pass
       | EApp { f = EStructAccess _, _; _ } -> Pass
       | EApp { f = EExternal _, _; _ } -> Pass
       | EApp _ -> Fail
@@ -107,7 +103,7 @@ let invariant_app_inversion () : string * invariant_expr =
 
 (** the arity of constructors when matching is always one. *)
 let invariant_match_inversion () : string * invariant_expr =
-  ( __FUNCTION__,
+  ( "match_inversion",
     fun _ctx e ->
       match Mark.remove e with
       | EMatch { cases; _ } ->
@@ -207,7 +203,7 @@ let check_type_root ctx ty =
   | _ -> false
 
 let invariant_typing_defaults () : string * invariant_expr =
-  ( __FUNCTION__,
+  ( "typing_defaults",
     fun ctx e ->
       if check_type_root ctx (Expr.ty e) then Pass
       else (

@@ -34,10 +34,14 @@ module Runtime = Runtime_ocaml.Runtime
    the operator suffixes for explicit typing. See {!modules:
    Shared_ast.Operator} for detail. *)
 
-let translate_binop : S.binop -> Pos.t -> Ast.expr boxed =
- fun op pos ->
+let translate_binop :
+    S.binop -> Pos.t -> Ast.expr boxed -> Ast.expr boxed -> Ast.expr boxed =
+ fun op pos lhs rhs ->
   let op_expr op tys =
-    Expr.eop op (List.map (Mark.add pos) tys) (Untyped { pos })
+    Expr.eappop ~op
+      ~tys:(List.map (Mark.add pos) tys)
+      ~args:[lhs; rhs]
+      (Untyped { pos })
   in
   match op with
   | S.And -> op_expr And [TLit TBool; TLit TBool]
@@ -104,8 +108,10 @@ let translate_binop : S.binop -> Pos.t -> Ast.expr boxed =
   | S.Neq -> assert false (* desugared already *)
   | S.Concat -> op_expr Concat [TArray (TAny, pos); TArray (TAny, pos)]
 
-let translate_unop (op : S.unop) pos : Ast.expr boxed =
-  let op_expr op ty = Expr.eop op [Mark.add pos ty] (Untyped { pos }) in
+let translate_unop (op : S.unop) pos arg : Ast.expr boxed =
+  let op_expr op ty =
+    Expr.eappop ~op ~tys:[Mark.add pos ty] ~args:[arg] (Untyped { pos })
+  in
   match op with
   | S.Not -> op_expr Not (TLit TBool)
   | S.Minus k ->
@@ -251,8 +257,8 @@ let rec translate_expr
   | Binop ((((S.And | S.Or | S.Xor), _) as op), e1, e2) ->
     check_formula op e1;
     check_formula op e2;
-    let op_term = translate_binop (Mark.remove op) (Mark.get op) in
-    Expr.eapp op_term [rec_helper e1; rec_helper e2] emark
+    translate_binop (Mark.remove op) (Mark.get op) (rec_helper e1)
+      (rec_helper e2)
   | IfThenElse (e_if, e_then, e_else) ->
     Expr.eifthenelse (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
       emark
@@ -260,11 +266,8 @@ let rec translate_expr
     (* Neq is just sugar *)
     rec_helper (Unop ((S.Not, posn), (Binop ((S.Eq, posn), e1, e2), posn)), pos)
   | Binop ((op, pos), e1, e2) ->
-    let op_term = translate_binop op pos in
-    Expr.eapp op_term [rec_helper e1; rec_helper e2] emark
-  | Unop ((op, pos), e) ->
-    let op_term = translate_unop op pos in
-    Expr.eapp op_term [rec_helper e] emark
+    translate_binop op pos (rec_helper e1) (rec_helper e2)
+  | Unop ((op, pos), e) -> translate_unop op pos (rec_helper e)
   | Literal l ->
     let lit =
       match l with
@@ -416,8 +419,25 @@ let rec translate_expr
       in
       Expr.edstructaccess ~e ~field:(Mark.remove x)
         ~name_opt:(get_str ctxt path) emark)
+  | FunCall ((Builtin b, _), [arg]) ->
+    let op, ty =
+      match b with
+      | S.ToDecimal -> Op.ToRat, TAny
+      | S.ToMoney -> Op.ToMoney, TAny
+      | S.Round -> Op.Round, TAny
+      | S.Cardinal -> Op.Length, TArray (TAny, pos)
+      | S.GetDay -> Op.GetDay, TLit TDate
+      | S.GetMonth -> Op.GetMonth, TLit TDate
+      | S.GetYear -> Op.GetYear, TLit TDate
+      | S.FirstDayOfMonth -> Op.FirstDayOfMonth, TLit TDate
+      | S.LastDayOfMonth -> Op.LastDayOfMonth, TLit TDate
+    in
+    Expr.eappop ~op ~tys:[ty, pos] ~args:[rec_helper arg] emark
+  | S.Builtin _ ->
+    Message.raise_spanned_error pos "Invalid use of built-in: needs one operand"
   | FunCall (f, args) ->
-    Expr.eapp (rec_helper f) (List.map rec_helper args) emark
+    let args = List.map rec_helper args in
+    Expr.eapp ~f:(rec_helper f) ~args ~tys:[] emark
   | ScopeCall (((path, id), _), fields) ->
     if scope = None then
       Message.raise_spanned_error pos
@@ -468,10 +488,10 @@ let rec translate_expr
     in
     let taus = List.map (fun x -> TAny, Mark.get x) xs in
     (* This type will be resolved in Scopelang.Desambiguation *)
-    let fn =
+    let f =
       Expr.make_abs (Array.of_list vs) (rec_helper ~local_vars e2) taus pos
     in
-    Expr.eapp fn [rec_helper e1] emark
+    Expr.eapp ~f ~args:[rec_helper e1] ~tys:[] emark
   | StructLit (((path, s_name), _), fields) ->
     let ctxt = Name_resolution.module_ctx ctxt path in
     let s_uid =
@@ -606,15 +626,14 @@ let rec translate_expr
         [TAny, pos]
         pos
     in
-    Expr.eapp
-      (Expr.eop
-         (match op with
-         | S.Map _ -> Map
-         | S.Filter _ -> Filter
-         | _ -> assert false)
-         [TAny, pos; TAny, pos]
-         emark)
-      [f_pred; collection] emark
+    Expr.eappop
+      ~op:
+        (match op with
+        | S.Map _ -> Map
+        | S.Filter _ -> Filter
+        | _ -> assert false)
+      ~tys:[TAny, pos; TAny, pos]
+      ~args:[f_pred; collection] emark
   | CollectionOp
       ( S.AggregateArgExtremum { max; default; f = param_name, predicate },
         collection ) ->
@@ -640,19 +659,21 @@ let rec translate_expr
          rely on returning tuples here *)
       Expr.make_abs [| v1; v2 |]
         (Expr.eifthenelse
-           (Expr.eapp
-              (Expr.eop cmp_op
-                 [TAny, pos_dft; TAny, pos_dft]
-                 (Untyped { pos = pos_dft }))
-              [Expr.eapp f_pred [x1] emark; Expr.eapp f_pred [x2] emark]
+           (Expr.eappop ~op:cmp_op
+              ~tys:[TAny, pos_dft; TAny, pos_dft]
+              ~args:
+                [
+                  Expr.eapp ~f:f_pred ~args:[x1] ~tys:[] emark;
+                  Expr.eapp ~f:f_pred ~args:[x2] ~tys:[] emark;
+                ]
               emark)
            x1 x2 emark)
         [TAny, pos; TAny, pos]
         pos
     in
-    Expr.eapp
-      (Expr.eop Reduce [TAny, pos; TAny, pos; TAny, pos] emark)
-      [reduce_f; default; collection]
+    Expr.eappop ~op:Reduce
+      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~args:[reduce_f; default; collection]
       emark
   | CollectionOp
       (((Exists { predicate } | Forall { predicate }) as op), collection) ->
@@ -672,19 +693,17 @@ let rec translate_expr
       let acc = Expr.make_var acc_var (Untyped { pos = Mark.get param0 }) in
       Expr.eabs
         (Expr.bind [| acc_var; param |]
-           (Expr.eapp (translate_binop op pos)
-              [acc; rec_helper ~local_vars predicate]
-              emark))
+           (translate_binop op pos acc (rec_helper ~local_vars predicate)))
         [TAny, pos; TAny, pos]
         emark
     in
-    Expr.eapp
-      (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] emark)
-      [f; init; collection] emark
+    Expr.eappop ~op:Fold
+      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~args:[f; init; collection] emark
   | CollectionOp (AggregateExtremum { max; default }, collection) ->
     let collection = rec_helper collection in
     let default = rec_helper default in
-    let op = translate_binop (if max then S.Gt KPoly else S.Lt KPoly) pos in
+    let op = if max then S.Gt KPoly else S.Lt KPoly in
     let op_f =
       (* fun x1 x2 -> if op x1 x2 then x1 else x2 *)
       let vname = if max then "max" else "min" in
@@ -692,13 +711,13 @@ let rec translate_expr
       let x1 = Expr.make_var v1 emark in
       let x2 = Expr.make_var v2 emark in
       Expr.make_abs [| v1; v2 |]
-        (Expr.eifthenelse (Expr.eapp op [x1; x2] emark) x1 x2 emark)
+        (Expr.eifthenelse (translate_binop op pos x1 x2) x1 x2 emark)
         [TAny, pos; TAny, pos]
         pos
     in
-    Expr.eapp
-      (Expr.eop Reduce [TAny, pos; TAny, pos; TAny, pos] emark)
-      [op_f; default; collection]
+    Expr.eappop ~op:Reduce
+      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~args:[op_f; default; collection]
       emark
   | CollectionOp (AggregateSum { typ }, collection) ->
     let collection = rec_helper collection in
@@ -722,13 +741,13 @@ let rec translate_expr
       let x1 = Expr.make_var v1 emark in
       let x2 = Expr.make_var v2 emark in
       Expr.make_abs [| v1; v2 |]
-        (Expr.eapp (translate_binop (S.Add KPoly) pos) [x1; x2] emark)
+        (translate_binop (S.Add KPoly) pos x1 x2)
         [TAny, pos; TAny, pos]
         pos
     in
-    Expr.eapp
-      (Expr.eop Reduce [TAny, pos; TAny, pos; TAny, pos] emark)
-      [op_f; Expr.elit default_lit emark; collection]
+    Expr.eappop ~op:Reduce
+      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~args:[op_f; Expr.elit default_lit emark; collection]
       emark
   | MemCollection (member, collection) ->
     let param_var = Var.make "collection_member" in
@@ -739,14 +758,15 @@ let rec translate_expr
     let acc = Expr.make_var acc_var emark in
     let f_body =
       let member = rec_helper member in
-      Expr.eapp
-        (Expr.eop Or [TLit TBool, pos; TLit TBool, pos] emark)
-        [
-          Expr.eapp
-            (Expr.eop Eq [TAny, pos; TAny, pos] emark)
-            [member; param] emark;
-          acc;
-        ]
+      Expr.eappop ~op:Or
+        ~tys:[TLit TBool, pos; TLit TBool, pos]
+        ~args:
+          [
+            Expr.eappop ~op:Eq
+              ~tys:[TAny, pos; TAny, pos]
+              ~args:[member; param] emark;
+            acc;
+          ]
         emark
     in
     let f =
@@ -755,18 +775,9 @@ let rec translate_expr
         [TLit TBool, pos; TAny, pos]
         emark
     in
-    Expr.eapp
-      (Expr.eop Fold [TAny, pos; TAny, pos; TAny, pos] emark)
-      [f; init; collection] emark
-  | Builtin ToDecimal -> Expr.eop ToRat [TAny, pos] emark
-  | Builtin ToMoney -> Expr.eop ToMoney [TAny, pos] emark
-  | Builtin Round -> Expr.eop Round [TAny, pos] emark
-  | Builtin Cardinal -> Expr.eop Length [TArray (TAny, pos), pos] emark
-  | Builtin GetDay -> Expr.eop GetDay [TLit TDate, pos] emark
-  | Builtin GetMonth -> Expr.eop GetMonth [TLit TDate, pos] emark
-  | Builtin GetYear -> Expr.eop GetYear [TLit TDate, pos] emark
-  | Builtin FirstDayOfMonth -> Expr.eop FirstDayOfMonth [TLit TDate, pos] emark
-  | Builtin LastDayOfMonth -> Expr.eop LastDayOfMonth [TLit TDate, pos] emark
+    Expr.eappop ~op:Fold
+      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~args:[f; init; collection] emark
 
 and disambiguate_match_and_build_expression
     (scope : ScopeName.t option)
@@ -913,12 +924,9 @@ let merge_conditions
     (default_pos : Pos.t) : Ast.expr boxed =
   match precond, cond with
   | Some precond, Some cond ->
-    let op_term =
-      Expr.eop And
-        [TLit TBool, default_pos; TLit TBool, default_pos]
-        (Mark.get cond)
-    in
-    Expr.eapp op_term [precond; cond] (Mark.get cond)
+    Expr.eappop ~op:And
+      ~tys:[TLit TBool, default_pos; TLit TBool, default_pos]
+      ~args:[precond; cond] (Mark.get cond)
   | Some precond, None -> Mark.remove precond, Untyped { pos = default_pos }
   | None, Some cond -> cond
   | None, None -> Expr.elit (LBool true) (Untyped { pos = default_pos })
@@ -1281,6 +1289,7 @@ let process_topdef
   let translate_typ t = Name_resolution.process_type ctxt t in
   let translate_tbase (tbase, m) = translate_typ (Base tbase, m) in
   let typ = translate_typ def.S.topdef_type in
+  Message.emit_debug "TTYP: %a@." Print.typ_debug typ;
   let expr_opt =
     match def.S.topdef_expr, def.S.topdef_args with
     | None, _ -> None
@@ -1297,6 +1306,17 @@ let process_topdef
       in
       let body = translate_expr None None ctxt local_vars e in
       let args, tys = List.split args_tys in
+      let () =
+        match tys with
+        | [(Data (S.TTuple _), pos)] ->
+          Message.raise_spanned_error pos
+            "Defining arguments of a function as a tuple is not supported, \
+             please name the individual arguments"
+        | _ -> ()
+      in
+      Message.emit_debug "TTYPSS: %a@."
+        (Format.pp_print_list Print.typ_debug)
+        (List.map translate_tbase tys);
       let e =
         Expr.make_abs
           (Array.of_list (List.map Mark.remove args))

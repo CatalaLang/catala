@@ -89,7 +89,35 @@ let rec lazy_eval :
           r;
         v_env := r, env1);
       r, Env.join env env1
-  | EApp { f; args }, m -> (
+  | EAppOp { op; args; tys }, m ->
+    if
+      (not llevel.eval_default)
+      && not (List.equal Expr.equal args [ELit LUnit, m])
+      (* Applications to () encode thunked default terms *)
+    then e0, env
+    else
+      let env, args =
+        List.fold_left_map
+          (fun env e ->
+            let e, env = lazy_eval ctx env llevel e in
+            env, e)
+          env args
+      in
+      if not llevel.eval_op then (EAppOp { op; args; tys }, m), env
+      else
+        let renv = ref env in
+        (* Dirty workaround returning env from evaluate_operator *)
+        let eval e =
+          let e, env = lazy_eval ctx !renv llevel e in
+          renv := env;
+          e
+        in
+        ( Interpreter.evaluate_operator eval op m Cli.En
+            (* Default language to English but this should not raise any error
+               messages so we don't care. *)
+            args,
+          !renv ) (* fixme: this forwards eempty *)
+  | EApp { f; args; tys }, m -> (
     if
       (not llevel.eval_default)
       && not (List.equal Expr.equal args [ELit LUnit, m])
@@ -113,31 +141,8 @@ let rec lazy_eval :
         let e, env = lazy_eval ctx env llevel body in
         log "@]}";
         e, env
-      | ((EOp { op; _ }, m) as f), env ->
-        let env, args =
-          List.fold_left_map
-            (fun env e ->
-              let e, env = lazy_eval ctx env llevel e in
-              env, e)
-            env args
-        in
-        if not llevel.eval_op then (EApp { f; args }, m), env
-        else
-          let renv = ref env in
-          (* Dirty workaround returning env from evaluate_operator *)
-          let eval e =
-            let e, env = lazy_eval ctx !renv llevel e in
-            renv := env;
-            e
-          in
-          ( Interpreter.evaluate_operator eval op m Cli.En
-              (* Default language to English but this should not raise any error
-                 messages so we don't care. *)
-              args,
-            !renv )
-      (* fixme: this forwards eempty *)
       | e, _ -> error e "Invalid apply on %a" Expr.format e)
-  | (EAbs _ | ELit _ | EOp _ | EEmptyError), _ -> e0, env (* these are values *)
+  | (EAbs _ | ELit _ | EEmptyError), _ -> e0, env (* these are values *)
   | (EStruct _ | ETuple _ | EInj _ | EArray _), _ ->
     if not llevel.eval_struct then e0, env
     else
@@ -169,7 +174,9 @@ let rec lazy_eval :
       match eval_to_value env e with
       | (EInj { name = n; cons; e }, m), env when EnumName.equal name n ->
         lazy_eval ctx env llevel
-          (EApp { f = EnumConstructor.Map.find cons cases; args = [e] }, m)
+          ( EApp
+              { f = EnumConstructor.Map.find cons cases; args = [e]; tys = [] },
+            m )
       | e, _ -> error e "Invalid match argument %a" Expr.format e)
   | EDefault { excepts; just; cons }, m -> (
     let excs =
@@ -251,7 +258,7 @@ let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
            (StructName.Map.find scope_arg_struct ctx.ctx_structs))
       m
   in
-  let e_app = Expr.eapp (Expr.box e) [application_arg] m in
+  let e_app = Expr.eapp ~f:(Expr.box e) ~args:[application_arg] ~tys:[] m in
   lazy_eval ctx env
     { value_level with eval_struct = true; eval_op = false }
     (Expr.unbox e_app)
