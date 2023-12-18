@@ -143,7 +143,7 @@ let S2_6 (S2_in_11: S2_in) =
     decl temp_a_20 : unit → bool;
     let temp_a_20 (__21 : unit) =
       return false;
-    decl temp_a_14 : unit → ⟨decimal⟩;
+    decl temp_a_14 : unit → decimal;
     let temp_a_14 (__15 : unit) =
       decl temp_a_18 : unit → decimal;
       let temp_a_18 (__19 : unit) =
@@ -168,7 +168,7 @@ let S3_7 (S3_in_24: S3_in) =
     decl temp_a_33 : unit → bool;
     let temp_a_33 (__34 : unit) =
       return false;
-    decl temp_a_27 : unit → ⟨decimal⟩;
+    decl temp_a_27 : unit → decimal;
     let temp_a_27 (__28 : unit) =
       decl temp_a_31 : unit → decimal;
       let temp_a_31 (__32 : unit) =
@@ -193,7 +193,7 @@ let S4_8 (S4_in_37: S4_in) =
     decl temp_a_46 : unit → bool;
     let temp_a_46 (__47 : unit) =
       return false;
-    decl temp_a_40 : unit → ⟨decimal⟩;
+    decl temp_a_40 : unit → decimal;
     let temp_a_40 (__41 : unit) =
       decl temp_a_44 : unit → decimal;
       let temp_a_44 (__45 : unit) =
@@ -218,7 +218,7 @@ let S_9 (S_in_50: S_in) =
     decl temp_a_71 : unit → bool;
     let temp_a_71 (__72 : unit) =
       return false;
-    decl temp_a_65 : unit → ⟨decimal⟩;
+    decl temp_a_65 : unit → decimal;
     let temp_a_65 (__66 : unit) =
       decl temp_a_69 : unit → decimal;
       let temp_a_69 (__70 : unit) =
@@ -240,7 +240,7 @@ let S_9 (S_in_50: S_in) =
     decl temp_b_60 : unit → bool;
     let temp_b_60 (__61 : unit) =
       return false;
-    decl temp_b_54 : unit → ⟨A {y: bool; z: decimal}⟩;
+    decl temp_b_54 : unit → A {y: bool; z: decimal};
     let temp_b_54 (__55 : unit) =
       decl temp_b_58 : unit → A {y: bool; z: decimal};
       let temp_b_58 (__59 : unit) =

@@ -294,7 +294,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
   let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
-  let default a = lazy (UnionFind.make (TDefault (Lazy.force a), pos)) in
+  let _default a = lazy (UnionFind.make (TDefault (Lazy.force a), pos)) in
   let ( @-> ) x y =
     lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
   in
@@ -309,8 +309,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    | HandleDefault ->
-      [array ([ut] @-> default any); [ut] @-> bt; [ut] @-> any] @-> default any
+    | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
     | HandleDefaultOpt ->
       [array (option any); [ut] @-> bt; [ut] @-> option any] @-> option any
     | ToClosureEnv -> [any] @-> cet
@@ -442,7 +441,7 @@ and typecheck_expr_top_down :
     (a, unionfind_typ A.custom) A.boxed_gexpr =
  fun ~leave_unresolved ctx env tau e ->
   (* Message.emit_debug "Propagating type %a for naked_expr %a" (format_typ ctx)
-     tau (Expr.format ctx) e; *)
+     tau (Print.expr ~debug:true ()) e; *)
   let pos_e = Expr.pos e in
   let () =
     (* If there already is a type annotation on the given expr, ensure it
@@ -688,10 +687,7 @@ and typecheck_expr_top_down :
     Expr.escopecall ~scope ~args:args' mark
   | A.ERaise ex -> Expr.eraise ex context_mark
   | A.ECatch { body; exn; handler } ->
-    let body' =
-      typecheck_expr_top_down ~leave_unresolved ctx env
-        (unionfind (TDefault tau)) body
-    in
+    let body' = typecheck_expr_top_down ~leave_unresolved ctx env tau body in
     let handler' =
       typecheck_expr_top_down ~leave_unresolved ctx env tau handler
     in
