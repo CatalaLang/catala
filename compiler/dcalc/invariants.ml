@@ -36,7 +36,8 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
             match inv p.decl_ctx e with
             | Ignore -> true
             | Fail ->
-              Message.raise_spanned_error (Expr.pos e) "%s failed\n\n%a" name
+              Message.raise_spanned_error (Expr.pos e)
+                "@[<v 2>Invariant @{<magenta>%s@} failed.@,%a@]" name
                 (Print.expr ()) e
             | Pass ->
               incr ok;
@@ -51,8 +52,7 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
         e')
   in
   assert (Bindlib.free_vars p' = Bindlib.empty_ctxt);
-  Message.emit_result "Invariant %s\n   checked. result: [%d/%d]" name !ok
-    !total;
+  Message.emit_result "Invariant %s checked.@ result: [%d/%d]" name !ok !total;
   !result
 
 (* Structural invariant: no default can have as type A -> B *)

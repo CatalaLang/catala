@@ -37,10 +37,10 @@ $ catala Interpret -s Dec
 division by zero at runtime
 
 The division operator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.23-20.30:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:20.26-20.27:
 └──┐
 20 │   definition i equals 1. / 0.
-   │                       ‾‾‾‾‾‾‾
+   │                          ‾
    └┬ `Division_by_zero` exception management
     └─ with decimals
 
@@ -60,10 +60,10 @@ $ catala Interpret -s Int
 division by zero at runtime
 
 The division operator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.23-10.28:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:10.25-10.26:
 └──┐
 10 │   definition i equals 1 / 0
-   │                       ‾‾‾‾‾
+   │                         ‾
    └┬ `Division_by_zero` exception management
     └─ with integers
 
@@ -83,10 +83,10 @@ $ catala Interpret -s Money
 division by zero at runtime
 
 The division operator:
-┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.23-30.35:
+┌─⯈ tests/test_arithmetic/bad/division_by_zero.catala_en:30.29-30.30:
 └──┐
 30 │   definition i equals $10.0 / $0.0
-   │                       ‾‾‾‾‾‾‾‾‾‾‾‾
+   │                             ‾
    └┬ `Division_by_zero` exception management
     └─ with money
 
