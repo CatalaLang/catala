@@ -802,8 +802,7 @@ and partially_evaluate_expr_for_assertion_failure_message :
       Mark.get e )
   | _ -> evaluate_expr ctx lang e
 
-(* Typing shenanigan to add custom terms to the AST type. This is an identity
-   and could be optimised into [Obj.magic]. *)
+(* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =
   let rec f :
       type c d e.
@@ -824,7 +823,16 @@ let addcustom e =
       Expr.map ~f e
     | _ -> .
   in
-  Expr.unbox (f e)
+  let open struct
+    external id :
+      (('d, 'e, 'c) interpr_kind, 't) gexpr ->
+      (('d, 'e, yes) interpr_kind, 't) gexpr = "%identity"
+  end in
+  if false then Expr.unbox (f e)
+    (* We keep the implementation as a typing proof, but bypass the AST
+       traversal for performance. Note that it's not completely 1-1 since the
+       traversal would do a reboxing of all bound variables *)
+  else id e
 
 let delcustom e =
   let rec f :
@@ -846,6 +854,9 @@ let delcustom e =
       Expr.map ~f e
     | _ -> .
   in
+  (* /!\ don't be tempted to use the same trick here, the function does one
+     thing: validate at runtime that the term does not contain [ECustom]
+     nodes. *)
   Expr.unbox (f e)
 
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
