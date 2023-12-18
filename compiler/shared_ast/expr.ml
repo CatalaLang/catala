@@ -262,8 +262,8 @@ let none_constr = EnumConstructor.fresh ("ENone", Pos.no_pos)
 let some_constr = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
 let option_enum_config =
-  EnumConstructor.Map.singleton none_constr (TLit TUnit, Pos.no_pos)
-  |> EnumConstructor.Map.add some_constr (TAny, Pos.no_pos)
+  EnumConstructor.Map.of_list
+    [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]
 
 (* - Traversal functions - *)
 
