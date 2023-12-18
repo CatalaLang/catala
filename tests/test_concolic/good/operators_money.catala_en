@@ -1,0 +1,58 @@
+## Article
+
+```catala
+declaration scope A:
+  input x content money
+  input y content money
+  input z content money
+  input t content money
+  output o content money
+
+scope A:
+  exception definition o under condition not ((x -$ y +$ z <$ -$ t) and (x >$ y)) or ((z <=$ t) xor (x >=$ z))
+  consequence equals $0
+  definition o equals -$$1
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A
+  (A_in: A_in {x_in: money; y_in: money; z_in: money; t_in: money})
+  : A {o: money}
+  =
+  let get x : money = A_in.x_in in
+  let get y : money = A_in.y_in in
+  let get z : money = A_in.z_in in
+  let get t : money = A_in.t_in in
+  let set o : money =
+    error_empty
+      ⟨ ⟨ ⟨(~ (x - y + z < - t && x > y)) || (z <= t xor x >= z) ⊢ ⟨¤0.00⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨- ¤1.00⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . t_in = $42.00
+[RESULT] . x_in = $42.00
+[RESULT] . y_in = $42.00
+[RESULT] . z_in = $42.00
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = $0.00
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . t_in = $0.02
+[RESULT] . x_in = $0.01
+[RESULT] . y_in = $0.02
+[RESULT] . z_in = $0.00
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = $-1.00
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+

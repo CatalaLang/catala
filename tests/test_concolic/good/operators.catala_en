@@ -9,7 +9,7 @@ declaration scope A:
   output o content integer
 
 scope A:
-  exception definition o under condition not ((x*y+z < -t) and (x > y)) or ((z <= t) xor (x >= z))
+  exception definition o under condition not ((x-y+z * 1 < -t) and (x > y)) or ((z <= t) xor (x >= z))
   consequence equals 0
   definition o equals -1
 ```
@@ -26,7 +26,7 @@ let scope A
   let get t : integer = A_in.t_in in
   let set o : integer =
     error_empty
-      ⟨ ⟨ ⟨(~ (x * y + z < - t && x > y)) || (z <= t xor x >= z) ⊢ ⟨0⟩⟩
+      ⟨ ⟨ ⟨(~ (x - y + z * 1 < - t && x > y)) || (z <= t xor x >= z) ⊢ ⟨0⟩⟩
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨-1⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
@@ -45,10 +45,10 @@ $ catala Concolic -s A
 [RESULT] . o = 0
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . t_in = 1
-[RESULT] . x_in = 7
-[RESULT] . y_in = 0
-[RESULT] . z_in = -4
+[RESULT] . t_in = -2
+[RESULT] . x_in = -1
+[RESULT] . y_in = -2
+[RESULT] . z_in = 0
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = -1
 [RESULT] 

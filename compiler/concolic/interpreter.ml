@@ -160,7 +160,7 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Z3.Sort.sort =
   | TUnit -> failwith "TUnit not implemented"
   | TInt -> Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TRat -> failwith "TRat not implemented"
-  | TMoney -> failwith "TMoney not implemented"
+  | TMoney -> Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TDate -> failwith "TDate not implemented"
   | TDuration -> failwith "TDuration not implemented"
 
@@ -251,14 +251,18 @@ let init_context (ctx : context) : context =
 (* loosely taken from z3backend, could be exposed instead? not necessarily,
    especially if they become plugins *)
 let symb_of_lit ctx (l : lit) : s_expr =
-  match l with
-  | LBool b -> Z3.Boolean.mk_val ctx.ctx_z3 b
-  | LInt n ->
-    Z3.Arithmetic.Integer.mk_numeral_s ctx.ctx_z3 (Runtime.integer_to_string n)
+  let z3_int_of_bigint (n : Z.t) : s_expr =
     (* NOTE CONC I use string instead of int to translate without overflows, as
        both [Runtime.integer] and Z3 integers are big *)
+    Z3.Arithmetic.Integer.mk_numeral_s ctx.ctx_z3 (Runtime.integer_to_string n)
+  in
+  match l with
+  | LBool b -> Z3.Boolean.mk_val ctx.ctx_z3 b
+  | LInt n -> z3_int_of_bigint n
   | LRat _ -> failwith "LRat not implemented"
-  | LMoney _ -> failwith "LMoney not implemented"
+  | LMoney m ->
+    let cents = Runtime.money_to_cents m in
+    z3_int_of_bigint cents
   | LUnit -> failwith "LUnit not implemented"
   | LDate _ -> failwith "LDate not implemented"
   | LDuration _ -> failwith "LDuration not implemented"
@@ -331,7 +335,7 @@ let handle_eq evaluate_operator pos lang e1 e2 =
   | ELit (LBool b1), ELit (LBool b2) -> not (o_xor b1 b2)
   | ELit (LInt x1), ELit (LInt x2) -> o_eq_int_int x1 x2
   | ELit (LRat _), ELit (LRat _) -> failwith "EOp Eq LRat not implemented"
-  | ELit (LMoney _), ELit (LMoney _) -> failwith "EOp Eq LMoney not implemented"
+  | ELit (LMoney x1), ELit (LMoney x2) -> o_eq_mon_mon x1 x2
   | ELit (LDuration _), ELit (LDuration _) ->
     failwith "EOp Eq LDuration not implemented"
   | ELit (LDate _), ELit (LDate _) -> failwith "EOp Eq LDate not implemented"
@@ -484,7 +488,12 @@ let rec evaluate_operator
       (fun x -> ELit (LInt (o_minus_int x)))
       Z3.Arithmetic.mk_unary_minus x e
   | Minus_rat, _ -> failwith "Eop Minus_rat not implemented"
-  | Minus_mon, _ -> failwith "Eop Minus_mon not implemented"
+  | Minus_mon, [((ELit (LMoney x), _) as e)] ->
+    op1 ctx m
+      (fun x -> ELit (LMoney (o_minus_mon x)))
+      Z3.Arithmetic.mk_unary_minus x e
+    (* TODO CONC maybe abstract this symbolic operation? like s_minus_mon and
+       s_minus_int... *)
   | Minus_dur, _ -> failwith "Eop Minus_dur not implemented"
   | ToRat_int, _ -> failwith "Eop ToRat_int not implemented"
   | ToRat_mon, _ -> failwith "Eop ToRat_mon not implemented"
@@ -496,7 +505,10 @@ let rec evaluate_operator
       (fun x y -> ELit (LInt (o_add_int_int x y)))
       Z3.Arithmetic.mk_add x y e1 e2
   | Add_rat_rat, _ -> failwith "Eop Add_rat_rat not implemented"
-  | Add_mon_mon, _ -> failwith "Eop Add_mon_mon not implemented"
+  | Add_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
+    op2list ctx m
+      (fun x y -> ELit (LMoney (o_add_mon_mon x y)))
+      Z3.Arithmetic.mk_add x y e1 e2
   | Add_dat_dur _, _ -> failwith "Eop Add_dat_dur not implemented"
   | Add_dur_dur, _ -> failwith "Eop Add_dur_dur not implemented"
   | Sub_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
@@ -504,7 +516,10 @@ let rec evaluate_operator
       (fun x y -> ELit (LInt (o_sub_int_int x y)))
       Z3.Arithmetic.mk_sub x y e1 e2
   | Sub_rat_rat, _ -> failwith "Eop Sub_rat_rat not implemented"
-  | Sub_mon_mon, _ -> failwith "Eop Sub_mon_mon not implemented"
+  | Sub_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
+    op2list ctx m
+      (fun x y -> ELit (LMoney (o_sub_mon_mon x y)))
+      Z3.Arithmetic.mk_sub x y e1 e2
   | Sub_dat_dat, _ -> failwith "Eop Sub_dat_dat not implemented"
   | Sub_dat_dur, _ -> failwith "Eop Sub_dat_dur not implemented"
   | Sub_dur_dur, _ -> failwith "Eop Sub_dur_dur not implemented"
@@ -525,7 +540,10 @@ let rec evaluate_operator
       (fun x y -> ELit (LBool (o_lt_int_int x y)))
       Z3.Arithmetic.mk_lt x y e1 e2
   | Lt_rat_rat, _ -> failwith "Eop Lt_rat_rat not implemented"
-  | Lt_mon_mon, _ -> failwith "Eop Lt_mon_mon not implemented"
+  | Lt_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_lt_mon_mon x y)))
+      Z3.Arithmetic.mk_lt x y e1 e2
   | Lt_dat_dat, _ -> failwith "Eop Lt_dat_dat not implemented"
   | Lt_dur_dur, _ -> failwith "Eop Lt_dur_dur not implemented"
   | Lte_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
@@ -533,7 +551,10 @@ let rec evaluate_operator
       (fun x y -> ELit (LBool (o_lte_int_int x y)))
       Z3.Arithmetic.mk_le x y e1 e2
   | Lte_rat_rat, _ -> failwith "Eop Lte_rat_rat not implemented"
-  | Lte_mon_mon, _ -> failwith "Eop Lte_mon_mon not implemented"
+  | Lte_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_lte_mon_mon x y)))
+      Z3.Arithmetic.mk_le x y e1 e2
   | Lte_dat_dat, _ -> failwith "Eop Lte_dat_dat not implemented"
   | Lte_dur_dur, _ -> failwith "Eop Lte_dur_dur not implemented"
   | Gt_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
@@ -541,7 +562,10 @@ let rec evaluate_operator
       (fun x y -> ELit (LBool (o_gt_int_int x y)))
       Z3.Arithmetic.mk_gt x y e1 e2
   | Gt_rat_rat, _ -> failwith "Eop Gt_rat_rat not implemented"
-  | Gt_mon_mon, _ -> failwith "Eop Gt_mon_mon not implemented"
+  | Gt_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_gt_mon_mon x y)))
+      Z3.Arithmetic.mk_gt x y e1 e2
   | Gt_dat_dat, _ -> failwith "Eop Gt_dat_dat not implemented"
   | Gt_dur_dur, _ -> failwith "Eop Gt_dur_dur not implemented"
   | Gte_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
@@ -549,7 +573,10 @@ let rec evaluate_operator
       (fun x y -> ELit (LBool (o_gte_int_int x y)))
       Z3.Arithmetic.mk_ge x y e1 e2
   | Gte_rat_rat, _ -> failwith "Eop Gte_rat_rat not implemented"
-  | Gte_mon_mon, _ -> failwith "Eop Gte_mon_mon not implemented"
+  | Gte_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_gte_mon_mon x y)))
+      Z3.Arithmetic.mk_ge x y e1 e2
   | Gte_dat_dat, _ -> failwith "Eop Gte_dat_dat not implemented"
   | Gte_dur_dur, _ -> failwith "Eop Gte_dur_dur not implemented"
   | Eq_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
@@ -557,7 +584,10 @@ let rec evaluate_operator
       (fun x y -> ELit (LBool (o_eq_int_int x y)))
       Z3.Boolean.mk_eq x y e1 e2
   | Eq_rat_rat, _ -> failwith "Eop Eq_rat_rat not implemented"
-  | Eq_mon_mon, _ -> failwith "Eop Eq_mon_mon not implemented"
+  | Eq_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_eq_mon_mon x y)))
+      Z3.Boolean.mk_eq x y e1 e2
   | Eq_dat_dat, _ -> failwith "Eop Eq_dat_dat not implemented"
   | Eq_dur_dur, _ -> failwith "Eop Eq_dur_dur not implemented"
   | HandleDefault, _ ->
@@ -570,24 +600,27 @@ let rec evaluate_operator
       "The concolic interpreter is trying to evaluate the \
        \"handle_default_opt\" operator, which should not happen with a DCalc \
        AST"
-  | ( ( Minus_int
-        (* | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon |
-           ToMoney_rat | Round_rat | Round_mon *)
-      | Add_int_int
-        (* | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur *)
-      | Sub_int_int
-        (* | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur |
-           Sub_dur_dur *)
+  | ( ( Minus_int (* | Minus_rat *)
+      | Minus_mon
+      (*| Minus_dur | ToRat_int | ToRat_mon | ToMoney_rat | Round_rat |
+        Round_mon *)
+      | Add_int_int (* | Add_rat_rat *)
+      | Add_mon_mon (* | Add_dat_dur _ | Add_dur_dur *)
+      | Sub_int_int (* | Sub_rat_rat *)
+      | Sub_mon_mon (* | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur *)
       | Mult_int_int
         (* | Mult_rat_rat | Mult_mon_rat | Mult_dur_int | Div_int_int |
            Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur *)
-      | Lt_int_int (* | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur *)
-      | Lte_int_int
-        (* | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur *)
-      | Gt_int_int (* | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur *)
-      | Gte_int_int
-        (* | Gte_rat_rat | Gte_mon_mon | Gte_dat_dat | Gte_dur_dur *)
-      | Eq_int_int (* | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur *) ),
+      | Lt_int_int (* | Lt_rat_rat *)
+      | Lt_mon_mon (* | Lt_dat_dat | Lt_dur_dur *)
+      | Lte_int_int (* | Lte_rat_rat *)
+      | Lte_mon_mon (* | Lte_dat_dat | Lte_dur_dur *)
+      | Gt_int_int (* | Gt_rat_rat *)
+      | Gt_mon_mon (* | Gt_dat_dat | Gt_dur_dur *)
+      | Gte_int_int (* | Gte_rat_rat *)
+      | Gte_mon_mon (* | Gte_dat_dat | Gte_dur_dur *)
+      | Eq_int_int (* | Eq_rat_rat *)
+      | Eq_mon_mon (* | Eq_dat_dat | Eq_dur_dur *) ),
       _ ) ->
     err ()
 
@@ -888,7 +921,11 @@ let lit_of_tlit t =
   match t with
   | TBool -> LBool true
   | TInt -> LInt (Z.of_int 42)
-  | _ -> failwith "not implemented"
+  | TMoney -> LMoney (Runtime.money_of_units_int 42)
+  | TUnit -> failwith "TUnit not implemented"
+  | TRat -> failwith "TRat not implemented"
+  | TDate -> failwith "TDate not implemented"
+  | TDuration -> failwith "TDuration not implemented"
 
 let expr_of_typ mark ty =
   match Mark.remove ty with
@@ -898,7 +935,14 @@ let expr_of_typ mark ty =
       (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
       (Bindlib.box EEmptyError, Expr.with_ty mark ty_out)
       ty_in (Expr.mark_pos mark)
-  | _ -> failwith "not implemented"
+  | TTuple _ -> failwith "TTuple not implemented"
+  | TStruct _ -> failwith "TStruct not implemented"
+  | TEnum _ -> failwith "TEnum not implemented"
+  | TOption _ -> failwith "TOption not implemented"
+  | TArray _ -> failwith "TArray not implemented"
+  | TDefault _ -> failwith "TDefault not implemented"
+  | TAny -> failwith "TAny not implemented"
+  | TClosureEnv -> failwith "TClosureEnv not implemented"
 
 (** Get the Z3 expression corresponding to the value of Z3 symbol constant [v]
     in Z3 model [m]. [None] if [m] has not given a value. TODO CONC check that
@@ -907,21 +951,39 @@ let expr_of_typ mark ty =
 let interp_in_model (m : Z3.Model.model) (v : Z3.Expr.expr) : s_expr option =
   Z3.Model.get_const_interp_e m v
 
+let integer_of_symb_expr (e : s_expr) : Runtime.integer =
+  match Z3.Sort.get_sort_kind (Z3.Expr.get_sort e) with
+  | Z3enums.INT_SORT -> Z3.Arithmetic.Integer.get_big_int e
+  | _ -> invalid_arg "[integer_of_symb_expr] expected a Z3 integer"
+
+let bool_of_symb_expr (e : s_expr) : Runtime.bool =
+  match Z3.Sort.get_sort_kind (Z3.Expr.get_sort e) with
+  | Z3enums.BOOL_SORT -> begin
+    match Z3.Boolean.get_bool_value e with
+    | L_FALSE -> false
+    | L_TRUE -> true
+    | L_UNDEF -> failwith "boolean value undefined"
+  end
+  | _ -> invalid_arg "[bool_of_symb_expr] expected a Z3 boolean"
+
+let value_of_symb_expr_lit tl e =
+  match tl with
+  | TInt -> LInt (integer_of_symb_expr e)
+  | TBool -> LBool (bool_of_symb_expr e)
+  | TMoney ->
+    let cents = integer_of_symb_expr e in
+    let money = Runtime.money_of_cents_integer cents in
+    LMoney money
+  | _ -> failwith "[value_of_symb_expr_lit] not implemented"
+
 (** Make a Catala value from a Z3 expression, if possible *)
-let value_of_symb_expr m (e : s_expr) =
-  let lit =
-    match Z3.Sort.get_sort_kind (Z3.Expr.get_sort e) with
-    | Z3enums.INT_SORT -> LInt (Z3.Arithmetic.Integer.get_big_int e)
-    | Z3enums.BOOL_SORT -> begin
-      match Z3.Boolean.get_bool_value e with
-      | L_FALSE -> LBool false
-      | L_TRUE -> LBool true
-      | L_UNDEF -> failwith "boolean value undefined"
-    end
+let value_of_symb_expr m ty (e : s_expr) =
+  match Mark.remove ty with
+  | TLit tl ->
+    let lit = value_of_symb_expr_lit tl e in
+    Expr.elit lit m
     (* TODO Struct *)
-    | _ -> failwith "not a possible value"
-  in
-  Expr.elit lit m
+  | _ -> failwith "[value_of_symb_expr] not implemented"
 
 (** Get Catala values from a Z3 model, possibly with default values *)
 let inputs_of_model
@@ -930,12 +992,12 @@ let inputs_of_model
     'c conc_boxed_expr StructField.Map.t =
   let f _ (mk : conc_info mark) =
     let (Custom { custom; _ }) = mk in
+    let ty = Option.get custom.ty in
+    (* this get should not fail because [make_input_mark] always adds the type
+       information *)
     let symb_expr_opt = interp_in_model m (Option.get custom.symb_expr) in
-    Option.fold
-      ~none:(expr_of_typ mk (Option.get custom.ty))
-        (* this get should not fail because [make_input_mark] always adds the
-           type information *)
-      ~some:(value_of_symb_expr mk) symb_expr_opt
+    Option.fold ~none:(expr_of_typ mk ty) ~some:(value_of_symb_expr mk ty)
+      symb_expr_opt
   in
   StructField.Map.mapi f input_marks
 
