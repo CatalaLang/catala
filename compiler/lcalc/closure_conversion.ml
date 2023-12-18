@@ -385,25 +385,23 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
      capture footprint. See
      [tests/tests_func/good/scope_call_func_struct_closure.catala_en]. *)
   let new_decl_ctx =
-    let rec type_contains_arrow t =
+    let rec replace_fun_typs t =
       match Mark.remove t with
-      | TArrow _ -> true
-      | TAny -> true
-      | TDefault t' | TOption t' -> type_contains_arrow t'
-      | TClosureEnv | TLit _ -> false
-      | TArray ts -> type_contains_arrow ts
-      | TTuple ts -> List.exists type_contains_arrow ts
-      | TEnum e ->
-        EnumConstructor.Map.exists
-          (fun _ t' -> type_contains_arrow t')
-          (EnumName.Map.find e p.decl_ctx.ctx_enums)
-      | TStruct s ->
-        StructField.Map.exists
-          (fun _ t' -> type_contains_arrow t')
-          (StructName.Map.find s p.decl_ctx.ctx_structs)
-    in
-    let replace_fun_typs t =
-      if type_contains_arrow t then Mark.copy t TAny else t
+      | TArrow (t1, t2) ->
+        ( TTuple
+            [
+              ( TArrow
+                  ( (TClosureEnv, Pos.no_pos) :: List.map replace_fun_typs t1,
+                    replace_fun_typs t2 ),
+                Pos.no_pos );
+              TClosureEnv, Pos.no_pos;
+            ],
+          Mark.get t )
+      | TDefault t' -> TDefault (replace_fun_typs t'), Mark.get t
+      | TOption t' -> TOption (replace_fun_typs t'), Mark.get t
+      | TAny | TClosureEnv | TLit _ | TEnum _ | TStruct _ -> t
+      | TArray ts -> TArray (replace_fun_typs ts), Mark.get t
+      | TTuple ts -> TTuple (List.map replace_fun_typs ts), Mark.get t
     in
     {
       p.decl_ctx with
