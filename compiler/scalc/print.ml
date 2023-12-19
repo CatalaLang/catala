@@ -105,7 +105,7 @@ let rec format_statement
   match Mark.remove stmt with
   | SInnerFuncDef { name; func } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@ %a@]@\n@[<v 2>  %a@]" Print.keyword
-      "let" format_var_name (Mark.remove name)
+      "let func" format_var_name (Mark.remove name)
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          (fun fmt ((name, _), typ) ->

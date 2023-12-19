@@ -121,6 +121,62 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       when ctxt.config.keep_special_ops ->
       (* This should be translated as a statement *)
       raise (NotAnExpr { needs_a_local_decl = true })
+    | EApp { f = EAbs { binder; tys }, binder_mark; args } ->
+      (* This defines multiple local variables at the time *)
+      let binder_pos = Expr.mark_pos binder_mark in
+      let vars, body = Bindlib.unmbind binder in
+      let vars_tau = List.map2 (fun x tau -> x, tau) (Array.to_list vars) tys in
+      let ctxt =
+        {
+          ctxt with
+          var_dict =
+            List.fold_left
+              (fun var_dict (x, _) ->
+                Var.Map.add x
+                  (A.VarName.fresh (Bindlib.name_of x, binder_pos))
+                  var_dict)
+              ctxt.var_dict vars_tau;
+        }
+      in
+      let local_decls =
+        List.map
+          (fun (x, tau) ->
+            ( A.SLocalDecl
+                { name = Var.Map.find x ctxt.var_dict, binder_pos; typ = tau },
+              binder_pos ))
+          vars_tau
+      in
+      let vars_args =
+        List.map2
+          (fun (x, tau) arg ->
+            (Var.Map.find x ctxt.var_dict, binder_pos), tau, arg)
+          vars_tau args
+      in
+      let def_blocks =
+        List.map
+          (fun (x, _tau, arg) ->
+            let ctxt =
+              {
+                ctxt with
+                inside_definition_of = Some (Mark.remove x);
+                context_name = Mark.remove (A.VarName.get_info (Mark.remove x));
+              }
+            in
+            let arg_stmts, new_arg = translate_expr ctxt arg in
+            arg_stmts
+            @ [
+                ( A.SLocalDef
+                    {
+                      name = x;
+                      expr = new_arg;
+                      typ = Expr.maybe_ty (Mark.get arg);
+                    },
+                  binder_pos );
+              ])
+          vars_args
+      in
+      let rest_of_expr_stmts, rest_of_expr = translate_expr ctxt body in
+      local_decls @ List.flatten def_blocks @ rest_of_expr_stmts, rest_of_expr
     | EApp { f; args } ->
       let f_stmts, new_f = translate_expr ctxt f in
       let args_stmts, new_args =
@@ -202,9 +258,9 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     let cons = unthunk cons in
     let exceptions_stmts, new_exceptions =
       List.fold_left
-        (fun (exceptions_stmts, new_exceptions) arg ->
-          let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ exceptions_stmts, new_arg :: new_exceptions)
+        (fun (exceptions_stmts, new_exceptions) except ->
+          let except_stmts, new_except = translate_expr ctxt except in
+          except_stmts @ exceptions_stmts, new_except :: new_exceptions)
         ([], []) exceptions
     in
     let just_stmts, new_just = translate_expr ctxt just in

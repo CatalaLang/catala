@@ -8,7 +8,7 @@ declaration enumeration Bar:
   -- Yes content Foo
 
 declaration scope Baz:
-  input a content Bar
+  context a content Bar
   output b content decimal
 
 scope Baz:
