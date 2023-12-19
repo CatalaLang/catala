@@ -1141,8 +1141,11 @@ let print_fields language (prefix : string) fields =
   List.iter
     (fun ((var, _), value) ->
       Message.emit_result "%s@[<hov 2>%s@ =@ %a@]" prefix var
-        (if Cli.globals.debug then Print.expr ~debug:false ()
-         else Print.UserFacing.value language)
+        (* TODO CONC REU UserFacing does not print the minus =>> opened #551.
+           For now, I will use [Print.expr] *)
+        (* (if Cli.globals.debug then Print.expr ~debug:false () else
+           Print.UserFacing.value language) *)
+        (Print.expr ())
         value)
     ordered_fields
 
