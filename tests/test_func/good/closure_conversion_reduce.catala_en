@@ -41,21 +41,12 @@ $ catala Lcalc -s S --avoid-exceptions -O --closure-conversion
 let scope S (S_in: S_in {x_in: list of integer}): S {y: integer} =
   let get x : list of integer = S_in.x_in in
   let set y : integer =
-    match
-      (handle_default_opt
-         []
-         (λ (_: unit) → true)
-         (λ (_: unit) →
-          ESome
-            (reduce
-               (λ (potential_max_1: integer) (potential_max_2: integer) →
-                if potential_max_1 < potential_max_2 then potential_max_1
-                else potential_max_2)
-               -1
-               x)))
-    with
-    | ENone _ → raise NoValueProvided
-    | ESome arg → arg
+    reduce
+      (λ (potential_max_1: integer) (potential_max_2: integer) →
+       if potential_max_1 < potential_max_2 then potential_max_1
+       else potential_max_2)
+      -1
+      x
   in
   return { S y = y; }
 ```
