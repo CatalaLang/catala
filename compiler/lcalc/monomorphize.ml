@@ -98,11 +98,11 @@ let program (prg : typed program) : typed program =
                       {
                         some_cons =
                           EnumConstructor.fresh
-                            ( "some_" ^ string_of_int !option_instances_counter,
+                            ( "Some_" ^ string_of_int !option_instances_counter,
                               Pos.no_pos );
                         none_cons =
                           EnumConstructor.fresh
-                            ( "none_" ^ string_of_int !option_instances_counter,
+                            ( "None_" ^ string_of_int !option_instances_counter,
                               Pos.no_pos );
                         some_typ = Mark.remove t;
                         name =
