@@ -403,6 +403,15 @@ module Flags = struct
           "During the Lcalc->Scalc translation, uses special AST nodes for \
            higher-order operators rather than nested closures (useful for C)."
 
+  let monomorphize_types =
+    value
+    & flag
+    & info ["monomorphize-types"]
+        ~doc:
+          "In LCalc, replaces the polymorphic option type by monomorphized \
+           versions of the enumeration, and transform tuples into named \
+           structs. "
+
   let dead_value_assignment =
     value
     & flag

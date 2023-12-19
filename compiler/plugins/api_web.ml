@@ -436,12 +436,14 @@ let run
     check_invariants
     avoid_exceptions
     closure_conversion
+    monomorphize_types
     options =
   if not options.Cli.trace then
     Message.raise_error "This plugin requires the --trace flag.";
   let prg, type_ordering =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
+      ~monomorphize_types
   in
   let modname =
     (* TODO: module directive support *)
@@ -480,6 +482,7 @@ let term =
   $ Cli.Flags.check_invariants
   $ Cli.Flags.avoid_exceptions
   $ Cli.Flags.closure_conversion
+  $ Cli.Flags.monomorphize_types
 
 let () =
   Driver.Plugin.register "api_web" term

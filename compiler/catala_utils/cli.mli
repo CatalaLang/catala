@@ -130,6 +130,7 @@ module Flags : sig
   val avoid_exceptions : bool Term.t
   val closure_conversion : bool Term.t
   val keep_special_ops : bool Term.t
+  val monomorphize_types : bool Term.t
   val dead_value_assignment : bool Term.t
   val no_struct_literals : bool Term.t
   val include_dirs : raw_file list Term.t
