@@ -255,22 +255,21 @@ let rec transform_closures_expr :
     in
     let call_expr =
       let m1 = Mark.get e1 in
-      Expr.make_let_in code_var
-        (TAny, Expr.pos e)
-        (Expr.etupleaccess
-           ~e:(Bindlib.box_var code_env_var, m1)
-           ~index:0 ~size:2 m)
-        (Expr.make_let_in env_var
-           (TAny, Expr.pos e)
-           (Expr.etupleaccess
-              ~e:(Bindlib.box_var code_env_var, m1)
-              ~index:1 ~size:2 m)
-           (Expr.eapp
-              ~f:(Bindlib.box_var code_var, m1)
-              ~args:((Bindlib.box_var env_var, m1) :: new_args)
-              ~tys:((TClosureEnv, Expr.pos e1) :: tys)
-              m)
-           (Expr.pos e))
+      let env_arg_ty = TClosureEnv, Expr.pos e1 in
+      Expr.make_multiple_let_in [| code_var; env_var |]
+        [TArrow (env_arg_ty :: tys, (TAny, Expr.pos e)), Expr.pos e; env_arg_ty]
+        [
+          Expr.etupleaccess
+            ~e:(Bindlib.box_var code_env_var, m1)
+            ~index:0 ~size:2 m;
+          Expr.etupleaccess
+            ~e:(Bindlib.box_var code_env_var, m1)
+            ~index:1 ~size:2 m;
+        ]
+        (Expr.eapp
+           ~f:(Bindlib.box_var code_var, m1)
+           ~args:((Bindlib.box_var env_var, m1) :: new_args)
+           ~tys:(env_arg_ty :: tys) m)
         (Expr.pos e)
     in
     ( free_vars,
