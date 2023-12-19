@@ -123,138 +123,137 @@ let glob3_3 (x_3: money) = return to_rat x_3 + 10.
 let glob4_4 (x_4: money) (y_5: decimal) = return to_rat x_4 * y_5 + 10.
 
 let glob5_aux_5 =
-  decl glob5_7 : decimal → decimal;
-  let glob5_7 (x_8 : decimal) =
-    decl y_9 : decimal;
-    y_9 = 1000.;
-    return x_8 * y_9;
-  return glob5_7 to_rat 2 * 3.
+  decl x_7 : decimal;
+  x_7 = to_rat 2 * 3.;
+  decl y_8 : decimal;
+  y_8 = 1000.;
+  return x_7 * y_8
 
 let glob5_6 = glob5_aux_5 ()
 
-let glob2_10 = A {"y": glob1_2 >= 30., "z": 123. * 17.}
+let glob2_9 = A {"y": glob1_2 >= 30., "z": 123. * 17.}
 
-let S2_6 (S2_in_11: S2_in) =
-  decl temp_a_13 : decimal;
+let S2_6 (S2_in_10: S2_in) =
+  decl temp_a_12 : decimal;
   try:
-    decl temp_a_22 : unit → decimal;
-    let temp_a_22 (__23 : unit) =
+    decl temp_a_21 : unit → decimal;
+    let func temp_a_21 (__22 : unit) =
       raise EmptyError;
-    decl temp_a_20 : unit → bool;
-    let temp_a_20 (__21 : unit) =
+    decl temp_a_19 : unit → bool;
+    let func temp_a_19 (__20 : unit) =
       return false;
-    decl temp_a_14 : unit → decimal;
-    let temp_a_14 (__15 : unit) =
-      decl temp_a_18 : unit → decimal;
-      let temp_a_18 (__19 : unit) =
+    decl temp_a_13 : unit → decimal;
+    let func temp_a_13 (__14 : unit) =
+      decl temp_a_17 : unit → decimal;
+      let func temp_a_17 (__18 : unit) =
         return glob3_3 ¤44.00 + 100.;
-      decl temp_a_16 : unit → bool;
-      let temp_a_16 (__17 : unit) =
+      decl temp_a_15 : unit → bool;
+      let func temp_a_15 (__16 : unit) =
         return true;
-      return handle_default [] temp_a_16 temp_a_18;
-    temp_a_13 = handle_default [temp_a_14] temp_a_20 temp_a_22
+      return handle_default [] temp_a_15 temp_a_17;
+    temp_a_12 = handle_default [temp_a_13] temp_a_19 temp_a_21
   with EmptyError:
     raise NoValueProvided;
-  decl a_12 : decimal;
-  a_12 = temp_a_13;
-  return S2 {"a": a_12}
+  decl a_11 : decimal;
+  a_11 = temp_a_12;
+  return S2 {"a": a_11}
 
-let S3_7 (S3_in_24: S3_in) =
-  decl temp_a_26 : decimal;
+let S3_7 (S3_in_23: S3_in) =
+  decl temp_a_25 : decimal;
   try:
-    decl temp_a_35 : unit → decimal;
-    let temp_a_35 (__36 : unit) =
+    decl temp_a_34 : unit → decimal;
+    let func temp_a_34 (__35 : unit) =
       raise EmptyError;
-    decl temp_a_33 : unit → bool;
-    let temp_a_33 (__34 : unit) =
+    decl temp_a_32 : unit → bool;
+    let func temp_a_32 (__33 : unit) =
       return false;
-    decl temp_a_27 : unit → decimal;
-    let temp_a_27 (__28 : unit) =
-      decl temp_a_31 : unit → decimal;
-      let temp_a_31 (__32 : unit) =
+    decl temp_a_26 : unit → decimal;
+    let func temp_a_26 (__27 : unit) =
+      decl temp_a_30 : unit → decimal;
+      let func temp_a_30 (__31 : unit) =
         return 50. + glob4_4 ¤44.00 55.;
-      decl temp_a_29 : unit → bool;
-      let temp_a_29 (__30 : unit) =
+      decl temp_a_28 : unit → bool;
+      let func temp_a_28 (__29 : unit) =
         return true;
-      return handle_default [] temp_a_29 temp_a_31;
-    temp_a_26 = handle_default [temp_a_27] temp_a_33 temp_a_35
+      return handle_default [] temp_a_28 temp_a_30;
+    temp_a_25 = handle_default [temp_a_26] temp_a_32 temp_a_34
   with EmptyError:
     raise NoValueProvided;
-  decl a_25 : decimal;
-  a_25 = temp_a_26;
-  return S3 {"a": a_25}
+  decl a_24 : decimal;
+  a_24 = temp_a_25;
+  return S3 {"a": a_24}
 
-let S4_8 (S4_in_37: S4_in) =
-  decl temp_a_39 : decimal;
+let S4_8 (S4_in_36: S4_in) =
+  decl temp_a_38 : decimal;
   try:
-    decl temp_a_48 : unit → decimal;
-    let temp_a_48 (__49 : unit) =
+    decl temp_a_47 : unit → decimal;
+    let func temp_a_47 (__48 : unit) =
       raise EmptyError;
-    decl temp_a_46 : unit → bool;
-    let temp_a_46 (__47 : unit) =
+    decl temp_a_45 : unit → bool;
+    let func temp_a_45 (__46 : unit) =
       return false;
-    decl temp_a_40 : unit → decimal;
-    let temp_a_40 (__41 : unit) =
-      decl temp_a_44 : unit → decimal;
-      let temp_a_44 (__45 : unit) =
+    decl temp_a_39 : unit → decimal;
+    let func temp_a_39 (__40 : unit) =
+      decl temp_a_43 : unit → decimal;
+      let func temp_a_43 (__44 : unit) =
         return glob5_6 + 1.;
-      decl temp_a_42 : unit → bool;
-      let temp_a_42 (__43 : unit) =
+      decl temp_a_41 : unit → bool;
+      let func temp_a_41 (__42 : unit) =
         return true;
-      return handle_default [] temp_a_42 temp_a_44;
-    temp_a_39 = handle_default [temp_a_40] temp_a_46 temp_a_48
+      return handle_default [] temp_a_41 temp_a_43;
+    temp_a_38 = handle_default [temp_a_39] temp_a_45 temp_a_47
   with EmptyError:
     raise NoValueProvided;
-  decl a_38 : decimal;
-  a_38 = temp_a_39;
-  return S4 {"a": a_38}
+  decl a_37 : decimal;
+  a_37 = temp_a_38;
+  return S4 {"a": a_37}
 
-let S_9 (S_in_50: S_in) =
-  decl temp_a_64 : decimal;
+let S_9 (S_in_49: S_in) =
+  decl temp_a_63 : decimal;
   try:
-    decl temp_a_73 : unit → decimal;
-    let temp_a_73 (__74 : unit) =
+    decl temp_a_72 : unit → decimal;
+    let func temp_a_72 (__73 : unit) =
       raise EmptyError;
-    decl temp_a_71 : unit → bool;
-    let temp_a_71 (__72 : unit) =
+    decl temp_a_70 : unit → bool;
+    let func temp_a_70 (__71 : unit) =
       return false;
-    decl temp_a_65 : unit → decimal;
-    let temp_a_65 (__66 : unit) =
-      decl temp_a_69 : unit → decimal;
-      let temp_a_69 (__70 : unit) =
+    decl temp_a_64 : unit → decimal;
+    let func temp_a_64 (__65 : unit) =
+      decl temp_a_68 : unit → decimal;
+      let func temp_a_68 (__69 : unit) =
         return glob1_2 * glob1_2;
-      decl temp_a_67 : unit → bool;
-      let temp_a_67 (__68 : unit) =
+      decl temp_a_66 : unit → bool;
+      let func temp_a_66 (__67 : unit) =
         return true;
-      return handle_default [] temp_a_67 temp_a_69;
-    temp_a_64 = handle_default [temp_a_65] temp_a_71 temp_a_73
+      return handle_default [] temp_a_66 temp_a_68;
+    temp_a_63 = handle_default [temp_a_64] temp_a_70 temp_a_72
   with EmptyError:
     raise NoValueProvided;
-  decl a_51 : decimal;
-  a_51 = temp_a_64;
-  decl temp_b_53 : A {y: bool; z: decimal};
+  decl a_50 : decimal;
+  a_50 = temp_a_63;
+  decl temp_b_52 : A {y: bool; z: decimal};
   try:
-    decl temp_b_62 : unit → A {y: bool; z: decimal};
-    let temp_b_62 (__63 : unit) =
+    decl temp_b_61 : unit → A {y: bool; z: decimal};
+    let func temp_b_61 (__62 : unit) =
       raise EmptyError;
-    decl temp_b_60 : unit → bool;
-    let temp_b_60 (__61 : unit) =
+    decl temp_b_59 : unit → bool;
+    let func temp_b_59 (__60 : unit) =
       return false;
-    decl temp_b_54 : unit → A {y: bool; z: decimal};
-    let temp_b_54 (__55 : unit) =
-      decl temp_b_58 : unit → A {y: bool; z: decimal};
-      let temp_b_58 (__59 : unit) =
-        return glob2_10;
-      decl temp_b_56 : unit → bool;
-      let temp_b_56 (__57 : unit) =
+    decl temp_b_53 : unit → A {y: bool; z: decimal};
+    let func temp_b_53 (__54 : unit) =
+      decl temp_b_57 : unit → A {y: bool; z: decimal};
+      let func temp_b_57 (__58 : unit) =
+        return glob2_9;
+      decl temp_b_55 : unit → bool;
+      let func temp_b_55 (__56 : unit) =
         return true;
-      return handle_default [] temp_b_56 temp_b_58;
-    temp_b_53 = handle_default [temp_b_54] temp_b_60 temp_b_62
+      return handle_default [] temp_b_55 temp_b_57;
+    temp_b_52 = handle_default [temp_b_53] temp_b_59 temp_b_61
   with EmptyError:
     raise NoValueProvided;
-  decl b_52 : A {y: bool; z: decimal};
-  b_52 = temp_b_53;
-  return S {"a": a_51, "b": b_52}
+  decl b_51 : A {y: bool; z: decimal};
+  b_51 = temp_b_52;
+  return S {"a": a_50, "b": b_51}
 ```
 
 ```catala-test-inline
@@ -422,13 +421,12 @@ def glob4(x_1:Money, y:Decimal):
     return ((decimal_of_money(x_1) * y) + decimal_of_string("10."))
 
 def glob5_aux():
-    def glob5(x_2:Decimal):
-        y_1 = decimal_of_string("1000.")
-        return (x_2 * y_1)
-    return glob5((decimal_of_integer(integer_of_string("2")) *
-                 decimal_of_string("3.")))
+    x_2 = (decimal_of_integer(integer_of_string("2")) *
+        decimal_of_string("3."))
+    y_1 = decimal_of_string("1000.")
+    return (x_2 * y_1)
 
-glob5_1 = (glob5_aux())
+glob5 = (glob5_aux())
 
 glob2 = (
     A(y = (glob1 >=
@@ -502,7 +500,7 @@ def s4(s4_in:S4In):
             return False
         def temp_a_14(_:Unit):
             def temp_a_15(_:Unit):
-                return (glob5_1 + decimal_of_string("1."))
+                return (glob5 + decimal_of_string("1."))
             def temp_a_16(_:Unit):
                 return True
             return handle_default(SourcePosition(filename="", start_line=0,
