@@ -686,7 +686,7 @@ module ExprGen (C : EXPR_PARAM) = struct
           StructField.format field
       | EInj { e; cons; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
-          (rhs exprc) e
+          (paren ~rhs:false exprc) e
       | EMatch { e; cases; _ } ->
         Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]" keyword
           "match" (lhs exprc) e keyword "with"

@@ -110,15 +110,15 @@ f1 = λ (x: integer) →
        (λ (_: unit) → true)
        (λ (_: unit) →
         ESome
-          let x1 : integer = x + 1 in
-          match
-            (handle_default_opt
-               []
-               (λ (_1: unit) → true)
-               (λ (_1: unit) → ESome (x1 + 1)))
-          with
-          | ENone _1 → raise NoValueProvided
-          | ESome arg → arg))
+          (let x1 : integer = x + 1 in
+           match
+             (handle_default_opt
+                []
+                (λ (_1: unit) → true)
+                (λ (_1: unit) → ESome (x1 + 1)))
+           with
+           | ENone _1 → raise NoValueProvided
+           | ESome arg → arg)))
   with
   | ENone _ → raise NoValueProvided
   | ESome arg → arg
@@ -130,15 +130,15 @@ f2 = λ (x: integer) →
        (λ (_: unit) → true)
        (λ (_: unit) →
         ESome
-          let x1 : integer = x + 1 in
-          match
-            (handle_default_opt
-               []
-               (λ (_1: unit) → true)
-               (λ (_1: unit) → ESome (x1 + 1)))
-          with
-          | ENone _1 → raise NoValueProvided
-          | ESome arg → arg))
+          (let x1 : integer = x + 1 in
+           match
+             (handle_default_opt
+                []
+                (λ (_1: unit) → true)
+                (λ (_1: unit) → ESome (x1 + 1)))
+           with
+           | ENone _1 → raise NoValueProvided
+           | ESome arg → arg)))
   with
   | ENone _ → raise NoValueProvided
   | ESome arg → arg
