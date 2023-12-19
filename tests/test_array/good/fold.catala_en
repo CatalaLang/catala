@@ -6,7 +6,7 @@ declaration structure S:
   data income content money
 
 declaration scope A:
-   context output x content collection S
+   context output x content list of S
 
 scope A:
    definition x equals [
@@ -23,16 +23,16 @@ declaration scope B:
 scope B:
    definition argmax equals
      (m among a.x such that m.income * 2.0 is maximum
-      or if collection empty then S { -- id: -1 --income: $0 })
+      or if list empty then S { -- id: -1 --income: $0 })
    definition argmin equals
      (m among a.x such that m.income + $5 is minimum
-      or if collection empty then S { -- id: -1 --income: $20 })
+      or if list empty then S { -- id: -1 --income: $20 })
 ```
 
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [115/115]
@@ -72,7 +72,7 @@ $ catala Interpret -s B
 [RESULT] argmin = S { -- id: 0 -- income: $0.00 }
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT]
 x =
@@ -82,7 +82,7 @@ x =
   ]
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] argmax = S { -- id: 1 -- income: $9.00 }
 [RESULT] argmin = S { -- id: 0 -- income: $0.00 }

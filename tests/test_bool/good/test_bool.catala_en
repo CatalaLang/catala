@@ -14,7 +14,7 @@ scope TestBool:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [47/47]
@@ -80,7 +80,7 @@ let scope TestBool (foo: ⟨bool⟩|context|output) (bar: ⟨integer⟩|context|
     error_empty ⟨ ⟨bar >= 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s TestBool --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s TestBool --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] bar = 1
 [RESULT] foo = true

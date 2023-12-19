@@ -28,7 +28,7 @@ scope S:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [64/64]
@@ -76,13 +76,13 @@ $ catala Interpret -s S2
 [RESULT] y = 1
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s S --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] a = A { -- x: -2.0 -- y: B { -- y: false -- z: -1.0 } }
 [RESULT] b = B { -- y: true -- z: 42.0 }
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s S2 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s S2 --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] y = 1
 ```

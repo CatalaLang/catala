@@ -29,11 +29,11 @@ scope UnitTest2:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s UnitTest1 --disable_warnings
+$ catala Interpret -s UnitTest1 --disable-warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s UnitTest2 --disable_warnings
+$ catala Interpret -s UnitTest2 --disable-warnings
 [RESULT] Computation successful!
 ```

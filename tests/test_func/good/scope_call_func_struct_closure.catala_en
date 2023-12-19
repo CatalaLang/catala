@@ -43,7 +43,7 @@ two closures in Foo.r are different even with optimizations enabled.
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [133/133]
@@ -66,7 +66,7 @@ Invariant Dcalc__Invariants.invariant_default_no_arrow
 ```
 
 ```catala-test-inline
-$ catala Lcalc --avoid_exceptions -O --closure_conversion 
+$ catala Lcalc --avoid-exceptions -O --closure-conversion 
 
 
 type Result = {
@@ -233,7 +233,7 @@ let scope Foo
 ```
 
 ```catala-test-inline
-$ catala Interpret_lcalc -s Foo --avoid_exceptions -O --closure_conversion
+$ catala Interpret_lcalc -s Foo --avoid-exceptions -O --closure-conversion
 [RESULT] Computation successful! Results:
 [RESULT] z = 11
 ```

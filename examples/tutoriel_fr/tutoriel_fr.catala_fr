@@ -863,18 +863,17 @@ champ d'application ValeursDate:
 ### Collections
 
 Souvent, les programmes Catala ont besoin de parler de collection de données
-parce que la loi parle du nombre d’enfants, du maximum d’une liste, etc.
-Catala propose un support de première classe pour les collections, qui ne sont
-finalement que des listes de taille fixe. Vous pouvez créer une liste, filtrer
-ses éléments, mais aussi agréger son contenu pour calculer toutes sortes de
-valeurs.
+parce que la loi parle du nombre d’enfants, du maximum d’une liste, etc. Catala
+propose un support de première classe pour les listes. Vous pouvez créer une
+liste, filtrer ses éléments, mais aussi agréger son contenu pour calculer toutes
+sortes de valeurs.
 
 ```catala
-déclaration champ d'application ValeursDeCollection:
-  interne valeur1 contenu collection entier
+déclaration champ d'application ValeursDeListe:
+  interne valeur1 contenu liste de entier
   interne valeur2 contenu entier
 
-champ d'application ValeursDeCollection:
+champ d'application ValeursDeListe:
   définition valeur1 égal à [45;-6;3;4;0;2155]
   définition valeur2 égal à somme entier de (i * i) pour i parmi valeur1
   # somme de carré

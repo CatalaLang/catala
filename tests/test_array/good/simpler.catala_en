@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-   output x content collection integer
+   output x content list of integer
    output w content boolean
 
 scope A:
@@ -13,7 +13,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [39/39]
@@ -43,7 +43,7 @@ $ catala Interpret -s A
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] w = false
 [RESULT] x = [0; 9; 64]

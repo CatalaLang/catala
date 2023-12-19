@@ -119,7 +119,7 @@ let primitive_typ :=
 
 let typ_data :=
 | t = primitive_typ ; <Primitive>
-| COLLECTION ; t = addpos(typ_data) ; <Collection>
+| LIST ; t = addpos(typ_data) ; <Collection>
 
 let typ == t = typ_data ; <Data>
 
@@ -213,7 +213,7 @@ let naked_expression ==
 } %prec apply
 | max = minmax ;
   OF ; coll = expression ;
-  OR ; IF ; COLLECTION ; EMPTY ; THEN ;
+  OR ; IF ; LIST_EMPTY ; THEN ;
   default = expression ; {
   CollectionOp (AggregateExtremum { max; default }, coll)
 } %prec apply
@@ -265,7 +265,7 @@ let naked_expression ==
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ;
   IS ; max = minmax ;
-  OR ; IF ; COLLECTION ; EMPTY ; THEN ; default = expression ; {
+  OR ; IF ; LIST_EMPTY ; THEN ; default = expression ; {
   CollectionOp (AggregateArgExtremum { max; default; f = i, f }, coll)
 } %prec top_expr
 

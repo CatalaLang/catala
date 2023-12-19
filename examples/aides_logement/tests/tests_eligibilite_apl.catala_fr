@@ -213,39 +213,39 @@ champ d'application Exemple3 :
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Exemple1 --disable_warnings
+$ catala Interpret -s Exemple1 --disable-warnings
 [RESULT] Computation successful! Results:
 [RESULT] éligible = vrai
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Exemple1 --avoid_exceptions
+$ catala Interpret_Lcalc -s Exemple1 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] éligible = vrai
 ```
 
 
 ```catala-test-inline
-$ catala Interpret -s Exemple2 --disable_warnings
+$ catala Interpret -s Exemple2 --disable-warnings
 [RESULT] Computation successful! Results:
 [RESULT] éligible = AllocationLogementFamiliale ()
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Exemple2 --avoid_exceptions
+$ catala Interpret_Lcalc -s Exemple2 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] éligible = AllocationLogementFamiliale ()
 ```
 
 
 ```catala-test-inline
-$ catala Interpret -s Exemple3 --disable_warnings
+$ catala Interpret -s Exemple3 --disable-warnings
 [RESULT] Computation successful! Results:
 [RESULT] éligible = AllocationLogementFamiliale ()
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s Exemple3 --avoid_exceptions
+$ catala Interpret_Lcalc -s Exemple3 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] éligible = AllocationLogementFamiliale ()
 ```

@@ -67,7 +67,7 @@
       <keyword>上下文</keyword>
 
       <!--COLLECTION-->
-      <keyword>collection</keyword>
+      <keyword>list\s+of</keyword>
 
       <!--CONTAINS-->
       <keyword>contains</keyword>
