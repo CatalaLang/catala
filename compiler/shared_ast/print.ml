@@ -980,9 +980,11 @@ module UserFacing = struct
 
   let decimal (lang : Cli.backend_lang) ppf r =
     let den = Q.den r in
-    let int_part, rem = Z.div_rem (Q.num r) den in
+    let num = Z.abs (Q.num r) in
+    let int_part, rem = Z.div_rem num den in
     let rem = Z.abs rem in
     (* Printing the integer part *)
+    if Q.sign r < 0 then Format.pp_print_char ppf '-';
     integer lang ppf int_part;
     (* Printing the decimals *)
     let bigsep, nsep = bigsep lang in
