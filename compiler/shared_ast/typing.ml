@@ -786,10 +786,22 @@ and typecheck_expr_top_down :
       List.map2 (typecheck_expr_top_down ~leave_unresolved ctx env) t_args args
     in
     let t_args =
-      match t_args with
-      | [t] -> (
+      match t_args, tys with
+      | [t], [] -> (
+        (* Handles typing before detuplification: if [tys] was not yet set, we
+           are allowed to destruct a tuple into multiple arguments (see
+           [Scopelang.from_desugared] for the corresponding code
+           transformation) *)
         match UnionFind.get t with TTuple tys, _ -> tys | _ -> t_args)
-      | _ -> t_args
+      | _ ->
+        if List.length t_args <> List.length args' then
+          Message.raise_spanned_error (Expr.pos e)
+            (match e1 with
+            | EAbs _, _ -> "This binds %d variables, but %d were provided."
+            | _ -> "This function application has %d arguments, but expects %d.")
+            (List.length t_args) (List.length args');
+
+        t_args
     in
     let t_func = unionfind ~pos:e1 (TArrow (t_args, tau)) in
     let e1' = typecheck_expr_top_down ~leave_unresolved ctx env t_func e1 in

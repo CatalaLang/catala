@@ -31,4 +31,13 @@ scope Test:
         f2 of str, Two content (12, str))
 ```
 
-Test in progress
+```catala-test-inline
+$ catala typecheck
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala interpret -s Test
+[RESULT] Computation successful! Results:
+[RESULT] o = [2001-01-03; 6.0]
+```
