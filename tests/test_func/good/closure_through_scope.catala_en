@@ -64,13 +64,7 @@ let scope T (T_in: T_in): T {y: integer} =
       (handle_default_opt
          []
          (λ (_: unit) → true)
-         (λ (_: unit) →
-          ESome
-            (let code_and_env :
-                 ((closure_env, integer) → integer * closure_env) =
-               s.f
-             in
-             code_and_env.0 code_and_env.1 2)))
+         (λ (_: unit) → ESome (s.f.0 s.f.1 2)))
     with
     | ENone _ → raise NoValueProvided
     | ESome arg → arg
