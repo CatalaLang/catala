@@ -13,7 +13,7 @@ scope Foo:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [WARNING] These definitions have identical justifications and consequences; is it a mistake?
 
 ┌─⯈ tests/test_exception/good/double_definition.catala_en:9.3-9.15:

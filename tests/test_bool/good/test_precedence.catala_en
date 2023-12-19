@@ -11,7 +11,7 @@ scope TestBool:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [30/30]
@@ -39,7 +39,7 @@ $ catala Interpret -s TestBool
 [RESULT] foo = true
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s TestBool --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s TestBool --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] foo = true
 ```

@@ -137,56 +137,56 @@ champ d'application CasTest5:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest1 --disable_warnings
+$ catala Interpret -s CasTest1 --disable-warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 12,06 €
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest2 --disable_warnings
+$ catala Interpret -s CasTest2 --disable-warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 23,12 €
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest3 --disable_warnings
+$ catala Interpret -s CasTest3 --disable-warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 154,78 €
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest4 --disable_warnings
+$ catala Interpret -s CasTest4 --disable-warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 154,78 €
 ```
 
 ```catala-test-inline
-$ catala Interpret -s CasTest5 --disable_warnings
+$ catala Interpret -s CasTest5 --disable-warnings
 [RESULT] Computation successful! Results:
 [RESULT] montant = 129,65 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest1 --avoid_exceptions
+$ catala Interpret_Lcalc -s CasTest1 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = 12,06 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest2 --avoid_exceptions
+$ catala Interpret_Lcalc -s CasTest2 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = 23,12 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest3 --avoid_exceptions
+$ catala Interpret_Lcalc -s CasTest3 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = 154,78 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest4 --avoid_exceptions
+$ catala Interpret_Lcalc -s CasTest4 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = 154,78 €
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s CasTest5 --avoid_exceptions
+$ catala Interpret_Lcalc -s CasTest5 --avoid-exceptions
 [RESULT] Computation successful! Results:
 [RESULT] montant = 129,65 €
 ```

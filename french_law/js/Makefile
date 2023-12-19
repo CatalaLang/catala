@@ -1,5 +1,5 @@
 dependencies:
-	npm install --omit=dev
+	npm install
 
 bench:
 	node examples.js

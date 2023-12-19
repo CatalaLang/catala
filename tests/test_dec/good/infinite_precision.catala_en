@@ -17,7 +17,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [96/96]
@@ -44,17 +44,17 @@ $ catala Interpret -s A
 [RESULT] Computation successful! Results:
 [RESULT]
 a =
-  0.000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,078,695,580,959,228,473,468…
+  -0.000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,078,695,580,959,228,473,468…
 [RESULT] x = 84.648,665,652,656,896,23
 [RESULT] y = -4.368,297,787,053,206,549,8
 [RESULT] z = 654,265,429,805,103,220,650,980,650.5…
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT]
 a =
-  0.000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,078,695,580,959,228,473,468…
+  -0.000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,000,078,695,580,959,228,473,468…
 [RESULT] x = 84.648,665,652,656,896,23
 [RESULT] y = -4.368,297,787,053,206,549,8
 [RESULT] z = 654,265,429,805,103,220,650,980,650.5…

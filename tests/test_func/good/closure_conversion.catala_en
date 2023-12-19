@@ -14,7 +14,7 @@ scope S:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [28/28]
@@ -37,7 +37,7 @@ Invariant Dcalc__Invariants.invariant_default_no_arrow
 ```
 
 ```catala-test-inline
-$ catala Lcalc --avoid_exceptions -O --closure_conversion
+$ catala Lcalc --avoid-exceptions -O --closure-conversion
 
 
 type S_in = { x_in: bool; }

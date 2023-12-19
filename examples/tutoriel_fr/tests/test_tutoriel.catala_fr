@@ -29,11 +29,11 @@ champ d'application TestUnitaire2:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s TestUnitaire1 --disable_warnings
+$ catala Interpret -s TestUnitaire1 --disable-warnings
 [RESULT] Computation successful!
 ```
 
 ```catala-test-inline
-$ catala Interpret -s TestUnitaire2 --disable_warnings
+$ catala Interpret -s TestUnitaire2 --disable-warnings
 [RESULT] Computation successful!
 ```

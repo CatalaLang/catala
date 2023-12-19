@@ -162,8 +162,7 @@ let rec typ_gen
       (typ ~colors:(List.tl colors))
       t2
   | TArray t1 ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" (typ ~colors)
-      t1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "list of" (typ ~colors) t1
   | TDefault t1 ->
     punctuation fmt "⟨";
     typ ~colors fmt t1;
@@ -687,7 +686,7 @@ module ExprGen (C : EXPR_PARAM) = struct
           StructField.format field
       | EInj { e; cons; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
-          (rhs exprc) e
+          (paren ~rhs:false exprc) e
       | EMatch { e; cases; _ } ->
         Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]" keyword
           "match" (lhs exprc) e keyword "with"
@@ -980,9 +979,11 @@ module UserFacing = struct
 
   let decimal (lang : Cli.backend_lang) ppf r =
     let den = Q.den r in
-    let int_part, rem = Z.div_rem (Q.num r) den in
+    let num = Z.abs (Q.num r) in
+    let int_part, rem = Z.div_rem num den in
     let rem = Z.abs rem in
     (* Printing the integer part *)
+    if Q.sign r < 0 then Format.pp_print_char ppf '-';
     integer lang ppf int_part;
     (* Printing the decimals *)
     let bigsep, nsep = bigsep lang in

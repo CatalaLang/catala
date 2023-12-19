@@ -157,9 +157,8 @@ let rec format_typ
       ")" (format_typ ~colors) t2
   | TArray t1 -> (
     match Mark.remove (UnionFind.get (UnionFind.find t1)) with
-    | TAny _ when not Cli.globals.debug ->
-      Format.pp_print_string fmt "collection"
-    | _ -> Format.fprintf fmt "@[collection@ %a@]" (format_typ ~colors) t1)
+    | TAny _ when not Cli.globals.debug -> Format.pp_print_string fmt "list"
+    | _ -> Format.fprintf fmt "@[list of@ %a@]" (format_typ ~colors) t1)
   | TDefault t1 ->
     Format.pp_print_as fmt 1 "⟨";
     format_typ ~colors fmt t1;

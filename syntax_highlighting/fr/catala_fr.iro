@@ -221,7 +221,7 @@ code : context {
   }
 
   : pattern {
-    regex \=  \b(contient|nombre|somme|tel\s+que|existe|pour|tout|de|si|alors|sinon|est|vide|parmi|maximum|minimum|arrondi)\b
+    regex \=  \b(contient|nombre|somme|tel\s+que|existe|pour|tout|de|si|alors|sinon|est|liste\s+vide|parmi|maximum|minimum|arrondi)\b
     styles [] = .keyword_rule ;
   }
 
@@ -253,7 +253,7 @@ code : context {
   }
 
   : pattern {
-    regex \= \b(structure|énumération|collection|entier|booléen|date|durée|argent|texte|décimal|décret|loi|nombre|somme)\b
+    regex \= \b(structure|énumération|liste\s+de|entier|booléen|date|durée|argent|texte|décimal|décret|loi|nombre|somme)\b
     styles [] = .primitive;
   }
 

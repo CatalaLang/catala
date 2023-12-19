@@ -208,9 +208,11 @@ let rec optimize_expr :
       EMatch { e = arg; cases; name = n1 }
     | EApp { f = EAbs { binder; _ }, _; args }
       when binder_vars_used_at_most_once binder
-           (* when variables not used *)
-           || match args with [((EVar _ | ELit _), _)] -> true | _ -> false ->
-      (* beta reduction for special cases *)
+           || List.for_all
+                (function (EVar _ | ELit _), _ -> true | _ -> false)
+                args ->
+      (* beta reduction when variables not used, and for variable aliases and
+         literal *)
       Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when StructName.equal name name1 ->

@@ -75,7 +75,7 @@ ace.define(
           {
             token: "keyword.other",
             regex:
-              "\\b(champ\\s+d'application|si\\s+et\\s+seulement\\s+si|d\u00e9pend\\s+de|d\u00e9claration|inclus|collection|contenu|optionnel|structure|\u00e9num\u00e9ration|contexte|entr\u00e9e|r\u00e9sultat|interne|r\u00e8gle|sous\\s+condition|condition|donn\u00e9e|cons\u00e9quence|rempli|\u00e9gal\\s+\u00e0|assertion|d\u00e9finition|\u00e9tat|\u00e9tiquette|exception|n'importe\\s+quel)\\b",
+              "\\b(champ\\s+d'application|si\\s+et\\s+seulement\\s+si|d\u00e9pend\\s+de|d\u00e9claration|inclus|liste\\s+de|contenu|optionnel|structure|\u00e9num\u00e9ration|contexte|entr\u00e9e|r\u00e9sultat|interne|r\u00e8gle|sous\\s+condition|condition|donn\u00e9e|cons\u00e9quence|rempli|\u00e9gal\\s+\u00e0|assertion|d\u00e9finition|\u00e9tat|\u00e9tiquette|exception|n'importe\\s+quel)\\b",
           },
           {
             token: "constant.numeric",

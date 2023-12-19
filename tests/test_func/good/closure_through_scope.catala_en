@@ -20,7 +20,7 @@ scope T:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [44/44]
@@ -43,7 +43,7 @@ Invariant Dcalc__Invariants.invariant_default_no_arrow
 ```
 
 ```catala-test-inline
-$ catala Lcalc -s T --avoid_exceptions -O --closure_conversion
+$ catala Lcalc -s T --avoid-exceptions -O --closure-conversion
 let scope T (T_in: T_in): T {y: integer} =
   let sub_set s.x : bool = false in
   let call result : S {f: ((closure_env, integer) → integer * closure_env)}
@@ -58,7 +58,7 @@ let scope T (T_in: T_in): T {y: integer} =
 ```
 
 ```catala-test-inline
-$ catala Interpret_lcalc -s T --avoid_exceptions -O --closure_conversion
+$ catala Interpret_lcalc -s T --avoid-exceptions -O --closure-conversion
 [RESULT] Computation successful! Results:
 [RESULT] y = -2
 ```

@@ -2,14 +2,14 @@
 
 ```catala
 declaration scope A:
-   output x content collection money
+   output x content list of money
 
 scope A:
    definition x equals [$0; $4 + $5; $8 * 0.65]
 
 declaration scope B:
    a scope A
-   output y content collection money
+   output y content list of money
 
 scope B:
    definition y equals m among a.x such that m >= $4.95
@@ -19,7 +19,7 @@ scope B:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [41/41]
@@ -48,7 +48,7 @@ $ catala Interpret -s A
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] x = [$0.00; $9.00; $5.20]
 ```
@@ -62,7 +62,7 @@ $ catala Interpret -s B
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] y = [$9.00; $5.20]
 ```

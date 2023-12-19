@@ -17,7 +17,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [70/70]
@@ -48,7 +48,7 @@ $ catala Interpret -s A
 [RESULT] z = 19.377,955,528,206,987,757…
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] k = 0.333,333,333,333,333,333,33…
 [RESULT] x = 84.648,665

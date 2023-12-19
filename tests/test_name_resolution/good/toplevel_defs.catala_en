@@ -22,7 +22,7 @@ scope S:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [32/32]
@@ -571,23 +571,23 @@ def s(s_in:SIn):
     return S(a = a_3, b = b)
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s S --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s S --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] a = 1,946.574,4
 [RESULT] b = A { -- y: true -- z: 2,091.0 }
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s S2 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s S2 --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] a = 154.0
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s S3 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s S3 --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] a = 2,480.0
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s S4 --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s S4 --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] a = 6,001.0
 ```

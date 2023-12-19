@@ -30,7 +30,7 @@ scope S:
 
 
 ```catala-test-inline
-$ catala Typecheck --check_invariants
+$ catala Typecheck --check-invariants
 [RESULT]
 Invariant Dcalc__Invariants.invariant_typing_defaults
    checked. result: [25/25]
@@ -53,10 +53,10 @@ Invariant Dcalc__Invariants.invariant_default_no_arrow
 ```
 
 ```catala-test-inline
-$ catala typecheck --disable_warnings
+$ catala typecheck --disable-warnings
 [RESULT] Typechecking successful!
 ```
 
 ```catala-test { id="ml" }
-$ catala ocaml --disable_warnings -o -
+$ catala ocaml --disable-warnings -o -
 ```

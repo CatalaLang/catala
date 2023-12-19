@@ -216,9 +216,9 @@ déclaration énumération DateNaissanceTroisièmeOuDernierPlusEnfant:
   -- PlusDeTroisEnfants contenu DateDeNaissanceOuMoisDeGrossesse
 
 déclaration structure Ménage:
-  donnée prestations_reçues contenu collection PrestationReçue
+  donnée prestations_reçues contenu liste de PrestationReçue
   donnée logement contenu Logement
-  donnée personnes_à_charge contenu collection PersonneÀCharge
+  donnée personnes_à_charge contenu liste de PersonneÀCharge
   donnée nombre_autres_occupants_logement contenu entier
   donnée situation_familiale contenu SituationFamiliale
   donnée condition_rattaché_foyer_fiscal_parent_ifi contenu booléen
@@ -311,7 +311,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   interne prise_en_compte_personne_à_charge condition
     dépend de personne_à_charge contenu PersonneÀCharge
   interne personnes_à_charge_prises_en_compte
-    contenu collection PersonneÀCharge
+    contenu liste de PersonneÀCharge
   contexte date_entrée_vigueur_différée_cch contenu date
   interne nombre_personnes_logement contenu entier
 
@@ -330,7 +330,7 @@ déclaration champ d'application ÉligibilitéAidesPersonnelleLogement:
   résultat éligibilité condition
   résultat nombre_personnes_à_charge_prises_en_compte contenu entier
   résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
-   collection décimal
+   liste de décimal
   résultat condition_2_r823_4 condition
     dépend de personne_à_charge contenu PersonneÀCharge
 
@@ -388,7 +388,7 @@ déclaration champ d'application ÉligibilitéAidePersonnaliséeLogement:
   résultat éligibilité condition
   résultat nombre_personnes_à_charge_prises_en_compte contenu entier
   résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
-   collection décimal
+   liste de décimal
 
 
 champ d'application ÉligibilitéAidePersonnaliséeLogement:
@@ -437,7 +437,7 @@ déclaration champ d'application ÉligibilitéAllocationLogement:
     état l841_2
   résultat nombre_personnes_à_charge_prises_en_compte contenu entier
   résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
-    collection décimal
+    liste de décimal
 
 champ d'application ÉligibilitéAllocationLogement:
   # Ici nous instancions le champ d'application d'éligibilité aux prestations
@@ -608,9 +608,9 @@ déclaration champ d'application CalculÉquivalenceLoyerMinimale:
   entrée condition_2_du_832_25 contenu booléen
   entrée n_nombre_parts_d832_25 contenu décimal
 
-  interne tranches_revenus_d832_26 contenu collection TrancheRevenu
+  interne tranches_revenus_d832_26 contenu liste de TrancheRevenu
   interne tranches_revenus_d832_26_multipliées contenu
-    collection TrancheRevenuDécimal
+    liste de TrancheRevenuDécimal
   interne montant_forfaitaire_d832_26 contenu argent
 
   résultat montant contenu argent
@@ -1137,7 +1137,7 @@ déclaration champ d'application CalculetteAidesAuLogement:
   résultat traitement_aide_finale contenu argent
     dépend de aide_finale contenu argent
   résultat coefficents_enfants_garde_alternée_pris_en_compte contenu
-   collection décimal
+   liste de décimal
 
 champ d'application CalculetteAidesAuLogement:
   définition éligibilité_aide_personnalisée_logement.ménage égal à
@@ -1205,7 +1205,7 @@ déclaration champ d'application CalculetteAidesAuLogementGardeAlternée:
 
   interne ménage_sans_enfants_garde_alternée contenu Ménage
   interne coefficents_enfants_garde_alternée_pris_en_compte contenu
-   collection décimal
+   liste de décimal
 
   calculette champ d'application CalculetteAidesAuLogement
   calculette_sans_garde_alternée champ d'application CalculetteAidesAuLogement
