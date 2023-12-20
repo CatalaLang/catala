@@ -292,8 +292,6 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
-  let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
-  let _default a = lazy (UnionFind.make (TDefault (Lazy.force a), pos)) in
   let ( @-> ) x y =
     lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
   in
@@ -309,8 +307,11 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
     | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
-    | HandleDefaultOpt ->
-      [array (option any); [ut] @-> bt; [ut] @-> option any] @-> option any
+    (* The [any] in this type definition should be [option any] but when
+       retyping after option monomorphization it would not work, so we let
+       unification instantiate a monomorphized option type at each new operator
+       instead. *)
+    | HandleDefaultOpt -> [array any; [ut] @-> bt; [ut] @-> any] @-> any
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in

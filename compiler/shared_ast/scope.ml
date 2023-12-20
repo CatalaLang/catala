@@ -34,12 +34,12 @@ let rec fold_right_lets ~f ~init scope_body_expr =
     f scope_let var next_result
 
 let map_exprs_in_lets :
-    ?reset_types:bool ->
+    ?transform_types:(typ -> typ) ->
     f:('expr1 -> 'expr2 boxed) ->
     varf:('expr1 Var.t -> 'expr2 Var.t) ->
     'expr1 scope_body_expr ->
     'expr2 scope_body_expr Bindlib.box =
- fun ?(reset_types = false) ~f ~varf scope_body_expr ->
+ fun ?(transform_types = Fun.id) ~f ~varf scope_body_expr ->
   fold_right_lets
     ~f:(fun scope_let var_next acc ->
       Bindlib.box_apply2
@@ -49,9 +49,7 @@ let map_exprs_in_lets :
               scope_let with
               scope_let_next;
               scope_let_expr;
-              scope_let_typ =
-                (if reset_types then Mark.copy scope_let.scope_let_typ TAny
-                 else scope_let.scope_let_typ);
+              scope_let_typ = transform_types scope_let.scope_let_typ;
             })
         (Bindlib.bind_var (varf var_next) acc)
         (Expr.Box.lift (f scope_let.scope_let_expr)))

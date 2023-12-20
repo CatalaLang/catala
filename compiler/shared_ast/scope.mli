@@ -44,7 +44,7 @@ val fold_right_lets :
     scope lets to be examined (which are before in the program order). *)
 
 val map_exprs_in_lets :
-  ?reset_types:bool ->
+  ?transform_types:(typ -> typ) ->
   f:('expr1 -> 'expr2 boxed) ->
   varf:('expr1 Var.t -> 'expr2 Var.t) ->
   'expr1 scope_body_expr ->

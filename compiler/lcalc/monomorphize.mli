@@ -17,9 +17,11 @@
 open Shared_ast
 open Ast
 
-val program : typed program -> typed program
+val program :
+  typed program -> untyped program * Scopelang.Dependency.TVertex.t list
 (** This function performs type monomorphization in a Catala program with two
     main actions: {ul
     {- transforms tuples into named structs.}
     {- creates monomorphized instances of TOption for every occurence of the type.}}
+    It also returns the new type ordering for the program.
 *)

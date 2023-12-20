@@ -272,8 +272,13 @@ module Passes = struct
     in
     Message.emit_debug "Retyping lambda calculus...";
     let prg = Typing.program ~leave_unresolved:true prg in
-    let prg =
-      if monomorphize_types then Lcalc.Monomorphize.program prg else prg
+    let prg, type_ordering =
+      if monomorphize_types then (
+        Message.emit_debug "Monomorphizing types...";
+        let prg, type_ordering = Lcalc.Monomorphize.program prg in
+        let prg = Typing.program ~leave_unresolved:false prg in
+        prg, type_ordering)
+      else prg, type_ordering
     in
     Program.untype prg, type_ordering
 
@@ -1089,6 +1094,11 @@ let main () =
     let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit content Error;
     if Cli.globals.debug then Printexc.print_raw_backtrace stderr bt;
+    exit Cmd.Exit.some_error
+  | exception Failure msg ->
+    let bt = Printexc.get_raw_backtrace () in
+    Message.Content.emit (Message.Content.of_string msg) Error;
+    if Printexc.backtrace_status () then Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | exception Sys_error msg ->
     let bt = Printexc.get_raw_backtrace () in
