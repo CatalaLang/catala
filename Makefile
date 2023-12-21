@@ -96,8 +96,18 @@ doc:
 	dune build @doc
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
-install:
+prepare-install:
 	dune build @install
+
+install: prepare-install
+	if [ x$$($(OPAM) --version) = "x2.1.5" ]; then \
+	  $(OPAM) install . --working-dir; \
+	else \
+	  $(OPAM) install . --working-dir --assume-built; \
+	fi
+# `dune install` would work, but does a dirty install to the opam prefix without
+# registering with opam.
+# --assume-built is broken in 2.1.5
 
 #> runtimes				: Builds the OCaml and js_of_ocaml runtimes
 runtimes:
@@ -190,14 +200,9 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 
 .FORCE:
 
-test_suite: .FORCE install
-	@$(MAKE) -C tests pass_all_tests
-
-test_examples: .FORCE install
-	@$(MAKE) -C examples pass_all_tests
-
 #> tests					: Run interpreter tests
-tests: test_suite test_examples
+tests: .FORCE prepare-install
+	@$(MAKE) -C tests pass_all_tests
 
 #> tests_ocaml				: Run OCaml unit tests for the Catala-generated code
 tests_ocaml: run_french_law_library_ocaml_tests
@@ -223,7 +228,7 @@ WEBSITE_ASSETS = grammar.html catala.html clerk.html
 $(addprefix _build/default/,$(WEBSITE_ASSETS)):
 	dune build $@
 
-website-assets-base: build_french_law_library_web_api literate_examples build
+website-assets-base: build_french_law_library_web_api build
 	dune build $(WEBSITE_ASSETS)
 
 #> website-assets				: Builds all the assets necessary for the Catala website
@@ -275,7 +280,7 @@ help_catala:
 ##########################################
 # Special targets
 ##########################################
-.PHONY: inspect clean all literate_examples english allocations_familiales	\
+.PHONY: inspect clean all english allocations_familiales	\
 	pygments install build_dev build doc format dependencies		\
 	dependencies-ocaml catala.html help parser-messages plugins		\
 	generate_french_law_json_schemas generate_french_law_library_python	\
