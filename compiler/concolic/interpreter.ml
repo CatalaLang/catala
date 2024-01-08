@@ -407,6 +407,21 @@ let op2
   let symb_expr = symbolic_f ctx.ctx_z3 e1 e2 in
   add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
 
+(* Reproduce the behaviour of [Q.to_bigint] rounding rational [q] to an integer
+   towards 0 (ie 0.8 and -0.8 are rounded to 0) TODO CONC REU is rounding
+   (truncating) towards 0 the expected behaviour for Catala? I see there is a
+   "round to nearest" function that would be far easier to implement (without
+   if-then-else *)
+let z3_real2int_towards_zero ctx (q : s_expr) : s_expr =
+  let zero = Z3.Arithmetic.Integer.mk_numeral_i ctx 0 in
+  let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
+  let round_pos = Z3.Arithmetic.Real.mk_real2int ctx q in
+  let round_neg =
+    Z3.Arithmetic.mk_unary_minus ctx
+      (Z3.Arithmetic.Real.mk_real2int ctx (Z3.Arithmetic.mk_unary_minus ctx q))
+  in
+  Z3.Boolean.mk_ite ctx is_positive round_pos round_neg
+
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 let rec evaluate_operator
     evaluate_expr
@@ -544,18 +559,17 @@ let rec evaluate_operator
       i e
   | ToMoney_rat, [((ELit (LRat i), _) as e)] ->
     (* TODO CONC REU warning here: [o_tomoney_rat] rounds to the cent
-     *   closest to 0, while [mk_real2int] rounds to the lower cent. See the
-     *   [error/rounding_error] test for an example.
-     * =>> a solution would be to implement OCaml's rounding in Z3
-     * TODO I don't think we should do [Round_mon], [Round_rat],
-     * [Mult_mon_rat], [Div_mon_rat] until this is fixed *)
+     *   closest to 0, while [mk_real2int] rounds to the lower cent.
+     * =>> thus I implement OCaml's rounding in Z3 in function [z3_real2int_towards_zero]
+     * TODO be careful as well with [Round_mon], [Round_rat], [Mult_mon_rat],
+     * [Div_mon_rat], because there are several different rounding methods *)
     op1 ctx m
       (fun x -> ELit (LMoney (o_tomoney_rat x)))
       (fun ctx e ->
         let cents =
           Z3.Arithmetic.mk_mul ctx [e; Z3.Arithmetic.Real.mk_numeral_i ctx 100]
         in
-        Z3.Arithmetic.Real.mk_real2int ctx cents)
+        z3_real2int_towards_zero ctx cents)
       i e
   | Round_mon, _ -> failwith "Eop Round_mon not implemented"
   (* TODO with careful rounding *)
