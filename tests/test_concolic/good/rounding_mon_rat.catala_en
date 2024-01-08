@@ -1,0 +1,102 @@
+
+## Article
+
+```catala
+declaration scope A:
+  input x content decimal
+  output o content integer
+
+scope A:
+  exception definition o under condition (x=1.0 and $0.01 * x = $0.01) consequence equals 0
+  exception definition o under condition (x=0.9 and $0.01 * x = $0.01) consequence equals 1
+  exception definition o under condition (x=0.5 and $0.01 * x = $0.01) consequence equals 2
+  exception definition o under condition (x=0.1 and $0.01 * x = $0) consequence equals 3
+  exception definition o under condition (x=0.0 and $0.01 * x = $0) consequence equals 4
+  exception definition o under condition (x=-0.1 and $0.01 * x = $0) consequence equals 5
+  exception definition o under condition (x=-0.5 and $0.01 * x = -$$0.01) consequence equals 6
+  exception definition o under condition (x=-0.9 and $0.01 * x = -$$0.01) consequence equals 7
+  exception definition o under condition (x=-1.0 and $0.01 * x = -$$0.01) consequence equals 8
+  definition o equals -1
+```
+
+This shows what is the specification of the rounding in [o_mult_mon_rat]:
+round to the nearest integer, with 1/2 going to 1 and -1/2 going to -1.
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A (A_in: A_in {x_in: decimal}): A {o: integer} =
+  let get x : decimal = A_in.x_in in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨ ⟨x = 1. && ¤0.01 * x = ¤0.01 ⊢ ⟨0⟩⟩,
+          ⟨x = 0.9 && ¤0.01 * x = ¤0.01 ⊢ ⟨1⟩⟩,
+          ⟨x = 0.5 && ¤0.01 * x = ¤0.01 ⊢ ⟨2⟩⟩,
+          ⟨x = 0.1 && ¤0.01 * x = ¤0.00 ⊢ ⟨3⟩⟩,
+          ⟨x = 0. && ¤0.01 * x = ¤0.00 ⊢ ⟨4⟩⟩,
+          ⟨x = -0.1 && ¤0.01 * x = ¤0.00 ⊢ ⟨5⟩⟩,
+          ⟨x = -0.5 && ¤0.01 * x = - ¤0.01 ⊢ ⟨6⟩⟩,
+          ⟨x = -0.9 && ¤0.01 * x = - ¤0.01 ⊢ ⟨7⟩⟩,
+          ⟨x = -1. && ¤0.01 * x = - ¤0.01 ⊢ ⟨8⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨-1⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42.
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = -1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 1.
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 0.9
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 0.5
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 0.1
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 0.
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 4
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = -0.1
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 5
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = -0.5
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 6
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = -0.9
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 7
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = -1.
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 8
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+

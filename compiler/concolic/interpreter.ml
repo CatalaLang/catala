@@ -423,10 +423,11 @@ let op2
   add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
 
 (* Reproduce the behaviour of [Q.to_bigint] rounding rational [q] to an integer
-   towards 0 (ie 0.8 and -0.8 are rounded to 0) TODO CONC REU is rounding
-   (truncating) towards 0 the expected behaviour for Catala? I see there is a
-   "round to nearest" function that would be far easier to implement (without
-   if-then-else *)
+   towards 0 (ie 0.8 and -0.8 are rounded to 0)
+ * TODO CONC REU is rounding (truncating) towards 0 the expected behaviour for
+ * Catala? I see there is a "round to nearest" function that would be far easier
+ * to implement (without if-then-else *)
+(* TODO add proper test like for [z3_real2int_nearest] *)
 let z3_real2int_towards_zero ctx (q : s_expr) : s_expr =
   let zero = Z3.Arithmetic.Integer.mk_numeral_i ctx 0 in
   let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
@@ -434,6 +435,26 @@ let z3_real2int_towards_zero ctx (q : s_expr) : s_expr =
   let round_neg =
     Z3.Arithmetic.mk_unary_minus ctx
       (Z3.Arithmetic.Real.mk_real2int ctx (Z3.Arithmetic.mk_unary_minus ctx q))
+  in
+  Z3.Boolean.mk_ite ctx is_positive round_pos round_neg
+
+(* Reproduce the behaviour of [o_mult_mon_rat] rational [q] to the nearest
+   integer (away from 0). 1/2 rounds to 1, and -1/2 rounds to -1.
+ * TODO CONC REU this could be easier to implement than
+   [z3_real2int_towards_zero] with no if-then-else, if the rounding was the
+   same for positive and negative numbers (upwards), ie rounding -1/2 to 0. *)
+let z3_real2int_nearest ctx (q : s_expr) : s_expr =
+  let zero = Z3.Arithmetic.Integer.mk_numeral_i ctx 0 in
+  let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
+  let half = Z3.Arithmetic.Real.mk_numeral_nd ctx 1 2 in
+  let shift_pos = Z3.Arithmetic.mk_add ctx [q; half] in
+  let round_pos = Z3.Arithmetic.Real.mk_real2int ctx shift_pos in
+  let shift_neg =
+    Z3.Arithmetic.mk_add ctx [Z3.Arithmetic.mk_unary_minus ctx q; half]
+  in
+  let round_neg =
+    Z3.Arithmetic.mk_unary_minus ctx
+      (Z3.Arithmetic.Real.mk_real2int ctx shift_neg)
   in
   Z3.Boolean.mk_ite ctx is_positive round_pos round_neg
 
@@ -627,7 +648,13 @@ let rec evaluate_operator
     op2list ctx m
       (fun x y -> ELit (LRat (o_mult_rat_rat x y)))
       Z3.Arithmetic.mk_mul x y e1 e2
-  | Mult_mon_rat, _ -> failwith "Eop Mult_mon_rat not implemented"
+  | Mult_mon_rat, [((ELit (LMoney x), _) as e1); ((ELit (LRat y), _) as e2)] ->
+    op2 ctx m
+      (fun x y -> ELit (LMoney (o_mult_mon_rat x y)))
+      (fun ctx cents r ->
+        let product = Z3.Arithmetic.mk_mul ctx [cents; r] in
+        z3_real2int_nearest ctx product)
+      x y e1 e2
   (* TODO with careful rounding *)
   | Mult_dur_int, _ -> failwith "Eop Mult_dur_int not implemented"
   | Div_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
@@ -729,7 +756,7 @@ let rec evaluate_operator
       | Add_mon_mon (* | Add_dat_dur _ | Add_dur_dur *)
       | Sub_int_int | Sub_rat_rat
       | Sub_mon_mon (* | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur *)
-      | Mult_int_int | Mult_rat_rat (* | Mult_mon_rat | Mult_dur_int *)
+      | Mult_int_int | Mult_rat_rat | Mult_mon_rat (* | Mult_dur_int *)
       | Div_int_int
       | Div_rat_rat (* | Div_mon_mon | Div_mon_rat | Div_dur_dur *)
       | Lt_int_int | Lt_rat_rat | Lt_mon_mon (* | Lt_dat_dat | Lt_dur_dur *)
