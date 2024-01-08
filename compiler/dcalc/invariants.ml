@@ -93,8 +93,7 @@ let invariant_app_inversion () : string * invariant_expr =
     fun _ctx e ->
       match Mark.remove e with
       | EApp { f = EAbs { binder; _ }, _; args; _ } ->
-        if Bindlib.mbinder_arity binder = 1 && List.length args = 1 then Pass
-        else Fail
+        if Bindlib.mbinder_arity binder = List.length args then Pass else Fail
       | EApp { f = EVar _, _; _ } -> Pass
       | EApp { f = EStructAccess _, _; _ } -> Pass
       | EApp { f = EExternal _, _; _ } -> Pass

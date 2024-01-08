@@ -35,11 +35,15 @@ module Runtime = Runtime_ocaml.Runtime
    Shared_ast.Operator} for detail. *)
 
 let translate_binop :
-    S.binop -> Pos.t -> Ast.expr boxed -> Ast.expr boxed -> Ast.expr boxed =
- fun op pos lhs rhs ->
+    S.binop Mark.pos ->
+    Pos.t ->
+    Ast.expr boxed ->
+    Ast.expr boxed ->
+    Ast.expr boxed =
+ fun (op, op_pos) pos lhs rhs ->
   let op_expr op tys =
     Expr.eappop ~op
-      ~tys:(List.map (Mark.add pos) tys)
+      ~tys:(List.map (Mark.add op_pos) tys)
       ~args:[lhs; rhs]
       (Untyped { pos })
   in
@@ -73,7 +77,7 @@ let translate_binop :
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TRat]
       | S.KDate ->
-        Message.raise_spanned_error pos
+        Message.raise_spanned_error op_pos
           "This operator doesn't exist, dates can't be multiplied"
       | S.KDuration -> [TLit TDuration; TLit TInt])
   | S.Div k ->
@@ -84,7 +88,7 @@ let translate_binop :
       | S.KDec -> [TLit TRat; TLit TRat]
       | S.KMoney -> [TLit TMoney; TLit TMoney]
       | S.KDate ->
-        Message.raise_spanned_error pos
+        Message.raise_spanned_error op_pos
           "This operator doesn't exist, dates can't be divided"
       | S.KDuration -> [TLit TDuration; TLit TDuration])
   | S.Lt k | S.Lte k | S.Gt k | S.Gte k ->
@@ -106,11 +110,11 @@ let translate_binop :
     op_expr Eq [TAny; TAny]
     (* This is a truly polymorphic operator, not an overload *)
   | S.Neq -> assert false (* desugared already *)
-  | S.Concat -> op_expr Concat [TArray (TAny, pos); TArray (TAny, pos)]
+  | S.Concat -> op_expr Concat [TArray (TAny, op_pos); TArray (TAny, op_pos)]
 
-let translate_unop (op : S.unop) pos arg : Ast.expr boxed =
+let translate_unop ((op, op_pos) : S.unop Mark.pos) pos arg : Ast.expr boxed =
   let op_expr op ty =
-    Expr.eappop ~op ~tys:[Mark.add pos ty] ~args:[arg] (Untyped { pos })
+    Expr.eappop ~op ~tys:[Mark.add op_pos ty] ~args:[arg] (Untyped { pos })
   in
   match op with
   | S.Not -> op_expr Not (TLit TBool)
@@ -122,7 +126,7 @@ let translate_unop (op : S.unop) pos arg : Ast.expr boxed =
       | S.KDec -> TLit TRat
       | S.KMoney -> TLit TMoney
       | S.KDate ->
-        Message.raise_spanned_error pos
+        Message.raise_spanned_error op_pos
           "This operator doesn't exist, dates can't be negative"
       | S.KDuration -> TLit TDuration)
 
@@ -257,17 +261,15 @@ let rec translate_expr
   | Binop ((((S.And | S.Or | S.Xor), _) as op), e1, e2) ->
     check_formula op e1;
     check_formula op e2;
-    translate_binop (Mark.remove op) (Mark.get op) (rec_helper e1)
-      (rec_helper e2)
+    translate_binop op pos (rec_helper e1) (rec_helper e2)
   | IfThenElse (e_if, e_then, e_else) ->
     Expr.eifthenelse (rec_helper e_if) (rec_helper e_then) (rec_helper e_else)
       emark
   | Binop ((S.Neq, posn), e1, e2) ->
     (* Neq is just sugar *)
     rec_helper (Unop ((S.Not, posn), (Binop ((S.Eq, posn), e1, e2), posn)), pos)
-  | Binop ((op, pos), e1, e2) ->
-    translate_binop op pos (rec_helper e1) (rec_helper e2)
-  | Unop ((op, pos), e) -> translate_unop op pos (rec_helper e)
+  | Binop (op, e1, e2) -> translate_binop op pos (rec_helper e1) (rec_helper e2)
+  | Unop (op, e) -> translate_unop op pos (rec_helper e)
   | Literal l ->
     let lit =
       match l with
@@ -693,7 +695,8 @@ let rec translate_expr
       let acc = Expr.make_var acc_var (Untyped { pos = Mark.get param0 }) in
       Expr.eabs
         (Expr.bind [| acc_var; param |]
-           (translate_binop op pos acc (rec_helper ~local_vars predicate)))
+           (translate_binop (op, pos) pos acc
+              (rec_helper ~local_vars predicate)))
         [TAny, pos; TAny, pos]
         emark
     in
@@ -711,7 +714,7 @@ let rec translate_expr
       let x1 = Expr.make_var v1 emark in
       let x2 = Expr.make_var v2 emark in
       Expr.make_abs [| v1; v2 |]
-        (Expr.eifthenelse (translate_binop op pos x1 x2) x1 x2 emark)
+        (Expr.eifthenelse (translate_binop (op, pos) pos x1 x2) x1 x2 emark)
         [TAny, pos; TAny, pos]
         pos
     in
@@ -741,7 +744,7 @@ let rec translate_expr
       let x1 = Expr.make_var v1 emark in
       let x2 = Expr.make_var v2 emark in
       Expr.make_abs [| v1; v2 |]
-        (translate_binop (S.Add KPoly) pos x1 x2)
+        (translate_binop (S.Add KPoly, pos) pos x1 x2)
         [TAny, pos; TAny, pos]
         pos
     in
@@ -1289,7 +1292,6 @@ let process_topdef
   let translate_typ t = Name_resolution.process_type ctxt t in
   let translate_tbase (tbase, m) = translate_typ (Base tbase, m) in
   let typ = translate_typ def.S.topdef_type in
-  Message.emit_debug "TTYP: %a@." Print.typ_debug typ;
   let expr_opt =
     match def.S.topdef_expr, def.S.topdef_args with
     | None, _ -> None
@@ -1314,9 +1316,6 @@ let process_topdef
              please name the individual arguments"
         | _ -> ()
       in
-      Message.emit_debug "TTYPSS: %a@."
-        (Format.pp_print_list Print.typ_debug)
-        (List.map translate_tbase tys);
       let e =
         Expr.make_abs
           (Array.of_list (List.map Mark.remove args))
