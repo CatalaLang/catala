@@ -1,0 +1,58 @@
+## Article
+
+```catala
+declaration scope A:
+    input x content integer
+    output o content integer
+
+scope A:
+    definition o equals
+    if x>42
+        then 1
+    else if x=42
+        then 2
+    else if x<42
+        then 3
+    else -1
+```
+
+Note that `-1` is never reached.
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A (A_in: A_in {x_in: integer}): A {o: integer} =
+  let get x : integer = A_in.x_in in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨true
+         ⊢ ⟨if x > 42 then 1
+            else if x = 42 then 2
+            else if x < 42 then 3
+            else -1⟩⟩
+      | false ⊢ ∅ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 0
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 43
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
