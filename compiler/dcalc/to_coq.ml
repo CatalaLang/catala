@@ -254,7 +254,7 @@ let format_var (fmt : Format.formatter) (v : 'm Var.t) : unit =
   format_var_str fmt (Bindlib.name_of v)
 
 let needs_parens (e : 'm expr) : bool =
-  match Mark.remove e with EVar _ | ETuple _ | EOp _ -> false | _ -> true
+  match Mark.remove e with EVar _ | ETuple _ | _ -> true
 
 let find_index p =
   let rec aux i = function
@@ -334,7 +334,7 @@ let rec format_expr ctx (fmt : Format.formatter) (e : 'm expr) : unit =
           (dctx, List.append (Array.to_list xs) debrin)
           fmt body)
       fmt ()
-  | EApp { f = EAbs { binder; tys = [ty] }, _; args = [e1] }
+  | EApp { f = EAbs { binder; tys = [ty] }, _; args = [e1] ; _ }
     when Bindlib.mbinder_arity binder = 1 ->
     let xs, e2 = Bindlib.unmbind binder in
     let x = xs.(0) in
@@ -343,10 +343,11 @@ let rec format_expr ctx (fmt : Format.formatter) (e : 'm expr) : unit =
       (format_typ dctx) ty format_expr e1
       (format_expr' (dctx, x :: debrin))
       e2
-  | EApp { f = EOp { op; _ }, _; args = [e1; e2] } ->
+  | EAppOp { op; args = [e1; e2]; _ } ->
     Format.fprintf fmt "@[<hov 2>Binop %s@ %a@ %a@]" (Operator.name op)
       format_with_parens e1 format_with_parens e2
-  | EApp { f; args } ->
+  | EAppOp _ -> assert false
+  | EApp { f; args; _ } ->
     Format.fprintf fmt "@[<hov 2>App@ %a@ %a@]" format_with_parens f
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -355,7 +356,7 @@ let rec format_expr ctx (fmt : Format.formatter) (e : 'm expr) : unit =
   | EIfThenElse { cond; etrue; efalse } ->
     Format.fprintf fmt "@[<hov 2>If@ %a@ %a@ %a@]" format_with_parens cond
       format_with_parens etrue format_with_parens efalse
-  | EOp { op; _ } -> Format.pp_print_string fmt (Operator.name op)
+  (* | EOp { op; _ } -> Format.pp_print_string fmt (Operator.name op) *)
   | EAssert _ -> Format.fprintf fmt "@[<hov 2>Value@ VUnit (* assert *) @]"
   | EEmptyError -> Format.fprintf fmt "Empty"
   | EDefault { excepts; just; cons } ->
