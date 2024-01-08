@@ -18,7 +18,8 @@
     in the AST:
 
     - it fills the types of arguments in [EAbs] nodes, (untyped ones are
-      inserted during desugaring, e.g. by `let-in` constructs),
+      inserted during desugaring, e.g. by `let-in` constructs), as well as
+      [EApp] and [EAppOp] nodes
     - it resolves the structure names of [EDStructAccess] nodes. *)
 
 val program : Ast.program -> Ast.program

@@ -61,9 +61,20 @@ val expr :
     filling the gaps ([TAny]) if any. Use [Expr.untype] first if this is not
     what you want.
 
-    Note that typing also transparently performs disambiguation of constructors:
-    [EDStructAccess] nodes are translated into [EStructAccess] with the suitable
-    structure and field idents (this only concerns [desugared] expressions). *)
+    Note that typing also transparently performs the following changes to the
+    AST nodes, outside of typing annotations:
+    - disambiguation of constructors: [EDStructAccess] nodes are translated into
+      [EStructAccess] with the suitable structure and field idents (this only
+      concerns [desugared] expressions).
+    - resolution of operator types, which are stored (monomorphised) back in the
+      [EAppOp] nodes
+    - resolution of function application input types on the [EApp] nodes, when
+      that was originally empty ([[]]): this documents the arity of the function
+      application, taking de-tuplification into account.
+    - [TAny] appearing within nodes are refined to more precise types, e.g. on
+      `EAbs` nodes (but be careful with this, it may only work for specific
+      structures of generated code ; [~leave_unresolved:false] checks that it
+      didn't cause problems) *)
 
 val check_expr :
   leave_unresolved:bool ->

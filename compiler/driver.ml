@@ -237,14 +237,14 @@ module Passes = struct
           "Option --avoid-exceptions is not compatible with option --trace"
       | true, _, Untyped _ ->
         Program.untype
-          (Lcalc.Compile_without_exceptions.translate_program
+          (Lcalc.From_dcalc.translate_program_without_exceptions
              (Shared_ast.Typing.program ~leave_unresolved:false prg))
       | true, _, Typed _ ->
-        Lcalc.Compile_without_exceptions.translate_program prg
+        Lcalc.From_dcalc.translate_program_without_exceptions prg
       | false, _, Typed _ ->
-        Program.untype (Lcalc.Compile_with_exceptions.translate_program prg)
+        Program.untype (Lcalc.From_dcalc.translate_program_with_exceptions prg)
       | false, _, Untyped _ ->
-        Lcalc.Compile_with_exceptions.translate_program prg
+        Lcalc.From_dcalc.translate_program_with_exceptions prg
       | _, _, Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     let prg =

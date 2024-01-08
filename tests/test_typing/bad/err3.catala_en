@@ -24,10 +24,10 @@ Error during typechecking, incompatible types:
 └─⯈ decimal
 
 This expression has type integer:
-┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
+┌─⯈ tests/test_typing/bad/err3.catala_en:10.23-10.45:
 └──┐
 10 │   definition a equals number of (z ++ z) * 2
-   │                                          ‾
+   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
 Expected type decimal coming from expression:
 ┌─⯈ tests/test_typing/bad/common.catala_en:15.20-15.27:
@@ -53,10 +53,10 @@ Error during typechecking, incompatible types:
 └─⯈ decimal
 
 This expression has type integer:
-┌─⯈ tests/test_typing/bad/err3.catala_en:10.42-10.43:
+┌─⯈ tests/test_typing/bad/err3.catala_en:10.23-10.45:
 └──┐
 10 │   definition a equals number of (z ++ z) * 2
-   │                                          ‾
+   │                       ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
 
 Expected type decimal coming from expression:
 ┌─⯈ tests/test_typing/bad/common.catala_en:15.20-15.27:

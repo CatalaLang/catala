@@ -38,15 +38,10 @@ let rec conjunction_exprs (exprs : typed expr list) (mark : typed mark) :
   match exprs with
   | [] -> ELit (LBool true), mark
   | hd :: tl ->
-    ( EApp
+    ( EAppOp
         {
-          f =
-            ( EOp
-                {
-                  op = And;
-                  tys = [TLit TBool, Expr.pos hd; TLit TBool, Expr.pos hd];
-                },
-              mark );
+          op = And;
+          tys = [TLit TBool, Expr.pos hd; TLit TBool, Expr.pos hd];
           args = [hd; conjunction_exprs tl mark];
         },
       mark )
@@ -57,27 +52,17 @@ let conjunction (args : vc_return list) (mark : typed mark) : vc_return =
   in
   List.fold_left
     (fun acc arg ->
-      ( EApp
+      ( EAppOp
           {
-            f =
-              ( EOp
-                  {
-                    op = And;
-                    tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
-                  },
-                mark );
+            op = And;
+            tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
             args = [arg; acc];
           },
         mark ))
     acc list
 
 let negation (arg : vc_return) (mark : typed mark) : vc_return =
-  ( EApp
-      {
-        f = EOp { op = Not; tys = [TLit TBool, Expr.pos arg] }, mark;
-        args = [arg];
-      },
-    mark )
+  EAppOp { op = Not; tys = [TLit TBool, Expr.pos arg]; args = [arg] }, mark
 
 let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
   let acc, list =
@@ -85,15 +70,10 @@ let disjunction (args : vc_return list) (mark : typed mark) : vc_return =
   in
   List.fold_left
     (fun (acc : vc_return) arg ->
-      ( EApp
+      ( EAppOp
           {
-            f =
-              ( EOp
-                  {
-                    op = Or;
-                    tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
-                  },
-                mark );
+            op = Or;
+            tys = [TLit TBool, Expr.pos acc; TLit TBool, Expr.pos arg];
             args = [arg; acc];
           },
         mark ))
@@ -117,7 +97,7 @@ let match_and_ignore_outer_reentrant_default (ctx : ctx) (e : typed expr) :
   | EErrorOnEmpty
       ( EDefault
           {
-            excepts = [(EApp { f = EVar x, _; args = [(ELit LUnit, _)] }, _)];
+            excepts = [(EApp { f = EVar x, _; args = [(ELit LUnit, _)]; _ }, _)];
             just = ELit (LBool true), _;
             cons;
           },
@@ -196,9 +176,9 @@ let rec generate_vc_must_not_return_empty (ctx : ctx) (e : typed expr) :
   (* Per default calculus semantics, you cannot call a function with an argument
      that evaluates to the empty error. Thus, all variable evaluate to
      non-empty-error terms. *)
-  | ELit _ | EOp _ ->
+  | ELit _ ->
     Mark.copy e (ELit (LBool true))
-  | EApp { f; args } ->
+  | EApp { f; args; _ } ->
     (* Invariant: For the [EApp] case, we assume here that function calls never
        return empty error, which implies all functions have been checked never
        to return empty errors. *)
@@ -250,7 +230,7 @@ let rec generate_vc_must_not_return_conflict (ctx : ctx) (e : typed expr) :
   | EAbs { binder; _ } ->
     let _vars, body = Bindlib.unmbind binder in
     (generate_vc_must_not_return_conflict ctx) body
-  | EVar _ | ELit _ | EOp _ -> Mark.copy e (ELit (LBool true))
+  | EVar _ | ELit _ -> Mark.copy e (ELit (LBool true))
   | EDefault { excepts; just; cons } ->
     (* <e1 ... en | ejust :- econs > never returns conflict if and only if: -
        neither e1 nor ... nor en nor ejust nor econs return conflict - there is

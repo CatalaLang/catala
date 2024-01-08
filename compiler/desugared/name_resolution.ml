@@ -315,6 +315,13 @@ let rec process_base_typ
     ( TArray
         (process_base_typ ctxt (Surface.Ast.Data (Mark.remove t), Mark.get t)),
       typ_pos )
+  | Surface.Ast.Data (Surface.Ast.TTuple tl) ->
+    ( TTuple
+        (List.map
+           (fun t ->
+             process_base_typ ctxt (Surface.Ast.Data (Mark.remove t), Mark.get t))
+           tl),
+      typ_pos )
   | Surface.Ast.Data (Surface.Ast.Primitive prim) -> (
     match prim with
     | Surface.Ast.Integer -> TLit TInt, typ_pos

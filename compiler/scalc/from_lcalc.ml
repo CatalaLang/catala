@@ -65,7 +65,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
   | EInj { e = e1; cons; name } ->
     let e1_stmts, new_e1 = translate_expr ctxt e1 in
     e1_stmts, (A.EInj (new_e1, cons, name), Expr.pos expr)
-  | EApp { f; args } ->
+  | EApp { f; args; _ } ->
     let f_stmts, new_f = translate_expr ctxt f in
     let args_stmts, new_args =
       List.fold_left
@@ -74,8 +74,20 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
           arg_stmts @ args_stmts, new_arg :: new_args)
         ([], []) args
     in
+    (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
     let new_args = List.rev new_args in
     f_stmts @ args_stmts, (A.EApp (new_f, new_args), Expr.pos expr)
+  | EAppOp { op; args; _ } ->
+    let op = Operator.translate op in
+    let args_stmts, new_args =
+      List.fold_left
+        (fun (args_stmts, new_args) arg ->
+          let arg_stmts, new_arg = translate_expr ctxt arg in
+          arg_stmts @ args_stmts, new_arg :: new_args)
+        ([], []) args
+    in
+    let new_args = List.rev new_args in
+    args_stmts, (A.EAppOp (op, new_args), Expr.pos expr)
   | EArray args ->
     let args_stmts, new_args =
       List.fold_left
@@ -86,7 +98,6 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     in
     let new_args = List.rev new_args in
     args_stmts, (A.EArray new_args, Expr.pos expr)
-  | EOp { op; _ } -> [], (A.EOp (Operator.translate op), Expr.pos expr)
   | ELit l -> [], (A.ELit l, Expr.pos expr)
   | _ ->
     let tmp_var =
@@ -121,7 +132,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
     e_stmts @ [A.SAssert (Mark.remove new_e), Expr.pos block_expr]
-  | EApp { f = EAbs { binder; tys }, binder_mark; args } ->
+  | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
     let vars, body = Bindlib.unmbind binder in

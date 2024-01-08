@@ -125,3 +125,8 @@ module UserFacing : sig
   (** This combines the user-facing value printer and the generic expression
       printer to handle all AST nodes *)
 end
+
+(**/*)
+
+val skip_wrappers : ('a, 'm) gexpr -> ('a, 'm) gexpr
+(** This is exported from [Expr], but first defined here for dependency reasons *)
