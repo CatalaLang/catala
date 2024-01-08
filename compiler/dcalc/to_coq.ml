@@ -334,7 +334,7 @@ let rec format_expr ctx (fmt : Format.formatter) (e : 'm expr) : unit =
           (dctx, List.append (Array.to_list xs) debrin)
           fmt body)
       fmt ()
-  | EApp { f = EAbs { binder; tys = [ty] }, _; args = [e1] ; _ }
+  | EApp { f = EAbs { binder; tys = [ty] }, _; args = [e1]; _ }
     when Bindlib.mbinder_arity binder = 1 ->
     let xs, e2 = Bindlib.unmbind binder in
     let x = xs.(0) in
