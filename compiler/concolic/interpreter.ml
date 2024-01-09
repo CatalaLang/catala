@@ -1113,13 +1113,30 @@ let rec evaluate_expr :
     evaluate_expr ctx lang e
   | _ -> .
 
+(** The following functions gather methods to generate input values for concolic
+    execution, be it from a model or from hardcoded default values. *)
+
+(** Create the mark of an input field from its name [field] and its type [ty].
+    Note that this function guarantees that the type information will be present
+    when calling [inputs_of_model] *)
+let make_input_mark ctx m field ty : conc_info mark =
+  let name = Mark.remove (StructField.get_info field) in
+  let _, sort = translate_typ ctx (Mark.remove ty) in
+  let symb_expr = Z3.Expr.mk_const_s ctx.ctx_z3 name sort in
+  Custom
+    {
+      pos = Expr.mark_pos m;
+      custom = { symb_expr = Some symb_expr; constraints = []; ty = Some ty };
+    }
+
 (** Create a dummy concolic mark with a position and a type. It has no symbolic
     expression or constraints, and is used for subexpressions inside of input
     structs whose mark is a single symbol. *)
 let dummy_mark pos ty : conc_info mark =
   Custom { pos; custom = { symb_expr = None; constraints = []; ty = Some ty } }
 
-let lit_of_tlit t =
+(** Get a default literal value from a literal type *)
+let default_lit_of_tlit t : lit =
   match t with
   | TBool -> LBool true
   | TInt -> LInt (Z.of_int 42)
@@ -1129,9 +1146,13 @@ let lit_of_tlit t =
   | TDate -> failwith "TDate not implemented"
   | TDuration -> failwith "TDuration not implemented"
 
-let rec expr_of_typ ctx mark ty =
+(** Get a default concolic expression from a type. The concolic [mark] is given
+    by the caller, and this function gives a default concrete value. This
+    function is expected to be called from [inputs_of_model] when Z3 has not
+    given a value for an input field. *)
+let rec default_expr_of_typ ctx mark ty : 'c conc_boxed_expr =
   match Mark.remove ty with
-  | TLit t -> Expr.elit (lit_of_tlit t) mark
+  | TLit t -> Expr.elit (default_lit_of_tlit t) mark
   | TArrow (ty_in, ty_out) ->
     Expr.make_abs
       (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
@@ -1139,20 +1160,25 @@ let rec expr_of_typ ctx mark ty =
       ty_in (Expr.mark_pos mark)
   | TTuple _ -> failwith "TTuple not implemented"
   | TStruct name ->
+    (* When a field of the input structure is a struct itself, its fields will
+       only be evaluated for their concrete values, as their symbolic value will
+       be accessed symbolically from the symbol of the input structure field.
+       Thus we can safely give a dummy mark, one with position and type for
+       printing, but no symbolic expression or constraint *)
     let pos = Expr.mark_pos mark in
     let fields_typ = StructName.Map.find name ctx.ctx_decl.ctx_structs in
     let fields_expr =
       StructField.Map.map
-        (fun ty -> expr_of_typ ctx (dummy_mark pos ty) ty)
+        (fun ty -> default_expr_of_typ ctx (dummy_mark pos ty) ty)
         fields_typ
     in
     Expr.estruct ~name ~fields:fields_expr mark
-  | TEnum _ -> failwith "[expr_of_typ] TEnum not implemented"
-  | TOption _ -> failwith "[expr_of_typ] TOption not implemented"
-  | TArray _ -> failwith "[expr_of_typ] TArray not implemented"
-  | TDefault _ -> failwith "[expr_of_typ] TDefault not implemented"
-  | TAny -> failwith "[expr_of_typ] TAny not implemented"
-  | TClosureEnv -> failwith "[expr_of_typ] TClosureEnv not implemented"
+  | TEnum _ -> failwith "[default_expr_of_typ] TEnum not implemented"
+  | TOption _ -> failwith "[default_expr_of_typ] TOption not implemented"
+  | TArray _ -> failwith "[default_expr_of_typ] TArray not implemented"
+  | TDefault _ -> failwith "[default_expr_of_typ] TDefault not implemented"
+  | TAny -> failwith "[default_expr_of_typ] TAny not implemented"
+  | TClosureEnv -> failwith "[default_expr_of_typ] TClosureEnv not implemented"
 
 (** Get the Z3 expression corresponding to the value of Z3 symbol constant [v]
     in Z3 model [m]. [None] if [m] has not given a value. TODO CONC check that
@@ -1194,7 +1220,10 @@ let value_of_symb_expr_lit tl e =
   | TDate -> failwith "TDate not implemented"
   | TDuration -> failwith "TDuration not implemented"
 
-(** Make a Catala value from a Z3 expression, if possible *)
+(** Make a Catala value from a Z3 expression. The concolic [mark] is given by
+    the caller, and this function gives a concrete value corresponding to
+    symbolic value [e]. This function is expected to be called from
+    [inputs_of_model] when Z3 has given a value for an input field. *)
 let rec value_of_symb_expr ctx model mark ty (e : s_expr) =
   match Mark.remove ty with
   | TLit tl ->
@@ -1204,16 +1233,17 @@ let rec value_of_symb_expr ctx model mark ty (e : s_expr) =
   | TClosureEnv -> failwith "[value_of_symb_expr] TClosureEnv not implemented"
   | TTuple _ -> failwith "[value_of_symb_expr] TTuple not implemented"
   | TStruct name ->
+    (* To get the values of fields inside a Z3 struct and reconstruct a Catala
+       struct out of those, evaluate a Z3 "accessor" to the corresponding field
+       in the model *)
     let pos = Expr.mark_pos mark in
     let fields_typ = StructName.Map.find name ctx.ctx_decl.ctx_structs in
-
     let expr_of_fd fd ty =
       let access = make_z3_struct_access ctx name fd e in
       let ev = Option.get (Z3.Model.eval model access true) in
-      (* with model completion *)
       value_of_symb_expr ctx model (dummy_mark pos ty) ty ev
+      (* See [default_expr_of_typ] for an explanation on the dummy mark *)
     in
-
     let fields_expr = StructField.Map.mapi expr_of_fd fields_typ in
     Expr.estruct ~name ~fields:fields_expr mark
   | TEnum _ -> failwith "[value_of_symb_expr] TEnum not implemented"
@@ -1222,7 +1252,7 @@ let rec value_of_symb_expr ctx model mark ty (e : s_expr) =
   | TArray _ -> failwith "[value_of_symb_expr] TArray not implemented"
   | TDefault _ -> failwith "[value_of_symb_expr] TDefault not implemented"
 
-(** Get Catala values from a Z3 model, possibly with default values *)
+(** Get Catala values from a Z3 model, possibly using default values *)
 let inputs_of_model
     ctx
     (m : Z3.Model.model)
@@ -1234,24 +1264,14 @@ let inputs_of_model
     (* this get should not fail because [make_input_mark] always adds the type
        information *)
     let symb_expr_opt = interp_in_model m (Option.get custom.symb_expr) in
-    Option.fold ~none:(expr_of_typ ctx mk ty)
+    Option.fold
+      ~none:(default_expr_of_typ ctx mk ty)
       ~some:(value_of_symb_expr ctx m mk ty)
       symb_expr_opt
   in
   StructField.Map.mapi f input_marks
 
-(** Create the mark of an input field from its name [field] and its type [ty].
-    Note that this function guarantees that the type information will be present
-    when calling [inputs_of_model] *)
-let make_input_mark ctx m field ty : conc_info mark =
-  let name = Mark.remove (StructField.get_info field) in
-  let _, sort = translate_typ ctx (Mark.remove ty) in
-  let symb_expr = Z3.Expr.mk_const_s ctx.ctx_z3 name sort in
-  Custom
-    {
-      pos = Expr.mark_pos m;
-      custom = { symb_expr = Some symb_expr; constraints = []; ty = Some ty };
-    }
+(** Evaluation *)
 
 (** Do a "pre-evaluation" of the program. It compiles the target scope to a
     function that takes the input struct of the scope and returns its output
@@ -1281,6 +1301,8 @@ let eval_conc_with_input
   in
   Message.emit_debug "...inputs applied...";
   evaluate_expr ctx lang (Expr.unbox to_interpret)
+
+(** Computation path logic *)
 
 (** Two path constraints are equal if their Z3 expressions are equal, and they
     are marked with the same branch information. Position is not taken into
@@ -1370,6 +1392,8 @@ let print_annotated_path_constraints constraints : unit =
       (List.map aux constraints)
   end
 
+(** Z3 model solving *)
+
 type solver_result = Sat of Z3.Model.model option | Unsat | Unknown
 
 let solve_constraints ctx constraints : solver_result =
@@ -1395,6 +1419,7 @@ let print_fields language (prefix : string) fields =
         value)
     ordered_fields
 
+(** Main function *)
 let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     (Uid.MarkedString.info * yes conc_expr) list =
   Message.emit_debug "=== Start concolic interpretation... ===";
