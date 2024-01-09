@@ -134,11 +134,12 @@ type context = {
   (* A map from Catala temporary variables, generated when translating a match,
      to the corresponding enum accessor call as a Z3 expression *)
   ctx_z3structs : Z3.Sort.sort StructName.Map.t;
-      (* A map from Catala struct names to the corresponding Z3 sort, from which
-         we can retrieve the constructor and the accessors *)
-      (* XXX ctx_z3unit : Sort.sort * Expr.expr; *)
+  (* A map from Catala struct names to the corresponding Z3 sort, from which we
+     can retrieve the constructor and the accessors *)
+  ctx_z3unit : Z3.Sort.sort * Z3.Expr.expr;
       (* A pair containing the Z3 encodings of the unit type, encoded as a tuple
          of 0 elements, and the unit value *)
+
       (* XXX ctx_z3constraints : Expr.expr list; *)
       (* A list of constraints about the created Z3 expressions accumulated
          during their initialization, for instance, that the length of an array
@@ -161,7 +162,7 @@ let add_z3struct (s : StructName.t) (sort : Z3.Sort.sort) (ctx : context) :
 let translate_typ_lit (ctx : context) (t : typ_lit) : Z3.Sort.sort =
   match t with
   | TBool -> Z3.Boolean.mk_sort ctx.ctx_z3
-  | TUnit -> failwith "TUnit not implemented"
+  | TUnit -> fst ctx.ctx_z3unit
   | TInt -> Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TRat -> Z3.Arithmetic.Real.mk_sort ctx.ctx_z3
   | TMoney -> Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
@@ -234,6 +235,15 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
     let z3_struct = Z3.Datatype.mk_sort_s ctx.ctx_z3 s_name [z3_mk_struct] in
     add_z3struct s z3_struct ctx, z3_struct
 
+(** [create_z3unit] creates a Z3 sort and expression corresponding to the unit
+    type and value respectively. Concretely, we represent unit as a tuple with 0
+    elements. Taken from z3backend. **)
+let create_z3unit (ctx : Z3.context) : Z3.Sort.sort * Z3.Expr.expr =
+  let unit_sort = Z3.Tuple.mk_sort ctx (Z3.Symbol.mk_string ctx "unit") [] [] in
+  let mk_unit = Z3.Tuple.get_mk_decl unit_sort in
+  let unit_val = Z3.Expr.mk_app ctx mk_unit [] in
+  unit_sort, unit_val
+
 (* taken from z3backend, but without the option check *)
 let make_empty_context (decl_ctx : decl_ctx) : context =
   let z3_cfg = ["model", "true"; "proof", "false"] in
@@ -250,8 +260,8 @@ let make_empty_context (decl_ctx : decl_ctx) : context =
     (*     ctx_z3datatypes = EnumName.Map.empty; *)
     (*     ctx_z3matchsubsts = Var.Map.empty; *)
     ctx_z3structs = StructName.Map.empty;
-    (*     ctx_z3unit = create_z3unit z3_ctx; *)
-    (*     ctx_z3constraints = []; *)
+    ctx_z3unit = create_z3unit z3_ctx;
+    (* ctx_z3constraints = []; *)
     ctx_dummy_sort = z3_dummy_sort;
     ctx_dummy_const = z3_dummy_const;
   }
@@ -284,7 +294,7 @@ let symb_of_lit ctx (l : lit) : s_expr =
   | LMoney m ->
     let cents = Runtime.money_to_cents m in
     z3_int_of_bigint cents
-  | LUnit -> failwith "LUnit not implemented"
+  | LUnit -> snd ctx.ctx_z3unit
   | LDate _ -> failwith "LDate not implemented"
   | LDuration _ -> failwith "LDuration not implemented"
 
@@ -356,7 +366,7 @@ let replace_EVar_mark
 let handle_eq evaluate_operator pos lang e1 e2 =
   let open Runtime.Oper in
   match e1, e2 with
-  | ELit LUnit, ELit LUnit -> failwith "EOp Eq LUnit not implemented"
+  | ELit LUnit, ELit LUnit -> true
   | ELit (LBool b1), ELit (LBool b2) -> not (o_xor b1 b2)
   | ELit (LInt x1), ELit (LInt x2) -> o_eq_int_int x1 x2
   | ELit (LRat x1), ELit (LRat x2) -> o_eq_rat_rat x1 x2
@@ -1141,7 +1151,7 @@ let default_lit_of_tlit t : lit =
   | TBool -> LBool true
   | TInt -> LInt (Z.of_int 42)
   | TMoney -> LMoney (Runtime.money_of_units_int 42)
-  | TUnit -> failwith "TUnit not implemented"
+  | TUnit -> LUnit
   | TRat -> LRat (Runtime.decimal_of_string "42")
   | TDate -> failwith "TDate not implemented"
   | TDuration -> failwith "TDuration not implemented"
@@ -1216,7 +1226,7 @@ let value_of_symb_expr_lit tl e =
     let money = Runtime.money_of_cents_integer cents in
     LMoney money
   | TRat -> LRat (decimal_of_symb_expr e)
-  | TUnit -> failwith "TUnit not implemented"
+  | TUnit -> LUnit (* TODO maybe check that the Z3 value is indeed unit? *)
   | TDate -> failwith "TDate not implemented"
   | TDuration -> failwith "TDuration not implemented"
 
