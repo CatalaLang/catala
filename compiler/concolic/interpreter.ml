@@ -1113,6 +1113,12 @@ let rec evaluate_expr :
     evaluate_expr ctx lang e
   | _ -> .
 
+(** Create a dummy concolic mark with a position and a type. It has no symbolic
+    expression or constraints, and is used for subexpressions inside of input
+    structs whose mark is a single symbol. *)
+let dummy_mark pos ty : conc_info mark =
+  Custom { pos; custom = { symb_expr = None; constraints = []; ty = Some ty } }
+
 let lit_of_tlit t =
   match t with
   | TBool -> LBool true
@@ -1123,7 +1129,7 @@ let lit_of_tlit t =
   | TDate -> failwith "TDate not implemented"
   | TDuration -> failwith "TDuration not implemented"
 
-let expr_of_typ mark ty =
+let rec expr_of_typ ctx mark ty =
   match Mark.remove ty with
   | TLit t -> Expr.elit (lit_of_tlit t) mark
   | TArrow (ty_in, ty_out) ->
@@ -1132,13 +1138,21 @@ let expr_of_typ mark ty =
       (Bindlib.box EEmptyError, Expr.with_ty mark ty_out)
       ty_in (Expr.mark_pos mark)
   | TTuple _ -> failwith "TTuple not implemented"
-  | TStruct _ -> failwith "TStruct not implemented"
-  | TEnum _ -> failwith "TEnum not implemented"
-  | TOption _ -> failwith "TOption not implemented"
-  | TArray _ -> failwith "TArray not implemented"
-  | TDefault _ -> failwith "TDefault not implemented"
-  | TAny -> failwith "TAny not implemented"
-  | TClosureEnv -> failwith "TClosureEnv not implemented"
+  | TStruct name ->
+    let pos = Expr.mark_pos mark in
+    let fields_typ = StructName.Map.find name ctx.ctx_decl.ctx_structs in
+    let fields_expr =
+      StructField.Map.map
+        (fun ty -> expr_of_typ ctx (dummy_mark pos ty) ty)
+        fields_typ
+    in
+    Expr.estruct ~name ~fields:fields_expr mark
+  | TEnum _ -> failwith "[expr_of_typ] TEnum not implemented"
+  | TOption _ -> failwith "[expr_of_typ] TOption not implemented"
+  | TArray _ -> failwith "[expr_of_typ] TArray not implemented"
+  | TDefault _ -> failwith "[expr_of_typ] TDefault not implemented"
+  | TAny -> failwith "[expr_of_typ] TAny not implemented"
+  | TClosureEnv -> failwith "[expr_of_typ] TClosureEnv not implemented"
 
 (** Get the Z3 expression corresponding to the value of Z3 symbol constant [v]
     in Z3 model [m]. [None] if [m] has not given a value. TODO CONC check that
@@ -1181,15 +1195,27 @@ let value_of_symb_expr_lit tl e =
   | TDuration -> failwith "TDuration not implemented"
 
 (** Make a Catala value from a Z3 expression, if possible *)
-let value_of_symb_expr m ty (e : s_expr) =
+let rec value_of_symb_expr ctx model mark ty (e : s_expr) =
   match Mark.remove ty with
   | TLit tl ->
     let lit = value_of_symb_expr_lit tl e in
-    Expr.elit lit m
+    Expr.elit lit mark
   | TAny -> failwith "[value_of_symb_expr] TAny not implemented"
   | TClosureEnv -> failwith "[value_of_symb_expr] TClosureEnv not implemented"
   | TTuple _ -> failwith "[value_of_symb_expr] TTuple not implemented"
-  | TStruct _ -> failwith "[value_of_symb_expr] TStruct not implemented"
+  | TStruct name ->
+    let pos = Expr.mark_pos mark in
+    let fields_typ = StructName.Map.find name ctx.ctx_decl.ctx_structs in
+
+    let expr_of_fd fd ty =
+      let access = make_z3_struct_access ctx name fd e in
+      let ev = Option.get (Z3.Model.eval model access true) in
+      (* with model completion *)
+      value_of_symb_expr ctx model (dummy_mark pos ty) ty ev
+    in
+
+    let fields_expr = StructField.Map.mapi expr_of_fd fields_typ in
+    Expr.estruct ~name ~fields:fields_expr mark
   | TEnum _ -> failwith "[value_of_symb_expr] TEnum not implemented"
   | TOption _ -> failwith "[value_of_symb_expr] TOption not implemented"
   | TArrow _ -> failwith "[value_of_symb_expr] TArrow not implemented"
@@ -1198,6 +1224,7 @@ let value_of_symb_expr m ty (e : s_expr) =
 
 (** Get Catala values from a Z3 model, possibly with default values *)
 let inputs_of_model
+    ctx
     (m : Z3.Model.model)
     (input_marks : conc_info mark StructField.Map.t) :
     'c conc_boxed_expr StructField.Map.t =
@@ -1207,7 +1234,8 @@ let inputs_of_model
     (* this get should not fail because [make_input_mark] always adds the type
        information *)
     let symb_expr_opt = interp_in_model m (Option.get custom.symb_expr) in
-    Option.fold ~none:(expr_of_typ mk ty) ~some:(value_of_symb_expr mk ty)
+    Option.fold ~none:(expr_of_typ ctx mk ty)
+      ~some:(value_of_symb_expr ctx m mk ty)
       symb_expr_opt
   in
   StructField.Map.mapi f input_marks
@@ -1398,7 +1426,8 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
       match solve_constraints ctx solver_constraints with
       | Sat (Some m) ->
         Message.emit_debug "Solver returned a model";
-        let inputs = inputs_of_model m input_marks in
+        Message.emit_debug "model: %s" (Z3.Model.to_string m);
+        let inputs = inputs_of_model ctx m input_marks in
 
         if not Cli.globals.debug then Message.emit_result "";
         Message.emit_result "Evaluating with inputs:";

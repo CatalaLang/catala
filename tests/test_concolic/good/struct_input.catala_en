@@ -1,0 +1,63 @@
+## Test
+
+```catala
+declaration structure T:
+   data c content boolean
+
+declaration structure S:
+    data a content integer
+    data b content T
+
+declaration scope A:
+  input m content integer
+  input s content S
+  input t content T
+  output o condition
+
+scope A:
+  rule o under condition ((s.a = m) or s.b.c) and (t = s.b) consequence fulfilled
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A
+  (A_in:
+     A_in {
+       m_in: integer;
+       s_in: S {a: integer; b: T {c: bool}};
+       t_in: T {c: bool}
+     })
+  : A {o: bool}
+  =
+  let get m : integer = A_in.m_in in
+  let get s : S {a: integer; b: T {c: bool}} = A_in.s_in in
+  let get t : T {c: bool} = A_in.t_in in
+  let set o : bool =
+    error_empty
+      ⟨ ⟨ ⟨(s.a = m || s.b.c) && t = s.b ⊢ ⟨true⟩⟩ | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . m_in = 42
+[RESULT] . s_in = { S a = 42; b = { T c = true; }; }
+[RESULT] . t_in = { T c = true; }
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = true
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . m_in = 1
+[RESULT] . s_in = { S a = 0; b = { T c = true; }; }
+[RESULT] . t_in = { T c = false; }
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = false
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
