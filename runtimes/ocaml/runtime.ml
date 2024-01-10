@@ -54,13 +54,28 @@ exception NoValueProvided of source_position
 (* TODO: register exception printers for the above
    (Printexc.register_printer) *)
 
+let round (q : Q.t) : Z.t =
+  (* The mathematical formula is [round(q) = sgn(q) * floor(abs(q) + 0.5)].
+     However, Zarith's [Q.to_bigint] does not floor. Instead, it rounds towards
+     0 (that is, [-0.1] is rounded to [0]). We work around this by using
+     [Z.fdiv], integer division with rounding towards [-inf], and implementing
+     the trick from
+     https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html *)
+  let sgn = Q.sign q in
+  let abs = Q.abs q in
+  let n = Q.num abs in
+  let d = Q.den abs in
+  let abs_round = Z.(fdiv ((of_int 2 * n) + d) (of_int 2 * d)) in
+  Z.(of_int sgn * abs_round)
+
 let money_of_cents_string (cents : string) : money = Z.of_string cents
 let money_of_units_int (units : int) : money = Z.(of_int units * of_int 100)
 let money_of_cents_integer (cents : integer) : money = cents
 let money_to_float (m : money) : float = Z.to_float m /. 100.
 
 let money_of_decimal (d : decimal) : money =
-  Q.to_bigint (Q.mul d (Q.of_int 100))
+  (* Turn units to cents then round to nearest cent *)
+  round Q.(d * of_int 100)
 
 let money_to_string (m : money) : string =
   Format.asprintf "%.2f" Q.(to_float (of_bigint m / of_int 100))
@@ -68,10 +83,9 @@ let money_to_string (m : money) : string =
 let money_to_cents m = m
 
 let money_round (m : money) : money =
-  let units, cents = Z.div_rem m (Z.of_int 100) in
-  (* If [m] is negative, [cents] will also be negative. *)
-  if Z.(abs cents < of_int 50) then Z.(units * of_int 100)
-  else Z.((units + of_int (sign units)) * of_int 100)
+  (* Turn cents to units then round to nearest unit, and convert back *)
+  let units = Q.(of_bigint m / of_int 100) in
+  Z.(round units * of_int 100)
 
 let decimal_of_string (d : string) : decimal = Q.of_string d
 let decimal_to_float (d : decimal) : float = Q.to_float d
@@ -115,12 +129,7 @@ let decimal_to_string ~(max_prec_digits : int) (i : decimal) : string =
     (if List.length !digits - leading_zeroes !digits = max_prec_digits then "…"
      else "")
 
-let decimal_round (q : decimal) : decimal =
-  (* Implements the workaround by
-     https://gmplib.org/list-archives/gmp-discuss/2009-May/003767.html *)
-  let n = Q.num q in
-  let d = Q.den q in
-  Q.of_bigint Z.(fdiv ((of_int 2 * n) + d) (of_int 2 * d))
+let decimal_round (q : decimal) : decimal = Q.of_bigint (round q)
 
 let decimal_of_money (m : money) : decimal =
   Q.div (Q.of_bigint m) (Q.of_int 100)
@@ -679,16 +688,9 @@ module Oper = struct
   let o_mult_rat_rat i1 i2 = Q.mul i1 i2
 
   let o_mult_mon_rat i1 i2 =
-    let i1_abs = Z.abs i1 in
-    let i2_abs = Q.abs i2 in
-    let sign_int = Z.sign i1 * Q.sign i2 in
-    let rat_result = Q.mul (Q.of_bigint i1_abs) i2_abs in
-    let res, remainder = Z.div_rem (Q.num rat_result) (Q.den rat_result) in
-    (* we perform nearest rounding when multiplying an amount of money by a
-       decimal !*)
-    if Z.(of_int 2 * remainder >= Q.den rat_result) then
-      Z.(add res (of_int 1) * of_int sign_int)
-    else Z.(res * of_int sign_int)
+    (* Multiply then round to nearest cent *)
+    let rat_result = Q.mul (Q.of_bigint i1) i2 in
+    round rat_result
 
   let o_mult_dur_int d m = Dates_calc.Dates.mul_period d (Z.to_int m)
 
