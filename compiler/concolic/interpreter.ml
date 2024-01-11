@@ -434,10 +434,11 @@ let op2
 
 (* Reproduce the behaviour of [Q.to_bigint] rounding rational [q] to an integer
    towards 0 (ie 0.8 and -0.8 are rounded to 0)
- * TODO CONC REU is rounding (truncating) towards 0 the expected behaviour for
- * Catala? I see there is a "round to nearest" function that would be far easier
- * to implement (without if-then-else *)
+ * TODO CONC rounding will change once PR #557 is merged *)
 (* TODO add proper test like for [z3_real2int_nearest] *)
+(* TODO CONC why not define Z3 function? =>> they are the same as declaration +
+   forall, and the gain in legibility is marginal, so I don't think it is
+   necessary *)
 let z3_real2int_towards_zero ctx (q : s_expr) : s_expr =
   let zero = Z3.Arithmetic.Integer.mk_numeral_i ctx 0 in
   let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
@@ -450,9 +451,7 @@ let z3_real2int_towards_zero ctx (q : s_expr) : s_expr =
 
 (* Reproduce the behaviour of [o_mult_mon_rat] rational [q] to the nearest
    integer (away from 0). 1/2 rounds to 1, and -1/2 rounds to -1.
- * TODO CONC REU this could be easier to implement than
-   [z3_real2int_towards_zero] with no if-then-else, if the rounding was the
-   same for positive and negative numbers (upwards), ie rounding -1/2 to 0. *)
+ * NOTE CONC see above *)
 let z3_real2int_nearest ctx (q : s_expr) : s_expr =
   let zero = Z3.Arithmetic.Integer.mk_numeral_i ctx 0 in
   let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
@@ -604,7 +603,7 @@ let rec evaluate_operator
         Z3.Arithmetic.mk_div ctx e hundred)
       i e
   | ToMoney_rat, [((ELit (LRat i), _) as e)] ->
-    (* TODO CONC REU warning here: [o_tomoney_rat] rounds to the cent
+    (* TODO CONC warning here: [o_tomoney_rat] rounds to the cent
      *   closest to 0, while [mk_real2int] rounds to the lower cent.
      * =>> thus I implement OCaml's rounding in Z3 in function [z3_real2int_towards_zero]
      * TODO be careful as well with [Round_mon], [Round_rat], [Mult_mon_rat],
@@ -1421,7 +1420,7 @@ let print_fields language (prefix : string) fields =
   List.iter
     (fun ((var, _), value) ->
       Message.emit_result "%s@[<hov 2>%s@ =@ %a@]" prefix var
-        (* TODO CONC REU UserFacing does not print the minus =>> opened #551.
+        (* TODO CONC UserFacing does not print the minus =>> opened #551.
            For now, I will use [Print.expr] *)
         (* (if Cli.globals.debug then Print.expr ~debug:false () else
            Print.UserFacing.value language) *)
