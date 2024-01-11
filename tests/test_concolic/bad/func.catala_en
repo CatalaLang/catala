@@ -1,0 +1,104 @@
+## Article
+
+```catala
+declaration positive content boolean
+depends on x content integer
+equals x >= 0
+
+declaration scope A:
+    input f content boolean depends on x content integer
+    output o content boolean
+
+scope A:
+    definition o equals f of (-10)
+
+declaration scope B:
+    output o content boolean
+
+scope B:
+    definition o equals (output of A with { -- f : positive }).o
+```
+
+```catala-test-inline
+$ catala DCalc
+let A : A_in → A =
+  λ (A_in: A_in) →
+  let f : integer → bool = A_in.f_in in
+  let o : bool = error_empty ⟨ ⟨true ⊢ ⟨f -10⟩⟩ | false ⊢ ∅ ⟩ in
+  { A o = o; }
+in
+let positive : integer → bool = λ (x: integer) → x >= 0 in
+let B : B_in → B =
+  λ (B_in: B_in) →
+  let o : bool =
+    error_empty
+      ⟨ ⟨true
+         ⊢ ⟨(let result : A = A { A_in f_in = positive; } in
+             let result1 : A = { A o = result.o; } in
+             if true then result1 else result1).
+              o⟩⟩
+      | false ⊢ ∅ ⟩
+  in
+  { B o = o; }
+in
+A
+```
+
+Scope A takes a function as input. The concrete interpreter always gives it the
+value (λ () -> ∅). This works for context variables that do take unit argument
+and catch the EmptyError. However, proper functions don't behave properly in
+this context. This is expected behaviour for the concrete interpreter, but the
+error message/warning is not very explicit about it.
+
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR]
+This variable evaluated to an empty term (no rule that defined it applied in this situation): 
+error_empty ⟨ ⟨true ⊢ ⟨let _ : integer = -10 in
+                       ∅⟩⟩ | false ⊢ ∅ ⟩
+
+┌─⯈ tests/test_concolic/bad/func.catala_en:10.12-10.13:
+└──┐
+10 │     output o content boolean
+   │            ‾
+   └─ Article
+#return code 123#
+```
+
+And then for now, the concolic interpreter does not handle this any better. For
+now, there is an incompleteness warning whenever an input is a function.
+
+```catala-test-inline
+$ catala Concolic -s A
+[WARNING] An input of the scope is a context variable or a function. In that case, the concolic exploration may be INCOMPLETE, and therefore miss errors.
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . f_in = λ (_: integer) → ∅
+[ERROR]
+This variable evaluated to an empty term (no rule that defined it applied in this situation)
+
+┌─⯈ tests/test_concolic/bad/func.catala_en:10.12-10.13:
+└──┐
+10 │     output o content boolean
+   │            ‾
+   └─ Article
+#return code 123#
+```
+
+```catala-test-inline
+$ catala Interpret -s B
+[RESULT] Computation successful! Results:
+[RESULT] o = false
+```
+
+```catala-test-inline
+$ catala Concolic -s B
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = false
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+

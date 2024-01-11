@@ -1163,6 +1163,16 @@ let rec default_expr_of_typ ctx mark ty : 'c conc_boxed_expr =
   match Mark.remove ty with
   | TLit t -> Expr.elit (default_lit_of_tlit t) mark
   | TArrow (ty_in, ty_out) ->
+    (* TODO CONC REU this handling of functional inputs does not discriminate
+       between context variables (for which a value can be given, and whose
+       default case should be handled with care) and proper functions. For now,
+       we emit a warning that incompleteness may occur, and sometimes runtime
+       crashes caused by this default encoding of functions will happen as
+       well. *)
+    Message.emit_warning
+      "An input of the scope is a context variable or a function. In that \
+       case, the concolic exploration may be INCOMPLETE, and therefore miss \
+       errors.";
     Expr.make_abs
       (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
       (Bindlib.box EEmptyError, Expr.with_ty mark ty_out)
