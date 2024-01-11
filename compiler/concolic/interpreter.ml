@@ -127,9 +127,9 @@ type context = {
   (* A map from strings, corresponding to Z3 symbol names, to the Catala
      variable they represent. Used when to pretty-print Z3 models when a
      counterexample is generated *)
-  (* XXX ctx_z3datatypes : Sort.sort EnumName.Map.t; *)
-  (* A map from Catala enumeration names to the corresponding Z3 sort, from
-     which we can retrieve constructors and accessors *)
+  ctx_z3enums : Z3.Sort.sort EnumName.Map.t;
+  (* A map from Catala enumeration names to the corresponding Z3 datatype sort,
+     from which we can retrieve constructors and accessors *)
   (* XXX ctx_z3matchsubsts : (typed expr, Expr.expr) Var.Map.t; *)
   (* A map from Catala temporary variables, generated when translating a match,
      to the corresponding enum accessor call as a Z3 expression *)
@@ -146,16 +146,17 @@ type context = {
          is an integer which always is greater than 0 *)
 }
 
-(** [add_z3struct] adds the mapping between the Catala struct [s] and the
-    corresponding Z3 datatype [sort] to the context **)
+(** adds the mapping between the Catala struct [s] and the corresponding Z3
+    datatype [sort] to the context **)
 let add_z3struct (s : StructName.t) (sort : Z3.Sort.sort) (ctx : context) :
     context =
   { ctx with ctx_z3structs = StructName.Map.add s sort ctx.ctx_z3structs }
 
-(* let create_z3unit (z3_ctx : Z3.context) : Z3.Sort.sort * Z3.Expr.expr = let
-   unit_sort = Z3.Tuple.mk_sort z3_ctx (Z3.Symbol.mk_string z3_ctx "unit") [] []
-   in let mk_unit = Z3.Tuple.get_mk_decl unit_sort in let unit_val =
-   Z3.Expr.mk_app z3_ctx mk_unit [] in unit_sort, unit_val *)
+(** adds the mapping between the Catala enum [enum] and the corresponding Z3
+    datatype [sort] to the context **)
+let add_z3enum (enum : EnumName.t) (sort : Z3.Sort.sort) (ctx : context) :
+    context =
+  { ctx with ctx_z3enums = EnumName.Map.add enum sort ctx.ctx_z3enums }
 
 (** [translate_typ_lit] returns the Z3 sort corresponding to the Catala literal
     type [t] **)
@@ -180,7 +181,7 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
        does not work because the input struct for scope [A], called [A_in], is
        not a part of this order *)
   | TTuple _ -> failwith "[translate_typ] TTuple not implemented"
-  | TEnum _ -> failwith "[translate_typ] TEnum not implemented"
+  | TEnum name -> find_or_create_enum ctx name
   | TOption _ -> failwith "[translate_typ] TOption not implemented"
   | TArrow _ ->
     ctx, ctx.ctx_dummy_sort (* TODO CONC check whether this is for an input *)
@@ -201,6 +202,9 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
   | None ->
     let s_name = Mark.remove (StructName.get_info s) in
     let fields = StructName.Map.find s ctx.ctx_decl.ctx_structs in
+
+    let mk_struct_s = "mk!" ^ s_name (* struct constructor *) in
+    let is_struct_s = "is!" ^ s_name (* recognizer *) in
     let z3_fieldnames =
       List.map
         (fun f ->
@@ -220,10 +224,10 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
         fields (ctx, [])
     in
     let z3_fieldtypes = List.rev z3_fieldtypes_rev in
-    let z3_sortrefs = List.map (fun _ -> 0) z3_fieldtypes in
-    (* will not be used *)
-    let mk_struct_s = "mk!" ^ s_name (* struct constructor *) in
-    let is_struct_s = "is!" ^ s_name (* recognizer *) in
+    let z3_sortrefs =
+      List.map (fun _ -> 0) z3_fieldtypes (* will not be used *)
+    in
+
     let z3_mk_struct =
       Z3.Datatype.mk_constructor_s ctx.ctx_z3 mk_struct_s
         (Z3.Symbol.mk_string ctx.ctx_z3 is_struct_s)
@@ -231,9 +235,50 @@ and find_or_create_struct (ctx : context) (s : StructName.t) :
         (List.map Option.some z3_fieldtypes)
         z3_sortrefs
     in
-
     let z3_struct = Z3.Datatype.mk_sort_s ctx.ctx_z3 s_name [z3_mk_struct] in
     add_z3struct s z3_struct ctx, z3_struct
+
+(* inspired by z3backend *)
+and find_or_create_enum (ctx : context) (enum : EnumName.t) :
+    context * Z3.Sort.sort =
+  Message.emit_debug "[Enum] Find or create enum %s"
+    (Mark.remove (EnumName.get_info enum));
+
+  let create_constructor (name : EnumConstructor.t) (ty : typ) (ctx : context) :
+      context * Z3.Datatype.Constructor.constructor =
+    let cstr_name = Mark.remove (EnumConstructor.get_info name) in
+    let mk_cstr_s = "mk!" ^ cstr_name (* case constructor *) in
+    let is_cstr_s = "is!" ^ cstr_name (* recognizer *) in
+    let fieldname_s = cstr_name ^ "!0" (* name of the argument *) in
+    let ctx, z3_arg_ty = translate_typ ctx (Mark.remove ty) in
+    let z3_sortrefs = [0] (* will not be used *) in
+    Message.emit_debug "[Enum] . %s : %a" cstr_name Print.typ_debug ty;
+    ( ctx,
+      Z3.Datatype.mk_constructor_s ctx.ctx_z3 mk_cstr_s
+        (Z3.Symbol.mk_string ctx.ctx_z3 is_cstr_s)
+        [Z3.Symbol.mk_string ctx.ctx_z3 fieldname_s]
+        [Some z3_arg_ty] z3_sortrefs )
+  in
+
+  match EnumName.Map.find_opt enum ctx.ctx_z3enums with
+  | Some e ->
+    Message.emit_debug "[Enum] . found!";
+    ctx, e
+  | None ->
+    let ctrs = EnumName.Map.find enum ctx.ctx_decl.ctx_enums in
+    let ctx, z3_ctrs =
+      EnumConstructor.Map.fold
+        (fun ctr ty (ctx, ctrs) ->
+          let ctx, ctr = create_constructor ctr ty ctx in
+          ctx, ctr :: ctrs)
+        ctrs (ctx, [])
+    in
+    let z3_enum =
+      Z3.Datatype.mk_sort_s ctx.ctx_z3
+        (Mark.remove (EnumName.get_info enum))
+        (List.rev z3_ctrs)
+    in
+    add_z3enum enum z3_enum ctx, z3_enum
 
 (** [create_z3unit] creates a Z3 sort and expression corresponding to the unit
     type and value respectively. Concretely, we represent unit as a tuple with 0
@@ -257,8 +302,8 @@ let make_empty_context (decl_ctx : decl_ctx) : context =
     ctx_decl = decl_ctx;
     (*     ctx_funcdecl = Var.Map.empty; *)
     (*     ctx_z3vars = StringMap.empty; *)
-    (*     ctx_z3datatypes = EnumName.Map.empty; *)
-    (*     ctx_z3matchsubsts = Var.Map.empty; *)
+    ctx_z3enums = EnumName.Map.empty;
+    (* ctx_z3matchsubsts = Var.Map.empty; *)
     ctx_z3structs = StructName.Map.empty;
     ctx_z3unit = create_z3unit z3_ctx;
     (* ctx_z3constraints = []; *)
@@ -272,6 +317,11 @@ let init_context (ctx : context) : context =
     StructName.Map.fold
       (fun s _ ctx -> fst (find_or_create_struct ctx s))
       ctx.ctx_decl.ctx_structs ctx
+  in
+  let ctx =
+    EnumName.Map.fold
+      (fun enum _ ctx -> fst (find_or_create_enum ctx enum))
+      ctx.ctx_decl.ctx_enums ctx
   in
   (* TODO add things when needed *)
   ctx
@@ -329,16 +379,36 @@ let make_z3_struct_access
     (s : s_expr) : s_expr =
   let sort = StructName.Map.find name ctx.ctx_z3structs in
   let fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
-  let accessors = List.hd (Z3.Datatype.get_accessors sort) in
+  let z3_accessors = List.hd (Z3.Datatype.get_accessors sort) in
   Message.emit_debug "accessors %s"
     (List.fold_left
        (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc)
-       "" accessors);
-  let idx_mappings = List.combine (StructField.Map.keys fields) accessors in
-  let _, accessor =
+       "" z3_accessors);
+  let idx_mappings = List.combine (StructField.Map.keys fields) z3_accessors in
+  let _, z3_accessor =
     List.find (fun (field1, _) -> StructField.equal field field1) idx_mappings
   in
-  Z3.Expr.mk_app ctx.ctx_z3 accessor [s]
+  Z3.Expr.mk_app ctx.ctx_z3 z3_accessor [s]
+
+let make_z3_enum_inj
+    ctx
+    (name : EnumName.t)
+    (s : s_expr)
+    (cons : EnumConstructor.t) =
+  let sort = EnumName.Map.find name ctx.ctx_z3enums in
+  let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
+  let z3_constructors = Z3.Datatype.get_constructors sort in
+  Message.emit_debug "constructors %s"
+    (List.fold_left
+       (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc)
+       "" z3_constructors);
+  let idx_mappings =
+    List.combine (EnumConstructor.Map.keys constructors) z3_constructors
+  in
+  let _, z3_constructor =
+    List.find (fun (cons1, _) -> EnumConstructor.equal cons cons1) idx_mappings
+  in
+  Z3.Expr.mk_app ctx.ctx_z3 z3_constructor [s]
 
 let make_vars_args_map
     (vars : 'c conc_naked_expr Bindlib.var array)
@@ -384,7 +454,17 @@ let handle_eq evaluate_operator pos lang e1 e2 =
            | _ -> assert false
            (* should not happen *))
          es1 es2
-  | EInj _, EInj _ -> failwith "EOp Eq EInj not implemented"
+  | ( EInj { e = e1; cons = i1; name = en1 },
+      EInj { e = e2; cons = i2; name = en2 } ) -> (
+    try
+      EnumName.equal en1 en2
+      && EnumConstructor.equal i1 i2
+      &&
+      match Mark.remove (evaluate_operator Eq pos lang [e1; e2]) with
+      | ELit (LBool b) -> b
+      | _ -> assert false
+      (* should not happen *)
+    with Invalid_argument _ -> false)
   | _, _ -> false (* comparing anything else return false *)
 
 let op1
@@ -956,7 +1036,20 @@ let rec evaluate_expr :
         e StructName.format s)
   | ETuple _ -> failwith "ETuple not implemented"
   | ETupleAccess _ -> failwith "ETupleAccess not implemented"
-  | EInj _ -> failwith "EInj not implemented"
+  | EInj { name; e; cons } ->
+    Message.emit_debug "... it's an EInj";
+    Concrete.propagate_empty_error (evaluate_expr ctx lang e)
+    @@ fun e ->
+    let concrete = EInj { name; e; cons } in
+
+    let e_symb =
+      Option.get (get_symb_expr e)
+      (* TODO catch error... should not happen *)
+    in
+    let symb_expr = make_z3_enum_inj ctx name e_symb cons in
+    let constraints = get_constraints e in
+
+    add_conc_info_m m (Some symb_expr) ~constraints concrete
   | EMatch _ -> failwith "EMatch not implemented"
   | EIfThenElse { cond; etrue; efalse } -> (
     Message.emit_debug "... it's an EIfThenElse";
@@ -1430,8 +1523,8 @@ let print_fields language (prefix : string) fields =
   List.iter
     (fun ((var, _), value) ->
       Message.emit_result "%s@[<hov 2>%s@ =@ %a@]" prefix var
-        (* TODO CONC UserFacing does not print the minus =>> opened #551.
-           For now, I will use [Print.expr] *)
+        (* TODO CONC UserFacing does not print the minus =>> opened #551. For
+           now, I will use [Print.expr] *)
         (* (if Cli.globals.debug then Print.expr ~debug:false () else
            Print.UserFacing.value language) *)
         (Print.expr ())
