@@ -182,7 +182,6 @@ vscode: vscode_fr vscode_en
 
 syntax:
 	$(MAKE) -C doc/syntax
-	$(MAKE) -C $(FRENCH_LAW_JS_LIB_DIR) bench
 
 ##########################################
 # High-level test and benchmarks commands
@@ -204,18 +203,6 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 tests: .FORCE prepare-install
 	@$(MAKE) -C tests pass_all_tests
 
-#> tests_ocaml				: Run OCaml unit tests for the Catala-generated code
-tests_ocaml: run_french_law_library_ocaml_tests
-
-#> bench_ocaml				: Run OCaml benchmarks for the Catala-generated code
-bench_ocaml: run_french_law_library_benchmark_ocaml
-
-#> bench_js				: Run JS benchmarks for the Catala-generated code
-bench_js: run_french_law_library_benchmark_js
-
-#> bench_python				: Run Python benchmarks for the Catala-generated code
-bench_python: run_french_law_library_benchmark_python
-
 tests/%: .FORCE
 	@$(MAKE) -C tests $*
 
@@ -228,7 +215,7 @@ WEBSITE_ASSETS = grammar.html catala.html clerk.html
 $(addprefix _build/default/,$(WEBSITE_ASSETS)):
 	dune build $@
 
-website-assets-base: build_french_law_library_web_api build
+website-assets-base: build
 	dune build $(WEBSITE_ASSETS)
 
 #> website-assets				: Builds all the assets necessary for the Catala website
@@ -236,7 +223,7 @@ website-assets:
 	$(MAKE) DUNE_PROFILE=release website-assets-base
 
 ##########################################
-# Misceallenous
+# Miscellaneous
 ##########################################
 
 #> all					: Run all make commands
@@ -245,12 +232,6 @@ all: \
 	tests \
 	runtimes \
 	plugins \
-	generate_french_law_library_ocaml build_french_law_library_ocaml \
-	tests_ocaml bench_ocaml \
-	build_french_law_library_js \
-	bench_js \
-	generate_french_law_library_python type_french_law_library_python \
-	bench_python \
 	website-assets-base
 
 
@@ -283,10 +264,4 @@ help_catala:
 .PHONY: inspect clean all english allocations_familiales	\
 	pygments install build_dev build doc format dependencies		\
 	dependencies-ocaml catala.html help parser-messages plugins		\
-	generate_french_law_json_schemas generate_french_law_library_python	\
-	generate_french_law_library_ocaml					\
-	run_french_law_library_benchmark_python					\
-	run_french_law_library_benchmark_js run_french_law_library_ocaml_tests	\
-	build_french_law_library_js build_french_law_library_web_api		\
-	build_french_law_library_ocaml                                          \
 	website-assets website-assets-base
