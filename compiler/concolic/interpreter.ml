@@ -1285,7 +1285,16 @@ let rec default_expr_of_typ ctx mark ty : 'c conc_boxed_expr =
         fields_typ
     in
     Expr.estruct ~name ~fields:fields_expr mark
-  | TEnum _ -> failwith "[default_expr_of_typ] TEnum not implemented"
+  | TEnum name ->
+    (* Catala enums always have at least one case, so we can take the first one
+       we find and use it as the default case *)
+    let pos = Expr.mark_pos mark in
+    let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
+    let cstr_name, cstr_ty =
+      List.hd (EnumConstructor.Map.bindings constructors)
+    in
+    let cstr_e = default_expr_of_typ ctx (dummy_mark pos cstr_ty) cstr_ty in
+    Expr.einj name cstr_name cstr_e mark
   | TOption _ -> failwith "[default_expr_of_typ] TOption not implemented"
   | TArray _ -> failwith "[default_expr_of_typ] TArray not implemented"
   | TDefault _ -> failwith "[default_expr_of_typ] TDefault not implemented"
@@ -1358,7 +1367,35 @@ let rec value_of_symb_expr ctx model mark ty (e : s_expr) =
     in
     let fields_expr = StructField.Map.mapi expr_of_fd fields_typ in
     Expr.estruct ~name ~fields:fields_expr mark
-  | TEnum _ -> failwith "[value_of_symb_expr] TEnum not implemented"
+  | TEnum name ->
+    let pos = Expr.mark_pos mark in
+    (* create a mapping of Z3 constructors to the Catala constructors of this
+       enum and their types *)
+    let sort = EnumName.Map.find name ctx.ctx_z3enums in
+    let z3_constructors = Z3.Datatype.get_constructors sort in
+    let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
+    let mapping =
+      List.combine z3_constructors (EnumConstructor.Map.bindings constructors)
+    in
+    (* get the Z3 constructor used in [e] *)
+    let e_constructor = Z3.Expr.get_func_decl e in
+    (* recover the constructor corresponding to the Z3 constructor *)
+    let _, (cstr_name, cstr_ty) =
+      try
+        List.find
+          (fun (cons1, _) -> Z3.FuncDecl.equal e_constructor cons1)
+          mapping
+      with Not_found ->
+        failwith
+          "value_of_symb_expr could not find what case of an enum was used. \
+           This should not happen."
+      (* TODO make better error *)
+    in
+    let e_arg = List.hd (Z3.Expr.get_args e) in
+    let arg =
+      value_of_symb_expr ctx model (dummy_mark pos cstr_ty) cstr_ty e_arg
+    in
+    Expr.einj name cstr_name arg mark
   | TOption _ -> failwith "[value_of_symb_expr] TOption not implemented"
   | TArrow _ -> failwith "[value_of_symb_expr] TArrow not implemented"
   | TArray _ -> failwith "[value_of_symb_expr] TArray not implemented"

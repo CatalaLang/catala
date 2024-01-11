@@ -1,0 +1,119 @@
+## Article
+
+This test aims at making sure structs and enums interoperate properly.
+
+```catala
+declaration enumeration EnumA:
+    -- A1 content integer
+    -- A2 content boolean
+
+declaration structure StructS:
+    data a content EnumA
+
+declaration enumeration EnumB:
+    -- B1 content EnumA
+    -- B2 content StructS
+
+declaration structure StructT:
+    data a content EnumA
+    data s content StructS
+    data b content EnumB
+
+declaration scope A:
+    input a content EnumA
+    input s content StructS
+    input b content EnumB
+    input t content StructT
+    output o content integer
+
+scope A:
+    definition o equals -1
+    exception definition o
+        under condition
+            a != A1 content 0
+            and s.a = A2 content false
+            and b = B2 content s
+            and t.a != a
+            and t.s.a = a
+            and t.b != B1 content a
+        consequence equals 1
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A
+  (A_in:
+     A_in {
+       a_in: EnumA[A1: integer | A2: bool];
+       s_in: StructS {a: EnumA[A1: integer | A2: bool]};
+       b_in:
+         EnumB[B1: EnumA[A1: integer | A2: bool] | B2:
+           StructS {a: EnumA[A1: integer | A2: bool]}];
+       t_in:
+         StructT {
+           a: EnumA[A1: integer | A2: bool];
+           s: StructS {a: EnumA[A1: integer | A2: bool]};
+           b:
+             EnumB[B1: EnumA[A1: integer | A2: bool] | B2:
+               StructS {a: EnumA[A1: integer | A2: bool]}]
+         }
+     })
+  : A {o: integer}
+  =
+  let get a : EnumA[A1: integer | A2: bool] = A_in.a_in in
+  let get s : StructS {a: EnumA[A1: integer | A2: bool]} = A_in.s_in in
+  let get b :
+      EnumB[B1: EnumA[A1: integer | A2: bool] | B2:
+        StructS {a: EnumA[A1: integer | A2: bool]}] =
+    A_in.b_in
+  in
+  let get t :
+      StructT {
+        a: EnumA[A1: integer | A2: bool];
+        s: StructS {a: EnumA[A1: integer | A2: bool]};
+        b:
+          EnumB[B1: EnumA[A1: integer | A2: bool] | B2:
+            StructS {a: EnumA[A1: integer | A2: bool]}]
+      } =
+    A_in.t_in
+  in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨ ⟨(~ (a = A1 0))
+           && s.a = A2 false
+           && b = B2 s
+           && (~ (t.a = a))
+           && t.s.a = a
+           && ~ (t.b = B1 a)
+           ⊢ ⟨1⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨-1⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . a_in = A1 42
+[RESULT] . b_in = B1 A1 42
+[RESULT] . s_in = { StructS a = A1 42; }
+[RESULT]
+. t_in = { StructT a = A1 42; s = { StructS a = A1 42; }; b = B1 A1 42; }
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = -1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . a_in = A1 3
+[RESULT] . b_in = B2 { StructS a = A2 false; }
+[RESULT] . s_in = { StructS a = A2 false; }
+[RESULT]
+. t_in = { StructT a = A1 2; s = { StructS a = A1 3; }; b = B1 A1 4; }
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
