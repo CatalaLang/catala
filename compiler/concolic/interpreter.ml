@@ -1413,7 +1413,7 @@ let rec default_expr_of_typ ctx mark ty : 'c conc_boxed_expr =
       List.hd (EnumConstructor.Map.bindings constructors)
     in
     let cstr_e = default_expr_of_typ ctx (dummy_mark pos cstr_ty) cstr_ty in
-    Expr.einj name cstr_name cstr_e mark
+    Expr.einj ~name ~cons:cstr_name ~e:cstr_e mark
   | TOption _ -> failwith "[default_expr_of_typ] TOption not implemented"
   | TArray _ -> failwith "[default_expr_of_typ] TArray not implemented"
   | TDefault _ -> failwith "[default_expr_of_typ] TDefault not implemented"
@@ -1514,7 +1514,7 @@ let rec value_of_symb_expr ctx model mark ty (e : s_expr) =
     let arg =
       value_of_symb_expr ctx model (dummy_mark pos cstr_ty) cstr_ty e_arg
     in
-    Expr.einj name cstr_name arg mark
+    Expr.einj ~name ~cons:cstr_name ~e:arg mark
   | TOption _ -> failwith "[value_of_symb_expr] TOption not implemented"
   | TArrow _ -> failwith "[value_of_symb_expr] TArrow not implemented"
   | TArray _ -> failwith "[value_of_symb_expr] TArray not implemented"
