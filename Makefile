@@ -97,7 +97,7 @@ doc:
 	ln -sf $(PWD)/_build/default/_doc/_html/index.html doc/odoc.html
 
 prepare-install:
-	dune build @install
+	dune build @install --promote-install-files
 
 install: prepare-install
 	if [ x$$($(OPAM) --version) = "x2.1.5" ]; then \
