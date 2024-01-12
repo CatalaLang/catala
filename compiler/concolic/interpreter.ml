@@ -380,7 +380,7 @@ let make_z3_struct_access
   let sort = StructName.Map.find name ctx.ctx_z3structs in
   let fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
   let z3_accessors = List.hd (Z3.Datatype.get_accessors sort) in
-  Message.emit_debug "accessors %s"
+  Message.emit_debug "struct accessors %s"
     (List.fold_left
        (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc)
        "" z3_accessors);
@@ -402,6 +402,9 @@ let make_z3_enum_inj
     (List.fold_left
        (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc)
        "" z3_constructors);
+  (* NOTE assumption: they are in the right order *)
+  (* TODO for all instances of this "mappings" pattern, maybe have more
+     information in the context to avoid it *)
   let idx_mappings =
     List.combine (EnumConstructor.Map.keys constructors) z3_constructors
   in
@@ -409,6 +412,53 @@ let make_z3_enum_inj
     List.find (fun (cons1, _) -> EnumConstructor.equal cons cons1) idx_mappings
   in
   Z3.Expr.mk_app ctx.ctx_z3 z3_constructor [s]
+
+let make_z3_enum_access
+    ctx
+    (name : EnumName.t)
+    (s : s_expr)
+    (cons : EnumConstructor.t) =
+  let sort = EnumName.Map.find name ctx.ctx_z3enums in
+  let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
+  (* [get_accessors] returns a list containing the list of accessors for each
+     constructor. In a Catala enum, each constructor has exactly (possibly
+     [unit]) accessor, so we can safely [List.hd]. *)
+  let z3_accessors = List.map List.hd (Z3.Datatype.get_accessors sort) in
+  Message.emit_debug "enum accessors %s"
+    (List.fold_left
+       (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc)
+       "" z3_accessors);
+  let idx_mappings =
+    List.combine (EnumConstructor.Map.keys constructors) z3_accessors
+  in
+  let _, z3_accessor =
+    List.find (fun (cons1, _) -> EnumConstructor.equal cons cons1) idx_mappings
+  in
+  Z3.Expr.mk_app ctx.ctx_z3 z3_accessor [s]
+
+(** Return the list of conditions corresponding to a pattern match on
+    enumeration [name], where the arm that matches [s] is [cons]. The condition
+    is [is!C s] when [C] is the [cons] arm, and [not (is!C s)] for any other
+    arm. Additionaly, return along the condition whether it corresponds to
+    [cons]. *)
+let make_z3_arm_conditions
+    ctx
+    (name : EnumName.t)
+    (s : s_expr)
+    (cons : EnumConstructor.t) : (s_expr * bool) list =
+  let sort = EnumName.Map.find name ctx.ctx_z3enums in
+  let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
+  let z3_recognizers = Z3.Datatype.get_recognizers sort in
+  let make_case_condition cstr_name z3_recognizer =
+    let app = Z3.Expr.mk_app ctx.ctx_z3 z3_recognizer [s] in
+    let is_cons = EnumConstructor.equal cons cstr_name in
+    let prefix = if is_cons then fun x -> x else Z3.Boolean.mk_not ctx.ctx_z3 in
+    prefix app, is_cons
+  in
+  (* NOTE assumption: the lists are in the right order *)
+  List.map2 make_case_condition
+    (EnumConstructor.Map.keys constructors)
+    z3_recognizers
 
 let make_vars_args_map
     (vars : 'c conc_naked_expr Bindlib.var array)
@@ -1050,7 +1100,76 @@ let rec evaluate_expr :
     let constraints = get_constraints e in
 
     add_conc_info_m m (Some symb_expr) ~constraints concrete
-  | EMatch _ -> failwith "EMatch not implemented"
+  | EMatch { e; cases; name } -> (
+    Message.emit_debug "... it's an EMatch";
+    (* TODO CONC REU the surface keyword [anything] is expanded during
+       desugaring, so it makes me generate many cases. See the [enum_wildcard]
+       test for an example. *)
+    Concrete.propagate_empty_error (evaluate_expr ctx lang e)
+    @@ fun e ->
+    match Mark.remove e with
+    | EInj { e = e1; cons; name = name' } ->
+      if not (EnumName.equal name name') then
+        Message.raise_multispanned_error
+          [None, Expr.pos e; None, Expr.pos e1]
+          "Error during match: two different enums found (should not happen if \
+           the term was well-typed)";
+      let es_n =
+        match EnumConstructor.Map.find_opt cons cases with
+        | Some es_n -> es_n
+        | None ->
+          Message.raise_spanned_error (Expr.pos e)
+            "sum type index error (should not happen if the term was \
+             well-typed)"
+      in
+
+      (* Here we make sure that the symbolic expression of [e1] (that will be
+         sent "down" in a binder) is the accessor of [cons] applied to [e].
+         Otherwise it would be the symbolic expression built from the bottom up
+         during the evaluation of [e], which may not take into account the
+         symbolic value of [e]. *)
+      let e_symb = Option.get (get_symb_expr e) (* TODO catch error *) in
+      let e1_symb = make_z3_enum_access ctx name e_symb cons in
+      let e1_constraints = get_constraints e1 in
+      (* Here we have to explicitely "force" the new symbolic value, keep the
+         constraints from [e1], and keep the position and type from [e1] *)
+      let new_mark =
+        set_conc_info (Some e1_symb) e1_constraints (Mark.get e1)
+      in
+      let e1 = Mark.set new_mark e1 in
+
+      (* then we can evaluate the branch that was taken *)
+      let new_e = Mark.add m (EApp { f = es_n; args = [e1] }) in
+      let result = evaluate_expr ctx lang new_e in
+      let r_concrete = Mark.remove result in
+      let r_symb = get_symb_expr result in
+      let r_constraints = get_constraints result in
+
+      (* To encode the fact that we are in the [cons] arm of the pattern
+         matching, we add a constraint per arm. For the [cons] arm, it encodes
+         the fact that [e] is a [cons], and thus is a "true" path branch. For
+         every other arm [A], it encodes the fact that [e] is not an [A], and
+         thus is a "false" path branch. *)
+      let e_constraints = get_constraints e in
+      let arm_conditions = make_z3_arm_conditions ctx name e_symb cons in
+      let arm_path_constraints =
+        List.map
+          (fun (s, b) -> make_path_constraint s (Expr.pos e) b)
+          arm_conditions
+      in
+
+      (* the constraints generated by the match when in case [cons] are :
+       * - those generated by the evaluation of [e]
+       * - the new constraints corresponding to the fact that we are in the [cons] case
+       * - those generated by the evaluation of [es_n e1]
+       *)
+      let constraints = r_constraints @ arm_path_constraints @ e_constraints in
+
+      add_conc_info_m m r_symb ~constraints r_concrete
+    | _ ->
+      Message.raise_spanned_error (Expr.pos e)
+        "Expected a term having a sum type as an argument to a match (should \
+         not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
     Message.emit_debug "... it's an EIfThenElse";
     Concrete.propagate_empty_error (evaluate_expr ctx lang cond)

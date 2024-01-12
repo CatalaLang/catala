@@ -1,0 +1,71 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- E1 content integer
+  -- E2 content boolean
+  -- E3
+
+declaration scope A:
+  input x content E
+  output o content integer
+
+scope A:
+  definition o equals
+  match x with pattern
+    -- E1 of i : if i < 0 then 0 else 1
+    -- E2 of b : if b then 2 else 3
+    -- E3 : 4
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A
+  (A_in: A_in {x_in: E[E1: integer | E2: bool | E3: unit]})
+  : A {o: integer}
+  =
+  let get x : E[E1: integer | E2: bool | E3: unit] = A_in.x_in in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨true
+         ⊢ ⟨match x with
+            | E1 i → if i < 0 then 0 else 1
+            | E2 b → if b then 2 else 3
+            | E3 _ → 4⟩⟩
+      | false ⊢ ∅ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = E1 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = E1 -1
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = E2 false
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = E2 true
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = E3 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 4
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
