@@ -53,6 +53,7 @@ depends: [
   "cpdf" {cataladevmode}
   "conf-diffutils" {cataladevmode}
   "z3" {catalaz3mode}
+  "conf-ninja"
 ]
 depopts: ["z3"]
 conflicts: [
@@ -80,9 +81,4 @@ depexts: [
     {cataladevmode & os-distribution = "alpine"}
   ["groff" "latex-mk" "python-pygments" "pandoc"]
     {cataladevmode & os-family = "arch"}
-  # The following should be replaced by a dependency upon `conf-ninja` once that
-  # is published
-  ["ninja-build"] {os-family = "debian" | os-family = "fedora"}
-  ["samurai"] {os-distribution = "alpine"}
-  ["ninja"] {os-family = "arch" | os-family = "suse" | os-family = "opensuse" | os-family = "bsd"}
 ]

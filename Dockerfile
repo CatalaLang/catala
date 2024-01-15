@@ -2,7 +2,7 @@
 # STAGE 1: setup an opam switch with all dependencies installed
 #
 # (only depends on the opam files)
-FROM ocamlpro/ocaml:4.14-2023-12-24 AS dev-build-context
+FROM ocamlpro/ocaml:4.14-2024-01-14 AS dev-build-context
 # Image from https://hub.docker.com/r/ocamlpro/ocaml
 
 RUN mkdir catala
