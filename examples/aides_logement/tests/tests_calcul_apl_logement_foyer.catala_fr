@@ -23,7 +23,7 @@ champ d'application CasTest1:
   assertion calcul.n_nombre_parts_d832_25 = 1,8
   assertion calcul.coefficient_prise_en_charge_d832_25 = 0,41
   assertion calcul.plafond_équivalence_loyer_éligible = 450,57 €
-  assertion calcul.équivalence_loyer_minimale = 318,12 €
+  assertion calcul.équivalence_loyer_minimale = 318,13 €
   définition montant égal à calcul.traitement_aide_finale de calcul.aide_finale_formule
   assertion montant = 12,06 €
 
@@ -46,7 +46,7 @@ champ d'application CasTest2:
     PersonnesÂgéesSelon3DeD842_16
   assertion calcul.équivalence_loyer = 320,73 €
   assertion calcul.montant_forfaitaire_charges = 54,22 €
-  assertion calcul.loyer_minimal = 307,96 €
+  assertion calcul.loyer_minimal = 307,97 €
   assertion calcul.coefficient_prise_en_charge = 0,43
   définition montant égal à
     calcul.traitement_aide_finale de

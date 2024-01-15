@@ -33,7 +33,7 @@ champ d'application Exemple1:
     calcul.aide_finale_formule
   assertion montant = 181,91 €
   assertion calcul.mensualité_éligible = 533,91 €
-  assertion calcul.mensualité_minimale = 332,75 €
+  assertion calcul.mensualité_minimale = 332,76 €
   assertion calcul.coefficient_prise_en_charge_d832_10 = 0,67
   assertion calcul.aide_finale_formule = 187,35€
 ```
@@ -107,7 +107,7 @@ champ d'application Exemple3:
     calcul.aide_finale_formule
   assertion montant = 181,91 €
   assertion calcul.mensualité_éligible = 533,91 €
-  assertion calcul.mensualité_minimale = 332,75 €
+  assertion calcul.mensualité_minimale = 332,76 €
   assertion calcul.coefficient_prise_en_charge_d832_10 = 0,67
   assertion calcul.aide_finale_formule = 187,57€
 ```
@@ -142,9 +142,9 @@ champ d'application Exemple4:
     calcul.aide_finale_formule
   assertion montant = 118,59 €
   assertion calcul.mensualité_éligible = 399,20 €
-  assertion calcul.mensualité_minimale = 290,20 €
+  assertion calcul.mensualité_minimale = 290,21 €
   assertion calcul.coefficient_prise_en_charge_d832_10 = 0,66
-  assertion calcul.aide_finale_formule = 123,95 €
+  assertion calcul.aide_finale_formule = 123,94 €
 ```
 
 ```catala-test-inline
