@@ -75,15 +75,15 @@ let rec format_expr
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" EnumConstructor.format cons
       format_expr e
   | ELit l -> Print.lit fmt l
-  | EApp { f = EOp ((Map | Filter) as op), _; args = [arg1; arg2] } ->
+  | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1 format_with_parens arg2
-  | EApp { f = EOp op, _; args = [arg1; arg2] } ->
+  | EAppOp { op; args = [arg1; arg2] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@ %a@]" format_with_parens arg1
       (Print.operator ~debug) op format_with_parens arg2
-  | EApp { f = EOp (Log _), _; args = [arg1] } when not debug ->
+  | EAppOp { op = Log _; args = [arg1] } when not debug ->
     Format.fprintf fmt "%a" format_with_parens arg1
-  | EApp { f = EOp op, _; args = [arg1] } ->
+  | EAppOp { op; args = [arg1] } ->
     Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
       format_with_parens arg1
   | EApp { f; args = [] } ->
@@ -94,7 +94,12 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
-  | EOp op -> Print.operator ~debug fmt op
+  | EAppOp { op; args } ->
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" (Print.operator ~debug) op
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+         format_with_parens)
+      args
 
 let rec format_statement
     (decl_ctx : decl_ctx)

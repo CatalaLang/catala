@@ -478,10 +478,14 @@ and ('a, 'b, 'm) base_gexpr =
   | EApp : {
       f : ('a, 'm) gexpr;
       args : ('a, 'm) gexpr list;
+          (** length may be 1 even if arity > 1 in desugared. scopelang performs
+              detuplification, so length = arity afterwards *)
+      tys : typ list;  (** Set to [[]] before disambiguation *)
     }
       -> ('a, < .. >, 'm) base_gexpr
-  | EOp : {
+  | EAppOp : {
       op : 'b operator;
+      args : ('a, 'm) gexpr list;
       tys : typ list;
     }
       -> ('a, (< .. > as 'b), 'm) base_gexpr
@@ -559,6 +563,7 @@ and ('a, 'b, 'm) base_gexpr =
   | EPureDefault :
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
+      (** "return" of a pure term, so that it can be typed as [default] *)
   | EEmptyError : ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   | EErrorOnEmpty :
       ('a, 'm) gexpr

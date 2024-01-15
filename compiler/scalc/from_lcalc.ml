@@ -113,15 +113,27 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     | ETupleAccess { e = e1; index; _ } ->
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
       e1_stmts, (A.ETupleAccess { e1 = new_e1; index }, Expr.pos expr)
-    | EApp
+    | EAppOp
         {
-          f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark;
+          op = Op.HandleDefaultOpt;
           args = [_exceptions; _just; _cons];
+          tys = _;
         }
       when ctxt.config.keep_special_ops ->
       (* This should be translated as a statement *)
       raise (NotAnExpr { needs_a_local_decl = true })
-    | EApp { f = EAbs { binder; tys }, binder_mark; args } ->
+    | EAppOp { op; args; tys = _ } ->
+      let args_stmts, new_args =
+        List.fold_left
+          (fun (args_stmts, new_args) arg ->
+            let arg_stmts, new_arg = translate_expr ctxt arg in
+            arg_stmts @ args_stmts, new_arg :: new_args)
+          ([], []) args
+      in
+      (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
+      let new_args = List.rev new_args in
+      args_stmts, (A.EAppOp { op; args = new_args }, Expr.pos expr)
+    | EApp { f = EAbs { binder; tys }, binder_mark; args; tys = _ } ->
       (* This defines multiple local variables at the time *)
       let binder_pos = Expr.mark_pos binder_mark in
       let vars, body = Bindlib.unmbind binder in
@@ -177,7 +189,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       in
       let rest_of_expr_stmts, rest_of_expr = translate_expr ctxt body in
       local_decls @ List.flatten def_blocks @ rest_of_expr_stmts, rest_of_expr
-    | EApp { f; args } ->
+    | EApp { f; args; tys = _ } ->
       let f_stmts, new_f = translate_expr ctxt f in
       let args_stmts, new_args =
         List.fold_left
@@ -186,6 +198,7 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
             arg_stmts @ args_stmts, new_arg :: new_args)
           ([], []) args
       in
+      (* FIXME: what happens if [arg] is not a tuple but reduces to one ? *)
       let new_args = List.rev new_args in
       ( f_stmts @ args_stmts,
         (A.EApp { f = new_f; args = new_args }, Expr.pos expr) )
@@ -199,7 +212,6 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       in
       let new_args = List.rev new_args in
       args_stmts, (A.EArray new_args, Expr.pos expr)
-    | EOp { op; _ } -> [], (A.EOp (Operator.translate op), Expr.pos expr)
     | ELit l -> [], (A.ELit l, Expr.pos expr)
     | _ -> raise (NotAnExpr { needs_a_local_decl = true })
   with NotAnExpr { needs_a_local_decl } ->
@@ -243,11 +255,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     (* Assertions are always encapsulated in a unit-typed let binding *)
     let e_stmts, new_e = translate_expr ctxt e in
     e_stmts @ [A.SAssert (Mark.remove new_e), Expr.pos block_expr]
-  | EApp
-      {
-        f = EOp { op = Op.HandleDefaultOpt; tys = _ }, _binder_mark;
-        args = [exceptions; just; cons];
-      }
+  | EAppOp
+      { op = Op.HandleDefaultOpt; tys = _; args = [exceptions; just; cons] }
     when ctxt.config.keep_special_ops ->
     let exceptions =
       match Mark.remove exceptions with
@@ -291,7 +300,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
                }),
           Expr.pos block_expr );
       ]
-  | EApp { f = EAbs { binder; tys }, binder_mark; args } ->
+  | EApp { f = EAbs { binder; tys }, binder_mark; args; _ } ->
     (* This defines multiple local variables at the time *)
     let binder_pos = Expr.mark_pos binder_mark in
     let vars, body = Bindlib.unmbind binder in

@@ -39,8 +39,7 @@ let rec transform_closures_expr :
   let m = Mark.get e in
   match Mark.remove e with
   | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _ | EArray _
-  | ELit _ | EExternal _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _
-  | ECatch _ ->
+  | ELit _ | EExternal _ | EAssert _ | EIfThenElse _ | ERaise _ | ECatch _ ->
     Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union
       ~f:(transform_closures_expr ctx)
       e
@@ -59,7 +58,8 @@ let rec transform_closures_expr :
       let e =
         Expr.eabs
           (Expr.bind args
-             (Expr.eapp (Expr.rebox e) arg_vars (Expr.with_ty m tret)))
+             (Expr.eapp ~f:(Expr.rebox e) ~args:arg_vars ~tys:targs
+                (Expr.with_ty m tret)))
           targs m
       in
       let boxed =
@@ -104,7 +104,7 @@ let rec transform_closures_expr :
         (free_vars, EnumConstructor.Map.empty)
     in
     free_vars, Expr.ematch ~e:new_e ~name ~cases:new_cases m
-  | EApp { f = EAbs { binder; tys }, e1_pos; args } ->
+  | EApp { f = EAbs { binder; tys }, e1_pos; args; _ } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
     let free_vars, new_body = (transform_closures_expr ctx) body in
@@ -120,7 +120,9 @@ let rec transform_closures_expr :
         args (free_vars, [])
     in
     ( free_vars,
-      Expr.eapp (Expr.eabs new_binder (tys_as_tanys tys) e1_pos) new_args m )
+      Expr.eapp
+        ~f:(Expr.eabs new_binder (tys_as_tanys tys) e1_pos)
+        ~args:new_args ~tys m )
   | EAbs { binder; tys } ->
     (* λ x.t *)
     let binder_mark = m in
@@ -143,11 +145,9 @@ let rec transform_closures_expr :
     (* let env = from_closure_env env in let arg0 = env.0 in ... *)
     let new_closure_body =
       Expr.make_let_in closure_env_var any_ty
-        (Expr.eapp
-           (Expr.eop Operator.FromClosureEnv
-              [TClosureEnv, binder_pos]
-              binder_mark)
-           [Expr.evar closure_env_arg_var binder_mark]
+        (Expr.eappop ~op:Operator.FromClosureEnv
+           ~tys:[TClosureEnv, binder_pos]
+           ~args:[Expr.evar closure_env_arg_var binder_mark]
            binder_mark)
         (Expr.make_multiple_let_in
            (Array.of_list extra_vars_list)
@@ -155,9 +155,9 @@ let rec transform_closures_expr :
            (List.mapi
               (fun i _ ->
                 Expr.etupleaccess
-                  (Expr.evar closure_env_var binder_mark)
-                  i
-                  (List.length extra_vars_list)
+                  ~e:(Expr.evar closure_env_var binder_mark)
+                  ~index:i
+                  ~size:(List.length extra_vars_list)
                   binder_mark)
               extra_vars_list)
            new_body binder_pos)
@@ -178,29 +178,27 @@ let rec transform_closures_expr :
         (Expr.etuple
            ((Bindlib.box_var code_var, binder_mark)
            :: [
-                Expr.eapp
-                  (Expr.eop Operator.ToClosureEnv
-                     [TAny, Expr.pos e]
-                     (Mark.get e))
-                  [
-                    (if extra_vars_list = [] then Expr.elit LUnit binder_mark
-                     else
-                       Expr.etuple
-                         (List.map
-                            (fun extra_var ->
-                              Bindlib.box_var extra_var, binder_mark)
-                            extra_vars_list)
-                         m);
-                  ]
+                Expr.eappop ~op:Operator.ToClosureEnv
+                  ~tys:[TAny, Expr.pos e]
+                  ~args:
+                    [
+                      (if extra_vars_list = [] then Expr.elit LUnit binder_mark
+                       else
+                         Expr.etuple
+                           (List.map
+                              (fun extra_var ->
+                                Bindlib.box_var extra_var, binder_mark)
+                              extra_vars_list)
+                           m);
+                    ]
                   (Mark.get e);
               ])
            m)
         (Expr.pos e) )
-  | EApp
+  | EAppOp
       {
-        f =
-          (EOp { op = HandleDefaultOpt | Fold | Map | Filter | Reduce; _ }, _)
-          as f;
+        op = (HandleDefaultOpt | Fold | Map | Filter | Reduce) as op;
+        tys;
         args;
       } ->
     (* Special case for some operators: its arguments shall remain thunks (which
@@ -225,15 +223,16 @@ let rec transform_closures_expr :
             Var.Set.union free_vars new_free_vars, new_arg :: new_args)
         args (Var.Set.empty, [])
     in
-    free_vars, Expr.eapp (Expr.box f) new_args (Mark.get e)
-  | EApp { f = EOp _, _; _ } ->
-    (* This corresponds to an operator call, which we don't want to transform*)
+    free_vars, Expr.eappop ~op ~tys ~args:new_args (Mark.get e)
+  | EAppOp _ ->
+    (* This corresponds to an operator call, which we don't want to transform *)
     Expr.map_gather ~acc:Var.Set.empty ~join:Var.Set.union
       ~f:(transform_closures_expr ctx)
       e
-  | EApp { f = EVar v, f_m; args } when Var.Map.mem v ctx.globally_bound_vars ->
+  | EApp { f = EVar v, f_m; args; tys }
+    when Var.Map.mem v ctx.globally_bound_vars ->
     (* This corresponds to a scope or toplevel function call, which we don't
-       want to transform*)
+       want to transform *)
     let free_vars, new_args =
       List.fold_right
         (fun arg (free_vars, new_args) ->
@@ -241,8 +240,8 @@ let rec transform_closures_expr :
           Var.Set.union free_vars new_free_vars, new_arg :: new_args)
         args (Var.Set.empty, [])
     in
-    free_vars, Expr.eapp (Expr.evar v f_m) new_args m
-  | EApp { f = e1; args } ->
+    free_vars, Expr.eapp ~f:(Expr.evar v f_m) ~args:new_args ~tys m
+  | EApp { f = e1; args; tys } ->
     let free_vars, new_e1 = (transform_closures_expr ctx) e1 in
     let code_env_var = Var.make "code_and_env" in
     let env_var = Var.make "env" in
@@ -256,17 +255,21 @@ let rec transform_closures_expr :
     in
     let call_expr =
       let m1 = Mark.get e1 in
-      Expr.make_let_in code_var
-        (TAny, Expr.pos e)
-        (Expr.etupleaccess (Bindlib.box_var code_env_var, m1) 0 2 m)
-        (Expr.make_let_in env_var
-           (TAny, Expr.pos e)
-           (Expr.etupleaccess (Bindlib.box_var code_env_var, m1) 1 2 m)
-           (Expr.eapp
-              (Bindlib.box_var code_var, m1)
-              ((Bindlib.box_var env_var, m1) :: new_args)
-              m)
-           (Expr.pos e))
+      let env_arg_ty = TClosureEnv, Expr.pos e1 in
+      Expr.make_multiple_let_in [| code_var; env_var |]
+        [TArrow (env_arg_ty :: tys, (TAny, Expr.pos e)), Expr.pos e; env_arg_ty]
+        [
+          Expr.etupleaccess
+            ~e:(Bindlib.box_var code_env_var, m1)
+            ~index:0 ~size:2 m;
+          Expr.etupleaccess
+            ~e:(Bindlib.box_var code_env_var, m1)
+            ~index:1 ~size:2 m;
+        ]
+        (Expr.eapp
+           ~f:(Bindlib.box_var code_var, m1)
+           ~args:((Bindlib.box_var env_var, m1) :: new_args)
+           ~tys:(env_arg_ty :: tys) m)
         (Expr.pos e)
     in
     ( free_vars,
@@ -464,7 +467,7 @@ let rec hoist_closures_expr :
         (collected_closures, EnumConstructor.Map.empty)
     in
     collected_closures, Expr.ematch ~e:new_e ~name ~cases:new_cases m
-  | EApp { f = EAbs { binder; tys }, e1_pos; args } ->
+  | EApp { f = EAbs { binder; tys }, e1_pos; args; _ } ->
     (* let-binding, we should not close these *)
     let vars, body = Bindlib.unmbind binder in
     let collected_closures, new_body =
@@ -481,12 +484,13 @@ let rec hoist_closures_expr :
         args (collected_closures, [])
     in
     ( collected_closures,
-      Expr.eapp (Expr.eabs new_binder (tys_as_tanys tys) e1_pos) new_args m )
-  | EApp
+      Expr.eapp
+        ~f:(Expr.eabs new_binder (tys_as_tanys tys) e1_pos)
+        ~args:new_args ~tys m )
+  | EAppOp
       {
-        f =
-          (EOp { op = HandleDefaultOpt | Fold | Map | Filter | Reduce; _ }, _)
-          as f;
+        op = (HandleDefaultOpt | Fold | Map | Filter | Reduce) as op;
+        tys;
         args;
       } ->
     (* Special case for some operators: its arguments closures thunks because if
@@ -514,7 +518,7 @@ let rec hoist_closures_expr :
             new_collected_closures @ collected_closures, new_arg :: new_args)
         args ([], [])
     in
-    collected_closures, Expr.eapp (Expr.box f) new_args (Mark.get e)
+    collected_closures, Expr.eappop ~op ~args:new_args ~tys (Mark.get e)
   | EAbs { tys; _ } ->
     (* this is the closure we want to hoist*)
     let closure_var = Var.make ("closure_" ^ name_context) in
@@ -532,8 +536,8 @@ let rec hoist_closures_expr :
       ],
       Expr.make_var closure_var m )
   | EApp _ | EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
-  | EArray _ | ELit _ | EAssert _ | EOp _ | EIfThenElse _ | ERaise _ | ECatch _
-  | EVar _ ->
+  | EArray _ | ELit _ | EAssert _ | EAppOp _ | EIfThenElse _ | ERaise _
+  | ECatch _ | EVar _ ->
     Expr.map_gather ~acc:[] ~join:( @ ) ~f:(hoist_closures_expr name_context) e
   | EExternal _ -> failwith "unimplemented"
   | _ -> .

@@ -53,16 +53,15 @@ let rec translate_default
   in
   let pos = Expr.mark_pos mark_default in
   let exceptions =
-    Expr.make_app
-      (Expr.eop Op.HandleDefault
-         [TAny, pos; TAny, pos; TAny, pos]
-         (Expr.no_mark mark_default))
-      [
-        Expr.earray exceptions mark_default;
-        Expr.thunk_term (translate_expr just) (Mark.get just);
-        Expr.thunk_term (translate_expr cons) (Mark.get cons);
-      ]
-      pos
+    Expr.eappop ~op:Op.HandleDefault
+      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~args:
+        [
+          Expr.earray exceptions mark_default;
+          Expr.thunk_term (translate_expr just) (Mark.get just);
+          Expr.thunk_term (translate_expr cons) (Mark.get cons);
+        ]
+      mark_default
   in
   exceptions
 
@@ -77,7 +76,10 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   | EDefault { excepts; just; cons } ->
     translate_default excepts just cons (Mark.get e)
   | EPureDefault e -> translate_expr e
-  | EOp { op; tys } -> Expr.eop (Operator.translate op) tys m
+  | EAppOp { op; args; tys } ->
+    Expr.eappop ~op:(Operator.translate op)
+      ~args:(List.map translate_expr args)
+      ~tys m
   | ( ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _ | EIfThenElse _
     | ETuple _ | ETupleAccess _ | EInj _ | EAssert _ | EStruct _
     | EStructAccess _ | EMatch _ ) as e ->

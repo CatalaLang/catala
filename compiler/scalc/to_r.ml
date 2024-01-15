@@ -312,29 +312,30 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EApp { f = EOp ((Map | Filter) as op), _; args = [arg1; arg2] } ->
+  | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1 (format_expression ctx) arg2
-  | EApp { f = EOp op, _; args = [arg1; arg2] } ->
+  | EAppOp { op; args = [arg1; arg2] } ->
     Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
       (op, Pos.no_pos) (format_expression ctx) arg2
-  | EApp { f = EOp Not, _; args = [arg1] } ->
+  | EAppOp { op = Not; args = [arg1] } ->
     Format.fprintf fmt "%a %a" format_op (Not, Pos.no_pos)
       (format_expression ctx) arg1
-  | EApp
+  | EAppOp
       {
-        f = EOp ((Minus_int | Minus_rat | Minus_mon | Minus_dur) as op), _;
+        op = (Minus_int | Minus_rat | Minus_mon | Minus_dur) as op;
         args = [arg1];
       } ->
     Format.fprintf fmt "%a %a" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
-  | EApp { f = EOp op, _; args = [arg1] } ->
+  | EAppOp { op; args = [arg1] } ->
     Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
-  | EApp { f = EOp HandleDefaultOpt, _; _ } ->
+  | EAppOp { op = HandleDefaultOpt; _ } ->
     Message.raise_internal_error
       "R compilation does not currently support the avoiding of exceptions"
-  | EApp { f = EOp (HandleDefault as op), pos; args } ->
+  | EAppOp { op = HandleDefault as op; args; _ } ->
+    let pos = Mark.get e in
     Format.fprintf fmt
       "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
@@ -364,7 +365,12 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | EOp op -> Format.fprintf fmt "%a" format_op (op, Pos.no_pos)
+  | EAppOp { op; args } ->
+    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op (op, Pos.no_pos)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (format_expression ctx))
+      args
   | ETuple _ | ETupleAccess _ ->
     Message.raise_internal_error "Tuple compilation to R unimplemented!"
 

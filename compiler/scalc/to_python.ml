@@ -307,21 +307,18 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
       es
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
-  | EApp { f = EOp ((Map | Filter) as op), _; args = [arg1; arg2] } ->
+  | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1 (format_expression ctx) arg2
-  | EApp { f = EOp op, _; args = [arg1; arg2] } ->
+  | EAppOp { op; args = [arg1; arg2] } ->
     Format.fprintf fmt "(%a %a@ %a)" (format_expression ctx) arg1 format_op
       (op, Pos.no_pos) (format_expression ctx) arg2
   | EApp
-      {
-        f = EApp { f = EOp (Log (BeginCall, info)), _; args = [f] }, _;
-        args = [arg];
-      }
+      { f = EAppOp { op = Log (BeginCall, info); args = [f] }, _; args = [arg] }
     when Cli.globals.trace ->
     Format.fprintf fmt "log_begin_call(%a,@ %a,@ %a)" format_uid_list info
       (format_expression ctx) f (format_expression ctx) arg
-  | EApp { f = EOp (Log (VarDef var_def_info, info)), _; args = [arg1] }
+  | EAppOp { op = Log (VarDef var_def_info, info); args = [arg1] }
     when Cli.globals.trace ->
     Format.fprintf fmt
       "log_variable_definition(%a,@ LogIO(input_io=InputIO.%s,@ \
@@ -333,34 +330,35 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       | Runtime.Reentrant -> "Reentrant")
       (if var_def_info.log_io_output then "True" else "False")
       (format_expression ctx) arg1
-  | EApp { f = EOp (Log (PosRecordIfTrueBool, _)), pos; args = [arg1] }
+  | EAppOp { op = Log (PosRecordIfTrueBool, _); args = [arg1] }
     when Cli.globals.trace ->
+    let pos = Mark.get e in
     Format.fprintf fmt
       "log_decision_taken(SourcePosition(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)"
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) (format_expression ctx) arg1
-  | EApp { f = EOp (Log (EndCall, info)), _; args = [arg1] }
-    when Cli.globals.trace ->
+  | EAppOp { op = Log (EndCall, info); args = [arg1] } when Cli.globals.trace ->
     Format.fprintf fmt "log_end_call(%a,@ %a)" format_uid_list info
       (format_expression ctx) arg1
-  | EApp { f = EOp (Log _), _; args = [arg1] } ->
+  | EAppOp { op = Log _; args = [arg1] } ->
     Format.fprintf fmt "%a" (format_expression ctx) arg1
-  | EApp { f = EOp Not, _; args = [arg1] } ->
+  | EAppOp { op = Not; args = [arg1] } ->
     Format.fprintf fmt "%a %a" format_op (Not, Pos.no_pos)
       (format_expression ctx) arg1
-  | EApp
+  | EAppOp
       {
-        f = EOp ((Minus_int | Minus_rat | Minus_mon | Minus_dur) as op), _;
+        op = (Minus_int | Minus_rat | Minus_mon | Minus_dur) as op;
         args = [arg1];
       } ->
     Format.fprintf fmt "%a %a" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
-  | EApp { f = EOp op, _; args = [arg1] } ->
+  | EAppOp { op; args = [arg1] } ->
     Format.fprintf fmt "%a(%a)" format_op (op, Pos.no_pos)
       (format_expression ctx) arg1
-  | EApp { f = EOp ((HandleDefault | HandleDefaultOpt) as op), pos; args } ->
+  | EAppOp { op = (HandleDefault | HandleDefaultOpt) as op; args } ->
+    let pos = Mark.get e in
     Format.fprintf fmt
       "%a(@[<hov 0>SourcePosition(filename=\"%s\",@ start_line=%d,@ \
        start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
@@ -390,7 +388,12 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | EOp op -> Format.fprintf fmt "%a" format_op (op, Pos.no_pos)
+  | EAppOp { op; args } ->
+    Format.fprintf fmt "%a(@[<hov 0>%a)@]" format_op (op, Pos.no_pos)
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (format_expression ctx))
+      args
   | ETuple _ | ETupleAccess _ ->
     Message.raise_internal_error "Tuple compilation to R unimplemented!"
 

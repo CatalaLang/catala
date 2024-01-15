@@ -38,9 +38,10 @@ let tag_with_log_entry
     (l : log_entry)
     (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
   if Cli.globals.trace then
-    Expr.eapp
-      (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] (Mark.get e))
-      [e] (Mark.get e)
+    Expr.eappop
+      ~op:(Log (l, markings))
+      ~tys:[TAny, Expr.pos e]
+      ~args:[e] (Mark.get e)
   else e
 
 let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
@@ -120,7 +121,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                    (Expr.edefault ~excepts:[] ~just:(Expr.elit (LBool true) m)
                       ~cons:
                         (Expr.epuredefault
-                           (Expr.make_app e' [Expr.evar arg m] pos)
+                           (Expr.make_app e' [Expr.evar arg m] targs pos)
                            m)
                       m)
                    targs pos
@@ -130,22 +131,50 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
              ScopeVar.Map.add v' e' args')
            args ScopeVar.Map.empty)
       m
-  | EApp { f = EOp { op; tys }, m1; args } ->
+  | EApp { f; tys; args } -> (
+    (* Detuplification of function arguments *)
+    let pos = Expr.pos f in
+    let f = translate_expr ctx f in
+    match args, tys with
+    | [arg], [_] -> Expr.eapp ~f ~tys m ~args:[translate_expr ctx arg]
+    | [(ETuple args, _)], _ ->
+      assert (List.length args = List.length tys);
+      Expr.eapp ~f ~tys m ~args:(List.map (translate_expr ctx) args)
+    | [((EVar _, _) as arg)], ts ->
+      let size = List.length ts in
+      let args =
+        let e = translate_expr ctx arg in
+        List.init size (fun index -> Expr.etupleaccess ~e ~size ~index m)
+      in
+      Expr.eapp ~f ~tys m ~args
+    | [arg], ts ->
+      let size = List.length ts in
+      let v = Var.make "args" in
+      let e = Expr.evar v (Mark.get arg) in
+      let args =
+        List.init size (fun index -> Expr.etupleaccess ~e ~size ~index m)
+      in
+      Expr.make_let_in v (TTuple ts, pos) (translate_expr ctx arg)
+        (Expr.eapp ~f ~tys m ~args)
+        pos
+    | args, tys ->
+      assert (List.length args = List.length tys);
+      Expr.eapp ~f ~tys m ~args:(List.map (translate_expr ctx) args))
+  | EAppOp { op; tys; args } ->
     let args = List.map (translate_expr ctx) args in
     Operator.kind_dispatch op
-      ~monomorphic:(fun op -> Expr.eapp (Expr.eop op tys m1) args m)
-      ~polymorphic:(fun op -> Expr.eapp (Expr.eop op tys m1) args m)
+      ~monomorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
+      ~polymorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
       ~overloaded:(fun op ->
         match
           Operator.resolve_overload ctx.decl_ctx (Mark.add (Expr.pos e) op) tys
         with
-        | op, `Straight -> Expr.eapp (Expr.eop op tys m1) args m
+        | op, `Straight -> Expr.eappop ~op ~tys ~args m
         | op, `Reversed ->
-          Expr.eapp (Expr.eop op (List.rev tys) m1) (List.rev args) m)
-  | EOp _ -> assert false (* Only allowed within [EApp] *)
+          Expr.eappop ~op ~tys:(List.rev tys) ~args:(List.rev args) m)
   | ( EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
-    | EMatch _ | ELit _ | EApp _ | EDefault _ | EPureDefault _ | EIfThenElse _
-    | EArray _ | EEmptyError | EErrorOnEmpty _ ) as e ->
+    | EMatch _ | ELit _ | EDefault _ | EPureDefault _ | EIfThenElse _ | EArray _
+    | EEmptyError | EErrorOnEmpty _ ) as e ->
     Expr.map ~f:(translate_expr ctx) (e, m)
 
 (** {1 Rule tree construction} *)

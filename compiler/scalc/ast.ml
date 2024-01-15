@@ -37,9 +37,7 @@ let dead_value = VarName.fresh ("dead_value", Pos.no_pos)
 let handle_default = FuncName.fresh ("handle_default", Pos.no_pos)
 let handle_default_opt = FuncName.fresh ("handle_default_opt", Pos.no_pos)
 
-type operator =
-  < overloaded : no ; monomorphic : yes ; polymorphic : yes ; resolved : yes >
-  Shared_ast.operator
+type operator = Shared_ast.lcalc Shared_ast.operator
 
 type expr = naked_expr Mark.pos
 
@@ -63,7 +61,7 @@ and naked_expr =
   | EArray of expr list
   | ELit of lit
   | EApp of { f : expr; args : expr list }
-  | EOp of operator
+  | EAppOp of { op : operator; args : expr list }
 
 type stmt =
   | SInnerFuncDef of { name : VarName.t Mark.pos; func : func }

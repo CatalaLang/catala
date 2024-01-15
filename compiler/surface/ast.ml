@@ -55,6 +55,7 @@ and primitive_typ =
 and base_typ_data =
   | Primitive of primitive_typ
   | Collection of base_typ_data Mark.pos
+  | TTuple of base_typ_data Mark.pos list
 
 and base_typ = Condition | Data of base_typ_data
 
@@ -180,13 +181,14 @@ and naked_expression =
   | FunCall of expression * expression list
   | ScopeCall of
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
-  | LetIn of lident Mark.pos * expression * expression
+  | LetIn of lident Mark.pos list * expression * expression
   | Builtin of builtin_expression
   | Literal of literal
   | EnumInject of (path * uident Mark.pos) Mark.pos * expression option
   | StructLit of
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
   | ArrayLit of expression list
+  | Tuple of expression list
   | Ident of path * lident Mark.pos
   | Dotted of expression * (path * lident Mark.pos) Mark.pos
       (** Dotted is for both struct field projection and sub-scope variables *)

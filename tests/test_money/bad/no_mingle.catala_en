@@ -18,10 +18,10 @@ $ catala Interpret -s A
 I don't know how to apply operator * on types money and
 money
 
-┌─⯈ tests/test_money/bad/no_mingle.catala_en:12.26-12.27:
+┌─⯈ tests/test_money/bad/no_mingle.catala_en:12.24-12.29:
 └──┐
 12 │   definition z equals (x * y)
-   │                          ‾
+   │                        ‾‾‾‾‾
    └─ Article
 
 Type money coming from expression:

@@ -112,7 +112,7 @@ let evar v mark = Mark.add mark (Bindlib.box_var v)
 let eexternal ~name mark = Mark.add mark (Bindlib.box (EExternal { name }))
 let etuple args = Box.appn args @@ fun args -> ETuple args
 
-let etupleaccess e index size =
+let etupleaccess ~e ~index ~size =
   assert (index < size);
   Box.app1 e @@ fun e -> ETupleAccess { e; index; size }
 
@@ -122,9 +122,11 @@ let elit l mark = Mark.add mark (Bindlib.box (ELit l))
 let eabs binder tys mark =
   Bindlib.box_apply (fun binder -> EAbs { binder; tys }) binder, mark
 
-let eapp f args = Box.app1n f args @@ fun f args -> EApp { f; args }
+let eapp ~f ~args ~tys = Box.app1n f args @@ fun f args -> EApp { f; args; tys }
 let eassert e1 = Box.app1 e1 @@ fun e1 -> EAssert e1
-let eop op tys = Box.app0 @@ EOp { op; tys }
+
+let eappop ~op ~args ~tys =
+  Box.appn args @@ fun args -> EAppOp { op; args; tys }
 
 let edefault ~excepts ~just ~cons =
   Box.app2n just cons excepts
@@ -260,8 +262,8 @@ let none_constr = EnumConstructor.fresh ("ENone", Pos.no_pos)
 let some_constr = EnumConstructor.fresh ("ESome", Pos.no_pos)
 
 let option_enum_config =
-  EnumConstructor.Map.singleton none_constr (TLit TUnit, Pos.no_pos)
-  |> EnumConstructor.Map.add some_constr (TAny, Pos.no_pos)
+  EnumConstructor.Map.of_list
+    [none_constr, (TLit TUnit, Pos.no_pos); some_constr, (TAny, Pos.no_pos)]
 
 (* - Traversal functions - *)
 
@@ -273,8 +275,8 @@ let map
   let m = Mark.get e in
   match Mark.remove e with
   | ELit l -> elit l m
-  | EApp { f = e1; args } -> eapp (f e1) (List.map f args) m
-  | EOp { op; tys } -> eop op tys m
+  | EApp { f = e1; args; tys } -> eapp ~f:(f e1) ~args:(List.map f args) ~tys m
+  | EAppOp { op; tys; args } -> eappop ~op ~tys ~args:(List.map f args) m
   | EArray args -> earray (List.map f args) m
   | EVar v -> evar (Var.translate v) m
   | EExternal { name } -> eexternal ~name m
@@ -286,7 +288,7 @@ let map
   | EIfThenElse { cond; etrue; efalse } ->
     eifthenelse (f cond) (f etrue) (f efalse) m
   | ETuple args -> etuple (List.map f args) m
-  | ETupleAccess { e; index; size } -> etupleaccess (f e) index size m
+  | ETupleAccess { e; index; size } -> etupleaccess ~e:(f e) ~index ~size m
   | EInj { name; cons; e } -> einj ~name ~cons ~e:(f e) m
   | EAssert e1 -> eassert (f e1) m
   | EDefault { excepts; just; cons } ->
@@ -322,10 +324,9 @@ let shallow_fold
     (acc : 'acc) : 'acc =
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   match Mark.remove e with
-  | ELit _ | EOp _ | EVar _ | EExternal _ | ERaise _ | ELocation _ | EEmptyError
-    ->
-    acc
-  | EApp { f = e; args } -> acc |> f e |> lfold args
+  | ELit _ | EVar _ | EExternal _ | ERaise _ | ELocation _ | EEmptyError -> acc
+  | EApp { f = e; args; _ } -> acc |> f e |> lfold args
+  | EAppOp { args; _ } -> acc |> lfold args
   | EArray args -> acc |> lfold args
   | EAbs { binder; tys = _ } ->
     let _, body = Bindlib.unmbind binder in
@@ -367,11 +368,13 @@ let map_gather
   in
   match Mark.remove e with
   | ELit l -> acc, elit l m
-  | EApp { f = e1; args } ->
+  | EApp { f = e1; args; tys } ->
     let acc1, f = f e1 in
     let acc2, args = lfoldmap args in
-    join acc1 acc2, eapp f args m
-  | EOp { op; tys } -> acc, eop op tys m
+    join acc1 acc2, eapp ~f ~args ~tys m
+  | EAppOp { op; args; tys } ->
+    let acc, args = lfoldmap args in
+    acc, eappop ~op ~args ~tys m
   | EArray args ->
     let acc, args = lfoldmap args in
     acc, earray args m
@@ -392,7 +395,7 @@ let map_gather
     acc, etuple args m
   | ETupleAccess { e; index; size } ->
     let acc, e = f e in
-    acc, etupleaccess e index size m
+    acc, etupleaccess ~e ~index ~size m
   | EInj { name; cons; e } ->
     let acc, e = f e in
     acc, einj ~name ~cons ~e m
@@ -473,7 +476,7 @@ let untype e = map_marks ~f:(fun m -> Untyped { pos = mark_pos m }) e
 
 let is_value (type a) (e : (a, _) gexpr) =
   match Mark.remove e with
-  | ELit _ | EAbs _ | EOp _ | ERaise _ -> true
+  | ELit _ | EAbs _ | ERaise _ | ECustom _ | EExternal _ -> true
   | _ -> false
 
 let equal_lit (l1 : lit) (l2 : lit) =
@@ -596,11 +599,15 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
   | ELit l1, ELit l2 -> l1 = l2
   | EAbs { binder = b1; tys = tys1 }, EAbs { binder = b2; tys = tys2 } ->
     Type.equal_list tys1 tys2 && Bindlib.eq_mbinder equal b1 b2
-  | EApp { f = e1; args = args1 }, EApp { f = e2; args = args2 } ->
-    equal e1 e2 && equal_list args1 args2
+  | ( EApp { f = e1; args = args1; tys = tys1 },
+      EApp { f = e2; args = args2; tys = tys2 } ) ->
+    equal e1 e2 && equal_list args1 args2 && Type.equal_list tys1 tys2
+  | ( EAppOp { op = op1; args = args1; tys = tys1 },
+      EAppOp { op = op2; args = args2; tys = tys2 } ) ->
+    Operator.equal op1 op2
+    && equal_list args1 args2
+    && Type.equal_list tys1 tys2
   | EAssert e1, EAssert e2 -> equal e1 e2
-  | EOp { op = op1; tys = tys1 }, EOp { op = op2; tys = tys2 } ->
-    Operator.equal op1 op2 && Type.equal_list tys1 tys2
   | ( EDefault { excepts = exc1; just = def1; cons = cons1 },
       EDefault { excepts = exc2; just = def2; cons = cons2 } ) ->
     equal def1 def2 && equal cons1 cons2 && equal_list exc1 exc2
@@ -640,7 +647,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
       ECustom { obj = obj2; targs = targs2; tret = tret2 } ) ->
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
-      | EAbs _ | EApp _ | EAssert _ | EOp _ | EDefault _ | EPureDefault _
+      | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EDefault _ | EPureDefault _
       | EIfThenElse _ | EEmptyError | EErrorOnEmpty _ | ERaise _ | ECatch _
       | ELocation _ | EStruct _ | EDStructAccess _ | EStructAccess _ | EInj _
       | EMatch _ | EScopeCall _ | ECustom _ ),
@@ -656,11 +663,13 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   match[@ocamlformat "disable"] Mark.remove e1, Mark.remove e2 with
   | ELit l1, ELit l2 ->
     compare_lit l1 l2
-  | EApp {f=f1; args=args1}, EApp {f=f2; args=args2} ->
+  | EApp {f=f1; args=args1; tys=tys1}, EApp {f=f2; args=args2; tys=tys2} ->
     compare f1 f2 @@< fun () ->
-    List.compare compare args1 args2
-  | EOp {op=op1; tys=tys1}, EOp {op=op2; tys=tys2} ->
+    List.compare compare args1 args2 @@< fun () ->
+    List.compare Type.compare tys1 tys2
+  | EAppOp {op=op1; args=args1; tys=tys1}, EAppOp {op=op2; args=args2; tys=tys2} ->
     Operator.compare op1 op2 @@< fun () ->
+    List.compare compare args1 args2 @@< fun () ->
     List.compare Type.compare tys1 tys2
   | EArray a1, EArray a2 ->
     List.compare compare a1 a2
@@ -739,7 +748,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
     invalid_arg "Custom block comparison"
   | ELit _, _ -> -1 | _, ELit _ -> 1
   | EApp _, _ -> -1 | _, EApp _ -> 1
-  | EOp _, _ -> -1 | _, EOp _ -> 1
+  | EAppOp _, _ -> -1 | _, EAppOp _ -> 1
   | EArray _, _ -> -1 | _, EArray _ -> 1
   | EVar _, _ -> -1 | _, EVar _ -> 1
   | EExternal _, _ -> -1 | _, EExternal _ -> 1
@@ -769,24 +778,14 @@ let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
     Array.fold_right Var.Set.remove vs (free_vars body)
   | e -> shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
 
-let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
-  | EApp { f = EOp { op = Log _; _ }, _; args = [e] }, _ -> skip_wrappers e
-  | EApp { f = EApp { f = EOp { op = Log _; _ }, _; args = [f] }, _; args }, m
-    ->
-    skip_wrappers (EApp { f; args }, m)
-  | EErrorOnEmpty e, _ -> skip_wrappers e
-  | EDefault { excepts = []; just = ELit (LBool true), _; cons = e }, _ ->
-    skip_wrappers e
-  | EPureDefault e, _ -> skip_wrappers e
-  | e -> e
+(* This function is first defined in [Print], only for dependency reasons *)
+let skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = Print.skip_wrappers
 
 let remove_logging_calls e =
   let rec f e =
     let e, m = map ~f e in
     ( Bindlib.box_apply
-        (function
-          | EApp { f = EOp { op = Log _; _ }, _; args = [(arg, _)] } -> arg
-          | e -> e)
+        (function EAppOp { op = Log _; args = [(arg, _)]; _ } -> arg | e -> e)
         e,
       m )
   in
@@ -876,7 +875,7 @@ let format ppf e = Print.expr ~debug:false () ppf e
 let rec size : type a. (a, 't) gexpr -> int =
  fun e ->
   match Mark.remove e with
-  | EVar _ | EExternal _ | ELit _ | EOp _ | EEmptyError | ECustom _ -> 1
+  | EVar _ | EExternal _ | ELit _ | EEmptyError | ECustom _ -> 1
   | ETuple args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | EArray args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | ETupleAccess { e; _ } -> size e + 1
@@ -884,8 +883,9 @@ let rec size : type a. (a, 't) gexpr -> int =
   | EAssert e -> size e + 1
   | EErrorOnEmpty e -> size e + 1
   | EPureDefault e -> size e + 1
-  | EApp { f; args } ->
+  | EApp { f; args; _ } ->
     List.fold_left (fun acc arg -> acc + size arg) (1 + size f) args
+  | EAppOp { args; _ } -> List.fold_left (fun acc arg -> acc + size arg) 2 args
   | EAbs { binder; _ } ->
     let _, body = Bindlib.unmbind binder in
     1 + size body
@@ -921,7 +921,19 @@ let make_abs xs e taus pos =
   in
   eabs (bind xs e) taus mark
 
-let make_app e args pos =
+let make_tuple el m0 =
+  match el with
+  | [] -> etuple [] (with_ty m0 (TTuple [], mark_pos m0))
+  | el ->
+    let m =
+      fold_marks
+        (fun posl -> List.hd posl)
+        (fun ml -> TTuple (List.map (fun t -> t.ty) ml), (List.hd ml).pos)
+        (List.map (fun e -> Mark.get e) el)
+    in
+    etuple el m
+
+let make_app f args tys pos =
   let mark =
     fold_marks
       (fun _ -> pos)
@@ -937,9 +949,9 @@ let make_app e args pos =
             Message.raise_internal_error
               "wrong type: found %a while expecting either an Arrow or Any"
               Print.typ_debug fty.ty))
-      (List.map Mark.get (e :: args))
+      (List.map Mark.get (f :: args))
   in
-  eapp e args mark
+  eapp ~f ~args ~tys mark
 
 let make_erroronempty e =
   let mark =
@@ -964,28 +976,22 @@ let thunk_term term mark =
 let empty_thunked_term mark = thunk_term (Bindlib.box EEmptyError, mark) mark
 
 let unthunk_term_nobox term mark =
-  Mark.add mark (EApp { f = term; args = [ELit LUnit, mark] })
+  Mark.add mark
+    (EApp
+       {
+         f = term;
+         args = [ELit LUnit, mark];
+         tys = [TLit TUnit, mark_pos mark];
+       })
 
 let make_let_in x tau e1 e2 mpos =
-  make_app (make_abs [| x |] e2 [tau] mpos) [e1] (pos e2)
+  make_app (make_abs [| x |] e2 [tau] mpos) [e1] [tau] (pos e2)
 
 let make_multiple_let_in xs taus e1s e2 mpos =
-  make_app (make_abs xs e2 taus mpos) e1s (pos e2)
+  make_app (make_abs xs e2 taus mpos) e1s taus (pos e2)
 
 let make_puredefault e =
   let mark =
     map_mark (fun pos -> pos) (fun ty -> TDefault ty, Mark.get ty) (Mark.get e)
   in
   epuredefault e mark
-
-let make_tuple el m0 =
-  match el with
-  | [] -> etuple [] (with_ty m0 (TTuple [], mark_pos m0))
-  | el ->
-    let m =
-      fold_marks
-        (fun posl -> List.hd posl)
-        (fun ml -> TTuple (List.map (fun t -> t.ty) ml), (List.hd ml).pos)
-        (List.map (fun e -> Mark.get e) el)
-    in
-    etuple el m

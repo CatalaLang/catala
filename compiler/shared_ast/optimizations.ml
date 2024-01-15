@@ -100,61 +100,17 @@ let rec optimize_expr :
        the matches and the log calls are not preserved, which would be a good
        property *)
     match Mark.remove e with
-    | EApp
-        {
-          f =
-            ( EOp { op = Not; _ }, _
-            | ( EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(EOp { op = Not; _ }, _)];
-                  },
-                _ ) ) as op;
-          args = [e1];
-        } -> (
+    | EAppOp { op = Not; args = [(ELit (LBool b), _)]; _ } ->
       (* reduction of logical not *)
-      match e1 with
-      | ELit (LBool false), _ -> ELit (LBool true)
-      | ELit (LBool true), _ -> ELit (LBool false)
-      | e1 -> EApp { f = op; args = [e1] })
-    | EApp
-        {
-          f =
-            ( EOp { op = Or; _ }, _
-            | ( EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(EOp { op = Or; _ }, _)];
-                  },
-                _ ) ) as op;
-          args = [e1; e2];
-        } -> (
+      ELit (LBool (not b))
+    | EAppOp { op = Or; args = [(ELit (LBool b), _); (e, _)]; _ }
+    | EAppOp { op = Or; args = [(e, _); (ELit (LBool b), _)]; _ } ->
       (* reduction of logical or *)
-      match e1, e2 with
-      | (ELit (LBool false), _), new_e | new_e, (ELit (LBool false), _) ->
-        Mark.remove new_e
-      | (ELit (LBool true), _), _ | _, (ELit (LBool true), _) ->
-        ELit (LBool true)
-      | _ -> EApp { f = op; args = [e1; e2] })
-    | EApp
-        {
-          f =
-            ( EOp { op = And; _ }, _
-            | ( EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(EOp { op = And; _ }, _)];
-                  },
-                _ ) ) as op;
-          args = [e1; e2];
-        } -> (
+      if b then ELit (LBool true) else e
+    | EAppOp { op = And; args = [(ELit (LBool b), _); (e, _)]; _ }
+    | EAppOp { op = And; args = [(e, _); (ELit (LBool b), _)]; _ } ->
       (* reduction of logical and *)
-      match e1, e2 with
-      | (ELit (LBool true), _), new_e | new_e, (ELit (LBool true), _) ->
-        Mark.remove new_e
-      | (ELit (LBool false), _), _ | _, (ELit (LBool false), _) ->
-        ELit (LBool false)
-      | _ -> EApp { f = op; args = [e1; e2] })
+      if b then e else ELit (LBool false)
     | EMatch { e = EInj { e = e'; cons; name = n' }, _; cases; name = n }
     (* iota-reduction *)
       when EnumName.equal n n' -> (
@@ -206,7 +162,7 @@ let rec optimize_expr :
           cases1 cases2
       in
       EMatch { e = arg; cases; name = n1 }
-    | EApp { f = EAbs { binder; _ }, _; args }
+    | EApp { f = EAbs { binder; _ }, _; args; _ }
       when binder_vars_used_at_most_once binder
            || List.for_all
                 (function (EVar _ | ELit _), _ -> true | _ -> false)
@@ -248,21 +204,13 @@ let rec optimize_expr :
           Mark.remove cons
         | ( [],
             ( ( ELit (LBool false)
-              | EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(ELit (LBool false), _)];
-                  } ),
+              | EAppOp { op = Log _; args = [(ELit (LBool false), _)]; _ } ),
               _ ) ) ->
           (* No exceptions and condition false *)
           EEmptyError
         | ( [except],
             ( ( ELit (LBool false)
-              | EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(ELit (LBool false), _)];
-                  } ),
+              | EAppOp { op = Log _; args = [(ELit (LBool false), _)]; _ } ),
               _ ) ) ->
           (* Single exception and condition false *)
           Mark.remove except
@@ -271,12 +219,7 @@ let rec optimize_expr :
         {
           cond =
             ( ELit (LBool true), _
-            | ( EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(ELit (LBool true), _)];
-                  },
-                _ ) );
+            | EAppOp { op = Log _; args = [(ELit (LBool true), _)]; _ }, _ );
           etrue;
           _;
         } ->
@@ -285,11 +228,7 @@ let rec optimize_expr :
         {
           cond =
             ( ( ELit (LBool false)
-              | EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(ELit (LBool false), _)];
-                  } ),
+              | EAppOp { op = Log _; args = [(ELit (LBool false), _)]; _ } ),
               _ );
           efalse;
           _;
@@ -300,40 +239,31 @@ let rec optimize_expr :
           cond;
           etrue =
             ( ( ELit (LBool btrue)
-              | EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(ELit (LBool btrue), _)];
-                  } ),
+              | EAppOp { op = Log _; args = [(ELit (LBool btrue), _)]; _ } ),
               _ );
           efalse =
             ( ( ELit (LBool bfalse)
-              | EApp
-                  {
-                    f = EOp { op = Log _; _ }, _;
-                    args = [(ELit (LBool bfalse), _)];
-                  } ),
+              | EAppOp { op = Log _; args = [(ELit (LBool bfalse), _)]; _ } ),
               _ );
         } ->
       if btrue && not bfalse then Mark.remove cond
       else if (not btrue) && bfalse then
-        EApp
-          {
-            f = EOp { op = Not; tys = [TLit TBool, Expr.mark_pos mark] }, mark;
-            args = [cond];
-          }
+        EAppOp
+          { op = Not; tys = [TLit TBool, Expr.mark_pos mark]; args = [cond] }
         (* note: this last call eliminates the condition & might skip log calls
            as well *)
       else (* btrue = bfalse *) ELit (LBool btrue)
-    | EApp { f = EOp { op = Op.Fold; _ }, _; args = [_f; init; (EArray [], _)] }
-      ->
+    | EAppOp { op = Op.Fold; args = [_f; init; (EArray [], _)]; _ } ->
       (*reduces a fold with an empty list *)
       Mark.remove init
-    | EApp
-        { f = EOp { op = Op.Fold; _ }, _; args = [f; init; (EArray [e'], _)] }
-      ->
+    | EAppOp
+        {
+          op = Op.Fold;
+          args = [f; init; (EArray [e'], _)];
+          tys = [_; tinit; (TArray tx, _)];
+        } ->
       (* reduces a fold with one element *)
-      EApp { f; args = [init; e'] }
+      EApp { f; args = [init; e']; tys = [tinit; tx] }
     | ECatch { body; exn; handler } -> (
       (* peephole exception catching reductions *)
       match Mark.remove body, Mark.remove handler with

@@ -55,7 +55,11 @@ val subst :
 val etuple : ('a, 'm) boxed_gexpr list -> 'm mark -> ('a any, 'm) boxed_gexpr
 
 val etupleaccess :
-  ('a, 'm) boxed_gexpr -> int -> int -> 'm mark -> ('a any, 'm) boxed_gexpr
+  e:('a, 'm) boxed_gexpr ->
+  index:int ->
+  size:int ->
+  'm mark ->
+  ('a any, 'm) boxed_gexpr
 
 val earray : ('a, 'm) boxed_gexpr list -> 'm mark -> ('a any, 'm) boxed_gexpr
 val elit : lit -> 'm mark -> ('a any, 'm) boxed_gexpr
@@ -67,8 +71,9 @@ val eabs :
   ('a any, 'm) boxed_gexpr
 
 val eapp :
-  ('a, 'm) boxed_gexpr ->
-  ('a, 'm) boxed_gexpr list ->
+  f:('a, 'm) boxed_gexpr ->
+  args:('a, 'm) boxed_gexpr list ->
+  tys:typ list ->
   'm mark ->
   ('a any, 'm) boxed_gexpr
 
@@ -77,7 +82,12 @@ val eassert :
   'm mark ->
   ((< assertions : yes ; .. > as 'a), 'm) boxed_gexpr
 
-val eop : 'a operator -> typ list -> 'm mark -> ('a any, 'm) boxed_gexpr
+val eappop :
+  op:'a operator ->
+  args:('a, 'm) boxed_gexpr list ->
+  tys:typ list ->
+  'm mark ->
+  ('a any, 'm) boxed_gexpr
 
 val edefault :
   excepts:('a, 'm) boxed_gexpr list ->
@@ -319,6 +329,7 @@ val make_abs :
 val make_app :
   ('a any, 'm) boxed_gexpr ->
   ('a, 'm) boxed_gexpr list ->
+  typ list ->
   Pos.t ->
   ('a any, 'm) boxed_gexpr
 

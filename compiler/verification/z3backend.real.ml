@@ -437,9 +437,9 @@ let rec translate_op :
   let ill_formed () =
     Format.kasprintf failwith
       "[Z3 encoding] Ill-formed operator application: %a" Shared_ast.Expr.format
-      (Shared_ast.Expr.eapp
-         (Shared_ast.Expr.eop op [] (Untyped { pos = Pos.no_pos }))
-         (List.map Shared_ast.Expr.untype args)
+      (Shared_ast.Expr.eappop ~op
+         ~args:(List.map Shared_ast.Expr.untype args)
+         ~tys:[]
          (Untyped { pos = Pos.no_pos })
       |> Shared_ast.Expr.unbox)
   in
@@ -458,10 +458,7 @@ let rec translate_op :
     failwith "[Z3 encoding] ternary operator application not supported"
     (* Special case for GetYear comparisons *)
   | ( Lt_int_int,
-      [
-        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
-        (ELit (LInt n), _);
-      ] ) ->
+      [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
     let n = Runtime.integer_to_int n in
     let ctx, e1 = translate_expr ctx e1 in
     let e2 =
@@ -472,10 +469,7 @@ let rec translate_op :
        days *)
     ctx, Arithmetic.mk_lt ctx.ctx_z3 e1 e2
   | ( Lte_int_int,
-      [
-        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
-        (ELit (LInt n), _);
-      ] ) ->
+      [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
     let ctx, e1 = translate_expr ctx e1 in
     let nb_days = if is_leap_year n then 365 else 364 in
     let n = Runtime.integer_to_int n in
@@ -489,10 +483,7 @@ let rec translate_op :
     in
     ctx, Arithmetic.mk_le ctx.ctx_z3 e1 e2
   | ( Gt_int_int,
-      [
-        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
-        (ELit (LInt n), _);
-      ] ) ->
+      [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
     let ctx, e1 = translate_expr ctx e1 in
     let nb_days = if is_leap_year n then 365 else 364 in
     let n = Runtime.integer_to_int n in
@@ -506,10 +497,7 @@ let rec translate_op :
     in
     ctx, Arithmetic.mk_gt ctx.ctx_z3 e1 e2
   | ( Gte_int_int,
-      [
-        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
-        (ELit (LInt n), _);
-      ] ) ->
+      [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ) ->
     let n = Runtime.integer_to_int n in
     let ctx, e1 = translate_expr ctx e1 in
     let e2 =
@@ -519,11 +507,7 @@ let rec translate_op :
        be directly translated as >= in the Z3 encoding using the number of
        days *)
     ctx, Arithmetic.mk_ge ctx.ctx_z3 e1 e2
-  | ( Eq,
-      [
-        (EApp { f = EOp { op = GetYear; _ }, _; args = [e1] }, _);
-        (ELit (LInt n), _);
-      ] ) ->
+  | Eq, [(EAppOp { op = GetYear; args = [e1]; _ }, _); (ELit (LInt n), _)] ->
     let n = Runtime.integer_to_int n in
     let ctx, e1 = translate_expr ctx e1 in
     let min_date =
@@ -733,9 +717,9 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
   | EArray _ -> failwith "[Z3 encoding] EArray unsupported"
   | ELit l -> ctx, translate_lit ctx l
   | EAbs _ -> failwith "[Z3 encoding] EAbs unsupported"
-  | EApp { f = head; args } -> (
+  | EAppOp { op; args; _ } -> translate_op ctx op args
+  | EApp { f = head; args; _ } -> (
     match Mark.remove head with
-    | EOp { op; _ } -> translate_op ctx op args
     | EVar v ->
       let (Typed { ty = f_ty; _ }) = Mark.get head in
       let ctx, fd = find_or_create_funcdecl ctx v f_ty in
@@ -762,7 +746,6 @@ and translate_expr (ctx : context) (vc : typed expr) : context * Expr.expr =
         "[Z3 encoding] EApp node: Catala function calls should only include \
          operators or function names")
   | EAssert e -> translate_expr ctx e
-  | EOp _ -> failwith "[Z3 encoding] EOp unsupported"
   | EDefault _ -> failwith "[Z3 encoding] EDefault unsupported"
   | EPureDefault _ -> failwith "[Z3 encoding] EPureDefault unsupported"
   | EIfThenElse { cond = e_if; etrue = e_then; efalse = e_else } ->
