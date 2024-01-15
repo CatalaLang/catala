@@ -167,7 +167,10 @@ let translate_typ_lit (ctx : context) (t : typ_lit) : Z3.Sort.sort =
   | TInt -> Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
   | TRat -> Z3.Arithmetic.Real.mk_sort ctx.ctx_z3
   | TMoney -> Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
-  | TDate -> failwith "TDate not implemented"
+  | TDate ->
+    Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
+    (* TODO CONC REU for now a date is represented by the number of days since
+       UNIX epoch (1970-01-01) *)
   | TDuration -> failwith "TDuration not implemented"
 
 (** [translate_typ] returns the Z3 sort correponding to the Catala type [t] **)
@@ -326,6 +329,16 @@ let init_context (ctx : context) : context =
   (* TODO add things when needed *)
   ctx
 
+let base_day = Runtime.date_of_numbers 1970 1 1
+
+(** [date_to_int] translates [d] to an integer corresponding to the number of
+    days since Jan 1, 1970. Adapted from z3backend *)
+let date_to_int (d : Runtime.date) : int =
+  let period = Runtime.Oper.o_sub_dat_dat d base_day in
+  let y, m, d = Runtime.duration_to_years_months_days period in
+  assert (y = 0 && m = 0);
+  d
+
 (* loosely taken from z3backend, could be exposed instead? not necessarily,
    especially if they become plugins *)
 let symb_of_lit ctx (l : lit) : s_expr =
@@ -345,7 +358,9 @@ let symb_of_lit ctx (l : lit) : s_expr =
     let cents = Runtime.money_to_cents m in
     z3_int_of_bigint cents
   | LUnit -> snd ctx.ctx_z3unit
-  | LDate _ -> failwith "LDate not implemented"
+  | LDate date ->
+    let days = date_to_int date in
+    z3_int_of_bigint (Z.of_int days)
   | LDuration _ -> failwith "LDuration not implemented"
 
 (** Get the symbolic expression corresponding to concolic expression [e] *)
@@ -493,7 +508,7 @@ let handle_eq evaluate_operator pos lang e1 e2 =
   | ELit (LMoney x1), ELit (LMoney x2) -> o_eq_mon_mon x1 x2
   | ELit (LDuration _), ELit (LDuration _) ->
     failwith "EOp Eq LDuration not implemented"
-  | ELit (LDate _), ELit (LDate _) -> failwith "EOp Eq LDate not implemented"
+  | ELit (LDate x1), ELit (LDate x2) -> o_eq_dat_dat x1 x2
   | EArray _, EArray _ -> failwith "EOp Eq EArray not implemented"
   | EStruct { fields = es1; name = s1 }, EStruct { fields = es2; name = s2 } ->
     StructName.equal s1 s2
@@ -821,7 +836,11 @@ let rec evaluate_operator
     op2 ctx m
       (fun x y -> ELit (LBool (o_lt_mon_mon x y)))
       Z3.Arithmetic.mk_lt x y e1 e2
-  | Lt_dat_dat, _ -> failwith "Eop Lt_dat_dat not implemented"
+  | Lt_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
+    (* TODO CONC REU date comparison is simply integer comparison for now *)
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_lt_dat_dat x y)))
+      Z3.Arithmetic.mk_lt x y e1 e2
   | Lt_dur_dur, _ -> failwith "Eop Lt_dur_dur not implemented"
   | Lte_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
     op2 ctx m
@@ -835,7 +854,11 @@ let rec evaluate_operator
     op2 ctx m
       (fun x y -> ELit (LBool (o_lte_mon_mon x y)))
       Z3.Arithmetic.mk_le x y e1 e2
-  | Lte_dat_dat, _ -> failwith "Eop Lte_dat_dat not implemented"
+  | Lte_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
+    (* TODO CONC REU date comparison is simply integer comparison for now *)
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_lte_dat_dat x y)))
+      Z3.Arithmetic.mk_le x y e1 e2
   | Lte_dur_dur, _ -> failwith "Eop Lte_dur_dur not implemented"
   | Gt_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
     op2 ctx m
@@ -849,7 +872,11 @@ let rec evaluate_operator
     op2 ctx m
       (fun x y -> ELit (LBool (o_gt_mon_mon x y)))
       Z3.Arithmetic.mk_gt x y e1 e2
-  | Gt_dat_dat, _ -> failwith "Eop Gt_dat_dat not implemented"
+  | Gt_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
+    (* TODO CONC REU date comparison is simply integer comparison for now *)
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_gt_dat_dat x y)))
+      Z3.Arithmetic.mk_gt x y e1 e2
   | Gt_dur_dur, _ -> failwith "Eop Gt_dur_dur not implemented"
   | Gte_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
     op2 ctx m
@@ -863,7 +890,11 @@ let rec evaluate_operator
     op2 ctx m
       (fun x y -> ELit (LBool (o_gte_mon_mon x y)))
       Z3.Arithmetic.mk_ge x y e1 e2
-  | Gte_dat_dat, _ -> failwith "Eop Gte_dat_dat not implemented"
+  | Gte_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
+    (* TODO CONC REU date comparison is simply integer comparison for now *)
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_gte_dat_dat x y)))
+      Z3.Arithmetic.mk_ge x y e1 e2
   | Gte_dur_dur, _ -> failwith "Eop Gte_dur_dur not implemented"
   | Eq_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
     op2 ctx m
@@ -877,7 +908,11 @@ let rec evaluate_operator
     op2 ctx m
       (fun x y -> ELit (LBool (o_eq_mon_mon x y)))
       Z3.Boolean.mk_eq x y e1 e2
-  | Eq_dat_dat, _ -> failwith "Eop Eq_dat_dat not implemented"
+  | Eq_dat_dat, [((ELit (LDate x), _) as e1); ((ELit (LDate y), _) as e2)] ->
+    (* TODO CONC REU date comparison is simply integer comparison for now *)
+    op2 ctx m
+      (fun x y -> ELit (LBool (o_eq_dat_dat x y)))
+      Z3.Boolean.mk_eq x y e1 e2
   | Eq_dur_dur, _ -> failwith "Eop Eq_dur_dur not implemented"
   | HandleDefault, _ ->
     (* TODO change error message *)
@@ -898,13 +933,13 @@ let rec evaluate_operator
       | Mult_int_int | Mult_rat_rat | Mult_mon_rat (* | Mult_dur_int *)
       | Div_int_int
       | Div_rat_rat (* | Div_mon_mon | Div_mon_rat | Div_dur_dur *)
-      | Lt_int_int | Lt_rat_rat | Lt_mon_mon (* | Lt_dat_dat | Lt_dur_dur *)
-      | Lte_int_int | Lte_rat_rat
-      | Lte_mon_mon (* | Lte_dat_dat | Lte_dur_dur *)
-      | Gt_int_int | Gt_rat_rat | Gt_mon_mon (* | Gt_dat_dat | Gt_dur_dur *)
-      | Gte_int_int | Gte_rat_rat
-      | Gte_mon_mon (* | Gte_dat_dat | Gte_dur_dur *)
-      | Eq_int_int | Eq_rat_rat | Eq_mon_mon (* | Eq_dat_dat | Eq_dur_dur *) ),
+      | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat (* | Lt_dur_dur *)
+      | Lte_int_int | Lte_rat_rat | Lte_mon_mon
+      | Lte_dat_dat (* | Lte_dur_dur *)
+      | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat (* | Gt_dur_dur *)
+      | Gte_int_int | Gte_rat_rat | Gte_mon_mon
+      | Gte_dat_dat (* | Gte_dur_dur *)
+      | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat (* | Eq_dur_dur *) ),
       _ ) ->
     err ()
 
@@ -1364,7 +1399,7 @@ let default_lit_of_tlit t : lit =
   | TMoney -> LMoney (Runtime.money_of_units_int 42)
   | TUnit -> LUnit
   | TRat -> LRat (Runtime.decimal_of_string "42")
-  | TDate -> failwith "TDate not implemented"
+  | TDate -> LDate base_day (* TODO CONC REU default date is epoch *)
   | TDuration -> failwith "TDuration not implemented"
 
 (** Get a default concolic expression from a type. The concolic [mark] is given
@@ -1447,6 +1482,14 @@ let decimal_of_symb_expr (e : s_expr) : Runtime.decimal =
   | Z3enums.REAL_SORT -> Z3.Arithmetic.Real.get_ratio e
   | _ -> invalid_arg "[decimal_of_symb_expr] expected a Z3 Real"
 
+let duration_of_symb_expr (e : s_expr) : Runtime.duration =
+  let days_bigint = integer_of_symb_expr e in
+  let days_int =
+    Z.to_int
+      days_bigint (* TODO catch overflow? durations are ints anyways... *)
+  in
+  Runtime.duration_of_numbers 0 0 days_int
+
 let value_of_symb_expr_lit tl e =
   match tl with
   | TInt -> LInt (integer_of_symb_expr e)
@@ -1457,7 +1500,10 @@ let value_of_symb_expr_lit tl e =
     LMoney money
   | TRat -> LRat (decimal_of_symb_expr e)
   | TUnit -> LUnit (* TODO maybe check that the Z3 value is indeed unit? *)
-  | TDate -> failwith "TDate not implemented"
+  | TDate ->
+    let days = duration_of_symb_expr e in
+    LDate (Runtime.o_add_dat_dur Dates_calc.Dates.AbortOnRound base_day days)
+    (* TODO CONC REU no rounding for now *)
   | TDuration -> failwith "TDuration not implemented"
 
 (** Make a Catala value from a Z3 expression. The concolic [mark] is given by

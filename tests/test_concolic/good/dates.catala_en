@@ -1,0 +1,73 @@
+## Article
+
+```catala
+declaration scope A:
+  input d content date
+  output o content integer
+
+scope A:
+    definition o equals -1 # never reached
+    exception definition o
+        under condition d<=|1954-06-07|
+        consequence equals 0
+    exception definition o
+        under condition d>|1954-06-07| and d<|1970-01-01|
+        consequence equals 1
+    exception definition o
+        under condition d=|1970-01-01|
+        consequence equals 2
+    exception definition o
+        under condition d>|1970-01-01| and d<|2024-01-15|
+        consequence equals 3
+    exception definition o
+        under condition d>=|2024-01-15|
+        consequence equals 4
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A (A_in: A_in {d_in: date}): A {o: integer} =
+  let get d : date = A_in.d_in in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨ ⟨d <= 1954-06-07 ⊢ ⟨0⟩⟩, ⟨d > 1954-06-07 && d < 1970-01-01 ⊢ ⟨1⟩⟩,
+          ⟨d = 1970-01-01 ⊢ ⟨2⟩⟩, ⟨d > 1970-01-01 && d < 2024-01-15 ⊢ ⟨3⟩⟩,
+          ⟨d >= 2024-01-15 ⊢ ⟨4⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨-1⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . d_in = 1970-01-01
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . d_in = 1969-12-31
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . d_in = 1954-06-07
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . d_in = 2018-10-05
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . d_in = 2024-01-15
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 4
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
