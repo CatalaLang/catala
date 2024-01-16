@@ -243,7 +243,10 @@ module DateEncoding = struct
      both dates and durations are just numbers of days *)
 
   let add_dur_dur = Z3.Arithmetic.mk_add
-  let sub_dat_dat = Z3.Arithmetic.mk_sub (* NOTE: always a number of days in [Dates_calc] *)
+
+  let sub_dat_dat =
+    Z3.Arithmetic.mk_sub (* NOTE: always a number of days in [Dates_calc] *)
+
   let sub_dat_dur = Z3.Arithmetic.mk_sub
   let sub_dur_dur = Z3.Arithmetic.mk_sub
   let mult_dur_int = Z3.Arithmetic.mk_mul
@@ -628,27 +631,12 @@ let op1
   let symb_expr = symbolic_f ctx.ctx_z3 e in
   add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
 
-let op2list
-    ctx
-    m
-    (concrete_f : 'x -> 'y -> 'c conc_naked_expr)
-    (symbolic_f : Z3.context -> s_expr list -> s_expr)
-    x
-    y
-    e1
-    e2 : 'c conc_expr =
-  let concrete = concrete_f x y in
-  let e1 = Option.get (get_symb_expr e1) in
-  let e2 = Option.get (get_symb_expr e2) in
-  (* TODO handle errors *)
-  let symb_expr = symbolic_f ctx.ctx_z3 [e1; e2] in
-  add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
-
 let op2
     ctx
     m
     (concrete_f : 'x -> 'y -> 'c conc_naked_expr)
     (symbolic_f : Z3.context -> s_expr -> s_expr -> s_expr)
+    ?(constraints : path_constraint list = [])
     x
     y
     e1
@@ -658,7 +646,20 @@ let op2
   let e2 = Option.get (get_symb_expr e2) in
   (* TODO handle errors *)
   let symb_expr = symbolic_f ctx.ctx_z3 e1 e2 in
-  add_conc_info_m m (Some symb_expr) ~constraints:[] concrete
+  add_conc_info_m m (Some symb_expr) ~constraints concrete
+
+let op2list
+    ctx
+    m
+    (concrete_f : 'x -> 'y -> 'c conc_naked_expr)
+    (symbolic_f : Z3.context -> s_expr list -> s_expr)
+    ?(constraints : path_constraint list = [])
+    x
+    y
+    e1
+    e2 : 'c conc_expr =
+  let symbolic_f_curry ctx e1 e2 = symbolic_f ctx [e1; e2] in
+  op2 ctx m concrete_f symbolic_f_curry ~constraints x y e1 e2
 
 (* Reproduce the behaviour of [Q.to_bigint] rounding rational [q] to an integer
    towards 0 (ie 0.8 and -0.8 are rounded to 0)
