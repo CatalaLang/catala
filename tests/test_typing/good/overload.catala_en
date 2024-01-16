@@ -76,7 +76,7 @@ $ catala Interpret -s S
 [RESULT] o_b = true
 [RESULT] o_d = [-13 days]
 [RESULT] o_i = -5
-[RESULT] o_m = $-5.75
+[RESULT] o_m = -$5.75
 [RESULT] o_t = 2022-01-24
 [RESULT] o_x = 0.142,857,142,857,142,857,14…
 ```
@@ -86,7 +86,7 @@ $ catala Interpret_Lcalc -s S --avoid-exceptions --optimize
 [RESULT] o_b = true
 [RESULT] o_d = [-13 days]
 [RESULT] o_i = -5
-[RESULT] o_m = $-5.75
+[RESULT] o_m = -$5.75
 [RESULT] o_t = 2022-01-24
 [RESULT] o_x = 0.142,857,142,857,142,857,14…
 ```
