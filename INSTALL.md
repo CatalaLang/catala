@@ -151,16 +151,6 @@ repository.
 pages, as well as the `rsync` executable to transfer files (preferred to `cp`)
 because it also works with a remote server.
 
-#### Updating [`@catala-lang/french-law`](https://www.npmjs.com/package/@catala-lang/french-law) 
-
-When a new version of the `french_law.js` (see the [dedicated
-README](https://github.com/CatalaLang/catala/tree/master/french_law/js#generating-the-source-files)
-to generate the lib) needs to be published, you need to execute from the
-`french_law/js` directory, the following commands:
-
-    npm version patch -m "Patch message"
-    npm publish
-
 ## Syntax highlighting
 
 See the [dedicated `README.md`](./syntax_highlighting/README.md).

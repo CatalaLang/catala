@@ -1,7 +1,0 @@
-(executable
- (name run_tests)
- (modes native)
- (libraries catala.runtime_ocaml ocolor))
-
-(copy_files#
- ../../../../examples/allocations_familiales/tests/tests_allocations_familiales.ml)
