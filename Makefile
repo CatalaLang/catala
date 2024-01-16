@@ -88,8 +88,7 @@ build: parser-messages format build_dev
 
 #> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
-	dune build $(COMPILER_DIR)/catala.bc.js
-	dune build $(COMPILER_DIR)/catala_web_interpreter.bc.js
+	dune build $(COMPILER_DIR)/catala.bc.js $(COMPILER_DIR)/catala_web_interpreter.bc.js
 
 #> doc					: Generates the HTML OCaml documentation
 doc:
@@ -180,6 +179,7 @@ vscode: vscode_fr vscode_en
 # Extra documentation
 ##########################################
 
+#> syntax					: Buils syntax sheet (requires latexmk and dejavu fonts)
 syntax:
 	$(MAKE) -C doc/syntax
 

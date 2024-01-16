@@ -17,8 +17,6 @@
 (executable
  (name catala_web_interpreter)
  (modes byte js)
- (package catala)
- (public_name catala_web_interpreter)
  (modules catala_web_interpreter)
  (preprocess
   (pps js_of_ocaml-ppx))
@@ -28,10 +26,20 @@
   catala.runtime_ocaml
   catala.runtime_jsoo))
 
+(install
+ (section bin)
+ (package catala)
+ (files (catala_web_interpreter.bc.js as catala_web_interpreter)))
+
 (executable
  (name tests)
  (modules tests)
  (libraries catala.driver alcotest))
+
+(install
+ (section bin)
+ (package catala)
+ (files (catala.bc.js as catala.js)))
 
 (rule
  (target custom_linking.sexp)
