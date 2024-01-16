@@ -21,10 +21,10 @@ distributed under the Apache2 license.
 
 Before writing Catala code, please read the
 [tutorial](https://catala-lang.org/en/examples/tutorial). You can run the
-programs of the tutorial yourself by following the instruction in the
-[README of the `examples` directory](examples/README.md). Then, it is suggested
-that you create a new example directory again according to the instructions of
-this README.
+programs of the tutorial yourself by following the instruction in the [README of
+the `examples` repository](https://github.com/CatalaLang/catala-examples/README.md).
+Then, it is suggested that you create a new example directory again according to
+the instructions of this README.
 
 Let us now present the typical Catala workflow. First, you need to locate
 the legislative text that you want to use as a reference. Then, simply
@@ -77,9 +77,11 @@ declaration structure FooBar:
 ```
 ````
 
-Again, make sure to regularly check that your example is parsing correctly. The error message from the compiler should help you debug the syntax if need be. You can also
-live-test the programs you wrote by feeding them to the interpreter
-(see the [README of the `examples` directory](examples/README.md)); this will
+Again, make sure to regularly check that your example is parsing correctly. The
+error message from the compiler should help you debug the syntax if need be. You
+can also live-test the programs you wrote by feeding them to the interpreter
+(see the [README of the `examples`
+repository](https://github.com/CatalaLang/catala-examples/README.md)); this will
 also type-check the programs, which is useful for debugging them.
 
 ## Working on the compiler
