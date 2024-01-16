@@ -51,6 +51,9 @@ RUN opam exec -- make build
 # Check tests & all alt targets
 RUN OCAMLRUNPARAM=b opam exec -- make all -B
 
+# Install to prefix
+RUN opam exec -- make install
+
 # Forward results of promotion check
 RUN if [ -e bad-promote ]; then \
   echo "[ERROR] Some promoted files were not up-to-date"; \

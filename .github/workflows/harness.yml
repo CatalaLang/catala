@@ -1,0 +1,144 @@
+name: Harness
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+env:
+  BASE_IMAGE: catalalang/catala-base:${{ github.run_id }}
+  BUILD_IMAGE: catalalang/catala-build:${{ github.run_id }}
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  base-image:
+    name: Prepare Docker image with all dependencies
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Prepare container with all dependencies
+        run: git archive HEAD | docker build - --target dev-build-context -t "${BASE_IMAGE}"
+
+  tests:
+    name: Run integrated tests and build full Catala Docker image
+    needs: base-image
+    runs-on: self-hosted
+    steps:
+      - name: Run builds, checks and tests
+        run: git archive HEAD | docker build - --force-rm -t "${BUILD_IMAGE}"
+
+  examples:
+    name: Build examples and generate artifacts
+    needs: tests
+    runs-on: self-hosted
+    container:
+      image: catalalang/catala-build:${{ github.run_id }}
+      options: "--pull=never"
+    env:
+      DUNE_PROFILE: release
+    steps:
+      - name: Build Catala extra docs
+        run: sudo apk add font-dejavu && make syntax
+      - name: Checkout examples
+        uses: actions/checkout@v4
+        with:
+          repository: CatalaLang/catala-examples
+          path: catala-examples
+      - run: cd catala-examples && opam --cli=2.1 exec -- make build install
+      - name: Checkout french-law
+        uses: actions/checkout@v4
+        with:
+          repository: CatalaLang/french-law
+          path: french-law
+      - run: cd french-law && opam --cli=2.1 exec -- make all
+      # Gather all artifacts
+      - run: |
+          mkdir -p artifacts
+          tar czf artifacts/french_law_'"${RELEASE_TAG}"'_ocaml.tar.gz french_law/_build/install/default/ocaml
+      # (etc.)
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Catala artifacts
+          path: artifacts/*
+
+# # 
+#       - run: opam --cli=2.1 remove z3
+#       - run: opam --cli=2.1 exec -- dune build --profile=release french_law compiler/catala.bc.js
+#       - run: opam --cli=2.1 exec -- dune build --profile=release @doc
+#       - run: sudo apk add font-dejavu
+#       - run: opam --cli=2.1 exec -- make -C doc/syntax
+#       - run: opam --cli=2.1 exec -- make literate_tutorial_en literate_tutoriel_fr
+#       - run: opam --cli=2.1 exec -- dune build --profile=release grammar.html catala.html clerk.html
+#       - run: mkdir -p artifacts
+#       - run: mv _build/default/compiler/catala.bc.js artifacts/catala_'"${RELEASE_TAG}"'_node.js
+#       - run: mv _build/default/_doc/_html artifacts/api-doc
+#       - run: mv doc/syntax/syntax.pdf artifacts/
+#       - run: mv examples/tuto*/*.html _build/default/*.html artifacts/
+#       - run: tar czf artifacts/french_law_'"${RELEASE_TAG}"'_ocaml.tar.gz french_law/ocaml
+#       - run: tar czf artifacts/french_law_'"${RELEASE_TAG}"'_js.tar.gz french_law/js --exclude french_law/js/node_modules
+#       - run: tar czf artifacts/french_law_'"${RELEASE_TAG}"'_python.tar.gz french_law/python
+#       - run: ln -s french_law_'"${RELEASE_TAG}"'_ocaml.tar.gz artifacts/french_law_ocaml.tar.gz
+#       - run: ln -s french_law_'"${RELEASE_TAG}"'_js.tar.gz artifacts/french_law_js.tar.gz
+#       - run: ln -s french_law_'"${RELEASE_TAG}"'_python.tar.gz artifacts/french_law_python.tar.gz
+#       - run: tar c artifacts
+
+  cleanup:
+    name: Promote or remove Docker images
+    if: ${{ always() }}
+    needs: [base-image, tests, examples]
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Cleanup base Docker image
+        run: docker image rm "${BASE_IMAGE}" || true
+      - name: Tag Docker image as 'master'
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: docker image tag "${BUILD_IMAGE}" catalalang/catala-build:master
+      - name: Cleanup build Docker image
+        run: docker image rm "${BUILD_IMAGE}" || true
+
+  pages:
+    name: Publish static content to github-pages
+    needs: examples
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    # Allow one concurrent deployment
+    concurrency:
+      group: "pages"
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Download build artifacts
+        # Not the default gh download-artifact action, which doesn't work
+        # between workflows
+        uses: actions/download-artifact@v4
+        with:
+          name: Catala artifacts
+          path: artifacts/
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: tree
+          version: 1.0
+      - name: Generate HTML index
+        run: |
+          cd artifacts
+          tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: 'artifacts/'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
