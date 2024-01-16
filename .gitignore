@@ -17,14 +17,5 @@ build.ninja
 .envrc
 .direnv
 
-french_law/js/src/french_law.js
-french_law/ocaml/law_source/allocations_familiales.ml
-french_law/ocaml/law_source/allocations_familiales_api_web.ml
-french_law/ocaml/law_source/unit_tests/tests_allocations_famiales.ml
-french_law/python/src/allocations_familiales.py
-french_law/ocaml/law_source/aides_logement.ml
-french_law/ocaml/law_source/aides_logement_api_web.ml
-french_law/python/src/aides_logement.py
-french_law/python/src/runtime.py
 
 .catleg_secrets.toml

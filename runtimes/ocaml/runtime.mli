@@ -239,19 +239,29 @@ val pp_events : ?is_first_call:bool -> Format.formatter -> event list -> unit
 
 (**{1 Constructors and conversions} *)
 
+(**{2 Rounding}*)
+
+val round : Q.t -> Z.t
+(** This helper function rounds a rational to the nearest integer. Tie-breaker
+    is the "half away from zero" rule: [0.5] is rounded to [1.0] and [-0.5] is
+    rounded to [-1.0]. This function shall be used anytime rounding is
+    necessary. *)
+
 (**{2 Money}*)
 
 val money_of_cents_string : string -> money
 val money_of_units_int : int -> money
 
 val money_of_decimal : decimal -> money
-(** Warning: rounds to nearest cent. *)
+(** Warning: rounds to nearest cent, using {!val:round}. *)
 
 val money_of_cents_integer : integer -> money
 val money_to_float : money -> float
 val money_to_string : money -> string
 val money_to_cents : money -> integer
+
 val money_round : money -> money
+(** Rounds to the nearest currency unit using {!val:round}. *)
 
 (** {2 Decimals} *)
 
@@ -260,7 +270,10 @@ val decimal_to_string : max_prec_digits:int -> decimal -> string
 val decimal_of_integer : integer -> decimal
 val decimal_of_float : float -> decimal
 val decimal_to_float : decimal -> float
+
 val decimal_round : decimal -> decimal
+(** Rounds to the nearest integer using {!val:round}. *)
+
 val decimal_of_money : money -> decimal
 
 (**{2 Integers} *)

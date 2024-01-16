@@ -1,4 +1,16 @@
 (documentation
  (package catala))
 
-(dirs jsoo ocaml python)
+(dirs jsoo ocaml python r)
+
+; Installation is done as source under catala lib directory
+; For dev version this makes it easy to install the proper runtime with just
+; `pip install dir` and be sure to get the right version
+
+; Python runtime
+
+(install
+ (files
+  (glob_files_rec
+   (python/** with_prefix runtime_python)))
+ (section lib))

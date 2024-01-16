@@ -1,5 +1,5 @@
 opam-version: "2.0"
-version: "0.8.0"
+version: "0.9.0"
 synopsis:
   "Compiler and library for the literate programming language for tax code specification"
 description:
@@ -24,8 +24,8 @@ depends: [
   "cmdliner" {>= "1.1.0"}
   "cppo" {>= "1"}
   "dates_calc" {>= "0.0.4"}
-  "dune" {>= "2.8"}
-  "dune-build-info" {>= "2.8"}
+  "dune" {>= "3.11"}
+  "dune-build-info" {>= "3.0"}
   "js_of_ocaml-ppx" {= "4.1.0"}
   "menhir" {>= "20200211"}
   "menhirLib" {>= "20200211"}
@@ -44,13 +44,16 @@ depends: [
   "zarith_stubs_js" {>= "v0.14.1"}
   "crunch" {>= "3.0.0"}
   "alcotest" {>= "1.5.0"}
+  "ninja_utils" {= "0.9.0"}
   "odoc" {with-doc}
   "ocamlformat" {cataladevmode & = "0.26.0"}
   "obelisk" {cataladevmode}
   "conf-npm" {cataladevmode}
   "conf-python-3-dev" {cataladevmode}
   "cpdf" {cataladevmode}
+  "conf-diffutils" {cataladevmode}
   "z3" {catalaz3mode}
+  "conf-ninja"
 ]
 depopts: ["z3"]
 conflicts: [
@@ -58,7 +61,6 @@ conflicts: [
   "base" {>= "v0.16.0"}
 ]
 build: [
-  ["dune" "subst"] {dev}
   [
     "dune"
     "build"

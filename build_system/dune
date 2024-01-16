@@ -1,12 +1,6 @@
 (library
- (name ninja_utils)
- (public_name ninja_utils)
- (modules ninja_utils)
- (libraries re))
-
-(library
  (name clerk_driver)
- (public_name clerk.driver)
+ (public_name catala.clerk_driver)
  (libraries
   catala.runtime_ocaml
   catala.catala_utils
@@ -31,9 +25,8 @@
  (flags
   (:standard
    (:include custom_linking.sexp)))
- (libraries clerk.driver)
- (link_deps
-  (package catala))
+ (libraries clerk_driver)
+ (link_deps ../compiler/catala.exe)
  ; not a real dependency, but when running clerk in practice you always want the catala binary to be up-to-date (e.g. `dune exec -- ckerk test`)
  (modules clerk)
- (package clerk))
+ (package catala))
