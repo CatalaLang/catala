@@ -295,7 +295,7 @@ module Passes = struct
       ~monomorphize_types :
       Scalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
-      lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.untyped
+      lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
         ~avoid_exceptions ~closure_conversion ~monomorphize_types
     in
     Message.emit_debug "Retyping lambda calculus...";
