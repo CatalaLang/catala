@@ -22,6 +22,15 @@ jobs:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Make build context image
+        uses: docker/build-push-action@v5
+        with:
+          target: dev-build-context
+          push: true
+          tags: ${{ github.repository }}:build-context-${{ github.run_id }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
