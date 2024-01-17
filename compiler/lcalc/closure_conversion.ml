@@ -20,7 +20,6 @@ open Ast
 module D = Dcalc.Ast
 
 type 'm ctx = {
-  decl_ctx : decl_ctx;
   name_context : string;
   globally_bound_vars : ('m expr, typ) Var.Map.t;
 }
@@ -320,7 +319,6 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           in
           let ctx =
             {
-              decl_ctx = p.decl_ctx;
               name_context = Mark.remove (ScopeName.get_info name);
               globally_bound_vars = toplevel_vars;
             }
@@ -347,7 +345,6 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           let v, expr = Bindlib.unmbind binder in
           let ctx =
             {
-              decl_ctx = p.decl_ctx;
               name_context = Mark.remove (TopdefName.get_info name);
               globally_bound_vars = toplevel_vars;
             }
@@ -361,7 +358,6 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
         | Topdef (name, ty, expr) ->
           let ctx =
             {
-              decl_ctx = p.decl_ctx;
               name_context = Mark.remove (TopdefName.get_info name);
               globally_bound_vars = toplevel_vars;
             }

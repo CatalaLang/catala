@@ -28,7 +28,6 @@ type translation_config = {
 
 type 'm ctxt = {
   func_dict : ('m L.expr, A.FuncName.t) Var.Map.t;
-  decl_ctx : decl_ctx;
   var_dict : ('m L.expr, A.VarName.t) Var.Map.t;
   inside_definition_of : A.VarName.t option;
   context_name : string;
@@ -570,7 +569,6 @@ let rec translate_scope_body_expr
     let block, new_e =
       translate_expr
         {
-          decl_ctx;
           func_dict;
           var_dict;
           inside_definition_of = None;
@@ -590,7 +588,6 @@ let rec translate_scope_body_expr
     | Assertion ->
       translate_statements
         {
-          decl_ctx;
           func_dict;
           var_dict;
           inside_definition_of = Some let_var_id;
@@ -602,7 +599,6 @@ let rec translate_scope_body_expr
       let let_expr_stmts, new_let_expr =
         translate_expr
           {
-            decl_ctx;
             func_dict;
             var_dict;
             inside_definition_of = Some let_var_id;
@@ -687,7 +683,6 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             let ctxt =
               {
                 func_dict;
-                decl_ctx = p.decl_ctx;
                 var_dict =
                   List.fold_left2
                     (fun map arg ((id, _), _) -> Var.Map.add arg id map)
@@ -726,7 +721,6 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             let ctxt =
               {
                 func_dict;
-                decl_ctx = p.decl_ctx;
                 var_dict;
                 inside_definition_of = None;
                 context_name = Mark.remove (TopdefName.get_info name);

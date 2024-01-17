@@ -17,13 +17,7 @@
 open Catala_utils
 open Definitions
 
-type ('a, 'b, 'm) optimizations_ctx = {
-  var_values :
-    ( (('a, 'b) dcalc_lcalc, 'm) gexpr,
-      (('a, 'b) dcalc_lcalc, 'm) gexpr )
-    Var.Map.t;
-  decl_ctx : decl_ctx;
-}
+type ('a, 'b, 'm) optimizations_ctx = { decl_ctx : decl_ctx }
 
 let all_match_cases_are_id_fun cases n =
   EnumConstructor.Map.for_all
@@ -281,7 +275,7 @@ let optimize_expr :
       (('a, 'b) dcalc_lcalc, 'm) gexpr ->
       (('a, 'b) dcalc_lcalc, 'm) boxed_gexpr =
  fun (decl_ctx : decl_ctx) (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) ->
-  optimize_expr { var_values = Var.Map.empty; decl_ctx } e
+  optimize_expr { decl_ctx } e
 
 let optimize_program (p : 'm program) : 'm program =
   Bindlib.unbox
