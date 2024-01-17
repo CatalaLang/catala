@@ -73,7 +73,7 @@ $ catala Concolic -s A
 [WARNING] An input of the scope is a context variable or a function. In that case, the concolic exploration may be INCOMPLETE, and therefore miss errors.
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . f_in = λ (_: integer) → ∅
+[RESULT] . f_in = <function>
 [ERROR]
 This variable evaluated to an empty term (no rule that defined it applied in this situation)
 

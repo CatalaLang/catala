@@ -47,27 +47,27 @@ let scope A (A_in: A_in {d_in: duration}): A {o: integer} =
 $ catala Concolic -s A
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . d_in = [0 years, 0 months, 10 days]
+[RESULT] . d_in = [10 days]
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 3
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . d_in = [0 years, 0 months, 0 days]
+[RESULT] . d_in = [0 day]
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 2
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . d_in = [0 years, 0 months, -1 days]
+[RESULT] . d_in = [-1 day]
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 1
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . d_in = [0 years, 0 months, -15 days]
+[RESULT] . d_in = [-15 days]
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 0
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . d_in = [0 years, 0 months, 15 days]
+[RESULT] . d_in = [15 days]
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 4
 [RESULT] 

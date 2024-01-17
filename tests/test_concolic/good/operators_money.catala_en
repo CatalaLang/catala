@@ -37,20 +37,20 @@ let scope A
 $ catala Concolic -s A
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . t_in = ¤42.00
-[RESULT] . x_in = ¤42.00
-[RESULT] . y_in = ¤42.00
-[RESULT] . z_in = ¤42.00
+[RESULT] . t_in = $42.00
+[RESULT] . x_in = $42.00
+[RESULT] . y_in = $42.00
+[RESULT] . z_in = $42.00
 [RESULT] Output of scope after evaluation:
-[RESULT] . o = ¤0.00
+[RESULT] . o = $0.00
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . t_in = ¤-0.02
-[RESULT] . x_in = ¤-0.01
-[RESULT] . y_in = ¤-0.02
-[RESULT] . z_in = ¤0.00
+[RESULT] . t_in = -$0.02
+[RESULT] . x_in = -$0.01
+[RESULT] . y_in = -$0.02
+[RESULT] . z_in = $0.00
 [RESULT] Output of scope after evaluation:
-[RESULT] . o = ¤-1.00
+[RESULT] . o = -$1.00
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

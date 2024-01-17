@@ -43,7 +43,7 @@ let scope A
   in
   let set o : integer =
     error_empty
-      ⟨ ⟨ ⟨b = B1 a && a = A1 x ⊢ ⟨0⟩⟩, ⟨b = B1 A2 false ⊢ ⟨1⟩⟩,
+      ⟨ ⟨ ⟨b = B1 a && a = A1 x ⊢ ⟨0⟩⟩, ⟨b = B1 (A2 false) ⊢ ⟨1⟩⟩,
           ⟨b = B2 () ⊢ ⟨2⟩⟩
         | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨-1⟩⟩ | false ⊢ ∅ ⟩ ⟩

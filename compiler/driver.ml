@@ -707,13 +707,13 @@ module Commands = struct
       optimize
       check_invariants
       ex_scope =
-    let prg, ctx, _ =
+    let prg, _ =
       Passes.dcalc options ~includes ~optimize ~check_invariants ~typed
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options
       Concolic.Interpreter.interpret_program_concolic prg
-      (get_scope_uid ctx ex_scope)
+      (get_scope_uid prg.decl_ctx ex_scope)
 
   let concolic_cmd =
     let f no_typing =

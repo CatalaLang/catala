@@ -45,15 +45,15 @@ $ catala Concolic -s A
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . m_in = 42
-[RESULT] . s_in = { S a = 42; b = { T c = true; }; }
-[RESULT] . t_in = { T c = true; }
+[RESULT] . s_in = S { -- a: 42 -- b: T { -- c: true } }
+[RESULT] . t_in = T { -- c: true }
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = true
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . m_in = 1
-[RESULT] . s_in = { S a = 0; b = { T c = true; }; }
-[RESULT] . t_in = { T c = false; }
+[RESULT] . s_in = S { -- a: 0 -- b: T { -- c: true } }
+[RESULT] . t_in = T { -- c: false }
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = false
 [RESULT] 
