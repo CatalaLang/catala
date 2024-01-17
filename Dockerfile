@@ -46,10 +46,7 @@ ENV DUNE_PROFILE=check
 RUN opam exec -- make check-promoted > promotion.out 2>&1 || touch bad-promote
 
 # Check the build
-RUN opam exec -- make build
-
-# Check tests & all alt targets
-RUN OCAMLRUNPARAM=b opam exec -- make all -B
+RUN opam exec -- make build js_build
 
 # Install to prefix
 RUN opam exec -- make install

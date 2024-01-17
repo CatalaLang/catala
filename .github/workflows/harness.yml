@@ -6,8 +6,8 @@ on:
   pull_request:
 
 env:
-  BASE_IMAGE: catalalang/catala-base:${{ github.run_id }}
-  BUILD_IMAGE: catalalang/catala-build:${{ github.run_id }}
+  BASE_IMAGE: ghcr.io/catalalang/catala-base:${{ github.run_id }}
+  BUILD_IMAGE: ghcr.io/catalalang/catala-build:${{ github.run_id }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -16,22 +16,56 @@ jobs:
     name: Prepare Docker image with all dependencies
     runs-on: self-hosted
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Prepare container with all dependencies
-        run: git archive HEAD | docker build - --target dev-build-context -t "${BASE_IMAGE}"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          target: dev-build-context
+          tags: ghcr.io/catalalang/catala-base:${{ github.run_id }}
+          labels: org.opencontainers.image.source=https://github.com/CatalaLang/catala
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-  tests:
-    name: Run integrated tests and build full Catala Docker image
+    # steps:
+    #   - name: Checkout code
+    #     uses: actions/checkout@v3
+    #   - name: Prepare container with all dependencies
+    #     run: >-
+    #       git archive HEAD | docker build -
+    #         --target dev-build-context
+    #         --label org.opencontainers.image.source=https://github.com/CatalaLang/catala
+    #         -t "${BASE_IMAGE}
+    #   - name: Push image to Github registry
+    #     run: docker push ${BASE_IMAGE}
+
+  build-image:
+    name: Build Catala Docker image
     needs: base-image
     runs-on: self-hosted
     steps:
       - name: Run builds, checks and tests
         run: git archive HEAD | docker build - --force-rm -t "${BUILD_IMAGE}"
 
+  tests:
+    name: Run integrated tests
+    needs: build-image
+    runs-on: self-hosted
+    container: ${{needs.build-image.outputs.imageid}}
+    steps:
+      - name: Run tests
+        run: opam exec -- make tests
+
   examples:
     name: Build examples and generate artifacts
-    needs: tests
+    needs: build-image
     runs-on: self-hosted
     container:
       image: catalalang/catala-build:${{ github.run_id }}
