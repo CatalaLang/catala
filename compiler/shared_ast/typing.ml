@@ -20,6 +20,8 @@
 open Catala_utils
 module A = Definitions
 
+type resolving_strategy = LeaveAny | ErrorOnAny
+
 module Any =
   Uid.Make
     (struct
@@ -52,7 +54,8 @@ and naked_typ =
   | TAny of Any.t
   | TClosureEnv
 
-let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
+let rec typ_to_ast ~(leave_unresolved : resolving_strategy) (ty : unionfind_typ)
+    : A.typ =
   let typ_to_ast = typ_to_ast ~leave_unresolved in
   let ty, pos = UnionFind.get (UnionFind.find ty) in
   match ty with
@@ -64,14 +67,15 @@ let rec typ_to_ast ~leave_unresolved (ty : unionfind_typ) : A.typ =
   | TArrow (t1, t2) -> A.TArrow (List.map typ_to_ast t1, typ_to_ast t2), pos
   | TArray t1 -> A.TArray (typ_to_ast t1), pos
   | TDefault t1 -> A.TDefault (typ_to_ast t1), pos
-  | TAny _ ->
-    if leave_unresolved then A.TAny, pos
-    else
+  | TAny _ -> (
+    match leave_unresolved with
+    | LeaveAny -> A.TAny, pos
+    | ErrorOnAny ->
       (* No polymorphism in Catala: type inference should return full types
          without wildcards, and this function is used to recover the types after
          typing. *)
       Message.raise_spanned_error pos
-        "Internal error: typing at this point could not be resolved"
+        "Internal error: typing at this point could not be resolved")
   | TClosureEnv -> TClosureEnv, pos
 
 let rec ast_to_typ (ty : A.typ) : unionfind_typ =
@@ -419,7 +423,7 @@ let ty : (_, unionfind_typ A.custom) A.marked -> unionfind_typ =
 (** Infers the most permissive type from an expression *)
 let rec typecheck_expr_bottom_up :
     type a m.
-    leave_unresolved:bool ->
+    leave_unresolved:resolving_strategy ->
     A.decl_ctx ->
     (a, m) A.gexpr Env.t ->
     (a, m) A.gexpr ->
@@ -432,13 +436,15 @@ let rec typecheck_expr_bottom_up :
 (** Checks whether the expression can be typed with the provided type *)
 and typecheck_expr_top_down :
     type a m.
-    leave_unresolved:bool ->
+    leave_unresolved:resolving_strategy ->
     A.decl_ctx ->
     (a, m) A.gexpr Env.t ->
     unionfind_typ ->
     (a, m) A.gexpr ->
     (a, unionfind_typ A.custom) A.boxed_gexpr =
  fun ~leave_unresolved ctx env tau e ->
+  (* Message.emit_debug "Propagating type %a for naked_expr :@.@[<hov 2>%a@]"
+     (format_typ ctx) tau Expr.format e; *)
   let pos_e = Expr.pos e in
   let () =
     (* If there already is a type annotation on the given expr, ensure it
@@ -919,7 +925,7 @@ let get_ty_mark ~leave_unresolved (A.Custom { A.custom = uf; pos }) =
 
 let expr_raw
     (type a)
-    ~(leave_unresolved : bool)
+    ~(leave_unresolved : resolving_strategy)
     (ctx : A.decl_ctx)
     ?(env = Env.empty ctx)
     ?(typ : A.typ option)

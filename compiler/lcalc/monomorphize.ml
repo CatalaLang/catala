@@ -50,8 +50,7 @@ let collect_monomorphized_instances (prg : typed program) :
   let tuple_instances_counter = ref 0 in
   let rec collect_typ acc typ =
     match Mark.remove typ with
-    | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> acc
-    | TTuple args ->
+    | TTuple args when List.for_all (fun t -> Mark.remove t <> TAny) args ->
       let new_acc =
         {
           acc with
@@ -83,7 +82,7 @@ let collect_monomorphized_instances (prg : typed program) :
     | TArray t | TDefault t -> collect_typ acc t
     | TArrow (args, ret) ->
       List.fold_left collect_typ (collect_typ acc ret) args
-    | TOption t ->
+    | TOption t when Mark.remove t <> TAny ->
       let new_acc =
         {
           acc with
@@ -114,10 +113,34 @@ let collect_monomorphized_instances (prg : typed program) :
         }
       in
       collect_typ new_acc t
+    | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> acc
+    | TOption _ | TTuple _ ->
+      raise
+        (Message.CompilerError
+           (Message.Content.add_position
+              (Message.Content.to_internal_error
+                 (Message.Content.of_message (fun fmt ->
+                      Format.fprintf fmt
+                        "Some types in tuples or option have not been resolved \
+                         by the typechecking before monomorphization.")))
+              (Mark.get typ)))
   in
   let rec collect_expr acc e =
     let acc = collect_typ acc (Expr.maybe_ty (Mark.get e)) in
-    Expr.shallow_fold (fun e acc -> collect_expr acc e) e acc
+    match Mark.remove e with
+    | EAbs { binder; tys } ->
+      let acc = List.fold_left collect_typ acc tys in
+      let _, body = Bindlib.unmbind binder in
+      collect_expr acc body
+    | EApp { f; args; tys } ->
+      let acc = List.fold_left collect_typ acc tys in
+      let acc = List.fold_left collect_expr acc args in
+      collect_expr acc f
+    | EAppOp { op = _; args; tys } ->
+      let acc = List.fold_left collect_typ acc tys in
+      let acc = List.fold_left collect_expr acc args in
+      acc
+    | _ -> Expr.shallow_fold (fun e acc -> collect_expr acc e) e acc
   in
   let acc =
     Scope.fold_left
@@ -229,7 +252,9 @@ let rec monomorphize_expr
   | EInj { name; e = e1; cons } when EnumName.equal name Expr.option_enum ->
     let option_instance =
       TypMap.find
-        (Mark.remove (Expr.maybe_ty (Mark.get e1)))
+        (match Mark.remove (Expr.maybe_ty (Mark.get e)) with
+        | TOption t -> Mark.remove t
+        | _ -> failwith "should not happen")
         monomorphized_instances.options
     in
     let new_e1 = monomorphize_expr monomorphized_instances e1 in

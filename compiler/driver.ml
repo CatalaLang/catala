@@ -192,7 +192,7 @@ module Passes = struct
       match typed with
       | Typed _ -> (
         Message.emit_debug "Typechecking again...";
-        try Typing.program ~leave_unresolved:false prg
+        try Typing.program ~leave_unresolved:ErrorOnAny prg
         with Message.CompilerError error_content ->
           let bt = Printexc.get_raw_backtrace () in
           Printexc.raise_with_backtrace
@@ -239,14 +239,14 @@ module Passes = struct
       | true, _, Untyped _ ->
         Program.untype
           (Lcalc.From_dcalc.translate_program_without_exceptions
-             (Shared_ast.Typing.program ~leave_unresolved:false prg))
+             (Shared_ast.Typing.program ~leave_unresolved:ErrorOnAny prg))
       | true, _, Typed _ ->
         Lcalc.From_dcalc.translate_program_without_exceptions prg
       | false, _, Typed _ ->
         Program.untype (Lcalc.From_dcalc.translate_program_with_exceptions prg)
       | false, _, Untyped _ ->
         Lcalc.From_dcalc.translate_program_with_exceptions
-          (Shared_ast.Typing.program ~leave_unresolved:false prg)
+          (Shared_ast.Typing.program ~leave_unresolved:ErrorOnAny prg)
       | _, _, Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     let prg =
@@ -271,12 +271,12 @@ module Passes = struct
         prg)
     in
     Message.emit_debug "Retyping lambda calculus...";
-    let prg = Typing.program ~leave_unresolved:true prg in
+    let prg = Typing.program ~leave_unresolved:LeaveAny prg in
     let prg, type_ordering =
       if monomorphize_types then (
         Message.emit_debug "Monomorphizing types...";
         let prg, type_ordering = Lcalc.Monomorphize.program prg in
-        let prg = Typing.program ~leave_unresolved:false prg in
+        let prg = Typing.program ~leave_unresolved:ErrorOnAny prg in
         prg, type_ordering)
       else prg, type_ordering
     in
@@ -299,7 +299,7 @@ module Passes = struct
         ~avoid_exceptions ~closure_conversion ~monomorphize_types
     in
     Message.emit_debug "Retyping lambda calculus...";
-    let prg = Typing.program ~leave_unresolved:true prg in
+    let prg = Typing.program ~leave_unresolved:LeaveAny prg in
     debug_pass_name "scalc";
     ( Scalc.From_lcalc.translate_program
         ~config:{ keep_special_ops; dead_value_assignment; no_struct_literals }
@@ -559,7 +559,8 @@ module Commands = struct
     (* Additionally, we might want to check the invariants. *)
     if check_invariants then (
       let prg =
-        Shared_ast.Typing.program ~leave_unresolved:false (Program.untype prg)
+        Shared_ast.Typing.program ~leave_unresolved:ErrorOnAny
+          (Program.untype prg)
       in
       Message.emit_debug "Checking invariants...";
       let result = Dcalc.Invariants.check_all_invariants prg in

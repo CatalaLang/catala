@@ -42,11 +42,13 @@ end
 
 (** In the following functions, the [~leave_unresolved] labeled parameter
     controls the behavior of the typer in the case where polymorphic expressions
-    are still found after typing: if set to [true], it allows them (giving them
-    [TAny] and losing typing information), if set to [false], it aborts. *)
+    are still found after typing: if set to [LeaveAny], it allows them (giving
+    them [TAny] and losing typing information); if set to [ErrorOnAny], it
+    aborts. *)
+type resolving_strategy = LeaveAny | ErrorOnAny
 
 val expr :
-  leave_unresolved:bool ->
+  leave_unresolved:resolving_strategy ->
   decl_ctx ->
   ?env:'e Env.t ->
   ?typ:typ ->
@@ -77,7 +79,7 @@ val expr :
       didn't cause problems) *)
 
 val check_expr :
-  leave_unresolved:bool ->
+  leave_unresolved:resolving_strategy ->
   decl_ctx ->
   ?env:'e Env.t ->
   ?typ:typ ->
@@ -89,7 +91,9 @@ val check_expr :
     information, e.g. any [TAny] appearing in the AST is replaced) *)
 
 val program :
-  leave_unresolved:bool -> ('a, 'm) gexpr program -> ('a, typed) gexpr program
+  leave_unresolved:resolving_strategy ->
+  ('a, 'm) gexpr program ->
+  ('a, typed) gexpr program
 (** Typing on whole programs (as defined in Shared_ast.program, i.e. for the
     later dcalc/lcalc stages.
 

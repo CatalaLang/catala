@@ -50,6 +50,7 @@ module Content : sig
 
   val to_internal_error : t -> t
   val add_suggestion : t -> string list -> t
+  val add_position : t -> ?message:message option -> Pos.t -> t
 
   (** {2 Content emission}*)
 

@@ -880,9 +880,13 @@ let decl_ctx ?(debug = false) decl_ctx (fmt : Format.formatter) (ctx : decl_ctx)
     : unit =
   let { ctx_enums; ctx_structs; _ } = ctx in
   Format.fprintf fmt "%a@.%a@.@."
-    (EnumName.Map.format_bindings (enum ~debug decl_ctx))
+    (EnumName.Map.format_bindings
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@.")
+       (enum ~debug decl_ctx))
     ctx_enums
-    (StructName.Map.format_bindings (struct_ ~debug decl_ctx))
+    (StructName.Map.format_bindings
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@.")
+       (struct_ ~debug decl_ctx))
     ctx_structs
 
 let scope

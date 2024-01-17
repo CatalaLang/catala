@@ -51,16 +51,24 @@ let rec translate_typ (tau : typ) : typ =
     end
 
 let rec translate_default
-    (exceptions : 'm D.expr list)
-    (just : 'm D.expr)
-    (cons : 'm D.expr)
-    (mark_default : 'm mark) : 'm A.expr boxed =
+    (exceptions : typed D.expr list)
+    (just : typed D.expr)
+    (cons : typed D.expr)
+    (mark_default : typed mark) : typed A.expr boxed =
   (* Since the program is well typed, all exceptions have as type [option 't] *)
   let exceptions = List.map translate_expr exceptions in
   let pos = Expr.mark_pos mark_default in
+  let exceptions_and_cons_ty =
+    match mark_default with Typed { ty; _ } -> translate_typ ty
+  in
   let exceptions =
     Expr.eappop ~op:Op.HandleDefaultOpt
-      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~tys:
+        [
+          TArray exceptions_and_cons_ty, pos;
+          TArrow ([TLit TUnit, pos], (TLit TBool, pos)), pos;
+          TArrow ([TLit TUnit, pos], exceptions_and_cons_ty), pos;
+        ]
       ~args:
         [
           Expr.earray exceptions mark_default;
@@ -75,7 +83,7 @@ let rec translate_default
   in
   exceptions
 
-and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
+and translate_expr (e : typed D.expr) : typed A.expr boxed =
   let mark = Mark.get e in
   match Mark.remove e with
   | EEmptyError ->
@@ -120,8 +128,9 @@ and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
     Expr.map ~f:translate_expr (Mark.add mark e)
   | _ -> .
 
-let translate_scope_body_expr (scope_body_expr : 'expr1 scope_body_expr) :
-    'expr2 scope_body_expr Bindlib.box =
+let translate_scope_body_expr
+    (scope_body_expr : (dcalc, typed) gexpr scope_body_expr) :
+    (lcalc, typed) gexpr scope_body_expr Bindlib.box =
   Scope.fold_right_lets
     ~f:(fun scope_let var_next acc ->
       Bindlib.box_apply2
