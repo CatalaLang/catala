@@ -12,6 +12,8 @@ declaration scope Baz:
   output b content decimal
 
 scope Baz:
+  definition a equals No
+
   definition b equals
     match a with pattern
     -- No: 0.0
