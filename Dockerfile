@@ -13,7 +13,8 @@ ADD --chown=ocaml:ocaml *.opam ./
 
 # trigger the selection of catala dev tools in opam
 ENV OPAMVAR_cataladevmode=1
-ENV OPAMVAR_catalaz3mode=1
+# TEMPORARILY DISABLED for faster testing
+ENV OPAMVAR_catalaz3mode=0
 
 # Get a switch with all the dependencies installed
 # DON'T run 'opam update' here. Instead use a newer parent Docker image
