@@ -439,8 +439,6 @@ and typecheck_expr_top_down :
     (a, m) A.gexpr ->
     (a, unionfind_typ A.custom) A.boxed_gexpr =
  fun ~leave_unresolved ctx env tau e ->
-  (* Message.emit_debug "Propagating type %a for naked_expr %a" (format_typ ctx)
-     tau (Print.expr ~debug:true ()) e; *)
   let pos_e = Expr.pos e in
   let () =
     (* If there already is a type annotation on the given expr, ensure it

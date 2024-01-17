@@ -240,12 +240,28 @@ let rec monomorphize_expr
       | __ -> failwith "should not happen"
     in
     Expr.einj ~name:option_instance.name ~e:new_e1 ~cons:new_cons (Mark.get e)
+    (* We do not forget to tweak types stored directly in the AST in the nodes
+       of kind [EAbs], [EApp] and [EAppOp]. *)
+  | EAbs { binder; tys } ->
+    let new_tys = List.map (monomorphize_typ monomorphized_instances) tys in
+    let vars, body = Bindlib.unmbind binder in
+    let new_body = monomorphize_expr monomorphized_instances body in
+    Expr.make_abs vars new_body new_tys (Expr.pos e)
+  | EApp { f; args; tys } ->
+    let new_f = monomorphize_expr monomorphized_instances f in
+    let new_args = List.map (monomorphize_expr monomorphized_instances) args in
+    let new_tys = List.map (monomorphize_typ monomorphized_instances) tys in
+    Expr.eapp ~f:new_f ~args:new_args ~tys:new_tys (Mark.get e)
+  | EAppOp { op; args; tys } ->
+    let new_args = List.map (monomorphize_expr monomorphized_instances) args in
+    let new_tys = List.map (monomorphize_typ monomorphized_instances) tys in
+    Expr.eappop ~op ~args:new_args ~tys:new_tys (Mark.get e)
   | _ -> Expr.map ~f:(monomorphize_expr monomorphized_instances) e
 
 let program (prg : typed program) :
     untyped program * Scopelang.Dependency.TVertex.t list =
   let monomorphized_instances = collect_monomorphized_instances prg in
-  (* First we augment the [decl_ctx] with the option instances *)
+  (* First we augment the [decl_ctx] with the monomorphized instances *)
   let prg =
     {
       prg with
@@ -273,6 +289,18 @@ let program (prg : typed program) :
                      StructField.Map.empty tuple_instance.fields)
                   ctx_structs)
               monomorphized_instances.tuples prg.decl_ctx.ctx_structs;
+        };
+    }
+  in
+  (* And we remove the polymorphic option type *)
+  let prg =
+    {
+      prg with
+      decl_ctx =
+        {
+          prg.decl_ctx with
+          ctx_enums =
+            EnumName.Map.remove Expr.option_enum prg.decl_ctx.ctx_enums;
         };
     }
   in
