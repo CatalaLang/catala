@@ -256,7 +256,10 @@ module Poll = struct
   let catala_project_root : File.t option Lazy.t =
     lazy
       (match Lazy.force project_root with
-      | Some root when Sys.file_exists File.(root / "catala.opam") -> Some root
+      | Some root
+        when Sys.file_exists File.(root / "catala.opam")
+             && Sys.file_exists File.(root / "dune-project") ->
+        Some root
       | _ -> None)
 
   let exec_dir : File.t =
@@ -337,9 +340,10 @@ module Poll = struct
          dir
        | None ->
          Message.raise_error
-           "@[<hov>Could not locate the Catala runtime library.@ Make sure \
-            that either catala is correctly installed,@ or you are running \
-            from the root of a compiled source tree.@]")
+           "@[<hov>Could not locate the Catala runtime library at %s.@ Make \
+            sure that either catala is correctly installed,@ or you are \
+            running from the root of a compiled source tree.@]"
+           d)
 
   let ocaml_link_flags : string list Lazy.t =
     lazy

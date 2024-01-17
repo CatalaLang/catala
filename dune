@@ -48,10 +48,12 @@
  (name exec)
  (deps compiler/catala.exe build_system/clerk.exe))
 
-(rule
- (alias runtest)
- (package catala)
- (deps
-  (source_tree tests))
- (action
-  (run clerk --exe %{bin:catala} test tests)))
+;; This garbles Clerk output, prefer to run from Makefile
+;; (rule
+;;  (alias runtest)
+;;  (package catala)
+;;  (deps
+;;   (source_tree tests)
+;;   (alias install))
+;;  (action
+;;   (run %{bin:clerk} test --exe %{bin:catala} tests)))

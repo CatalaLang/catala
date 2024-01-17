@@ -324,12 +324,12 @@ let test_iota_reduction_1 () =
   let matchA = Expr.ematch ~e:injA ~name:enumT ~cases nomark in
   Alcotest.(check string)
     "same string"
-    "before=match (A x)\n\
-    \       with\n\
-    \       | A → (λ (x: any) → C x)\n\
-    \       | B → (λ (x: any) → D x)\n\
-     after=C\n\
-     x"
+    begin[@ocamlformat "disable"]
+      "before=match (A x) with\n\
+      \       | A x → C x\n\
+      \       | B x → D x\n\
+       after=C x"
+    end
     (Format.asprintf "before=%a\nafter=%a" Expr.format (Expr.unbox matchA)
        Expr.format
        (Expr.unbox (optimize_expr Program.empty_ctx (Expr.unbox matchA))))
@@ -382,18 +382,16 @@ let test_iota_reduction_2 () =
   in
   Alcotest.(check string)
     "same string "
-    "before=match\n\
-    \         (match 1\n\
-    \          with\n\
-    \          | A → (λ (x: any) → A 20)\n\
-    \          | B → (λ (x: any) → B B x))\n\
-    \       with\n\
-    \       | A → (λ (x: any) → C x)\n\
-    \       | B → (λ (x: any) → D x)\n\
-     after=match 1\n\
-    \      with\n\
-    \      | A → (λ (x: any) → C 20)\n\
-    \      | B → (λ (x: any) → D B x)\n"
+    begin[@ocamlformat "disable"]
+      "before=match (match 1 with\n\
+      \              | A x → A 20\n\
+      \              | B x → B (B x)) with\n\
+      \       | A x → C x\n\
+      \       | B x → D x\n\
+       after=match 1 with\n\
+      \      | A x → C 20\n\
+      \      | B x → D B x"
+    end
     (Format.asprintf "before=@[%a@]@.after=%a@." Expr.format (Expr.unbox matchA)
        Expr.format
        (Expr.unbox (optimize_expr Program.empty_ctx (Expr.unbox matchA))))
