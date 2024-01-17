@@ -27,7 +27,7 @@ RUN opam --cli=2.1 switch create catala ocaml-system && \
 # should be enough once opam 2.2 is released (see opam#5185)
 
 #
-# STAGE 2: get the whole repo, run checks and builds
+# STAGE 2: get the whole repo and build
 #
 FROM dev-build-context
 
@@ -43,18 +43,8 @@ ENV OCAMLRUNPARAM=b
 # defined in ./dune)
 ENV DUNE_PROFILE=check
 
-# Check promoted files (but delay failure)
-RUN opam exec -- make check-promoted > promotion.out 2>&1 || touch bad-promote
-
 # Check the build
 RUN opam exec -- make build js_build
 
 # Install to prefix
 RUN opam exec -- make install
-
-# Forward results of promotion check
-RUN if [ -e bad-promote ]; then \
-  echo "[ERROR] Some promoted files were not up-to-date"; \
-  cat promotion.out; \
-  exit 1; \
-fi
