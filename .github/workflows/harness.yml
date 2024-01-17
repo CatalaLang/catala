@@ -5,16 +5,14 @@ on:
     branches: [master]
   pull_request:
 
-env:
-  BASE_IMAGE: ghcr.io/catalalang/catala-base:${{ github.run_id }}
-  BUILD_IMAGE: ghcr.io/catalalang/catala-build:${{ github.run_id }}
-
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
 
-  base-image:
-    name: Prepare Docker image with all dependencies
+  build:
+    name: Build Catala and generate image
     runs-on: self-hosted
+    permissions:
+      packages: write
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -28,11 +26,19 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          target: dev-build-context
-          tags: ghcr.io/catalalang/catala-base:${{ github.run_id }}
-          labels: org.opencontainers.image.source=https://github.com/CatalaLang/catala
+          tags: ${{ github.repository }}:${{ github.run_id }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  tests:
+    name: Run integrated tests
+    needs: build
+    runs-on: self-hosted
+    container: ${{ needs.build.outputs.imageid }}
+    steps:
+      - name: Run tests
+        run: opam exec -- make tests
 
     # steps:
     #   - name: Checkout code
@@ -46,30 +52,19 @@ jobs:
     #   - name: Push image to Github registry
     #     run: docker push ${BASE_IMAGE}
 
-  build-image:
-    name: Build Catala Docker image
-    needs: base-image
-    runs-on: self-hosted
-    steps:
-      - name: Run builds, checks and tests
-        run: git archive HEAD | docker build - --force-rm -t "${BUILD_IMAGE}"
-
-  tests:
-    name: Run integrated tests
-    needs: build-image
-    runs-on: self-hosted
-    container: ${{needs.build-image.outputs.imageid}}
-    steps:
-      - name: Run tests
-        run: opam exec -- make tests
+  # build-image:
+  #   name: Build Catala Docker image
+  #   needs: base-image
+  #   runs-on: self-hosted
+  #   steps:
+  #     - name: Run builds, checks and tests
+  #       run: git archive HEAD | docker build - --force-rm -t "${BUILD_IMAGE}"
 
   examples:
     name: Build examples and generate artifacts
-    needs: build-image
+    needs: build
     runs-on: self-hosted
-    container:
-      image: catalalang/catala-build:${{ github.run_id }}
-      options: "--pull=never"
+    container: ${{ needs.build.outputs.imageid }}
     env:
       DUNE_PROFILE: release
     steps:
@@ -119,21 +114,21 @@ jobs:
 #       - run: ln -s french_law_'"${RELEASE_TAG}"'_python.tar.gz artifacts/french_law_python.tar.gz
 #       - run: tar c artifacts
 
-  cleanup:
-    name: Promote or remove Docker images
-    if: ${{ always() }}
-    needs: [base-image, tests, examples]
-    runs-on: self-hosted
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Cleanup base Docker image
-        run: docker image rm "${BASE_IMAGE}" || true
-      - name: Tag Docker image as 'master'
-        if: ${{ github.ref == 'refs/heads/master' }}
-        run: docker image tag "${BUILD_IMAGE}" catalalang/catala-build:master
-      - name: Cleanup build Docker image
-        run: docker image rm "${BUILD_IMAGE}" || true
+  # cleanup:
+  #   name: Promote or remove Docker images
+  #   if: ${{ always() }}
+  #   needs: [base-image, tests, examples]
+  #   runs-on: self-hosted
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #     - name: Cleanup base Docker image
+  #       run: docker image rm "${BASE_IMAGE}" || true
+  #     - name: Tag Docker image as 'master'
+  #       if: ${{ github.ref == 'refs/heads/master' }}
+  #       run: docker image tag "${BUILD_IMAGE}" catalalang/catala-build:master
+  #     - name: Cleanup build Docker image
+  #       run: docker image rm "${BUILD_IMAGE}" || true
 
   pages:
     name: Publish static content to github-pages
