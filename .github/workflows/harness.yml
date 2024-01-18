@@ -90,7 +90,7 @@ jobs:
       - name: Build french-law
         run: |
           cd ~/french-law
-          opam --cli=2.1 exec -- make dependencies-js dependencies-python
+          opam --cli=2.1 exec -- make dependencies
           opam --cli=2.1 exec -- make all
       - name: Gather all artifacts
         run: |
