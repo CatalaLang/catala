@@ -1,0 +1,173 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+
+  build:
+    name: Build Catala and generate image
+    runs-on: self-hosted
+    permissions:
+      packages: write
+    outputs:
+      image: ghcr.io/catalalang/catala@${{ steps.image.outputs.digest }}
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Make build context image
+        uses: docker/build-push-action@v5
+        with:
+          target: dev-build-context
+          # Caching using GH cache doesn't work, use registry caching directly
+          # instead
+          cache-from: type=registry,ref=ghcr.io/catalalang/catala:dev-cache
+          cache-to: type=registry,ref=ghcr.io/catalalang/catala:dev-cache,mode=max
+      - name: Build and push
+        id: image
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ghcr.io/catalalang/catala:${{ github.run_id }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=registry,ref=ghcr.io/catalalang/catala:build-cache
+          cache-to: type=registry,ref=ghcr.io/catalalang/catala:build-cache,mode=max
+
+  tests:
+    name: Run integrated tests
+    needs: build
+    runs-on: self-hosted
+    container:
+      image: ${{ needs.build.outputs.image }}
+      options: --user ocaml
+    steps:
+      - name: Run tests
+        run: cd /home/ocaml/catala && opam exec -- make tests
+      - name: Check promoted files
+        if: ${{ always() }}
+        run: cd /home/ocaml/catala && opam exec -- make check-promoted
+
+  examples:
+    name: Build examples and generate artifacts
+    needs: build
+    runs-on: self-hosted
+    container:
+      image: ${{ needs.build.outputs.image }}
+      options: --user ocaml
+      env:
+        DUNE_PROFILE: release
+    steps:
+      - name: Fix home
+        # Workaround Github actions issue, see
+        # https://github.com/actions/runner/issues/863
+        run: sudo sh -c "echo HOME=/home/ocaml >> ${GITHUB_ENV}"
+      - name: Install LaTeX deps
+        # This is done late because caching would not benefit compared to
+        # installation through apk (1,5G upload is slow)
+        run: sudo apk add texlive-xetex texmf-dist-latexextra texmf-dist-pictures font-dejavu groff
+      - name: Build Catala extra docs
+        run: |
+          cd ~/catala
+          opam --cli=2.1 exec -- make syntax
+          opam --cli=2.1 exec -- make doc
+      - name: Checkout examples repo
+        # Github fetch action is expected to work for containers, but doesn't
+        # (permission issues)
+        run: git clone https://github.com/CatalaLang/catala-examples --depth 1 ~/catala-examples
+      - name: Build examples
+        run: cd ~/catala-examples && opam --cli=2.1 exec -- make build install
+      - name: Checkout french-law repo
+        run: git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law
+      - name: Build french-law
+        run: |
+          cd ~/french-law
+          opam --cli=2.1 exec -- make dependencies
+          opam --cli=2.1 exec -- make all
+      - name: Gather all artifacts
+        run: |
+          cd
+          mkdir -p artifacts
+          cp catala/_build/install/default/bin/catala.js artifacts/catala_'"${RELEASE_TAG}"'_node.js
+          mv catala/_build/default/_doc/_html artifacts/api-doc
+          mv catala/doc/syntax/syntax.pdf artifacts/
+          mv catala/_build/default/*.html artifacts/
+          mv ~/.opam/catala/doc/catala-examples/tuto*/*.html artifacts/
+          tar czf artifacts/french_law_'"${RELEASE_TAG}"'_ocaml.tar.gz french-law/ocaml
+          tar czf artifacts/french_law_'"${RELEASE_TAG}"'_js.tar.gz french-law/js
+          tar czf artifacts/french_law_'"${RELEASE_TAG}"'_python.tar.gz french-law/python
+          ln -s french_law_'"${RELEASE_TAG}"'_ocaml.tar.gz artifacts/french_law_ocaml.tar.gz
+          ln -s french_law_'"${RELEASE_TAG}"'_js.tar.gz artifacts/french_law_js.tar.gz
+          ln -s french_law_'"${RELEASE_TAG}"'_python.tar.gz artifacts/french_law_python.tar.gz
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Catala examples
+          path: artifacts/*
+
+  binaries:
+    name: Build static binaries
+    runs-on: self-hosted
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Build release binaries
+        run: mkdir -p artifacts && ./build_release.sh -C artifacts
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Catala binaries
+          path: artifacts/*
+
+  pages:
+    name: Publish static content to github-pages
+    needs: [ examples, binaries, tests ]
+    # Doesn't really depend on tests, but we don't want to publish if they fail
+    if: github.ref == 'refs/heads/master'
+    # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    # Allow one concurrent deployment
+    concurrency:
+      group: "pages"
+      cancel-in-progress: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+          path: artifacts/
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: tree
+          version: 1.0
+      - name: Generate HTML index
+        run: |
+          cd artifacts
+          tree -H . -L 1 --noreport --dirsfirst -T 'Catala latest development artifacts' --charset utf-8 -o index.html
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: 'artifacts/'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1

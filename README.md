@@ -185,7 +185,7 @@ to generate the documentation, then open the `doc/odoc.html` file in any browser
 ## Examples
 
 To explore the different programs written in Catala, see
-[the dedicated readme](examples/README.md).
+[the dedicated readme](https://github.com/CatalaLang/catala-examples/README.md).
 
 ## API
 

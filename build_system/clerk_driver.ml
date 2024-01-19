@@ -256,7 +256,10 @@ module Poll = struct
   let catala_project_root : File.t option Lazy.t =
     lazy
       (match Lazy.force project_root with
-      | Some root when Sys.file_exists File.(root / "catala.opam") -> Some root
+      | Some root
+        when Sys.file_exists File.(root / "catala.opam")
+             && Sys.file_exists File.(root / "dune-project") ->
+        Some root
       | _ -> None)
 
   let exec_dir : File.t =
@@ -337,9 +340,10 @@ module Poll = struct
          dir
        | None ->
          Message.raise_error
-           "@[<hov>Could not locate the Catala runtime library.@ Make sure \
-            that either catala is correctly installed,@ or you are running \
-            from the root of a compiled source tree.@]")
+           "@[<hov>Could not locate the Catala runtime library at %s.@ Make \
+            sure that either catala is correctly installed,@ or you are \
+            running from the root of a compiled source tree.@]"
+           d)
 
   let ocaml_link_flags : string list Lazy.t =
     lazy
@@ -712,7 +716,7 @@ let gen_build_statements
                 reset but that shouldn't cause trouble. *)
              Nj.build "post-test" ~inputs:[reference; test_out]
                ~implicit_in:["always"]
-               ~outputs:[reference ^ "@post"]
+               ~outputs:[(!Var.builddir / reference) ^ "@post"]
           :: acc)
         [] item.legacy_tests
     in
@@ -740,7 +744,8 @@ let gen_build_statements
             ~implicit_in:
               ("always"
               :: List.map
-                   (fun test -> legacy_test_reference test ^ "@post")
+                   (fun test ->
+                     (!Var.builddir / legacy_test_reference test) ^ "@post")
                    item.legacy_tests);
           results;
         ]
@@ -751,7 +756,8 @@ let gen_build_statements
             ~implicit_out:[srcv ^ "@test"]
             ~inputs:
               (List.map
-                 (fun test -> legacy_test_reference test ^ "@post")
+                 (fun test ->
+                   (!Var.builddir / legacy_test_reference test) ^ "@post")
                  item.legacy_tests);
           results;
         ]

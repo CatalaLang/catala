@@ -88,8 +88,7 @@ build: parser-messages format build_dev
 
 #> js_build				: Builds the Web-compatible JS versions of the Catala compiler
 js_build:
-	dune build $(COMPILER_DIR)/catala.bc.js
-	dune build $(COMPILER_DIR)/catala_web_interpreter.bc.js
+	dune build $(COMPILER_DIR)/catala.bc.js $(COMPILER_DIR)/catala_web_interpreter.bc.js
 
 #> doc					: Generates the HTML OCaml documentation
 doc:
@@ -180,6 +179,7 @@ vscode: vscode_fr vscode_en
 # Extra documentation
 ##########################################
 
+#> syntax					: Buils syntax sheet (requires latexmk and dejavu fonts)
 syntax:
 	$(MAKE) -C doc/syntax
 
@@ -199,8 +199,11 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 
 .FORCE:
 
+unit-tests: .FORCE
+	dune runtest
+
 #> tests					: Run interpreter tests
-tests: .FORCE prepare-install
+tests: .FORCE prepare-install unit-tests
 	@$(MAKE) -C tests pass_all_tests
 
 tests/%: .FORCE
@@ -210,6 +213,8 @@ tests/%: .FORCE
 # Website assets
 ##########################################
 
+# Note: these are already built by the @doc dune alias
+# (and therefore the doc target here)
 WEBSITE_ASSETS = grammar.html catala.html clerk.html
 
 $(addprefix _build/default/,$(WEBSITE_ASSETS)):
@@ -231,8 +236,7 @@ all: \
 	build js_build doc \
 	tests \
 	runtimes \
-	plugins \
-	website-assets-base
+	plugins
 
 
 #> clean					: Clean build artifacts
