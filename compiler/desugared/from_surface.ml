@@ -498,7 +498,9 @@ let rec translate_expr
     let ctxt = Name_resolution.module_ctx ctxt path in
     let s_uid =
       match Ident.Map.find_opt (Mark.remove s_name) ctxt.local.typedefs with
-      | Some (Name_resolution.TStruct s_uid) -> s_uid
+      | Some (Name_resolution.TStruct s_uid)
+      | Some (Name_resolution.TScope (_, { out_struct_name = s_uid; _ })) ->
+        s_uid
       | _ ->
         Message.raise_spanned_error (Mark.get s_name)
           "This identifier should refer to a struct name"
