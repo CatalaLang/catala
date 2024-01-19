@@ -213,6 +213,8 @@ tests/%: .FORCE
 # Website assets
 ##########################################
 
+# Note: these are already built by the @doc dune alias
+# (and therefore the doc target here)
 WEBSITE_ASSETS = grammar.html catala.html clerk.html
 
 $(addprefix _build/default/,$(WEBSITE_ASSETS)):
@@ -234,8 +236,7 @@ all: \
 	build js_build doc \
 	tests \
 	runtimes \
-	plugins \
-	website-assets-base
+	plugins
 
 
 #> clean					: Clean build artifacts

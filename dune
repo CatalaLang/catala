@@ -2,7 +2,9 @@
 
 (data_only_dirs tests syntax_highlighting)
 
-(copy_files compiler/surface/grammar.html)
+(copy_files
+ (alias doc)
+ (files compiler/surface/grammar.html))
 
 ; Override dune default warnings with sane settings
 
@@ -29,6 +31,7 @@
     -a))))
 
 (rule
+ (alias doc)
  (action
   (with-stdout-to
    catala.html
@@ -37,6 +40,7 @@
     (run groff -P -l -P -r -mandoc -Thtml)))))
 
 (rule
+ (alias doc)
  (action
   (with-stdout-to
    clerk.html

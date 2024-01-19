@@ -75,13 +75,14 @@ build: [
 ]
 dev-repo: "git+https://github.com/CatalaLang/catala.git"
 depexts: [
-  ["groff" "python3-pip" "pandoc"]
+  ["groff"] { with-doc }
+  ["python3-pip" "pandoc"]
     # "latexmk"
     {cataladevmode & os-family = "debian"}
-  ["groff" "py3-pip" "py3-pygments" "pandoc-cli"]
+  ["py3-pip" "py3-pygments" "pandoc-cli"]
     # "texlive-xetex" "texmf-dist-latexextra" "texmf-dist-pictures"
     {cataladevmode & os-distribution = "alpine"}
-  ["groff" "python-pygments" "pandoc"]
+  ["python-pygments" "pandoc"]
     # "latex-mk"
     {cataladevmode & os-family = "arch"}
 ]
