@@ -107,6 +107,10 @@ jobs:
           ln -s "french_law_${RELEASE_TAG}_ocaml.tar.gz" artifacts/french_law_ocaml.tar.gz
           ln -s "french_law_${RELEASE_TAG}_js.tar.gz" artifacts/french_law_js.tar.gz
           ln -s "french_law_${RELEASE_TAG}_python.tar.gz" artifacts/french_law_python.tar.gz
+      - name: Workaround permissions error
+        # Uploading artifacts would work but then return failure with:
+        # EACCES: permission denied, open '/__w/_temp/_runner_file_commands/set_output_xxx'
+        run: sudo chmod a+wX /__w/_temp
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
