@@ -110,7 +110,7 @@ jobs:
       - name: Workaround permissions error
         # Uploading artifacts would work but then return failure with:
         # EACCES: permission denied, open '/__w/_temp/_runner_file_commands/set_output_xxx'
-        run: sudo chmod a+wX /__w/_temp/_runner_file_commands
+        run: sudo chmod -R a+wX /__w/_temp/_runner_file_commands
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
