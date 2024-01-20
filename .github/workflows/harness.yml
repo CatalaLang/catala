@@ -50,11 +50,11 @@ jobs:
       image: ${{ needs.build.outputs.image }}
       options: --user ocaml
     steps:
-      - name: Run tests
-        run: cd /home/ocaml/catala && opam exec -- make tests
       - name: Check promoted files
-        if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make check-promoted
+      - name: Run tests
+        if: ${{ always() }}
+        run: cd /home/ocaml/catala && opam exec -- make tests
 
   examples:
     name: Build examples and generate artifacts
@@ -111,7 +111,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Catala examples
-          path: artifacts/*
+          path: /home/ocaml/artifacts/*
 
   binaries:
     name: Build static binaries
