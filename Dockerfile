@@ -45,6 +45,8 @@ ENV OCAMLRUNPARAM=b
 # defined in ./dune)
 ENV DUNE_PROFILE=check
 
+ARG CATALA_VERSION
+
 # Check the build
 RUN opam exec -- make build js_build
 
