@@ -675,7 +675,7 @@ let z3_round ctx (q : s_expr) : s_expr =
   (* TODO CONC why not define Z3 function? =>> they are the same as declaration
      + forall, and the gain in legibility is marginal, so I don't think it is
      necessary *)
-  let zero = Z3.Arithmetic.Integer.mk_numeral_i ctx 0 in
+  let zero = Z3.Arithmetic.Real.mk_numeral_i ctx 0 in
   let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
 
   let half = Z3.Arithmetic.Real.mk_numeral_nd ctx 1 2 in
@@ -831,6 +831,7 @@ let rec evaluate_operator
         let hundred = Z3.Arithmetic.Integer.mk_numeral_i ctx 100 in
         Z3.Arithmetic.mk_div ctx e hundred)
       i e
+    (* TODO test *)
   | ToMoney_rat, [((ELit (LRat i), _) as e)] ->
     (* TODO be careful with this, [Round_mon], [Round_rat], [Mult_mon_rat],
        [Div_mon_rat] because of rounding *)
@@ -843,10 +844,28 @@ let rec evaluate_operator
         in
         z3_round ctx cents)
       i e
-  | Round_mon, _ -> failwith "Eop Round_mon not implemented"
-  (* TODO with careful rounding *)
-  | Round_rat, _ -> failwith "Eop Round_rat not implemented"
-  (* TODO with careful rounding *)
+  | Round_mon, [((ELit (LMoney mon), _) as e)] ->
+    op1 ctx m
+      (fun mon -> ELit (LMoney (o_round_mon mon)))
+      (fun ctx e ->
+        (* careful here: use multiplication by 1/100 instead of division by 100
+           to prevent [units] from being an integer (rounded down automatically
+           by Z3) *)
+        let units =
+          Z3.Arithmetic.mk_mul ctx
+            [e; Z3.Arithmetic.Real.mk_numeral_nd ctx 1 100]
+        in
+        let units_round = z3_round ctx units in
+        Z3.Arithmetic.mk_mul ctx
+          [units_round; Z3.Arithmetic.Integer.mk_numeral_i ctx 100])
+      mon e
+  (* DONE with careful rounding *)
+  | Round_rat, [((ELit (LRat q), _) as e)] ->
+    op1 ctx m
+      (fun q -> ELit (LRat (o_round_rat q)))
+      (fun ctx e -> z3_round ctx e)
+      q e
+  (* DONE with careful rounding *)
   | Add_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
     op2list ctx m
       (fun x y -> ELit (LInt (o_add_int_int x y)))
@@ -1047,10 +1066,10 @@ let rec evaluate_operator
        \"handle_default_opt\" operator, which should not happen with a DCalc \
        AST"
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
-      | ToMoney_rat (* | Round_rat | Round_mon *)
-      | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
-      | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur
-      | Sub_dur_dur | Mult_int_int | Mult_rat_rat | Mult_mon_rat
+      | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
+      | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
+      | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
+      | Mult_rat_rat | Mult_mon_rat
       | Mult_dur_int
         (* | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat |
            Div_dur_dur *)
