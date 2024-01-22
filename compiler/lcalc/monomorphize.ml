@@ -37,17 +37,27 @@ type tuple_instance = {
   fields : (StructField.t * naked_typ) list;
 }
 
+type array_instance = {
+  name : StructName.t;
+  len_field : StructField.t;
+  content_field : StructField.t;
+  content_typ : naked_typ;
+}
+
 type monomorphized_instances = {
   (* The keys are the types inside the [TOption] (before monomorphization). *)
   options : option_instance TypMap.t;
   (* The keys are the [TTuple] types themselves (before monomorphization). *)
   tuples : tuple_instance TypMap.t;
+  (* The keys are the types inside the [TArray] (before monomorphization). *)
+  arrays : array_instance TypMap.t;
 }
 
 let collect_monomorphized_instances (prg : typed program) :
     monomorphized_instances =
   let option_instances_counter = ref 0 in
   let tuple_instances_counter = ref 0 in
+  let array_instances_counter = ref 0 in
   let rec collect_typ acc typ =
     match Mark.remove typ with
     | TTuple args when List.for_all (fun t -> Mark.remove t <> TAny) args ->
@@ -79,7 +89,32 @@ let collect_monomorphized_instances (prg : typed program) :
         }
       in
       List.fold_left collect_typ new_acc args
-    | TArray t | TDefault t -> collect_typ acc t
+    | TArray t ->
+      let new_acc =
+        {
+          acc with
+          arrays =
+            TypMap.update (Mark.remove t)
+              (fun monomorphized_name ->
+                match monomorphized_name with
+                | Some e -> Some e
+                | None ->
+                  incr array_instances_counter;
+                  Some
+                    {
+                      len_field = StructField.fresh ("length", Pos.no_pos);
+                      content_field = StructField.fresh ("content", Pos.no_pos);
+                      content_typ = Mark.remove t;
+                      name =
+                        StructName.fresh []
+                          ( "array_" ^ string_of_int !array_instances_counter,
+                            Pos.no_pos );
+                    })
+              acc.arrays;
+        }
+      in
+      collect_typ new_acc t
+    | TDefault t -> collect_typ acc t
     | TArrow (args, ret) ->
       List.fold_left collect_typ (collect_typ acc ret) args
     | TOption t when Mark.remove t <> TAny ->
@@ -144,7 +179,8 @@ let collect_monomorphized_instances (prg : typed program) :
   in
   let acc =
     Scope.fold_left
-      ~init:{ options = TypMap.empty; tuples = TypMap.empty }
+      ~init:
+        { options = TypMap.empty; tuples = TypMap.empty; arrays = TypMap.empty }
       ~f:(fun acc item _ ->
         match item with
         | Topdef (_, typ, e) -> collect_typ (collect_expr acc e) typ
@@ -173,7 +209,8 @@ let rec monomorphize_typ
   match Mark.remove typ with
   | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> typ
   | TArray t1 ->
-    TArray (monomorphize_typ monomorphized_instances t1), Mark.get typ
+    ( TStruct (TypMap.find (Mark.remove t1) monomorphized_instances.arrays).name,
+      Mark.get typ )
   | TDefault t1 ->
     TDefault (monomorphize_typ monomorphized_instances t1), Mark.get typ
   | TArrow (t1s, t2) ->
@@ -281,43 +318,30 @@ let rec monomorphize_expr
     let new_args = List.map (monomorphize_expr monomorphized_instances) args in
     let new_tys = List.map (monomorphize_typ monomorphized_instances) tys in
     Expr.eappop ~op ~args:new_args ~tys:new_tys (Mark.get e)
+  | EArray args ->
+    let new_args = List.map (monomorphize_expr monomorphized_instances) args in
+    let array_instance =
+      TypMap.find
+        (match Mark.remove (Expr.maybe_ty (Mark.get e)) with
+        | TArray t -> Mark.remove t
+        | _ -> failwith "should not happen")
+        monomorphized_instances.arrays
+    in
+    Expr.estruct ~name:array_instance.name
+      ~fields:
+        (StructField.Map.add array_instance.content_field
+           (Expr.earray new_args (Mark.get e))
+           (StructField.Map.singleton array_instance.len_field
+              (Expr.elit
+                 (LInt (Runtime.integer_of_int (List.length args)))
+                 (Mark.get e))))
+      (Mark.get e)
   | _ -> Expr.map ~f:(monomorphize_expr monomorphized_instances) e
 
 let program (prg : typed program) :
     untyped program * Scopelang.Dependency.TVertex.t list =
   let monomorphized_instances = collect_monomorphized_instances prg in
-  (* First we augment the [decl_ctx] with the monomorphized instances *)
-  let prg =
-    {
-      prg with
-      decl_ctx =
-        {
-          prg.decl_ctx with
-          ctx_enums =
-            TypMap.fold
-              (fun _ (option_instance : option_instance) (ctx_enums : enum_ctx) ->
-                EnumName.Map.add option_instance.name
-                  (EnumConstructor.Map.add option_instance.none_cons
-                     (TLit TUnit, Pos.no_pos)
-                     (EnumConstructor.Map.singleton option_instance.some_cons
-                        (option_instance.some_typ, Pos.no_pos)))
-                  ctx_enums)
-              monomorphized_instances.options prg.decl_ctx.ctx_enums;
-          ctx_structs =
-            TypMap.fold
-              (fun _ (tuple_instance : tuple_instance)
-                   (ctx_structs : struct_ctx) ->
-                StructName.Map.add tuple_instance.name
-                  (List.fold_left
-                     (fun acc (field, typ) ->
-                       StructField.Map.add field (typ, Pos.no_pos) acc)
-                     StructField.Map.empty tuple_instance.fields)
-                  ctx_structs)
-              monomorphized_instances.tuples prg.decl_ctx.ctx_structs;
-        };
-    }
-  in
-  (* And we remove the polymorphic option type *)
+  (* First we remove the polymorphic option type *)
   let prg =
     {
       prg with
@@ -349,6 +373,54 @@ let program (prg : typed program) :
         };
     }
   in
+  (* Then we augment the [decl_ctx] with the monomorphized instances *)
+  let prg =
+    {
+      prg with
+      decl_ctx =
+        {
+          prg.decl_ctx with
+          ctx_enums =
+            TypMap.fold
+              (fun _ (option_instance : option_instance) (ctx_enums : enum_ctx) ->
+                EnumName.Map.add option_instance.name
+                  (EnumConstructor.Map.add option_instance.none_cons
+                     (TLit TUnit, Pos.no_pos)
+                     (EnumConstructor.Map.singleton option_instance.some_cons
+                        (monomorphize_typ monomorphized_instances
+                           (option_instance.some_typ, Pos.no_pos))))
+                  ctx_enums)
+              monomorphized_instances.options prg.decl_ctx.ctx_enums;
+          ctx_structs =
+            TypMap.fold
+              (fun _ (tuple_instance : tuple_instance)
+                   (ctx_structs : struct_ctx) ->
+                StructName.Map.add tuple_instance.name
+                  (List.fold_left
+                     (fun acc (field, typ) ->
+                       StructField.Map.add field
+                         (monomorphize_typ monomorphized_instances
+                            (typ, Pos.no_pos))
+                         acc)
+                     StructField.Map.empty tuple_instance.fields)
+                  ctx_structs)
+              monomorphized_instances.tuples
+              (TypMap.fold
+                 (fun _ (array_instance : array_instance)
+                      (ctx_structs : struct_ctx) ->
+                   StructName.Map.add array_instance.name
+                     (StructField.Map.add array_instance.content_field
+                        ( TArray
+                            (monomorphize_typ monomorphized_instances
+                               (array_instance.content_typ, Pos.no_pos)),
+                          Pos.no_pos )
+                        (StructField.Map.singleton array_instance.len_field
+                           (TLit TInt, Pos.no_pos)))
+                     ctx_structs)
+                 monomorphized_instances.arrays prg.decl_ctx.ctx_structs);
+        };
+    }
+  in
   let prg =
     Bindlib.unbox
     @@ Bindlib.box_apply
@@ -371,6 +443,7 @@ let program (prg : typed program) :
             ~varf:Fun.id prg.code_items)
   in
   let prg = Program.untype prg in
+  Message.emit_debug "Prg:@.%a" (Print.program ~debug:true) prg;
   ( prg,
     Scopelang.Dependency.check_type_cycles prg.decl_ctx.ctx_structs
       prg.decl_ctx.ctx_enums )

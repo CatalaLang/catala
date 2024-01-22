@@ -316,7 +316,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | HandleDefault -> Format.pp_print_string fmt "catala_handle_default"
   | HandleDefaultOpt | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
 
-let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
+let _format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   let sanitize_quotes = Re.compile (Re.char '"') in
   Format.fprintf fmt "c(%a)"
     (Format.pp_print_list
@@ -329,7 +329,6 @@ let format_string_list (fmt : Format.formatter) (uids : string list) : unit =
 let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     unit =
   match Mark.remove e with
-  | EVar v when v = Ast.dead_value -> Format.fprintf fmt "NULL"
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
   | EStruct { fields = es; _ } ->
@@ -346,12 +345,9 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "{%a_%a,@ {%a: %a}}" format_enum_name enum_name
       format_enum_cons_name cons format_enum_cons_name cons
       (format_expression ctx) e1
-  | EArray es ->
-    Format.fprintf fmt "list(%a)"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
-      es
+  | EArray _ ->
+    failwith
+      "should not happen, array initialization is caught at the statement level"
   | ELit l -> Format.fprintf fmt "%a" format_lit (Mark.copy e l)
   | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2] } ->
     Format.fprintf fmt "%a(%a,@ %a)" format_op (op, Pos.no_pos)
@@ -374,19 +370,6 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       (format_expression ctx) arg1
   | EAppOp { op = HandleDefaultOpt | HandleDefault; args = _ } ->
     failwith "should not happen because of keep_special_ops"
-  | EApp { f = EFunc x, pos; args }
-    when Ast.FuncName.compare x Ast.handle_default = 0
-         || Ast.FuncName.compare x Ast.handle_default_opt = 0 ->
-    Format.fprintf fmt
-      "%a(@[<hov 0>catala_position(filename=\"%s\",@ start_line=%d,@ \
-       start_column=%d,@ end_line=%d, end_column=%d,@ law_headings=%a), %a)@]"
-      format_func_name x (Pos.get_file pos) (Pos.get_start_line pos)
-      (Pos.get_start_column pos) (Pos.get_end_line pos) (Pos.get_end_column pos)
-      format_string_list (Pos.get_law_info pos)
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (format_expression ctx))
-      args
   | EApp { f; args } ->
     Format.fprintf fmt "%a(@[<hov 0>%a)@]" (format_expression ctx) f
       (Format.pp_print_list
@@ -402,6 +385,15 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | ETuple _ | ETupleAccess _ ->
     Message.raise_internal_error "Tuple compilation to R unimplemented!"
 
+let typ_is_array (ctx : decl_ctx) (typ : typ) =
+  match Mark.remove typ with
+  | TStruct s_name ->
+    let fields = StructName.Map.find s_name ctx.ctx_structs in
+    StructField.Map.exists
+      (fun _ t -> match Mark.remove t with TArray _ -> true | _ -> false)
+      fields
+  | _ -> false
+
 let rec format_statement
     (ctx : decl_ctx)
     (fmt : Format.formatter)
@@ -414,6 +406,13 @@ let rec format_statement
     Format.fprintf fmt "@[<hov 2>%a@];"
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
       ty
+    (* Below we detect array initializations which have special treatment. *)
+  | SLocalInit { name = v; expr = EStruct { fields; name }, _; typ }
+    when typ_is_array ctx typ ->
+    Format.fprintf fmt
+      "@[<hov 2>%a;@]@\n@[<hov 2>%a.content_field = malloc(sizeof(%a));@]"
+      (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
+      typ format_var (Mark.remove v) format_struct_name name
   | SLocalInit { name = v; expr = e; typ } ->
     Format.fprintf fmt "@[<hov 2>%a = %a;@]"
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
@@ -470,15 +469,18 @@ let rec format_statement
     let pos = Mark.get s in
     Format.fprintf fmt
       "@[<hov 2>if (!(%a)) {@\n\
-       stop(catala_assertion_failure(@[<hov 0>catala_position(@[<hov \
-       0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
-       end_column=%d,@ law_headings=@[<hv>%a@])@])@])@]@\n\
+       catala_fatal_error_raised.code = catala_assertion_failure;@,\
+       catala_fatal_error_raised.position.filename = \"%s\";@,\
+       catala_fatal_error_raised.position.start_line = %d;@,\
+       catala_fatal_error_raised.position.start_column = %d;@,\
+       catala_fatal_error_raised.position.end_line = %d;@,\
+       catala_fatal_error_raised.position.end_column = %d;@,\
+       longjmp(catala_fatal_error_jump_buffer, 0);@,\
        }"
       (format_expression ctx)
       (e1, Mark.get s)
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
-      (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
-      (Pos.get_law_info pos)
+      (Pos.get_end_line pos) (Pos.get_end_column pos)
   | SSpecialOp (OHandleDefaultOpt { exceptions; just; cons; return_typ }) ->
     let e_name =
       match Mark.remove return_typ with

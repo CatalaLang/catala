@@ -54,7 +54,7 @@ module Passes : sig
     avoid_exceptions:bool ->
     closure_conversion:bool ->
     monomorphize_types:bool ->
-    Shared_ast.untyped Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list
+    Shared_ast.typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list
 
   val scalc :
     Cli.options ->

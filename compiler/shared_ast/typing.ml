@@ -310,12 +310,13 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
-    (* The [any] in this type definition should be [option any] but when
-       retyping after option monomorphization it would not work, so we let
-       unification instantiate a monomorphized option type at each new operator
-       instead. *)
-    | HandleDefaultOpt -> [array any; [ut] @-> bt; [ut] @-> any] @-> any
+    (* The [HandleDefault] and [HandleDefaultOpt] need to be typed before and
+       after the Lcalc monomorphization which affects arrays and option types.
+       Because of that, we give the operators very lax typing rules with [any]
+       but it doesn't matter for unification because the concrete types on which
+       they will be instantiated are stored in the [EAppOp] node. *)
+    | HandleDefault -> [any2; [ut] @-> bt; [ut] @-> any] @-> any
+    | HandleDefaultOpt -> [any2; [ut] @-> bt; [ut] @-> any] @-> any
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in

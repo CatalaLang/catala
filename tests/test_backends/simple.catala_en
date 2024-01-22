@@ -10,6 +10,7 @@ declaration enumeration Bar:
 declaration scope Baz:
   context a content Bar
   output b content decimal
+  output c content list of decimal
 
 scope Baz:
   definition a equals No
@@ -22,4 +23,6 @@ scope Baz:
   exception definition b under condition
     a with pattern No
   consequence equals 42.0
+
+  definition c equals [b;b]
 ```

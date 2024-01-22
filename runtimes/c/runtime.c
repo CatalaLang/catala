@@ -8,6 +8,7 @@ typedef enum catala_fatal_error_code
     catala_conflict,
     catala_crash,
     catala_empty,
+    catala_assertion_failure,
 } catala_fatal_error_code;
 
 typedef struct catala_code_position

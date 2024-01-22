@@ -224,7 +224,7 @@ module Passes = struct
       ~avoid_exceptions
       ~closure_conversion
       ~monomorphize_types :
-      untyped Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list =
+      typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list =
     let prg, type_ordering =
       dcalc options ~includes ~optimize ~check_invariants ~typed
     in
@@ -276,11 +276,12 @@ module Passes = struct
       if monomorphize_types then (
         Message.emit_debug "Monomorphizing types...";
         let prg, type_ordering = Lcalc.Monomorphize.program prg in
+        Message.emit_debug "Retyping lambda calculus...";
         let prg = Typing.program ~leave_unresolved:ErrorOnAny prg in
         prg, type_ordering)
       else prg, type_ordering
     in
-    Program.untype prg, type_ordering
+    prg, type_ordering
 
   let scalc
       options
@@ -298,8 +299,6 @@ module Passes = struct
       lcalc options ~includes ~optimize ~check_invariants ~typed:Expr.typed
         ~avoid_exceptions ~closure_conversion ~monomorphize_types
     in
-    Message.emit_debug "Retyping lambda calculus...";
-    let prg = Typing.program ~leave_unresolved:LeaveAny prg in
     debug_pass_name "scalc";
     ( Scalc.From_lcalc.translate_program
         ~config:{ keep_special_ops; dead_value_assignment; no_struct_literals }

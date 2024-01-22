@@ -259,7 +259,16 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
     when ctxt.config.keep_special_ops ->
     let exceptions =
       match Mark.remove exceptions with
-      | EArray exceptions -> exceptions
+      | EStruct { fields; _ } -> (
+        let _, exceptions =
+          List.find
+            (fun (field, _) ->
+              String.equal (Mark.remove (StructField.get_info field)) "content")
+            (StructField.Map.bindings fields)
+        in
+        match Mark.remove exceptions with
+        | EArray exceptions -> exceptions
+        | _ -> failwith "should not happen")
       | _ -> failwith "should not happen"
     in
     let just = unthunk just in

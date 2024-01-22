@@ -62,6 +62,9 @@ int main()
         case catala_empty:
             error_kind = "Empty error not caught";
             break;
+        case catala_assertion_failure:
+            error_kind = "Asssertion failure";
+            break;
         }
         printf("\033[1;31m[ERROR]\033[0m %s in file %s:%d.%d-%d.%d\n",
                error_kind,
