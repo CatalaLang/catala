@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  internal x content collection integer
+  internal x content list of integer
   output y content boolean
 
 scope A:
@@ -11,7 +11,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Proof --disable_counterexamples 
+$ catala Proof --disable-counterexamples 
 [WARNING] [A.y] This variable might return an empty error:
 ┌─⯈ tests/test_proof/bad/array_length-empty.catala_en:6.10-6.11:
 └─┐

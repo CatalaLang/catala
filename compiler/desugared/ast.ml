@@ -228,12 +228,16 @@ type scope = {
   scope_meta_assertions : meta_assertion list;
 }
 
+type modul = {
+  module_scopes : scope ScopeName.Map.t;
+  module_topdefs : (expr option * typ) TopdefName.Map.t;
+}
+
 type program = {
-  program_module_name : ModuleName.t option;
-  program_scopes : scope ScopeName.Map.t;
-  program_topdefs : (expr option * typ) TopdefName.Map.t;
+  program_module_name : Ident.t Mark.pos option;
   program_ctx : decl_ctx;
-  program_modules : program ModuleName.Map.t;
+  program_modules : modul ModuleName.Map.t;
+  program_root : modul;
   program_lang : Cli.backend_lang;
 }
 
@@ -299,8 +303,8 @@ let fold_exprs ~(f : 'a -> expr -> 'a) ~(init : 'a) (p : program) : 'a =
             scope.scope_assertions acc
         in
         acc)
-      p.program_scopes init
+      p.program_root.module_scopes init
   in
   TopdefName.Map.fold
     (fun _ (e, _) acc -> Option.fold ~none:acc ~some:(f acc) e)
-    p.program_topdefs acc
+    p.program_root.module_topdefs acc

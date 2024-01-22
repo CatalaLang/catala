@@ -16,6 +16,26 @@ scope A:
   definition y equals x.f
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[WARNING] The structure "Bar" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/test_struct/good/ambiguous_fields.catala_en:7.23-7.26:
+└─┐
+7 │ declaration structure Bar:
+  │                       ‾‾‾
+  └─ Article
+[RESULT] Invariant typing_defaults checked. result: [20/20]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [0/0]
+[RESULT] Invariant no_return_a_function checked. result: [0/0]
+[RESULT] Invariant no_partial_evaluation checked. result: [0/0]
+[RESULT] Invariant default_no_arrow checked. result: [4/4]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Interpret -s A
 [WARNING] The structure "Bar" is never used; maybe it's unnecessary?
@@ -29,7 +49,7 @@ $ catala Interpret -s A
 [RESULT] y = 1
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [WARNING] The structure "Bar" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/test_struct/good/ambiguous_fields.catala_en:7.23-7.26:

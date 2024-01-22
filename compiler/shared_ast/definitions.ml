@@ -102,6 +102,10 @@ module SubScopeName =
     end)
     ()
 
+type scope_var_or_subscope =
+  | ScopeVar of ScopeVar.t
+  | SubScope of SubScopeName.t * ScopeName.t
+
 module StateName =
   Uid.Gen
     (struct
@@ -135,7 +139,6 @@ type desugared =
   ; overloaded : yes
   ; resolved : no
   ; syntacticNames : yes
-  ; resolvedNames : no
   ; scopeVarStates : yes
   ; scopeVarSimpl : no
   ; explicitScopes : yes
@@ -143,6 +146,13 @@ type desugared =
   ; defaultTerms : yes
   ; exceptions : no
   ; custom : no >
+(* Technically, desugared before name resolution has [syntacticNames: yes;
+   resolvedNames: no], and after name resolution has the opposite; but the
+   disambiguation being done by the typer, we don't encode this invariant at the
+   type level.
+
+   Indeed, unfortunately, we cannot express the [<resolvedNames: _; 'a> ->
+   <resolvedNames: yes; 'a>] that would be needed for the typing function. *)
 
 type scopelang =
   < monomorphic : yes
@@ -150,7 +160,6 @@ type scopelang =
   ; overloaded : no
   ; resolved : yes
   ; syntacticNames : no
-  ; resolvedNames : yes
   ; scopeVarStates : no
   ; scopeVarSimpl : yes
   ; explicitScopes : yes
@@ -165,7 +174,6 @@ type dcalc =
   ; overloaded : no
   ; resolved : yes
   ; syntacticNames : no
-  ; resolvedNames : yes
   ; scopeVarStates : no
   ; scopeVarSimpl : no
   ; explicitScopes : no
@@ -180,7 +188,6 @@ type lcalc =
   ; overloaded : no
   ; resolved : yes
   ; syntacticNames : no
-  ; resolvedNames : yes
   ; scopeVarStates : no
   ; scopeVarSimpl : no
   ; explicitScopes : no
@@ -199,7 +206,6 @@ type dcalc_lcalc_features =
   ; overloaded : no
   ; resolved : yes
   ; syntacticNames : no
-  ; resolvedNames : yes
   ; scopeVarStates : no
   ; scopeVarSimpl : no
   ; explicitScopes : no
@@ -472,10 +478,14 @@ and ('a, 'b, 'm) base_gexpr =
   | EApp : {
       f : ('a, 'm) gexpr;
       args : ('a, 'm) gexpr list;
+          (** length may be 1 even if arity > 1 in desugared. scopelang performs
+              detuplification, so length = arity afterwards *)
+      tys : typ list;  (** Set to [[]] before disambiguation *)
     }
       -> ('a, < .. >, 'm) base_gexpr
-  | EOp : {
+  | EAppOp : {
       op : 'b operator;
+      args : ('a, 'm) gexpr list;
       tys : typ list;
     }
       -> ('a, (< .. > as 'b), 'm) base_gexpr
@@ -535,8 +545,8 @@ and ('a, 'b, 'm) base_gexpr =
       e : ('a, 'm) gexpr;
       field : StructField.t;
     }
-      -> ('a, < resolvedNames : yes ; .. >, 'm) base_gexpr
-      (** Resolved struct/enums, after [desugared] *)
+      -> ('a, < .. >, 'm) base_gexpr
+      (** Resolved struct/enums, after name resolution in [desugared] *)
   (* Lambda-like *)
   | EExternal : {
       name : external_ref Mark.pos;
@@ -553,6 +563,7 @@ and ('a, 'b, 'm) base_gexpr =
   | EPureDefault :
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
+      (** "return" of a pure term, so that it can be typed as [default] *)
   | EEmptyError : ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
   | EErrorOnEmpty :
       ('a, 'm) gexpr
@@ -651,8 +662,9 @@ type 'e code_item =
   | ScopeDef of ScopeName.t * 'e scope_body
   | Topdef of TopdefName.t * typ * 'e
 
-(* A chained list, but with a binder for each element into the next: [x := let a
-   = e1 in e2] is thus [Cons (e1, {a. Cons (e2, {x. Nil})})] *)
+(** A chained list, but with a binder for each element into the next:
+    [x := let a
+    = e1 in e2] is thus [Cons (e1, {a. Cons (e2, {x. Nil})})] *)
 type 'e code_item_list =
   | Nil
   | Cons of 'e code_item * ('e, 'e code_item_list) binder
@@ -666,14 +678,20 @@ type scope_info = {
   out_struct_fields : StructField.t ScopeVar.Map.t;
 }
 
+(** In practice, this is a DAG: beware of repeated names *)
+type module_tree = M of module_tree ModuleName.Map.t [@@caml.unboxed]
+
 type decl_ctx = {
   ctx_enums : enum_ctx;
   ctx_structs : struct_ctx;
-  ctx_struct_fields : StructField.t StructName.Map.t Ident.Map.t;
-      (** needed for disambiguation (desugared -> scope) *)
   ctx_scopes : scope_info ScopeName.Map.t;
   ctx_topdefs : typ TopdefName.Map.t;
-  ctx_modules : decl_ctx ModuleName.Map.t;
+  ctx_struct_fields : StructField.t StructName.Map.t Ident.Map.t;
+      (** needed for disambiguation (desugared -> scope) *)
+  ctx_enum_constrs : EnumConstructor.t EnumName.Map.t Ident.Map.t;
+  ctx_scope_index : ScopeName.t Ident.Map.t;
+      (** only used to lookup scopes (in the root module) specified from the cli *)
+  ctx_modules : module_tree;
 }
 
 type 'e program = {

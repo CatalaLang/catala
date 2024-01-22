@@ -119,7 +119,12 @@ let primitive_typ :=
 
 let typ_data :=
 | t = primitive_typ ; <Primitive>
-| COLLECTION ; t = addpos(typ_data) ; <Collection>
+| LIST ; t = addpos(typ_data) ; <Collection>
+| LPAREN ; tl = separated_nonempty_list(COMMA,addpos(typ_data)) ; RPAREN ; {
+  match tl with
+  | [t, _] -> t
+  | ts -> TTuple ts
+}
 
 let typ == t = typ_data ; <Data>
 
@@ -167,7 +172,11 @@ let naked_expression ==
 | l = literal ; {
   Literal l
 }
-| LPAREN ; e = expression ; RPAREN ; <Paren>
+| LPAREN ; el = separated_nonempty_list(COMMA, expression) ; RPAREN ; {
+  match el with
+  | [e] -> Paren e
+  | es -> Tuple es
+}
 | e = expression ;
   DOT ; i = addpos(qlident) ; <Dotted>
 | CARDINAL ; {
@@ -213,7 +222,7 @@ let naked_expression ==
 } %prec apply
 | max = minmax ;
   OF ; coll = expression ;
-  OR ; IF ; COLLECTION ; EMPTY ; THEN ;
+  OR ; IF ; LIST_EMPTY ; THEN ;
   default = expression ; {
   CollectionOp (AggregateExtremum { max; default }, coll)
 } %prec apply
@@ -245,10 +254,10 @@ let naked_expression ==
   ELSE ; e3 = expression ; {
   IfThenElse (e1, e2, e3)
 } %prec let_expr
-| LET ; id = lident ;
+| LET ; ids = separated_nonempty_list(COMMA,lident) ;
   DEFINED_AS ; e1 = expression ;
   IN ; e2 = expression ; {
-  LetIn (id, e1, e2)
+  LetIn (ids, e1, e2)
 } %prec let_expr
 | i = lident ;
   AMONG ; coll = expression ;
@@ -265,7 +274,7 @@ let naked_expression ==
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ;
   IS ; max = minmax ;
-  OR ; IF ; COLLECTION ; EMPTY ; THEN ; default = expression ; {
+  OR ; IF ; LIST_EMPTY ; THEN ; default = expression ; {
   CollectionOp (AggregateArgExtremum { max; default; f = i, f }, coll)
 } %prec top_expr
 
@@ -707,7 +716,10 @@ let directive :=
   else
     LawInclude (Ast.CatalaFile (filename, pos))
 }
-| MODULE_DEF ; m = addpos(DIRECTIVE_ARG) ; { ModuleDef m }
+| MODULE_DEF ; m = addpos(DIRECTIVE_ARG) ;
+  ext = option (MODULE_EXTERNAL) ; {
+  ModuleDef (m, ext <> None)
+}
 | MODULE_USE ; m = addpos(DIRECTIVE_ARG) ;
   alias = option (preceded(MODULE_ALIAS,addpos(DIRECTIVE_ARG))) ; {
   ModuleUse (m, alias)

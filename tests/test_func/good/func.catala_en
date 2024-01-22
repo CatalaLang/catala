@@ -21,13 +21,26 @@ scope R:
   definition r equals s.out
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [110/110]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [6/6]
+[RESULT] Invariant no_return_a_function checked. result: [4/4]
+[RESULT] Invariant no_partial_evaluation checked. result: [6/6]
+[RESULT] Invariant default_no_arrow checked. result: [15/15]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Interpret -s R
 [RESULT] Computation successful! Results:
 [RESULT] r = 30
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s R --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s R --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] r = 30
 ```

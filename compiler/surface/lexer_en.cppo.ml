@@ -28,7 +28,8 @@
 #define MS_DECREASING "decreasing"
 #define MS_INCREASING "increasing"
 #define MS_OF "of"
-#define MS_COLLECTION "collection"
+#define MS_LIST "list of"
+#define MR_LIST "list", space_plus, "of"
 #define MS_CONTAINS "contains"
 #define MS_ENUM "enumeration"
 #define MS_INTEGER "integer"
@@ -80,7 +81,8 @@
 #define MS_MAXIMUM "maximum"
 #define MS_MINIMUM "minimum"
 #define MS_IS "is"
-#define MS_EMPTY "empty"
+#define MS_LIST_EMPTY "list empty"
+#define MR_LIST_EMPTY "list", space_plus, "empty"
 #define MS_CARDINAL "number"
 #define MS_YEAR "year"
 #define MS_MONTH "month"
@@ -114,6 +116,7 @@
 #define MR_MODULE_DEF "Module"
 #define MR_MODULE_USE "Using"
 #define MR_MODULE_ALIAS "as"
+#define MR_EXTERNAL "external"
 #define MX_AT_PAGE \
    '@', Star hspace, "p.", Star hspace, Plus digit -> \
       let s = Utf8.lexeme lexbuf in \

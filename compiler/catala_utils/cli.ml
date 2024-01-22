@@ -113,10 +113,6 @@ let file_lang filename =
          @{<yellow>%s@}, and @{<bold>--language@} was not specified"
         filename)
 
-(** If [to_dir] is a path to a given directory and [f] a path to a file as seen
-    from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path
-    leading to [f] from [to_dir]. The results attempts to be relative to
-    [to_dir]. *)
 let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
   if Filename.is_relative from_dir then invalid_arg "File.with_reverse_path"
   else if not (Filename.is_relative f) then f
@@ -208,7 +204,7 @@ module Flags = struct
     let message_format =
       value
       & opt (enum message_format_opt) Human
-      & info ["message_format"]
+      & info ["message-format"]
           ~doc:
             "Selects the format of error and warning messages emitted by the \
              compiler. If set to $(i,human), the messages will be nicely \
@@ -245,14 +241,14 @@ module Flags = struct
     let disable_warnings =
       value
       & flag
-      & info ["disable_warnings"]
+      & info ["disable-warnings"]
           ~doc:"Disable all the warnings emitted by the compiler."
 
     let max_prec_digits =
       value
       & opt int 20
       & info
-          ["p"; "max_digits_printed"]
+          ["p"; "max-digits-printed"]
           ~docv:"NUM"
           ~doc:
             "Maximum number of significant digits printed for decimal results."
@@ -344,7 +340,7 @@ module Flags = struct
   let check_invariants =
     value
     & flag
-    & info ["check_invariants"] ~doc:"Check structural invariants on the AST."
+    & info ["check-invariants"] ~doc:"Check structural invariants on the AST."
 
   let no_typing =
     value
@@ -360,7 +356,7 @@ module Flags = struct
   let print_only_law =
     value
     & flag
-    & info ["print_only_law"]
+    & info ["print-only-law"]
         ~doc:
           "In literate programming output, skip all code and metadata sections \
            and print only the text of the law."
@@ -396,13 +392,13 @@ module Flags = struct
   let avoid_exceptions =
     value
     & flag
-    & info ["avoid_exceptions"]
+    & info ["avoid-exceptions"]
         ~doc:"Compiles the default calculus without exceptions."
 
   let closure_conversion =
     value
     & flag
-    & info ["closure_conversion"]
+    & info ["closure-conversion"]
         ~doc:
           "Performs closure conversion on the lambda calculus. Implies \
            $(b,--avoid-exceptions)."
@@ -411,7 +407,7 @@ module Flags = struct
     value
     & flag
     & info
-        ["disable_counterexamples"]
+        ["disable-counterexamples"]
         ~doc:
           "Disables the search for counterexamples. Useful when you want a \
            deterministic output from the Catala compiler, since provers can \

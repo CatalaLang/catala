@@ -439,7 +439,7 @@ let run
     options =
   if not options.Cli.trace then
     Message.raise_error "This plugin requires the --trace flag.";
-  let prg, _, type_ordering =
+  let prg, type_ordering =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
   in
@@ -459,7 +459,7 @@ let run
     Message.emit_debug "Compiling program into OCaml...";
     Message.emit_debug "Writing to %s..."
       (Option.value ~default:"stdout" output_file);
-    Lcalc.To_ocaml.format_program fmt prg type_ordering
+    Lcalc.To_ocaml.format_program fmt prg ~exec_args:false type_ordering
   in
   let jsoo_output_file, with_formatter =
     Driver.Commands.get_output_format options ~ext:"_api_web.ml" output

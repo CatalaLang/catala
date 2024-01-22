@@ -2,12 +2,25 @@
 
 ```catala
 declaration scope B:
-   output x content collection money
-   output z content collection boolean
+   output x content list of money
+   output z content list of boolean
 
 scope B:
    definition x equals [$4; $8 ]
    definition z equals (m >= $4.95) for m among x
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [26/26]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [0/0]
+[RESULT] Invariant no_return_a_function checked. result: [1/1]
+[RESULT] Invariant no_partial_evaluation checked. result: [0/0]
+[RESULT] Invariant default_no_arrow checked. result: [4/4]
+[RESULT] Typechecking successful!
 ```
 
 ```catala-test-inline
@@ -18,7 +31,7 @@ $ catala Interpret -s B
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] x = [$4.00; $8.00]
 [RESULT] z = [false; true]

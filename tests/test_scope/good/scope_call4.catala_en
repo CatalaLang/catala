@@ -22,6 +22,19 @@ scope RentComputation:
 ```
 
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [126/126]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [16/16]
+[RESULT] Invariant no_return_a_function checked. result: [13/13]
+[RESULT] Invariant no_partial_evaluation checked. result: [16/16]
+[RESULT] Invariant default_no_arrow checked. result: [13/13]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Interpret -s RentComputation --debug
 [DEBUG] = INIT =
@@ -57,7 +70,7 @@ f2 = λ (x: integer) →
 ```
 
 ```catala-test-inline
-$ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize --debug
+$ catala Interpret_Lcalc -s RentComputation --avoid-exceptions --optimize --debug
 [DEBUG] = INIT =
 [DEBUG] = SURFACE =
 [DEBUG] Parsing "tests/test_scope/good/scope_call4.catala_en"
@@ -77,44 +90,8 @@ $ catala Interpret_Lcalc -s RentComputation --avoid_exceptions --optimize --debu
 [DEBUG] Starting interpretation...
 [DEBUG] End of interpretation
 [RESULT] Computation successful! Results:
-[RESULT]
-f1 = λ (x: integer) →
-  match
-    (handle_default_opt
-       []
-       (λ (_: unit) → true)
-       (λ (_: unit) →
-        ESome
-          let x1 : integer = x + 1 in
-          match
-            (handle_default_opt
-               []
-               (λ (_1: unit) → true)
-               (λ (_1: unit) → ESome (x1 + 1)))
-          with
-          | ENone _1 → raise NoValueProvided
-          | ESome arg → arg))
-  with
-  | ENone _ → raise NoValueProvided
-  | ESome arg → arg
-[RESULT]
-f2 = λ (x: integer) →
-  match
-    (handle_default_opt
-       []
-       (λ (_: unit) → true)
-       (λ (_: unit) →
-        ESome
-          let x1 : integer = x + 1 in
-          match
-            (handle_default_opt
-               []
-               (λ (_1: unit) → true)
-               (λ (_1: unit) → ESome (x1 + 1)))
-          with
-          | ENone _1 → raise NoValueProvided
-          | ESome arg → arg))
-  with
-  | ENone _ → raise NoValueProvided
-  | ESome arg → arg
+[RESULT] f1 = λ (x: integer) → let x1 : integer = x + 1 in
+                               ((x1 + 1))
+[RESULT] f2 = λ (x: integer) → let x1 : integer = x + 1 in
+                               ((x1 + 1))
 ```

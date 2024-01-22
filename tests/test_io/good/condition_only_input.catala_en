@@ -14,6 +14,19 @@ scope A:
 scope B:
   assertion a.y = 1
 ```
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [34/34]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [1/1]
+[RESULT] Invariant no_return_a_function checked. result: [0/0]
+[RESULT] Invariant no_partial_evaluation checked. result: [1/1]
+[RESULT] Invariant default_no_arrow checked. result: [4/4]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Dcalc -s B
 let scope B (B_in: B_in): B =
@@ -29,6 +42,6 @@ $ catala Interpret -s B
 [RESULT] Computation successful!
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
 [RESULT] Computation successful!
 ```

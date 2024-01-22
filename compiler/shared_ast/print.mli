@@ -74,7 +74,7 @@ module type EXPR_PARAM = sig
   (** pre-processing on expressions: can be used to skip log calls, etc. *)
 end
 
-module ExprGen (C : EXPR_PARAM) : sig
+module ExprGen (_ : EXPR_PARAM) : sig
   val expr : Format.formatter -> ('a, 't) gexpr -> unit
 end
 
@@ -125,3 +125,8 @@ module UserFacing : sig
   (** This combines the user-facing value printer and the generic expression
       printer to handle all AST nodes *)
 end
+
+(**/*)
+
+val skip_wrappers : ('a, 'm) gexpr -> ('a, 'm) gexpr
+(** This is exported from [Expr], but first defined here for dependency reasons *)

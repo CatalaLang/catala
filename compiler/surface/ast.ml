@@ -55,6 +55,7 @@ and primitive_typ =
 and base_typ_data =
   | Primitive of primitive_typ
   | Collection of base_typ_data Mark.pos
+  | TTuple of base_typ_data Mark.pos list
 
 and base_typ = Condition | Data of base_typ_data
 
@@ -180,13 +181,14 @@ and naked_expression =
   | FunCall of expression * expression list
   | ScopeCall of
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
-  | LetIn of lident Mark.pos * expression * expression
+  | LetIn of lident Mark.pos list * expression * expression
   | Builtin of builtin_expression
   | Literal of literal
   | EnumInject of (path * uident Mark.pos) Mark.pos * expression option
   | StructLit of
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
   | ArrayLit of expression list
+  | Tuple of expression list
   | Ident of path * lident Mark.pos
   | Dotted of expression * (path * lident Mark.pos) Mark.pos
       (** Dotted is for both struct field projection and sub-scope variables *)
@@ -306,21 +308,30 @@ and law_include =
 
 and law_structure =
   | LawInclude of law_include
-  | ModuleDef of uident Mark.pos
+  | ModuleDef of uident Mark.pos * bool (* External if true *)
   | ModuleUse of uident Mark.pos * uident Mark.pos option
   | LawHeading of law_heading * law_structure list
   | LawText of (string[@opaque])
   | CodeBlock of code_block * source_repr * bool (* Metadata if true *)
 
-and interface = uident Mark.pos * code_block
-(** Invariant: an interface shall only contain [*Decl] elements, or [Topdef]
-    elements with [topdef_expr = None] *)
+and interface = {
+  intf_modname : uident Mark.pos;
+  intf_code : code_block;
+      (** Invariant: an interface shall only contain [*Decl] elements, or
+          [Topdef] elements with [topdef_expr = None] *)
+  intf_submodules : module_use list;
+}
+
+and module_use = {
+  mod_use_name : uident Mark.pos;
+  mod_use_alias : uident Mark.pos;
+}
 
 and program = {
   program_module_name : uident Mark.pos option;
   program_items : law_structure list;
   program_source_files : (string[@opaque]) list;
-  program_modules : interface list;  (** Modules being used by the program *)
+  program_used_modules : module_use list;
   program_lang : Cli.backend_lang; [@opaque]
 }
 

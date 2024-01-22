@@ -17,7 +17,6 @@
 (** Typing for the default calculus. Because of the error terms, we perform type
     inference using the classical W algorithm with union-find unification. *)
 
-open Catala_utils
 open Definitions
 
 module Env : sig
@@ -35,8 +34,6 @@ module Env : sig
     'e t ->
     'e t
 
-  val add_module : ModuleName.t -> module_env:'e t -> 'e t -> 'e t
-  val module_env : Uid.Path.t -> 'e t -> 'e t
   val open_scope : ScopeName.t -> 'e t -> 'e t
 
   val dump : Format.formatter -> 'e t -> unit
@@ -62,7 +59,22 @@ val expr :
     still done, but with unification with the existing annotations at every
     step. This can be used for double-checking after AST transformations and
     filling the gaps ([TAny]) if any. Use [Expr.untype] first if this is not
-    what you want. *)
+    what you want.
+
+    Note that typing also transparently performs the following changes to the
+    AST nodes, outside of typing annotations:
+    - disambiguation of constructors: [EDStructAccess] nodes are translated into
+      [EStructAccess] with the suitable structure and field idents (this only
+      concerns [desugared] expressions).
+    - resolution of operator types, which are stored (monomorphised) back in the
+      [EAppOp] nodes
+    - resolution of function application input types on the [EApp] nodes, when
+      that was originally empty ([[]]): this documents the arity of the function
+      application, taking de-tuplification into account.
+    - [TAny] appearing within nodes are refined to more precise types, e.g. on
+      `EAbs` nodes (but be careful with this, it may only work for specific
+      structures of generated code ; [~leave_unresolved:false] checks that it
+      didn't cause problems) *)
 
 val check_expr :
   leave_unresolved:bool ->

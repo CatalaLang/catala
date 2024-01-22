@@ -12,6 +12,19 @@ scope S:
   definition out equals f1 of 10
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [33/33]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [1/1]
+[RESULT] Invariant no_return_a_function checked. result: [1/1]
+[RESULT] Invariant no_partial_evaluation checked. result: [1/1]
+[RESULT] Invariant default_no_arrow checked. result: [5/5]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala typecheck
 [RESULT] Typechecking successful!

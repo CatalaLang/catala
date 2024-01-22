@@ -56,8 +56,8 @@ module R = Re.Pcre
 #ifndef MR_OF
   #define MR_OF MS_OF
 #endif
-#ifndef MR_COLLECTION
-  #define MR_COLLECTION MS_COLLECTION
+#ifndef MR_LIST
+  #define MR_LIST MS_LIST
 #endif
 #ifndef MR_CONTAINS
   #define MR_CONTAINS MS_CONTAINS
@@ -203,8 +203,8 @@ module R = Re.Pcre
 #ifndef MR_IS
   #define MR_IS MS_IS
 #endif
-#ifndef MR_EMPTY
-  #define MR_EMPTY MS_EMPTY
+#ifndef MR_LIST_EMPTY
+  #define MR_LIST_EMPTY MS_LIST_EMPTY
 #endif
 #ifndef MR_CARDINAL
   #define MR_CARDINAL MS_CARDINAL
@@ -266,7 +266,7 @@ let token_list : (string * token) list =
     (MS_DECREASING, DECREASING);
     (MS_INCREASING, INCREASING);
     (MS_OF, OF);
-    (MS_COLLECTION, COLLECTION);
+    (MS_LIST, LIST);
     (MS_CONTAINS, CONTAINS);
     (MS_ENUM, ENUM);
     (MS_INTEGER, INTEGER);
@@ -315,7 +315,7 @@ let token_list : (string * token) list =
     (MS_MAXIMUM, MAXIMUM);
     (MS_MINIMUM, MINIMUM);
     (MS_IS, IS);
-    (MS_EMPTY, EMPTY);
+    (MS_LIST_EMPTY, LIST_EMPTY);
     (MS_CARDINAL, CARDINAL);
     (MS_YEAR, YEAR);
     (MS_MONTH, MONTH);
@@ -417,9 +417,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_OF ->
       L.update_acc lexbuf;
       OF
-  | MR_COLLECTION ->
+  | MR_LIST ->
       L.update_acc lexbuf;
-      COLLECTION
+      LIST
   | MR_CONTAINS ->
       L.update_acc lexbuf;
       CONTAINS
@@ -567,9 +567,9 @@ let rec lex_code (lexbuf : lexbuf) : token =
   | MR_IS ->
       L.update_acc lexbuf;
       IS
-  | MR_EMPTY ->
+  | MR_LIST_EMPTY ->
       L.update_acc lexbuf;
-      EMPTY
+      LIST_EMPTY
   | MR_CARDINAL ->
       L.update_acc lexbuf;
       CARDINAL
@@ -734,6 +734,7 @@ let rec lex_directive_args (lexbuf : lexbuf) : token =
       let i = String.index s '.' in
       AT_PAGE (int_of_string (String.trim (String.sub s i (String.length s - i))))
   | MR_MODULE_ALIAS -> MODULE_ALIAS
+  | MR_EXTERNAL -> MODULE_EXTERNAL
   | Plus (Compl white_space) -> DIRECTIVE_ARG (Utf8.lexeme lexbuf)
   | Plus hspace -> lex_directive_args lexbuf
   | '\n' | eof ->
@@ -819,6 +820,20 @@ let line_dir_arg_re =
       eol
     ])
 
+(* This is a bit cheap, but we don't want a full-fledged parser to handle these
+   trivial line directives. Here we extract the first uppercase argument of a
+   directive line, which is guaranteed to match the module name we are
+   interested in and nothing else (e.g. in French, the module usage "keywords"
+   are multiple words) *)
+let line_dir_arg_upcase_re =
+  Re.(compile @@ seq [
+      bos; char '>'; rep space; rep1 alpha;
+      rep (alt [space; lower]); space;
+      group (seq [rep1 upper; rep (diff any space)]);
+      rep any;
+      eol
+    ])
+
 let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
   match%sedlex lexbuf with
   | eof -> None
@@ -831,26 +846,38 @@ let lex_line (lexbuf : lexbuf) : (string * L.line_token) option =
        Some (str, LINE_TEST id)
      with Not_found ->
        Message.emit_spanned_warning (Pos.from_lpos (lexing_positions lexbuf))
-         "Ignored invalid test section, must have an explicit `{ id = \"name\" }` specification";
+         "Ignored invalid test section, must have an explicit \
+          `{ id = \"name\" }` specification";
        Some (str, LINE_ANY))
   | "```", Star hspace, ('\n' | eof) ->
     Some (Utf8.lexeme lexbuf, LINE_BLOCK_END)
-  | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus (Compl '\n'), ('\n' | eof)  ->
+  | '>', Star hspace, MR_LAW_INCLUDE, Star hspace, ':', Plus (Compl '\n'),
+    ('\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
        let file = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
        Some (str, LINE_INCLUDE file)
      with Not_found -> Some (str, LINE_ANY))
-  | '>', Star hspace, MR_MODULE_DEF, Plus hspace, uppercase, Star (Compl '\n'), ('\n' | eof)  ->
+  | '>', Star hspace, MR_MODULE_DEF, Plus hspace,
+    uppercase, Star (Compl white_space), Plus hspace,
+    MR_EXTERNAL, Star hspace, ('\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
-       let mdl = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
-       Some (str, LINE_MODULE_DEF mdl)
+       let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
+       Some (str, LINE_MODULE_DEF (mdl, true))
      with Not_found -> Some (str, LINE_ANY))
-  | '>', Star hspace, MR_MODULE_USE, Plus hspace, uppercase, Star (Compl '\n'), ('\n' | eof)  ->
+  | '>', Star hspace, MR_MODULE_DEF, Plus hspace, uppercase, Star (Compl '\n'),
+    ('\n' | eof)  ->
     let str = Utf8.lexeme lexbuf in
     (try
-       let mdl = Re.Group.get (Re.exec line_dir_arg_re str) 1 in
+       let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
+       Some (str, LINE_MODULE_DEF (mdl, false))
+     with Not_found -> Some (str, LINE_ANY))
+  | '>', Star hspace, MR_MODULE_USE, Plus hspace, uppercase, Star (Compl '\n'),
+    ('\n' | eof)  ->
+    let str = Utf8.lexeme lexbuf in
+    (try
+       let mdl = Re.Group.get (Re.exec line_dir_arg_upcase_re str) 1 in
        Some (str, LINE_MODULE_USE mdl)
      with Not_found -> Some (str, LINE_ANY))
   | Star (Compl '\n'), ('\n' | eof) -> Some (Utf8.lexeme lexbuf, LINE_ANY)

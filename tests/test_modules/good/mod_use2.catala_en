@@ -1,10 +1,10 @@
-> Using Mod_middle
+> Using Mod_middle as M
 
 ```catala
 declaration scope T:
-  t1 scope Mod_middle.S
+  t1 scope M.S
 #  input i content Enum1
-  output o1 content Mod_def.S
+  output o1 content M.Mod_def.S
   output o2 content money
   output o3 content money
 
@@ -13,6 +13,19 @@ scope T:
   definition o1 equals t1.o1
   definition o2 equals t1.o2
   definition o3 equals t1.o3
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [49/49]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [1/1]
+[RESULT] Invariant no_return_a_function checked. result: [1/1]
+[RESULT] Invariant no_partial_evaluation checked. result: [1/1]
+[RESULT] Invariant default_no_arrow checked. result: [8/8]
+[RESULT] Typechecking successful!
 ```
 
 ```catala-test-inline

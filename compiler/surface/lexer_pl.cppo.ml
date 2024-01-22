@@ -30,7 +30,7 @@
 #define MS_INCREASING "rosnący"
 #define MR_INCREASING "rosn", 0x0105, "cy"
 #define MS_OF "z"
-#define MS_COLLECTION "kolekcja"
+#define MS_LIST "lista"
 #define MS_CONTAINS "zawiera"
 #define MS_ENUM "enumeracja"
 #define MS_INTEGER "całkowita"
@@ -93,7 +93,8 @@
 #define MS_MAXIMUM "maksimum"
 #define MS_MINIMUM "minimum"
 #define MS_IS "jest"
-#define MS_EMPTY "pusty"
+#define MS_LIST_EMPTY "lista pusta"
+#define MR_LIST_EMPTY "lista", space_plus, "pusta"
 #define MS_CARDINAL "liczba"
 #define MS_YEAR "rok"
 #define MS_MONTH "miesiąc"
@@ -139,6 +140,7 @@
 #define MR_MODULE_DEF "Module"
 #define MR_MODULE_USE "Using"
 #define MR_MODULE_ALIAS "as"
+#define MR_EXTERNAL "external"
 #define MX_AT_PAGE \
    '@', Star hspace, "p.", Star hspace, Plus digit -> \
       let s = Utf8.lexeme lexbuf in \

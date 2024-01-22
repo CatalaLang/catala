@@ -14,7 +14,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Proof --disable_counterexamples 
+$ catala Proof --disable-counterexamples 
 [ERROR]
 It is impossible to give a definition to a scope variable tagged as input.
 

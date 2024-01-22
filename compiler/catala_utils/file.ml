@@ -119,15 +119,29 @@ let check_file f =
   try if Sys.is_directory f then None else Some f
   with Unix.Unix_error _ | Sys_error _ -> None
 
-let ( / ) a b =
-  if a = "" || a = Filename.current_dir_name then b else Filename.concat a b
+let get_command t =
+  String.trim
+  @@ process_out
+       ~check_exit:(function 0 -> () | _ -> raise Not_found)
+       "/bin/sh"
+       ["-c"; "command -v " ^ Filename.quote t]
 
+let dir_sep_char = Filename.dir_sep.[0]
+
+let check_exec t =
+  try if String.contains t dir_sep_char then Unix.realpath t else get_command t
+  with Unix.Unix_error _ | Sys_error _ ->
+    Message.raise_error
+      "Could not find the @{<yellow>%s@} program, please fix your installation"
+      (Filename.quote t)
+
+let ( / ) a b = if a = Filename.current_dir_name then b else Filename.concat a b
 let dirname = Filename.dirname
 let ( /../ ) a b = dirname a / b
 let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
 
 let path_to_list path =
-  String.split_on_char Filename.dir_sep.[0] path
+  String.split_on_char dir_sep_char path
   |> List.filter (function "" | "." -> false | _ -> true)
 
 let equal a b =
@@ -164,16 +178,30 @@ let scan_tree f t =
     |> Array.to_list
     |> List.filter not_hidden
     |> List.map (fun t -> d / t)
-    |> do_files
-  and do_files flist =
+    |> do_files d
+  and do_files d flist =
     let dirs, files =
       flist |> List.sort (fun a b -> -compare a b) |> List.partition is_dir
     in
-    Seq.append
-      (Seq.concat (Seq.map do_dir (List.to_seq dirs)))
-      (Seq.filter_map f (List.to_seq files))
+    let rec gather_subdirs subdirs_list_acc subdirs_seq () =
+      match subdirs_seq () with
+      | Seq.Nil -> (
+        match List.rev subdirs_list_acc, List.filter_map f files with
+        | [], [] -> Seq.Nil
+        | sdirs, items -> Seq.return (d, sdirs, items) ())
+      | Seq.Cons (subdir_name, subdir_next) -> (
+        match do_dir subdir_name () with
+        | Seq.Nil -> gather_subdirs subdirs_list_acc subdir_next ()
+        | Seq.Cons (sd0, sds) ->
+          Seq.Cons
+            ( sd0,
+              Seq.append sds
+                (gather_subdirs (subdir_name :: subdirs_list_acc) subdir_next)
+            ))
+    in
+    gather_subdirs [] (List.to_seq dirs)
   in
-  do_files [t]
+  if is_dir t then do_dir t else Seq.return (dirname t, [], Option.to_list (f t))
 
 module Tree = struct
   type path = t
@@ -185,14 +213,15 @@ module Tree = struct
 
   let rec build path =
     lazy
-      (Array.fold_left
+      (let entries = try Sys.readdir path with Sys_error _ -> [||] in
+       Array.fold_left
          (fun m f ->
            let path = path / f in
            match Sys.is_directory path with
            | true -> Map.add f (path, D (build path)) m
            | false -> Map.add f (path, F) m
            | exception Sys_error _ -> m)
-         Map.empty (Sys.readdir path))
+         Map.empty entries)
 
   let subtree t path =
     let rec aux t = function

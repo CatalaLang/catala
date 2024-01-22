@@ -9,6 +9,30 @@ scope A:
   definition w equals 3
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[WARNING] These definitions have identical justifications and consequences; is it a mistake?
+
+┌─⯈ tests/test_default/good/mutliple_definitions.catala_en:9.3-9.15:
+└─┐
+9 │   definition w equals 3
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+
+┌─⯈ tests/test_default/good/mutliple_definitions.catala_en:6.3-6.15:
+└─┐
+6 │   definition w equals 3
+  │   ‾‾‾‾‾‾‾‾‾‾‾‾
+[RESULT] Invariant typing_defaults checked. result: [14/14]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [0/0]
+[RESULT] Invariant no_return_a_function checked. result: [0/0]
+[RESULT] Invariant no_partial_evaluation checked. result: [0/0]
+[RESULT] Invariant default_no_arrow checked. result: [3/3]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Interpret -s A
 [WARNING] These definitions have identical justifications and consequences; is it a mistake?

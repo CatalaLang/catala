@@ -31,7 +31,6 @@ type ctx = {
   scope_var_mapping : target_scope_vars ScopeVar.Map.t;
   reentrant_vars : typ ScopeVar.Map.t;
   var_mapping : (D.expr, untyped Ast.expr Var.t) Var.Map.t;
-  modules : ctx ModuleName.Map.t;
 }
 
 let tag_with_log_entry
@@ -39,9 +38,10 @@ let tag_with_log_entry
     (l : log_entry)
     (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
   if Cli.globals.trace then
-    Expr.eapp
-      (Expr.eop (Log (l, markings)) [TAny, Expr.pos e] (Mark.get e))
-      [e] (Mark.get e)
+    Expr.eappop
+      ~op:(Log (l, markings))
+      ~tys:[TAny, Expr.pos e]
+      ~args:[e] (Mark.get e)
   else e
 
 let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
@@ -61,11 +61,6 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
   | ELocation (SubScopeVar { scope; alias; var }) ->
     (* When referring to a subscope variable in an expression, we are referring
        to the output, hence we take the last state. *)
-    let ctx =
-      List.fold_left
-        (fun ctx m -> ModuleName.Map.find m ctx.modules)
-        ctx (ScopeName.path scope)
-    in
     let var =
       match ScopeVar.Map.find (Mark.remove var) ctx.scope_var_mapping with
       | WholeVar new_s_var -> Mark.copy var new_s_var
@@ -97,27 +92,8 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
          })
       m
   | ELocation (ToplevelVar v) -> Expr.elocation (ToplevelVar v) m
-  | EDStructAccess { name_opt = None; _ } ->
-    (* Note: this could only happen if disambiguation was disabled. If we want
-       to support it, we should still allow this case when the field has only
-       one possible matching structure *)
-    Message.raise_spanned_error (Expr.mark_pos m)
-      "Ambiguous structure field access"
-  | EDStructAccess { e; field; name_opt = Some name } ->
-    let e' = translate_expr ctx e in
-    let field =
-      let decl_ctx = Program.module_ctx ctx.decl_ctx (StructName.path name) in
-      try
-        StructName.Map.find name
-          (Ident.Map.find field decl_ctx.ctx_struct_fields)
-      with StructName.Map.Not_found _ | Ident.Map.Not_found _ ->
-        (* Should not happen after disambiguation *)
-        Message.raise_spanned_error (Expr.mark_pos m)
-          "Field @{<yellow>\"%s\"@} does not belong to structure \
-           @{<yellow>\"%a\"@}"
-          field StructName.format name
-    in
-    Expr.estructaccess ~e:e' ~field ~name m
+  | EDStructAccess _ ->
+    assert false (* This shouldn't appear in desugared after disambiguation *)
   | EScopeCall { scope; args } ->
     Expr.escopecall ~scope
       ~args:
@@ -145,7 +121,7 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
                    (Expr.edefault ~excepts:[] ~just:(Expr.elit (LBool true) m)
                       ~cons:
                         (Expr.epuredefault
-                           (Expr.make_app e' [Expr.evar arg m] pos)
+                           (Expr.make_app e' [Expr.evar arg m] targs pos)
                            m)
                       m)
                    targs pos
@@ -155,21 +131,49 @@ let rec translate_expr (ctx : ctx) (e : D.expr) : untyped Ast.expr boxed =
              ScopeVar.Map.add v' e' args')
            args ScopeVar.Map.empty)
       m
-  | EApp { f = EOp { op; tys }, m1; args } ->
+  | EApp { f; tys; args } -> (
+    (* Detuplification of function arguments *)
+    let pos = Expr.pos f in
+    let f = translate_expr ctx f in
+    match args, tys with
+    | [arg], [_] -> Expr.eapp ~f ~tys m ~args:[translate_expr ctx arg]
+    | [(ETuple args, _)], _ ->
+      assert (List.length args = List.length tys);
+      Expr.eapp ~f ~tys m ~args:(List.map (translate_expr ctx) args)
+    | [((EVar _, _) as arg)], ts ->
+      let size = List.length ts in
+      let args =
+        let e = translate_expr ctx arg in
+        List.init size (fun index -> Expr.etupleaccess ~e ~size ~index m)
+      in
+      Expr.eapp ~f ~tys m ~args
+    | [arg], ts ->
+      let size = List.length ts in
+      let v = Var.make "args" in
+      let e = Expr.evar v (Mark.get arg) in
+      let args =
+        List.init size (fun index -> Expr.etupleaccess ~e ~size ~index m)
+      in
+      Expr.make_let_in v (TTuple ts, pos) (translate_expr ctx arg)
+        (Expr.eapp ~f ~tys m ~args)
+        pos
+    | args, tys ->
+      assert (List.length args = List.length tys);
+      Expr.eapp ~f ~tys m ~args:(List.map (translate_expr ctx) args))
+  | EAppOp { op; tys; args } ->
     let args = List.map (translate_expr ctx) args in
     Operator.kind_dispatch op
-      ~monomorphic:(fun op -> Expr.eapp (Expr.eop op tys m1) args m)
-      ~polymorphic:(fun op -> Expr.eapp (Expr.eop op tys m1) args m)
+      ~monomorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
+      ~polymorphic:(fun op -> Expr.eappop ~op ~tys ~args m)
       ~overloaded:(fun op ->
         match
           Operator.resolve_overload ctx.decl_ctx (Mark.add (Expr.pos e) op) tys
         with
-        | op, `Straight -> Expr.eapp (Expr.eop op tys m1) args m
+        | op, `Straight -> Expr.eappop ~op ~tys ~args m
         | op, `Reversed ->
-          Expr.eapp (Expr.eop op (List.rev tys) m1) (List.rev args) m)
-  | EOp _ -> assert false (* Only allowed within [EApp] *)
-  | ( EStruct _ | ETuple _ | ETupleAccess _ | EInj _ | EMatch _ | ELit _
-    | EApp _ | EDefault _ | EPureDefault _ | EIfThenElse _ | EArray _
+          Expr.eappop ~op ~tys:(List.rev tys) ~args:(List.rev args) m)
+  | ( EStruct _ | EStructAccess _ | ETuple _ | ETupleAccess _ | EInj _
+    | EMatch _ | ELit _ | EDefault _ | EPureDefault _ | EIfThenElse _ | EArray _
     | EEmptyError | EErrorOnEmpty _ ) as e ->
     Expr.map ~f:(translate_expr ctx) (e, m)
 
@@ -300,9 +304,7 @@ let scope_to_exception_graphs (scope : D.scope) :
   List.fold_left
     (fun exceptions_graphs scope_def_key ->
       let new_exceptions_graphs = rule_to_exception_graph scope scope_def_key in
-      D.ScopeDef.Map.union
-        (fun _ _ _ -> assert false (* there should not be key conflicts *))
-        new_exceptions_graphs exceptions_graphs)
+      D.ScopeDef.Map.disjoint_union new_exceptions_graphs exceptions_graphs)
     D.ScopeDef.Map.empty scope_ordering
 
 let build_exceptions_graph (pgrm : D.program) :
@@ -310,10 +312,8 @@ let build_exceptions_graph (pgrm : D.program) :
   ScopeName.Map.fold
     (fun _ scope exceptions_graph ->
       let new_exceptions_graphs = scope_to_exception_graphs scope in
-      D.ScopeDef.Map.union
-        (fun _ _ _ -> assert false (* key conflicts should not happen*))
-        new_exceptions_graphs exceptions_graph)
-    pgrm.program_scopes D.ScopeDef.Map.empty
+      D.ScopeDef.Map.disjoint_union new_exceptions_graphs exceptions_graph)
+    pgrm.program_root.module_scopes D.ScopeDef.Map.empty
 
 (** Transforms a flat list of rules into a tree, taking into account the
     priorities declared between rules *)
@@ -789,87 +789,74 @@ let translate_program
   (* First we give mappings to all the locations between Desugared and This
      involves creating a new Scopelang scope variable for every state of a
      Desugared variable. *)
-  let rec make_ctx desugared =
-    let modules = ModuleName.Map.map make_ctx desugared.D.program_modules in
-    (* Todo: since we rename all scope vars at this point, it would be better to
-       have different types for Desugared.ScopeVar.t and Scopelang.ScopeVar.t *)
-    ScopeName.Map.fold
-      (fun _scope scope_decl ctx ->
-        ScopeVar.Map.fold
-          (fun scope_var (states : D.var_or_states) ctx ->
-            let var_name, var_pos = ScopeVar.get_info scope_var in
-            let new_var =
-              match states with
-              | D.WholeVar -> WholeVar (ScopeVar.fresh (var_name, var_pos))
-              | States states ->
-                let var_prefix = var_name ^ "_" in
-                let state_var state =
-                  ScopeVar.fresh
-                    (Mark.map (( ^ ) var_prefix) (StateName.get_info state))
-                in
-                States (List.map (fun state -> state, state_var state) states)
-            in
-            let reentrant =
-              let state =
-                match states with
-                | D.WholeVar -> None
-                | States (s :: _) -> Some s
-                | States [] -> assert false
-              in
-              match
-                D.ScopeDef.Map.find_opt
-                  (Var (scope_var, state))
-                  scope_decl.D.scope_defs
-              with
-              | Some
-                  {
-                    scope_def_io = { io_input = Runtime.Reentrant, _; _ };
-                    scope_def_typ;
-                    _;
-                  } ->
-                Some scope_def_typ
-              | _ -> None
-            in
-            {
-              ctx with
-              scope_var_mapping =
-                ScopeVar.Map.add scope_var new_var ctx.scope_var_mapping;
-              reentrant_vars =
-                Option.fold reentrant
-                  ~some:(fun ty ->
-                    ScopeVar.Map.add scope_var ty ctx.reentrant_vars)
-                  ~none:ctx.reentrant_vars;
-            })
-          scope_decl.D.scope_vars ctx)
-      desugared.D.program_scopes
+  let ctx =
+    let ctx =
       {
         scope_var_mapping = ScopeVar.Map.empty;
         var_mapping = Var.Map.empty;
         reentrant_vars = ScopeVar.Map.empty;
         decl_ctx = desugared.program_ctx;
-        modules;
       }
-  in
-  let ctx = make_ctx desugared in
-  let rec gather_scope_vars acc modules =
-    ModuleName.Map.fold
-      (fun _modname mctx (vmap, reentr) ->
-        let vmap, reentr = gather_scope_vars (vmap, reentr) mctx.modules in
-        ( ScopeVar.Map.union
-            (fun _ _ -> assert false)
-            vmap mctx.scope_var_mapping,
-          ScopeVar.Map.union
-            (fun _ _ -> assert false)
-            reentr mctx.reentrant_vars ))
-      modules acc
-  in
-  let ctx =
-    let scope_var_mapping, reentrant_vars =
-      gather_scope_vars (ctx.scope_var_mapping, ctx.reentrant_vars) ctx.modules
     in
-    { ctx with scope_var_mapping; reentrant_vars }
+    let add_scope_mappings modul ctx =
+      ScopeName.Map.fold
+        (fun _ scdef ctx ->
+          ScopeVar.Map.fold
+            (fun scope_var (states : D.var_or_states) ctx ->
+              let var_name, var_pos = ScopeVar.get_info scope_var in
+              let new_var =
+                match states with
+                | D.WholeVar -> WholeVar (ScopeVar.fresh (var_name, var_pos))
+                | States states ->
+                  let var_prefix = var_name ^ "_" in
+                  let state_var state =
+                    ScopeVar.fresh
+                      (Mark.map (( ^ ) var_prefix) (StateName.get_info state))
+                  in
+                  States (List.map (fun state -> state, state_var state) states)
+              in
+              let reentrant =
+                let state =
+                  match states with
+                  | D.WholeVar -> None
+                  | States (s :: _) -> Some s
+                  | States [] -> assert false
+                in
+                match
+                  D.ScopeDef.Map.find_opt
+                    (Var (scope_var, state))
+                    scdef.D.scope_defs
+                with
+                | Some
+                    {
+                      scope_def_io = { io_input = Runtime.Reentrant, _; _ };
+                      scope_def_typ;
+                      _;
+                    } ->
+                  Some scope_def_typ
+                | _ -> None
+              in
+              {
+                ctx with
+                scope_var_mapping =
+                  ScopeVar.Map.add scope_var new_var ctx.scope_var_mapping;
+                reentrant_vars =
+                  Option.fold reentrant
+                    ~some:(fun ty ->
+                      ScopeVar.Map.add scope_var ty ctx.reentrant_vars)
+                    ~none:ctx.reentrant_vars;
+              })
+            scdef.D.scope_vars ctx)
+        modul.D.module_scopes ctx
+    in
+    (* Todo: since we rename all scope vars at this point, it would be better to
+       have different types for Desugared.ScopeVar.t and Scopelang.ScopeVar.t *)
+    ModuleName.Map.fold
+      (fun _ m ctx -> add_scope_mappings m ctx)
+      desugared.D.program_modules
+      (add_scope_mappings desugared.D.program_root ctx)
   in
-  let rec process_decl_ctx ctx decl_ctx =
+  let decl_ctx =
     let ctx_scopes =
       ScopeName.Map.map
         (fun out_str ->
@@ -885,41 +872,17 @@ let translate_program
               out_str.out_struct_fields ScopeVar.Map.empty
           in
           { out_str with out_struct_fields })
-        decl_ctx.ctx_scopes
+        desugared.program_ctx.ctx_scopes
     in
-    {
-      decl_ctx with
-      ctx_modules =
-        ModuleName.Map.mapi
-          (fun modname decl_ctx ->
-            let ctx = ModuleName.Map.find modname ctx.modules in
-            process_decl_ctx ctx decl_ctx)
-          decl_ctx.ctx_modules;
-      ctx_scopes;
-    }
+    { desugared.program_ctx with ctx_scopes }
   in
-  let rec process_modules program_ctx desugared =
-    ModuleName.Map.mapi
-      (fun modname m_desugared ->
-        let ctx = ModuleName.Map.find modname ctx.modules in
-        {
-          Ast.program_module_name = Some modname;
-          Ast.program_topdefs = TopdefName.Map.empty;
-          program_scopes =
-            ScopeName.Map.map
-              (translate_scope_interface ctx)
-              m_desugared.D.program_scopes;
-          program_ctx = ModuleName.Map.find modname program_ctx.ctx_modules;
-          program_modules =
-            process_modules
-              (ModuleName.Map.find modname program_ctx.ctx_modules)
-              m_desugared;
-          Ast.program_lang = desugared.program_lang;
-        })
+  let ctx = { ctx with decl_ctx } in
+  let program_modules =
+    ModuleName.Map.map
+      (fun m ->
+        ScopeName.Map.map (translate_scope_interface ctx) m.D.module_scopes)
       desugared.D.program_modules
   in
-  let program_ctx = process_decl_ctx ctx desugared.D.program_ctx in
-  let program_modules = process_modules program_ctx desugared in
   let program_topdefs =
     TopdefName.Map.mapi
       (fun id -> function
@@ -927,18 +890,19 @@ let translate_program
         | None, (_, pos) ->
           Message.raise_spanned_error pos "No definition found for %a"
             TopdefName.format id)
-      desugared.program_topdefs
+      desugared.program_root.module_topdefs
   in
   let program_scopes =
     ScopeName.Map.map
       (translate_scope ctx exc_graphs)
-      desugared.D.program_scopes
+      desugared.D.program_root.module_scopes
   in
   {
-    Ast.program_module_name = desugared.D.program_module_name;
+    Ast.program_module_name =
+      Option.map ModuleName.fresh desugared.D.program_module_name;
     Ast.program_topdefs;
     Ast.program_scopes;
-    Ast.program_ctx;
+    Ast.program_ctx = ctx.decl_ctx;
     Ast.program_modules;
     Ast.program_lang = desugared.program_lang;
   }

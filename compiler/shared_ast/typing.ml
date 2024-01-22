@@ -157,9 +157,8 @@ let rec format_typ
       ")" (format_typ ~colors) t2
   | TArray t1 -> (
     match Mark.remove (UnionFind.get (UnionFind.find t1)) with
-    | TAny _ when not Cli.globals.debug ->
-      Format.pp_print_string fmt "collection"
-    | _ -> Format.fprintf fmt "@[collection@ %a@]" (format_typ ~colors) t1)
+    | TAny _ when not Cli.globals.debug -> Format.pp_print_string fmt "list"
+    | _ -> Format.fprintf fmt "@[list of@ %a@]" (format_typ ~colors) t1)
   | TDefault t1 ->
     Format.pp_print_as fmt 1 "⟨";
     format_typ ~colors fmt t1;
@@ -328,7 +327,6 @@ let resolve_overload_ret_type
     Operator.overload_type ctx
       (Mark.add (Expr.pos e) op)
       (List.map (typ_to_ast ~leave_unresolved) tys)
-    (* We use [unsafe] because the error is caught below *)
   in
   ast_to_typ (Type.arrow_return op_ty)
 
@@ -343,7 +341,6 @@ module Env = struct
     scopes : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     scopes_input : A.typ A.ScopeVar.Map.t A.ScopeName.Map.t;
     toplevel_vars : A.typ A.TopdefName.Map.t;
-    modules : 'e t A.ModuleName.Map.t;
   }
 
   let empty (decl_ctx : A.decl_ctx) =
@@ -363,7 +360,6 @@ module Env = struct
       scopes = A.ScopeName.Map.empty;
       scopes_input = A.ScopeName.Map.empty;
       toplevel_vars = A.TopdefName.Map.empty;
-      modules = A.ModuleName.Map.empty;
     }
 
   let get t v = Var.Map.find_opt v t.vars
@@ -373,9 +369,6 @@ module Env = struct
   let get_subscope_out_var t scope var =
     Option.bind (A.ScopeName.Map.find_opt scope t.scopes) (fun vmap ->
         A.ScopeVar.Map.find_opt var vmap)
-
-  let module_env path env =
-    List.fold_left (fun env m -> A.ModuleName.Map.find m env.modules) env path
 
   let add v tau t = { t with vars = Var.Map.add v tau t.vars }
   let add_var v typ t = add v (ast_to_typ typ) t
@@ -393,19 +386,14 @@ module Env = struct
   let add_toplevel_var v typ t =
     { t with toplevel_vars = A.TopdefName.Map.add v typ t.toplevel_vars }
 
-  let add_module modname ~module_env t =
-    { t with modules = A.ModuleName.Map.add modname module_env t.modules }
-
   let open_scope scope_name t =
     let scope_vars =
-      A.ScopeVar.Map.union
-        (fun _ _ -> assert false)
-        t.scope_vars
+      A.ScopeVar.Map.disjoint_union t.scope_vars
         (A.ScopeName.Map.find scope_name t.scopes)
     in
     { t with scope_vars }
 
-  let rec dump ppf env =
+  let dump ppf env =
     let pp_sep = Format.pp_print_space in
     Format.pp_open_vbox ppf 0;
     (* Format.fprintf ppf "structs: @[<hov>%a@]@,"
@@ -420,9 +408,6 @@ module Env = struct
     Format.fprintf ppf "topdefs: @[<hov>%a@]@,"
       (A.TopdefName.Map.format_keys ~pp_sep)
       env.toplevel_vars;
-    Format.fprintf ppf "@[<hv 2>modules:@ %a@]"
-      (A.ModuleName.Map.format dump)
-      env.modules;
     Format.pp_close_box ppf ()
 end
 
@@ -480,11 +465,8 @@ and typecheck_expr_top_down :
       | DesugaredScopeVar { name; _ } | ScopelangScopeVar { name } ->
         Env.get_scope_var env (Mark.remove name)
       | SubScopeVar { scope; var; _ } ->
-        let env = Env.module_env (A.ScopeName.path scope) env in
         Env.get_subscope_out_var env scope (Mark.remove var)
-      | ToplevelVar { name } ->
-        let env = Env.module_env (A.TopdefName.path (Mark.remove name)) env in
-        Env.get_toplevel_var env (Mark.remove name)
+      | ToplevelVar { name } -> Env.get_toplevel_var env (Mark.remove name)
     in
     let ty =
       match ty_opt with
@@ -558,42 +540,39 @@ and typecheck_expr_top_down :
           "This is not a structure, cannot access field %s (%a)" field
           (format_typ ctx) (ty e_struct')
     in
-    let fld_ty =
-      let str =
-        try A.StructName.Map.find name env.structs
-        with A.StructName.Map.Not_found _ ->
-          Message.raise_spanned_error pos_e "No structure %a found"
-            A.StructName.format name
-      in
-      let field =
-        let ctx = Program.module_ctx ctx (A.StructName.path name) in
-        let candidate_structs =
-          try A.Ident.Map.find field ctx.ctx_struct_fields
-          with A.Ident.Map.Not_found _ ->
-            Message.raise_spanned_error
-              (Expr.mark_pos context_mark)
-              "Field @{<yellow>\"%s\"@} does not belong to structure \
-               @{<yellow>\"%a\"@} (no structure defines it)"
-              field A.StructName.format name
-        in
-        try A.StructName.Map.find name candidate_structs
-        with A.StructName.Map.Not_found _ ->
+    let str =
+      try A.StructName.Map.find name env.structs
+      with A.StructName.Map.Not_found _ ->
+        Message.raise_spanned_error pos_e "No structure %a found"
+          A.StructName.format name
+    in
+    let field =
+      let candidate_structs =
+        try A.Ident.Map.find field ctx.ctx_struct_fields
+        with A.Ident.Map.Not_found _ ->
           Message.raise_spanned_error
             (Expr.mark_pos context_mark)
-            "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
-             @{<yellow>\"%a\"@},@ but to %a@]"
+            "Field @{<yellow>\"%s\"@} does not belong to structure \
+             @{<yellow>\"%a\"@} (no structure defines it)"
             field A.StructName.format name
-            (Format.pp_print_list
-               ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
-               (fun fmt s_name ->
-                 Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format
-                   s_name))
-            (A.StructName.Map.keys candidate_structs)
       in
-      A.StructField.Map.find field str
+      try A.StructName.Map.find name candidate_structs
+      with A.StructName.Map.Not_found _ ->
+        Message.raise_spanned_error
+          (Expr.mark_pos context_mark)
+          "@[<hov>Field @{<yellow>\"%s\"@}@ does not belong to@ structure \
+           @{<yellow>\"%a\"@},@ but to %a@]"
+          field A.StructName.format name
+          (Format.pp_print_list
+             ~pp_sep:(fun ppf () -> Format.fprintf ppf "@ or@ ")
+             (fun fmt s_name ->
+               Format.fprintf fmt "@{<yellow>\"%a\"@}" A.StructName.format
+                 s_name))
+          (A.StructName.Map.keys candidate_structs)
     in
+    let fld_ty = A.StructField.Map.find field str in
     let mark = mark_with_tau_and_unify fld_ty in
-    Expr.edstructaccess ~e:e_struct' ~name_opt:(Some name) ~field mark
+    Expr.estructaccess ~name ~e:e_struct' ~field mark
   | A.EStructAccess { e = e_struct; name; field } ->
     let fld_ty =
       let str =
@@ -692,16 +671,11 @@ and typecheck_expr_top_down :
     in
     Expr.ematch ~e:e1' ~name ~cases mark
   | A.EScopeCall { scope; args } ->
-    let path = A.ScopeName.path scope in
     let scope_out_struct =
-      let ctx = Program.module_ctx ctx path in
       (A.ScopeName.Map.find scope ctx.ctx_scopes).out_struct_name
     in
     let mark = mark_with_tau_and_unify (unionfind (TStruct scope_out_struct)) in
-    let vars =
-      let env = Env.module_env path env in
-      A.ScopeName.Map.find scope env.scopes_input
-    in
+    let vars = A.ScopeName.Map.find scope env.scopes_input in
     let args' =
       A.ScopeVar.Map.mapi
         (fun name ->
@@ -730,12 +704,6 @@ and typecheck_expr_top_down :
     in
     Expr.evar (Var.translate v) (mark_with_tau_and_unify tau')
   | A.EExternal { name } ->
-    let path =
-      match Mark.remove name with
-      | External_value td -> A.TopdefName.path td
-      | External_scope s -> A.ScopeName.path s
-    in
-    let ctx = Program.module_ctx ctx path in
     let ty =
       let not_found pr x =
         Message.raise_spanned_error pos_e
@@ -781,7 +749,7 @@ and typecheck_expr_top_down :
         (unionfind ~pos:e1 tuple_ty)
         e1
     in
-    Expr.etupleaccess e1' index size context_mark
+    Expr.etupleaccess ~e:e1' ~index ~size context_mark
   | A.EAbs { binder; tys = t_args } ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.raise_spanned_error (Expr.pos e)
@@ -805,98 +773,84 @@ and typecheck_expr_top_down :
       in
       let binder' = Bindlib.bind_mvar xs' (Expr.Box.lift body') in
       Expr.eabs binder' (List.map (typ_to_ast ~leave_unresolved) tau_args) mark
-  | A.EApp { f = (EOp { op; tys }, _) as e1; args } ->
+  | A.EApp { f = e1; args; tys } ->
+    (* Here we type the arguments first (in order), to ensure we know the types
+       of the arguments if [f] is [EAbs] before disambiguation. This is also the
+       right order for the [let-in] form. *)
+    let t_args =
+      match tys with
+      | [] -> List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args
+      | tys -> List.map ast_to_typ tys
+    in
+    let args' =
+      List.map2 (typecheck_expr_top_down ~leave_unresolved ctx env) t_args args
+    in
+    let t_args =
+      match t_args, tys with
+      | [t], [] -> (
+        (* Handles typing before detuplification: if [tys] was not yet set, we
+           are allowed to destruct a tuple into multiple arguments (see
+           [Scopelang.from_desugared] for the corresponding code
+           transformation) *)
+        match UnionFind.get t with TTuple tys, _ -> tys | _ -> t_args)
+      | _ ->
+        if List.length t_args <> List.length args' then
+          Message.raise_spanned_error (Expr.pos e)
+            (match e1 with
+            | EAbs _, _ -> "This binds %d variables, but %d were provided."
+            | _ -> "This function application has %d arguments, but expects %d.")
+            (List.length t_args) (List.length args');
+
+        t_args
+    in
+    let t_func = unionfind ~pos:e1 (TArrow (t_args, tau)) in
+    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env t_func e1 in
+    Expr.eapp ~f:e1' ~args:args'
+      ~tys:(List.map (typ_to_ast ~leave_unresolved) t_args)
+      context_mark
+  | A.EAppOp { op; tys; args } ->
     let t_args = List.map ast_to_typ tys in
     let t_func = unionfind (TArrow (t_args, tau)) in
-    let e1', args' =
+    let args =
       Operator.kind_dispatch op
-        ~polymorphic:(fun _ ->
+        ~polymorphic:(fun op ->
           (* Type the operator first, then right-to-left: polymorphic operators
              are required to allow the resolution of all type variables this
              way *)
-          let e1' =
-            typecheck_expr_top_down ~leave_unresolved ctx env t_func e1
-          in
-          let args' =
-            List.rev_map2
-              (typecheck_expr_top_down ~leave_unresolved ctx env)
-              (List.rev t_args) (List.rev args)
-          in
-          e1', args')
-        ~overloaded:(fun _ ->
+          unify ctx e (polymorphic_op_type (Mark.add pos_e op)) t_func;
+          List.rev_map2
+            (typecheck_expr_top_down ~leave_unresolved ctx env)
+            (List.rev t_args) (List.rev args))
+        ~overloaded:(fun op ->
           (* Typing the arguments first is required to resolve the operator *)
           let args' =
             List.map2
               (typecheck_expr_top_down ~leave_unresolved ctx env)
               t_args args
           in
-          let e1' =
-            typecheck_expr_top_down ~leave_unresolved ctx env t_func e1
-          in
-          e1', args')
-        ~monomorphic:(fun _ ->
-          (* Here it doesn't matter but may affect the error messages *)
-          let e1' =
-            typecheck_expr_top_down ~leave_unresolved ctx env t_func e1
-          in
-          let args' =
-            List.map2
-              (typecheck_expr_top_down ~leave_unresolved ctx env)
-              t_args args
-          in
-          e1', args')
-        ~resolved:(fun _ ->
-          (* This case should not fail *)
-          let e1' =
-            typecheck_expr_top_down ~leave_unresolved ctx env t_func e1
-          in
-          let args' =
-            List.map2
-              (typecheck_expr_top_down ~leave_unresolved ctx env)
-              t_args args
-          in
-          e1', args')
-    in
-    Expr.eapp e1' args' context_mark
-  | A.EApp { f = e1; args } ->
-    (* Here we type the arguments first (in order), to ensure we know the types
-       of the arguments if [f] is [EAbs] before disambiguation. This is also the
-       right order for the [let-in] form. *)
-    let t_args = List.map (fun _ -> unionfind (TAny (Any.fresh ()))) args in
-    let t_func = unionfind (TArrow (t_args, tau)) in
-    let args' =
-      List.map2 (typecheck_expr_top_down ~leave_unresolved ctx env) t_args args
-    in
-    let e1' = typecheck_expr_top_down ~leave_unresolved ctx env t_func e1 in
-    Expr.eapp e1' args' context_mark
-  | A.EOp { op; tys } ->
-    let tys' = List.map ast_to_typ tys in
-    let t_ret = unionfind (TAny (Any.fresh ())) in
-    let t_func = unionfind (TArrow (tys', t_ret)) in
-    unify ctx e t_func tau;
-    let tys, mark =
-      Operator.kind_dispatch op
-        ~polymorphic:(fun op ->
-          tys, mark_with_tau_and_unify (polymorphic_op_type (Mark.add pos_e op)))
+          unify ctx e tau
+            (resolve_overload_ret_type ~leave_unresolved ctx e op t_args);
+          args')
         ~monomorphic:(fun op ->
-          let mark =
-            mark_with_tau_and_unify
-              (ast_to_typ (Operator.monomorphic_type (Mark.add pos_e op)))
-          in
-          List.map (typ_to_ast ~leave_unresolved) tys', mark)
-        ~overloaded:(fun op ->
-          unify ctx e t_ret
-            (resolve_overload_ret_type ~leave_unresolved ctx e op tys');
-          ( List.map (typ_to_ast ~leave_unresolved) tys',
-            A.Custom { A.custom = t_func; pos = pos_e } ))
+          (* Here it doesn't matter but may affect the error messages *)
+          unify ctx e
+            (ast_to_typ (Operator.monomorphic_type (Mark.add pos_e op)))
+            t_func;
+          List.map2
+            (typecheck_expr_top_down ~leave_unresolved ctx env)
+            t_args args)
         ~resolved:(fun op ->
-          let mark =
-            mark_with_tau_and_unify
-              (ast_to_typ (Operator.resolved_type (Mark.add pos_e op)))
-          in
-          List.map (typ_to_ast ~leave_unresolved) tys', mark)
+          (* This case should not fail *)
+          unify ctx e
+            (ast_to_typ (Operator.resolved_type (Mark.add pos_e op)))
+            t_func;
+          List.map2
+            (typecheck_expr_top_down ~leave_unresolved ctx env)
+            t_args args)
     in
-    Expr.eop op tys mark
+    (* All operator applications are monomorphised at this point *)
+    let tys = List.map (typ_to_ast ~leave_unresolved) t_args in
+    Expr.eappop ~op ~args ~tys context_mark
   | A.EDefault { excepts; just; cons } ->
     let cons' = typecheck_expr_top_down ~leave_unresolved ctx env tau cons in
     let just' =

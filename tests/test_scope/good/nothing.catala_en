@@ -5,6 +5,26 @@ declaration scope Foo2:
   output bar content integer
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[WARNING] In scope "Foo2", the variable "bar" is declared but never defined; did you forget something?
+
+┌─⯈ tests/test_scope/good/nothing.catala_en:5.10-5.13:
+└─┐
+5 │   output bar content integer
+  │          ‾‾‾
+  └─ Test
+[RESULT] Invariant typing_defaults checked. result: [6/6]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [0/0]
+[RESULT] Invariant no_return_a_function checked. result: [0/0]
+[RESULT] Invariant no_partial_evaluation checked. result: [0/0]
+[RESULT] Invariant default_no_arrow checked. result: [1/1]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Scalc -s Foo2 -O -t
 [WARNING] In scope "Foo2", the variable "bar" is declared but never defined; did you forget something?

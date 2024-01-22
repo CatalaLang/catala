@@ -31,7 +31,7 @@ let run
     closure_conversion
     options =
   let open Driver.Commands in
-  let prg, _, type_ordering =
+  let prg, type_ordering =
     Driver.Passes.scalc options ~includes ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion
   in

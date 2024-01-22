@@ -12,6 +12,19 @@ scope A:
   definition z equals $250,000,000 * ((x / y) * 0.2 %)
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [61/61]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [3/3]
+[RESULT] Invariant no_return_a_function checked. result: [0/0]
+[RESULT] Invariant no_partial_evaluation checked. result: [3/3]
+[RESULT] Invariant default_no_arrow checked. result: [9/9]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Interpret -s A
 [RESULT] Computation successful! Results:
@@ -20,7 +33,7 @@ $ catala Interpret -s A
 [RESULT] z = $7.23
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] x = $123.54
 [RESULT] y = $8,548,650.96

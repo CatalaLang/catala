@@ -95,7 +95,7 @@ type line_token =
   | LINE_INLINE_TEST (* ```catala-test-inline *)
   | LINE_BLOCK_END (* ``` *)
   | LINE_INCLUDE of string (* > Include foo.catala_en *)
-  | LINE_MODULE_DEF of string (* > Module Xxx *)
+  | LINE_MODULE_DEF of string * bool (* > Module Xxx [external] *)
   | LINE_MODULE_USE of string (* > Using Xxx [as Yyy] *)
   | LINE_ANY (* anything else *)
 

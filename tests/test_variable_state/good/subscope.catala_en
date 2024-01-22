@@ -30,6 +30,19 @@ scope B:
   definition foofoofoo equals b.foo
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [82/82]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [2/2]
+[RESULT] Invariant no_return_a_function checked. result: [1/1]
+[RESULT] Invariant no_partial_evaluation checked. result: [2/2]
+[RESULT] Invariant default_no_arrow checked. result: [15/15]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala Scopelang -s A
 let scope A (foo_bar: ⟨integer⟩|context) (foo_baz: integer|internal)
@@ -49,7 +62,7 @@ $ catala Interpret -s B
 [RESULT] foofoofoo = 6
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] foofoo = 4
 [RESULT] foofoofoo = 6

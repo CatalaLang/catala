@@ -17,6 +17,19 @@ scope S:
   definition o3 equals $44 * (decimal of x)
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [65/65]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [4/4]
+[RESULT] Invariant no_return_a_function checked. result: [2/2]
+[RESULT] Invariant no_partial_evaluation checked. result: [4/4]
+[RESULT] Invariant default_no_arrow checked. result: [7/7]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala typecheck
 [RESULT] Typechecking successful!

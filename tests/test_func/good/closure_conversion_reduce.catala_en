@@ -3,52 +3,56 @@
 
 ```catala
 declaration scope S:
-   input x content collection integer
+   input x content list of integer
    output y content integer
 
 scope S:
   definition y equals
-    potential_max among x such that potential_max is minimum or if collection empty then -1
+    potential_max among x such that potential_max is minimum or if list empty then -1
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [27/27]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [2/2]
+[RESULT] Invariant no_return_a_function checked. result: [3/3]
+[RESULT] Invariant no_partial_evaluation checked. result: [2/2]
+[RESULT] Invariant default_no_arrow checked. result: [2/2]
+[RESULT] Typechecking successful!
 ```
 
 ```catala-test-inline
-$ catala Lcalc -s S --avoid_exceptions -O --closure_conversion
-let scope S (S_in: S_in {x_in: collection integer}): S {y: integer} =
-  let get x : collection integer = S_in.x_in in
+$ catala Lcalc -s S --avoid-exceptions -O --closure-conversion
+let scope S (S_in: S_in {x_in: list of integer}): S {y: integer} =
+  let get x : list of integer = S_in.x_in in
   let set y : integer =
-    match
-      (handle_default_opt
-         []
-         (λ (_: unit) → true)
-         (λ (_: unit) →
-          ESome
-            reduce
-              (λ (potential_max_1: integer) (potential_max_2: integer) →
-               if potential_max_1 < potential_max_2 then potential_max_1
-               else potential_max_2)
-              -1
-              x))
-    with
-    | ENone _ → raise NoValueProvided
-    | ESome arg → arg
+    reduce
+      (λ (potential_max_1: integer) (potential_max_2: integer) →
+       if potential_max_1 < potential_max_2 then potential_max_1
+       else potential_max_2)
+      -1
+      x
   in
   return { S y = y; }
 ```
 
 The next test of closure conversion should give the same results, it checks that
-`--avoid_exceptions` and `-O` are correctly implied by `--closure_conversion`
+`--avoid-exceptions` and `-O` are correctly implied by `--closure-conversion`
 The detection of closures that should not be converted because they are arguments
 to reduce or other special operators relies on pattern matching the special
 operator and its EAbs argument. However without exceptions on, because the
---avoid_exceptions pass is not optimized and produces more options than needed,
+--avoid-exceptions pass is not optimized and produces more options than needed,
 the closures that are arguments to special operators are let-binded with an
 option. This let-binding is reduced by partial evaluation, which is why the test
 with optimizations on passes.
 
 ```catala-test-inline
-$ catala Lcalc -s S --closure_conversion
-let scope S (S_in: S_in {x_in: collection integer}): S {y: integer} =
-  let get x : collection integer = S_in.x_in in
+$ catala Lcalc -s S --closure-conversion
+let scope S (S_in: S_in {x_in: list of integer}): S {y: integer} =
+  let get x : list of integer = S_in.x_in in
   let set y : integer =
     match
       (handle_default_opt
@@ -58,18 +62,18 @@ let scope S (S_in: S_in {x_in: collection integer}): S {y: integer} =
              (λ (_: unit) → true)
              (λ (_: unit) →
               ESome
-                reduce
-                  (λ (potential_max_1: integer) (potential_max_2: integer) →
-                   if
-                     (let potential_max : integer = potential_max_1 in
-                      potential_max)
-                     < let potential_max : integer = potential_max_2 in
-                       potential_max
-                   then
-                     potential_max_1
-                   else potential_max_2)
-                  -1
-                  x)
+                (reduce
+                   (λ (potential_max_1: integer) (potential_max_2: integer) →
+                    if
+                      (let potential_max : integer = potential_max_1 in
+                       potential_max)
+                      < let potential_max : integer = potential_max_2 in
+                        potential_max
+                    then
+                      potential_max_1
+                    else potential_max_2)
+                   -1
+                   x))
          ]
          (λ (_: unit) → false)
          (λ (_: unit) → ENone ()))

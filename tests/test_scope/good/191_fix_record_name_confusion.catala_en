@@ -15,6 +15,19 @@ scope ScopeB:
   definition a equals scopeA.a
 ```
 
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [25/25]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [1/1]
+[RESULT] Invariant no_return_a_function checked. result: [0/0]
+[RESULT] Invariant no_partial_evaluation checked. result: [1/1]
+[RESULT] Invariant default_no_arrow checked. result: [4/4]
+[RESULT] Typechecking successful!
+```
+
 ```catala-test-inline
 $ catala OCaml -O
 
@@ -44,32 +57,38 @@ end
 
 
 let scope_a (scope_a_in: ScopeA_in.t) : ScopeA.t =
-  let a_: bool = 
-    try
-      (handle_default
-         {filename = ""; start_line=0; start_column=1;
-           end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true) (fun (_: unit) -> true))
-    with
-    EmptyError -> (raise (NoValueProvided
-      {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
-        start_line=5; start_column=10; end_line=5; end_column=11;
-        law_headings=["Article"]})) in
+  let a_: bool = true in
   {ScopeA.a = a_}
 
 let scope_b (scope_b_in: ScopeB_in.t) : ScopeB.t =
   let result_: ScopeA.t = scope_a (()) in
   let scope_a_dot_a_: bool = result_.ScopeA.a in
-  let a_: bool = 
-    try
-      (handle_default
-         {filename = ""; start_line=0; start_column=1;
-           end_line=0; end_column=1; law_headings=[]} ([||])
-         (fun (_: unit) -> true) (fun (_: unit) -> scope_a_dot_a_))
-    with
-    EmptyError -> (raise (NoValueProvided
-      {filename = "tests/test_scope/good/191_fix_record_name_confusion.catala_en";
-        start_line=8; start_column=10; end_line=8; end_column=11;
-        law_headings=["Article"]})) in
+  let a_: bool = scope_a_dot_a_ in
   {ScopeB.a = a_}
+Generating entry points for scopes: ScopeA ScopeB
+
+let entry_scopes = [
+  "ScopeA";
+  "ScopeB";
+]
+
+let commands =
+  List.map (fun c ->
+      if List.mem c entry_scopes then c else (
+        print_endline "Specify scopes from the following list (or no argument for running them all):";
+        List.iter (fun n -> print_endline ("  - " ^ n)) entry_scopes;
+        exit 1
+      ))
+    (List.tl (Array.to_list Sys.argv))
+
+let commands = if commands = [] then entry_scopes else commands
+
+let () = if List.mem "ScopeA" commands then (
+  ignore (scope_a ());
+  print_endline "Scope ScopeA executed successfully."
+)
+let () = if List.mem "ScopeB" commands then (
+  ignore (scope_b ());
+  print_endline "Scope ScopeB executed successfully."
+)
 ```

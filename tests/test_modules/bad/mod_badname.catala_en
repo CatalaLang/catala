@@ -1,0 +1,17 @@
+> Module This_is_not_the_file_name
+
+
+```catala-test-inline
+$ catala typecheck
+[ERROR]
+Module declared as This_is_not_the_file_name, which does not match the file
+name "tests/test_modules/bad/mod_badname.catala_en". Rename the module to
+Mod_badname or the file to
+"tests/test_modules/bad/This_is_not_the_file_name.catala_en".
+
+┌─⯈ tests/test_modules/bad/mod_badname.catala_en:1.10-1.35:
+└─┐
+1 │ > Module This_is_not_the_file_name
+  │          ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+#return code 123#
+```

@@ -162,8 +162,7 @@ let rec typ_gen
       (typ ~colors:(List.tl colors))
       t2
   | TArray t1 ->
-    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "collection" (typ ~colors)
-      t1
+    Format.fprintf fmt "@[<hov 2>%a@ %a@]" base_type "list of" (typ ~colors) t1
   | TDefault t1 ->
     punctuation fmt "⟨";
     typ ~colors fmt t1;
@@ -375,7 +374,7 @@ module Precedence = struct
    fun e ->
     match Mark.remove e with
     | ELit _ -> Contained (* Todo: unop if < 0 *)
-    | EApp { f = EOp { op; _ }, _; _ } -> (
+    | EAppOp { op; _ } -> (
       match op with
       | Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth
       | Length | Log _ | Minus | Minus_int | Minus_rat | Minus_mon | Minus_dur
@@ -412,7 +411,6 @@ module Precedence = struct
       | ToClosureEnv | FromClosureEnv ->
         App)
     | EApp _ -> App
-    | EOp _ -> Contained
     | EArray _ -> Contained
     | EVar _ -> Contained
     | EExternal _ -> Contained
@@ -528,7 +526,7 @@ module ExprGen (C : EXPR_PARAM) = struct
       | ELit l -> C.lit fmt l
       | EApp { f = EAbs _, _; _ } ->
         let rec pr bnd_ctx colors fmt = function
-          | EApp { f = EAbs { binder; tys }, _; args }, _ ->
+          | EApp { f = EAbs { binder; tys }, _; args; _ }, _ ->
             let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
             let xs_tau = List.mapi (fun i tau -> xs.(i), tau) tys in
             let xs_tau_arg =
@@ -564,19 +562,16 @@ module ExprGen (C : EXPR_PARAM) = struct
                Format.pp_close_box fmt ();
                punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
-      | EApp
-          { f = EOp { op = (Map | Filter) as op; _ }, _; args = [arg1; arg2] }
-        ->
+      | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2]; _ } ->
         Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
           (rhs exprc) arg2
-      | EApp { f = EOp { op = Log _ as op; _ }, _; args = [arg1] } ->
+      | EAppOp { op = Log _ as op; args = [arg1]; _ } ->
         Format.fprintf fmt "@[<hv 0>%a@ %a@]" operator op (rhs exprc) arg1
-      | EApp { f = EOp { op = op0; _ }, _; args = [_; _] } ->
+      | EAppOp { op = op0; args = [_; _]; _ } ->
         let prec = Precedence.expr e in
         let rec pr colors fmt = function
           (* Flatten sequences of the same associative op *)
-          | EApp { f = EOp { op; _ }, _; args = [arg1; arg2] }, _ when op = op0
-            -> (
+          | EAppOp { op; args = [arg1; arg2]; _ }, _ when op = op0 -> (
             (match prec with
             | Op (And | Or | Mul | Add | Div | Sub) -> lhs pr fmt arg1
             | _ -> lhs exprc fmt arg1);
@@ -591,9 +586,15 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.pp_open_hvbox fmt 0;
         pr colors fmt e;
         Format.pp_close_box fmt ()
-      | EApp { f = EOp { op; _ }, _; args = [arg1] } ->
+      | EAppOp { op; args = [arg1]; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op (rhs exprc) arg1
-      | EApp { f; args } ->
+      | EAppOp { op; args; _ } ->
+        Format.fprintf fmt "@[<hv 2>%a@ %a@]" operator op
+          (Format.pp_print_list
+             ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
+             (rhs exprc))
+          args
+      | EApp { f; args; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" (lhs exprc) f
           (Format.pp_print_list
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
@@ -612,7 +613,6 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.pp_open_hvbox fmt 0;
         pr false fmt e;
         Format.pp_close_box fmt ()
-      | EOp { op; _ } -> operator fmt op
       | EDefault { excepts; just; cons } ->
         if List.length excepts = 0 then
           Format.fprintf fmt "@[<hv 1>%a%a@ %a %a%a@]"
@@ -687,7 +687,7 @@ module ExprGen (C : EXPR_PARAM) = struct
           StructField.format field
       | EInj { e; cons; _ } ->
         Format.fprintf fmt "@[<hv 2>%a@ %a@]" EnumConstructor.format cons
-          (rhs exprc) e
+          (paren ~rhs:false exprc) e
       | EMatch { e; cases; _ } ->
         Format.fprintf fmt "@[<v 0>@[<hv 2>%a@ %a@;<1 -2>%a@]@ %a@]" keyword
           "match" (lhs exprc) e keyword "with"
@@ -735,7 +735,7 @@ module ExprConciseParam = struct
   let lit = lit
 
   let rec pre_map : type a. (a, 't) gexpr -> (a, 't) gexpr = function
-    | EApp { f = EOp { op = Log _; _ }, _; args = [e] }, _ -> pre_map e
+    | EAppOp { op = Log _; args = [e]; _ }, _ -> pre_map e
     | e -> e
 end
 
@@ -930,6 +930,18 @@ let program ?(debug = false) fmt p =
 
 (* - User-facing value printer - *)
 
+(* This function is re-exported from module [Expr], but defined here where it's
+   first needed *)
+let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
+  | EAppOp { op = Log _; args = [e]; tys = _ }, _ -> skip_wrappers e
+  | EApp { f = EAppOp { op = Log _; args = [f]; _ }, _; args; tys }, m ->
+    skip_wrappers (EApp { f; args; tys }, m)
+  | EErrorOnEmpty e, _ -> skip_wrappers e
+  | EDefault { excepts = []; just = ELit (LBool true), _; cons = e }, _ ->
+    skip_wrappers e
+  | EPureDefault e, _ -> skip_wrappers e
+  | e -> e
+
 module UserFacing = struct
   (* Refs:
      https://en.wikipedia.org/wiki/Wikipedia:Manual_of_Style/Dates_and_numbers#Grouping_of_digits
@@ -968,8 +980,10 @@ module UserFacing = struct
     aux (Z.abs n)
 
   let money (lang : Cli.backend_lang) ppf n =
+    let num = Z.abs n in
+    let units, cents = Z.div_rem num (Z.of_int 100) in
+    if Z.sign n < 0 then Format.pp_print_char ppf '-';
     (match lang with En -> Format.pp_print_string ppf "$" | Fr | Pl -> ());
-    let units, cents = Z.div_rem n (Z.of_int 100) in
     integer lang ppf units;
     Format.pp_print_string ppf (decsep lang);
     Format.fprintf ppf "%02d" (Z.to_int (Z.abs cents));
@@ -980,9 +994,11 @@ module UserFacing = struct
 
   let decimal (lang : Cli.backend_lang) ppf r =
     let den = Q.den r in
-    let int_part, rem = Z.div_rem (Q.num r) den in
+    let num = Z.abs (Q.num r) in
+    let int_part, rem = Z.div_rem num den in
     let rem = Z.abs rem in
     (* Printing the integer part *)
+    if Q.sign r < 0 then Format.pp_print_char ppf '-';
     integer lang ppf int_part;
     (* Printing the decimals *)
     let bigsep, nsep = bigsep lang in
@@ -1091,23 +1107,11 @@ module UserFacing = struct
     | EEmptyError -> Format.pp_print_string ppf "ø"
     | EAbs _ -> Format.pp_print_string ppf "<function>"
     | EExternal _ -> Format.pp_print_string ppf "<external>"
-    | EApp _ | EOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
+    | EApp _ | EAppOp _ | EVar _ | EIfThenElse _ | EMatch _ | ETupleAccess _
     | EStructAccess _ | EAssert _ | EDefault _ | EPureDefault _
     | EErrorOnEmpty _ | ERaise _ | ECatch _ | ELocation _ | EScopeCall _
     | EDStructAccess _ | ECustom _ ->
       fallback ppf e
-
-  (* This function is already in module [Expr], but [Expr] depends on this
-     module *)
-  let rec skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = function
-    | EApp { f = EOp { op = Log _; _ }, _; args = [e] }, _ -> skip_wrappers e
-    | EApp { f = EApp { f = EOp { op = Log _; _ }, _; args = [f] }, _; args }, m
-      ->
-      skip_wrappers (EApp { f; args }, m)
-    | EErrorOnEmpty e, _ -> skip_wrappers e
-    | EDefault { excepts = []; just = ELit (LBool true), _; cons = e }, _ ->
-      skip_wrappers e
-    | e -> e
 
   let expr :
       type a. Cli.backend_lang -> Format.formatter -> (a, 't) gexpr -> unit =

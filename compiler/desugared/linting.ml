@@ -39,7 +39,7 @@ let detect_empty_definitions (p : program) : unit =
                defined; did you forget something?"
               ScopeName.format scope_name Ast.ScopeDef.format scope_def_key)
         scope.scope_defs)
-    p.program_scopes
+    p.program_root.module_scopes
 
 (* To detect rules that have the same justification and conclusion, we create a
    set data structure with an appropriate comparison function *)
@@ -97,7 +97,7 @@ let detect_identical_rules (p : program) : unit =
                    else "definitions"))
             rules_seen)
         scope.scope_defs)
-    p.program_scopes
+    p.program_root.module_scopes
 
 let detect_unused_struct_fields (p : program) : unit =
   (* TODO: this analysis should be finer grained: a false negative is if the
@@ -111,14 +111,9 @@ let detect_unused_struct_fields (p : program) : unit =
         ~f:(fun struct_fields_used e ->
           let rec structs_fields_used_expr e struct_fields_used =
             match Mark.remove e with
-            | EDStructAccess { name_opt = Some name; e = e_struct; field } ->
-              let ctx =
-                Program.module_ctx p.program_ctx (StructName.path name)
-              in
-              let field =
-                StructName.Map.find name
-                  (Ident.Map.find field ctx.ctx_struct_fields)
-              in
+            | EDStructAccess _ -> assert false
+            (* linting must be performed after disambiguation *)
+            | EStructAccess { e = e_struct; field; _ } ->
               StructField.Set.add field
                 (structs_fields_used_expr e_struct struct_fields_used)
             | EStruct { name = _; fields } ->
@@ -284,7 +279,7 @@ let detect_dead_code (p : program) : unit =
                   emit_unused_warning ())
               states)
         scope.scope_vars)
-    p.program_scopes
+    p.program_root.module_scopes
 
 let lint_program (p : program) : unit =
   detect_empty_definitions p;

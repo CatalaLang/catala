@@ -2,7 +2,7 @@
 
 ```catala
 declaration scope A:
-  context list content collection integer
+  context list content list of integer
   context list_high_count content integer
 
 scope A:
@@ -16,17 +16,17 @@ $ catala Interpret -s A
 I don't know how to apply operator >= on types integer and
 money
 
-┌─⯈ tests/test_array/bad/fold_error.catala_en:10.50-10.52:
+┌─⯈ tests/test_array/bad/fold_error.catala_en:10.48-10.55:
 └──┐
 10 │   definition list_high_count equals number of (m >= $7) for m among list
-   │                                                  ‾‾
+   │                                                ‾‾‾‾‾‾‾
    └─ Article
 
 Type integer coming from expression:
-┌─⯈ tests/test_array/bad/fold_error.catala_en:5.35-5.42:
+┌─⯈ tests/test_array/bad/fold_error.catala_en:5.32-5.39:
 └─┐
-5 │   context list content collection integer
-  │                                   ‾‾‾‾‾‾‾
+5 │   context list content list of integer
+  │                                ‾‾‾‾‾‾‾
   └─ Article
 
 Type money coming from expression:

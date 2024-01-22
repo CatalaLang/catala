@@ -435,7 +435,7 @@ let resolved_type ((op : resolved t), pos) =
     | Sub_rat_rat -> [TRat; TRat], TRat
     | Sub_mon_mon -> [TMoney; TMoney], TMoney
     | Sub_dat_dat -> [TDate; TDate], TDuration
-    | Sub_dat_dur -> [TDate; TDuration], TDuration
+    | Sub_dat_dur -> [TDate; TDuration], TDate
     | Sub_dur_dur -> [TDuration; TDuration], TDuration
     | Mult_int_int -> [TInt; TInt], TInt
     | Mult_rat_rat -> [TRat; TRat], TRat

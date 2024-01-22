@@ -169,7 +169,7 @@ let rec evaluate_operator
        (should not happen if the term was well-typed)%a"
       (Print.operator ~debug:true)
       op Expr.format
-      (EApp { f = EOp { op; tys = [] }, m; args }, m)
+      (EAppOp { op; tys = []; args }, m)
   in
   propagate_empty_error_list args
   @@ fun args ->
@@ -193,21 +193,38 @@ let rec evaluate_operator
   | Map, [f; (EArray es, _)] ->
     EArray
       (List.map
-         (fun e' -> evaluate_expr (Mark.copy e' (EApp { f; args = [e'] })))
+         (fun e' ->
+           evaluate_expr
+             (Mark.copy e'
+                (EApp { f; args = [e']; tys = [Expr.maybe_ty (Mark.get e')] })))
          es)
   | Reduce, [_; default; (EArray [], _)] -> Mark.remove default
   | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
     Mark.remove
       (List.fold_left
          (fun acc x ->
-           evaluate_expr (Mark.copy f (EApp { f; args = [acc; x] })))
+           evaluate_expr
+             (Mark.copy f
+                (EApp
+                   {
+                     f;
+                     args = [acc; x];
+                     tys =
+                       [
+                         Expr.maybe_ty (Mark.get acc); Expr.maybe_ty (Mark.get x);
+                       ];
+                   })))
          x0 xn)
   | Concat, [(EArray es1, _); (EArray es2, _)] -> EArray (es1 @ es2)
   | Filter, [f; (EArray es, _)] ->
     EArray
       (List.filter
          (fun e' ->
-           match evaluate_expr (Mark.copy e' (EApp { f; args = [e'] })) with
+           match
+             evaluate_expr
+               (Mark.copy e'
+                  (EApp { f; args = [e']; tys = [Expr.maybe_ty (Mark.get e')] }))
+           with
            | ELit (LBool b), _ -> b
            | _ ->
              Message.raise_spanned_error
@@ -219,7 +236,18 @@ let rec evaluate_operator
     Mark.remove
       (List.fold_left
          (fun acc e' ->
-           evaluate_expr (Mark.copy e' (EApp { f; args = [acc; e'] })))
+           evaluate_expr
+             (Mark.copy e'
+                (EApp
+                   {
+                     f;
+                     args = [acc; e'];
+                     tys =
+                       [
+                         Expr.maybe_ty (Mark.get acc);
+                         Expr.maybe_ty (Mark.get e');
+                       ];
+                   })))
          init es)
   | (Length | Log _ | Eq | Map | Concat | Filter | Fold | Reduce), _ -> err ()
   | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
@@ -536,8 +564,10 @@ and val_to_runtime :
     let rec curry acc = function
       | [] ->
         let args = List.rev acc in
+        let tys = List.map (fun a -> Expr.maybe_ty (Mark.get a)) args in
         val_to_runtime eval_expr ctx tret
-          (eval_expr ctx (EApp { f = v; args }, m))
+          (try eval_expr ctx (EApp { f = v; args; tys }, m)
+           with CatalaException EmptyError -> raise Runtime.EmptyError)
       | targ :: targs ->
         Obj.repr (fun x ->
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
@@ -571,7 +601,6 @@ let rec evaluate_expr :
     in
     let ty =
       try
-        let ctx = Program.module_ctx ctx path in
         match Mark.remove name with
         | External_value name -> TopdefName.Map.find name ctx.ctx_topdefs
         | External_scope name ->
@@ -594,7 +623,7 @@ let rec evaluate_expr :
     in
     let o = Runtime.lookup_value runtime_path in
     runtime_to_val (fun ctx -> evaluate_expr ctx lang) ctx m ty o
-  | EApp { f = e1; args } -> (
+  | EApp { f = e1; args; _ } -> (
     let e1 = evaluate_expr ctx lang e1 in
     let args = List.map (evaluate_expr ctx lang) args in
     propagate_empty_error e1
@@ -609,7 +638,6 @@ let rec evaluate_expr :
           "wrong function call, expected %d arguments, got %d"
           (Bindlib.mbinder_arity binder)
           (List.length args)
-    | EOp { op; _ } -> evaluate_operator (evaluate_expr ctx lang) op m lang args
     | ECustom { obj; targs; tret } ->
       (* Applies the arguments one by one to the curried form *)
       List.fold_left2
@@ -624,9 +652,11 @@ let rec evaluate_expr :
       Message.raise_spanned_error pos
         "function has not been reduced to a lambda at evaluation (should not \
          happen if the term was well-typed")
+  | EAppOp { op; args; _ } ->
+    let args = List.map (evaluate_expr ctx lang) args in
+    evaluate_operator (evaluate_expr ctx lang) op m lang args
   | EAbs { binder; tys } -> Expr.unbox (Expr.eabs (Bindlib.box binder) tys m)
   | ELit _ as e -> Mark.add m e
-  | EOp { op; tys } -> Expr.unbox (Expr.eop (Operator.translate op) tys m)
   (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
@@ -695,7 +725,10 @@ let rec evaluate_expr :
             "sum type index error (should not happen if the term was \
              well-typed)"
       in
-      let new_e = Mark.add m (EApp { f = es_n; args = [e1] }) in
+      let ty =
+        EnumConstructor.Map.find cons (EnumName.Map.find name ctx.ctx_enums)
+      in
+      let new_e = Mark.add m (EApp { f = es_n; args = [e1]; tys = [ty] }) in
       evaluate_expr ctx lang new_e
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
@@ -780,19 +813,22 @@ and partially_evaluate_expr_for_assertion_failure_message :
      the AST while evaluating everything below. This makes for a good error
      message. *)
   match Mark.remove e with
-  | EApp { f = EOp ({ op = op_kind; _ } as op), m; args = [e1; e2] }
-    when match op_kind with
-         | And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
-         | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
-         | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
-         | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
-         | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
-         | Eq_dur_dur | Eq_dat_dat ->
-           true
-         | _ -> false ->
-    ( EApp
+  | EAppOp
+      {
+        args = [e1; e2];
+        tys;
+        op =
+          ( And | Or | Xor | Eq | Lt_int_int | Lt_rat_rat | Lt_mon_mon
+          | Lt_dat_dat | Lt_dur_dur | Lte_int_int | Lte_rat_rat | Lte_mon_mon
+          | Lte_dat_dat | Lte_dur_dur | Gt_int_int | Gt_rat_rat | Gt_mon_mon
+          | Gt_dat_dat | Gt_dur_dur | Gte_int_int | Gte_rat_rat | Gte_mon_mon
+          | Gte_dat_dat | Gte_dur_dur | Eq_int_int | Eq_rat_rat | Eq_mon_mon
+          | Eq_dur_dur | Eq_dat_dat ) as op;
+      } ->
+    ( EAppOp
         {
-          f = EOp op, m;
+          op;
+          tys;
           args =
             [
               partially_evaluate_expr_for_assertion_failure_message ctx lang e1;
@@ -802,15 +838,15 @@ and partially_evaluate_expr_for_assertion_failure_message :
       Mark.get e )
   | _ -> evaluate_expr ctx lang e
 
-(* Typing shenanigan to add custom terms to the AST type. This is an identity
-   and could be optimised into [Obj.magic]. *)
+(* Typing shenanigan to add custom terms to the AST type. *)
 let addcustom e =
   let rec f :
       type c d e.
       ((d, e, c) interpr_kind, 't) gexpr ->
       ((d, e, yes) interpr_kind, 't) gexpr boxed = function
     | (ECustom _, _) as e -> Expr.map ~f e
-    | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
+    | EAppOp { op; tys; args }, m ->
+      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
     | (EDefault _, _) as e -> Expr.map ~f e
     | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmptyError, _) as e -> Expr.map ~f e
@@ -824,7 +860,16 @@ let addcustom e =
       Expr.map ~f e
     | _ -> .
   in
-  Expr.unbox (f e)
+  let open struct
+    external id :
+      (('d, 'e, 'c) interpr_kind, 't) gexpr ->
+      (('d, 'e, yes) interpr_kind, 't) gexpr = "%identity"
+  end in
+  if false then Expr.unbox (f e)
+    (* We keep the implementation as a typing proof, but bypass the AST
+       traversal for performance. Note that it's not completely 1-1 since the
+       traversal would do a reboxing of all bound variables *)
+  else id e
 
 let delcustom e =
   let rec f :
@@ -832,7 +877,8 @@ let delcustom e =
       ((d, e, c) interpr_kind, 't) gexpr ->
       ((d, e, no) interpr_kind, 't) gexpr boxed = function
     | ECustom _, _ -> invalid_arg "Custom term remaining in evaluated term"
-    | EOp { op; tys }, m -> Expr.eop (Operator.translate op) tys m
+    | EAppOp { op; args; tys }, m ->
+      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
     | (EDefault _, _) as e -> Expr.map ~f e
     | (EPureDefault _, _) as e -> Expr.map ~f e
     | (EEmptyError, _) as e -> Expr.map ~f e
@@ -846,6 +892,9 @@ let delcustom e =
       Expr.map ~f e
     | _ -> .
   in
+  (* /!\ don't be tempted to use the same trick here, the function does one
+     thing: validate at runtime that the term does not contain [ECustom]
+     nodes. *)
   Expr.unbox (f e)
 
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
@@ -888,9 +937,9 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
                   (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
                      ~name:Expr.option_enum mark_e)
                   ty_in (Expr.mark_pos mark_e);
-                Expr.eapp
-                  (Expr.eop Operator.ToClosureEnv [TClosureEnv, pos] mark_e)
-                  [Expr.etuple [] mark_e]
+                Expr.eappop ~op:Operator.ToClosureEnv
+                  ~args:[Expr.etuple [] mark_e]
+                  ~tys:[TClosureEnv, pos]
                   mark_e;
               ]
               mark_e
@@ -907,6 +956,7 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     let to_interpret =
       Expr.make_app (Expr.box e)
         [Expr.estruct ~name:s_in ~fields:application_term mark_e]
+        [TStruct s_in, Expr.pos e]
         (Expr.pos e)
     in
     match Mark.remove (evaluate_expr ctx p.lang (Expr.unbox to_interpret)) with
@@ -958,6 +1008,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     let to_interpret =
       Expr.make_app (Expr.box e)
         [Expr.estruct ~name:s_in ~fields:application_term mark_e]
+        [TStruct s_in, Expr.pos e]
         (Expr.pos e)
     in
     match Mark.remove (evaluate_expr ctx p.lang (Expr.unbox to_interpret)) with
@@ -986,12 +1037,14 @@ let load_runtime_modules prg =
     let obj_file =
       Dynlink.adapt_filename
         File.(
-          (Pos.get_file (ModuleName.pos m) /../ ModuleName.to_string m) ^ ".cmo")
+          Pos.get_file (Mark.get (ModuleName.get_info m))
+          /../ ModuleName.to_string m
+          ^ ".cmo")
     in
     if not (Sys.file_exists obj_file) then
       Message.raise_spanned_error
         ~span_msg:(fun ppf -> Format.pp_print_string ppf "Module defined here")
-        (ModuleName.pos m)
+        (Mark.get (ModuleName.get_info m))
         "Compiled OCaml object %a not found. Make sure it has been suitably \
          compiled."
         File.format obj_file
@@ -1003,20 +1056,18 @@ let load_runtime_modules prg =
           obj_file Format.pp_print_text
           (Dynlink.error_message dl_err)
   in
-  let rec aux loaded decl_ctx =
-    ModuleName.Map.fold
-      (fun mname sub_decl_ctx loaded ->
-        if ModuleName.Set.mem mname loaded then loaded
-        else
-          let loaded = ModuleName.Set.add mname loaded in
-          let loaded = aux loaded sub_decl_ctx in
-          load mname;
-          loaded)
-      decl_ctx.ctx_modules loaded
+  let modules_list_topo =
+    let rec aux acc (M mtree) =
+      ModuleName.Map.fold
+        (fun mname sub acc ->
+          if List.exists (ModuleName.equal mname) acc then acc
+          else mname :: aux acc sub)
+        mtree acc
+    in
+    List.rev (aux [] prg.decl_ctx.ctx_modules)
   in
-  if not (ModuleName.Map.is_empty prg.decl_ctx.ctx_modules) then
+  if modules_list_topo <> [] then
     Message.emit_debug "Loading shared modules... %a"
-      (fun ppf -> ModuleName.Map.format_keys ppf)
-      prg.decl_ctx.ctx_modules;
-  let (_loaded : ModuleName.Set.t) = aux ModuleName.Set.empty prg.decl_ctx in
-  ()
+      (Format.pp_print_list ~pp_sep:Format.pp_print_space ModuleName.format)
+      modules_list_topo;
+  List.iter load modules_list_topo

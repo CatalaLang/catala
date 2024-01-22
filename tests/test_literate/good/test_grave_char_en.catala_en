@@ -27,10 +27,17 @@ Even after `Catala` code block:
 int main(void) { return 0; }
 ```
 
+
+
 ```catala-test-inline
-$ catala Interpret -s A
-[RESULT] Computation successful! Results:
-[RESULT] literate_parsing_is_ok = true
+$ catala Typecheck --check-invariants
+[RESULT] Invariant typing_defaults checked. result: [19/19]
+[RESULT] Invariant match_inversion checked. result: [0/0]
+[RESULT] Invariant app_inversion checked. result: [1/1]
+[RESULT] Invariant no_return_a_function checked. result: [0/0]
+[RESULT] Invariant no_partial_evaluation checked. result: [1/1]
+[RESULT] Invariant default_no_arrow checked. result: [3/3]
+[RESULT] Typechecking successful!
 ```
 
 ```catala-test-inline
@@ -44,18 +51,24 @@ $ catala Interpret -s A
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = true
 ```
+
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret -s A
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = true
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = true
 ```
 ```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid_exceptions --optimize
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] literate_parsing_is_ok = true
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = true
 ```

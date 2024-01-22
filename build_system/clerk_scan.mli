@@ -37,6 +37,7 @@ type expected_output_descr = {
 type item = {
   file_name : File.t;
   module_def : string option;
+  extrnal : bool;
   used_modules : string list;
   included_files : File.t list;
   legacy_tests : expected_output_descr list;
@@ -51,9 +52,9 @@ val get_lang : File.t -> Cli.backend_lang option
 val catala_file : File.t -> Catala_utils.Cli.backend_lang -> item
 (** Scans a single Catala file into an item *)
 
-val tree : File.t -> item Seq.t
-(** Recursively scans a directory, and returns the corresponding items in
-    sequence. *)
+val tree : File.t -> (File.t * File.t list * item list) Seq.t
+(** Recursively scans a directory, and returns the corresponding subdirectories
+    and items in sequence, by directory. *)
 
 val test_command_args : string -> string option
 (** Parses a test command-line (in the form "$ catala <args>") and returns the

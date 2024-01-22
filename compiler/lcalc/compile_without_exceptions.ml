@@ -59,36 +59,55 @@ let rec translate_default
   let exceptions = List.map translate_expr exceptions in
   let pos = Expr.mark_pos mark_default in
   let exceptions =
-    Expr.make_app
-      (Expr.eop Op.HandleDefaultOpt
-         [TAny, pos; TAny, pos; TAny, pos]
-         (Expr.no_mark mark_default))
-      [
-        Expr.earray exceptions mark_default;
-        (* In call-by-value programming languages, as lcalc, arguments are
-           evalulated before calling the function. Since we don't want to
-           execute the justification and conclusion while before checking every
-           exceptions, we need to thunk them. *)
-        Expr.thunk_term (translate_expr just) (Mark.get just);
-        Expr.thunk_term (translate_expr cons) (Mark.get cons);
-      ]
-      pos
+    Expr.eappop ~op:Op.HandleDefaultOpt
+      ~tys:[TAny, pos; TAny, pos; TAny, pos]
+      ~args:
+        [
+          Expr.earray exceptions mark_default;
+          (* In call-by-value programming languages, as lcalc, arguments are
+             evalulated before calling the function. Since we don't want to
+             execute the justification and conclusion while before checking
+             every exceptions, we need to thunk them. *)
+          Expr.thunk_term (translate_expr just) (Mark.get just);
+          Expr.thunk_term (translate_expr cons) (Mark.get cons);
+        ]
+      mark_default
   in
   exceptions
 
 and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
   let mark = Mark.get e in
   match Mark.remove e with
-  | EEmptyError -> Ast.OptionMonad.empty ~mark
+  | EEmptyError ->
+    Expr.einj ~e:(Expr.elit LUnit mark) ~cons:Expr.none_constr
+      ~name:Expr.option_enum mark
   | EErrorOnEmpty arg ->
-    Ast.OptionMonad.error_on_empty ~mark ~var_name:"arg" (translate_expr arg)
+    let cases =
+      EnumConstructor.Map.of_list
+        [
+          ( Expr.none_constr,
+            let x = Var.make "_" in
+            Expr.eabs
+              (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
+              [TAny, Expr.mark_pos mark]
+              mark );
+          (* | None x -> raise NoValueProvided *)
+          Expr.some_constr, Expr.fun_id ~var_name:"arg" mark (* | Some x -> x*);
+        ]
+    in
+    Expr.ematch ~e:(translate_expr arg) ~name:Expr.option_enum ~cases mark
   | EDefault { excepts; just; cons } ->
     translate_default excepts just cons (Mark.get e)
-  | EPureDefault e -> Ast.OptionMonad.return ~mark (translate_expr e)
+  | EPureDefault e ->
+    Expr.einj ~e:(translate_expr e) ~cons:Expr.some_constr
+      ~name:Expr.option_enum mark
   (* As we need to translate types as well as terms, we cannot simply use
      [Expr.map] for terms that contains types. *)
-  | EOp { op; tys } ->
-    Expr.eop (Operator.translate op) (List.map translate_typ tys) mark
+  | EAppOp { op; tys; args } ->
+    Expr.eappop ~op:(Operator.translate op)
+      ~tys:(List.map translate_typ tys)
+      ~args:(List.map translate_expr args)
+      mark
   | EAbs { binder; tys } ->
     let vars, body = Bindlib.unmbind binder in
     let body = translate_expr body in

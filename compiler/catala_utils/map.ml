@@ -36,6 +36,7 @@ module type S = sig
   val keys : 'a t -> key list
   val values : 'a t -> 'a list
   val of_list : (key * 'a) list -> 'a t
+  val disjoint_union : 'a t -> 'a t -> 'a t
 
   val format_keys :
     ?pp_sep:(Format.formatter -> unit -> unit) ->
@@ -87,6 +88,13 @@ module Make (Ord : OrderedType) : S with type key = Ord.t = struct
   let keys t = fold (fun k _ acc -> k :: acc) t [] |> List.rev
   let values t = fold (fun _ v acc -> v :: acc) t [] |> List.rev
   let of_list l = List.fold_left (fun m (k, v) -> add k v m) empty l
+
+  let disjoint_union t1 t2 =
+    union
+      (fun k _ _ ->
+        Format.kasprintf failwith "Maps are not disjoint: conflict on key %a"
+          Ord.format k)
+      t1 t2
 
   let format_keys ?pp_sep ppf t =
     Format.pp_print_list ?pp_sep Ord.format ppf (keys t)

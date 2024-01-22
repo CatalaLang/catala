@@ -1,4 +1,4 @@
-(dirs runtimes compiler french_law build_system examples)
+(dirs runtimes compiler build_system)
 
 (data_only_dirs tests syntax_highlighting)
 
@@ -10,7 +10,7 @@
  ; don't stop building because of warnings
  (dev
   (flags
-   (:standard -warn-error -a)))
+   (:standard -warn-error -a -w -67)))
  ; for CI runs: must fail on warnings
  (check
   (flags
@@ -50,16 +50,8 @@
 
 (rule
  (alias runtest)
- (package clerk)
+ (package catala)
  (deps
   (source_tree tests))
  (action
   (run clerk --exe %{bin:catala} test tests)))
-
-(rule
- (alias runtest)
- (package clerk)
- (deps
-  (source_tree examples))
- (action
-  (run clerk --exe %{bin:catala} test examples)))
