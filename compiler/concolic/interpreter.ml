@@ -665,32 +665,24 @@ let op2list
   let symbolic_f_curry ctx e1 e2 = symbolic_f ctx [e1; e2] in
   op2 ctx m concrete_f symbolic_f_curry ~constraints x y e1 e2
 
-(* Reproduce the behaviour of [Q.to_bigint] rounding rational [q] to an integer
-   towards 0 (ie 0.8 and -0.8 are rounded to 0)
- * TODO CONC rounding will change once PR #557 is merged *)
-(* TODO add proper test like for [z3_real2int_nearest] *)
-(* TODO CONC why not define Z3 function? =>> they are the same as declaration +
-   forall, and the gain in legibility is marginal, so I don't think it is
-   necessary *)
-let z3_real2int_towards_zero ctx (q : s_expr) : s_expr =
+(** Round Z3 [Real] to Z3 [Integer] using the same strategy as [Runtime.round]:
+    round to nearest, half away from zero. *)
+let z3_round ctx (q : s_expr) : s_expr =
+  (* The mathematical formula is [round(q) = sgn(q) * floor(abs(q) + 0.5)].
+     However, Z3 does not have [sgn] or [abs] functions. Instead, we encode it
+     as [round(q) = if q>=0 then floor(q + 1/2) else -floor(-q + 1/2)], where
+     [Z3.Arithmetic.Real.mk_real2int] floors. *)
+  (* TODO CONC why not define Z3 function? =>> they are the same as declaration
+     + forall, and the gain in legibility is marginal, so I don't think it is
+     necessary *)
   let zero = Z3.Arithmetic.Integer.mk_numeral_i ctx 0 in
   let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
-  let round_pos = Z3.Arithmetic.Real.mk_real2int ctx q in
-  let round_neg =
-    Z3.Arithmetic.mk_unary_minus ctx
-      (Z3.Arithmetic.Real.mk_real2int ctx (Z3.Arithmetic.mk_unary_minus ctx q))
-  in
-  Z3.Boolean.mk_ite ctx is_positive round_pos round_neg
 
-(* Reproduce the behaviour of [o_mult_mon_rat] rational [q] to the nearest
-   integer (away from 0). 1/2 rounds to 1, and -1/2 rounds to -1.
- * NOTE CONC see above *)
-let z3_real2int_nearest ctx (q : s_expr) : s_expr =
-  let zero = Z3.Arithmetic.Integer.mk_numeral_i ctx 0 in
-  let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
   let half = Z3.Arithmetic.Real.mk_numeral_nd ctx 1 2 in
+
   let shift_pos = Z3.Arithmetic.mk_add ctx [q; half] in
   let round_pos = Z3.Arithmetic.Real.mk_real2int ctx shift_pos in
+
   let shift_neg =
     Z3.Arithmetic.mk_add ctx [Z3.Arithmetic.mk_unary_minus ctx q; half]
   in
@@ -698,6 +690,7 @@ let z3_real2int_nearest ctx (q : s_expr) : s_expr =
     Z3.Arithmetic.mk_unary_minus ctx
       (Z3.Arithmetic.Real.mk_real2int ctx shift_neg)
   in
+
   Z3.Boolean.mk_ite ctx is_positive round_pos round_neg
 
 (* Call-by-value: the arguments are expected to be already evaluated here *)
@@ -839,18 +832,16 @@ let rec evaluate_operator
         Z3.Arithmetic.mk_div ctx e hundred)
       i e
   | ToMoney_rat, [((ELit (LRat i), _) as e)] ->
-    (* TODO CONC warning here: [o_tomoney_rat] rounds to the cent
-     *   closest to 0, while [mk_real2int] rounds to the lower cent.
-     * =>> thus I implement OCaml's rounding in Z3 in function [z3_real2int_towards_zero]
-     * TODO be careful as well with [Round_mon], [Round_rat], [Mult_mon_rat],
-     * [Div_mon_rat], because there are several different rounding methods *)
+    (* TODO be careful with this, [Round_mon], [Round_rat], [Mult_mon_rat],
+       [Div_mon_rat] because of rounding *)
+    (* DONE test *)
     op1 ctx m
       (fun x -> ELit (LMoney (o_tomoney_rat x)))
       (fun ctx e ->
         let cents =
           Z3.Arithmetic.mk_mul ctx [e; Z3.Arithmetic.Real.mk_numeral_i ctx 100]
         in
-        z3_real2int_towards_zero ctx cents)
+        z3_round ctx cents)
       i e
   | Round_mon, _ -> failwith "Eop Round_mon not implemented"
   (* TODO with careful rounding *)
@@ -917,9 +908,9 @@ let rec evaluate_operator
       (fun x y -> ELit (LMoney (o_mult_mon_rat x y)))
       (fun ctx cents r ->
         let product = Z3.Arithmetic.mk_mul ctx [cents; r] in
-        z3_real2int_nearest ctx product)
+        z3_round ctx product)
       x y e1 e2
-  (* TODO with careful rounding *)
+  (* DONE with careful rounding *)
   | Mult_dur_int, [((ELit (LDuration x), _) as e1); ((ELit (LInt y), _) as e2)]
     ->
     op2list ctx m

@@ -1,5 +1,4 @@
-Test that the rounding scheme for multiplication of money by decimal is the
-same in Z3 and OCaml.
+Test that the rounding scheme for `money of` is the same in Z3 and OCaml.
 
 ```catala
 declaration scope A:
@@ -7,17 +6,17 @@ declaration scope A:
     output o content integer
 
 scope A:
-    exception definition o under condition (x = $1 * -0.015)
+    exception definition o under condition (x = money of -0.015)
         consequence equals 0
-    exception definition o under condition (x = $1 * -0.011 and x = $1 * -0.005)
+    exception definition o under condition (x = money of -0.011 and x = money of -0.005)
         consequence equals 1
-    exception definition o under condition (x = $1 * -0.001
-                                            and x = $1 * -0.000
-                                            and x = $1 * 0.001)
+    exception definition o under condition (x = money of -0.001
+                                            and x = money of -0.000
+                                            and x = money of 0.001)
         consequence equals 2
-    exception definition o under condition (x = $1 * 0.005 and x = $1 * 0.011)
+    exception definition o under condition (x = money of 0.005 and x = money of 0.011)
         consequence equals 3
-    exception definition o under condition (x = $1 * 0.015)
+    exception definition o under condition (x = money of 0.015)
         consequence equals 4
 
     definition o equals -1
