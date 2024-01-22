@@ -25,7 +25,6 @@ depends: [
   "cppo" {>= "1"}
   "dates_calc" {>= "0.0.4"}
   "dune" {>= "3.11"}
-  "dune-build-info" {>= "3.0"}
   "js_of_ocaml-ppx" {= "4.1.0"}
   "menhir" {>= "20200211"}
   "menhirLib" {>= "20200211"}

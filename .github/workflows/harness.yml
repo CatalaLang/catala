@@ -15,7 +15,17 @@ jobs:
       packages: write
     outputs:
       image: ghcr.io/catalalang/catala@${{ steps.image.outputs.digest }}
+      version: ${{ steps.describe.outputs.version }}
     steps:
+      - name: Checkout
+        # This is *only* needed to extract the git version...
+        # Approaches like proudust/gh-describe@v1 don't work
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need full commit history
+      - name: Get git-describe version
+        id: describe
+        run: echo "version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to GHCR
@@ -37,7 +47,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ghcr.io/catalalang/catala:${{ github.run_id }}
+          tags: ghcr.io/catalalang/catala:${{ steps.describe.outputs.version }}
+          build-args: "CATALA_VERSION=${{ steps.describe.outputs.version }}"
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=registry,ref=ghcr.io/catalalang/catala:build-cache
           cache-to: type=registry,ref=ghcr.io/catalalang/catala:build-cache,mode=max
@@ -120,20 +131,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - name: Get git-describe version
+        id: ghd
+        uses: proudust/gh-describe@v1
       - name: Build release binaries
-        run: mkdir -p artifacts && ./build_release.sh -C artifacts
+        run: |
+          mkdir -p artifacts
+          export CATALA_VERSION="${{ steps.ghd.outputs.describe }}"
+          ./build_release.sh -C artifacts
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: Catala binaries
           path: artifacts/*
-      - name: Extract Catala version
-        id: version
-        run: echo "catala_version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
-    outputs:
-      version: ${{ steps.version.outputs.catala_version }}
 
   pages:
     name: Publish static content to github-pages

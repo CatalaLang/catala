@@ -2,7 +2,7 @@
 
 set -ue
 
-RELEASE_TAG=${RELEASE_TAG:-$(git describe --tags 2>/dev/null || echo dev)}
+CATALA_VERSION=${CATALA_VERSION:-$(git describe --tags 2>/dev/null || echo dev)}
 
 BIN_TAG=${BIN_TAG:-$(uname -s)-$(uname -m)}
 
@@ -30,6 +30,7 @@ docker run --rm -i registry.gitlab.inria.fr/verifisc/docker-catala:ocaml.4.14-z3
   sh -uexc \
     '{ tar x &&
        cd catala &&
+       export CATALA_VERSION='"${CATALA_VERSION}"' &&
        echo "'"${CUSTOM_LINKING_CATALA_Z3}"'" >compiler/custom_linking.sexp &&
        echo "'"${CUSTOM_LINKING_CLERK}"'" >build_system/custom_linking.sexp &&
        opam --cli=2.1 install ./catala.opam --destdir ../release.out/ &&
@@ -38,8 +39,8 @@ docker run --rm -i registry.gitlab.inria.fr/verifisc/docker-catala:ocaml.4.14-z3
        echo "'"${CUSTOM_LINKING_CATALA_NOZ3}"'" >compiler/custom_linking.sexp &&
        opam --cli=2.1 install ./catala.opam --destdir ../release.out/ &&
        for f in ../release.out/bin/*; do case ${f} in
-         *.js) mv ${f} ${f%.js}-'"${RELEASE_TAG}"'.js;;
-         *) strip ${f}; mv ${f} ${f}-'"${RELEASE_TAG}"'-'"${BIN_TAG}"';;
+         *.js) mv ${f} ${f%.js}-'"${CATALA_VERSION}"'.js;;
+         *) strip ${f}; mv ${f} ${f}-'"${CATALA_VERSION}"'-'"${BIN_TAG}"';;
        esac; done;
      } >&2 && tar c -hC ../release.out/bin .' |
 tar vx "$@"
