@@ -30,7 +30,7 @@
  (section bin)
  (package catala)
  (files
-  (catala_web_interpreter.bc.js as catala_web_interpreter)))
+  (catala_web_interpreter.bc.js as catala_web_interpreter.js)))
 
 (executable
  (name tests)

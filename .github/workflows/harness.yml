@@ -96,17 +96,13 @@ jobs:
         run: |
           cd
           mkdir -p artifacts
-          cp catala/_build/install/default/bin/catala.js "artifacts/catala_${RELEASE_TAG}_node.js"
           mv catala/_build/default/_doc/_html artifacts/api-doc
           mv catala/doc/syntax/syntax.pdf artifacts/
           mv catala/_build/default/*.html artifacts/
           mv ~/.opam/catala/doc/catala-examples/tuto*/*.html artifacts/
-          tar czf "artifacts/french_law_${RELEASE_TAG}_ocaml.tar.gz" french-law/ocaml
-          tar czf "artifacts/french_law_${RELEASE_TAG}_js.tar.gz" french-law/js
-          tar czf "artifacts/french_law_${RELEASE_TAG}_python.tar.gz" french-law/python
-          ln -s "french_law_${RELEASE_TAG}_ocaml.tar.gz" artifacts/french_law_ocaml.tar.gz
-          ln -s "french_law_${RELEASE_TAG}_js.tar.gz" artifacts/french_law_js.tar.gz
-          ln -s "french_law_${RELEASE_TAG}_python.tar.gz" artifacts/french_law_python.tar.gz
+          tar czf "artifacts/french_law_ocaml.tar.gz" french-law/ocaml
+          tar czf "artifacts/french_law_js.tar.gz" french-law/js
+          tar czf "artifacts/french_law_python.tar.gz" french-law/python
       - name: Upload artifacts
         continue-on-error: true
         # Uploading artifacts works but then return failure with:
@@ -133,6 +129,11 @@ jobs:
         with:
           name: Catala binaries
           path: artifacts/*
+      - name: Extract Catala version
+        id: version
+        run: echo "catala_version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
+    outputs:
+      version: ${{ steps.version.outputs.catala_version }}
 
   pages:
     name: Publish static content to github-pages

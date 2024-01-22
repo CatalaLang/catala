@@ -49,4 +49,4 @@ ENV DUNE_PROFILE=check
 RUN opam exec -- make build js_build
 
 # Install to prefix
-RUN opam exec -- make install
+RUN opam exec -- make install && opam clean
