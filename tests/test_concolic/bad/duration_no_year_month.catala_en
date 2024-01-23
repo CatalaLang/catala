@@ -1,0 +1,47 @@
+
+## Article
+
+```catala
+declaration scope A:
+  input dur content duration
+  output o content duration
+
+scope A:
+    definition o equals dur + 1 year
+
+declaration scope B:
+    output o content duration
+
+scope B:
+    definition o equals (output of A with {-- dur : 1 month}).o
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A (A_in: A_in {dur_in: duration}): A {o: duration} =
+  let get dur : duration = A_in.dur_in in
+  let set o : duration =
+    error_empty
+      ⟨ ⟨true ⊢ ⟨dur + [1 years, 0 months, 0 days]⟩⟩ | false ⊢ ∅ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Interpret -s B
+[RESULT] Computation successful! Results:
+[RESULT] o = [1 year, 1 month]
+```
+
+For now the concolic interpreter refuses to handle durations that are not just
+a number of days.
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . dur_in = [10 days]
+[ERROR]
+Unexpected error: Failure("[DateEncoding] Duration literals containing years or months not supported")
+#return code 125#
+```
