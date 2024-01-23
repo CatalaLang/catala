@@ -15,8 +15,17 @@ jobs:
       packages: write
     outputs:
       image: ghcr.io/catalalang/catala@${{ steps.image.outputs.digest }}
-      version: ${{ steps.ghd.outputs.describe }}
+      version: ${{ steps.describe.outputs.version }}
     steps:
+      - name: Checkout
+        # This is *only* needed to extract the git version...
+        # Approaches like proudust/gh-describe@v1 don't work
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need full commit history
+      - name: Get git-describe version
+        id: describe
+        run: echo "version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to GHCR
@@ -29,20 +38,18 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           target: dev-build-context
+          tags: ghcr.io/catalalang/catala:build-context-${{ github.run_number }}
           # Caching using GH cache doesn't work, use registry caching directly
           # instead
           cache-from: type=registry,ref=ghcr.io/catalalang/catala:build-cache
           cache-to: type=inline
-      - name: Get git-describe version
-        id: ghd
-        uses: proudust/gh-describe@v1
       - name: Build and push
         id: image
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: ghcr.io/catalalang/catala:${{ steps.ghd.outputs.describe }}
-          build-args: "CATALA_VERSION=${{ steps.ghd.outputs.describe }}"
+          tags: ghcr.io/catalalang/catala:${{ steps.describe.outputs.version }}
+          build-args: "CATALA_VERSION=${{ steps.describe.outputs.version }}"
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=registry,ref=ghcr.io/catalalang/catala:build-cache
           cache-to: type=inline
