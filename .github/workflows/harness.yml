@@ -31,8 +31,8 @@ jobs:
           target: dev-build-context
           # Caching using GH cache doesn't work, use registry caching directly
           # instead
-          cache-from: type=registry,ref=ghcr.io/catalalang/catala:dev-cache
-          cache-to: type=registry,ref=ghcr.io/catalalang/catala:dev-cache,mode=max
+          cache-from: type=registry,ref=ghcr.io/catalalang/catala:build-cache
+          cache-to: type=inline
       - name: Get git-describe version
         id: ghd
         uses: proudust/gh-describe@v1
@@ -45,7 +45,7 @@ jobs:
           build-args: "CATALA_VERSION=${{ steps.ghd.outputs.describe }}"
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: type=registry,ref=ghcr.io/catalalang/catala:build-cache
-          cache-to: type=registry,ref=ghcr.io/catalalang/catala:build-cache,mode=max
+          cache-to: type=inline
 
   tests:
     name: Run integrated tests
