@@ -186,11 +186,11 @@ let decimal_of_symb_expr (e : s_expr) : Runtime.decimal =
   | _ -> invalid_arg "[decimal_of_symb_expr] expected a Z3 Real"
 
 module DateEncoding = struct
-  (* TODO CONC REU for now a date is represented by the number of days since
-     UNIX epoch (1970-01-01) *)
+  (* For now a date is represented by the number of days since UNIX epoch
+     (1970-01-01) *)
   let mk_sort_date ctx = Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
 
-  (* TODO CONC REU a duration is a number of days *)
+  (* A duration is a number of days *)
   let mk_sort_duration ctx = Z3.Arithmetic.Integer.mk_sort ctx.ctx_z3
 
   let encode_duration ctx (dur : Runtime.duration) : s_expr =
@@ -226,21 +226,21 @@ module DateEncoding = struct
 
   let decode_date
       ?(round : Runtime.date_rounding = Dates_calc.Dates.AbortOnRound)
-      (* TODO CONC REU no rounding for now *)
+      (* NOTE: no rounding for now *)
         (e : s_expr) : Runtime.date =
     let days = decode_duration e in
     Runtime.o_add_dat_dur round base_day days
 
-  (* TODO CONC REU default date is epoch *)
+  (* Default date is epoch *)
   let default_date : Runtime.date = base_day
 
   (* operations *)
 
-  (* TODO CONC REU date operations are simply integer operations for now *)
+  (* Date operations are simply integer operations for now *)
   let minus_dur = Z3.Arithmetic.mk_unary_minus
   let add_dat_dur = Z3.Arithmetic.mk_add
-  (* TODO CONC REU for now, the Z3 encoding does not care about rounding because
-     both dates and durations are just numbers of days *)
+  (* For now, the Z3 encoding does not care about rounding because both dates
+     and durations are just numbers of days *)
 
   let add_dur_dur = Z3.Arithmetic.mk_add
 
@@ -283,7 +283,7 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   | TLit t -> ctx, translate_typ_lit ctx t
   | TStruct name ->
     find_or_create_struct ctx name
-    (* DONE CONC REU are declarations sorted in topological order? "Yes" *)
+    (* DONE CONC are declarations sorted in topological order? "Yes" *)
     (* TODO CONC use [type_ordering] from Driver to make sure =>> actually it
        does not work because the input struct for scope [A], called [A_in], is
        not a part of this order *)
@@ -1280,9 +1280,10 @@ let rec evaluate_expr :
     add_conc_info_m m (Some symb_expr) ~constraints concrete
   | EMatch { e; cases; name } -> (
     Message.emit_debug "... it's an EMatch";
-    (* TODO CONC REU the surface keyword [anything] is expanded during
-       desugaring, so it makes me generate many cases. See the [enum_wildcard]
-       test for an example. *)
+    (* NOTE: The surface keyword [anything] is expanded during desugaring, so it
+       makes me generate many cases. See the [enum_wildcard] test for an
+       example. TODO CONC request the wildcard case to come all the way down to
+       DCalc. *)
     Concrete.propagate_empty_error (evaluate_expr ctx lang e)
     @@ fun e ->
     match Mark.remove e with
@@ -1557,7 +1558,7 @@ let rec default_expr_of_typ ctx mark ty : 'c conc_boxed_expr =
   match Mark.remove ty with
   | TLit t -> Expr.elit (default_lit_of_tlit t) mark
   | TArrow (ty_in, ty_out) ->
-    (* TODO CONC REU this handling of functional inputs does not discriminate
+    (* TODO CONC this handling of functional inputs does not discriminate
        between context variables (for which a value can be given, and whose
        default case should be handled with care) and proper functions. For now,
        we emit a warning that incompleteness may occur, and sometimes runtime
