@@ -3,7 +3,11 @@ name: CI
 on:
   push:
     branches: [master]
-  pull_request:
+  pull_request_target:
+  # It is important to use `pull_request_target` and not `pull_request` here: it
+  # means the version of this file from master is used rather than the one from
+  # the PR. This allows writing to the docker caches, etc. from PRs ; but mind
+  # that if you attempt modification in a PR, of course.
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -26,6 +30,8 @@ jobs:
       - name: Get git-describe version
         id: describe
         run: echo "version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
+      - name: Get an image tag that Docker accepts
+        run: sed 's/[^a-zA-Z0-9-]/-/g; s/^/IMAGE_TAG=/' <<<"${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to GHCR
@@ -40,8 +46,11 @@ jobs:
           target: dev-build-context
           # Caching using GH cache doesn't work, use registry caching directly
           # instead
-          cache-from: type=registry,ref=ghcr.io/catalalang/catala:dev-cache
-          cache-to: type=registry,ref=ghcr.io/catalalang/catala:dev-cache,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/catalalang/catala:dev-cache-master
+            type=registry,ref=ghcr.io/catalalang/catala:dev-cache-${IMAGE_TAG}
+          cache-to: |
+            type=registry,ref=ghcr.io/catalalang/catala:dev-cache-${IMAGE_TAG},mode=max
       - name: Build and push
         id: image
         uses: docker/build-push-action@v5
@@ -50,8 +59,11 @@ jobs:
           tags: ghcr.io/catalalang/catala:${{ steps.describe.outputs.version }}
           build-args: "CATALA_VERSION=${{ steps.describe.outputs.version }}"
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-          cache-from: type=registry,ref=ghcr.io/catalalang/catala:build-cache
-          cache-to: type=registry,ref=ghcr.io/catalalang/catala:build-cache,mode=max
+          cache-from: |
+            type=registry,ref=ghcr.io/catalalang/catala:build-cache-master
+            type=registry,ref=ghcr.io/catalalang/catala:build-cache-${IMAGE_TAG}
+          cache-to: |
+            type=registry,ref=ghcr.io/catalalang/catala:build-cache-${IMAGE_TAG},mode=max
 
   tests:
     name: Run integrated tests
