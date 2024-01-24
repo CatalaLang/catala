@@ -26,12 +26,13 @@ jobs:
         # Approaches like proudust/gh-describe@v1 don't work
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0 # Need full commit history
+          fetch-depth: 0 # Need full commit history for 'git describe'
       - name: Get git-describe version
         id: describe
         run: echo "version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
       - name: Get an image tag that Docker accepts
-        run: sed 's/[^a-zA-Z0-9-]/-/g; s/^/IMAGE_TAG=/' <<<"${{ github.head_ref || github.ref_name }}" >> $GITHUB_ENV
+        id: branch
+        run: sed 's/[^a-zA-Z0-9-]/-/g; s/^/tag=/' <<<"${{ github.head_ref || github.ref_name }}" >> "$GITHUB_OUTPUT"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to GHCR
@@ -48,9 +49,9 @@ jobs:
           # instead
           cache-from: |
             type=registry,ref=ghcr.io/catalalang/catala:dev-cache-master
-            type=registry,ref=ghcr.io/catalalang/catala:dev-cache-${IMAGE_TAG}
+            type=registry,ref=ghcr.io/catalalang/catala:dev-cache-${{ steps.branch.outputs.tag }}
           cache-to: |
-            type=registry,ref=ghcr.io/catalalang/catala:dev-cache-${IMAGE_TAG},mode=max
+            type=registry,ref=ghcr.io/catalalang/catala:dev-cache-${{ steps.branch.outputs.tag }},mode=max
       - name: Build and push
         id: image
         uses: docker/build-push-action@v5
@@ -61,9 +62,9 @@ jobs:
           labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           cache-from: |
             type=registry,ref=ghcr.io/catalalang/catala:build-cache-master
-            type=registry,ref=ghcr.io/catalalang/catala:build-cache-${IMAGE_TAG}
+            type=registry,ref=ghcr.io/catalalang/catala:build-cache-${{ steps.branch.outputs.tag }}
           cache-to: |
-            type=registry,ref=ghcr.io/catalalang/catala:build-cache-${IMAGE_TAG},mode=max
+            type=registry,ref=ghcr.io/catalalang/catala:build-cache-${{ steps.branch.outputs.tag }},mode=max
 
   tests:
     name: Run integrated tests
@@ -143,13 +144,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Need full commit history for 'git describe'
       - name: Get git-describe version
-        id: ghd
-        uses: proudust/gh-describe@v1
+        id: describe
+        run: echo "version=$(git describe --tags)" >> "$GITHUB_OUTPUT"
       - name: Build release binaries
         run: |
           mkdir -p artifacts
-          export CATALA_VERSION="${{ steps.ghd.outputs.describe }}"
+          export CATALA_VERSION="${{ steps.describe.outputs.version }}"
           ./build_release.sh -C artifacts
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
