@@ -222,6 +222,7 @@ let operator_to_string : type a. a Op.t -> string =
   | Xor -> "xor"
   | Eq -> "="
   | Map -> "map"
+  | Map2 -> "map2"
   | Reduce -> "reduce"
   | Concat -> "++"
   | Filter -> "filter"
@@ -306,6 +307,7 @@ let operator_to_shorter_string : type a. a Op.t -> string =
   | Xor -> "xor"
   | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dur_dur | Eq_dat_dat | Eq -> "="
   | Map -> "map"
+  | Map2 -> "map2"
   | Reduce -> "reduce"
   | Concat -> "++"
   | Filter -> "filter"
@@ -407,7 +409,7 @@ module Precedence = struct
       | Div | Div_int_int | Div_rat_rat | Div_mon_rat | Div_mon_mon
       | Div_dur_dur ->
         Op Div
-      | HandleDefault | HandleDefaultOpt | Map | Concat | Filter | Reduce | Fold
+      | HandleDefault | HandleDefaultOpt | Map | Map2 | Concat | Filter | Reduce | Fold
       | ToClosureEnv | FromClosureEnv ->
         App)
     | EApp _ -> App

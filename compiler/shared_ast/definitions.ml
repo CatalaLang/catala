@@ -314,6 +314,7 @@ module Op = struct
     (* * polymorphic *)
     | Eq : < polymorphic ; .. > t
     | Map : < polymorphic ; .. > t
+    | Map2 : < polymorphic ; .. > t
     | Concat : < polymorphic ; .. > t
     | Filter : < polymorphic ; .. > t
     (* * overloaded *)
