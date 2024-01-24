@@ -528,13 +528,22 @@ let rec translate_expr
         StructField.Map.empty fields
     in
     let expected_s_fields = StructName.Map.find s_uid ctxt.structs in
-    StructField.Map.iter
-      (fun expected_f _ ->
-        if not (StructField.Map.mem expected_f s_fields) then
-          Message.raise_spanned_error pos
-            "Missing field for structure %a: \"%a\"" StructName.format s_uid
-            StructField.format expected_f)
-      expected_s_fields;
+    if
+      StructField.Map.exists
+        (fun expected_f _ -> not (StructField.Map.mem expected_f s_fields))
+        expected_s_fields
+    then
+      Message.raise_spanned_error pos "Missing field(s) for structure %a:@\n%a"
+        StructName.format s_uid
+        (Format.pp_print_list
+           ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+           (fun fmt (expected_f, _) ->
+             Format.fprintf fmt "\"%a\"" StructField.format expected_f))
+        (StructField.Map.bindings
+           (StructField.Map.filter
+              (fun expected_f _ ->
+                not (StructField.Map.mem expected_f s_fields))
+              expected_s_fields));
 
     Expr.estruct ~name:s_uid ~fields:s_fields emark
   | EnumInject (((path, (constructor, pos_constructor)), _), payload) -> (
