@@ -1282,8 +1282,8 @@ let rec evaluate_expr :
     Message.emit_debug "... it's an EMatch";
     (* NOTE: The surface keyword [anything] is expanded during desugaring, so it
        makes me generate many cases. See the [enum_wildcard] test for an
-       example. TODO CONC request the wildcard case to come all the way down to
-       DCalc. *)
+       example. TODO issue #130 asks for this feature ; use it once it is
+       added. *)
     Concrete.propagate_empty_error (evaluate_expr ctx lang e)
     @@ fun e ->
     match Mark.remove e with
