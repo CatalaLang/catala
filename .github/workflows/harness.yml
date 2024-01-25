@@ -142,7 +142,7 @@ jobs:
   binaries:
     name: Build static binaries
     runs-on: self-hosted
-    if: github.ref == 'refs/heads/master'
+    if: ${{ github.event_name != 'pull_request' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -166,7 +166,7 @@ jobs:
     name: Publish static content to github-pages
     needs: [ examples, binaries, tests ]
     # Doesn't really depend on tests, but we don't want to publish if they fail
-    if: github.ref == 'refs/heads/master'
+    if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
     # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
     permissions:
       contents: read
