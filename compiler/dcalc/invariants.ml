@@ -52,7 +52,7 @@ let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
         e')
   in
   assert (Bindlib.free_vars p' = Bindlib.empty_ctxt);
-  Message.emit_result "Invariant %s checked.@ result: [%d/%d]" name !ok !total;
+  Message.emit_debug "Invariant %s checked.@ result: [%d/%d]" name !ok !total;
   !result
 
 (* Structural invariant: no default can have as type A -> B *)

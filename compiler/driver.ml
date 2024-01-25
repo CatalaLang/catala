@@ -206,8 +206,9 @@ module Passes = struct
       Message.emit_debug "Checking invariants...";
       match typed with
       | Typed _ ->
-        let result = Dcalc.Invariants.check_all_invariants prg in
-        if not result then
+        if Dcalc.Invariants.check_all_invariants prg then
+          Message.emit_result "All invariant checks passed"
+        else
           raise
             (Message.raise_internal_error "Some Dcalc invariants are invalid")
       | _ ->
@@ -549,9 +550,10 @@ module Commands = struct
         Shared_ast.Typing.program ~leave_unresolved:false (Program.untype prg)
       in
       Message.emit_debug "Checking invariants...";
-      let result = Dcalc.Invariants.check_all_invariants prg in
-      if not result then
-        raise (Message.raise_internal_error "Some Dcalc invariants are invalid"));
+        if Dcalc.Invariants.check_all_invariants prg then
+          Message.emit_result "All invariant checks passed"
+        else
+          raise (Message.raise_internal_error "Some Dcalc invariants are invalid"));
     Message.emit_result "Typechecking successful!"
 
   let typecheck_cmd =
