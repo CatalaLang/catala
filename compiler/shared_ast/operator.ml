@@ -374,8 +374,8 @@ type 'a no_overloads =
 let translate (t : 'a no_overloads t) : 'b no_overloads t =
   match t with
   | ( Not | GetDay | GetMonth | GetYear | FirstDayOfMonth | LastDayOfMonth | And
-    | Or | Xor | HandleDefault | HandleDefaultOpt | Log _ | Length | Eq | Map | Map2
-    | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat | Minus_mon
+    | Or | Xor | HandleDefault | HandleDefaultOpt | Log _ | Length | Eq | Map
+    | Map2 | Concat | Filter | Reduce | Fold | Minus_int | Minus_rat | Minus_mon
     | Minus_dur | ToRat_int | ToRat_mon | ToMoney_rat | Round_rat | Round_mon
     | Add_int_int | Add_rat_rat | Add_mon_mon | Add_dat_dur _ | Add_dur_dur
     | Sub_int_int | Sub_rat_rat | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur

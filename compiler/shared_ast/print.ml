@@ -409,8 +409,8 @@ module Precedence = struct
       | Div | Div_int_int | Div_rat_rat | Div_mon_rat | Div_mon_mon
       | Div_dur_dur ->
         Op Div
-      | HandleDefault | HandleDefaultOpt | Map | Map2 | Concat | Filter | Reduce | Fold
-      | ToClosureEnv | FromClosureEnv ->
+      | HandleDefault | HandleDefaultOpt | Map | Map2 | Concat | Filter | Reduce
+      | Fold | ToClosureEnv | FromClosureEnv ->
         App)
     | EApp _ -> App
     | EArray _ -> Contained
@@ -1090,10 +1090,16 @@ module UserFacing = struct
        ppf e ->
     match Mark.remove e with
     | ELit l -> lit lang ppf l
-    | EArray l | ETuple l ->
+    | EArray l ->
       Format.fprintf ppf "@[<hv 2>[@,@[<hov>%a@]@;<0 -2>]@]"
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ";@ ")
+           (value ~fallback lang))
+        l
+    | ETuple l ->
+      Format.fprintf ppf "@[<hv 2>(@,@[<hov>%a@]@;<0 -2>)@]"
+        (Format.pp_print_list
+           ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@ ")
            (value ~fallback lang))
         l
     | EStruct { name; fields } ->

@@ -226,6 +226,40 @@ let rec translate_expr
   let rec_helper ?(local_vars = local_vars) e =
     translate_expr scope inside_definition_of ctxt local_vars e
   in
+  let rec detuplify_list = function
+    (* Where a list is expected (e.g. after [among]), as syntactic sugar, if a
+       tuple is found instead we transpose it into a list of tuples *)
+    | S.Tuple ls, pos ->
+      let m = Untyped { pos } in
+      let ls = List.map detuplify_list ls in
+      let rec zip = function
+        | [] -> assert false
+        | [l] -> l
+        | l1 :: r ->
+          let rhs = zip r in
+          let rtys, explode =
+            match List.length r with
+            | 1 -> (TAny, pos), fun e -> [e]
+            | size ->
+              ( (TTuple (List.map (fun _ -> TAny, pos) r), pos),
+                fun e ->
+                  List.init size (fun index ->
+                      Expr.etupleaccess ~e ~size ~index m) )
+          in
+          let tys = [TAny, pos; rtys] in
+          let f_join =
+            let x1 = Var.make "x1" and x2 = Var.make "x2" in
+            Expr.make_abs [| x1; x2 |]
+              (Expr.make_tuple (Expr.evar x1 m :: explode (Expr.evar x2 m)) m)
+              tys pos
+          in
+          Expr.eappop ~op:Map2 ~args:[f_join; l1; rhs]
+            ~tys:((TAny, pos) :: List.map (fun ty -> TArray ty, pos) tys)
+            m
+      in
+      zip ls
+    | e -> rec_helper e
+  in
   let pos = Mark.get expr in
   let emark = Untyped { pos } in
   match Mark.remove expr with
@@ -629,15 +663,38 @@ let rec translate_expr
   | ArrayLit es -> Expr.earray (List.map rec_helper es) emark
   | Tuple es -> Expr.etuple (List.map rec_helper es) emark
   | CollectionOp (((S.Filter { f } | S.Map { f }) as op), collection) ->
-    let collection = rec_helper collection in
-    let param_name, predicate = f in
-    let param = Var.make (Mark.remove param_name) in
-    let local_vars = Ident.Map.add (Mark.remove param_name) param local_vars in
+    let collection = detuplify_list collection in
+    let param_names, predicate = f in
+    let params = List.map (fun n -> Var.make (Mark.remove n)) param_names in
+    let local_vars =
+      List.fold_left2
+        (fun vars n p -> Ident.Map.add (Mark.remove n) p vars)
+        local_vars param_names params
+    in
     let f_pred =
-      Expr.make_abs [| param |]
+      Expr.make_abs (Array.of_list params)
         (rec_helper ~local_vars predicate)
-        [TAny, pos]
+        (List.map (fun _ -> TAny, pos) params)
         pos
+    in
+    let f_pred =
+      (* Detuplification (TODO: check if we couldn't fit this in the general
+         detuplification later) *)
+      match List.length param_names with
+      | 1 -> f_pred
+      | nb_args ->
+        let v =
+          Var.make (String.concat "_" (List.map Mark.remove param_names))
+        in
+        let x = Expr.evar v emark in
+        let tys = List.map (fun _ -> TAny, pos) param_names in
+        Expr.make_abs [| v |]
+          (Expr.make_app f_pred
+             (List.init nb_args (fun i ->
+                  Expr.etupleaccess ~e:x ~index:i ~size:nb_args emark))
+             tys pos)
+          [TAny, pos]
+          pos
     in
     Expr.eappop
       ~op:
@@ -648,49 +705,69 @@ let rec translate_expr
       ~tys:[TAny, pos; TAny, pos]
       ~args:[f_pred; collection] emark
   | CollectionOp
-      ( S.AggregateArgExtremum { max; default; f = param_name, predicate },
+      ( S.AggregateArgExtremum { max; default; f = param_names, predicate },
         collection ) ->
     let default = rec_helper default in
     let pos_dft = Expr.pos default in
-    let collection = rec_helper collection in
-    let param = Var.make (Mark.remove param_name) in
-    let local_vars = Ident.Map.add (Mark.remove param_name) param local_vars in
+    let collection = detuplify_list collection in
+    let params = List.map (fun n -> Var.make (Mark.remove n)) param_names in
+    let local_vars =
+      List.fold_left2
+        (fun vars n p -> Ident.Map.add (Mark.remove n) p vars)
+        local_vars param_names params
+    in
     let cmp_op = if max then Op.Gt else Op.Lt in
     let f_pred =
-      Expr.make_abs [| param |]
+      Expr.make_abs (Array.of_list params)
         (rec_helper ~local_vars predicate)
         [TAny, pos]
         pos
     in
-    let param_name = Bindlib.name_of param in
-    let v1, v2 = Var.make (param_name ^ "_1"), Var.make (param_name ^ "_2") in
-    let x1 = Expr.make_var v1 emark in
-    let x2 = Expr.make_var v2 emark in
+    let add_weight_f =
+      let vs = List.map (fun p -> Var.make (Bindlib.name_of p)) params in
+      let xs = List.map (fun v -> Expr.evar v emark) vs in
+      let x = match xs with [x] -> x | xs -> Expr.etuple xs emark in
+      Expr.make_abs (Array.of_list vs)
+        (Expr.make_tuple [x; Expr.eapp ~f:f_pred ~args:xs ~tys:[] emark] emark)
+        [TAny, pos]
+        pos
+    in
     let reduce_f =
-      (* fun x1 x2 -> cmp_op (pred x1) (pred x2) *)
-      (* Note: this computes f_pred twice on every element, but we'd rather not
-         rely on returning tuples here *)
+      (* fun x1 x2 -> if cmp_op (x1.2) (x2.2) cmp *)
+      let v1, v2 = Var.make "x1", Var.make "x2" in
+      let x1, x2 = Expr.make_var v1 emark, Expr.make_var v2 emark in
       Expr.make_abs [| v1; v2 |]
         (Expr.eifthenelse
            (Expr.eappop ~op:cmp_op
               ~tys:[TAny, pos_dft; TAny, pos_dft]
               ~args:
                 [
-                  Expr.eapp ~f:f_pred ~args:[x1] ~tys:[] emark;
-                  Expr.eapp ~f:f_pred ~args:[x2] ~tys:[] emark;
+                  Expr.etupleaccess ~e:x1 ~index:1 ~size:2 emark;
+                  Expr.etupleaccess ~e:x2 ~index:1 ~size:2 emark;
                 ]
               emark)
            x1 x2 emark)
         [TAny, pos; TAny, pos]
         pos
     in
-    Expr.eappop ~op:Reduce
-      ~tys:[TAny, pos; TAny, pos; TAny, pos]
-      ~args:[reduce_f; default; collection]
-      emark
+    let weights_var = Var.make "weights" in
+    let default = Expr.make_app add_weight_f [default] [TAny, pos] pos_dft in
+    let weighted_result =
+      Expr.make_let_in weights_var
+        (TArray (TTuple [TAny, pos; TAny, pos], pos), pos)
+        (Expr.eappop ~op:Map
+           ~tys:[TAny, pos; TArray (TAny, pos), pos]
+           ~args:[add_weight_f; collection] emark)
+        (Expr.eappop ~op:Reduce
+           ~tys:[TAny, pos; TAny, pos; TAny, pos]
+           ~args:[reduce_f; default; Expr.evar weights_var emark]
+           emark)
+        pos
+    in
+    Expr.etupleaccess ~e:weighted_result ~index:0 ~size:2 emark
   | CollectionOp
       (((Exists { predicate } | Forall { predicate }) as op), collection) ->
-    let collection = rec_helper collection in
+    let collection = detuplify_list collection in
     let init, op =
       match op with
       | Exists _ -> false, S.Or
@@ -698,14 +775,21 @@ let rec translate_expr
       | _ -> assert false
     in
     let init = Expr.elit (LBool init) emark in
-    let param0, predicate = predicate in
-    let param = Var.make (Mark.remove param0) in
-    let local_vars = Ident.Map.add (Mark.remove param0) param local_vars in
+    let params0, predicate = predicate in
+    let params = List.map (fun n -> Var.make (Mark.remove n)) params0 in
+    let local_vars =
+      List.fold_left2
+        (fun vars n p -> Ident.Map.add (Mark.remove n) p vars)
+        local_vars params0 params
+    in
     let f =
       let acc_var = Var.make "acc" in
-      let acc = Expr.make_var acc_var (Untyped { pos = Mark.get param0 }) in
+      let acc =
+        Expr.make_var acc_var (Untyped { pos = Mark.get (List.hd params0) })
+      in
       Expr.eabs
-        (Expr.bind [| acc_var; param |]
+        (Expr.bind
+           (Array.of_list (acc_var :: params))
            (translate_binop (op, pos) pos acc
               (rec_helper ~local_vars predicate)))
         [TAny, pos; TAny, pos]
@@ -766,7 +850,7 @@ let rec translate_expr
   | MemCollection (member, collection) ->
     let param_var = Var.make "collection_member" in
     let param = Expr.make_var param_var emark in
-    let collection = rec_helper collection in
+    let collection = detuplify_list collection in
     let init = Expr.elit (LBool false) emark in
     let acc_var = Var.make "acc" in
     let acc = Expr.make_var acc_var emark in

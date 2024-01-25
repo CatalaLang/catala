@@ -204,7 +204,15 @@ let rec evaluate_operator
          (fun e1 e2 ->
            evaluate_expr
              (Mark.add m
-                (EApp { f; args = [e1; e2]; tys = [Expr.maybe_ty (Mark.get e1); Expr.maybe_ty (Mark.get e2)] })))
+                (EApp
+                   {
+                     f;
+                     args = [e1; e2];
+                     tys =
+                       [
+                         Expr.maybe_ty (Mark.get e1); Expr.maybe_ty (Mark.get e2);
+                       ];
+                   })))
          es1 es2)
   | Reduce, [_; default; (EArray [], _)] -> Mark.remove default
   | Reduce, [f; _; (EArray (x0 :: xn), _)] ->
@@ -257,7 +265,8 @@ let rec evaluate_operator
                        ];
                    })))
          init es)
-  | (Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce), _ -> err ()
+  | (Length | Log _ | Eq | Map | Map2 | Concat | Filter | Fold | Reduce), _ ->
+    err ()
   | Not, [(ELit (LBool b), _)] -> ELit (LBool (o_not b))
   | GetDay, [(ELit (LDate d), _)] -> ELit (LInt (o_getDay d))
   | GetMonth, [(ELit (LDate d), _)] -> ELit (LInt (o_getMonth d))

@@ -755,9 +755,9 @@ and typecheck_expr_top_down :
   | A.EAbs { binder; tys = t_args } ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.raise_spanned_error (Expr.pos e)
-        "function has %d variables but was supplied %d types"
+        "function has %d variables but was supplied %d types\n%a"
         (Bindlib.mbinder_arity binder)
-        (List.length t_args)
+        (List.length t_args) Expr.format e
     else
       let tau_args = List.map ast_to_typ t_args in
       let t_ret = unionfind (TAny (Any.fresh ())) in

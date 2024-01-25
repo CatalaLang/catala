@@ -1,0 +1,95 @@
+
+```catala
+
+declaration lis1 content list of decimal equals
+  [ 12.; 13.; 14.; 15.; 16.; 17. ]
+
+declaration lis2 content list of money equals
+  [ $10; $1; $100; $42; $17; $10 ]
+
+declaration lis3 content list of money equals
+  [ $20; $200; $10; $23; $25; $12 ]
+
+declaration tlist content list of (decimal, money, money) equals
+  (a, b, c) for (a, b, c) among (lis1, lis2, lis3)
+
+declaration grok
+  content (money, decimal)
+  depends on dec content decimal,
+             mon1 content money,
+             mon2 content money
+  equals
+  (mon1 * dec, mon1 / mon2)
+
+declaration scope S:
+  output r1 content list of (money, decimal)
+  output r2 content list of (money, decimal)
+  output r3 content list of (money, decimal)
+  output r4 content list of (money, decimal)
+  output r5 content list of (money, decimal)
+  output r6 content list of (money, decimal)
+
+scope S:
+  definition r1 equals (grok of x) for x among tlist
+  definition r2 equals (grok of x) for x among (lis1, lis2, lis3)
+  definition r3 equals (grok of (x, y, z)) for (x, y, z) among (lis1, lis2, lis3)
+  definition r4 equals (x * y, y / z) for (x, y, z) among tlist
+  definition r5 equals (x * y, y / z) for (x, y, z) among (lis1, lis2, lis3)
+  definition r6 equals
+    let lis12 equals (x, y) for (x, y) among (lis1, lis2) in
+    (let (x, y) equals xy in (x * y, y / z))
+      for (xy, z) among (lis12, lis3)
+
+```
+
+```catala-test-inline
+$ catala typecheck
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT]
+r1 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r2 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r3 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r4 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r5 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+[RESULT]
+r6 =
+  [
+    ($120.00, 0.5); ($13.00, 0.005); ($1,400.00, 10.0);
+    ($630.00, 1.826,086,956,521,739,130,4…); ($272.00, 0.68);
+    ($170.00, 0.833,333,333,333,333,333,33…)
+  ]
+```

@@ -661,7 +661,9 @@ module Oper = struct
   let o_xor : bool -> bool -> bool = ( <> )
   let o_eq = ( = )
   let o_map = Array.map
-  let o_map2 f a b = try Array.map2 f a b with Invalid_argument _ -> raise NotSameLength
+
+  let o_map2 f a b =
+    try Array.map2 f a b with Invalid_argument _ -> raise NotSameLength
 
   let o_reduce f dft a =
     let len = Array.length a in
