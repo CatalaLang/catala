@@ -3,6 +3,8 @@ name: CI
 on:
   push:
     branches: [master]
+    tags: ['*.*.*']
+  workflow_dispatch:
   pull_request_target:
   # It is important to use `pull_request_target` and not `pull_request` here: it
   # means the version of this file from master is used rather than the one from
