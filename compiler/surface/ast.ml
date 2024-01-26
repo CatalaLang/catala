@@ -145,10 +145,10 @@ and literal =
   | LDate of literal_date
 
 and collection_op =
-  | Exists of { predicate : lident Mark.pos * expression }
-  | Forall of { predicate : lident Mark.pos * expression }
-  | Map of { f : lident Mark.pos * expression }
-  | Filter of { f : lident Mark.pos * expression }
+  | Exists of { predicate : lident Mark.pos list * expression }
+  | Forall of { predicate : lident Mark.pos list * expression }
+  | Map of { f : lident Mark.pos list * expression }
+  | Filter of { f : lident Mark.pos list * expression }
   | AggregateSum of { typ : primitive_typ }
   (* it would be nice to remove the need for specifying the and here like for
      extremums, but we need an additionl overload for "neutral element for
@@ -157,7 +157,7 @@ and collection_op =
   | AggregateArgExtremum of {
       max : bool;
       default : expression;
-      f : lident Mark.pos * expression;
+      f : lident Mark.pos list * expression;
     }
 
 and explicit_match_case = {

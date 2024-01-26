@@ -25,7 +25,6 @@ depends: [
   "cppo" {>= "1"}
   "dates_calc" {>= "0.0.4"}
   "dune" {>= "3.11"}
-  "dune-build-info" {>= "3.0"}
   "js_of_ocaml-ppx" {= "4.1.0"}
   "menhir" {>= "20200211"}
   "menhirLib" {>= "20200211"}
@@ -75,10 +74,14 @@ build: [
 ]
 dev-repo: "git+https://github.com/CatalaLang/catala.git"
 depexts: [
-  ["groff" "latexmk" "python3-pip" "pandoc"]
+  ["groff"] { with-doc }
+  ["python3-pip" "pandoc"]
+    # "latexmk"
     {cataladevmode & os-family = "debian"}
-  ["groff" "texlive-xetex" "texmf-dist-latexextra" "texmf-dist-pictures" "py3-pip" "py3-pygments" "pandoc-cli"]
+  ["py3-pip" "py3-pygments" "pandoc-cli"]
+    # "texlive-xetex" "texmf-dist-latexextra" "texmf-dist-pictures"
     {cataladevmode & os-distribution = "alpine"}
-  ["groff" "latex-mk" "python-pygments" "pandoc"]
+  ["python-pygments" "pandoc"]
+    # "latex-mk"
     {cataladevmode & os-family = "arch"}
 ]

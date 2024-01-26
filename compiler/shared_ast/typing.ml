@@ -291,6 +291,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let pos = Mark.get op in
   let any = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let any2 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
+  let any3 = lazy (UnionFind.make (TAny (Any.fresh ()), pos)) in
   let bt = lazy (UnionFind.make (TLit TBool, pos)) in
   let ut = lazy (UnionFind.make (TLit TUnit, pos)) in
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
@@ -304,6 +305,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Fold -> [[any2; any] @-> any2; any2; array any] @-> any2
     | Eq -> [any; any] @-> bt
     | Map -> [[any] @-> any2; array any] @-> array any2
+    | Map2 -> [[any; any2] @-> any3; array any; array any2] @-> array any3
     | Filter -> [[any] @-> bt; array any] @-> array any
     | Reduce -> [[any; any] @-> any; any; array any] @-> any
     | Concat -> [array any; array any] @-> array any
@@ -755,9 +757,9 @@ and typecheck_expr_top_down :
   | A.EAbs { binder; tys = t_args } ->
     if Bindlib.mbinder_arity binder <> List.length t_args then
       Message.raise_spanned_error (Expr.pos e)
-        "function has %d variables but was supplied %d types"
+        "function has %d variables but was supplied %d types\n%a"
         (Bindlib.mbinder_arity binder)
-        (List.length t_args)
+        (List.length t_args) Expr.format e
     else
       let tau_args = List.map ast_to_typ t_args in
       let t_ret = unionfind (TAny (Any.fresh ())) in

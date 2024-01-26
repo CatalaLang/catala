@@ -2,7 +2,9 @@
 
 (data_only_dirs tests syntax_highlighting)
 
-(copy_files compiler/surface/grammar.html)
+(copy_files
+ (alias doc)
+ (files compiler/surface/grammar.html))
 
 ; Override dune default warnings with sane settings
 
@@ -10,7 +12,7 @@
  ; don't stop building because of warnings
  (dev
   (flags
-   (:standard -warn-error -a -w -67)))
+   (:standard -warn-error -a+8 -w -67)))
  ; for CI runs: must fail on warnings
  (check
   (flags
@@ -29,6 +31,7 @@
     -a))))
 
 (rule
+ (alias doc)
  (action
   (with-stdout-to
    catala.html
@@ -37,6 +40,7 @@
     (run groff -P -l -P -r -mandoc -Thtml)))))
 
 (rule
+ (alias doc)
  (action
   (with-stdout-to
    clerk.html
@@ -48,10 +52,12 @@
  (name exec)
  (deps compiler/catala.exe build_system/clerk.exe))
 
-(rule
- (alias runtest)
- (package catala)
- (deps
-  (source_tree tests))
- (action
-  (run clerk --exe %{bin:catala} test tests)))
+;; This garbles Clerk output, prefer to run from Makefile
+;; (rule
+;;  (alias runtest)
+;;  (package catala)
+;;  (deps
+;;   (source_tree tests)
+;;   (alias install))
+;;  (action
+;;   (run %{bin:clerk} test --exe %{bin:catala} tests)))

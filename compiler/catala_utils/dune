@@ -1,16 +1,24 @@
 (library
  (name catala_utils)
  (public_name catala.catala_utils)
- (libraries
-  unix
-  cmdliner
-  ubase
-  ocolor
-  re
-  bindlib
-  catala.runtime_ocaml
-  dune-build-info))
+ (modules
+  (:standard \ get_version))
+ (libraries unix cmdliner ubase ocolor re bindlib catala.runtime_ocaml))
+
+(executable
+ (name get_version)
+ (modules get_version)
+ (libraries unix))
 
 (documentation
  (package catala)
  (mld_files catala_utils))
+
+(rule
+ (deps
+  (universe)
+  (env_var CATALA_VERSION))
+ (action
+  (with-stdout-to
+   version.ml
+   (run %{exe:get_version.exe}))))

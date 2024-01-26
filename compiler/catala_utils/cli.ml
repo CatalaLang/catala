@@ -451,10 +451,7 @@ module Flags = struct
 end
 
 (* Retrieve current version from dune *)
-let version =
-  Option.value ~default:"dev"
-    Build_info.V1.(Option.map Version.to_string (version ()))
-
+let version = Version.v
 let s_plugins = "INSTALLED PLUGINS"
 
 let info =

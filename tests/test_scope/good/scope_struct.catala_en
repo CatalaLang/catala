@@ -6,7 +6,7 @@ declaration scope SubFoo:
   output z2 content integer
 
 declaration scope Foo:
-  output example content integer
+  output example content SubFoo
 
 scope SubFoo:
   definition z1 equals x + y
@@ -14,10 +14,11 @@ scope SubFoo:
 
 scope Foo:
   definition example equals
-    if true or false then
       let results_foo equals output of SubFoo with { -- x: 1 -- y: 2 } in
-      results_foo.z1 + 1 * (output of SubFoo with { -- x: 10 -- y: 20 }).z2
-    else 0
+      SubFoo {
+        -- z1: results_foo.z1 + 1
+        -- z2: results_foo.z2 + 1
+      }
 ```
 
 
@@ -31,5 +32,5 @@ $ catala Typecheck --check-invariants
 ```catala-test-inline
 $ catala interpret -s Foo
 [RESULT] Computation successful! Results:
-[RESULT] example = -7
+[RESULT] example = SubFoo { -- z1: 4 -- z2: 0 }
 ```

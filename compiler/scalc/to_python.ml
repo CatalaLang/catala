@@ -84,6 +84,7 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Eq_int_int | Eq_rat_rat | Eq_mon_mon | Eq_dat_dat | Eq_dur_dur ->
     Format.pp_print_string fmt "=="
   | Map -> Format.pp_print_string fmt "list_map"
+  | Map2 -> Format.pp_print_string fmt "list_map2"
   | Reduce -> Format.pp_print_string fmt "list_reduce"
   | Filter -> Format.pp_print_string fmt "list_filter"
   | Fold -> Format.pp_print_string fmt "list_fold_left"

@@ -285,6 +285,10 @@ catala_list_map <- function(f, l) {
   Map(f, l)
 }
 #' @export
+catala_list_map2 <- function(f, l1, l2) {
+  Map(f, l1, l2)
+}
+#' @export
 catala_list_reduce <- function(f, default, l) {
   if (length(l) == 0) {
     default
