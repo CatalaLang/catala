@@ -156,9 +156,7 @@ let grok : (decimal, money, money) → (money * decimal) =
 in
 let tlist : list of (decimal * money * money) =
   map2
-    (λ (a: decimal) (b_c: (money * money)) →
-     let a_b_c : (decimal * money * money) = (a, b_c.0, b_c.1) in
-     (a_b_c.0, a_b_c.1, a_b_c.2))
+    (λ (a: decimal) (b_c: (money * money)) → (a, b_c.0, b_c.1))
     lis1
     map2 (λ (b: money) (c: money) → (b, c)) lis2 lis3
 in
@@ -203,12 +201,7 @@ let S : S_in → S =
        let xy1 : (decimal * money) = xy_z.0 in
        let z1 : money = xy_z.1 in
        (xy1.1 * xy1.0, xy1.1 / z1))
-      map2
-        (λ (x: decimal) (y: money) →
-         let x_y : (decimal * money) = (x, y) in
-         (x_y.0, x_y.1))
-        lis1
-        lis2
+      map2 (λ (x: decimal) (y: money) → (x, y)) lis1 lis2
       lis3
   in
   { S r1 = r1; r2 = r2; r3 = r3; r4 = r4; r5 = r5; r6 = r6; }

@@ -353,6 +353,16 @@ let rec optimize_expr :
         } ->
       (* reduces a fold with one element *)
       EApp { f; args = [init; e']; tys = [tinit; tx] }
+    | ETuple ((ETupleAccess { e; index = 0; _ }, _) :: el)
+      when List.for_all Fun.id
+             (List.mapi
+                (fun i -> function
+                  | ETupleAccess { e = en; index; _ }, _ ->
+                    index = i + 1 && Expr.equal en e
+                  | _ -> false)
+                el) ->
+      (* identity tuple reconstruction *)
+      Mark.remove e
     | ECatch { body; exn; handler } -> (
       (* peephole exception catching reductions *)
       match Mark.remove body, Mark.remove handler with
