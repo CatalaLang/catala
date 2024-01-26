@@ -314,7 +314,8 @@ let format_op (fmt : Format.formatter) (op : operator Mark.pos) : unit =
   | Filter -> Format.pp_print_string fmt "catala_list_filter"
   | Fold -> Format.pp_print_string fmt "catala_list_fold_left"
   | HandleDefault -> Format.pp_print_string fmt "catala_handle_default"
-  | HandleDefaultOpt | FromClosureEnv | ToClosureEnv -> failwith "unimplemented"
+  | HandleDefaultOpt | FromClosureEnv | ToClosureEnv | Map2 ->
+    failwith "unimplemented"
 
 let _format_string_list (fmt : Format.formatter) (uids : string list) : unit =
   let sanitize_quotes = Re.compile (Re.char '"') in
@@ -407,7 +408,7 @@ let rec format_statement
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
       ty
     (* Below we detect array initializations which have special treatment. *)
-  | SLocalInit { name = v; expr = EStruct { fields; name }, _; typ }
+  | SLocalInit { name = v; expr = EStruct { fields = _; name }, _; typ }
     when typ_is_array ctx typ ->
     Format.fprintf fmt
       "@[<hov 2>%a;@]@\n@[<hov 2>%a.content_field = malloc(sizeof(%a));@]"
