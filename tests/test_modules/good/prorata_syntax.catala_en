@@ -1,0 +1,65 @@
+> Using Prorata_external as Ext
+
+
+```catala
+declaration structure HouseholdMember:
+  data birthdate content date
+  data revenue content money
+
+declaration structure HouseholdMemberTaxed:
+  data member content HouseholdMember
+  data tax content money
+
+declaration individual_tax_amount content list of HouseholdMemberTaxed
+  depends on members content list of HouseholdMember,
+             tax_to_distribute content money
+  equals
+  let revenues equals member.revenue for member among members in
+  let distributed_tax equals Ext.prorata of tax_to_distribute, revenues in
+  HouseholdMemberTaxed {
+    -- member: member
+    -- tax: tax_amount
+  }
+  for (member, tax_amount) among (members, distributed_tax)
+
+declaration scope S:
+  output result content list of HouseholdMemberTaxed
+
+scope S:
+  definition result equals
+  individual_tax_amount of
+    [ HouseholdMember { -- birthdate: |2000-01-01| -- revenue: $10000 };
+      HouseholdMember { -- birthdate: |2000-01-02| -- revenue: $1000 };
+      HouseholdMember { -- birthdate: |2000-01-02| -- revenue: $100 } ],
+    $300
+```
+
+```catala-test-inline
+$ catala typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT]
+result =
+  [
+    HouseholdMemberTaxed {
+      -- member:
+        HouseholdMember { -- birthdate: 2000-01-01 -- revenue: $10,000.00 }
+      -- tax: $270.27
+    };
+    HouseholdMemberTaxed {
+      -- member:
+        HouseholdMember { -- birthdate: 2000-01-02 -- revenue: $1,000.00 }
+      -- tax: $27.03
+    };
+    HouseholdMemberTaxed {
+      -- member:
+        HouseholdMember { -- birthdate: 2000-01-02 -- revenue: $100.00 }
+      -- tax: $2.70
+    }
+  ]
+```

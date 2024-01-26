@@ -243,13 +243,6 @@ all: \
 clean:
 	dune clean
 	rm -rf artifacts
-	$(MAKE) -C $(AIDES_LOGEMENT_DIR) clean
-	$(MAKE) -C $(ALLOCATIONS_FAMILIALES_DIR) clean
-	$(MAKE) -C $(US_TAX_CODE_DIR) clean
-	$(MAKE) -C $(TUTORIEL_FR_DIR) clean
-	$(MAKE) -C $(TUTORIAL_EN_DIR) clean
-	$(MAKE) -C $(POLISH_TAXES_DIR) clean
-	$(MAKE) -C $(CODE_GENERAL_IMPOTS_DIR) clean
 
 inspect:
 	gitinspector -f ml,mli,mly,iro,tex,catala,catala_en,catala_pl,catala_fr,md,fst,mld --grading

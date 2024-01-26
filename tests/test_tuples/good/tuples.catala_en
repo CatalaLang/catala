@@ -16,11 +16,11 @@ declaration f2 content decimal
   equals
   match en with pattern
   -- One of str1:
-     let a, w equals str.x1 in
-     let b, w equals str1.x1 in
+     let (a, w) equals str.x1 in
+     let (b, w) equals str1.x1 in
      a / b
   -- Two of z:
-     let z1, z2 equals z in z1 / 2
+     let (z1, z2) equals z in z1 / 2
 
 declaration scope Test:
   output o content (date, decimal)
@@ -40,11 +40,11 @@ $ catala typecheck --check-invariants
 ```catala-test-inline
 $ catala interpret -s Test
 [RESULT] Computation successful! Results:
-[RESULT] o = [2001-01-03; 6.0]
+[RESULT] o = (2001-01-03, 6.0)
 ```
 
 ```catala-test-inline
 $ catala interpret_lcalc -s Test
 [RESULT] Computation successful! Results:
-[RESULT] o = [2001-01-03; 6.0]
+[RESULT] o = (2001-01-03, 6.0)
 ```

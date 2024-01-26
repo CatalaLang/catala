@@ -157,6 +157,10 @@ let qlident :=
 }
 | id = lident ; { [], id }
 
+let mbinder ==
+| id = lident ; { [id] }
+| LPAREN ; ids = separated_nonempty_list(COMMA,lident) ; RPAREN ; <>
+
 let expression :=
 | e = addpos(naked_expression) ; <>
 
@@ -216,7 +220,7 @@ let naked_expression ==
   CollectionOp (AggregateSum { typ = Mark.remove typ }, coll)
 } %prec apply
 | f = expression ;
-  FOR ; i = lident ;
+  FOR ; i = mbinder ;
   AMONG ; coll = expression ; {
   CollectionOp (Map {f = i, f}, coll)
 } %prec apply
@@ -234,12 +238,12 @@ let naked_expression ==
   e2 = expression ; {
   Binop (binop, e1, e2)
 }
-| EXISTS ; i = lident ;
+| EXISTS ; i = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; predicate = expression ; {
   CollectionOp (Exists {predicate = i, predicate}, coll)
 } %prec let_expr
-| FOR ; ALL ; i = lident ;
+| FOR ; ALL ; i = mbinder ;
   AMONG ; coll = expression ;
   WE_HAVE ; predicate = expression ; {
   CollectionOp (Forall {predicate = i, predicate}, coll)
@@ -254,28 +258,28 @@ let naked_expression ==
   ELSE ; e3 = expression ; {
   IfThenElse (e1, e2, e3)
 } %prec let_expr
-| LET ; ids = separated_nonempty_list(COMMA,lident) ;
+| LET ; ids = mbinder ;
   DEFINED_AS ; e1 = expression ;
   IN ; e2 = expression ; {
   LetIn (ids, e1, e2)
 } %prec let_expr
-| i = lident ;
+| i = lident ; (* FIXME: should be mbinder *)
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ; {
-  CollectionOp (Filter {f = i, f}, coll)
+  CollectionOp (Filter {f = [i], f}, coll)
 } %prec top_expr
 | fmap = expression ;
-  FOR ; i = lident ;
+  FOR ; i = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; ffilt = expression ; {
   CollectionOp (Map {f = i, fmap}, (CollectionOp (Filter {f = i, ffilt}, coll), Pos.from_lpos $loc))
 } %prec top_expr
-| i = lident ;
+| i = lident ; (* FIXME: should be mbinder *)
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ;
   IS ; max = minmax ;
   OR ; IF ; LIST_EMPTY ; THEN ; default = expression ; {
-  CollectionOp (AggregateArgExtremum { max; default; f = i, f }, coll)
+  CollectionOp (AggregateArgExtremum { max; default; f = [i], f }, coll)
 } %prec top_expr
 
 

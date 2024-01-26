@@ -72,18 +72,19 @@ let scope S (x: integer|internal|output) =
             10.
             map (λ (i: integer) → to_rat i) [1; 2; 3])
          = 3.;
-  assert (reduce
-            (λ (i_1: integer) (i_2: integer) →
-             if
-               (let i : integer = i_1 in
-                to_rat ((2 - i) * (2 - i)))
-               < let i : integer = i_2 in
-                 to_rat ((2 - i) * (2 - i))
-             then
-               i_1
-             else i_2)
-            42
-            [1; 2; 3])
+  assert (let weights : list of (integer * decimal) =
+            map (λ (i: integer) →
+                 (i, let i1 : integer = i in
+                     to_rat ((2 - i1) * (2 - i1))))
+              [1; 2; 3]
+          in
+          reduce
+            (λ (x1: (integer * decimal)) (x2: (integer * decimal)) →
+             if x1.1 < x2.1 then x1 else x2)
+            let i : integer = 42 in
+            (i, let i1 : integer = i in
+                to_rat ((2 - i1) * (2 - i1)))
+            weights).0
          = 2
 ```
 
