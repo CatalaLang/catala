@@ -563,10 +563,10 @@ module Commands = struct
           (Program.untype prg)
       in
       Message.emit_debug "Checking invariants...";
-        if Dcalc.Invariants.check_all_invariants prg then
-          Message.emit_result "All invariant checks passed"
-        else
-          raise (Message.raise_internal_error "Some Dcalc invariants are invalid"));
+      if Dcalc.Invariants.check_all_invariants prg then
+        Message.emit_result "All invariant checks passed"
+      else
+        raise (Message.raise_internal_error "Some Dcalc invariants are invalid"));
     Message.emit_result "Typechecking successful!"
 
   let typecheck_cmd =

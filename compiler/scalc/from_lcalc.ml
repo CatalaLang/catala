@@ -68,12 +68,12 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
     | EStruct { fields; name } when not ctxt.config.no_struct_literals ->
       let args_stmts, new_args =
         StructField.Map.fold
-          (fun _ arg (args_stmts, new_args) ->
+          (fun field arg (args_stmts, new_args) ->
             let arg_stmts, new_arg = translate_expr ctxt arg in
-            arg_stmts @ args_stmts, new_arg :: new_args)
-          fields ([], [])
+            arg_stmts @ args_stmts, StructField.Map.add field new_arg new_args)
+          fields
+          ([], StructField.Map.empty)
       in
-      let new_args = List.rev new_args in
       let args_stmts = List.rev args_stmts in
       args_stmts, (A.EStruct { fields = new_args; name }, Expr.pos expr)
     | EStruct _ when ctxt.config.no_struct_literals ->
@@ -515,12 +515,12 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
   | EStruct { fields; name } when ctxt.config.no_struct_literals ->
     let args_stmts, new_args =
       StructField.Map.fold
-        (fun _ arg (args_stmts, new_args) ->
+        (fun field arg (args_stmts, new_args) ->
           let arg_stmts, new_arg = translate_expr ctxt arg in
-          arg_stmts @ args_stmts, new_arg :: new_args)
-        fields ([], [])
+          arg_stmts @ args_stmts, StructField.Map.add field new_arg new_args)
+        fields
+        ([], StructField.Map.empty)
     in
-    let new_args = List.rev new_args in
     let args_stmts = List.rev args_stmts in
     let struct_expr =
       A.EStruct { fields = new_args; name }, Expr.pos block_expr

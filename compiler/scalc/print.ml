@@ -47,11 +47,11 @@ let rec format_expr
       Print.punctuation "{"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt (e, (struct_field, _)) ->
+         (fun fmt (struct_field, e) ->
            Format.fprintf fmt "%a%a%a%a %a" Print.punctuation "\""
              StructField.format struct_field Print.punctuation "\""
              Print.punctuation ":" format_expr e))
-      (List.combine es (StructField.Map.bindings fields))
+      (StructField.Map.bindings es)
       Print.punctuation "}"
   | ETuple es ->
     Format.fprintf fmt "@[<hov 2>%a%a%a@]" Print.punctuation "()"

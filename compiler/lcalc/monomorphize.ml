@@ -443,7 +443,6 @@ let program (prg : typed program) :
             ~varf:Fun.id prg.code_items)
   in
   let prg = Program.untype prg in
-  Message.emit_debug "Prg:@.%a" (Print.program ~debug:true) prg;
   ( prg,
     Scopelang.Dependency.check_type_cycles prg.decl_ctx.ctx_structs
       prg.decl_ctx.ctx_enums )

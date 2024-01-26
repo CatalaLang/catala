@@ -276,14 +276,13 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
   | EStruct { fields = es; name = s } ->
-    let fields = StructName.Map.find s ctx.ctx_structs in
     Format.fprintf fmt "%a(%a)" format_struct_name s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt (e, (struct_field, _)) ->
+         (fun fmt (struct_field, e) ->
            Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
              (format_expression ctx) e))
-      (List.combine es (StructField.Map.bindings fields))
+      (StructField.Map.bindings es)
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field

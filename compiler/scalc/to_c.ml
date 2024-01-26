@@ -337,8 +337,8 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     Format.fprintf fmt "{ %a }"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
-      es
+         (fun fmt (_, e) -> Format.fprintf fmt "%a" (format_expression ctx) e))
+      (StructField.Map.bindings es)
   | EStructFieldAccess { e1; field; _ } ->
     Format.fprintf fmt "%a.%a" (format_expression ctx) e1
       format_struct_field_name field
@@ -408,12 +408,30 @@ let rec format_statement
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
       ty
     (* Below we detect array initializations which have special treatment. *)
-  | SLocalInit { name = v; expr = EStruct { fields = _; name }, _; typ }
+  | SLocalInit { name = v; expr = EStruct { fields; name }, _; typ }
     when typ_is_array ctx typ ->
+    let array_contents =
+      match
+        List.find
+          (fun (field, _) ->
+            String.equal "content" (Mark.remove (StructField.get_info field)))
+          (StructField.Map.bindings fields)
+      with
+      | _, (EArray args, _) -> args
+      | _ -> failwith "should not happen"
+    in
     Format.fprintf fmt
-      "@[<hov 2>%a;@]@\n@[<hov 2>%a.content_field = malloc(sizeof(%a));@]"
+      "@[<hov 2>%a;@]@\n\
+       @[<hov 2>%a.content_field = catala_malloc(sizeof(%a));@]@\n\
+       %a"
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))
       typ format_var (Mark.remove v) format_struct_name name
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+         (fun fmt (i, arg) ->
+           Format.fprintf fmt "@[<hov 2>%a.content_field[%d] =@ %a;@]"
+             format_var (Mark.remove v) i (format_expression ctx) arg))
+      (List.mapi (fun i a -> i, a) array_contents)
   | SLocalInit { name = v; expr = e; typ } ->
     Format.fprintf fmt "@[<hov 2>%a = %a;@]"
       (format_typ ctx (fun fmt -> format_var fmt (Mark.remove v)))

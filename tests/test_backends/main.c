@@ -43,6 +43,7 @@ int main()
         baz_struct output = baz_func(input);
         printf("Output: %f\n", output.b_field);
         free(raw_input);
+        catala_free_allocated_pointers();
         return 0;
     }
     else
@@ -65,6 +66,8 @@ int main()
         case catala_assertion_failure:
             error_kind = "Asssertion failure";
             break;
+        case catala_malloc_error:
+            error_kind = "Malloc error";
         }
         printf("\033[1;31m[ERROR]\033[0m %s in file %s:%d.%d-%d.%d\n",
                error_kind,
@@ -74,6 +77,7 @@ int main()
                catala_fatal_error_raised.position.end_line,
                catala_fatal_error_raised.position.end_column);
         free(raw_input);
+        catala_free_allocated_pointers();
         return -1;
     }
 }

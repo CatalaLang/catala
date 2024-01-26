@@ -44,7 +44,7 @@ type expr = naked_expr Mark.pos
 and naked_expr =
   | EVar of VarName.t
   | EFunc of FuncName.t
-  | EStruct of { fields : expr list; name : StructName.t }
+  | EStruct of { fields : expr StructField.Map.t; name : StructName.t }
   | EStructFieldAccess of {
       e1 : expr;
       field : StructField.t;
