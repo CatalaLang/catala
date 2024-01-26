@@ -33,12 +33,7 @@ scope B:
 
 ```catala-test-inline
 $ catala Typecheck --check-invariants
-[RESULT] Invariant typing_defaults checked. result: [105/105]
-[RESULT] Invariant match_inversion checked. result: [0/0]
-[RESULT] Invariant app_inversion checked. result: [6/6]
-[RESULT] Invariant no_return_a_function checked. result: [7/7]
-[RESULT] Invariant no_partial_evaluation checked. result: [6/6]
-[RESULT] Invariant default_no_arrow checked. result: [7/7]
+[RESULT] All invariant checks passed
 [RESULT] Typechecking successful!
 ```
 
