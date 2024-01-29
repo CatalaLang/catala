@@ -24,7 +24,12 @@ open Op
 module Concrete = Shared_ast.Interpreter
 
 type s_expr = Z3.Expr.expr
-type path_constraint = { expr : s_expr; pos : Pos.t; branch : bool }
+
+type pc_expr =
+  | Pc_z3 of s_expr
+  | Pc_reentrant of { name : StructField.t; is_empty : bool }
+
+type path_constraint = { expr : pc_expr; pos : Pos.t; branch : bool }
 
 type annotated_path_constraint =
   | Negated of path_constraint
@@ -38,6 +43,8 @@ type _conc_info = {
   symb_expr : s_expr option;
   constraints : path_constraint list;
   ty : typ option;
+  reentrant_name : StructField.t option;
+      (* only for the lambda expression corresponding to a reentrant variable *)
 }
 
 type conc_info = _conc_info custom
@@ -52,9 +59,16 @@ type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
 type 'c conc_naked_expr = ((yes, no, 'c) interpr_kind, conc_info) naked_gexpr
 type 'c conc_boxed_expr = ((yes, no, 'c) interpr_kind, conc_info) boxed_gexpr
 
-let make_path_constraint (expr : s_expr) (pos : Pos.t) (branch : bool) :
+let make_z3_path_constraint (expr : s_expr) (pos : Pos.t) (branch : bool) :
     path_constraint =
-  { expr; pos; branch }
+  { expr = Pc_z3 expr; pos; branch }
+
+let make_reentrant_path_constraint
+    (name : StructField.t)
+    (is_empty : bool)
+    (pos : Pos.t) : path_constraint =
+  let branch = is_empty in
+  { expr = Pc_reentrant { name; is_empty }; pos; branch }
 
 let set_conc_info
     (type m)
@@ -62,7 +76,7 @@ let set_conc_info
     (constraints : path_constraint list)
     (mk : m mark) : conc_info mark =
   let symb_expr = Option.map (fun z -> Z3.Expr.simplify z None) symb_expr in
-  let custom = { symb_expr; constraints; ty = None } in
+  let custom = { symb_expr; constraints; ty = None; reentrant_name = None } in
   match mk with
   | Untyped { pos } -> Custom { pos; custom }
   | Typed { pos; ty } ->
@@ -78,7 +92,7 @@ let add_conc_info_m
     (former_mark : conc_info mark)
     (symb_expr : s_expr option)
     ?(constraints : path_constraint list option)
-    ?(ty : typ option)
+    ?(reentrant_name : StructField.t option option)
     (x : 'a) : ('a, conc_info) marked =
   let (Custom { pos; custom }) = former_mark in
   let symb_expr = Option.map (fun z -> Z3.Expr.simplify z None) symb_expr in
@@ -88,19 +102,32 @@ let add_conc_info_m
   (* only update symb_expr if it does not exist already *)
   let constraints = Option.value ~default:custom.constraints constraints in
   (* only change constraints if new ones are provided *)
-  let ty = Option.fold ~none:custom.ty ~some:Option.some ty in
-  Mark.add (Custom { pos; custom = { symb_expr; constraints; ty } }) x
+  let ty = custom.ty in
+  (* we don't change types *)
+  let reentrant_name =
+    Option.fold
+      ~none:(Option.join reentrant_name)
+      ~some:Option.some custom.reentrant_name
+  in
+  (* only change reentrant name information if it does not exist already *)
+  Mark.add
+    (Custom { pos; custom = { symb_expr; constraints; ty; reentrant_name } })
+    x
 
 (** Maybe replace the constraints, and safely replace the symbolic expression
     from former expression *)
 let add_conc_info_e
     (symb_expr : s_expr option)
     ?(constraints : path_constraint list option)
+    ?(reentrant_name : StructField.t option option)
     (x : ('a, conc_info) marked) : ('a, conc_info) marked =
+  let reentrant_name = Option.join reentrant_name in
   match constraints with
-  | None -> add_conc_info_m (Mark.get x) symb_expr (Mark.remove x)
+  | None ->
+    add_conc_info_m (Mark.get x) symb_expr ~reentrant_name (Mark.remove x)
   | Some constraints ->
-    add_conc_info_m (Mark.get x) symb_expr ~constraints (Mark.remove x)
+    add_conc_info_m (Mark.get x) symb_expr ~constraints ~reentrant_name
+      (Mark.remove x)
 
 (** Transform any DCalc expression into a concolic expression with no symbolic
     expression and no constraints *)
@@ -290,8 +317,10 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   | TTuple _ -> failwith "[translate_typ] TTuple not implemented"
   | TEnum name -> find_or_create_enum ctx name
   | TOption _ -> failwith "[translate_typ] TOption not implemented"
-  | TArrow _ ->
-    ctx, ctx.ctx_dummy_sort (* TODO CONC check whether this is for an input *)
+  | TArrow ([(TLit TUnit, _)], (TDefault t, _)) ->
+    (* context variable *)
+    translate_typ ctx (Mark.remove t)
+  | TArrow _ -> ctx, ctx.ctx_dummy_sort (* TODO CONC REU other functions *)
   | TArray _ -> failwith "[translate_typ] TArray not implemented"
   | TAny -> failwith "[translate_typ] TAny not implemented"
   | TClosureEnv -> failwith "[translate_typ] TClosureEnv not implemented"
@@ -457,7 +486,11 @@ let get_symb_expr ?(dummy : s_expr option) (e : 'c conc_expr) : s_expr option =
    * TODO CONC this is very ugly and is just a botched fix for lambda-abs
    * appearing in structs *)
   (* TODO test *)
-  match custom.ty with Some (TArrow _, _) -> dummy | _ -> custom.symb_expr
+  (* custom.symb_expr *)
+  match custom.ty with
+  | Some (TArrow ([(TLit TUnit, _)], (TDefault _, _)), _) -> custom.symb_expr
+  | Some (TArrow _, _) -> dummy
+  | _ -> custom.symb_expr
 
 let get_constraints (e : 'c conc_expr) : path_constraint list =
   let (Custom { custom; _ }) = Mark.get e in
@@ -471,6 +504,10 @@ let gather_constraints (es : 'c conc_expr list) =
 let get_type (e : 'c conc_expr) : typ option =
   let (Custom { custom; _ }) = Mark.get e in
   custom.ty
+
+let get_reentrant_name (e : 'c conc_expr) : StructField.t option =
+  let (Custom { custom; _ }) = Mark.get e in
+  custom.reentrant_name
 
 let make_z3_struct ctx (name : StructName.t) (es : s_expr list) : s_expr =
   let sort = StructName.Map.find name ctx.ctx_z3structs in
@@ -580,10 +617,17 @@ let replace_EVar_mark
     match Var.Map.find_opt v vars_args with
     | Some arg ->
       let symb_expr = get_symb_expr arg in
-      Message.emit_debug "EApp>binder put mark %s on var %a"
+      let reentrant_name = get_reentrant_name arg in
+      (* TODO CONC REU [reentrant_name] is information to pass down as well! *)
+      Message.emit_debug "EApp>binder put mark %s%s on var %a"
         (Option.fold ~none:"None" ~some:Z3.Expr.to_string symb_expr)
+        (if Option.is_some reentrant_name then
+           " <"
+           ^ Mark.remove (StructField.get_info @@ Option.get reentrant_name)
+           ^ ">"
+         else "")
         (Print.expr ()) e;
-      add_conc_info_e symb_expr ~constraints:[] e
+      add_conc_info_e symb_expr ~constraints:[] ~reentrant_name e
     (* NOTE CONC we keep the position from the var, as in concrete
        interpreter *)
     | None -> e)
@@ -1084,7 +1128,8 @@ let rec evaluate_operator
 let rec evaluate_expr :
     context -> Cli.backend_lang -> yes conc_expr -> yes conc_expr =
  fun ctx lang e ->
-  (* Message.emit_debug "eval %a" (Print.expr ()) e; *)
+  Message.emit_debug "eval %a\nsymbolic: %s" (Print.expr ()) e
+    (Option.fold ~none:"None" ~some:Z3.Expr.to_string (get_symb_expr e));
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
   match Mark.remove e with
@@ -1146,7 +1191,9 @@ let rec evaluate_expr :
         Message.emit_debug "EApp>EAbs substituted binder evaluated";
         (* TODO [Expr.subst]? *)
         let r_symb = get_symb_expr result in
-        Message.emit_debug "EApp>EAbs extracted symbolic expressions";
+        Message.emit_debug
+          "EApp>EAbs extracted symbolic expression from result: %s"
+          (Option.fold ~none:"None" ~some:Z3.Expr.to_string r_symb);
         let r_constraints = get_constraints result in
         (* the constraints generated by the evaluation of the application are:
          * - those generated by the evaluation of the function
@@ -1337,7 +1384,7 @@ let rec evaluate_expr :
       let arm_conditions = make_z3_arm_conditions ctx name e_symb cons in
       let arm_path_constraints =
         List.map
-          (fun (s, b) -> make_path_constraint s (Expr.pos e) b)
+          (fun (s, b) -> make_z3_path_constraint s (Expr.pos e) b)
           arm_conditions
       in
 
@@ -1373,7 +1420,7 @@ let rec evaluate_expr :
       let c_symb = Z3.Expr.simplify c_symb None in
       (* TODO factorize the simplifications? *)
       let c_path_constraint =
-        make_path_constraint c_symb (Expr.pos cond) true
+        make_z3_path_constraint c_symb (Expr.pos cond) true
       in
       (* the constraints generated by the ifthenelse when [cond] is true are :
        * - those generated by the evaluation of [cond]
@@ -1394,7 +1441,7 @@ let rec evaluate_expr :
       let not_c_symb = Z3.Expr.simplify not_c_symb None in
       (* TODO factorize the simplifications? *)
       let not_c_path_constraint =
-        make_path_constraint not_c_symb (Expr.pos cond) false
+        make_z3_path_constraint not_c_symb (Expr.pos cond) false
       in
       (* the constraints generated by the ifthenelse when [cond] is false are :
        * - those generated by the evaluation of [cond]
@@ -1426,6 +1473,39 @@ let rec evaluate_expr :
          applied in this situation)"
     | e -> e
     (* just pass along the concrete and symbolic values, and the constraints *))
+  | EDefault
+      {
+        excepts =
+          [((EApp { f = EAbs _, _; args = [(ELit LUnit, _)]; _ }, _) as e)];
+        just = ELit (LBool true), _;
+        cons;
+      } -> (
+    Message.emit_debug "... it's a context variable definition %a"
+      (Print.expr ()) e;
+
+    let except = evaluate_expr ctx lang e in
+    let pos = Expr.pos except in
+    let name = Option.get (get_reentrant_name except) in
+    (* TODO catch, but should not fail *)
+    match Mark.remove except with
+    | EEmptyError ->
+      let is_empty : path_constraint =
+        make_reentrant_path_constraint name true pos
+      in
+      let result = evaluate_expr ctx lang cons in
+      let r_symb = get_symb_expr result in
+      let r_constraints = get_constraints result in
+      let constraints = r_constraints @ [is_empty] in
+      add_conc_info_e r_symb ~constraints result
+    | _ ->
+      let not_is_empty : path_constraint =
+        make_reentrant_path_constraint name false pos
+      in
+      (* the only constraint is the new one encoding the fact that there is a
+         reentrant value, and the symbolic expression is that of the reentering
+         value *)
+      let constraints = [not_is_empty] in
+      add_conc_info_e None ~constraints except)
   | EDefault { excepts; just; cons } -> (
     Message.emit_debug "... it's an EDefault";
     let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -1435,6 +1515,7 @@ let rec evaluate_expr :
     in
     match List.length excepts - empty_count with
     | 0 -> (
+      Message.emit_debug "EDefault>no except";
       let just = evaluate_expr ctx lang just in
       let j_symb_opt = get_symb_expr just in
       let j_symb = Option.get j_symb_opt in
@@ -1461,7 +1542,7 @@ let rec evaluate_expr :
         let j_symb = Z3.Expr.simplify j_symb None in
         (* TODO factorize the simplifications? *)
         let j_path_constraint =
-          make_path_constraint j_symb (Expr.pos just) true
+          make_z3_path_constraint j_symb (Expr.pos just) true
         in
         (* the constraints generated by the default when [just] is true are :
          * - those generated by the evaluation of the excepts
@@ -1477,7 +1558,7 @@ let rec evaluate_expr :
         let not_j_symb = Z3.Boolean.mk_not ctx.ctx_z3 j_symb in
         let not_j_symb = Z3.Expr.simplify not_j_symb None in
         let not_j_path_constraint =
-          make_path_constraint not_j_symb (Expr.pos just) false
+          make_z3_path_constraint not_j_symb (Expr.pos just) false
         in
         Message.emit_debug "EDefault>false adding %s to constraints"
           (Z3.Expr.to_string not_j_symb);
@@ -1495,6 +1576,7 @@ let rec evaluate_expr :
           "Default justification has not been reduced to a boolean at \
            evaluation (should not happen if the term was well-typed")
     | 1 ->
+      Message.emit_debug "EDefault>except";
       let r =
         List.find (fun sub -> not (Concrete.is_empty_error sub)) excepts
       in
@@ -1523,184 +1605,32 @@ let rec evaluate_expr :
 (** Create the mark of an input field from its name [field] and its type [ty].
     Note that this function guarantees that the type information will be present
     when calling [inputs_of_model] *)
-let make_input_mark ctx m field ty : conc_info mark =
+let make_input_mark ctx m field (ty : typ) : conc_info mark =
   let name = Mark.remove (StructField.get_info field) in
+  let pos = Expr.mark_pos m in
   let _, sort = translate_typ ctx (Mark.remove ty) in
   let symb_expr = Z3.Expr.mk_const_s ctx.ctx_z3 name sort in
+  let reentrant_name =
+    match Mark.remove ty with
+    | TArrow ([(TLit TUnit, _)], (TDefault _, _)) ->
+      Message.emit_debug "[make_input_mark] reentrant variable %s : %a" name
+        Print.typ_debug ty;
+      Some field
+    | _ -> None
+  in
   Custom
     {
-      pos = Expr.mark_pos m;
-      custom = { symb_expr = Some symb_expr; constraints = []; ty = Some ty };
+      pos;
+      custom =
+        {
+          symb_expr = Some symb_expr;
+          (* note that in the case of a reentrant variable, the symbol will
+             actually be used inside of the lambda abstraction *)
+          constraints = [];
+          ty = Some ty;
+          reentrant_name;
+        };
     }
-
-(** Create a dummy concolic mark with a position and a type. It has no symbolic
-    expression or constraints, and is used for subexpressions inside of input
-    structs whose mark is a single symbol. *)
-let dummy_mark pos ty : conc_info mark =
-  Custom { pos; custom = { symb_expr = None; constraints = []; ty = Some ty } }
-
-(** Get a default literal value from a literal type *)
-let default_lit_of_tlit t : lit =
-  match t with
-  | TBool -> LBool true
-  | TInt -> LInt (Z.of_int 42)
-  | TMoney -> LMoney (Runtime.money_of_units_int 42)
-  | TUnit -> LUnit
-  | TRat -> LRat (Runtime.decimal_of_string "42")
-  | TDate -> LDate DateEncoding.default_date
-  | TDuration -> LDuration DateEncoding.default_duration
-
-(** Get a default concolic expression from a type. The concolic [mark] is given
-    by the caller, and this function gives a default concrete value. This
-    function is expected to be called from [inputs_of_model] when Z3 has not
-    given a value for an input field. *)
-let rec default_expr_of_typ ctx mark ty : 'c conc_boxed_expr =
-  match Mark.remove ty with
-  | TLit t -> Expr.elit (default_lit_of_tlit t) mark
-  | TArrow (ty_in, ty_out) ->
-    (* TODO CONC this handling of functional inputs does not discriminate
-       between context variables (for which a value can be given, and whose
-       default case should be handled with care) and proper functions. For now,
-       we emit a warning that incompleteness may occur, and sometimes runtime
-       crashes caused by this default encoding of functions will happen as
-       well. *)
-    Message.emit_warning
-      "An input of the scope is a context variable or a function. In that \
-       case, the concolic exploration may be INCOMPLETE, and therefore miss \
-       errors.";
-    Expr.make_abs
-      (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-      (Bindlib.box EEmptyError, Expr.with_ty mark ty_out)
-      ty_in (Expr.mark_pos mark)
-  | TTuple _ -> failwith "TTuple not implemented"
-  | TStruct name ->
-    (* When a field of the input structure is a struct itself, its fields will
-       only be evaluated for their concrete values, as their symbolic value will
-       be accessed symbolically from the symbol of the input structure field.
-       Thus we can safely give a dummy mark, one with position and type for
-       printing, but no symbolic expression or constraint *)
-    let pos = Expr.mark_pos mark in
-    let fields_typ = StructName.Map.find name ctx.ctx_decl.ctx_structs in
-    let fields_expr =
-      StructField.Map.map
-        (fun ty -> default_expr_of_typ ctx (dummy_mark pos ty) ty)
-        fields_typ
-    in
-    Expr.estruct ~name ~fields:fields_expr mark
-  | TEnum name ->
-    (* Catala enums always have at least one case, so we can take the first one
-       we find and use it as the default case *)
-    let pos = Expr.mark_pos mark in
-    let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
-    let cstr_name, cstr_ty =
-      List.hd (EnumConstructor.Map.bindings constructors)
-    in
-    let cstr_e = default_expr_of_typ ctx (dummy_mark pos cstr_ty) cstr_ty in
-    Expr.einj ~name ~cons:cstr_name ~e:cstr_e mark
-  | TOption _ -> failwith "[default_expr_of_typ] TOption not implemented"
-  | TArray _ -> failwith "[default_expr_of_typ] TArray not implemented"
-  | TDefault _ -> failwith "[default_expr_of_typ] TDefault not implemented"
-  | TAny -> failwith "[default_expr_of_typ] TAny not implemented"
-  | TClosureEnv -> failwith "[default_expr_of_typ] TClosureEnv not implemented"
-
-(** Get the Z3 expression corresponding to the value of Z3 symbol constant [v]
-    in Z3 model [m]. [None] if [m] has not given a value. TODO CONC check that
-    the following hypothesis is correct : "get_const_interp_e only returns None
-    if the symbol constant can take any value" *)
-let interp_in_model (m : Z3.Model.model) (v : Z3.Expr.expr) : s_expr option =
-  Z3.Model.get_const_interp_e m v
-
-let value_of_symb_expr_lit tl e =
-  match tl with
-  | TInt -> LInt (integer_of_symb_expr e)
-  | TBool -> LBool (bool_of_symb_expr e)
-  | TMoney ->
-    let cents = integer_of_symb_expr e in
-    let money = Runtime.money_of_cents_integer cents in
-    LMoney money
-  | TRat -> LRat (decimal_of_symb_expr e)
-  | TUnit -> LUnit (* TODO maybe check that the Z3 value is indeed unit? *)
-  | TDate -> LDate (DateEncoding.decode_date e)
-  | TDuration -> LDuration (DateEncoding.decode_duration e)
-
-(** Make a Catala value from a Z3 expression. The concolic [mark] is given by
-    the caller, and this function gives a concrete value corresponding to
-    symbolic value [e]. This function is expected to be called from
-    [inputs_of_model] when Z3 has given a value for an input field. *)
-let rec value_of_symb_expr ctx model mark ty (e : s_expr) =
-  match Mark.remove ty with
-  | TLit tl ->
-    let lit = value_of_symb_expr_lit tl e in
-    Expr.elit lit mark
-  | TAny -> failwith "[value_of_symb_expr] TAny not implemented"
-  | TClosureEnv -> failwith "[value_of_symb_expr] TClosureEnv not implemented"
-  | TTuple _ -> failwith "[value_of_symb_expr] TTuple not implemented"
-  | TStruct name ->
-    (* To get the values of fields inside a Z3 struct and reconstruct a Catala
-       struct out of those, evaluate a Z3 "accessor" to the corresponding field
-       in the model *)
-    let pos = Expr.mark_pos mark in
-    let fields_typ = StructName.Map.find name ctx.ctx_decl.ctx_structs in
-    let expr_of_fd fd ty =
-      let access = make_z3_struct_access ctx name fd e in
-      let ev = Option.get (Z3.Model.eval model access true) in
-      value_of_symb_expr ctx model (dummy_mark pos ty) ty ev
-      (* See [default_expr_of_typ] for an explanation on the dummy mark *)
-    in
-    let fields_expr = StructField.Map.mapi expr_of_fd fields_typ in
-    Expr.estruct ~name ~fields:fields_expr mark
-  | TEnum name ->
-    let pos = Expr.mark_pos mark in
-    (* create a mapping of Z3 constructors to the Catala constructors of this
-       enum and their types *)
-    let sort = EnumName.Map.find name ctx.ctx_z3enums in
-    let z3_constructors = Z3.Datatype.get_constructors sort in
-    let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
-    let mapping =
-      List.combine z3_constructors (EnumConstructor.Map.bindings constructors)
-    in
-    (* get the Z3 constructor used in [e] *)
-    let e_constructor = Z3.Expr.get_func_decl e in
-    (* recover the constructor corresponding to the Z3 constructor *)
-    let _, (cstr_name, cstr_ty) =
-      try
-        List.find
-          (fun (cons1, _) -> Z3.FuncDecl.equal e_constructor cons1)
-          mapping
-      with Not_found ->
-        failwith
-          "value_of_symb_expr could not find what case of an enum was used. \
-           This should not happen."
-      (* TODO make better error *)
-    in
-    let e_arg = List.hd (Z3.Expr.get_args e) in
-    let arg =
-      value_of_symb_expr ctx model (dummy_mark pos cstr_ty) cstr_ty e_arg
-    in
-    Expr.einj ~name ~cons:cstr_name ~e:arg mark
-  | TOption _ -> failwith "[value_of_symb_expr] TOption not implemented"
-  | TArrow _ -> failwith "[value_of_symb_expr] TArrow not implemented"
-  | TArray _ -> failwith "[value_of_symb_expr] TArray not implemented"
-  | TDefault _ -> failwith "[value_of_symb_expr] TDefault not implemented"
-
-(** Get Catala values from a Z3 model, possibly using default values *)
-let inputs_of_model
-    ctx
-    (m : Z3.Model.model)
-    (input_marks : conc_info mark StructField.Map.t) :
-    'c conc_boxed_expr StructField.Map.t =
-  let f _ (mk : conc_info mark) =
-    let (Custom { custom; _ }) = mk in
-    let ty = Option.get custom.ty in
-    (* this get should not fail because [make_input_mark] always adds the type
-       information *)
-    let symb_expr_opt = interp_in_model m (Option.get custom.symb_expr) in
-    Option.fold
-      ~none:(default_expr_of_typ ctx mk ty)
-      ~some:(value_of_symb_expr ctx m mk ty)
-      symb_expr_opt
-  in
-  StructField.Map.mapi f input_marks
 
 (** Evaluation *)
 
@@ -1735,13 +1665,317 @@ let eval_conc_with_input
   Message.emit_debug "...inputs applied...";
   evaluate_expr ctx lang (Expr.unbox to_interpret)
 
+(** Constraint solving *)
+module Solver = struct
+  module Z3Solver = struct
+    type solver_result = Sat of Z3.Model.model option | Unsat | Unknown
+
+    let solve (z3ctx : Z3.context) (constraints : s_expr list) : solver_result =
+      let solver = Z3.Solver.mk_solver z3ctx None in
+      Z3.Solver.add solver constraints;
+      match Z3.Solver.check solver [] with
+      | SATISFIABLE -> Sat (Z3.Solver.get_model solver)
+      | UNSATISFIABLE -> Unsat
+      | UNKNOWN -> Unknown
+  end
+
+  type input = pc_expr list
+
+  type model = {
+    model_z3 : Z3.Model.model;
+    model_empty_reentrants : StructField.Set.t;
+  }
+
+  (* TODO make formatter *)
+  let string_of_model m =
+    let z3_string = Z3.Model.to_string m.model_z3 in
+    let empty_reentrants_list =
+      List.of_seq @@ StructField.Set.to_seq m.model_empty_reentrants
+    in
+    let empty_reentrants_strings =
+      List.map
+        (fun f -> Mark.remove (StructField.get_info f))
+        empty_reentrants_list
+    in
+    let reentrants_string =
+      List.fold_left (fun x acc -> x ^ ", " ^ acc) "" empty_reentrants_strings
+    in
+    "z3: " ^ z3_string ^ "\nreentrant: " ^ reentrants_string
+
+  type solver_result = Sat of model option | Unsat | Unknown
+
+  let split_input (l : input) : s_expr list * StructField.Set.t =
+    let rec aux l (acc_z3 : s_expr list) (acc_reentrant : StructField.Set.t) =
+      match l with
+      | [] -> acc_z3, acc_reentrant
+      | Pc_z3 e :: l' -> aux l' (e :: acc_z3) acc_reentrant
+      | Pc_reentrant e :: l' ->
+        aux l' acc_z3
+          (if e.is_empty then StructField.Set.add e.name acc_reentrant
+           else acc_reentrant)
+    in
+    aux l [] StructField.Set.empty
+
+  let solve (ctx : context) (constraints : input) =
+    let z3_constraints, model_empty_reentrants = split_input constraints in
+    match Z3Solver.solve ctx.ctx_z3 z3_constraints with
+    | Z3Solver.Sat (Some model_z3) ->
+      Sat (Some { model_z3; model_empty_reentrants })
+    | Z3Solver.Sat None -> Sat None
+    | Z3Solver.Unsat -> Unsat
+    | Z3Solver.Unknown -> Unknown
+
+  (** Create a dummy concolic mark with a position and a type. It has no
+      symbolic expression or constraints, and is used for subexpressions inside
+      of input structs whose mark is a single symbol. *)
+  let dummy_mark pos ty : conc_info mark =
+    Custom
+      {
+        pos;
+        custom =
+          {
+            symb_expr = None;
+            constraints = [];
+            ty = Some ty;
+            reentrant_name = None;
+          };
+      }
+
+  (** Get a default literal value from a literal type *)
+  let default_lit_of_tlit t : lit =
+    match t with
+    | TBool -> LBool true
+    | TInt -> LInt (Z.of_int 42)
+    | TMoney -> LMoney (Runtime.money_of_units_int 42)
+    | TUnit -> LUnit
+    | TRat -> LRat (Runtime.decimal_of_string "42")
+    | TDate -> LDate DateEncoding.default_date
+    | TDuration -> LDuration DateEncoding.default_duration
+
+  (** Get a default concolic expression from a type. The concolic [mark] is
+      given by the caller, and this function gives a default concrete value.
+      This function is expected to be called from [inputs_of_model] when Z3 has
+      not given a value for an input field. *)
+  let rec default_expr_of_typ ctx mark ty : 'c conc_boxed_expr =
+    match Mark.remove ty with
+    | TLit t -> Expr.elit (default_lit_of_tlit t) mark
+    | TArrow (ty_in, ty_out) ->
+      (* TODO CONC this handling of functional inputs does not discriminate
+         between context variables (for which a value can be given, and whose
+         default case should be handled with care) and proper functions. For
+         now, we emit a warning that incompleteness may occur, and sometimes
+         runtime crashes caused by this default encoding of functions will
+         happen as well. FIXME *)
+      Message.emit_warning
+        "An input of the scope is a context variable or a function. In that \
+         case, the concolic exploration may be INCOMPLETE, and therefore miss \
+         errors.";
+      Expr.make_abs
+        (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+        (Bindlib.box EEmptyError, Expr.with_ty mark ty_out)
+        ty_in (Expr.mark_pos mark)
+    | TTuple _ -> failwith "TTuple not implemented"
+    | TStruct name ->
+      (* When a field of the input structure is a struct itself, its fields will
+         only be evaluated for their concrete values, as their symbolic value
+         will be accessed symbolically from the symbol of the input structure
+         field. Thus we can safely give a dummy mark, one with position and type
+         for printing, but no symbolic expression or constraint *)
+      let pos = Expr.mark_pos mark in
+      let fields_typ = StructName.Map.find name ctx.ctx_decl.ctx_structs in
+      let fields_expr =
+        StructField.Map.map
+          (fun ty -> default_expr_of_typ ctx (dummy_mark pos ty) ty)
+          fields_typ
+      in
+      Expr.estruct ~name ~fields:fields_expr mark
+    | TEnum name ->
+      (* Catala enums always have at least one case, so we can take the first
+         one we find and use it as the default case *)
+      let pos = Expr.mark_pos mark in
+      let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
+      let cstr_name, cstr_ty =
+        List.hd (EnumConstructor.Map.bindings constructors)
+      in
+      let cstr_e = default_expr_of_typ ctx (dummy_mark pos cstr_ty) cstr_ty in
+      Expr.einj ~name ~cons:cstr_name ~e:cstr_e mark
+    | TOption _ -> failwith "[default_expr_of_typ] TOption not implemented"
+    | TArray _ -> failwith "[default_expr_of_typ] TArray not implemented"
+    | TDefault _ -> failwith "[default_expr_of_typ] TDefault not implemented"
+    | TAny -> failwith "[default_expr_of_typ] TAny not implemented"
+    | TClosureEnv ->
+      failwith "[default_expr_of_typ] TClosureEnv not implemented"
+
+  (** Get the Z3 expression corresponding to the value of Z3 symbol constant [v]
+      in Z3 model [m]. [None] if [m] has not given a value. TODO CONC check that
+      the following hypothesis is correct : "get_const_interp_e only returns
+      None if the symbol constant can take any value" *)
+  let interp_in_model (m : Z3.Model.model) (v : Z3.Expr.expr) : s_expr option =
+    Z3.Model.get_const_interp_e m v
+
+  let value_of_symb_expr_lit tl e =
+    match tl with
+    | TInt -> LInt (integer_of_symb_expr e)
+    | TBool -> LBool (bool_of_symb_expr e)
+    | TMoney ->
+      let cents = integer_of_symb_expr e in
+      let money = Runtime.money_of_cents_integer cents in
+      LMoney money
+    | TRat -> LRat (decimal_of_symb_expr e)
+    | TUnit -> LUnit (* TODO maybe check that the Z3 value is indeed unit? *)
+    | TDate -> LDate (DateEncoding.decode_date e)
+    | TDuration -> LDuration (DateEncoding.decode_duration e)
+
+  (** Make a Catala value from a Z3 expression. The concolic [mark] is given by
+      the caller, and this function gives a concrete value corresponding to
+      symbolic value [e]. This function is expected to be called from
+      [inputs_of_model] when Z3 has given a value for an input field. *)
+  let rec value_of_symb_expr ctx model mark ty (e : s_expr) =
+    match Mark.remove ty with
+    | TLit tl ->
+      let lit = value_of_symb_expr_lit tl e in
+      Expr.elit lit mark
+    | TAny -> failwith "[value_of_symb_expr] TAny not implemented"
+    | TClosureEnv -> failwith "[value_of_symb_expr] TClosureEnv not implemented"
+    | TTuple _ -> failwith "[value_of_symb_expr] TTuple not implemented"
+    | TStruct name ->
+      (* To get the values of fields inside a Z3 struct and reconstruct a Catala
+         struct out of those, evaluate a Z3 "accessor" to the corresponding
+         field in the model *)
+      let pos = Expr.mark_pos mark in
+      let fields_typ = StructName.Map.find name ctx.ctx_decl.ctx_structs in
+      let expr_of_fd fd ty =
+        let access = make_z3_struct_access ctx name fd e in
+        let ev = Option.get (Z3.Model.eval model access true) in
+        value_of_symb_expr ctx model (dummy_mark pos ty) ty ev
+        (* See [default_expr_of_typ] for an explanation on the dummy mark *)
+      in
+      let fields_expr = StructField.Map.mapi expr_of_fd fields_typ in
+      Expr.estruct ~name ~fields:fields_expr mark
+    | TEnum name ->
+      let pos = Expr.mark_pos mark in
+      (* create a mapping of Z3 constructors to the Catala constructors of this
+         enum and their types *)
+      let sort = EnumName.Map.find name ctx.ctx_z3enums in
+      let z3_constructors = Z3.Datatype.get_constructors sort in
+      let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
+      let mapping =
+        List.combine z3_constructors (EnumConstructor.Map.bindings constructors)
+      in
+      (* get the Z3 constructor used in [e] *)
+      let e_constructor = Z3.Expr.get_func_decl e in
+      (* recover the constructor corresponding to the Z3 constructor *)
+      let _, (cstr_name, cstr_ty) =
+        try
+          List.find
+            (fun (cons1, _) -> Z3.FuncDecl.equal e_constructor cons1)
+            mapping
+        with Not_found ->
+          failwith
+            "value_of_symb_expr could not find what case of an enum was used. \
+             This should not happen."
+        (* TODO make better error *)
+      in
+      let e_arg = List.hd (Z3.Expr.get_args e) in
+      let arg =
+        value_of_symb_expr ctx model (dummy_mark pos cstr_ty) cstr_ty e_arg
+      in
+      Expr.einj ~name ~cons:cstr_name ~e:arg mark
+    | TOption _ -> failwith "[value_of_symb_expr] TOption not implemented"
+    | TArrow _ -> failwith "[value_of_symb_expr] TArrow not implemented"
+    | TArray _ -> failwith "[value_of_symb_expr] TArray not implemented"
+    | TDefault _ -> failwith "[value_of_symb_expr] TDefault not implemented"
+
+  let make_term ctx z3_model mk ty symb_expr =
+    let symb_expr_opt = interp_in_model z3_model symb_expr in
+    Option.fold
+      ~none:(default_expr_of_typ ctx mk ty)
+      ~some:(value_of_symb_expr ctx z3_model mk ty)
+      symb_expr_opt
+
+  let make_reentrant_input ctx field z3_model empty_reentrants mk ty symb_expr :
+      'c conc_boxed_expr =
+    if StructField.Set.mem field empty_reentrants then (
+      (* If the context variable must evaluate to its default, then we make an
+         empty thunked term. NOTE that the information in the mark will be used
+         neither on the inner [EEmptyError], nor on the outer [EAbs]. *)
+      Message.emit_debug "[make_reentrant_input] empty";
+      Expr.empty_thunked_term mk)
+    else (
+      (* If the context variable must evaluate to a specific value computed by
+         the Z3 model, then we make this inner term and thunk it. NOTE that the
+         mark (with the symbolic expression that was used in Z3 is used in a
+         meaningful way on the the inner term, but it will not be used on the
+         outer [EAbs]. *)
+      Message.emit_debug "[make_reentrant_input] non empty";
+      match Mark.remove ty with
+      | TArrow ([(TLit TUnit, _)], (TDefault inner_ty, _)) ->
+        let term = make_term ctx z3_model mk inner_ty symb_expr in
+        let (Custom { custom; _ }) = Mark.get term in
+        let has_name = Option.is_some custom.reentrant_name in
+        Message.emit_debug "[make_reentrant_input] non empty > has name? %s"
+          (string_of_bool has_name);
+        Message.emit_debug "[make_reentrant_input] non empty > has symb? %s"
+          (Option.fold ~none:"None" ~some:Z3.Expr.to_string custom.symb_expr);
+        Expr.thunk_term term mk
+      | _ -> failwith "[make_reentrant_input] did not get an arrow type")
+
+  (** Get Catala values from a Z3 model, possibly using default values *)
+  let inputs_of_model
+      ctx
+      (m : model)
+      (input_marks : conc_info mark StructField.Map.t) :
+      'c conc_boxed_expr StructField.Map.t =
+    let f _ (mk : conc_info mark) : 'c conc_boxed_expr =
+      let (Custom { custom; _ }) = mk in
+      (* this get should not fail because [make_input_mark] always adds the type
+         information *)
+      let ty =
+        Option.get custom.ty
+        (* should not fail because [make_input_mark] always adds a ty *)
+      in
+      let symb_expr =
+        Option.get custom.symb_expr
+        (* should not fail because [make_input_mark] always adds a symb_expr *)
+      in
+      let t =
+        match custom.reentrant_name with
+        | Some field ->
+          (* Context variable *)
+          make_reentrant_input ctx field m.model_z3 m.model_empty_reentrants mk
+            ty symb_expr
+        | None ->
+          (* Input variable *)
+          make_term ctx m.model_z3 mk ty symb_expr
+      in
+      let (Custom { custom; _ }) = Mark.get t in
+      let has_name = Option.is_some custom.reentrant_name in
+      Message.emit_debug "[inputs_of_model] input has name? %s"
+        (string_of_bool has_name);
+      Message.emit_debug "[inputs_of_model] input has symb? %s"
+        (Option.fold ~none:"None" ~some:Z3.Expr.to_string custom.symb_expr);
+      t
+    in
+    StructField.Map.mapi f input_marks
+end
+
 (** Computation path logic *)
 
-(** Two path constraints are equal if their Z3 expressions are equal, and they
-    are marked with the same branch information. Position is not taken into
-    account as it is used only in printing and not in computations *)
+(* Two path constraint expressions are equal if they are of the same kind, and
+   if either their Z3 expressions are equal or their variable name and
+   "emptyness" are equal depending on that kind. *)
+let pc_expr_equal e e' : bool =
+  match e, e' with
+  | Pc_z3 e1, Pc_z3 e2 -> Z3.Expr.equal e1 e2
+  | Pc_reentrant e1, Pc_reentrant e2 ->
+    StructField.equal e1.name e2.name && e1.is_empty = e2.is_empty
+  | _, _ -> false
+
+(** Two path constraints are equal if their expressions are equal, and they are
+    marked with the same branch information. Position is not taken into account
+    as it is used only in printing and not in computations *)
 let path_constraint_equal c c' : bool =
-  Z3.Expr.equal c.expr c'.expr && c.branch = c'.branch
+  pc_expr_equal c.expr c'.expr && c.branch = c'.branch
 
 (** Compare the path of the previous evaluation and the path of the current
     evaluation. If a constraint was previously marked as Done or Normal, then
@@ -1764,6 +1998,8 @@ let rec compare_paths
   | Negated c :: p, c' :: p' ->
     if c.branch <> c'.branch then
       (* the branch has been successfully negated and is now done *)
+      (* FIXME we should have a way to know if c and c' are the same except for
+         their [branch] *)
       Done c' :: compare_paths p p'
     else failwith "[compare_paths] the negated condition lead to the same path"
   | Done c :: p, c' :: p' ->
@@ -1785,20 +2021,32 @@ let rec make_expected_path (path : annotated_path_constraint list) :
     failwith
       "[make_expected_path] found a negated constraint, which should not happen"
 
-(** Remove marks from an annotated path, to get a list of Z3 expressions to feed
-    in the solver. In doing so, actually negate constraints marked as Negated.
-    This function shall be called on an output of [make_expected_path]. *)
+(** Remove marks from an annotated path, to get a list of path constraints to
+    feed in the solver. In doing so, actually negate constraints marked as
+    Negated. This function shall be called on an output of [make_expected_path]. *)
 let constraint_list_of_path ctx (path : annotated_path_constraint list) :
-    s_expr list =
+    Solver.input =
   let f = function
     | Normal c -> c.expr
     | Done c -> c.expr
-    | Negated c -> Z3.Boolean.mk_not ctx.ctx_z3 c.expr
+    | Negated c -> begin
+      match c.expr with
+      | Pc_z3 e -> Pc_z3 (Z3.Boolean.mk_not ctx.ctx_z3 e)
+      | Pc_reentrant e -> Pc_reentrant { e with is_empty = not e.is_empty }
+    end
   in
   List.map f path
 
+let string_of_pc_expr (e : pc_expr) : string =
+  match e with
+  | Pc_z3 e -> Z3.Expr.to_string e
+  | Pc_reentrant { name; is_empty } ->
+    (if is_empty then "Empty(" else "NotEmpty(")
+    ^ Mark.remove (StructField.get_info name)
+    ^ ")"
+
 let string_of_path_constraint (pc : path_constraint) : string =
-  Z3.Expr.to_string pc.expr
+  string_of_pc_expr pc.expr
   ^
   if Cli.globals.debug then
     "@" ^ Pos.to_string_short pc.pos ^ " {" ^ string_of_bool pc.branch ^ "}"
@@ -1824,18 +2072,6 @@ let print_annotated_path_constraints constraints : unit =
       (Format.pp_print_list ~pp_sep Format.pp_print_string)
       (List.map aux constraints)
   end
-
-(** Z3 model solving *)
-
-type solver_result = Sat of Z3.Model.model option | Unsat | Unknown
-
-let solve_constraints ctx constraints : solver_result =
-  let solver = Z3.Solver.mk_solver ctx.ctx_z3 None in
-  Z3.Solver.add solver constraints;
-  match Z3.Solver.check solver [] with
-  | SATISFIABLE -> Sat (Z3.Solver.get_model solver)
-  | UNSATISFIABLE -> Unsat
-  | UNKNOWN -> Unknown
 
 let print_fields language (prefix : string) fields =
   let ordered_fields =
@@ -1872,17 +2108,17 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     (* TODO CONC should it be [mark_e] or something else? *)
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
 
-    let rec concolic_loop (path_constraints : annotated_path_constraint list) :
+    let rec concolic_loop (previous_path : annotated_path_constraint list) :
         unit =
       Message.emit_debug "";
-      print_annotated_path_constraints path_constraints;
-      let solver_constraints = constraint_list_of_path ctx path_constraints in
+      print_annotated_path_constraints previous_path;
+      let solver_constraints = constraint_list_of_path ctx previous_path in
 
-      match solve_constraints ctx solver_constraints with
-      | Sat (Some m) ->
+      match Solver.solve ctx solver_constraints with
+      | Solver.Sat (Some m) ->
         Message.emit_debug "Solver returned a model";
-        Message.emit_debug "model: %s" (Z3.Model.to_string m);
-        let inputs = inputs_of_model ctx m input_marks in
+        Message.emit_debug "model: %s" (Solver.string_of_model m);
+        let inputs = Solver.inputs_of_model ctx m input_marks in
 
         if not Cli.globals.debug then Message.emit_result "";
         Message.emit_result "Evaluating with inputs:";
@@ -1915,25 +2151,23 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
 
         (* TODO find a better way *)
         let new_path_constraints =
-          compare_paths
-            (List.rev path_constraints)
-            (List.rev res_path_constraints)
+          compare_paths (List.rev previous_path) (List.rev res_path_constraints)
           |> List.rev
           |> make_expected_path
         in
         if new_path_constraints = [] then ()
         else concolic_loop new_path_constraints
-      | Unsat -> begin
+      | Solver.Unsat -> begin
         Message.emit_debug "Solver returned Unsat";
-        match path_constraints with
+        match previous_path with
         | [] -> failwith "[CONC] Failed to solve without constraints"
         | _ :: new_path_constraints ->
           let new_expected_path = make_expected_path new_path_constraints in
           if new_expected_path = [] then () else concolic_loop new_expected_path
       end
-      | Sat None ->
+      | Solver.Sat None ->
         failwith "[CONC] Constraints satisfiable but no model was produced"
-      | Unknown -> failwith "[CONC] Unknown solver result"
+      | Solver.Unknown -> failwith "[CONC] Unknown solver result"
     in
 
     let _ = concolic_loop [] in

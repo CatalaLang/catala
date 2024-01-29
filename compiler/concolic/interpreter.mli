@@ -21,12 +21,19 @@ open Catala_utils
 open Shared_ast
 
 type s_expr = Z3.Expr.expr
-type path_constraint = { expr : s_expr; pos : Pos.t; branch : bool }
+
+type pc_expr =
+  | Pc_z3 of s_expr
+  | Pc_reentrant of { name : StructField.t; is_empty : bool }
+
+type path_constraint = { expr : pc_expr; pos : Pos.t; branch : bool }
 
 type _conc_info = {
   symb_expr : s_expr option;
   constraints : path_constraint list;
   ty : typ option;
+  reentrant_name : StructField.t option;
+      (* only for the lambda expression corresponding to a reentrant variable *)
 }
 
 type conc_info = _conc_info custom

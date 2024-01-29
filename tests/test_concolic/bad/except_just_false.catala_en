@@ -6,7 +6,7 @@ declaration scope A:
     output o content integer
 
 scope A:
-    definition o under condition x=43 consequence equals 0
+    definition o under condition x=-1 consequence equals 0
     exception definition o under condition x=42 consequence equals 1
     exception definition o under condition x=2 consequence equals 2
     exception definition o under condition x=3 consequence equals 3
@@ -19,7 +19,7 @@ let scope A (A_in: A_in {x_in: integer}): A {o: integer} =
   let set o : integer =
     error_empty
       ⟨ ⟨ ⟨x = 42 ⊢ ⟨1⟩⟩, ⟨x = 2 ⊢ ⟨2⟩⟩, ⟨x = 3 ⊢ ⟨3⟩⟩ | false ⊢ ∅ ⟩
-      | true ⊢ ⟨ ⟨x = 43 ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ ⟩
+      | true ⊢ ⟨ ⟨x = -1 ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
   return { A o = o; }
 ```
@@ -33,7 +33,7 @@ $ catala Concolic -s A
 [RESULT] . o = 1
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . x_in = 4
+[RESULT] . x_in = 43
 [ERROR]
 This variable evaluated to an empty term (no rule that defined it applied in this situation)
 
