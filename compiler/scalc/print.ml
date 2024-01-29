@@ -42,7 +42,6 @@ let rec format_expr
   | EVar v -> Format.fprintf fmt "%a" format_var_name v
   | EFunc v -> Format.fprintf fmt "%a" format_func_name v
   | EStruct { fields = es; name = s } ->
-    let fields = StructName.Map.find s decl_ctx.ctx_structs in
     Format.fprintf fmt "@[<hov 2>%a@ %a%a%a@]" StructName.format s
       Print.punctuation "{"
       (Format.pp_print_list
