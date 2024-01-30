@@ -106,9 +106,8 @@ type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
 (** A concolic expression is a concrete DCalc expression that carries its
     symbolic representation and the constraints necessary to compute it. Upon
     initialization, [symb_expr] is [None], except for inputs whose [symb_expr]
-    is a Z3 symbol constant. Then [symb_expr] is set by evaluation, except for
-    inputs which stay the same *)
-(* FIXME *)
+    is a symbol. Then [symb_expr] is set by evaluation, except for inputs which
+    stay the same *)
 
 type 'c conc_naked_expr = ((yes, no, 'c) interpr_kind, conc_info) naked_gexpr
 type 'c conc_boxed_expr = ((yes, no, 'c) interpr_kind, conc_info) boxed_gexpr
@@ -389,9 +388,8 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   | TTuple _ -> failwith "[translate_typ] TTuple not implemented"
   | TEnum name -> find_or_create_enum ctx name
   | TOption _ -> failwith "[translate_typ] TOption not implemented"
-  | TArrow ([(TLit TUnit, _)], (TDefault t, _)) ->
+  | TArrow ([(TLit TUnit, _)], (TDefault _, _)) ->
     (* context variable *)
-    (* translate_typ ctx (Mark.remove t) *)
     ctx, ctx.ctx_dummy_sort
   | TArrow _ -> ctx, ctx.ctx_dummy_sort (* TODO CONC REU other functions *)
   | TArray _ -> failwith "[translate_typ] TArray not implemented"
@@ -559,20 +557,6 @@ let get_symb_expr (e : 'c conc_expr) : SymbExpr.t =
   let (Custom { custom; _ }) = Mark.get e in
   custom.symb_expr
 
-let get_symb_expr_force ~(dummy : SymbExpr.t) (e : 'c conc_expr) : SymbExpr.t =
-  let (Custom { custom; _ }) = Mark.get e in
-  (* If the expression is a lambda abstraction, then give it a dummy value
-   * TODO CONC this is very ugly and is just a botched fix for lambda-abs
-   * appearing in structs *)
-  (* TODO test because this is really weird... is there a better solution? *)
-  match custom.ty, custom.symb_expr with
-  | ( Some (TArrow ([(TLit TUnit, _)], (TDefault _, _)), _),
-      Symb_reentrant { symbol; _ } ) ->
-    SymbExpr.mk_z3 symbol
-  | _, Symb_z3 _ -> custom.symb_expr
-  | Some (TArrow _, _), Symb_none -> dummy
-  | _, _ -> invalid_arg "[get_symb_expr_force]" (* FIXME *)
-
 let get_constraints (e : 'c conc_expr) : path_constraint list =
   let (Custom { custom; _ }) = Mark.get e in
   custom.constraints
@@ -586,26 +570,44 @@ let get_type (e : 'c conc_expr) : typ option =
   let (Custom { custom; _ }) = Mark.get e in
   custom.ty
 
-(* let get_reentrant (e : 'c conc_expr) : reentrant = match get_symb_expr e with
-   | Symb_reentrant r -> r | _ -> invalid_arg "[get_reentrant] expected a
-   concolic expression with \"reentrant\" \ symbolic expression" TODO remove? *)
-
-let make_z3_struct ctx (name : StructName.t) (es : SymbExpr.t list) : s_expr =
+let make_z3_struct ctx (name : StructName.t) (es : 'c conc_expr list) : s_expr =
   let sort = StructName.Map.find name ctx.ctx_z3structs in
   let constructor = List.hd (Z3.Datatype.get_constructors sort) in
-  let z3_of_symb_expr (e : SymbExpr.t) =
-    match e with
+  let z3_of_expr (e : 'c conc_expr) : s_expr =
+    (* TODO CONC REU
+     * To build a Z3 struct, all of the fields of the concolic struct must have
+     * a z3 symbolic expression.
+     * - Normal fields will have a z3 symbolic expression computed during their
+     *   evaluation (just before this function is called)
+     * - Context variables in input structures will have their reentrant
+     *   symbolic expression: we can put a dummy z3 constant (of the designated
+     *   dummy z3 sort), because this constant will not be accessed by a
+     *   StructAccess. Indeed, the only access to a reentrant field is during a
+     *   Default case that is handled in a specific way.
+     * - Functions do not have a symbolic value for now, so they can also have
+     *   the dummy z3 constant. They won't be accessed in a symbolic way because
+     *   the only expression in which they can be used is an application: in such a
+     *   case, the symbolic expression of the function is ignored and a new
+     *   symbolic expression is computed concolically (following the symbolic
+     *   expressoin of the body of function).
+     * - If a field is not a function but has no symbolic value, an error is
+     *   raised because its value should have been computed before.
+     *)
+    let e_symb = get_symb_expr e in
+    match e_symb with
     | Symb_z3 s -> s
     | Symb_reentrant _ -> ctx.ctx_dummy_const
-    | Symb_none ->
-      Message.emit_warning
-        "Making a structure with dummy sort from no symbolic value, this may \
-         lead to broken results.";
-      ctx.ctx_dummy_const
-    (* FIXME check if this should happen *)
+    | Symb_none -> (
+      match Mark.remove e with
+      | EAbs _ -> ctx.ctx_dummy_const
+      | _ ->
+        Message.raise_spanned_error (Expr.pos e)
+          "Fields of structs that are not functions or context variables must \
+           have a symbolic expression. This should not happen if the \
+           evaluation of fields worked.")
   in
-  let es = List.map z3_of_symb_expr es in
-  Z3.Expr.mk_app ctx.ctx_z3 constructor es
+  let es_symb = List.map z3_of_expr es in
+  Z3.Expr.mk_app ctx.ctx_z3 constructor es_symb
 
 (* taken from z3backend *)
 let make_z3_struct_access
@@ -1355,9 +1357,7 @@ let rec evaluate_expr :
       (* make symbolic expression using the symbolic sub-expressions *)
       (* TODO CONC here we activate the dummy value for lambda abstractions, it
          is not used but at least the [Option.get] does not crash *)
-      let symb_exprs = List.map get_symb_expr es in
-      Message.emit_debug "EStruct extracted symbolic expressions";
-      let symb_expr = SymbExpr.mk_z3 (make_z3_struct ctx name symb_exprs) in
+      let symb_expr = SymbExpr.mk_z3 (make_z3_struct ctx name es) in
 
       (* TODO catch error... should not happen *)
 
@@ -1592,7 +1592,6 @@ let rec evaluate_expr :
 
       let app = evaluate_expr ctx lang except in
       let pos = Expr.pos except in
-      let app_symb = get_symb_expr app in
       let abs_symb = get_symb_expr abs in
       match Mark.remove app with
       | EEmptyError ->
@@ -1730,12 +1729,20 @@ let make_input_mark ctx m field (ty : typ) : conc_info mark =
   let symb_expr =
     match Mark.remove ty with
     | TArrow ([(TLit TUnit, _)], (TDefault inner_ty, _)) ->
+      (* context variables are handled specifically *)
       Message.emit_debug "[make_input_mark] reentrant variable <%s> : %a" name
         Print.typ_debug ty;
       let _, inner_sort = translate_typ ctx (Mark.remove inner_ty) in
       let symbol = Z3.Expr.mk_const_s ctx.ctx_z3 name inner_sort in
       SymbExpr.mk_reentrant field symbol
+    | TArrow _ ->
+      (* TODO CONC REU proper functions are not allowed as input *)
+      Message.raise_spanned_error (Mark.get ty)
+        "This input of the scope is a function. This case is not handled by \
+         the concolic interpreter for now. You may want to call this scope \
+         from an other scope and provide a specific function as argument."
     | _ ->
+      (* other types *)
       let symbol = Z3.Expr.mk_const_s ctx.ctx_z3 name sort in
       SymbExpr.mk_z3 symbol
   in
@@ -1875,21 +1882,18 @@ module Solver = struct
   let rec default_expr_of_typ ctx mark ty : 'c conc_boxed_expr =
     match Mark.remove ty with
     | TLit t -> Expr.elit (default_lit_of_tlit t) mark
-    | TArrow (ty_in, ty_out) ->
-      (* TODO CONC this handling of functional inputs does not discriminate
-         between context variables (for which a value can be given, and whose
-         default case should be handled with care) and proper functions. For
-         now, we emit a warning that incompleteness may occur, and sometimes
-         runtime crashes caused by this default encoding of functions will
-         happen as well. FIXME *)
-      Message.emit_warning
-        "An input of the scope is a context variable or a function. In that \
-         case, the concolic exploration may be INCOMPLETE, and therefore miss \
-         errors.";
-      Expr.make_abs
-        (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-        (Bindlib.box EEmptyError, Expr.with_ty mark ty_out)
-        ty_in (Expr.mark_pos mark)
+    | TArrow ([(TLit TUnit, _)], (TDefault _, _)) ->
+      (* context variable *)
+      (* TODO CONC REU *)
+      Message.raise_spanned_error (Expr.mark_pos mark)
+        "[default_expr_of_typ] should not be called on a context variable. \
+         This should not happen if context variables were handled properly."
+    | TArrow _ ->
+      (* functions *)
+      (* TODO CONC REU *)
+      Message.raise_spanned_error (Expr.mark_pos mark)
+        "[default_expr_of_typ] should not be called on a function. This should \
+         not happen if functions were handled properly."
     | TTuple _ -> failwith "TTuple not implemented"
     | TStruct name ->
       (* When a field of the input structure is a struct itself, its fields will
@@ -2008,8 +2012,11 @@ module Solver = struct
         value_of_symb_expr ctx model (dummy_mark pos cstr_ty) cstr_ty e_arg
       in
       Expr.einj ~name ~cons:cstr_name ~e:arg mark
+    | TArrow _ ->
+      Message.raise_spanned_error (Expr.mark_pos mark)
+        "[value_of_symb_expr] should not be called on a context variable or a \
+         function. This should not happen if they were handled properly"
     | TOption _ -> failwith "[value_of_symb_expr] TOption not implemented"
-    | TArrow _ -> failwith "[value_of_symb_expr] TArrow not implemented"
     | TArray _ -> failwith "[value_of_symb_expr] TArray not implemented"
     | TDefault _ -> failwith "[value_of_symb_expr] TDefault not implemented"
 

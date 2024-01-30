@@ -93,25 +93,19 @@ and catch the EmptyError. However, proper functions don't behave properly in
 this context. This is expected behaviour for the concrete interpreter, but the
 then it fails with an emtpy error.
 
-And for now, the concolic interpreter does not handle this any better. There is
-an incompleteness warning whenever an input is a function, but the actual error
-is an "emtpy" error.
+For now, the concolic interpreter detects functions that do not encode context
+variables, and refuses to procede:
 
 ```catala-test-inline
 $ catala Concolic -s A
-[WARNING] An input of the scope is a context variable or a function. In that case, the concolic exploration may be INCOMPLETE, and therefore miss errors.
-[RESULT] 
-[RESULT] Evaluating with inputs:
-[RESULT] . f_in = <function>
-[RESULT] . x_in = 42
 [ERROR]
-This variable evaluated to an empty term (no rule that defined it applied in this situation)
+This input of the scope is a function. This case is not handled by the concolic interpreter for now. You may want to call this scope from an other scope and provide a specific function as argument.
 
-┌─⯈ tests/test_concolic/bad/func.catala_en:11.14-11.15:
-└──┐
-11 │     internal r content boolean
-   │              ‾
-   └─ Article
+┌─⯈ tests/test_concolic/bad/func.catala_en:9.11-9.12:
+└─┐
+9 │     input f content boolean depends on x content integer
+  │           ‾
+  └─ Article
 #return code 123#
 ```
 
@@ -132,25 +126,16 @@ $ catala Concolic -s B
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = 42
-[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
-[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
-[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 1
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = 1
-[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
-[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
-[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 2
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = 0
-[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
-[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
-[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 0
 [RESULT] 
