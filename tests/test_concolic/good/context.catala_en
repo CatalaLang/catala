@@ -1,0 +1,49 @@
+## Article
+
+```catala
+declaration scope A:
+    context output x content integer
+    output o content integer
+
+scope A:
+    definition x equals 30
+    definition o equals 1
+    exception definition o under condition x<0 consequence equals 2
+    exception definition o under condition x=30 consequence equals 3
+```
+
+Note that because we have a specific constraint for `x` having its default
+value, output `3` is found twice: once when `x = λ(). 30` and once when `x =
+λ(). ∅` but its default value is `30`.
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = <function>
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] . x = 42
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = <function>
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] . x = -1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = <function>
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
+[RESULT] . x = 30
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = <function>
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
+[RESULT] . x = 30
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+

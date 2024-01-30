@@ -2,21 +2,37 @@
 
 ```catala
 declaration positive content boolean
-depends on x content integer
-equals x >= 0
+    depends on x content integer
+    equals x > 0
 
 declaration scope A:
     input f content boolean depends on x content integer
-    output o content boolean
+    input x content integer
+    internal r content boolean
+    output o condition
 
 scope A:
-    definition o equals f of (-10)
+    definition r equals f of x
+    rule o under condition r consequence fulfilled
 
 declaration scope B:
-    output o content boolean
+    input x content integer
+    internal r content boolean
+    output o content integer
 
 scope B:
-    definition o equals (output of A with { -- f : positive }).o
+    definition r equals (output of A with { -- f : positive -- x : x}).o
+    definition o equals 0
+    exception definition o under condition r and x>10 consequence equals 1
+    exception definition o under condition r and x<=10 consequence equals 2
+    exception definition o under condition r and x<-10 consequence equals -3 # unreachable
+
+declaration scope TestB:
+    internal o content integer
+
+scope TestB:
+    definition o equals (output of B with {-- x: 10}).o
+    assertion o = 2
 ```
 
 ```catala-test-inline
@@ -24,22 +40,49 @@ $ catala DCalc
 let A : A_in → A =
   λ (A_in: A_in) →
   let f : integer → bool = A_in.f_in in
-  let o : bool = error_empty ⟨ ⟨true ⊢ ⟨f -10⟩⟩ | false ⊢ ∅ ⟩ in
-  { A o = o; }
-in
-let positive : integer → bool = λ (x: integer) → x >= 0 in
-let B : B_in → B =
-  λ (B_in: B_in) →
+  let x : integer = A_in.x_in in
+  let r : bool = error_empty ⟨ ⟨true ⊢ ⟨f x⟩⟩ | false ⊢ ∅ ⟩ in
   let o : bool =
     error_empty
+      ⟨ ⟨ ⟨r ⊢ ⟨true⟩⟩ | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  { A o = o; }
+in
+let positive : integer → bool = λ (x: integer) → x > 0 in
+let B : B_in → B =
+  λ (B_in: B_in) →
+  let x : integer = B_in.x_in in
+  let r : bool =
+    error_empty
       ⟨ ⟨true
-         ⊢ ⟨(let result : A = A { A_in f_in = positive; } in
+         ⊢ ⟨(let result : A = A { A_in f_in = positive; x_in = x; } in
              let result1 : A = { A o = result.o; } in
              if true then result1 else result1).
               o⟩⟩
       | false ⊢ ∅ ⟩
   in
+  let o : integer =
+    error_empty
+      ⟨ ⟨ ⟨r && x > 10 ⊢ ⟨1⟩⟩, ⟨r && x <= 10 ⊢ ⟨2⟩⟩, ⟨r && x < -10 ⊢ ⟨-3⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
   { B o = o; }
+in
+let TestB : TestB_in → TestB =
+  λ (TestB_in: TestB_in) →
+  let o : integer =
+    error_empty
+      ⟨ ⟨true
+         ⊢ ⟨(let result : B = B { B_in x_in = 10; } in
+             let result1 : B = { B o = result.o; } in
+             if true then result1 else result1).
+              o⟩⟩
+      | false ⊢ ∅ ⟩
+  in
+  let _ : unit = assert ((o = 2)) in
+  {TestB}
 in
 A
 ```
@@ -48,25 +91,11 @@ Scope A takes a function as input. The concrete interpreter always gives it the
 value (λ () -> ∅). This works for context variables that do take unit argument
 and catch the EmptyError. However, proper functions don't behave properly in
 this context. This is expected behaviour for the concrete interpreter, but the
-error message/warning is not very explicit about it.
+then it fails with an emtpy error.
 
-```catala-test-inline
-$ catala Interpret -s A
-[ERROR]
-This variable evaluated to an empty term (no rule that defined it applied in this situation): 
-error_empty ⟨ ⟨true ⊢ ⟨let _ : integer = -10 in
-                       ∅⟩⟩ | false ⊢ ∅ ⟩
-
-┌─⯈ tests/test_concolic/bad/func.catala_en:10.12-10.13:
-└──┐
-10 │     output o content boolean
-   │            ‾
-   └─ Article
-#return code 123#
-```
-
-And then for now, the concolic interpreter does not handle this any better. For
-now, there is an incompleteness warning whenever an input is a function.
+And for now, the concolic interpreter does not handle this any better. There is
+an incompleteness warning whenever an input is a function, but the actual error
+is an "emtpy" error.
 
 ```catala-test-inline
 $ catala Concolic -s A
@@ -74,29 +103,56 @@ $ catala Concolic -s A
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . f_in = <function>
+[RESULT] . x_in = 42
 [ERROR]
 This variable evaluated to an empty term (no rule that defined it applied in this situation)
 
-┌─⯈ tests/test_concolic/bad/func.catala_en:10.12-10.13:
+┌─⯈ tests/test_concolic/bad/func.catala_en:11.14-11.15:
 └──┐
-10 │     output o content boolean
-   │            ‾
+11 │     internal r content boolean
+   │              ‾
    └─ Article
 #return code 123#
 ```
 
+However, the concrete interpreter can handle `B` which calls scope `A` with a
+specific function and input.
+
 ```catala-test-inline
-$ catala Interpret -s B
-[RESULT] Computation successful! Results:
-[RESULT] o = false
+$ catala Interpret -s TestB
+[RESULT] Computation successful!
 ```
+
+And now the concolic interpreter can do that as well, and even gather a
+constraint from it and negate it!
+Note that there are a few too many warnings for now.
 
 ```catala-test-inline
 $ catala Concolic -s B
 [RESULT] 
 [RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
+[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
+[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
 [RESULT] Output of scope after evaluation:
-[RESULT] . o = false
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 1
+[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
+[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
+[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 0
+[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
+[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
+[WARNING] Making a structure with dummy sort from no symbolic value, this may lead to broken results.
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

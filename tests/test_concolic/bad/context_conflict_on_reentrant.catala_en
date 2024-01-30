@@ -1,0 +1,40 @@
+## Article
+
+```catala
+declaration scope A:
+    context output x content integer
+    output o content integer
+
+scope A:
+    definition x equals 0
+    definition o equals 10
+    definition o under condition x>0 consequence equals 20
+```
+
+Catala gives `(λ(). 42)` as a default value to `x` so the conflict on the
+definition of `o` is found.
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = <function>
+[ERROR]
+There is a conflict between multiple valid consequences for assigning the same variable.
+
+This consequence has a valid justification:
+┌─⯈ tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:10.25-10.27:
+└──┐
+10 │     definition o equals 10
+   │                         ‾‾
+   └─ Article
+
+This consequence has a valid justification:
+┌─⯈ tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:11.57-11.59:
+└──┐
+11 │     definition o under condition x>0 consequence equals 20
+   │                                                         ‾‾
+   └─ Article
+#return code 123#
+```
+
