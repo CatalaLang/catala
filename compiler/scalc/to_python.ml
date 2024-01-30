@@ -394,8 +394,14 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | ETuple _ | ETupleAccess _ ->
-    Message.raise_internal_error "Tuple compilation to R unimplemented!"
+  | ETuple es ->
+    Format.fprintf fmt "(%a)"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (fun fmt e -> Format.fprintf fmt "%a" (format_expression ctx) e))
+      es
+  | ETupleAccess { e1; index } ->
+    Format.fprintf fmt "%a[%d]" (format_expression ctx) e1 index
 
 let rec format_statement
     (ctx : decl_ctx)
