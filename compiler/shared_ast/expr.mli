@@ -366,6 +366,9 @@ val make_tuple :
 (** Builds a tuple; the mark argument is only used as witness and for position
     when building 0-uples *)
 
+val make_tupleaccess :
+  ('a any, 'm) boxed_gexpr -> int -> int -> Pos.t -> ('a, 'm) boxed_gexpr
+
 (** {2 Transformations} *)
 
 val skip_wrappers : ('a, 'm) gexpr -> ('a, 'm) gexpr

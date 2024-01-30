@@ -124,7 +124,7 @@ let rec transform_closures_expr :
         ~args:new_args ~tys m )
   | EAbs { binder; tys } ->
     (* λ x.t *)
-    let binder_mark = m in
+    let binder_mark = Expr.with_ty m (TAny, Expr.mark_pos m) in
     let binder_pos = Expr.mark_pos binder_mark in
     (* Converting the closure. *)
     let vars, body = Bindlib.unmbind binder in
@@ -153,11 +153,11 @@ let rec transform_closures_expr :
            (List.map (fun _ -> any_ty) extra_vars_list)
            (List.mapi
               (fun i _ ->
-                Expr.etupleaccess
-                  ~e:(Expr.evar closure_env_var binder_mark)
-                  ~index:i
-                  ~size:(List.length extra_vars_list)
-                  binder_mark)
+                Expr.make_tupleaccess
+                  (Expr.evar closure_env_var binder_mark)
+                  i
+                  (List.length extra_vars_list)
+                  binder_pos)
               extra_vars_list)
            new_body binder_pos)
         binder_pos
@@ -174,7 +174,7 @@ let rec transform_closures_expr :
       Expr.make_let_in code_var
         (TAny, Expr.pos e)
         new_closure
-        (Expr.etuple
+        (Expr.make_tuple
            ((Bindlib.box_var code_var, binder_mark)
            :: [
                 Expr.eappop ~op:Operator.ToClosureEnv
@@ -243,6 +243,18 @@ let rec transform_closures_expr :
   | EApp { f = e1; args; tys } ->
     let free_vars, new_e1 = (transform_closures_expr ctx) e1 in
     let code_env_var = Var.make "code_and_env" in
+    let code_env_expr =
+      let pos = Expr.pos e1 in
+      Expr.evar code_env_var
+        (Expr.with_ty (Mark.get e1)
+           ( TTuple
+               [
+                 ( TArrow ((TClosureEnv, pos) :: tys, (TAny, Expr.pos e)),
+                   Expr.pos e );
+                 TClosureEnv, pos;
+               ],
+             pos ))
+    in
     let env_var = Var.make "env" in
     let code_var = Var.make "code" in
     let free_vars, new_args =
@@ -254,16 +266,13 @@ let rec transform_closures_expr :
     in
     let call_expr =
       let m1 = Mark.get e1 in
+      let pos = Expr.mark_pos m in
       let env_arg_ty = TClosureEnv, Expr.pos e1 in
-      Expr.make_multiple_let_in [| code_var; env_var |]
-        [TArrow (env_arg_ty :: tys, (TAny, Expr.pos e)), Expr.pos e; env_arg_ty]
+      let fun_ty = TArrow (env_arg_ty :: tys, (TAny, Expr.pos e)), Expr.pos e in
+      Expr.make_multiple_let_in [| code_var; env_var |] [fun_ty; env_arg_ty]
         [
-          Expr.etupleaccess
-            ~e:(Bindlib.box_var code_env_var, m1)
-            ~index:0 ~size:2 m;
-          Expr.etupleaccess
-            ~e:(Bindlib.box_var code_env_var, m1)
-            ~index:1 ~size:2 m;
+          Expr.make_tupleaccess code_env_expr 0 2 pos;
+          Expr.make_tupleaccess code_env_expr 1 2 pos;
         ]
         (Expr.eapp
            ~f:(Bindlib.box_var code_var, m1)
@@ -653,6 +662,9 @@ let hoist_closures_program (p : 'm program) : 'm program Bindlib.box =
 
 (** {1 Closure conversion}*)
 
-let closure_conversion (p : 'm program) : 'm program Bindlib.box =
+let closure_conversion (p : 'm program) : untyped program =
   let new_p = transform_closures_program p in
-  hoist_closures_program (Bindlib.unbox new_p)
+  let new_p = hoist_closures_program (Bindlib.unbox new_p) in
+  (* FIXME: either fix the types of the marks, or remove the types annotations
+     during the main processing (rather than requiring a new traversal) *)
+  Program.untype (Bindlib.unbox new_p)

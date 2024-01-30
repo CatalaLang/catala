@@ -238,13 +238,12 @@ module Passes = struct
         Message.raise_error
           "Option --avoid-exceptions is not compatible with option --trace"
       | true, _, Untyped _ ->
-        Program.untype
-          (Lcalc.From_dcalc.translate_program_without_exceptions
-             (Shared_ast.Typing.program ~leave_unresolved:ErrorOnAny prg))
+        Lcalc.From_dcalc.translate_program_without_exceptions
+          (Shared_ast.Typing.program ~leave_unresolved:ErrorOnAny prg)
       | true, _, Typed _ ->
         Lcalc.From_dcalc.translate_program_without_exceptions prg
       | false, _, Typed _ ->
-        Program.untype (Lcalc.From_dcalc.translate_program_with_exceptions prg)
+        Lcalc.From_dcalc.translate_program_with_exceptions prg
       | false, _, Untyped _ ->
         Lcalc.From_dcalc.translate_program_with_exceptions
           (Shared_ast.Typing.program ~leave_unresolved:ErrorOnAny prg)
@@ -258,21 +257,21 @@ module Passes = struct
       else prg
     in
     let prg =
-      if not closure_conversion then prg
+      if not closure_conversion then (
+        Message.emit_debug "Retyping lambda calculus...";
+        Typing.program ~leave_unresolved:LeaveAny prg)
       else (
         Message.emit_debug "Performing closure conversion...";
         let prg = Lcalc.Closure_conversion.closure_conversion prg in
-        let prg = Bindlib.unbox prg in
         let prg =
           if optimize then (
             Message.emit_debug "Optimizing lambda calculus...";
             Optimizations.optimize_program prg)
           else prg
         in
-        prg)
+        Message.emit_debug "Retyping lambda calculus...";
+        Typing.program ~leave_unresolved:LeaveAny prg)
     in
-    Message.emit_debug "Retyping lambda calculus...";
-    let prg = Typing.program ~leave_unresolved:LeaveAny prg in
     let prg, type_ordering =
       if monomorphize_types then (
         Message.emit_debug "Monomorphizing types...";

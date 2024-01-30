@@ -933,6 +933,23 @@ let make_tuple el m0 =
     in
     etuple el m
 
+let make_tupleaccess e index size pos =
+  let m =
+    map_mark
+      (fun _ -> pos)
+      (function
+        | TTuple tl, _ -> (
+          try List.nth tl index
+          with Failure _ ->
+            Message.raise_internal_error "Trying to build invalid tuple access")
+        | TAny, pos -> TAny, pos
+        | ty ->
+          Message.raise_internal_error "Unexpected non-tuple type annotation %a"
+            Print.typ_debug ty)
+      (Mark.get e)
+  in
+  etupleaccess ~e ~index ~size m
+
 let make_app f args tys pos =
   let mark =
     fold_marks
