@@ -140,6 +140,7 @@ let eifthenelse cond etrue efalse =
 
 let eerroronempty e1 = Box.app1 e1 @@ fun e1 -> EErrorOnEmpty e1
 let eemptyerror mark = Mark.add mark (Bindlib.box EEmptyError)
+let egenericerror mark = Mark.add mark (Bindlib.box EGenericError)
 let eraise e1 = Box.app0 @@ ERaise e1
 
 let ecatch body exn handler =
@@ -296,6 +297,7 @@ let map
   | EPureDefault e1 -> epuredefault (f e1) m
   | EEmptyError -> eemptyerror m
   | EErrorOnEmpty e1 -> eerroronempty (f e1) m
+  | EGenericError -> egenericerror m
   | ECatch { body; exn; handler } -> ecatch (f body) exn (f handler) m
   | ERaise exn -> eraise exn m
   | ELocation loc -> elocation loc m
@@ -324,7 +326,9 @@ let shallow_fold
     (acc : 'acc) : 'acc =
   let lfold x acc = List.fold_left (fun acc x -> f x acc) acc x in
   match Mark.remove e with
-  | ELit _ | EVar _ | EExternal _ | ERaise _ | ELocation _ | EEmptyError -> acc
+  | ELit _ | EVar _ | EExternal _ | ERaise _ | ELocation _ | EEmptyError
+  | EGenericError ->
+    acc
   | EApp { f = e; args; _ } -> acc |> f e |> lfold args
   | EAppOp { args; _ } -> acc |> lfold args
   | EArray args -> acc |> lfold args
@@ -414,6 +418,7 @@ let map_gather
   | EErrorOnEmpty e ->
     let acc, e = f e in
     acc, eerroronempty e m
+  | EGenericError -> acc, egenericerror m
   | ECatch { body; exn; handler } ->
     let acc1, body = f body in
     let acc2, handler = f handler in
@@ -617,6 +622,7 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     equal if1 if2 && equal then1 then2 && equal else1 else2
   | EEmptyError, EEmptyError -> true
   | EErrorOnEmpty e1, EErrorOnEmpty e2 -> equal e1 e2
+  | EGenericError, EGenericError -> true
   | ERaise ex1, ERaise ex2 -> equal_except ex1 ex2
   | ( ECatch { body = etry1; exn = ex1; handler = ewith1 },
       ECatch { body = etry2; exn = ex2; handler = ewith2 } ) ->
@@ -648,9 +654,9 @@ and equal : type a. (a, 't) gexpr -> (a, 't) gexpr -> bool =
     Type.equal_list targs1 targs2 && Type.equal tret1 tret2 && obj1 == obj2
   | ( ( EVar _ | EExternal _ | ETuple _ | ETupleAccess _ | EArray _ | ELit _
       | EAbs _ | EApp _ | EAppOp _ | EAssert _ | EDefault _ | EPureDefault _
-      | EIfThenElse _ | EEmptyError | EErrorOnEmpty _ | ERaise _ | ECatch _
-      | ELocation _ | EStruct _ | EDStructAccess _ | EStructAccess _ | EInj _
-      | EMatch _ | EScopeCall _ | ECustom _ ),
+      | EIfThenElse _ | EEmptyError | EErrorOnEmpty _ | EGenericError | ERaise _
+      | ECatch _ | ELocation _ | EStruct _ | EDStructAccess _ | EStructAccess _
+      | EInj _ | EMatch _ | EScopeCall _ | ECustom _ ),
       _ ) ->
     false
 
@@ -768,6 +774,7 @@ let rec compare : type a. (a, _) gexpr -> (a, _) gexpr -> int =
   | EPureDefault _, _ -> -1 | _, EPureDefault _ -> 1
   | EEmptyError , _ -> -1 | _, EEmptyError  -> 1
   | EErrorOnEmpty _, _ -> -1 | _, EErrorOnEmpty _ -> 1
+  | EGenericError , _ -> -1 | _, EGenericError  -> 1
   | ERaise _, _ -> -1 | _, ERaise _ -> 1
   | ECatch _, _ -> . | _, ECatch _ -> .
 
@@ -875,7 +882,7 @@ let format ppf e = Print.expr ~debug:false () ppf e
 let rec size : type a. (a, 't) gexpr -> int =
  fun e ->
   match Mark.remove e with
-  | EVar _ | EExternal _ | ELit _ | EEmptyError | ECustom _ -> 1
+  | EVar _ | EExternal _ | ELit _ | EEmptyError | EGenericError | ECustom _ -> 1
   | ETuple args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | EArray args -> List.fold_left (fun acc arg -> acc + size arg) 1 args
   | ETupleAccess { e; _ } -> size e + 1

@@ -144,6 +144,7 @@ type desugared =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
+  ; genericErrors : no
   ; exceptions : no
   ; custom : no >
 (* Technically, desugared before name resolution has [syntacticNames: yes;
@@ -165,6 +166,7 @@ type scopelang =
   ; explicitScopes : yes
   ; assertions : no
   ; defaultTerms : yes
+  ; genericErrors : no
   ; exceptions : no
   ; custom : no >
 
@@ -179,6 +181,7 @@ type dcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : yes
+  ; genericErrors : no
   ; exceptions : no
   ; custom : no >
 
@@ -193,6 +196,7 @@ type lcalc =
   ; explicitScopes : no
   ; assertions : yes
   ; defaultTerms : no
+  ; genericErrors : no
   ; exceptions : yes
   ; custom : no >
 
@@ -209,6 +213,7 @@ type dcalc_lcalc_features =
   ; scopeVarStates : no
   ; scopeVarSimpl : no
   ; explicitScopes : no
+  ; genericErrors : no
   ; assertions : yes >
 (** Features that are common to Dcalc and Lcalc *)
 
@@ -568,6 +573,10 @@ and ('a, 'b, 'm) base_gexpr =
   | EErrorOnEmpty :
       ('a, 'm) gexpr
       -> ('a, < defaultTerms : yes ; .. >, 'm) base_gexpr
+  (* Only used for non-crashing errors *)
+  | EGenericError : ('a, < genericErrors : yes ; .. >, 'm) base_gexpr
+      (** A general purpose error, whose entire payload is expected to be in its
+          mark *)
   (* Lambda calculus with exceptions *)
   | ERaise : except -> ('a, < exceptions : yes ; .. >, 'm) base_gexpr
   | ECatch : {

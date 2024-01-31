@@ -892,6 +892,8 @@ and typecheck_expr_top_down :
     let tau' = unionfind (TDefault tau) in
     let e1' = typecheck_expr_top_down ~leave_unresolved ctx env tau' e1 in
     Expr.eerroronempty e1' context_mark
+  | A.EGenericError ->
+    Expr.egenericerror (ty_mark (TDefault (unionfind (TAny (Any.fresh ())))))
   | A.EArray es ->
     let cell_type = unionfind (TAny (Any.fresh ())) in
     let mark = mark_with_tau_and_unify (unionfind (TArray cell_type)) in

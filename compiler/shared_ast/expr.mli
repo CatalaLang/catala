@@ -116,6 +116,9 @@ val eerroronempty :
   'm mark ->
   ((< defaultTerms : yes ; .. > as 'a), 'm) boxed_gexpr
 
+val egenericerror :
+  'm mark -> ((< genericErrors : yes ; .. > as 'a), 'm) boxed_gexpr
+
 val ecatch :
   ('a, 'm) boxed_gexpr ->
   except ->
