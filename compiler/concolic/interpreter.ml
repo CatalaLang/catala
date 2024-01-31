@@ -78,8 +78,6 @@ end
 
 type s_expr = SymbExpr.z3_expr
 type reentrant = { name : StructField.t; is_empty : bool }
-
-(* TODO check if [is_empty] is needed here *)
 type pc_expr = Pc_z3 of s_expr | Pc_reentrant of reentrant
 
 (* path constraint cannot be empty (this looks like a GADT but it would be
@@ -112,14 +110,6 @@ type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
 type 'c conc_naked_expr = ((yes, no, 'c) interpr_kind, conc_info) naked_gexpr
 type 'c conc_boxed_expr = ((yes, no, 'c) interpr_kind, conc_info) boxed_gexpr
 
-(* let make_z3_path_constraint (expr : s_expr) (pos : Pos.t) (branch : bool) :
-   path_constraint = { expr = Pc_z3 expr; pos; branch }
-
-   let make_reentrant_path_constraint (name : StructField.t) (is_empty : bool)
-   (pos : Pos.t) : path_constraint = let branch = is_empty in { expr =
-   Pc_reentrant { name; is_empty }; pos; branch } TODO remove? *)
-
-(* TODO comment to explain how this is safe *)
 let make_z3_path_constraint (expr : SymbExpr.t) (pos : Pos.t) (branch : bool) :
     path_constraint =
   let expr =
@@ -218,30 +208,15 @@ type context = {
   (* A dummy sort for lambda abstractions *)
   ctx_dummy_const : s_expr;
   (* A dummy expression for lambda abstractions *)
-  (* XXX ctx_funcdecl : (typed expr, FuncDecl.func_decl) Var.Map.t; *)
-  (* A map from Catala function names (represented as variables) to Z3 function
-     declarations, used to only define once functions in Z3 queries *)
-  (* XXX ctx_z3vars : (typed expr Var.t * typ) StringMap.t; *)
-  (* A map from strings, corresponding to Z3 symbol names, to the Catala
-     variable they represent. Used when to pretty-print Z3 models when a
-     counterexample is generated *)
   ctx_z3enums : Z3.Sort.sort EnumName.Map.t;
   (* A map from Catala enumeration names to the corresponding Z3 datatype sort,
      from which we can retrieve constructors and accessors *)
-  (* XXX ctx_z3matchsubsts : (typed expr, Expr.expr) Var.Map.t; *)
-  (* A map from Catala temporary variables, generated when translating a match,
-     to the corresponding enum accessor call as a Z3 expression *)
   ctx_z3structs : Z3.Sort.sort StructName.Map.t;
   (* A map from Catala struct names to the corresponding Z3 sort, from which we
      can retrieve the constructor and the accessors *)
   ctx_z3unit : Z3.Sort.sort * s_expr;
       (* A pair containing the Z3 encodings of the unit type, encoded as a tuple
          of 0 elements, and the unit value *)
-
-      (* XXX ctx_z3constraints : Expr.expr list; *)
-      (* A list of constraints about the created Z3 expressions accumulated
-         during their initialization, for instance, that the length of an array
-         is an integer which always is greater than 0 *)
 }
 
 (** adds the mapping between the Catala struct [s] and the corresponding Z3
@@ -381,17 +356,17 @@ let rec translate_typ (ctx : context) (t : naked_typ) : context * Z3.Sort.sort =
   | TLit t -> ctx, translate_typ_lit ctx t
   | TStruct name ->
     find_or_create_struct ctx name
-    (* DONE CONC are declarations sorted in topological order? "Yes" *)
-    (* TODO CONC use [type_ordering] from Driver to make sure =>> actually it
-       does not work because the input struct for scope [A], called [A_in], is
-       not a part of this order *)
+    (* DONE CONC are declarations sorted in topological order? "Yes" -Denis *)
+    (* use [type_ordering] from Driver to make sure ? =>> actually it does not
+       work because the input struct for scope [A], called [A_in], is not a part
+       of this order *)
   | TTuple _ -> failwith "[translate_typ] TTuple not implemented"
   | TEnum name -> find_or_create_enum ctx name
   | TOption _ -> failwith "[translate_typ] TOption not implemented"
   | TArrow ([(TLit TUnit, _)], (TDefault _, _)) ->
     (* context variable *)
     ctx, ctx.ctx_dummy_sort
-  | TArrow _ -> ctx, ctx.ctx_dummy_sort (* TODO CONC REU other functions *)
+  | TArrow _ -> ctx, ctx.ctx_dummy_sort (* other functions *)
   | TArray _ -> failwith "[translate_typ] TArray not implemented"
   | TAny -> failwith "[translate_typ] TAny not implemented"
   | TClosureEnv -> failwith "[translate_typ] TClosureEnv not implemented"
@@ -530,7 +505,6 @@ let init_context (ctx : context) : context =
       (fun enum _ ctx -> fst (find_or_create_enum ctx enum))
       ctx.ctx_decl.ctx_enums ctx
   in
-  (* TODO add things when needed *)
   ctx
 
 (* loosely taken from z3backend, could be exposed instead? not necessarily,
@@ -574,8 +548,7 @@ let make_z3_struct ctx (name : StructName.t) (es : 'c conc_expr list) : s_expr =
   let sort = StructName.Map.find name ctx.ctx_z3structs in
   let constructor = List.hd (Z3.Datatype.get_constructors sort) in
   let z3_of_expr (e : 'c conc_expr) : s_expr =
-    (* TODO CONC REU
-     * To build a Z3 struct, all of the fields of the concolic struct must have
+    (* To build a Z3 struct, all of the fields of the concolic struct must have
      * a z3 symbolic expression.
      * - Normal fields will have a z3 symbolic expression computed during their
      *   evaluation (just before this function is called)
@@ -722,7 +695,6 @@ let replace_EVar_mark
     match Var.Map.find_opt v vars_args with
     | Some arg ->
       let symb_expr = get_symb_expr arg in
-      (* TODO CONC REU reentrant name information is passed down here! *)
       Message.emit_debug "EApp>binder put mark %s on var %a"
         (SymbExpr.to_string symb_expr)
         (Print.expr ()) e;
@@ -818,8 +790,8 @@ let z3_round ctx (q : s_expr) : s_expr =
      However, Z3 does not have [sgn] or [abs] functions. Instead, we encode it
      as [round(q) = if q>=0 then floor(q + 1/2) else -floor(-q + 1/2)], where
      [Z3.Arithmetic.Real.mk_real2int] floors. *)
-  (* TODO CONC why not define Z3 function? =>> they are the same as declaration
-     + forall, and the gain in legibility is marginal, so I don't think it is
+  (* NOTE why not define Z3 function? =>> they are the same as declaration +
+     forall, and the gain in legibility is marginal, so I don't think it is
      necessary *)
   let zero = Z3.Arithmetic.Real.mk_numeral_i ctx 0 in
   let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
@@ -1202,7 +1174,6 @@ let rec evaluate_operator
       (fun x y -> ELit (LBool (protect o_eq_dur_dur x y)))
       DateEncoding.eq_dur_dur x y e1 e2
   | HandleDefault, _ ->
-    (* TODO change error message *)
     Message.raise_internal_error
       "The concolic interpreter is trying to evaluate the \"handle_default\" \
        operator, which should not happen with a DCalc AST"
@@ -1355,8 +1326,6 @@ let rec evaluate_expr :
       let es = List.map (evaluate_expr ctx lang) es in
 
       (* make symbolic expression using the symbolic sub-expressions *)
-      (* TODO CONC here we activate the dummy value for lambda abstractions, it
-         is not used but at least the [Option.get] does not crash *)
       let symb_expr = SymbExpr.mk_z3 (make_z3_struct ctx name es) in
 
       (* TODO catch error... should not happen *)
@@ -1729,37 +1698,28 @@ let make_input_mark ctx m field (ty : typ) : conc_info mark =
   let symb_expr =
     match Mark.remove ty with
     | TArrow ([(TLit TUnit, _)], (TDefault inner_ty, _)) ->
-      (* context variables are handled specifically *)
+      (* Context variables carry the name of the actual input variable (that is
+         the name of the field in the input struct), as well as a symbol used to
+         mark the inner expression of the thunk, that can then be used in Z3
+         when the thunk is non-empty. See [make_reentrant_input]. *)
       Message.emit_debug "[make_input_mark] reentrant variable <%s> : %a" name
         Print.typ_debug ty;
       let _, inner_sort = translate_typ ctx (Mark.remove inner_ty) in
       let symbol = Z3.Expr.mk_const_s ctx.ctx_z3 name inner_sort in
       SymbExpr.mk_reentrant field symbol
     | TArrow _ ->
-      (* TODO CONC REU proper functions are not allowed as input *)
+      (* proper functions are not allowed as input *)
       Message.raise_spanned_error (Mark.get ty)
         "This input of the scope is a function. This case is not handled by \
          the concolic interpreter for now. You may want to call this scope \
          from an other scope and provide a specific function as argument."
     | _ ->
-      (* other types *)
+      (* Other variales simply carry a symbol corresponding their name. *)
       let symbol = Z3.Expr.mk_const_s ctx.ctx_z3 name sort in
       SymbExpr.mk_z3 symbol
   in
   let pos = Expr.mark_pos m in
-  Custom
-    {
-      pos;
-      custom =
-        {
-          symb_expr;
-          (* note that in the case of a reentrant variable, the symbol will
-             actually be used inside of the lambda abstraction FIXME make
-             comment true *)
-          constraints = [];
-          ty = Some ty;
-        };
-    }
+  Custom { pos; custom = { symb_expr; constraints = []; ty = Some ty } }
 
 (** Evaluation *)
 
@@ -2029,19 +1989,23 @@ module Solver = struct
 
   let make_reentrant_input ctx name z3_model empty_reentrants mk ty symb_expr :
       'c conc_boxed_expr =
+    (* See [make_input_mark] for a general description of the Symb_reentrant
+       symbolic expression. *)
     if StructField.Set.mem name empty_reentrants then (
-      (* If the context variable must evaluate to its default, then we make an
-         empty thunked term. NOTE that the information in the mark will be used
-         neither on the inner [EEmptyError], nor on the outer [EAbs]. FIXME
-         check if true *)
+      (* If the context variable must evaluate to its default value (as defined
+         in the scope), then we make an empty thunked term. During evaluation,
+         the [name] of the variable will be used to generate a constraint
+         encoding whether it is empty, but the symbolic expression on the
+         (empty) innner term will not be used. *)
       Message.emit_debug "[make_reentrant_input] empty";
       Expr.empty_thunked_term mk)
     else (
       (* If the context variable must evaluate to a specific value computed by
-         the Z3 model, then we make this inner term and thunk it. NOTE that the
-         mark (with the symbolic expression that was used in Z3 is used in a
-         meaningful way on the the inner term, but it will not be used on the
-         outer [EAbs]. *)
+         the Z3 model, then we make this inner term and thunk it. The mark on
+         the inner term (inside the thunk) is the symbol in the Symb_reentrant
+         structure, and will be be used during evaluation. The mark on the outer
+         term (the thunk itself) will be used only for its [name] field and will
+         be used to generate a constraint encoding whether it is empty. *)
       Message.emit_debug "[make_reentrant_input] non empty";
       match Mark.remove ty with
       | TArrow ([(TLit TUnit, _)], (TDefault inner_ty, _)) ->
@@ -2132,7 +2096,7 @@ let rec compare_paths
   | Negated c :: p, c' :: p' ->
     if c.branch <> c'.branch then
       (* the branch has been successfully negated and is now done *)
-      (* FIXME we should have a way to know if c and c' are the same except for
+      (* TODO we should have a way to know if c and c' are the same except for
          their [branch] *)
       Done c' :: compare_paths p p'
     else failwith "[compare_paths] the negated condition lead to the same path"
