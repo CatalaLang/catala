@@ -50,67 +50,69 @@ let rec translate_typ (tau : typ) : typ =
       | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
     end
 
-let rec translate_default
-    (exceptions : typed D.expr list)
-    (just : typed D.expr)
-    (cons : typed D.expr)
-    (mark_default : typed mark) : typed A.expr boxed =
-  (* Since the program is well typed, all exceptions have as type [option 't] *)
-  let exceptions = List.map translate_expr exceptions in
-  let pos = Expr.mark_pos mark_default in
-  let exceptions_and_cons_ty =
-    match mark_default with Typed { ty; _ } -> translate_typ ty
-  in
-  let exceptions =
-    Expr.eappop ~op:Op.HandleDefaultOpt
-      ~tys:
-        [
-          TArray exceptions_and_cons_ty, pos;
-          TArrow ([TLit TUnit, pos], (TLit TBool, pos)), pos;
-          TArrow ([TLit TUnit, pos], exceptions_and_cons_ty), pos;
-        ]
-      ~args:
-        [
-          Expr.earray exceptions mark_default;
-          (* In call-by-value programming languages, as lcalc, arguments are
-             evalulated before calling the function. Since we don't want to
-             execute the justification and conclusion while before checking
-             every exceptions, we need to thunk them. *)
-          Expr.thunk_term (translate_expr just) (Mark.get just);
-          Expr.thunk_term (translate_expr cons) (Mark.get cons);
-        ]
-      mark_default
-  in
-  exceptions
+let translate_mark e = Expr.map_ty translate_typ (Mark.get e)
 
-and translate_expr (e : typed D.expr) : typed A.expr boxed =
-  let mark = Mark.get e in
+let rec translate_default
+    (exceptions : 'm D.expr list)
+    (just : 'm D.expr)
+    (cons : 'm D.expr)
+    (mark_default : 'm mark) : 'm A.expr boxed =
+  (* Since the program is well typed, all exceptions have as type [option 't] *)
+  let pos = Expr.mark_pos mark_default in
+  let exceptions = List.map translate_expr exceptions in
+  let exceptions_and_cons_ty = Expr.maybe_ty mark_default in
+  Expr.eappop ~op:Op.HandleDefaultOpt
+    ~tys:
+      [
+        TArray exceptions_and_cons_ty, pos;
+        TArrow ([TLit TUnit, pos], (TLit TBool, pos)), pos;
+        TArrow ([TLit TUnit, pos], exceptions_and_cons_ty), pos;
+      ]
+    ~args:
+      [
+        Expr.earray exceptions
+          (Expr.map_ty (fun ty -> TArray ty, pos) mark_default);
+        (* In call-by-value programming languages, as lcalc, arguments are
+           evalulated before calling the function. Since we don't want to
+           execute the justification and conclusion while before checking every
+           exceptions, we need to thunk them. *)
+        Expr.thunk_term (translate_expr just);
+        Expr.thunk_term (translate_expr cons);
+      ]
+    mark_default
+
+and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
+  let mark = translate_mark e in
   match Mark.remove e with
   | EEmptyError ->
-    Expr.einj ~e:(Expr.elit LUnit mark) ~cons:Expr.none_constr
-      ~name:Expr.option_enum mark
+    Expr.einj
+      ~e:(Expr.elit LUnit (Expr.with_ty mark (TLit TUnit, Expr.mark_pos mark)))
+      ~cons:Expr.none_constr ~name:Expr.option_enum mark
   | EErrorOnEmpty arg ->
+    let pos = Expr.mark_pos mark in
     let cases =
       EnumConstructor.Map.of_list
         [
           ( Expr.none_constr,
             let x = Var.make "_" in
-            Expr.eabs
-              (Expr.bind [| x |] (Expr.eraise NoValueProvided mark))
-              [TAny, Expr.mark_pos mark]
-              mark );
+            Expr.make_abs [| x |]
+              (Expr.eraise NoValueProvided mark)
+              [TAny, pos]
+              (Expr.mark_pos mark) );
           (* | None x -> raise NoValueProvided *)
-          Expr.some_constr, Expr.fun_id ~var_name:"arg" mark (* | Some x -> x*);
+          Expr.some_constr, Expr.fun_id ~var_name:"arg" mark (* | Some x -> x *);
         ]
     in
     Expr.ematch ~e:(translate_expr arg) ~name:Expr.option_enum ~cases mark
-  | EDefault { excepts; just; cons } ->
-    translate_default excepts just cons (Mark.get e)
+  | EDefault { excepts; just; cons } -> translate_default excepts just cons mark
   | EPureDefault e ->
     Expr.einj ~e:(translate_expr e) ~cons:Expr.some_constr
       ~name:Expr.option_enum mark
   (* As we need to translate types as well as terms, we cannot simply use
      [Expr.map] for terms that contains types. *)
+  | EApp { f; args; tys } ->
+    let tys = List.map translate_typ tys in
+    Expr.map ~f:translate_expr (EApp { f; args; tys }, mark)
   | EAppOp { op; tys; args } ->
     Expr.eappop ~op:(Operator.translate op)
       ~tys:(List.map translate_typ tys)
@@ -122,15 +124,15 @@ and translate_expr (e : typed D.expr) : typed A.expr boxed =
     let binder = Expr.bind (Array.map Var.translate vars) body in
     let tys = List.map translate_typ tys in
     Expr.eabs binder tys mark
-  | ( ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EIfThenElse _
-    | ETuple _ | ETupleAccess _ | EInj _ | EAssert _ | EStruct _
-    | EStructAccess _ | EMatch _ ) as e ->
+  | ( ELit _ | EArray _ | EVar _ | EExternal _ | EIfThenElse _ | ETuple _
+    | ETupleAccess _ | EInj _ | EAssert _ | EStruct _ | EStructAccess _
+    | EMatch _ ) as e ->
     Expr.map ~f:translate_expr (Mark.add mark e)
   | _ -> .
 
 let translate_scope_body_expr
-    (scope_body_expr : (dcalc, typed) gexpr scope_body_expr) :
-    (lcalc, typed) gexpr scope_body_expr Bindlib.box =
+    (scope_body_expr : (dcalc, 'm) gexpr scope_body_expr) :
+    (lcalc, 'm) gexpr scope_body_expr Bindlib.box =
   Scope.fold_right_lets
     ~f:(fun scope_let var_next acc ->
       Bindlib.box_apply2
@@ -168,24 +170,20 @@ let translate_code_items scopes =
   in
   Scope.map ~f ~varf:Var.translate scopes
 
-let translate_program (prg : typed D.program) : untyped A.program =
-  Program.untype
-  @@ Bindlib.unbox
-  @@ Bindlib.box_apply
-       (fun code_items ->
-         let ctx_enums =
-           EnumName.Map.map
-             (EnumConstructor.Map.map translate_typ)
-             prg.decl_ctx.ctx_enums
-         in
-         let ctx_structs =
-           StructName.Map.map
-             (StructField.Map.map translate_typ)
-             prg.decl_ctx.ctx_structs
-         in
-         {
-           prg with
-           code_items;
-           decl_ctx = { prg.decl_ctx with ctx_enums; ctx_structs };
-         })
-       (translate_code_items prg.code_items)
+let translate_program (prg : 'm D.program) : 'm A.program =
+  let code_items = Bindlib.unbox (translate_code_items prg.code_items) in
+  let ctx_enums =
+    EnumName.Map.map
+      (EnumConstructor.Map.map translate_typ)
+      prg.decl_ctx.ctx_enums
+  in
+  let ctx_structs =
+    StructName.Map.map
+      (StructField.Map.map translate_typ)
+      prg.decl_ctx.ctx_structs
+  in
+  {
+    prg with
+    code_items;
+    decl_ctx = { prg.decl_ctx with ctx_enums; ctx_structs };
+  }

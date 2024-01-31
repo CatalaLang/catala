@@ -17,5 +17,4 @@
 (** Translation from the default calculus to the lambda calculus. This
     translation uses exceptions to handle empty default terms. *)
 
-val translate_program :
-  Shared_ast.typed Dcalc.Ast.program -> Shared_ast.untyped Ast.program
+val translate_program : 'm Dcalc.Ast.program -> 'm Ast.program

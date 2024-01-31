@@ -19,6 +19,4 @@
     transformation is one piece to permit to compile toward legacy languages
     that does not contains exceptions. *)
 
-open Shared_ast
-
-val translate_program : typed Dcalc.Ast.program -> untyped Ast.program
+val translate_program : 'm Dcalc.Ast.program -> 'm Ast.program
