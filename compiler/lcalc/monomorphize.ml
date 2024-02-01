@@ -218,6 +218,10 @@ let rec monomorphize_typ
     ( TEnum (Type.Map.find t1 monomorphized_instances.options).name,
       Mark.get typ )
 
+let is_some c =
+  EnumConstructor.equal Expr.some_constr c ||
+  (assert (EnumConstructor.equal Expr.none_constr c); false)
+
 (* We output a typed expr but the types in the output are wrong, it should be
    untyped and re-typed later. *)
 let rec monomorphize_expr
@@ -265,15 +269,16 @@ let rec monomorphize_expr
     let new_cases =
       match new_cases with
       | [(n1, e1); (n2, e2)] -> (
-        match
-          ( Mark.remove (EnumConstructor.get_info n1),
-            Mark.remove (EnumConstructor.get_info n2) )
-        with
-        | "ESome", "ENone" ->
-          [option_instance.some_cons, e1; option_instance.none_cons, e2]
-        | "ENone", "ESome" ->
-          [option_instance.some_cons, e2; option_instance.none_cons, e1]
-        | _ -> failwith "should not happen")
+          let is_some c =
+            EnumConstructor.equal Expr.some_constr c ||
+            (assert (EnumConstructor.equal Expr.none_constr c); false)
+          in
+          match is_some n1, is_some n2 with
+          | true, false ->
+            [option_instance.some_cons, e1; option_instance.none_cons, e2]
+          | false, true ->
+            [option_instance.some_cons, e2; option_instance.none_cons, e1]
+          | _ -> failwith "should not happen")
       | _ -> failwith "should not happen"
     in
     let new_cases = EnumConstructor.Map.of_list new_cases in
@@ -289,10 +294,9 @@ let rec monomorphize_expr
     in
     let new_e1 = monomorphize_expr monomorphized_instances e1 in
     let new_cons =
-      match Mark.remove (EnumConstructor.get_info cons) with
-      | "ESome" -> option_instance.some_cons
-      | "ENone" -> option_instance.none_cons
-      | __ -> failwith "should not happen"
+      if is_some cons
+      then option_instance.some_cons
+      else option_instance.none_cons
     in
     Expr.einj ~name:option_instance.name ~e:new_e1 ~cons:new_cons (Mark.get e)
     (* We do not forget to tweak types stored directly in the AST in the nodes
