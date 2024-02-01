@@ -26,12 +26,21 @@ module Concrete = Shared_ast.Interpreter
 module SymbExpr = struct
   type z3_expr = Z3.Expr.expr
   type reentrant = { name : StructField.t; symbol : z3_expr }
+  type runtime_error = EmptyError | ConflictError | DivisionByZeroError
+
+  type error = {
+    except : runtime_error; (* TODO use actual exceptions from [Runtime]? *)
+    message : string; (* TODO use formatted stuff instead *)
+    pos : Pos.t;
+  }
 
   type t =
     | Symb_z3 of z3_expr
     | Symb_reentrant of reentrant
       (* only for the lambda expression corresponding to a reentrant variable *)
     | Symb_none
+    | Symb_error of
+        error (* TODO make sure that this can only be used on errors? *)
 
   let mk_z3 s = Symb_z3 s
   let mk_reentrant name symbol = Symb_reentrant { name; symbol }
@@ -64,6 +73,15 @@ module SymbExpr = struct
   let string_of_reentrant { name; _ } =
     "<" ^ Mark.remove (StructField.get_info @@ name) ^ ">"
 
+  let string_of_error { except; _ } =
+    let except_string =
+      match except with
+      | EmptyError -> "Empty"
+      | ConflictError -> "Conflict"
+      | DivisionByZeroError -> "DivisionByZero"
+    in
+    "↯" ^ except_string ^ "↯"
+
   (* TODO formatter *)
   let to_string ?(typed : bool = false) e =
     match e with
@@ -74,6 +92,7 @@ module SymbExpr = struct
       else str
     | Symb_reentrant r -> string_of_reentrant r
     | Symb_none -> "None"
+    | Symb_error err -> string_of_error err
 
   let formatter (fmt : Format.formatter) (symb_expr : t) : unit =
     Format.pp_print_string fmt (to_string symb_expr)
@@ -213,9 +232,9 @@ let map_conc_mark
   let pos = pos_f pos in
   Custom { custom = { symb_expr; constraints; ty }; pos }
 
-(* Typing shenanigan to add [EGenericError] and [ECustom] terms to the AST type.
+(* Typing shenanigan to add [ECustom] and [EGenericError] terms to the AST type.
    Inspired by [Concrete.addcustom]. *)
-let add_genericerror_custom e =
+let add_custom_genericerror e =
   let rec f :
       type c e.
       ((c, e) conc_interpr_kind, 't) gexpr ->
@@ -249,7 +268,7 @@ let add_genericerror_custom e =
 (** Transform any DCalc expression into a concolic expression with no symbolic
     expression and no constraints *)
 let init_conc_expr (e : (('c, 'e) conc_interpr_kind, 'm) gexpr) : conc_expr =
-  let e = add_genericerror_custom e in
+  let e = add_custom_genericerror e in
   let f = set_conc_info SymbExpr.none [] in
   Expr.unbox (Expr.map_marks ~f e)
 
@@ -635,6 +654,10 @@ let make_z3_struct ctx (name : StructName.t) (es : conc_expr list) : s_expr =
           "Fields of structs that are not functions or context variables must \
            have a symbolic expression. This should not happen if the \
            evaluation of fields worked.")
+    | Symb_error _ ->
+      Message.raise_spanned_error (Expr.pos e)
+        "Fields of structs cannot be errors when making the symbolic \
+         expression. This should not happen if errors were handled properly."
   in
   let es_symb = List.map z3_of_expr es in
   Z3.Expr.mk_app ctx.ctx_z3 constructor es_symb
@@ -2101,6 +2124,8 @@ module Solver = struct
           make_term ctx m.model_z3 mk ty s
         | Symb_none ->
           failwith "[inputs_of_model] input mark should not be none"
+        | Symb_error _ ->
+          failwith "[inputs_of_model] input mark should not be an error"
       in
       let (Custom { custom; _ }) = Mark.get t in
       Message.emit_debug "[inputs_of_model] input has symb? %a"

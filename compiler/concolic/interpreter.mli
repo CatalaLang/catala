@@ -23,12 +23,20 @@ open Shared_ast
 module SymbExpr : sig
   type z3_expr = Z3.Expr.expr
   type reentrant = { name : StructField.t; symbol : z3_expr }
+  type runtime_error = EmptyError | ConflictError | DivisionByZeroError
+
+  type error = {
+    except : runtime_error; (* TODO use actual exceptions from [Runtime]? *)
+    message : string; (* TODO use formatted stuff instead *)
+    pos : Pos.t;
+  }
 
   type t =
     | Symb_z3 of z3_expr
     | Symb_reentrant of reentrant
       (* only for the lambda expression corresponding to a reentrant variable *)
     | Symb_none
+    | Symb_error of error (* only for generic errors *)
 end
 
 type s_expr = SymbExpr.z3_expr
