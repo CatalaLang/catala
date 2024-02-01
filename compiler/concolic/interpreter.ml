@@ -783,6 +783,35 @@ let replace_EVar_mark
     | None -> e)
   | _ -> e
 
+let propagate_generic_error
+    (e : conc_expr)
+    (new_constraints : path_constraint list)
+    (f : conc_expr -> conc_expr) : conc_expr =
+  let e_symb = get_symb_expr e in
+  match Mark.remove e, e_symb with
+  | EGenericError, Symb_error _ ->
+    let e_constraints = get_constraints e in
+    let constraints = new_constraints @ e_constraints in
+    (* Add the new constraints but don't change the symbolic expression *)
+    add_conc_info_e Symb_none ~constraints e
+  | _, Symb_error _ ->
+    Message.raise_error
+      "A non-error case cannot have an error symbolic expression"
+  | _, _ -> f e
+
+(* TODO check order NOTE this evaluates [v1;v2;err;v4] to err(new_constraints @
+   pc1 @ pc2) and ignores pc4 *)
+let propagate_generic_error_list l new_constraints f =
+  let rec aux acc = function
+    | [] -> f (List.rev acc)
+    | e :: r ->
+      propagate_generic_error e
+        (new_constraints @ gather_constraints @@ List.rev acc)
+        (* FIXME this seems very slow *)
+          (fun e -> aux (e :: acc) r)
+  in
+  aux [] l
+
 let handle_eq evaluate_operator pos lang e1 e2 =
   let open Runtime.Oper in
   match e1, e2 with
