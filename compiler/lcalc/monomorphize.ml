@@ -159,7 +159,11 @@ let collect_monomorphized_instances (prg : typed program) :
   let acc =
     Scope.fold_left
       ~init:
-        { options = Type.Map.empty; tuples = Type.Map.empty; arrays = Type.Map.empty }
+        {
+          options = Type.Map.empty;
+          tuples = Type.Map.empty;
+          arrays = Type.Map.empty;
+        }
       ~f:(fun acc item _ ->
         match item with
         | Topdef (_, typ, e) -> collect_typ (collect_expr e acc) typ
@@ -188,8 +192,7 @@ let rec monomorphize_typ
   match Mark.remove typ with
   | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> typ
   | TArray t1 ->
-    ( TStruct (Type.Map.find t1 monomorphized_instances.arrays).name,
-      Mark.get typ )
+    TStruct (Type.Map.find t1 monomorphized_instances.arrays).name, Mark.get typ
   | TDefault t1 ->
     TDefault (monomorphize_typ monomorphized_instances t1), Mark.get typ
   | TArrow (t1s, t2) ->
@@ -201,12 +204,13 @@ let rec monomorphize_typ
     ( TStruct (Type.Map.find typ monomorphized_instances.tuples).name,
       Mark.get typ )
   | TOption t1 ->
-    ( TEnum (Type.Map.find t1 monomorphized_instances.options).name,
-      Mark.get typ )
+    TEnum (Type.Map.find t1 monomorphized_instances.options).name, Mark.get typ
 
 let is_some c =
-  EnumConstructor.equal Expr.some_constr c ||
-  (assert (EnumConstructor.equal Expr.none_constr c); false)
+  EnumConstructor.equal Expr.some_constr c
+  ||
+  (assert (EnumConstructor.equal Expr.none_constr c);
+   false)
 
 (* We output a typed expr but the types in the output are wrong, it should be
    untyped and re-typed later. *)
@@ -217,9 +221,7 @@ let rec monomorphize_expr
   match Mark.remove e with
   | ETuple args ->
     let new_args = List.map (monomorphize_expr monomorphized_instances) args in
-    let tuple_instance =
-      Type.Map.find typ monomorphized_instances.tuples
-    in
+    let tuple_instance = Type.Map.find typ monomorphized_instances.tuples in
     let fields =
       StructField.Map.of_list
       @@ List.map2
@@ -229,9 +231,7 @@ let rec monomorphize_expr
     Expr.estruct ~name:tuple_instance.name ~fields (Mark.get e)
   | ETupleAccess { e = e1; index; _ } ->
     let tuple_instance =
-      Type.Map.find
-        (Expr.ty e1)
-        monomorphized_instances.tuples
+      Type.Map.find (Expr.ty e1) monomorphized_instances.tuples
     in
     let new_e1 = monomorphize_expr monomorphized_instances e1 in
     Expr.estructaccess ~name:tuple_instance.name
@@ -255,16 +255,18 @@ let rec monomorphize_expr
     let new_cases =
       match new_cases with
       | [(n1, e1); (n2, e2)] -> (
-          let is_some c =
-            EnumConstructor.equal Expr.some_constr c ||
-            (assert (EnumConstructor.equal Expr.none_constr c); false)
-          in
-          match is_some n1, is_some n2 with
-          | true, false ->
-            [option_instance.some_cons, e1; option_instance.none_cons, e2]
-          | false, true ->
-            [option_instance.some_cons, e2; option_instance.none_cons, e1]
-          | _ -> failwith "should not happen")
+        let is_some c =
+          EnumConstructor.equal Expr.some_constr c
+          ||
+          (assert (EnumConstructor.equal Expr.none_constr c);
+           false)
+        in
+        match is_some n1, is_some n2 with
+        | true, false ->
+          [option_instance.some_cons, e1; option_instance.none_cons, e2]
+        | false, true ->
+          [option_instance.some_cons, e2; option_instance.none_cons, e1]
+        | _ -> failwith "should not happen")
       | _ -> failwith "should not happen"
     in
     let new_cases = EnumConstructor.Map.of_list new_cases in
@@ -280,8 +282,7 @@ let rec monomorphize_expr
     in
     let new_e1 = monomorphize_expr monomorphized_instances e1 in
     let new_cons =
-      if is_some cons
-      then option_instance.some_cons
+      if is_some cons then option_instance.some_cons
       else option_instance.none_cons
     in
     Expr.einj ~name:option_instance.name ~e:new_e1 ~cons:new_cons (Mark.get e)
@@ -405,23 +406,22 @@ let program (prg : typed program) :
     }
   in
   let code_items =
-    Bindlib.unbox @@
-    Scope.map
-      ~f:(fun code_item ->
-          match code_item with
-          | Topdef (name, typ, e) -> Bindlib.box (Topdef (name, typ, e))
-          | ScopeDef (name, body) ->
-            let s_var, scope_body = Bindlib.unbind body.scope_body_expr in
-            Bindlib.box_apply
-              (fun scope_body_expr ->
+    Bindlib.unbox
+    @@ Scope.map
+         ~f:(fun code_item ->
+           match code_item with
+           | Topdef (name, typ, e) -> Bindlib.box (Topdef (name, typ, e))
+           | ScopeDef (name, body) ->
+             let s_var, scope_body = Bindlib.unbind body.scope_body_expr in
+             Bindlib.box_apply
+               (fun scope_body_expr ->
                  ScopeDef (name, { body with scope_body_expr }))
-              (Bindlib.bind_var s_var
-                 (Scope.map_exprs_in_lets ~varf:Fun.id
-                    ~transform_types:
-                      (monomorphize_typ monomorphized_instances)
-                    ~f:(monomorphize_expr monomorphized_instances)
-                    scope_body)))
-      ~varf:Fun.id prg.code_items
+               (Bindlib.bind_var s_var
+                  (Scope.map_exprs_in_lets ~varf:Fun.id
+                     ~transform_types:(monomorphize_typ monomorphized_instances)
+                     ~f:(monomorphize_expr monomorphized_instances)
+                     scope_body)))
+         ~varf:Fun.id prg.code_items
   in
   let prg = Program.untype { prg with code_items } in
   ( prg,

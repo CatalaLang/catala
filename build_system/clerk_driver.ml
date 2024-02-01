@@ -740,31 +740,27 @@ let gen_build_statements
         Nj.build "post-test"
           ~outputs:[inc (srcv ^ label)]
           ~inputs:[srcv; inc (srcv ^ "@out")]
-          ~implicit_in:["always"];
+          ~implicit_in:["always"]
       in
       match item.legacy_tests with
       | [] ->
-        if item.has_inline_tests then [ inline_test "@test"; results ]
-        else []
+        if item.has_inline_tests then [inline_test "@test"; results] else []
       | legacy ->
         let inline =
-          if item.has_inline_tests then [ inline_test "@inline" ]
-          else []
+          if item.has_inline_tests then [inline_test "@inline"] else []
         in
-        inline @
-        [
-          Nj.build "dir-tests"
-            ~outputs:[inc (srcv ^ "@test")]
-            ~inputs:
-              (
-                (if item.has_inline_tests then [ inc (srcv ^ "@inline") ] else []) @
-                List.map
-                  (fun test ->
-                     (!Var.builddir / legacy_test_reference test) ^ "@post")
-                  legacy
-              );
-          results;
-        ]
+        inline
+        @ [
+            Nj.build "dir-tests"
+              ~outputs:[inc (srcv ^ "@test")]
+              ~inputs:
+                ((if item.has_inline_tests then [inc (srcv ^ "@inline")] else [])
+                @ List.map
+                    (fun test ->
+                      (!Var.builddir / legacy_test_reference test) ^ "@post")
+                    legacy);
+            results;
+          ]
     in
     legacy_tests @ inline_tests @ tests
   in
