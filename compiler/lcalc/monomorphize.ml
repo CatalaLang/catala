@@ -153,22 +153,8 @@ let collect_monomorphized_instances (prg : typed program) :
                          by the typechecking before monomorphization.")))
               (Mark.get typ)))
   in
-  let rec collect_expr acc e =
-    let acc = collect_typ acc (Expr.maybe_ty (Mark.get e)) in
-    match Mark.remove e with
-    | EAbs { binder; tys } ->
-      let acc = List.fold_left collect_typ acc tys in
-      let _, body = Bindlib.unmbind binder in
-      collect_expr acc body
-    | EApp { f; args; tys } ->
-      let acc = List.fold_left collect_typ acc tys in
-      let acc = List.fold_left collect_expr acc args in
-      collect_expr acc f
-    | EAppOp { op = _; args; tys } ->
-      let acc = List.fold_left collect_typ acc tys in
-      let acc = List.fold_left collect_expr acc args in
-      acc
-    | _ -> Expr.shallow_fold (fun e acc -> collect_expr acc e) e acc
+  let rec collect_expr e acc =
+    Expr.shallow_fold collect_expr e (collect_typ acc (Expr.ty e))
   in
   let acc =
     Scope.fold_left
@@ -176,12 +162,12 @@ let collect_monomorphized_instances (prg : typed program) :
         { options = Type.Map.empty; tuples = Type.Map.empty; arrays = Type.Map.empty }
       ~f:(fun acc item _ ->
         match item with
-        | Topdef (_, typ, e) -> collect_typ (collect_expr acc e) typ
+        | Topdef (_, typ, e) -> collect_typ (collect_expr e acc) typ
         | ScopeDef (_, body) ->
           let _, body = Bindlib.unbind body.scope_body_expr in
           Scope.fold_left_lets ~init:acc
             ~f:(fun acc { scope_let_typ; scope_let_expr; _ } _ ->
-              collect_typ (collect_expr acc scope_let_expr) scope_let_typ)
+              collect_typ (collect_expr scope_let_expr acc) scope_let_typ)
             body)
       prg.code_items
   in
