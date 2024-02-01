@@ -213,7 +213,7 @@ let is_some c =
 let rec monomorphize_expr
     (monomorphized_instances : monomorphized_instances)
     (e : typed expr) : typed expr boxed =
-  let typ = Expr.maybe_ty (Mark.get e) in
+  let typ = Expr.ty e in
   match Mark.remove e with
   | ETuple args ->
     let new_args = List.map (monomorphize_expr monomorphized_instances) args in
@@ -247,7 +247,7 @@ let rec monomorphize_expr
     in
     let option_instance =
       Type.Map.find
-        (match Mark.remove (Expr.maybe_ty (Mark.get e1)) with
+        (match Mark.remove (Expr.ty e1) with
         | TOption t -> t
         | _ -> failwith "should not happen")
         monomorphized_instances.options
@@ -273,7 +273,7 @@ let rec monomorphize_expr
   | EInj { name; e = e1; cons } when EnumName.equal name Expr.option_enum ->
     let option_instance =
       Type.Map.find
-        (match Mark.remove (Expr.maybe_ty (Mark.get e)) with
+        (match Mark.remove (Expr.ty e) with
         | TOption t -> t
         | _ -> failwith "should not happen")
         monomorphized_instances.options
@@ -305,7 +305,7 @@ let rec monomorphize_expr
     let new_args = List.map (monomorphize_expr monomorphized_instances) args in
     let array_instance =
       Type.Map.find
-        (match Mark.remove (Expr.maybe_ty (Mark.get e)) with
+        (match Mark.remove (Expr.ty e) with
         | TArray t -> t
         | _ -> failwith "should not happen")
         monomorphized_instances.arrays
@@ -404,28 +404,26 @@ let program (prg : typed program) :
         };
     }
   in
-  let prg =
-    Bindlib.unbox
-    @@ Bindlib.box_apply
-         (fun code_items -> { prg with code_items })
-         (Scope.map
-            ~f:(fun code_item ->
-              match code_item with
-              | Topdef (name, typ, e) -> Bindlib.box (Topdef (name, typ, e))
-              | ScopeDef (name, body) ->
-                let s_var, scope_body = Bindlib.unbind body.scope_body_expr in
-                Bindlib.box_apply
-                  (fun scope_body_expr ->
-                    ScopeDef (name, { body with scope_body_expr }))
-                  (Bindlib.bind_var s_var
-                     (Scope.map_exprs_in_lets ~varf:Fun.id
-                        ~transform_types:
-                          (monomorphize_typ monomorphized_instances)
-                        ~f:(monomorphize_expr monomorphized_instances)
-                        scope_body)))
-            ~varf:Fun.id prg.code_items)
+  let code_items =
+    Bindlib.unbox @@
+    Scope.map
+      ~f:(fun code_item ->
+          match code_item with
+          | Topdef (name, typ, e) -> Bindlib.box (Topdef (name, typ, e))
+          | ScopeDef (name, body) ->
+            let s_var, scope_body = Bindlib.unbind body.scope_body_expr in
+            Bindlib.box_apply
+              (fun scope_body_expr ->
+                 ScopeDef (name, { body with scope_body_expr }))
+              (Bindlib.bind_var s_var
+                 (Scope.map_exprs_in_lets ~varf:Fun.id
+                    ~transform_types:
+                      (monomorphize_typ monomorphized_instances)
+                    ~f:(monomorphize_expr monomorphized_instances)
+                    scope_body)))
+      ~varf:Fun.id prg.code_items
   in
-  let prg = Program.untype prg in
+  let prg = Program.untype { prg with code_items } in
   ( prg,
     Scopelang.Dependency.check_type_cycles prg.decl_ctx.ctx_structs
       prg.decl_ctx.ctx_enums )
