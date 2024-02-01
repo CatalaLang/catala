@@ -43,10 +43,27 @@ type _conc_info = {
 }
 
 type conc_info = _conc_info custom
-type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
+
+(* DCalc with possibly genericErrors and customs *)
+type ('c, 'e) conc_interpr_kind =
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; scopeVarStates : no
+  ; scopeVarSimpl : no
+  ; explicitScopes : no
+  ; assertions : yes
+  ; defaultTerms : yes
+  ; genericErrors : 'e
+  ; exceptions : no
+  ; custom : 'c >
+
+type conc_expr = ((yes, yes) conc_interpr_kind, conc_info) gexpr
 
 val interpret_program_concolic :
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
-  (Uid.MarkedString.info * yes conc_expr) list
+  (Uid.MarkedString.info * conc_expr) list
 (** Concolic interpreter *)

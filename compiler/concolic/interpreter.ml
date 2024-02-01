@@ -106,15 +106,32 @@ type _conc_info = {
 
 type conc_info = _conc_info custom
 
-type 'c conc_expr = ((yes, no, 'c) interpr_kind, conc_info) gexpr
+(* This is DCalc with possibly genericErrors and customs *)
+(* TODO LUNDI better way using existing types? *)
+type ('c, 'e) conc_interpr_kind =
+  < monomorphic : yes
+  ; polymorphic : yes
+  ; overloaded : no
+  ; resolved : yes
+  ; syntacticNames : no
+  ; scopeVarStates : no
+  ; scopeVarSimpl : no
+  ; explicitScopes : no
+  ; assertions : yes
+  ; defaultTerms : yes
+  ; genericErrors : 'e
+  ; exceptions : no
+  ; custom : 'c >
+
+type conc_expr = ((yes, yes) conc_interpr_kind, conc_info) gexpr
 (** A concolic expression is a concrete DCalc expression that carries its
     symbolic representation and the constraints necessary to compute it. Upon
     initialization, [symb_expr] is [None], except for inputs whose [symb_expr]
     is a symbol. Then [symb_expr] is set by evaluation, except for inputs which
-    stay the same *)
+    stay the same. The expression can have [EGenericError] and [ECustom]. *)
 
-type 'c conc_naked_expr = ((yes, no, 'c) interpr_kind, conc_info) naked_gexpr
-type 'c conc_boxed_expr = ((yes, no, 'c) interpr_kind, conc_info) boxed_gexpr
+type conc_naked_expr = ((yes, yes) conc_interpr_kind, conc_info) naked_gexpr
+type conc_boxed_expr = ((yes, yes) conc_interpr_kind, conc_info) boxed_gexpr
 
 let make_z3_path_constraint (expr : SymbExpr.t) (pos : Pos.t) (branch : bool) :
     path_constraint =
@@ -196,9 +213,43 @@ let map_conc_mark
   let pos = pos_f pos in
   Custom { custom = { symb_expr; constraints; ty }; pos }
 
+(* Typing shenanigan to add [EGenericError] and [ECustom] terms to the AST type.
+   Inspired by [Concrete.addcustom]. *)
+let add_genericerror_custom e =
+  let rec f :
+      type c e.
+      ((c, e) conc_interpr_kind, 't) gexpr ->
+      ((yes, yes) conc_interpr_kind, 't) gexpr boxed = function
+    | (ECustom _, _) as e -> Expr.map ~f e
+    | (EGenericError, _) as e -> Expr.map ~f e
+    | EAppOp { op; tys; args }, m ->
+      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
+    | (EDefault _, _) as e -> Expr.map ~f e
+    | (EPureDefault _, _) as e -> Expr.map ~f e
+    | (EEmptyError, _) as e -> Expr.map ~f e
+    | (EErrorOnEmpty _, _) as e -> Expr.map ~f e
+    | ( ( EAssert _ | ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _
+        | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
+        | EStructAccess _ | EMatch _ ),
+        _ ) as e ->
+      Expr.map ~f e
+    | _ -> .
+  in
+  let open struct
+    external id :
+      (('c, 'e) conc_interpr_kind, 't) gexpr ->
+      ((yes, yes) conc_interpr_kind, 't) gexpr = "%identity"
+  end in
+  if false then Expr.unbox (f e)
+    (* We keep the implementation as a typing proof, but bypass the AST
+       traversal for performance. Note that it's not completely 1-1 since the
+       traversal would do a reboxing of all bound variables *)
+  else id e
+
 (** Transform any DCalc expression into a concolic expression with no symbolic
     expression and no constraints *)
-let init_conc_expr (e : ((yes, no, 'c) interpr_kind, 'm) gexpr) : 'c conc_expr =
+let init_conc_expr (e : (('c, 'e) conc_interpr_kind, 'm) gexpr) : conc_expr =
+  let e = add_genericerror_custom e in
   let f = set_conc_info SymbExpr.none [] in
   Expr.unbox (Expr.map_marks ~f e)
 
@@ -533,27 +584,27 @@ let z3_of_lit ctx (l : lit) : s_expr =
 let symb_of_lit ctx (l : lit) : SymbExpr.t = SymbExpr.mk_z3 (z3_of_lit ctx l)
 
 (** Get the symbolic expression corresponding to concolic expression [e] *)
-let get_symb_expr (e : 'c conc_expr) : SymbExpr.t =
+let get_symb_expr (e : conc_expr) : SymbExpr.t =
   let (Custom { custom; _ }) = Mark.get e in
   custom.symb_expr
 
-let get_constraints (e : 'c conc_expr) : path_constraint list =
+let get_constraints (e : conc_expr) : path_constraint list =
   let (Custom { custom; _ }) = Mark.get e in
   custom.constraints
 
-let gather_constraints (es : 'c conc_expr list) =
+let gather_constraints (es : conc_expr list) =
   let constraints = List.map get_constraints es in
   Message.emit_debug "gather_constraints is concatenating constraints";
   List.flatten constraints
 
-let get_type (e : 'c conc_expr) : typ option =
+let get_type (e : conc_expr) : typ option =
   let (Custom { custom; _ }) = Mark.get e in
   custom.ty
 
-let make_z3_struct ctx (name : StructName.t) (es : 'c conc_expr list) : s_expr =
+let make_z3_struct ctx (name : StructName.t) (es : conc_expr list) : s_expr =
   let sort = StructName.Map.find name ctx.ctx_z3structs in
   let constructor = List.hd (Z3.Datatype.get_constructors sort) in
-  let z3_of_expr (e : 'c conc_expr) : s_expr =
+  let z3_of_expr (e : conc_expr) : s_expr =
     (* To build a Z3 struct, all of the fields of the concolic struct must have
      * a z3 symbolic expression.
      * - Normal fields will have a z3 symbolic expression computed during their
@@ -688,14 +739,14 @@ let make_z3_arm_conditions
     z3_recognizers
 
 let make_vars_args_map
-    (vars : 'c conc_naked_expr Bindlib.var array)
-    (args : 'c conc_expr list) : ('c conc_expr, 'c conc_expr) Var.Map.t =
+    (vars : conc_naked_expr Bindlib.var array)
+    (args : conc_expr list) : (conc_expr, conc_expr) Var.Map.t =
   let zipped = Array.combine vars (Array.of_list args) in
   Array.fold_left (fun acc (v, a) -> Var.Map.add v a acc) Var.Map.empty zipped
 
 let replace_EVar_mark
-    (vars_args : ('c conc_expr, 'c conc_expr) Var.Map.t)
-    (e : 'c conc_expr) : 'c conc_expr =
+    (vars_args : (conc_expr, conc_expr) Var.Map.t)
+    (e : conc_expr) : conc_expr =
   match Mark.remove e with
   | EVar v -> (
     match Var.Map.find_opt v vars_args with
@@ -745,10 +796,10 @@ let handle_eq evaluate_operator pos lang e1 e2 =
 let op1
     ctx
     m
-    (concrete_f : 'x -> 'c conc_naked_expr)
+    (concrete_f : 'x -> conc_naked_expr)
     (symbolic_f : Z3.context -> s_expr -> s_expr)
     x
-    e : 'c conc_expr =
+    e : conc_expr =
   let concrete = concrete_f x in
   let e = get_symb_expr e in
   let symb_expr = SymbExpr.app_z3 (symbolic_f ctx.ctx_z3) e in
@@ -758,13 +809,13 @@ let op1
 let op2
     ctx
     m
-    (concrete_f : 'x -> 'y -> 'c conc_naked_expr)
+    (concrete_f : 'x -> 'y -> conc_naked_expr)
     (symbolic_f : Z3.context -> s_expr -> s_expr -> s_expr)
     ?(constraints : path_constraint list = [])
     x
     y
     e1
-    e2 : 'c conc_expr =
+    e2 : conc_expr =
   let concrete = concrete_f x y in
   let e1 = get_symb_expr e1 in
   let e2 = get_symb_expr e2 in
@@ -777,13 +828,13 @@ let op2
 let op2list
     ctx
     m
-    (concrete_f : 'x -> 'y -> 'c conc_naked_expr)
+    (concrete_f : 'x -> 'y -> conc_naked_expr)
     (symbolic_f : Z3.context -> s_expr list -> s_expr)
     ?(constraints : path_constraint list = [])
     x
     y
     e1
-    e2 : 'c conc_expr =
+    e2 : conc_expr =
   let symbolic_f_curry ctx e1 e2 = symbolic_f ctx [e1; e2] in
   op2 ctx m concrete_f symbolic_f_curry ~constraints x y e1 e2
 
@@ -1202,8 +1253,7 @@ let rec evaluate_operator
       _ ) ->
     err ()
 
-let rec evaluate_expr :
-    context -> Cli.backend_lang -> yes conc_expr -> yes conc_expr =
+let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
  fun ctx lang e ->
   Message.emit_debug "eval %a\nsymbolic: %a" (Print.expr ()) e
     SymbExpr.formatter (get_symb_expr e);
@@ -1549,6 +1599,7 @@ let rec evaluate_expr :
       | e -> e
       (* just pass along the concrete and symbolic values, and the
          constraints *))
+    | EGenericError -> failwith "EGenericError not implemented"
     | EDefault
         {
           excepts =
@@ -1729,13 +1780,12 @@ let make_input_mark ctx m field (ty : typ) : conc_info mark =
 (** Do a "pre-evaluation" of the program. It compiles the target scope to a
     function that takes the input struct of the scope and returns its output
     struct *)
-let simplify_program (type m) ctx (p : (dcalc, m) gexpr program) s :
-    yes conc_expr =
+let simplify_program (type m) ctx (p : (dcalc, m) gexpr program) s : conc_expr =
   Message.emit_debug "[CONC] Make program expression concolic";
   let e = Expr.unbox (Program.to_expr p s) in
   let e_conc = init_conc_expr e in
   Message.emit_debug "[CONC] Pre-compute program";
-  evaluate_expr ctx p.lang (Concrete.addcustom e_conc)
+  evaluate_expr ctx p.lang e_conc
 
 (** Evaluate pre-compiled scope [e] with its input struct [name] populated with
     [fields] *)
@@ -1743,9 +1793,9 @@ let eval_conc_with_input
     ctx
     lang
     (name : StructName.t)
-    (e : yes conc_expr)
+    (e : conc_expr)
     (mark : conc_info mark)
-    (fields : yes conc_boxed_expr StructField.Map.t) =
+    (fields : conc_boxed_expr StructField.Map.t) =
   let to_interpret =
     Expr.eapp
       ~f:(Expr.box e)
@@ -1842,7 +1892,7 @@ module Solver = struct
       given by the caller, and this function gives a default concrete value.
       This function is expected to be called from [inputs_of_model] when Z3 has
       not given a value for an input field. *)
-  let rec default_expr_of_typ ctx mark ty : 'c conc_boxed_expr =
+  let rec default_expr_of_typ ctx mark ty : conc_boxed_expr =
     match Mark.remove ty with
     | TLit t -> Expr.elit (default_lit_of_tlit t) mark
     | TArrow ([(TLit TUnit, _)], (TDefault _, _)) ->
@@ -1991,7 +2041,7 @@ module Solver = struct
       symb_expr_opt
 
   let make_reentrant_input ctx name z3_model empty_reentrants mk ty symb_expr :
-      'c conc_boxed_expr =
+      conc_boxed_expr =
     (* See [make_input_mark] for a general description of the Symb_reentrant
        symbolic expression. *)
     if StructField.Set.mem name empty_reentrants then (
@@ -2032,8 +2082,8 @@ module Solver = struct
       ctx
       (m : model)
       (input_marks : conc_info mark StructField.Map.t) :
-      'c conc_boxed_expr StructField.Map.t =
-    let f _ (mk : conc_info mark) : 'c conc_boxed_expr =
+      conc_boxed_expr StructField.Map.t =
+    let f _ (mk : conc_info mark) : conc_boxed_expr =
       let (Custom { custom; _ }) = mk in
       let ty =
         Option.get custom.ty
@@ -2192,7 +2242,7 @@ let print_fields language (prefix : string) fields =
 
 (** Main function *)
 let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
-    (Uid.MarkedString.info * yes conc_expr) list =
+    (Uid.MarkedString.info * conc_expr) list =
   Message.emit_debug "=== Start concolic interpretation... ===";
   let decl_ctx = p.decl_ctx in
   Message.emit_debug "[CONC] Create empty context";
