@@ -689,7 +689,7 @@ let translate_rule
       | Runtime.Reentrant, pos -> (
         match Mark.remove tau with
         | TArrow _ -> new_e
-        | _ -> Expr.thunk_term new_e (Expr.with_pos pos (Mark.get new_e)))
+        | _ -> Mark.map_mark (Expr.with_pos pos) (Expr.thunk_term new_e))
     in
     ( (fun next ->
         Bindlib.box_apply2

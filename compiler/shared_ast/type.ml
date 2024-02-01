@@ -94,3 +94,11 @@ let rec compare ty1 ty2 =
   | _, TClosureEnv -> 1
 
 let rec arrow_return = function TArrow (_, b), _ -> arrow_return b | t -> t
+let format = Print.typ_debug
+
+module Map = Map.Make (struct
+  type nonrec t = t
+
+  let compare = compare
+  let format = format
+end)

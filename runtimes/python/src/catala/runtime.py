@@ -20,6 +20,7 @@ import copy
 
 Alpha = TypeVar('Alpha')
 Beta = TypeVar('Beta')
+Gamma = TypeVar('Gamma')
 
 # ============
 # Type classes

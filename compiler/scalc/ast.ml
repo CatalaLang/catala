@@ -37,41 +37,71 @@ let dead_value = VarName.fresh ("dead_value", Pos.no_pos)
 let handle_default = FuncName.fresh ("handle_default", Pos.no_pos)
 let handle_default_opt = FuncName.fresh ("handle_default_opt", Pos.no_pos)
 
-type operator =
-  < overloaded : no ; monomorphic : yes ; polymorphic : yes ; resolved : yes >
-  Shared_ast.operator
+type operator = Shared_ast.lcalc Shared_ast.operator
 
 type expr = naked_expr Mark.pos
 
 and naked_expr =
-  | EVar : VarName.t -> naked_expr
-  | EFunc : FuncName.t -> naked_expr
-  | EStruct : expr list * StructName.t -> naked_expr
-  | EStructFieldAccess : expr * StructField.t * StructName.t -> naked_expr
-  | EInj : expr * EnumConstructor.t * EnumName.t -> naked_expr
-  | EArray : expr list -> naked_expr
-  | ELit : lit -> naked_expr
-  | EApp : expr * expr list -> naked_expr
-  | EAppOp : operator * expr list -> naked_expr
+  | EVar of VarName.t
+  | EFunc of FuncName.t
+  | EStruct of { fields : expr StructField.Map.t; name : StructName.t }
+  | EStructFieldAccess of {
+      e1 : expr;
+      field : StructField.t;
+      name : StructName.t;
+    }
+  | ETuple of expr list
+  | ETupleAccess of { e1 : expr; index : int }
+  | EInj of {
+      e1 : expr;
+      cons : EnumConstructor.t;
+      name : EnumName.t;
+      expr_typ : typ;
+    }
+  | EArray of expr list
+  | ELit of lit
+  | EApp of { f : expr; args : expr list }
+  | EAppOp of { op : operator; args : expr list }
 
 type stmt =
-  | SInnerFuncDef of VarName.t Mark.pos * func
-  | SLocalDecl of VarName.t Mark.pos * typ
-  | SLocalDef of VarName.t Mark.pos * expr
-  | STryExcept of block * except * block
+  | SInnerFuncDef of { name : VarName.t Mark.pos; func : func }
+  | SLocalDecl of { name : VarName.t Mark.pos; typ : typ }
+  | SLocalInit of { name : VarName.t Mark.pos; typ : typ; expr : expr }
+  | SLocalDef of { name : VarName.t Mark.pos; expr : expr; typ : typ }
+  | STryExcept of { try_block : block; except : except; with_block : block }
   | SRaise of except
-  | SIfThenElse of expr * block * block
-  | SSwitch of
-      expr
-      * EnumName.t
-      * (block (* Statements corresponding to arm closure body*)
-        * (* Variable instantiated with enum payload *) VarName.t)
-        list  (** Each block corresponds to one case of the enum *)
+  | SIfThenElse of { if_expr : expr; then_block : block; else_block : block }
+  | SSwitch of {
+      switch_expr : expr;
+      switch_expr_typ : typ;
+      enum_name : EnumName.t;
+      switch_cases : switch_case list;
+    }
   | SReturn of naked_expr
   | SAssert of naked_expr
+  | SSpecialOp of special_operator
+
+and special_operator =
+  | OHandleDefaultOpt of {
+      exceptions : expr list;
+      just : expr;
+      cons : block;
+      return_typ : typ;
+    }
 
 and block = stmt Mark.pos list
-and func = { func_params : (VarName.t Mark.pos * typ) list; func_body : block }
+
+and switch_case = {
+  case_block : block;
+  payload_var_name : VarName.t;
+  payload_var_typ : typ;
+}
+
+and func = {
+  func_params : (VarName.t Mark.pos * typ) list;
+  func_body : block;
+  func_return_typ : typ;
+}
 
 type scope_body = {
   scope_body_name : ScopeName.t;
@@ -80,7 +110,7 @@ type scope_body = {
 }
 
 type code_item =
-  | SVar of { var : VarName.t; expr : expr }
+  | SVar of { var : VarName.t; expr : expr; typ : typ }
   | SFunc of { var : FuncName.t; func : func }
   | SScope of scope_body
 

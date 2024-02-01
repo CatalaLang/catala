@@ -395,6 +395,42 @@ module Flags = struct
     & info ["avoid-exceptions"]
         ~doc:"Compiles the default calculus without exceptions."
 
+  let keep_special_ops =
+    value
+    & flag
+    & info ["keep-special-ops"]
+        ~doc:
+          "During the Lcalc->Scalc translation, uses special AST nodes for \
+           higher-order operators rather than nested closures (useful for C)."
+
+  let monomorphize_types =
+    value
+    & flag
+    & info ["monomorphize-types"]
+        ~doc:
+          "In LCalc, replaces the polymorphic option type by monomorphized \
+           versions of the enumeration, and transform tuples into named \
+           structs. "
+
+  let dead_value_assignment =
+    value
+    & flag
+    & info ["dead-value-assignment"]
+        ~doc:
+          "During the Lcalc->Scalc translation, insert dummy variable \
+           assignments before raising terminal exception to please gradual \
+           typing tools that check exhaustivity of variable definitions in \
+           every code branch."
+
+  let no_struct_literals =
+    value
+    & flag
+    & info ["no-struct-literals"]
+        ~doc:
+          "During the Lcalc->Scalc translation, insert temporary variable \
+           assignments to hold the result of structure initializations \
+           (matches the absence of struct literals of C89)."
+
   let closure_conversion =
     value
     & flag

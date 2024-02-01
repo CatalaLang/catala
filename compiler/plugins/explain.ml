@@ -1057,6 +1057,7 @@ let expr_to_dot_label0 :
           | Or -> xlang () ~en:"or" ~fr:"ou"
           | Xor -> xlang () ~en:"xor" ~fr:"ou bien"
           | Map -> xlang () ~en:"on_every" ~fr:"pour_chaque"
+          | Map2 -> xlang () ~en:"on_every_2" ~fr:"pour_chaque_2"
           | Reduce -> xlang () ~en:"reduce" ~fr:"réunion"
           | Filter -> xlang () ~en:"filter" ~fr:"filtre"
           | Fold -> xlang () ~en:"fold" ~fr:"pliage"

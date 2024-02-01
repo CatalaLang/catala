@@ -53,7 +53,8 @@ module Passes : sig
     typed:'m Shared_ast.mark ->
     avoid_exceptions:bool ->
     closure_conversion:bool ->
-    Shared_ast.untyped Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list
+    monomorphize_types:bool ->
+    Shared_ast.typed Lcalc.Ast.program * Scopelang.Dependency.TVertex.t list
 
   val scalc :
     Cli.options ->
@@ -62,6 +63,10 @@ module Passes : sig
     check_invariants:bool ->
     avoid_exceptions:bool ->
     closure_conversion:bool ->
+    keep_special_ops:bool ->
+    dead_value_assignment:bool ->
+    no_struct_literals:bool ->
+    monomorphize_types:bool ->
     Scalc.Ast.program * Scopelang.Dependency.TVertex.t list
 end
 

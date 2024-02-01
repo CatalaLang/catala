@@ -121,7 +121,9 @@ jobs:
         # (permission issues)
         run: git clone https://github.com/CatalaLang/catala-examples --depth 1 ~/catala-examples
       - name: Build examples
-        run: cd ~/catala-examples && opam --cli=2.1 exec -- make build install
+        run: |
+          cd ~/catala-examples
+          opam --cli=2.1 exec -- make build pass_all_tests install
       - name: Checkout french-law repo
         run: git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law
       - name: Build french-law

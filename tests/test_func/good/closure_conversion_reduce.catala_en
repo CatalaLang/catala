@@ -27,8 +27,7 @@ let scope S (S_in: S_in {x_in: list of integer}): S {y: integer} =
     (reduce
        (λ (x1: (integer * integer)) (x2: (integer * integer)) →
         if x1.1 < x2.1 then x1 else x2)
-       let potential_max : integer = -1 in
-       (potential_max, potential_max)
+       (-1, -1)
        map (λ (potential_max: integer) → (potential_max, potential_max)) x).0
   in
   return { S y = y; }

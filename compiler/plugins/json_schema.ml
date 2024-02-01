@@ -212,11 +212,13 @@ let run
     check_invariants
     avoid_exceptions
     closure_conversion
+    monomorphize_types
     ex_scope
     options =
   let prg, _ =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
+      ~monomorphize_types
   in
   let output_file, with_output =
     Driver.Commands.get_output_format options ~ext:"_schema.json" output
@@ -239,6 +241,7 @@ let term =
   $ Cli.Flags.check_invariants
   $ Cli.Flags.avoid_exceptions
   $ Cli.Flags.closure_conversion
+  $ Cli.Flags.monomorphize_types
   $ Cli.Flags.ex_scope
 
 let () =

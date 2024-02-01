@@ -188,11 +188,6 @@ let mark_pos (type m) (m : m mark) : Pos.t =
   match m with Untyped { pos } | Typed { pos; _ } | Custom { pos; _ } -> pos
 
 let pos (type m) (x : ('a, m) marked) : Pos.t = mark_pos (Mark.get x)
-
-let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
-  let x = Var.make var_name in
-  eabs (bind [| x |] (evar x mark)) [TAny, mark_pos mark] mark
-
 let ty (_, m) : typ = match m with Typed { ty; _ } -> ty
 
 let set_ty (type m) (ty : typ) (x : ('a, m) marked) : ('a, typed) marked =
@@ -933,6 +928,23 @@ let make_tuple el m0 =
     in
     etuple el m
 
+let make_tupleaccess e index size pos =
+  let m =
+    map_mark
+      (fun _ -> pos)
+      (function
+        | TTuple tl, _ -> (
+          try List.nth tl index
+          with Failure _ ->
+            Message.raise_internal_error "Trying to build invalid tuple access")
+        | TAny, pos -> TAny, pos
+        | ty ->
+          Message.raise_internal_error "Unexpected non-tuple type annotation %a"
+            Print.typ_debug ty)
+      (Mark.get e)
+  in
+  etupleaccess ~e ~index ~size m
+
 let make_app f args tys pos =
   let mark =
     fold_marks
@@ -968,12 +980,12 @@ let make_erroronempty e =
   in
   eerroronempty e mark
 
-let thunk_term term mark =
+let thunk_term term =
   let silent = Var.make "_" in
-  let pos = mark_pos mark in
+  let pos = mark_pos (Mark.get term) in
   make_abs [| silent |] term [TLit TUnit, pos] pos
 
-let empty_thunked_term mark = thunk_term (Bindlib.box EEmptyError, mark) mark
+let empty_thunked_term mark = thunk_term (Bindlib.box EEmptyError, mark)
 
 let unthunk_term_nobox term mark =
   Mark.add mark
@@ -995,3 +1007,7 @@ let make_puredefault e =
     map_mark (fun pos -> pos) (fun ty -> TDefault ty, Mark.get ty) (Mark.get e)
   in
   epuredefault e mark
+
+let fun_id ?(var_name : string = "x") mark : ('a any, 'm) boxed_gexpr =
+  let x = Var.make var_name in
+  make_abs [| x |] (evar x mark) [TAny, mark_pos mark] (mark_pos mark)

@@ -16,4 +16,23 @@
 
 open Shared_ast
 
-val translate_program : untyped Lcalc.Ast.program -> Ast.program
+type translation_config = {
+  keep_special_ops : bool;
+      (** When [keep_special_ops] is true, then this translation uses special
+          Scalc AST nodes for higher-order operators like map, fold,
+          handle_default, etc. This is useful if the target language after Scalc
+          does not support nested functions like C. *)
+  dead_value_assignment : bool;
+      (** When [dead_value_assignment] is true, the translation inserts dummy
+          assignments of the variable being defined in the current code branch
+          just before raising a terminal error. This is useful for languages
+          like Python and their linting tools like mypy. The assignment uses the
+          polymorphic [Ast.dead_value]. *)
+  no_struct_literals : bool;
+      (** When [no_struct_literals] is true, the translation inserts a temporary
+          variable to hold the initialization of struct literals. This matches
+          what C89 expects. *)
+}
+
+val translate_program :
+  config:translation_config -> typed Lcalc.Ast.program -> Ast.program

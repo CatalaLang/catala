@@ -1,5 +1,5 @@
 (* This file is part of the Catala compiler, a specification language for tax
-   and social benefits computation rules. Copyright (C) 2022 Inria, contributor:
+   and social benefits computation rules. Copyright (C) 2023 Inria, contributor:
    Denis Merigoux <denis.merigoux@inria.fr>
 
    Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -14,11 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** This module performs environment-passing style closure conversion, relying
-    on the existential [TClosureEnv] type and tuples for closure environments.
-    The implementation is based on François Pottier's
-    {{:http://gallium.inria.fr/~fpottier/mpri/cours04.pdf#page=10} MPRI lesson}.
-    After closure conversion, closure hoisting is perform and all closures end
-    up as toplevel definitions. *)
+(** Formats a lambda calculus program into a valid C89 program *)
 
-val closure_conversion : 'm Ast.program -> Shared_ast.untyped Ast.program
+val format_program :
+  Format.formatter -> Ast.program -> Scopelang.Dependency.TVertex.t list -> unit
+(** Usage [format_program fmt p type_dependencies_ordering] *)

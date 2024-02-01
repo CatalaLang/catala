@@ -736,32 +736,31 @@ let gen_build_statements
           ~outputs:[srcv ^ "@test"]
           ~inputs:[inc (srcv ^ "@test")]
       in
-      if item.has_inline_tests then
-        [
-          Nj.build "post-test"
-            ~outputs:[inc (srcv ^ "@test")]
-            ~inputs:[srcv; inc (srcv ^ "@out")]
-            ~implicit_in:
-              ("always"
-              :: List.map
-                   (fun test ->
-                     (!Var.builddir / legacy_test_reference test) ^ "@post")
-                   item.legacy_tests);
-          results;
-        ]
-      else if item.legacy_tests <> [] then
-        [
-          Nj.build "phony"
-            ~outputs:[inc (srcv ^ "@test")]
-            ~implicit_out:[srcv ^ "@test"]
-            ~inputs:
-              (List.map
-                 (fun test ->
-                   (!Var.builddir / legacy_test_reference test) ^ "@post")
-                 item.legacy_tests);
-          results;
-        ]
-      else []
+      let inline_test label =
+        Nj.build "post-test"
+          ~outputs:[inc (srcv ^ label)]
+          ~inputs:[srcv; inc (srcv ^ "@out")]
+          ~implicit_in:["always"]
+      in
+      match item.legacy_tests with
+      | [] ->
+        if item.has_inline_tests then [inline_test "@test"; results] else []
+      | legacy ->
+        let inline =
+          if item.has_inline_tests then [inline_test "@inline"] else []
+        in
+        inline
+        @ [
+            Nj.build "dir-tests"
+              ~outputs:[inc (srcv ^ "@test")]
+              ~inputs:
+                ((if item.has_inline_tests then [inc (srcv ^ "@inline")] else [])
+                @ List.map
+                    (fun test ->
+                      (!Var.builddir / legacy_test_reference test) ^ "@post")
+                    legacy);
+            results;
+          ]
     in
     legacy_tests @ inline_tests @ tests
   in

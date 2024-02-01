@@ -174,6 +174,8 @@ val ecustom :
   (< custom : Definitions.yes ; .. >, 'm) boxed_gexpr
 
 val fun_id : ?var_name:string -> 'm mark -> ('a any, 'm) boxed_gexpr
+(** The type of the mark, if typed, is assumed to correspond to the argument
+    type, not the function type *)
 
 (** {2 Manipulation of marks} *)
 
@@ -342,7 +344,7 @@ val make_erroronempty :
 val empty_thunked_term :
   'm mark -> (< defaultTerms : yes ; .. >, 'm) boxed_gexpr
 
-val thunk_term : ('a any, 'b) boxed_gexpr -> 'b mark -> ('a, 'b) boxed_gexpr
+val thunk_term : ('a any, 'b) boxed_gexpr -> ('a, 'b) boxed_gexpr
 val unthunk_term_nobox : ('a any, 'm) gexpr -> 'm mark -> ('a, 'm) gexpr
 
 val make_let_in :
@@ -365,6 +367,9 @@ val make_tuple :
   ('a any, 'm) boxed_gexpr list -> 'm mark -> ('a, 'm) boxed_gexpr
 (** Builds a tuple; the mark argument is only used as witness and for position
     when building 0-uples *)
+
+val make_tupleaccess :
+  ('a any, 'm) boxed_gexpr -> int -> int -> Pos.t -> ('a, 'm) boxed_gexpr
 
 (** {2 Transformations} *)
 

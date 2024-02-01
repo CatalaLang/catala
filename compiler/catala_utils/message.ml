@@ -140,6 +140,12 @@ module Content = struct
   let add_suggestion (content : t) (suggestion : string list) =
     content @ [Suggestion suggestion]
 
+  let add_position
+      (content : t)
+      ?(message : message option = None)
+      (position : Pos.t) =
+    content @ [Position { pos = position; pos_message = message }]
+
   let of_string (s : string) : t =
     [MainMessage (fun ppf -> Format.pp_print_string ppf s)]
 

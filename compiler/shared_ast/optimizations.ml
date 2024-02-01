@@ -17,13 +17,7 @@
 open Catala_utils
 open Definitions
 
-type ('a, 'b, 'm) optimizations_ctx = {
-  var_values :
-    ( (('a, 'b) dcalc_lcalc, 'm) gexpr,
-      (('a, 'b) dcalc_lcalc, 'm) gexpr )
-    Var.Map.t;
-  decl_ctx : decl_ctx;
-}
+type ('a, 'b, 'm) optimizations_ctx = { decl_ctx : decl_ctx }
 
 let all_match_cases_are_id_fun cases n =
   EnumConstructor.Map.for_all
@@ -164,35 +158,16 @@ let rec optimize_expr :
       EMatch { e = arg; cases; name = n1 }
     | EApp { f = EAbs { binder; _ }, _; args; _ }
       when binder_vars_used_at_most_once binder
-           || List.for_all (function EVar _, _ -> true | _ -> false) args ->
-      (* beta reduction when variables not used, and for variable aliases *)
+           || List.for_all
+                (function (EVar _ | ELit _), _ -> true | _ -> false)
+                args ->
+      (* beta reduction when variables not used, and for variable aliases and
+         literal *)
       Mark.remove (Bindlib.msubst binder (List.map fst args |> Array.of_list))
     | EStructAccess { name; field; e = EStruct { name = name1; fields }, _ }
       when StructName.equal name name1 ->
       Mark.remove (StructField.Map.find field fields)
-    | EErrorOnEmpty
-        ( EDefault
-            {
-              excepts = [];
-              just = ELit (LBool true), _;
-              cons = EPureDefault e, _;
-            },
-          _ ) ->
-      (* No exceptions, always true *)
-      Mark.remove e
-    | EErrorOnEmpty
-        ( EDefault
-            {
-              excepts =
-                [
-                  ( EDefault { excepts = []; just = ELit (LBool true), _; cons },
-                    _ );
-                ];
-              _;
-            },
-          _ ) ->
-      (* Single, always true exception *)
-      Mark.remove cons
+    | EErrorOnEmpty (EPureDefault (e, _), _) -> e
     | EDefault { excepts; just; cons } -> (
       (* TODO: mechanically prove each of these optimizations correct *)
       let excepts =
@@ -217,19 +192,22 @@ let rec optimize_expr :
         assert false
       else
         match excepts, just with
-        | ( [
-              ( (EDefault { excepts = []; just = ELit (LBool true), _; _ } as dft),
-                _ );
-            ],
-            _ ) ->
-          (* Single exception with condition [true] *)
-          dft
+        | [(EDefault { excepts = []; just = ELit (LBool true), _; cons }, _)], _
+          ->
+          (* No exceptions with condition [true] *)
+          Mark.remove cons
         | ( [],
             ( ( ELit (LBool false)
               | EAppOp { op = Log _; args = [(ELit (LBool false), _)]; _ } ),
               _ ) ) ->
           (* No exceptions and condition false *)
           EEmptyError
+        | ( [except],
+            ( ( ELit (LBool false)
+              | EAppOp { op = Log _; args = [(ELit (LBool false), _)]; _ } ),
+              _ ) ) ->
+          (* Single exception and condition false *)
+          Mark.remove except
         | excepts, just -> EDefault { excepts; just; cons })
     | EIfThenElse
         {
@@ -297,7 +275,7 @@ let optimize_expr :
       (('a, 'b) dcalc_lcalc, 'm) gexpr ->
       (('a, 'b) dcalc_lcalc, 'm) boxed_gexpr =
  fun (decl_ctx : decl_ctx) (e : (('a, 'b) dcalc_lcalc, 'm) gexpr) ->
-  optimize_expr { var_values = Var.Map.empty; decl_ctx } e
+  optimize_expr { decl_ctx } e
 
 let optimize_program (p : 'm program) : 'm program =
   Bindlib.unbox
