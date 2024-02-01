@@ -255,12 +255,6 @@ let rec monomorphize_expr
     let new_cases =
       match new_cases with
       | [(n1, e1); (n2, e2)] -> (
-        let is_some c =
-          EnumConstructor.equal Expr.some_constr c
-          ||
-          (assert (EnumConstructor.equal Expr.none_constr c);
-           false)
-        in
         match is_some n1, is_some n2 with
         | true, false ->
           [option_instance.some_cons, e1; option_instance.none_cons, e2]
