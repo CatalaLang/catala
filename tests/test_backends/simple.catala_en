@@ -26,3 +26,8 @@ scope Baz:
 
   definition c equals [b;b]
 ```
+
+
+```catala-test { id = "c" }
+$ catala c -o -
+```

@@ -1,3 +1,5 @@
+// This file has been written manually and is here to help test the generated `simple.c`
+
 #include "simple.c"
 
 typedef struct raw_input
