@@ -18,13 +18,6 @@ open Shared_ast
 open Ast
 open Catala_utils
 
-module TypMap = Map.Make (struct
-  type t = naked_typ
-
-  let compare x y = Type.compare (x, Pos.no_pos) (y, Pos.no_pos)
-  let format fmt x = Print.typ_debug fmt (x, Pos.no_pos)
-end)
-
 type option_instance = {
   name : EnumName.t;
   some_cons : EnumConstructor.t;
@@ -46,11 +39,11 @@ type array_instance = {
 
 type monomorphized_instances = {
   (* The keys are the types inside the [TOption] (before monomorphization). *)
-  options : option_instance TypMap.t;
+  options : option_instance Type.Map.t;
   (* The keys are the [TTuple] types themselves (before monomorphization). *)
-  tuples : tuple_instance TypMap.t;
+  tuples : tuple_instance Type.Map.t;
   (* The keys are the types inside the [TArray] (before monomorphization). *)
-  arrays : array_instance TypMap.t;
+  arrays : array_instance Type.Map.t;
 }
 
 let collect_monomorphized_instances (prg : typed program) :
@@ -65,7 +58,7 @@ let collect_monomorphized_instances (prg : typed program) :
         {
           acc with
           tuples =
-            TypMap.update (Mark.remove typ)
+            Type.Map.update typ
               (fun monomorphized_name ->
                 match monomorphized_name with
                 | Some e -> Some e
@@ -94,7 +87,7 @@ let collect_monomorphized_instances (prg : typed program) :
         {
           acc with
           arrays =
-            TypMap.update (Mark.remove t)
+            Type.Map.update t
               (fun monomorphized_name ->
                 match monomorphized_name with
                 | Some e -> Some e
@@ -122,7 +115,7 @@ let collect_monomorphized_instances (prg : typed program) :
         {
           acc with
           options =
-            TypMap.update (Mark.remove t)
+            Type.Map.update t
               (fun monomorphized_name ->
                 match monomorphized_name with
                 | Some e -> Some e
@@ -180,7 +173,7 @@ let collect_monomorphized_instances (prg : typed program) :
   let acc =
     Scope.fold_left
       ~init:
-        { options = TypMap.empty; tuples = TypMap.empty; arrays = TypMap.empty }
+        { options = Type.Map.empty; tuples = Type.Map.empty; arrays = Type.Map.empty }
       ~f:(fun acc item _ ->
         match item with
         | Topdef (_, typ, e) -> collect_typ (collect_expr acc e) typ
@@ -209,7 +202,7 @@ let rec monomorphize_typ
   match Mark.remove typ with
   | TStruct _ | TEnum _ | TAny | TClosureEnv | TLit _ -> typ
   | TArray t1 ->
-    ( TStruct (TypMap.find (Mark.remove t1) monomorphized_instances.arrays).name,
+    ( TStruct (Type.Map.find t1 monomorphized_instances.arrays).name,
       Mark.get typ )
   | TDefault t1 ->
     TDefault (monomorphize_typ monomorphized_instances t1), Mark.get typ
@@ -219,10 +212,10 @@ let rec monomorphize_typ
           monomorphize_typ monomorphized_instances t2 ),
       Mark.get typ )
   | TTuple _ ->
-    ( TStruct (TypMap.find (Mark.remove typ) monomorphized_instances.tuples).name,
+    ( TStruct (Type.Map.find typ monomorphized_instances.tuples).name,
       Mark.get typ )
   | TOption t1 ->
-    ( TEnum (TypMap.find (Mark.remove t1) monomorphized_instances.options).name,
+    ( TEnum (Type.Map.find t1 monomorphized_instances.options).name,
       Mark.get typ )
 
 (* We output a typed expr but the types in the output are wrong, it should be
@@ -235,7 +228,7 @@ let rec monomorphize_expr
   | ETuple args ->
     let new_args = List.map (monomorphize_expr monomorphized_instances) args in
     let tuple_instance =
-      TypMap.find (Mark.remove typ) monomorphized_instances.tuples
+      Type.Map.find typ monomorphized_instances.tuples
     in
     let fields =
       StructField.Map.of_list
@@ -246,8 +239,8 @@ let rec monomorphize_expr
     Expr.estruct ~name:tuple_instance.name ~fields (Mark.get e)
   | ETupleAccess { e = e1; index; _ } ->
     let tuple_instance =
-      TypMap.find
-        (Mark.remove (Expr.maybe_ty (Mark.get e1)))
+      Type.Map.find
+        (Expr.ty e1)
         monomorphized_instances.tuples
     in
     let new_e1 = monomorphize_expr monomorphized_instances e1 in
@@ -263,9 +256,9 @@ let rec monomorphize_expr
            cases)
     in
     let option_instance =
-      TypMap.find
+      Type.Map.find
         (match Mark.remove (Expr.maybe_ty (Mark.get e1)) with
-        | TOption t -> Mark.remove t
+        | TOption t -> t
         | _ -> failwith "should not happen")
         monomorphized_instances.options
     in
@@ -288,9 +281,9 @@ let rec monomorphize_expr
       (Mark.get e)
   | EInj { name; e = e1; cons } when EnumName.equal name Expr.option_enum ->
     let option_instance =
-      TypMap.find
+      Type.Map.find
         (match Mark.remove (Expr.maybe_ty (Mark.get e)) with
-        | TOption t -> Mark.remove t
+        | TOption t -> t
         | _ -> failwith "should not happen")
         monomorphized_instances.options
     in
@@ -321,9 +314,9 @@ let rec monomorphize_expr
   | EArray args ->
     let new_args = List.map (monomorphize_expr monomorphized_instances) args in
     let array_instance =
-      TypMap.find
+      Type.Map.find
         (match Mark.remove (Expr.maybe_ty (Mark.get e)) with
-        | TArray t -> Mark.remove t
+        | TArray t -> t
         | _ -> failwith "should not happen")
         monomorphized_instances.arrays
     in
@@ -381,7 +374,7 @@ let program (prg : typed program) :
         {
           prg.decl_ctx with
           ctx_enums =
-            TypMap.fold
+            Type.Map.fold
               (fun _ (option_instance : option_instance) (ctx_enums : enum_ctx) ->
                 EnumName.Map.add option_instance.name
                   (EnumConstructor.Map.add option_instance.none_cons
@@ -392,7 +385,7 @@ let program (prg : typed program) :
                   ctx_enums)
               monomorphized_instances.options prg.decl_ctx.ctx_enums;
           ctx_structs =
-            TypMap.fold
+            Type.Map.fold
               (fun _ (tuple_instance : tuple_instance)
                    (ctx_structs : struct_ctx) ->
                 StructName.Map.add tuple_instance.name
@@ -405,7 +398,7 @@ let program (prg : typed program) :
                      StructField.Map.empty tuple_instance.fields)
                   ctx_structs)
               monomorphized_instances.tuples
-              (TypMap.fold
+              (Type.Map.fold
                  (fun _ (array_instance : array_instance)
                       (ctx_structs : struct_ctx) ->
                    StructName.Map.add array_instance.name
