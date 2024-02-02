@@ -28,23 +28,31 @@ module SymbExpr = struct
   type reentrant = { name : StructField.t; symbol : z3_expr }
 
   module RuntimeError = struct
-    type runtime_error = EmptyError | ConflictError | DivisionByZeroError
+    type runtime_error =
+      | EmptyError
+      | ConflictError of { spans : (string option * Pos.t) list }
+      | DivisionByZeroError
+
     type message = string
 
     type t = {
       except : runtime_error; (* TODO use actual exceptions from [Runtime]? *)
       message : message; (* TODO use formatted stuff instead *)
-      pos : Pos.t;
     }
 
-    let make (except : runtime_error) (message : message) (pos : Pos.t) =
-      { except; message; pos }
+    let make (except : runtime_error) (message : message) = { except; message }
+
+    (* TODO use formatter *)
+    let string_of_spans (spans : (string option * Pos.t) list) : string =
+      let _, pos = List.split spans in
+      let pos_strings = List.map Pos.to_string_short pos in
+      List.fold_left (fun acc a -> a ^ "," ^ acc) "" pos_strings
 
     let to_string { except; _ } =
       let except_string =
         match except with
         | EmptyError -> "Empty"
-        | ConflictError -> "Conflict"
+        | ConflictError { spans } -> "Conflict(" ^ string_of_spans spans ^ ")"
         | DivisionByZeroError -> "DivisionByZero"
       in
       "↯" ^ except_string ^ "↯"
@@ -62,8 +70,14 @@ module SymbExpr = struct
   let mk_reentrant name symbol = Symb_reentrant { name; symbol }
   let none = Symb_none
 
-  let mk_emptyerror message pos =
-    let err = RuntimeError.(make EmptyError message pos) in
+  let mk_emptyerror message =
+    let err = RuntimeError.(make EmptyError message) in
+    Symb_error err
+
+  let mk_conflicterror message spans =
+    let open RuntimeError in
+    let conflict = ConflictError { spans } in
+    let err = make conflict message in
     Symb_error err
 
   let map_z3 (f : z3_expr -> z3_expr) = function
@@ -288,13 +302,20 @@ let add_genericerror e =
 (* TODO LUNDI obligé car subkind gexpr n'est pas un sous-type de kind gexpr? *)
 let make_ok : conc_expr -> conc_result = add_genericerror
 
-let make_error_emptyerror mk constraints message : conc_result =
-  let symb_expr = SymbExpr.mk_emptyerror message (Expr.mark_pos mk) in
+let make_error mk symb_expr constraints : conc_result =
   let mark =
     set_conc_info symb_expr constraints
       mk (* FIXME this loses type information: is it ok? *)
   in
   Expr.unbox (Expr.egenericerror mark)
+
+let make_error_emptyerror mk constraints message : conc_result =
+  let symb_expr = SymbExpr.mk_emptyerror message in
+  make_error mk symb_expr constraints
+
+let make_error_conflicterror mk constraints spans message : conc_result =
+  let symb_expr = SymbExpr.mk_conflicterror message spans in
+  make_error mk symb_expr constraints
 
 (* Inspired by [Concrete.delcustom] *)
 let del_genericerror e =
@@ -1923,7 +1944,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
         let constraints = exc_constraints in
         add_conc_info_e r_symb ~constraints r |> make_ok
       | _ ->
-        Message.raise_multispanned_error
+        make_error_conflicterror m exc_constraints
           (List.map
              (fun except ->
                ( Some "This consequence has a valid justification:",
