@@ -142,15 +142,23 @@ type ('c, 'e) conc_interpr_kind =
   ; exceptions : no
   ; custom : 'c >
 
-type conc_expr = ((yes, yes) conc_interpr_kind, conc_info) gexpr
+type conc_src_kind = (yes, no) conc_interpr_kind
+type conc_dest_kind = (yes, yes) conc_interpr_kind
+
+type conc_expr = (conc_src_kind, conc_info) gexpr
 (** A concolic expression is a concrete DCalc expression that carries its
     symbolic representation and the constraints necessary to compute it. Upon
     initialization, [symb_expr] is [None], except for inputs whose [symb_expr]
     is a symbol. Then [symb_expr] is set by evaluation, except for inputs which
     stay the same. The expression can have [EGenericError] and [ECustom]. *)
 
-type conc_naked_expr = ((yes, yes) conc_interpr_kind, conc_info) naked_gexpr
-type conc_boxed_expr = ((yes, yes) conc_interpr_kind, conc_info) boxed_gexpr
+type conc_result = (conc_dest_kind, conc_info) gexpr
+(** A concolic result expression is the same as a concolic expression but it can
+    be an error *)
+
+type conc_naked_expr = (conc_src_kind, conc_info) naked_gexpr
+type conc_naked_result = (conc_dest_kind, conc_info) naked_gexpr
+type conc_boxed_expr = (conc_src_kind, conc_info) boxed_gexpr
 
 let make_z3_path_constraint (expr : SymbExpr.t) (pos : Pos.t) (branch : bool) :
     path_constraint =
@@ -232,13 +240,13 @@ let map_conc_mark
   let pos = pos_f pos in
   Custom { custom = { symb_expr; constraints; ty }; pos }
 
-(* Typing shenanigan to add [ECustom] and [EGenericError] terms to the AST type.
-   Inspired by [Concrete.addcustom]. *)
-let add_custom_genericerror e =
+(* Typing shenanigan to [EGenericError] terms to the AST type. Inspired by
+   [Concrete.addcustom]. *)
+let add_genericerror e =
   let rec f :
       type c e.
       ((c, e) conc_interpr_kind, 't) gexpr ->
-      ((yes, yes) conc_interpr_kind, 't) gexpr boxed = function
+      ((c, yes) conc_interpr_kind, 't) gexpr boxed = function
     | (ECustom _, _) as e -> Expr.map ~f e
     | (EGenericError, _) as e -> Expr.map ~f e
     | EAppOp { op; tys; args }, m ->
@@ -257,7 +265,7 @@ let add_custom_genericerror e =
   let open struct
     external id :
       (('c, 'e) conc_interpr_kind, 't) gexpr ->
-      ((yes, yes) conc_interpr_kind, 't) gexpr = "%identity"
+      (('c, yes) conc_interpr_kind, 't) gexpr = "%identity"
   end in
   if false then Expr.unbox (f e)
     (* We keep the implementation as a typing proof, but bypass the AST
@@ -265,10 +273,35 @@ let add_custom_genericerror e =
        traversal would do a reboxing of all bound variables *)
   else id e
 
+(* Coerce a non-error expression into the result type *)
+(* TODO LUNDI obligé car subkind gexpr n'est pas un sous-type de kind gexpr? *)
+let make_ok : conc_expr -> conc_result = add_genericerror
+
+(* Inspired by [Concrete.delcustom] *)
+let del_genericerror e =
+  let rec f : (conc_dest_kind, 'm) gexpr -> (conc_src_kind, 'm) gexpr boxed =
+    function
+    | EGenericError, _ ->
+      invalid_arg "Generic error remaining after propagation"
+    | EAppOp { op; args; tys }, m ->
+      Expr.eappop ~tys ~args:(List.map f args) ~op:(Operator.translate op) m
+    | ( ( EAssert _ | ELit _ | EApp _ | EArray _ | EVar _ | EExternal _ | EAbs _
+        | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EStruct _
+        | EStructAccess _ | EMatch _ | EDefault _ | EPureDefault _ | EEmptyError
+        | EErrorOnEmpty _ | ECustom _ ),
+        _ ) as e ->
+      Expr.map ~f e
+    | _ -> .
+  in
+  (* /!\ don't be tempted to use the same trick here, the function does one
+     thing: validate at runtime that the term does not contain [ECustom]
+     nodes. *)
+  Expr.unbox (f e)
+
 (** Transform any DCalc expression into a concolic expression with no symbolic
     expression and no constraints *)
 let init_conc_expr (e : (('c, 'e) conc_interpr_kind, 'm) gexpr) : conc_expr =
-  let e = add_custom_genericerror e in
+  let e = Concrete.addcustom e in
   let f = set_conc_info SymbExpr.none [] in
   Expr.unbox (Expr.map_marks ~f e)
 
@@ -602,14 +635,40 @@ let z3_of_lit ctx (l : lit) : s_expr =
 
 let symb_of_lit ctx (l : lit) : SymbExpr.t = SymbExpr.mk_z3 (z3_of_lit ctx l)
 
-(** Get the symbolic expression corresponding to concolic expression [e] *)
-let get_symb_expr (e : conc_expr) : SymbExpr.t =
+let _get_symb_expr_unsafe (e : ((yes, 'e) conc_interpr_kind, conc_info) gexpr) :
+    SymbExpr.t =
   let (Custom { custom; _ }) = Mark.get e in
   custom.symb_expr
 
-let get_constraints (e : conc_expr) : path_constraint list =
+(** Get the symbolic expression corresponding to concolic expression [e]. This
+    function makes sure that an expression that can't be [EGenericError] does
+    not have a [Symb_error] symbolic expression. *)
+let get_symb_expr (e : conc_expr) : SymbExpr.t =
+  match _get_symb_expr_unsafe e with
+  | Symb_error _ ->
+    invalid_arg
+      "[get_symb_expr] an expression that can't be an error cannot have an \
+       error symbolic expression"
+  | _ as s -> s
+
+(** Get the symbolic expression corresponding to concolic result [e]. The
+    symbolic expression can be a [Symb_error] here *)
+let get_symb_expr_r (e : conc_result) : SymbExpr.t = _get_symb_expr_unsafe e
+
+let _get_constraints_unsafe (e : ((yes, 'e) conc_interpr_kind, conc_info) gexpr)
+    : path_constraint list =
   let (Custom { custom; _ }) = Mark.get e in
   custom.constraints
+
+(* Get constraints from concolic expression that cannot be an error. The
+   signature of this function helps making sure that errors are always properly
+   propagated during execution. By forcing [get_constraints_r] to be called
+   explicitely if the expression is a result. *)
+let get_constraints (e : conc_expr) : path_constraint list =
+  _get_constraints_unsafe e
+
+let get_constraints_r (e : conc_result) : path_constraint list =
+  _get_constraints_unsafe e
 
 let gather_constraints (es : conc_expr list) =
   let constraints = List.map get_constraints es in
@@ -785,20 +844,24 @@ let replace_EVar_mark
 
 (* TODO LUNDI *)
 let propagate_generic_error
-    (e : conc_expr)
+    (e : conc_result)
     (other_constraints : path_constraint list)
-    (f : conc_expr -> conc_expr) : conc_expr =
-  let e_symb = get_symb_expr e in
+    (f : conc_expr -> conc_result) : conc_result =
+  let e_symb = get_symb_expr_r e in
   match Mark.remove e, e_symb with
   | EGenericError, Symb_error _ ->
-    let e_constraints = get_constraints e in
+    let e_constraints = get_constraints_r e in
     let constraints = e_constraints @ other_constraints in
     (* Add the new constraints but don't change the symbolic expression *)
     add_conc_info_e Symb_none ~constraints e
   | _, Symb_error _ ->
     Message.raise_error
       "A non-error case cannot have an error symbolic expression"
-  | _, _ -> f e
+  | _, _ ->
+    let e_noerror = del_genericerror e in
+    (* NOTE LUNDI [del_genericerror] should not be too costly because [e] is
+       supposed to be a value *)
+    f e_noerror
 
 (* TODO check order NOTE this evaluates [v1;v2;err;v4] to err(new_constraints @
    pc1 @ pc2) and ignores pc4 *)
@@ -811,6 +874,21 @@ let propagate_generic_error_list l other_constraints f =
         (fun e -> aux (e :: acc) (get_constraints e @ constraints) r)
   in
   aux [] other_constraints l
+
+(* TODO LUNDI Rewrite EmptyError propagation functions from [Concrete] because
+   they don't allow for [f] have a different input and output type *)
+let propagate_empty_error (e : conc_expr) (f : conc_expr -> conc_result) :
+    conc_result =
+  match e with (EEmptyError, _) as e -> e | _ -> f e
+
+let propagate_empty_error_list
+    (elist : conc_expr list)
+    (f : conc_expr list -> conc_result) : conc_result =
+  let rec aux acc = function
+    | [] -> f (List.rev acc)
+    | e :: r -> propagate_empty_error e (fun e -> aux (e :: acc) r)
+  in
+  aux [] elist
 
 let handle_eq evaluate_operator pos lang e1 e2 =
   let open Runtime.Oper in
@@ -848,10 +926,10 @@ let handle_eq evaluate_operator pos lang e1 e2 =
 let op1
     ctx
     m
-    (concrete_f : 'x -> conc_naked_expr)
+    (concrete_f : 'x -> conc_naked_result)
     (symbolic_f : Z3.context -> s_expr -> s_expr)
     x
-    e : conc_expr =
+    e : conc_result =
   let concrete = concrete_f x in
   let e = get_symb_expr e in
   let symb_expr = SymbExpr.app_z3 (symbolic_f ctx.ctx_z3) e in
@@ -861,13 +939,13 @@ let op1
 let op2
     ctx
     m
-    (concrete_f : 'x -> 'y -> conc_naked_expr)
+    (concrete_f : 'x -> 'y -> conc_naked_result)
     (symbolic_f : Z3.context -> s_expr -> s_expr -> s_expr)
     ?(constraints : path_constraint list = [])
     x
     y
     e1
-    e2 : conc_expr =
+    e2 : conc_result =
   let concrete = concrete_f x y in
   let e1 = get_symb_expr e1 in
   let e2 = get_symb_expr e2 in
@@ -880,13 +958,13 @@ let op2
 let op2list
     ctx
     m
-    (concrete_f : 'x -> 'y -> conc_naked_expr)
+    (concrete_f : 'x -> 'y -> conc_naked_result)
     (symbolic_f : Z3.context -> s_expr list -> s_expr)
     ?(constraints : path_constraint list = [])
     x
     y
     e1
-    e2 : conc_expr =
+    e2 : conc_result =
   let symbolic_f_curry ctx e1 e2 = symbolic_f ctx [e1; e2] in
   op2 ctx m concrete_f symbolic_f_curry ~constraints x y e1 e2
 
@@ -925,7 +1003,7 @@ let rec evaluate_operator
     (op : < overloaded : no ; .. > operator)
     m
     lang
-    args =
+    (args : conc_expr list) : conc_result =
   let pos = Expr.mark_pos m in
   let protect f x y =
     let get_binop_args_pos = function
@@ -969,7 +1047,7 @@ let rec evaluate_operator
       op (Print.expr ())
       (EAppOp { op; tys = []; args }, m)
   in
-  Concrete.propagate_empty_error_list args
+  propagate_empty_error_list args
   @@ fun args ->
   let open Runtime.Oper in
   (* Mark.add m @@ *)
@@ -1305,7 +1383,8 @@ let rec evaluate_operator
       _ ) ->
     err ()
 
-let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
+let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
+    =
  fun ctx lang e ->
   Message.emit_debug "eval %a\nsymbolic: %a" (Print.expr ()) e
     SymbExpr.formatter (get_symb_expr e);
@@ -1330,7 +1409,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
       propagate_generic_error_list args f_constraints
       @@ fun args ->
       let args_constraints = gather_constraints args in
-      Concrete.propagate_empty_error e1
+      propagate_empty_error e1
       @@ fun e1 ->
       match Mark.remove e1 with
       | EAbs { binder; _ } ->
@@ -1388,7 +1467,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
            *   re-generated as this is cbv)
            *)
           let constraints = r_constraints @ args_constraints @ f_constraints in
-          add_conc_info_e r_symb ~constraints result
+          add_conc_info_e r_symb ~constraints result |> make_ok
           (* NOTE that here the position comes from [result], while in other
              cases of this function the position comes from the input
              expression. This is the behaviour of the concrete interpreter *))
@@ -1422,10 +1501,10 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
        * - those possibly generated by the application of the operator to the
        *   arguments *)
       let constraints = r_constraints @ args_constraints in
-      add_conc_info_e r_symb ~constraints result
+      add_conc_info_e r_symb ~constraints result |> make_ok
     | EAbs { binder; tys } ->
       Message.emit_debug "... it's an EAbs";
-      Expr.unbox (Expr.eabs (Bindlib.box binder) tys m)
+      Expr.unbox (Expr.eabs (Bindlib.box binder) tys m) |> make_ok
       (* TODO simplify this once issue #540 is resolved *)
     | ELit l as e ->
       Message.emit_debug "... it's an ELit";
@@ -1449,7 +1528,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
       (* gather all constraints from sub-expressions *)
       let constraints = gather_constraints es in
 
-      Concrete.propagate_empty_error_list es
+      propagate_empty_error_list es
       @@ fun es ->
       add_conc_info_m m symb_expr ~constraints
         (EStruct
@@ -1459,11 +1538,12 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
                  (Seq.zip (List.to_seq fields) (List.to_seq es));
              name;
            })
+      |> make_ok
     | EStructAccess { e; name = s; field } -> (
       Message.emit_debug "... it's an EStructAccess";
       propagate_generic_error (evaluate_expr ctx lang e) []
       @@ fun e ->
-      Concrete.propagate_empty_error e
+      propagate_empty_error e
       @@ fun e ->
       match Mark.remove e with
       | EStruct { fields = es; name } ->
@@ -1492,6 +1572,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
            by the subcall, as the field expression is already a value *)
         let constraints = get_constraints e in
         add_conc_info_m m symb_expr ~constraints (Mark.remove field_expr)
+        |> make_ok
       | _ ->
         Message.raise_spanned_error (Expr.pos e)
           "The expression %a should be a struct %a but is not (should not \
@@ -1504,7 +1585,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
       Message.emit_debug "... it's an EInj";
       propagate_generic_error (evaluate_expr ctx lang e) []
       @@ fun e ->
-      Concrete.propagate_empty_error e
+      propagate_empty_error e
       @@ fun e ->
       let concrete = EInj { name; e; cons } in
 
@@ -1512,7 +1593,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
       let symb_expr = SymbExpr.app_z3 (make_z3_enum_inj ctx name cons) e_symb in
       let constraints = get_constraints e in
 
-      add_conc_info_m m symb_expr ~constraints concrete
+      add_conc_info_m m symb_expr ~constraints concrete |> make_ok
     | EMatch { e; cases; name } -> (
       Message.emit_debug "... it's an EMatch";
       (* NOTE: The surface keyword [anything] is expanded during desugaring, so
@@ -1521,7 +1602,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
          added. *)
       propagate_generic_error (evaluate_expr ctx lang e) []
       @@ fun e ->
-      Concrete.propagate_empty_error e
+      propagate_empty_error e
       @@ fun e ->
       match Mark.remove e with
       | EInj { e = e1; cons; name = name' } ->
@@ -1590,7 +1671,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
           r_constraints @ arm_path_constraints @ e_constraints
         in
 
-        add_conc_info_m m r_symb ~constraints r_concrete
+        add_conc_info_m m r_symb ~constraints r_concrete |> make_ok
       | _ ->
         Message.raise_spanned_error (Expr.pos e)
           "Expected a term having a sum type as an argument to a match (should \
@@ -1599,7 +1680,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
       Message.emit_debug "... it's an EIfThenElse";
       propagate_generic_error (evaluate_expr ctx lang cond) []
       @@ fun cond ->
-      Concrete.propagate_empty_error cond
+      propagate_empty_error cond
       @@ fun cond ->
       let c_symb = get_symb_expr cond in
       let c_constraints = get_constraints cond in
@@ -1626,7 +1707,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
         let constraints =
           e_constraints @ (c_path_constraint :: c_constraints)
         in
-        add_conc_info_m e_mark e_symb ~constraints e_concr
+        add_conc_info_m e_mark e_symb ~constraints e_concr |> make_ok
       | ELit (LBool false) ->
         Message.emit_debug "EIfThenElse>false adding %a to constraints"
           SymbExpr.formatter c_symb;
@@ -1653,7 +1734,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
         let constraints =
           e_constraints @ (not_c_path_constraint :: c_constraints)
         in
-        add_conc_info_m e_mark e_symb ~constraints e_concr
+        add_conc_info_m e_mark e_symb ~constraints e_concr |> make_ok
       | _ ->
         Message.raise_spanned_error (Expr.pos cond)
           "Expected a boolean literal for the result of this condition (should \
@@ -1663,7 +1744,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
     | ECustom _ -> failwith "ECustom not implemented"
     | EEmptyError ->
       Message.emit_debug "... it's an EEmptyError";
-      e
+      make_ok e
       (* TODO check that it's ok to pass along the symbolic values and
          constraints? *)
     | EErrorOnEmpty e' -> (
@@ -1675,10 +1756,9 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
         Message.raise_spanned_error (Expr.pos e')
           "This variable evaluated to an empty term (no rule that defined it \
            applied in this situation)"
-      | e -> e
+      | e -> make_ok e
       (* just pass along the concrete and symbolic values, and the
          constraints *))
-    | EGenericError -> failwith "EGenericError not implemented"
     | EDefault
         {
           excepts =
@@ -1714,7 +1794,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
         (* TODO check that constraints from app should stay as well, just in
            case *)
         let constraints = r_constraints @ (is_empty :: app_constraints) in
-        add_conc_info_e r_symb ~constraints result
+        add_conc_info_e r_symb ~constraints result |> make_ok
       | _ ->
         Message.emit_debug "Context>non-empty";
         let not_is_empty : path_constraint =
@@ -1726,7 +1806,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
         (* TODO check that constraints from app should stay as well, just in
            case *)
         let constraints = not_is_empty :: app_constraints in
-        add_conc_info_e SymbExpr.none ~constraints app)
+        add_conc_info_e SymbExpr.none ~constraints app |> make_ok)
     | EDefault { excepts; just; cons } -> (
       Message.emit_debug "... it's an EDefault";
       let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -1782,7 +1862,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
             @ (j_path_constraint :: j_constraints)
             @ exc_constraints
           in
-          add_conc_info_m c_mark c_symb ~constraints c_concr
+          add_conc_info_m c_mark c_symb ~constraints c_concr |> make_ok
         | ELit (LBool false) ->
           let not_j_symb =
             SymbExpr.app_z3 (Z3.Boolean.mk_not ctx.ctx_z3) j_symb
@@ -1816,7 +1896,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
          *)
         let r_symb = get_symb_expr r in
         let constraints = exc_constraints in
-        add_conc_info_e r_symb ~constraints r
+        add_conc_info_e r_symb ~constraints r |> make_ok
       | _ ->
         Message.raise_multispanned_error
           (List.map
@@ -1834,7 +1914,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_expr =
     | _ -> .
   in
   Message.emit_debug "\teval returns %a | %a" (Print.expr ()) ret
-    SymbExpr.formatter (get_symb_expr ret);
+    SymbExpr.formatter (get_symb_expr_r ret);
   ret
 
 (** The following functions gather methods to generate input values for concolic
@@ -1882,7 +1962,11 @@ let simplify_program (type m) ctx (p : (dcalc, m) gexpr program) s : conc_expr =
   let e = Expr.unbox (Program.to_expr p s) in
   let e_conc = init_conc_expr e in
   Message.emit_debug "[CONC] Pre-compute program";
-  evaluate_expr ctx p.lang e_conc
+  let result = evaluate_expr ctx p.lang e_conc in
+  try del_genericerror result
+  with Invalid_argument _ ->
+    failwith
+      "Program pre-evaluation returned an error!" (* TODO catch this properly *)
 
 (** Evaluate pre-compiled scope [e] with its input struct [name] populated with
     [fields] *)
@@ -1892,7 +1976,7 @@ let eval_conc_with_input
     (name : StructName.t)
     (e : conc_expr)
     (mark : conc_info mark)
-    (fields : conc_boxed_expr StructField.Map.t) =
+    (fields : conc_boxed_expr StructField.Map.t) : conc_result =
   let to_interpret =
     Expr.eapp
       ~f:(Expr.box e)
@@ -2335,7 +2419,7 @@ let print_fields language (prefix : string) fields =
          else Print.UserFacing.value language)
         value
         (if Cli.globals.debug then
-           " | " ^ SymbExpr.to_string (get_symb_expr value)
+           " | " ^ SymbExpr.to_string (_get_symb_expr_unsafe value)
          else ""))
     ordered_fields
 
@@ -2385,7 +2469,7 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
 
         let res = eval_conc_with_input ctx p.lang s_in scope_e mark_e inputs in
 
-        let res_path_constraints = get_constraints res in
+        let res_path_constraints = get_constraints_r res in
 
         print_path_constraints res_path_constraints;
 

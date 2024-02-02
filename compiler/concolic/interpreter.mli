@@ -68,7 +68,9 @@ type ('c, 'e) conc_interpr_kind =
   ; exceptions : no
   ; custom : 'c >
 
-type conc_expr = ((yes, yes) conc_interpr_kind, conc_info) gexpr
+type conc_src_kind = (yes, no) conc_interpr_kind
+type conc_dest_kind = (yes, yes) conc_interpr_kind
+type conc_expr = (conc_src_kind, conc_info) gexpr
 
 val interpret_program_concolic :
   (dcalc, 'm) gexpr program ->
