@@ -26,25 +26,45 @@ module Concrete = Shared_ast.Interpreter
 module SymbExpr = struct
   type z3_expr = Z3.Expr.expr
   type reentrant = { name : StructField.t; symbol : z3_expr }
-  type runtime_error = EmptyError | ConflictError | DivisionByZeroError
 
-  type error = {
-    except : runtime_error; (* TODO use actual exceptions from [Runtime]? *)
-    message : string; (* TODO use formatted stuff instead *)
-    pos : Pos.t;
-  }
+  module RuntimeError = struct
+    type runtime_error = EmptyError | ConflictError | DivisionByZeroError
+    type message = string
+
+    type t = {
+      except : runtime_error; (* TODO use actual exceptions from [Runtime]? *)
+      message : message; (* TODO use formatted stuff instead *)
+      pos : Pos.t;
+    }
+
+    let make (except : runtime_error) (message : message) (pos : Pos.t) =
+      { except; message; pos }
+
+    let to_string { except; _ } =
+      let except_string =
+        match except with
+        | EmptyError -> "Empty"
+        | ConflictError -> "Conflict"
+        | DivisionByZeroError -> "DivisionByZero"
+      in
+      "↯" ^ except_string ^ "↯"
+  end
 
   type t =
     | Symb_z3 of z3_expr
     | Symb_reentrant of reentrant
       (* only for the lambda expression corresponding to a reentrant variable *)
     | Symb_none
-    | Symb_error of
-        error (* TODO make sure that this can only be used on errors? *)
+    | Symb_error of RuntimeError.t
+        (** TODO make sure that this can only be used on errors? *)
 
   let mk_z3 s = Symb_z3 s
   let mk_reentrant name symbol = Symb_reentrant { name; symbol }
   let none = Symb_none
+
+  let mk_emptyerror message pos =
+    let err = RuntimeError.(make EmptyError message pos) in
+    Symb_error err
 
   let map_z3 (f : z3_expr -> z3_expr) = function
     | Symb_z3 e -> Symb_z3 (f e)
@@ -73,15 +93,6 @@ module SymbExpr = struct
   let string_of_reentrant { name; _ } =
     "<" ^ Mark.remove (StructField.get_info @@ name) ^ ">"
 
-  let string_of_error { except; _ } =
-    let except_string =
-      match except with
-      | EmptyError -> "Empty"
-      | ConflictError -> "Conflict"
-      | DivisionByZeroError -> "DivisionByZero"
-    in
-    "↯" ^ except_string ^ "↯"
-
   (* TODO formatter *)
   let to_string ?(typed : bool = false) e =
     match e with
@@ -92,7 +103,7 @@ module SymbExpr = struct
       else str
     | Symb_reentrant r -> string_of_reentrant r
     | Symb_none -> "None"
-    | Symb_error err -> string_of_error err
+    | Symb_error err -> RuntimeError.to_string err
 
   let formatter (fmt : Format.formatter) (symb_expr : t) : unit =
     Format.pp_print_string fmt (to_string symb_expr)
@@ -276,6 +287,14 @@ let add_genericerror e =
 (* Coerce a non-error expression into the result type *)
 (* TODO LUNDI obligé car subkind gexpr n'est pas un sous-type de kind gexpr? *)
 let make_ok : conc_expr -> conc_result = add_genericerror
+
+let make_error_emptyerror mk constraints message : conc_result =
+  let symb_expr = SymbExpr.mk_emptyerror message (Expr.mark_pos mk) in
+  let mark =
+    set_conc_info symb_expr constraints
+      mk (* FIXME this loses type information: is it ok? *)
+  in
+  Expr.unbox (Expr.egenericerror mark)
 
 (* Inspired by [Concrete.delcustom] *)
 let del_genericerror e =
@@ -851,6 +870,12 @@ let propagate_generic_error
   match Mark.remove e, e_symb with
   | EGenericError, Symb_error _ ->
     let e_constraints = get_constraints_r e in
+    Message.emit_debug
+      "Propagating error %a with %d contained constraints and %d other \
+       constraints"
+      SymbExpr.formatter e_symb
+      (List.length e_constraints)
+      (List.length other_constraints);
     let constraints = e_constraints @ other_constraints in
     (* Add the new constraints but don't change the symbolic expression *)
     add_conc_info_e Symb_none ~constraints e
@@ -1752,8 +1777,8 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
       propagate_generic_error (evaluate_expr ctx lang e') []
       @@ fun e' ->
       match e' with
-      | EEmptyError, _ ->
-        Message.raise_spanned_error (Expr.pos e')
+      | EEmptyError, m ->
+        make_error_emptyerror m (get_constraints e')
           "This variable evaluated to an empty term (no rule that defined it \
            applied in this situation)"
       | e -> make_ok e
@@ -2455,7 +2480,7 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
       match Solver.solve ctx solver_constraints with
       | Solver.Sat (Some m) ->
         Message.emit_debug "Solver returned a model";
-        Message.emit_debug "model: %s" (Solver.string_of_model m);
+        Message.emit_debug "model:\n%s" (Solver.string_of_model m);
         let inputs = Solver.inputs_of_model ctx m input_marks in
 
         if not Cli.globals.debug then Message.emit_result "";
@@ -2474,18 +2499,25 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
         print_path_constraints res_path_constraints;
 
         Message.emit_result "Output of scope after evaluation:";
-        let outputs_list =
+        begin
           match Mark.remove res with
           | EStruct { fields; _ } ->
-            List.map
-              (fun (fld, e) -> StructField.get_info fld, e)
-              (StructField.Map.bindings fields)
+            let outputs_list =
+              List.map
+                (fun (fld, e) -> StructField.get_info fld, e)
+                (StructField.Map.bindings fields)
+            in
+            print_fields p.lang ". " outputs_list
+          | EGenericError ->
+            (* TODO better error messages *)
+            (* TODO test the different cases *)
+            Message.emit_result "Found error %a" SymbExpr.formatter
+              (get_symb_expr_r res)
           | _ ->
             Message.raise_spanned_error (Expr.pos scope_e)
               "The concolic interpretation of a program should always yield a \
                struct corresponding to the scope variables"
-        in
-        print_fields p.lang ". " outputs_list;
+        end;
 
         (* TODO find a better way *)
         let new_path_constraints =
