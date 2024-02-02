@@ -15,7 +15,7 @@ declaration scope A:
   output o condition
 
 scope A:
-  rule o under condition ((s.a = m) or s.b.c) and (t = s.b) consequence fulfilled
+  rule o under condition ((s.a = m) or s.b.c) and ((t = s.b) or t.c = false) consequence fulfilled
 ```
 
 ```catala-test-inline
@@ -34,7 +34,7 @@ let scope A
   let get t : T {c: bool} = A_in.t_in in
   let set o : bool =
     error_empty
-      ⟨ ⟨ ⟨(s.a = m || s.b.c) && t = s.b ⊢ ⟨true⟩⟩ | false ⊢ ∅ ⟩
+      ⟨ ⟨ ⟨(s.a = m || s.b.c) && (t = s.b || t.c = false) ⊢ ⟨true⟩⟩ | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
   return { A o = o; }
