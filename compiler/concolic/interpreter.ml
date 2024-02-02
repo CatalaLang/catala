@@ -28,10 +28,12 @@ module SymbExpr = struct
   type reentrant = { name : StructField.t; symbol : z3_expr }
 
   module RuntimeError = struct
+    type span_list = (string option * Pos.t) list
+
     type runtime_error =
       | EmptyError
-      | ConflictError of { spans : (string option * Pos.t) list }
-      | DivisionByZeroError
+      | ConflictError of { spans : span_list }
+      | DivisionByZeroError of { spans : span_list }  (** TODO factorize? *)
 
     type message = string
 
@@ -43,7 +45,7 @@ module SymbExpr = struct
     let make (except : runtime_error) (message : message) = { except; message }
 
     (* TODO use formatter *)
-    let string_of_spans (spans : (string option * Pos.t) list) : string =
+    let string_of_spans (spans : span_list) : string =
       let _, pos = List.split spans in
       let pos_strings = List.map Pos.to_string_short pos in
       List.fold_left (fun acc a -> a ^ "," ^ acc) "" pos_strings
@@ -53,7 +55,8 @@ module SymbExpr = struct
         match except with
         | EmptyError -> "Empty"
         | ConflictError { spans } -> "Conflict(" ^ string_of_spans spans ^ ")"
-        | DivisionByZeroError -> "DivisionByZero"
+        | DivisionByZeroError { spans } ->
+          "DivisionByZero(" ^ string_of_spans spans ^ ")"
       in
       "↯" ^ except_string ^ "↯"
   end
@@ -77,6 +80,12 @@ module SymbExpr = struct
   let mk_conflicterror message spans =
     let open RuntimeError in
     let conflict = ConflictError { spans } in
+    let err = make conflict message in
+    Symb_error err
+
+  let mk_divisionbyzeroerror message spans =
+    let open RuntimeError in
+    let conflict = DivisionByZeroError { spans } in
     let err = make conflict message in
     Symb_error err
 
@@ -315,6 +324,10 @@ let make_error_emptyerror mk constraints message : conc_result =
 
 let make_error_conflicterror mk constraints spans message : conc_result =
   let symb_expr = SymbExpr.mk_conflicterror message spans in
+  make_error mk symb_expr constraints
+
+let make_error_divisionbyzeroerror mk constraints spans message : conc_result =
+  let symb_expr = SymbExpr.mk_divisionbyzeroerror message spans in
   make_error mk symb_expr constraints
 
 (* Inspired by [Concrete.delcustom] *)
@@ -1931,7 +1944,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
         | _ ->
           Message.raise_spanned_error (Expr.pos e)
             "Default justification has not been reduced to a boolean at \
-             evaluation (should not happen if the term was well-typed")
+             evaluation (should not happen if the term was well-typed)")
       | 1 ->
         Message.emit_debug "EDefault>except";
         let r =

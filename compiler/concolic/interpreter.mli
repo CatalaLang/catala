@@ -25,10 +25,12 @@ module SymbExpr : sig
   type reentrant = { name : StructField.t; symbol : z3_expr }
 
   module RuntimeError : sig
+    type span_list = (string option * Pos.t) list
+
     type runtime_error =
       | EmptyError
-      | ConflictError of { spans : (string option * Pos.t) list }
-      | DivisionByZeroError
+      | ConflictError of { spans : span_list }
+      | DivisionByZeroError of { spans : span_list }
 
     type message = string
 
