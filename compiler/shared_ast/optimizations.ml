@@ -252,12 +252,117 @@ let rec optimize_expr :
       Mark.remove init
     | EAppOp
         {
+          op = Map;
+          args =
+            [
+              f1;
+              ( EAppOp
+                  {
+                    op = Map;
+                    args = [f2; ls];
+                    tys = [_; ((TArray xty, _) as lsty)];
+                  },
+                m2 );
+            ];
+          tys = [_; (TArray yty, _)];
+        } ->
+      (* map f (map g l) => map (f o g) l *)
+      let fg =
+        let v =
+          Var.make
+            (match f2 with
+            | EAbs { binder; _ }, _ -> (Bindlib.mbinder_names binder).(0)
+            | _ -> "x")
+        in
+        let mty m =
+          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> TAny, pos) m
+        in
+        let x = Expr.evar v (mty (Mark.get ls)) in
+        Expr.make_abs [| v |]
+          (Expr.eapp ~f:(Expr.box f1)
+             ~args:[Expr.eapp ~f:(Expr.box f2) ~args:[x] ~tys:[xty] (mty m2)]
+             ~tys:[yty] (mty mark))
+          [xty] (Expr.pos e)
+      in
+      let fg = optimize_expr ctx (Expr.unbox fg) in
+      let mapl =
+        Expr.eappop ~op:Map
+          ~args:[fg; Expr.box ls]
+          ~tys:[Expr.maybe_ty (Mark.get fg); lsty]
+          mark
+      in
+      Mark.remove (Expr.unbox mapl)
+    | EAppOp
+        {
+          op = Map;
+          args =
+            [
+              f1;
+              ( EAppOp
+                  {
+                    op = Map2;
+                    args = [f2; ls1; ls2];
+                    tys =
+                      [
+                        _;
+                        ((TArray x1ty, _) as ls1ty);
+                        ((TArray x2ty, _) as ls2ty);
+                      ];
+                  },
+                m2 );
+            ];
+          tys = [_; (TArray yty, _)];
+        } ->
+      (* map f (map2 g l1 l2) => map2 (f o g) l1 l2 *)
+      let fg =
+        let v1, v2 =
+          match f2 with
+          | EAbs { binder; _ }, _ ->
+            let names = Bindlib.mbinder_names binder in
+            Var.make names.(0), Var.make names.(1)
+          | _ -> Var.make "x", Var.make "y"
+        in
+        let mty m =
+          Expr.map_ty (function TArray ty, _ -> ty | _, pos -> TAny, pos) m
+        in
+        let x1 = Expr.evar v1 (mty (Mark.get ls1)) in
+        let x2 = Expr.evar v2 (mty (Mark.get ls2)) in
+        Expr.make_abs [| v1; v2 |]
+          (Expr.eapp ~f:(Expr.box f1)
+             ~args:
+               [
+                 Expr.eapp ~f:(Expr.box f2) ~args:[x1; x2] ~tys:[x1ty; x2ty]
+                   (mty m2);
+               ]
+             ~tys:[yty] (mty mark))
+          [x1ty; x2ty] (Expr.pos e)
+      in
+      let fg = optimize_expr ctx (Expr.unbox fg) in
+      let mapl =
+        Expr.eappop ~op:Map2
+          ~args:[fg; Expr.box ls1; Expr.box ls2]
+          ~tys:[Expr.maybe_ty (Mark.get fg); ls1ty; ls2ty]
+          mark
+      in
+      Mark.remove (Expr.unbox mapl)
+    | EAppOp
+        {
           op = Op.Fold;
           args = [f; init; (EArray [e'], _)];
           tys = [_; tinit; (TArray tx, _)];
         } ->
       (* reduces a fold with one element *)
       EApp { f; args = [init; e']; tys = [tinit; tx] }
+    | ETuple ((ETupleAccess { e; index = 0; _ }, _) :: el)
+      when List.for_all Fun.id
+             (List.mapi
+                (fun i -> function
+                  | ETupleAccess { e = en; index; _ }, _ ->
+                    index = i + 1 && Expr.equal en e
+                  | _ -> false)
+                el) ->
+      (* identity tuple reconstruction *)
+      Mark.remove e
     | ECatch { body; exn; handler } -> (
       (* peephole exception catching reductions *)
       match Mark.remove body, Mark.remove handler with
