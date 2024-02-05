@@ -233,6 +233,8 @@ val untype : ('a, 'm) gexpr -> ('a, untyped) boxed_gexpr
 (** {2 Traversal functions} *)
 
 val map :
+  ?typ:(typ -> typ) ->
+  ?op:('a operator -> 'b operator) ->
   f:(('a, 'm1) gexpr -> ('b, 'm2) boxed_gexpr) ->
   (('a, 'b, 'm1) base_gexpr, 'm2) marked ->
   ('b, 'm2) boxed_gexpr
@@ -265,7 +267,12 @@ val map :
     The [e] parameter passed to [map] here needs to have only the common cases
     in its shallow type, but can still contain any node from the starting AST
     deeper inside: this is where the second type parameter to [base_gexpr]
-    becomes useful. *)
+    becomes useful.
+
+    The [typ] argument, if specified, will apply a transformation both on type
+    annotations, if present, and on types appearing within the AST nodes.
+
+    The [op] argument must be specified for the [EAppOp] case to be handled. *)
 
 val map_top_down :
   f:(('a, 'm1) gexpr -> (('a, 'm1) naked_gexpr, 'm2) marked) ->

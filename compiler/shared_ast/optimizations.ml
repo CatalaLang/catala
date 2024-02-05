@@ -86,7 +86,7 @@ let rec optimize_expr :
     ((a, b) dcalc_lcalc, 'm) boxed_gexpr =
  fun ctx e ->
   (* We proceed bottom-up, first apply on the subterms *)
-  let e = Expr.map ~f:(optimize_expr ctx) e in
+  let e = Expr.map ~f:(optimize_expr ctx) ~op:Fun.id e in
   let mark = Mark.get e in
   (* Then reduce the parent node *)
   let reduce (e : ((a, b) dcalc_lcalc, 'm) gexpr) =
