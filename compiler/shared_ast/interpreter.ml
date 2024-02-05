@@ -653,9 +653,7 @@ let rec evaluate_expr :
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator (evaluate_expr ctx lang) op m lang args
-  | EAbs { binder; tys } -> Expr.unbox (Expr.eabs (Bindlib.box binder) tys m)
-  | ELit _ as e -> Mark.add m e
-  (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
+  | EAbs _ | ELit _ | ECustom _ | EEmptyError -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx lang) es in
@@ -753,8 +751,6 @@ let rec evaluate_expr :
       Message.raise_spanned_error (Expr.pos e')
         "Expected a boolean literal for the result of this assertion (should \
          not happen if the term was well-typed)")
-  | ECustom _ -> e
-  | EEmptyError -> Mark.copy e EEmptyError
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx lang e' with
     | EEmptyError, _ ->
