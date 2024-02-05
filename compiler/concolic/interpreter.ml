@@ -193,29 +193,6 @@ type conc_naked_expr = (conc_src_kind, conc_info) naked_gexpr
 type conc_naked_result = (conc_dest_kind, conc_info) naked_gexpr
 type conc_boxed_expr = (conc_src_kind, conc_info) boxed_gexpr
 
-let make_z3_path_constraint (expr : SymbExpr.t) (pos : Pos.t) (branch : bool) :
-    path_constraint =
-  let expr =
-    match expr with
-    | Symb_z3 e -> Pc_z3 e
-    | _ ->
-      invalid_arg "[make_z3_path_constraint] expects a z3 symbolic expression"
-  in
-  { expr; pos; branch }
-
-let make_reentrant_path_constraint
-    (expr : SymbExpr.t)
-    (pos : Pos.t)
-    (branch : bool) : path_constraint =
-  let expr =
-    match expr with
-    | Symb_reentrant { name; _ } -> Pc_reentrant { name; is_empty = branch }
-    | _ ->
-      invalid_arg
-        "[make_reentrant_path_constraint] expects reentrant symbolic expression"
-  in
-  { expr; pos; branch }
-
 let set_conc_info
     (type m)
     (symb_expr : SymbExpr.t)
@@ -397,6 +374,36 @@ let z3_int_of_bigint ctx (n : Z.t) : s_expr =
   (* NOTE CONC I use string instead of int to translate without overflows, as
      both [Runtime.integer] and Z3 integers are big *)
   Z3.Arithmetic.Integer.mk_numeral_s ctx.ctx_z3 (Runtime.integer_to_string n)
+
+let make_z3_path_constraint (expr : SymbExpr.t) (pos : Pos.t) (branch : bool) :
+    path_constraint =
+  let expr =
+    match expr with
+    | Symb_z3 e -> Pc_z3 e
+    | _ ->
+      invalid_arg "[make_z3_path_constraint] expects a z3 symbolic expression"
+  in
+  { expr; pos; branch }
+
+let make_reentrant_path_constraint
+    (ctx : context)
+    (expr : SymbExpr.t)
+    (pos : Pos.t)
+    (branch : bool) : path_constraint option =
+  let expr =
+    match expr with
+    | Symb_reentrant { name; _ } ->
+      Some (Pc_reentrant { name; is_empty = branch })
+    | Symb_z3 s when Z3.Expr.equal s ctx.ctx_dummy_const ->
+      None (* TODO comment *)
+    | _ ->
+      Message.raise_spanned_error pos
+        "[make_reentrant_path_constraint] expects reentrant symbolic \
+         expression or dummy const but got %a"
+        SymbExpr.formatter expr
+  in
+  Option.bind expr (fun expr -> Some { expr; pos; branch })
+
 
 let integer_of_symb_expr (e : s_expr) : Runtime.integer =
   match Z3.Sort.get_sort_kind (Z3.Expr.get_sort e) with
@@ -1443,8 +1450,9 @@ let rec evaluate_operator
 let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
     =
  fun ctx lang e ->
-  Message.emit_debug "eval %a\nsymbolic: %a" (Print.expr ()) e
-    SymbExpr.formatter (get_symb_expr e);
+  (* Message.emit_debug "eval %a\nsymbolic: %a" (Print.expr ()) e
+     SymbExpr.formatter (get_symb_expr e); *)
+  Message.emit_debug "eval symbolic: %a" SymbExpr.formatter (get_symb_expr e);
   let m = Mark.get e in
   let pos = Expr.mark_pos m in
   let ret =
@@ -1841,29 +1849,30 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
       match Mark.remove app with
       | EEmptyError ->
         Message.emit_debug "Context>empty";
-        let is_empty : path_constraint =
-          make_reentrant_path_constraint abs_symb pos true
+        let is_empty : path_constraint list =
+          make_reentrant_path_constraint ctx abs_symb pos true |> Option.to_list
         in
         let result = evaluate_expr ctx lang cons in
-        propagate_generic_error result (is_empty :: app_constraints)
+        propagate_generic_error result (is_empty @ app_constraints)
         @@ fun result ->
         let r_symb = get_symb_expr result in
         let r_constraints = get_constraints result in
         (* TODO check that constraints from app should stay as well, just in
            case *)
-        let constraints = r_constraints @ (is_empty :: app_constraints) in
+        let constraints = r_constraints @ is_empty @ app_constraints in
         add_conc_info_e r_symb ~constraints result |> make_ok
       | _ ->
         Message.emit_debug "Context>non-empty";
-        let not_is_empty : path_constraint =
-          make_reentrant_path_constraint abs_symb pos false
+        let not_is_empty : path_constraint list =
+          make_reentrant_path_constraint ctx abs_symb pos false
+          |> Option.to_list
         in
         (* the only constraint is the new one encoding the fact that there is a
            reentrant value, and the symbolic expression is that of the
            reentering value *)
         (* TODO check that constraints from app should stay as well, just in
            case *)
-        let constraints = not_is_empty :: app_constraints in
+        let constraints = not_is_empty @ app_constraints in
         add_conc_info_e SymbExpr.none ~constraints app |> make_ok)
     | EDefault { excepts; just; cons } -> (
       Message.emit_debug "... it's an EDefault";
@@ -1971,8 +1980,10 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
       evaluate_expr ctx lang e
     | _ -> .
   in
-  Message.emit_debug "\teval returns %a | %a" (Print.expr ()) ret
-    SymbExpr.formatter (get_symb_expr_r ret);
+  (* Message.emit_debug "\teval returns %a | %a" (Print.expr ()) ret
+     SymbExpr.formatter (get_symb_expr_r ret); *)
+  Message.emit_debug "\teval returns %a" SymbExpr.formatter
+    (get_symb_expr_r ret);
   ret
 
 (** The following functions gather methods to generate input values for concolic
