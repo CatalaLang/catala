@@ -200,10 +200,10 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 .FORCE:
 
 unit-tests: .FORCE
-	dune runtest
+	dune build @for-tests @runtest
 
 #> tests					: Run interpreter tests
-tests: .FORCE prepare-install unit-tests
+tests: .FORCE unit-tests
 	@$(MAKE) -C tests pass_all_tests
 
 tests/%: .FORCE
