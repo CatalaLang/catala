@@ -474,13 +474,20 @@ end
 
 module ExprGen (C : EXPR_PARAM) = struct
   let rec expr_aux :
-      type a.
+      type a t.
       Bindlib.ctxt ->
       Ocolor_types.color4 list ->
       Format.formatter ->
-      (a, 't) gexpr ->
+      (a, t) gexpr ->
       unit =
    fun bnd_ctx colors fmt e ->
+    (* (* Uncomment for type annotations everywhere *)
+     * (fun f ->
+     *    Format.fprintf fmt "@[<hv 1>(%a:@ %a)@]"
+     *      f e
+     *      typ_debug
+     *      (match Mark.get e with Typed {ty; _} -> ty | _ -> TAny,Pos.no_pos))
+     * @@ fun fmt e -> *)
     let exprb bnd_ctx colors e = expr_aux bnd_ctx colors e in
     let exprc colors e = exprb bnd_ctx colors e in
     let expr e = exprc colors e in
