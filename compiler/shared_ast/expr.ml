@@ -265,13 +265,17 @@ let option_enum_config =
 (* shallow map *)
 let map
     (type a b)
+    ?(typ : typ -> typ = Fun.id)
+    ?op:(fop = (fun _ -> invalid_arg "Expr.map" : a Operator.t -> b Operator.t))
     ~(f : (a, 'm1) gexpr -> (b, 'm2) boxed_gexpr)
     (e : ((a, b, 'm1) base_gexpr, 'm2) marked) : (b, 'm2) boxed_gexpr =
-  let m = Mark.get e in
+  let m = map_ty typ (Mark.get e) in
   match Mark.remove e with
   | ELit l -> elit l m
-  | EApp { f = e1; args; tys } -> eapp ~f:(f e1) ~args:(List.map f args) ~tys m
-  | EAppOp { op; tys; args } -> eappop ~op ~tys ~args:(List.map f args) m
+  | EApp { f = e1; args; tys } ->
+    eapp ~f:(f e1) ~args:(List.map f args) ~tys:(List.map typ tys) m
+  | EAppOp { op; tys; args } ->
+    eappop ~op:(fop op) ~tys:(List.map typ tys) ~args:(List.map f args) m
   | EArray args -> earray (List.map f args) m
   | EVar v -> evar (Var.translate v) m
   | EExternal { name } -> eexternal ~name m
@@ -279,6 +283,7 @@ let map
     let vars, body = Bindlib.unmbind binder in
     let body = f body in
     let binder = bind (Array.map Var.translate vars) body in
+    let tys = List.map typ tys in
     eabs binder tys m
   | EIfThenElse { cond; etrue; efalse } ->
     eifthenelse (f cond) (f etrue) (f efalse) m
@@ -306,9 +311,10 @@ let map
   | EScopeCall { scope; args } ->
     let args = ScopeVar.Map.map f args in
     escopecall ~scope ~args m
-  | ECustom { obj; targs; tret } -> ecustom obj targs tret m
+  | ECustom { obj; targs; tret } ->
+    ecustom obj (List.map typ targs) (typ tret) m
 
-let rec map_top_down ~f e = map ~f:(map_top_down ~f) (f e)
+let rec map_top_down ~f e = map ~f:(map_top_down ~f) ~op:Fun.id (f e)
 let map_marks ~f e = map_top_down ~f:(Mark.map_mark f) e
 
 (* Folds the given function on the direct children of the given expression. *)
@@ -456,7 +462,7 @@ let map_gather
 (* - *)
 
 (** See [Bindlib.box_term] documentation for why we are doing that. *)
-let rec rebox (e : ('a any, 't) gexpr) = map ~f:rebox e
+let rec rebox (e : ('a any, 't) gexpr) = map ~f:rebox ~op:Fun.id e
 
 let box e = Mark.map Bindlib.box e
 let unbox (e, m) = Bindlib.unbox e, m
@@ -778,7 +784,7 @@ let skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = Print.skip_wrappers
 
 let remove_logging_calls e =
   let rec f e =
-    let e, m = map ~f e in
+    let e, m = map ~f ~op:Fun.id e in
     ( Bindlib.box_apply
         (function EAppOp { op = Log _; args = [(arg, _)]; _ } -> arg | e -> e)
         e,
@@ -856,7 +862,7 @@ let rename_vars
       let body = aux ctx body in
       let binder = bind vars body in
       eabs binder tys m
-    | e -> map ~f:(aux ctx) e
+    | e -> map ~f:(aux ctx) ~op:Fun.id e
   in
   let ctx =
     List.fold_left

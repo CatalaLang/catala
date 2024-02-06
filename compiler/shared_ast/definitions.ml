@@ -485,11 +485,11 @@ and ('a, 'b, 'm) base_gexpr =
     }
       -> ('a, < .. >, 'm) base_gexpr
   | EAppOp : {
-      op : 'b operator;
+      op : 'a operator;
       args : ('a, 'm) gexpr list;
       tys : typ list;
     }
-      -> ('a, (< .. > as 'b), 'm) base_gexpr
+      -> ('a, < .. >, 'm) base_gexpr
   | EArray : ('a, 'm) gexpr list -> ('a, < .. >, 'm) base_gexpr
   | EVar : ('a, 'm) naked_gexpr Bindlib.var -> ('a, _, 'm) base_gexpr
   | EAbs : {

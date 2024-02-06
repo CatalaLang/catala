@@ -52,6 +52,16 @@
  (name exec)
  (deps compiler/catala.exe build_system/clerk.exe))
 
+;; This alias contains the minimum requirements to run the tests. It's lighter than building @install which includes the (long) compilation of `catala.js`
+
+(alias
+ (name for-tests)
+ (deps
+  _build/install/default/bin/catala
+  _build/install/default/bin/clerk
+  _build/install/default/lib/catala/runtime_ocaml/runtime_ocaml.cmi
+  _build/install/default/lib/catala/runtime_ocaml/runtime_ocaml__Runtime.cmi))
+
 ;; This garbles Clerk output, prefer to run from Makefile
 ;; (rule
 ;;  (alias runtest)

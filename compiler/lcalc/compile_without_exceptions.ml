@@ -50,7 +50,7 @@ let rec translate_typ (tau : typ) : typ =
       | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
     end
 
-let translate_mark e = Expr.map_ty translate_typ (Mark.get e)
+let translate_mark m = Expr.map_ty translate_typ m
 
 let rec translate_default
     (exceptions : 'm D.expr list)
@@ -82,52 +82,45 @@ let rec translate_default
     mark_default
 
 and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
-  let mark = translate_mark e in
-  match Mark.remove e with
-  | EEmptyError ->
+  match e with
+  | EEmptyError, m ->
+    let m = translate_mark m in
+    let pos = Expr.mark_pos m in
     Expr.einj
-      ~e:(Expr.elit LUnit (Expr.with_ty mark (TLit TUnit, Expr.mark_pos mark)))
-      ~cons:Expr.none_constr ~name:Expr.option_enum mark
-  | EErrorOnEmpty arg ->
-    let pos = Expr.mark_pos mark in
+      ~e:(Expr.elit LUnit (Expr.with_ty m (TLit TUnit, pos)))
+      ~cons:Expr.none_constr ~name:Expr.option_enum m
+  | EErrorOnEmpty arg, m ->
+    let m = translate_mark m in
+    let pos = Expr.mark_pos m in
     let cases =
       EnumConstructor.Map.of_list
         [
           ( Expr.none_constr,
             let x = Var.make "_" in
             Expr.make_abs [| x |]
-              (Expr.eraise NoValueProvided mark)
+              (Expr.eraise NoValueProvided m)
               [TAny, pos]
-              (Expr.mark_pos mark) );
+              pos );
           (* | None x -> raise NoValueProvided *)
-          Expr.some_constr, Expr.fun_id ~var_name:"arg" mark (* | Some x -> x *);
+          Expr.some_constr, Expr.fun_id ~var_name:"arg" m (* | Some x -> x *);
         ]
     in
-    Expr.ematch ~e:(translate_expr arg) ~name:Expr.option_enum ~cases mark
-  | EDefault { excepts; just; cons } -> translate_default excepts just cons mark
-  | EPureDefault e ->
+    Expr.ematch ~e:(translate_expr arg) ~name:Expr.option_enum ~cases m
+  | EDefault { excepts; just; cons }, m ->
+    translate_default excepts just cons (translate_mark m)
+  | EPureDefault e, m ->
     Expr.einj ~e:(translate_expr e) ~cons:Expr.some_constr
-      ~name:Expr.option_enum mark
-  (* As we need to translate types as well as terms, we cannot simply use
-     [Expr.map] for terms that contains types. *)
-  | EApp { f; args; tys } ->
-    let tys = List.map translate_typ tys in
-    Expr.map ~f:translate_expr (EApp { f; args; tys }, mark)
-  | EAppOp { op; tys; args } ->
+      ~name:Expr.option_enum (translate_mark m)
+  | EAppOp { op; tys; args }, m ->
     Expr.eappop ~op:(Operator.translate op)
       ~tys:(List.map translate_typ tys)
       ~args:(List.map translate_expr args)
-      mark
-  | EAbs { binder; tys } ->
-    let vars, body = Bindlib.unmbind binder in
-    let body = translate_expr body in
-    let binder = Expr.bind (Array.map Var.translate vars) body in
-    let tys = List.map translate_typ tys in
-    Expr.eabs binder tys mark
-  | ( ELit _ | EArray _ | EVar _ | EExternal _ | EIfThenElse _ | ETuple _
-    | ETupleAccess _ | EInj _ | EAssert _ | EStruct _ | EStructAccess _
-    | EMatch _ ) as e ->
-    Expr.map ~f:translate_expr (Mark.add mark e)
+      (translate_mark m)
+  | ( ( ELit _ | EArray _ | EVar _ | EApp _ | EAbs _ | EExternal _
+      | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EAssert _
+      | EStruct _ | EStructAccess _ | EMatch _ ),
+      _ ) as e ->
+    Expr.map ~f:translate_expr ~typ:translate_typ e
   | _ -> .
 
 let translate_scope_body_expr

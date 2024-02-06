@@ -28,21 +28,6 @@ module Runtime = Runtime_ocaml.Runtime
 let is_empty_error : type a. (a, 'm) gexpr -> bool =
  fun e -> match Mark.remove e with EEmptyError -> true | _ -> false
 
-(** [e' = propagate_empty_error e f] return [EEmptyError] if [e] is
-    [EEmptyError], else it apply [f] on not-empty term [e]. *)
-let propagate_empty_error :
-    type a. (a, 'm) gexpr -> ((a, 'm) gexpr -> (a, 'm) gexpr) -> (a, 'm) gexpr =
- fun e f -> match e with (EEmptyError, _) as e -> e | e -> f e
-
-(** [e' = propagate_empty_error_list elist f] return [EEmptyError] if one lement
-    of [es] is [EEmptyError], else it apply [f] on not-empty term list [elist]. *)
-let propagate_empty_error_list elist f =
-  let rec aux acc = function
-    | [] -> f (List.rev acc)
-    | e :: r -> propagate_empty_error e (fun e -> aux (e :: acc) r)
-  in
-  aux [] elist
-
 (* TODO: we should provide a generic way to print logs, that work across the
    different backends: python, ocaml, javascript, and interpreter *)
 
@@ -171,8 +156,6 @@ let rec evaluate_operator
       op Expr.format
       (EAppOp { op; tys = []; args }, m)
   in
-  propagate_empty_error_list args
-  @@ fun args ->
   let open Runtime.Oper in
   Mark.add m
   @@
@@ -643,8 +626,6 @@ let rec evaluate_expr :
   | EApp { f = e1; args; _ } -> (
     let e1 = evaluate_expr ctx lang e1 in
     let args = List.map (evaluate_expr ctx lang) args in
-    propagate_empty_error e1
-    @@ fun e1 ->
     match Mark.remove e1 with
     | EAbs { binder; _ } ->
       if Bindlib.mbinder_arity binder = List.length args then
@@ -672,14 +653,10 @@ let rec evaluate_expr :
   | EAppOp { op; args; _ } ->
     let args = List.map (evaluate_expr ctx lang) args in
     evaluate_operator (evaluate_expr ctx lang) op m lang args
-  | EAbs { binder; tys } -> Expr.unbox (Expr.eabs (Bindlib.box binder) tys m)
-  | ELit _ as e -> Mark.add m e
-  (* | EAbs _ as e -> Marked.mark m e (* these are values *) *)
+  | EAbs _ | ELit _ | ECustom _ | EEmptyError -> e (* these are values *)
   | EStruct { fields = es; name } ->
     let fields, es = List.split (StructField.Map.bindings es) in
     let es = List.map (evaluate_expr ctx lang) es in
-    propagate_empty_error_list es
-    @@ fun es ->
     Mark.add m
       (EStruct
          {
@@ -689,8 +666,7 @@ let rec evaluate_expr :
            name;
          })
   | EStructAccess { e; name = s; field } -> (
-    propagate_empty_error (evaluate_expr ctx lang e)
-    @@ fun e ->
+    let e = evaluate_expr ctx lang e in
     match Mark.remove e with
     | EStruct { fields = es; name } -> (
       if not (StructName.equal s name) then
@@ -722,11 +698,10 @@ let rec evaluate_expr :
         (Print.UserFacing.expr lang)
         e size)
   | EInj { e; name; cons } ->
-    propagate_empty_error (evaluate_expr ctx lang e)
-    @@ fun e -> Mark.add m (EInj { e; name; cons })
+    let e = evaluate_expr ctx lang e in
+    Mark.add m (EInj { e; name; cons })
   | EMatch { e; cases; name } -> (
-    propagate_empty_error (evaluate_expr ctx lang e)
-    @@ fun e ->
+    let e = evaluate_expr ctx lang e in
     match Mark.remove e with
     | EInj { e = e1; cons; name = name' } ->
       if not (EnumName.equal name name') then
@@ -752,8 +727,7 @@ let rec evaluate_expr :
         "Expected a term having a sum type as an argument to a match (should \
          not happen if the term was well-typed")
   | EIfThenElse { cond; etrue; efalse } -> (
-    propagate_empty_error (evaluate_expr ctx lang cond)
-    @@ fun cond ->
+    let cond = evaluate_expr ctx lang cond in
     match Mark.remove cond with
     | ELit (LBool true) -> evaluate_expr ctx lang etrue
     | ELit (LBool false) -> evaluate_expr ctx lang efalse
@@ -762,23 +736,21 @@ let rec evaluate_expr :
         "Expected a boolean literal for the result of this condition (should \
          not happen if the term was well-typed)")
   | EArray es ->
-    propagate_empty_error_list (List.map (evaluate_expr ctx lang) es)
-    @@ fun es -> Mark.add m (EArray es)
-  | EAssert e' ->
-    propagate_empty_error (evaluate_expr ctx lang e') (fun e ->
-        match Mark.remove e with
-        | ELit (LBool true) -> Mark.add m (ELit LUnit)
-        | ELit (LBool false) ->
-          Message.raise_spanned_error (Expr.pos e') "Assertion failed:@\n%a"
-            (Print.UserFacing.expr lang)
-            (partially_evaluate_expr_for_assertion_failure_message ctx lang
-               (Expr.skip_wrappers e'))
-        | _ ->
-          Message.raise_spanned_error (Expr.pos e')
-            "Expected a boolean literal for the result of this assertion \
-             (should not happen if the term was well-typed)")
-  | ECustom _ -> e
-  | EEmptyError -> Mark.copy e EEmptyError
+    let es = List.map (evaluate_expr ctx lang) es in
+    Mark.add m (EArray es)
+  | EAssert e' -> (
+    let e = evaluate_expr ctx lang e' in
+    match Mark.remove e with
+    | ELit (LBool true) -> Mark.add m (ELit LUnit)
+    | ELit (LBool false) ->
+      Message.raise_spanned_error (Expr.pos e') "Assertion failed:@\n%a"
+        (Print.UserFacing.expr lang)
+        (partially_evaluate_expr_for_assertion_failure_message ctx lang
+           (Expr.skip_wrappers e'))
+    | _ ->
+      Message.raise_spanned_error (Expr.pos e')
+        "Expected a boolean literal for the result of this assertion (should \
+         not happen if the term was well-typed)")
   | EErrorOnEmpty e' -> (
     match evaluate_expr ctx lang e' with
     | EEmptyError, _ ->

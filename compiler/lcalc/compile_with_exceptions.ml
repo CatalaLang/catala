@@ -20,9 +20,8 @@ module D = Dcalc.Ast
 module A = Ast
 
 let rec translate_typ (tau : typ) : typ =
-  Mark.copy tau
-    begin
-      match Mark.remove tau with
+  Mark.map
+    (function
       | TDefault t -> Mark.remove (translate_typ t)
       | TLit l -> TLit l
       | TTuple ts -> TTuple (List.map translate_typ ts)
@@ -38,10 +37,10 @@ let rec translate_typ (tau : typ) : typ =
            translation step."
       | TAny -> TAny
       | TArray ts -> TArray (translate_typ ts)
-      | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2)
-    end
+      | TArrow (t1, t2) -> TArrow (List.map translate_typ t1, translate_typ t2))
+    tau
 
-let translate_mark e = Expr.map_ty translate_typ (Mark.get e)
+let translate_mark m = Expr.map_ty translate_typ m
 
 let rec translate_default
     (exceptions : 'm D.expr list)
@@ -71,32 +70,26 @@ let rec translate_default
     mark_default
 
 and translate_expr (e : 'm D.expr) : 'm A.expr boxed =
-  let m = translate_mark e in
-  match Mark.remove e with
-  | EEmptyError -> Expr.eraise EmptyError m
-  | EErrorOnEmpty arg ->
+  match e with
+  | EEmptyError, m -> Expr.eraise EmptyError (translate_mark m)
+  | EErrorOnEmpty arg, m ->
+    let m = translate_mark m in
     Expr.ecatch (translate_expr arg) EmptyError
       (Expr.eraise NoValueProvided m)
       m
-  | EDefault { excepts; just; cons } -> translate_default excepts just cons m
-  | EPureDefault e -> translate_expr e
-  (* As we need to translate types as well as terms, we cannot simply use
-     [Expr.map] for terms that contains types. *)
-  | EAbs { binder; tys } ->
-    let tys = List.map translate_typ tys in
-    Expr.map ~f:translate_expr (EAbs { binder; tys }, m)
-  | EApp { f; args; tys } ->
-    let tys = List.map translate_typ tys in
-    Expr.map ~f:translate_expr (EApp { f; args; tys }, m)
-  | EAppOp { op; args; tys } ->
+  | EDefault { excepts; just; cons }, m ->
+    translate_default excepts just cons (translate_mark m)
+  | EPureDefault e, _ -> translate_expr e
+  | EAppOp { op; args; tys }, m ->
     Expr.eappop ~op:(Operator.translate op)
       ~args:(List.map translate_expr args)
       ~tys:(List.map translate_typ tys)
-      m
-  | ( ELit _ | EArray _ | EVar _ | EExternal _ | EIfThenElse _ | ETuple _
-    | ETupleAccess _ | EInj _ | EAssert _ | EStruct _ | EStructAccess _
-    | EMatch _ ) as e ->
-    Expr.map ~f:translate_expr (Mark.add m e)
+      (translate_mark m)
+  | ( ( ELit _ | EArray _ | EVar _ | EAbs _ | EApp _ | EExternal _
+      | EIfThenElse _ | ETuple _ | ETupleAccess _ | EInj _ | EAssert _
+      | EStruct _ | EStructAccess _ | EMatch _ ),
+      _ ) as e ->
+    Expr.map ~f:translate_expr ~typ:translate_typ e
   | _ -> .
 
 let translate_scope_body_expr (scope_body_expr : 'expr1 scope_body_expr) :

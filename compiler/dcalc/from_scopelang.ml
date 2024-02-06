@@ -597,13 +597,10 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
   | EAppOp { op = Add_dat_dur _; args; tys } ->
     let args = List.map (translate_expr ctx) args in
     Expr.eappop ~op:(Add_dat_dur ctx.date_rounding) ~args ~tys m
-  | EAppOp { op; args; tys } ->
-    let args = List.map (translate_expr ctx) args in
-    Expr.eappop ~op:(Operator.translate op) ~args ~tys m
   | ( EVar _ | EAbs _ | ELit _ | EStruct _ | EStructAccess _ | ETuple _
     | ETupleAccess _ | EInj _ | EEmptyError | EErrorOnEmpty _ | EArray _
-    | EIfThenElse _ ) as e ->
-    Expr.map ~f:(translate_expr ctx) (e, m)
+    | EIfThenElse _ | EAppOp _ ) as e ->
+    Expr.map ~f:(translate_expr ctx) ~op:Operator.translate (e, m)
 
 (** The result of a rule translation is a list of assignment, with variables and
     expressions. We also return the new translation context available after the
