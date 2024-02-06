@@ -238,15 +238,13 @@ module Passes = struct
         Message.raise_error
           "Option --avoid-exceptions is not compatible with option --trace"
       | true, _, Untyped _ ->
-        Lcalc.From_dcalc.translate_program_without_exceptions
-          (Shared_ast.Typing.program ~leave_unresolved:ErrorOnAny prg)
+        Lcalc.From_dcalc.translate_program_without_exceptions prg
       | true, _, Typed _ ->
         Lcalc.From_dcalc.translate_program_without_exceptions prg
       | false, _, Typed _ ->
         Lcalc.From_dcalc.translate_program_with_exceptions prg
       | false, _, Untyped _ ->
-        Lcalc.From_dcalc.translate_program_with_exceptions
-          (Shared_ast.Typing.program ~leave_unresolved:ErrorOnAny prg)
+        Lcalc.From_dcalc.translate_program_with_exceptions prg
       | _, _, Custom _ -> invalid_arg "Driver.Passes.lcalc"
     in
     let prg =
@@ -275,10 +273,11 @@ module Passes = struct
     let prg, type_ordering =
       if monomorphize_types then (
         Message.emit_debug "Monomorphizing types...";
-        let prg, type_ordering = Lcalc.Monomorphize.program prg in
-        Message.emit_debug "Retyping lambda calculus...";
-        let prg = Typing.program ~leave_unresolved:ErrorOnAny prg in
-        prg, type_ordering)
+        Lcalc.Monomorphize.program prg
+        (* (* FIXME: typing no longer works after monomorphisation, it would
+         *    need special operator handling for arrays and options *)
+         * Message.emit_debug "Retyping lambda calculus...";
+         * let prg = Typing.program ~leave_unresolved:LeaveAny prg in *))
       else prg, type_ordering
     in
     prg, type_ordering

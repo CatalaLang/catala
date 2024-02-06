@@ -243,9 +243,7 @@ let rec monomorphize_expr
     let tup_ty =
       match e0 with ETupleAccess { e; _ }, _ -> Expr.ty e | _ -> assert false
     in
-    let tuple_instance =
-      Type.Map.find tup_ty monomorphized_instances.tuples
-    in
+    let tuple_instance = Type.Map.find tup_ty monomorphized_instances.tuples in
     EStructAccess
       {
         name = tuple_instance.name;
