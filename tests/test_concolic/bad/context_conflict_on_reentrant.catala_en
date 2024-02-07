@@ -6,35 +6,39 @@ declaration scope A:
     output o content integer
 
 scope A:
-    definition x equals 0
+    definition x equals -1
     definition o equals 10
     definition o under condition x>0 consequence equals 20
 ```
 
-Catala gives `(λ(). 42)` as a default value to `x` so the conflict on the
-definition of `o` is found.
+When a value is forced for x, we are able to find the conflict. When its
+default value is used there is no conflict.
+
+For now it is not very clear what is happening because we can't see the value
+of `<function>`.
 
 ```catala-test-inline
 $ catala Concolic -s A
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = <function>
-[ERROR]
-There is a conflict between multiple valid consequences for assigning the same variable.
-
-This consequence has a valid justification:
-┌─⯈ tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:10.25-10.27:
-└──┐
-10 │     definition o equals 10
-   │                         ‾‾
-   └─ Article
-
-This consequence has a valid justification:
-┌─⯈ tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:11.57-11.59:
-└──┐
-11 │     definition o under condition x>0 consequence equals 20
-   │                                                         ‾‾
-   └─ Article
-#return code 123#
+[RESULT] Output of scope after evaluation:
+[RESULT]
+Found error ↯Conflict(tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:11.57-11.59,tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:10.25-10.27,)↯
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = <function>
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 10
+[RESULT] . x = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = <function>
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 10
+[RESULT] . x = -1
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
 ```
 

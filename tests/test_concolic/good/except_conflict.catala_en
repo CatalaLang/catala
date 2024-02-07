@@ -49,22 +49,11 @@ $ catala Concolic -s A
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = 1
 [RESULT] . y_in = 2
-[ERROR]
-There is a conflict between multiple valid consequences for assigning the same variable.
-
-This consequence has a valid justification:
-┌─⯈ tests/test_concolic/bad/except_conflict.catala_en:11.67-11.68:
-└──┐
-11 │     exception definition o under condition x=1 consequence equals 1
-   │                                                                   ‾
-   └─ Article
-
-This consequence has a valid justification:
-┌─⯈ tests/test_concolic/bad/except_conflict.catala_en:12.67-12.68:
-└──┐
-12 │     exception definition o under condition y=2 consequence equals 2
-   │                                                                   ‾
-   └─ Article
-#return code 123#
+[RESULT] Output of scope after evaluation:
+[RESULT]
+Found error ↯Conflict(tests/test_concolic/good/except_conflict.catala_en:12.67-12.68,tests/test_concolic/good/except_conflict.catala_en:11.67-11.68,)↯
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
 ```
 

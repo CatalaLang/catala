@@ -34,14 +34,25 @@ $ catala Concolic -s A
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = 43
-[ERROR]
-This variable evaluated to an empty term (no rule that defined it applied in this situation)
-
-┌─⯈ tests/test_concolic/bad/except_just_false.catala_en:6.12-6.13:
-└─┐
-6 │     output o content integer
-  │            ‾
-  └─ Article
-#return code 123#
+[RESULT] Output of scope after evaluation:
+[RESULT] Found error ↯Empty↯
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = -1
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 2
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 3
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
 ```
 

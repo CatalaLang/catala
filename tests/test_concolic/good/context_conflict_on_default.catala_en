@@ -14,7 +14,7 @@ scope A:
 
 The concolic interpreter tries different values for the context variable,
 including the special "default" value. This allows for the detection of a
-conflict when computing the value in this case.
+conflict when trying to compute the value in this case.
 
 ```catala-test-inline
 $ catala Concolic -s A
@@ -33,22 +33,11 @@ $ catala Concolic -s A
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = <function>
-[ERROR]
-There is a conflict between multiple valid consequences for assigning the same variable.
-
-This consequence has a valid justification:
-┌─⯈ tests/test_concolic/bad/context_conflict_on_default.catala_en:9.25-9.26:
-└─┐
-9 │     definition x equals 0
-  │                         ‾
-  └─ Article
-
-This consequence has a valid justification:
-┌─⯈ tests/test_concolic/bad/context_conflict_on_default.catala_en:10.25-10.26:
-└──┐
-10 │     definition x equals 1
-   │                         ‾
-   └─ Article
-#return code 123#
+[RESULT] Output of scope after evaluation:
+[RESULT]
+Found error ↯Conflict(tests/test_concolic/good/context_conflict_on_default.catala_en:10.25-10.26,tests/test_concolic/good/context_conflict_on_default.catala_en:9.25-9.26,)↯
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
 ```
 
