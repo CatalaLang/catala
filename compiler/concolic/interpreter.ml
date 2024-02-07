@@ -395,7 +395,11 @@ let make_reentrant_path_constraint
     | Symb_reentrant { name; _ } ->
       Some (Pc_reentrant { name; is_empty = branch })
     | Symb_z3 s when Z3.Expr.equal s ctx.ctx_dummy_const ->
-      None (* TODO comment *)
+      (* If the symbolic expression is the dummy, it means that the default
+         being evaluated is in a scope called by the scope under analysis. Thus
+         the context variable is not an input variable of the concolic engine,
+         and its evaluation should not generate a path constraint. *)
+      None
     | _ ->
       Message.raise_spanned_error pos
         "[make_reentrant_path_constraint] expects reentrant symbolic \
@@ -403,7 +407,6 @@ let make_reentrant_path_constraint
         SymbExpr.formatter expr
   in
   Option.bind expr (fun expr -> Some { expr; pos; branch })
-
 
 let integer_of_symb_expr (e : s_expr) : Runtime.integer =
   match Z3.Sort.get_sort_kind (Z3.Expr.get_sort e) with
@@ -779,7 +782,7 @@ let make_z3_struct ctx (name : StructName.t) (es : conc_expr list) : s_expr =
   let es_symb = List.map z3_of_expr es in
   Z3.Expr.mk_app ctx.ctx_z3 constructor es_symb
 
-(* taken from z3backend *)
+(* taken loosely from z3backend *)
 let make_z3_struct_access
     ctx
     (name : StructName.t)
@@ -787,7 +790,11 @@ let make_z3_struct_access
     (struct_expr : SymbExpr.t)
     (field_expr : SymbExpr.t) : SymbExpr.t =
   match field_expr with
-  | Symb_reentrant _ -> field_expr
+  | Symb_reentrant _ ->
+    (* If the field is for a reentrant variable, we want the symbolic expression
+       of the access to be the actual symbolic expression for the reentrant
+       variable and not a Z3 struct access (which would return a dummy) *)
+    field_expr
   | _ ->
     let sort = StructName.Map.find name ctx.ctx_z3structs in
     let fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
@@ -939,8 +946,8 @@ let propagate_generic_error_list l other_constraints f =
   in
   aux [] other_constraints l
 
-(* TODO CONC REU Rewrite EmptyError propagation functions from [Concrete] because
-   they don't allow for [f] have a different input and output type *)
+(* TODO CONC REU Rewrite EmptyError propagation functions from [Concrete]
+   because they don't allow for [f] have a different input and output type *)
 let propagate_empty_error (e : conc_expr) (f : conc_expr -> conc_result) :
     conc_result =
   match e with (EEmptyError, _) as e -> e | _ -> f e
