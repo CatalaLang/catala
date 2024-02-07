@@ -160,7 +160,6 @@ type _conc_info = {
 type conc_info = _conc_info custom
 
 (* This is DCalc with possibly genericErrors and customs *)
-(* TODO LUNDI better way using existing types? *)
 type ('c, 'e) conc_interpr_kind =
   < monomorphic : yes
   ; polymorphic : yes
@@ -308,7 +307,6 @@ let add_genericerror e =
   else id e
 
 (* Coerce a non-error expression into the result type *)
-(* TODO LUNDI obligé car subkind gexpr n'est pas un sous-type de kind gexpr? *)
 let make_ok : conc_expr -> conc_result = add_genericerror
 
 let make_error mk symb_expr constraints : conc_result =
@@ -895,7 +893,7 @@ let replace_EVar_mark
     | None -> e)
   | _ -> e
 
-(* TODO LUNDI *)
+(* TODO CONC REU *)
 let propagate_generic_error
     (e : conc_result)
     (other_constraints : path_constraint list)
@@ -914,7 +912,7 @@ let propagate_generic_error
     (* Add the new constraints but don't change the symbolic expression *)
     add_conc_info_e Symb_none ~constraints e
   | _, Symb_error _ ->
-    Message.raise_error
+    Message.raise_internal_error
       "A non-error case cannot have an error symbolic expression"
   | _, _ ->
     let e_noerror = del_genericerror e in
@@ -934,7 +932,7 @@ let propagate_generic_error_list l other_constraints f =
   in
   aux [] other_constraints l
 
-(* TODO LUNDI Rewrite EmptyError propagation functions from [Concrete] because
+(* TODO CONC REU Rewrite EmptyError propagation functions from [Concrete] because
    they don't allow for [f] have a different input and output type *)
 let propagate_empty_error (e : conc_expr) (f : conc_expr -> conc_result) :
     conc_result =
@@ -1828,6 +1826,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
           just = ELit (LBool true), _;
           cons;
         } -> (
+      (* FIXME add metadata to find this case instead of this big match *)
       Message.emit_debug "... it's a context variable definition %a"
         (Print.expr ()) except;
 
