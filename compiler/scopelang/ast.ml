@@ -67,15 +67,11 @@ type 'm program = {
 
 let type_rule decl_ctx env = function
   | Definition (loc, typ, io, expr) ->
-    let expr' =
-      Typing.expr ~leave_unresolved:ErrorOnAny decl_ctx ~env ~typ expr
-    in
+    let expr' = Typing.expr decl_ctx ~env ~typ expr in
     Definition (loc, typ, io, Expr.unbox expr')
   | Assertion expr ->
     let typ = Mark.add (Expr.pos expr) (TLit TBool) in
-    let expr' =
-      Typing.expr ~leave_unresolved:ErrorOnAny decl_ctx ~env ~typ expr
-    in
+    let expr' = Typing.expr decl_ctx ~env ~typ expr in
     Assertion (Expr.unbox expr')
   | Call (sc_name, ssc_name, m) ->
     let pos = Expr.mark_pos m in
@@ -118,10 +114,7 @@ let type_program (type m) (prg : m program) : typed program =
   let program_topdefs =
     TopdefName.Map.map
       (fun (expr, typ) ->
-        ( Expr.unbox
-            (Typing.expr prg.program_ctx ~leave_unresolved:ErrorOnAny ~env ~typ
-               expr),
-          typ ))
+        Expr.unbox (Typing.expr prg.program_ctx ~env ~typ expr), typ)
       prg.program_topdefs
   in
   let program_scopes =
