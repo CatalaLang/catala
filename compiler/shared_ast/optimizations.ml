@@ -125,10 +125,7 @@ let rec optimize_expr :
           cases = cases2;
           name = n2;
         }
-      when false
-           (* TODO: this case is buggy because of the box/unbox manipulation, it
-              should be fixed before removing this [false] value*)
-           && EnumName.equal n1 n2
+      when EnumName.equal n1 n2
            && all_match_cases_map_to_same_constructor cases1 n1 ->
       (* iota-reduction when the matched expression is itself a match of the
          same enum mapping all constructors to themselves *)
@@ -146,7 +143,7 @@ let rec optimize_expr :
                   Some
                     (Expr.unbox
                        (Expr.make_abs [| v1 |]
-                          (Expr.box
+                          (Expr.rebox
                              (Bindlib.msubst b2
                                 ([e1] |> List.map fst |> Array.of_list)))
                           tys (Expr.pos e2)))
@@ -473,7 +470,7 @@ let test_iota_reduction_2 () =
       \       | B x → D x\n\
        after=match 1 with\n\
       \      | A x → C 20\n\
-      \      | B x → D B x"
+      \      | B x → D (B x)\n"
     end
     (Format.asprintf "before=@[%a@]@.after=%a@." Expr.format (Expr.unbox matchA)
        Expr.format
