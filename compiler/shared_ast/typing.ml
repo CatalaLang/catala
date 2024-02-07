@@ -297,6 +297,7 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
   let it = lazy (UnionFind.make (TLit TInt, pos)) in
   let cet = lazy (UnionFind.make (TClosureEnv, pos)) in
   let array a = lazy (UnionFind.make (TArray (Lazy.force a), pos)) in
+  let option a = lazy (UnionFind.make (TOption (Lazy.force a), pos)) in
   let ( @-> ) x y =
     lazy (UnionFind.make (TArrow (List.map Lazy.force x, Lazy.force y), pos))
   in
@@ -312,13 +313,9 @@ let polymorphic_op_type (op : Operator.polymorphic A.operator Mark.pos) :
     | Log (PosRecordIfTrueBool, _) -> [bt] @-> bt
     | Log _ -> [any] @-> any
     | Length -> [array any] @-> it
-    (* The [HandleDefault] and [HandleDefaultOpt] need to be typed before and
-       after the Lcalc monomorphization which affects arrays and option types.
-       Because of that, we give the operators very lax typing rules with [any]
-       but it doesn't matter for unification because the concrete types on which
-       they will be instantiated are stored in the [EAppOp] node. *)
-    | HandleDefault -> [any2; [ut] @-> bt; [ut] @-> any] @-> any
-    | HandleDefaultOpt -> [any2; [ut] @-> bt; [ut] @-> any] @-> any
+    | HandleDefault -> [array ([ut] @-> any); [ut] @-> bt; [ut] @-> any] @-> any
+    | HandleDefaultOpt ->
+      [array (option any); [ut] @-> bt; [ut] @-> option any] @-> option any
     | ToClosureEnv -> [any] @-> cet
     | FromClosureEnv -> [cet] @-> any
   in
