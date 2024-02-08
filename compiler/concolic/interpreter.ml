@@ -1012,7 +1012,6 @@ let op2
     m
     (concrete_f : 'x -> 'y -> conc_naked_result)
     (symbolic_f : Z3.context -> s_expr -> s_expr -> s_expr)
-    ?(constraints : path_constraint list = [])
     x
     y
     e1
@@ -1024,20 +1023,19 @@ let op2
     SymbExpr.formatter_typed e2;
   let symb_expr = SymbExpr.app2_z3 (symbolic_f ctx.ctx_z3) e1 e2 in
   (* TODO handle errors *)
-  add_conc_info_m m symb_expr ~constraints concrete
+  add_conc_info_m m symb_expr ~constraints:[] concrete
 
 let op2list
     ctx
     m
     (concrete_f : 'x -> 'y -> conc_naked_result)
     (symbolic_f : Z3.context -> s_expr list -> s_expr)
-    ?(constraints : path_constraint list = [])
     x
     y
     e1
     e2 : conc_result =
   let symbolic_f_curry ctx e1 e2 = symbolic_f ctx [e1; e2] in
-  op2 ctx m concrete_f symbolic_f_curry ~constraints x y e1 e2
+  op2 ctx m concrete_f symbolic_f_curry x y e1 e2
 
 (** Round Z3 [Real] to Z3 [Integer] using the same strategy as [Runtime.round]:
     round to nearest, half away from zero. *)
