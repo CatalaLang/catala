@@ -1,0 +1,82 @@
+## Article
+
+```catala
+declaration scope A:
+    context output x content integer
+    output o content integer
+
+scope A:
+    definition x equals 30
+    definition o equals 1
+    exception definition o under condition x<0 consequence equals 2
+    exception definition o under condition x=30 consequence equals 3
+
+declaration scope B:
+    a scope A
+    input i content integer
+    input x content integer
+    output o content integer
+
+scope B:
+    definition a.x under condition i = 0 consequence equals 20
+    exception definition a.x under condition i = 1 consequence equals x+1
+    definition o equals a.o + a.x
+```
+
+Here the `i=1` branch forces a value for `a.x`, but the `i=0` branch and the
+branch where `i` is neither `0` nor `1` make `a.x` have its default, because
+the thunked term is empty.
+
+```catala-test-inline
+$ catala DCalc -s B
+let scope B (B_in: B_in {i_in: integer; x_in: integer}): B {o: integer} =
+  let get i : integer = B_in.i_in in
+  let get x : integer = B_in.x_in in
+  let sub_set a.x : unit → ⟨integer⟩ =
+    λ (_: unit) →
+    ⟨ ⟨ ⟨i = 1 ⊢ ⟨x + 1⟩⟩ | false ⊢ ∅ ⟩
+    | true ⊢ ⟨ ⟨i = 0 ⊢ ⟨20⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  let call result : A {x: integer; o: integer} = A { A_in x_in = a.x; } in
+  let sub_get a.x : integer = result.x in
+  let sub_get a.o : integer = result.o in
+  let set o : integer = error_empty ⟨ ⟨true ⊢ ⟨a.o + a.x⟩⟩ | false ⊢ ∅ ⟩ in
+  return { B o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s B
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . i_in = 42
+[RESULT] . x_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 33
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . i_in = 0
+[RESULT] . x_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 21
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . i_in = 1
+[RESULT] . x_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 44
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . i_in = 1
+[RESULT] . x_in = -2
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . i_in = 1
+[RESULT] . x_in = 29
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 33
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
