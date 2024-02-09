@@ -459,9 +459,7 @@ let base_bindings catala_exe catala_flags build_dir include_dirs =
       ];
     Nj.binding Var.catala_flags (catala_flags @ includes);
     Nj.binding Var.clerk_flags
-      ("-e"
-       :: Var.(!catala_exe)
-       :: includes
+      (("-e" :: Var.(!catala_exe) :: includes)
       @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags);
     Nj.binding Var.ocamlopt_exe ["ocamlopt"];
     Nj.binding Var.ocamlopt_flags (ocamlopt_flags @ includes);
