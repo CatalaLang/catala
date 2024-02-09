@@ -736,8 +736,16 @@ let get_constraints (e : conc_expr) : path_constraint list =
 let get_constraints_r (e : conc_result) : path_constraint list =
   _get_constraints_unsafe e
 
+(** Concatenate the constraints from a list of evaluated expressions [es]. [es]
+    is expected to be in the order of evaluation of the expressions. *)
 let gather_constraints (es : conc_expr list) =
-  let constraints = List.map get_constraints es in
+  (* NOTE The expression evaluated last has its constraint on top, hence the
+     list reversal. The constraints inside each expression are expected to be in
+     the right order, with the "most recent" constraint first. Thus, the most
+     recent constraint of the last evaluated (most recent) expression is on the
+     top of the output list. *)
+  let es_rev = List.rev es in
+  let constraints = List.map get_constraints es_rev in
   Message.emit_debug "gather_constraints is concatenating constraints";
   List.flatten constraints
 

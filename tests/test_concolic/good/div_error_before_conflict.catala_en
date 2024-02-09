@@ -1,0 +1,51 @@
+## Article
+
+```catala
+declaration scope A:
+  input x content integer
+  input y content integer
+  output o content integer
+
+scope A:
+    definition o equals 0
+    exception definition o under condition y = 0 consequence equals 1
+    exception definition o under condition x/y = 0.5 consequence equals 2
+```
+
+Here we can see that when the first exception condition is true, the division
+by zero error is always raised and we don't try to find a way (that does not
+exist) to get a conflict.
+Internally, generating such inputs would require solving for 2 constraints :
+```
+    y = 0 (from first exception)
+and y! = 0 (from division by y in second exception)
+```
+which is unsatisfiable.
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] . y_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 1
+[RESULT] . y_in = 2
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] . y_in = 0
+[RESULT] Output of scope after evaluation:
+[RESULT]
+Found error ↯DivisionByZero(tests/test_concolic/good/div_error_before_conflict.catala_en:12.46-12.47,tests/test_concolic/good/div_error_before_conflict.catala_en:12.44-12.47,)↯
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
+

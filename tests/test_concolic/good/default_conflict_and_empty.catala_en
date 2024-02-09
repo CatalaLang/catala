@@ -44,14 +44,14 @@ $ catala Concolic -s A
 [RESULT] . o = 0
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . x_in = 101
-[RESULT] Output of scope after evaluation:
-[RESULT] . o = 2
-[RESULT] 
-[RESULT] Evaluating with inputs:
 [RESULT] . x_in = 1
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 3
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 101
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = 201

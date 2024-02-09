@@ -34,7 +34,8 @@ let scope A
   let get t : T {c: bool} = A_in.t_in in
   let set o : bool =
     error_empty
-      ⟨ ⟨ ⟨(s.a = m || s.b.c) && (t = s.b || t.c = false) ⊢ ⟨true⟩⟩ | false ⊢ ∅ ⟩
+      ⟨ ⟨ ⟨(s.a = m || s.b.c) && (t = s.b || t.c = false) ⊢ ⟨true⟩⟩
+        | false ⊢ ∅ ⟩
       | true ⊢ ⟨ ⟨true ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩ ⟩
   in
   return { A o = o; }
@@ -53,7 +54,7 @@ $ catala Concolic -s A
 [RESULT] Evaluating with inputs:
 [RESULT] . m_in = 1
 [RESULT] . s_in = S { -- a: 0 -- b: T { -- c: false } }
-[RESULT] . t_in = T { -- c: true }
+[RESULT] . t_in = T { -- c: false }
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = false
 [RESULT] 

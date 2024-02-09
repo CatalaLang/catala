@@ -31,19 +31,9 @@ $ catala Concolic -s A
 [RESULT] . o = -1
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . x_in = -2.0
+[RESULT] . x_in = 2.0
 [RESULT] Output of scope after evaluation:
-[RESULT] . o = 0
-[RESULT] 
-[RESULT] Evaluating with inputs:
-[RESULT] . x_in = -1.0
-[RESULT] Output of scope after evaluation:
-[RESULT] . o = 1
-[RESULT] 
-[RESULT] Evaluating with inputs:
-[RESULT] . x_in = 0.0
-[RESULT] Output of scope after evaluation:
-[RESULT] . o = 2
+[RESULT] . o = 4
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = 1.0
@@ -51,9 +41,19 @@ $ catala Concolic -s A
 [RESULT] . o = 3
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . x_in = 2.0
+[RESULT] . x_in = 0.0
 [RESULT] Output of scope after evaluation:
-[RESULT] . o = 4
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = -1.0
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = -2.0
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

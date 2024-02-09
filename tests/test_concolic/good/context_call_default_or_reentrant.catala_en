@@ -67,15 +67,15 @@ $ catala Concolic -s B
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . i_in = 1
-[RESULT] . x_in = -2
-[RESULT] Output of scope after evaluation:
-[RESULT] . o = 1
-[RESULT] 
-[RESULT] Evaluating with inputs:
-[RESULT] . i_in = 1
 [RESULT] . x_in = 29
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 33
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . i_in = 1
+[RESULT] . x_in = -2
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

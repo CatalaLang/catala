@@ -52,12 +52,17 @@ $ catala Concolic -s A
 [RESULT] . o = 3
 [RESULT] 
 [RESULT] Evaluating with inputs:
+[RESULT] . d_in = [15 days]
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 4
+[RESULT] 
+[RESULT] Evaluating with inputs:
 [RESULT] . d_in = [0 day]
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 2
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . d_in = [-1 day]
+[RESULT] . d_in = [-14 days]
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 1
 [RESULT] 
@@ -65,11 +70,6 @@ $ catala Concolic -s A
 [RESULT] . d_in = [-15 days]
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 0
-[RESULT] 
-[RESULT] Evaluating with inputs:
-[RESULT] . d_in = [15 days]
-[RESULT] Output of scope after evaluation:
-[RESULT] . o = 4
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

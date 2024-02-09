@@ -43,14 +43,14 @@ $ catala Concolic -s A
 [RESULT] . o = B1 A1 10
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . x_in = 0
-[RESULT] Output of scope after evaluation:
-[RESULT] . o = B1 A2 true
-[RESULT] 
-[RESULT] Evaluating with inputs:
 [RESULT] . x_in = 1
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = B2 ()
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 0
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = B1 A2 true
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

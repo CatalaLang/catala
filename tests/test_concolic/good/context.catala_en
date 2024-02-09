@@ -28,14 +28,14 @@ $ catala Concolic -s A
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = <function>
 [RESULT] Output of scope after evaluation:
-[RESULT] . o = 2
-[RESULT] . x = -1
+[RESULT] . o = 3
+[RESULT] . x = 30
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = <function>
 [RESULT] Output of scope after evaluation:
-[RESULT] . o = 3
-[RESULT] . x = 30
+[RESULT] . o = 2
+[RESULT] . x = -1
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = <function>
