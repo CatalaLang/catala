@@ -41,5 +41,5 @@ $ catala typecheck --disable-warnings
 ```
 
 ```catala-test { id="ml" }
-$ catala ocaml --disable-warnings -o -
+$ catala ocaml --disable-warnings
 ```
