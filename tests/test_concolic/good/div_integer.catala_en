@@ -1,0 +1,39 @@
+## Article
+
+```catala
+declaration scope A:
+  input x content integer
+  input y content integer
+  output o content integer
+
+scope A:
+  definition o equals 0
+  exception definition o under condition x/y = 0.5 consequence equals 1
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] . y_in = 42
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 1
+[RESULT] . y_in = 2
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = 42
+[RESULT] . y_in = 0
+[RESULT] Output of scope after evaluation:
+[RESULT]
+Found error ↯DivisionByZero(tests/test_concolic/good/div_integer.catala_en:11.44-11.45,tests/test_concolic/good/div_integer.catala_en:11.42-11.45,)↯
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+

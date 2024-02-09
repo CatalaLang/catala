@@ -1,0 +1,62 @@
+Test that the rounding scheme for multiplication of money by decimal is the
+same in Z3 and OCaml.
+
+```catala
+declaration scope A:
+    input x content money
+    output o content integer
+
+scope A:
+    exception definition o under condition (x = $1 / (-1./0.015))
+        consequence equals 0
+    exception definition o under condition (x = $1 / (-1./0.011) and x = $1 / (-1./0.005))
+        consequence equals 1
+    exception definition o under condition (x = $1 / (-1./0.001)
+                                            and x = $0 / 1.0
+                                            and x = $1 / (1./0.001))
+        consequence equals 2
+    exception definition o under condition (x = $1 / (1./0.005) and x = $1 / (1./0.011))
+        consequence equals 3
+    exception definition o under condition (x = $1 / (1./0.015))
+        consequence equals 4
+
+    definition o equals -1
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = $42.00
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = -1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = -$0.02
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = -$0.01
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = $0.00
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = $0.01
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 3
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . x_in = $0.02
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 4
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+

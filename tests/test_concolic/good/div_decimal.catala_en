@@ -1,0 +1,43 @@
+## Article
+
+```catala
+declaration scope A:
+  input x content decimal
+  input y content decimal
+  input d content decimal
+  output o content integer
+
+scope A:
+  definition o equals 0
+  exception definition o under condition x/y = d and d>0.5 and d<0.6 and y!=1.0 consequence equals 1
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . d_in = 42.0
+[RESULT] . x_in = 42.0
+[RESULT] . y_in = 42.0
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . d_in = 0.562,5
+[RESULT] . x_in = 0.281,25
+[RESULT] . y_in = 0.5
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . d_in = 42.0
+[RESULT] . x_in = 42.0
+[RESULT] . y_in = 0.0
+[RESULT] Output of scope after evaluation:
+[RESULT]
+Found error ↯DivisionByZero(tests/test_concolic/good/div_decimal.catala_en:12.44-12.45,tests/test_concolic/good/div_decimal.catala_en:12.42-12.45,)↯
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
