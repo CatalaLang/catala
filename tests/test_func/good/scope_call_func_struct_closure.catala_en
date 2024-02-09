@@ -122,12 +122,9 @@ let scope Foo
   in
   let set b : bool =
     match
-      (handle_default_opt
-         [b.0 b.1 ()]
-         (λ (_: unit) → true)
-         (λ (_: unit) → ESome true))
+      (handle_default_opt [b.0 b.1 ()] (λ () → true) (λ () → ESome true))
     with
-    | ENone _ → raise NoValueProvided
+    | ENone → raise NoValueProvided
     | ESome arg → arg
   in
   let set r :

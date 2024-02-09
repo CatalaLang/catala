@@ -461,7 +461,6 @@ let base_bindings catala_exe catala_flags build_dir include_dirs =
     Nj.binding Var.clerk_flags
       ("-e"
        :: Var.(!catala_exe)
-       :: ("--build-dir=" ^ Var.(!builddir))
        :: includes
       @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags);
     Nj.binding Var.ocamlopt_exe ["ocamlopt"];
@@ -498,7 +497,7 @@ let[@ocamlformat "disable"] static_base_rules =
 
     Nj.rule "out-test"
       ~command: [
-        !catala_exe; !test_command; !catala_flags; !input;
+        !catala_exe; !test_command; "--plugin-dir="; "-o -"; !catala_flags; !input;
         ">"; !output; "2>&1";
         "||"; "true";
       ]
@@ -985,16 +984,15 @@ let run_cmd =
       $ Cli.ninja_flags)
 
 let runtest_cmd =
-  let run catala_exe catala_opts build_dir include_dirs file =
+  let run catala_exe catala_opts include_dirs file =
     let catala_opts =
       List.fold_left
         (fun opts dir -> "-I" :: dir :: opts)
         catala_opts include_dirs
     in
-    let build_dir = Poll.build_dir ?dir:build_dir () in
     Clerk_runtest.run_inline_tests
       (Option.value ~default:"catala" catala_exe)
-      catala_opts build_dir file;
+      catala_opts file;
     0
   in
   let doc =
@@ -1006,7 +1004,6 @@ let runtest_cmd =
       const run
       $ Cli.catala_exe
       $ Cli.catala_opts
-      $ Cli.build_dir
       $ Cli.include_dirs
       $ Cli.single_file)
 

@@ -562,14 +562,17 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
           (Format.pp_print_list ~pp_sep:Format.pp_print_space
              (fun fmt (x, tau) ->
-               punctuation fmt "(";
-               Format.pp_open_hvbox fmt 2;
-               var fmt x;
-               punctuation fmt ":";
-               Format.pp_print_space fmt ();
-               typ_gen None ~colors fmt tau;
-               Format.pp_close_box fmt ();
-               punctuation fmt ")"))
+                match tau with
+                | TLit TUnit, _ -> punctuation fmt "("; punctuation fmt ")"
+                | _ ->
+                  punctuation fmt "(";
+                  Format.pp_open_hvbox fmt 2;
+                  var fmt x;
+                  punctuation fmt ":";
+                  Format.pp_print_space fmt ();
+                  typ_gen None ~colors fmt tau;
+                  Format.pp_close_box fmt ();
+                  punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
       | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2]; _ } ->
         Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
@@ -704,13 +707,20 @@ module ExprGen (C : EXPR_PARAM) = struct
              ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
              (fun fmt pp_cons_name case_expr ->
                match case_expr with
-               | EAbs { binder; _ }, _ ->
+               | EAbs { binder; tys; _ }, _ ->
                  let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
                  let expr = exprb bnd_ctx in
-                 Format.fprintf fmt "@[<hov 2>%a %t@ %a@ %a@ %a@]" punctuation
+                 let pp_args fmt = match tys with
+                   | [TLit TUnit, _] -> ()
+                   | _ ->
+                     Format.pp_print_seq ~pp_sep:Format.pp_print_space var fmt
+                       (Array.to_seq xs);
+                     Format.pp_print_space fmt ()
+                 in
+                 Format.fprintf fmt "@[<hov 2>%a %t@ %t%a@ %a@]" punctuation
                    "|" pp_cons_name
-                   (Format.pp_print_seq ~pp_sep:Format.pp_print_space var)
-                   (Array.to_seq xs) punctuation "→" (rhs expr) body
+                   pp_args
+                   punctuation "→" (rhs expr) body
                | e ->
                  Format.fprintf fmt "@[<hov 2>%a %t@ %a@ %a@]" punctuation "|"
                    pp_cons_name punctuation "→" (rhs exprc) e))

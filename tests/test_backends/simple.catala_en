@@ -29,5 +29,5 @@ scope Baz:
 
 
 ```catala-test { id = "c" }
-$ catala c -o -
+$ catala c
 ```

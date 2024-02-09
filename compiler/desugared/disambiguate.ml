@@ -23,7 +23,7 @@ let expr ctx env e =
      [Some] *)
   (* Intermediate unboxings are fine since the [check_expr] will rebox in
      depth *)
-  Typing.check_expr ~leave_unresolved:ErrorOnAny ctx ~env (Expr.unbox e)
+  Typing.check_expr ctx ~env (Expr.unbox e)
 
 let rule ctx env rule =
   let env =

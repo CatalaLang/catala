@@ -192,7 +192,7 @@ module Passes = struct
       match typed with
       | Typed _ -> (
         Message.emit_debug "Typechecking again...";
-        try Typing.program ~leave_unresolved:ErrorOnAny prg
+        try Typing.program prg
         with Message.CompilerError error_content ->
           let bt = Printexc.get_raw_backtrace () in
           Printexc.raise_with_backtrace
@@ -257,7 +257,7 @@ module Passes = struct
     let prg =
       if not closure_conversion then (
         Message.emit_debug "Retyping lambda calculus...";
-        Typing.program ~leave_unresolved:LeaveAny prg)
+        Typing.program ~fail_on_any:false prg)
       else (
         Message.emit_debug "Performing closure conversion...";
         let prg = Lcalc.Closure_conversion.closure_conversion prg in
@@ -268,16 +268,15 @@ module Passes = struct
           else prg
         in
         Message.emit_debug "Retyping lambda calculus...";
-        Typing.program ~leave_unresolved:LeaveAny prg)
+        Typing.program ~fail_on_any:false prg)
     in
     let prg, type_ordering =
       if monomorphize_types then (
         Message.emit_debug "Monomorphizing types...";
-        Lcalc.Monomorphize.program prg
-        (* (* FIXME: typing no longer works after monomorphisation, it would
-         *    need special operator handling for arrays and options *)
-         * Message.emit_debug "Retyping lambda calculus...";
-         * let prg = Typing.program ~leave_unresolved:LeaveAny prg in *))
+        let prg, type_ordering = Lcalc.Monomorphize.program prg in
+        Message.emit_debug "Retyping lambda calculus...";
+        let prg = Typing.program ~fail_on_any:false ~assume_op_types:true prg in
+        prg, type_ordering)
       else prg, type_ordering
     in
     prg, type_ordering
@@ -556,10 +555,7 @@ module Commands = struct
 
     (* Additionally, we might want to check the invariants. *)
     if check_invariants then (
-      let prg =
-        Shared_ast.Typing.program ~leave_unresolved:ErrorOnAny
-          (Program.untype prg)
-      in
+      let prg = Shared_ast.Typing.program prg in
       Message.emit_debug "Checking invariants...";
       if Dcalc.Invariants.check_all_invariants prg then
         Message.emit_result "All invariant checks passed"
