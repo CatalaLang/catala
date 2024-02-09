@@ -50,7 +50,6 @@ module ScopeB_in = struct
 end
 
 
-
 let scope_a (scope_a_in: ScopeA_in.t) : ScopeA.t =
   let a_: bool = true in
   {ScopeA.a = a_}
@@ -60,6 +59,7 @@ let scope_b (scope_b_in: ScopeB_in.t) : ScopeB.t =
   let scope_a_dot_a_: bool = result_.ScopeA.a in
   let a_: bool = scope_a_dot_a_ in
   {ScopeB.a = a_}
+
 Generating entry points for scopes: ScopeA ScopeB
 
 let entry_scopes = [

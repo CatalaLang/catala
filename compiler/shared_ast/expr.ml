@@ -778,6 +778,8 @@ let rec free_vars : ('a, 't) gexpr -> ('a, 't) gexpr Var.Set.t = function
     let vs, body = Bindlib.unmbind binder in
     Array.fold_right Var.Set.remove vs (free_vars body)
   | e -> shallow_fold (fun e -> Var.Set.union (free_vars e)) e Var.Set.empty
+(* Could also be done with [rebox] followed by [Bindlib.free_vars], if that
+   returned more than a context *)
 
 (* This function is first defined in [Print], only for dependency reasons *)
 let skip_wrappers : type a. (a, 'm) gexpr -> (a, 'm) gexpr = Print.skip_wrappers

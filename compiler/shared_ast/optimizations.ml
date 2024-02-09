@@ -380,8 +380,7 @@ let optimize_expr :
   optimize_expr { decl_ctx } e
 
 let optimize_program (p : 'm program) : 'm program =
-  Bindlib.unbox
-    (Program.map_exprs ~f:(optimize_expr p.decl_ctx) ~varf:(fun v -> v) p)
+  Program.map_exprs ~f:(optimize_expr p.decl_ctx) ~varf:(fun v -> v) p
 
 let test_iota_reduction_1 () =
   let x = Var.make "x" in

@@ -944,7 +944,10 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     in
     let to_interpret =
       Expr.make_app (Expr.box e)
-        [Expr.estruct ~name:s_in ~fields:application_term mark_e]
+        [
+          Expr.estruct ~name:s_in ~fields:application_term
+            (Expr.map_ty (fun (_, pos) -> TStruct s_in, pos) mark_e);
+        ]
         [TStruct s_in, Expr.pos e]
         (Expr.pos e)
     in
@@ -996,7 +999,10 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     in
     let to_interpret =
       Expr.make_app (Expr.box e)
-        [Expr.estruct ~name:s_in ~fields:application_term mark_e]
+        [
+          Expr.estruct ~name:s_in ~fields:application_term
+            (Expr.map_ty (fun (_, pos) -> TStruct s_in, pos) mark_e);
+        ]
         [TStruct s_in, Expr.pos e]
         (Expr.pos e)
     in

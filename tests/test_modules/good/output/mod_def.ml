@@ -25,9 +25,8 @@ module S_in = struct
 end
 
 
-
 let s (s_in: S_in.t) : S.t =
-  let sr_: money = 
+  let sr_: money =
     try
       (handle_default
          {filename = "tests/test_modules/good/mod_def.catala_en";
@@ -47,7 +46,7 @@ let s (s_in: S_in.t) : S.t =
       {filename = "tests/test_modules/good/mod_def.catala_en"; start_line=16;
         start_column=10; end_line=16; end_column=12;
         law_headings=["Test modules + inclusions 1"]})) in
-  let e1_: Enum1.t = 
+  let e1_: Enum1.t =
     try
       (handle_default
          {filename = "tests/test_modules/good/mod_def.catala_en";
@@ -70,6 +69,7 @@ let s (s_in: S_in.t) : S.t =
 
 let half_ : integer -> decimal =
   fun (x_: integer) -> o_div_int_int x_ (integer_of_string "2")
+
 let () =
   Runtime_ocaml.Runtime.register_module "Mod_def"
     [ "S", Obj.repr s;

@@ -448,8 +448,7 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
   | ERaise exc ->
     Format.fprintf fmt "raise@ %a" format_exception (exc, Expr.pos e)
   | ECatch { body; exn; handler } ->
-    Format.fprintf fmt
-      "@,@[<hv>@[<hov 2>try@ %a@]@ with@]@ @[<hov 2>%a@ ->@ %a@]"
+    Format.fprintf fmt "@[<hv>@[<hov 2>try@ %a@]@ with@]@ @[<hov 2>%a@ ->@ %a@]"
       format_with_parens body format_exception
       (exn, Expr.pos e)
       format_with_parens handler
@@ -569,48 +568,57 @@ let rename_vars e =
       (rename_vars ~exclude:ocaml_keywords ~reset_context_for_closed_terms:true
          ~skip_constant_binders:true ~constant_binder_name:(Some "_") e))
 
-let format_expr ctx fmt e = format_expr ctx fmt (rename_vars e)
+let format_expr ctx fmt e =
+  Format.pp_open_vbox fmt 0;
+  format_expr ctx fmt (rename_vars e);
+  Format.pp_close_box fmt ()
 
-let rec format_scope_body_expr
+let format_scope_body_expr
     (ctx : decl_ctx)
     (fmt : Format.formatter)
     (scope_lets : 'm Ast.expr scope_body_expr) : unit =
-  match scope_lets with
-  | Result e -> format_expr ctx fmt e
-  | ScopeLet scope_let ->
-    let scope_let_var, scope_let_next =
-      Bindlib.unbind scope_let.scope_let_next
-    in
-    Format.fprintf fmt "@[<hov 2>let %a: %a = %a in@]@\n%a" format_var
-      scope_let_var format_typ scope_let.scope_let_typ (format_expr ctx)
-      scope_let.scope_let_expr
-      (format_scope_body_expr ctx)
-      scope_let_next
+  Format.pp_open_vbox fmt 0;
+  let last_e =
+    BoundList.iter
+      ~f:(fun scope_let_var scope_let ->
+        Format.fprintf fmt "@[<hv>@[<hov 2>let %a: %a =@ %a@ @]in@]@,"
+          format_var scope_let_var format_typ scope_let.scope_let_typ
+          (format_expr ctx) scope_let.scope_let_expr)
+      scope_lets
+  in
+  format_expr ctx fmt last_e;
+  Format.pp_close_box fmt ()
 
 let format_code_items
     (ctx : decl_ctx)
     (fmt : Format.formatter)
     (code_items : 'm Ast.expr code_item_list) :
     ('m Ast.expr Var.t * 'm Ast.expr code_item) String.Map.t =
-  Scope.fold_left
-    ~f:(fun bnd item var ->
-      match item with
-      | Topdef (name, typ, e) ->
-        Format.fprintf fmt "@\n@\n@[<hov 2>let %a : %a =@\n%a@]" format_var var
-          format_typ typ (format_expr ctx) e;
-        String.Map.add (TopdefName.to_string name) (var, item) bnd
-      | ScopeDef (name, body) ->
-        let scope_input_var, scope_body_expr =
-          Bindlib.unbind body.scope_body_expr
-        in
-        Format.fprintf fmt "@\n@\n@[<hov 2>let %a (%a: %a.t) : %a.t =@\n%a@]"
-          format_var var format_var scope_input_var format_to_module_name
-          (`Sname body.scope_body_input_struct) format_to_module_name
-          (`Sname body.scope_body_output_struct)
-          (format_scope_body_expr ctx)
-          scope_body_expr;
-        String.Map.add (ScopeName.to_string name) (var, item) bnd)
-    ~init:String.Map.empty code_items
+  Format.pp_open_vbox fmt 0;
+  let var_bindings, () =
+    BoundList.fold_left
+      ~f:(fun bnd item var ->
+        match item with
+        | Topdef (name, typ, e) ->
+          Format.fprintf fmt "@,@[<v 2>@[<hov 2>let %a : %a =@]@ %a@]@,"
+            format_var var format_typ typ (format_expr ctx) e;
+          String.Map.add (TopdefName.to_string name) (var, item) bnd
+        | ScopeDef (name, body) ->
+          let scope_input_var, scope_body_expr =
+            Bindlib.unbind body.scope_body_expr
+          in
+          Format.fprintf fmt
+            "@,@[<hv 2>@[<hov 2>let %a (%a: %a.t) : %a.t =@]@ %a@]@," format_var
+            var format_var scope_input_var format_to_module_name
+            (`Sname body.scope_body_input_struct) format_to_module_name
+            (`Sname body.scope_body_output_struct)
+            (format_scope_body_expr ctx)
+            scope_body_expr;
+          String.Map.add (ScopeName.to_string name) (var, item) bnd)
+      ~init:String.Map.empty code_items
+  in
+  Format.pp_close_box fmt ();
+  var_bindings
 
 let format_scope_exec
     (ctx : decl_ctx)

@@ -70,7 +70,7 @@ type Foo = { z: integer; }
 
 let topval closure_y : (closure_env, integer) → integer =
   λ (env: closure_env) (z: integer) →
-  (from_closure_env env).0 + z 
+  (from_closure_env env).0 + z
 let scope SubFoo1
   (SubFoo1_in: SubFoo1_in {x_in: integer})
   : SubFoo1 {
@@ -82,11 +82,11 @@ let scope SubFoo1
   let set y : ((closure_env, integer) → integer * closure_env) =
     (closure_y, to_closure_env (x))
   in
-  return { SubFoo1 x = x; y = y; } 
+  return { SubFoo1 x = x; y = y; }
 let topval closure_y : (closure_env, integer) → integer =
   λ (env: closure_env) (z: integer) →
   let env1 : (integer * integer) = from_closure_env env in
-  ((env1.1 + env1.0 + z)) 
+  ((env1.1 + env1.0 + z))
 let scope SubFoo2
   (SubFoo2_in: SubFoo2_in {x1_in: integer; x2_in: integer})
   : SubFoo2 {
@@ -99,19 +99,19 @@ let scope SubFoo2
   let set y : ((closure_env, integer) → integer * closure_env) =
     (closure_y, to_closure_env (x2, x1))
   in
-  return { SubFoo2 x1 = x1; y = y; } 
+  return { SubFoo2 x1 = x1; y = y; }
 let topval closure_r : (closure_env, integer) → integer =
   λ (env: closure_env) (param0: integer) →
   let code_and_env : ((closure_env, integer) → integer * closure_env) =
     (from_closure_env env).0.y
   in
-  code_and_env.0 code_and_env.1 param0 
+  code_and_env.0 code_and_env.1 param0
 let topval closure_r : (closure_env, integer) → integer =
   λ (env: closure_env) (param0: integer) →
   let code_and_env : ((closure_env, integer) → integer * closure_env) =
     (from_closure_env env).0.y
   in
-  code_and_env.0 code_and_env.1 param0 
+  code_and_env.0 code_and_env.1 param0
 let scope Foo
   (Foo_in:
      Foo_in {b_in: ((closure_env, unit) → eoption bool * closure_env)})
@@ -153,7 +153,7 @@ let scope Foo
     in
     code_and_env.0 code_and_env.1 1
   in
-  return { Foo z = z; } 
+  return { Foo z = z; }
 
 ```
 

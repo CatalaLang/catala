@@ -17,16 +17,37 @@
 
 open Definitions
 
-let map_exprs ~f ~varf { code_items; decl_ctx; lang; module_name } =
-  Bindlib.box_apply
-    (fun code_items -> { code_items; decl_ctx; lang; module_name })
-    (Scope.map_exprs ~f ~varf code_items)
+let map_decl_ctx ~f ctx =
+  {
+    ctx with
+    ctx_enums = EnumName.Map.map (EnumConstructor.Map.map f) ctx.ctx_enums;
+    ctx_structs = StructName.Map.map (StructField.Map.map f) ctx.ctx_structs;
+    ctx_topdefs = TopdefName.Map.map f ctx.ctx_topdefs;
+  }
 
-let fold_left_exprs ~f ~init { code_items; _ } =
-  Scope.fold_left ~f:(fun acc e _ -> f acc e) ~init code_items
+let map_exprs ?typ ~f ~varf { code_items; decl_ctx; lang; module_name } =
+  let boxed_prg =
+    Bindlib.box_apply
+      (fun code_items ->
+        let decl_ctx =
+          match typ with None -> decl_ctx | Some f -> map_decl_ctx ~f decl_ctx
+        in
+        { code_items; decl_ctx; lang; module_name })
+      (Scope.map_exprs ?typ ~f ~varf code_items)
+  in
+  assert (Bindlib.is_closed boxed_prg);
+  Bindlib.unbox boxed_prg
 
-let fold_right_exprs ~f ~init { code_items; _ } =
-  Scope.fold_right ~f:(fun e _ acc -> f e acc) ~init code_items
+let fold_left ~f ~init { code_items; _ } =
+  fst @@ BoundList.fold_left ~f:(fun acc e _ -> f acc e) ~init code_items
+
+let fold_exprs ~f ~init prg = Scope.fold_exprs ~f ~init prg.code_items
+
+let fold_right ~f ~init { code_items; _ } =
+  BoundList.fold_right
+    ~f:(fun e _ acc -> f e acc)
+    ~init:(fun () -> init)
+    code_items
 
 let empty_ctx =
   {
@@ -42,56 +63,25 @@ let empty_ctx =
 
 let get_scope_body { code_items; _ } scope =
   match
-    Scope.fold_left ~init:None
+    BoundList.fold_left ~init:None
       ~f:(fun acc item _ ->
         match item with
         | ScopeDef (name, body) when ScopeName.equal scope name -> Some body
         | _ -> acc)
       code_items
   with
-  | None -> raise Not_found
-  | Some body -> body
+  | None, _ -> raise Not_found
+  | Some body, _ -> body
 
 let untype : 'm. ('a, 'm) gexpr program -> ('a, untyped) gexpr program =
- fun prg -> Bindlib.unbox (map_exprs ~f:Expr.untype ~varf:Var.translate prg)
+ fun prg -> map_exprs ~f:Expr.untype ~varf:Var.translate prg
 
-let rec find_scope name vars = function
-  | Nil -> raise Not_found
-  | Cons (ScopeDef (n, body), _) when ScopeName.equal name n ->
-    List.rev vars, body
-  | Cons (_, next_bind) ->
-    let var, next = Bindlib.unbind next_bind in
-    find_scope name (var :: vars) next
-
-let rec all_scopes code_item_list =
-  match code_item_list with
-  | Nil -> []
-  | Cons (ScopeDef (n, _), next_bind) ->
-    let _var, next = Bindlib.unbind next_bind in
-    n :: all_scopes next
-  | Cons (_, next_bind) ->
-    let _var, next = Bindlib.unbind next_bind in
-    all_scopes next
+let find_scope name =
+  BoundList.find ~f:(function
+    | ScopeDef (n, body) when ScopeName.equal name n -> Some body
+    | _ -> None)
 
 let to_expr p main_scope =
-  let _, main_scope_body = find_scope main_scope [] p.code_items in
-  let res =
-    Scope.unfold p.decl_ctx p.code_items
-      (Scope.get_body_mark main_scope_body)
-      (ScopeName main_scope)
-  in
+  let res = Scope.unfold p.decl_ctx p.code_items main_scope in
   Expr.Box.assert_closed (Expr.Box.lift res);
   res
-
-let equal p p' =
-  (* TODO: include toplevel definitions in this program comparison. *)
-  let ss = all_scopes p.code_items in
-  let ss' = all_scopes p'.code_items in
-
-  List.length ss = List.length ss'
-  && ListLabels.for_all2 ss ss' ~f:(fun s s' ->
-         ScopeName.equal s s'
-         &&
-         let e1 = Expr.unbox @@ to_expr p s in
-         let e2 = Expr.unbox @@ to_expr p' s in
-         Expr.equal e1 e2)

@@ -46,6 +46,9 @@ type monomorphized_instances = {
   arrays : array_instance Type.Map.t;
 }
 
+let empty_instances =
+  { options = Type.Map.empty; tuples = Type.Map.empty; arrays = Type.Map.empty }
+
 let collect_monomorphized_instances (prg : typed program) :
     monomorphized_instances =
   let option_instances_counter = ref 0 in
@@ -157,23 +160,8 @@ let collect_monomorphized_instances (prg : typed program) :
     Expr.shallow_fold collect_expr e (collect_typ acc (Expr.ty e))
   in
   let acc =
-    Scope.fold_left
-      ~init:
-        {
-          options = Type.Map.empty;
-          tuples = Type.Map.empty;
-          arrays = Type.Map.empty;
-        }
-      ~f:(fun acc item _ ->
-        match item with
-        | Topdef (_, typ, e) -> collect_typ (collect_expr e acc) typ
-        | ScopeDef (_, body) ->
-          let _, body = Bindlib.unbind body.scope_body_expr in
-          Scope.fold_left_lets ~init:acc
-            ~f:(fun acc { scope_let_typ; scope_let_expr; _ } _ ->
-              collect_typ (collect_expr scope_let_expr acc) scope_let_typ)
-            body)
-      prg.code_items
+    Scope.fold_exprs prg.code_items ~init:empty_instances ~f:(fun acc e typ ->
+        collect_typ (collect_expr e acc) typ)
   in
   EnumName.Map.fold
     (fun _ constructors acc ->
@@ -301,104 +289,67 @@ let rec monomorphize_expr
 let program (prg : typed program) :
     typed program * Scopelang.Dependency.TVertex.t list =
   let monomorphized_instances = collect_monomorphized_instances prg in
+  let decl_ctx = prg.decl_ctx in
   (* First we remove the polymorphic option type *)
-  let prg =
-    {
-      prg with
-      decl_ctx =
-        {
-          prg.decl_ctx with
-          ctx_enums =
-            EnumName.Map.remove Expr.option_enum prg.decl_ctx.ctx_enums;
-        };
-    }
-  in
+  let ctx_enums = EnumName.Map.remove Expr.option_enum decl_ctx.ctx_enums in
+  let ctx_structs = decl_ctx.ctx_structs in
   (* Then we replace all hardcoded types and expressions with the monomorphized
      instances *)
-  let prg =
-    {
-      prg with
-      decl_ctx =
-        {
-          prg.decl_ctx with
-          ctx_enums =
-            EnumName.Map.map
-              (EnumConstructor.Map.map
-                 (monomorphize_typ monomorphized_instances))
-              prg.decl_ctx.ctx_enums;
-          ctx_structs =
-            StructName.Map.map
-              (StructField.Map.map (monomorphize_typ monomorphized_instances))
-              prg.decl_ctx.ctx_structs;
-        };
-    }
+  let ctx_enums =
+    EnumName.Map.map
+      (EnumConstructor.Map.map (monomorphize_typ monomorphized_instances))
+      ctx_enums
+  in
+  let ctx_structs =
+    StructName.Map.map
+      (StructField.Map.map (monomorphize_typ monomorphized_instances))
+      ctx_structs
   in
   (* Then we augment the [decl_ctx] with the monomorphized instances *)
-  let prg =
-    {
-      prg with
-      decl_ctx =
-        {
-          prg.decl_ctx with
-          ctx_enums =
-            Type.Map.fold
-              (fun _ (option_instance : option_instance) (ctx_enums : enum_ctx) ->
-                EnumName.Map.add option_instance.name
-                  (EnumConstructor.Map.add option_instance.none_cons
-                     (TLit TUnit, Pos.no_pos)
-                     (EnumConstructor.Map.singleton option_instance.some_cons
-                        (monomorphize_typ monomorphized_instances
-                           (option_instance.some_typ, Pos.no_pos))))
-                  ctx_enums)
-              monomorphized_instances.options prg.decl_ctx.ctx_enums;
-          ctx_structs =
-            Type.Map.fold
-              (fun _ (tuple_instance : tuple_instance)
-                   (ctx_structs : struct_ctx) ->
-                StructName.Map.add tuple_instance.name
-                  (List.fold_left
-                     (fun acc (field, typ) ->
-                       StructField.Map.add field
-                         (monomorphize_typ monomorphized_instances
-                            (typ, Pos.no_pos))
-                         acc)
-                     StructField.Map.empty tuple_instance.fields)
-                  ctx_structs)
-              monomorphized_instances.tuples
-              (Type.Map.fold
-                 (fun _ (array_instance : array_instance)
-                      (ctx_structs : struct_ctx) ->
-                   StructName.Map.add array_instance.name
-                     (StructField.Map.add array_instance.content_field
-                        ( TArray
-                            (monomorphize_typ monomorphized_instances
-                               (array_instance.content_typ, Pos.no_pos)),
-                          Pos.no_pos )
-                        (StructField.Map.singleton array_instance.len_field
-                           (TLit TInt, Pos.no_pos)))
-                     ctx_structs)
-                 monomorphized_instances.arrays prg.decl_ctx.ctx_structs);
-        };
-    }
+  let ctx_enums =
+    Type.Map.fold
+      (fun _ (option_instance : option_instance) (ctx_enums : enum_ctx) ->
+        EnumName.Map.add option_instance.name
+          (EnumConstructor.Map.add option_instance.none_cons
+             (TLit TUnit, Pos.no_pos)
+             (EnumConstructor.Map.singleton option_instance.some_cons
+                (monomorphize_typ monomorphized_instances
+                   (option_instance.some_typ, Pos.no_pos))))
+          ctx_enums)
+      monomorphized_instances.options ctx_enums
   in
+  let ctx_structs =
+    Type.Map.fold
+      (fun _ (tuple_instance : tuple_instance) (ctx_structs : struct_ctx) ->
+        StructName.Map.add tuple_instance.name
+          (List.fold_left
+             (fun acc (field, typ) ->
+               StructField.Map.add field
+                 (monomorphize_typ monomorphized_instances (typ, Pos.no_pos))
+                 acc)
+             StructField.Map.empty tuple_instance.fields)
+          ctx_structs)
+      monomorphized_instances.tuples
+      (Type.Map.fold
+         (fun _ (array_instance : array_instance) (ctx_structs : struct_ctx) ->
+           StructName.Map.add array_instance.name
+             (StructField.Map.add array_instance.content_field
+                ( TArray
+                    (monomorphize_typ monomorphized_instances
+                       (array_instance.content_typ, Pos.no_pos)),
+                  Pos.no_pos )
+                (StructField.Map.singleton array_instance.len_field
+                   (TLit TInt, Pos.no_pos)))
+             ctx_structs)
+         monomorphized_instances.arrays ctx_structs)
+  in
+  let decl_ctx = { decl_ctx with ctx_structs; ctx_enums } in
   let code_items =
     Bindlib.unbox
-    @@ Scope.map
-         ~f:(fun code_item ->
-           match code_item with
-           | Topdef (name, typ, e) -> Bindlib.box (Topdef (name, typ, e))
-           | ScopeDef (name, body) ->
-             let s_var, scope_body = Bindlib.unbind body.scope_body_expr in
-             Bindlib.box_apply
-               (fun scope_body_expr ->
-                 ScopeDef (name, { body with scope_body_expr }))
-               (Bindlib.bind_var s_var
-                  (Scope.map_exprs_in_lets ~varf:Fun.id
-                     ~transform_types:(monomorphize_typ monomorphized_instances)
-                     ~f:(monomorphize_expr monomorphized_instances)
-                     scope_body)))
-         ~varf:Fun.id prg.code_items
+    @@ Scope.map_exprs prg.code_items
+         ~typ:(monomorphize_typ monomorphized_instances)
+         ~varf:Fun.id
+         ~f:(monomorphize_expr monomorphized_instances)
   in
-  ( { prg with code_items },
-    Scopelang.Dependency.check_type_cycles prg.decl_ctx.ctx_structs
-      prg.decl_ctx.ctx_enums )
+  ( { prg with decl_ctx; code_items },
+    Scopelang.Dependency.check_type_cycles ctx_structs ctx_enums )
