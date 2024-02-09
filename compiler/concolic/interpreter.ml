@@ -1037,6 +1037,46 @@ let op2list
   let symbolic_f_curry ctx e1 e2 = symbolic_f ctx [e1; e2] in
   op2 ctx m concrete_f symbolic_f_curry x y e1 e2
 
+let handle_division
+    ctx
+    m
+    (concrete_f : 'x -> 'y -> conc_naked_result)
+    (symbolic_f : Z3.context -> s_expr -> s_expr -> s_expr)
+    x
+    y
+    e1
+    e2 : conc_result =
+  let e1_symb = get_symb_expr e1 in
+  let e2_symb = get_symb_expr e2 in
+  Message.emit_debug "[handle_div] args %a, %a" SymbExpr.formatter_typed e1_symb
+    SymbExpr.formatter_typed e2_symb;
+
+  let zero = SymbExpr.mk_z3 (Z3.Arithmetic.Integer.mk_numeral_i ctx.ctx_z3 0) in
+  let den_zero = SymbExpr.app2_z3 (Z3.Boolean.mk_eq ctx.ctx_z3) e2_symb zero in
+  try
+    let concrete = concrete_f x y in
+    let den_not_zero =
+      SymbExpr.app_z3 (Z3.Boolean.mk_not ctx.ctx_z3) den_zero
+    in
+    let den_not_zero_pc =
+      make_z3_path_constraint den_not_zero (Expr.pos e2) false
+    in
+    let symb_expr = SymbExpr.app2_z3 (symbolic_f ctx.ctx_z3) e1_symb e2_symb in
+    (* TODO handle errors *)
+    (* A successful division adds one constraint : the denominator is not zero.
+       The constraints from e1 and e2 are ignored here because those are fully
+       evaluated expressions, and their constraints are handled by [EAppOp]. *)
+    let constraints = [den_not_zero_pc] in
+    add_conc_info_m m symb_expr ~constraints concrete
+  with Division_by_zero ->
+    let den_zero_pc = make_z3_path_constraint den_zero (Expr.pos e2) true in
+    make_error_divisionbyzeroerror m [den_zero_pc]
+      [
+        Some "The division operator:", Expr.mark_pos m;
+        Some "The null denominator:", Expr.pos e2;
+      ]
+      "division by zero at runtime"
+
 (** Round Z3 [Real] to Z3 [Integer] using the same strategy as [Runtime.round]:
     round to nearest, half away from zero. *)
 let z3_round ctx (q : s_expr) : s_expr =
@@ -1080,15 +1120,8 @@ let rec evaluate_operator
         [None, Expr.pos arg0; None, Expr.pos arg1]
       | _ -> assert false
     in
-    try f x y with
-    | Division_by_zero ->
-      Message.raise_multispanned_error
-        [
-          Some "The division operator:", pos;
-          Some "The null denominator:", Expr.pos (List.nth args 1);
-        ]
-        "division by zero at runtime"
-    | Runtime.UncomparableDurations ->
+    try f x y
+    with Runtime.UncomparableDurations ->
       Message.raise_multispanned_error (get_binop_args_pos args)
         "Cannot compare together durations that cannot be converted to a \
          precise number of days"
@@ -1192,10 +1225,7 @@ let rec evaluate_operator
     (* TODO maybe write specific tests for this and other similar cases? *)
     op1 ctx m
       (fun x -> ELit (LRat (o_torat_int x)))
-      (fun ctx e ->
-        let one = Z3.Arithmetic.Integer.mk_numeral_i ctx 1 in
-        Z3.Arithmetic.mk_div ctx e one)
-      i e
+      Z3.Arithmetic.Integer.mk_int2real i e
   | ToRat_mon, [((ELit (LMoney i), _) as e)] ->
     op1 ctx m
       (fun x -> ELit (LRat (o_torat_mon x)))
@@ -1203,11 +1233,9 @@ let rec evaluate_operator
         let hundred = Z3.Arithmetic.Integer.mk_numeral_i ctx 100 in
         Z3.Arithmetic.mk_div ctx e hundred)
       i e
-    (* TODO test *)
   | ToMoney_rat, [((ELit (LRat i), _) as e)] ->
     (* TODO be careful with this, [Round_mon], [Round_rat], [Mult_mon_rat],
        [Div_mon_rat] because of rounding *)
-    (* DONE test *)
     op1 ctx m
       (fun x -> ELit (LMoney (o_tomoney_rat x)))
       (fun ctx e ->
@@ -1231,13 +1259,11 @@ let rec evaluate_operator
         Z3.Arithmetic.mk_mul ctx
           [units_round; Z3.Arithmetic.Integer.mk_numeral_i ctx 100])
       mon e
-  (* DONE with careful rounding *)
   | Round_rat, [((ELit (LRat q), _) as e)] ->
     op1 ctx m
       (fun q -> ELit (LRat (o_round_rat q)))
       (fun ctx e -> z3_round ctx e)
       q e
-  (* DONE with careful rounding *)
   | Add_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
     op2list ctx m
       (fun x y -> ELit (LInt (o_add_int_int x y)))
@@ -1301,16 +1327,20 @@ let rec evaluate_operator
         let product = Z3.Arithmetic.mk_mul ctx [cents; r] in
         z3_round ctx product)
       x y e1 e2
-  (* DONE with careful rounding *)
   | Mult_dur_int, [((ELit (LDuration x), _) as e1); ((ELit (LInt y), _) as e2)]
     ->
     op2list ctx m
       (fun x y -> ELit (LDuration (o_mult_dur_int x y)))
       DateEncoding.mult_dur_int x y e1 e2
-  | Div_int_int, _ -> failwith "EOp Div_int_int not implemented (division)"
-  (* | Div_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
-     op2 ctx m (fun x y -> ELit (LRat (protect o_div_int_int x y)))
-     Z3.Arithmetic.mk_div x y e1 e2 (* TODO test this specifically? *) *)
+  | Div_int_int, [((ELit (LInt x), _) as e1); ((ELit (LInt y), _) as e2)] ->
+    handle_division ctx m
+      (fun x y -> ELit (LRat (o_div_int_int x y)))
+      (fun ctx e1 e2 ->
+        (* convert e1 to a [Real] explicitely to avoid using integer division *)
+        let e1_rat = Z3.Arithmetic.Integer.mk_int2real ctx e1 in
+        Z3.Arithmetic.mk_div ctx e1_rat e2)
+      x y e1 e2
+    (* TODO test this specifically? *)
   | Div_rat_rat, _ -> failwith "EOp Div_rat_rat not implemented (division)"
   (* | Div_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
      op2 ctx m (fun x y -> ELit (LRat (protect o_div_rat_rat x y)))
@@ -1440,10 +1470,9 @@ let rec evaluate_operator
       | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
       | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
       | Sub_mon_mon | Sub_dat_dat | Sub_dat_dur | Sub_dur_dur | Mult_int_int
-      | Mult_rat_rat | Mult_mon_rat
-      | Mult_dur_int
-        (* | Div_int_int | Div_rat_rat | Div_mon_mon | Div_mon_rat |
-           Div_dur_dur *)
+      | Mult_rat_rat | Mult_mon_rat | Mult_dur_int
+      | Div_int_int
+        (* | Div_rat_rat | Div_mon_mon | Div_mon_rat | Div_dur_dur *)
       | Lt_int_int | Lt_rat_rat | Lt_mon_mon | Lt_dat_dat | Lt_dur_dur
       | Lte_int_int | Lte_rat_rat | Lte_mon_mon | Lte_dat_dat | Lte_dur_dur
       | Gt_int_int | Gt_rat_rat | Gt_mon_mon | Gt_dat_dat | Gt_dur_dur
