@@ -286,32 +286,28 @@ let rec transform_closures_expr :
         new_e1 call_expr (Expr.pos e) )
   | _ -> .
 
-(* Can't reuse Scope.map because we inspect the bind variables *)
 let transform_closures_scope_let ctx scope_body_expr =
-  BoundList.fold_right
-    ~f:(fun scope_let var_next acc ->
+  BoundList.map
+    ~f:(fun var_next scope_let ->
       let _free_vars, new_scope_let_expr =
         (transform_closures_expr
            { ctx with name_context = Bindlib.name_of var_next })
           scope_let.scope_let_expr
       in
-      Bindlib.box_apply2
-        (fun scope_let_next scope_let_expr ->
-          Cons
-            ( {
-                scope_let with
-                scope_let_expr;
-                scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
-              },
-              scope_let_next ))
-        (Bindlib.bind_var var_next acc)
+      var_next,
+      Bindlib.box_apply (fun scope_let_expr ->
+          {
+            scope_let with
+            scope_let_expr;
+            scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
+          })
         (Expr.Box.lift new_scope_let_expr))
-    ~init:(fun res ->
+    ~last:(fun res ->
       let _free_vars, new_scope_let_expr = (transform_closures_expr ctx) res in
       (* INVARIANT here: the result expr of a scope is simply a struct
          containing all output variables so nothing should be converted here, so
          no need to take into account free variables. *)
-      Bindlib.box_apply (fun e -> Last e) (Expr.Box.lift new_scope_let_expr))
+      Expr.Box.lift new_scope_let_expr)
     scope_body_expr
 
 let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
@@ -547,8 +543,6 @@ let rec hoist_closures_expr :
   | EExternal _ -> failwith "unimplemented"
   | _ -> .
 
-(* Here I have to reimplement Scope.map_exprs_in_lets because I'm changing the
-   type *)
 let hoist_closures_scope_let name_context scope_body_expr =
   BoundList.fold_right
     ~f:(fun scope_let var_next (hoisted_closures, next_scope_lets) ->
