@@ -512,7 +512,7 @@ let[@ocamlformat "disable"] static_base_rules =
         !post_test; !input; ";";
         "echo"; "-n"; "$$?"; ">"; !output;
       ]
-      ~description:["<test>"; !output];
+      ~description:["<test>"; !test_id];
 
     Nj.rule "interpret"
       ~command:
@@ -522,7 +522,7 @@ let[@ocamlformat "disable"] static_base_rules =
 
     Nj.rule "dir-tests"
       ~command:["cat"; !input; ">"; !output; ";"]
-      ~description:["<test>"; !output];
+      ~description:["<test>"; !test_id];
 
     Nj.rule "test-results"
       ~command:[
@@ -714,6 +714,7 @@ let gen_build_statements
              Nj.build "post-test" ~inputs:[reference; test_out]
                ~implicit_in:["always"]
                ~outputs:[(!Var.builddir / reference) ^ "@post"]
+               ~vars:[Var.test_id, [reference]]
           :: acc)
         [] item.legacy_tests
     in
@@ -738,6 +739,7 @@ let gen_build_statements
           ~outputs:[inc (srcv ^ label)]
           ~inputs:[srcv; inc (srcv ^ "@out")]
           ~implicit_in:["always"]
+          ~vars:[Var.test_id, [srcv]]
       in
       match item.legacy_tests with
       | [] ->
@@ -755,7 +757,8 @@ let gen_build_statements
                 @ List.map
                     (fun test ->
                       (!Var.builddir / legacy_test_reference test) ^ "@post")
-                    legacy);
+                    legacy)
+              ~vars:[Var.test_id, [srcv]];
             results;
           ]
     in
@@ -800,7 +803,10 @@ let dir_test_rules dir subdirs items =
   List.to_seq
     [
       Nj.Comment "";
-      Nj.build "dir-tests" ~outputs:[(Var.(!builddir) / dir) ^ "@test"] ~inputs;
+      Nj.build "dir-tests"
+        ~outputs:[(Var.(!builddir) / dir) ^ "@test"]
+        ~inputs
+        ~vars:[Var.test_id, [dir]];
       Nj.build "test-results"
         ~outputs:[dir ^ "@test"]
         ~inputs:[(Var.(!builddir) / dir) ^ "@test"];
