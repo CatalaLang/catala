@@ -88,7 +88,9 @@ jobs:
       options: --user ocaml
     steps:
       - name: Check promoted files
-        run: cd /home/ocaml/catala && opam exec -- make check-promoted
+        run: |
+          cd /home/ocaml/catala && opam exec -- make check-promoted
+          git diff --exit-code
       - name: Run tests
         if: ${{ always() }}
         run: cd /home/ocaml/catala && opam exec -- make tests

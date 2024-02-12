@@ -294,14 +294,15 @@ let transform_closures_scope_let ctx scope_body_expr =
            { ctx with name_context = Bindlib.name_of var_next })
           scope_let.scope_let_expr
       in
-      var_next,
-      Bindlib.box_apply (fun scope_let_expr ->
-          {
-            scope_let with
-            scope_let_expr;
-            scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
-          })
-        (Expr.Box.lift new_scope_let_expr))
+      ( var_next,
+        Bindlib.box_apply
+          (fun scope_let_expr ->
+            {
+              scope_let with
+              scope_let_expr;
+              scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
+            })
+          (Expr.Box.lift new_scope_let_expr) ))
     ~last:(fun res ->
       let _free_vars, new_scope_let_expr = (transform_closures_expr ctx) res in
       (* INVARIANT here: the result expr of a scope is simply a struct

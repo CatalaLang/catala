@@ -403,7 +403,8 @@ let generate_verification_conditions_code_items
                     (* We don't need to add the typ of the scope input var here
                        because it will never appear in an expression for which
                        we generate a verification conditions (the big struct is
-                       destructured with a series of let bindings just after.) *);
+                       destructured with a series of let bindings just
+                       after.) *);
                 }
               in
               let _, vcs, asserts =
