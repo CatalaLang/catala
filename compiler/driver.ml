@@ -267,7 +267,7 @@ module Passes = struct
             Optimizations.optimize_program prg)
           else prg
         in
-        Message.emit_debug "Retyping lambda calculus...";
+                                                         Message.emit_debug "Retyping lambda calculus...";
         Typing.program ~fail_on_any:false prg)
     in
     let prg, type_ordering =
