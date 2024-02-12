@@ -119,13 +119,17 @@ jobs:
       - name: Checkout examples repo
         # Github fetch action is expected to work for containers, but doesn't
         # (permission issues)
-        run: git clone https://github.com/CatalaLang/catala-examples --depth 1 ~/catala-examples
+        run: |
+          git clone https://github.com/CatalaLang/catala-examples --depth 1 ~/catala-examples -b "${{ github.head_ref || github.ref_name }}" ||
+          git clone https://github.com/CatalaLang/catala-examples --depth 1 ~/catala-examples
       - name: Build examples
         run: |
           cd ~/catala-examples
           opam --cli=2.1 exec -- make build pass_all_tests install
       - name: Checkout french-law repo
-        run: git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law
+        run: |
+          git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law -b "${{ github.head_ref || github.ref_name }}" ||
+          git clone https://github.com/CatalaLang/french-law --depth 1 ~/catala-examples
       - name: Build french-law
         run: |
           cd ~/french-law
