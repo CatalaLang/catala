@@ -238,6 +238,13 @@ all: \
 	runtimes \
 	plugins
 
+#> alltest					: Runs more extensive tests, including the examples. Use before push
+alltest: all
+	TMP=$$(mktemp -d /tmp/catala-examples.XXXX) && \
+	{ git clone https://github.com/CatalaLang/catala-examples --depth 1 --reference-if-able ../catala-examples $$TMP -b $$(git branch --show-current) || \
+	  git clone https://github.com/CatalaLang/catala-examples --depth 1 --reference-if-able ../catala-examples $$TMP -b master; } && \
+	$(CLERK_BIN) test -C $$TMP; \
+	rm -rf $$TMP
 
 #> clean					: Clean build artifacts
 clean:
