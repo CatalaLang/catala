@@ -2,6 +2,8 @@
 
 (data_only_dirs tests syntax_highlighting)
 
+(vendored_dirs _catala-examples _french-law)
+
 (copy_files
  (alias doc)
  (files compiler/surface/grammar.html))

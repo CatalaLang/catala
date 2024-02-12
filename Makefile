@@ -238,13 +238,27 @@ all: \
 	runtimes \
 	plugins
 
-#> alltest					: Runs more extensive tests, including the examples. Use before push
-alltest: all
-	TMP=$$(mktemp -d /tmp/catala-examples.XXXX) && \
-	{ git clone https://github.com/CatalaLang/catala-examples --depth 1 --reference-if-able ../catala-examples $$TMP -b $$(git branch --show-current) || \
-	  git clone https://github.com/CatalaLang/catala-examples --depth 1 --reference-if-able ../catala-examples $$TMP -b master; } && \
-	$(CLERK_BIN) test -C $$TMP; \
-	rm -rf $$TMP
+#> alltest					: Runs more extensive tests, including the examples and french-law. Use before push!
+alltest:
+	@export DUNE_PROFILE=check && \
+	dune build @for-tests @install @runtest && \
+	$(CLERK_BIN) test tests && \
+	rm -rf _catala-examples _french-law && \
+	trap "rm -rf _catala-examples _french-law $$TMP" EXIT && \
+	{ git clone https://github.com/CatalaLang/catala-examples \
+	    --depth 1 --reference-if-able ../catala-examples \
+	    _catala-examples -b $$(git branch --show-current) || \
+	  git clone https://github.com/CatalaLang/catala-examples \
+	    --depth 1 --reference-if-able ../catala-examples \
+	    _catala-examples; } && \
+	$(CLERK_BIN) test _catala-examples; \
+	{ git clone https://github.com/CatalaLang/french-law \
+	    --depth 1 --reference-if-able ../french-law \
+	    _french-law -b $$(git branch --show-current) || \
+	  git clone https://github.com/CatalaLang/french-law \
+	    --depth 1 --reference-if-able ../french-law \
+	    _french-law; } && \
+	make -C _french-law all PY_VENV_DIR=$(CURDIR)/_python_venv
 
 #> clean					: Clean build artifacts
 clean:
