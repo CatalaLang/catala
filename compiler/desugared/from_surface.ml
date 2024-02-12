@@ -360,14 +360,17 @@ let rec translate_expr
                 correct calendar day")
     in
     Expr.elit lit emark
-  | Ident ([], (x, pos)) -> (
+  | Ident ([], (x, pos), state) -> (
     (* first we check whether this is a local var, then we resort to scope-wide
        variables, then global variables *)
-    match Ident.Map.find_opt x local_vars with
-    | Some uid ->
+    match Ident.Map.find_opt x local_vars, state with
+    | Some uid, None ->
       Expr.make_var uid emark
       (* the whole box thing is to accomodate for this case *)
-    | None -> (
+    | Some uid, Some state ->
+      Message.raise_spanned_error (Mark.get state)
+        "%a is a local variable, it has no states" Print.var uid
+    | None, state -> (
       match Ident.Map.find_opt x scope_vars with
       | Some (ScopeVar uid) ->
         (* If the referenced variable has states, then here are the rules to
@@ -376,36 +379,55 @@ let rec translate_expr
            the previous state in the chain. *)
         let x_sig = ScopeVar.Map.find uid ctxt.var_typs in
         let x_state =
-          match x_sig.var_sig_states_list with
-          | [] -> None
-          | states -> (
-            match inside_definition_of with
-            | Some (Var (x'_uid, sx'), _) when ScopeVar.compare uid x'_uid = 0
-              -> (
-              match sx' with
-              | None ->
-                failwith
-                  "inconsistent state: inside a definition of a variable with \
-                   no state but variable has states"
-              | Some inside_def_state ->
-                if StateName.compare inside_def_state (List.hd states) = 0 then
-                  Message.raise_spanned_error pos
-                    "It is impossible to refer to the variable you are \
-                     defining when defining its first state."
-                else
-                  (* Tricky: we have to retrieve in the list the previous state
-                     with respect to the state that we are defining. *)
-                  let rec find_prev_state = function
-                    | [] -> None
-                    | st0 :: st1 :: _ when StateName.equal inside_def_state st1
-                      ->
-                      Some st0
-                    | _ :: states -> find_prev_state states
-                  in
-                  find_prev_state states)
-            | _ ->
-              (* we take the last state in the chain *)
-              Some (List.hd (List.rev states)))
+          match state, x_sig.var_sig_states_list, inside_definition_of with
+          | None, [], _ -> None
+          | Some st, [], _ ->
+            Message.raise_spanned_error (Mark.get st)
+              "Variable %a does not define states" ScopeVar.format uid
+          | st, states, Some (Var (x'_uid, sx'), _)
+            when ScopeVar.equal uid x'_uid -> (
+            if st <> None then
+              (* TODO *)
+              Message.raise_spanned_error
+                (Mark.get (Option.get st))
+                "Referring to a previous state of the variable being defined \
+                 is not supported at the moment.";
+            match sx' with
+            | None ->
+              failwith
+                "inconsistent state: inside a definition of a variable with no \
+                 state but variable has states"
+            | Some inside_def_state ->
+              if StateName.compare inside_def_state (List.hd states) = 0 then
+                Message.raise_spanned_error pos
+                  "It is impossible to refer to the variable you are defining \
+                   when defining its first state."
+              else
+                (* Tricky: we have to retrieve in the list the previous state
+                   with respect to the state that we are defining. *)
+                let rec find_prev_state = function
+                  | [] -> None
+                  | st0 :: st1 :: _ when StateName.equal inside_def_state st1 ->
+                    Some st0
+                  | _ :: states -> find_prev_state states
+                in
+                find_prev_state states)
+          | Some st, states, _ -> (
+            match
+              Ident.Map.find_opt (Mark.remove st) x_sig.var_sig_states_idmap
+            with
+            | None ->
+              Message.raise_multispanned_error
+                ~suggestion:(List.map StateName.to_string states)
+                [
+                  None, Mark.get st;
+                  Some "Variable defined here", Mark.get (ScopeVar.get_info uid);
+                ]
+                "Reference to unknown variable state"
+            | some -> some)
+          | _, states, _ ->
+            (* we take the last state in the chain *)
+            Some (List.hd (List.rev states))
         in
         Expr.elocation
           (DesugaredScopeVar { name = uid, pos; state = x_state })
@@ -416,13 +438,21 @@ let rec translate_expr
       | None -> (
         match Ident.Map.find_opt x ctxt.local.topdefs with
         | Some v ->
+          if state <> None then
+            Message.raise_spanned_error pos
+              "Access to intermediate states is only allowed for variables of \
+               the current scope";
           Expr.elocation
             (ToplevelVar { name = v, Mark.get (TopdefName.get_info v) })
             emark
         | None ->
           Name_resolution.raise_unknown_identifier
             "for a local, scope-wide or global variable" (x, pos))))
-  | Ident (path, name) -> (
+  | Ident (_ :: _, (_, pos), Some _) ->
+    Message.raise_spanned_error pos
+      "Access to intermediate states is only allowed for variables of the \
+       current scope"
+  | Ident (path, name, None) -> (
     let ctxt = Name_resolution.module_ctx ctxt path in
     match Ident.Map.find_opt (Mark.remove name) ctxt.local.topdefs with
     | Some v ->
@@ -433,7 +463,7 @@ let rec translate_expr
       Name_resolution.raise_unknown_identifier "for an external variable" name)
   | Dotted (e, ((path, x), _ppos)) -> (
     match path, Mark.remove e with
-    | [], Ident ([], (y, _))
+    | [], Ident ([], (y, _), None)
       when Option.fold scope ~none:false ~some:(fun s ->
                Name_resolution.is_subscope_uid s ctxt y) ->
       (* In this case, y.x is a subscope variable *)

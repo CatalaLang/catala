@@ -164,14 +164,21 @@ let mbinder ==
 let expression :=
 | e = addpos(naked_expression) ; <>
 
+let state_qualifier ==
+| STATE ; state = addpos(LIDENT); <>
+
 let naked_expression ==
-| id = addpos(LIDENT) ; {
-  match Localisation.lex_builtin (Mark.remove id) with
-  | Some b -> Builtin b
-  | None -> Ident ([], id)
+| id = addpos(LIDENT) ; state = option(state_qualifier) ; {
+  match Localisation.lex_builtin (Mark.remove id), state with
+  | Some b, None -> Builtin b
+  | Some _, Some _ ->
+      Message.raise_spanned_error
+        (Pos.from_lpos $loc(id))
+        "Invalid use of built-in @{<bold>%s@}" (Mark.remove id)
+  | None, state -> Ident ([], id, state)
 }
 | uid = uident ; DOT ; qlid = qlident ; {
-  let path, lid = qlid in Ident (uid :: path, lid)
+  let path, lid = qlid in Ident (uid :: path, lid, None)
 }
 | l = literal ; {
   Literal l

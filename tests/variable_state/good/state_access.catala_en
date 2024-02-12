@@ -1,0 +1,38 @@
+# Accesses to intermediate variable states
+
+```catala
+declaration scope A:
+  output foo content integer
+    state s1
+    state s2
+    state s3
+    state s4
+
+  output bar content integer
+
+scope A:
+  definition foo state s1 equals 1
+
+  definition foo state s2 equals foo + 1
+
+  definition foo state s3 equals foo + 1
+
+  definition foo state s4 equals bar + 1
+
+  definition bar equals foo state s3 + foo state s2
+```
+
+
+```catala-test-inline
+$ catala interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] bar = 5
+[RESULT] foo = 6
+```
+
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] bar = 5
+[RESULT] foo = 6
+```
