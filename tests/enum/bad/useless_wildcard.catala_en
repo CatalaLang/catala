@@ -1,0 +1,32 @@
+## Useless wildcard
+
+```catala
+declaration enumeration E:
+  -- Case1
+  -- Case2
+
+declaration scope A:
+  context output x content E
+  context output y content integer
+
+scope A:
+  definition x equals Case1
+  definition y equals match x with pattern
+    -- Case1 : 42
+    -- Case2 : 42
+    -- anything : 31
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[WARNING] Unreachable match case, all constructors of the enumeration E are already specified
+
+┌─⯈ tests/enum/bad/useless_wildcard.catala_en:17.5-17.21:
+└──┐
+17 │     -- anything : 31
+   │     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Useless wildcard
+[RESULT] Computation successful! Results:
+[RESULT] x = Case1 ()
+[RESULT] y = 42
+```

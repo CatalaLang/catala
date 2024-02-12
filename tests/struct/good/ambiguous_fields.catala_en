@@ -1,0 +1,57 @@
+## Article
+
+```catala
+declaration structure Foo:
+  data f content integer
+
+declaration structure Bar:
+  data f content integer
+
+declaration scope A:
+  internal x content Foo
+  output y content integer
+
+scope A:
+  definition x equals Foo { -- f: 1 }
+  definition y equals x.f
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[WARNING] The structure "Bar" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/struct/good/ambiguous_fields.catala_en:7.23-7.26:
+└─┐
+7 │ declaration structure Bar:
+  │                       ‾‾‾
+  └─ Article
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[WARNING] The structure "Bar" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/struct/good/ambiguous_fields.catala_en:7.23-7.26:
+└─┐
+7 │ declaration structure Bar:
+  │                       ‾‾‾
+  └─ Article
+[RESULT] Computation successful! Results:
+[RESULT] y = 1
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
+[WARNING] The structure "Bar" is never used; maybe it's unnecessary?
+
+┌─⯈ tests/struct/good/ambiguous_fields.catala_en:7.23-7.26:
+└─┐
+7 │ declaration structure Bar:
+  │                       ‾‾‾
+  └─ Article
+[RESULT] Computation successful! Results:
+[RESULT] y = 1
+```

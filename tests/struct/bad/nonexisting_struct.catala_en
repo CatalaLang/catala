@@ -1,0 +1,27 @@
+## Article
+
+```catala
+declaration structure Foo:
+  data f content integer
+
+declaration scope A:
+  context x content Foo
+  context y content integer
+
+scope A:
+  definition x equals Foo { -- f: 1 }
+  definition y equals x.Fo.f
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR]
+No struct named Fo found
+
+┌─⯈ tests/struct/bad/nonexisting_struct.catala_en:13.25-13.27:
+└──┐
+13 │   definition y equals x.Fo.f
+   │                         ‾‾
+   └─ Article
+#return code 123#
+```

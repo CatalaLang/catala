@@ -1,0 +1,28 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- C1
+  -- C2
+
+declaration scope A:
+  internal x content E
+  output y content integer
+
+scope A:
+  definition x equals C1
+  definition y under condition x = C1 consequence equals 1
+  definition y under condition x = C2 consequence equals 2
+  definition y under condition x = C2 consequence equals 3
+```
+
+```catala-test-inline
+$ catala Proof --disable-counterexamples 
+[WARNING] [A.y] At least two exceptions overlap for this variable:
+┌─⯈ tests/proof/bad/enums_inj-overlap.catala_en:10.10-10.11:
+└──┐
+10 │   output y content integer
+   │          ‾
+   └─ Article
+Counterexample generation is disabled so none was generated.
+```

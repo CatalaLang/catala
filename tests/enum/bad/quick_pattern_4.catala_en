@@ -1,0 +1,48 @@
+## Test
+
+```catala
+declaration enumeration E:
+-- Case1
+-- Case2
+
+declaration enumeration F:
+-- Case3
+
+declaration scope A:
+context x content E
+context y content boolean
+
+scope A:
+definition x equals Case1
+definition y equals x with pattern Case3
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR]
+Error during typechecking, incompatible types:
+┌─⯈ E
+└─⯈ F
+
+While typechecking the following expression:
+┌─⯈ tests/enum/bad/quick_pattern_4.catala_en:17.21-17.22:
+└──┐
+17 │ definition y equals x with pattern Case3
+   │                     ‾
+   └─ Test
+
+Type E is coming from:
+┌─⯈ tests/enum/bad/quick_pattern_4.catala_en:12.19-12.20:
+└──┐
+12 │ context x content E
+   │                   ‾
+   └─ Test
+
+Type F is coming from:
+┌─⯈ tests/enum/bad/quick_pattern_4.catala_en:17.21-17.41:
+└──┐
+17 │ definition y equals x with pattern Case3
+   │                     ‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Test
+#return code 123#
+```

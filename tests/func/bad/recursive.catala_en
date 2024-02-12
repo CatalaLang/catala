@@ -1,0 +1,22 @@
+## Article
+
+```catala
+declaration scope RecursiveFunc:
+  context f content integer depends on x content integer
+
+scope RecursiveFunc:
+  definition f of x equals f of x + 1
+```
+
+```catala-test-inline
+$ catala Interpret -s RecursiveFunc
+[ERROR]
+The variable f is used in one of its definitions, but recursion is forbidden in Catala
+
+┌─⯈ tests/func/bad/recursive.catala_en:8.28-8.29:
+└─┐
+8 │   definition f of x equals f of x + 1
+  │                            ‾
+  └─ Article
+#return code 123#
+```
