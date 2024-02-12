@@ -131,7 +131,7 @@ jobs:
       - name: Checkout french-law repo
         run: |
           git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law -b "${{ github.head_ref || github.ref_name }}" ||
-          git clone https://github.com/CatalaLang/french-law --depth 1 ~/catala-examples
+          git clone https://github.com/CatalaLang/french-law --depth 1 ~/french-law
       - name: Build french-law
         run: |
           cd ~/french-law
