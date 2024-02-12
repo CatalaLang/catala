@@ -351,8 +351,8 @@ module To_jsoo = struct
       (_ctx : decl_ctx)
       (fmt : Format.formatter)
       (scopes : 'e code_item_list) =
-    Scope.fold_left
-      ~f:(fun () code_item var ->
+    BoundList.iter
+      ~f:(fun var code_item ->
         match code_item with
         | Topdef _ -> ()
         | ScopeDef (_name, body) ->
@@ -367,14 +367,14 @@ module To_jsoo = struct
             "@\n@\n@[<hov 2>let %a@ (%a : %a Js.t)@ : %a Js.t =@\n%a@]@\n"
             format_var var fmt_input_struct_name body fmt_input_struct_name body
             fmt_output_struct_name body fmt_fun_call ())
-      ~init:() scopes
+      scopes
 
   let format_scopes_to_callbacks
       (_ctx : decl_ctx)
       (fmt : Format.formatter)
       (scopes : 'e code_item_list) : unit =
-    Scope.fold_left
-      ~f:(fun () code_item var ->
+    BoundList.iter
+      ~f:(fun var code_item ->
         match code_item with
         | Topdef _ -> ()
         | ScopeDef (_name, body) ->
@@ -385,7 +385,7 @@ module To_jsoo = struct
           in
           Format.fprintf fmt "@,@[<hov 2>%a =@ Js.wrap_callback@ %a@]@,"
             fmt_meth_name () format_var var)
-      ~init:() scopes
+      scopes
 
   let format_program
       (fmt : Format.formatter)

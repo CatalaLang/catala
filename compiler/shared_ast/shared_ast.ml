@@ -20,6 +20,7 @@ module Qident = Qident
 module Type = Type
 module Operator = Operator
 module Expr = Expr
+module BoundList = BoundList
 module Scope = Scope
 module Program = Program
 module Print = Print

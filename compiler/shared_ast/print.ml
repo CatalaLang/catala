@@ -562,17 +562,19 @@ module ExprGen (C : EXPR_PARAM) = struct
         Format.fprintf fmt "@[<hv 0>%a @[<hv 2>%a@]@ @]%a@ %a" punctuation "λ"
           (Format.pp_print_list ~pp_sep:Format.pp_print_space
              (fun fmt (x, tau) ->
-                match tau with
-                | TLit TUnit, _ -> punctuation fmt "("; punctuation fmt ")"
-                | _ ->
-                  punctuation fmt "(";
-                  Format.pp_open_hvbox fmt 2;
-                  var fmt x;
-                  punctuation fmt ":";
-                  Format.pp_print_space fmt ();
-                  typ_gen None ~colors fmt tau;
-                  Format.pp_close_box fmt ();
-                  punctuation fmt ")"))
+               match tau with
+               | TLit TUnit, _ ->
+                 punctuation fmt "(";
+                 punctuation fmt ")"
+               | _ ->
+                 punctuation fmt "(";
+                 Format.pp_open_hvbox fmt 2;
+                 var fmt x;
+                 punctuation fmt ":";
+                 Format.pp_print_space fmt ();
+                 typ_gen None ~colors fmt tau;
+                 Format.pp_close_box fmt ();
+                 punctuation fmt ")"))
           xs_tau punctuation "→" (rhs expr) body
       | EAppOp { op = (Map | Filter) as op; args = [arg1; arg2]; _ } ->
         Format.fprintf fmt "@[<hv 2>%a %a@ %a@]" operator op (lhs exprc) arg1
@@ -710,17 +712,16 @@ module ExprGen (C : EXPR_PARAM) = struct
                | EAbs { binder; tys; _ }, _ ->
                  let xs, body, bnd_ctx = Bindlib.unmbind_in bnd_ctx binder in
                  let expr = exprb bnd_ctx in
-                 let pp_args fmt = match tys with
-                   | [TLit TUnit, _] -> ()
+                 let pp_args fmt =
+                   match tys with
+                   | [(TLit TUnit, _)] -> ()
                    | _ ->
                      Format.pp_print_seq ~pp_sep:Format.pp_print_space var fmt
                        (Array.to_seq xs);
                      Format.pp_print_space fmt ()
                  in
-                 Format.fprintf fmt "@[<hov 2>%a %t@ %t%a@ %a@]" punctuation
-                   "|" pp_cons_name
-                   pp_args
-                   punctuation "→" (rhs expr) body
+                 Format.fprintf fmt "@[<hov 2>%a %t@ %t%a@ %a@]" punctuation "|"
+                   pp_cons_name pp_args punctuation "→" (rhs expr) body
                | e ->
                  Format.fprintf fmt "@[<hov 2>%a %t@ %a@ %a@]" punctuation "|"
                    pp_cons_name punctuation "→" (rhs exprc) e))
@@ -782,30 +783,22 @@ let scope_let_kind ?debug:(_debug = true) _ctx fmt k =
   | DestructuringSubScopeResults -> keyword fmt "sub_get"
   | Assertion -> keyword fmt "assert"
 
-let[@ocamlformat "disable"] rec
+let[@ocamlformat "disable"]
   scope_body_expr ?(debug = false) ctx fmt b : unit =
-  match b with
-  | Result e -> Format.fprintf fmt "%a %a" keyword "return" (expr ~debug ()) e
-  | ScopeLet
-      {
-        scope_let_kind = kind;
-        scope_let_typ;
-        scope_let_expr;
-        scope_let_next;
-        _;
-      } ->
-    let x, next = Bindlib.unbind scope_let_next in
+  let print_scope_let x sl =
     Format.fprintf fmt
-      "@[<hv 2>@[<hov 4>%a %a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]@,%a"
+      "@[<hv 2>@[<hov 4>%a %a %a %a@ %a@ %a@]@ %a@;<1 -2>%a@]@,"
       keyword "let"
-      (scope_let_kind ~debug ctx) kind
+      (scope_let_kind ~debug ctx) sl.scope_let_kind
       (if debug then var_debug else var) x
       punctuation ":"
-      (typ ctx) scope_let_typ
+      (typ ctx) sl.scope_let_typ
       punctuation "="
-      (expr ~debug ()) scope_let_expr
+      (expr ~debug ()) sl.scope_let_expr
       keyword "in"
-      (scope_body_expr ~debug ctx) next
+  in
+  let last = BoundList.iter ~f:print_scope_let b in
+  Format.fprintf fmt "%a %a" keyword "return" (expr ~debug ()) last
 
 let scope_body ?(debug = false) ctx fmt (n, l) : unit =
   let {
@@ -936,16 +929,12 @@ let code_item ?(debug = false) ?name decl_ctx fmt c =
       "let topval" TopdefName.format n op_style ":" (typ decl_ctx) ty op_style
       "=" (expr ~debug ()) e
 
-let rec code_item_list ?(debug = false) decl_ctx fmt c =
-  match c with
-  | Nil -> ()
-  | Cons (c, b) ->
-    let x, cl = Bindlib.unbind b in
-    Format.fprintf fmt "%a @.%a"
-      (code_item ~debug ~name:(Format.asprintf "%a" var_debug x) decl_ctx)
-      c
-      (code_item_list ~debug decl_ctx)
-      cl
+let code_item_list ?(debug = false) decl_ctx fmt c =
+  BoundList.iter c ~f:(fun x item ->
+      code_item ~debug
+        ~name:(Format.asprintf "%a" var_debug x)
+        decl_ctx fmt item;
+      Format.pp_print_newline fmt ())
 
 let program ?(debug = false) fmt p =
   decl_ctx ~debug p.decl_ctx fmt p.decl_ctx;

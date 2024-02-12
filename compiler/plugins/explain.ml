@@ -415,12 +415,12 @@ let result_level base_vars =
 let interpret_program (prg : ('dcalc, 'm) gexpr program) (scope : ScopeName.t) :
     ('t, 'm) gexpr * Env.t =
   let ctx = prg.decl_ctx in
-  let all_env, scopes =
-    Scope.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
+  let (all_env, scopes), () =
+    BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
       ~f:(fun (env, scopes) item v ->
         match item with
         | ScopeDef (name, body) ->
-          let e = Scope.to_expr ctx body (Scope.get_body_mark body) in
+          let e = Scope.to_expr ctx body in
           let e = Expr.remove_logging_calls (Expr.unbox e) in
           ( Env.add v (Expr.unbox e) env env,
             ScopeName.Map.add name (v, body.scope_body_input_struct) scopes )
@@ -589,12 +589,12 @@ let program_to_graph
     Expr.map_marks ~f:(fun m ->
         Custom { pos = Expr.mark_pos m; custom = { conditions = [] } })
   in
-  let all_env, scopes =
-    Scope.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
+  let (all_env, scopes), () =
+    BoundList.fold_left prg.code_items ~init:(Env.empty, ScopeName.Map.empty)
       ~f:(fun (env, scopes) item v ->
         match item with
         | ScopeDef (name, body) ->
-          let e = Scope.to_expr ctx body (Scope.get_body_mark body) in
+          let e = Scope.to_expr ctx body in
           let e = customize (Expr.unbox e) in
           let e = Expr.remove_logging_calls (Expr.unbox e) in
           let e = Expr.rename_vars (Expr.unbox e) in

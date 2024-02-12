@@ -52,17 +52,16 @@ module S_in = struct
 end
 
 
-
 let s (s_in: S_in.t) : S.t =
   let a_: unit -> bool = s_in.S_in.a_in in
-  let a_: bool = 
+  let a_: bool =
     try
       (handle_default
          {filename = "tests/test_name_resolution/good/let_in2.catala_en";
            start_line=7; start_column=18; end_line=7; end_column=19;
            law_headings=["Article"]} ([|(fun (_: unit) -> a_ ())|])
          (fun (_: unit) -> true)
-         (fun (_: unit) -> 
+         (fun (_: unit) ->
             try
               (handle_default
                  {filename = "tests/test_name_resolution/good/let_in2.catala_en";
@@ -91,6 +90,7 @@ let s (s_in: S_in.t) : S.t =
         start_line=7; start_column=18; end_line=7; end_column=19;
         law_headings=["Article"]})) in
   {S.a = a_}
+
 let () =
   Runtime_ocaml.Runtime.register_module "Let_in2"
     [ "S", Obj.repr s ]

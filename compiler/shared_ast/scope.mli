@@ -23,28 +23,8 @@ open Definitions
 
 (** {2 Traversal functions} *)
 
-val fold_left_lets :
-  f:('a -> 'e scope_let -> 'e Var.t -> 'a) ->
-  init:'a ->
-  'e scope_body_expr ->
-  'a
-(** Usage:
-    [fold_left_lets ~f:(fun acc scope_let scope_let_var -> ...) ~init scope_lets],
-    where [scope_let_var] is the variable bound to the scope let in the next
-    scope lets to be examined. *)
-
-val fold_right_lets :
-  f:('expr1 scope_let -> 'expr1 Var.t -> 'a -> 'a) ->
-  init:('expr1 -> 'a) ->
-  'expr1 scope_body_expr ->
-  'a
-(** Usage:
-    [fold_right_lets ~f:(fun scope_let scope_let_var acc -> ...) ~init scope_lets],
-    where [scope_let_var] is the variable bound to the scope let in the next
-    scope lets to be examined (which are before in the program order). *)
-
 val map_exprs_in_lets :
-  ?transform_types:(typ -> typ) ->
+  ?typ:(typ -> typ) ->
   f:('expr1 -> 'expr2 boxed) ->
   varf:('expr1 Var.t -> 'expr2 Var.t) ->
   'expr1 scope_body_expr ->
@@ -58,48 +38,8 @@ val map_exprs_in_lets :
     activated, then the resulting types in the scope let left-hand-sides will be
     reset to [TAny]. *)
 
-val fold_left :
-  f:('a -> 'expr1 code_item -> 'expr1 Var.t -> 'a) ->
-  init:'a ->
-  'expr1 code_item_list ->
-  'a
-(** Usage: [fold_left ~f:(fun acc code_def code_var -> ...) ~init code_def],
-    where [code_var] is the variable bound to the code item in the next code
-    items to be examined. *)
-
-val fold_right :
-  f:('expr1 code_item -> 'expr1 Var.t -> 'a -> 'a) ->
-  init:'a ->
-  'expr1 code_item_list ->
-  'a
-(** Usage:
-    [fold_right_scope ~f:(fun  scope_def scope_var acc -> ...) ~init scope_def],
-    where [scope_var] is the variable bound to the scope in the next scopes to
-    be examined (which are before in the program order). *)
-
-val map :
-  f:('e1 code_item -> 'e2 code_item Bindlib.box) ->
-  varf:('e1 Var.t -> 'e2 Var.t) ->
-  'e1 code_item_list ->
-  'e2 code_item_list Bindlib.box
-
-val map_ctx :
-  f:('ctx -> 'e1 code_item -> 'ctx * 'e2 code_item Bindlib.box) ->
-  varf:('e1 Var.t -> 'e2 Var.t) ->
-  'ctx ->
-  'e1 code_item_list ->
-  'e2 code_item_list Bindlib.box
-(** Similar to [map], but a context is passed left-to-right through the given
-    function *)
-
-val fold_map :
-  f:('ctx -> 'e1 Var.t -> 'e1 code_item -> 'ctx * 'e2 code_item Bindlib.box) ->
-  varf:('e1 Var.t -> 'e2 Var.t) ->
-  'ctx ->
-  'e1 code_item_list ->
-  'ctx * 'e2 code_item_list Bindlib.box
-
 val map_exprs :
+  ?typ:(typ -> typ) ->
   f:('expr1 -> 'expr2 boxed) ->
   varf:('expr1 Var.t -> 'expr2 Var.t) ->
   'expr1 code_item_list ->
@@ -107,28 +47,20 @@ val map_exprs :
 (** This is the main map visitor for all the expressions inside all the scopes
     of the program. *)
 
-val get_body_mark : (_, 'm) gexpr scope_body -> 'm mark
+val fold_exprs :
+  f:('acc -> 'expr -> typ -> 'acc) -> init:'acc -> 'expr code_item_list -> 'acc
 
 (** {2 Conversions} *)
 
-val to_expr :
-  decl_ctx -> ('a any, 'm) gexpr scope_body -> 'm mark -> ('a, 'm) boxed_gexpr
+val to_expr : decl_ctx -> ('a any, 'm) gexpr scope_body -> ('a, 'm) boxed_gexpr
 (** Usage: [to_expr ctx body scope_position] where [scope_position] corresponds
     to the line of the scope declaration for instance. *)
 
-type 'e scope_name_or_var = ScopeName of ScopeName.t | ScopeVar of 'e Var.t
-
 val unfold :
-  decl_ctx ->
-  ((_, 'm) gexpr as 'e) code_item_list ->
-  'm mark ->
-  'e scope_name_or_var ->
-  'e boxed
+  decl_ctx -> ((_, 'm) gexpr as 'e) code_item_list -> ScopeName.t -> 'e boxed
 
-val build_typ_from_sig :
-  decl_ctx -> StructName.t -> StructName.t -> Pos.t -> typ
-(** [build_typ_from_sig ctx in_struct out_struct pos] builds the arrow type for
-    the specified scope *)
+val typ : _ scope_body -> typ
+(** builds the arrow type for the specified scope *)
 
 val input_type : typ -> Runtime.io_input Mark.pos -> typ
 (** Returns the correct input type for scope input variables: this is [typ] for

@@ -286,40 +286,33 @@ let rec transform_closures_expr :
         new_e1 call_expr (Expr.pos e) )
   | _ -> .
 
-(* Here I have to reimplement Scope.map_exprs_in_lets because I'm changing the
-   type *)
 let transform_closures_scope_let ctx scope_body_expr =
-  Scope.fold_right_lets
-    ~f:(fun scope_let var_next acc ->
+  BoundList.map
+    ~f:(fun var_next scope_let ->
       let _free_vars, new_scope_let_expr =
         (transform_closures_expr
            { ctx with name_context = Bindlib.name_of var_next })
           scope_let.scope_let_expr
       in
-      Bindlib.box_apply2
-        (fun scope_let_next scope_let_expr ->
-          ScopeLet
-            {
-              scope_let with
-              scope_let_next;
-              scope_let_expr;
-              scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
-            })
-        (Bindlib.bind_var var_next acc)
+      var_next,
+      Bindlib.box_apply (fun scope_let_expr ->
+          {
+            scope_let with
+            scope_let_expr;
+            scope_let_typ = Mark.copy scope_let.scope_let_typ TAny;
+          })
         (Expr.Box.lift new_scope_let_expr))
-    ~init:(fun res ->
+    ~last:(fun res ->
       let _free_vars, new_scope_let_expr = (transform_closures_expr ctx) res in
       (* INVARIANT here: the result expr of a scope is simply a struct
          containing all output variables so nothing should be converted here, so
          no need to take into account free variables. *)
-      Bindlib.box_apply
-        (fun res -> Result res)
-        (Expr.Box.lift new_scope_let_expr))
+      Expr.Box.lift new_scope_let_expr)
     scope_body_expr
 
 let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
-  let _, new_code_items =
-    Scope.fold_map
+  let (), new_code_items =
+    BoundList.fold_map
       ~f:(fun toplevel_vars var code_item ->
         match code_item with
         | ScopeDef (name, body) ->
@@ -346,6 +339,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
               pos )
           in
           ( Var.Map.add var ty toplevel_vars,
+            var,
             Bindlib.box_apply
               (fun scope_body_expr ->
                 ScopeDef (name, { body with scope_body_expr }))
@@ -361,6 +355,7 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           let _free_vars, new_expr = transform_closures_expr ctx expr in
           let new_binder = Expr.bind v new_expr in
           ( Var.Map.add var ty toplevel_vars,
+            var,
             Bindlib.box_apply
               (fun e -> Topdef (name, ty, e))
               (Expr.Box.lift (Expr.eabs new_binder tys m)) )
@@ -373,11 +368,12 @@ let transform_closures_program (p : 'm program) : 'm program Bindlib.box =
           in
           let _free_vars, new_expr = transform_closures_expr ctx expr in
           ( Var.Map.add var ty toplevel_vars,
+            var,
             Bindlib.box_apply
               (fun e -> Topdef (name, (TAny, Mark.get ty), e))
               (Expr.Box.lift new_expr) ))
-      ~varf:(fun v -> v)
-      Var.Map.empty p.code_items
+      ~last:(fun _ () -> (), Bindlib.box ())
+      ~init:Var.Map.empty p.code_items
   in
   (* Now we need to further tweak [decl_ctx] because some of the user-defined
      types can have closures in them and these closured might have changed type.
@@ -547,10 +543,8 @@ let rec hoist_closures_expr :
   | EExternal _ -> failwith "unimplemented"
   | _ -> .
 
-(* Here I have to reimplement Scope.map_exprs_in_lets because I'm changing the
-   type *)
 let hoist_closures_scope_let name_context scope_body_expr =
-  Scope.fold_right_lets
+  BoundList.fold_right
     ~f:(fun scope_let var_next (hoisted_closures, next_scope_lets) ->
       let new_hoisted_closures, new_scope_let_expr =
         (hoist_closures_expr (Bindlib.name_of var_next))
@@ -559,7 +553,7 @@ let hoist_closures_scope_let name_context scope_body_expr =
       ( new_hoisted_closures @ hoisted_closures,
         Bindlib.box_apply2
           (fun scope_let_next scope_let_expr ->
-            ScopeLet { scope_let with scope_let_next; scope_let_expr })
+            Cons ({ scope_let with scope_let_expr }, scope_let_next))
           (Bindlib.bind_var var_next next_scope_lets)
           (Expr.Box.lift new_scope_let_expr) ))
     ~init:(fun res ->
@@ -571,7 +565,7 @@ let hoist_closures_scope_let name_context scope_body_expr =
          no need to take into account free variables. *)
       ( hoisted_closures,
         Bindlib.box_apply
-          (fun res -> Result res)
+          (fun res -> Last res)
           (Expr.Box.lift new_scope_let_expr) ))
     scope_body_expr
 
@@ -579,7 +573,7 @@ let rec hoist_closures_code_item_list
     (code_items : (lcalc, 'm) gexpr code_item_list) :
     (lcalc, 'm) gexpr code_item_list Bindlib.box =
   match code_items with
-  | Nil -> Bindlib.box Nil
+  | Last () -> Bindlib.box (Last ())
   | Cons (code_item, next_code_items) ->
     let code_item_var, next_code_items = Bindlib.unbind next_code_items in
     let hoisted_closures, new_code_item =

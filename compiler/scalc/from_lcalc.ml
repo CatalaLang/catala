@@ -574,7 +574,7 @@ let rec translate_scope_body_expr
     (func_dict : ('m L.expr, A.FuncName.t) Var.Map.t)
     (scope_expr : 'm L.expr scope_body_expr) : A.block =
   match scope_expr with
-  | Result e ->
+  | Last e ->
     let block, new_e =
       translate_expr
         {
@@ -587,8 +587,8 @@ let rec translate_scope_body_expr
         e
     in
     block @ [A.SReturn (Mark.remove new_e), Mark.get new_e]
-  | ScopeLet scope_let ->
-    let let_var, scope_let_next = Bindlib.unbind scope_let.scope_let_next in
+  | Cons (scope_let, next_bnd) ->
+    let let_var, scope_let_next = Bindlib.unbind next_bnd in
     let let_var_id =
       A.VarName.fresh (Bindlib.name_of let_var, scope_let.scope_let_pos)
     in
@@ -637,8 +637,8 @@ let rec translate_scope_body_expr
 
 let translate_program ~(config : translation_config) (p : 'm L.program) :
     A.program =
-  let _, _, rev_items =
-    Scope.fold_left
+  let (_, _, rev_items), () =
+    BoundList.fold_left
       ~f:(fun (func_dict, var_dict, rev_items) code_item var ->
         match code_item with
         | ScopeDef (name, body) ->

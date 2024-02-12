@@ -586,14 +586,12 @@ module Commands = struct
       let scope_uid = get_scope_uid prg.decl_ctx scope in
       Print.scope ~debug:options.Cli.debug prg.decl_ctx fmt
         ( scope_uid,
-          Option.get
-            (Scope.fold_left ~init:None
-               ~f:(fun acc def _ ->
-                 match def with
-                 | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
-                   Some body
-                 | _ -> acc)
-               prg.code_items) );
+          BoundList.find
+            ~f:(function
+              | ScopeDef (name, body) when ScopeName.equal name scope_uid ->
+                Some body
+              | _ -> None)
+            prg.code_items );
       Format.pp_print_newline fmt ()
     | None ->
       let scope_uid = get_random_scope_uid prg.decl_ctx in

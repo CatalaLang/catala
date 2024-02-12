@@ -944,46 +944,38 @@ let check_expr ctx ?env ?typ e =
 let expr ctx ?(env = Env.empty ctx) ?typ e =
   Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) (expr_raw ctx ~env ?typ e)
 
-let rec scope_body_expr ctx env ty_out body_expr =
-  match body_expr with
-  | A.Result e ->
-    let e' = wrap_expr ctx (typecheck_expr_top_down ctx env ty_out) e in
-    let e' = Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e' in
-    Bindlib.box_apply (fun e -> A.Result e) (Expr.Box.lift e')
-  | A.ScopeLet
-      {
-        scope_let_kind;
-        scope_let_typ;
-        scope_let_expr = e0;
-        scope_let_next;
-        scope_let_pos;
-      } ->
-    let ty_e = ast_to_typ scope_let_typ in
-    let e = wrap_expr ctx (typecheck_expr_bottom_up ctx env) e0 in
-    wrap ctx (fun t -> unify ctx e0 (ty e) t) ty_e;
-    (* We could use [typecheck_expr_top_down] rather than this manual
-       unification, but we get better messages with this order of the [unify]
-       parameters, which keeps location of the type as defined instead of as
-       inferred. *)
-    let var, next = Bindlib.unbind scope_let_next in
-    let env = Env.add var ty_e env in
-    let next = scope_body_expr ctx env ty_out next in
-    let scope_let_next = Bindlib.bind_var (Var.translate var) next in
-    Bindlib.box_apply2
-      (fun scope_let_expr scope_let_next ->
-        A.ScopeLet
-          {
-            scope_let_kind;
-            scope_let_typ =
-              (match Mark.remove scope_let_typ with
-              | TAny -> typ_to_ast ~flags:env.flags (ty e)
-              | _ -> scope_let_typ);
-            scope_let_expr;
-            scope_let_next;
-            scope_let_pos;
-          })
-      (Expr.Box.lift (Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e))
-      scope_let_next
+let scope_body_expr ctx env ty_out body_expr =
+  let _env, ret =
+    BoundList.fold_map body_expr ~init:env
+      ~last:(fun env e ->
+        let e' = wrap_expr ctx (typecheck_expr_top_down ctx env ty_out) e in
+        let e' = Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e' in
+        env, Expr.Box.lift e')
+      ~f:(fun env var scope ->
+        let e0 = scope.A.scope_let_expr in
+        let ty_e = ast_to_typ scope.A.scope_let_typ in
+        let e = wrap_expr ctx (typecheck_expr_bottom_up ctx env) e0 in
+        wrap ctx (fun t -> unify ctx e0 (ty e) t) ty_e;
+        (* We could use [typecheck_expr_top_down] rather than this manual
+           unification, but we get better messages with this order of the
+           [unify] parameters, which keeps location of the type as defined
+           instead of as inferred. *)
+        ( Env.add var ty_e env,
+          Var.translate var,
+          Bindlib.box_apply
+            (fun scope_let_expr ->
+              {
+                scope with
+                A.scope_let_typ =
+                  (match scope.A.scope_let_typ with
+                  | TAny, _ -> typ_to_ast ~flags:env.flags (ty e)
+                  | ty -> ty);
+                A.scope_let_expr;
+              })
+            (Expr.Box.lift (Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e))
+        ))
+  in
+  ret
 
 let scope_body ctx env body =
   let get_pos struct_name = Mark.get (A.StructName.get_info struct_name) in
@@ -1003,33 +995,29 @@ let scope_body ctx env body =
          (get_pos body.A.scope_body_output_struct)
          (TArrow ([ty_in], ty_out))) )
 
-let rec scopes ctx env = function
-  | A.Nil -> Bindlib.box A.Nil, env
-  | A.Cons (item, next_bind) ->
-    let var, next = Bindlib.unbind next_bind in
-    let env, def =
+let scopes ctx env =
+  BoundList.fold_map ~init:env
+    ~last:(fun ctx () -> ctx, Bindlib.box ())
+    ~f:(fun env var item ->
       match item with
       | A.ScopeDef (name, body) ->
         let body_e, ty_scope = scope_body ctx env body in
         ( Env.add var ty_scope env,
+          Var.translate var,
           Bindlib.box_apply (fun body -> A.ScopeDef (name, body)) body_e )
       | A.Topdef (name, typ, e) ->
         let e' = expr_raw ctx ~env ~typ e in
         let (A.Custom { custom = uf; _ }) = Mark.get e' in
         let e' = Expr.map_marks ~f:(get_ty_mark ~flags:env.flags) e' in
         ( Env.add var uf env,
+          Var.translate var,
           Bindlib.box_apply
             (fun e -> A.Topdef (name, Expr.ty e', e))
-            (Expr.Box.lift e') )
-    in
-    let next', env = scopes ctx env next in
-    let next_bind' = Bindlib.bind_var (Var.translate var) next' in
-    ( Bindlib.box_apply2 (fun item next -> A.Cons (item, next)) def next_bind',
-      env )
+            (Expr.Box.lift e') ))
 
 let program ?fail_on_any ?assume_op_types prg =
   let env = Env.empty ?fail_on_any ?assume_op_types prg.A.decl_ctx in
-  let code_items, new_env = scopes prg.A.decl_ctx env prg.A.code_items in
+  let new_env, code_items = scopes prg.A.decl_ctx env prg.A.code_items in
   {
     A.lang = prg.lang;
     A.module_name = prg.A.module_name;

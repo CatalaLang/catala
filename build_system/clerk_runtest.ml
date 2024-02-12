@@ -94,8 +94,7 @@ let run_inline_tests catala_exe catala_opts filename =
         skip_block lines
       | Some args ->
         let args = String.split_on_char ' ' args in
-        run_catala_test catala_exe catala_opts filename
-          lines_until_now args oc;
+        run_catala_test catala_exe catala_opts filename lines_until_now args oc;
         skip_block lines)
   and skip_block lines =
     match Seq.uncons lines with
