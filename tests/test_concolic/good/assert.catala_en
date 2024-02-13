@@ -1,0 +1,38 @@
+## Article
+
+```catala
+declaration scope A:
+  input b content boolean
+  output o content integer
+
+scope A:
+  assertion b
+  definition o equals 0
+```
+
+```catala-test-inline
+$ catala DCalc -s A
+let scope A (A_in: A_in {b_in: bool}): A {o: integer} =
+  let get b : bool = A_in.b_in in
+  let set o : integer = error_empty ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ in
+  let assert _ : unit = assert (b) in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . b_in = true
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . b_in = false
+[RESULT] Output of scope after evaluation:
+[RESULT] Found error ↯AssertionError↯
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
