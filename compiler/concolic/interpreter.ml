@@ -19,6 +19,7 @@
 (** Concolic interpreter for the default calculus *)
 
 open Catala_utils
+open Z3_utils
 open Shared_ast
 open Op
 module Concrete = Shared_ast.Interpreter
@@ -513,7 +514,7 @@ module DateEncoding = struct
   let div_dur_dur ctx dur1 dur2 =
     (* TODO factorize with [Div_int_int]? *)
     (* convert e1 to a [Real] explicitely to avoid using integer division *)
-    let dur1_rat = Z3.Arithmetic.Integer.mk_int2real ctx dur1 in
+    let dur1_rat = z3_force_real ctx dur1 in
     Z3.Arithmetic.mk_div ctx dur1_rat dur2
 
   (* TODO CONC incompleteness warning for comparisons? eg on day < month *)
@@ -1097,34 +1098,6 @@ let handle_division
       ]
       "division by zero at runtime"
 
-(** Round Z3 [Real] to Z3 [Integer] using the same strategy as [Runtime.round]:
-    round to nearest, half away from zero. *)
-let z3_round ctx (q : s_expr) : s_expr =
-  (* The mathematical formula is [round(q) = sgn(q) * floor(abs(q) + 0.5)].
-     However, Z3 does not have [sgn] or [abs] functions. Instead, we encode it
-     as [round(q) = if q>=0 then floor(q + 1/2) else -floor(-q + 1/2)], where
-     [Z3.Arithmetic.Real.mk_real2int] floors. *)
-  (* NOTE why not define Z3 function? =>> they are the same as declaration +
-     forall, and the gain in legibility is marginal, so I don't think it is
-     necessary *)
-  let zero = Z3.Arithmetic.Real.mk_numeral_i ctx 0 in
-  let is_positive = Z3.Arithmetic.mk_ge ctx q zero in
-
-  let half = Z3.Arithmetic.Real.mk_numeral_nd ctx 1 2 in
-
-  let shift_pos = Z3.Arithmetic.mk_add ctx [q; half] in
-  let round_pos = Z3.Arithmetic.Real.mk_real2int ctx shift_pos in
-
-  let shift_neg =
-    Z3.Arithmetic.mk_add ctx [Z3.Arithmetic.mk_unary_minus ctx q; half]
-  in
-  let round_neg =
-    Z3.Arithmetic.mk_unary_minus ctx
-      (Z3.Arithmetic.Real.mk_real2int ctx shift_neg)
-  in
-
-  Z3.Boolean.mk_ite ctx is_positive round_pos round_neg
-
 (* Call-by-value: the arguments are expected to be already evaluated here *)
 let rec evaluate_operator
     evaluate_expr
@@ -1246,9 +1219,7 @@ let rec evaluate_operator
       DateEncoding.minus_dur x e
   | ToRat_int, [((ELit (LInt i), _) as e)] ->
     (* TODO maybe write specific tests for this and other similar cases? *)
-    op1 ctx m
-      (fun x -> ELit (LRat (o_torat_int x)))
-      Z3.Arithmetic.Integer.mk_int2real i e
+    op1 ctx m (fun x -> ELit (LRat (o_torat_int x))) z3_force_real i e
   | ToRat_mon, [((ELit (LMoney i), _) as e)] ->
     op1 ctx m
       (fun x -> ELit (LRat (o_torat_mon x)))
@@ -1360,20 +1331,26 @@ let rec evaluate_operator
       (fun x y -> ELit (LRat (o_div_int_int x y)))
       (fun ctx e1 e2 ->
         (* convert e1 to a [Real] explicitely to avoid using integer division *)
-        let e1_rat = Z3.Arithmetic.Integer.mk_int2real ctx e1 in
+        let e1_rat = z3_force_real ctx e1 in
         Z3.Arithmetic.mk_div ctx e1_rat e2)
       x y e1 e2
   | Div_rat_rat, [((ELit (LRat x), _) as e1); ((ELit (LRat y), _) as e2)] ->
     handle_division ctx m
       (fun x y -> ELit (LRat (o_div_rat_rat x y)))
-      Z3.Arithmetic.mk_div x y e1 e2
+      (* Z3.Arithmetic.mk_div x y e1 e2 *)
+      (* FIXME *)
+        (fun ctx e1 e2 ->
+        (* convert e1 to a [Real] explicitely to avoid using integer division *)
+        let e1_rat = z3_force_real ctx e1 in
+        Z3.Arithmetic.mk_div ctx e1_rat e2)
+      x y e1 e2
   | Div_mon_mon, [((ELit (LMoney x), _) as e1); ((ELit (LMoney y), _) as e2)] ->
     handle_division ctx m
       (fun x y -> ELit (LRat (o_div_mon_mon x y)))
       (fun ctx e1 e2 ->
         (* TODO factorize with [Div_int_int]? *)
         (* convert e1 to a [Real] explicitely to avoid using integer division *)
-        let e1_rat = Z3.Arithmetic.Integer.mk_int2real ctx e1 in
+        let e1_rat = z3_force_real ctx e1 in
         Z3.Arithmetic.mk_div ctx e1_rat e2)
       x y e1 e2
   | Div_mon_rat, [((ELit (LMoney x), _) as e1); ((ELit (LRat y), _) as e2)] ->
@@ -1381,7 +1358,7 @@ let rec evaluate_operator
       (fun x y -> ELit (LMoney (o_div_mon_rat x y)))
       (fun ctx cents r ->
         (* TODO maybe factorize with [Mult_mon_rat] and [ToRat_int]? *)
-        let cents_rat = Z3.Arithmetic.Integer.mk_int2real ctx cents in
+        let cents_rat = z3_force_real ctx cents in
         let div = Z3.Arithmetic.mk_div ctx cents_rat r in
         z3_round ctx div)
       x y e1 e2
