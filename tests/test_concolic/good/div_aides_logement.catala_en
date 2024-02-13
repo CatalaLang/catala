@@ -1,0 +1,45 @@
+# Article
+This test comes from the `CalculAidePersonnaliséeLogementLocatif` scope from
+[aides_logement](https://github.com/CatalaLang/catala-examples/tree/d2caf94d82776dddd1fb15feccadf94942df1328/aides_logement).
+I had a division bug that made this fail because the division of the two
+`loyer_` variables was coerced to an integer.
+
+```catala
+declaration scope CalculAidePersonnaliséeLogementLocatif:
+    input loyer_éligible content money
+    input loyer_référence content money
+    output rapport_loyers content decimal
+
+scope CalculAidePersonnaliséeLogementLocatif:
+  definition rapport_loyers equals
+    round of ((loyer_éligible / loyer_référence) * 100.0) / 100.0
+
+declaration scope A:
+    s scope CalculAidePersonnaliséeLogementLocatif
+    output o content decimal
+
+scope A:
+    definition s.loyer_éligible equals $222.62
+    definition s.loyer_référence equals $258.69
+
+    definition o equals s.rapport_loyers
+    assertion o = 0.8600
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[RESULT] Computation successful! Results:
+[RESULT] o = 0.86
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0.86
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
