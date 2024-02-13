@@ -762,7 +762,6 @@ let gather_constraints (es : conc_expr list) =
      top of the output list. *)
   let es_rev = List.rev es in
   let constraints = List.map get_constraints es_rev in
-  Message.emit_debug "gather_constraints is concatenating constraints";
   List.flatten constraints
 
 let get_type (e : conc_expr) : typ option =
@@ -828,10 +827,8 @@ let make_z3_struct_access
     let sort = StructName.Map.find name ctx.ctx_z3structs in
     let fields = StructName.Map.find name ctx.ctx_decl.ctx_structs in
     let z3_accessors = List.hd (Z3.Datatype.get_accessors sort) in
-    Message.emit_debug "struct accessors %s"
-      (List.fold_left
-         (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc)
-         "" z3_accessors);
+    (* Message.emit_debug "struct accessors %s" (List.fold_left (fun acc a ->
+       Z3.FuncDecl.to_string a ^ "," ^ acc) "" z3_accessors); *)
     let idx_mappings =
       List.combine (StructField.Map.keys fields) z3_accessors
     in
@@ -928,8 +925,8 @@ let replace_EVar_mark
     match Var.Map.find_opt v vars_args with
     | Some arg ->
       let symb_expr = get_symb_expr arg in
-      Message.emit_debug "EApp>binder put mark %a on var %a" SymbExpr.formatter
-        symb_expr (Print.expr ()) e;
+      (*Message.emit_debug "EApp>binder put mark %a on var " SymbExpr.formatter
+        symb_expr (* (Print.expr ()) e *);*)
       add_conc_info_e symb_expr ~constraints:[] e
     (* NOTE CONC we keep the position from the var, as in concrete
        interpreter *)
@@ -944,12 +941,7 @@ let propagate_generic_error
   match Mark.remove e, e_symb with
   | EGenericError, Symb_error _ ->
     let e_constraints = get_constraints_r e in
-    Message.emit_debug
-      "Propagating error %a with %d contained constraints and %d other \
-       constraints"
-      SymbExpr.formatter e_symb
-      (List.length e_constraints)
-      (List.length other_constraints);
+    Message.emit_debug "Propagating error %a" SymbExpr.formatter e_symb;
     let constraints = e_constraints @ other_constraints in
     (* Add the new constraints but don't change the symbolic expression *)
     add_conc_info_e Symb_none ~constraints e
@@ -1580,8 +1572,8 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
           Message.emit_debug "EApp>EAbs args are";
           List.iter
             (fun arg ->
-              Message.emit_debug "EApp>EAbs arg %a | %a | %i" (Print.expr ())
-                arg SymbExpr.formatter (get_symb_expr arg)
+              Message.emit_debug "EApp>EAbs arg | %a | %i"
+                (* (Print.expr ()) arg *) SymbExpr.formatter (get_symb_expr arg)
                 (List.length (get_constraints arg)))
             args;
           let marked_eb =
@@ -1953,8 +1945,7 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
           cons;
         } -> (
       (* FIXME add metadata to find this case instead of this big match *)
-      Message.emit_debug "... it's a context variable definition %a"
-        (Print.expr ()) except;
+      Message.emit_debug "... it's a context variable definition";
 
       let app = evaluate_expr ctx lang except in
       propagate_generic_error app []
