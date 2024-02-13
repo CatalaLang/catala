@@ -385,13 +385,6 @@ let add_z3enum (enum : EnumName.t) (sort : Z3.Sort.sort) (ctx : context) :
     context =
   { ctx with ctx_z3enums = EnumName.Map.add enum sort ctx.ctx_z3enums }
 
-(** Z3 encoding/decoding helpers *)
-
-let z3_int_of_bigint ctx (n : Z.t) : s_expr =
-  (* NOTE CONC I use string instead of int to translate without overflows, as
-     both [Runtime.integer] and Z3 integers are big *)
-  Z3.Arithmetic.Integer.mk_numeral_s ctx.ctx_z3 (Runtime.integer_to_string n)
-
 let make_z3_path_constraint (expr : SymbExpr.t) (pos : Pos.t) (branch : bool) :
     path_constraint =
   let expr =
@@ -459,7 +452,7 @@ module DateEncoding = struct
       failwith
         "[DateEncoding] Duration literals containing years or months not \
          supported";
-    z3_int_of_bigint ctx (Z.of_int d)
+    z3_int_of_bigint ctx.ctx_z3 (Z.of_int d)
 
   let decode_duration (e : s_expr) : Runtime.duration =
     let days_bigint = integer_of_symb_expr e in
@@ -482,7 +475,7 @@ module DateEncoding = struct
 
   let encode_date (ctx : context) (date : Runtime.date) : s_expr =
     let days = date_to_bigint date in
-    z3_int_of_bigint ctx days
+    z3_int_of_bigint ctx.ctx_z3 days
 
   let decode_date
       ?(round : Runtime.date_rounding = Dates_calc.Dates.AbortOnRound)
@@ -704,14 +697,14 @@ let init_context (ctx : context) : context =
 let z3_of_lit ctx (l : lit) : s_expr =
   match l with
   | LBool b -> Z3.Boolean.mk_val ctx.ctx_z3 b
-  | LInt n -> z3_int_of_bigint ctx n
+  | LInt n -> z3_int_of_bigint ctx.ctx_z3 n
   | LRat r ->
     Z3.Arithmetic.Real.mk_numeral_nd ctx.ctx_z3 (Z.to_int r.num)
       (Z.to_int r.den)
     (* assumption: numerator and denominator are integers *)
   | LMoney m ->
     let cents = Runtime.money_to_cents m in
-    z3_int_of_bigint ctx cents
+    z3_int_of_bigint ctx.ctx_z3 cents
   | LUnit -> snd ctx.ctx_z3unit
   | LDate date -> DateEncoding.encode_date ctx date
   | LDuration dur -> DateEncoding.encode_duration ctx dur

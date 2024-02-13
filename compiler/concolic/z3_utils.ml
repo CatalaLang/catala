@@ -24,9 +24,15 @@ let z3_round ctx (q : Expr.expr) : Expr.expr =
 
   Boolean.mk_ite ctx is_positive round_pos round_neg
 
-(* Coerce an integer or a real [x] into a real *)
+(** Coerce an [Integer] or a [Real] [x] into a [Real] *)
 let z3_force_real ctx (x : Expr.expr) : Expr.expr =
   let one = Real.mk_numeral_i ctx 1 in
   let q = mk_mul ctx [one; x] in
   assert (is_real q);
   q
+
+(** Translate a Bigint to a Z3 [Integer] while avoiding overflow *)
+let z3_int_of_bigint ctx (n : Z.t) : Expr.expr =
+  (* NOTE I use string instead of int to translate without overflows, as both
+     [Runtime.integer] and Z3 integers are big *)
+  Integer.mk_numeral_s ctx (Z.to_string n)
