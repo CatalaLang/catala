@@ -1,0 +1,93 @@
+```catala
+declaration scope HousingComputation:
+  output f1 content integer depends on (x content integer)
+  output f2 content integer depends on (x content integer)
+  output result content integer
+
+scope HousingComputation:
+  definition f1 of x equals (output of RentComputation).f1 of x
+  definition f2 of x equals (output of RentComputation).f2 of x
+  definition result equals f1 of 1
+  definition result equals f2 of 1
+
+declaration scope RentComputation:
+  internal g content integer depends on (x content integer)
+  output f1 content integer depends on (x content integer)
+  output f2 content integer depends on (x content integer)
+
+scope RentComputation:
+  definition g of x equals x + 1
+  definition f1 of x equals g of (x + 1)
+  definition f2 of x equals g of (x + 1)
+```
+
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Interpret -s RentComputation --debug
+[DEBUG] = INIT =
+[DEBUG] = SURFACE =
+[DEBUG] Parsing "tests/scope/good/scope_call4.catala_en"
+[DEBUG] = DESUGARED =
+[DEBUG] Name resolution...
+[DEBUG] Desugaring...
+[DEBUG] Disambiguating...
+[DEBUG] Linting...
+[DEBUG] = SCOPELANG =
+[DEBUG] = DCALC =
+[DEBUG] Typechecking...
+[DEBUG] Translating to default calculus...
+[DEBUG] Typechecking again...
+[DEBUG] Starting interpretation...
+[DEBUG] End of interpretation
+[RESULT] Computation successful! Results:
+[RESULT]
+f1 = λ (x: integer) →
+  error_empty
+    ⟨ ⟨true
+       ⊢ ⟨let x1 : integer = x + 1 in
+          error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
+    | false ⊢ ∅ ⟩
+[RESULT]
+f2 = λ (x: integer) →
+  error_empty
+    ⟨ ⟨true
+       ⊢ ⟨let x1 : integer = x + 1 in
+          error_empty ⟨ ⟨true ⊢ ⟨x1 + 1⟩⟩ | false ⊢ ∅ ⟩⟩⟩
+    | false ⊢ ∅ ⟩
+```
+
+```catala-test-inline
+$ catala Interpret_Lcalc -s RentComputation --avoid-exceptions --optimize --debug
+[DEBUG] = INIT =
+[DEBUG] = SURFACE =
+[DEBUG] Parsing "tests/scope/good/scope_call4.catala_en"
+[DEBUG] = DESUGARED =
+[DEBUG] Name resolution...
+[DEBUG] Desugaring...
+[DEBUG] Disambiguating...
+[DEBUG] Linting...
+[DEBUG] = SCOPELANG =
+[DEBUG] = DCALC =
+[DEBUG] Typechecking...
+[DEBUG] Translating to default calculus...
+[DEBUG] Optimizing default calculus...
+[DEBUG] Typechecking again...
+[DEBUG] = LCALC =
+[DEBUG] Optimizing lambda calculus...
+[DEBUG] Retyping lambda calculus...
+[DEBUG] Starting interpretation...
+[DEBUG] End of interpretation
+[RESULT] Computation successful! Results:
+[RESULT] f1 = λ (x: integer) → let x1 : integer = x + 1 in
+                               ((x1 + 1))
+[RESULT] f2 = λ (x: integer) → let x1 : integer = x + 1 in
+                               ((x1 + 1))
+```

@@ -1,0 +1,38 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2 content boolean
+  -- Case3
+
+declaration scope A:
+  context e content E
+  context out content boolean
+
+scope A:
+  definition out equals match e with pattern
+    -- Case1 of i : i = 0
+    -- Case2 of b : b
+    -- Case3 : false
+    -- Case3 : true
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR]
+The constructor Case3 has been matched twice:
+
+┌─⯈ tests/enum/bad/duplicate_case.catala_en:18.16-18.20:
+└──┐
+18 │     -- Case3 : true
+   │                ‾‾‾‾
+   └─ Article
+
+┌─⯈ tests/enum/bad/duplicate_case.catala_en:17.16-17.21:
+└──┐
+17 │     -- Case3 : false
+   │                ‾‾‾‾‾
+   └─ Article
+#return code 123#
+```

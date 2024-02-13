@@ -189,7 +189,8 @@ and naked_expression =
       (path * uident Mark.pos) Mark.pos * (lident Mark.pos * expression) list
   | ArrayLit of expression list
   | Tuple of expression list
-  | Ident of path * lident Mark.pos
+  | Ident of path * lident Mark.pos * lident Mark.pos option
+  (* path, ident, state *)
   | Dotted of expression * (path * lident Mark.pos) Mark.pos
       (** Dotted is for both struct field projection and sub-scope variables *)
 

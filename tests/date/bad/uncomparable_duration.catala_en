@@ -1,0 +1,125 @@
+## `UncomparableDurations` exception management
+
+### `<` operator
+
+```catala
+declaration scope Lt:
+  output d content boolean
+
+scope Lt:
+  definition d equals 1 month < 2 day
+```
+
+### `<=` operator
+
+```catala
+declaration scope Le:
+  output d content boolean
+
+scope Le:
+  definition d equals 1 month <= 2 day
+```
+
+### `<=` operator
+
+```catala
+declaration scope Gt:
+  output d content boolean
+
+scope Gt:
+  definition d equals 1 month > 2 day
+```
+
+### `>=` operator
+
+```catala
+declaration scope Ge:
+  output d content boolean
+
+scope Ge:
+  definition d equals 1 month >= 2 day
+```
+
+```catala-test-inline
+$ catala Interpret -s Ge
+[ERROR]
+Cannot compare together durations that cannot be converted to a precise number of days
+
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:40.23-40.30:
+└──┐
+40 │   definition d equals 1 month >= 2 day
+   │                       ‾‾‾‾‾‾‾
+   └┬ `UncomparableDurations` exception management
+    └─ `>=` operator
+
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:40.34-40.39:
+└──┐
+40 │   definition d equals 1 month >= 2 day
+   │                                  ‾‾‾‾‾
+   └┬ `UncomparableDurations` exception management
+    └─ `>=` operator
+#return code 123#
+```
+
+```catala-test-inline
+$ catala Interpret -s Gt
+[ERROR]
+Cannot compare together durations that cannot be converted to a precise number of days
+
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:30.23-30.30:
+└──┐
+30 │   definition d equals 1 month > 2 day
+   │                       ‾‾‾‾‾‾‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:30.33-30.38:
+└──┐
+30 │   definition d equals 1 month > 2 day
+   │                                 ‾‾‾‾‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+#return code 123#
+```
+
+```catala-test-inline
+$ catala Interpret -s Le
+[ERROR]
+Cannot compare together durations that cannot be converted to a precise number of days
+
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:20.23-20.30:
+└──┐
+20 │   definition d equals 1 month <= 2 day
+   │                       ‾‾‾‾‾‾‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:20.34-20.39:
+└──┐
+20 │   definition d equals 1 month <= 2 day
+   │                                  ‾‾‾‾‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<=` operator
+#return code 123#
+```
+
+```catala-test-inline
+$ catala Interpret -s Lt
+[ERROR]
+Cannot compare together durations that cannot be converted to a precise number of days
+
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:10.23-10.30:
+└──┐
+10 │   definition d equals 1 month < 2 day
+   │                       ‾‾‾‾‾‾‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<` operator
+
+┌─⯈ tests/date/bad/uncomparable_duration.catala_en:10.33-10.38:
+└──┐
+10 │   definition d equals 1 month < 2 day
+   │                                 ‾‾‾‾‾
+   └┬ `UncomparableDurations` exception management
+    └─ `<` operator
+#return code 123#
+```

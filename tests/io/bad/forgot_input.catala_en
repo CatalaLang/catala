@@ -1,0 +1,36 @@
+# Test
+
+```catala
+declaration scope A:
+  output a content integer
+  input x content integer
+
+declaration scope B:
+  a scope A
+
+scope A:
+  definition a equals x + 1
+
+scope B:
+  assertion a.a = 1
+```
+```catala-test-inline
+$ catala Typecheck 
+[ERROR]
+This subscope variable is a mandatory input but no definition was provided.
+
+Incriminated subscope:
+┌─⯈ tests/io/bad/forgot_input.catala_en:9.3-9.4:
+└─┐
+9 │   a scope A
+  │   ‾
+  └─ Test
+
+Incriminated variable:
+┌─⯈ tests/io/bad/forgot_input.catala_en:6.9-6.10:
+└─┐
+6 │   input x content integer
+  │         ‾
+  └─ Test
+#return code 123#
+```

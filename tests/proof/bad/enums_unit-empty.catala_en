@@ -1,0 +1,31 @@
+## Article
+
+```catala
+declaration enumeration E:
+  -- Case1 content integer
+  -- Case2
+
+declaration scope A:
+  internal x content E
+  output y content integer
+
+scope A:
+  definition x equals Case1 content 2
+  definition y under condition match x with pattern
+    -- Case1 of i : i > 0
+    -- Case2 : false consequence equals 2
+  definition y under condition match x with pattern
+    -- Case1 of i : false
+    -- Case2 : true consequence equals 2
+```
+
+```catala-test-inline
+$ catala Proof --disable-counterexamples 
+[WARNING] [A.y] This variable might return an empty error:
+┌─⯈ tests/proof/bad/enums_unit-empty.catala_en:10.10-10.11:
+└──┐
+10 │   output y content integer
+   │          ‾
+   └─ Article
+Counterexample generation is disabled so none was generated.
+```

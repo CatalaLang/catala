@@ -1,0 +1,591 @@
+## Test basic toplevel values defs
+
+```catala
+declaration glob1 content decimal equals 44.12
+
+declaration scope S:
+  output a content decimal
+  output b content A
+
+declaration structure A:
+   data y content boolean
+   data z content decimal
+
+declaration glob2 content A equals
+    A { --y: glob1 >= 30. --z: 123. * 17. }
+
+scope S:
+   definition a equals glob1 * glob1
+   definition b equals glob2
+```
+
+
+
+```catala-test-inline
+$ catala Typecheck --check-invariants
+[RESULT] All invariant checks passed
+[RESULT] Typechecking successful!
+```
+
+```catala-test-inline
+$ catala Interpret -s S
+[RESULT] Computation successful! Results:
+[RESULT] a = 1,946.574,4
+[RESULT] b = A { -- y: true -- z: 2,091.0 }
+```
+
+## Test toplevel function defs
+
+```catala
+declaration glob3 content decimal
+    depends on x content money
+    equals decimal of x + 10.
+
+declaration scope S2:
+  output a content decimal
+
+scope S2:
+   definition a equals glob3 of $44 + 100.
+```
+
+```catala-test-inline
+$ catala Interpret -s S2
+[RESULT] Computation successful! Results:
+[RESULT] a = 154.0
+```
+
+## Test function def with two args
+
+```catala
+declaration glob4 content decimal
+    depends on x content money, y content decimal
+    equals decimal of x * y + 10.
+
+declaration scope S3:
+  output a content decimal
+
+scope S3:
+   definition a equals 50. + glob4 of $44, 55.
+```
+
+```catala-test-inline
+$ catala Interpret -s S3
+[RESULT] Computation successful! Results:
+[RESULT] a = 2,480.0
+```
+
+## Test inline defs in toplevel defs
+
+(can't define inline functions yet)
+
+```catala
+declaration glob5 content decimal equals
+    let x equals decimal of 2 * 3. in
+    let y equals 1000. in
+    x * y
+
+declaration scope S4:
+  output a content decimal
+
+scope S4:
+   definition a equals glob5 + 1.
+```
+
+```catala-test-inline
+$ catala Interpret -s S4
+[RESULT] Computation successful! Results:
+[RESULT] a = 6,001.0
+```
+
+```catala-test-inline
+$ catala scalc
+let glob1_2 = 44.12
+
+let glob3_3 (x_3: money) = return to_rat x_3 + 10.
+
+let glob4_4 (x_4: money) (y_5: decimal) = return to_rat x_4 * y_5 + 10.
+
+let glob5_aux_5 =
+  decl x_7 : decimal;
+  x_7 = to_rat 2 * 3.;
+  decl y_8 : decimal;
+  y_8 = 1000.;
+  return x_7 * y_8
+
+let glob5_6 = glob5_aux_5 ()
+
+let glob2_9 = A {"y": glob1_2 >= 30., "z": 123. * 17.}
+
+let S2_6 (S2_in_10: S2_in) =
+  decl temp_a_12 : decimal;
+  try:
+    decl temp_a_21 : unit → decimal;
+    let func temp_a_21 (__22 : unit) =
+      raise EmptyError;
+    decl temp_a_19 : unit → bool;
+    let func temp_a_19 (__20 : unit) =
+      return false;
+    decl temp_a_13 : unit → decimal;
+    let func temp_a_13 (__14 : unit) =
+      decl temp_a_17 : unit → decimal;
+      let func temp_a_17 (__18 : unit) =
+        return glob3_3 ¤44.00 + 100.;
+      decl temp_a_15 : unit → bool;
+      let func temp_a_15 (__16 : unit) =
+        return true;
+      return handle_default [] temp_a_15 temp_a_17;
+    temp_a_12 = handle_default [temp_a_13] temp_a_19 temp_a_21
+  with EmptyError:
+    raise NoValueProvided;
+  decl a_11 : decimal;
+  a_11 = temp_a_12;
+  return S2 {"a": a_11}
+
+let S3_7 (S3_in_23: S3_in) =
+  decl temp_a_25 : decimal;
+  try:
+    decl temp_a_34 : unit → decimal;
+    let func temp_a_34 (__35 : unit) =
+      raise EmptyError;
+    decl temp_a_32 : unit → bool;
+    let func temp_a_32 (__33 : unit) =
+      return false;
+    decl temp_a_26 : unit → decimal;
+    let func temp_a_26 (__27 : unit) =
+      decl temp_a_30 : unit → decimal;
+      let func temp_a_30 (__31 : unit) =
+        return 50. + glob4_4 ¤44.00 55.;
+      decl temp_a_28 : unit → bool;
+      let func temp_a_28 (__29 : unit) =
+        return true;
+      return handle_default [] temp_a_28 temp_a_30;
+    temp_a_25 = handle_default [temp_a_26] temp_a_32 temp_a_34
+  with EmptyError:
+    raise NoValueProvided;
+  decl a_24 : decimal;
+  a_24 = temp_a_25;
+  return S3 {"a": a_24}
+
+let S4_8 (S4_in_36: S4_in) =
+  decl temp_a_38 : decimal;
+  try:
+    decl temp_a_47 : unit → decimal;
+    let func temp_a_47 (__48 : unit) =
+      raise EmptyError;
+    decl temp_a_45 : unit → bool;
+    let func temp_a_45 (__46 : unit) =
+      return false;
+    decl temp_a_39 : unit → decimal;
+    let func temp_a_39 (__40 : unit) =
+      decl temp_a_43 : unit → decimal;
+      let func temp_a_43 (__44 : unit) =
+        return glob5_6 + 1.;
+      decl temp_a_41 : unit → bool;
+      let func temp_a_41 (__42 : unit) =
+        return true;
+      return handle_default [] temp_a_41 temp_a_43;
+    temp_a_38 = handle_default [temp_a_39] temp_a_45 temp_a_47
+  with EmptyError:
+    raise NoValueProvided;
+  decl a_37 : decimal;
+  a_37 = temp_a_38;
+  return S4 {"a": a_37}
+
+let S_9 (S_in_49: S_in) =
+  decl temp_a_63 : decimal;
+  try:
+    decl temp_a_72 : unit → decimal;
+    let func temp_a_72 (__73 : unit) =
+      raise EmptyError;
+    decl temp_a_70 : unit → bool;
+    let func temp_a_70 (__71 : unit) =
+      return false;
+    decl temp_a_64 : unit → decimal;
+    let func temp_a_64 (__65 : unit) =
+      decl temp_a_68 : unit → decimal;
+      let func temp_a_68 (__69 : unit) =
+        return glob1_2 * glob1_2;
+      decl temp_a_66 : unit → bool;
+      let func temp_a_66 (__67 : unit) =
+        return true;
+      return handle_default [] temp_a_66 temp_a_68;
+    temp_a_63 = handle_default [temp_a_64] temp_a_70 temp_a_72
+  with EmptyError:
+    raise NoValueProvided;
+  decl a_50 : decimal;
+  a_50 = temp_a_63;
+  decl temp_b_52 : A {y: bool; z: decimal};
+  try:
+    decl temp_b_61 : unit → A {y: bool; z: decimal};
+    let func temp_b_61 (__62 : unit) =
+      raise EmptyError;
+    decl temp_b_59 : unit → bool;
+    let func temp_b_59 (__60 : unit) =
+      return false;
+    decl temp_b_53 : unit → A {y: bool; z: decimal};
+    let func temp_b_53 (__54 : unit) =
+      decl temp_b_57 : unit → A {y: bool; z: decimal};
+      let func temp_b_57 (__58 : unit) =
+        return glob2_9;
+      decl temp_b_55 : unit → bool;
+      let func temp_b_55 (__56 : unit) =
+        return true;
+      return handle_default [] temp_b_55 temp_b_57;
+    temp_b_52 = handle_default [temp_b_53] temp_b_59 temp_b_61
+  with EmptyError:
+    raise NoValueProvided;
+  decl b_51 : A {y: bool; z: decimal};
+  b_51 = temp_b_52;
+  return S {"a": a_50, "b": b_51}
+```
+
+```catala-test-inline
+$ catala python
+# This file has been generated by the Catala compiler, do not edit!
+
+from catala.runtime import *
+from typing import Any, List, Callable, Tuple
+from enum import Enum
+
+class A:
+    def __init__(self, y: bool, z: Decimal) -> None:
+        self.y = y
+        self.z = z
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, A):
+            return (self.y == other.y and self.z == other.z)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "A(y={},z={})".format(self.y, self.z)
+
+class S2:
+    def __init__(self, a: Decimal) -> None:
+        self.a = a
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, S2):
+            return (self.a == other.a)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "S2(a={})".format(self.a)
+
+class S3:
+    def __init__(self, a: Decimal) -> None:
+        self.a = a
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, S3):
+            return (self.a == other.a)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "S3(a={})".format(self.a)
+
+class S4:
+    def __init__(self, a: Decimal) -> None:
+        self.a = a
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, S4):
+            return (self.a == other.a)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "S4(a={})".format(self.a)
+
+class S:
+    def __init__(self, a: Decimal, b: A) -> None:
+        self.a = a
+        self.b = b
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, S):
+            return (self.a == other.a and self.b == other.b)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "S(a={},b={})".format(self.a, self.b)
+
+class SIn:
+    def __init__(self, ) -> None:
+        pass
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SIn):
+            return (True)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "SIn()".format()
+
+class S2In:
+    def __init__(self, ) -> None:
+        pass
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, S2In):
+            return (True)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "S2In()".format()
+
+class S3In:
+    def __init__(self, ) -> None:
+        pass
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, S3In):
+            return (True)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "S3In()".format()
+
+class S4In:
+    def __init__(self, ) -> None:
+        pass
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, S4In):
+            return (True)
+        else:
+            return False
+
+    def __ne__(self, other: object) -> bool:
+        return not (self == other)
+
+    def __str__(self) -> str:
+        return "S4In()".format()
+
+
+
+glob1 = (decimal_of_string("44.12"))
+
+def glob3(x:Money):
+    return (decimal_of_money(x) + decimal_of_string("10."))
+
+def glob4(x_1:Money, y:Decimal):
+    return ((decimal_of_money(x_1) * y) + decimal_of_string("10."))
+
+def glob5_aux():
+    x_2 = (decimal_of_integer(integer_of_string("2")) *
+        decimal_of_string("3."))
+    y_1 = decimal_of_string("1000.")
+    return (x_2 * y_1)
+
+glob5 = (glob5_aux())
+
+glob2 = (
+    A(y = (glob1 >=
+    decimal_of_string("30.")),
+    z = (decimal_of_string("123.") *
+    decimal_of_string("17.")))
+    )
+
+def s2(s2_in:S2In):
+    try:
+        def temp_a(_:Unit):
+            raise EmptyError
+        def temp_a_1(_:Unit):
+            return False
+        def temp_a_2(_:Unit):
+            def temp_a_3(_:Unit):
+                return (glob3(money_of_cents_string("4400")) +
+                    decimal_of_string("100."))
+            def temp_a_4(_:Unit):
+                return True
+            return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                  start_line=45, start_column=10,
+                                  end_line=45, end_column=11,
+                                  law_headings=["Test toplevel function defs"]), [],
+                                  temp_a_4, temp_a_3)
+        temp_a_5 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                  start_line=45, start_column=10,
+                                  end_line=45, end_column=11,
+                                  law_headings=["Test toplevel function defs"]), [temp_a_2],
+                                  temp_a_1, temp_a)
+    except EmptyError:
+        temp_a_5 = dead_value
+        raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                             start_line=45, start_column=10,
+                                             end_line=45, end_column=11,
+                                             law_headings=["Test toplevel function defs"]))
+    a = temp_a_5
+    return S2(a = a)
+
+def s3(s3_in:S3In):
+    try:
+        def temp_a_6(_:Unit):
+            raise EmptyError
+        def temp_a_7(_:Unit):
+            return False
+        def temp_a_8(_:Unit):
+            def temp_a_9(_:Unit):
+                return (decimal_of_string("50.") +
+                    glob4(money_of_cents_string("4400"),
+                          decimal_of_string("55.")))
+            def temp_a_10(_:Unit):
+                return True
+            return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                  start_line=65, start_column=10,
+                                  end_line=65, end_column=11,
+                                  law_headings=["Test function def with two args"]), [],
+                                  temp_a_10, temp_a_9)
+        temp_a_11 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                   start_line=65, start_column=10,
+                                   end_line=65, end_column=11,
+                                   law_headings=["Test function def with two args"]), [temp_a_8],
+                                   temp_a_7, temp_a_6)
+    except EmptyError:
+        temp_a_11 = dead_value
+        raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                             start_line=65, start_column=10,
+                                             end_line=65, end_column=11,
+                                             law_headings=["Test function def with two args"]))
+    a_1 = temp_a_11
+    return S3(a = a_1)
+
+def s4(s4_in:S4In):
+    try:
+        def temp_a_12(_:Unit):
+            raise EmptyError
+        def temp_a_13(_:Unit):
+            return False
+        def temp_a_14(_:Unit):
+            def temp_a_15(_:Unit):
+                return (glob5 + decimal_of_string("1."))
+            def temp_a_16(_:Unit):
+                return True
+            return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                  start_line=88, start_column=10,
+                                  end_line=88, end_column=11,
+                                  law_headings=["Test inline defs in toplevel defs"]), [],
+                                  temp_a_16, temp_a_15)
+        temp_a_17 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                   start_line=88, start_column=10,
+                                   end_line=88, end_column=11,
+                                   law_headings=["Test inline defs in toplevel defs"]), [temp_a_14],
+                                   temp_a_13, temp_a_12)
+    except EmptyError:
+        temp_a_17 = dead_value
+        raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                             start_line=88, start_column=10,
+                                             end_line=88, end_column=11,
+                                             law_headings=["Test inline defs in toplevel defs"]))
+    a_2 = temp_a_17
+    return S4(a = a_2)
+
+def s(s_in:SIn):
+    try:
+        def temp_a_18(_:Unit):
+            raise EmptyError
+        def temp_a_19(_:Unit):
+            return False
+        def temp_a_20(_:Unit):
+            def temp_a_21(_:Unit):
+                return (glob1 * glob1)
+            def temp_a_22(_:Unit):
+                return True
+            return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                  start_line=7, start_column=10,
+                                  end_line=7, end_column=11,
+                                  law_headings=["Test basic toplevel values defs"]), [],
+                                  temp_a_22, temp_a_21)
+        temp_a_23 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                   start_line=7, start_column=10,
+                                   end_line=7, end_column=11,
+                                   law_headings=["Test basic toplevel values defs"]), [temp_a_20],
+                                   temp_a_19, temp_a_18)
+    except EmptyError:
+        temp_a_23 = dead_value
+        raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                             start_line=7, start_column=10,
+                                             end_line=7, end_column=11,
+                                             law_headings=["Test basic toplevel values defs"]))
+    a_3 = temp_a_23
+    try:
+        def temp_b(_:Unit):
+            raise EmptyError
+        def temp_b_1(_:Unit):
+            return False
+        def temp_b_2(_:Unit):
+            def temp_b_3(_:Unit):
+                return glob2
+            def temp_b_4(_:Unit):
+                return True
+            return handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                  start_line=8, start_column=10,
+                                  end_line=8, end_column=11,
+                                  law_headings=["Test basic toplevel values defs"]), [],
+                                  temp_b_4, temp_b_3)
+        temp_b_5 = handle_default(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                  start_line=8, start_column=10,
+                                  end_line=8, end_column=11,
+                                  law_headings=["Test basic toplevel values defs"]), [temp_b_2],
+                                  temp_b_1, temp_b)
+    except EmptyError:
+        temp_b_5 = dead_value
+        raise NoValueProvided(SourcePosition(filename="tests/name_resolution/good/toplevel_defs.catala_en",
+                                             start_line=8, start_column=10,
+                                             end_line=8, end_column=11,
+                                             law_headings=["Test basic toplevel values defs"]))
+    b = temp_b_5
+    return S(a = a_3, b = b)
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S --avoid-exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = 1,946.574,4
+[RESULT] b = A { -- y: true -- z: 2,091.0 }
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S2 --avoid-exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = 154.0
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S3 --avoid-exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = 2,480.0
+```
+```catala-test-inline
+$ catala Interpret_Lcalc -s S4 --avoid-exceptions --optimize
+[RESULT] Computation successful! Results:
+[RESULT] a = 6,001.0
+```

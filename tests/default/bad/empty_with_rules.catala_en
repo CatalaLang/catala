@@ -1,0 +1,28 @@
+## Article
+
+```catala
+declaration scope A:
+  output x content integer
+  output y content integer
+
+scope A:
+  definition y equals 1
+  definition x under condition y = 2 consequence equals 1
+  definition x under condition y = 3 consequence equals 1
+  definition x under condition y = 4 consequence equals 1
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR]
+This variable evaluated to an empty term (no rule that defined it applied in this situation): 
+error_empty
+  ⟨ ⟨ ⟨ ⟨1 = 4 ⊢ ⟨1⟩⟩ | 1 = 3 ⊢ ⟨1⟩ ⟩ | 1 = 2 ⊢ ⟨1⟩ ⟩ | false ⊢ ∅ ⟩
+
+┌─⯈ tests/default/bad/empty_with_rules.catala_en:5.10-5.11:
+└─┐
+5 │   output x content integer
+  │          ‾
+  └─ Article
+#return code 123#
+```

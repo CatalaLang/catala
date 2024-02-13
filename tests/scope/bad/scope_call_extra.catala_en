@@ -1,0 +1,37 @@
+```catala
+declaration scope Toto:
+  context bar content integer
+  input baz content decimal
+  output foo content integer
+
+scope Toto:
+  definition bar equals 1
+  definition foo equals 1212 + bar
+
+declaration scope Titi:
+  output fizz content Toto
+scope Titi:
+  definition fizz equals output of Toto with {--biz: 1}
+```
+
+```catala-test-inline
+$ catala dcalc -s Titi
+[ERROR]
+Scope Toto has no input variable biz
+
+┌─⯈ tests/scope/bad/scope_call_extra.catala_en:14.49-14.52:
+└──┐
+14 │   definition fizz equals output of Toto with {--biz: 1}
+   │                                                 ‾‾‾
+
+Scope Toto declared here
+┌─⯈ tests/scope/bad/scope_call_extra.catala_en:2.19-2.23:
+└─┐
+2 │ declaration scope Toto:
+  │                   ‾‾‾‾
+
+Maybe you wanted to write : "bar",
+or "baz",
+or "foo"
+#return code 123#
+```

@@ -1,0 +1,25 @@
+## Scope calls are not allowed outside of scopes
+
+```catala
+declaration scope S1:
+  output a content decimal
+
+scope S1:
+   definition a equals 44.2
+
+declaration glob5 content decimal
+  equals (output of S1).a
+```
+
+```catala-test-inline
+$ catala typecheck
+[ERROR]
+Scope calls are not allowed outside of a scope
+
+┌─⯈ tests/name_resolution/bad/toplevel_defs.catala_en:11.11-11.23:
+└──┐
+11 │   equals (output of S1).a
+   │           ‾‾‾‾‾‾‾‾‾‾‾‾
+   └─ Scope calls are not allowed outside of scopes
+#return code 123#
+```

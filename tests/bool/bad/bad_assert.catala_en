@@ -1,0 +1,41 @@
+## Test
+
+```catala
+declaration scope Foo:
+  output x content integer
+
+scope Foo:
+  definition x equals 0
+  assertion x
+```
+
+
+```catala-test-inline
+$ catala Interpret -s Foo
+[ERROR]
+Error during typechecking, incompatible types:
+┌─⯈ integer
+└─⯈ bool
+
+While typechecking the following expression:
+┌─⯈ tests/bool/bad/bad_assert.catala_en:9.13-9.14:
+└─┐
+9 │   assertion x
+  │             ‾
+  └─ Test
+
+Type integer is coming from:
+┌─⯈ tests/bool/bad/bad_assert.catala_en:5.20-5.27:
+└─┐
+5 │   output x content integer
+  │                    ‾‾‾‾‾‾‾
+  └─ Test
+
+Type bool is coming from:
+┌─⯈ tests/bool/bad/bad_assert.catala_en:9.13-9.14:
+└─┐
+9 │   assertion x
+  │             ‾
+  └─ Test
+#return code 123#
+```

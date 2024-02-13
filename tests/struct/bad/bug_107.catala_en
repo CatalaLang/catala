@@ -1,0 +1,38 @@
+## https://github.com/CatalaLang/catala/issues/107
+
+```catala
+declaration structure S:
+  data x content integer
+  data y content integer
+
+declaration structure S:
+  data x content integer
+  data y content integer
+
+declaration scope A:
+  context a content S
+
+scope A:
+  definition a equals S { --x : 0 -- y : 1 }
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR]
+struct name "S" already defined
+
+First definition:
+┌─⯈ tests/struct/bad/bug_107.catala_en:4.23-4.24:
+└─┐
+4 │ declaration structure S:
+  │                       ‾
+  └─ https://github.com/CatalaLang/catala/issues/107
+
+Second definition:
+┌─⯈ tests/struct/bad/bug_107.catala_en:8.23-8.24:
+└─┐
+8 │ declaration structure S:
+  │                       ‾
+  └─ https://github.com/CatalaLang/catala/issues/107
+#return code 123#
+```

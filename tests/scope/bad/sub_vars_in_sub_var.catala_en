@@ -1,0 +1,27 @@
+## Article
+
+```catala
+declaration scope A:
+  context output x content boolean
+  context output y content integer
+
+declaration scope B:
+  a scope A
+
+scope B:
+  definition a.x equals true
+  definition a.y equals if a.x then 0 else 1
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR]
+The subscope a is used when defining one of its inputs, but recursion is forbidden in Catala
+
+┌─⯈ tests/scope/bad/sub_vars_in_sub_var.catala_en:13.28-13.31:
+└──┐
+13 │   definition a.y equals if a.x then 0 else 1
+   │                            ‾‾‾
+   └─ Article
+#return code 123#
+```

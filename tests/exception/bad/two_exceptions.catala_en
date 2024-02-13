@@ -1,0 +1,37 @@
+## Test
+
+```catala
+declaration scope A:
+  output x content integer
+
+scope A:
+  label base_x
+  definition x equals 0
+
+  exception base_x
+  definition x equals 1
+
+  exception base_x
+  definition x equals 2
+```
+
+```catala-test-inline
+$ catala Interpret -s A
+[ERROR]
+There is a conflict between multiple valid consequences for assigning the same variable.
+
+This consequence has a valid justification:
+┌─⯈ tests/exception/bad/two_exceptions.catala_en:12.23-12.24:
+└──┐
+12 │   definition x equals 1
+   │                       ‾
+   └─ Test
+
+This consequence has a valid justification:
+┌─⯈ tests/exception/bad/two_exceptions.catala_en:15.23-15.24:
+└──┐
+15 │   definition x equals 2
+   │                       ‾
+   └─ Test
+#return code 123#
+```
