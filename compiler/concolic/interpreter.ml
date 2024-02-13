@@ -2112,16 +2112,12 @@ let make_input_mark ctx m field (ty : typ) : conc_info mark =
 (** Do a "pre-evaluation" of the program. It compiles the target scope to a
     function that takes the input struct of the scope and returns its output
     struct *)
-let simplify_program (type m) ctx (p : (dcalc, m) gexpr program) s : conc_expr =
+let simplify_program ctx (p : (dcalc, 'm) gexpr program) s : conc_expr =
   Message.emit_debug "[CONC] Make program expression concolic";
   let e = Expr.unbox (Program.to_expr p s) in
-  let e_conc = init_conc_expr e in
-  Message.emit_debug "[CONC] Pre-compute program";
-  let result = evaluate_expr ctx p.lang e_conc in
-  try del_genericerror result
-  with Invalid_argument _ ->
-    failwith
-      "Program pre-evaluation returned an error!" (* TODO catch this properly *)
+  Message.emit_debug "[CONC] Pre-compute program concretely";
+  let result = Concrete.evaluate_expr ctx.ctx_decl p.lang e in
+  init_conc_expr result
 
 (** Evaluate pre-compiled scope [e] with its input struct [name] populated with
     [fields] *)
