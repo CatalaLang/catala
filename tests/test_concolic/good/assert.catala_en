@@ -30,7 +30,8 @@ $ catala Concolic -s A
 [RESULT] Evaluating with inputs:
 [RESULT] . b_in = false
 [RESULT] Output of scope after evaluation:
-[RESULT] Found error ↯AssertionError↯
+[RESULT]
+Found error ↯AssertionError↯ at tests/test_concolic/good/assert.catala_en:9.13-9.14
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

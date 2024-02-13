@@ -51,7 +51,7 @@ $ catala Concolic -s A
 [RESULT] . y_in = 2
 [RESULT] Output of scope after evaluation:
 [RESULT]
-Found error ↯Conflict(tests/test_concolic/good/except_conflict.catala_en:12.67-12.68,tests/test_concolic/good/except_conflict.catala_en:11.67-11.68,)↯
+Found error ↯Conflict(tests/test_concolic/good/except_conflict.catala_en:12.67-12.68,tests/test_concolic/good/except_conflict.catala_en:11.67-11.68,)↯ at tests/test_concolic/good/except_conflict.catala_en:7.12-7.13
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

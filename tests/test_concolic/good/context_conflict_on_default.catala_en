@@ -35,7 +35,7 @@ $ catala Concolic -s A
 [RESULT] . x_in = <function>
 [RESULT] Output of scope after evaluation:
 [RESULT]
-Found error ↯Conflict(tests/test_concolic/good/context_conflict_on_default.catala_en:10.25-10.26,tests/test_concolic/good/context_conflict_on_default.catala_en:9.25-9.26,)↯
+Found error ↯Conflict(tests/test_concolic/good/context_conflict_on_default.catala_en:10.25-10.26,tests/test_concolic/good/context_conflict_on_default.catala_en:9.25-9.26,)↯ at tests/test_concolic/good/context_conflict_on_default.catala_en:5.20-5.21
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

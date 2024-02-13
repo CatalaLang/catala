@@ -24,7 +24,7 @@ $ catala Concolic -s A
 [RESULT] . x_in = <function>
 [RESULT] Output of scope after evaluation:
 [RESULT]
-Found error ↯Conflict(tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:11.57-11.59,tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:10.25-10.27,)↯
+Found error ↯Conflict(tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:11.57-11.59,tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:10.25-10.27,)↯ at tests/test_concolic/bad/context_conflict_on_reentrant.catala_en:6.12-6.13
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = <function>

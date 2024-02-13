@@ -35,7 +35,7 @@ $ catala Concolic -s A
 [RESULT] . y_in = 0.0
 [RESULT] Output of scope after evaluation:
 [RESULT]
-Found error ↯DivisionByZero(tests/test_concolic/good/div_decimal.catala_en:12.44-12.45,tests/test_concolic/good/div_decimal.catala_en:12.42-12.45,)↯
+Found error ↯DivisionByZero(tests/test_concolic/good/div_decimal.catala_en:12.44-12.45,tests/test_concolic/good/div_decimal.catala_en:12.42-12.45,)↯ at tests/test_concolic/good/div_decimal.catala_en:12.42-12.45
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

@@ -42,7 +42,7 @@ $ catala Concolic -s A
 [RESULT] . y_in = 0
 [RESULT] Output of scope after evaluation:
 [RESULT]
-Found error ↯DivisionByZero(tests/test_concolic/good/div_error_before_conflict.catala_en:12.46-12.47,tests/test_concolic/good/div_error_before_conflict.catala_en:12.44-12.47,)↯
+Found error ↯DivisionByZero(tests/test_concolic/good/div_error_before_conflict.catala_en:12.46-12.47,tests/test_concolic/good/div_error_before_conflict.catala_en:12.44-12.47,)↯ at tests/test_concolic/good/div_error_before_conflict.catala_en:12.44-12.47
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

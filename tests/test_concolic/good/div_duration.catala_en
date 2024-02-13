@@ -31,7 +31,7 @@ $ catala Concolic -s A
 [RESULT] . y_in = [0 day]
 [RESULT] Output of scope after evaluation:
 [RESULT]
-Found error ↯DivisionByZero(tests/test_concolic/good/div_duration.catala_en:11.44-11.45,tests/test_concolic/good/div_duration.catala_en:11.42-11.45,)↯
+Found error ↯DivisionByZero(tests/test_concolic/good/div_duration.catala_en:11.44-11.45,tests/test_concolic/good/div_duration.catala_en:11.42-11.45,)↯ at tests/test_concolic/good/div_duration.catala_en:11.42-11.45
 [RESULT] 
 [RESULT] Concolic interpreter done
 [RESULT] Computation successful!

@@ -35,7 +35,8 @@ $ catala Concolic -s A
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = 43
 [RESULT] Output of scope after evaluation:
-[RESULT] Found error ↯Empty↯
+[RESULT]
+Found error ↯Empty↯ at tests/test_concolic/good/except_just_false.catala_en:6.12-6.13
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . x_in = -1

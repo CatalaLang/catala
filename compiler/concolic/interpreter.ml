@@ -2662,8 +2662,9 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
           | EGenericError ->
             (* TODO better error messages *)
             (* TODO test the different cases *)
-            Message.emit_result "Found error %a" SymbExpr.formatter
+            Message.emit_result "Found error %a at %s" SymbExpr.formatter
               (get_symb_expr_r res)
+              (Pos.to_string_short (Expr.pos res))
           | _ ->
             Message.raise_spanned_error (Expr.pos scope_e)
               "The concolic interpretation of a program should always yield a \
