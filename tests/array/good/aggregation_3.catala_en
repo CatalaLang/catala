@@ -9,7 +9,7 @@ scope S:
     assertion (i + 2) for i among [1; 2; 3] = [3; 4; 5]
 
 # Filter
-    assertion (i among [1; 2; 3] such that i >= 2) = [2; 3]
+    assertion (list of i among [1; 2; 3] such that i >= 2) = [2; 3]
     assertion ((i + 2) for i among [1; 2; 3] such that i > 2) = [5]
 
 # Sum
@@ -18,14 +18,14 @@ scope S:
 
 # Count
     assertion number of [1; 2; 3] = 3
-    assertion (number of i among [1; 2; 3] such that i >= 2) = 2
+    assertion (number of list of i among [1; 2; 3] such that i >= 2) = 2
 
 # Extremum
     assertion maximum of [1; 2; 3] or if list empty then 10 = 3
     assertion maximum of (decimal of i) for i among [1; 2; 3] or if list empty then 10. = 3.
 
 # Arg extremum
-    assertion (i among [1; 2; 3]
+    assertion (content of i among [1; 2; 3]
                  such that decimal of ((2 - i) * (2 - i)) is minimum
                  or if list empty then 42)
               = 2

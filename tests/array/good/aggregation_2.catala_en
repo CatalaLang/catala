@@ -22,10 +22,10 @@ declaration scope B:
 
 scope B:
    definition argmax equals
-     (m among a.x such that m.income * 2.0 is maximum
+     (content of m among a.x such that m.income * 2.0 is maximum
       or if list empty then S { -- id: -1 --income: $0 })
    definition argmin equals
-     (m among a.x such that m.income + $5 is minimum
+     (content of m among a.x such that m.income + $5 is minimum
       or if list empty then S { -- id: -1 --income: $20 })
 ```
 

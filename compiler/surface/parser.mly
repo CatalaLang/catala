@@ -32,7 +32,7 @@ end>
 (* Precedence of expression constructions *)
 %right top_expr
 %right ALT
-%right let_expr IS
+%right let_expr
 %right AND OR XOR (* Desugaring enforces proper parens later on *)
 %nonassoc GREATER GREATER_EQUAL LESSER LESSER_EQUAL EQUAL NOT_EQUAL
 %left PLUS MINUS PLUSPLUS
@@ -270,10 +270,10 @@ let naked_expression ==
   IN ; e2 = expression ; {
   LetIn (ids, e1, e2)
 } %prec let_expr
-| i = lident ; (* FIXME: should be mbinder *)
+| LIST; ids = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ; {
-  CollectionOp (Filter {f = [i], f}, coll)
+  CollectionOp (Filter {f = ids, f}, coll)
 } %prec top_expr
 | fmap = expression ;
   FOR ; i = mbinder ;
@@ -281,12 +281,12 @@ let naked_expression ==
   SUCH ; THAT ; ffilt = expression ; {
   CollectionOp (Map {f = i, fmap}, (CollectionOp (Filter {f = i, ffilt}, coll), Pos.from_lpos $loc))
 } %prec top_expr
-| i = lident ; (* FIXME: should be mbinder *)
+| CONTENT; OF; ids = mbinder ;
   AMONG ; coll = expression ;
   SUCH ; THAT ; f = expression ;
   IS ; max = minmax ;
   OR ; IF ; LIST_EMPTY ; THEN ; default = expression ; {
-  CollectionOp (AggregateArgExtremum { max; default; f = [i], f }, coll)
+  CollectionOp (AggregateArgExtremum { max; default; f = ids, f }, coll)
 } %prec top_expr
 
 

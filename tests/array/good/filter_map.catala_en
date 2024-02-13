@@ -13,7 +13,7 @@ declaration scope B:
    output z content list of boolean
 
 scope B:
-   definition y equals m among a.x such that m >= $4.95
+   definition y equals list of m among a.x such that m >= $4.95
    definition z equals (m >= $4.95) for m among a.x
 ```
 
