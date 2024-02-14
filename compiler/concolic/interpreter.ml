@@ -1348,7 +1348,6 @@ let rec evaluate_operator
     handle_division ctx m
       (fun x y -> ELit (LRat (o_div_rat_rat x y)))
       (* Z3.Arithmetic.mk_div x y e1 e2 *)
-      (* FIXME *)
         (fun ctx e1 e2 ->
         (* convert e1 to a [Real] explicitely to avoid using integer division *)
         let e1_rat = z3_force_real ctx e1 in
@@ -2582,10 +2581,70 @@ let print_fields language (prefix : string) fields =
          else ""))
     ordered_fields
 
+module Stats = struct
+  type time = float
+  type period = { start : time; stop : time }
+  type step = { message : string; period : period }
+
+  type execution = {
+    steps : step list;
+    total_time : period;
+    num_constraints : int;
+  }
+
+  type t = {
+    total_time : period;
+    steps : step list;
+    executions : execution list;
+  }
+
+  let start_period () : period =
+    let start = Sys.time () in
+    { start; stop = nan }
+
+  let stop_period p : period =
+    let stop = Sys.time () in
+    { p with stop }
+
+  let init () : t =
+    let total_time = start_period () in
+    { total_time; steps = []; executions = [] }
+
+  let start_step message : step =
+    let period = start_period () in
+    { message; period }
+
+  let stop_step s : step =
+    let period = stop_period s.period in
+    { s with period }
+
+  let start_exec num_constraints : execution =
+    let total_time = start_period () in
+    { steps = []; total_time; num_constraints }
+
+  let add_exec_step (e : execution) step : execution =
+    { e with steps = step :: e.steps }
+
+  let stop_exec (e : execution) : execution =
+    let total_time = stop_period e.total_time in
+    { e with total_time }
+
+  let add_stat_step (stats : t) (step : step) : t =
+    { stats with steps = step :: stats.steps }
+
+  let add_stat_exec (stats : t) (e : execution) : t =
+    { stats with executions = e :: stats.executions }
+
+  let stop stats : t =
+    let total_time = stop_period stats.total_time in
+    { stats with total_time }
+end
+
 (** Main function *)
 let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     (Uid.MarkedString.info * conc_expr) list =
   Message.emit_debug "=== Start concolic interpretation... ===";
+  let stats = Stats.init () in
   let decl_ctx = p.decl_ctx in
   Message.emit_debug "[CONC] Create empty context";
   let ctx = make_empty_context decl_ctx in
