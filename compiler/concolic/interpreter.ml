@@ -371,6 +371,7 @@ type context = {
   ctx_z3unit : Z3.Sort.sort * s_expr;
       (* A pair containing the Z3 encodings of the unit type, encoded as a tuple
          of 0 elements, and the unit value *)
+  ctx_z3round : Z3.FuncDecl.func_decl;
 }
 
 (** adds the mapping between the Catala struct [s] and the corresponding Z3
@@ -656,6 +657,19 @@ let create_z3unit (ctx : Z3.context) : Z3.Sort.sort * Z3.Expr.expr =
   let unit_val = Z3.Expr.mk_app ctx mk_unit [] in
   unit_sort, unit_val
 
+let create_z3round (ctx : Z3.context) : Z3.FuncDecl.func_decl =
+  let real_sort = Z3.Arithmetic.Real.mk_sort ctx in
+  let int_sort = Z3.Arithmetic.Integer.mk_sort ctx in
+  let func_decl =
+    Z3.FuncDecl.mk_rec_func_decl_s ctx "!round!" [real_sort] int_sort
+  in
+  let var = Z3.Arithmetic.Real.mk_const_s ctx "!q!" in
+  Z3.FuncDecl.add_rec_def ctx func_decl [var] (z3_round_expr ctx var);
+  func_decl
+
+(* TODO move to utils? *)
+let z3_round ctx = Z3_utils.z3_round_func ctx.ctx_z3round
+
 (* taken from z3backend, but without the option check *)
 let make_empty_context (decl_ctx : decl_ctx) : context =
   let z3_cfg = ["model", "true"; "proof", "false"] in
@@ -673,6 +687,7 @@ let make_empty_context (decl_ctx : decl_ctx) : context =
     (* ctx_z3matchsubsts = Var.Map.empty; *)
     ctx_z3structs = StructName.Map.empty;
     ctx_z3unit = create_z3unit z3_ctx;
+    ctx_z3round = create_z3round z3_ctx;
     (* ctx_z3constraints = []; *)
     ctx_dummy_sort = z3_dummy_sort;
     ctx_dummy_const = z3_dummy_const;
@@ -1141,6 +1156,8 @@ let rec evaluate_operator
   propagate_empty_error_list args
   @@ fun args ->
   let open Runtime.Oper in
+  (* trick to have this function type correctly *)
+  let z3_round _ = z3_round ctx in
   (* Mark.add m @@ *)
   match op, args with
   | Length, _ -> failwith "EOp Length not implemented"

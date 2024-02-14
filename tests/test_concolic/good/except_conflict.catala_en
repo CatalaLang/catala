@@ -35,7 +35,7 @@ $ catala Concolic -s A
 [RESULT] . o = 0
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . x_in = 2
+[RESULT] . x_in = 0
 [RESULT] . y_in = 2
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = 2

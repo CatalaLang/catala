@@ -52,9 +52,9 @@ $ catala Concolic -s A
 [RESULT] . o = true
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . m_in = 1
-[RESULT] . s_in = S { -- a: 0 -- b: T { -- c: false } }
-[RESULT] . t_in = T { -- c: false }
+[RESULT] . m_in = 42
+[RESULT] . s_in = S { -- a: 2 -- b: T { -- c: false } }
+[RESULT] . t_in = T { -- c: true }
 [RESULT] Output of scope after evaluation:
 [RESULT] . o = false
 [RESULT] 

@@ -30,7 +30,7 @@ $ catala Concolic -s A
 [RESULT] . b = true
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . x_in = 43
+[RESULT] . x_in = 0
 [RESULT] Output of scope after evaluation:
 [RESULT] . b = false
 [RESULT] 

@@ -48,8 +48,8 @@ $ catala Concolic -s A
 [RESULT] . x = 0
 [RESULT] 
 [RESULT] Evaluating with inputs:
-[RESULT] . m_in = 0
-[RESULT] . n_in = 1
+[RESULT] . m_in = 1
+[RESULT] . n_in = 0
 [RESULT] Output of scope after evaluation:
 [RESULT] . x = 42
 [RESULT] 
