@@ -65,7 +65,6 @@ let wrap_latex
 \usepackage{framed}
 \usepackage{newunicodechar}
 \usepackage{textcomp}
-\usepackage[hidelinks]{hyperref}
 \usepackage[dvipsnames]{xcolor}
 \usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm,headheight=2cm]{geometry}
 \usepackage[many]{tcolorbox}

@@ -80,6 +80,7 @@ let run_pandoc (s : string) (backend : [ `Html | `Latex ]) : string =
       "-f";
       "markdown+multiline_tables+tex_math_dollars";
       "--mathjax";
+      "--no-highlight";
       "-t";
       (match backend with `Html -> "html" | `Latex -> "latex");
       "-o";
