@@ -32,15 +32,3 @@ $ catala Interpret -s A
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = prawda
 ```
-
-```catala-test-inline
-$ catala Interpret -s A
-[RESULT] Computation successful! Results:
-[RESULT] literate_parsing_is_ok = prawda
-```
-
-```catala-test-inline
-$ catala Interpret -s A
-[RESULT] Computation successful! Results:
-[RESULT] literate_parsing_is_ok = prawda
-```

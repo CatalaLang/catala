@@ -62,10 +62,8 @@ let wrap_latex
 \usepackage{color}
 \usepackage{longtable}
 \usepackage{booktabs,tabularx}
-\usepackage{framed}
 \usepackage{newunicodechar}
 \usepackage{textcomp}
-\usepackage[hidelinks]{hyperref}
 \usepackage[dvipsnames]{xcolor}
 \usepackage[left=2cm,right=2cm,top=3cm,bottom=3cm,headheight=2cm]{geometry}
 \usepackage[many]{tcolorbox}
@@ -272,7 +270,18 @@ let rec law_structure_to_latex
       (match page with None -> "" | Some p -> Format.sprintf "page=%d," p)
       file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
-  | A.ModuleDef _ | A.ModuleUse _ -> () (* TODO: show somehow ? *)
+  | A.ModuleDef (id, extern) ->
+    Format.fprintf fmt "\n\\textbf{This defines the %s module \\textsc{%s}}"
+      (if extern then "external" else "catala")
+      (Mark.remove id)
+  | A.ModuleUse (id, alias) -> (
+    Format.fprintf fmt
+      "\n\\textbf{The following makes use of the module \\textsc{%s}"
+      (Mark.remove id);
+    match alias with
+    | None -> Format.fprintf fmt "}"
+    | Some al ->
+      Format.fprintf fmt " under the name \\textsc{%s}" (Mark.remove al))
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
     let start_line = Pos.get_start_line (Mark.get c) - 1 in
@@ -311,9 +320,12 @@ let ast_to_latex
     ~(print_only_law : bool)
     (fmt : Format.formatter)
     (program : A.program) : unit =
-  Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-    (law_structure_to_latex language print_only_law)
-    fmt program.program_items;
+  Format.pp_open_vbox fmt 0;
+  List.iter
+    (fun item ->
+      law_structure_to_latex language print_only_law fmt item;
+      Format.pp_print_cut fmt ())
+    program.program_items;
+  Format.pp_close_box fmt ();
   Message.emit_debug "Lines of Catala inside literate source code: %d"
     !lines_of_code
