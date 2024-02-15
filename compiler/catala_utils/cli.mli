@@ -135,6 +135,7 @@ module Flags : sig
   val no_struct_literals : bool Term.t
   val include_dirs : raw_file list Term.t
   val disable_counterexamples : bool Term.t
+  val extra_files : file list Term.t
 end
 
 (** {2 Command-line application} *)

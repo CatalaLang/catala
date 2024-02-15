@@ -448,6 +448,12 @@ module Flags = struct
           "Disables the search for counterexamples. Useful when you want a \
            deterministic output from the Catala compiler, since provers can \
            have some randomness in them."
+
+  let extra_files =
+    value
+    & pos_right 0 file []
+    & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
+        ~doc:"Additional input files."
 end
 
 (* Retrieve current version from dune *)

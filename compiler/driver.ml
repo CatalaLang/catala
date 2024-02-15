@@ -454,8 +454,15 @@ module Commands = struct
         $ Cli.Flags.print_only_law
         $ Cli.Flags.wrap_weaved_output)
 
-  let latex options output print_only_law wrap_weaved_output =
+  let latex options output print_only_law wrap_weaved_output extra_files =
     let prg = Passes.surface options in
+    let prg_annex =
+      List.map
+        (fun f ->
+          Surface.Parser_driver.parse_top_level_file (FileName f)
+          |> Surface.Fill_positions.fill_pos_with_legislative_info)
+        extra_files
+    in
     Message.emit_debug "Weaving literate program into LaTeX";
     let output_file, with_output =
       get_output_format options ~ext:".tex" output
@@ -466,10 +473,22 @@ module Commands = struct
     let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
+    let weave fmt =
+      weave_output fmt prg;
+      List.iter
+        (fun p ->
+          Format.fprintf fmt "@,\\newpage@,";
+          weave_output fmt p)
+        prg_annex
+    in
     if wrap_weaved_output then
-      Literate.Latex.wrap_latex prg.Surface.Ast.program_source_files language
-        fmt (fun fmt -> weave_output fmt prg)
-    else weave_output fmt prg
+      Literate.Latex.wrap_latex
+        (List.flatten
+           (List.map
+              (fun p -> p.Surface.Ast.program_source_files)
+              (prg :: prg_annex)))
+        language fmt weave
+    else weave fmt
 
   let latex_cmd =
     Cmd.v
@@ -481,7 +500,8 @@ module Commands = struct
         $ Cli.Flags.Global.options
         $ Cli.Flags.output
         $ Cli.Flags.print_only_law
-        $ Cli.Flags.wrap_weaved_output)
+        $ Cli.Flags.wrap_weaved_output
+        $ Cli.Flags.extra_files)
 
   let exceptions options includes ex_scope ex_variable =
     let prg, ctxt = Passes.desugared options ~includes in
