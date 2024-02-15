@@ -159,7 +159,7 @@ module Flags = struct
               | _ -> assert false )
       in
       required
-      & pos ~rev:true 0 (some converter) None
+      & pos 0 (some converter) None
       & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
           ~doc:"Catala master file to be compiled ($(b,-) for stdin)."
 
