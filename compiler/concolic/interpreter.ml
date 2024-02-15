@@ -2584,7 +2584,7 @@ let print_fields language (prefix : string) fields =
 module Stats = struct
   type time = float
   type period = { start : time; stop : time }
-  type step = { message : string; period : period }
+  type step = string * period
 
   type execution = {
     steps : step list;
@@ -2610,13 +2610,8 @@ module Stats = struct
     let total_time = start_period () in
     { total_time; steps = []; executions = [] }
 
-  let start_step message : step =
-    let period = start_period () in
-    { message; period }
-
-  let stop_step s : step =
-    let period = stop_period s.period in
-    { s with period }
+  let start_step message : step = message, start_period ()
+  let stop_step ((msg, p) : step) : step = msg, stop_period p
 
   let start_exec num_constraints : execution =
     let total_time = start_period () in
@@ -2638,6 +2633,55 @@ module Stats = struct
   let stop stats : t =
     let total_time = stop_period stats.total_time in
     { stats with total_time }
+
+  let fold_execs (execs : execution list) : step list =
+    let f (steps : step list) (exec : execution) =
+      List.map2
+        (fun (s, p) (s', p') ->
+          assert (String.equal s s');
+          s, { p with stop = p.stop +. p'.stop -. p'.start })
+        steps exec.steps
+    in
+    match execs with
+    | [] -> []
+    | { steps; _ } :: execs -> List.fold_left f steps execs
+
+  module Print = struct
+    open Format
+
+    let ms (fmt : formatter) (t : time) =
+      let milli : int = int_of_float (t *. 1000.) in
+      pp_print_int fmt milli;
+      pp_print_string fmt " ms"
+
+    let sec (fmt : formatter) (t : time) =
+      fprintf fmt "%.3f" t;
+      pp_print_string fmt " s"
+
+    let period (fmt : formatter) (p : period) = ms fmt (p.stop -. p.start)
+
+    let step (fmt : formatter) ((msg, p) : step) =
+      fprintf fmt "%s: %a" msg period p
+
+    (* let itemize (bullet : string) (ppf : formatter -> 'a -> unit) (fmt :
+       formatter) (x : 'a) = fprintf fmt "%s %a" bullet ppf x *)
+
+    let steps (fmt : formatter) (l : step list) =
+      let l = List.rev l in
+      pp_print_list ~pp_sep:pp_print_cut step fmt l
+
+    let executions (fmt : formatter) (execs : execution list) =
+      let folded = fold_execs execs |> List.rev in
+      pp_print_list ~pp_sep:pp_print_cut step fmt folded
+  end
+
+  let print (fmt : Format.formatter) (stats : t) =
+    let open Format in
+    fprintf fmt "General steps:@\n@[<v 2>  %a@]@\n" Print.steps stats.steps;
+    fprintf fmt "After %n execution steps:@\n@[<v 2>  %a@]@\n"
+      (List.length stats.executions)
+      Print.executions stats.executions;
+    fprintf fmt "Total concolic time: %a" Print.period stats.total_time
 end
 
 (** Main function *)
@@ -2645,35 +2689,53 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     (Uid.MarkedString.info * conc_expr) list =
   Message.emit_debug "=== Start concolic interpretation... ===";
   let stats = Stats.init () in
+
+  let s_context_creation = Stats.start_step "create context" in
   let decl_ctx = p.decl_ctx in
   Message.emit_debug "[CONC] Create empty context";
   let ctx = make_empty_context decl_ctx in
   Message.emit_debug "[CONC] Initialize context";
   let ctx = init_context ctx in
+  let stats = Stats.stop_step s_context_creation |> Stats.add_stat_step stats in
 
+  let s_simplify = Stats.start_step "simplify" in
   let scope_e = simplify_program ctx p s in
+  let stats = Stats.stop_step s_simplify |> Stats.add_stat_step stats in
   match scope_e with
   | EAbs { tys = [((TStruct s_in, _) as _targs)]; _ }, mark_e -> begin
     (* [taus] contain the types of the scope arguments. For [context] arguments,
        we can provide an empty thunked term. For [input] arguments of another
        type, we provide an empty value. *)
-
     (* first set of inputs *)
     let taus = StructName.Map.find s_in ctx.ctx_decl.ctx_structs in
 
     (* TODO CONC should it be [mark_e] or something else? *)
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
 
-    let rec concolic_loop (previous_path : annotated_path_constraint list) :
-        unit =
+    let s_loop = Stats.start_step "total loop time" in
+    let rec concolic_loop (previous_path : annotated_path_constraint list) stats
+        : Stats.t =
+      let exec = Stats.start_exec (List.length previous_path) in
       Message.emit_debug "";
       print_annotated_path_constraints previous_path;
+      let s_extract_constraints =
+        Stats.start_step "extract solver constraints"
+      in
       let solver_constraints = constraint_list_of_path ctx previous_path in
+      let exec =
+        Stats.stop_step s_extract_constraints |> Stats.add_exec_step exec
+      in
 
-      match Solver.solve ctx solver_constraints with
+      let s_solve = Stats.start_step "solve" in
+      let solver_result = Solver.solve ctx solver_constraints in
+      let exec = Stats.stop_step s_solve |> Stats.add_exec_step exec in
+
+      match solver_result with
       | Solver.Sat (Some m) ->
         Message.emit_debug "Solver returned a model";
         Message.emit_debug "model:\n%s" (Solver.string_of_model m);
+
+        let s_eval = Stats.start_step "eval" in
         let inputs = Solver.inputs_of_model ctx m input_marks in
 
         if not Cli.globals.debug then Message.emit_result "";
@@ -2686,6 +2748,9 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
         print_fields p.lang ". " inputs_list;
 
         let res = eval_conc_with_input ctx p.lang s_in scope_e mark_e inputs in
+
+        let exec = Stats.stop_step s_eval |> Stats.add_exec_step exec in
+        let s_new_pc = Stats.start_step "choose new path constraints" in
 
         let res_path_constraints = get_constraints_r res in
 
@@ -2719,24 +2784,41 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
           |> List.rev
           |> make_expected_path
         in
-        if new_path_constraints = [] then ()
-        else concolic_loop new_path_constraints
+        let exec = Stats.stop_step s_new_pc |> Stats.add_exec_step exec in
+        let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
+        if new_path_constraints = [] then stats
+        else concolic_loop new_path_constraints stats
       | Solver.Unsat -> begin
         Message.emit_debug "Solver returned Unsat";
         match previous_path with
         | [] -> failwith "[CONC] Failed to solve without constraints"
         | _ :: new_path_constraints ->
+          (* add empty step for stats *)
+          let exec =
+            Stats.start_step "eval"
+            |> Stats.stop_step
+            |> Stats.add_exec_step exec
+          in
+          let s_new_pc = Stats.start_step "choose new path constraints" in
           let new_expected_path = make_expected_path new_path_constraints in
-          if new_expected_path = [] then () else concolic_loop new_expected_path
+          let exec = Stats.stop_step s_new_pc |> Stats.add_exec_step exec in
+          let stats = Stats.stop_exec exec |> Stats.add_stat_exec stats in
+          if new_expected_path = [] then stats
+          else concolic_loop new_expected_path stats
       end
       | Solver.Sat None ->
         failwith "[CONC] Constraints satisfiable but no model was produced"
       | Solver.Unknown -> failwith "[CONC] Unknown solver result"
     in
 
-    let _ = concolic_loop [] in
+    let stats = concolic_loop [] stats in
+    let stats = Stats.stop_step s_loop |> Stats.add_stat_step stats in
     Message.emit_result "";
     Message.emit_result "Concolic interpreter done";
+
+    let stats = Stats.stop stats in
+      Message.emit_result "=== Concolic execution statistics ===\n%a"
+        Stats.print stats;
 
     (* XXX BROKEN output *)
     []
