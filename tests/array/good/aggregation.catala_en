@@ -20,7 +20,7 @@ scope B:
    definition min equals minimum of (m + $5) for m among a.x
                          or if list empty then $20
    definition y equals sum money of (m + $1) for m among a.x
-   definition z equals number of m among a.x such that m >= $8.95
+   definition z equals number of list of m among a.x such that m >= $8.95
 ```
 
 

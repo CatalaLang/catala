@@ -8,7 +8,7 @@ declaration scope S:
 
 scope S:
   definition y equals
-    potential_max among x such that potential_max is minimum or if list empty then -1
+    content of potential_max among x such that potential_max is minimum or if list empty then -1
 ```
 
 

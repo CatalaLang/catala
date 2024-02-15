@@ -12,7 +12,7 @@ declaration scope B:
    output y content list of money
 
 scope B:
-   definition y equals m among a.x such that m >= $4.95
+   definition y equals list of m among a.x such that m >= $4.95
 ```
 
 
