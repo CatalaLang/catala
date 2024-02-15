@@ -47,7 +47,7 @@ let run_catala_test catala_exe catala_opts file program args oc =
   let ocfd = Unix.descr_of_out_channel oc in
   let pid = Unix.create_process_env catala_exe cmd env cmd_in_rd ocfd ocfd in
   Unix.close cmd_in_rd;
-  Queue.iter (output_string command_oc) program;
+  Seq.iter (output_string command_oc) program;
   close_out command_oc;
   let return_code =
     match Unix.waitpid [] pid with
@@ -94,7 +94,18 @@ let run_inline_tests catala_exe catala_opts filename =
         skip_block lines
       | Some args ->
         let args = String.split_on_char ' ' args in
-        run_catala_test catala_exe catala_opts filename lines_until_now args oc;
+        let program =
+          let rec drop_last seq () =
+            match seq () with
+            | Seq.Nil -> assert false
+            | Seq.Cons (x, next) -> (
+              match next () with
+              | Seq.Nil -> Seq.Nil
+              | Seq.Cons _ as s -> Seq.Cons (x, drop_last (fun () -> s)))
+          in
+          Queue.to_seq lines_until_now |> drop_last |> drop_last
+        in
+        run_catala_test catala_exe catala_opts filename program args oc;
         skip_block lines)
   and skip_block lines =
     match Seq.uncons lines with

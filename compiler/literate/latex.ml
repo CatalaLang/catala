@@ -62,7 +62,6 @@ let wrap_latex
 \usepackage{color}
 \usepackage{longtable}
 \usepackage{booktabs,tabularx}
-\usepackage{framed}
 \usepackage{newunicodechar}
 \usepackage{textcomp}
 \usepackage[dvipsnames]{xcolor}
@@ -321,9 +320,12 @@ let ast_to_latex
     ~(print_only_law : bool)
     (fmt : Format.formatter)
     (program : A.program) : unit =
-  Format.pp_print_list
-    ~pp_sep:(fun fmt () -> Format.fprintf fmt "\n\n")
-    (law_structure_to_latex language print_only_law)
-    fmt program.program_items;
+  Format.pp_open_vbox fmt 0;
+  List.iter
+    (fun item ->
+      law_structure_to_latex language print_only_law fmt item;
+      Format.pp_print_cut fmt ())
+    program.program_items;
+  Format.pp_close_box fmt ();
   Message.emit_debug "Lines of Catala inside literate source code: %d"
     !lines_of_code
