@@ -994,7 +994,7 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
                built-in interpreter does not have a way to retrieve input \
                values from the command line, so it cannot execute this scope. \
                Please create another scope that provides the input arguments \
-               to this one and execute it instead. ")
+               to this one and execute it instead.")
         taus
     in
     let to_interpret =

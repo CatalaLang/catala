@@ -347,9 +347,7 @@ module Poll = struct
 
   let ocaml_link_flags : string list Lazy.t =
     lazy
-      (let link_libs =
-         ["yojson"; "ppx_yojson_conv_lib"; "zarith"; "dates_calc"]
-       in
+      (let link_libs = ["zarith"; "dates_calc"] in
        let link_libs_flags =
          List.concat_map
            (fun lib ->

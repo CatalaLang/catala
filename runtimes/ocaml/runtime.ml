@@ -13,8 +13,6 @@
    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
    License for the specific language governing permissions and limitations under
    the License. *)
-open Ppx_yojson_conv_lib.Yojson_conv.Primitives
-
 type nonrec unit = unit
 type nonrec bool = bool
 
@@ -30,8 +28,8 @@ module Eoption = struct
   type 'a t = ENone of unit | ESome of 'a
 end
 
-type io_input = NoInput | OnlyInput | Reentrant [@@deriving yojson_of]
-type io_log = { io_input : io_input; io_output : bool } [@@deriving yojson_of]
+type io_input = NoInput | OnlyInput | Reentrant
+type io_log = { io_input : io_input; io_output : bool }
 
 type source_position = {
   filename : string;
@@ -41,7 +39,6 @@ type source_position = {
   end_column : int;
   law_headings : string list;
 }
-[@@deriving yojson_of]
 
 exception EmptyError
 exception AssertionFailed of source_position
@@ -190,12 +187,6 @@ let duration_to_string (d : duration) : string =
 let duration_to_years_months_days (d : duration) : int * int * int =
   Dates_calc.Dates.period_to_ymds d
 
-let yojson_of_money (m : money) = `Float (money_to_float m)
-let yojson_of_integer (i : integer) = `Int (integer_to_int i)
-let yojson_of_decimal (d : decimal) = `Float (decimal_to_float d)
-let yojson_of_date (d : date) = `String (date_to_string d)
-let yojson_of_duration (d : duration) = `String (duration_to_string d)
-
 type runtime_value =
   | Unit
   | Bool of bool
@@ -204,11 +195,10 @@ type runtime_value =
   | Decimal of decimal
   | Date of date
   | Duration of duration
-  | Enum of string list * (string * runtime_value)
-  | Struct of string list * (string * runtime_value) list
+  | Enum of string * (string * runtime_value)
+  | Struct of string * (string * runtime_value) list
   | Array of runtime_value array
   | Unembeddable
-[@@deriving yojson_of]
 
 let unembeddable _ = Unembeddable
 let embed_unit () = Unit
@@ -220,7 +210,7 @@ let embed_date x = Date x
 let embed_duration x = Duration x
 let embed_array f x = Array (Array.map f x)
 
-type information = string list [@@deriving yojson_of]
+type information = string list
 
 type raw_event =
   | BeginCall of information
@@ -236,7 +226,6 @@ type event =
       inputs : var_def list;
       body : event list;
     }
-[@@deriving yojson_of]
 
 and var_def = {
   pos : source_position option;
@@ -252,6 +241,108 @@ and fun_call = {
   body : event list;
   output : var_def;
 }
+
+module BufferedJson = struct
+  let rec list f buf = function
+    | [] -> ()
+    | [x] -> f buf x
+    | x :: r ->
+      f buf x;
+      Buffer.add_char buf ',';
+      list f buf r
+
+  let quote buf str =
+    Buffer.add_char buf '"';
+    String.iter
+      (function
+        | ('"' | '\\') as c ->
+          Buffer.add_char buf '\\';
+          Buffer.add_char buf c
+        | '\n' -> Buffer.add_string buf "\\n"
+        | '\t' -> Buffer.add_string buf "\\t"
+        | '\r' -> Buffer.add_string buf "\\r"
+        | '\x00' .. '\x1F' as c -> Printf.bprintf buf "\\u%04x" (int_of_char c)
+        | c -> Buffer.add_char buf c)
+      str;
+    Buffer.add_char buf '"'
+
+  (* Note: the output format is made for transition with what Yojson gave us,
+     but we could change it to something nicer (e.g. objects for structures) *)
+  let rec runtime_value buf = function
+    | Unit -> Buffer.add_string buf {|"Unit"|}
+    | Bool b -> Buffer.add_string buf (string_of_bool b)
+    | Money m -> Buffer.add_string buf (money_to_string m)
+    | Integer i -> Buffer.add_string buf (integer_to_string i)
+    | Decimal d ->
+      Buffer.add_string buf (decimal_to_string ~max_prec_digits:10 d)
+    | Date d -> quote buf (date_to_string d)
+    | Duration d -> quote buf (duration_to_string d)
+    | Enum (name, (constr, v)) ->
+      Printf.bprintf buf {|[["%s"],["%s",%a]]|} name constr runtime_value v
+    | Struct (name, elts) ->
+      Printf.bprintf buf {|["%s",[%a]]|} name
+        (list (fun buf (cstr, v) ->
+             Printf.bprintf buf {|"%s":%a|} cstr runtime_value v))
+        elts
+    | Array elts ->
+      Printf.bprintf buf "[%a]" (list runtime_value) (Array.to_list elts)
+    | Unembeddable -> Buffer.add_string buf {|"unembeddable"|}
+
+  let information buf info = Printf.bprintf buf "[%a]" (list quote) info
+
+  let source_position buf pos =
+    Printf.bprintf buf {|{"filename":%a|} quote pos.filename;
+    Printf.bprintf buf {|,"start_line":%d|} pos.start_line;
+    Printf.bprintf buf {|,"start_column":%d|} pos.start_column;
+    Printf.bprintf buf {|,"end_line":%d|} pos.end_line;
+    Printf.bprintf buf {|,"end_column":%d|} pos.end_column;
+    Printf.bprintf buf {|,"law_headings":[%a]}|} (list quote) pos.law_headings
+
+  let io_input buf = function
+    | NoInput -> quote buf "NoInput"
+    | OnlyInput -> quote buf "OnlyInput"
+    | Reentrant -> quote buf "Reentrant"
+
+  let io_log buf iol =
+    Printf.bprintf buf {|{"io_input":%a|} io_input iol.io_input;
+    Printf.bprintf buf {|,"io_output":%b}|} iol.io_output
+
+  let rec event buf = function
+    | VarComputation vd ->
+      Printf.bprintf buf {|"VarComputation",%a]|} var_def vd
+    | FunCall fc -> Printf.bprintf buf {|"FunCall",%a]|} fun_call fc
+    | SubScopeCall { name; inputs; body } ->
+      Printf.bprintf buf {|{"name":%a,"inputs":[%a],"body":[%a]}|} information
+        name (list var_def) inputs (list event) body
+
+  and var_def buf def =
+    Option.iter (Printf.bprintf buf {|{"pos":%a|} source_position) def.pos;
+    Printf.bprintf buf {|,"name":%a|} information def.name;
+    Printf.bprintf buf {|,"io":%a|} io_log def.io;
+    Printf.bprintf buf {|,"value":%a|} runtime_value def.value;
+    Option.iter
+      (Printf.bprintf buf {|,"fun_calls":[%a]}|} (list fun_call))
+      def.fun_calls
+
+  and fun_call buf fc =
+    Printf.bprintf buf {|{"fun_name":%a|} information fc.fun_name;
+    Printf.bprintf buf {|,"fun_inputs":[%a]|} (list var_def) fc.fun_inputs;
+    Printf.bprintf buf {|,"body":[%a]|} (list event) fc.body;
+    Printf.bprintf buf {|,"output":%a}|} var_def fc.output
+end
+
+module Json = struct
+  let str f x =
+    let buf = Buffer.create 800 in
+    f buf x;
+    Buffer.contents buf
+
+  open BufferedJson
+
+  let runtime_value = str runtime_value
+  let io_log = str io_log
+  let event = str event
+end
 
 let log_ref : raw_event list ref = ref []
 let reset_log () = log_ref := []
@@ -313,8 +404,7 @@ let rec pp_events ?(is_first_call = true) ppf events =
     | Duration x -> Format.fprintf ppf "%s" (duration_to_string x)
     | Enum (_, (name, _)) -> Format.fprintf ppf "%s" name
     | Struct (name, attrs) ->
-      Format.fprintf ppf "@[<hv 2>%s = {@ %a@;<1 -2>}@]"
-        (String.concat "." name)
+      Format.fprintf ppf "@[<hv 2>%s = {@ %a@;<1 -2>}@]" name
         (Format.pp_print_list
            ~pp_sep:(fun ppf () -> Format.fprintf ppf ",@,")
            (fun fmt (name, value) ->
@@ -414,7 +504,7 @@ module EventParser = struct
     | VariableDefinition (name, io, value) ->
       Printf.sprintf "VariableDefinition([ %s ], %s, %s)"
         (String.concat ", " name) (io_log_to_string io)
-        (yojson_of_runtime_value value |> Yojson.Safe.to_string)
+        (Json.runtime_value value)
     | DecisionTaken pos ->
       Printf.sprintf "DecisionTaken(%s:%d.%d-%d.%d)" pos.filename pos.start_line
         pos.start_column pos.end_line pos.end_column
