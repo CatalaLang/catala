@@ -84,6 +84,7 @@ type conc_dest_kind = (yes, yes) conc_interpr_kind
 type conc_expr = (conc_src_kind, conc_info) gexpr
 
 val interpret_program_concolic :
+  bool ->
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
   (Uid.MarkedString.info * conc_expr) list

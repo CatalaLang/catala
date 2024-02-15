@@ -2685,8 +2685,11 @@ module Stats = struct
 end
 
 (** Main function *)
-let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
-    (Uid.MarkedString.info * conc_expr) list =
+let interpret_program_concolic
+    (type m)
+    (print_stats : bool)
+    (p : (dcalc, m) gexpr program)
+    s : (Uid.MarkedString.info * conc_expr) list =
   Message.emit_debug "=== Start concolic interpretation... ===";
   let stats = Stats.init () in
 
@@ -2817,6 +2820,7 @@ let interpret_program_concolic (type m) (p : (dcalc, m) gexpr program) s :
     Message.emit_result "Concolic interpreter done";
 
     let stats = Stats.stop stats in
+    if print_stats then
       Message.emit_result "=== Concolic execution statistics ===\n%a"
         Stats.print stats;
 

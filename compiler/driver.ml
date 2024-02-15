@@ -703,6 +703,7 @@ module Commands = struct
   let interpret_concolic
       typed
       options
+      stats
       includes
       optimize
       check_invariants
@@ -712,7 +713,8 @@ module Commands = struct
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options
-      Concolic.Interpreter.interpret_program_concolic prg
+      (Concolic.Interpreter.interpret_program_concolic stats)
+      prg
       (get_scope_uid prg.decl_ctx ex_scope)
 
   let concolic_cmd =
@@ -720,12 +722,20 @@ module Commands = struct
       if no_typing then interpret_concolic Expr.untyped
       else interpret_concolic Expr.typed
     in
+    let stats =
+      let open Cmdliner.Arg in
+      value
+      & flag
+      & info ["stats"] ~doc:"Prints statistics for the concolic execution."
+    in
+
     Cmd.v
       (Cmd.info "concolic" ~doc:"Runs the concolic interpreter")
       Term.(
         const f
         $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
+        $ stats
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
