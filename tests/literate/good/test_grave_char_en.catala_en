@@ -52,7 +52,7 @@ $ catala Interpret -s A
 ```catala-test-inline
 $ catala latex
 
-\textbf{This defines the \texttt{catala} module \texttt{Test\_grave\_char\_en}}
+\textbf{This defines the catala module \texttt{Test\_grave\_char\_en}}
 
 \subsection{Law text should be able to contain grave accent ``'.}
 

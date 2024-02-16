@@ -271,18 +271,28 @@ let rec law_structure_to_latex
       file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
   | A.ModuleDef (id, extern) ->
-    Format.fprintf fmt
-      "\n\\textbf{This defines the \\texttt{%s} module \\texttt{%s}}"
-      (if extern then "external" else "catala")
+    (match language with
+    | Fr ->
+      Format.fprintf fmt "\n\\textbf{Ceci définit le module %s \\texttt{%s}}"
+        (if extern then "externe" else "catala")
+    | _ ->
+      Format.fprintf fmt "\n\\textbf{This defines the %s module \\texttt{%s}}"
+        (if extern then "external" else "catala"))
       (pre_latexify (Mark.remove id))
   | A.ModuleUse (id, alias) -> (
-    Format.fprintf fmt
-      "\n\\textbf{The following makes use of the module \\texttt{%s}"
+    (match language with
+    | Fr ->
+      Format.fprintf fmt "\n\\textbf{Ce qui suit utilise le module \\texttt{%s}"
+    | _ ->
+      Format.fprintf fmt
+        "\n\\textbf{The following makes use of the module \\texttt{%s}")
       (pre_latexify (Mark.remove id));
     match alias with
     | None -> Format.fprintf fmt "}"
     | Some al ->
-      Format.fprintf fmt " under the name \texttt{%s}}"
+      (match language with
+      | Fr -> Format.fprintf fmt " sous le nom \\texttt{%s}}"
+      | _ -> Format.fprintf fmt " under the name \\texttt{%s}}")
         (pre_latexify (Mark.remove al)))
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
