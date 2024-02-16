@@ -271,17 +271,19 @@ let rec law_structure_to_latex
       file label
   | A.LawInclude (A.CatalaFile _ | A.LegislativeText _) -> ()
   | A.ModuleDef (id, extern) ->
-    Format.fprintf fmt "\n\\textbf{This defines the %s module \\textsc{%s}}"
+    Format.fprintf fmt
+      "\n\\textbf{This defines the \\texttt{%s} module \\texttt{%s}}"
       (if extern then "external" else "catala")
-      (Mark.remove id)
+      (pre_latexify (Mark.remove id))
   | A.ModuleUse (id, alias) -> (
     Format.fprintf fmt
-      "\n\\textbf{The following makes use of the module \\textsc{%s}"
-      (Mark.remove id);
+      "\n\\textbf{The following makes use of the module \\texttt{%s}"
+      (pre_latexify (Mark.remove id));
     match alias with
     | None -> Format.fprintf fmt "}"
     | Some al ->
-      Format.fprintf fmt " under the name \\textsc{%s}" (Mark.remove al))
+      Format.fprintf fmt " under the name \texttt{%s}"
+        (pre_latexify (Mark.remove al)))
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
     let start_line = Pos.get_start_line (Mark.get c) - 1 in
