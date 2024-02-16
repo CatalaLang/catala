@@ -282,7 +282,7 @@ let rec law_structure_to_latex
     match alias with
     | None -> Format.fprintf fmt "}"
     | Some al ->
-      Format.fprintf fmt " under the name \texttt{%s}"
+      Format.fprintf fmt " under the name \texttt{%s}}"
         (pre_latexify (Mark.remove al)))
   | A.LawText t -> Format.fprintf fmt "%s" (pre_latexify t)
   | A.CodeBlock (_, c, false) when not print_only_law ->
