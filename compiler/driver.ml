@@ -704,6 +704,7 @@ module Commands = struct
       typed
       options
       stats
+      conc_optims
       includes
       optimize
       check_invariants
@@ -713,7 +714,7 @@ module Commands = struct
     in
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options
-      (Concolic.Interpreter.interpret_program_concolic stats)
+      (Concolic.Interpreter.interpret_program_concolic stats conc_optims)
       prg
       (get_scope_uid prg.decl_ctx ex_scope)
 
@@ -728,6 +729,14 @@ module Commands = struct
       & flag
       & info ["stats"] ~doc:"Prints statistics for the concolic execution."
     in
+    let open Concolic.Interpreter.Optimizations in
+    let optim_list = ["trivial", OTrivial] in
+    let conc_optims =
+      let open Cmdliner.Arg in
+      value
+      & opt_all (enum optim_list) []
+      & info ["conc-optims"] ~doc:"Concolic optimizations" (* FIXME add information on optims *)
+    in
 
     Cmd.v
       (Cmd.info "concolic" ~doc:"Runs the concolic interpreter")
@@ -736,6 +745,7 @@ module Commands = struct
         $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ stats
+        $ conc_optims
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants

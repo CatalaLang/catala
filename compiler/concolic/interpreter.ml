@@ -2451,6 +2451,23 @@ module Solver = struct
     StructField.Map.mapi f input_marks
 end
 
+(** Optimizations *)
+
+module Optimizations = struct
+  type flag = OTrivial
+
+  let trivial : flag list -> bool = List.mem OTrivial
+
+  let remove_trivial_constraints opt (pcs : path_constraint list) =
+    if not (trivial opt) then pcs
+    else begin
+      let f pc =
+        match pc.expr with Pc_z3 s -> not (Z3.Boolean.is_true s) | _ -> true
+      in
+      List.filter f pcs
+    end
+end
+
 (** Computation path logic *)
 
 (* Two path constraint expressions are equal if they are of the same kind, and
@@ -2688,6 +2705,7 @@ end
 let interpret_program_concolic
     (type m)
     (print_stats : bool)
+    (optims : Optimizations.flag list)
     (p : (dcalc, m) gexpr program)
     s : (Uid.MarkedString.info * conc_expr) list =
   Message.emit_debug "=== Start concolic interpretation... ===";
@@ -2756,6 +2774,10 @@ let interpret_program_concolic
         let s_new_pc = Stats.start_step "choose new path constraints" in
 
         let res_path_constraints = get_constraints_r res in
+
+        let res_path_constraints =
+          Optimizations.remove_trivial_constraints optims res_path_constraints
+        in
 
         print_path_constraints res_path_constraints;
 

@@ -83,8 +83,18 @@ type conc_src_kind = (yes, no) conc_interpr_kind
 type conc_dest_kind = (yes, yes) conc_interpr_kind
 type conc_expr = (conc_src_kind, conc_info) gexpr
 
+module Optimizations : sig
+  type flag = OTrivial
+
+  val trivial : flag list -> bool
+
+  val remove_trivial_constraints :
+    flag list -> path_constraint list -> path_constraint list
+end
+
 val interpret_program_concolic :
   bool ->
+  Optimizations.flag list ->
   (dcalc, 'm) gexpr program ->
   ScopeName.t ->
   (Uid.MarkedString.info * conc_expr) list
