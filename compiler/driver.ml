@@ -735,7 +735,7 @@ module Commands = struct
       let open Cmdliner.Arg in
       value
       & opt_all (enum optim_list) []
-      & info ["conc-optims"] ~doc:"Concolic optimizations" (* FIXME add information on optims *)
+      & info ["conc-optim"] ~doc:"Concolic execution optimizations" (* FIXME add information on optims *)
     in
 
     Cmd.v
