@@ -86,10 +86,8 @@ type conc_expr = (conc_src_kind, conc_info) gexpr
 module Optimizations : sig
   type flag = OTrivial
 
-  val trivial : flag list -> bool
-
-  val remove_trivial_constraints :
-    flag list -> path_constraint list -> path_constraint list
+  val optim_list : (string * flag) list
+  (** Used for command line arguments *)
 end
 
 val interpret_program_concolic :

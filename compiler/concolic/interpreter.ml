@@ -343,6 +343,24 @@ let del_genericerror e =
      nodes. *)
   Expr.unbox (f e)
 
+(** Optimizations *)
+
+module Optimizations = struct
+  type flag = OTrivial
+
+  let optim_list = ["trivial", OTrivial]
+  let trivial : flag list -> bool = List.mem OTrivial
+
+  let remove_trivial_constraints opt (pcs : path_constraint list) =
+    if not (trivial opt) then pcs
+    else begin
+      let f pc =
+        match pc.expr with Pc_z3 s -> not (Z3.Boolean.is_true s) | _ -> true
+      in
+      List.filter f pcs
+    end
+end
+
 (** Transform any DCalc expression into a concolic expression with no symbolic
     expression and no constraints *)
 let init_conc_expr (e : (('c, 'e) conc_interpr_kind, 'm) gexpr) : conc_expr =
@@ -2449,23 +2467,6 @@ module Solver = struct
       t
     in
     StructField.Map.mapi f input_marks
-end
-
-(** Optimizations *)
-
-module Optimizations = struct
-  type flag = OTrivial
-
-  let trivial : flag list -> bool = List.mem OTrivial
-
-  let remove_trivial_constraints opt (pcs : path_constraint list) =
-    if not (trivial opt) then pcs
-    else begin
-      let f pc =
-        match pc.expr with Pc_z3 s -> not (Z3.Boolean.is_true s) | _ -> true
-      in
-      List.filter f pcs
-    end
 end
 
 (** Computation path logic *)

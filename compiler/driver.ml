@@ -730,12 +730,12 @@ module Commands = struct
       & info ["stats"] ~doc:"Prints statistics for the concolic execution."
     in
     let open Concolic.Interpreter.Optimizations in
-    let optim_list = ["trivial", OTrivial] in
     let conc_optims =
       let open Cmdliner.Arg in
       value
       & opt_all (enum optim_list) []
-      & info ["conc-optim"] ~doc:"Concolic execution optimizations" (* FIXME add information on optims *)
+      & info ["conc-optim"] ~doc:"Concolic execution optimizations"
+      (* FIXME add information on optims *)
     in
 
     Cmd.v
