@@ -1,0 +1,113 @@
+```catala
+declaration enumeration E:
+-- E1
+-- E2
+-- E3
+-- E4
+-- E5
+-- E6
+-- E7
+-- E8
+-- E9
+
+declaration scope A:
+    input e content E
+    output o content integer
+
+scope A:
+    definition o equals 0
+    exception definition o under condition
+        (match e with pattern
+        -- E1: true
+        -- E9: true
+        -- anything: false)
+    consequence equals 1
+    exception definition o under condition
+        (match e with pattern
+        -- E1: true
+        -- E2: true
+        -- anything: false)
+    consequence equals 2
+```
+
+```catala-test-inline
+$ catala Concolic -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E1 ()
+[RESULT] Output of scope after evaluation:
+[RESULT]
+Found error ↯Conflict(tests/test_concolic/good/ugly_pattern.catala_en:30.24-30.25,tests/test_concolic/good/ugly_pattern.catala_en:24.24-24.25,)↯ at tests/test_concolic/good/ugly_pattern.catala_en:15.12-15.13
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E2 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E3 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E4 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E5 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E6 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E7 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E8 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E9 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+
+```catala-test-inline
+$ catala Concolic -O -s A
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E1 ()
+[RESULT] Output of scope after evaluation:
+[RESULT]
+Found error ↯Conflict(tests/test_concolic/good/ugly_pattern.catala_en:30.24-30.25,tests/test_concolic/good/ugly_pattern.catala_en:24.24-24.25,)↯ at tests/test_concolic/good/ugly_pattern.catala_en:15.12-15.13
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E9 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 1
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E2 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 2
+[RESULT] 
+[RESULT] Evaluating with inputs:
+[RESULT] . e_in = E3 ()
+[RESULT] Output of scope after evaluation:
+[RESULT] . o = 0
+[RESULT] 
+[RESULT] Concolic interpreter done
+[RESULT] Computation successful!
+```
+

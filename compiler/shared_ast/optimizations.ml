@@ -62,6 +62,21 @@ let all_match_cases_map_to_same_constructor cases n =
       | _ -> assert false)
     cases
 
+let all_match_cases_take_unit_and_map_to_boolean_literals cases =
+  EnumConstructor.Map.for_all
+    (fun _ case ->
+      match Mark.remove case with
+      | EAbs { binder; tys } -> (
+        let _, body = Bindlib.unmbind binder in
+        match Mark.remove body with
+        | ELit (LBool _) ->
+          let ty = List.hd tys in
+          (* because of invariant [invariant_match], the arity is always one. *)
+          Mark.remove ty = TLit TUnit
+        | _ -> false)
+      | _ -> assert false)
+    cases
+
 let binder_vars_used_at_most_once
     (binder :
       ( (('a, 'b) dcalc_lcalc, ('a, 'b) dcalc_lcalc, 'm) base_gexpr,
@@ -162,6 +177,40 @@ let rec optimize_expr :
           cases1 cases2
       in
       EMatch { e = arg; cases; name = n1 }
+    | EMatch { e = e'; cases; name = n }
+      when all_match_cases_take_unit_and_map_to_boolean_literals cases ->
+      (* transform matches whose arms are all of the form [Constructor () ->
+         true/false] to a big [or] of all those cases *)
+      let cases_true =
+        EnumConstructor.Map.filter
+          (fun _ case ->
+            match Mark.remove case with
+            | EAbs { binder; _ } -> (
+              let _, body = Bindlib.unmbind binder in
+              match Mark.remove body with
+              | ELit (LBool b) -> b
+              | _ -> failwith "should not happen")
+            | _ -> assert false)
+          cases
+      in
+      let boxed_e' = Expr.rebox e' in
+      let m = Mark.get e' |> Expr.no_mark in
+      let lunit = Expr.elit LUnit m in
+      let enum_typ = Mark.add Pos.no_pos (TEnum n) in
+      let bool_typ = Mark.add Pos.no_pos (TLit TBool) in
+      let make_eq (cons : EnumConstructor.t) =
+        let inj = Expr.einj ~name:n ~cons ~e:lunit m in
+        Expr.eappop ~op:Eq ~args:[boxed_e'; inj] ~tys:[enum_typ; enum_typ] m
+      in
+      let make_or e1 e2 =
+        Expr.eappop ~op:Or ~args:[e1; e2] ~tys:[bool_typ; bool_typ] m
+      in
+      let f cons _ acc =
+        let eq = make_eq cons in
+        make_or acc eq
+      in
+      let lfalse = Expr.elit (LBool false) m in
+      Mark.remove (Expr.unbox (EnumConstructor.Map.fold f cases_true lfalse))
     | EApp { f = EAbs { binder; _ }, _; args; _ }
       when binder_vars_used_at_most_once binder
            || List.for_all (function EVar _, _ -> true | _ -> false) args ->
