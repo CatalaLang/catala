@@ -543,6 +543,7 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
           Expr.pos block_expr );
       ]
   | _ -> (
+    Message.emit_debug "E: %a" Expr.format block_expr;
     let e_stmts, new_e = translate_expr ctxt block_expr in
     e_stmts
     @

@@ -1102,7 +1102,9 @@ let main () =
   let open Cmdliner in
   match Cmd.eval_value ~catch:false ~argv command with
   | Ok _ -> exit Cmd.Exit.ok
-  | Error _ -> exit Cmd.Exit.cli_error
+  | Error e ->
+    if e = `Term then Plugin.print_failures ();
+    exit Cmd.Exit.cli_error
   | exception Cli.Exit_with n -> exit n
   | exception Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
