@@ -31,6 +31,77 @@ scope A:
 ```
 
 ```catala-test-inline
+$ catala DCalc -s A
+let scope A
+  (A_in:
+     A_in {
+       e_in:
+         E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit |
+           E7: unit | E8: unit | E9: unit]
+     })
+  : A {o: integer}
+  =
+  let get e :
+      E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit | E7:
+        unit | E8: unit | E9: unit] =
+    A_in.e_in
+  in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨ ⟨match e with
+           | E1 _ → true
+           | E2 _ → false
+           | E3 _ → false
+           | E4 _ → false
+           | E5 _ → false
+           | E6 _ → false
+           | E7 _ → false
+           | E8 _ → false
+           | E9 _ → true
+           ⊢ ⟨1⟩⟩,
+          ⟨match e with
+           | E1 _ → true
+           | E2 _ → true
+           | E3 _ → false
+           | E4 _ → false
+           | E5 _ → false
+           | E6 _ → false
+           | E7 _ → false
+           | E8 _ → false
+           | E9 _ → false
+           ⊢ ⟨2⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨ ⟨true ⊢ ⟨0⟩⟩ | false ⊢ ∅ ⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
+$ catala DCalc -s A --optimize
+let scope A
+  (A_in:
+     A_in {
+       e_in:
+         E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit |
+           E7: unit | E8: unit | E9: unit]
+     })
+  : A {o: integer}
+  =
+  let get e :
+      E[E1: unit | E2: unit | E3: unit | E4: unit | E5: unit | E6: unit | E7:
+        unit | E8: unit | E9: unit] =
+    A_in.e_in
+  in
+  let set o : integer =
+    error_empty
+      ⟨ ⟨ ⟨e = E1 () || e = E9 () ⊢ ⟨1⟩⟩, ⟨e = E1 () || e = E2 () ⊢ ⟨2⟩⟩
+        | false ⊢ ∅ ⟩
+      | true ⊢ ⟨true ⊢ ⟨0⟩⟩ ⟩
+  in
+  return { A o = o; }
+```
+
+```catala-test-inline
 $ catala Concolic -s A
 [RESULT] 
 [RESULT] Evaluating with inputs:
@@ -84,7 +155,7 @@ Found error ↯Conflict(tests/test_concolic/good/ugly_pattern.catala_en:30.24-30
 ```
 
 ```catala-test-inline
-$ catala Concolic -O -s A
+$ catala Concolic -s A --optimize
 [RESULT] 
 [RESULT] Evaluating with inputs:
 [RESULT] . e_in = E1 ()
