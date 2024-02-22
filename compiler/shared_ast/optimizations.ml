@@ -210,7 +210,11 @@ let rec optimize_expr :
         make_or acc eq
       in
       let lfalse = Expr.elit (LBool false) m in
-      Mark.remove (Expr.unbox (EnumConstructor.Map.fold f cases_true lfalse))
+      EnumConstructor.Map.fold f cases_true lfalse
+      |> Expr.unbox
+      |> optimize_expr ctx
+      |> Expr.unbox
+      |> Mark.remove
     | EApp { f = EAbs { binder; _ }, _; args; _ }
       when binder_vars_used_at_most_once binder
            || List.for_all (function EVar _, _ -> true | _ -> false) args ->
