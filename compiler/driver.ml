@@ -707,26 +707,6 @@ module Commands = struct
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scope_uid prg.decl_ctx ex_scope)
 
-  let interpret_cmd =
-    let f no_typing =
-      if no_typing then interpret_dcalc Expr.untyped
-      else interpret_dcalc Expr.typed
-    in
-    Cmd.v
-      (Cmd.info "interpret"
-         ~doc:
-           "Runs the interpreter on the Catala program, executing the scope \
-            specified by the $(b,-s) option assuming no additional external \
-            inputs.")
-      Term.(
-        const f
-        $ Cli.Flags.no_typing
-        $ Cli.Flags.Global.options
-        $ Cli.Flags.include_dirs
-        $ Cli.Flags.optimize
-        $ Cli.Flags.check_invariants
-        $ Cli.Flags.ex_scope)
-
   let lcalc
       typed
       options
@@ -780,13 +760,13 @@ module Commands = struct
 
   let interpret_lcalc
       typed
+      avoid_exceptions
+      closure_conversion
+      monomorphize_types
       options
       includes
       optimize
       check_invariants
-      avoid_exceptions
-      closure_conversion
-      monomorphize_types
       ex_scope =
     let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
@@ -796,27 +776,41 @@ module Commands = struct
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
       (get_scope_uid prg.decl_ctx ex_scope)
 
-  let interpret_lcalc_cmd =
-    let f no_typing =
-      if no_typing then interpret_lcalc Expr.untyped
-      else interpret_lcalc Expr.typed
+  let interpret_cmd =
+    let f lcalc avoid_exceptions closure_conversion monomorphize_types no_typing
+        =
+      if not lcalc then
+        if avoid_exceptions || closure_conversion || monomorphize_types then
+          Message.raise_error
+            "The flags @{<bold>--avoid-exceptions@}, \
+             @{<bold>--closure-conversion@} and @{<bold>--monomorphize-types@} \
+             only make sense with the @{<bold>--lcalc@} option"
+        else if no_typing then interpret_dcalc Expr.untyped
+        else interpret_dcalc Expr.typed
+      else if no_typing then
+        interpret_lcalc Expr.untyped avoid_exceptions closure_conversion
+          monomorphize_types
+      else
+        interpret_lcalc Expr.typed avoid_exceptions closure_conversion
+          monomorphize_types
     in
     Cmd.v
-      (Cmd.info "interpret_lcalc"
+      (Cmd.info "interpret"
          ~doc:
-           "Runs the interpreter on the lcalc pass on the Catala program, \
-            executing the scope specified by the $(b,-s) option assuming no \
-            additional external inputs.")
+           "Runs the interpreter on the Catala program, executing the scope \
+            specified by the $(b,-s) option assuming no additional external \
+            inputs.")
       Term.(
         const f
+        $ Cli.Flags.lcalc
+        $ Cli.Flags.avoid_exceptions
+        $ Cli.Flags.closure_conversion
+        $ Cli.Flags.monomorphize_types
         $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
-        $ Cli.Flags.closure_conversion
-        $ Cli.Flags.monomorphize_types
         $ Cli.Flags.ex_scope)
 
   let ocaml
@@ -1017,7 +1011,6 @@ module Commands = struct
   let commands =
     [
       interpret_cmd;
-      interpret_lcalc_cmd;
       typecheck_cmd;
       proof_cmd;
       ocaml_cmd;

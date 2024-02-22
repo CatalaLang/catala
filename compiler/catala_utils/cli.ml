@@ -454,6 +454,14 @@ module Flags = struct
     & pos_right 0 file []
     & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
         ~doc:"Additional input files."
+
+  let lcalc =
+    value
+    & flag
+    & info ["lcalc"]
+        ~doc:
+          "Compile all the way to lcalc before interpreting (the default is to \
+           interpret at dcalc stage). For debugging purposes."
 end
 
 (* Retrieve current version from dune *)
