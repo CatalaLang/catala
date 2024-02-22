@@ -126,68 +126,13 @@ let avoid_keywords (s : string) : string =
   then s ^ "_"
   else s
 
-let format_struct_name (fmt : Format.formatter) (v : StructName.t) : unit =
-  Format.fprintf fmt "%s"
-    (avoid_keywords
-       (String.to_camel_case
-          (String.to_ascii (Format.asprintf "%a" StructName.format v))))
+module StringMap = String.Map
 
-let format_struct_field_name (fmt : Format.formatter) (v : StructField.t) : unit
-    =
-  Format.fprintf fmt "%s"
-    (avoid_keywords
-       (String.to_ascii (Format.asprintf "%a" StructField.format v)))
+module IntMap = Map.Make (struct
+  include Int
 
-let format_enum_name (fmt : Format.formatter) (v : EnumName.t) : unit =
-  Format.fprintf fmt "%s"
-    (avoid_keywords
-       (String.to_camel_case
-          (String.to_ascii (Format.asprintf "%a" EnumName.format v))))
-
-let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
-    unit =
-  Format.fprintf fmt "%s"
-    (avoid_keywords
-       (String.to_ascii (Format.asprintf "%a" EnumConstructor.format v)))
-
-let typ_needs_parens (e : typ) : bool =
-  match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
-
-let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
-  let format_typ = format_typ in
-  let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
-    if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
-    else Format.fprintf fmt "%a" format_typ t
-  in
-  match Mark.remove typ with
-  | TLit TUnit -> Format.fprintf fmt "Unit"
-  | TLit TMoney -> Format.fprintf fmt "Money"
-  | TLit TInt -> Format.fprintf fmt "Integer"
-  | TLit TRat -> Format.fprintf fmt "Decimal"
-  | TLit TDate -> Format.fprintf fmt "Date"
-  | TLit TDuration -> Format.fprintf fmt "Duration"
-  | TLit TBool -> Format.fprintf fmt "bool"
-  | TTuple ts ->
-    Format.fprintf fmt "Tuple[%a]"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-         (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
-      ts
-  | TStruct s -> Format.fprintf fmt "%a" format_struct_name s
-  | TOption some_typ ->
-    (* We translate the option type with an overloading by Python's [None] *)
-    Format.fprintf fmt "Optional[%a]" format_typ some_typ
-  | TDefault t -> format_typ fmt t
-  | TEnum e -> Format.fprintf fmt "%a" format_enum_name e
-  | TArrow (t1, t2) ->
-    Format.fprintf fmt "Callable[[%a], %a]"
-      (Format.pp_print_list
-         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
-         format_typ_with_parens)
-      t1 format_typ_with_parens t2
-  | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
-  | TAny -> Format.fprintf fmt "Any"
-  | TClosureEnv -> failwith "unimplemented!"
+  let format ppf i = Format.pp_print_int ppf i
+end)
 
 let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
   s
@@ -197,14 +142,6 @@ let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
   |> String.to_ascii
   |> avoid_keywords
   |> Format.fprintf fmt "%s"
-
-module StringMap = String.Map
-
-module IntMap = Map.Make (struct
-  include Int
-
-  let format ppf i = Format.pp_print_int ppf i
-end)
 
 (** For each `VarName.t` defined by its string and then by its hash, we keep
     track of which local integer id we've given it. This is used to keep
@@ -244,6 +181,76 @@ let format_var (fmt : Format.formatter) (v : VarName.t) : unit =
   else if local_id = 0 then format_name_cleaned fmt v_str
   else Format.fprintf fmt "%a_%d" format_name_cleaned v_str local_id
 
+let format_path ctx fmt p =
+  match List.rev p with
+  | [] -> ()
+  | m :: _ ->
+    format_var fmt (ModuleName.Map.find m ctx.modules);
+    Format.pp_print_char fmt '.'
+
+let format_struct_name ctx (fmt : Format.formatter) (v : StructName.t) : unit =
+  format_path ctx fmt (StructName.path v);
+  Format.pp_print_string fmt
+    (avoid_keywords
+       (String.to_camel_case
+          (String.to_ascii (Mark.remove (StructName.get_info v)))))
+
+let format_struct_field_name (fmt : Format.formatter) (v : StructField.t) : unit
+    =
+  Format.pp_print_string fmt
+    (avoid_keywords (String.to_ascii (StructField.to_string v)))
+
+let format_enum_name ctx (fmt : Format.formatter) (v : EnumName.t) : unit =
+  format_path ctx fmt (EnumName.path v);
+  Format.pp_print_string fmt
+    (avoid_keywords
+       (String.to_camel_case
+          (String.to_ascii (Mark.remove (EnumName.get_info v)))))
+
+let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
+    unit =
+  Format.pp_print_string fmt
+    (avoid_keywords (String.to_ascii (EnumConstructor.to_string v)))
+
+let typ_needs_parens (e : typ) : bool =
+  match Mark.remove e with TArrow _ | TArray _ -> true | _ -> false
+
+let rec format_typ ctx (fmt : Format.formatter) (typ : typ) : unit =
+  let format_typ = format_typ ctx in
+  let format_typ_with_parens (fmt : Format.formatter) (t : typ) =
+    if typ_needs_parens t then Format.fprintf fmt "(%a)" format_typ t
+    else Format.fprintf fmt "%a" format_typ t
+  in
+  match Mark.remove typ with
+  | TLit TUnit -> Format.fprintf fmt "Unit"
+  | TLit TMoney -> Format.fprintf fmt "Money"
+  | TLit TInt -> Format.fprintf fmt "Integer"
+  | TLit TRat -> Format.fprintf fmt "Decimal"
+  | TLit TDate -> Format.fprintf fmt "Date"
+  | TLit TDuration -> Format.fprintf fmt "Duration"
+  | TLit TBool -> Format.fprintf fmt "bool"
+  | TTuple ts ->
+    Format.fprintf fmt "Tuple[%a]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+         (fun fmt t -> Format.fprintf fmt "%a" format_typ_with_parens t))
+      ts
+  | TStruct s -> Format.fprintf fmt "%a" (format_struct_name ctx) s
+  | TOption some_typ ->
+    (* We translate the option type with an overloading by Python's [None] *)
+    Format.fprintf fmt "Optional[%a]" format_typ some_typ
+  | TDefault t -> format_typ fmt t
+  | TEnum e -> Format.fprintf fmt "%a" (format_enum_name ctx) e
+  | TArrow (t1, t2) ->
+    Format.fprintf fmt "Callable[[%a], %a]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         format_typ_with_parens)
+      t1 format_typ_with_parens t2
+  | TArray t1 -> Format.fprintf fmt "List[%a]" format_typ_with_parens t1
+  | TAny -> Format.fprintf fmt "Any"
+  | TClosureEnv -> failwith "unimplemented!"
+
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
   let v_str = Mark.remove (FuncName.get_info v) in
   format_name_cleaned fmt v_str
@@ -270,13 +277,12 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos)
 
-let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
-    unit =
+let rec format_expression ctx (fmt : Format.formatter) (e : expr) : unit =
   match Mark.remove e with
   | EVar v -> format_var fmt v
   | EFunc f -> format_func_name fmt f
   | EStruct { fields = es; name = s } ->
-    Format.fprintf fmt "%a(%a)" format_struct_name s
+    Format.fprintf fmt "%a(%a)" (format_struct_name ctx) s
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (fun fmt (struct_field, e) ->
@@ -297,8 +303,8 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
     (* We translate the option type with an overloading by Python's [None] *)
     format_expression ctx fmt e
   | EInj { e1 = e; cons; name = enum_name; _ } ->
-    Format.fprintf fmt "%a(%a_Code.%a,@ %a)" format_enum_name enum_name
-      format_enum_name enum_name format_enum_cons_name cons
+    Format.fprintf fmt "%a(%a_Code.%a,@ %a)" (format_enum_name ctx) enum_name
+      (format_enum_name ctx) enum_name format_enum_cons_name cons
       (format_expression ctx) e
   | EArray es ->
     Format.fprintf fmt "[%a]"
@@ -402,11 +408,12 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       es
   | ETupleAccess { e1; index } ->
     Format.fprintf fmt "%a[%d]" (format_expression ctx) e1 index
+  | EExternal { modname; name } ->
+    Format.fprintf fmt "%a.%a" format_var (Mark.remove modname)
+      format_name_cleaned (Mark.remove name)
 
-let rec format_statement
-    (ctx : decl_ctx)
-    (fmt : Format.formatter)
-    (s : stmt Mark.pos) : unit =
+let rec format_statement ctx (fmt : Format.formatter) (s : stmt Mark.pos) : unit
+    =
   match Mark.remove s with
   | SInnerFuncDef { name; func = { func_params; func_body; _ } } ->
     Format.fprintf fmt "@[<hov 4>def %a(%a):@\n%a@]" format_var
@@ -414,8 +421,8 @@ let rec format_statement
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
          (fun fmt (var, typ) ->
-           Format.fprintf fmt "%a:%a" format_var (Mark.remove var) format_typ
-             typ))
+           Format.fprintf fmt "%a:%a" format_var (Mark.remove var)
+             (format_typ ctx) typ))
       func_params (format_block ctx) func_body
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
@@ -458,7 +465,7 @@ let rec format_statement
       (format_block ctx) case_none format_var case_some_var format_var tmp_var
       (format_block ctx) case_some
   | SSwitch { switch_expr = e1; enum_name = e_name; switch_cases = cases; _ } ->
-    let cons_map = EnumName.Map.find e_name ctx.ctx_enums in
+    let cons_map = EnumName.Map.find e_name ctx.decl_ctx.ctx_enums in
     let cases =
       List.map2
         (fun x (cons, _) -> x, cons)
@@ -472,9 +479,9 @@ let rec format_statement
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@]@\n@[<hov 4>elif ")
          (fun fmt ({ case_block; payload_var_name; _ }, cons_name) ->
            Format.fprintf fmt "%a.code == %a_Code.%a:@\n%a = %a.value@\n%a"
-             format_var tmp_var format_enum_name e_name format_enum_cons_name
-             cons_name format_var payload_var_name format_var tmp_var
-             (format_block ctx) case_block))
+             format_var tmp_var (format_enum_name ctx) e_name
+             format_enum_cons_name cons_name format_var payload_var_name
+             format_var tmp_var (format_block ctx) case_block))
       cases
   | SReturn e1 ->
     Format.fprintf fmt "@[<hov 4>return %a@]" (format_expression ctx)
@@ -493,7 +500,7 @@ let rec format_statement
       (Pos.get_law_info pos)
   | SSpecialOp _ -> failwith "should not happen"
 
-and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
+and format_block ctx (fmt : Format.formatter) (b : block) : unit =
   Format.pp_print_list
     ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
     (format_statement ctx) fmt
@@ -504,7 +511,7 @@ and format_block (ctx : decl_ctx) (fmt : Format.formatter) (b : block) : unit =
 let format_ctx
     (type_ordering : Scopelang.Dependency.TVertex.t list)
     (fmt : Format.formatter)
-    (ctx : decl_ctx) : unit =
+    ctx : unit =
   let format_struct_decl fmt (struct_name, struct_fields) =
     let fields = StructField.Map.bindings struct_fields in
     Format.fprintf fmt
@@ -522,13 +529,13 @@ let format_ctx
       \        return not (self == other)@\n\
        @\n\
       \    def __str__(self) -> str:@\n\
-      \        @[<hov 4>return \"%a(%a)\".format(%a)@]" format_struct_name
+      \        @[<hov 4>return \"%a(%a)\".format(%a)@]" (format_struct_name ctx)
       struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
          (fun fmt (struct_field, struct_field_type) ->
            Format.fprintf fmt "%a: %a" format_struct_field_name struct_field
-             format_typ struct_field_type))
+             (format_typ ctx) struct_field_type))
       fields
       (if StructField.Map.is_empty struct_fields then fun fmt _ ->
          Format.fprintf fmt "        pass"
@@ -538,7 +545,7 @@ let format_ctx
            (fun fmt (struct_field, _) ->
              Format.fprintf fmt "        self.%a = %a" format_struct_field_name
                struct_field format_struct_field_name struct_field))
-      fields format_struct_name struct_name
+      fields (format_struct_name ctx) struct_name
       (if not (StructField.Map.is_empty struct_fields) then
          Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt " and@ ")
@@ -546,7 +553,7 @@ let format_ctx
              Format.fprintf fmt "self.%a == other.%a" format_struct_field_name
                struct_field format_struct_field_name struct_field)
        else fun fmt _ -> Format.fprintf fmt "True")
-      fields format_struct_name struct_name
+      fields (format_struct_name ctx) struct_name
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",")
          (fun fmt (struct_field, _) ->
@@ -585,7 +592,7 @@ let format_ctx
          @\n\
         \    def __str__(self) -> str:@\n\
         \        @[<hov 4>return \"{}({})\".format(self.code, self.value)@]"
-        format_enum_name enum_name
+        (format_enum_name ctx) enum_name
         (Format.pp_print_list
            ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
            (fun fmt (i, enum_cons, _enum_cons_type) ->
@@ -593,8 +600,8 @@ let format_ctx
         (List.mapi
            (fun i (x, y) -> i, x, y)
            (EnumConstructor.Map.bindings enum_cons))
-        format_enum_name enum_name format_enum_name enum_name format_enum_name
-        enum_name
+        (format_enum_name ctx) enum_name (format_enum_name ctx) enum_name
+        (format_enum_name ctx) enum_name
   in
 
   let is_in_type_ordering s =
@@ -611,50 +618,58 @@ let format_ctx
       (StructName.Map.bindings
          (StructName.Map.filter
             (fun s _ -> not (is_in_type_ordering s))
-            ctx.ctx_structs))
+            ctx.decl_ctx.ctx_structs))
   in
   List.iter
     (fun struct_or_enum ->
       match struct_or_enum with
       | Scopelang.Dependency.TVertex.Struct s ->
-        Format.fprintf fmt "%a@\n@\n" format_struct_decl
-          (s, StructName.Map.find s ctx.ctx_structs)
+        if StructName.path s = [] then
+          Format.fprintf fmt "%a@\n@\n" format_struct_decl
+            (s, StructName.Map.find s ctx.decl_ctx.ctx_structs)
       | Scopelang.Dependency.TVertex.Enum e ->
-        Format.fprintf fmt "%a@\n@\n" format_enum_decl
-          (e, EnumName.Map.find e ctx.ctx_enums))
+        if EnumName.path e = [] then
+          Format.fprintf fmt "%a@\n@\n" format_enum_decl
+            (e, EnumName.Map.find e ctx.decl_ctx.ctx_enums))
     (type_ordering @ scope_structs)
+
+let format_code_item ctx fmt = function
+  | SVar { var; expr; typ = _ } ->
+    Format.fprintf fmt "@[<hv 4>%a = (@,%a@,@])@," format_var var
+      (format_expression ctx) expr
+  | SFunc { var; func }
+  | SScope { scope_body_var = var; scope_body_func = func; _ } ->
+    let { Ast.func_params; Ast.func_body; _ } = func in
+    Format.fprintf fmt "@[<hv 4>def %a(%a):@\n%a@]@," format_func_name var
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
+         (fun fmt (var, typ) ->
+           Format.fprintf fmt "%a:%a" format_var (Mark.remove var)
+             (format_typ ctx) typ))
+      func_params (format_block ctx) func_body
 
 let format_program
     (fmt : Format.formatter)
     (p : Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
-  (* We disable the style flag in order to enjoy formatting from the
-     pretty-printers of Dcalc and Lcalc but without the color terminal
-     markers. *)
-  Format.fprintf fmt
-    "@[<v># This file has been generated by the Catala compiler, do not edit!@,\
-     @,\
-     from catala.runtime import *@,\
-     from typing import Any, List, Callable, Tuple@,\
-     from enum import Enum@,\
-     @,\
-     @[<v>%a@]@,\
-     @,\
-     %a@]@?"
-    (format_ctx type_ordering) p.decl_ctx
-    (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt -> function
-       | SVar { var; expr; typ = _ } ->
-         Format.fprintf fmt "@[<hv 4>%a = (@,%a@,@])@," format_var var
-           (format_expression p.decl_ctx)
-           expr
-       | SFunc { var; func }
-       | SScope { scope_body_var = var; scope_body_func = func; _ } ->
-         let { Ast.func_params; Ast.func_body; _ } = func in
-         Format.fprintf fmt "@[<hv 4>def %a(%a):@\n%a@]@," format_func_name var
-           (Format.pp_print_list
-              ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-              (fun fmt (var, typ) ->
-                Format.fprintf fmt "%a:%a" format_var (Mark.remove var)
-                  format_typ typ))
-           func_params (format_block p.decl_ctx) func_body))
-    p.code_items
+  Format.pp_open_vbox fmt 0;
+  let header =
+    [
+      "# This file has been generated by the Catala compiler, do not edit!";
+      "";
+      "from catala.runtime import *";
+      "from typing import Any, List, Callable, Tuple";
+      "from enum import Enum";
+      "";
+    ]
+  in
+  Format.pp_print_list Format.pp_print_string fmt header;
+  ModuleName.Map.iter
+    (fun m v ->
+      Format.fprintf fmt "import %a as %a@," ModuleName.format m format_var v)
+    p.ctx.modules;
+  Format.pp_print_cut fmt ();
+  format_ctx type_ordering fmt p.ctx;
+  Format.pp_print_cut fmt ();
+  Format.pp_print_list (format_code_item p.ctx) fmt p.code_items;
+  Format.pp_print_flush fmt ()

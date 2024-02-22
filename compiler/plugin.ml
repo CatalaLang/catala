@@ -28,13 +28,13 @@ let register info term =
 
 let list () = Hashtbl.to_seq_values backend_plugins |> List.of_seq
 let names () = Hashtbl.to_seq_keys backend_plugins |> List.of_seq
-
 let load_failures = Hashtbl.create 17
 
 let print_failures () =
   if Hashtbl.length load_failures > 0 then
     Message.emit_warning "Some plugins could not be loaded:@,%a"
-      (Format.pp_print_seq (fun ppf -> Format.fprintf ppf "  - %s")) (Hashtbl.to_seq_values load_failures)
+      (Format.pp_print_seq (fun ppf -> Format.fprintf ppf "  - %s"))
+      (Hashtbl.to_seq_values load_failures)
 
 let load_file f =
   try

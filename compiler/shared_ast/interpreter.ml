@@ -1051,16 +1051,7 @@ let load_runtime_modules prg =
           obj_file Format.pp_print_text
           (Dynlink.error_message dl_err)
   in
-  let modules_list_topo =
-    let rec aux acc (M mtree) =
-      ModuleName.Map.fold
-        (fun mname sub acc ->
-          if List.exists (ModuleName.equal mname) acc then acc
-          else mname :: aux acc sub)
-        mtree acc
-    in
-    List.rev (aux [] prg.decl_ctx.ctx_modules)
-  in
+  let modules_list_topo = Program.modules_to_list prg.decl_ctx.ctx_modules in
   if modules_list_topo <> [] then
     Message.emit_debug "Loading shared modules... %a"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space ModuleName.format)

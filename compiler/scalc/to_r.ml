@@ -373,6 +373,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       args
   | ETuple _ | ETupleAccess _ ->
     Message.raise_internal_error "Tuple compilation to R unimplemented!"
+  | EExternal _ -> failwith "TODO"
 
 let rec format_statement
     (ctx : decl_ctx)
@@ -562,11 +563,11 @@ let format_program
      @[<v>%a@]@,\
      @,\
      %a@]@?"
-    (format_ctx type_ordering) p.decl_ctx
+    (format_ctx type_ordering) p.ctx.decl_ctx
     (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt -> function
        | SVar { var; expr; typ = _ } ->
          Format.fprintf fmt "@[<hv 2>%a <- (@,%a@,@])@," format_var var
-           (format_expression p.decl_ctx)
+           (format_expression p.ctx.decl_ctx)
            expr
        | SFunc { var; func }
        | SScope { scope_body_var = var; scope_body_func = func; _ } ->
@@ -578,5 +579,7 @@ let format_program
               (fun fmt (var, typ) ->
                 Format.fprintf fmt "%a# (%a)@\n" format_var (Mark.remove var)
                   format_typ typ))
-           func_params (format_block p.decl_ctx) func_body))
+           func_params
+           (format_block p.ctx.decl_ctx)
+           func_body))
     p.code_items

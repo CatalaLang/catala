@@ -394,7 +394,6 @@ class S4In:
         return "S4In()".format()
 
 
-
 glob1 = (decimal_of_string("44.12"))
 
 def glob3(x:Money):

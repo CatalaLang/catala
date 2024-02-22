@@ -385,6 +385,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       args
   | ETuple _ | ETupleAccess _ ->
     Message.raise_internal_error "Tuple compilation to R unimplemented!"
+  | EExternal _ -> failwith "TODO"
 
 let typ_is_array (ctx : decl_ctx) (typ : typ) =
   match Mark.remove typ with
@@ -604,26 +605,28 @@ let format_program
      %a@,\
      %a@,\
      @]"
-    (format_ctx type_ordering) p.decl_ctx
+    (format_ctx type_ordering) p.ctx.decl_ctx
     (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt code_item ->
          match code_item with
          | SVar { var; expr; typ } ->
            Format.fprintf fmt "@[<v 2>%a = %a;@]"
-             (format_typ p.decl_ctx (fun fmt -> format_var fmt var))
+             (format_typ p.ctx.decl_ctx (fun fmt -> format_var fmt var))
              typ
-             (format_expression p.decl_ctx)
+             (format_expression p.ctx.decl_ctx)
              expr
          | SFunc { var; func }
          | SScope { scope_body_var = var; scope_body_func = func; _ } ->
            let { func_params; func_body; func_return_typ } = func in
            Format.fprintf fmt "@[<v 2>%a(%a) {@,%a@]@,}"
-             (format_typ p.decl_ctx (fun fmt -> format_func_name fmt var))
+             (format_typ p.ctx.decl_ctx (fun fmt -> format_func_name fmt var))
              func_return_typ
              (Format.pp_print_list
                 ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
                 (fun fmt (var, typ) ->
-                  (format_typ p.decl_ctx (fun fmt ->
+                  (format_typ p.ctx.decl_ctx (fun fmt ->
                        format_var fmt (Mark.remove var)))
                     fmt typ))
-             func_params (format_block p.decl_ctx) func_body))
+             func_params
+             (format_block p.ctx.decl_ctx)
+             func_body))
     p.code_items

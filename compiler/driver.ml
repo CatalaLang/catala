@@ -880,8 +880,8 @@ module Commands = struct
     @@ fun fmt ->
     match ex_scope_opt with
     | Some scope ->
-      let scope_uid = get_scope_uid prg.decl_ctx scope in
-      Scalc.Print.format_item ~debug:options.Cli.debug prg.decl_ctx fmt
+      let scope_uid = get_scope_uid prg.ctx.decl_ctx scope in
+      Scalc.Print.format_item ~debug:options.Cli.debug prg.ctx.decl_ctx fmt
         (List.find
            (function
              | Scalc.Ast.SScope { scope_body_name; _ } ->
@@ -889,7 +889,7 @@ module Commands = struct
              | _ -> false)
            prg.code_items);
       Format.pp_print_newline fmt ()
-    | None -> Scalc.Print.format_program prg.decl_ctx fmt prg
+    | None -> Scalc.Print.format_program fmt prg
 
   let scalc_cmd =
     Cmd.v

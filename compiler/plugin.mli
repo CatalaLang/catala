@@ -43,4 +43,5 @@ val load_dir : string -> unit
 (** Load all plugins found in the given directory *)
 
 val print_failures : unit -> unit
-(** Dynlink errors may be silenced at startup time if not in --debug mode, this prints them as warnings *)
+(** Dynlink errors may be silenced at startup time if not in --debug mode, this
+    prints them as warnings *)

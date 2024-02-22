@@ -29,7 +29,7 @@ module FuncName =
 module VarName =
   Uid.Gen
     (struct
-      let style = Ocolor_types.(Fg (C4 hi_green))
+      let style = Ocolor_types.Default_fg
     end)
     ()
 
@@ -62,6 +62,7 @@ and naked_expr =
   | ELit of lit
   | EApp of { f : expr; args : expr list }
   | EAppOp of { op : operator; args : expr list }
+  | EExternal of { modname : VarName.t Mark.pos; name : string Mark.pos }
 
 type stmt =
   | SInnerFuncDef of { name : VarName.t Mark.pos; func : func }
@@ -114,4 +115,10 @@ type code_item =
   | SFunc of { var : FuncName.t; func : func }
   | SScope of scope_body
 
-type program = { decl_ctx : decl_ctx; code_items : code_item list }
+type ctx = { decl_ctx : decl_ctx; modules : VarName.t ModuleName.Map.t }
+
+type program = {
+  ctx : ctx;
+  code_items : code_item list;
+  module_name : ModuleName.t option;
+}
