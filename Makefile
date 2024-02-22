@@ -217,15 +217,27 @@ tests/%: .FORCE
 # (and therefore the doc target here)
 WEBSITE_ASSETS = grammar.html catala.html clerk.html
 
-$(addprefix _build/default/,$(WEBSITE_ASSETS)):
-	dune build $@
+WEBSITE_ASSETS_EXAMPLES = \
+  tutorial_en/tutorial_en.html \
+  tutoriel_fr/tutoriel_fr.html \
+  us_tax_code/us_tax_code.html \
+  allocations_familiales/allocations_familiales.html \
+  allocations_familiales/allocations_familiales_schema.json \
+  aides_logement/aides_logement.html \
+  aides_logement/aides_logement_schema.json
+
+WEBSITE_ASSETS_ALL = $(WEBSITE_ASSETS) $(addprefix catala-examples.tmp/,$(WEBSITE_ASSETS_EXAMPLES))
 
 website-assets-base: build
-	dune build $(WEBSITE_ASSETS)
+	$(call local_tmp_clone,catala-examples) && \
+	dune build $(addprefix _build/default/,$(WEBSITE_ASSETS_ALL))
+
+website-assets.tar:
+	# $(MAKE) DUNE_PROFILE=release website-assets-base
+	tar cf $@ $(foreach file,$(WEBSITE_ASSETS_ALL),-C $(CURDIR)/$(dir _build/default/$(file)) $(notdir $(file)))
 
 #> website-assets				: Builds all the assets necessary for the Catala website
-website-assets:
-	$(MAKE) DUNE_PROFILE=release website-assets-base
+website-assets: website-assets.tar
 
 ##########################################
 # Miscellaneous
@@ -238,32 +250,35 @@ all: \
 	runtimes \
 	plugins
 
-BRANCH=$(shell git branch --show-current 2>/dev/null || echo master)
+BRANCH = $(shell git branch --show-current 2>/dev/null || echo master)
+
+# Attempt a clone of the named CatalaLang repo into <name>.tmp, using local git
+# objects in ../<name> if available, the branch with the same name as the
+# current branch if it exists (master otherwise), and falling back to a local
+# clone of ../<name> if the network is not available. The temp dir is removed
+# when the shell terminates, so this must be run in the same "Makefile line" as
+# its usage.
+local_tmp_clone = { \
+  rm -rf $1.tmp && \
+  trap "rm -rf $1.tmp" EXIT && \
+  git clone https://github.com/CatalaLang/$1 \
+    --depth 1 --reference-if-able ../$1 \
+    $1.tmp -b $(BRANCH) || \
+  git clone https://github.com/CatalaLang/$1 \
+    --depth 1 --reference-if-able ../$1 \
+    $1.tmp || \
+  git clone -s ../$1 $1.tmp $(BRANCH) || \
+  git clone -s ../$1 $1.tmp master; \
+}
 
 #> alltest					: Runs more extensive tests, including the examples and french-law. Use before push!
 alltest: dependencies-python
 	@export DUNE_PROFILE=check && \
 	dune build @update-parser-messages @install @runtest && \
 	$(CLERK_BIN) test tests && \
-	rm -rf catala-examples.tmp french-law.tmp && \
-	trap "rm -rf catala-examples.tmp french-law.tmp $$TMP" EXIT && \
-	{ git clone https://github.com/CatalaLang/catala-examples \
-	    --depth 1 --reference-if-able ../catala-examples \
-	    catala-examples.tmp -b $(BRANCH) || \
-	  git clone https://github.com/CatalaLang/catala-examples \
-	    --depth 1 --reference-if-able ../catala-examples \
-	    catala-examples.tmp || \
-	  git clone -s ../catala-examples catala-examples.tmp $(BRANCH) || \
-	  git clone -s ../catala-examples catala-examples.tmp master; } && \
+	$(call local_tmp_clone,catala-examples) && \
 	$(CLERK_BIN) test catala-examples.tmp && \
-	{ git clone https://github.com/CatalaLang/french-law \
-	    --depth 1 --reference-if-able ../french-law \
-	    french-law.tmp -b $(BRANCH) || \
-	  git clone https://github.com/CatalaLang/french-law \
-	    --depth 1 --reference-if-able ../french-law \
-	    french-law.tmp || \
-	  git clone -s ../french-law french-law.tmp $(BRANCH) || \
-	  git clone -s ../french-law french-law.tmp master; } && \
+	$(call local_tmp_clone,french-law) && \
 	make -C french-law.tmp all PY_VENV_DIR=$(ROOT_DIR)/_python_venv
 
 #> clean					: Clean build artifacts
@@ -288,4 +303,4 @@ help_catala:
 .PHONY: inspect clean all english allocations_familiales	\
 	pygments install build_dev build doc format dependencies		\
 	dependencies-ocaml catala.html help parser-messages plugins		\
-	website-assets website-assets-base
+	website-assets.tar website-assets-base

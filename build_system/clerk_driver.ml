@@ -347,9 +347,7 @@ module Poll = struct
 
   let ocaml_link_flags : string list Lazy.t =
     lazy
-      (let link_libs =
-         ["yojson"; "ppx_yojson_conv_lib"; "zarith"; "dates_calc"]
-       in
+      (let link_libs = ["zarith"; "dates_calc"] in
        let link_libs_flags =
          List.concat_map
            (fun lib ->
@@ -493,6 +491,10 @@ let[@ocamlformat "disable"] static_base_rules =
       ]
       ~description:["<ocaml>"; "⇒"; !output];
 
+    Nj.rule "python"
+      ~command:[!catala_exe; "python"; !catala_flags; !input; "-o"; !output]
+      ~description:["<catala>"; "python"; "⇒"; !output];
+
     Nj.rule "out-test"
       ~command: [
         !catala_exe; !test_command; "--plugin-dir="; "-o -"; !catala_flags; !input;
@@ -591,21 +593,30 @@ let gen_build_statements
           ~outputs:[modd m])
       item.module_def
   in
-  let ml_file =
+  let target_file ext =
     match item.module_def with
-    | Some m -> (!Var.builddir / src /../ m) ^ ".ml"
-    | None -> (!Var.builddir / !Var.src) ^ ".ml"
+    | Some m -> (!Var.builddir / src /../ m) ^ "." ^ ext
+    | None -> (!Var.builddir / !Var.src) ^ "." ^ ext
   in
-  let ocaml =
+  let ml_file = target_file "ml" in
+  let py_file = target_file "py" in
+  let ocaml, python =
     if item.extrnal then
-      Nj.build "copy"
-        ~implicit_in:[inc srcv]
-        ~inputs:[src -.- "ml"]
-        ~outputs:[ml_file]
+      ( Nj.build "copy"
+          ~implicit_in:[inc srcv]
+          ~inputs:[src -.- "ml"]
+          ~outputs:[ml_file],
+        Nj.build "copy"
+          ~implicit_in:[inc srcv]
+          ~inputs:[src -.- "py"]
+          ~outputs:[py_file] )
     else
-      Nj.build "catala-ocaml"
-        ~inputs:[inc srcv]
-        ~implicit_in:[!Var.catala_exe] ~outputs:[ml_file]
+      ( Nj.build "catala-ocaml"
+          ~inputs:[inc srcv]
+          ~implicit_in:[!Var.catala_exe] ~outputs:[ml_file],
+        Nj.build "python"
+          ~inputs:[inc srcv]
+          ~implicit_in:[!Var.catala_exe] ~outputs:[py_file] )
   in
   let ocamlopt =
     let implicit_out_exts = ["cmi"; "cmx"; "cmt"; "o"] in
@@ -774,6 +785,7 @@ let gen_build_statements
          Option.to_seq expose_module;
          Seq.return ocaml;
          Seq.return ocamlopt;
+         Seq.return python;
          List.to_seq tests;
          Seq.return interpret;
        ]

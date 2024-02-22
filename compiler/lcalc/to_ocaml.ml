@@ -462,7 +462,7 @@ let format_struct_embedding
       format_struct_name struct_name format_to_module_name (`Sname struct_name)
   else
     Format.fprintf fmt
-      "@[<hov 2>let embed_%a (x: %a.t) : runtime_value =@ Struct([\"%a\"],@ \
+      "@[<hov 2>let embed_%a (x: %a.t) : runtime_value =@ Struct(\"%a\",@ \
        @[<hov 2>[%a]@])@]@\n\
        @\n"
       format_struct_name struct_name format_to_module_name (`Sname struct_name)
@@ -485,7 +485,7 @@ let format_enum_embedding
   else
     Format.fprintf fmt
       "@[<hv 2>@[<hov 2>let embed_%a@ @[<hov 2>(x:@ %a.t)@]@ : runtime_value \
-       =@]@ Enum([\"%a\"],@ @[<hov 2>match x with@ %a@])@]@\n\
+       =@]@ Enum(\"%a\",@ @[<hov 2>match x with@ %a@])@]@\n\
        @\n"
       format_enum_name enum_name format_to_module_name (`Ename enum_name)
       EnumName.format enum_name
