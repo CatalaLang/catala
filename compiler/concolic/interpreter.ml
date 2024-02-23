@@ -2168,16 +2168,35 @@ let eval_conc_with_input
 
 (** Constraint solving *)
 module Solver = struct
+  type unknown_info = {
+    z3reason : string;
+    z3stats : Z3.Statistics.statistics;
+    z3solver_string : string;
+    z3assertions : s_expr list;
+  }
+
   module Z3Solver = struct
-    type solver_result = Sat of Z3.Model.model option | Unsat | Unknown
+    open Z3.Solver
+
+    type solver_result =
+      | Sat of Z3.Model.model option
+      | Unsat
+      | Unknown of unknown_info
 
     let solve (z3ctx : Z3.context) (constraints : s_expr list) : solver_result =
-      let solver = Z3.Solver.mk_solver z3ctx None in
-      Z3.Solver.add solver constraints;
-      match Z3.Solver.check solver [] with
-      | SATISFIABLE -> Sat (Z3.Solver.get_model solver)
+      let solver = mk_solver z3ctx None in
+      add solver constraints;
+      match check solver [] with
+      | SATISFIABLE -> Sat (get_model solver)
       | UNSATISFIABLE -> Unsat
-      | UNKNOWN -> Unknown
+      | UNKNOWN ->
+        Unknown
+          {
+            z3reason = get_reason_unknown solver;
+            z3stats = get_statistics solver;
+            z3solver_string = to_string solver;
+            z3assertions = get_assertions solver;
+          }
   end
 
   type input = pc_expr list
@@ -2203,7 +2222,19 @@ module Solver = struct
     in
     "z3: " ^ z3_string ^ "\nreentrant: " ^ empty_reentrants_string
 
-  type solver_result = Sat of model option | Unsat | Unknown
+  let fmt_unknown_info (fmt : Format.formatter) (info : unknown_info) =
+    let open Format in
+    fprintf fmt "Reason:@.%s" info.z3reason;
+    pp_print_newline fmt ();
+    fprintf fmt "Statistics:@.%s" (Z3.Statistics.to_string info.z3stats);
+    pp_print_newline fmt ();
+    fprintf fmt "Solver:@.%s" info.z3solver_string;
+    pp_print_newline fmt ();
+    fprintf fmt "Assertions:@.  @[<v>%a@]"
+      (Format.pp_print_list Format.pp_print_string)
+      (List.map Z3.Expr.to_string info.z3assertions)
+
+  type solver_result = Sat of model option | Unsat | Unknown of unknown_info
 
   let split_input (l : input) : s_expr list * StructField.Set.t =
     let rec aux l (acc_z3 : s_expr list) (acc_reentrant : StructField.Set.t) =
@@ -2224,7 +2255,7 @@ module Solver = struct
       Sat (Some { model_z3; model_empty_reentrants })
     | Z3Solver.Sat None -> Sat None
     | Z3Solver.Unsat -> Unsat
-    | Z3Solver.Unknown -> Unknown
+    | Z3Solver.Unknown info -> Unknown info
 
   (** Create a dummy concolic mark with a position and a type. It has no
       symbolic expression or constraints, and is used for subexpressions inside
@@ -2834,7 +2865,10 @@ let interpret_program_concolic
       end
       | Solver.Sat None ->
         failwith "[CONC] Constraints satisfiable but no model was produced"
-      | Solver.Unknown -> failwith "[CONC] Unknown solver result"
+      | Solver.Unknown info ->
+        Message.raise_internal_error
+          "[CONC] Unknown solver result, debug info:@.%a@."
+          Solver.fmt_unknown_info info
     in
 
     let stats = concolic_loop [] stats in
