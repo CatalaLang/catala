@@ -947,20 +947,23 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       StructField.Map.map
         (fun ty ->
           match Mark.remove ty with
-          | TArrow (ty_in, ((TDefault _, _) as ty_out)) ->
-            (* Context args may return an option if avoid_exceptions is off *)
-            Expr.make_abs
-              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-              (Expr.eraise EmptyError (Expr.with_ty mark_e ty_out))
-              ty_in (Expr.mark_pos mark_e)
           | TArrow (ty_in, (TOption _, _)) ->
-            (* ... or an option if it is on *)
+            (* Context args may return an option if avoid_exceptions is on *)
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
               (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
                  ~name:Expr.option_enum mark_e
                 : (_, _) boxed_gexpr)
               ty_in pos
+          | TArrow (ty_in, ty_out) ->
+            (* Or a default term (translated into a plain one if it is off) *)
+            (* Note: this might catch non-context args, but since the
+               compilation to lcalc strips the default around [ty_out] we can't
+               tell with just this info. *)
+            Expr.make_abs
+              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+              (Expr.eraise EmptyError (Expr.with_ty mark_e ty_out))
+              ty_in (Expr.mark_pos mark_e)
           | TTuple ((TArrow (ty_in, (TOption _, _)), _) :: _) ->
             (* ... or a closure if closure conversion is enabled *)
             Expr.make_tuple
@@ -978,11 +981,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
               mark_e
           | _ ->
             Message.raise_spanned_error (Mark.get ty)
-              "This scope needs input arguments to be executed. But the Catala \
-               built-in interpreter does not have a way to retrieve input \
-               values from the command line, so it cannot execute this scope. \
-               Please create another scope that provides the input arguments \
-               to this one and execute it instead."
+              "This scope needs an input argument of type %a to be executed. \
+               But the Catala built-in interpreter does not have a way to \
+               retrieve input values from the command line, so it cannot \
+               execute this scope. Please create another scope that provides \
+               the input arguments to this one and execute it instead."
               Print.typ_debug ty)
         taus
     in
