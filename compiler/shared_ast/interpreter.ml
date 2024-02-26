@@ -499,7 +499,17 @@ let rec runtime_to_val :
     in
     let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
     EInj { name; cons; e }, m
-  | TOption _ty -> assert false
+  | TOption ty -> (
+    match Obj.tag o - Obj.first_non_constant_constructor_tag with
+    | 0 ->
+      let e =
+        runtime_to_val eval_expr ctx m (TLit TUnit, Pos.no_pos) (Obj.field o 0)
+      in
+      EInj { name = Expr.option_enum; cons = Expr.none_constr; e }, m
+    | 1 ->
+      let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
+      EInj { name = Expr.option_enum; cons = Expr.some_constr; e }, m
+    | _ -> assert false)
   | TClosureEnv -> assert false
   | TArray ty ->
     ( EArray
@@ -553,10 +563,25 @@ and val_to_runtime :
       find_tag Obj.first_non_constant_constructor_tag
         (EnumConstructor.Map.bindings cons_map)
     in
+    let field = val_to_runtime eval_expr ctx ty e in
     let o = Obj.with_tag tag (Obj.repr (Some ())) in
-    Obj.set_field o 0 (val_to_runtime eval_expr ctx ty e);
+    Obj.set_field o 0 field;
     o
-  | TOption _ty, _ -> assert false
+  | TOption ty, EInj { name; cons; e } ->
+    assert (EnumName.equal name Expr.option_enum);
+    let tag, ty =
+      (* None is before Some because the constructors have been defined in this
+         order in [expr.ml], and the ident maps preserve definition ordering *)
+      if EnumConstructor.equal cons Expr.none_constr then
+        Obj.first_non_constant_constructor_tag, (TLit TUnit, Pos.no_pos)
+      else if EnumConstructor.equal cons Expr.some_constr then
+        Obj.first_non_constant_constructor_tag + 1, ty
+      else assert false
+    in
+    let field = val_to_runtime eval_expr ctx ty e in
+    let o = Obj.with_tag tag (Obj.repr (Some ())) in
+    Obj.set_field o 0 field;
+    o
   | TArray ty, EArray es ->
     Array.of_list (List.map (val_to_runtime eval_expr ctx ty) es) |> Obj.repr
   | TArrow (targs, tret), _ ->
