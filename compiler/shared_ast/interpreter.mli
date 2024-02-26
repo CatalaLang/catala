@@ -20,7 +20,7 @@
 open Catala_utils
 open Definitions
 
-exception CatalaException of except
+exception CatalaException of except * Pos.t
 
 val evaluate_operator :
   ((((_, _, _) interpr_kind as 'a), 'm) gexpr -> ('a, 'm) gexpr) ->

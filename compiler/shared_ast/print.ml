@@ -351,7 +351,7 @@ let except (fmt : Format.formatter) (exn : except) : unit =
   op_style fmt
     (match exn with
     | EmptyError -> "EmptyError"
-    | ConflictError -> "ConflictError"
+    | ConflictError _ -> "ConflictError"
     | Crash -> "Crash"
     | NoValueProvided -> "NoValueProvided")
 

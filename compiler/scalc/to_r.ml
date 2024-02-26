@@ -249,7 +249,7 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
 let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   let pos = Mark.get exc in
   match Mark.remove exc with
-  | ConflictError ->
+  | ConflictError _ ->
     Format.fprintf fmt
       "catala_conflict_error(@[<hov 0>catala_position(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
@@ -270,7 +270,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
 
 let format_exception_name (fmt : Format.formatter) (exc : except) : unit =
   match exc with
-  | ConflictError -> Format.fprintf fmt "catala_conflict_error"
+  | ConflictError _ -> Format.fprintf fmt "catala_conflict_error"
   | EmptyError -> Format.fprintf fmt "catala_empty_error"
   | Crash -> Format.fprintf fmt "catala_crash"
   | NoValueProvided -> Format.fprintf fmt "catala_no_value_provided_error"

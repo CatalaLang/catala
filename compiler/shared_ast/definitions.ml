@@ -383,7 +383,12 @@ module Op = struct
 end
 
 type 'a operator = 'a Op.t
-type except = ConflictError | EmptyError | NoValueProvided | Crash
+
+type except =
+  | ConflictError of Pos.t list
+  | EmptyError
+  | NoValueProvided
+  | Crash
 
 (** {2 Markings} *)
 

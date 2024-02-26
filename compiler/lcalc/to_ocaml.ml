@@ -241,7 +241,7 @@ let needs_parens (e : 'm expr) : bool =
 
 let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   match Mark.remove exc with
-  | ConflictError ->
+  | ConflictError _ ->
     let pos = Mark.get exc in
     Format.fprintf fmt
       "(ConflictError@ @[<hov 2>{filename = \"%s\";@\n\

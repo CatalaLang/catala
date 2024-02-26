@@ -676,13 +676,7 @@ module Commands = struct
 
   let print_interpretation_results options interpreter prg scope_uid =
     Message.emit_debug "Starting interpretation...";
-    let results =
-      try interpreter prg scope_uid
-      with Shared_ast.Interpreter.CatalaException exn ->
-        Message.raise_error
-          "During interpretation, the error %a has been raised but not caught!"
-          Shared_ast.Print.except exn
-    in
+    let results = interpreter prg scope_uid in
     Message.emit_debug "End of interpretation";
     let results =
       List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) results

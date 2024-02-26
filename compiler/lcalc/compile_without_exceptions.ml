@@ -26,7 +26,7 @@ module A = Ast
     function calls. The resulting function is not more difficult than what we
     had when translating without exceptions.
 
-    The typing translation is to simply trnsform defult type into option types. *)
+    The typing translation is to simply trnsform default type into option types. *)
 
 let rec translate_typ (tau : typ) : typ =
   Mark.copy tau

@@ -258,7 +258,7 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
 let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   let pos = Mark.get exc in
   match Mark.remove exc with
-  | ConflictError ->
+  | ConflictError _ ->
     Format.fprintf fmt
       "ConflictError(@[<hov 0>SourcePosition(@[<hov 0>filename=\"%s\",@ \
        start_line=%d,@ start_column=%d,@ end_line=%d,@ end_column=%d,@ \

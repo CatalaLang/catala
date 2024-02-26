@@ -59,7 +59,15 @@ let print_log lang entry infos pos e =
       Message.emit_log "%s%a %a" !indent_str Print.log_entry entry
         Print.uid_list infos
 
-exception CatalaException of except
+exception CatalaException of except * Pos.t
+
+let () =
+  Printexc.register_printer (function
+    | CatalaException (e, _pos) ->
+      Some
+        (Format.asprintf "uncaught exception %a raised during interpretation"
+           Print.except e)
+    | _ -> None)
 
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
@@ -372,7 +380,7 @@ let rec evaluate_operator
       List.filter_map
         (fun e ->
           try Some (evaluate_expr (Expr.unthunk_term_nobox e m))
-          with CatalaException EmptyError -> None)
+          with CatalaException (EmptyError, _) -> None)
         excepts
     with
     | [] -> (
@@ -381,7 +389,7 @@ let rec evaluate_operator
       | ELit (LBool true) ->
         Mark.remove
           (evaluate_expr (Expr.unthunk_term_nobox cons (Mark.get cons)))
-      | ELit (LBool false) -> raise (CatalaException EmptyError)
+      | ELit (LBool false) -> raise (CatalaException (EmptyError, pos))
       | _ ->
         Message.raise_spanned_error pos
           "Default justification has not been reduced to a boolean at \
@@ -389,14 +397,7 @@ let rec evaluate_operator
            %a@."
           Expr.format just)
     | [e] -> Mark.remove e
-    | es ->
-      Message.raise_multispanned_error
-        (List.map
-           (fun except ->
-             Some "This consequence has a valid justification:", Expr.pos except)
-           es)
-        "There is a conflict between multiple valid consequences for assigning \
-         the same variable.")
+    | es -> raise (CatalaException (ConflictError (List.map Expr.pos es), pos)))
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -432,7 +433,8 @@ let rec evaluate_operator
            && EnumConstructor.equal cons Expr.some_constr ->
       e
     | [_] -> err ()
-    | _ -> raise (CatalaException ConflictError))
+    | excs ->
+      raise (CatalaException (ConflictError (List.map Expr.pos excs), pos)))
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
       | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
       | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
@@ -567,7 +569,7 @@ and val_to_runtime :
         let tys = List.map (fun a -> Expr.maybe_ty (Mark.get a)) args in
         val_to_runtime eval_expr ctx tret
           (try eval_expr ctx (EApp { f = v; args; tys }, m)
-           with CatalaException EmptyError -> raise Runtime.EmptyError)
+           with CatalaException (EmptyError, _) -> raise Runtime.EmptyError)
       | targ :: targs ->
         Obj.repr (fun x ->
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
@@ -756,8 +758,7 @@ let rec evaluate_expr :
     | EEmptyError, _ ->
       Message.raise_spanned_error (Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
-         applied in this situation): %a"
-        Expr.format e
+         applied in this situation)"
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -774,18 +775,17 @@ let rec evaluate_expr :
            evaluation (should not happen if the term was well-typed")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
     | _ ->
-      Message.raise_multispanned_error
-        (List.map
-           (fun except ->
-             Some "This consequence has a valid justification:", Expr.pos except)
-           (List.filter (fun sub -> not (is_empty_error sub)) excepts))
-        "There is a conflict between multiple valid consequences for assigning \
-         the same variable.")
+      let poslist =
+        List.filter_map
+          (fun ex -> if is_empty_error ex then None else Some (Expr.pos ex))
+          excepts
+      in
+      raise (CatalaException (ConflictError poslist, pos)))
   | EPureDefault e -> evaluate_expr ctx lang e
-  | ERaise exn -> raise (CatalaException exn)
+  | ERaise exn -> raise (CatalaException (exn, pos))
   | ECatch { body; exn; handler } -> (
     try evaluate_expr ctx lang body
-    with CatalaException caught when Expr.equal_except caught exn ->
+    with CatalaException (caught, _) when Expr.equal_except caught exn ->
       evaluate_expr ctx lang handler)
   | _ -> .
 
@@ -886,6 +886,25 @@ let delcustom e =
      nodes. *)
   Expr.unbox (f e)
 
+let interp_failure_message ~pos = function
+  | NoValueProvided ->
+    Message.raise_spanned_error pos
+      "This variable evaluated to an empty term (no rule that defined it \
+       applied in this situation)"
+  | ConflictError cpos ->
+    Message.raise_multispanned_error
+      (List.map
+         (fun pos -> Some "This consequence has a valid justification:", pos)
+         cpos)
+      "There is a conflict between multiple valid consequences for assigning \
+       the same variable."
+  | Crash ->
+    (* This constructor seems to be never used *)
+    Message.raise_spanned_error pos "Internal error, the interpreter crashed"
+  | EmptyError ->
+    Message.raise_spanned_error pos
+      "Internal error, a variable without valid definition escaped"
+
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let e = Expr.unbox @@ Program.to_expr p s in
@@ -956,6 +975,8 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
+    | exception CatalaException (except, pos) ->
+      interp_failure_message ~pos except
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
         "The interpretation of a program should always yield a struct \
@@ -1011,6 +1032,8 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
+    | exception CatalaException (except, pos) ->
+      interp_failure_message ~pos except
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
         "The interpretation of a program should always yield a struct \

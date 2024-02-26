@@ -88,7 +88,10 @@ let rec optimize_expr :
   (* We proceed bottom-up, first apply on the subterms *)
   let e = Expr.map ~f:(optimize_expr ctx) ~op:Fun.id e in
   let mark = Mark.get e in
-  (* Then reduce the parent node *)
+  (* Fixme: when removing enclosing expressions, it would be better if we were
+     able to keep the inner position (see the division_by_zero test) *)
+  (* Then reduce the parent node (this is applied through Box.apply, therefore
+     delayed to unbinding time: no need to be concerned about reboxing) *)
   let reduce (e : ((a, b) dcalc_lcalc, 'm) gexpr) =
     (* Todo: improve the handling of eapp(log,elit) cases here, it obfuscates
        the matches and the log calls are not preserved, which would be a good

@@ -452,7 +452,7 @@ let rec format_statement
        catala_fatal_error_raised.position.end_column = %d;@,\
        longjmp(catala_fatal_error_jump_buffer, 0);"
       (match e with
-      | ConflictError -> "catala_conflict"
+      | ConflictError _ -> "catala_conflict"
       | EmptyError -> "catala_empty"
       | NoValueProvided -> "catala_no_value_provided"
       | Crash -> "catala_crash")
