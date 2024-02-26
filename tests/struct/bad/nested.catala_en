@@ -13,7 +13,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [WARNING] The constructor "Rec" of enumeration "E" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/struct/bad/nested.catala_en:6.6-6.9:

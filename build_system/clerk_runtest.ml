@@ -16,7 +16,7 @@
 
 open Catala_utils
 
-let run_catala_test catala_exe catala_opts file program args oc =
+let run_catala_test test_flags catala_exe catala_opts file program args oc =
   let cmd_in_rd, cmd_in_wr = Unix.pipe () in
   Unix.set_close_on_exec cmd_in_wr;
   let command_oc = Unix.out_channel_of_descr cmd_in_wr in
@@ -30,6 +30,17 @@ let run_catala_test catala_exe catala_opts file program args oc =
   let cmd =
     match args with
     | cmd0 :: flags ->
+      let cmd0, flags =
+        if String.lowercase_ascii cmd0 = "test-scope" then (
+          match flags with
+          | [scope_name] -> "interpret", ("--scope=" ^ scope_name) :: test_flags
+          | _ ->
+            output_string oc
+              "[INVALID TEST] Invalid test command syntax, the 'test-scope' \
+               pseudo-command takes a single scope as argument\n";
+            "interpret", flags)
+        else cmd0, flags
+      in
       Array.of_list
         ((catala_exe :: cmd0 :: catala_opts) @ flags @ ["--name=" ^ file; "-"])
     | [] -> Array.of_list ((catala_exe :: catala_opts) @ [file])
@@ -58,7 +69,7 @@ let run_catala_test catala_exe catala_opts file program args oc =
 
 (** Directly runs the test (not using ninja, this will be called by ninja rules
     through the "clerk runtest" command) *)
-let run_inline_tests catala_exe catala_opts filename =
+let run_inline_tests catala_exe catala_opts test_flags filename =
   let module L = Surface.Lexer_common in
   let lang =
     match Clerk_scan.get_lang filename with
@@ -105,7 +116,8 @@ let run_inline_tests catala_exe catala_opts filename =
           in
           Queue.to_seq lines_until_now |> drop_last |> drop_last
         in
-        run_catala_test catala_exe catala_opts filename program args oc;
+        run_catala_test test_flags catala_exe catala_opts filename program args
+          oc;
         skip_block lines)
   and skip_block lines =
     match Seq.uncons lines with

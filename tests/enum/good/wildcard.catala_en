@@ -45,26 +45,14 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Simple_case_2
+$ catala test-scope Simple_case_2
 [RESULT] Computation successful! Results:
 [RESULT] x = Case3 ()
 [RESULT] y = 31
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Simple_case
-[RESULT] Computation successful! Results:
-[RESULT] x = Case1 2
-[RESULT] y = 31
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s Simple_case_2 --avoid-exceptions --optimize
-[RESULT] Computation successful! Results:
-[RESULT] x = Case3 ()
-[RESULT] y = 31
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s Simple_case --avoid-exceptions --optimize
+$ catala test-scope Simple_case
 [RESULT] Computation successful! Results:
 [RESULT] x = Case1 2
 [RESULT] y = 31

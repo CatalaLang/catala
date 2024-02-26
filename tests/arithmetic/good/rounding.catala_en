@@ -45,20 +45,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] o = false
 ```
-
-```catala-test-inline
-$ catala Interpret -s A
-[RESULT] Computation successful! Results:
-[RESULT] o = false
-```
-
-```catala-test-inline
-$ catala Interpret_Lcalc -s A
-[RESULT] Computation successful! Results:
-[RESULT] o = false
-```
-

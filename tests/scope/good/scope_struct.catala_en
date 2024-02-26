@@ -30,7 +30,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala interpret -s Foo
+$ catala test-scope Foo
 [RESULT] Computation successful! Results:
 [RESULT] example = SubFoo { -- z1: 4 -- z2: 0 }
 ```

@@ -14,7 +14,7 @@ scope B:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 The subscope a is used when defining one of its inputs, but recursion is forbidden in Catala
 

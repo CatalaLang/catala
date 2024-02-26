@@ -31,12 +31,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test
-[RESULT] Computation successful! Results:
-[RESULT] r = vrai
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s Test --avoid-exceptions --optimize
+$ catala test-scope Test
 [RESULT] Computation successful! Results:
 [RESULT] r = vrai
 ```

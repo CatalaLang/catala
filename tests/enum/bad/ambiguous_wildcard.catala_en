@@ -16,7 +16,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 Couldn't infer the enumeration name from lonely wildcard (wildcard cannot be used as single match case)
 

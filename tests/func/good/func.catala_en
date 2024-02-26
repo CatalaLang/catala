@@ -30,12 +30,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s R
-[RESULT] Computation successful! Results:
-[RESULT] r = 30
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s R --avoid-exceptions --optimize
+$ catala test-scope R
 [RESULT] Computation successful! Results:
 [RESULT] r = 30
 ```

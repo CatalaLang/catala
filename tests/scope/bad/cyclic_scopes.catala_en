@@ -17,7 +17,7 @@ scope B:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 Cyclic dependency detected between the following scopes: B → A → B
 

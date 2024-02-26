@@ -22,13 +22,15 @@ scope R:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s R
+$ catala test-scope R
 [RESULT] Computation successful! Results:
 [RESULT] r = 30
 ```
 
+Note: ideally this could use test-scope but some positions are lost during translation to lcalc
+
 ```catala-test-inline
-$ catala Interpret -s S
+$ catala interpret -s S
 [ERROR]
 There is a conflict between multiple valid consequences for assigning the same variable.
 

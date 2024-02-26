@@ -32,18 +32,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
-[RESULT] Computation successful! Results:
-[RESULT] m = [11874 days]
-[RESULT] m2 = [6 months]
-[RESULT] x = 2019-01-01
-[RESULT] y = 2002-09-30
-[RESULT] z = true
-[RESULT] z2 = true
-[RESULT] z3 = [5937 days]
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] m = [11874 days]
 [RESULT] m2 = [6 months]

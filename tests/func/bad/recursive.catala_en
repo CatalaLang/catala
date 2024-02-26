@@ -9,7 +9,7 @@ scope RecursiveFunc:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s RecursiveFunc
+$ catala test-scope RecursiveFunc
 [ERROR]
 The variable f is used in one of its definitions, but recursion is forbidden in Catala
 

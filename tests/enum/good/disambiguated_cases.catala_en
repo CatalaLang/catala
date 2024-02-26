@@ -30,14 +30,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
-[RESULT] Computation successful! Results:
-[RESULT] e = Case1 ()
-[RESULT] f = Case1 2
-[RESULT] x = 2
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] e = Case1 ()
 [RESULT] f = Case1 2

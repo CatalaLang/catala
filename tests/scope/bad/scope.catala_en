@@ -14,8 +14,10 @@ scope A:
   definition b under condition not c consequence equals 0
 ```
 
+Note: ideally this could use test-scope but some positions are lost during translation to lcalc
+
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala interpret -s A
 [ERROR]
 There is a conflict between multiple valid consequences for assigning the same variable.
 

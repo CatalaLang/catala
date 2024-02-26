@@ -15,7 +15,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 This constructor name is ambiguous, it can belong to E or F. Desambiguate it by prefixing it with the enum name.
 

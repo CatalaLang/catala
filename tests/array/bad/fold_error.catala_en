@@ -11,7 +11,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 I don't know how to apply operator >= on types integer and
 money

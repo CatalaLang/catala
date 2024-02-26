@@ -21,14 +21,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
-[RESULT] Computation successful! Results:
-[RESULT] x = $123.54
-[RESULT] y = $8,548,650.96
-[RESULT] z = $7.23
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] x = $123.54
 [RESULT] y = $8,548,650.96

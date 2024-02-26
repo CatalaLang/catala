@@ -193,7 +193,7 @@ CLERK_OPTS?=--makeflags="$(MAKEFLAGS)"
 CATALA_BIN=_build/default/$(COMPILER_DIR)/catala.exe
 CLERK_BIN=_build/default/$(BUILD_SYSTEM_DIR)/clerk.exe
 
-CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
+CLERK_TEST=$(CLERK_BIN) test --exe $(CATALA_BIN) \
 	$(CLERK_OPTS) $(if $(CATALA_OPTS),--catala-opts=$(CATALA_OPTS),)
 
 
@@ -202,12 +202,30 @@ CLERK=$(CLERK_BIN) --exe $(CATALA_BIN) \
 unit-tests: .FORCE
 	dune build @for-tests @runtest
 
-#> tests					: Run interpreter tests
-tests: .FORCE unit-tests
-	@$(MAKE) -C tests pass_all_tests
+#> test					: Run interpreter tests
+test: .FORCE
+	$(CLERK_TEST)
+
+tests: test
+
+TEST_FLAGS_LIST = \
+-O \
+--lcalc \
+--lcalc,--avoid-exceptions,-O
+
+#> testsuite				: Run interpreter tests over a selection of configurations
+testsuite: .FORCE unit-tests
+	@for F in $(TEST_FLAGS_LIST); do \
+	  echo >&2; \
+	  echo ">> RUNNING TESTS WITH FLAGS: $$F" >&2; \
+	  $(CLERK_TEST) --test-flags="$$F" || break; \
+	done
+
+reset-tests: .FORCE
+	$(CLERK_TEST) --reset
 
 tests/%: .FORCE
-	@$(MAKE) -C tests $*
+	$(CLERK_TEST) test $@
 
 ##########################################
 # Website assets
@@ -275,7 +293,7 @@ local_tmp_clone = { \
 alltest: dependencies-python
 	@export DUNE_PROFILE=check && \
 	dune build @update-parser-messages @install @runtest && \
-	$(CLERK_BIN) test tests && \
+	$(MAKE) testsuite && \
 	$(call local_tmp_clone,catala-examples) && \
 	$(CLERK_BIN) test catala-examples.tmp && \
 	$(call local_tmp_clone,french-law) && \

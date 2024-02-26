@@ -17,7 +17,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [WARNING] The constructor "Case3" of enumeration "E" is never used; maybe it's unnecessary?
 
 ┌─⯈ tests/enum/bad/missing_case.catala_en:7.6-7.11:

@@ -38,13 +38,7 @@ $ catala typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala interpret -s Test
-[RESULT] Computation successful! Results:
-[RESULT] o = (2001-01-03, 6.0)
-```
-
-```catala-test-inline
-$ catala interpret_lcalc -s Test
+$ catala test-scope Test
 [RESULT] Computation successful! Results:
 [RESULT] o = (2001-01-03, 6.0)
 ```

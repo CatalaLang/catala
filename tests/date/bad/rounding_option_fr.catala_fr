@@ -11,7 +11,7 @@ champ d'application Test:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test
+$ catala test-scope Test
 [ERROR] Unexpected error: Dates_calc.Dates.AmbiguousComputation
 #return code 125#
 ```

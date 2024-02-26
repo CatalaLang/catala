@@ -41,7 +41,7 @@ $ catala typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala interpret -s S
+$ catala test-scope S
 [RESULT] Computation successful! Results:
 [RESULT]
 result =

@@ -19,7 +19,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 The constructor Case3 has been matched twice:
 

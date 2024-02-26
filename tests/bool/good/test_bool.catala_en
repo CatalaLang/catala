@@ -42,7 +42,7 @@ TestBool
 ```
 
 ```catala-test-inline
-$ catala Interpret -s TestBool
+$ catala test-scope TestBool
 [RESULT] Computation successful! Results:
 [RESULT] bar = 1
 [RESULT] foo = true
@@ -61,10 +61,4 @@ let scope TestBool (foo: ⟨bool⟩|context|output) (bar: ⟨integer⟩|context|
     error_empty ⟨ ⟨true ⊢ ⟨1⟩⟩ | false ⊢ ∅ ⟩;
   let foo : bool = reentrant or by default
     error_empty ⟨ ⟨bar >= 0 ⊢ ⟨true⟩⟩, ⟨bar < 0 ⊢ ⟨false⟩⟩ | false ⊢ ∅ ⟩
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s TestBool --avoid-exceptions --optimize
-[RESULT] Computation successful! Results:
-[RESULT] bar = 1
-[RESULT] foo = true
 ```

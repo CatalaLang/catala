@@ -28,7 +28,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s S
+$ catala test-scope S
 [RESULT] Computation successful! Results:
 [RESULT] a = 1,946.574,4
 [RESULT] b = A { -- y: true -- z: 2,091.0 }
@@ -49,7 +49,7 @@ scope S2:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s S2
+$ catala test-scope S2
 [RESULT] Computation successful! Results:
 [RESULT] a = 154.0
 ```
@@ -69,7 +69,7 @@ scope S3:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s S3
+$ catala test-scope S3
 [RESULT] Computation successful! Results:
 [RESULT] a = 2,480.0
 ```
@@ -92,7 +92,7 @@ scope S4:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s S4
+$ catala test-scope S4
 [RESULT] Computation successful! Results:
 [RESULT] a = 6,001.0
 ```
@@ -566,25 +566,4 @@ def s(s_in:SIn):
                                              law_headings=["Test basic toplevel values defs"]))
     b = temp_b_5
     return S(a = a_3, b = b)
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s S --avoid-exceptions --optimize
-[RESULT] Computation successful! Results:
-[RESULT] a = 1,946.574,4
-[RESULT] b = A { -- y: true -- z: 2,091.0 }
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s S2 --avoid-exceptions --optimize
-[RESULT] Computation successful! Results:
-[RESULT] a = 154.0
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s S3 --avoid-exceptions --optimize
-[RESULT] Computation successful! Results:
-[RESULT] a = 2,480.0
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s S4 --avoid-exceptions --optimize
-[RESULT] Computation successful! Results:
-[RESULT] a = 6,001.0
 ```

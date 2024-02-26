@@ -15,7 +15,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 Cyclic dependency detected between the following variables of scope A:
   z → x → y → z

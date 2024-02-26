@@ -26,24 +26,13 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] x = [$0.00; $9.00; $5.20]
 ```
 
 ```catala-test-inline
-$ catala Interpret -s B
-[RESULT] Computation successful! Results:
-[RESULT] y = [$9.00; $5.20]
-[RESULT] z = [false; true; true]
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
-[RESULT] Computation successful! Results:
-[RESULT] x = [$0.00; $9.00; $5.20]
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
+$ catala test-scope B
 [RESULT] Computation successful! Results:
 [RESULT] y = [$9.00; $5.20]
 [RESULT] z = [false; true; true]

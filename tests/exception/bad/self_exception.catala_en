@@ -11,7 +11,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 Cannot define rule as an exception to itself
 

@@ -28,7 +28,7 @@ int main(void) { return 0; }
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = prawda
 ```

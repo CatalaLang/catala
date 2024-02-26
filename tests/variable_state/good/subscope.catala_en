@@ -51,13 +51,7 @@ let scope A (foo_bar: ⟨integer⟩|context) (foo_baz: integer|internal)
 ```
 
 ```catala-test-inline
-$ catala Interpret -s B
-[RESULT] Computation successful! Results:
-[RESULT] foofoo = 4
-[RESULT] foofoofoo = 6
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
+$ catala test-scope B
 [RESULT] Computation successful! Results:
 [RESULT] foofoo = 4
 [RESULT] foofoofoo = 6

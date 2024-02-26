@@ -24,14 +24,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala interpret -s A
-[RESULT] Computation successful! Results:
-[RESULT] bar = 5
-[RESULT] foo = 6
-```
-
-```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] bar = 5
 [RESULT] foo = 6

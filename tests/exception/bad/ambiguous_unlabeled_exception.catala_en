@@ -14,7 +14,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 This exception can refer to several definitions. Try using labels to disambiguate
 

@@ -19,7 +19,7 @@ definition y equals x with pattern Case3
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 Error during typechecking, incompatible types:
 ┌─⯈ E

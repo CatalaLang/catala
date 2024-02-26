@@ -30,26 +30,13 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] x = [0; 9; 64]
 ```
 
 ```catala-test-inline
-$ catala Interpret -s B
-[RESULT] Computation successful! Results:
-[RESULT] v = 3
-[RESULT] w = true
-[RESULT] y = true
-[RESULT] z = false
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
-[RESULT] Computation successful! Results:
-[RESULT] x = [0; 9; 64]
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
+$ catala test-scope B
 [RESULT] Computation successful! Results:
 [RESULT] v = 3
 [RESULT] w = true
