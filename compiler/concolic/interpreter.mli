@@ -19,36 +19,7 @@
 
 open Catala_utils
 open Shared_ast
-
-module SymbExpr : sig
-  type z3_expr = Z3.Expr.expr
-  type reentrant = { name : StructField.t; symbol : z3_expr }
-
-  module RuntimeError : sig
-    type span = string option * Pos.t
-    type span_list = span list
-
-    type runtime_error =
-      | EmptyError
-      | ConflictError of { spans : span_list }
-      | DivisionByZeroError of { spans : span_list }
-      | AssertionError
-
-    type message = string
-
-    type t = {
-      except : runtime_error; (* TODO use actual exceptions from [Runtime]? *)
-      message : message; (* TODO use formatted stuff instead *)
-    }
-  end
-
-  type t =
-    | Symb_z3 of z3_expr
-    | Symb_reentrant of reentrant
-      (* only for the lambda expression corresponding to a reentrant variable *)
-    | Symb_none
-    | Symb_error of RuntimeError.t (* only for generic errors *)
-end
+open Symb_expr
 
 type s_expr = SymbExpr.z3_expr
 type reentrant = { name : StructField.t; is_empty : bool }
