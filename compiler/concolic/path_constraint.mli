@@ -44,6 +44,10 @@ module PathConstraint : sig
 
   (** {2 Printing} *)
 
-  val print_path_constraints : naked_path -> unit
-  val print_annotated_path_constraints : annotated_path -> unit
+  module Print : sig
+    open Format
+
+    val naked_path : formatter -> naked_path -> unit
+    val annotated_path : formatter -> annotated_path -> unit
+  end
 end

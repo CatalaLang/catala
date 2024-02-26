@@ -117,40 +117,36 @@ module PathConstraint = struct
         "[make_expected_path] found a negated constraint, which should not \
          happen"
 
-  (* TODO use formatter for those *)
-  let string_of_pc_expr (e : pc_expr) : string =
-    match e with
-    | Pc_z3 e -> Z3.Expr.to_string e
-    | Pc_reentrant { symb = { name; _ }; is_empty } ->
-      (if is_empty then "Empty(" else "NotEmpty(")
-      ^ Mark.remove (StructField.get_info name)
-      ^ ")"
+  module Print = struct
+    open Format
 
-  let string_of_path_constraint (pc : naked_pc) : string =
-    string_of_pc_expr pc.expr
-    ^
-    if Cli.globals.debug then
-      "@" ^ Pos.to_string_short pc.pos ^ " {" ^ string_of_bool pc.branch ^ "}"
-    else ""
+    let pc_expr (fmt : formatter) (e : pc_expr) : unit =
+      match e with
+      | Pc_z3 e -> pp_print_string fmt (Z3.Expr.to_string e)
+      | Pc_reentrant { symb = { name; _ }; is_empty } ->
+        fprintf fmt "%s(%s)"
+          (if is_empty then "Empty" else "NotEmpty")
+          (Mark.remove (StructField.get_info name))
 
-  let print_path_constraints (pcs : naked_path) : unit =
-    let pp_sep fmt () = Format.fprintf fmt "\n" in
-    Message.emit_debug "Path constraints after evaluation:\n%a"
-      (Format.pp_print_list ~pp_sep Format.pp_print_string)
-      (List.map string_of_path_constraint pcs)
+    let pc_debug_info (fmt : formatter) (pc : naked_pc) : unit =
+      if Cli.globals.debug then
+        fprintf fmt "@%s {%B}" (Pos.to_string_short pc.pos) pc.branch
 
-  let print_annotated_path_constraints constraints : unit =
-    if constraints = [] then Message.emit_debug "No constraints"
-    else begin
-      let pp_sep fmt () = Format.fprintf fmt "\n" in
-      let aux apc =
-        match apc with
-        | Normal pc -> "       " ^ string_of_path_constraint pc
-        | Done pc -> "DONE   " ^ string_of_path_constraint pc
-        | Negated pc -> "NEGATE " ^ string_of_path_constraint pc
-      in
-      Message.emit_debug "Trying new path constraints:\n%a"
-        (Format.pp_print_list ~pp_sep Format.pp_print_string)
-        (List.map aux constraints)
-    end
+    let naked_pc (fmt : formatter) (pc : naked_pc) : unit =
+      fprintf fmt "%a%a" pc_expr pc.expr pc_debug_info pc
+
+    let naked_path (fmt : formatter) (pcs : naked_path) : unit =
+      pp_print_list naked_pc fmt pcs
+
+    let annotated_pc (fmt : formatter) (apc : annotated_pc) : unit =
+      let print s pc = fprintf fmt s naked_pc pc in
+      match apc with
+      | Normal pc -> print "       %a" pc
+      | Done pc -> print "DONE   %a" pc
+      | Negated pc -> print "NEGATE %a" pc
+
+    let annotated_path (fmt : formatter) (pcs : annotated_path) : unit =
+      if pcs = [] then pp_print_string fmt "[No constraints]"
+      else pp_print_list annotated_pc fmt pcs
+  end
 end

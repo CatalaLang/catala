@@ -2508,7 +2508,8 @@ let interpret_program_concolic
         : Stats.t =
       let exec = Stats.start_exec (List.length previous_path) in
       Message.emit_debug "";
-      PathConstraint.print_annotated_path_constraints previous_path;
+      Message.emit_debug "Trying new path constraints:@ @[<v>%a@]"
+        PathConstraint.Print.annotated_path previous_path;
       let s_extract_constraints =
         Stats.start_step "extract solver constraints"
       in
@@ -2549,7 +2550,8 @@ let interpret_program_concolic
           Optimizations.remove_trivial_constraints optims res_path_constraints
         in
 
-        PathConstraint.print_path_constraints res_path_constraints;
+        Message.emit_debug "Path constraints after evaluation:@.@[<v>%a@]"
+          PathConstraint.Print.naked_path res_path_constraints;
 
         Message.emit_result "Output of scope after evaluation:";
         begin
