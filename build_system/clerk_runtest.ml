@@ -31,15 +31,17 @@ let run_catala_test test_flags catala_exe catala_opts file program args oc =
     match args with
     | cmd0 :: flags ->
       let cmd0, flags =
-        if String.lowercase_ascii cmd0 = "test-scope" then (
-          match flags with
-          | [scope_name] -> "interpret", ("--scope=" ^ scope_name) :: test_flags
-          | _ ->
-            output_string oc
-              "[INVALID TEST] Invalid test command syntax, the 'test-scope' \
-               pseudo-command takes a single scope as argument\n";
-            "interpret", flags)
-        else cmd0, flags
+        match String.lowercase_ascii cmd0, flags, test_flags with
+        | "test-scope", scope_name :: flags, test_flags ->
+          "interpret", (("--scope=" ^ scope_name) :: flags) @ test_flags
+        | "test-scope", [], _ ->
+          output_string oc
+            "[INVALID TEST] Invalid test command syntax, the 'test-scope' \
+             pseudo-command takes a scope name as first argument\n";
+          "interpret", test_flags
+        | cmd0, flags, [] -> cmd0, flags
+        | _, _, _ :: _ ->
+          raise Exit (* Skip other tests when test-flags is specified *)
       in
       Array.of_list
         ((catala_exe :: cmd0 :: catala_opts) @ flags @ ["--name=" ^ file; "-"])
@@ -103,7 +105,7 @@ let run_inline_tests catala_exe catala_opts test_flags filename =
           "[INVALID TEST] Invalid test command syntax, must match '$ catala \
            <args>'\n";
         skip_block lines
-      | Some args ->
+      | Some args -> (
         let args = String.split_on_char ' ' args in
         let program =
           let rec drop_last seq () =
@@ -116,9 +118,12 @@ let run_inline_tests catala_exe catala_opts test_flags filename =
           in
           Queue.to_seq lines_until_now |> drop_last |> drop_last
         in
-        run_catala_test test_flags catala_exe catala_opts filename program args
-          oc;
-        skip_block lines)
+        match
+          run_catala_test test_flags catala_exe catala_opts filename program
+            args oc
+        with
+        | () -> skip_block lines
+        | exception Exit -> process lines))
   and skip_block lines =
     match Seq.uncons lines with
     | None -> ()

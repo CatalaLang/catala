@@ -203,7 +203,7 @@ unit-tests: .FORCE
 	dune build @for-tests @runtest
 
 #> test					: Run interpreter tests
-test: .FORCE compiler
+test: .FORCE unit-tests
 	$(CLERK_TEST)
 
 tests: test
@@ -213,15 +213,20 @@ TEST_FLAGS_LIST = ""\
 --lcalc \
 --lcalc,--avoid-exceptions,-O
 
-#> testsuite				: Run interpreter tests over a selection of configurations
-testsuite: .FORCE unit-tests
+# Does not include running dune (to avoid duplication when run among bigger rules)
+testsuite-base: .FORCE
 	@for F in $(TEST_FLAGS_LIST); do \
 	  echo >&2; \
-	  echo ">> RUNNING TESTS WITH FLAGS: $$F" >&2; \
+	  [ -z "$$F" ] || echo ">> RE-RUNNING TESTS WITH FLAGS: $$F" >&2; \
 	  $(CLERK_TEST) --test-flags="$$F" || break; \
 	done
 
-reset-tests: .FORCE
+#> testsuite				: Run interpreter tests over a selection of configurations
+testsuite: unit-tests
+	$(MAKE) testsuite-base
+
+#> reset-tests				: Update the expected test results from current run
+reset-tests: .FORCE $(CLERK_BIN)
 	$(CLERK_TEST) --reset
 
 tests/%: .FORCE
@@ -248,7 +253,7 @@ WEBSITE_ASSETS_ALL = $(WEBSITE_ASSETS) $(addprefix catala-examples.tmp/,$(WEBSIT
 
 website-assets-base: build
 	$(call local_tmp_clone,catala-examples) && \
-	dune build $(addprefix _build/default/,$(WEBSITE_ASSETS_ALL))
+	dune build $(addprefix _build/default/,$(WEBSITE_ASSETS_ALL)) --profile=release
 
 website-assets.tar:
 	# $(MAKE) DUNE_PROFILE=release website-assets-base

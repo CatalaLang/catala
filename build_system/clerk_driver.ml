@@ -67,9 +67,12 @@ module Cli = struct
           ~doc:
             "Flags to pass to the catala interpreter on $(b,catala test-scope) \
              tests. Comma-separated list. A subset may also be applied to the \
-             compilation of modules, as needed. WARNING: flag shortcuts are \
-             not allowed here (i.e. don't use non-ambiguous prefixes such as \
-             $(b,--avoid-ex) for $(b,--avoid-exceptions))")
+             compilation of modules, as needed.\n\
+             WARNING: flag shortcuts are not allowed here (i.e. don't use \
+             non-ambiguous prefixes such as $(b,--avoid-ex) for \
+             $(b,--avoid-exceptions))\n\
+             NOTE: if this is set, all inline tests that are $(i,not) \
+             $(b,catala test-scope) are skipped to avoid redundant testing.")
 
   module Global : sig
     val term :
