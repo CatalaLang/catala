@@ -20,15 +20,13 @@
 open Catala_utils
 open Shared_ast
 open Symb_expr
+open Path_constraint
 
 type s_expr = SymbExpr.z3_expr
-type reentrant = { name : StructField.t; is_empty : bool }
-type pc_expr = Pc_z3 of s_expr | Pc_reentrant of reentrant
-type path_constraint = { expr : pc_expr; pos : Pos.t; branch : bool }
 
 type _conc_info = {
   symb_expr : SymbExpr.t;
-  constraints : path_constraint list;
+  constraints : PathConstraint.naked_path;
   ty : typ option;
 }
 
