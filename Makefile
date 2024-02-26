@@ -203,12 +203,12 @@ unit-tests: .FORCE
 	dune build @for-tests @runtest
 
 #> test					: Run interpreter tests
-test: .FORCE
+test: .FORCE compiler
 	$(CLERK_TEST)
 
 tests: test
 
-TEST_FLAGS_LIST = \
+TEST_FLAGS_LIST = ""\
 -O \
 --lcalc \
 --lcalc,--avoid-exceptions,-O
