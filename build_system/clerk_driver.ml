@@ -278,10 +278,7 @@ module Poll = struct
         Some root
       | _ -> None)
 
-  let exec_dir : File.t =
-    (* Do not use Sys.executable_name, which may resolve symlinks: we want the
-       original path. (e.g. _build/install/default/bin/foo is a symlink) *)
-    Filename.dirname Sys.argv.(0)
+  let exec_dir : File.t = Catala_utils.Cli.exec_dir
 
   let clerk_exe : File.t Lazy.t = lazy (Unix.realpath Sys.executable_name)
 

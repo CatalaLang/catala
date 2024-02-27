@@ -154,3 +154,8 @@ val s_plugins : string
 exception Exit_with of int
 (** Exit with a specific exit code (but less brutally than [Sys.exit] which
     would bypass all finalisers) *)
+
+(** {2 Other helpers} *)
+
+val exec_dir : file
+(** Returns the directory of the currently running executable *)

@@ -113,6 +113,15 @@ let file_lang filename =
          @{<yellow>%s@}, and @{<bold>--language@} was not specified"
         filename)
 
+let exec_dir =
+  let cmd = Sys.argv.(0) in
+  if String.contains cmd '/' then
+    (* Do not use Sys.executable_name, which may resolve symlinks: we want the
+       original path. (e.g. _build/install/default/bin/foo is a symlink) *)
+    Filename.dirname cmd
+  else (* searched in PATH *)
+    Filename.dirname Sys.executable_name
+
 let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
   if Filename.is_relative from_dir then invalid_arg "File.with_reverse_path"
   else if not (Filename.is_relative f) then f
@@ -225,7 +234,6 @@ module Flags = struct
       let env = Cmd.Env.info "CATALA_PLUGINS" in
       let default =
         let ( / ) = Filename.concat in
-        let exec_dir = Filename.(dirname Sys.argv.(0)) in
         let dev_plugin_dir = exec_dir / "plugins" in
         if Sys.file_exists dev_plugin_dir then
           (* When running tests in place, may need to lookup in _build/default
