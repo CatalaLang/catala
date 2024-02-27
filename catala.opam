@@ -19,7 +19,6 @@ homepage: "https://github.com/CatalaLang/catala"
 bug-reports: "https://github.com/CatalaLang/catala/issues"
 depends: [
   "ocolor" {>= "1.3.0"}
-  "benchmark" {>= "1.6"}
   "bindlib" {>= "5.0.1"}
   "cmdliner" {>= "1.1.0"}
   "cppo" {>= "1"}

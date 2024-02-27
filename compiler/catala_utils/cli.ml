@@ -340,10 +340,18 @@ module Flags = struct
   end
 
   let include_dirs =
-    value
-    & opt_all string []
-    & info ["I"; "include"] ~docv:"DIR"
-        ~doc:"Include directory to lookup for compiled module files."
+    let arg =
+      Arg.(
+        value
+        & opt_all (list ~sep:':' string) []
+        & info ["I"; "include"] ~docv:"DIR"
+            ~env:(Cmd.Env.info "CATALA_INCLUDE")
+            ~doc:
+              "Make modules from the given directory available from \
+               everywhere. Several dirs can be specified by repeating the flag \
+               or separating them with '$(b,:)'.")
+    in
+    Term.(const List.flatten $ arg)
 
   let check_invariants =
     value

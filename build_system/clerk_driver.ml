@@ -51,12 +51,18 @@ module Cli = struct
              to '_build'.")
 
   let include_dirs =
-    Arg.(
-      value
-      & opt_all string []
-      & info ["I"; "include"] ~docv:"DIR"
-          ~doc:
-            "Make modules from the given directory available from everywhere.")
+    let arg =
+      Arg.(
+        value
+        & opt_all (list ~sep:':' string) []
+        & info ["I"; "include"] ~docv:"DIR"
+            ~env:(Cmd.Env.info "CATALA_INCLUDE")
+            ~doc:
+              "Make modules from the given directory available from \
+               everywhere. Several dirs can be specified by repeating the flag \
+               or separating them with '$(b,:)'.")
+    in
+    Term.(const List.flatten $ arg)
 
   let test_flags =
     Arg.(
@@ -279,7 +285,6 @@ module Poll = struct
       | _ -> None)
 
   let exec_dir : File.t = Catala_utils.Cli.exec_dir
-
   let clerk_exe : File.t Lazy.t = lazy (Unix.realpath Sys.executable_name)
 
   let catala_exe : File.t Lazy.t =
