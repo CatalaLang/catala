@@ -32,7 +32,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] a = -1
 [RESULT] a_base = 1
@@ -40,20 +40,7 @@ $ catala Interpret -s A
 ```
 
 ```catala-test-inline
-$ catala Interpret -s B
-[RESULT] Computation successful! Results:
-[RESULT] a = 42
-[RESULT] b = true
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
-[RESULT] Computation successful! Results:
-[RESULT] a = -1
-[RESULT] a_base = 1
-[RESULT] b = false
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
+$ catala test-scope B
 [RESULT] Computation successful! Results:
 [RESULT] a = 42
 [RESULT] b = true

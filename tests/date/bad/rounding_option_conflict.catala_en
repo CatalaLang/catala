@@ -24,7 +24,7 @@ scope Test:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Test
+$ catala test-scope Test
 [ERROR]
 You cannot set multiple date rounding modes
 

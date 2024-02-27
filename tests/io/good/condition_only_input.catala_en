@@ -33,10 +33,6 @@ let scope B (B_in: B_in): B =
 ```
 
 ```catala-test-inline
-$ catala Interpret -s B
-[RESULT] Computation successful!
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s B --avoid-exceptions --optimize
+$ catala test-scope B
 [RESULT] Computation successful!
 ```

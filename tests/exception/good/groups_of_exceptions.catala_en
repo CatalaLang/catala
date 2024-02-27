@@ -49,7 +49,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala interpret -s Test
+$ catala test-scope Test
 [RESULT] Computation successful! Results:
 [RESULT] x = 2
 ```

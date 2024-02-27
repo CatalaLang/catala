@@ -32,6 +32,7 @@ type 'm ctxt = {
   inside_definition_of : A.VarName.t option;
   context_name : string;
   config : translation_config;
+  program_ctx : A.ctx;
 }
 
 let unthunk e =
@@ -65,7 +66,11 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
               (Var.Map.keys ctxt.var_dict))
       in
       [], (local_var, Expr.pos expr)
-    | EStruct { fields; name } when not ctxt.config.no_struct_literals ->
+    | EStruct { fields; name } ->
+      if ctxt.config.no_struct_literals then
+        (* In C89, struct literates have to be initialized at variable
+           definition... *)
+        raise (NotAnExpr { needs_a_local_decl = false });
       let args_stmts, new_args =
         StructField.Map.fold
           (fun field arg (args_stmts, new_args) ->
@@ -76,11 +81,11 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       in
       let args_stmts = List.rev args_stmts in
       args_stmts, (A.EStruct { fields = new_args; name }, Expr.pos expr)
-    | EStruct _ when ctxt.config.no_struct_literals ->
-      (* In C89, struct literates have to be initialized at variable
-         definition... *)
-      raise (NotAnExpr { needs_a_local_decl = false })
-    | EInj { e = e1; cons; name } when not ctxt.config.no_struct_literals ->
+    | EInj { e = e1; cons; name } ->
+      if ctxt.config.no_struct_literals then
+        (* In C89, struct literates have to be initialized at variable
+           definition... *)
+        raise (NotAnExpr { needs_a_local_decl = false });
       let e1_stmts, new_e1 = translate_expr ctxt e1 in
       ( e1_stmts,
         ( A.EInj
@@ -91,10 +96,6 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
               expr_typ = Expr.maybe_ty (Mark.get expr);
             },
           Expr.pos expr ) )
-    | EInj _ when ctxt.config.no_struct_literals ->
-      (* In C89, struct literates have to be initialized at variable
-         definition... *)
-      raise (NotAnExpr { needs_a_local_decl = false })
     | ETuple args ->
       let args_stmts, new_args =
         List.fold_left
@@ -212,7 +213,20 @@ let rec translate_expr (ctxt : 'm ctxt) (expr : 'm L.expr) : A.block * A.expr =
       let new_args = List.rev new_args in
       args_stmts, (A.EArray new_args, Expr.pos expr)
     | ELit l -> [], (A.ELit l, Expr.pos expr)
-    | _ -> raise (NotAnExpr { needs_a_local_decl = true })
+    | EExternal { name } ->
+      let path, name =
+        match Mark.remove name with
+        | External_value name -> TopdefName.(path name, get_info name)
+        | External_scope name -> ScopeName.(path name, get_info name)
+      in
+      let modname =
+        ( ModuleName.Map.find (List.hd (List.rev path)) ctxt.program_ctx.modules,
+          Expr.pos expr )
+      in
+      [], (EExternal { modname; name }, Expr.pos expr)
+    | ECatch _ | EAbs _ | EIfThenElse _ | EMatch _ | EAssert _ | ERaise _ ->
+      raise (NotAnExpr { needs_a_local_decl = true })
+    | _ -> .
   with NotAnExpr { needs_a_local_decl } ->
     let tmp_var =
       A.VarName.fresh
@@ -542,7 +556,8 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
             },
           Expr.pos block_expr );
       ]
-  | _ -> (
+  | ELit _ | EAppOp _ | EArray _ | EVar _ | EStruct _ | EInj _ | ETuple _
+  | ETupleAccess _ | EStructAccess _ | EExternal _ | EApp _ -> (
     let e_stmts, new_e = translate_expr ctxt block_expr in
     e_stmts
     @
@@ -565,27 +580,28 @@ and translate_statements (ctxt : 'm ctxt) (block_expr : 'm L.expr) : A.block =
               }),
           Expr.pos block_expr );
       ])
+  | _ -> .
 
 let rec translate_scope_body_expr
     ~(config : translation_config)
     (scope_name : ScopeName.t)
-    (decl_ctx : decl_ctx)
+    (program_ctx : A.ctx)
     (var_dict : ('m L.expr, A.VarName.t) Var.Map.t)
     (func_dict : ('m L.expr, A.FuncName.t) Var.Map.t)
     (scope_expr : 'm L.expr scope_body_expr) : A.block =
+  let ctx =
+    {
+      func_dict;
+      var_dict;
+      inside_definition_of = None;
+      context_name = Mark.remove (ScopeName.get_info scope_name);
+      config;
+      program_ctx;
+    }
+  in
   match scope_expr with
   | Last e ->
-    let block, new_e =
-      translate_expr
-        {
-          func_dict;
-          var_dict;
-          inside_definition_of = None;
-          context_name = Mark.remove (ScopeName.get_info scope_name);
-          config;
-        }
-        e
-    in
+    let block, new_e = translate_expr ctx e in
     block @ [A.SReturn (Mark.remove new_e), Mark.get new_e]
   | Cons (scope_let, next_bnd) ->
     let let_var, scope_let_next = Bindlib.unbind next_bnd in
@@ -596,24 +612,12 @@ let rec translate_scope_body_expr
     (match scope_let.scope_let_kind with
     | Assertion ->
       translate_statements
-        {
-          func_dict;
-          var_dict;
-          inside_definition_of = Some let_var_id;
-          context_name = Mark.remove (ScopeName.get_info scope_name);
-          config;
-        }
+        { ctx with inside_definition_of = Some let_var_id }
         scope_let.scope_let_expr
     | _ ->
       let let_expr_stmts, new_let_expr =
         translate_expr
-          {
-            func_dict;
-            var_dict;
-            inside_definition_of = Some let_var_id;
-            context_name = Mark.remove (ScopeName.get_info scope_name);
-            config;
-          }
+          { ctx with inside_definition_of = Some let_var_id }
           scope_let.scope_let_expr
       in
       let_expr_stmts
@@ -632,11 +636,19 @@ let rec translate_scope_body_expr
               },
             scope_let.scope_let_pos );
         ])
-    @ translate_scope_body_expr ~config scope_name decl_ctx new_var_dict
+    @ translate_scope_body_expr ~config scope_name program_ctx new_var_dict
         func_dict scope_let_next
 
 let translate_program ~(config : translation_config) (p : 'm L.program) :
     A.program =
+  let modules =
+    List.fold_left
+      (fun acc m ->
+        ModuleName.Map.add m (A.VarName.fresh (ModuleName.get_info m)) acc)
+      ModuleName.Map.empty
+      (Program.modules_to_list p.decl_ctx.ctx_modules)
+  in
+  let ctx = { A.decl_ctx = p.decl_ctx; A.modules } in
   let (_, _, rev_items), () =
     BoundList.fold_left
       ~f:(fun (func_dict, var_dict, rev_items) code_item var ->
@@ -653,8 +665,8 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
             Var.Map.add scope_input_var scope_input_var_id var_dict
           in
           let new_scope_body =
-            translate_scope_body_expr ~config name p.decl_ctx var_dict_local
-              func_dict scope_body_expr
+            translate_scope_body_expr ~config name ctx var_dict_local func_dict
+              scope_body_expr
           in
           let func_id = A.FuncName.fresh (Bindlib.name_of var, Pos.no_pos) in
           ( Var.Map.add var func_id func_dict,
@@ -699,6 +711,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                 inside_definition_of = None;
                 context_name = Mark.remove (TopdefName.get_info name);
                 config;
+                program_ctx = ctx;
               }
             in
             translate_expr ctxt expr
@@ -734,6 +747,7 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
                 inside_definition_of = None;
                 context_name = Mark.remove (TopdefName.get_info name);
                 config;
+                program_ctx = ctx;
               }
             in
             translate_expr ctxt expr
@@ -777,4 +791,4 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
       ~init:(Var.Map.empty, Var.Map.empty, [])
       p.code_items
   in
-  { decl_ctx = p.decl_ctx; code_items = List.rev rev_items }
+  { ctx; code_items = List.rev rev_items; module_name = p.module_name }

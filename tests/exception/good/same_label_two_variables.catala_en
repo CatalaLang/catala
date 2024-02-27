@@ -28,14 +28,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
-[RESULT] Computation successful! Results:
-[RESULT] x = 0
-[RESULT] y = 1
-[RESULT] z = 0
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s A --avoid-exceptions --optimize
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] x = 0
 [RESULT] y = 1

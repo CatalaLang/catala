@@ -17,12 +17,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s TestBool
-[RESULT] Computation successful! Results:
-[RESULT] foo = true
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s TestBool --avoid-exceptions --optimize
+$ catala test-scope TestBool
 [RESULT] Computation successful! Results:
 [RESULT] foo = true
 ```

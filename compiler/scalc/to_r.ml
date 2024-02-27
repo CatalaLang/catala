@@ -249,7 +249,7 @@ let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
 let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
   let pos = Mark.get exc in
   match Mark.remove exc with
-  | ConflictError ->
+  | ConflictError _ ->
     Format.fprintf fmt
       "catala_conflict_error(@[<hov 0>catala_position(@[<hov \
        0>filename=\"%s\",@ start_line=%d,@ start_column=%d,@ end_line=%d,@ \
@@ -270,7 +270,7 @@ let format_exception (fmt : Format.formatter) (exc : except Mark.pos) : unit =
 
 let format_exception_name (fmt : Format.formatter) (exc : except) : unit =
   match exc with
-  | ConflictError -> Format.fprintf fmt "catala_conflict_error"
+  | ConflictError _ -> Format.fprintf fmt "catala_conflict_error"
   | EmptyError -> Format.fprintf fmt "catala_empty_error"
   | Crash -> Format.fprintf fmt "catala_crash"
   | NoValueProvided -> Format.fprintf fmt "catala_no_value_provided_error"
@@ -373,6 +373,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
       args
   | ETuple _ | ETupleAccess _ ->
     Message.raise_internal_error "Tuple compilation to R unimplemented!"
+  | EExternal _ -> failwith "TODO"
 
 let rec format_statement
     (ctx : decl_ctx)
@@ -562,11 +563,11 @@ let format_program
      @[<v>%a@]@,\
      @,\
      %a@]@?"
-    (format_ctx type_ordering) p.decl_ctx
+    (format_ctx type_ordering) p.ctx.decl_ctx
     (Format.pp_print_list ~pp_sep:Format.pp_print_newline (fun fmt -> function
        | SVar { var; expr; typ = _ } ->
          Format.fprintf fmt "@[<hv 2>%a <- (@,%a@,@])@," format_var var
-           (format_expression p.decl_ctx)
+           (format_expression p.ctx.decl_ctx)
            expr
        | SFunc { var; func }
        | SScope { scope_body_var = var; scope_body_func = func; _ } ->
@@ -578,5 +579,7 @@ let format_program
               (fun fmt (var, typ) ->
                 Format.fprintf fmt "%a# (%a)@\n" format_var (Mark.remove var)
                   format_typ typ))
-           func_params (format_block p.decl_ctx) func_body))
+           func_params
+           (format_block p.ctx.decl_ctx)
+           func_body))
     p.code_items

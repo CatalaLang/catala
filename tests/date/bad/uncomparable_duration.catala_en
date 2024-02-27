@@ -41,7 +41,7 @@ scope Ge:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Ge
+$ catala test-scope Ge
 [ERROR]
 Cannot compare together durations that cannot be converted to a precise number of days
 
@@ -62,7 +62,7 @@ Cannot compare together durations that cannot be converted to a precise number o
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Gt
+$ catala test-scope Gt
 [ERROR]
 Cannot compare together durations that cannot be converted to a precise number of days
 
@@ -83,7 +83,7 @@ Cannot compare together durations that cannot be converted to a precise number o
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Le
+$ catala test-scope Le
 [ERROR]
 Cannot compare together durations that cannot be converted to a precise number of days
 
@@ -104,7 +104,7 @@ Cannot compare together durations that cannot be converted to a precise number o
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Lt
+$ catala test-scope Lt
 [ERROR]
 Cannot compare together durations that cannot be converted to a precise number of days
 

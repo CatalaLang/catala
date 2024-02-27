@@ -85,3 +85,13 @@ let to_expr p main_scope =
   let res = Scope.unfold p.decl_ctx p.code_items main_scope in
   Expr.Box.assert_closed (Expr.Box.lift res);
   res
+
+let modules_to_list (mt : module_tree) =
+  let rec aux acc (M mtree) =
+    ModuleName.Map.fold
+      (fun mname sub acc ->
+        if List.exists (ModuleName.equal mname) acc then acc
+        else mname :: aux acc sub)
+      mtree acc
+  in
+  List.rev (aux [] mt)

@@ -10,7 +10,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [WARNING] In scope "A", the variable "y" is declared but never defined; did you forget something?
 
 ┌─⯈ tests/default/bad/empty.catala_en:6.10-6.11:
@@ -19,8 +19,7 @@ $ catala Interpret -s A
   │          ‾
   └─ Article
 [ERROR]
-This variable evaluated to an empty term (no rule that defined it applied in this situation): 
-error_empty ⟨false ⊢ ∅⟩
+This variable evaluated to an empty term (no rule that defined it applied in this situation)
 
 ┌─⯈ tests/default/bad/empty.catala_en:6.10-6.11:
 └─┐

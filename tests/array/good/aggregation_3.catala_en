@@ -89,7 +89,7 @@ let scope S (x: integer|internal|output) =
 ```
 
 ```catala-test-inline
-$ catala interpret -s S
+$ catala test-scope S
 [RESULT] Computation successful! Results:
 [RESULT] x = 0
 ```

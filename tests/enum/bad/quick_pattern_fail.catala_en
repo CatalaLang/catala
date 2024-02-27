@@ -16,7 +16,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 The name of this constructor has not been defined before
 (it's probably a typographical error).

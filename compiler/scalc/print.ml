@@ -21,10 +21,10 @@ open Ast
 let needs_parens (_e : expr) : bool = false
 
 let format_var_name (fmt : Format.formatter) (v : VarName.t) : unit =
-  Format.fprintf fmt "%a_%s" VarName.format v (string_of_int (VarName.hash v))
+  Format.fprintf fmt "%a_%d" VarName.format v (VarName.hash v)
 
 let format_func_name (fmt : Format.formatter) (v : FuncName.t) : unit =
-  Format.fprintf fmt "%a_%s" FuncName.format v (string_of_int (FuncName.hash v))
+  Format.fprintf fmt "@{<green>%a_%d@}" FuncName.format v (FuncName.hash v)
 
 let rec format_expr
     (decl_ctx : decl_ctx)
@@ -99,6 +99,9 @@ let rec format_expr
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@ ")
          format_with_parens)
       args
+  | EExternal { modname; name } ->
+    Format.fprintf fmt "%a.%s" format_var_name (Mark.remove modname)
+      (Mark.remove name)
 
 let rec format_statement
     (decl_ctx : decl_ctx)
@@ -226,15 +229,22 @@ let format_item decl_ctx ?debug ppf def =
   Format.pp_close_box ppf ();
   Format.pp_print_cut ppf ()
 
-let format_program decl_ctx ?debug ppf prg =
+let format_program ?debug ppf prg =
   let decl_ctx =
+    (* TODO: this is redundant with From_dcalc.add_option_type (which is already
+       applied in avoid_exceptions mode) *)
     {
-      decl_ctx with
+      prg.ctx.decl_ctx with
       ctx_enums =
         EnumName.Map.add Expr.option_enum Expr.option_enum_config
-          decl_ctx.ctx_enums;
+          prg.ctx.decl_ctx.ctx_enums;
     }
   in
   Format.pp_open_vbox ppf 0;
+  ModuleName.Map.iter
+    (fun m var ->
+      Format.fprintf ppf "%a %a = %a@," Print.keyword "module" format_var_name
+        var ModuleName.format m)
+    prg.ctx.modules;
   Format.pp_print_list (format_item decl_ctx ?debug) ppf prg.code_items;
   Format.pp_close_box ppf ()

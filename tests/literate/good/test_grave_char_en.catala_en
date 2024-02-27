@@ -38,13 +38,13 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = true
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = true
 ```
@@ -96,13 +96,13 @@ $ catala Typecheck --check-invariants
 \end{verbatim}
 
 \begin{verbatim}
-$ catala Interpret -s A
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = true
 \end{verbatim}
 
 \begin{verbatim}
-$ catala Interpret -s A
+$ catala test-scope A
 [RESULT] Computation successful! Results:
 [RESULT] literate_parsing_is_ok = true
 \end{verbatim}

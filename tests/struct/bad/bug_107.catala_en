@@ -17,7 +17,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 struct name "S" already defined
 

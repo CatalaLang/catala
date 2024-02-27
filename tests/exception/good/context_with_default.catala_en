@@ -24,10 +24,6 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Bar
-[RESULT] Computation successful!
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s Bar --avoid-exceptions --optimize
+$ catala test-scope Bar
 [RESULT] Computation successful!
 ```

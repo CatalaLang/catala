@@ -28,7 +28,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala interpret -s T
+$ catala test-scope T
 [RESULT] Computation successful! Results:
 [RESULT] o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }
 [RESULT] o2 = $2,500.00

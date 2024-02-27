@@ -18,7 +18,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 Field "g" does not belong to structure "Foo", but to "Bar"
 

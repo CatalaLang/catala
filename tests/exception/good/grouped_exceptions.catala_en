@@ -55,13 +55,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Benefit
-[RESULT] Computation successful! Results:
-[RESULT] benefit = $2,000.00
-[RESULT] person = Person { -- age: 26 -- disabled: true }
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s Benefit --avoid-exceptions --optimize
+$ catala test-scope Benefit
 [RESULT] Computation successful! Results:
 [RESULT] benefit = $2,000.00
 [RESULT] person = Person { -- age: 26 -- disabled: true }

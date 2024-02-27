@@ -27,13 +27,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Titi
-[RESULT] Computation successful! Results:
-[RESULT] fizz = Toto { -- foo: 1,213 }
-[RESULT] fuzz = Toto { -- foo: 1,323 }
-```
-```catala-test-inline
-$ catala Interpret_Lcalc -s Titi --avoid-exceptions --optimize
+$ catala test-scope Titi
 [RESULT] Computation successful! Results:
 [RESULT] fizz = Toto { -- foo: 1,213 }
 [RESULT] fuzz = Toto { -- foo: 1,323 }

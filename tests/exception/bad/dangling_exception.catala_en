@@ -14,7 +14,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 Unknown label for the scope variable x: "base_y"
 

@@ -59,7 +59,15 @@ let print_log lang entry infos pos e =
       Message.emit_log "%s%a %a" !indent_str Print.log_entry entry
         Print.uid_list infos
 
-exception CatalaException of except
+exception CatalaException of except * Pos.t
+
+let () =
+  Printexc.register_printer (function
+    | CatalaException (e, _pos) ->
+      Some
+        (Format.asprintf "uncaught exception %a raised during interpretation"
+           Print.except e)
+    | _ -> None)
 
 (* Todo: this should be handled early when resolving overloads. Here we have
    proper structural equality, but the OCaml backend for example uses the
@@ -372,7 +380,7 @@ let rec evaluate_operator
       List.filter_map
         (fun e ->
           try Some (evaluate_expr (Expr.unthunk_term_nobox e m))
-          with CatalaException EmptyError -> None)
+          with CatalaException (EmptyError, _) -> None)
         excepts
     with
     | [] -> (
@@ -381,7 +389,7 @@ let rec evaluate_operator
       | ELit (LBool true) ->
         Mark.remove
           (evaluate_expr (Expr.unthunk_term_nobox cons (Mark.get cons)))
-      | ELit (LBool false) -> raise (CatalaException EmptyError)
+      | ELit (LBool false) -> raise (CatalaException (EmptyError, pos))
       | _ ->
         Message.raise_spanned_error pos
           "Default justification has not been reduced to a boolean at \
@@ -389,14 +397,7 @@ let rec evaluate_operator
            %a@."
           Expr.format just)
     | [e] -> Mark.remove e
-    | es ->
-      Message.raise_multispanned_error
-        (List.map
-           (fun except ->
-             Some "This consequence has a valid justification:", Expr.pos except)
-           es)
-        "There is a conflict between multiple valid consequences for assigning \
-         the same variable.")
+    | es -> raise (CatalaException (ConflictError (List.map Expr.pos es), pos)))
   | HandleDefaultOpt, [(EArray exps, _); justification; conclusion] -> (
     let valid_exceptions =
       ListLabels.filter exps ~f:(function
@@ -432,7 +433,8 @@ let rec evaluate_operator
            && EnumConstructor.equal cons Expr.some_constr ->
       e
     | [_] -> err ()
-    | _ -> raise (CatalaException ConflictError))
+    | excs ->
+      raise (CatalaException (ConflictError (List.map Expr.pos excs), pos)))
   | ( ( Minus_int | Minus_rat | Minus_mon | Minus_dur | ToRat_int | ToRat_mon
       | ToMoney_rat | Round_rat | Round_mon | Add_int_int | Add_rat_rat
       | Add_mon_mon | Add_dat_dur _ | Add_dur_dur | Sub_int_int | Sub_rat_rat
@@ -497,7 +499,17 @@ let rec runtime_to_val :
     in
     let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
     EInj { name; cons; e }, m
-  | TOption _ty -> assert false
+  | TOption ty -> (
+    match Obj.tag o - Obj.first_non_constant_constructor_tag with
+    | 0 ->
+      let e =
+        runtime_to_val eval_expr ctx m (TLit TUnit, Pos.no_pos) (Obj.field o 0)
+      in
+      EInj { name = Expr.option_enum; cons = Expr.none_constr; e }, m
+    | 1 ->
+      let e = runtime_to_val eval_expr ctx m ty (Obj.field o 0) in
+      EInj { name = Expr.option_enum; cons = Expr.some_constr; e }, m
+    | _ -> assert false)
   | TClosureEnv -> assert false
   | TArray ty ->
     ( EArray
@@ -551,10 +563,25 @@ and val_to_runtime :
       find_tag Obj.first_non_constant_constructor_tag
         (EnumConstructor.Map.bindings cons_map)
     in
+    let field = val_to_runtime eval_expr ctx ty e in
     let o = Obj.with_tag tag (Obj.repr (Some ())) in
-    Obj.set_field o 0 (val_to_runtime eval_expr ctx ty e);
+    Obj.set_field o 0 field;
     o
-  | TOption _ty, _ -> assert false
+  | TOption ty, EInj { name; cons; e } ->
+    assert (EnumName.equal name Expr.option_enum);
+    let tag, ty =
+      (* None is before Some because the constructors have been defined in this
+         order in [expr.ml], and the ident maps preserve definition ordering *)
+      if EnumConstructor.equal cons Expr.none_constr then
+        Obj.first_non_constant_constructor_tag, (TLit TUnit, Pos.no_pos)
+      else if EnumConstructor.equal cons Expr.some_constr then
+        Obj.first_non_constant_constructor_tag + 1, ty
+      else assert false
+    in
+    let field = val_to_runtime eval_expr ctx ty e in
+    let o = Obj.with_tag tag (Obj.repr (Some ())) in
+    Obj.set_field o 0 field;
+    o
   | TArray ty, EArray es ->
     Array.of_list (List.map (val_to_runtime eval_expr ctx ty) es) |> Obj.repr
   | TArrow (targs, tret), _ ->
@@ -567,7 +594,7 @@ and val_to_runtime :
         let tys = List.map (fun a -> Expr.maybe_ty (Mark.get a)) args in
         val_to_runtime eval_expr ctx tret
           (try eval_expr ctx (EApp { f = v; args; tys }, m)
-           with CatalaException EmptyError -> raise Runtime.EmptyError)
+           with CatalaException (EmptyError, _) -> raise Runtime.EmptyError)
       | targ :: targs ->
         Obj.repr (fun x ->
             curry (runtime_to_val eval_expr ctx m targ x :: acc) targs)
@@ -756,8 +783,7 @@ let rec evaluate_expr :
     | EEmptyError, _ ->
       Message.raise_spanned_error (Expr.pos e')
         "This variable evaluated to an empty term (no rule that defined it \
-         applied in this situation): %a"
-        Expr.format e
+         applied in this situation)"
     | e -> e)
   | EDefault { excepts; just; cons } -> (
     let excepts = List.map (evaluate_expr ctx lang) excepts in
@@ -774,18 +800,17 @@ let rec evaluate_expr :
            evaluation (should not happen if the term was well-typed")
     | 1 -> List.find (fun sub -> not (is_empty_error sub)) excepts
     | _ ->
-      Message.raise_multispanned_error
-        (List.map
-           (fun except ->
-             Some "This consequence has a valid justification:", Expr.pos except)
-           (List.filter (fun sub -> not (is_empty_error sub)) excepts))
-        "There is a conflict between multiple valid consequences for assigning \
-         the same variable.")
+      let poslist =
+        List.filter_map
+          (fun ex -> if is_empty_error ex then None else Some (Expr.pos ex))
+          excepts
+      in
+      raise (CatalaException (ConflictError poslist, pos)))
   | EPureDefault e -> evaluate_expr ctx lang e
-  | ERaise exn -> raise (CatalaException exn)
+  | ERaise exn -> raise (CatalaException (exn, pos))
   | ECatch { body; exn; handler } -> (
     try evaluate_expr ctx lang body
-    with CatalaException caught when Expr.equal_except caught exn ->
+    with CatalaException (caught, _) when Expr.equal_except caught exn ->
       evaluate_expr ctx lang handler)
   | _ -> .
 
@@ -886,6 +911,25 @@ let delcustom e =
      nodes. *)
   Expr.unbox (f e)
 
+let interp_failure_message ~pos = function
+  | NoValueProvided ->
+    Message.raise_spanned_error pos
+      "This variable evaluated to an empty term (no rule that defined it \
+       applied in this situation)"
+  | ConflictError cpos ->
+    Message.raise_multispanned_error
+      (List.map
+         (fun pos -> Some "This consequence has a valid justification:", pos)
+         cpos)
+      "There is a conflict between multiple valid consequences for assigning \
+       the same variable."
+  | Crash ->
+    (* This constructor seems to be never used *)
+    Message.raise_spanned_error pos "Internal error, the interpreter crashed"
+  | EmptyError ->
+    Message.raise_spanned_error pos
+      "Internal error, a variable without valid definition escaped"
+
 let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
     =
   let e = Expr.unbox @@ Program.to_expr p s in
@@ -903,20 +947,23 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       StructField.Map.map
         (fun ty ->
           match Mark.remove ty with
-          | TArrow (ty_in, ((TDefault _, _) as ty_out)) ->
-            (* Context args may return an option if avoid_exceptions is off *)
-            Expr.make_abs
-              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
-              (Expr.eraise EmptyError (Expr.with_ty mark_e ty_out))
-              ty_in (Expr.mark_pos mark_e)
           | TArrow (ty_in, (TOption _, _)) ->
-            (* ... or an option if it is on *)
+            (* Context args may return an option if avoid_exceptions is on *)
             Expr.make_abs
               (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
               (Expr.einj ~e:(Expr.elit LUnit mark_e) ~cons:Expr.none_constr
                  ~name:Expr.option_enum mark_e
                 : (_, _) boxed_gexpr)
               ty_in pos
+          | TArrow (ty_in, ty_out) ->
+            (* Or a default term (translated into a plain one if it is off) *)
+            (* Note: this might catch non-context args, but since the
+               compilation to lcalc strips the default around [ty_out] we can't
+               tell with just this info. *)
+            Expr.make_abs
+              (Array.of_list @@ List.map (fun _ -> Var.make "_") ty_in)
+              (Expr.eraise EmptyError (Expr.with_ty mark_e ty_out))
+              ty_in (Expr.mark_pos mark_e)
           | TTuple ((TArrow (ty_in, (TOption _, _)), _) :: _) ->
             (* ... or a closure if closure conversion is enabled *)
             Expr.make_tuple
@@ -934,11 +981,11 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
               mark_e
           | _ ->
             Message.raise_spanned_error (Mark.get ty)
-              "This scope needs input arguments to be executed. But the Catala \
-               built-in interpreter does not have a way to retrieve input \
-               values from the command line, so it cannot execute this scope. \
-               Please create another scope that provides the input arguments \
-               to this one and execute it instead."
+              "This scope needs an input argument of type %a to be executed. \
+               But the Catala built-in interpreter does not have a way to \
+               retrieve input values from the command line, so it cannot \
+               execute this scope. Please create another scope that provides \
+               the input arguments to this one and execute it instead."
               Print.typ_debug ty)
         taus
     in
@@ -956,6 +1003,8 @@ let interpret_program_lcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
+    | exception CatalaException (except, pos) ->
+      interp_failure_message ~pos except
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
         "The interpretation of a program should always yield a struct \
@@ -1011,6 +1060,8 @@ let interpret_program_dcalc p s : (Uid.MarkedString.info * ('a, 'm) gexpr) list
       List.map
         (fun (fld, e) -> StructField.get_info fld, e)
         (StructField.Map.bindings fields)
+    | exception CatalaException (except, pos) ->
+      interp_failure_message ~pos except
     | _ ->
       Message.raise_spanned_error (Expr.pos e)
         "The interpretation of a program should always yield a struct \
@@ -1051,16 +1102,7 @@ let load_runtime_modules prg =
           obj_file Format.pp_print_text
           (Dynlink.error_message dl_err)
   in
-  let modules_list_topo =
-    let rec aux acc (M mtree) =
-      ModuleName.Map.fold
-        (fun mname sub acc ->
-          if List.exists (ModuleName.equal mname) acc then acc
-          else mname :: aux acc sub)
-        mtree acc
-    in
-    List.rev (aux [] prg.decl_ctx.ctx_modules)
-  in
+  let modules_list_topo = Program.modules_to_list prg.decl_ctx.ctx_modules in
   if modules_list_topo <> [] then
     Message.emit_debug "Loading shared modules... %a"
       (Format.pp_print_list ~pp_sep:Format.pp_print_space ModuleName.format)

@@ -22,7 +22,7 @@ scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 This case matches a constructor of enumeration E but previous case were matching constructors of enumeration F
 

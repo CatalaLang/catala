@@ -29,7 +29,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [WARNING] These definitions have identical justifications and consequences; is it a mistake?
 
 ┌─⯈ tests/default/good/mutliple_definitions.catala_en:9.3-9.15:

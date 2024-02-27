@@ -65,7 +65,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala interpret -s Stest
+$ catala test-scope Stest
 [RESULT] Computation successful! Results:
 [RESULT]
 o1 = S { -- ci: 0 -- cm: $0.00 -- cfun1: <function> -- cfun2: <function> }
@@ -96,7 +96,7 @@ scope TestSubDefault:
 ```
 
 ```catala-test-inline
-$ catala interpret -s TestSubDefault
+$ catala test-scope TestSubDefault
 [RESULT] Computation successful! Results:
 [RESULT] ci = 0
 [RESULT] cm = $0.00
@@ -124,7 +124,7 @@ scope TestSubOverride:
 ```
 
 ```catala-test-inline
-$ catala interpret -s TestSubOverride
+$ catala test-scope TestSubOverride
 [RESULT] Computation successful! Results:
 [RESULT] ci = 1
 [RESULT] cm = $1.00

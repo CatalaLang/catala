@@ -24,7 +24,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala interpret -s T
+$ catala test-scope T
 [RESULT] Computation successful! Results:
 [RESULT] o1 = Mod_def.S { -- sr: $1,000.00 -- e1: Maybe () }
 [RESULT] o2 = $2,500.00
@@ -36,7 +36,7 @@ The following tests multiple inclusion of the same module (Mod_def is used throu
 > Include: mod_use.catala_en
 
 ```catala-test-inline
-$ catala interpret -s T2
+$ catala test-scope T2
 [RESULT] Computation successful! Results:
 [RESULT] o1 = No ()
 [RESULT] o2 = Maybe ()

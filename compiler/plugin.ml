@@ -28,6 +28,13 @@ let register info term =
 
 let list () = Hashtbl.to_seq_values backend_plugins |> List.of_seq
 let names () = Hashtbl.to_seq_keys backend_plugins |> List.of_seq
+let load_failures = Hashtbl.create 17
+
+let print_failures () =
+  if Hashtbl.length load_failures > 0 then
+    Message.emit_warning "Some plugins could not be loaded:@,%a"
+      (Format.pp_print_seq (fun ppf -> Format.fprintf ppf "  - %s"))
+      (Hashtbl.to_seq_values load_failures)
 
 let load_file f =
   try
@@ -36,6 +43,10 @@ let load_file f =
   with
   | Dynlink.Error (Dynlink.Module_already_loaded s) ->
     Message.emit_debug "Plugin %S (%s) was already loaded, skipping" f s
+  | Dynlink.Error err ->
+    let msg = Dynlink.error_message err in
+    Message.emit_debug "Could not load plugin %S: %s" f msg;
+    Hashtbl.add load_failures f msg
   | e ->
     Message.emit_warning "Could not load plugin %S: %s" f (Printexc.to_string e)
 

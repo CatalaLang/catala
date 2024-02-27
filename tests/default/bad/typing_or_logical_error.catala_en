@@ -10,7 +10,7 @@ scope A:
 
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [ERROR]
 Syntax error at token "="
 Message: expected 'under condition' followed by a condition, 'equals' followed by the definition body, or the rest of the variable qualified name

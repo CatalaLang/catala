@@ -37,7 +37,7 @@ scope Middle_case:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s First_case
+$ catala test-scope First_case
 [ERROR]
 Wildcard must be the last match case
 
@@ -60,7 +60,7 @@ Next reachable case:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s Middle_case
+$ catala test-scope Middle_case
 [ERROR]
 Wildcard must be the last match case
 

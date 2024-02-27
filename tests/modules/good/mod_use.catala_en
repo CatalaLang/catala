@@ -32,7 +32,7 @@ $ catala Typecheck --check-invariants
 ```
 
 ```catala-test-inline
-$ catala interpret -s T2
+$ catala test-scope T2
 [RESULT] Computation successful! Results:
 [RESULT] o1 = No ()
 [RESULT] o2 = Maybe ()

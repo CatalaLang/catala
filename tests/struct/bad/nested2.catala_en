@@ -14,7 +14,7 @@ declaration scope A:
 ```
 
 ```catala-test-inline
-$ catala Interpret -s A
+$ catala test-scope A
 [WARNING] In scope "A", the variable "x" is declared but never defined; did you forget something?
 
 ┌─⯈ tests/struct/bad/nested2.catala_en:13.10-13.11:

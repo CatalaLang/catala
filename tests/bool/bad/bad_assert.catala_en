@@ -11,7 +11,7 @@ scope Foo:
 
 
 ```catala-test-inline
-$ catala Interpret -s Foo
+$ catala test-scope Foo
 [ERROR]
 Error during typechecking, incompatible types:
 ┌─⯈ integer

@@ -676,13 +676,7 @@ module Commands = struct
 
   let print_interpretation_results options interpreter prg scope_uid =
     Message.emit_debug "Starting interpretation...";
-    let results =
-      try interpreter prg scope_uid
-      with Shared_ast.Interpreter.CatalaException exn ->
-        Message.raise_error
-          "During interpretation, the error %a has been raised but not caught!"
-          Shared_ast.Print.except exn
-    in
+    let results = interpreter prg scope_uid in
     Message.emit_debug "End of interpretation";
     let results =
       List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) results
@@ -706,26 +700,6 @@ module Commands = struct
     Interpreter.load_runtime_modules prg;
     print_interpretation_results options Interpreter.interpret_program_dcalc prg
       (get_scope_uid prg.decl_ctx ex_scope)
-
-  let interpret_cmd =
-    let f no_typing =
-      if no_typing then interpret_dcalc Expr.untyped
-      else interpret_dcalc Expr.typed
-    in
-    Cmd.v
-      (Cmd.info "interpret"
-         ~doc:
-           "Runs the interpreter on the Catala program, executing the scope \
-            specified by the $(b,-s) option assuming no additional external \
-            inputs.")
-      Term.(
-        const f
-        $ Cli.Flags.no_typing
-        $ Cli.Flags.Global.options
-        $ Cli.Flags.include_dirs
-        $ Cli.Flags.optimize
-        $ Cli.Flags.check_invariants
-        $ Cli.Flags.ex_scope)
 
   let lcalc
       typed
@@ -780,13 +754,13 @@ module Commands = struct
 
   let interpret_lcalc
       typed
+      avoid_exceptions
+      closure_conversion
+      monomorphize_types
       options
       includes
       optimize
       check_invariants
-      avoid_exceptions
-      closure_conversion
-      monomorphize_types
       ex_scope =
     let prg, _ =
       Passes.lcalc options ~includes ~optimize ~check_invariants
@@ -796,27 +770,41 @@ module Commands = struct
     print_interpretation_results options Interpreter.interpret_program_lcalc prg
       (get_scope_uid prg.decl_ctx ex_scope)
 
-  let interpret_lcalc_cmd =
-    let f no_typing =
-      if no_typing then interpret_lcalc Expr.untyped
-      else interpret_lcalc Expr.typed
+  let interpret_cmd =
+    let f lcalc avoid_exceptions closure_conversion monomorphize_types no_typing
+        =
+      if not lcalc then
+        if avoid_exceptions || closure_conversion || monomorphize_types then
+          Message.raise_error
+            "The flags @{<bold>--avoid-exceptions@}, \
+             @{<bold>--closure-conversion@} and @{<bold>--monomorphize-types@} \
+             only make sense with the @{<bold>--lcalc@} option"
+        else if no_typing then interpret_dcalc Expr.untyped
+        else interpret_dcalc Expr.typed
+      else if no_typing then
+        interpret_lcalc Expr.untyped avoid_exceptions closure_conversion
+          monomorphize_types
+      else
+        interpret_lcalc Expr.typed avoid_exceptions closure_conversion
+          monomorphize_types
     in
     Cmd.v
-      (Cmd.info "interpret_lcalc"
+      (Cmd.info "interpret"
          ~doc:
-           "Runs the interpreter on the lcalc pass on the Catala program, \
-            executing the scope specified by the $(b,-s) option assuming no \
-            additional external inputs.")
+           "Runs the interpreter on the Catala program, executing the scope \
+            specified by the $(b,-s) option assuming no additional external \
+            inputs.")
       Term.(
         const f
+        $ Cli.Flags.lcalc
+        $ Cli.Flags.avoid_exceptions
+        $ Cli.Flags.closure_conversion
+        $ Cli.Flags.monomorphize_types
         $ Cli.Flags.no_typing
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants
-        $ Cli.Flags.avoid_exceptions
-        $ Cli.Flags.closure_conversion
-        $ Cli.Flags.monomorphize_types
         $ Cli.Flags.ex_scope)
 
   let ocaml
@@ -880,8 +868,8 @@ module Commands = struct
     @@ fun fmt ->
     match ex_scope_opt with
     | Some scope ->
-      let scope_uid = get_scope_uid prg.decl_ctx scope in
-      Scalc.Print.format_item ~debug:options.Cli.debug prg.decl_ctx fmt
+      let scope_uid = get_scope_uid prg.ctx.decl_ctx scope in
+      Scalc.Print.format_item ~debug:options.Cli.debug prg.ctx.decl_ctx fmt
         (List.find
            (function
              | Scalc.Ast.SScope { scope_body_name; _ } ->
@@ -889,7 +877,7 @@ module Commands = struct
              | _ -> false)
            prg.code_items);
       Format.pp_print_newline fmt ()
-    | None -> Scalc.Print.format_program prg.decl_ctx fmt prg
+    | None -> Scalc.Print.format_program fmt prg
 
   let scalc_cmd =
     Cmd.v
@@ -1017,7 +1005,6 @@ module Commands = struct
   let commands =
     [
       interpret_cmd;
-      interpret_lcalc_cmd;
       typecheck_cmd;
       proof_cmd;
       ocaml_cmd;
@@ -1102,7 +1089,9 @@ let main () =
   let open Cmdliner in
   match Cmd.eval_value ~catch:false ~argv command with
   | Ok _ -> exit Cmd.Exit.ok
-  | Error _ -> exit Cmd.Exit.cli_error
+  | Error e ->
+    if e = `Term then Plugin.print_failures ();
+    exit Cmd.Exit.cli_error
   | exception Cli.Exit_with n -> exit n
   | exception Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
