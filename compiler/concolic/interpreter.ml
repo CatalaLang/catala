@@ -2505,10 +2505,11 @@ let interpret_program_concolic
     (* TODO CONC should it be [mark_e] or something else? *)
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
 
-    let s_loop = Stats.start_step "total loop time" in
     let rec concolic_loop (previous_path : PathConstraint.annotated_path) stats
         : Stats.t =
       let exec = Stats.start_exec (List.length previous_path) in
+      let s_print_pc = Stats.start_step "print path constraints" in
+      let exec = Stats.stop_step s_print_pc |> Stats.add_exec_step exec in
       Message.emit_debug "";
       Message.emit_debug "Trying new path constraints:@ @[<v>%a@]"
         PathConstraint.Print.annotated_path previous_path;
@@ -2544,8 +2545,8 @@ let interpret_program_concolic
         let res = eval_conc_with_input ctx p.lang s_in scope_e mark_e inputs in
 
         let exec = Stats.stop_step s_eval |> Stats.add_exec_step exec in
-        let s_new_pc = Stats.start_step "choose new path constraints" in
 
+        let s_new_pc = Stats.start_step "choose new path constraints" in
         let res_path_constraints = get_constraints_r res in
 
         let res_path_constraints =
@@ -2616,6 +2617,7 @@ let interpret_program_concolic
           Solver.fmt_unknown_info info
     in
 
+    let s_loop = Stats.start_step "total loop time" in
     let stats = concolic_loop [] stats in
     let stats = Stats.stop_step s_loop |> Stats.add_stat_step stats in
     Message.emit_result "";
