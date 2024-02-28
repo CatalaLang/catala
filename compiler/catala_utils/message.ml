@@ -305,7 +305,10 @@ let emit_log format =
 
 let emit_debug format =
   Format.kdprintf
-    (fun message -> Content.emit [MainMessage message] Debug)
+    (fun message ->
+       if Cli.globals.debug then 
+         Content.emit [MainMessage message] Debug
+    )
     format
 
 let emit_result format =
