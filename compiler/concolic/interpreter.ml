@@ -2509,10 +2509,10 @@ let interpret_program_concolic
         : Stats.t =
       let exec = Stats.start_exec (List.length previous_path) in
       let s_print_pc = Stats.start_step "print path constraints" in
-      let exec = Stats.stop_step s_print_pc |> Stats.add_exec_step exec in
       Message.emit_debug "";
       Message.emit_debug "Trying new path constraints:@ @[<v>%a@]"
         PathConstraint.Print.annotated_path previous_path;
+      let exec = Stats.stop_step s_print_pc |> Stats.add_exec_step exec in
       let s_extract_constraints =
         Stats.start_step "extract solver constraints"
       in
