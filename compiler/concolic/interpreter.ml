@@ -707,10 +707,11 @@ let make_z3_enum_inj
   let sort = EnumName.Map.find name ctx.ctx_z3enums in
   let constructors = EnumName.Map.find name ctx.ctx_decl.ctx_enums in
   let z3_constructors = Z3.Datatype.get_constructors sort in
-  Message.emit_debug "constructors %s"
-    (List.fold_left
-       (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc)
-       "" z3_constructors);
+  Message.emit_debug "enum constructors: @[<hov>%a@]"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+       (fun fmt c -> Format.pp_print_string fmt (Z3.FuncDecl.to_string c)))
+    z3_constructors;
   (* NOTE assumption: they are in the right order *)
   (* TODO for all instances of this "mappings" pattern, maybe have more
      information in the context to avoid it *)
@@ -733,10 +734,11 @@ let make_z3_enum_access
      constructor. In a Catala enum, each constructor has exactly (possibly
      [unit]) accessor, so we can safely [List.hd]. *)
   let z3_accessors = List.map List.hd (Z3.Datatype.get_accessors sort) in
-  Message.emit_debug "enum accessors %s"
-    (List.fold_left
-       (fun acc a -> Z3.FuncDecl.to_string a ^ "," ^ acc)
-       "" z3_accessors);
+  Message.emit_debug "enum accessors: @[<hov>%a@]"
+    (Format.pp_print_list
+       ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+       (fun fmt c -> Format.pp_print_string fmt (Z3.FuncDecl.to_string c)))
+    z3_accessors;
   let idx_mappings =
     List.combine (EnumConstructor.Map.keys constructors) z3_accessors
   in
