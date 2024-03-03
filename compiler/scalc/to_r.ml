@@ -156,7 +156,7 @@ let format_enum_cons_name (fmt : Format.formatter) (v : EnumConstructor.t) :
     (avoid_keywords
        (String.to_ascii (Format.asprintf "%a" EnumConstructor.format v)))
 
-let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
+let rec format_typ ~inside_comment (fmt : Format.formatter) (typ : typ) : unit =
   let format_typ = format_typ in
   match Mark.remove typ with
   | TLit TUnit -> Format.fprintf fmt "\"catala_unit\""
@@ -167,23 +167,30 @@ let rec format_typ (fmt : Format.formatter) (typ : typ) : unit =
   | TLit TDuration -> Format.fprintf fmt "\"catala_duration\""
   | TLit TBool -> Format.fprintf fmt "\"logical\""
   | TTuple ts ->
-    Format.fprintf fmt "\"list\"@ # tuple(%a)@\n"
+    Format.fprintf fmt "\"list\"@ # tuple(%a)%t"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@;")
-         format_typ)
+         (format_typ ~inside_comment:true))
       ts
+      (fun fmt -> if inside_comment then () else Format.fprintf fmt "@\n")
   | TStruct s -> Format.fprintf fmt "\"catala_struct_%a\"" format_struct_name s
   | TOption some_typ | TDefault some_typ ->
     (* We loose track of optional value as they're crammed into NULL *)
-    format_typ fmt some_typ
+    format_typ ~inside_comment:false fmt some_typ
   | TEnum e -> Format.fprintf fmt "\"catala_enum_%a\"" format_enum_name e
   | TArrow (t1, t2) ->
-    Format.fprintf fmt "\"function\" # %a -> %a@\n"
+    Format.fprintf fmt "\"function\" # %a -> %a%t"
       (Format.pp_print_list
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
-         format_typ)
-      t1 format_typ t2
-  | TArray t1 -> Format.fprintf fmt "\"list\" # array(%a)@\n" format_typ t1
+         (format_typ ~inside_comment:true))
+      t1
+      (format_typ ~inside_comment:true)
+      t2
+      (fun fmt -> if inside_comment then () else Format.fprintf fmt "@\n")
+  | TArray t1 ->
+    Format.fprintf fmt "\"list\" # array(%a)%t"
+      (format_typ ~inside_comment:true) t1 (fun fmt ->
+        if inside_comment then () else Format.fprintf fmt "@\n")
   | TAny -> Format.fprintf fmt "\"ANY\""
   | TClosureEnv -> failwith "unimplemented!"
 
@@ -371,8 +378,14 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
          (format_expression ctx))
       args
-  | ETuple _ | ETupleAccess _ ->
-    Message.raise_internal_error "Tuple compilation to R unimplemented!"
+  | ETuple args ->
+    Format.fprintf fmt "list(@[<hov 0>%a)@]"
+      (Format.pp_print_list
+         ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@ ")
+         (format_expression ctx))
+      args
+  | ETupleAccess { e1; index } ->
+    Format.fprintf fmt "(%a)[%d]" (format_expression ctx) e1 index
   | EExternal _ -> failwith "TODO"
 
 let rec format_statement
@@ -387,7 +400,8 @@ let rec format_statement
          ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n,@;")
          (fun fmt (var, typ) ->
            Format.fprintf fmt "%a# (%a)@\n" format_var (Mark.remove var)
-             format_typ typ))
+             (format_typ ~inside_comment:true)
+             typ))
       func_params (format_block ctx) func_body
   | SLocalDecl _ ->
     assert false (* We don't need to declare variables in Python *)
@@ -497,7 +511,8 @@ let format_ctx
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@;")
          (fun fmt (struct_field, typ) ->
            Format.fprintf fmt "%a = %a" format_struct_field_name struct_field
-             format_typ typ))
+             (format_typ ~inside_comment:false)
+             typ))
       fields
   in
   let format_enum_decl fmt (enum_name, enum_cons) =
@@ -516,7 +531,8 @@ let format_ctx
            ~pp_sep:(fun fmt () -> Format.fprintf fmt ", ")
            (fun fmt (enum_cons, enum_cons_type) ->
              Format.fprintf fmt "\"%a\" (%a)" format_enum_cons_name enum_cons
-               format_typ enum_cons_type))
+               (format_typ ~inside_comment:false)
+               enum_cons_type))
         (EnumConstructor.Map.bindings enum_cons)
         format_enum_name enum_name
   in
@@ -578,7 +594,8 @@ let format_program
               ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n,@;")
               (fun fmt (var, typ) ->
                 Format.fprintf fmt "%a# (%a)@\n" format_var (Mark.remove var)
-                  format_typ typ))
+                  (format_typ ~inside_comment:true)
+                  typ))
            func_params
            (format_block p.ctx.decl_ctx)
            func_body))
