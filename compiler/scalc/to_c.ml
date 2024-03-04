@@ -384,7 +384,7 @@ let rec format_expression (ctx : decl_ctx) (fmt : Format.formatter) (e : expr) :
          (format_expression ctx))
       args
   | ETuple _ | ETupleAccess _ ->
-    Message.raise_internal_error "Tuple compilation to R unimplemented!"
+    Message.raise_internal_error "Tuple compilation to C unimplemented!"
   | EExternal _ -> failwith "TODO"
 
 let typ_is_array (ctx : decl_ctx) (typ : typ) =
