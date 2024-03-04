@@ -172,7 +172,7 @@ let rec format_typ ~inside_comment (fmt : Format.formatter) (typ : typ) : unit =
          ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@;")
          (format_typ ~inside_comment:true))
       ts
-      (fun fmt -> if inside_comment then () else Format.fprintf fmt "@\n")
+      (fun fmt -> if inside_comment then () else Format.pp_force_newline fmt ())
   | TStruct s -> Format.fprintf fmt "\"catala_struct_%a\"" format_struct_name s
   | TOption some_typ | TDefault some_typ ->
     (* We loose track of optional value as they're crammed into NULL *)
@@ -186,11 +186,11 @@ let rec format_typ ~inside_comment (fmt : Format.formatter) (typ : typ) : unit =
       t1
       (format_typ ~inside_comment:true)
       t2
-      (fun fmt -> if inside_comment then () else Format.fprintf fmt "@\n")
+      (fun fmt -> if inside_comment then () else Format.pp_force_newline fmt ())
   | TArray t1 ->
     Format.fprintf fmt "\"list\" # array(%a)%t"
       (format_typ ~inside_comment:true) t1 (fun fmt ->
-        if inside_comment then () else Format.fprintf fmt "@\n")
+        if inside_comment then () else Format.pp_force_newline fmt ())
   | TAny -> Format.fprintf fmt "\"ANY\""
   | TClosureEnv -> failwith "unimplemented!"
 
