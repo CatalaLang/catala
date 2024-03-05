@@ -794,7 +794,7 @@ let reverse_graph g =
 let subst_by v1 e2 e =
   let rec f = function
     | EVar v, m when Var.equal v v1 -> Expr.box e2
-    | e -> Expr.map ~f e
+    | e -> Expr.map ~f ~op:Fun.id e
   in
   Expr.unbox (f e)
 
