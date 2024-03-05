@@ -141,6 +141,12 @@ module Flags : sig
 
   val lcalc : bool Term.t
   (** for the 'interpret' command *)
+
+  val extension : string option Term.t
+  (** for the 'depends' command *)
+
+  val prefix : string option Term.t
+  (** for the 'depends' command *)
 end
 
 (** {2 Command-line application} *)

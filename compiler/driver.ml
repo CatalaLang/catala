@@ -989,6 +989,55 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants)
 
+  let depends options includes prefix extension =
+    let prg = Passes.surface options in
+    let prg = { prg with program_items = [] } in
+    let mod_uses, modules = load_module_interfaces options includes prg in
+    let d_ctx =
+      Desugared.Name_resolution.form_context (prg, mod_uses) modules
+    in
+    let prg = Desugared.From_surface.translate_program d_ctx prg in
+    let modules_list_topo =
+      Program.modules_to_list prg.program_ctx.ctx_modules
+    in
+    Format.open_hbox ();
+    Format.pp_print_list ~pp_sep:Format.pp_print_space
+      (fun ppf m ->
+        let f = Pos.get_file (Mark.get (ModuleName.get_info m)) in
+        let f =
+          match prefix with
+          | None -> f
+          | Some pfx ->
+            if not (Filename.is_relative f) then (
+              Message.emit_warning
+                "Not adding prefix to %s, which is an absolute path" f;
+              f)
+            else File.(pfx / f)
+        in
+        let f =
+          match extension with None -> f | Some ext -> File.(f -.- ext)
+        in
+        Format.pp_print_string ppf f)
+      Format.std_formatter modules_list_topo;
+    Format.close_box ();
+    Format.print_newline ()
+
+  let depends_cmd =
+    Cmd.v
+      (Cmd.info "depends"
+         ~doc:
+           "Lists the dependencies of a given catala file, in linking order. \
+            This includes recursive dependencies and is useful for linking an \
+            application in a target language. The space-separated list is \
+            printed to stdout. The names are printed as expected of module \
+            identifiers, $(i,i.e.) capitalized.")
+      Term.(
+        const depends
+        $ Cli.Flags.Global.options
+        $ Cli.Flags.include_dirs
+        $ Cli.Flags.prefix
+        $ Cli.Flags.extension)
+
   let pygmentize_cmd =
     Cmd.v
       (Cmd.info "pygmentize"
@@ -1019,6 +1068,7 @@ module Commands = struct
       lcalc_cmd;
       scalc_cmd;
       exceptions_cmd;
+      depends_cmd;
       pygmentize_cmd;
     ]
 end

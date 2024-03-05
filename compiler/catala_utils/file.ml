@@ -138,7 +138,10 @@ let check_exec t =
 let ( / ) a b = if a = Filename.current_dir_name then b else Filename.concat a b
 let dirname = Filename.dirname
 let ( /../ ) a b = dirname a / b
-let ( -.- ) file ext = Filename.chop_extension file ^ "." ^ ext
+
+let ( -.- ) file ext =
+  let base = Filename.chop_extension file in
+  match ext with "" -> base | ext -> base ^ "." ^ ext
 
 let path_to_list path =
   String.split_on_char dir_sep_char path

@@ -108,6 +108,13 @@ install: prepare-install
 # registering with opam.
 # --assume-built is broken in 2.1.5
 
+inst: prepare-install
+	@opam custom-install \
+	  catala.$$(_build/install/default/bin/catala --version) \
+	  --solver=builtin-mccs+glpk -- \
+	dune install catala
+# This is better, but 'opam custom-install' is still an experimental plugin
+
 #> runtimes				: Builds the OCaml and js_of_ocaml runtimes
 runtimes:
 	dune build runtimes/

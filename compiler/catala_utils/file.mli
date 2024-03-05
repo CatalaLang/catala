@@ -108,7 +108,8 @@ val ( /../ ) : t -> t -> t
 
 val ( -.- ) : t -> string -> t
 (** Extension replacement: chops the given filename extension, and replaces it
-    with the given one (which shouldn't contain a dot) *)
+    with the given one (which shouldn't contain a dot). No dot is appended if
+    the provided extension is empty. *)
 
 val path_to_list : t -> string list
 (** Empty elements or current-directory (".") are skipped in the resulting list *)

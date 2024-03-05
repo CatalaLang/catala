@@ -478,6 +478,18 @@ module Flags = struct
         ~doc:
           "Compile all the way to lcalc before interpreting (the default is to \
            interpret at dcalc stage). For debugging purposes."
+
+  let extension =
+    value
+    & opt (some string) None
+    & info ["extension"; "e"] ~docv:"EXT"
+        ~doc:"Replace the original file extensions with $(i,.EXT)."
+
+  let prefix =
+    value
+    & opt (some string) None
+    & info ["prefix"] ~docv:"PATH"
+        ~doc:"Prepend the given path to each of the files in the returned list."
 end
 
 (* Retrieve current version from dune *)

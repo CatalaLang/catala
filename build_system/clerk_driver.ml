@@ -435,8 +435,9 @@ module Var = struct
   let catala_flags_ocaml = make "CATALA_FLAGS_OCAML"
   let catala_flags_python = make "CATALA_FLAGS_PYTHON"
   let clerk_flags = make "CLERK_FLAGS"
+  let ocamlc_exe = make "OCAMLC_EXE"
   let ocamlopt_exe = make "OCAMLOPT_EXE"
-  let ocamlopt_flags = make "OCAMLOPT_FLAGS"
+  let ocaml_flags = make "OCAML_FLAGS"
   let runtime_ocaml_libs = make "RUNTIME_OCAML_LIBS"
   let diff = make "DIFF"
   let post_test = make "POST_TEST"
@@ -447,6 +448,7 @@ module Var = struct
   let output = make "out"
   let pool = make "pool"
   let src = make "src"
+  let orig_src = make "orig-src"
   let scope = make "scope"
   let test_id = make "test-id"
   let test_command = make "test-command"
@@ -477,7 +479,7 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
         | _ -> false)
       test_flags
   in
-  let ocamlopt_flags = ["-I"; Lazy.force Poll.ocaml_runtime_dir] in
+  let ocaml_flags = ["-I"; Lazy.force Poll.ocaml_runtime_dir] in
   [
     Nj.binding Var.ninja_required_version ["1.7"];
     (* use of implicit outputs *)
@@ -498,8 +500,9 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
        :: ("--test-flags=" ^ String.concat "," test_flags)
        :: includes
       @ List.map (fun f -> "--catala-opts=" ^ f) catala_flags);
+    Nj.binding Var.ocamlc_exe ["ocamlc"];
     Nj.binding Var.ocamlopt_exe ["ocamlopt"];
-    Nj.binding Var.ocamlopt_flags (ocamlopt_flags @ includes);
+    Nj.binding Var.ocaml_flags (ocaml_flags @ includes);
     Nj.binding Var.runtime_ocaml_libs (Lazy.force Poll.ocaml_link_flags);
     Nj.binding Var.diff (Lazy.force Poll.diff_command);
     Nj.binding Var.post_test [Var.(!diff)];
@@ -508,36 +511,43 @@ let base_bindings catala_exe catala_flags build_dir include_dirs test_flags =
 let[@ocamlformat "disable"] static_base_rules =
   let open Var in
   let color = Message.has_color stdout in
+  let shellout l = Format.sprintf "$$(%s)" (String.concat " " l) in
   [
     Nj.rule "copy"
       ~command:["cp"; "-f"; !input; !output]
       ~description:["<copy>"; !input];
 
     Nj.rule "catala-ocaml"
-      ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml; !input; "-o"; !output]
+      ~command:[!catala_exe; "ocaml"; !catala_flags; !catala_flags_ocaml;
+                !input; "-o"; !output]
       ~description:["<catala>"; "ocaml"; "⇒"; !output];
 
     Nj.rule "ocaml-module"
       ~command:
-        [!ocamlopt_exe; "-shared"; !ocamlopt_flags; !input; "-o"; !output]
+        [!ocamlc_exe; "-c"; !ocaml_flags; !input; "&&";
+         !ocamlopt_exe; "-shared"; !ocaml_flags; !input; "-o"; !output]
       ~description:["<ocaml>"; "⇒"; !output];
 
     Nj.rule "ocaml-exec"
       ~command: [
-        !ocamlopt_exe; !runtime_ocaml_libs; !ocamlopt_flags;
+        !ocamlopt_exe; !runtime_ocaml_libs; !ocaml_flags;
+        shellout [!catala_exe; "depends";
+                  "--prefix="^ !builddir; "--extension=cmx";
+                  !catala_flags; !orig_src];
         !input;
         "-o"; !output;
       ]
       ~description:["<ocaml>"; "⇒"; !output];
 
     Nj.rule "python"
-      ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python; !input; "-o"; !output]
+      ~command:[!catala_exe; "python"; !catala_flags; !catala_flags_python;
+                !input; "-o"; !output]
       ~description:["<catala>"; "python"; "⇒"; !output];
 
     Nj.rule "out-test"
       ~command: [
-        !catala_exe; !test_command; "--plugin-dir="; "-o -"; !catala_flags; !input;
-        ">"; !output; "2>&1";
+        !catala_exe; !test_command; "--plugin-dir="; "-o -"; !catala_flags;
+        !input; ">"; !output; "2>&1";
         "||"; "true";
       ]
       ~description:
@@ -545,7 +555,8 @@ let[@ocamlformat "disable"] static_base_rules =
 
     Nj.rule "inline-tests"
       ~command:
-        [!clerk_exe; "runtest"; !clerk_flags; !input; ">"; !output; "2>&1"; "||"; "true"]
+        [!clerk_exe; "runtest"; !clerk_flags; !input; ">"; !output; "2>&1";
+         "||"; "true"]
       ~description:["<catala>"; "inline-tests"; "⇐"; !input];
 
     Nj.rule "post-test"
@@ -658,7 +669,7 @@ let gen_build_statements
           ~implicit_in:[!Var.catala_exe] ~outputs:[py_file] )
   in
   let ocamlopt =
-    let implicit_out_exts = ["cmi"; "cmx"; "cmt"; "o"] in
+    let implicit_out_exts = ["cmi"; "cmo"; "cmx"; "cmt"; "o"] in
     match item.module_def with
     | Some m ->
       let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
@@ -668,8 +679,8 @@ let gen_build_statements
         ~implicit_out:(List.map target implicit_out_exts)
         ~vars:
           [
-            ( Var.ocamlopt_flags,
-              !Var.ocamlopt_flags
+            ( Var.ocaml_flags,
+              !Var.ocaml_flags
               :: "-I"
               :: (!Var.builddir / src /../ "")
               :: List.concat_map
@@ -682,42 +693,18 @@ let gen_build_statements
           ]
     | None ->
       let target ext = (!Var.builddir / !Var.src) ^ "." ^ ext in
-      let inputs, modules =
-        List.partition_map
+      let implicit_in =
+        List.map
           (fun m ->
             if List.mem m same_dir_modules then
-              Left ((!Var.builddir / src /../ m) ^ ".cmx")
-            else Right m)
+              (!Var.builddir / src /../ m) ^ ".cmx"
+            else m ^ "@module")
           modules
       in
-      let inputs = inputs @ [ml_file] in
-      (* Note: this rule is incomplete in that it only provide the direct module
-         dependencies, and ocamlopt needs the transitive closure of dependencies
-         for linking, which we can't provide here ; catala does that work for
-         the interpret case, so we should probably add a [catala link] (or
-         [clerk link]) command that gathers these dependencies and wraps
-         [ocamlopt]. *)
-      Nj.build "ocaml-exec" ~inputs
-        ~implicit_in:(List.map (fun m -> m ^ "@module") modules)
+      Nj.build "ocaml-exec" ~inputs:[ml_file] ~implicit_in
         ~outputs:[target "exe"]
         ~implicit_out:(List.map target implicit_out_exts)
-        ~vars:
-          [
-            ( Var.ocamlopt_flags,
-              !Var.ocamlopt_flags
-              :: "-I"
-              :: (!Var.builddir / src /../ "")
-              :: List.concat_map
-                   (fun d ->
-                     [
-                       "-I";
-                       (if Filename.is_relative d then !Var.builddir / d else d);
-                     ])
-                   include_dirs
-              @ List.map (fun m -> m ^ ".cmx") modules );
-            (* FIXME: This doesn't work for module used through file
-               inclusion *)
-          ]
+        ~vars:[Var.orig_src, [!Var.src ^ Filename.extension src]]
   in
   let expose_module =
     match item.module_def with

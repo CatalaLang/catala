@@ -98,8 +98,8 @@ class type duration = object
   method days : int Js.readonly_prop
 end
 
-val duration_of_jsoo : duration Js.t -> Runtime_ocaml.Runtime.duration
-val duration_to_jsoo : Runtime_ocaml.Runtime.duration -> duration Js.t
+val duration_of_js : duration Js.t -> Runtime_ocaml.Runtime.duration
+val duration_to_js : Runtime_ocaml.Runtime.duration -> duration Js.t
 
 (** {1 Date conversion} *)
 
@@ -107,8 +107,8 @@ val duration_to_jsoo : Runtime_ocaml.Runtime.duration -> duration Js.t
     {{:https://www.iso.org/iso-8601-date-and-time-format.html} ISO8601 format}:
     'YYYY-MM-DD'. *)
 
-val date_of_jsoo : Js.js_string Js.t -> Runtime_ocaml.Runtime.date
-val date_to_jsoo : Runtime_ocaml.Runtime.date -> Js.js_string Js.t
+val date_of_js : Js.js_string Js.t -> Runtime_ocaml.Runtime.date
+val date_to_js : Runtime_ocaml.Runtime.date -> Js.js_string Js.t
 
 (** {1 Error management} *)
 
