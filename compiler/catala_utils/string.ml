@@ -23,30 +23,26 @@ let begins_with_uppercase (s : string) : bool =
   "" <> s && is_uppercase_ascii (get (to_ascii s) 0)
 
 let to_snake_case (s : string) : string =
-  let out = ref "" in
-  to_ascii s
+  let out = Buffer.create (2 * length s) in
+  s
+  |> to_ascii
   |> iteri (fun i c ->
-         out :=
-           !out
-           ^ (if is_uppercase_ascii c && 0 <> i then "_" else "")
-           ^ lowercase_ascii (make 1 c));
-  !out
+         if is_uppercase_ascii c && 0 <> i then Buffer.add_char out '_';
+         Buffer.add_char out (Char.lowercase_ascii c));
+  Buffer.contents out
 
 let to_camel_case (s : string) : string =
-  let last_was_underscore = ref false in
-  let out = ref "" in
-  to_ascii s
-  |> iteri (fun i c ->
-         let is_underscore = c = '_' in
-         let c_string = make 1 c in
-         out :=
-           !out
-           ^
-           if is_underscore then ""
-           else if !last_was_underscore || 0 = i then uppercase_ascii c_string
-           else c_string;
-         last_was_underscore := is_underscore);
-  !out
+  let last_was_underscore = ref true in
+  let out = Buffer.create (length s) in
+  s
+  |> to_ascii
+  |> iter (function
+       | '_' -> last_was_underscore := true
+       | c ->
+         Buffer.add_char out
+           (if !last_was_underscore then Char.uppercase_ascii c else c);
+         last_was_underscore := false);
+  Buffer.contents out
 
 let remove_prefix ~prefix s =
   if starts_with ~prefix s then
