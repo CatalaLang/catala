@@ -103,8 +103,12 @@ val ( / ) : t -> t -> t
 val dirname : t -> t
 (** [Filename.dirname], re-exported for convenience *)
 
+val parent : t -> t
+(** Similar to [dirname], except it strips the last **non-".."** element in the
+    supplied file name *)
+
 val ( /../ ) : t -> t -> t
-(** Sugar for [Filename.dirname "a" / b] *)
+(** Sugar for [parent a / b] *)
 
 val ( -.- ) : t -> string -> t
 (** Extension replacement: chops the given filename extension, and replaces it

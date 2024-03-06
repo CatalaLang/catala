@@ -34,7 +34,24 @@ let temp_file pfx sfx =
     at_exit (fun () -> try Sys.remove f with _ -> ());
   f
 
+let ( / ) a b = if a = Filename.current_dir_name then b else Filename.concat a b
+
+let rec parent f =
+  let base = Filename.basename f in
+  if base = Filename.parent_dir_name then parent (Filename.dirname f) / base
+  else Filename.dirname f
+
+let rec ensure_dir dir =
+  match Sys.is_directory dir with
+  | true -> ()
+  | false | (exception Sys_error _) ->
+    let pdir = parent dir in
+    if pdir <> dir then ensure_dir (Filename.dirname dir);
+    Sys.mkdir dir
+      0o777 (* will be affected by umask, most likely restricted to 0o755 *)
+
 let with_out_channel filename f =
+  ensure_dir (Filename.dirname filename);
   let oc = open_out filename in
   finally (fun () -> close_out oc) (fun () -> f oc)
 
@@ -135,9 +152,8 @@ let check_exec t =
       "Could not find the @{<yellow>%s@} program, please fix your installation"
       (Filename.quote t)
 
-let ( / ) a b = if a = Filename.current_dir_name then b else Filename.concat a b
 let dirname = Filename.dirname
-let ( /../ ) a b = dirname a / b
+let ( /../ ) a b = parent a / b
 
 let ( -.- ) file ext =
   let base = Filename.chop_extension file in
