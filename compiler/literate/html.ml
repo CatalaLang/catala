@@ -140,7 +140,7 @@ let rec law_structure_to_html
     let t = pre_html t in
     if t = "" then () else Format.fprintf fmt "<div class='law-text'>%s</div>" t
   | A.CodeBlock (_, c, metadata) when not print_only_law ->
-    let start_line = Pos.get_start_line (Mark.get c) - 1 in
+    let start_line = Pos.get_start_line (Mark.get c) + 1 in
     let filename = Pos.get_file (Mark.get c) in
     let block_content = Mark.remove c in
     check_exceeding_lines start_line filename block_content;
