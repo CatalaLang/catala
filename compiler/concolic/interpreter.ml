@@ -237,6 +237,7 @@ type context = {
       (* A pair containing the Z3 encodings of the unit type, encoded as a tuple
          of 0 elements, and the unit value *)
   ctx_z3round : Z3.FuncDecl.func_decl;
+  ctx_optims : Optimizations.flag list; (* A list of optimizations to apply *)
 }
 
 (** adds the mapping between the Catala struct [s] and the corresponding Z3
@@ -503,7 +504,8 @@ let create_z3round (ctx : Z3.context) : Z3.FuncDecl.func_decl =
 let z3_round ctx = Z3_utils.z3_round_func ctx.ctx_z3round
 
 (* taken from z3backend, but without the option check *)
-let make_empty_context (decl_ctx : decl_ctx) : context =
+let make_empty_context (decl_ctx : decl_ctx) (optims : Optimizations.flag list)
+    : context =
   let z3_cfg = ["model", "true"; "proof", "false"] in
   let z3_ctx = Z3.mk_context z3_cfg in
   let z3_dummy_sort = Z3.Sort.mk_uninterpreted_s z3_ctx "!dummy_sort!" in
@@ -523,6 +525,7 @@ let make_empty_context (decl_ctx : decl_ctx) : context =
     (* ctx_z3constraints = []; *)
     ctx_dummy_sort = z3_dummy_sort;
     ctx_dummy_const = z3_dummy_const;
+    ctx_optims = optims;
   }
 
 let init_context (ctx : context) : context =
@@ -1806,7 +1809,37 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
         add_conc_info_e SymbExpr.none ~constraints app |> make_ok)
     | EDefault { excepts; just; cons } ->
       Message.emit_debug "... it's an EDefault";
-      handle_default ctx lang m (Expr.pos e) excepts just cons
+      let count_nonempty_greedy l =
+        Message.emit_debug "EDefault using greedy conflict finder";
+        let empty_count = List.length (List.filter Concrete.is_empty_error l) in
+        let nonempty_count = List.length l - empty_count in
+        nonempty_count, l
+      in
+
+      let count_nonempty_lazy l =
+        Message.emit_debug "EDefault using lazy conflict finder";
+        let rec aux l seen_nonempty acc =
+          match l with
+          | [] -> Bool.to_int seen_nonempty, List.rev acc
+          | ex :: exs ->
+            if not (Concrete.is_empty_error ex) then
+              if seen_nonempty then 2, List.rev (ex :: acc)
+              else aux exs true (ex :: acc)
+            else aux exs seen_nonempty (ex :: acc)
+        in
+        aux l false []
+      in
+
+      let count_nonempty =
+        if Optimizations.lazy_default ctx.ctx_optims then count_nonempty_lazy
+        else count_nonempty_greedy
+      in
+
+      let excepts = List.map (evaluate_expr ctx lang) excepts in
+      let nonempty_count, excepts = count_nonempty excepts in
+      Message.emit_debug "EDefault found %n non-empty exceptions!"
+        nonempty_count;
+      handle_default ctx lang m (Expr.pos e) nonempty_count excepts just cons
     | EPureDefault e ->
       Message.emit_debug "... it's an EPureDefault";
       evaluate_expr ctx lang e
@@ -1818,13 +1851,11 @@ let rec evaluate_expr : context -> Cli.backend_lang -> conc_expr -> conc_result
     (get_symb_expr_r ret);
   ret
 
-and handle_default ctx lang m pos excepts just cons =
-  let excepts = List.map (evaluate_expr ctx lang) excepts in
+and handle_default ctx lang m pos nonempty_count excepts just cons =
   propagate_generic_error_list excepts []
   @@ fun excepts ->
   let exc_constraints = gather_constraints excepts in
-  let empty_count = List.length (List.filter Concrete.is_empty_error excepts) in
-  match List.length excepts - empty_count with
+  match nonempty_count with
   | 0 -> (
     Message.emit_debug "EDefault>no except";
     let just = evaluate_expr ctx lang just in
@@ -2459,7 +2490,7 @@ let interpret_program_concolic
   let s_context_creation = Stats.start_step "create context" in
   let decl_ctx = p.decl_ctx in
   Message.emit_debug "[CONC] Create empty context";
-  let ctx = make_empty_context decl_ctx in
+  let ctx = make_empty_context decl_ctx optims in
   Message.emit_debug "[CONC] Initialize context";
   let ctx = init_context ctx in
   let stats = Stats.stop_step s_context_creation |> Stats.add_stat_step stats in
