@@ -2447,7 +2447,7 @@ module Stats = struct
       fprintf fmt "%.3f" t;
       pp_print_string fmt " s"
 
-    let period (fmt : formatter) (p : period) = ms fmt (p.stop -. p.start)
+    let period (fmt : formatter) (p : period) = sec fmt (p.stop -. p.start)
 
     let step (fmt : formatter) ((msg, p) : step) =
       fprintf fmt "%s: %a" msg period p
