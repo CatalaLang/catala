@@ -433,7 +433,7 @@ module To_jsoo = struct
       Format.fprintf fmt "%sLib"
         (Option.fold ~none:""
            ~some:(fun name ->
-             List.nth (String.split_on_char ' ' name) 1
+             name
              |> String.split_on_char '_'
              |> List.map String.capitalize_ascii
              |> String.concat "")
@@ -458,7 +458,7 @@ module To_jsoo = struct
        @[<v 2>let () =@ @[<hov 2> Js.export \"%a\"@\n\
        @[<v 2>(object%%js@ %a@]@\n\
        end)@]@]@?"
-      (Option.fold ~none:"" ~some:(fun name -> name) module_name)
+      (Option.fold ~none:"" ~some:(fun name -> "open " ^ name) module_name)
       (format_ctx type_ordering) prgm.decl_ctx
       (format_scopes_to_fun prgm.decl_ctx)
       prgm.code_items fmt_lib_name ()
@@ -487,9 +487,16 @@ let run
   with_formatter (fun fmt ->
       Message.emit_debug "Writing JSOO API code to %s..."
         (Option.value ~default:"stdout" jsoo_output_file);
-      To_jsoo.format_program fmt
-        (Option.map (fun m -> "open " ^ ModuleName.to_string m) prg.module_name)
-        prg type_ordering)
+      let modname =
+        match prg.module_name with
+        | Some m -> ModuleName.to_string m
+        | None ->
+          String.capitalize_ascii
+            Filename.(
+              basename
+                (remove_extension (Cli.input_src_file options.Cli.input_src)))
+      in
+      To_jsoo.format_program fmt (Some modname) prg type_ordering)
 
 let term =
   let open Cmdliner.Term in

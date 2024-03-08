@@ -644,7 +644,13 @@ let translate_program ~(config : translation_config) (p : 'm L.program) :
   let modules =
     List.fold_left
       (fun acc m ->
-        ModuleName.Map.add m (A.VarName.fresh (ModuleName.get_info m)) acc)
+        let vname = Mark.map (( ^ ) "Module_") (ModuleName.get_info m) in
+        (* The "Module_" prefix is a workaround name clashes for same-name
+           structs and modules, Python in particular mixes everything in one
+           namespaces. It can be removed once we have full clash-free variable
+           renaming in the Python backend (requiring all idents to go through
+           one stage of being bindlib vars) *)
+        ModuleName.Map.add m (A.VarName.fresh vname) acc)
       ModuleName.Map.empty
       (Program.modules_to_list p.decl_ctx.ctx_modules)
   in

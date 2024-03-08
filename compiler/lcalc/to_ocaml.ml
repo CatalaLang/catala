@@ -727,6 +727,13 @@ let commands = if commands = [] then entry_scopes else commands
         name format_var var name)
     scopes_with_no_input
 
+let reexport_used_modules fmt modules =
+  List.iter
+    (fun m ->
+      Format.fprintf fmt "@[<hv 2>module %a@ = %a@]@," ModuleName.format m
+        ModuleName.format m)
+    modules
+
 let format_module_registration
     fmt
     (bnd : ('m Ast.expr Var.t * _) String.Map.t)
@@ -772,17 +779,22 @@ let format_program
     ?(exec_args = true)
     (p : 'm Ast.program)
     (type_ordering : Scopelang.Dependency.TVertex.t list) : unit =
+  Format.pp_open_vbox fmt 0;
   Format.pp_print_string fmt header;
+  reexport_used_modules fmt (Program.modules_to_list p.decl_ctx.ctx_modules);
   format_ctx type_ordering fmt p.decl_ctx;
   let bnd = format_code_items p.decl_ctx fmt p.code_items in
-  Format.pp_print_newline fmt ();
-  match p.module_name, exec_scope with
-  | Some modname, None -> format_module_registration fmt bnd modname
-  | None, Some scope_name ->
-    let scope_body = Program.get_scope_body p scope_name in
-    format_scope_exec p.decl_ctx fmt bnd scope_name scope_body
-  | None, None -> if exec_args then format_scope_exec_args p.decl_ctx fmt bnd
-  | Some _, Some _ ->
-    Message.raise_error
-      "OCaml generation: both module registration and top-level scope \
-       execution where required at the same time."
+  Format.pp_print_cut fmt ();
+  let () =
+    match p.module_name, exec_scope with
+    | Some modname, None -> format_module_registration fmt bnd modname
+    | None, Some scope_name ->
+      let scope_body = Program.get_scope_body p scope_name in
+      format_scope_exec p.decl_ctx fmt bnd scope_name scope_body
+    | None, None -> if exec_args then format_scope_exec_args p.decl_ctx fmt bnd
+    | Some _, Some _ ->
+      Message.raise_error
+        "OCaml generation: both module registration and top-level scope \
+         execution where required at the same time."
+  in
+  Format.pp_close_box fmt ()

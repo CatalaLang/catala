@@ -136,12 +136,10 @@ end)
 
 let format_name_cleaned (fmt : Format.formatter) (s : string) : unit =
   s
-  |> String.to_ascii
   |> String.to_snake_case
   |> Re.Pcre.substitute ~rex:(Re.Pcre.regexp "\\.") ~subst:(fun _ -> "_dot_")
-  |> String.to_ascii
   |> avoid_keywords
-  |> Format.fprintf fmt "%s"
+  |> Format.pp_print_string fmt
 
 (** For each `VarName.t` defined by its string and then by its hash, we keep
     track of which local integer id we've given it. This is used to keep
@@ -666,7 +664,8 @@ let format_program
   Format.pp_print_list Format.pp_print_string fmt header;
   ModuleName.Map.iter
     (fun m v ->
-      Format.fprintf fmt "import %a as %a@," ModuleName.format m format_var v)
+      Format.fprintf fmt "from . import %a as %a@," ModuleName.format m
+        format_var v)
     p.ctx.modules;
   Format.pp_print_cut fmt ();
   format_ctx type_ordering fmt p.ctx;
