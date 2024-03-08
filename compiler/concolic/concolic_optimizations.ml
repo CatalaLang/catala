@@ -1,9 +1,10 @@
 open Path_constraint.PathConstraint
 
-type flag = OTrivial
+type flag = OTrivial | OLazyDefault
 
-let optim_list = ["trivial", OTrivial]
+let optim_list = ["trivial", OTrivial; "lazy-default", OLazyDefault]
 let trivial : flag list -> bool = List.mem OTrivial
+let lazy_default : flag list -> bool = List.mem OLazyDefault
 
 let remove_trivial_constraints opt (pcs : naked_path) : naked_path =
   if not (trivial opt) then pcs

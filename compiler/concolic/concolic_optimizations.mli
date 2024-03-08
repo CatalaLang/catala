@@ -1,6 +1,6 @@
 open Path_constraint
 
-type flag = OTrivial
+type flag = OTrivial | OLazyDefault
 
 val optim_list : (string * flag) list
 (** Used for command line arguments *)
