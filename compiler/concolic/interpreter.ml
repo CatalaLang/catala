@@ -25,6 +25,7 @@ module Concrete = Shared_ast.Interpreter
 open Z3_utils
 open Symb_expr
 open Path_constraint
+module Optimizations = Concolic_optimizations
 
 type s_expr = SymbExpr.z3_expr
 
@@ -206,26 +207,6 @@ let del_genericerror e =
      thing: validate at runtime that the term does not contain [ECustom]
      nodes. *)
   Expr.unbox (f e)
-
-(** Optimizations *)
-
-module Optimizations = struct
-  type flag = OTrivial
-
-  let optim_list = ["trivial", OTrivial]
-  let trivial : flag list -> bool = List.mem OTrivial
-
-  open PathConstraint
-
-  let remove_trivial_constraints opt (pcs : naked_path) : naked_path =
-    if not (trivial opt) then pcs
-    else begin
-      let f pc =
-        match pc.expr with Pc_z3 s -> not (Z3.Boolean.is_true s) | _ -> true
-      in
-      List.filter f pcs
-    end
-end
 
 (** Transform any DCalc expression into a concolic expression with no symbolic
     expression and no constraints *)

@@ -21,6 +21,7 @@ open Catala_utils
 open Shared_ast
 open Symb_expr
 open Path_constraint
+module Optimizations = Concolic_optimizations
 
 type s_expr = SymbExpr.z3_expr
 
@@ -51,13 +52,6 @@ type ('c, 'e) conc_interpr_kind =
 type conc_src_kind = (yes, no) conc_interpr_kind
 type conc_dest_kind = (yes, yes) conc_interpr_kind
 type conc_expr = (conc_src_kind, conc_info) gexpr
-
-module Optimizations : sig
-  type flag = OTrivial
-
-  val optim_list : (string * flag) list
-  (** Used for command line arguments *)
-end
 
 val interpret_program_concolic :
   bool ->
