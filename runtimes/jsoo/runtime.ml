@@ -180,3 +180,9 @@ let execute_or_throw_error f =
       "A conflict happened between two rules giving a value to the variable" pos
   | R_ocaml.AssertionFailed pos ->
     throw_error "A failure happened in the assertion" pos
+
+let () =
+  Js.export_all
+    (object%js
+       val eventsManager = event_manager
+    end)
