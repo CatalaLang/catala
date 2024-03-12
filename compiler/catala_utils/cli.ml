@@ -468,7 +468,7 @@ module Flags = struct
   let extra_files =
     value
     & pos_right 0 file []
-    & Arg.info [] ~docv:"FILE" ~docs:Manpage.s_arguments
+    & Arg.info [] ~docv:"FILES" ~docs:Manpage.s_arguments
         ~doc:"Additional input files."
 
   let lcalc =

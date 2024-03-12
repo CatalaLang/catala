@@ -989,9 +989,26 @@ module Commands = struct
         $ Cli.Flags.optimize
         $ Cli.Flags.check_invariants)
 
-  let depends options includes prefix extension =
-    let prg = Passes.surface options in
-    let prg = { prg with program_items = [] } in
+  let depends options includes prefix extension extra_files =
+    let prg =
+      let file = Cli.input_src_file options.Cli.input_src in
+      Surface.Ast.
+        {
+          program_module_name = None;
+          program_items = [];
+          program_source_files = [];
+          program_used_modules =
+            List.map
+              (fun f ->
+                let name = modname_of_file f in
+                {
+                  mod_use_name = name, Pos.no_pos;
+                  mod_use_alias = name, Pos.no_pos;
+                })
+              (file :: extra_files);
+          program_lang = Cli.file_lang file;
+        }
+    in
     let mod_uses, modules = load_module_interfaces options includes prg in
     let d_ctx =
       Desugared.Name_resolution.form_context (prg, mod_uses) modules
@@ -1026,17 +1043,19 @@ module Commands = struct
     Cmd.v
       (Cmd.info "depends"
          ~doc:
-           "Lists the dependencies of a given catala file, in linking order. \
-            This includes recursive dependencies and is useful for linking an \
-            application in a target language. The space-separated list is \
-            printed to stdout. The names are printed as expected of module \
-            identifiers, $(i,i.e.) capitalized.")
+           "Lists the dependencies of the given catala files, in linking \
+            order. This includes recursive dependencies and is useful for \
+            linking an application in a target language. The space-separated \
+            list is printed to stdout. The names are printed as expected of \
+            module identifiers, $(i,i.e.) capitalized.\n\
+            NOTE: the files specified are also included in the returned list.")
       Term.(
         const depends
         $ Cli.Flags.Global.options
         $ Cli.Flags.include_dirs
         $ Cli.Flags.prefix
-        $ Cli.Flags.extension)
+        $ Cli.Flags.extension
+        $ Cli.Flags.extra_files)
 
   let pygmentize_cmd =
     Cmd.v
