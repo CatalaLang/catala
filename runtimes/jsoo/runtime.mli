@@ -77,13 +77,9 @@ class type event = object
 end
 
 class type event_manager = object
-  method resetLog : (unit, unit) Js.meth_callback Js.meth
-
-  method retrieveEvents :
-    (unit, event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
-
-  method retrieveRawEvents :
-    (unit, raw_event Js.t Js.js_array Js.t) Js.meth_callback Js.meth
+  method resetLog : unit Js.meth
+  method retrieveEvents : event Js.t Js.js_array Js.t Js.meth
+  method retrieveRawEvents : raw_event Js.t Js.js_array Js.t Js.meth
 end
 
 val event_manager : event_manager Js.t
