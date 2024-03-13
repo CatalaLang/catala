@@ -412,13 +412,14 @@ let check_modname program source_file =
       File.((dirname file / mname) ^ Filename.extension file)
   | _ -> ()
 
-let load_interface source_file =
+let load_interface ?default_module_name source_file =
   let program = with_sedlex_source source_file parse_source in
   check_modname program source_file;
   let modname =
-    match program.Ast.program_module_name with
-    | Some mname -> mname
-    | None ->
+    match program.Ast.program_module_name, default_module_name with
+    | Some mname, _ -> mname
+    | None, Some n -> n, Pos.from_info (Cli.input_src_file source_file) 0 0 0 0
+    | None, None ->
       Message.raise_error
         "%a doesn't define a module name. It should contain a '@{<cyan>> \
          Module %s@}' directive."

@@ -26,14 +26,19 @@ let modname_of_file f =
   (* Fixme: make this more robust *)
   String.capitalize_ascii Filename.(basename (remove_extension f))
 
-let load_module_interfaces options includes program =
+let load_module_interfaces
+    options
+    includes
+    ?(more_includes = [])
+    ?(allow_notmodules = false)
+    program =
   (* Recurse into program modules, looking up files in [using] and loading
      them *)
   if program.Surface.Ast.program_used_modules <> [] then
     Message.emit_debug "Loading module interfaces...";
   let includes =
-    includes
-    |> List.map (fun d -> File.Tree.build (options.Cli.path_rewrite d))
+    List.map options.Cli.path_rewrite includes @ more_includes
+    |> List.map File.Tree.build
     |> List.fold_left File.Tree.union File.Tree.empty
   in
   let err_req_pos chain =
@@ -80,7 +85,13 @@ let load_module_interfaces options includes program =
             (err_req_pos (Mark.get use.Surface.Ast.mod_use_name :: req_chain))
             "Circular module dependency"
         | None ->
-          let intf = Surface.Parser_driver.load_interface (Cli.FileName f) in
+          let default_module_name =
+            if allow_notmodules then Some (modname_of_file f) else None
+          in
+          let intf =
+            Surface.Parser_driver.load_interface ?default_module_name
+              (Cli.FileName f)
+          in
           let modname = ModuleName.fresh intf.intf_modname in
           let seen = File.Map.add f None seen in
           let seen, sub_use_map =
@@ -990,8 +1001,9 @@ module Commands = struct
         $ Cli.Flags.check_invariants)
 
   let depends options includes prefix extension extra_files =
+    let file = Cli.input_src_file options.Cli.input_src in
+    let more_includes = List.map Filename.dirname (file :: extra_files) in
     let prg =
-      let file = Cli.input_src_file options.Cli.input_src in
       Surface.Ast.
         {
           program_module_name = None;
@@ -1009,7 +1021,10 @@ module Commands = struct
           program_lang = Cli.file_lang file;
         }
     in
-    let mod_uses, modules = load_module_interfaces options includes prg in
+    let mod_uses, modules =
+      load_module_interfaces options includes ~more_includes
+        ~allow_notmodules:true prg
+    in
     let d_ctx =
       Desugared.Name_resolution.form_context (prg, mod_uses) modules
     in

@@ -24,7 +24,8 @@ val lines :
 (** Raw file parser that doesn't interpret any includes and returns the flat law
     structure as is *)
 
-val load_interface : Cli.input_src -> Ast.interface
+val load_interface :
+  ?default_module_name:string -> Cli.input_src -> Ast.interface
 (** Reads only declarations in metadata in the supplied input file, and only
     keeps type information. The list of submodules is initialised with names
     only and empty contents. *)
