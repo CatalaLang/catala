@@ -522,10 +522,14 @@ let[@ocamlformat "disable"] static_base_rules =
                 !input; "-o"; !output]
       ~description:["<catala>"; "ocaml"; "⇒"; !output];
 
+    Nj.rule "ocaml-object"
+      ~command:[!ocamlc_exe; "-c"; !ocaml_flags; !input; "&&";
+                !ocamlopt_exe; "-c"; !ocaml_flags; !input]
+      ~description:["<ocaml>"; "⇒"; !output];
+
     Nj.rule "ocaml-module"
       ~command:
-        [!ocamlc_exe; "-c"; !ocaml_flags; !input; "&&";
-         !ocamlopt_exe; "-shared"; !ocaml_flags; !input; "-o"; !output]
+        [!ocamlopt_exe; "-shared"; !ocaml_flags; !input; "-o"; !output]
       ~description:["<ocaml>"; "⇒"; !output];
 
     Nj.rule "ocaml-exec"
@@ -534,7 +538,6 @@ let[@ocamlformat "disable"] static_base_rules =
         shellout [!catala_exe; "depends";
                   "--prefix="^ !builddir; "--extension=cmx";
                   !catala_flags; !orig_src];
-        !input;
         "-o"; !output;
       ]
       ~description:["<ocaml>"; "⇒"; !output];
@@ -669,14 +672,16 @@ let gen_build_statements
           ~implicit_in:[!Var.catala_exe] ~outputs:[py_file] )
   in
   let ocamlopt =
-    let implicit_out_exts = ["cmi"; "cmo"; "cmx"; "cmt"; "o"] in
-    match item.module_def with
-    | Some m ->
+    let obj =
+      let m =
+        match item.module_def with
+        | Some m -> m
+        | None -> Filename.(basename (remove_extension src))
+      in
       let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
-      Nj.build "ocaml-module" ~inputs:[ml_file]
+      Nj.build "ocaml-object" ~inputs:[ml_file]
         ~implicit_in:(!Var.catala_exe :: List.map modd modules)
-        ~outputs:[target "cmxs"]
-        ~implicit_out:(List.map target implicit_out_exts)
+        ~outputs:(List.map target ["cmi"; "cmo"; "cmx"; "cmt"; "o"])
         ~vars:
           [
             ( Var.ocaml_flags,
@@ -691,20 +696,20 @@ let gen_build_statements
                      ])
                    include_dirs );
           ]
-    | None ->
-      let target ext = (!Var.builddir / !Var.src) ^ "." ^ ext in
-      let implicit_in =
-        List.map
-          (fun m ->
-            if List.mem m same_dir_modules then
-              (!Var.builddir / src /../ m) ^ ".cmx"
-            else m ^ "@module")
-          modules
-      in
-      Nj.build "ocaml-exec" ~inputs:[ml_file] ~implicit_in
-        ~outputs:[target "exe"]
-        ~implicit_out:(List.map target implicit_out_exts)
-        ~vars:[Var.orig_src, [!Var.src ^ Filename.extension src]]
+    in
+    let modexec =
+      match item.module_def with
+      | Some _ ->
+        Nj.build "ocaml-module"
+          ~inputs:[target_file "cmx"]
+          ~outputs:[target_file "cmxs"]
+      | None ->
+        Nj.build "ocaml-exec"
+          ~inputs:[target_file "cmx"]
+          ~outputs:[target_file "exe"]
+          ~vars:[Var.orig_src, [inc srcv]]
+    in
+    [obj; modexec]
   in
   let expose_module =
     match item.module_def with
@@ -810,7 +815,7 @@ let gen_build_statements
          Option.to_seq module_deps;
          Option.to_seq expose_module;
          Seq.return ocaml;
-         Seq.return ocamlopt;
+         List.to_seq ocamlopt;
          Seq.return python;
          List.to_seq tests;
          Seq.return interpret;
