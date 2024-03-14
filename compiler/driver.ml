@@ -1047,7 +1047,8 @@ module Commands = struct
             else File.(pfx / f)
         in
         let f =
-          match extension with None -> f | Some ext -> File.(f -.- ext)
+          File.clean_path
+          @@ match extension with None -> f | Some ext -> File.(f -.- ext)
         in
         Format.pp_print_string ppf f)
       Format.std_formatter modules_list_topo;

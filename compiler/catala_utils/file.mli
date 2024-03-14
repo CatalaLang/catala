@@ -104,8 +104,11 @@ val dirname : t -> t
 (** [Filename.dirname], re-exported for convenience *)
 
 val parent : t -> t
-(** Similar to [dirname], except it strips the last **non-".."** element in the
-    supplied file name *)
+(** Similar to [dirname], except it strips the last **non-"." or ".."** element in the
+    supplied file name, if it exists *)
+
+val clean_path : t -> t
+(** Rewrites a path by removing intermediate relative lookups ("." and ".."). E.g. [../foo/./bar/../baz/] becomes [../foo/baz]. No disk lookup is made by this function. *)
 
 val ( /../ ) : t -> t -> t
 (** Sugar for [parent a / b] *)

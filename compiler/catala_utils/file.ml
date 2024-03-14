@@ -35,18 +35,41 @@ let temp_file pfx sfx =
   f
 
 let ( / ) a b = if a = Filename.current_dir_name then b else Filename.concat a b
+let dir_sep_char = Filename.dir_sep.[0]
 
 let rec parent f =
   let base = Filename.basename f in
-  if base = Filename.parent_dir_name then parent (Filename.dirname f) / base
+  if base = Filename.parent_dir_name || base = Filename.current_dir_name then
+    parent (Filename.dirname f) / base
   else Filename.dirname f
+
+let clean_path p =
+  let ( / ) a b = if b = "" then a else a / b in
+  let nup, p =
+    List.fold_right
+      (fun d (nup, acc) ->
+        if d = Filename.current_dir_name then nup, acc
+        else if d = Filename.parent_dir_name then nup + 1, acc
+        else if nup > 0 then nup - 1, acc
+        else nup, d / acc)
+      (String.split_on_char dir_sep_char p)
+      (0, "")
+  in
+  let p =
+    if nup = 0 then p
+    else
+      String.concat Filename.dir_sep
+        (List.init nup (fun _ -> Filename.parent_dir_name))
+      / p
+  in
+  if p = "" then "." else p
 
 let rec ensure_dir dir =
   match Sys.is_directory dir with
   | true -> ()
   | false | (exception Sys_error _) ->
     let pdir = parent dir in
-    if pdir <> dir then ensure_dir (Filename.dirname dir);
+    if pdir <> dir then ensure_dir pdir;
     Sys.mkdir dir
       0o777 (* will be affected by umask, most likely restricted to 0o755 *)
 
@@ -142,8 +165,6 @@ let get_command t =
        ~check_exit:(function 0 -> () | _ -> raise Not_found)
        "/bin/sh"
        ["-c"; "command -v " ^ Filename.quote t]
-
-let dir_sep_char = Filename.dir_sep.[0]
 
 let check_exec t =
   try if String.contains t dir_sep_char then Unix.realpath t else get_command t
