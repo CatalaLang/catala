@@ -37,7 +37,7 @@ let tag_with_log_entry
     (e : untyped Ast.expr boxed)
     (l : log_entry)
     (markings : Uid.MarkedString.info list) : untyped Ast.expr boxed =
-  if Cli.globals.trace then
+  if Global.options.trace then
     Expr.eappop
       ~op:(Log (l, markings))
       ~tys:[TAny, Expr.pos e]

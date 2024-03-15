@@ -58,7 +58,7 @@ type 'm program = {
      the scope signatures needed to respect the call convention *)
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
   program_topdefs : ('m expr * typ) TopdefName.Map.t;
-  program_lang : Cli.backend_lang;
+  program_lang : Global.backend_lang;
 }
 
 val type_program : 'm program -> typed program

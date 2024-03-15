@@ -87,7 +87,7 @@ module Cli = struct
       catala_opts:string list ->
       build_dir:File.t option ->
       include_dirs:string list ->
-      color:Cli.when_enum ->
+      color:Global.when_enum ->
       debug:bool ->
       ninja_output:File.t option ->
       'a) ->
@@ -103,7 +103,7 @@ module Cli = struct
     let color =
       Arg.(
         value
-        & opt ~vopt:Cli.Always Cli.when_opt Auto
+        & opt ~vopt:Global.Always Cli.when_opt Auto
         & info ["color"]
             ~env:(Cmd.Env.info "CATALA_COLOR")
             ~doc:
@@ -895,7 +895,7 @@ let ninja_init
     ~debug
     ~ninja_output :
     extra:def Seq.t -> test_flags:string list -> (File.t -> 'a) -> 'a =
-  let _options = Catala_utils.Cli.enforce_globals ~debug ~color () in
+  let _options = Catala_utils.Global.enforce_options ~debug ~color () in
   let chdir =
     match chdir with None -> Lazy.force Poll.project_root | some -> some
   in
@@ -933,7 +933,7 @@ let ninja_cmdline ninja_flags nin_file targets =
      :: "-f"
      :: nin_file
      :: (if ninja_flags = "" then [] else [ninja_flags])
-    @ (if Catala_utils.Cli.globals.debug then ["-v"] else [])
+    @ (if Catala_utils.Global.options.debug then ["-v"] else [])
     @ targets)
 
 open Cmdliner
@@ -1074,7 +1074,7 @@ let main () =
   | Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit content Error;
-    if Catala_utils.Cli.globals.debug then
+    if Catala_utils.Global.options.debug then
       Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | Sys_error msg ->

@@ -46,10 +46,10 @@ type item = {
 (** Contains all the data extracted from a single Catala file. Lists are in
     reverse file order. *)
 
-val get_lang : File.t -> Cli.backend_lang option
+val get_lang : File.t -> Global.backend_lang option
 (** Guesses Catala dialect from file-name and global options *)
 
-val catala_file : File.t -> Catala_utils.Cli.backend_lang -> item
+val catala_file : File.t -> Global.backend_lang -> item
 (** Scans a single Catala file into an item *)
 
 val tree : File.t -> (File.t * File.t list * item list) Seq.t

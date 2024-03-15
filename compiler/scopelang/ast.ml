@@ -62,7 +62,7 @@ type 'm program = {
   program_modules : nil scope_decl Mark.pos ScopeName.Map.t ModuleName.Map.t;
   program_scopes : 'm scope_decl Mark.pos ScopeName.Map.t;
   program_topdefs : ('m expr * typ) TopdefName.Map.t;
-  program_lang : Cli.backend_lang;
+  program_lang : Global.backend_lang;
 }
 
 let type_rule decl_ctx env = function

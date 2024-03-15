@@ -15,7 +15,7 @@
    the License. *)
 
 open Catala_utils
-open Cli
+open Global
 
 let literal_title = function
   | En -> "Legislative text implementation"

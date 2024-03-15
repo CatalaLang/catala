@@ -238,7 +238,7 @@ type program = {
   program_ctx : decl_ctx;
   program_modules : modul ModuleName.Map.t;
   program_root : modul;
-  program_lang : Cli.backend_lang;
+  program_lang : Global.backend_lang;
 }
 
 let rec locations_used e : LocationSet.t =

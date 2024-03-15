@@ -18,7 +18,7 @@
 open Catala_utils
 open Shared_ast
 
-(** Associates a file extension with its corresponding {!type: Cli.backend_lang}
+(** Associates a file extension with its corresponding {!type: Global.backend_lang}
     string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 
@@ -37,7 +37,7 @@ let load_module_interfaces
   if program.Surface.Ast.program_used_modules <> [] then
     Message.emit_debug "Loading module interfaces...";
   let includes =
-    List.map options.Cli.path_rewrite includes @ more_includes
+    List.map options.Global.path_rewrite includes @ more_includes
     |> List.map File.Tree.build
     |> List.fold_left File.Tree.union File.Tree.empty
   in
@@ -90,7 +90,7 @@ let load_module_interfaces
           in
           let intf =
             Surface.Parser_driver.load_interface ?default_module_name
-              (Cli.FileName f)
+              (Global.FileName f)
           in
           let modname = ModuleName.fresh intf.intf_modname in
           let seen = File.Map.add f None seen in
@@ -137,7 +137,7 @@ module Passes = struct
   let surface options : Surface.Ast.program =
     debug_pass_name "surface";
     let prg =
-      Surface.Parser_driver.parse_top_level_file options.Cli.input_src
+      Surface.Parser_driver.parse_top_level_file options.Global.input_src
     in
     Surface.Fill_positions.fill_pos_with_legislative_info prg
 
@@ -169,8 +169,8 @@ module Passes = struct
 
   let dcalc :
       type ty.
-      Cli.options ->
-      includes:Cli.raw_file list ->
+      Global.options ->
+      includes:Global.raw_file list ->
       optimize:bool ->
       check_invariants:bool ->
       typed:ty mark ->
@@ -402,18 +402,18 @@ module Commands = struct
             second_part )
 
   let get_output ?ext options output_file =
-    let output_file = Option.map options.Cli.path_rewrite output_file in
-    File.get_out_channel ~source_file:options.Cli.input_src ~output_file ?ext ()
+    let output_file = Option.map options.Global.path_rewrite output_file in
+    File.get_out_channel ~source_file:options.Global.input_src ~output_file ?ext ()
 
   let get_output_format ?ext options output_file =
-    let output_file = Option.map options.Cli.path_rewrite output_file in
-    File.get_formatter_of_out_channel ~source_file:options.Cli.input_src
+    let output_file = Option.map options.Global.path_rewrite output_file in
+    File.get_formatter_of_out_channel ~source_file:options.Global.input_src
       ~output_file ?ext ()
 
   let makefile options output =
     let prg = Passes.surface options in
     let backend_extensions_list = [".tex"] in
-    let source_file = Cli.input_src_file options.Cli.input_src in
+    let source_file = Cli.input_src_file options.Global.input_src in
     let output_file, with_output = get_output options ~ext:".d" output in
     Message.emit_debug "Writing list of dependencies to %s..."
       (Option.value ~default:"stdout" output_file);
@@ -444,7 +444,7 @@ module Commands = struct
     in
     with_output
     @@ fun fmt ->
-    let language = Cli.file_lang (Cli.input_src_file options.Cli.input_src) in
+    let language = Cli.file_lang (Cli.input_src_file options.Global.input_src) in
     let weave_output = Literate.Html.ast_to_html language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -480,7 +480,7 @@ module Commands = struct
     in
     with_output
     @@ fun fmt ->
-    let language = Cli.file_lang (Cli.input_src_file options.Cli.input_src) in
+    let language = Cli.file_lang (Cli.input_src_file options.Global.input_src) in
     let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -549,11 +549,11 @@ module Commands = struct
     match ex_scope_opt with
     | Some scope ->
       let scope_uid = get_scope_uid prg.program_ctx scope in
-      Scopelang.Print.scope ~debug:options.Cli.debug prg.program_ctx fmt
+      Scopelang.Print.scope ~debug:options.Global.debug prg.program_ctx fmt
         (scope_uid, ScopeName.Map.find scope_uid prg.program_scopes);
       Format.pp_print_newline fmt ()
     | None ->
-      Scopelang.Print.program ~debug:options.Cli.debug fmt prg;
+      Scopelang.Print.program ~debug:options.Global.debug fmt prg;
       Format.pp_print_newline fmt ()
 
   let scopelang_cmd =
@@ -615,7 +615,7 @@ module Commands = struct
     match ex_scope_opt with
     | Some scope ->
       let scope_uid = get_scope_uid prg.decl_ctx scope in
-      Print.scope ~debug:options.Cli.debug prg.decl_ctx fmt
+      Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
         ( scope_uid,
           BoundList.find
             ~f:(function
@@ -629,7 +629,7 @@ module Commands = struct
       (* TODO: ??? *)
       let prg_dcalc_expr = Expr.unbox (Program.to_expr prg scope_uid) in
       Format.fprintf fmt "%a\n"
-        (Print.expr ~debug:options.Cli.debug ())
+        (Print.expr ~debug:options.Global.debug ())
         prg_dcalc_expr
 
   let dcalc_cmd =
@@ -694,11 +694,11 @@ module Commands = struct
     in
     Message.emit_result "Computation successful!%s"
       (if List.length results > 0 then " Results:" else "");
-    let language = Cli.file_lang (Cli.input_src_file options.Cli.input_src) in
+    let language = Cli.file_lang (Cli.input_src_file options.Global.input_src) in
     List.iter
       (fun ((var, _), result) ->
         Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
-          (if options.Cli.debug then Print.expr ~debug:false ()
+          (if options.Global.debug then Print.expr ~debug:false ()
            else Print.UserFacing.value language)
           result)
       results
@@ -733,11 +733,11 @@ module Commands = struct
     match ex_scope_opt with
     | Some scope ->
       let scope_uid = get_scope_uid prg.decl_ctx scope in
-      Print.scope ~debug:options.Cli.debug prg.decl_ctx fmt
+      Print.scope ~debug:options.Global.debug prg.decl_ctx fmt
         (scope_uid, Program.get_scope_body prg scope_uid);
       Format.pp_print_newline fmt ()
     | None ->
-      Print.program ~debug:options.Cli.debug fmt prg;
+      Print.program ~debug:options.Global.debug fmt prg;
       Format.pp_print_newline fmt ()
 
   let lcalc_cmd =
@@ -880,7 +880,7 @@ module Commands = struct
     match ex_scope_opt with
     | Some scope ->
       let scope_uid = get_scope_uid prg.ctx.decl_ctx scope in
-      Scalc.Print.format_item ~debug:options.Cli.debug prg.ctx.decl_ctx fmt
+      Scalc.Print.format_item ~debug:options.Global.debug prg.ctx.decl_ctx fmt
         (List.find
            (function
              | Scalc.Ast.SScope { scope_body_name; _ } ->
@@ -1001,7 +1001,7 @@ module Commands = struct
         $ Cli.Flags.check_invariants)
 
   let depends options includes prefix extension extra_files =
-    let file = Cli.input_src_file options.Cli.input_src in
+    let file = Cli.input_src_file options.Global.input_src in
     let more_includes = List.map Filename.dirname (file :: extra_files) in
     let prg =
       Surface.Ast.
@@ -1151,7 +1151,7 @@ let main () =
         Cmdliner.Cmd.eval_peek_opts ~argv Cli.Flags.Global.flags
           ~version_opt:true
       with
-      | Some opts, _ -> opts.Cli.plugins_dirs
+      | Some opts, _ -> opts.Global.plugins_dirs
       | None, _ -> []
     in
     Passes.debug_pass_name "init";
@@ -1181,7 +1181,7 @@ let main () =
   | exception Message.CompilerError content ->
     let bt = Printexc.get_raw_backtrace () in
     Message.Content.emit content Error;
-    if Cli.globals.debug then Printexc.print_raw_backtrace stderr bt;
+    if Global.options.debug then Printexc.print_raw_backtrace stderr bt;
     exit Cmd.Exit.some_error
   | exception Failure msg ->
     let bt = Printexc.get_raw_backtrace () in

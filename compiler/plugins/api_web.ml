@@ -475,7 +475,7 @@ let run
     closure_conversion
     monomorphize_types
     _options =
-  let options = Cli.enforce_globals ~trace:true () in
+  let options = Global.enforce_options ~trace:true () in
   let prg, type_ordering =
     Driver.Passes.lcalc options ~includes ~optimize ~check_invariants
       ~avoid_exceptions ~closure_conversion ~typed:Expr.typed
@@ -494,7 +494,7 @@ let run
           String.capitalize_ascii
             Filename.(
               basename
-                (remove_extension (Cli.input_src_file options.Cli.input_src)))
+                (remove_extension (Cli.input_src_file options.Global.input_src)))
       in
       To_jsoo.format_program fmt (Some modname) prg type_ordering)
 

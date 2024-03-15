@@ -21,7 +21,7 @@
 open Catala_utils
 open Literate_common
 module A = Surface.Ast
-module C = Cli
+module C = Global
 
 (** {1 Helpers} *)
 

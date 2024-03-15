@@ -16,6 +16,8 @@
 
 type t = string
 
+let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
+
 (** Run finaliser [f] unconditionally after running [k ()], propagating any
     raised exception. *)
 let finally f k =
@@ -30,7 +32,7 @@ let finally f k =
 
 let temp_file pfx sfx =
   let f = Filename.temp_file pfx sfx in
-  if not Cli.globals.debug then
+  if not Global.options.debug then
     at_exit (fun () -> try Sys.remove f with _ -> ());
   f
 
@@ -189,8 +191,6 @@ let equal a b =
 
 let compare a b =
   String.compare (String.lowercase_ascii a) (String.lowercase_ascii b)
-
-let format ppf t = Format.fprintf ppf "\"@{<cyan>%s@}\"" t
 
 module Set = Set.Make (struct
   type nonrec t = t

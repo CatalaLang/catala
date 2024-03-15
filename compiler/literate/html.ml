@@ -23,7 +23,7 @@ open Literate_common
 module A = Surface.Ast
 module P = Printf
 module R = Re.Pcre
-module C = Cli
+module C = Global
 
 (** {1 Helpers} *)
 
@@ -47,7 +47,7 @@ let remove_cb_last_lines : string -> string =
     Prints an HTML complete page structure around the [wrapped] content. *)
 let wrap_html
     (source_files : string list)
-    (language : Cli.backend_lang)
+    (language : Global.backend_lang)
     (fmt : Format.formatter)
     (wrapped : Format.formatter -> unit) : unit =
   let css_as_string =

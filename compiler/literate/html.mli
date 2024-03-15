@@ -23,7 +23,7 @@ open Catala_utils
 
 val wrap_html :
   string list ->
-  Cli.backend_lang ->
+  Global.backend_lang ->
   Format.formatter ->
   (Format.formatter -> unit) ->
   unit
@@ -34,7 +34,7 @@ val wrap_html :
 (** {1 API} *)
 
 val ast_to_html :
-  Cli.backend_lang ->
+  Global.backend_lang ->
   print_only_law:bool ->
   Format.formatter ->
   Surface.Ast.program ->

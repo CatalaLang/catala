@@ -96,22 +96,22 @@ val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
 
 (** User-facing, localised printer *)
 module UserFacing : sig
-  val unit : Cli.backend_lang -> Format.formatter -> Runtime.unit -> unit
-  val bool : Cli.backend_lang -> Format.formatter -> Runtime.bool -> unit
-  val integer : Cli.backend_lang -> Format.formatter -> Runtime.integer -> unit
-  val decimal : Cli.backend_lang -> Format.formatter -> Runtime.decimal -> unit
-  val money : Cli.backend_lang -> Format.formatter -> Runtime.money -> unit
-  val date : Cli.backend_lang -> Format.formatter -> Runtime.date -> unit
+  val unit : Global.backend_lang -> Format.formatter -> Runtime.unit -> unit
+  val bool : Global.backend_lang -> Format.formatter -> Runtime.bool -> unit
+  val integer : Global.backend_lang -> Format.formatter -> Runtime.integer -> unit
+  val decimal : Global.backend_lang -> Format.formatter -> Runtime.decimal -> unit
+  val money : Global.backend_lang -> Format.formatter -> Runtime.money -> unit
+  val date : Global.backend_lang -> Format.formatter -> Runtime.date -> unit
 
   val duration :
-    Cli.backend_lang -> Format.formatter -> Runtime.duration -> unit
+    Global.backend_lang -> Format.formatter -> Runtime.duration -> unit
 
-  val lit : Cli.backend_lang -> Format.formatter -> lit -> unit
-  val lit_to_string : Cli.backend_lang -> lit -> string
+  val lit : Global.backend_lang -> Format.formatter -> lit -> unit
+  val lit_to_string : Global.backend_lang -> lit -> string
 
   val value :
     ?fallback:(Format.formatter -> ('a, 't) gexpr -> unit) ->
-    Cli.backend_lang ->
+    Global.backend_lang ->
     Format.formatter ->
     ('a, 't) gexpr ->
     unit
@@ -121,7 +121,7 @@ module UserFacing : sig
         is called upon non-value expressions (by default, [Invalid_argument] is
         raised) *)
 
-  val expr : Cli.backend_lang -> Format.formatter -> (_, _) gexpr -> unit
+  val expr : Global.backend_lang -> Format.formatter -> (_, _) gexpr -> unit
   (** This combines the user-facing value printer and the generic expression
       printer to handle all AST nodes *)
 end

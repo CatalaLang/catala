@@ -159,14 +159,14 @@ let rec format_typ
       ")" (format_typ ~colors) t2
   | TArray t1 -> (
     match Mark.remove (UnionFind.get (UnionFind.find t1)) with
-    | TAny _ when not Cli.globals.debug -> Format.pp_print_string fmt "list"
+    | TAny _ when not Global.options.debug -> Format.pp_print_string fmt "list"
     | _ -> Format.fprintf fmt "@[list of@ %a@]" (format_typ ~colors) t1)
   | TDefault t1 ->
     Format.pp_print_as fmt 1 "⟨";
     format_typ ~colors fmt t1;
     Format.pp_print_as fmt 1 "⟩"
   | TAny v ->
-    if Cli.globals.debug then Format.fprintf fmt "<a%d>" (Any.hash v)
+    if Global.options.debug then Format.fprintf fmt "<a%d>" (Any.hash v)
     else Format.pp_print_string fmt "<any>"
   | TClosureEnv -> Format.fprintf fmt "closure_env"
 
@@ -234,7 +234,7 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
         ( (fun ppf ->
             Format.fprintf ppf "@[<hv 2>@[<hov>%a@ %a@]:" Format.pp_print_text
               "This expression has type" (format_typ ctx) t1;
-            if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
+            if Global.options.debug then Format.fprintf ppf "@ %a@]" Expr.format e
             else Format.pp_close_box ppf ()),
           e_pos );
         ( (fun ppf ->
@@ -248,7 +248,7 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
         ( (fun ppf ->
             Format.fprintf ppf "@[<hv 2>@[<hov>%a:@]" Format.pp_print_text
               "While typechecking the following expression";
-            if Cli.globals.debug then Format.fprintf ppf "@ %a@]" Expr.format e
+            if Global.options.debug then Format.fprintf ppf "@ %a@]" Expr.format e
             else Format.pp_close_box ppf ()),
           e_pos );
         ( (fun ppf ->
