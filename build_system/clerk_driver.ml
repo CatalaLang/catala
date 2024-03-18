@@ -523,7 +523,9 @@ let[@ocamlformat "disable"] static_base_rules =
       ~description:["<catala>"; "ocaml"; "⇒"; !output];
 
     Nj.rule "ocaml-object"
-      ~command:[!ocamlc_exe; "-c"; !ocaml_flags; !input; "&&";
+      ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !input; ">"; !input^"i"; "&&";
+                !ocamlc_exe; "-opaque"; !ocaml_flags; !input^"i"; "&&";
+                !ocamlc_exe; "-c"; !ocaml_flags; !input; "&&";
                 !ocamlopt_exe; "-c"; !ocaml_flags; !input]
       ~description:["<ocaml>"; "⇒"; !output];
 
@@ -681,7 +683,7 @@ let gen_build_statements
       let target ext = (!Var.builddir / src /../ m) ^ "." ^ ext in
       Nj.build "ocaml-object" ~inputs:[ml_file]
         ~implicit_in:(!Var.catala_exe :: List.map modd modules)
-        ~outputs:(List.map target ["cmi"; "cmo"; "cmx"; "cmt"; "o"])
+        ~outputs:(List.map target ["mli"; "cmi"; "cmo"; "cmx"; "cmt"; "o"])
         ~vars:
           [
             ( Var.ocaml_flags,
