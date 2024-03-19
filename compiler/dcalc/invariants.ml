@@ -21,6 +21,11 @@ open Catala_utils
 type invariant_status = Fail | Pass | Ignore
 type invariant_expr = decl_ctx -> typed expr -> invariant_status
 
+let is_function_type ty =
+  match Mark.remove ty with
+  | TArrow _ -> true
+  | _ -> false
+
 let check_invariant (inv : string * invariant_expr) (p : typed program) : bool =
   let name, inv = inv in
   let result, total, ok =
