@@ -23,12 +23,12 @@ val language_code : backend_lang -> string
 (** Returns the lowercase two-letter language code *)
 
 val file_lang : file -> backend_lang
-(** Associates a file extension with its corresponding {!type: Global.backend_lang}
-    string representation. *)
+(** Associates a file extension with its corresponding
+    {!type: Global.backend_lang} string representation. *)
 
 (** {2 CLI flags and options} *)
 
-val when_opt: when_enum Cmdliner.Arg.conv
+val when_opt : when_enum Cmdliner.Arg.conv
 
 module Flags : sig
   open Cmdliner
@@ -70,7 +70,7 @@ module Flags : sig
   val lcalc : bool Term.t
   (** for the 'interpret' command *)
 
-  val extension : string option Term.t
+  val extension : string list Term.t
   (** for the 'depends' command *)
 
   val prefix : string option Term.t

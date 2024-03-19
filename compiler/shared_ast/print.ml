@@ -180,7 +180,8 @@ let lit (fmt : Format.formatter) (l : lit) : unit =
   | LUnit -> lit_style fmt "()"
   | LRat i ->
     lit_style fmt
-      (Runtime.decimal_to_string ~max_prec_digits:Global.options.max_prec_digits i)
+      (Runtime.decimal_to_string ~max_prec_digits:Global.options.max_prec_digits
+         i)
   | LMoney e ->
     lit_style fmt (Format.asprintf "¤%s" (Runtime.money_to_string e))
   | LDate d -> lit_style fmt (Runtime.date_to_string d)
@@ -964,7 +965,8 @@ module UserFacing = struct
   let decsep (lang : Global.backend_lang) =
     match lang with En -> "." | Fr -> "," | Pl -> "."
 
-  let unit (_lang : Global.backend_lang) ppf () = Format.pp_print_string ppf "()"
+  let unit (_lang : Global.backend_lang) ppf () =
+    Format.pp_print_string ppf "()"
 
   let bool (lang : Global.backend_lang) ppf b =
     let s =

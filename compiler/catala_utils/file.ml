@@ -70,8 +70,7 @@ let rec ensure_dir dir =
   match Sys.is_directory dir with
   | true -> ()
   | false ->
-    Message.raise_error "Directory %a exists but is not a directory"
-      format dir
+    Message.raise_error "Directory %a exists but is not a directory" format dir
   | exception Sys_error _ ->
     let pdir = parent dir in
     if pdir <> dir then ensure_dir pdir;
@@ -79,7 +78,8 @@ let rec ensure_dir dir =
       0o777 (* will be affected by umask, most likely restricted to 0o755 *)
 
 let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
-  clean_path @@
+  clean_path
+  @@
   if Filename.is_relative from_dir then invalid_arg "File.reverse_path"
   else if not (Filename.is_relative f) then f
   else if not (Filename.is_relative to_dir) then Filename.concat from_dir f

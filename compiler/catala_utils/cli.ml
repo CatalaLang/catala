@@ -37,7 +37,7 @@ let when_opt = Arg.enum ["auto", Auto; "always", Always; "never", Never]
 let raw_file =
   Arg.conv ~docv:"FILE"
     ( (fun f -> Result.map raw_file (Arg.conv_parser Arg.string f)),
-      (fun ppf f -> Format.pp_print_string ppf (f :> string)) )
+      fun ppf f -> Format.pp_print_string ppf (f :> string) )
 
 (* Some helpers for catala sources *)
 
@@ -79,7 +79,10 @@ module Flags = struct
         conv ~docv:"FILE"
           ( (fun s ->
               if s = "-" then Ok (Stdin (Global.raw_file "-stdin-"))
-              else Result.map (fun f -> FileName (Global.raw_file f)) (conv_parser non_dir_file s)),
+              else
+                Result.map
+                  (fun f -> FileName (Global.raw_file f))
+                  (conv_parser non_dir_file s)),
             fun ppf -> function
               | Stdin _ -> Format.pp_print_string ppf "-"
               | FileName f -> conv_printer non_dir_file ppf (f :> file)
@@ -209,12 +212,12 @@ module Flags = struct
         if debug then Printexc.record_backtrace true;
         let path_rewrite =
           match directory with
-          | None -> fun (f: Global.raw_file) -> (f :> file)
+          | None -> fun (f : Global.raw_file) -> (f :> file)
           | Some to_dir -> (
-              fun (f: Global.raw_file) ->
-                match (f :> file) with
-                | "-" -> "-"
-                | f -> File.reverse_path ~to_dir f)
+            fun (f : Global.raw_file) ->
+              match (f :> file) with
+              | "-" -> "-"
+              | f -> File.reverse_path ~to_dir f)
         in
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)

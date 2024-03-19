@@ -234,7 +234,8 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
         ( (fun ppf ->
             Format.fprintf ppf "@[<hv 2>@[<hov>%a@ %a@]:" Format.pp_print_text
               "This expression has type" (format_typ ctx) t1;
-            if Global.options.debug then Format.fprintf ppf "@ %a@]" Expr.format e
+            if Global.options.debug then
+              Format.fprintf ppf "@ %a@]" Expr.format e
             else Format.pp_close_box ppf ()),
           e_pos );
         ( (fun ppf ->
@@ -248,7 +249,8 @@ let handle_type_error ctx (A.AnyExpr e) t1 t2 =
         ( (fun ppf ->
             Format.fprintf ppf "@[<hv 2>@[<hov>%a:@]" Format.pp_print_text
               "While typechecking the following expression";
-            if Global.options.debug then Format.fprintf ppf "@ %a@]" Expr.format e
+            if Global.options.debug then
+              Format.fprintf ppf "@ %a@]" Expr.format e
             else Format.pp_close_box ppf ()),
           e_pos );
         ( (fun ppf ->

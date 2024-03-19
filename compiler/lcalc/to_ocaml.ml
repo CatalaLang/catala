@@ -416,8 +416,8 @@ let rec format_expr (ctx : decl_ctx) (fmt : Format.formatter) (e : 'm expr) :
       (Pos.get_file pos) (Pos.get_start_line pos) (Pos.get_start_column pos)
       (Pos.get_end_line pos) (Pos.get_end_column pos) format_string_list
       (Pos.get_law_info pos) format_with_parens arg1
-  | EAppOp { op = Log (EndCall, info); args = [arg1]; _ } when Global.options.trace
-    ->
+  | EAppOp { op = Log (EndCall, info); args = [arg1]; _ }
+    when Global.options.trace ->
     Format.fprintf fmt "(log_end_call@ %a@ %a)" format_uid_list info
       format_with_parens arg1
   | EAppOp { op = Log _; args = [arg1]; _ } ->

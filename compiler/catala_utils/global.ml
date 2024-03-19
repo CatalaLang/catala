@@ -19,6 +19,7 @@ type raw_file = file
 type backend_lang = En | Fr | Pl
 type when_enum = Auto | Always | Never
 type message_format_enum = Human | GNU
+
 type 'file input_src =
   | FileName of 'file
   | Contents of string * 'file
@@ -82,5 +83,4 @@ let enforce_options
   options
 
 let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
-
 let raw_file f = f

@@ -86,7 +86,8 @@ val check_directory : t -> t option
     [Unix.realpath]). *)
 
 val ensure_dir : t -> unit
-(** Creates the directory (and parents recursively) if it doesn't exist already. Errors out if the file exists but is not a directory *)
+(** Creates the directory (and parents recursively) if it doesn't exist already.
+    Errors out if the file exists but is not a directory *)
 
 val check_file : t -> t option
 (** Returns its argument if it exists and is a plain file, [None] otherwise.

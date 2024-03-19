@@ -198,7 +198,8 @@ module Parser_En = ParserAux (Lexer_en)
 module Parser_Fr = ParserAux (Lexer_fr)
 module Parser_Pl = ParserAux (Lexer_pl)
 
-let localised_parser : Global.backend_lang -> lexbuf -> Ast.source_file = function
+let localised_parser : Global.backend_lang -> lexbuf -> Ast.source_file =
+  function
   | En -> Parser_En.commands_or_includes
   | Fr -> Parser_Fr.commands_or_includes
   | Pl -> Parser_Pl.commands_or_includes
@@ -418,7 +419,8 @@ let load_interface ?default_module_name source_file =
   let modname =
     match program.Ast.program_module_name, default_module_name with
     | Some mname, _ -> mname
-    | None, Some n -> n, Pos.from_info (Global.input_src_file source_file) 0 0 0 0
+    | None, Some n ->
+      n, Pos.from_info (Global.input_src_file source_file) 0 0 0 0
     | None, None ->
       Message.raise_error
         "%a doesn't define a module name. It should contain a '@{<cyan>> \

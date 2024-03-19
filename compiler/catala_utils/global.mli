@@ -14,7 +14,8 @@
    License for the specific language governing permissions and limitations under
    the License. *)
 
-(** This module contains definitions of global flags and types used throughout. They should be defined from the command-line and never modified afterwards. *)
+(** This module contains definitions of global flags and types used throughout.
+    They should be defined from the command-line and never modified afterwards. *)
 
 type file = string
 (** File names ; equal to [File.t] but let's avoid cyclic dependencies *)
@@ -78,8 +79,9 @@ val enforce_options :
   unit ->
   options
 (** Sets up the global options (side-effect); for specific use-cases only, this
-    should never be called from the compiler outside of the [Cli] module. Other proper uses include setting up the compiler library
-    when using it directly through a specific front-end. *)
+    should never be called from the compiler outside of the [Cli] module. Other
+    proper uses include setting up the compiler library when using it directly
+    through a specific front-end. *)
 
 val input_src_file : file input_src -> file
 

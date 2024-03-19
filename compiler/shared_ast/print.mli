@@ -98,8 +98,13 @@ val program : ?debug:bool -> Format.formatter -> ('a, 'm) gexpr program -> unit
 module UserFacing : sig
   val unit : Global.backend_lang -> Format.formatter -> Runtime.unit -> unit
   val bool : Global.backend_lang -> Format.formatter -> Runtime.bool -> unit
-  val integer : Global.backend_lang -> Format.formatter -> Runtime.integer -> unit
-  val decimal : Global.backend_lang -> Format.formatter -> Runtime.decimal -> unit
+
+  val integer :
+    Global.backend_lang -> Format.formatter -> Runtime.integer -> unit
+
+  val decimal :
+    Global.backend_lang -> Format.formatter -> Runtime.decimal -> unit
+
   val money : Global.backend_lang -> Format.formatter -> Runtime.money -> unit
   val date : Global.backend_lang -> Format.formatter -> Runtime.date -> unit
 

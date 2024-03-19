@@ -18,8 +18,8 @@
 open Catala_utils
 open Shared_ast
 
-(** Associates a file extension with its corresponding {!type: Global.backend_lang}
-    string representation. *)
+(** Associates a file extension with its corresponding
+    {!type: Global.backend_lang} string representation. *)
 let extensions = [".catala_fr", "fr"; ".catala_en", "en"; ".catala_pl", "pl"]
 
 let modname_of_file f =
@@ -403,7 +403,8 @@ module Commands = struct
 
   let get_output ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
-    File.get_out_channel ~source_file:options.Global.input_src ~output_file ?ext ()
+    File.get_out_channel ~source_file:options.Global.input_src ~output_file ?ext
+      ()
 
   let get_output_format ?ext options output_file =
     let output_file = Option.map options.Global.path_rewrite output_file in
@@ -444,7 +445,9 @@ module Commands = struct
     in
     with_output
     @@ fun fmt ->
-    let language = Cli.file_lang (Global.input_src_file options.Global.input_src) in
+    let language =
+      Cli.file_lang (Global.input_src_file options.Global.input_src)
+    in
     let weave_output = Literate.Html.ast_to_html language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -480,7 +483,9 @@ module Commands = struct
     in
     with_output
     @@ fun fmt ->
-    let language = Cli.file_lang (Global.input_src_file options.Global.input_src) in
+    let language =
+      Cli.file_lang (Global.input_src_file options.Global.input_src)
+    in
     let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -694,7 +699,9 @@ module Commands = struct
     in
     Message.emit_result "Computation successful!%s"
       (if List.length results > 0 then " Results:" else "");
-    let language = Cli.file_lang (Global.input_src_file options.Global.input_src) in
+    let language =
+      Cli.file_lang (Global.input_src_file options.Global.input_src)
+    in
     List.iter
       (fun ((var, _), result) ->
         Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
