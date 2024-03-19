@@ -1053,11 +1053,12 @@ module Commands = struct
               f)
             else File.(pfx / f)
         in
-        let f =
-          File.clean_path
-          @@ match extension with None -> f | Some ext -> File.(f -.- ext)
-        in
-        Format.pp_print_string ppf f)
+        let f = File.clean_path f in
+        if extension = [] then Format.pp_print_string ppf f
+        else
+          Format.pp_print_list ~pp_sep:Format.pp_print_space
+            (fun ppf ext -> Format.pp_print_string ppf File.(f -.- ext))
+            ppf extension)
       Format.std_formatter modules_list_topo;
     Format.close_box ();
     Format.print_newline ()

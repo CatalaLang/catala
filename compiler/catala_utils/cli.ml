@@ -396,9 +396,11 @@ module Flags = struct
 
   let extension =
     value
-    & opt (some string) None
+    & opt_all string []
     & info ["extension"; "e"] ~docv:"EXT"
-        ~doc:"Replace the original file extensions with $(i,.EXT)."
+        ~doc:
+          "Replace the original file extensions with $(i,.EXT). If repeated, \
+           the file will be listed once which each supplied extension."
 
   let prefix =
     value
