@@ -300,14 +300,9 @@ module Poll = struct
 
   let build_dir : ?dir:File.t -> unit -> File.t =
    fun ?(dir = "_build") () ->
-    match Sys.is_directory dir with
-    | exception Sys_error _ ->
-      Sys.mkdir dir 0o770;
-      dir
-    | true -> dir
-    | false ->
-      Message.raise_error "Build directory %a exists but is not a directory"
-        File.format dir
+    let d = File.clean_path dir in
+    File.ensure_dir d;
+    d
   (* Note: it could be safer here to use File.(Sys.getcwd () / "_build") by
      default, but Ninja treats relative and absolute paths separately so that
      you wouldn't then be able to build target _build/foo.ml but would have to
@@ -415,9 +410,7 @@ let fix_path =
   let from_dir = Sys.getcwd () in
   fun d ->
     let to_dir = Lazy.force Poll.project_root_relative in
-    match Catala_utils.Cli.reverse_path ~from_dir ~to_dir d with
-    | "" -> "."
-    | f -> f
+    Catala_utils.File.reverse_path ~from_dir ~to_dir d
 
 (**{1 Building rules}*)
 

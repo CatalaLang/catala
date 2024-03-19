@@ -26,7 +26,6 @@ let language_code =
   let rl = List.map (fun (a, b) -> b, a) languages in
   fun l -> List.assoc l rl
 
-let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
 let message_format_opt = ["human", Human; "gnu", GNU]
 
 open Cmdliner
@@ -65,31 +64,6 @@ let exec_dir =
     Filename.dirname cmd
   else (* searched in PATH *)
     Filename.dirname Sys.executable_name
-
-let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
-  if Filename.is_relative from_dir then invalid_arg "Cli.reverse_path"
-  else if not (Filename.is_relative f) then f
-  else if not (Filename.is_relative to_dir) then Filename.concat from_dir f
-  else
-    let rec aux acc rbase = function
-      | [] -> acc
-      | dir :: p -> (
-        if dir = Filename.parent_dir_name then
-          match rbase with
-          | base1 :: rbase -> aux (base1 :: acc) rbase p
-          | [] -> aux acc [] p
-        else
-          match acc with
-          | dir1 :: acc when dir1 = dir -> aux acc rbase p
-          | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
-    in
-    let path_to_list path =
-      String.split_on_char Filename.dir_sep.[0] path
-      |> List.filter (function "" | "." -> false | _ -> true)
-    in
-    let rbase = List.rev (path_to_list from_dir) in
-    String.concat Filename.dir_sep
-      (aux (path_to_list f) rbase (path_to_list to_dir))
 
 (** CLI flags and options *)
 
@@ -240,7 +214,7 @@ module Flags = struct
               fun (f: Global.raw_file) ->
                 match (f :> file) with
                 | "-" -> "-"
-                | f -> reverse_path ~to_dir f)
+                | f -> File.reverse_path ~to_dir f)
         in
         (* This sets some global refs for convenience, but most importantly
            returns the options record. *)

@@ -81,4 +81,6 @@ let enforce_options
   Option.iter (fun x -> options.path_rewrite <- x) path_rewrite;
   options
 
+let input_src_file = function FileName f | Contents (_, f) | Stdin f -> f
+
 let raw_file f = f

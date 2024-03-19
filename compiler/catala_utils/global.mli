@@ -81,5 +81,7 @@ val enforce_options :
     should never be called from the compiler outside of the [Cli] module. Other proper uses include setting up the compiler library
     when using it directly through a specific front-end. *)
 
+val input_src_file : file input_src -> file
+
 val raw_file : string -> raw_file
 (** Create a [raw_file], for use directly after parsing from the cmdline *)

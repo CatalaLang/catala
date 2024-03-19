@@ -494,7 +494,7 @@ let run
           String.capitalize_ascii
             Filename.(
               basename
-                (remove_extension (Cli.input_src_file options.Global.input_src)))
+                (remove_extension (Global.input_src_file options.Global.input_src)))
       in
       To_jsoo.format_program fmt (Some modname) prg type_ordering)
 

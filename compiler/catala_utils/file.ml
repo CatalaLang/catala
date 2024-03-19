@@ -69,11 +69,40 @@ let clean_path p =
 let rec ensure_dir dir =
   match Sys.is_directory dir with
   | true -> ()
-  | false | (exception Sys_error _) ->
+  | false ->
+    Message.raise_error "Directory %a exists but is not a directory"
+      format dir
+  | exception Sys_error _ ->
     let pdir = parent dir in
     if pdir <> dir then ensure_dir pdir;
     Sys.mkdir dir
       0o777 (* will be affected by umask, most likely restricted to 0o755 *)
+
+let reverse_path ?(from_dir = Sys.getcwd ()) ~to_dir f =
+  clean_path @@
+  if Filename.is_relative from_dir then invalid_arg "File.reverse_path"
+  else if not (Filename.is_relative f) then f
+  else if not (Filename.is_relative to_dir) then Filename.concat from_dir f
+  else
+    let rec aux acc rbase = function
+      | [] -> acc
+      | dir :: p -> (
+        if dir = Filename.parent_dir_name then
+          match rbase with
+          | base1 :: rbase -> aux (base1 :: acc) rbase p
+          | [] -> aux acc [] p
+        else
+          match acc with
+          | dir1 :: acc when dir1 = dir -> aux acc rbase p
+          | _ -> aux (Filename.parent_dir_name :: acc) rbase p)
+    in
+    let path_to_list path =
+      String.split_on_char Filename.dir_sep.[0] path
+      |> List.filter (function "" | "." -> false | _ -> true)
+    in
+    let rbase = List.rev (path_to_list from_dir) in
+    String.concat Filename.dir_sep
+      (aux (path_to_list f) rbase (path_to_list to_dir))
 
 let with_out_channel filename f =
   ensure_dir (Filename.dirname filename);
@@ -101,7 +130,7 @@ let get_out_channel ~source_file ~output_file ?ext () =
   | Some "-", _ | None, None -> None, fun f -> f stdout
   | Some f, _ -> Some f, with_out_channel f
   | None, Some ext ->
-    let src = Cli.input_src_file source_file in
+    let src = Global.input_src_file source_file in
     let f = Filename.remove_extension src ^ ext in
     Some f, with_out_channel f
 

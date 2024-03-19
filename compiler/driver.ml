@@ -413,7 +413,7 @@ module Commands = struct
   let makefile options output =
     let prg = Passes.surface options in
     let backend_extensions_list = [".tex"] in
-    let source_file = Cli.input_src_file options.Global.input_src in
+    let source_file = Global.input_src_file options.Global.input_src in
     let output_file, with_output = get_output options ~ext:".d" output in
     Message.emit_debug "Writing list of dependencies to %s..."
       (Option.value ~default:"stdout" output_file);
@@ -444,7 +444,7 @@ module Commands = struct
     in
     with_output
     @@ fun fmt ->
-    let language = Cli.file_lang (Cli.input_src_file options.Global.input_src) in
+    let language = Cli.file_lang (Global.input_src_file options.Global.input_src) in
     let weave_output = Literate.Html.ast_to_html language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -480,7 +480,7 @@ module Commands = struct
     in
     with_output
     @@ fun fmt ->
-    let language = Cli.file_lang (Cli.input_src_file options.Global.input_src) in
+    let language = Cli.file_lang (Global.input_src_file options.Global.input_src) in
     let weave_output = Literate.Latex.ast_to_latex language ~print_only_law in
     Message.emit_debug "Writing to %s"
       (Option.value ~default:"stdout" output_file);
@@ -694,7 +694,7 @@ module Commands = struct
     in
     Message.emit_result "Computation successful!%s"
       (if List.length results > 0 then " Results:" else "");
-    let language = Cli.file_lang (Cli.input_src_file options.Global.input_src) in
+    let language = Cli.file_lang (Global.input_src_file options.Global.input_src) in
     List.iter
       (fun ((var, _), result) ->
         Message.emit_result "@[<hov 2>%s@ =@ %a@]" var
@@ -1001,7 +1001,7 @@ module Commands = struct
         $ Cli.Flags.check_invariants)
 
   let depends options includes prefix extension extra_files =
-    let file = Cli.input_src_file options.Global.input_src in
+    let file = Global.input_src_file options.Global.input_src in
     let more_includes = List.map Filename.dirname (file :: extra_files) in
     let prg =
       Surface.Ast.

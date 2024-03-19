@@ -1369,7 +1369,7 @@ let run includes optimize ex_scope explain_options global_options =
       graph_cleanup explain_options g base_vars
     else g
   in
-  let lang = Cli.file_lang (Cli.input_src_file global_options.Global.input_src) in
+  let lang = Cli.file_lang (Global.input_src_file global_options.Global.input_src) in
   let dot_content =
     to_dot lang Format.str_formatter prg.decl_ctx env base_vars g
       ~base_src_url:explain_options.base_src_url;

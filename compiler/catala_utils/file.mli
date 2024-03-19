@@ -85,6 +85,9 @@ val check_directory : t -> t option
 (** Checks if the given directory exists and returns it normalised (as per
     [Unix.realpath]). *)
 
+val ensure_dir : t -> unit
+(** Creates the directory (and parents recursively) if it doesn't exist already. Errors out if the file exists but is not a directory *)
+
 val check_file : t -> t option
 (** Returns its argument if it exists and is a plain file, [None] otherwise.
     Does not do resolution like [check_directory]. *)
@@ -104,11 +107,19 @@ val dirname : t -> t
 (** [Filename.dirname], re-exported for convenience *)
 
 val parent : t -> t
-(** Similar to [dirname], except it strips the last **non-"." or ".."** element in the
-    supplied file name, if it exists *)
+(** Similar to [dirname], except it strips the last **non-"." or ".."** element
+    in the supplied file name, if it exists *)
 
 val clean_path : t -> t
-(** Rewrites a path by removing intermediate relative lookups ("." and ".."). E.g. [../foo/./bar/../baz/] becomes [../foo/baz]. No disk lookup is made by this function. *)
+(** Rewrites a path by removing intermediate relative lookups ("." and "..").
+    E.g. [../foo/./bar/../baz/] becomes [../foo/baz]. No disk lookup is made by
+    this function. *)
+
+val reverse_path : ?from_dir:t -> to_dir:t -> t -> t
+(** If [to_dir] is a path to a given directory and [f] a path to a file as seen
+    from absolute path [from_dir], [reverse_path ~from_dir ~to_dir f] is a path
+    leading to [f] from [to_dir]. The results attempts to be relative to
+    [to_dir]. *)
 
 val ( /../ ) : t -> t -> t
 (** Sugar for [parent a / b] *)
