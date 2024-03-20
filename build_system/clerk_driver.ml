@@ -519,7 +519,7 @@ let[@ocamlformat "disable"] static_base_rules =
       ~command:[!ocamlc_exe; "-i"; !ocaml_flags; !input; ">"; !input^"i"; "&&";
                 !ocamlc_exe; "-opaque"; !ocaml_flags; !input^"i"; "&&";
                 !ocamlc_exe; "-c"; !ocaml_flags; !input; "&&";
-                !ocamlopt_exe; "-c"; !ocaml_flags; !input]
+                !ocamlopt_exe; "-c"; "-intf-suffix"; ".ml"; !ocaml_flags; !input]
       ~description:["<ocaml>"; "⇒"; !output];
 
     Nj.rule "ocaml-module"
