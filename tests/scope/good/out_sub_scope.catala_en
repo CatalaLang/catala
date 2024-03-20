@@ -1,0 +1,23 @@
+
+```catala
+declaration scope A:
+  input i content integer
+  output o content integer
+  input output io content integer
+
+declaration scope B:
+  output a scope A
+
+scope A:
+  definition o equals i
+
+scope B:
+  definition a.i equals 99
+  definition a.io equals 100
+```
+
+
+```catala-test-inline
+$ catala test-scope B
+[RESULT] Computation successful!
+```

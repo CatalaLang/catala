@@ -84,9 +84,10 @@ end>
 %type<Ast.scope_use_item Mark.pos> scope_item
 %type<Ast.lident Mark.pos * Ast.base_typ Mark.pos> struct_scope_base
 %type<Ast.struct_decl_field> struct_scope
-%type<Ast.io_input> scope_decl_item_attribute_input
+%type<Ast.io_input option> scope_decl_item_attribute_input
 %type<bool> scope_decl_item_attribute_output
-%type<Ast.scope_decl_context_io> scope_decl_item_attribute
+%type<Ast.io_input option Mark.pos * bool Mark.pos * Ast.lident Mark.pos> scope_decl_item_attribute
+%type<Ast.scope_decl_context_io * Ast.lident Mark.pos> scope_decl_item_attribute_mandatory
 %type<Ast.scope_decl_context_item> scope_decl_item
 %type<Ast.enum_decl_case> enum_decl_line
 %type<Ast.code_item> code_item
@@ -546,42 +547,50 @@ let struct_scope :=
   }
 }
 
-let scope_decl_item_attribute_input :=
-| CONTEXT ; { Context }
-| INPUT ; { Input }
+let scope_decl_item_attribute_input ==
+| CONTEXT ; { Some Context }
+| INPUT ; { Some Input }
+| INTERNAL ; { Some Internal }
+| { None }
 
-let scope_decl_item_attribute_output :=
+let scope_decl_item_attribute_output ==
 | OUTPUT ; { true }
 | { false }
 
-let scope_decl_item_attribute :=
+let scope_decl_item_attribute ==
 | input = addpos(scope_decl_item_attribute_input) ;
-  output = addpos(scope_decl_item_attribute_output) ; {
-    {
-      scope_decl_context_io_input = input;
-      scope_decl_context_io_output = output
-    }
-  }
-| INTERNAL ; {
-    {
-      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
-      scope_decl_context_io_output = (false, Pos.from_lpos $sloc)
-    }
-  }
-| OUTPUT ; {
-    {
-      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
-      scope_decl_context_io_output = (true, Pos.from_lpos $sloc)
-    }
-  }
+  output = addpos(scope_decl_item_attribute_output) ;
+  i = lident ; {
+  match input, output with
+  | (Some Internal, _), (true, pos) ->
+    Message.raise_spanned_error pos
+      "A variable cannot be declared both 'internal' and 'output'."
+  | input, output -> input, output, i
+}
 
+let scope_decl_item_attribute_mandatory ==
+| attr = scope_decl_item_attribute ; {
+  let in_attr_opt, out_attr, i = attr in
+  let in_attr = match in_attr_opt, out_attr with
+    | (None, _), (false, _) ->
+      Message.raise_spanned_error (Pos.from_lpos $loc(attr))
+        "Variable declaration requires input qualification ('internal', \
+         'input' or 'context')"
+    | (None, pos), (true, _) -> Internal, pos
+    | (Some i, pos), _ -> i, pos
+  in
+  {
+    scope_decl_context_io_input = in_attr;
+    scope_decl_context_io_output = out_attr;
+  }, i
+}
 
 let scope_decl_item :=
-| attr = scope_decl_item_attribute ;
-  i = lident ;
+| attr_i = scope_decl_item_attribute_mandatory ;
   CONTENT ; t = addpos(typ) ;
   args_typ = depends_stance ;
   states = list(state) ; {
+  let attr, i = attr_i in
   ContextData {
   scope_decl_context_item_name = i;
   scope_decl_context_item_attribute = attr;
@@ -594,21 +603,30 @@ let scope_decl_item :=
   scope_decl_context_item_states = states;
   }
 }
-| i = lident ; SCOPE ; c = addpos(quident) ; {
+| attr = scope_decl_item_attribute ;
+  SCOPE ; c = addpos(quident) ; {
+  let in_attr_opt, out_attr, i = attr in
+  let attr = match in_attr_opt, out_attr with
+    | (None, pos), out -> {
+        scope_decl_context_io_input = (Internal, pos);
+        scope_decl_context_io_output = out;
+      };
+    | (Some _, pos), _ ->
+        Message.raise_spanned_error pos
+          "Scope declaration does not support input qualifiers ('internal', \
+           'input' or 'context')"
+  in
   ContextScope{
     scope_decl_context_scope_name = i;
     scope_decl_context_scope_sub_scope = c;
-    scope_decl_context_scope_attribute = {
-      scope_decl_context_io_input = (Internal, Pos.from_lpos $sloc);
-      scope_decl_context_io_output = (false, Pos.from_lpos $sloc);
-    };
+    scope_decl_context_scope_attribute = attr;
   }
 }
-| attr = scope_decl_item_attribute ;
-  i = lident ;
+| attr_i = scope_decl_item_attribute_mandatory ;
   pos_condition = pos(CONDITION) ;
   args = depends_stance ;
   states = list(state) ; {
+  let attr, i = attr_i in
   ContextData {
     scope_decl_context_item_name = i;
     scope_decl_context_item_attribute = attr;
