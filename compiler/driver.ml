@@ -363,7 +363,7 @@ module Commands = struct
           "Subscope @{<yellow>\"%a\"@} of scope @{<yellow>\"%a\"@} cannot be \
            selected by itself, please add \".<var>\" where <var> is a subscope \
            variable."
-          SubScopeName.format subscope_var_name ScopeName.format scope_uid
+          ScopeVar.format subscope_var_name ScopeName.format scope_uid
       | Some second_part -> (
         match
           let ctxt =
@@ -382,7 +382,7 @@ module Commands = struct
             "Var @{<yellow>\"%s\"@} of subscope @{<yellow>\"%a\"@} in scope \
              @{<yellow>\"%a\"@} does not exist, please check your command line \
              arguments."
-            second_part SubScopeName.format subscope_var_name ScopeName.format
+            second_part ScopeVar.format subscope_var_name ScopeName.format
             scope_uid))
     | Some (ScopeVar v) ->
       Desugared.Ast.ScopeDef.Var

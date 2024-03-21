@@ -1637,8 +1637,8 @@ let translate_program (ctxt : Name_resolution.context) (surface : S.program) :
           match v with
           | ScopeVar _ -> acc
           | SubScope (sub_var, sub_scope) ->
-            SubScopeName.Map.add sub_var sub_scope acc)
-        s_context.Name_resolution.var_idmap SubScopeName.Map.empty
+            ScopeVar.Map.add sub_var sub_scope acc)
+        s_context.Name_resolution.var_idmap ScopeVar.Map.empty
     in
     {
       Ast.scope_vars;

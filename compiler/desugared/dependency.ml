@@ -35,14 +35,14 @@ open Shared_ast
 module Vertex = struct
   type t =
     | Var of ScopeVar.t * StateName.t option
-    | SubScope of SubScopeName.t
+    | SubScope of ScopeVar.t
     | Assertion of Ast.AssertionName.t
 
   let hash x =
     match x with
     | Var (x, None) -> ScopeVar.hash x
     | Var (x, Some sx) -> Int.logxor (ScopeVar.hash x) (StateName.hash sx)
-    | SubScope x -> SubScopeName.hash x
+    | SubScope x -> ScopeVar.hash x
     | Assertion a -> Ast.AssertionName.hash a
 
   let compare x y =
@@ -51,7 +51,7 @@ module Vertex = struct
       match ScopeVar.compare x y with
       | 0 -> Option.compare StateName.compare xst yst
       | n -> n)
-    | SubScope x, SubScope y -> SubScopeName.compare x y
+    | SubScope x, SubScope y -> ScopeVar.compare x y
     | Assertion a, Assertion b -> Ast.AssertionName.compare a b
     | Var _, _ -> -1
     | _, Var _ -> 1
@@ -64,7 +64,7 @@ module Vertex = struct
     match x, y with
     | Var (x, sx), Var (y, sy) ->
       ScopeVar.equal x y && Option.equal StateName.equal sx sy
-    | SubScope x, SubScope y -> SubScopeName.equal x y
+    | SubScope x, SubScope y -> ScopeVar.equal x y
     | Assertion a, Assertion b -> Ast.AssertionName.equal a b
     | (Var _ | SubScope _ | Assertion _), _ -> false
 
@@ -73,13 +73,13 @@ module Vertex = struct
     | Var (v, None) -> ScopeVar.format fmt v
     | Var (v, Some sv) ->
       Format.fprintf fmt "%a@%a" ScopeVar.format v StateName.format sv
-    | SubScope v -> SubScopeName.format fmt v
+    | SubScope v -> ScopeVar.format fmt v
     | Assertion a -> Ast.AssertionName.format fmt a
 
   let info = function
     | Var (v, None) -> ScopeVar.get_info v
     | Var (_, Some sv) -> StateName.get_info sv
-    | SubScope v -> SubScopeName.get_info v
+    | SubScope v -> ScopeVar.get_info v
     | Assertion a -> Ast.AssertionName.get_info a
 end
 
@@ -177,8 +177,8 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
       scope.scope_vars g
   in
   let g =
-    SubScopeName.Map.fold
-      (fun (v : SubScopeName.t) _ g ->
+    ScopeVar.Map.fold
+      (fun (v : ScopeVar.t) _ g ->
         ScopeDependencies.add_vertex g (Vertex.SubScope v))
       scope.scope_sub_scopes g
   in
@@ -230,12 +230,12 @@ let build_scope_dependencies (scope : Ast.scope) : ScopeDependencies.t =
                 Ast.ScopeDef.SubScopeVar (used, _, _) ) ->
               (* here we are defining the input of a scope with the output of
                  another subscope *)
-              if SubScopeName.equal used defined then
+              if ScopeVar.equal used defined then
                 (* subscopes are not recursive functions *)
                 Message.raise_spanned_error fv_def_pos
                   "The subscope %a is used when defining one of its inputs, \
                    but recursion is forbidden in Catala"
-                  SubScopeName.format defined
+                  ScopeVar.format defined
               else
                 let edge =
                   ScopeDependencies.E.create (Vertex.SubScope used) fv_def_pos

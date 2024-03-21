@@ -256,7 +256,7 @@ let rule_to_exception_graph (scope : D.scope) = function
             | NoInput ->
               Message.raise_multispanned_error
                 (( Some "Incriminated subscope:",
-                   Mark.get (SubScopeName.get_info sscope) )
+                   Mark.get (ScopeVar.get_info sscope) )
                 :: ( Some "Incriminated variable:",
                      Mark.get (ScopeVar.get_info sub_scope_var) )
                 :: List.map
@@ -272,7 +272,7 @@ let rule_to_exception_graph (scope : D.scope) = function
               Message.raise_multispanned_error
                 [
                   ( Some "Incriminated subscope:",
-                    Mark.get (SubScopeName.get_info sscope) );
+                    Mark.get (ScopeVar.get_info sscope) );
                   Some "Incriminated variable:", pos;
                 ]
                 "This subscope variable is a mandatory input but no definition \
@@ -615,7 +615,7 @@ let translate_rule
     (* Before calling the sub_scope, we need to include all the re-definitions
        of subscope parameters*)
     let sub_scope =
-      SubScopeName.Map.find sub_scope_index scope.scope_sub_scopes
+      ScopeVar.Map.find sub_scope_index scope.scope_sub_scopes
     in
     let sub_scope_vars_redefs_candidates =
       D.ScopeDef.Map.filter
@@ -662,7 +662,7 @@ let translate_rule
               Scope.input_type def_typ scope_def.D.scope_def_io.D.io_input
             in
             let subscop_real_name =
-              SubScopeName.Map.find sub_scope_index scope.scope_sub_scopes
+              ScopeVar.Map.find sub_scope_index scope.scope_sub_scopes
             in
             Ast.Definition
               ( ( SubScopeVar
@@ -691,7 +691,7 @@ let translate_rule
         Ast.Call
           ( sub_scope,
             sub_scope_index,
-            Untyped { pos = Mark.get (SubScopeName.get_info sub_scope_index) }
+            Untyped { pos = Mark.get (ScopeVar.get_info sub_scope_index) }
           );
       ]
   | Assertion a_name ->
@@ -699,7 +699,7 @@ let translate_rule
       D.AssertionName.Map.find a_name scope.scope_assertions
     in
     (* we unbox here because assertions do not have free variables (at this
-       point Bindlib variables are only for fuhnction parameters)*)
+       point Bindlib variables are only for function parameters)*)
     let assertion_expr = translate_expr ctx (Expr.unbox assertion_expr) in
     [Ast.Assertion (Expr.unbox assertion_expr)]
 

@@ -136,7 +136,7 @@ let get_var_uid
 let get_subscope_uid
     (scope_uid : ScopeName.t)
     (ctxt : context)
-    ((y, pos) : Ident.t Mark.pos) : SubScopeName.t =
+    ((y, pos) : Ident.t Mark.pos) : ScopeVar.t =
   let scope = get_scope_context ctxt scope_uid in
   match Ident.Map.find_opt y scope.var_idmap with
   | Some (SubScope (sub_uid, _sub_id)) -> sub_uid
@@ -274,13 +274,13 @@ let process_subscope_decl
     let info =
       match use with
       | ScopeVar v -> ScopeVar.get_info v
-      | SubScope (ssc, _) -> SubScopeName.get_info ssc
+      | SubScope (ssc, _) -> ScopeVar.get_info ssc
     in
     Message.raise_multispanned_error
       [Some "first use", Mark.get info; Some "second use", s_pos]
       "Subscope name @{<yellow>\"%s\"@} already used" (Mark.remove subscope)
   | None ->
-    let sub_scope_uid = SubScopeName.fresh (name, name_pos) in
+    let sub_scope_uid = ScopeVar.fresh (name, name_pos) in
     let original_subscope_uid =
       let ctxt = module_ctx ctxt path in
       get_scope ctxt subscope
@@ -377,7 +377,7 @@ let process_data_decl
     let info =
       match use with
       | ScopeVar v -> ScopeVar.get_info v
-      | SubScope (ssc, _) -> SubScopeName.get_info ssc
+      | SubScope (ssc, _) -> ScopeVar.get_info ssc
     in
     Message.raise_multispanned_error
       [Some "First use:", Mark.get info; Some "Second use:", pos]
@@ -789,7 +789,7 @@ let get_def_key
               ScopeVar.format x_uid
           else None )
   | [y; x] ->
-    let (subscope_uid, subscope_real_uid) : SubScopeName.t * ScopeName.t =
+    let (subscope_uid, subscope_real_uid) : ScopeVar.t * ScopeName.t =
       match Ident.Map.find_opt (Mark.remove y) scope_ctxt.var_idmap with
       | Some (SubScope (v, u)) -> v, u
       | Some _ ->

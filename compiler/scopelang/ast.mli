@@ -34,7 +34,7 @@ val locations_used : 'm expr -> LocationSet.t
 type 'm rule =
   | Definition of location Mark.pos * typ * Desugared.Ast.io * 'm expr
   | Assertion of 'm expr
-  | Call of ScopeName.t * SubScopeName.t * 'm mark
+  | Call of ScopeName.t * ScopeVar.t * 'm mark
 
 type scope_var_ty = {
   svar_in_ty : typ;

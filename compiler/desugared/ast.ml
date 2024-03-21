@@ -27,7 +27,7 @@ module ScopeDef = struct
   module Base = struct
     type t =
       | Var of ScopeVar.t * StateName.t option
-      | SubScopeVar of SubScopeName.t * ScopeVar.t * Pos.t
+      | SubScopeVar of ScopeVar.t * ScopeVar.t * Pos.t
           (** In this case, the [ScopeVar.t] lives inside the context of the
               subscope's original declaration *)
 
@@ -38,7 +38,7 @@ module ScopeDef = struct
         | 0 -> Option.compare StateName.compare stx sty
         | n -> n)
       | SubScopeVar (x', x, _), SubScopeVar (y', y, _) -> (
-        match SubScopeName.compare x' y' with
+        match ScopeVar.compare x' y' with
         | 0 -> ScopeVar.compare x y
         | n -> n)
       | Var _, _ -> -1
@@ -56,14 +56,14 @@ module ScopeDef = struct
       | Var (v, Some sv) ->
         Format.fprintf fmt "%a.%a" ScopeVar.format v StateName.format sv
       | SubScopeVar (s, v, _) ->
-        Format.fprintf fmt "%a.%a" SubScopeName.format s ScopeVar.format v
+        Format.fprintf fmt "%a.%a" ScopeVar.format s ScopeVar.format v
 
     let hash x =
       match x with
       | Var (v, None) -> ScopeVar.hash v
       | Var (v, Some sv) -> Int.logxor (ScopeVar.hash v) (StateName.hash sv)
       | SubScopeVar (w, v, _) ->
-        Int.logxor (SubScopeName.hash w) (ScopeVar.hash v)
+        Int.logxor (ScopeVar.hash w) (ScopeVar.hash v)
   end
 
   include Base
@@ -220,7 +220,7 @@ type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
-  scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
+  scope_sub_scopes : ScopeName.t ScopeVar.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion AssertionName.Map.t;

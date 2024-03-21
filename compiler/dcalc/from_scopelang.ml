@@ -56,7 +56,7 @@ type 'm ctx = {
     ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t;
   subscope_vars :
     ('m Ast.expr Var.t * naked_typ * Desugared.Ast.io) ScopeVar.Map.t
-    SubScopeName.Map.t;
+    ScopeVar.Map.t;
   date_rounding : date_rounding;
 }
 
@@ -511,7 +511,7 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
         retrieve_out_typ_or_any var ctx.scope_vars
       | ELocation (SubScopeVar { alias; var; _ }) ->
         ctx.subscope_vars
-        |> SubScopeName.Map.find (Mark.remove alias)
+        |> ScopeVar.Map.find (Mark.remove alias)
         |> retrieve_out_typ_or_any var
       | ELocation (ToplevelVar { name }) -> (
         let typ =
@@ -572,22 +572,22 @@ let rec translate_expr (ctx : 'm ctx) (e : 'm Scopelang.Ast.expr) :
     try
       let v, _, _ =
         ScopeVar.Map.find (Mark.remove a)
-          (SubScopeName.Map.find (Mark.remove s) ctx.subscope_vars)
+          (ScopeVar.Map.find (Mark.remove s) ctx.subscope_vars)
       in
       Expr.evar v m
-    with ScopeVar.Map.Not_found _ | SubScopeName.Map.Not_found _ ->
+    with ScopeVar.Map.Not_found _ | ScopeVar.Map.Not_found _ ->
       Message.raise_multispanned_error
         [
           Some "Incriminated variable usage:", Expr.pos e;
           ( Some "Incriminated subscope variable declaration:",
             Mark.get (ScopeVar.get_info (Mark.remove a)) );
           ( Some "Incriminated subscope declaration:",
-            Mark.get (SubScopeName.get_info (Mark.remove s)) );
+            Mark.get (ScopeVar.get_info (Mark.remove s)) );
         ]
         "The variable %a.%a cannot be used here, as it is not part of subscope \
          %a's results. Maybe you forgot to qualify it as an output?"
-        SubScopeName.format (Mark.remove s) ScopeVar.format (Mark.remove a)
-        SubScopeName.format (Mark.remove s))
+        ScopeVar.format (Mark.remove s) ScopeVar.format (Mark.remove a)
+        ScopeVar.format (Mark.remove s))
   | ELocation (ToplevelVar { name }) ->
     let path = TopdefName.path (Mark.remove name) in
     if path = [] then
@@ -666,7 +666,7 @@ let translate_rule
       Mark.map
         (fun str ->
           str ^ "." ^ Mark.remove (ScopeVar.get_info (Mark.remove subs_var)))
-        (SubScopeName.get_info (Mark.remove subs_index))
+        (ScopeVar.get_info (Mark.remove subs_index))
     in
     let a_var = Var.make (Mark.remove a_name) in
     let new_e =
@@ -704,7 +704,7 @@ let translate_rule
       {
         ctx with
         subscope_vars =
-          SubScopeName.Map.update (Mark.remove subs_index)
+          ScopeVar.Map.update (Mark.remove subs_index)
             (fun map ->
               match map with
               | Some map ->
@@ -756,7 +756,7 @@ let translate_rule
           else None)
         all_subscope_vars
     in
-    let pos_call = Mark.get (SubScopeName.get_info subindex) in
+    let pos_call = Mark.get (ScopeVar.get_info subindex) in
     let scope_dcalc_ref =
       let m = mark_tany m pos_call in
       match subscope_sig.scope_sig_scope_ref with
@@ -765,8 +765,8 @@ let translate_rule
         Expr.eexternal ~name:(Mark.map (fun n -> External_scope n) name) m
     in
     let subscope_vars_defined =
-      try SubScopeName.Map.find subindex ctx.subscope_vars
-      with SubScopeName.Map.Not_found _ -> ScopeVar.Map.empty
+      try ScopeVar.Map.find subindex ctx.subscope_vars
+      with ScopeVar.Map.Not_found _ -> ScopeVar.Map.empty
     in
     let subscope_var_not_yet_defined subvar =
       not (ScopeVar.Map.mem subvar subscope_vars_defined)
@@ -804,7 +804,7 @@ let translate_rule
         (fun (subvar : scope_var_ctx) ->
           let sub_dcalc_var =
             Var.make
-              (Mark.remove (SubScopeName.get_info subindex)
+              (Mark.remove (ScopeVar.get_info subindex)
               ^ "."
               ^ Mark.remove (ScopeVar.get_info subvar.scope_var_name))
           in
@@ -815,7 +815,7 @@ let translate_rule
       tag_with_log_entry scope_dcalc_ref BeginCall
         [
           sigma_name, pos_sigma;
-          SubScopeName.get_info subindex;
+          ScopeVar.get_info subindex;
           ScopeName.get_info subname;
         ]
     in
@@ -827,7 +827,7 @@ let translate_rule
         EndCall
         [
           sigma_name, pos_sigma;
-          SubScopeName.get_info subindex;
+          ScopeVar.get_info subindex;
           ScopeName.get_info subname;
         ]
     in
@@ -876,7 +876,7 @@ let translate_rule
       {
         ctx with
         subscope_vars =
-          SubScopeName.Map.add subindex
+          ScopeVar.Map.add subindex
             (List.fold_left
                (fun acc (var_ctx, dvar) ->
                  ScopeVar.Map.add var_ctx.scope_var_name
@@ -1173,7 +1173,7 @@ let translate_program (prgm : 'm Scopelang.Ast.program) : 'm Ast.program =
       scope_name = None;
       scopes_parameters;
       scope_vars = ScopeVar.Map.empty;
-      subscope_vars = SubScopeName.Map.empty;
+      subscope_vars = ScopeVar.Map.empty;
       toplevel_vars;
       date_rounding = AbortOnRound;
     }

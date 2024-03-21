@@ -24,7 +24,7 @@ open Shared_ast
 module ScopeDef : sig
   type t =
     | Var of ScopeVar.t * StateName.t option
-    | SubScopeVar of SubScopeName.t * ScopeVar.t * Pos.t
+    | SubScopeVar of ScopeVar.t * ScopeVar.t * Pos.t
 
   val compare : t -> t -> int
   val get_position : t -> Pos.t
@@ -105,7 +105,7 @@ type var_or_states = WholeVar | States of StateName.t list
 
 type scope = {
   scope_vars : var_or_states ScopeVar.Map.t;
-  scope_sub_scopes : ScopeName.t SubScopeName.Map.t;
+  scope_sub_scopes : ScopeName.t ScopeVar.Map.t;
   scope_uid : ScopeName.t;
   scope_defs : scope_def ScopeDef.Map.t;
   scope_assertions : assertion AssertionName.Map.t;

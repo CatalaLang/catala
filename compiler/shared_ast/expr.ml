@@ -552,7 +552,7 @@ let compare_location
     ScopeVar.compare vx vy
   | ( SubScopeVar { alias = xsubindex, _; var = xsubvar, _; _ },
       SubScopeVar { alias = ysubindex, _; var = ysubvar, _; _ } ) ->
-    let c = SubScopeName.compare xsubindex ysubindex in
+    let c = ScopeVar.compare xsubindex ysubindex in
     if c = 0 then ScopeVar.compare xsubvar ysubvar else c
   | ToplevelVar { name = vx, _ }, ToplevelVar { name = vy, _ } ->
     TopdefName.compare vx vy

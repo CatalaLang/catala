@@ -96,7 +96,7 @@ let scope ?debug ctx fmt (name, (decl, _pos)) =
          | Call (scope_name, subscope_name, _) ->
            Format.fprintf fmt "%a %a%a%a%a" Print.keyword "call"
              ScopeName.format scope_name Print.punctuation "["
-             SubScopeName.format subscope_name Print.punctuation "]"))
+             ScopeVar.format subscope_name Print.punctuation "]"))
     decl.scope_decl_rules
 
 let print_topdef ctx ppf name (e, ty) =

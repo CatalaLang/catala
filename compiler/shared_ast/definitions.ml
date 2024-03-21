@@ -95,16 +95,9 @@ module ScopeVar =
     end)
     ()
 
-module SubScopeName =
-  Uid.Gen
-    (struct
-      let style = Ocolor_types.(Fg (C4 hi_magenta))
-    end)
-    ()
-
 type scope_var_or_subscope =
   | ScopeVar of ScopeVar.t
-  | SubScope of SubScopeName.t * ScopeName.t
+  | SubScope of ScopeVar.t * ScopeName.t
 
 module StateName =
   Uid.Gen
@@ -446,7 +439,7 @@ type 'a glocation =
       -> < scopeVarSimpl : yes ; .. > glocation
   | SubScopeVar : {
       scope : ScopeName.t;
-      alias : SubScopeName.t Mark.pos;
+      alias : ScopeVar.t Mark.pos;
       var : ScopeVar.t Mark.pos;
     }
       -> < explicitScopes : yes ; .. > glocation
