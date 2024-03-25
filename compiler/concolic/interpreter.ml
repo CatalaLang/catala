@@ -2394,6 +2394,7 @@ let fields_to_json _ fields =
   )
 
 
+
 module Stats = struct
   type time = float
   type period = { start : time; stop : time }
@@ -2530,13 +2531,11 @@ let interpret_program_concolic
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
 
     let total_tests = ref 0 in
-    let tests_dir =
-      (* Filename.temp_dir exists in OCaml >= 5.1... *)
-      let f = Filename.temp_file ~temp_dir:"." "tests_" "" in
-      Sys.remove f;
-      Sys.mkdir f 0o700;
-      f
-    in
+    let tests_file =  Filename.temp_file ~temp_dir:"." "test_" ".py" in
+    let t = open_out tests_file in
+    let fmtt = Format.formatter_of_out_channel t in
+    (* FIXME filename *)
+    Format.fprintf fmtt "from catala.runtime import *@.from simple_nochild_noassert import test, TestIn@.@.";
 
     let rec concolic_loop (previous_path : PathConstraint.annotated_path) stats
         : Stats.t =
@@ -2590,6 +2589,22 @@ let interpret_program_concolic
           PathConstraint.Print.naked_path res_path_constraints;
 
         Message.emit_result "Output of scope after evaluation:";
+
+        Format.fprintf fmtt "@[<hov 4>def test_%d():@\n" !total_tests;
+        Format.fprintf fmtt "i = TestIn(%a)@\n"
+          (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt ",@\n")
+             (fun fmt ((var, _), value) ->
+                match Mark.remove value with
+                | ELit l ->
+                  let lp = l, Expr.pos value in 
+                  Format.fprintf fmt "%a=%a"
+                    Scalc.To_python.format_name_cleaned var
+                    Scalc.To_python.format_lit lp
+                | _ -> assert false
+             )
+          )
+          inputs_list;
+
         begin
           match Mark.remove res with
           | EStruct { fields; _ } ->
@@ -2600,17 +2615,20 @@ let interpret_program_concolic
             in
             print_fields p.lang ". " outputs_list;
 
-            let json =
-              `Assoc
-                [
-                  ("inputs", fields_to_json p.lang inputs_list);
-                  ("error_raised", `Bool false);
-                  ("outputs", fields_to_json p.lang outputs_list)
-                ]
-            in
-            let oc = open_out (tests_dir ^ "/" ^ string_of_int !total_tests ^ ".json") in
-            Yojson.to_channel oc json;
-            close_out oc 
+            Format.fprintf fmtt "r = test(i)@\n";
+            Format.fprintf fmtt "%a@]@\n@."
+              (Format.pp_print_list ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
+                 (fun fmt ((var, _), value) ->
+                    match Mark.remove value with
+                    | ELit l ->
+                      let lp = l, Expr.pos value in 
+                      Format.fprintf fmt "assert(r.%a == %a)"
+                        Scalc.To_python.format_name_cleaned var
+                        Scalc.To_python.format_lit lp
+                    | _ -> assert false
+                 )
+              )
+              outputs_list;
      
 
           | EGenericError ->
@@ -2620,18 +2638,17 @@ let interpret_program_concolic
               (get_symb_expr_r res)
               (Pos.to_string_short (Expr.pos res));
 
-            let json =
-              `Assoc
-                [
-                  ("inputs", fields_to_json p.lang inputs_list);
-                  ("error_raised", `Bool true);
-                  ("error", `String (Format.asprintf "%a" SymbExpr.formatter (get_symb_expr_r res)))
-                ]
+            (* TODO FIXME UGLY *)
+            let s = Format.asprintf "%a" SymbExpr.formatter (get_symb_expr_r res) in
+            let str_contains searched = fun s ->
+              try ignore (Str.search_forward (Str.regexp_string searched) s 0); true
+              with Not_found -> false
             in
-            let oc = open_out (tests_dir ^ "/" ^ string_of_int !total_tests ^ ".json") in
-            Yojson.to_channel oc json;
-            close_out oc 
-
+            if str_contains "AssertionError" s then 
+              Format.fprintf fmtt "try: r = test(i)@\nexcept AssertionFailure: pass@\nelse: assert(False)@]@\n@."
+            else
+              assert false 
+            
           | _ ->
             Message.raise_spanned_error (Expr.pos scope_e)
               "The concolic interpretation of a program should always yield a \
@@ -2682,7 +2699,15 @@ let interpret_program_concolic
     let stats = concolic_loop [] stats in
     let stats = Stats.stop_step s_loop |> Stats.add_stat_step stats in
     Message.emit_result "";
-    Message.emit_result "Concolic interpreter done, all %d JSON tests are available in %s" !total_tests tests_dir;
+
+    Format.fprintf fmtt "@[<hov 4>if __name__ == '__main__':@\n";
+    for i = 0 to !total_tests - 1 do
+      Format.fprintf fmtt "test_%d()@\n" i
+    done;
+    Format.fprintf fmtt "@]@.";
+    close_out t;
+
+    Message.emit_result "Concolic interpreter done, all %d JSON tests are available in %s" !total_tests tests_file;
 
     let stats = Stats.stop stats in
     if print_stats then
