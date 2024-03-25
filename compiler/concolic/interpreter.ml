@@ -25,6 +25,7 @@ module Concrete = Shared_ast.Interpreter
 open Z3_utils
 open Symb_expr
 open Path_constraint
+open Yojson.Basic
 
 type s_expr = SymbExpr.z3_expr
 
@@ -2370,6 +2371,21 @@ let print_fields language (prefix : string) fields =
          else ""))
     ordered_fields
 
+let fields_to_json language fields =
+  let ordered_fields =
+    List.sort (fun ((v1, _), _) ((v2, _), _) -> String.compare v1 v2) fields
+  in
+  `Assoc
+    (
+    List.map
+      (fun ((var, _), value) ->
+         (Format.asprintf "%a" Scalc.To_python.format_name_cleaned var,
+          `String (Format.asprintf "%a" (Print.UserFacing.value language) value))
+          (* `String (Format.asprintf "%a" (Scalc.To_python.format_expression _) value) *)
+      ) ordered_fields
+  )
+
+
 module Stats = struct
   type time = float
   type period = { start : time; stop : time }
@@ -2505,6 +2521,15 @@ let interpret_program_concolic
     (* TODO CONC should it be [mark_e] or something else? *)
     let input_marks = StructField.Map.mapi (make_input_mark ctx mark_e) taus in
 
+    let total_tests = ref 0 in
+    let tests_dir =
+      (* Filename.temp_dir exists in OCaml >= 5.1... *)
+      let f = Filename.temp_file ~temp_dir:"." "tests_" "" in
+      Sys.remove f;
+      Sys.mkdir f 0o700;
+      f
+    in
+
     let rec concolic_loop (previous_path : PathConstraint.annotated_path) stats
         : Stats.t =
       let exec = Stats.start_exec (List.length previous_path) in
@@ -2565,18 +2590,46 @@ let interpret_program_concolic
                 (fun (fld, e) -> StructField.get_info fld, e)
                 (StructField.Map.bindings fields)
             in
-            print_fields p.lang ". " outputs_list
+            print_fields p.lang ". " outputs_list;
+
+            let json =
+              `Assoc
+                [
+                  ("inputs", fields_to_json p.lang inputs_list);
+                  ("error_raised", `Bool false);
+                  ("outputs", fields_to_json p.lang outputs_list)
+                ]
+            in
+            let oc = open_out (tests_dir ^ "/" ^ string_of_int !total_tests ^ ".json") in
+            Yojson.to_channel oc json;
+            close_out oc 
+     
+
           | EGenericError ->
             (* TODO better error messages *)
             (* TODO test the different cases *)
             Message.emit_result "Found error %a at %s" SymbExpr.formatter
               (get_symb_expr_r res)
-              (Pos.to_string_short (Expr.pos res))
+              (Pos.to_string_short (Expr.pos res));
+
+            let json =
+              `Assoc
+                [
+                  ("inputs", fields_to_json p.lang inputs_list);
+                  ("error_raised", `Bool true);
+                  ("error", `String (Format.asprintf "%a" SymbExpr.formatter (get_symb_expr_r res)))
+                ]
+            in
+            let oc = open_out (tests_dir ^ "/" ^ string_of_int !total_tests ^ ".json") in
+            Yojson.to_channel oc json;
+            close_out oc 
+
           | _ ->
             Message.raise_spanned_error (Expr.pos scope_e)
               "The concolic interpretation of a program should always yield a \
                struct corresponding to the scope variables"
         end;
+        incr total_tests;
 
         (* TODO find a better way *)
         let new_path_constraints =
@@ -2621,7 +2674,7 @@ let interpret_program_concolic
     let stats = concolic_loop [] stats in
     let stats = Stats.stop_step s_loop |> Stats.add_stat_step stats in
     Message.emit_result "";
-    Message.emit_result "Concolic interpreter done";
+    Message.emit_result "Concolic interpreter done, all %d JSON tests are available in %s" !total_tests tests_dir;
 
     let stats = Stats.stop stats in
     if print_stats then
